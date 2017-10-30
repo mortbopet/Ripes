@@ -69,9 +69,9 @@ error Runner::execJalrInstr(Instruction instr) {
 error Runner::execBranchInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeBInstr(instr);
 
-  // calculate target address
-  auto target = m_pc + fields[0] << 12 + fields[1] << 5 + fields[5]
-                                 << 1 + fields[6] << 11;
+  // calculate target address using signed offset
+  auto target = m_pc + (int32_t)((fields[0] << 12) | (fields[1] << 5) |
+                                 (fields[5] << 1) | (fields[6] << 11));
   switch (fields[4]) {
   case 0b000: // BEQ
     m_pc = m_reg[fields[2]] == m_reg[fields[3]] ? target : m_pc + 4;
@@ -104,18 +104,25 @@ error Runner::execLoadInstr(Instruction instr) {
   if (fields[3] == 0) {
     return ERR_NULLLOAD;
   }
-
   auto target = (int32_t)fields[0] + fields[1];
+
+  // Handle different load types by pointer conversion and subsequent
+  // dereferencing. This will handle sign extending/not sign extending
   switch (fields[2]) {
-  case 0b000: // LB
+  case 0b000: // LB - load sign extended byte
+    m_reg[fields[3]] = ((int8_t *)m_mem)[target];
     break;
-  case 0b001: // LH
+  case 0b001: // LH load sign extended halfword
+    m_reg[fields[3]] = ((int16_t *)m_mem)[target];
     break;
-  case 0b010: // LW
+  case 0b010: // LW load word
+    m_reg[fields[3]] = ((uint32_t *)m_mem)[target];
     break;
-  case 0b100: // LBU
+  case 0b100: // LBU load zero extended byte
+    m_reg[fields[3]] = ((uint8_t *)m_mem)[target];
     break;
-  case 0b101: // LHU
+  case 0b101: // LHU load zero extended halfword
+    m_reg[fields[3]] = ((uint16_t *)m_mem)[target];
     break;
   }
   return SUCCESS;
@@ -124,12 +131,16 @@ error Runner::execLoadInstr(Instruction instr) {
 error Runner::execStoreInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeSInstr(instr);
 
+  auto target = (int32_t)(fields[0] << 5 | fields[4]) + m_reg[fields[2]];
   switch (fields[3]) {
   case 0b000: // SB
+    m_mem[target] = (uint8_t)m_reg[fields[1]];
     break;
   case 0b001: // SH
+    m_mem[target] = (uint16_t)m_reg[fields[1]];
     break;
   case 0b010: // SW
+    m_mem[target] = m_reg[fields[1]];
     break;
   default:
     return ERR_BFUNCT3;
@@ -173,31 +184,31 @@ error Runner::execOpInstr(Instruction instr) {
   return SUCCESS;
 }
 
-void Runner::handleError(error err) {
+void Runner::handleError(error err) const {
   // handle error and print program counter + current instruction
 }
 
-std::vector<uint32_t> Runner::decodeUInstr(Instruction instr) {
+std::vector<uint32_t> Runner::decodeUInstr(Instruction instr) const {
   std::vector<uint32_t> tmp;
   return tmp;
 }
-std::vector<uint32_t> Runner::decodeJInstr(Instruction instr) {
+std::vector<uint32_t> Runner::decodeJInstr(Instruction instr) const {
   std::vector<uint32_t> tmp;
   return tmp;
 }
-std::vector<uint32_t> Runner::decodeIInstr(Instruction instr) {
+std::vector<uint32_t> Runner::decodeIInstr(Instruction instr) const {
   std::vector<uint32_t> tmp;
   return tmp;
 }
-std::vector<uint32_t> Runner::decodeSInstr(Instruction instr) {
+std::vector<uint32_t> Runner::decodeSInstr(Instruction instr) const {
   std::vector<uint32_t> tmp;
   return tmp;
 }
-std::vector<uint32_t> Runner::decodeRInstr(Instruction instr) {
+std::vector<uint32_t> Runner::decodeRInstr(Instruction instr) const {
   std::vector<uint32_t> tmp;
   return tmp;
 }
-std::vector<uint32_t> Runner::decodeBInstr(Instruction instr) {
+std::vector<uint32_t> Runner::decodeBInstr(Instruction instr) const {
   std::vector<uint32_t> tmp;
   return tmp;
 }

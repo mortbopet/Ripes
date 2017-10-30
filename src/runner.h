@@ -16,11 +16,14 @@ public:
 
 private:
   error execInstruction(Instruction instr);
-  void handleError(error err);
+  void handleError(error err) const;
 
   int m_pc;           // program counter
   uint32_t m_reg[32]; // Internal registers
-  uint32_t *m_mem;    // Data memory
+  uint8_t *m_mem;     // Stack/Heap
+  uint8_t *m_text;    // text segment
+  uint8_t *m_data;    // data segment
+
   int m_memsize;
 
   Parser *m_parser;
@@ -36,12 +39,12 @@ private:
   error execOpInstr(Instruction instr);
 
   // Instruction decode functions
-  std::vector<uint32_t> decodeUInstr(Instruction instr);
-  std::vector<uint32_t> decodeJInstr(Instruction instr);
-  std::vector<uint32_t> decodeIInstr(Instruction instr);
-  std::vector<uint32_t> decodeSInstr(Instruction instr);
-  std::vector<uint32_t> decodeRInstr(Instruction instr);
-  std::vector<uint32_t> decodeBInstr(Instruction instr);
+  std::vector<uint32_t> decodeUInstr(Instruction instr) const;
+  std::vector<uint32_t> decodeJInstr(Instruction instr) const;
+  std::vector<uint32_t> decodeIInstr(Instruction instr) const;
+  std::vector<uint32_t> decodeSInstr(Instruction instr) const;
+  std::vector<uint32_t> decodeRInstr(Instruction instr) const;
+  std::vector<uint32_t> decodeBInstr(Instruction instr) const;
 };
 
 #endif // RUNNER_H
