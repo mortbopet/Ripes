@@ -4,3 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += src/main.cpp \
+    src/parser.cpp
+
+HEADERS += \
+    src/parser.h
