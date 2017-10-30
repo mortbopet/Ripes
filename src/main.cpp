@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "parser.h"
+#include "runner.h"
 
 using namespace std;
 
@@ -8,8 +9,9 @@ int main(/*argv, argc*/) {
 
   cout << "Hello World!" << endl;
 
-  Parser myParser(char *fileName);
-  // risc5sim test.bin
+  char *ex;
+  Parser parser(ex);
+  Runner runner(&parser);
 
-  return 0;
+  return runner.exec();
 }
