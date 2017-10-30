@@ -15,7 +15,7 @@ enum instrType {
   INVALID = 0b0
 };
 
-enum error { INV_IMM, ALLGOOD };
+enum error { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS = 0 };
 
 typedef struct {
   instrType type = INVALID;
