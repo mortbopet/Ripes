@@ -1,18 +1,21 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <cstdint>
+#include "defines.h"
 
 class Parser {
 public:
   Parser(char *fileName);
   ~Parser();
 
-  int getInstruction(int byteOffset = 4);
+  bool parseInstruction(int byteOffset = 4);
   uint32_t readWord();
-  int decodeInstruction(uint32_t word);
+  instrType getOpType(uint32_t word);
+
+  Instruction getInstruction() const;
 
 private:
+  Instruction m_currentInstruction;
   // FILE *filePtr;
 };
 

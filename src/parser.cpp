@@ -2,4 +2,6 @@
 
 Parser::Parser(char *fileName) {}
 
-int Parser::decodeInstruction(uint32_t word) {}
+instrType Parser::getOpType(uint32_t word) { return INVALID; }
+
+Instruction Parser::getInstruction() const { return m_currentInstruction; }
