@@ -7,4 +7,5 @@ SOURCES += src/main.cpp \
     src/parser.cpp
 
 HEADERS += \
-    src/parser.h
+    src/parser.h \
+    src/defines.h
