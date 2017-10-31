@@ -54,15 +54,15 @@ error Runner::execLuiInstr(Instruction instr) {
 
 error Runner::execJalInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeJInstr(instr);
-  m_pc += fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12;
-  m_reg[fields[4]] = m_pc + 4; // rd = pc + 4
+  m_pc += fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12; // must be signed!
+  m_reg[fields[4]] = m_pc + 4; // rd = pc + 4 // is rd equal to pc+4 before or after pc increment?
   return SUCCESS;
 }
 
 error Runner::execJalrInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr);
   m_reg[fields[3]] = m_pc + 4;                      // store return address
-  m_pc = ((int32_t)fields[0] + fields[1]) & 0xfffe; // set LSB of result to zero
+  m_pc = ((int32_t)fields[0] + fields[1]) & 0xfffe; // set LSB of result to zero // shouldnt this be 0xfffffffe?
   return SUCCESS;
 }
 
@@ -106,8 +106,8 @@ error Runner::execLoadInstr(Instruction instr) {
   }
   auto target = (int32_t)fields[0] + fields[1];
 
-  // Handle different load types by pointer conversion and subsequent
-  // dereferencing. This will handle sign extending/not sign extending
+  // Handle different load types by pointer casting and subsequent
+  // dereferencing. This will handle whether to sign or zero extend.
   switch (fields[2]) {
   case 0b000: // LB - load sign extended byte
     m_reg[fields[3]] = ((int8_t *)m_mem)[target];
@@ -137,7 +137,7 @@ error Runner::execStoreInstr(Instruction instr) {
     m_mem[target] = (uint8_t)m_reg[fields[1]];
     break;
   case 0b001: // SH
-    m_mem[target] = (uint16_t)m_reg[fields[1]];
+    m_mem[target] = (uint16_t)m_reg[fields[1]]; // will this work? m_mem[target] is uint8_t. I think we need (uint16_t)((m_mem + target)*), not sure though
     break;
   case 0b010: // SW
     m_mem[target] = m_reg[fields[1]];
@@ -180,7 +180,7 @@ error Runner::execOpImmInstr(Instruction instr) {
 error Runner::execOpInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeRInstr(instr);
   switch (fields[3]) {}
-  // cose stuff here
+  // code stuff here
   return SUCCESS;
 }
 
