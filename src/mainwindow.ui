@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>689</width>
+    <height>483</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Program file</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <widget class="ProgramfileTab" name="programfiletab" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Processor</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="ProcessorTab" name="widget" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Memory</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="MemoryTab" name="memorytab" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_4">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="title">
+        <string>Cache</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="CacheTab" name="widget_2" native="true"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>689</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuExamples">
+     <property name="title">
+      <string>Load example...</string>
+     </property>
+     <addaction name="actionAddition"/>
+     <addaction name="actionLoad_from_data"/>
+     <addaction name="actionBranch_control"/>
+     <addaction name="actionForwarding"/>
+    </widget>
+    <addaction name="actionLoadBinaryFile"/>
+    <addaction name="actionLoadAssemblyFile"/>
+    <addaction name="separator"/>
+    <addaction name="menuExamples"/>
+    <addaction name="separator"/>
+    <addaction name="actionexit"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionRun"/>
+   <addaction name="actionStep"/>
+   <addaction name="actionPrev"/>
+   <addaction name="actionReset"/>
+   <addaction name="actionDump"/>
+  </widget>
+  <action name="actionLoadBinaryFile">
+   <property name="text">
+    <string>Load binary file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionexit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>Run</string>
+   </property>
+  </action>
+  <action name="actionStep">
+   <property name="text">
+    <string>Step</string>
+   </property>
+  </action>
+  <action name="actionPrev">
+   <property name="text">
+    <string>Prev</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionDump">
+   <property name="text">
+    <string>Dump</string>
+   </property>
+  </action>
+  <action name="actionLoadAssemblyFile">
+   <property name="text">
+    <string>Load Assembly File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionAddition">
+   <property name="text">
+    <string>Addition</string>
+   </property>
+   <property name="toolTip">
+    <string>Basic addition example</string>
+   </property>
+  </action>
+  <action name="actionLoad_from_data">
+   <property name="text">
+    <string>Load from data</string>
+   </property>
+  </action>
+  <action name="actionBranch_control">
+   <property name="text">
+    <string>Branching</string>
+   </property>
+  </action>
+  <action name="actionForwarding">
+   <property name="text">
+    <string>Forwarding</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MemoryTab</class>
+   <extends>QWidget</extends>
+   <header>memorytab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ProgramfileTab</class>
+   <extends>QWidget</extends>
+   <header>programfiletab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ProcessorTab</class>
+   <extends>QWidget</extends>
+   <header>processortab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CacheTab</class>
+   <extends>QWidget</extends>
+   <header>cachetab.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,5 +1,7 @@
+#include <QApplication>
 #include <iostream>
 
+#include "mainwindow.h"
 #include "parser.h"
 #include "runner.h"
 
@@ -17,7 +19,10 @@ if (argc != 2) {
 
   Parser parser(argv[1]);
   Runner runner(&parser);
+  QApplication app(argc, argv);
+  MainWindow m;
+  m.show();
 
   // execute runner
-  return runner.exec();
+  return app.exec();
 }
