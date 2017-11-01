@@ -2,7 +2,11 @@
 
 FACache::FACache(int size) : Cache(size) {}
 
-uint32_t FACache::readData(uint32_t address) const { return 0; }
+uint32_t FACache::readData(uint32_t address) {
+  m_readCount++;
+
+  return 0;
+}
 
 void FACache::writeData(uint32_t address) {}
 

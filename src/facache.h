@@ -8,7 +8,7 @@ class FACache : public Cache {
 public:
   FACache(int size);
 
-  uint32_t readData(uint32_t address) const override;
+  uint32_t readData(uint32_t address) override;
   void writeData(uint32_t address) override;
 
 private:

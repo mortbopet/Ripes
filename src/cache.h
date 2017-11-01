@@ -6,17 +6,21 @@
 
 class Cache {
 public:
-  Cache(int size, int missPenalty = 0, int searchPenalty = 0);
-  virtual uint32_t readData(uint32_t address) const = 0;
+  Cache(int missPenalty = 0, int searchPenalty = 0);
+  virtual uint32_t readData(uint32_t address) = 0;
   virtual void writeData(uint32_t address) = 0;
 
   void setMissPenalty(int cycles) { m_missPenalty = cycles; }
   void setSearchPenalty(int cycles) { m_searchPenalty = cycles; }
 
-  void resize(int size);
+  virtual void resize(int size) = 0;
+
+protected:
+  void assertSize(int size) const;
+  int m_readCount = 0;
+  int m_missCount = 0;
 
 private:
-  std::vector<uint32_t> m_cache;
   int m_missPenalty;
   int m_searchPenalty;
   uint32_t *m_memoryPtr;
