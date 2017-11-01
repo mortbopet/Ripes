@@ -1,6 +1,6 @@
 #include "facache.h"
 
-FACache::FACache(int size) : Cache(size) {}
+FACache::FACache(int size, int *cycleCounterPtr) : Cache(cycleCounterPtr) {}
 
 uint32_t FACache::readData(uint32_t address) {
   m_readCount++;

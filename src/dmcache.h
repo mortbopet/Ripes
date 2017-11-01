@@ -9,7 +9,7 @@
 // Direct mapped cache
 class DMCache : public Cache {
 public:
-  DMCache(int size);
+  DMCache(int size, int *cycleCounterPtr);
 
   uint32_t readData(uint32_t address) override;
   void writeData(uint32_t address) override;

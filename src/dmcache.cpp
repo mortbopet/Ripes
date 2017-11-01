@@ -1,6 +1,6 @@
 #include "dmcache.h"
 
-DMCache::DMCache(int size) : Cache() {
+DMCache::DMCache(int size, int *cycleCounterPtr) : Cache(cycleCounterPtr) {
   assertSize(size);
 
   // Initialize cache to all zeros and invalidated
@@ -20,6 +20,16 @@ uint32_t DMCache::readData(uint32_t address) {
   } else {
     // Cache miss
     m_missCount++;
+    *m_cycleCounterPtr += m_missPenalty;
+    if (m_childCache != nullptr) {
+      // Cache has subcache, delegate memory request to subcache
+      return m_childCache->readData(address);
+    } else {
+      // No subcaches available, read straight from memory
+      *m_cycleCounterPtr += m_memoryPenalty;
+      // @TODO : return an actual memory value here!
+      return 0;
+    }
   }
 }
 

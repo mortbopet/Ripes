@@ -6,7 +6,7 @@
 // Fully associative cache
 class FACache : public Cache {
 public:
-  FACache(int size);
+  FACache(int size, int *cycleCounterPtr);
 
   uint32_t readData(uint32_t address) override;
   void writeData(uint32_t address) override;
