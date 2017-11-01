@@ -93,10 +93,8 @@
      <property name="title">
       <string>Load example...</string>
      </property>
-     <addaction name="actionAddition"/>
-     <addaction name="actionLoad_from_data"/>
-     <addaction name="actionBranch_control"/>
-     <addaction name="actionForwarding"/>
+     <addaction name="actionBinary_files"/>
+     <addaction name="actionAssembly_files"/>
     </widget>
     <addaction name="actionLoadBinaryFile"/>
     <addaction name="actionLoadAssemblyFile"/>
@@ -173,27 +171,14 @@
     <string>Ctrl+Shift+O</string>
    </property>
   </action>
-  <action name="actionAddition">
+  <action name="actionBinary_files">
    <property name="text">
-    <string>Addition</string>
-   </property>
-   <property name="toolTip">
-    <string>Basic addition example</string>
+    <string>Binary files</string>
    </property>
   </action>
-  <action name="actionLoad_from_data">
+  <action name="actionAssembly_files">
    <property name="text">
-    <string>Load from data</string>
-   </property>
-  </action>
-  <action name="actionBranch_control">
-   <property name="text">
-    <string>Branching</string>
-   </property>
-  </action>
-  <action name="actionForwarding">
-   <property name="text">
-    <string>Forwarding</string>
+    <string>Assembly files</string>
    </property>
   </action>
  </widget>
