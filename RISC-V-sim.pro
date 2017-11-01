@@ -5,9 +5,15 @@ CONFIG -= qt
 
 SOURCES += src/main.cpp \
     src/parser.cpp \
-    src/runner.cpp
+    src/runner.cpp \
+    src/cache.cpp \
+    src/dmcache.cpp \
+    src/facache.cpp
 
 HEADERS += \
     src/parser.h \
     src/defines.h \
-    src/runner.h
+    src/runner.h \
+    src/cache.h \
+    src/dmcache.h \
+    src/facache.h
