@@ -1,7 +1,8 @@
 #include "cachetab.h"
+#include "cachesetupwidget.h"
 #include "ui_cachetab.h"
 
-#include "QLineEdit"
+#include "QGroupBox"
 
 CacheTab::CacheTab(QWidget *parent) : QWidget(parent), m_ui(new Ui::CacheTab) {
   m_ui->setupUi(this);
@@ -11,70 +12,19 @@ CacheTab::CacheTab(QWidget *parent) : QWidget(parent), m_ui(new Ui::CacheTab) {
 }
 
 void CacheTab::setupWidgets() {
-  // set cache size combobox values
-  QStringList cacheSizes = QStringList() << "32 Bytes"
-                                         << "64 Bytes"
-                                         << "128 Bytes"
-                                         << "256 Bytes";
-  m_ui->l1size->addItems(cacheSizes);
-  m_ui->l2size->addItems(cacheSizes);
-  m_ui->l3size->addItems(cacheSizes);
-
-  m_ui->l1delay->setSuffix((" cycles"));
-  m_ui->l2delay->setSuffix((" cycles"));
-  m_ui->l3delay->setSuffix((" cycles"));
+  m_ui->l1->enable(true);
+  m_ui->l1->setName("L1 cache");
+  m_ui->l2->setName("L2 cache");
+  m_ui->l3->setName("L3 cache");
 }
 
 void CacheTab::connectWidgets() { // Connect cache selection checkboxes
-  connect(m_ui->l1checkbox, &QCheckBox::toggled, this,
+  connect(m_ui->l1, &CacheSetupWidget::groupBoxToggled, this,
           &CacheTab::cacheCountChanged);
-  connect(m_ui->l2checkbox, &QCheckBox::toggled, this,
+  connect(m_ui->l2, &CacheSetupWidget::groupBoxToggled, this,
           &CacheTab::cacheCountChanged);
-  connect(m_ui->l3checkbox, &QCheckBox::toggled, this,
+  connect(m_ui->l3, &CacheSetupWidget::groupBoxToggled, this,
           &CacheTab::cacheCountChanged);
-}
-
-void CacheTab::disableCacheWidget(int cacheNumber) {
-  // Disables all widgets associated with a cache number
-  auto disableFct = [=](QCheckBox *checkbox, QComboBox *combobox,
-                        QSpinBox *lineedit) {
-    checkbox->setEnabled(false);
-    checkbox->setChecked(false);
-    combobox->setEnabled(false);
-    lineedit->setEnabled(false);
-  };
-  switch (cacheNumber) {
-  case 1:
-    disableFct(m_ui->l1checkbox, m_ui->l1size, m_ui->l1delay);
-    break;
-  case 2:
-    disableFct(m_ui->l2checkbox, m_ui->l2size, m_ui->l2delay);
-    break;
-  case 3:
-    disableFct(m_ui->l3checkbox, m_ui->l3size, m_ui->l3delay);
-    break;
-  }
-}
-
-void CacheTab::enableCacheWidget(int cacheNumber) {
-  // Enables all widgets associated with a cache number
-  auto enableFct = [=](QCheckBox *checkbox, QComboBox *combobox,
-                       QSpinBox *lineedit) {
-    checkbox->setEnabled(true);
-    combobox->setEnabled(true);
-    lineedit->setEnabled(true);
-  };
-  switch (cacheNumber) {
-  case 1:
-    enableFct(m_ui->l1checkbox, m_ui->l1size, m_ui->l1delay);
-    break;
-  case 2:
-    enableFct(m_ui->l2checkbox, m_ui->l2size, m_ui->l2delay);
-    break;
-  case 3:
-    enableFct(m_ui->l3checkbox, m_ui->l3size, m_ui->l3delay);
-    break;
-  }
 }
 
 void CacheTab::cacheCountChanged(bool state) {
@@ -83,21 +33,21 @@ void CacheTab::cacheCountChanged(bool state) {
   // CHANGE ALL THIS STUFF TO JUST CONNECT The checkbox::changed signal to
   // enable/disable slot of the other widgets.
   // and then only do check/uncheck in the below checks
-  auto checkbox = dynamic_cast<QCheckBox *>(sender());
-  if (checkbox == m_ui->l1checkbox) {
+  auto cachewidget = dynamic_cast<CacheSetupWidget *>(sender());
+  if (cachewidget == m_ui->l1) {
     if (state) {
-      enableCacheWidget(2);
+      m_ui->l2->enable(true);
     } else {
-      disableCacheWidget(2);
-      disableCacheWidget(3);
+      m_ui->l2->enable(false);
+      m_ui->l3->enable(false);
     }
-  } else if (checkbox == m_ui->l2checkbox) {
+  } else if (cachewidget == m_ui->l2) {
     if (state) {
-      enableCacheWidget(3);
+      m_ui->l3->enable(true);
     } else {
-      disableCacheWidget(3);
+      m_ui->l3->enable(false);
     }
-  } else if (checkbox == m_ui->l3checkbox) {
+  } else if (cachewidget == m_ui->l3) {
     // nothing
   }
 }

@@ -33,158 +33,29 @@
            </property>
           </widget>
          </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="CacheSetupWidget" name="l1" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="CacheSetupWidget" name="l2" native="true"/>
+           </item>
+           <item>
+            <widget class="CacheSetupWidget" name="l3" native="true"/>
+           </item>
+          </layout>
+         </item>
         </layout>
        </item>
        <item row="1" column="0">
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="1">
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Cache size</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QComboBox" name="l2size">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="l3checkbox">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>L3</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="l2checkbox">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>L2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QComboBox" name="l1size"/>
-         </item>
-         <item row="2" column="5">
-          <widget class="QLabel" name="label_4">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Delay (cycles)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="5">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Delay (cycles)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="6">
-          <widget class="QSpinBox" name="l1delay">
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="5">
-          <widget class="QLabel" name="label_3">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Delay (cycles)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="6">
-          <widget class="QSpinBox" name="l2delay">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="6">
-          <widget class="QSpinBox" name="l3delay">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="l1checkbox">
-           <property name="text">
-            <string>L1</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3">
-          <widget class="QComboBox" name="l3size">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Cache size</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Cache size</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -208,6 +79,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CacheSetupWidget</class>
+   <extends>QWidget</extends>
+   <header>cachesetupwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

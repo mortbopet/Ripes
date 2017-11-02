@@ -11,7 +11,8 @@ SOURCES += src/main.cpp \
     src/programfiletab.cpp \
     src/processortab.cpp \
     src/memorytab.cpp \
-    src/cachetab.cpp
+    src/cachetab.cpp \
+    src/cachesetupwidget.cpp
 
 HEADERS += \
     src/parser.h \
@@ -25,7 +26,8 @@ HEADERS += \
     src/programfiletab.h \
     src/processortab.h \
     src/memorytab.h \
-    src/cachetab.h
+    src/cachetab.h \
+    src/cachesetupwidget.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -33,4 +35,5 @@ FORMS += \
     src/programfiletab.ui \
     src/processortab.ui \
     src/memorytab.ui \
-    src/cachetab.ui
+    src/cachetab.ui \
+    src/cachesetupwidget.ui

@@ -19,8 +19,6 @@ private:
 
   void connectWidgets();
 
-  void disableCacheWidget(int cacheNumber);
-  void enableCacheWidget(int cacheNumber);
   void setupWidgets();
 
 signals:
