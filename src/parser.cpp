@@ -1,39 +1,37 @@
 #include "parser.h"
-#include <fstream>
 
-Parser::Parser(char *fileName) {}
+#include <iostream>
+
+Parser::Parser() {}
+
+bool Parser::init(char *filename) {
+  // Open binary file
+  const string fname = string(filename);
+  m_fileStream = ifstream(fname.c_str(), ios::binary);
+  if (!(m_fileStream.good())) {
+    return 1;
+  }
+
+  // Create filestream iterator
+  m_fileIter = istreambuf_iterator<char>(m_fileStream);
+
+  // get file size
+  m_fileStream.seekg(0, ios::end);
+  m_fileSize = m_fileStream.tellg();
+  m_fileStream.clear();
+  m_fileStream.seekg(0, ios::beg);
+  return 0;
+}
+
 Parser::~Parser() {}
 
-uint32_t Parser::readWord() { return 0; }
-
-bool Parser::parseInstruction(int pc) {
-  // Given a program counter, parse instruction from binary file. Return false
-  // if instruction was not able to be parsed (or EOF)
-
-  // m_currentInstruction = ...
-
-  // For first time, ceate object. Check object, and report error if
-  // incorrect file or path
-  /*
-if (!binaryFile) {
-  ifstream binaryFile(*fileName, ios::binary);
-}
-if (!binaryFile.good()) {
-  return false;
+void Parser::parseFile(uint8_t *textPtr) {
+  // Parse the file in 8-bit segments and write to textPtr
+  while (m_fileIter != istreambuf_iterator<char>()) {
+    *textPtr = *m_fileIter;
+    textPtr++;
+    m_fileIter++;
+  }
 }
 
-// Read file with respect to pc, and put into uint32. If not possible, return
-// false.
-if (binaryFile.read(readWord(), pc)) {
-  binaryFile.close();
-  return true;
-} else {
-  return false;
-}
-*/
-  return false;
-}
-
-instrType Parser::getOpType(uint32_t word) { return INVALID; }
-
-Instruction Parser::getInstruction() const { return m_currentInstruction; }
+int Parser::getFileSize() { return m_fileSize; }

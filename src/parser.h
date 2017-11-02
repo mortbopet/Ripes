@@ -2,21 +2,25 @@
 #define PARSER_H
 
 #include "defines.h"
+#include <fstream>
+
+using namespace std;
 
 class Parser {
 public:
-  Parser(char *fileName);
+  Parser();
   ~Parser();
 
-  bool parseInstruction(int byteOffset = 4);
-  uint32_t readWord();
-  instrType getOpType(uint32_t word);
+  int getFileSize();
 
-  Instruction getInstruction() const;
+public:
+  bool init(char *filename);
+  void parseFile(uint8_t *textPtr);
 
 private:
-  Instruction m_currentInstruction;
-  // FILE *filePtr;
+  ifstream m_fileStream;
+  istreambuf_iterator<char> m_fileIter;
+  int m_fileSize;
 };
 
 #endif // PARSER_H
