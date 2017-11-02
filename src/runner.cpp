@@ -33,12 +33,12 @@ int Runner::exec() {
 
 bool Runner::getInstruction(int pc) {
   if (pc < m_textSize) {
-    auto word = *((uint32_t *)m_text[pc]);
+    auto word = *((uint32_t *)m_text + pc);
     m_currentInstruction.word = word;
     m_currentInstruction.type = static_cast<instrType>(word & 0x7f);
-    return 0;
+    return true;
   }
-  return 1;
+  return false;
 }
 
 error Runner::execInstruction(Instruction instr) {
