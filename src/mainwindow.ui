@@ -93,8 +93,6 @@
      <property name="title">
       <string>Load example...</string>
      </property>
-     <addaction name="actionBinary_files"/>
-     <addaction name="actionAssembly_files"/>
     </widget>
     <addaction name="actionLoadBinaryFile"/>
     <addaction name="actionLoadAssemblyFile"/>
@@ -169,16 +167,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
-   </property>
-  </action>
-  <action name="actionBinary_files">
-   <property name="text">
-    <string>Binary files</string>
-   </property>
-  </action>
-  <action name="actionAssembly_files">
-   <property name="text">
-    <string>Assembly files</string>
    </property>
   </action>
  </widget>
