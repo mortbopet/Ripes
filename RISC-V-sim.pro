@@ -1,5 +1,7 @@
 QT += widgets
 
+INCLUDEPATH  += $$PWD/src/
+
 SOURCES += src/main.cpp \
     src/parser.cpp \
     src/runner.cpp \
