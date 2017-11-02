@@ -35,6 +35,7 @@ int Runner::exec() {
   while (getInstruction(m_pc)) {
     if ((err = execInstruction(m_currentInstruction)) != SUCCESS) {
       handleError(err);
+      return 1;
     }
   }
   return 0;
