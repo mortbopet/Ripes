@@ -25,13 +25,12 @@ bool Parser::init(char *filename) {
 
 Parser::~Parser() {}
 
-void Parser::parseFile(uint8_t *textPtr) {
+void Parser::parseFile(memory *text) {
   // Parse the file in 8-bit segments and write to textPtr
-  while (m_fileIter != istreambuf_iterator<char>()) {
-    *textPtr = *m_fileIter;
-    textPtr++;
+  auto textIter = text->begin();
+  while (m_fileIter != istreambuf_iterator<char>() && textIter != text->end()) {
+    *textIter = *m_fileIter;
+    textIter++;
     m_fileIter++;
   }
 }
-
-int Parser::getFileSize() { return m_fileSize; }

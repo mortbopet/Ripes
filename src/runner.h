@@ -1,12 +1,14 @@
 #ifndef RUNNER_H
 #define RUNNER_H
 
+#include <functional>
 #include <memory>
 #include <vector>
 
 #include "defines.h"
 
 class Parser;
+typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
 
 class Runner {
 public:
@@ -19,10 +21,10 @@ private:
   error execInstruction(Instruction instr);
   void handleError(error err) const;
 
-  int m_pc = 0;       // program counter
-  uint32_t m_reg[32]; // Internal registers
-  uint8_t *m_mem;     // Stack/Heap
-  uint8_t *m_text;    // text segment
+  int m_pc = 0;                // program counter
+  std::vector<uint32_t> m_reg; // Internal registers
+  uint8_t *m_mem;              // Stack/Heap
+  std::vector<uint8_t> m_text; // text segment
   int m_textSize;
   uint8_t *m_data; // data segment
 
@@ -43,13 +45,14 @@ private:
   error execOpImmInstr(Instruction instr);
   error execOpInstr(Instruction instr);
 
-  // Instruction decode functions
-  std::vector<uint32_t> decodeUInstr(Instruction instr) const;
-  std::vector<uint32_t> decodeJInstr(Instruction instr) const;
-  std::vector<uint32_t> decodeIInstr(Instruction instr) const;
-  std::vector<uint32_t> decodeSInstr(Instruction instr) const;
-  std::vector<uint32_t> decodeRInstr(Instruction instr) const;
-  std::vector<uint32_t> decodeBInstr(Instruction instr) const;
+  // Instruction decode functions; generated programmatically
+  decode_functor generateWordParser(std::vector<int> bitFields);
+  decode_functor decodeUInstr;
+  decode_functor decodeJInstr;
+  decode_functor decodeIInstr;
+  decode_functor decodeSInstr;
+  decode_functor decodeRInstr;
+  decode_functor decodeBInstr;
 };
 
 #endif // RUNNER_H

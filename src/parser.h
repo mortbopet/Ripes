@@ -3,6 +3,7 @@
 
 #include "defines.h"
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -11,11 +12,11 @@ public:
   Parser();
   ~Parser();
 
-  int getFileSize();
+  int getFileSize() { return m_fileSize; }
 
 public:
   bool init(char *filename);
-  void parseFile(uint8_t *textPtr);
+  void parseFile(memory *text);
 
 private:
   ifstream m_fileStream;

@@ -2,6 +2,7 @@
 #define DEFINES_H
 
 #include <cstdint>
+#include <vector>
 
 enum instrType {
   LUI = 0b0110111,
@@ -14,6 +15,8 @@ enum instrType {
   OP = 0b0110011,
   INVALID = 0b0
 };
+
+typedef std::vector<uint8_t> memory;
 
 enum error { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS = 0 };
 
