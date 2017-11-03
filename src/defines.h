@@ -18,6 +18,9 @@ enum instrType {
   INVALID = 0b0
 };
 
+enum cacheLevel { L1, L2, L3 };
+enum cacheType { DM, SA, FA };
+
 typedef std::vector<uint8_t> memory;
 
 enum instrState {

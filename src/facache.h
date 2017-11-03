@@ -1,15 +1,17 @@
 #ifndef FACACHE_H
 #define FACACHE_H
 
-#include "cache.h"
+#include "cachebase.h"
 
 // Fully associative cache
-class FACache : public Cache {
+
+class FACache : public CacheBase {
 public:
-  FACache(int size, int *cycleCounterPtr);
+  FACache(CacheProperties properties, int *cycleCounterPtr = nullptr);
 
   uint32_t readData(uint32_t address) override;
   void writeData(uint32_t address) override;
+  void resize(int size) override;
 
 private:
   void searchCache(uint32_t address) const;

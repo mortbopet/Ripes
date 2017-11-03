@@ -5,6 +5,8 @@
 #include "parser.h"
 #include "runner.h"
 
+#include "QDebug"
+
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -12,8 +14,6 @@ int main(int argc, char **argv) {
     // insert error msg
     return 1;
   }
-
-  uint8_t a[4] = {1, 2, 3, 4};
 
   Parser parser;
   // For now, initialize parser with input argument

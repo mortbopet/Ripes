@@ -1,18 +1,19 @@
 #ifndef DMCACHE_H
 #define DMCACHE_H
 
-#include "cache.h"
+#include "cachebase.h"
 #include <cstdint>
 
 #include <map>
 
 // Direct mapped cache
-class DMCache : public Cache {
+class DMCache : public CacheBase {
 public:
-  DMCache(int size, int *cycleCounterPtr);
+  DMCache(CacheProperties properties, int *cycleCounterPtr = nullptr);
 
   uint32_t readData(uint32_t address) override;
   void writeData(uint32_t address) override;
+  void resize(int size) override;
 
 private:
   void searchCache(uint32_t address) const;

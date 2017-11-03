@@ -1,11 +1,12 @@
 QT += widgets
 
+CONFIG += c++14
+
 INCLUDEPATH  += $$PWD/src/
 
 SOURCES += src/main.cpp \
     src/parser.cpp \
     src/runner.cpp \
-    src/cache.cpp \
     src/dmcache.cpp \
     src/facache.cpp \
     src/mainwindow.cpp \
@@ -14,13 +15,14 @@ SOURCES += src/main.cpp \
     src/processortab.cpp \
     src/memorytab.cpp \
     src/cachetab.cpp \
-    src/cachesetupwidget.cpp
+    src/cachesetupwidget.cpp \
+    src/cachebase.cpp \
+    src/runnercache.cpp
 
 HEADERS += \
     src/parser.h \
     src/defines.h \
     src/runner.h \
-    src/cache.h \
     src/dmcache.h \
     src/facache.h \
     src/mainwindow.h \
@@ -29,7 +31,9 @@ HEADERS += \
     src/processortab.h \
     src/memorytab.h \
     src/cachetab.h \
-    src/cachesetupwidget.h
+    src/cachesetupwidget.h \
+    src/cachebase.h \
+    src/runnercache.h
 
 FORMS += \
     src/mainwindow.ui \
