@@ -18,7 +18,7 @@ enum instrType {
 
 typedef std::vector<uint8_t> memory;
 
-enum error { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS = 0 };
+enum instrState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS = 0 };
 
 typedef struct {
   instrType type = INVALID;

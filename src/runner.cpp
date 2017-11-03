@@ -31,7 +31,7 @@ int Runner::exec() {
   // Make parser parse an instruction based on the current program counter, and,
   // if successfull, execute the read instruction. Loop until parser
   // unsuccesfully parses an instruction.
-  error err;
+  instrState err;
   while (getInstruction(m_pc)) {
     if ((err = execInstruction(m_currentInstruction)) != SUCCESS) {
       handleError(err);
@@ -51,7 +51,7 @@ bool Runner::getInstruction(int pc) {
   return false;
 }
 
-error Runner::execInstruction(Instruction instr) {
+instrState Runner::execInstruction(Instruction instr) {
   switch (instr.type) {
   case LUI:
     return execLuiInstr(instr);
@@ -70,12 +70,12 @@ error Runner::execInstruction(Instruction instr) {
   case OP:
     return execOpInstr(instr);
   default:
-    return error::EXEC_ERR;
+    return instrState::EXEC_ERR;
     break;
   }
 }
 
-error Runner::execLuiInstr(Instruction instr) {
+instrState Runner::execLuiInstr(Instruction instr) {
   /* "LUI places the U-immediate value in the top 20 bits of
    * the destination m_register rd, filling in the lowest 12 bits with zeros"*/
   std::vector<uint32_t> fields = decodeUInstr(instr.word);
@@ -84,7 +84,7 @@ error Runner::execLuiInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execJalInstr(Instruction instr) {
+instrState Runner::execJalInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeJInstr(instr.word);
   m_pc += fields[0] << 20 | fields[1] << 1 | fields[2] << 11 |
           fields[3] << 12; // must be signed!
@@ -94,7 +94,7 @@ error Runner::execJalInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execJalrInstr(Instruction instr) {
+instrState Runner::execJalrInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr.word);
   m_reg[fields[3]] = m_pc + 4; // store return address
   m_pc = ((int32_t)fields[0] + fields[1]) &
@@ -102,7 +102,7 @@ error Runner::execJalrInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execBranchInstr(Instruction instr) {
+instrState Runner::execBranchInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeBInstr(instr.word);
 
   // calculate target address using signed offset
@@ -135,7 +135,7 @@ error Runner::execBranchInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execLoadInstr(Instruction instr) {
+instrState Runner::execLoadInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr.word);
   if (fields[3] == 0) {
     return ERR_NULLLOAD;
@@ -164,7 +164,7 @@ error Runner::execLoadInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execStoreInstr(Instruction instr) {
+instrState Runner::execStoreInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeSInstr(instr.word);
 
   auto target = (int32_t)(fields[0] << 5 | fields[4]) + m_reg[fields[2]];
@@ -187,7 +187,7 @@ error Runner::execStoreInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execOpImmInstr(Instruction instr) {
+instrState Runner::execOpImmInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr.word);
   if (fields[3] == 0) {
     return ERR_NULLLOAD;
@@ -198,7 +198,7 @@ error Runner::execOpImmInstr(Instruction instr) {
     m_reg[fields[3]] = m_reg[fields[1]] + (int32_t)fields[0];
     break;
   case 0b010: // SLTI
-    m_reg[fields[3]] = m_reg[fields[1]] < (int32_t)fields[0] ? 1 : 0;
+    m_reg[fields[3]] = (int32_t)m_reg[fields[1]] < (int32_t)fields[0] ? 1 : 0;
     break;
   case 0b011: // SLTIU
     m_reg[fields[3]] = m_reg[fields[1]] < fields[0] ? 1 : 0;
@@ -217,7 +217,7 @@ error Runner::execOpImmInstr(Instruction instr) {
   return SUCCESS;
 }
 
-error Runner::execOpInstr(Instruction instr) {
+instrState Runner::execOpInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeRInstr(instr.word);
   switch (fields[3]) {
   case 0b000:
@@ -233,7 +233,7 @@ error Runner::execOpInstr(Instruction instr) {
   return SUCCESS;
 }
 
-void Runner::handleError(error err) const {
+void Runner::handleError(instrState err) const {
   // handle error and print program counter + current instruction
 }
 
@@ -248,6 +248,15 @@ uint32_t generateBitmask(int n) {
   return mask;
 }
 
+uint32_t bitcount(int n) {
+  int count = 0;
+  while (n > 0) {
+    count += 1;
+    n = n & (n - 1);
+  }
+  return count;
+}
+
 decode_functor Runner::generateWordParser(std::vector<int> bitFields) {
   // Generates functors that can decode a binary number based on the input
   // vector which is supplied upon generation
@@ -259,15 +268,20 @@ decode_functor Runner::generateWordParser(std::vector<int> bitFields) {
   }
   assert(tot == 25 && "Requested word parsing format is not 32-bit in length");
 
-  decode_functor wordParser = [this, bitFields](uint32_t word) {
-    std::vector<uint32_t> fields;
+  // Generate bit masks
+  std::vector<uint32_t> bitMasks;
+  for (const auto &field : bitFields) {
+    bitMasks.push_back(generateBitmask(field));
+  }
+  // Create parse functor
+  decode_functor wordParser = [=](uint32_t word) {
     word = word >> 7; // remove OpCode
-    for (const auto &field : bitFields) {
-      uint32_t mask = generateBitmask(field);
-      fields.insert(fields.begin(), word & mask);
-      word = word >> field;
+    std::vector<uint32_t> parsedWord;
+    for (const auto &mask : bitMasks) {
+      parsedWord.insert(parsedWord.begin(), word & mask);
+      word = word >> bitcount(mask);
     }
-    return fields;
+    return parsedWord;
   };
 
   return wordParser;

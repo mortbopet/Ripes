@@ -18,8 +18,8 @@ public:
   int exec();
 
 private:
-  error execInstruction(Instruction instr);
-  void handleError(error err) const;
+  instrState execInstruction(Instruction instr);
+  void handleError(instrState err) const;
 
   int m_pc = 0;                // program counter
   std::vector<uint32_t> m_reg; // Internal registers
@@ -36,14 +36,14 @@ private:
   Instruction m_currentInstruction;
 
   // Instruction execution functions
-  error execLuiInstr(Instruction instr);
-  error execJalInstr(Instruction instr);
-  error execJalrInstr(Instruction instr);
-  error execBranchInstr(Instruction instr);
-  error execLoadInstr(Instruction instr);
-  error execStoreInstr(Instruction instr);
-  error execOpImmInstr(Instruction instr);
-  error execOpInstr(Instruction instr);
+  instrState execLuiInstr(Instruction instr);
+  instrState execJalInstr(Instruction instr);
+  instrState execJalrInstr(Instruction instr);
+  instrState execBranchInstr(Instruction instr);
+  instrState execLoadInstr(Instruction instr);
+  instrState execStoreInstr(Instruction instr);
+  instrState execOpImmInstr(Instruction instr);
+  instrState execOpInstr(Instruction instr);
 
   // Instruction decode functions; generated programmatically
   decode_functor generateWordParser(std::vector<int> bitFields);
