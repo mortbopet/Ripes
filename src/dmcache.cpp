@@ -34,7 +34,10 @@ uint32_t DMCache::readData(uint32_t address) {
   }
 }
 
-void DMCache::resize(int size) {}
+void DMCache::resize(int size) {
+  int a;
+  a++;
+}
 
 void DMCache::writeData(uint32_t address) {}
 

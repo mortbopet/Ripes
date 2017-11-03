@@ -1,7 +1,9 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include <QString>
 #include <cstdint>
+#include <map>
 #include <vector>
 
 enum instrType {
@@ -19,6 +21,7 @@ enum instrType {
 };
 
 enum cacheLevel { L1, L2, L3 };
+
 enum cacheType { DM, SA, FA };
 
 typedef std::vector<uint8_t> memory;
@@ -31,6 +34,16 @@ enum instrState {
   DONE,
   ERR_ECALL
 };
+
+const static std::map<int, QString> cacheSizes = {
+    {32, QString("32 Bytes")},   {64, QString("64 Bytes")},
+    {128, QString("128 Bytes")}, {256, {QString("256 Bytes")}},
+    {512, QString("512 Bytes")}, {1024, QString("1024 Bytes")}};
+
+const static std::map<QString, int> cacheTypes = {
+    {QString("Direct mapped"), DM},
+    {QString("Set associative"), SA},
+    {QString("Fully associative"), FA}};
 
 typedef struct {
   instrType type = INVALID;

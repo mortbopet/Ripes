@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   Runner runner(&parser);
   runner.exec();
   QApplication app(argc, argv);
-  MainWindow m;
+  MainWindow m(&runner, &parser);
   m.show();
 
   // execute runner

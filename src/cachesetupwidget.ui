@@ -53,23 +53,7 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QComboBox" name="comboBox">
-            <item>
-             <property name="text">
-              <string>Direct mapped</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Set associative</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Fully associative</string>
-             </property>
-            </item>
-           </widget>
+           <widget class="QComboBox" name="cachetype"/>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
@@ -86,42 +70,17 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="spinBox">
+           <widget class="QSpinBox" name="cachedelay">
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="comboBox_2">
+           <widget class="QComboBox" name="cachesize">
             <property name="layoutDirection">
              <enum>Qt::LeftToRight</enum>
             </property>
-            <item>
-             <property name="text">
-              <string>32 Bytes</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>64 Bytes</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>128 Bytes</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>256 Bytes</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>512 Bytes</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item row="4" column="0">
@@ -132,7 +91,7 @@
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QComboBox" name="comboBox_3"/>
+           <widget class="QComboBox" name="setsize"/>
           </item>
          </layout>
         </item>

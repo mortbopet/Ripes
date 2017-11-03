@@ -4,13 +4,20 @@
 
 #include "programfiletab.h"
 #include "registerwidget.h"
+#include "runner.h"
 
+<<<<<<< HEAD
 #include "defines.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)
     : QMainWindow(parent), m_ui(new Ui::MainWindow) {
   m_ui->setupUi(this);
   setWindowTitle("RISC-V simulator");
+  m_runnerPtr = runnerPtr;
+  m_parserPtr = parserPtr;
+
+  // Setup tab pointers
+  m_ui->cachetab->setRunnerCachePtr(m_runnerPtr->getRunnerCachePtr());
 
   // setup example projects
   setupExamples();

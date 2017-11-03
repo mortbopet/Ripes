@@ -7,11 +7,15 @@ namespace Ui {
 class MainWindow;
 }
 
+class Runner;
+class Parser;
+
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(Runner *runnerPtr, Parser *parserPtr,
+                      QWidget *parent = 0);
   ~MainWindow();
 
 private slots:
@@ -24,8 +28,10 @@ private slots:
 
 private:
   Ui::MainWindow *m_ui;
-
   void setupExamples();
+
+  Runner *m_runnerPtr;
+  Parser *m_parserPtr;
 };
 
 #endif // MAINWINDOW_H
