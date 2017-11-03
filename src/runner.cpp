@@ -268,18 +268,22 @@ decode_functor Runner::generateWordParser(std::vector<int> bitFields) {
   }
   assert(tot == 25 && "Requested word parsing format is not 32-bit in length");
 
-  // Generate bit masks
-  std::vector<uint32_t> bitMasks;
+  // Generate vector of <fieldsize,bitmask>
+  std::vector<std::pair<uint32_t, uint32_t>> parseVector;
+
+  // Generate bit masks and fill parse vector
   for (const auto &field : bitFields) {
-    bitMasks.push_back(generateBitmask(field));
+    parseVector.push_back(
+        std::pair<uint32_t, uint32_t>(field, generateBitmask(field)));
   }
+
   // Create parse functor
   decode_functor wordParser = [=](uint32_t word) {
     word = word >> 7; // remove OpCode
     std::vector<uint32_t> parsedWord;
-    for (const auto &mask : bitMasks) {
-      parsedWord.insert(parsedWord.begin(), word & mask);
-      word = word >> bitcount(mask);
+    for (const auto &field : parseVector) {
+      parsedWord.insert(parsedWord.begin(), word & field.second);
+      word = word >> field.first;
     }
     return parsedWord;
   };
