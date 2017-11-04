@@ -20,7 +20,7 @@ enum instrType {
   INVALID = 0b0
 };
 
-enum cacheLevel { L1, L2, L3 };
+enum cacheLevel { L1 = 0, L2 = 1, L3 = 2 };
 
 enum cacheType { DM, SA, FA };
 

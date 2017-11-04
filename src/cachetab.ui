@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -74,6 +74,11 @@
       <attribute name="title">
        <string>Inspect</string>
       </attribute>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="CacheInspector" name="widget" native="true"/>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
@@ -84,6 +89,12 @@
    <class>CacheSetupWidget</class>
    <extends>QWidget</extends>
    <header>cachesetupwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CacheInspector</class>
+   <extends>QWidget</extends>
+   <header>cacheinspector.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
