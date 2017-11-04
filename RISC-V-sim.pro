@@ -1,8 +1,10 @@
-QT += widgets
+QT += widgets printsupport
 
 CONFIG += c++14
 
-INCLUDEPATH  += $$PWD/src/
+INCLUDEPATH  += $$PWD/src/ \
+                $$PWD/external/QCustomPlot/
+
 
 SOURCES += src/main.cpp \
     src/parser.cpp \
@@ -17,7 +19,8 @@ SOURCES += src/main.cpp \
     src/cachetab.cpp \
     src/cachesetupwidget.cpp \
     src/cachebase.cpp \
-    src/runnercache.cpp
+    src/runnercache.cpp \
+    src/cacheinspector.cpp
 
 HEADERS += \
     src/parser.h \
@@ -33,7 +36,8 @@ HEADERS += \
     src/cachetab.h \
     src/cachesetupwidget.h \
     src/cachebase.h \
-    src/runnercache.h
+    src/runnercache.h \
+    src/cacheinspector.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -42,4 +46,13 @@ FORMS += \
     src/processortab.ui \
     src/memorytab.ui \
     src/cachetab.ui \
-    src/cachesetupwidget.ui
+    src/cachesetupwidget.ui \
+    src/cacheinspector.ui
+
+
+# External
+HEADERS += \
+   external/QCustomPlot/qcustomplot.h
+
+SOURCES += \
+    external/QCustomPlot/qcustomplot.cpp
