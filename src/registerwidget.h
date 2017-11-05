@@ -7,16 +7,18 @@ namespace Ui {
 class RegisterWidget;
 }
 
-class RegisterWidget : public QWidget
-{
-    Q_OBJECT
+class RegisterWidget : public QWidget {
+  Q_OBJECT
 
 public:
-    explicit RegisterWidget(QWidget *parent = 0);
-    ~RegisterWidget();
+  explicit RegisterWidget(QWidget *parent = 0);
+  ~RegisterWidget();
+
+  void setAlias(QString text);
+  void setNumber(int number);
 
 private:
-    Ui::RegisterWidget *ui;
+  Ui::RegisterWidget *m_ui;
 };
 
 #endif // REGISTERWIDGET_H

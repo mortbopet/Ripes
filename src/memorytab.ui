@@ -35,7 +35,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>281</width>
+            <width>179</width>
             <height>342</height>
            </rect>
           </property>
@@ -126,7 +126,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>281</width>
+            <width>383</width>
             <height>342</height>
            </rect>
           </property>
@@ -182,7 +182,7 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_3">
+          <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -193,6 +193,51 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Go to</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_3">
+           <item>
+            <property name="text">
+             <string>Text</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Data</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Heap</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Stack</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton">
+           <property name="text">
+            <string>Up</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_2">
+           <property name="text">
+            <string>down</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
