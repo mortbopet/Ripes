@@ -80,6 +80,10 @@ MemoryTab::MemoryTab(QWidget *parent)
     reg->setAlias(ABInames[i]);
     reg->setNumber(i);
     reg->setToolTip(descriptions[i]);
+    reg->setDisplayType(m_ui->registerdisplaytype->currentText());
+    reg->setRegPtr(&(*m_regPtr)[i]);
+    connect(m_ui->registerdisplaytype, &QComboBox::currentTextChanged,
+            [=](const QString &text) { reg->setDisplayType(text); });
     m_ui->registerLayout->addWidget(reg);
   }
 }
