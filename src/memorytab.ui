@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
+    <width>658</width>
     <height>415</height>
    </rect>
   </property>
@@ -41,7 +41,11 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="0" column="0">
-            <layout class="QVBoxLayout" name="registerLayout"/>
+            <layout class="QVBoxLayout" name="registerLayout">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -126,7 +130,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>383</width>
+            <width>445</width>
             <height>342</height>
            </rect>
           </property>
