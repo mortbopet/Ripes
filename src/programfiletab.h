@@ -1,6 +1,7 @@
 #ifndef PROGRAMFILETAB_H
 #define PROGRAMFILETAB_H
 
+#include <QFile>
 #include <QWidget>
 
 namespace Ui {
@@ -13,6 +14,9 @@ class ProgramfileTab : public QWidget {
 public:
   explicit ProgramfileTab(QWidget *parent = 0);
   ~ProgramfileTab();
+
+  void setAssemblyText(const QString &text);
+  void setBinaryText(const QString &text);
 
 signals:
   void loadBinaryFile();

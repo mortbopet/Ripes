@@ -81,10 +81,20 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <widget class="QPlainTextEdit" name="plainTextEdit"/>
-           <widget class="QPlainTextEdit" name="plainTextEdit_2">
+           <widget class="QPlainTextEdit" name="assemblyedit">
+            <property name="tabStopWidth">
+             <number>20</number>
+            </property>
+           </widget>
+           <widget class="QPlainTextEdit" name="binaryedit">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+            <property name="tabStopWidth">
+             <number>20</number>
             </property>
            </widget>
           </widget>

@@ -16,3 +16,11 @@ void ProgramfileTab::on_pushButton_clicked() {
     loadAssemblyFile();
   }
 }
+
+void ProgramfileTab::setAssemblyText(const QString &text) {
+  m_ui->assemblyedit->setPlainText(text);
+}
+
+void ProgramfileTab::setBinaryText(const QString &text) {
+  m_ui->binaryedit->setPlainText(text);
+}

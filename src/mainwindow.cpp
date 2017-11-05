@@ -5,6 +5,8 @@
 #include "programfiletab.h"
 #include "registerwidget.h"
 
+#include "defines.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_ui(new Ui::MainWindow) {
   m_ui->setupUi(this);
@@ -68,9 +70,31 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
 
 void MainWindow::loadBinaryFile(QString fileName) {
   // ... load file
-  auto a = fileName;
+  QString output = "";
+  QFile file(fileName);
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QByteArray read = file.readAll();
+    auto length = read.length();
+    QDataStream in(&read, QIODevice::ReadOnly);
+    char buffer[4];
+    for (int i = 0; i < length; i += 4) {
+      in.readRawData(buffer, 4);
+      for (int j = 0; j < 4; j++) {
+        output.append(
+            QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
+      }
+      output.append("\n");
+    }
+
+    m_ui->programfiletab->setBinaryText(output);
+    file.close();
+  }
 }
 void MainWindow::loadAssemblyFile(QString fileName) {
   // ... load file
-  auto a = fileName;
+  QFile file(fileName);
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    m_ui->programfiletab->setAssemblyText(file.readAll());
+    file.close();
+  }
 }
