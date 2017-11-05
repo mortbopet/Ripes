@@ -20,6 +20,8 @@ public:
   int exec();
 
   RunnerCache *getRunnerCachePtr() { return &m_cache; }
+  std::vector<uint8_t> *getMemoryPtr() { return &m_text; }
+  std::vector<uint32_t> *getRegPtr() { return &m_reg; }
 
 private:
   instrState execInstruction(Instruction instr);
@@ -47,6 +49,8 @@ private:
   int m_memsize;
 
   Parser *m_parser;
+  bool m_running =
+      false; // flag for disabling UI update signals when running simulator
 
   bool getInstruction(int pc);
   Instruction m_currentInstruction;

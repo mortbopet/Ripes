@@ -6,6 +6,10 @@
 MemoryTab::MemoryTab(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::MemoryTab) {
   m_ui->setupUi(this);
+}
+
+void MemoryTab::init() {
+  // !! m_memoryPtr and m_regPtr must be set before initializing
 
   // Initialize register ABInames
   QStringList ABInames = QStringList() << "zero"
@@ -77,15 +81,23 @@ MemoryTab::MemoryTab(QWidget *parent)
   // Initialize 32 register widgets
   for (int i = 0; i < 32; i++) {
     auto reg = new RegisterWidget(this);
+    m_regWidgetPtrs.push_back(reg);
+    reg->setRegPtr(&(*m_regPtr)[i]);
     reg->setAlias(ABInames[i]);
     reg->setNumber(i);
     reg->setToolTip(descriptions[i]);
     reg->setDisplayType(m_ui->registerdisplaytype->currentText());
-    reg->setRegPtr(&(*m_regPtr)[i]);
     connect(m_ui->registerdisplaytype, &QComboBox::currentTextChanged,
             [=](const QString &text) { reg->setDisplayType(text); });
     m_ui->registerLayout->addWidget(reg);
   }
+  m_regWidgetPtrs[0]->setEnabled(false);
+}
+
+void MemoryTab::updateRegisterWidget(int n) {
+  // Invoked when runner edits an internal register, requiring an update of the
+  // widget
+  m_regWidgetPtrs[n]->setText();
 }
 
 MemoryTab::~MemoryTab() { delete m_ui; }

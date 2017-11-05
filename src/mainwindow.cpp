@@ -17,6 +17,10 @@ MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)
 
   // Setup tab pointers
   m_ui->cachetab->setRunnerCachePtr(m_runnerPtr->getRunnerCachePtr());
+  m_ui->memorytab->setMemoryPtr(m_runnerPtr->getMemoryPtr());
+  m_ui->memorytab->setRegPtr(m_runnerPtr->getRegPtr());
+
+  m_ui->memorytab->init();
 
   // setup example projects
   setupExamples();
