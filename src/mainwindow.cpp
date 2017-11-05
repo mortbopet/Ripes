@@ -6,7 +6,6 @@
 #include "registerwidget.h"
 #include "runner.h"
 
-<<<<<<< HEAD
 #include "defines.h"
 
 MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)

@@ -20,12 +20,15 @@ public:
   ~CacheInspector();
 
   void updateData(int value, dataRole role, cacheLevel level);
+  void changePlotView(int view);
 
 private:
   Ui::CacheInspector *m_ui;
 
-  QCPBars *m_hits;
-  QCPBars *m_misses;
+  void setupCacheRequestPlot();
+  void setupCacheRequestRatioPlot();
+  void setupTemporalPlot();
+  void setupTemporalRatioPlot();
 
   QVector<double> m_missData;
   QVector<double> m_hitData;
