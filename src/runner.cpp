@@ -202,7 +202,7 @@ instrState Runner::execOpImmInstr(Instruction instr) {
 
   switch (fields[2]) {
   case 0b000: // ADDI
-    m_reg[fields[3]] = m_reg[fields[1]] + (int32_t)fields[0];
+    m_reg[fields[3]] = (int32_t)m_reg[fields[1]] + (int32_t)fields[0];
     break;
   case 0b010: // SLTI
     m_reg[fields[3]] = (int32_t)m_reg[fields[1]] < (int32_t)fields[0] ? 1 : 0;
@@ -229,10 +229,12 @@ instrState Runner::execOpInstr(Instruction instr) {
   switch (fields[3]) {
   case 0b000: // ADD and SUB
     if (fields[0] == 0) {
-      m_reg[fields[4]] = m_reg[fields[2]] + m_reg[fields[1]]; // ADD
+      m_reg[fields[4]] =
+          (int32_t)m_reg[fields[2]] + (int32_t)m_reg[fields[1]]; // ADD
       break;
     } else if (fields[0] == 0b0100000) {
-      m_reg[fields[4]] = m_reg[fields[2]] - m_reg[fields[1]]; // SUB
+      m_reg[fields[4]] =
+          (int32_t)m_reg[fields[2]] - (int32_t)m_reg[fields[1]]; // SUB
       break;
     }
   case 0b001: // SLL
@@ -253,7 +255,7 @@ instrState Runner::execOpInstr(Instruction instr) {
       m_reg[fields[4]] = m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRL
       break;
     } else if (fields[0] == 0b0100000) {
-      m_reg[fields[4]] =
+      m_reg[fields[4]] = // Cast to signed when doing arithmetic shift
           (int32_t)m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRA
       break;
     }
