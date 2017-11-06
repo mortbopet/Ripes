@@ -20,7 +20,7 @@ public:
   int exec();
 
   RunnerCache *getRunnerCachePtr() { return &m_cache; }
-  std::vector<uint8_t> *getMemoryPtr() { return &m_text; }
+  std::unordered_map<uint32_t, uint8_t> *getMemoryPtr() { return &m_memory; }
   std::vector<uint32_t> *getRegPtr() { return &m_reg; }
 
 private:
