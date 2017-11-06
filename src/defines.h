@@ -13,12 +13,20 @@ enum instrType {
   STORE = 0b0100011,
   OP_IMM = 0b0010011,
   OP = 0b0110011,
+  ECALL = 0b1110011,
   INVALID = 0b0
 };
 
 typedef std::vector<uint8_t> memory;
 
-enum instrState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS = 0 };
+enum instrState {
+  ERR_BFUNCT3,
+  ERR_NULLLOAD,
+  EXEC_ERR,
+  SUCCESS = 0,
+  DONE,
+  ERR_ECALL
+};
 
 typedef struct {
   instrType type = INVALID;

@@ -44,6 +44,7 @@ private:
   instrState execStoreInstr(Instruction instr);
   instrState execOpImmInstr(Instruction instr);
   instrState execOpInstr(Instruction instr);
+  instrState execEcallInstr();
 
   // Instruction decode functions; generated programmatically
   decode_functor generateWordParser(std::vector<int> bitFields);

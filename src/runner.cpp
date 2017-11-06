@@ -33,7 +33,12 @@ int Runner::exec() {
   // unsuccesfully parses an instruction.
   instrState err;
   while (getInstruction(m_pc)) {
-    if ((err = execInstruction(m_currentInstruction)) != SUCCESS) {
+    switch ((err = execInstruction(m_currentInstruction))) {
+    case SUCCESS:
+      break;
+    case DONE:
+      return 0;
+    default:
       handleError(err);
       return 1;
     }
@@ -69,6 +74,8 @@ instrState Runner::execInstruction(Instruction instr) {
     return execOpImmInstr(instr);
   case OP:
     return execOpInstr(instr);
+  case ECALL:
+    return execEcallInstr();
   default:
     return instrState::EXEC_ERR;
     break;
@@ -223,24 +230,32 @@ instrState Runner::execOpInstr(Instruction instr) {
   case 0b000: // ADD and SUB
     if (fields[0] == 0) {
       m_reg[fields[4]] = m_reg[fields[2]] + m_reg[fields[1]]; // ADD
+      break;
     } else if (fields[0] == 0b0100000) {
       m_reg[fields[4]] = m_reg[fields[2]] - m_reg[fields[1]]; // SUB
+      break;
     }
   case 0b001: // SLL
     m_reg[fields[4]] = (int32_t)m_reg[fields[2]] << (m_reg[fields[1]] & 0x1F);
+    break;
   case 0b010: // SLT
     m_reg[fields[4]] =
         (int32_t)m_reg[fields[2]] < (int32_t)m_reg[fields[1]] ? 1 : 0;
+    break;
   case 0b011: // SLTU
     m_reg[fields[4]] = m_reg[fields[2]] < m_reg[fields[1]] ? 1 : 0;
+    break;
   case 0b100: // XOR
     m_reg[fields[4]] = m_reg[fields[2]] ^ m_reg[fields[1]];
+    break;
   case 0b101: // SRL and SRA
     if (fields[0] == 0) {
       m_reg[fields[4]] = m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRL
+      break;
     } else if (fields[0] == 0b0100000) {
       m_reg[fields[4]] =
           (int32_t)m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRA
+      break;
     }
   case 0b110: // OR
     m_reg[fields[4]] = m_reg[fields[2]] | m_reg[fields[1]];
@@ -250,6 +265,16 @@ instrState Runner::execOpInstr(Instruction instr) {
 
   m_pc += 4;
   return SUCCESS;
+}
+
+instrState Runner::execEcallInstr() {
+  switch (m_reg[10]) // a0
+  {
+  case 10:
+    return DONE;
+  default:
+    return ERR_ECALL;
+  }
 }
 
 void Runner::handleError(instrState err) const {
