@@ -1,4 +1,4 @@
-#include "runner.h"
+﻿#include "runner.h"
 #include "assert.h"
 #include "parser.h"
 
@@ -220,14 +220,33 @@ instrState Runner::execOpImmInstr(Instruction instr) {
 instrState Runner::execOpInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeRInstr(instr.word);
   switch (fields[3]) {
-  case 0b000:
+  case 0b000: // ADD and SUB
     if (fields[0] == 0) {
-      m_reg[fields[4]] = m_reg[fields[1]] + m_reg[fields[2]]; // Add
+      m_reg[fields[4]] = m_reg[fields[2]] + m_reg[fields[1]]; // ADD
     } else if (fields[0] == 0b0100000) {
-      m_reg[fields[4]] = m_reg[fields[1]] - m_reg[fields[2]]; // Sub
+      m_reg[fields[4]] = m_reg[fields[2]] - m_reg[fields[1]]; // SUB
     }
+  case 0b001: // SLL
+    m_reg[fields[4]] = (int32_t)m_reg[fields[2]] << (m_reg[fields[1]] & 0x1F);
+  case 0b010: // SLT
+    m_reg[fields[4]] =
+        (int32_t)m_reg[fields[2]] < (int32_t)m_reg[fields[1]] ? 1 : 0;
+  case 0b011: // SLTU
+    m_reg[fields[4]] = m_reg[fields[2]] < m_reg[fields[1]] ? 1 : 0;
+  case 0b100: // XOR
+    m_reg[fields[4]] = m_reg[fields[2]] ^ m_reg[fields[1]];
+  case 0b101: // SRL and SRA
+    if (fields[0] == 0) {
+      m_reg[fields[4]] = m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRL
+    } else if (fields[0] == 0b0100000) {
+      m_reg[fields[4]] =
+          (int32_t)m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRA
+    }
+  case 0b110: // OR
+    m_reg[fields[4]] = m_reg[fields[2]] | m_reg[fields[1]];
+  case 0b111: // AND
+    m_reg[fields[4]] = m_reg[fields[2]] & m_reg[fields[1]];
   }
-  // insert rest of code
 
   m_pc += 4;
   return SUCCESS;
