@@ -118,21 +118,21 @@ instrState Runner::execAuipcInstr(Instruction instr) {
 
 instrState Runner::execJalInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeJInstr(instr.word);
-  m_pc += signextend<int32_t, 20>(fields[0] << 20 | fields[1] << 1 |
-                                  fields[2] << 11 |
-                                  fields[3] << 12); // must be signed!
-  m_reg[fields[4]] =
-      m_pc +
-      4; // rd = pc + 4 // is rd equal to pc+4 before or after pc increment?
+  if (fields[4] != 0) { // rd = 0 equals unconditional jump
+    m_reg[fields[4]] = m_pc + 4;
+  }
+  m_pc += signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 |
+                                  fields[2] << 11 | fields[3] << 12);
   return SUCCESS;
 }
 
 instrState Runner::execJalrInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr.word);
-  m_reg[fields[3]] = m_pc + 4; // store return address
-  m_pc =
-      (signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]]) &
-      0xfffffffe; // set LSB of result to zero // shouldnt this be 0xfffffffe?
+  if (fields[3] != 0) {          // if rd = 0, dont store address
+    m_reg[fields[3]] = m_pc + 4; // store return address
+  }
+  m_pc = (signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]]) &
+         0xfffffffe; // set LSB of result to zero
   return SUCCESS;
 }
 
@@ -140,8 +140,8 @@ instrState Runner::execBranchInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeBInstr(instr.word);
 
   // calculate target address using signed offset
-  auto target =
-      m_pc + signextend<int32_t, 12>((fields[0] << 12) | (fields[1] << 5) |
+  uint32_t target =
+      m_pc + signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) |
                                      (fields[5] << 1) | (fields[6] << 11));
   switch (fields[4]) {
   case 0b000: // BEQ
@@ -151,18 +151,18 @@ instrState Runner::execBranchInstr(Instruction instr) {
     m_pc = m_reg[fields[2]] != m_reg[fields[3]] ? target : m_pc + 4;
     break;
   case 0b100: // BLT - signed comparison
-    m_pc = (int32_t)m_reg[fields[2]] > (int32_t)m_reg[fields[3]] ? target
+    m_pc = (int32_t)m_reg[fields[3]] < (int32_t)m_reg[fields[2]] ? target
                                                                  : m_pc + 4;
     break;
   case 0b101: // BGE - signed comparison
-    m_pc = (int32_t)m_reg[fields[2]] <= (int32_t)m_reg[fields[3]] ? target
+    m_pc = (int32_t)m_reg[fields[3]] >= (int32_t)m_reg[fields[2]] ? target
                                                                   : m_pc + 4;
     break;
   case 0b110: // BLTU
-    m_pc = m_reg[fields[2]] > m_reg[fields[3]] ? target : m_pc + 4;
+    m_pc = m_reg[fields[3]] < m_reg[fields[2]] ? target : m_pc + 4;
     break;
   case 0b111: // BGEU
-    m_pc = m_reg[fields[2]] <= m_reg[fields[3]] ? target : m_pc + 4;
+    m_pc = m_reg[fields[3]] >= m_reg[fields[2]] ? target : m_pc + 4;
     break;
   default:
     return ERR_BFUNCT3;
@@ -175,16 +175,16 @@ instrState Runner::execLoadInstr(Instruction instr) {
   if (fields[3] == 0) {
     return ERR_NULLLOAD;
   }
-  auto target = (int32_t)fields[0] + fields[1];
+  auto target = signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]];
 
   // Handle different load types by pointer casting and subsequent
   // dereferencing. This will handle whether to sign or zero extend.
   switch (fields[2]) {
   case 0b000: // LB - load sign extended byte
-    m_reg[fields[3]] = signextend<uint32_t, 8>(memRead(target));
+    m_reg[fields[3]] = signextend<int32_t, 8>(memRead(target));
     break;
   case 0b001: // LH load sign extended halfword
-    m_reg[fields[3]] = signextend<uint32_t, 16>(memRead(target));
+    m_reg[fields[3]] = signextend<int32_t, 16>(memRead(target));
     break;
   case 0b010: // LW load word
     m_reg[fields[3]] = memRead(target);
@@ -212,8 +212,9 @@ void Runner::memWrite(uint32_t address, uint32_t value, int size) {
 uint32_t Runner::memRead(uint32_t address) {
   // Note: If address is not found in memory map, a default constructed object
   // will be created, and read. in our case uint8_t() = 0
-  uint32_t read = m_memory[address] + (m_memory[address + 1] << 8) +
-                  (m_memory[address + 2] << 16) + (m_memory[address + 3] << 24);
+  uint32_t read = m_memory[address] |
+                  (m_memory[address + 1] << 8) + (m_memory[address + 2] << 16) |
+                  (m_memory[address + 3] << 24);
   m_pc += 4;
   return read;
 }
@@ -222,16 +223,16 @@ instrState Runner::execStoreInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeSInstr(instr.word);
 
   auto target =
-      signextend<int32_t, 12>(fields[0] << 5 | fields[4]) + m_reg[fields[2]];
+      signextend<int32_t, 12>((fields[0] << 5) | fields[4]) + m_reg[fields[2]];
   switch (fields[3]) {
   case 0b000: // SB
     memWrite(target, m_reg[fields[1]] & 0x000000ff, 1);
     break;
   case 0b001: // SH
-    memWrite(target, m_reg[fields[1]] & 0x000000ff, 2);
+    memWrite(target, m_reg[fields[1]] & 0x0000ffff, 2);
     break;
   case 0b010: // SW
-    memWrite(target, m_reg[fields[1]] & 0x000000ff, 4);
+    memWrite(target, m_reg[fields[1]], 4);
     break;
   default:
     return ERR_BFUNCT3;
