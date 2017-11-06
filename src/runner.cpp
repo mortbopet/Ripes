@@ -2,6 +2,18 @@
 #include "assert.h"
 #include "parser.h"
 
+namespace {
+// Sign extension of arbitrary bitfield size.
+// Courtesy of
+// http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
+template <typename T, unsigned B> inline T signextend(const T x) {
+  struct {
+    T x : B;
+  } s;
+  return s.x = x;
+}
+}
+
 Runner::Runner(Parser *parser) {
   m_parser = parser;
   // generate word parser functors
@@ -93,8 +105,9 @@ instrState Runner::execLuiInstr(Instruction instr) {
 
 instrState Runner::execJalInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeJInstr(instr.word);
-  m_pc += fields[0] << 20 | fields[1] << 1 | fields[2] << 11 |
-          fields[3] << 12; // must be signed!
+  m_pc += signextend<int32_t, 20>(fields[0] << 20 | fields[1] << 1 |
+                                  fields[2] << 11 |
+                                  fields[3] << 12); // must be signed!
   m_reg[fields[4]] =
       m_pc +
       4; // rd = pc + 4 // is rd equal to pc+4 before or after pc increment?
@@ -104,8 +117,9 @@ instrState Runner::execJalInstr(Instruction instr) {
 instrState Runner::execJalrInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr.word);
   m_reg[fields[3]] = m_pc + 4; // store return address
-  m_pc = ((int32_t)fields[0] + fields[1]) &
-         0xfffe; // set LSB of result to zero // shouldnt this be 0xfffffffe?
+  m_pc =
+      (signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]]) &
+      0xfffffffe; // set LSB of result to zero // shouldnt this be 0xfffffffe?
   return SUCCESS;
 }
 
@@ -113,8 +127,9 @@ instrState Runner::execBranchInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeBInstr(instr.word);
 
   // calculate target address using signed offset
-  auto target = m_pc + (int32_t)((fields[0] << 12) | (fields[1] << 5) |
-                                 (fields[5] << 1) | (fields[6] << 11));
+  auto target =
+      m_pc + signextend<int32_t, 12>((fields[0] << 12) | (fields[1] << 5) |
+                                     (fields[5] << 1) | (fields[6] << 11));
   switch (fields[4]) {
   case 0b000: // BEQ
     m_pc = m_reg[fields[2]] == m_reg[fields[3]] ? target : m_pc + 4;
@@ -174,7 +189,8 @@ instrState Runner::execLoadInstr(Instruction instr) {
 instrState Runner::execStoreInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeSInstr(instr.word);
 
-  auto target = (int32_t)(fields[0] << 5 | fields[4]) + m_reg[fields[2]];
+  auto target =
+      signextend<int32_t, 12>(fields[0] << 5 | fields[4]) + m_reg[fields[2]];
   switch (fields[3]) {
   case 0b000: // SB
     m_mem[target] = (uint8_t)m_reg[fields[1]];
@@ -202,10 +218,12 @@ instrState Runner::execOpImmInstr(Instruction instr) {
 
   switch (fields[2]) {
   case 0b000: // ADDI
-    m_reg[fields[3]] = (int32_t)m_reg[fields[1]] + (int32_t)fields[0];
+    m_reg[fields[3]] =
+        (int32_t)m_reg[fields[1]] + signextend<int32_t, 12>(fields[0]);
     break;
   case 0b010: // SLTI
-    m_reg[fields[3]] = (int32_t)m_reg[fields[1]] < (int32_t)fields[0] ? 1 : 0;
+    m_reg[fields[3]] =
+        (int32_t)m_reg[fields[1]] < signextend<int32_t, 12>(fields[0]) ? 1 : 0;
     break;
   case 0b011: // SLTIU
     m_reg[fields[3]] = m_reg[fields[1]] < fields[0] ? 1 : 0;
