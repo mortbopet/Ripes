@@ -25,15 +25,19 @@ Runner::Runner(Parser *parser) {
   decodeBInstr = generateWordParser(vector<int>{1, 4, 3, 5, 5, 6, 1});
   decodeUInstr = generateWordParser(vector<int>{5, 20});
   decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
+
   // memory allocation
   // temporary allocation method - get filesize from parser, and allocate same
   // amount of memory
-  m_textSize = m_parser->getFileSize();
-  m_text = std::vector<uint8_t>(m_textSize);
   m_reg = std::vector<uint32_t>(32, 0);
 
+  // Set default register values
+  m_reg[0] = 0;
+  m_reg[2] = m_stackStart;
+  m_reg[3] = m_dataStart;
+
   // file parsing
-  m_parser->parseFile(&m_text);
+  m_parser->parseFile(&m_memory);
 }
 
 Runner::~Runner() {}
@@ -59,19 +63,21 @@ int Runner::exec() {
 }
 
 bool Runner::getInstruction(int pc) {
-  if (pc < m_textSize) {
-    auto word = *((uint32_t *)(m_text.data() + pc));
-    m_currentInstruction.word = word;
-    m_currentInstruction.type = static_cast<instrType>(word & 0x7f);
-    return true;
-  }
-  return false;
+  uint32_t word;
+  word = m_memory[pc] + (m_memory[pc + 1] << 8) + (m_memory[pc + 2] << 16) +
+         (m_memory[pc + 3] << 24);
+
+  m_currentInstruction.word = word;
+  m_currentInstruction.type = static_cast<instrType>(word & 0x7f);
+  return true;
 }
 
 instrState Runner::execInstruction(Instruction instr) {
   switch (instr.type) {
   case LUI:
     return execLuiInstr(instr);
+  case AUIPC:
+    return execAuipcInstr(instr);
   case JAL:
     return execJalInstr(instr);
   case JALR:
@@ -99,6 +105,13 @@ instrState Runner::execLuiInstr(Instruction instr) {
    * the destination m_register rd, filling in the lowest 12 bits with zeros"*/
   std::vector<uint32_t> fields = decodeUInstr(instr.word);
   m_reg[fields[1]] = fields[0] << 12;
+  m_pc += 4;
+  return SUCCESS;
+}
+
+instrState Runner::execAuipcInstr(Instruction instr) {
+  std::vector<uint32_t> fields = decodeUInstr(instr.word);
+  m_reg[fields[1]] = fields[0] << 12 + m_pc;
   m_pc += 4;
   return SUCCESS;
 }
@@ -168,22 +181,41 @@ instrState Runner::execLoadInstr(Instruction instr) {
   // dereferencing. This will handle whether to sign or zero extend.
   switch (fields[2]) {
   case 0b000: // LB - load sign extended byte
-    m_reg[fields[3]] = ((int8_t *)m_mem)[target];
+    m_reg[fields[3]] = signextend<uint32_t, 8>(memRead(target));
     break;
   case 0b001: // LH load sign extended halfword
-    m_reg[fields[3]] = ((int16_t *)m_mem)[target];
+    m_reg[fields[3]] = signextend<uint32_t, 16>(memRead(target));
     break;
   case 0b010: // LW load word
-    m_reg[fields[3]] = ((uint32_t *)m_mem)[target];
+    m_reg[fields[3]] = memRead(target);
     break;
   case 0b100: // LBU load zero extended byte
-    m_reg[fields[3]] = ((uint8_t *)m_mem)[target];
+    m_reg[fields[3]] = memRead(target) & 0x000000ff;
     break;
   case 0b101: // LHU load zero extended halfword
-    m_reg[fields[3]] = ((uint16_t *)m_mem)[target];
+    m_reg[fields[3]] = memRead(target) & 0x0000ffff;
     break;
   }
   return SUCCESS;
+}
+
+void Runner::memWrite(uint32_t address, uint32_t value, int size) {
+  // writes value to from the given address start, and up to $size bytes of
+  // $value
+  // Using the hashtable, new allocations will automatically be handled
+  for (int i = 0; i < size; i++) {
+    m_memory[address + i] = value & 0xff;
+    value >>= 8;
+  }
+}
+
+uint32_t Runner::memRead(uint32_t address) {
+  // Note: If address is not found in memory map, a default constructed object
+  // will be created, and read. in our case uint8_t() = 0
+  uint32_t read = m_memory[address] + (m_memory[address + 1] << 8) +
+                  (m_memory[address + 2] << 16) + (m_memory[address + 3] << 24);
+  m_pc += 4;
+  return read;
 }
 
 instrState Runner::execStoreInstr(Instruction instr) {
@@ -193,20 +225,18 @@ instrState Runner::execStoreInstr(Instruction instr) {
       signextend<int32_t, 12>(fields[0] << 5 | fields[4]) + m_reg[fields[2]];
   switch (fields[3]) {
   case 0b000: // SB
-    m_mem[target] = (uint8_t)m_reg[fields[1]];
+    memWrite(target, m_reg[fields[1]] & 0x000000ff, 1);
     break;
-  case 0b001:                                   // SH
-    m_mem[target] = (uint16_t)m_reg[fields[1]]; // will this work? m_mem[target]
-                                                // is uint8_t. I think we need
-                                                // (uint16_t)((m_mem +
-                                                // target)*), not sure though
+  case 0b001: // SH
+    memWrite(target, m_reg[fields[1]] & 0x000000ff, 2);
     break;
   case 0b010: // SW
-    m_mem[target] = m_reg[fields[1]];
+    memWrite(target, m_reg[fields[1]] & 0x000000ff, 4);
     break;
   default:
     return ERR_BFUNCT3;
   }
+  m_pc += 4;
   return SUCCESS;
 }
 
@@ -299,6 +329,7 @@ instrState Runner::execEcallInstr() {
 
 void Runner::handleError(instrState err) const {
   // handle error and print program counter + current instruction
+  throw "Error!";
 }
 
 uint32_t generateBitmask(int n) {

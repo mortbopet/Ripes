@@ -25,12 +25,12 @@ bool Parser::init(char *filename) {
 
 Parser::~Parser() {}
 
-void Parser::parseFile(memory *text) {
-  // Parse the file in 8-bit segments and write to textPtr
-  auto textIter = text->begin();
-  while (m_fileIter != istreambuf_iterator<char>() && textIter != text->end()) {
-    *textIter = *m_fileIter;
-    textIter++;
+void Parser::parseFile(std::unordered_map<uint32_t, uint8_t> *memory) {
+  // Parse the file in 8-bit segments and write to memory map
+  int pc = 0;
+  while (m_fileIter != istreambuf_iterator<char>()) {
+    (*memory)[pc] = *m_fileIter;
+    pc++;
     m_fileIter++;
   }
 }

@@ -14,6 +14,7 @@ enum instrType {
   OP_IMM = 0b0010011,
   OP = 0b0110011,
   ECALL = 0b1110011,
+  AUIPC = 0b0010111,
   INVALID = 0b0
 };
 

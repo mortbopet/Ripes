@@ -3,6 +3,7 @@
 
 #include "defines.h"
 #include <fstream>
+#include <unordered_map>
 #include <vector>
 
 using namespace std;
@@ -16,7 +17,7 @@ public:
 
 public:
   bool init(char *filename);
-  void parseFile(memory *text);
+  void parseFile(std::unordered_map<uint32_t, uint8_t> *memory);
 
 private:
   ifstream m_fileStream;
