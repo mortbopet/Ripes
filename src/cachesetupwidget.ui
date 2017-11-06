@@ -55,20 +55,6 @@
           <item row="3" column="1">
            <widget class="QComboBox" name="cachetype"/>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Miss penalty (cycles)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Cache size</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
            <widget class="QSpinBox" name="cachedelay">
             <property name="alignment">
@@ -83,6 +69,23 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Cache size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Miss penalty (cycles)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="setsize"/>
+          </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
@@ -90,8 +93,26 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="setsize"/>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Replacement strategy</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QComboBox" name="comboBox">
+            <item>
+             <property name="text">
+              <string>LRU</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Random</string>
+             </property>
+            </item>
+           </widget>
           </item>
          </layout>
         </item>

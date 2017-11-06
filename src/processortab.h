@@ -16,7 +16,7 @@ public:
     ~ProcessorTab();
 
 private:
-    Ui::ProcessorTab *ui;
+    Ui::ProcessorTab *m_ui;
 };
 
 #endif // PROCESSORTAB_H

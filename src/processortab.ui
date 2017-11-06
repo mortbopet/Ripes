@@ -25,7 +25,7 @@
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QRadioButton" name="radioButton_3">
+           <widget class="QRadioButton" name="singlecycle">
             <property name="text">
              <string>Single cycle</string>
             </property>
@@ -35,9 +35,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_4">
+           <widget class="QRadioButton" name="pipeline">
             <property name="text">
              <string>5-stage pipeline</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="forwarding">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Forwarding</string>
             </property>
            </widget>
           </item>

@@ -10,17 +10,17 @@ CacheInspector::CacheInspector(QWidget *parent)
   // Generate some data
   m_hitData = {{0}, {0}, {0}};
   m_missData = {{0}, {0}, {0}};
-  int dataSize = 100;
+  int dataSize = 1000;
   for (int i = 0; i < 3; i++) {
     for (int j = 1; j < dataSize; j++) {
       // create data that increases hits linearly
       int r = (rand() % dataSize);
-      if (r * (i + 1) > j) {
-        m_hitData[i].append(m_hitData[i].last() + 1);
-        m_missData[i].append(m_hitData[i].last());
-      } else {
+      if (r * (i + 0.5) > j) {
         m_missData[i].append(m_missData[i].last() + 1);
         m_hitData[i].append(m_hitData[i].last());
+      } else {
+        m_hitData[i].append(m_hitData[i].last() + 1);
+        m_missData[i].append(m_missData[i].last());
       }
     }
   }
@@ -160,8 +160,8 @@ void CacheInspector::setupTemporalRatioPlot() {
 
   for (int j = 0; j < 3; j++) {
     for (int i = 0; i < m_missData[j].size(); i++) {
-      auto miss_data = m_missData[j].at(i);
-      auto hit_data = m_hitData[j].at(i);
+      auto miss_data = m_missData[j][i];
+      auto hit_data = m_hitData[j][i];
       graphData[j][i].key = i;
       graphData[j][i].value = ((miss_data * 100) / (miss_data + hit_data));
     }
@@ -174,11 +174,14 @@ void CacheInspector::setupTemporalRatioPlot() {
     m_ui->temporalRatioPlot->graph()->setPen(QPen(color.lighter(200)));
     m_ui->temporalRatioPlot->graph()->setBrush(QBrush(color));
     m_ui->temporalRatioPlot->graph()->data()->set(graphData[i]);
-    m_ui->temporalRatioPlot->graph()->setName(QString("L%1").arg(i + 1));
+    m_ui->temporalRatioPlot->graph()->setName(
+        QString("L%1 miss ratio").arg(i + 1));
   }
-  m_ui->temporalRatioPlot->yAxis->setRange(0, m_hitData[0].size());
+  m_ui->temporalRatioPlot->yAxis->setRange(0, 100);
   m_ui->temporalRatioPlot->xAxis->rescale(true);
   m_ui->temporalRatioPlot->legend->setVisible(true);
+  m_ui->temporalRatioPlot->xAxis->setLabel("Instruction count [n]");
+  m_ui->temporalRatioPlot->yAxis->setLabel("Miss ratio [%]");
 }
 
 CacheInspector::~CacheInspector() { delete m_ui; }
