@@ -17,14 +17,17 @@ CacheInspector::CacheInspector(QWidget *parent)
       int r = (rand() % dataSize);
       if (r * (i + 1) > j) {
         m_hitData[i].append(m_hitData[i].last() + 1);
+        m_missData[i].append(m_hitData[i].last());
       } else {
         m_missData[i].append(m_missData[i].last() + 1);
+        m_hitData[i].append(m_hitData[i].last());
       }
     }
   }
 
   setupCacheRequestPlot();
   setupCacheRequestRatioPlot();
+  setupTemporalRatioPlot();
 
   // Setup view selection
   m_ui->selectedPlot->setId(m_ui->crbutton, 0);
@@ -146,6 +149,36 @@ void CacheInspector::setupCacheRequestRatioPlot() {
   m_ui->cacheRequestRatioPlot->yAxis->setRange(0, 100);
 }
 void CacheInspector::setupTemporalPlot() {}
-void CacheInspector::setupTemporalRatioPlot() {}
+
+void CacheInspector::setupTemporalRatioPlot() {
+  // Preallocate graph data vector
+  QVector<QVector<QCPGraphData>> graphData(3);
+
+  for (int i = 0; i < 3; i++) {
+    graphData[i].resize(m_missData[0].size());
+  }
+
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < m_missData[j].size(); i++) {
+      auto miss_data = m_missData[j].at(i);
+      auto hit_data = m_hitData[j].at(i);
+      graphData[j][i].key = i;
+      graphData[j][i].value = ((miss_data * 100) / (miss_data + hit_data));
+    }
+  }
+
+  for (int i = 0; i < 3; ++i) {
+    m_ui->temporalRatioPlot->addGraph();
+    QColor color(20 + 200 / 4.0 * i, 70 * (1.6 - i / 4.0), 150, 150);
+    m_ui->temporalRatioPlot->graph()->setLineStyle(QCPGraph::lsLine);
+    m_ui->temporalRatioPlot->graph()->setPen(QPen(color.lighter(200)));
+    m_ui->temporalRatioPlot->graph()->setBrush(QBrush(color));
+    m_ui->temporalRatioPlot->graph()->data()->set(graphData[i]);
+    m_ui->temporalRatioPlot->graph()->setName(QString("L%1").arg(i + 1));
+  }
+  m_ui->temporalRatioPlot->yAxis->setRange(0, m_hitData[0].size());
+  m_ui->temporalRatioPlot->xAxis->rescale(true);
+  m_ui->temporalRatioPlot->legend->setVisible(true);
+}
 
 CacheInspector::~CacheInspector() { delete m_ui; }
