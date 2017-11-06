@@ -7,9 +7,21 @@ CacheInspector::CacheInspector(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::CacheInspector) {
   m_ui->setupUi(this);
 
-  // Set initial data
-  m_hitData = {5, 7, 9};
-  m_missData = {2, 0, 5};
+  // Generate some data
+  m_hitData = {{0}, {0}, {0}};
+  m_missData = {{0}, {0}, {0}};
+  int dataSize = 100;
+  for (int i = 0; i < 3; i++) {
+    for (int j = 1; j < dataSize; j++) {
+      // create data that increases hits linearly
+      int r = (rand() % dataSize);
+      if (r * (i + 1) > j) {
+        m_hitData[i].append(m_hitData[i].last() + 1);
+      } else {
+        m_missData[i].append(m_missData[i].last() + 1);
+      }
+    }
+  }
 
   setupCacheRequestPlot();
   setupCacheRequestRatioPlot();
@@ -68,8 +80,15 @@ void CacheInspector::setupCacheRequestPlot() {
   m_ui->cacheRequestPlot->legend->setVisible(true);
 
   // Set data
-  hits->setData(ticks, m_hitData);
-  misses->setData(ticks, m_missData);
+  QVector<double> hitData;
+  QVector<double> missData;
+  for (int i = 0; i < 3; i++) {
+    hitData.push_back(m_hitData[i].last());
+    missData.push_back(m_missData[i].last());
+  }
+
+  hits->setData(ticks, hitData);
+  misses->setData(ticks, missData);
 
   m_ui->cacheRequestPlot->yAxis->rescale(true);
 }
@@ -79,11 +98,13 @@ void CacheInspector::setupBar(QCPBars *bar) {
 }
 
 void CacheInspector::updateData(int value, dataRole role, cacheLevel level) {
-  if (role == dataRole::miss) {
+  /*
+    if (role == dataRole::miss) {
     m_missData[level] = value;
   } else {
     m_hitData[level] = value;
   }
+  */
 }
 
 void CacheInspector::setupCacheRequestRatioPlot() {
@@ -117,8 +138,9 @@ void CacheInspector::setupCacheRequestRatioPlot() {
 
   // Set data
   QVector<double> data;
-  for (int i = 0; i < m_missData.size(); i++) {
-    data.push_back(m_missData[i] * 100 / (m_missData[i] + m_hitData[i]));
+  for (int i = 0; i < 3; i++) {
+    data.push_back(m_missData[i].last() * 100 /
+                   (m_missData[i].last() + m_hitData[i].last()));
   }
   ratio->setData(ticks, data);
   m_ui->cacheRequestRatioPlot->yAxis->setRange(0, 100);

@@ -30,8 +30,11 @@ private:
   void setupTemporalPlot();
   void setupTemporalRatioPlot();
 
-  QVector<double> m_missData;
-  QVector<double> m_hitData;
+  // Miss data vector:
+
+  QVector<QVector<double>> m_missData; // For each cache, inner vector shows
+                                       // missData for each instruction request
+  QVector<QVector<double>> m_hitData;
 
   void setupBar(QCPBars *bar);
 };
