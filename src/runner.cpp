@@ -123,17 +123,32 @@ instrState Runner::execJalInstr(Instruction instr) {
   }
   m_pc += signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 |
                                   fields[2] << 11 | fields[3] << 12);
-  return SUCCESS;
+  // Check for misaligned four-byte boundary
+  if ((m_pc & 0b11) != 0) {
+    return EXEC_ERR;
+  } else {
+    return SUCCESS;
+  }
 }
 
 instrState Runner::execJalrInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeIInstr(instr.word);
+  // Store initial register state of m_reg[fields[1]], in case
+  // fields[3]==fields[1]
+  uint32_t reg1 = m_reg[fields[1]];
+
   if (fields[3] != 0) {          // if rd = 0, dont store address
     m_reg[fields[3]] = m_pc + 4; // store return address
   }
-  m_pc = (signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]]) &
-         0xfffffffe; // set LSB of result to zero
-  return SUCCESS;
+  m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) &
+         0xffffffff; // set LSB of result to zero
+
+  // Check for misaligned four-byte boundary
+  if ((m_pc & 0b11) != 0) {
+    return EXEC_ERR;
+  } else {
+    return SUCCESS;
+  }
 }
 
 instrState Runner::execBranchInstr(Instruction instr) {
@@ -175,7 +190,7 @@ instrState Runner::execLoadInstr(Instruction instr) {
   if (fields[3] == 0) {
     return ERR_NULLLOAD;
   }
-  auto target = signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]];
+  uint32_t target = signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]];
 
   // Handle different load types by pointer casting and subsequent
   // dereferencing. This will handle whether to sign or zero extend.
@@ -196,6 +211,7 @@ instrState Runner::execLoadInstr(Instruction instr) {
     m_reg[fields[3]] = memRead(target) & 0x0000ffff;
     break;
   }
+  m_pc += 4;
   return SUCCESS;
 }
 
@@ -212,10 +228,9 @@ void Runner::memWrite(uint32_t address, uint32_t value, int size) {
 uint32_t Runner::memRead(uint32_t address) {
   // Note: If address is not found in memory map, a default constructed object
   // will be created, and read. in our case uint8_t() = 0
-  uint32_t read = m_memory[address] |
-                  (m_memory[address + 1] << 8) + (m_memory[address + 2] << 16) |
-                  (m_memory[address + 3] << 24);
-  m_pc += 4;
+  uint32_t read =
+      (m_memory[address] | (m_memory[address + 1] << 8) |
+       (m_memory[address + 2] << 16) | (m_memory[address + 3] << 24));
   return read;
 }
 

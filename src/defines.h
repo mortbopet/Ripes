@@ -30,7 +30,7 @@ enum instrState {
   ERR_BFUNCT3,
   ERR_NULLLOAD,
   EXEC_ERR,
-  SUCCESS = 0,
+  SUCCESS,
   DONE,
   ERR_ECALL
 };
