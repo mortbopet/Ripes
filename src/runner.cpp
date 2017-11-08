@@ -12,7 +12,7 @@ template <typename T, unsigned B> inline T signextend(const T x) {
   } s;
   return s.x = x;
 }
-}
+} // namespace
 
 Runner::Runner(Parser *parser) {
   m_parser = parser;
@@ -252,6 +252,9 @@ instrState Runner::execOpImmInstr(Instruction instr) {
     m_reg[fields[3]] =
         (int32_t)m_reg[fields[1]] + signextend<int32_t, 12>(fields[0]);
     break;
+  case 0b001: // SLLI. Check this if correct
+    m_reg[fields[3]] = (int32_t)m_reg[fields[3]] << m_reg[fields[2]];
+    break;
   case 0b010: // SLTI
     m_reg[fields[3]] =
         (int32_t)m_reg[fields[1]] < signextend<int32_t, 12>(fields[0]) ? 1 : 0;
@@ -262,6 +265,15 @@ instrState Runner::execOpImmInstr(Instruction instr) {
   case 0b100: // XORI
     m_reg[fields[3]] = m_reg[fields[1]] ^ fields[0];
     break;
+  case 0b101: // SRLI and SRAI. Check this if correct
+    if (fields[0] == 0) {
+      m_reg[fields[3]] = (int32_t)m_reg[fields[3]] >> m_reg[fields[2]]; // SRLI
+      break;
+    } else if (fields[0] ==
+               0b0100000) { // Cast to signed when doing arithmetic shift
+      m_reg[fields[3]] = (int32_t)m_reg[fields[2]] >> m_reg[fields[1]]; // SRAI
+      break;
+    }
   case 0b110: // ORI
     m_reg[fields[3]] = m_reg[fields[1]] | fields[0];
     break;
