@@ -111,7 +111,7 @@ instrState Runner::execLuiInstr(Instruction instr) {
 
 instrState Runner::execAuipcInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeUInstr(instr.word);
-  m_reg[fields[1]] = fields[0] << 12 + m_pc;
+  m_reg[fields[1]] = (fields[0] << 12) + m_pc;
   m_pc += 4;
   return SUCCESS;
 }
@@ -252,8 +252,8 @@ instrState Runner::execOpImmInstr(Instruction instr) {
     m_reg[fields[3]] =
         (int32_t)m_reg[fields[1]] + signextend<int32_t, 12>(fields[0]);
     break;
-  case 0b001: // SLLI. Check this if correct
-    m_reg[fields[3]] = (int32_t)m_reg[fields[3]] << m_reg[fields[2]];
+  case 0b001: // SLLI
+    m_reg[fields[3]] = m_reg[fields[1]] << (fields[0] & 0b11111);
     break;
   case 0b010: // SLTI
     m_reg[fields[3]] =
@@ -265,14 +265,15 @@ instrState Runner::execOpImmInstr(Instruction instr) {
   case 0b100: // XORI
     m_reg[fields[3]] = m_reg[fields[1]] ^ fields[0];
     break;
-  case 0b101: // SRLI and SRAI. Check this if correct
-    if (fields[0] == 0) {
-      m_reg[fields[3]] = (int32_t)m_reg[fields[3]] >> m_reg[fields[2]]; // SRLI
+  case 0b101:
+    if ((fields[0] >> 5) == 0) {
+      m_reg[fields[3]] = m_reg[fields[1]] >> (fields[0] & 0b11111); // SRLI
       break;
-    } else if (fields[0] ==
-               0b0100000) { // Cast to signed when doing arithmetic shift
-      m_reg[fields[3]] = (int32_t)m_reg[fields[2]] >> m_reg[fields[1]]; // SRAI
+    } else if ((fields[0] >> 5) == 0b0100000) { // SRAI
+      m_reg[fields[3]] = (int32_t)m_reg[fields[1]] >> (fields[0] & 0b11111);
       break;
+    } else {
+      return EXEC_ERR;
     }
   case 0b110: // ORI
     m_reg[fields[3]] = m_reg[fields[1]] | fields[0];
@@ -299,13 +300,17 @@ instrState Runner::execOpInstr(Instruction instr) {
       break;
     }
   case 0b001: // SLL
-    m_reg[fields[4]] = (int32_t)m_reg[fields[2]] << (m_reg[fields[1]] & 0x1F);
+    m_reg[fields[4]] = m_reg[fields[2]] << (m_reg[fields[1]] & 0x1F);
     break;
   case 0b010: // SLT
     m_reg[fields[4]] =
         (int32_t)m_reg[fields[2]] < (int32_t)m_reg[fields[1]] ? 1 : 0;
     break;
   case 0b011: // SLTU
+    if (fields[2] == 0) {
+      m_reg[fields[4]] = m_reg[fields[1]] != 0 ? 1 : 0;
+      break;
+    }
     m_reg[fields[4]] = m_reg[fields[2]] < m_reg[fields[1]] ? 1 : 0;
     break;
   case 0b100: // XOR
@@ -319,6 +324,8 @@ instrState Runner::execOpInstr(Instruction instr) {
       m_reg[fields[4]] = // Cast to signed when doing arithmetic shift
           (int32_t)m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRA
       break;
+    } else {
+      return EXEC_ERR;
     }
   case 0b110: // OR
     m_reg[fields[4]] = m_reg[fields[2]] | m_reg[fields[1]];
