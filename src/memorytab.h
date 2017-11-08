@@ -27,6 +27,8 @@ public slots:
   void updateRegisterWidget(int n);
 
 private:
+  void initializeMemoryView();
+
   Ui::MemoryTab *m_ui;
 
   std::unordered_map<uint32_t, uint8_t> *m_memoryPtr;

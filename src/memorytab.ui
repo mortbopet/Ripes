@@ -153,7 +153,7 @@
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="memoryLayout">
              <item>
-              <widget class="QTableView" name="tableView"/>
+              <widget class="QTableWidget" name="memoryView"/>
              </item>
             </layout>
            </item>
@@ -172,6 +172,9 @@
          </item>
          <item>
           <widget class="QComboBox" name="comboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <item>
             <property name="text">
              <string>Hex</string>

@@ -3,13 +3,16 @@
 
 #include "registerwidget.h"
 
+#include <algorithm>
+
 MemoryTab::MemoryTab(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::MemoryTab) {
   m_ui->setupUi(this);
 }
 
 void MemoryTab::init() {
-  // !! m_memoryPtr and m_regPtr must be set before initializing
+  Q_ASSERT(m_memoryPtr != nullptr && m_regPtr != nullptr);
+  initializeMemoryView();
 
   // Initialize register ABInames
   QStringList ABInames = QStringList() << "zero"
@@ -100,4 +103,26 @@ void MemoryTab::updateRegisterWidget(int n) {
   m_regWidgetPtrs[n]->setText();
 }
 
+void MemoryTab::initializeMemoryView() {
+  std::vector<std::pair<uint32_t, uint8_t>> sortedMemory(m_memoryPtr->begin(),
+                                                         m_memoryPtr->end());
+  std::sort(sortedMemory.begin(), sortedMemory.end(),
+            [](std::pair<uint32_t, uint8_t> a, std::pair<uint32_t, uint8_t> b) {
+              return a.first > b.first;
+            });
+  m_ui->memoryView->setRowCount(sortedMemory.size());
+  m_ui->memoryView->setColumnCount(2);
+  m_ui->memoryView->setSortingEnabled(false);
+  m_ui->memoryView->setHorizontalHeaderLabels(QStringList() << "Address"
+                                                            << "Value");
+  m_ui->memoryView->verticalHeader()->setVisible(false);
+  int i = 0;
+  for (const auto &entry : sortedMemory) {
+    auto addr = new QTableWidgetItem(QString().setNum(entry.first, 16));
+    auto val = new QTableWidgetItem(QString("%1").arg(entry.second));
+    m_ui->memoryView->setItem(i, 0, addr);
+    m_ui->memoryView->setItem(i, 1, val);
+    i++;
+  }
+}
 MemoryTab::~MemoryTab() { delete m_ui; }
