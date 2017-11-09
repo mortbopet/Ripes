@@ -20,7 +20,7 @@ public:
   int exec();
 
   RunnerCache *getRunnerCachePtr() { return &m_cache; }
-  std::unordered_map<uint32_t, uint8_t> *getMemoryPtr() { return &m_memory; }
+  memory *getMemoryPtr() { return &m_memory; }
   std::vector<uint32_t> *getRegPtr() { return &m_reg; }
 
 private:
@@ -41,7 +41,7 @@ private:
   std::vector<uint8_t> m_heap;
   const uint32_t m_heapStart = 0x10008000;
 
-  std::unordered_map<uint32_t, uint8_t> m_memory;
+  memory m_memory;
 
   void memWrite(uint32_t address, uint32_t value, int size);
   uint32_t memRead(uint32_t address);

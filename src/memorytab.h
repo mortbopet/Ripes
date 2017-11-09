@@ -1,6 +1,8 @@
 #ifndef MEMORYTAB_H
 #define MEMORYTAB_H
 
+#include "defines.h"
+
 #include <QWidget>
 #include <unordered_map>
 
@@ -17,9 +19,7 @@ public:
   explicit MemoryTab(QWidget *parent = 0);
   ~MemoryTab();
 
-  void setMemoryPtr(std::unordered_map<uint32_t, uint8_t> *ptr) {
-    m_memoryPtr = ptr;
-  }
+  void setMemoryPtr(memory *ptr) { m_memoryPtr = ptr; }
   void setRegPtr(std::vector<uint32_t> *ptr) { m_regPtr = ptr; }
   void init();
 
@@ -31,7 +31,7 @@ private:
 
   Ui::MemoryTab *m_ui;
 
-  std::unordered_map<uint32_t, uint8_t> *m_memoryPtr;
+  memory *m_memoryPtr;
   std::vector<uint32_t> *m_regPtr;
 
   std::vector<RegisterWidget *> m_regWidgetPtrs;

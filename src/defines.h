@@ -1,6 +1,7 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include "unordered_map"
 #include <QString>
 #include <cstdint>
 #include <map>
@@ -24,7 +25,7 @@ enum cacheLevel { L1 = 0, L2 = 1, L3 = 2 };
 
 enum cacheType { DM, SA, FA };
 
-typedef std::vector<uint8_t> memory;
+typedef std::unordered_map<uint32_t, uint8_t> memory;
 
 enum instrState {
   ERR_BFUNCT3,

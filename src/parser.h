@@ -17,7 +17,7 @@ public:
 
 public:
   bool init(char *filename);
-  void parseFile(std::unordered_map<uint32_t, uint8_t> *memory);
+  void parseFile(memory *memoryPtr);
 
 private:
   ifstream m_fileStream;
