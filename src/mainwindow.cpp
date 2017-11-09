@@ -25,11 +25,20 @@ MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)
   // setup example projects
   setupExamples();
 
-  // connect widgets
+  // setup and connect widgets
   connect(m_ui->programfiletab, &ProgramfileTab::loadBinaryFile, this,
           &MainWindow::on_actionLoadBinaryFile_triggered);
   connect(m_ui->programfiletab, &ProgramfileTab::loadAssemblyFile, this,
           &MainWindow::on_actionLoadAssemblyFile_triggered);
+  connect(m_ui->actionShow_consoles, &QAction::triggered, [=](bool state) {
+    if (state) {
+      m_ui->consoles->show();
+    } else {
+      m_ui->consoles->hide();
+    };
+  });
+  connect(m_ui->consoles, &QDockWidget::visibilityChanged,
+          m_ui->actionShow_consoles, &QAction::setChecked);
 }
 
 MainWindow::~MainWindow() { delete m_ui; }
