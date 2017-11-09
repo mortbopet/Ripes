@@ -4,7 +4,10 @@
 #include "defines.h"
 
 #include <QWidget>
+
 #include <unordered_map>
+
+#include "memorymodel.h"
 
 namespace Ui {
 class MemoryTab;
@@ -28,8 +31,10 @@ public slots:
 
 private:
   void initializeMemoryView();
+  void initializeRegisterView();
 
   Ui::MemoryTab *m_ui;
+  MemoryModel *m_model;
 
   memory *m_memoryPtr;
   std::vector<uint32_t> *m_regPtr;

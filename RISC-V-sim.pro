@@ -20,7 +20,8 @@ SOURCES += src/main.cpp \
     src/cachesetupwidget.cpp \
     src/cachebase.cpp \
     src/runnercache.cpp \
-    src/cacheinspector.cpp
+    src/cacheinspector.cpp \
+    src/memorymodel.cpp
 
 HEADERS += \
     src/parser.h \
@@ -37,7 +38,8 @@ HEADERS += \
     src/cachesetupwidget.h \
     src/cachebase.h \
     src/runnercache.h \
-    src/cacheinspector.h
+    src/cacheinspector.h \
+    src/memorymodel.h
 
 FORMS += \
     src/mainwindow.ui \
