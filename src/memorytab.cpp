@@ -130,6 +130,14 @@ void MemoryTab::initializeMemoryView() {
           &MemoryDisplayDelegate::setDisplayType);
   connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged,
           [=] { m_ui->memoryView->viewport()->repaint(); });
+  connect(m_ui->memoryUp, &QPushButton::clicked, [=] {
+    m_model->offsetCentralAddress(4);
+    m_ui->memoryView->viewport()->repaint();
+  });
+  connect(m_ui->memoryDown, &QPushButton::clicked, [=] {
+    m_model->offsetCentralAddress(-4);
+    m_ui->memoryView->viewport()->repaint();
+  });
 }
 
 MemoryTab::~MemoryTab() { delete m_ui; }

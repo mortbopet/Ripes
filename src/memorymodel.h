@@ -16,17 +16,20 @@ public:
   // Custom functionality
   void setCentralAddress(uint32_t address);
   void jumpToAddress(uint32_t address);
-  void moveSelection(int dir);
+  void offsetCentralAddress(int byteOffset);
 
   void setAddressCount(int count);
 
 private:
+  void updateModel();
+  void setInvalidAddresLine(int row);
+
   // instead of direct access to the memory, we should have a pointer
   // to the runner, which can return requested values, or null, if memory
   // doesnt exist
   memory *m_memoryPtr;
 
-  uint32_t m_centralAddress = 30; // Address at the center of the model
+  long long m_centralAddress = 4; // Address at the center of the model
   int m_addressRadius = 5;        // amount of addresses in each direction, from
                                   // centralAddress
 };

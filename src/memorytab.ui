@@ -35,7 +35,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>231</width>
+            <width>240</width>
             <height>335</height>
            </rect>
           </property>
@@ -99,7 +99,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>520</width>
+            <width>511</width>
             <height>335</height>
            </rect>
           </property>
@@ -191,14 +191,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="memoryUp">
            <property name="text">
             <string>Up</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="memoryDown">
            <property name="text">
             <string>down</string>
            </property>
