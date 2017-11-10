@@ -17,6 +17,7 @@ MemoryTab::MemoryTab(QWidget *parent)
   }
 
   // Add goto values to goto combobox
+  m_ui->gotoCombobox->addItem("Select", 0);
   m_ui->gotoCombobox->addItem("Text", 0);
   m_ui->gotoCombobox->addItem("Stack", 0x7ffffff0);
 
@@ -172,6 +173,11 @@ void MemoryTab::initializeMemoryView() {
   // Connect goto combobox
   connect(m_ui->gotoCombobox, &QComboBox::currentTextChanged, [=] {
     m_model->jumpToAddress(m_ui->gotoCombobox->currentData().toUInt());
+
+    // Switch back to "select"
+    m_ui->gotoCombobox->blockSignals(true);
+    m_ui->gotoCombobox->setCurrentIndex(0);
+    m_ui->gotoCombobox->blockSignals(false);
   });
 }
 
