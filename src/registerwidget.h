@@ -32,7 +32,7 @@ public:
 
 public slots:
   void setText();
-  void setDisplayType(const QString &type);
+  void setDisplayType(displayTypeN type);
 
 private slots:
   void validateInput();
@@ -40,7 +40,7 @@ private slots:
 private:
   Ui::RegisterWidget *m_ui;
   QIntValidator m_validator;
-  int m_displayType;
+  displayTypeN m_displayType;
   int m_displayBase = 10;
   uint32_t *m_regPtr;
 

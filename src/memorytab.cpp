@@ -12,8 +12,8 @@ MemoryTab::MemoryTab(QWidget *parent)
 
   // Add display types to display comboboxes
   for (const auto &type : displayTypes.keys()) {
-    m_ui->registerdisplaytype->insertItem(0, type);
-    m_ui->memorydisplaytype->insertItem(0, type);
+    m_ui->registerdisplaytype->insertItem(0, type, displayTypes[type]);
+    m_ui->memorydisplaytype->insertItem(0, type, displayTypes[type]);
   }
 
   // Add goto values to goto combobox
@@ -106,10 +106,14 @@ void MemoryTab::initializeRegisterView() {
     reg->setAlias(ABInames[i]);
     reg->setNumber(i);
     reg->setToolTip(descriptions[i]);
-    reg->setDisplayType(m_ui->registerdisplaytype->currentText());
+    reg->setDisplayType(
+        qvariant_cast<displayTypeN>(m_ui->registerdisplaytype->currentData()));
     connect(m_ui->registerdisplaytype,
-            QOverload<const QString &>::of(&QComboBox::currentTextChanged), reg,
-            &RegisterWidget::setDisplayType);
+            QOverload<const QString &>::of(&QComboBox::currentTextChanged),
+            [=] {
+              reg->setDisplayType(qvariant_cast<displayTypeN>(
+                  m_ui->registerdisplaytype->currentData()));
+            });
     m_ui->registerLayout->addWidget(reg);
   }
   m_regWidgetPtrs[0]->setEnabled(false);
@@ -127,15 +131,23 @@ void MemoryTab::initializeMemoryView() {
   m_ui->memoryView->setModel(m_model);
   m_ui->memoryView->horizontalHeader()->setStretchLastSection(true);
   m_ui->memoryView->verticalHeader()->hide();
+
   // Only set delegate on byte columns
   m_ui->memoryView->setItemDelegateForColumn(1, m_delegate);
   m_ui->memoryView->setItemDelegateForColumn(2, m_delegate);
   m_ui->memoryView->setItemDelegateForColumn(3, m_delegate);
   m_ui->memoryView->setItemDelegateForColumn(4, m_delegate);
+
+  // Memory display type
   connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged, m_delegate,
-          &MemoryDisplayDelegate::setDisplayType);
-  connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged,
-          [=] { m_ui->memoryView->viewport()->repaint(); });
+          [=] {
+            m_delegate->setDisplayType(qvariant_cast<displayTypeN>(
+                m_ui->memorydisplaytype->currentData()));
+            m_ui->memoryView->viewport()->repaint();
+          });
+  m_delegate->setDisplayType(
+      qvariant_cast<displayTypeN>(m_ui->memorydisplaytype->currentData()));
+
   connect(m_ui->memoryUp, &QPushButton::clicked, [=] {
     m_model->offsetCentralAddress(4);
     m_ui->memoryView->viewport()->repaint();

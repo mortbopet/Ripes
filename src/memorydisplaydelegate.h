@@ -13,7 +13,7 @@ public:
                       const QLocale &locale) const override;
 
 public slots:
-  void setDisplayType(const QString &type);
+  void setDisplayType(displayTypeN type);
 
 private:
   displayTypeN m_displayType = displayTypeN::Hex;

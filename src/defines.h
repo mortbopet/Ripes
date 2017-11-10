@@ -10,6 +10,7 @@
 #include <vector>
 
 enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
+Q_DECLARE_METATYPE(displayTypeN)
 
 namespace {
 static QMap<QString, displayTypeN> initDisplayTypes() {

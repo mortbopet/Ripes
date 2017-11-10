@@ -65,14 +65,10 @@ void RegisterWidget::setNumber(int number) {
   m_ui->number->setText(QString("x(%1)").arg(number));
 }
 
-void RegisterWidget::setDisplayType(const QString &type) {
+void RegisterWidget::setDisplayType(displayTypeN type) {
   // Given a display type "type", sets validators for the input.
-  auto iter = displayTypes.find(type);
-  if (iter == displayTypes.end()) {
-    return;
-  }
 
-  m_displayType = *iter;
+  m_displayType = type;
   if (m_displayType == displayTypeN::Hex) {
     m_displayBase = 16;
     m_ui->value->setInputMask("hhhhhhhh");

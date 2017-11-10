@@ -33,10 +33,7 @@ QString MemoryDisplayDelegate::displayText(const QVariant &value,
   return retVal;
 }
 
-void MemoryDisplayDelegate::setDisplayType(const QString &type) {
+void MemoryDisplayDelegate::setDisplayType(displayTypeN type) {
   // Given a display type "type", sets validators for the input.
-  auto iter = displayTypes.find(type);
-  if (iter != displayTypes.end()) {
-    m_displayType = iter.value();
-  }
+  m_displayType = type;
 }
