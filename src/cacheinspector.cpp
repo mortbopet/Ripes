@@ -169,7 +169,7 @@ void CacheInspector::setupTemporalRatioPlot() {
 
   for (int i = 0; i < 3; ++i) {
     m_ui->temporalRatioPlot->addGraph();
-    QColor color(QRgb(Colors::BerkeleyBlue));
+    QColor color = QColor(QRgb(Colors::BerkeleyBlue));
     color.setAlpha(60 + 40 * i);
     m_ui->temporalRatioPlot->graph()->setLineStyle(QCPGraph::lsLine);
     m_ui->temporalRatioPlot->graph()->setPen(QPen(color.lighter(200)));

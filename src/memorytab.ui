@@ -42,7 +42,7 @@
             <x>0</x>
             <y>0</y>
             <width>298</width>
-            <height>335</height>
+            <height>342</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
@@ -106,7 +106,7 @@
             <x>0</x>
             <y>0</y>
             <width>514</width>
-            <height>335</height>
+            <height>342</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -173,7 +173,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="gotoCombobox"/>
+          <widget class="GoToComboBox" name="gotoCombobox"/>
          </item>
          <item>
           <widget class="QPushButton" name="memoryUp">
@@ -209,6 +209,11 @@
    <class>MemoryView</class>
    <extends>QTableView</extends>
    <header>memoryview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GoToComboBox</class>
+   <extends>QComboBox</extends>
+   <header>gotocombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

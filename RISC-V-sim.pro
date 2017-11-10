@@ -23,7 +23,9 @@ SOURCES += src/main.cpp \
     src/cacheinspector.cpp \
     src/memorymodel.cpp \
     src/memorydisplaydelegate.cpp \
-    src/memoryview.cpp
+    src/memoryview.cpp \
+    src/gotocombobox.cpp \
+    src/addressdialog.cpp
 
 HEADERS += \
     src/parser.h \
@@ -43,7 +45,10 @@ HEADERS += \
     src/cacheinspector.h \
     src/memorymodel.h \
     src/memorydisplaydelegate.h \
-    src/memoryview.h
+    src/memoryview.h \
+    src/gotocombobox.h \
+    src/addressdialog.h \
+    src/addressdialog.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -53,7 +58,8 @@ FORMS += \
     src/memorytab.ui \
     src/cachetab.ui \
     src/cachesetupwidget.ui \
-    src/cacheinspector.ui
+    src/cacheinspector.ui \
+    src/addressdialog.ui
 
 
 # External
