@@ -149,6 +149,7 @@ void MemoryTab::initializeMemoryView() {
   m_delegate->setDisplayType(
       qvariant_cast<displayTypeN>(m_ui->memorydisplaytype->currentData()));
 
+  // connect up/down buttons to adjust the central address of the model
   connect(m_ui->memoryUp, &QPushButton::clicked, [=] {
     m_model->offsetCentralAddress(4);
     m_ui->memoryView->viewport()->repaint();
@@ -158,7 +159,7 @@ void MemoryTab::initializeMemoryView() {
     m_ui->memoryView->viewport()->repaint();
   });
 
-  // Connect scroll events to the model
+  // Connect scroll events directly to the model
   connect(m_ui->memoryView, &MemoryView::scrolled, [=](bool dir) {
     if (dir) {
       m_model->offsetCentralAddress(4);
@@ -167,13 +168,12 @@ void MemoryTab::initializeMemoryView() {
     };
   });
 
-  // Disable editing
+  // Disable editing of memory - this is not implemented in the delegate
   m_ui->memoryView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   // Connect goto combobox
   connect(m_ui->gotoCombobox, &QComboBox::currentTextChanged, [=] {
     m_model->jumpToAddress(m_ui->gotoCombobox->currentData().toUInt());
-
     // Switch back to "select"
     m_ui->gotoCombobox->blockSignals(true);
     m_ui->gotoCombobox->setCurrentIndex(0);
