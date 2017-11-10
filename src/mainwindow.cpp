@@ -11,7 +11,8 @@
 MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)
     : QMainWindow(parent), m_ui(new Ui::MainWindow) {
   m_ui->setupUi(this);
-  setWindowTitle("RISC-V simulator");
+  setWindowTitle("RISC-V Simulator");
+  setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
   m_runnerPtr = runnerPtr;
   m_parserPtr = parserPtr;
 

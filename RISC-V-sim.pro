@@ -62,3 +62,6 @@ HEADERS += \
 
 SOURCES += \
     external/QCustomPlot/qcustomplot.cpp
+
+RESOURCES += \
+    resources/images.qrc
