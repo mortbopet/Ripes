@@ -3,6 +3,7 @@
 
 #include "registerwidget.h"
 
+#include <QWheelEvent>
 #include <algorithm>
 
 MemoryTab::MemoryTab(QWidget *parent)
@@ -137,6 +138,15 @@ void MemoryTab::initializeMemoryView() {
   connect(m_ui->memoryDown, &QPushButton::clicked, [=] {
     m_model->offsetCentralAddress(-4);
     m_ui->memoryView->viewport()->repaint();
+  });
+
+  // Connect scroll events to the model
+  connect(m_ui->memoryView, &MemoryView::scrolled, [=](bool dir) {
+    if (dir) {
+      m_model->offsetCentralAddress(4);
+    } else {
+      m_model->offsetCentralAddress(-4);
+    };
   });
 }
 

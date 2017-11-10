@@ -122,7 +122,7 @@
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="memoryLayout">
              <item>
-              <widget class="QTableView" name="memoryView"/>
+              <widget class="MemoryView" name="memoryView"/>
              </item>
             </layout>
            </item>
@@ -212,6 +212,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MemoryView</class>
+   <extends>QTableView</extends>
+   <header>memoryview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
