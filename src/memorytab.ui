@@ -167,28 +167,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboBox_3">
-           <item>
-            <property name="text">
-             <string>Text</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Data</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Heap</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Stack</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="gotoCombobox"/>
          </item>
          <item>
           <widget class="QPushButton" name="memoryUp">

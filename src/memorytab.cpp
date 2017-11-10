@@ -15,6 +15,11 @@ MemoryTab::MemoryTab(QWidget *parent)
     m_ui->registerdisplaytype->insertItem(0, type);
     m_ui->memorydisplaytype->insertItem(0, type);
   }
+
+  // Add goto values to goto combobox
+  m_ui->gotoCombobox->addItem("Text", 0);
+  m_ui->gotoCombobox->addItem("Stack", 0x7ffffff0);
+
   m_ui->registerdisplaytype->setCurrentIndex(displayTypeN::Hex);
   m_ui->memorydisplaytype->setCurrentIndex(displayTypeN::Hex);
 }
@@ -147,6 +152,14 @@ void MemoryTab::initializeMemoryView() {
     } else {
       m_model->offsetCentralAddress(-4);
     };
+  });
+
+  // Disable editing
+  m_ui->memoryView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+  // Connect goto combobox
+  connect(m_ui->gotoCombobox, &QComboBox::currentTextChanged, [=] {
+    m_model->jumpToAddress(m_ui->gotoCombobox->currentData().toUInt());
   });
 }
 

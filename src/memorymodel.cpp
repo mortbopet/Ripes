@@ -83,3 +83,10 @@ void MemoryModel::updateModel() {
     }
   }
 }
+
+void MemoryModel::jumpToAddress(uint32_t address) {
+  if (address >= 0) {
+    m_centralAddress = address;
+    updateModel();
+  }
+}

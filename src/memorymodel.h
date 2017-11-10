@@ -14,11 +14,11 @@ public:
   explicit MemoryModel(memory *memoryPtr, QObject *parent = nullptr);
 
   // Custom functionality
-  void setCentralAddress(uint32_t address);
-  void jumpToAddress(uint32_t address);
   void offsetCentralAddress(int byteOffset);
 
   void setAddressCount(int count);
+public slots:
+  void jumpToAddress(uint32_t address);
 
 private:
   void updateModel();
