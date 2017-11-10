@@ -3,6 +3,7 @@
 
 #include "registerwidget.h"
 
+#include <QInputDialog>
 #include <QWheelEvent>
 #include <algorithm>
 
@@ -29,6 +30,22 @@ void MemoryTab::init() {
   Q_ASSERT(m_memoryPtr != nullptr && m_regPtr != nullptr);
   initializeMemoryView();
   initializeRegisterView();
+}
+
+void MemoryTab::saveAddress() {
+  // Saves the current centerAddress of the model to be available as a jump-to
+  // address in the view
+
+  QInputDialog dialog;
+  dialog.setLabelText(
+      QString("Please enter a label for address: %1")
+          .arg(QString("0x%1").arg(QString()
+                                       .setNum(m_model->getCentralAddress(), 16)
+                                       .rightJustified(8, '0'))));
+  if (dialog.exec() == QDialog::Accepted) {
+    m_ui->gotoCombobox->addItem(dialog.textValue(),
+                                m_model->getCentralAddress());
+  }
 }
 
 void MemoryTab::initializeRegisterView() {
@@ -130,7 +147,8 @@ void MemoryTab::initializeMemoryView() {
   m_model = new MemoryModel(m_memoryPtr);
   m_delegate = new MemoryDisplayDelegate();
   m_ui->memoryView->setModel(m_model);
-  m_ui->memoryView->horizontalHeader()->setStretchLastSection(true);
+  m_ui->memoryView->horizontalHeader()->setSectionResizeMode(
+      0, QHeaderView::Stretch);
   m_ui->memoryView->verticalHeader()->hide();
 
   // Only set delegate on byte columns
@@ -179,6 +197,9 @@ void MemoryTab::initializeMemoryView() {
     m_ui->gotoCombobox->setCurrentIndex(0);
     m_ui->gotoCombobox->blockSignals(false);
   });
+
+  // Connect save address button
+  connect(m_ui->save, &QPushButton::clicked, this, &MemoryTab::saveAddress);
 }
 
 MemoryTab::~MemoryTab() { delete m_ui; }

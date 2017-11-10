@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>785</width>
+    <width>846</width>
     <height>415</height>
    </rect>
   </property>
@@ -27,6 +27,12 @@
        </item>
        <item>
         <widget class="QScrollArea" name="scrollArea">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
@@ -35,7 +41,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>240</width>
+            <width>298</width>
             <height>335</height>
            </rect>
           </property>
@@ -99,7 +105,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>511</width>
+            <width>514</width>
             <height>335</height>
            </rect>
           </property>
@@ -179,7 +185,14 @@
          <item>
           <widget class="QPushButton" name="memoryDown">
            <property name="text">
-            <string>down</string>
+            <string>Down</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="save">
+           <property name="text">
+            <string>Save Address</string>
            </property>
           </widget>
          </item>

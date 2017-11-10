@@ -15,8 +15,9 @@ public:
 
   // Custom functionality
   void offsetCentralAddress(int byteOffset);
-
   void setAddressCount(int count);
+  long long getCentralAddress() const { return m_centralAddress; }
+
 public slots:
   void jumpToAddress(uint32_t address);
 

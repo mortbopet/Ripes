@@ -29,6 +29,7 @@ public:
 
 public slots:
   void updateRegisterWidget(int n);
+  void saveAddress();
 
 private:
   void initializeMemoryView();
