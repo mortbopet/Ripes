@@ -21,7 +21,8 @@ SOURCES += src/main.cpp \
     src/cachebase.cpp \
     src/runnercache.cpp \
     src/cacheinspector.cpp \
-    src/memorymodel.cpp
+    src/memorymodel.cpp \
+    src/memorydisplaydelegate.cpp
 
 HEADERS += \
     src/parser.h \
@@ -39,7 +40,8 @@ HEADERS += \
     src/cachebase.h \
     src/runnercache.h \
     src/cacheinspector.h \
-    src/memorymodel.h
+    src/memorymodel.h \
+    src/memorydisplaydelegate.h
 
 FORMS += \
     src/mainwindow.ui \

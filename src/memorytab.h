@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 
+#include "memorydisplaydelegate.h"
 #include "memorymodel.h"
 
 namespace Ui {
@@ -35,6 +36,7 @@ private:
 
   Ui::MemoryTab *m_ui;
   MemoryModel *m_model;
+  MemoryDisplayDelegate *m_delegate;
 
   memory *m_memoryPtr;
   std::vector<uint32_t> *m_regPtr;

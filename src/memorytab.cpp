@@ -8,6 +8,14 @@
 MemoryTab::MemoryTab(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::MemoryTab) {
   m_ui->setupUi(this);
+
+  // Add display types to display comboboxes
+  for (const auto &type : displayTypes.keys()) {
+    m_ui->registerdisplaytype->insertItem(0, type);
+    m_ui->memorydisplaytype->insertItem(0, type);
+  }
+  m_ui->registerdisplaytype->setCurrentIndex(displayTypeN::Hex);
+  m_ui->memorydisplaytype->setCurrentIndex(displayTypeN::Hex);
 }
 
 void MemoryTab::init() {
@@ -93,8 +101,9 @@ void MemoryTab::initializeRegisterView() {
     reg->setNumber(i);
     reg->setToolTip(descriptions[i]);
     reg->setDisplayType(m_ui->registerdisplaytype->currentText());
-    connect(m_ui->registerdisplaytype, &QComboBox::currentTextChanged,
-            [=](const QString &text) { reg->setDisplayType(text); });
+    connect(m_ui->registerdisplaytype,
+            QOverload<const QString &>::of(&QComboBox::currentTextChanged), reg,
+            &RegisterWidget::setDisplayType);
     m_ui->registerLayout->addWidget(reg);
   }
   m_regWidgetPtrs[0]->setEnabled(false);
@@ -107,32 +116,20 @@ void MemoryTab::updateRegisterWidget(int n) {
 }
 
 void MemoryTab::initializeMemoryView() {
-  /*
-std::vector<std::pair<uint32_t, uint8_t>> sortedMemory(m_memoryPtr->begin(),
-                                                       m_memoryPtr->end());
-std::sort(sortedMemory.begin(), sortedMemory.end(),
-          [](std::pair<uint32_t, uint8_t> a, std::pair<uint32_t, uint8_t> b) {
-            return a.first > b.first;
-          });
-m_ui->memoryView->setRowCount(sortedMemory.size());
-m_ui->memoryView->setColumnCount(2);
-m_ui->memoryView->setSortingEnabled(false);
-m_ui->memoryView->setHorizontalHeaderLabels(QStringList() << "Address"
-                                                          << "Value");
-m_ui->memoryView->verticalHeader()->setVisible(false);
-int i = 0;
-for (const auto &entry : sortedMemory) {
-  auto addr = new QTableWidgetItem(QString().setNum(entry.first, 16));
-  auto val = new QTableWidgetItem(QString("%1").arg(entry.second));
-  m_ui->memoryView->setItem(i, 0, addr);
-  m_ui->memoryView->setItem(i, 1, val);
-  i++;
-}
-*/
   m_model = new MemoryModel(m_memoryPtr);
+  m_delegate = new MemoryDisplayDelegate();
   m_ui->memoryView->setModel(m_model);
   m_ui->memoryView->horizontalHeader()->setStretchLastSection(true);
   m_ui->memoryView->verticalHeader()->hide();
+  // Only set delegate on byte columns
+  m_ui->memoryView->setItemDelegateForColumn(1, m_delegate);
+  m_ui->memoryView->setItemDelegateForColumn(2, m_delegate);
+  m_ui->memoryView->setItemDelegateForColumn(3, m_delegate);
+  m_ui->memoryView->setItemDelegateForColumn(4, m_delegate);
+  connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged, m_delegate,
+          &MemoryDisplayDelegate::setDisplayType);
+  connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged,
+          [=] { m_ui->memoryView->viewport()->repaint(); });
 }
 
 MemoryTab::~MemoryTab() { delete m_ui; }

@@ -4,12 +4,7 @@
 #include <QValidator>
 #include <QWidget>
 
-const static QStringList displayTypes = QStringList() << "Hex"
-                                                      << "Binary"
-                                                      << "Decimal"
-                                                      << "Unsigned"
-                                                      << "ASCII"
-                                                      << "Float (IEEE-754)";
+#include "defines.h"
 
 namespace Ui {
 class RegisterWidget;
@@ -32,12 +27,12 @@ public:
 
   void setAlias(QString text);
   void setNumber(int number);
-  void setDisplayType(QString type);
   void setRegPtr(uint32_t *ptr) { m_regPtr = ptr; }
   void enableInput(bool state);
 
 public slots:
   void setText();
+  void setDisplayType(const QString &type);
 
 private slots:
   void validateInput();
@@ -45,7 +40,7 @@ private slots:
 private:
   Ui::RegisterWidget *m_ui;
   QIntValidator m_validator;
-  QString m_displayType;
+  int m_displayType;
   int m_displayBase = 10;
   uint32_t *m_regPtr;
 

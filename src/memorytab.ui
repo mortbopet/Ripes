@@ -61,38 +61,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="registerdisplaytype">
-           <item>
-            <property name="text">
-             <string>Hex</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Binary</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Decimal</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Unsigned</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>ASCII</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Float (IEEE-754)</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="registerdisplaytype"/>
          </item>
          <item>
           <spacer name="horizontalSpacer_2">
@@ -171,40 +140,10 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboBox">
+          <widget class="QComboBox" name="memorydisplaytype">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
-           <item>
-            <property name="text">
-             <string>Hex</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Binary</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Decimal</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Unsigned</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>ASCII</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Float (IEEE-754)</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item>

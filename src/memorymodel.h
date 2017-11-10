@@ -26,9 +26,9 @@ private:
   // doesnt exist
   memory *m_memoryPtr;
 
-  uint32_t m_centralAddress = 0; // Address at the center of the model
-  int m_addressRadius = 5;       // amount of addresses in each direction, from
-                                 // centralAddress
+  uint32_t m_centralAddress = 30; // Address at the center of the model
+  int m_addressRadius = 5;        // amount of addresses in each direction, from
+                                  // centralAddress
 };
 
 #endif // MEMORYMODEL_H

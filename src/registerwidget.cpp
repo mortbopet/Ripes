@@ -33,27 +33,31 @@ void RegisterWidget::validateInput() {
 
 void RegisterWidget::setText() {
   // Sets line edit text based on current display type and register value
-  if (m_displayType == displayTypes[0]) {
+  if (m_displayType == displayTypeN::Hex) {
     // hex
     m_ui->value->setText(
         QString()
             .setNum(*m_regPtr, 16)
             .rightJustified(8, '0')); // zero padding on hex numbers
-  } else if (m_displayType == displayTypes[1]) {
+  } else if (m_displayType == displayTypeN::Binary) {
     // binary
     m_ui->value->setText(QString().setNum(*m_regPtr, 2));
-  } else if (m_displayType == displayTypes[2]) {
+  } else if (m_displayType == displayTypeN::Decimal) {
     // Decimal
     m_ui->value->setText(QString().setNum(*(int32_t *)m_regPtr, 10));
-  } else if (m_displayType == displayTypes[3]) {
+  } else if (m_displayType == displayTypeN::Unsigned) {
     // Unsigned
     m_ui->value->setText(QString().setNum(*m_regPtr, 10));
-  } else if (m_displayType == displayTypes[4]) {
+  } else if (m_displayType == displayTypeN::ASCII) {
     // ASCII - valid ascii characters will not be able to fill the 32-bit range
+    QString out;
+    auto value = *m_regPtr;
+    for (int i = 0; i < 4; i++) {
+      out.append(QChar(value & 0xff));
+      value >>= 8;
+    }
+    m_ui->value->setText(out);
     m_ui->value->setInputMask("nnnn");
-  } else if (m_displayType == displayTypes[5]) {
-    // float
-    m_ui->value->setInputMask("B");
   }
 }
 
@@ -61,42 +65,42 @@ void RegisterWidget::setNumber(int number) {
   m_ui->number->setText(QString("x(%1)").arg(number));
 }
 
-void RegisterWidget::setDisplayType(QString type) {
+void RegisterWidget::setDisplayType(const QString &type) {
   // Given a display type "type", sets validators for the input.
+  auto iter = displayTypes.find(type);
+  if (iter == displayTypes.end()) {
+    return;
+  }
 
-  m_displayType = type;
-  if (type == displayTypes[0]) {
-    // hex
+  m_displayType = *iter;
+  if (m_displayType == displayTypeN::Hex) {
     m_displayBase = 16;
     m_ui->value->setInputMask("hhhhhhhh");
     m_range = rangePair(0, (long long)4294967295);
     setText();
-  } else if (type == displayTypes[1]) {
+  } else if (m_displayType == displayTypeN::Binary) {
     // binary
     m_displayBase = 2;
     m_ui->value->setInputMask("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     setText();
     m_range = rangePair(0, (long long)4294967295);
-  } else if (type == displayTypes[2]) {
+  } else if (m_displayType == displayTypeN::Decimal) {
     // Decimal
     m_displayBase = 10;
     m_ui->value->setInputMask("#0000000000");
     setText();
     m_range = rangePair(-(long long)2147483648, (long long)2147483647);
-  } else if (type == displayTypes[3]) {
+  } else if (m_displayType == displayTypeN::Unsigned) {
     // Unsigned
     m_displayBase = 10;
     m_ui->value->setInputMask("0000000000");
     setText();
     m_range = rangePair(0, (long long)4294967295);
-  } else if (type == displayTypes[4]) {
+  } else if (m_displayType == displayTypeN::ASCII) {
     // ASCII - valid ascii characters will not be able to fill the 32-bit range
     m_ui->value->setInputMask("nnnn");
+    setText();
     m_range = rangePair(0, (long long)4294967295);
-  } else if (type == displayTypes[5]) {
-    // float
-    m_ui->value->setInputMask("B");
-    m_range = {0, (long)4294967295};
   }
 }
 
