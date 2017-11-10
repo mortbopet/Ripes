@@ -12,6 +12,14 @@
 enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
 Q_DECLARE_METATYPE(displayTypeN)
 
+enum Colors {
+  // Berkeley primary color palette
+  BerkeleyBlue = 0x003262,
+  FoundersRock = 0x3B7EA1,
+  CaliforniaGold = 0xFDB515,
+  Medalist = 0xC4820E
+};
+
 namespace {
 static QMap<QString, displayTypeN> initDisplayTypes() {
   QMap<QString, displayTypeN> types;

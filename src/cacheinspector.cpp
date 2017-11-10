@@ -46,15 +46,15 @@ void CacheInspector::setupCacheRequestPlot() {
   // Setup bars
   QCPBars *hits =
       new QCPBars(m_ui->cacheRequestPlot->xAxis, m_ui->cacheRequestPlot->yAxis);
-  hits->setName("Cache hit");
-  hits->setPen(QPen(QColor(136, 240, 0).lighter(170)));
-  hits->setBrush(QColor(136, 240, 0));
+  hits->setName("Cache Hit");
+  hits->setPen(QPen(QColor(QRgb(Colors::FoundersRock))));
+  hits->setBrush(QColor(QRgb(Colors::FoundersRock)));
 
   QCPBars *misses =
       new QCPBars(m_ui->cacheRequestPlot->xAxis, m_ui->cacheRequestPlot->yAxis);
   misses->setName("Cache Miss");
-  misses->setPen(QPen(QColor(255, 35, 0).lighter(170)));
-  misses->setBrush(QColor(255, 35, 0));
+  misses->setPen(QPen(QColor(QRgb(Colors::CaliforniaGold)).lighter(170)));
+  misses->setBrush(QColor(QRgb(Colors::CaliforniaGold)));
 
   // Stack hit bars on top of miss bars
   setupBar(hits);
@@ -115,8 +115,8 @@ void CacheInspector::setupCacheRequestRatioPlot() {
   QCPBars *ratio = new QCPBars(m_ui->cacheRequestRatioPlot->xAxis,
                                m_ui->cacheRequestRatioPlot->yAxis);
   ratio->setName("Miss ratio");
-  ratio->setPen(QPen(QColor(179, 230, 249).lighter(170)));
-  ratio->setBrush(QColor(179, 230, 249));
+  ratio->setPen(QPen(QColor(QRgb(Colors::FoundersRock)).lighter(170)));
+  ratio->setBrush(QColor(QRgb(Colors::FoundersRock)));
 
   // Setup ticker
   QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
@@ -169,7 +169,8 @@ void CacheInspector::setupTemporalRatioPlot() {
 
   for (int i = 0; i < 3; ++i) {
     m_ui->temporalRatioPlot->addGraph();
-    QColor color(20 + 200 / 4.0 * i, 70 * (1.6 - i / 4.0), 150, 150);
+    QColor color(QRgb(Colors::BerkeleyBlue));
+    color.setAlpha(60 + 40 * i);
     m_ui->temporalRatioPlot->graph()->setLineStyle(QCPGraph::lsLine);
     m_ui->temporalRatioPlot->graph()->setPen(QPen(color.lighter(200)));
     m_ui->temporalRatioPlot->graph()->setBrush(QBrush(color));
