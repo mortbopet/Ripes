@@ -17,7 +17,7 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
           SLOT(highlightCurrentLine()));
 
   // add some breakpoints
-  m_breakpoints = QList<int>() << 3 << 5 << 10 << 20;
+  m_breakpoints = QSet<int>() << 3 << 5 << 10 << 20;
 
   updateSidebarWidth(0);
   highlightCurrentLine();
@@ -53,6 +53,14 @@ void CodeEditor::updateSidebar(const QRect &rect, int dy) {
 
   if (rect.contains(viewport()->rect()))
     updateSidebarWidth(0);
+
+  // Remove breakpoints if a breakpoint line has been removed
+  auto a = blockCount();
+  while (!m_breakpoints.isEmpty() &&
+         *(m_breakpoints.end() - 1) > (blockCount() - 1)) {
+
+    m_breakpoints.erase(m_breakpoints.end() - 1);
+  }
 }
 
 void CodeEditor::resizeEvent(QResizeEvent *e) {
@@ -121,11 +129,9 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent *event) {
   while (block.isValid() && top <= event->rect().bottom()) {
     if (block.isVisible() && bottom >= event->rect().top()) {
       if (m_breakpoints.contains(blockNumber)) {
-        painter.drawPixmap(m_breakpointArea->padding, top,
-                           m_breakpointArea->imageWidth,
-                           m_breakpointArea->imageHeight,
-                           m_breakpointArea->m_breakpoint.scaledToHeight(
-                               fontMetrics().height() * 0.7));
+        painter.drawPixmap(
+            m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
+            m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
       }
     }
 
@@ -136,4 +142,37 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent *event) {
   }
 }
 
-void BreakpointArea::mouseReleaseEvent(QMouseEvent *event) { return; }
+void CodeEditor::breakpointClick(QMouseEvent *event) {
+  // Get line height
+  QTextBlock block = firstVisibleBlock();
+  auto height = blockBoundingRect(block).height();
+
+  // Find block index in the codeeditor
+  int index;
+  if (block == document()->findBlockByLineNumber(0)) {
+    index = -1 + (event->pos().y() + contentOffset().y()) / height;
+  } else {
+    index = (event->pos().y() + contentOffset().y()) / height;
+  }
+  // Get actual block index
+  while (index > 0) {
+    block = block.next();
+    index--;
+  }
+  // Set or unset breakpoint
+  int blockNumber = block.blockNumber();
+  if (block.isValid()) {
+    // Set/unset breakpoint
+    if (m_breakpoints.contains(blockNumber)) {
+      m_breakpoints.remove(blockNumber);
+    } else {
+      m_breakpoints.insert(blockNumber);
+    }
+    repaint();
+  }
+}
+
+BreakpointArea::BreakpointArea(CodeEditor *editor) : QWidget(editor) {
+  codeEditor = editor;
+  setCursor(Qt::PointingHandCursor);
+}

@@ -1,8 +1,8 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
-#include <QList>
 #include <QPlainTextEdit>
+#include <QSet>
 
 // Extended version of Qt's CodeEditor example
 // http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
@@ -17,6 +17,7 @@ public:
 
   void lineNumberAreaPaintEvent(QPaintEvent *event);
   void breakpointAreaPaintEvent(QPaintEvent *event);
+  void breakpointClick(QMouseEvent *event);
   int lineNumberAreaWidth();
 
 protected:
@@ -31,7 +32,7 @@ private:
   LineNumberArea *m_lineNumberArea;
   BreakpointArea *m_breakpointArea;
 
-  QList<int> m_breakpoints;
+  QSet<int> m_breakpoints;
 };
 
 // base class for side area widgets that are attached to the code editor
@@ -62,7 +63,7 @@ private:
 
 class BreakpointArea : public QWidget {
 public:
-  BreakpointArea(CodeEditor *editor) : QWidget(editor) { codeEditor = editor; }
+  BreakpointArea(CodeEditor *editor);
 
   QSize sizeHint() const override { return QSize(width(), 0); }
   int width() const { return imageWidth + padding * 2; }
@@ -76,6 +77,8 @@ public:
   QPixmap m_breakpoint_disabled =
       QPixmap(":/logos/breakpoint_disabled.png").scaled(imageWidth, imageWidth);
 
+  void setBlockHeight(int height) { m_blockHeight = height; }
+
 protected:
   void paintEvent(QPaintEvent *event) override {
     codeEditor->breakpointAreaPaintEvent(event);
@@ -83,8 +86,11 @@ protected:
 
 private:
   CodeEditor *codeEditor;
+  int m_blockHeight = 0;
 
-  void mouseReleaseEvent(QMouseEvent *event);
+  void mouseReleaseEvent(QMouseEvent *event) {
+    codeEditor->breakpointClick(event);
+  }
 };
 
 #endif // CODEEDITOR_H
