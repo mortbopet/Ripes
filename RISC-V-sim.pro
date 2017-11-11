@@ -25,7 +25,8 @@ SOURCES += src/main.cpp \
     src/memorydisplaydelegate.cpp \
     src/memoryview.cpp \
     src/gotocombobox.cpp \
-    src/addressdialog.cpp
+    src/addressdialog.cpp \
+    src/codeeditor.cpp
 
 HEADERS += \
     src/parser.h \
@@ -48,7 +49,8 @@ HEADERS += \
     src/memoryview.h \
     src/gotocombobox.h \
     src/addressdialog.h \
-    src/addressdialog.h
+    src/addressdialog.h \
+    src/codeeditor.h
 
 FORMS += \
     src/mainwindow.ui \

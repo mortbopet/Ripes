@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/logos">
         <file>logo.png</file>
+        <file>breakpoint_disabled.png</file>
+        <file>breakpoint_enabled.png</file>
     </qresource>
 </RCC>
