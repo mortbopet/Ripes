@@ -38,6 +38,11 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
   // set event filter for catching scroll events
   installEventFilter(this);
+
+  // Set syntax highlighter
+  m_highlighter = new AsmHighlighter(document());
+
+  setWordWrapMode(QTextOption::NoWrap);
 }
 
 int CodeEditor::lineNumberAreaWidth() {

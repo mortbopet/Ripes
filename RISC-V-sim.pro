@@ -26,7 +26,8 @@ SOURCES += src/main.cpp \
     src/memoryview.cpp \
     src/gotocombobox.cpp \
     src/addressdialog.cpp \
-    src/codeeditor.cpp
+    src/codeeditor.cpp \
+    src/asmhighlighter.cpp
 
 HEADERS += \
     src/parser.h \
@@ -50,7 +51,8 @@ HEADERS += \
     src/gotocombobox.h \
     src/addressdialog.h \
     src/addressdialog.h \
-    src/codeeditor.h
+    src/codeeditor.h \
+    src/asmhighlighter.h
 
 FORMS += \
     src/mainwindow.ui \

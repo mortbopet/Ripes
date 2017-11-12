@@ -6,6 +6,8 @@
 #include <QScrollBar>
 #include <QTimer>
 
+#include "asmhighlighter.h"
+
 #include <set>
 
 // Extended version of Qt's CodeEditor example
@@ -34,6 +36,7 @@ private slots:
   void updateSidebar(const QRect &, int);
 
 private:
+  AsmHighlighter *m_highlighter;
   LineNumberArea *m_lineNumberArea;
   BreakpointArea *m_breakpointArea;
   int m_sidebarWidth;
