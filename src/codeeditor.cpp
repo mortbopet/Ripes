@@ -1,9 +1,12 @@
 #include "codeeditor.h"
+#include "defines.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QMenu>
 #include <QPainter>
 #include <QTextBlock>
+#include <QWheelEvent>
 
 #include <iterator>
 
@@ -17,11 +20,19 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
   connect(this, SIGNAL(updateRequest(QRect, int)), this,
           SLOT(updateSidebar(QRect, int)));
 
-  connect(this, SIGNAL(cursorPositionChanged()), this,
-          SLOT(highlightCurrentLine()));
+  // Connect runner PC to line hightlighting
+  // connect(this, SIGNAL(cursorPositionChanged()), this,
+  //        SLOT(highlightCurrentLine()));
+  // highlightCurrentLine();
 
   updateSidebarWidth(0);
-  highlightCurrentLine();
+
+  // Set font for the entire widget. calls to fontMetrics() will get the
+  // dimensions of the currently set font
+  setFont(m_font);
+
+  // set event filter for catching scroll events
+  installEventFilter(this);
 }
 
 int CodeEditor::lineNumberAreaWidth() {
@@ -39,6 +50,25 @@ void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
   // Set margins of the text edit area
   setViewportMargins(lineNumberAreaWidth() + m_breakpointArea->width(), 0, 0,
                      0);
+}
+
+bool CodeEditor::eventFilter(QObject *observed, QEvent *event) {
+  // Event filter for catching ctrl+Scroll events, for text resizing
+  if (event->type() == QEvent::Wheel &&
+      QApplication::keyboardModifiers() == Qt::ControlModifier) {
+    auto wheelEvent = static_cast<QWheelEvent *>(event);
+    // change font size
+    if (wheelEvent->angleDelta().y() > 0) {
+      if (m_font.pointSize() < 30)
+        m_font.setPointSize(m_font.pointSize() + 1);
+    } else {
+      if (m_font.pointSize() > 6)
+        m_font.setPointSize(m_font.pointSize() - 1);
+    }
+    setFont(m_font);
+    return true;
+  }
+  return false;
 }
 
 void CodeEditor::updateSidebar(const QRect &rect, int dy) {
@@ -60,6 +90,7 @@ void CodeEditor::updateSidebar(const QRect &rect, int dy) {
   while (!m_breakpoints.empty() &&
          *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
     m_breakpoints.erase(std::prev(m_breakpoints.end()));
+    m_font.setPointSize(m_font.pointSize() + 1);
   }
 }
 
@@ -81,7 +112,7 @@ void CodeEditor::highlightCurrentLine() {
   if (!isReadOnly()) {
     QTextEdit::ExtraSelection selection;
 
-    QColor lineColor = QColor(Qt::yellow).lighter(160);
+    QColor lineColor = QColor(Colors::Medalist).lighter(160);
 
     selection.format.setBackground(lineColor);
     selection.format.setProperty(QTextFormat::FullWidthSelection, true);
@@ -95,7 +126,6 @@ void CodeEditor::highlightCurrentLine() {
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
   QPainter painter(m_lineNumberArea);
-  painter.fillRect(event->rect(), Qt::lightGray);
 
   QTextBlock block = firstVisibleBlock();
   int blockNumber = block.blockNumber();
@@ -105,7 +135,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
   while (block.isValid() && top <= event->rect().bottom()) {
     if (block.isVisible() && bottom >= event->rect().top()) {
       QString number = QString::number(blockNumber + 1);
-      painter.setPen(Qt::black);
+      painter.setPen(Qt::lightGray);
       painter.drawText(0, top, m_lineNumberArea->width(),
                        fontMetrics().height(), Qt::AlignRight, number);
     }
@@ -119,7 +149,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
 
 void CodeEditor::breakpointAreaPaintEvent(QPaintEvent *event) {
   QPainter painter(m_breakpointArea);
-  painter.fillRect(event->rect(), Qt::lightGray);
+  painter.fillRect(event->rect(), QColor(Colors::FoundersRock).lighter(120));
 
   QTextBlock block = firstVisibleBlock();
   int blockNumber = block.blockNumber();
@@ -151,7 +181,7 @@ void CodeEditor::breakpointClick(QMouseEvent *event, int forceState) {
   // Find block index in the codeeditor
   int index;
   if (block == document()->findBlockByLineNumber(0)) {
-    index = -1 + (event->pos().y() + contentOffset().y()) / height;
+    index = (event->pos().y() - contentOffset().y()) / height;
   } else {
     index = (event->pos().y() + contentOffset().y()) / height;
   }
@@ -181,10 +211,13 @@ void CodeEditor::breakpointClick(QMouseEvent *event, int forceState) {
   }
 }
 
+// -------------- breakpoint area ----------------------------------
+
 BreakpointArea::BreakpointArea(CodeEditor *editor) : QWidget(editor) {
   codeEditor = editor;
   setCursor(Qt::PointingHandCursor);
 
+  // Create and connect actions for removing and setting breakpoints
   m_removeAction = new QAction("Remove breakpoint", this);
   m_removeAllAction = new QAction("Remove all breakpoints", this);
   m_addAction = new QAction("Add breakpoint", this);

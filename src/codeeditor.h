@@ -1,7 +1,10 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QApplication>
 #include <QPlainTextEdit>
+#include <QScrollBar>
+
 #include <set>
 
 // Extended version of Qt's CodeEditor example
@@ -34,6 +37,10 @@ private:
   BreakpointArea *m_breakpointArea;
 
   std::set<int> m_breakpoints;
+
+  QFont m_font = font();
+
+  bool eventFilter(QObject *observed, QEvent *event) override;
 };
 
 // base class for side area widgets that are attached to the code editor
@@ -56,6 +63,12 @@ public:
 protected:
   void paintEvent(QPaintEvent *event) override {
     codeEditor->lineNumberAreaPaintEvent(event);
+  }
+
+  void wheelEvent(QWheelEvent *event) override {
+    codeEditor->verticalScrollBar()->setValue(
+        codeEditor->verticalScrollBar()->value() +
+        (-event->angleDelta().y()) / 30);
   }
 
 private:
@@ -95,6 +108,12 @@ private:
     if (event->button() == Qt::LeftButton) {
       codeEditor->breakpointClick(event);
     }
+  }
+
+  void wheelEvent(QWheelEvent *event) override {
+    codeEditor->verticalScrollBar()->setValue(
+        codeEditor->verticalScrollBar()->value() +
+        (-event->angleDelta().y()) / 30);
   }
 
   QAction *m_removeAction;
