@@ -3,6 +3,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QLinearGradient>
 #include <QMenu>
 #include <QPainter>
 #include <QTextBlock>
@@ -29,7 +30,11 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
   // Set font for the entire widget. calls to fontMetrics() will get the
   // dimensions of the currently set font
+  m_font = QFont("Monospace"); // set default font to Monospace on unix systems
+  m_font.setStyleHint(QFont::Monospace);
+  m_font.setPointSize(10);
   setFont(m_font);
+  m_fontTimer.setSingleShot(true);
 
   // set event filter for catching scroll events
   installEventFilter(this);
@@ -37,37 +42,45 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
 int CodeEditor::lineNumberAreaWidth() {
   int digits = 1;
+  int rightPadding = 6;
   int max = qMax(1, blockCount());
   while (max >= 10) {
     max /= 10;
     ++digits;
   }
-  int space = 3 + fontMetrics().width(QLatin1Char('15')) * digits;
+  int space = rightPadding + fontMetrics().width(QLatin1Char('15')) * digits;
   return space;
 }
 
 void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
   // Set margins of the text edit area
-  setViewportMargins(lineNumberAreaWidth() + m_breakpointArea->width(), 0, 0,
-                     0);
+  m_sidebarWidth = lineNumberAreaWidth() + m_breakpointArea->width();
+  setViewportMargins(m_sidebarWidth, 0, 0, 0);
 }
 
-bool CodeEditor::eventFilter(QObject *observed, QEvent *event) {
+bool CodeEditor::eventFilter(QObject * /*observed*/, QEvent *event) {
   // Event filter for catching ctrl+Scroll events, for text resizing
   if (event->type() == QEvent::Wheel &&
       QApplication::keyboardModifiers() == Qt::ControlModifier) {
     auto wheelEvent = static_cast<QWheelEvent *>(event);
+    // Since multiple wheelevents are issued on a scroll,
+    // start a timer to only catch the first one
+
     // change font size
-    if (wheelEvent->angleDelta().y() > 0) {
-      if (m_font.pointSize() < 30)
-        m_font.setPointSize(m_font.pointSize() + 1);
-    } else {
-      if (m_font.pointSize() > 6)
-        m_font.setPointSize(m_font.pointSize() - 1);
+    if (!m_fontTimer.isActive()) {
+      if (wheelEvent->angleDelta().y() > 0) {
+        if (m_font.pointSize() < 30)
+          m_font.setPointSize(m_font.pointSize() + 1);
+      } else {
+        if (m_font.pointSize() > 6)
+          m_font.setPointSize(m_font.pointSize() - 1);
+      }
+      m_fontTimer.start(50);
     }
     setFont(m_font);
     return true;
   }
+
   return false;
 }
 
@@ -86,11 +99,9 @@ void CodeEditor::updateSidebar(const QRect &rect, int dy) {
     updateSidebarWidth(0);
 
   // Remove breakpoints if a breakpoint line has been removed
-  auto a = blockCount();
   while (!m_breakpoints.empty() &&
          *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
     m_breakpoints.erase(std::prev(m_breakpoints.end()));
-    m_font.setPointSize(m_font.pointSize() + 1);
   }
 }
 
@@ -126,6 +137,7 @@ void CodeEditor::highlightCurrentLine() {
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
   QPainter painter(m_lineNumberArea);
+  painter.fillRect(event->rect(), QColor(Qt::lightGray).lighter(120));
 
   QTextBlock block = firstVisibleBlock();
   int blockNumber = block.blockNumber();
@@ -135,8 +147,8 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
   while (block.isValid() && top <= event->rect().bottom()) {
     if (block.isVisible() && bottom >= event->rect().top()) {
       QString number = QString::number(blockNumber + 1);
-      painter.setPen(Qt::lightGray);
-      painter.drawText(0, top, m_lineNumberArea->width(),
+      painter.setPen(QColor(Qt::gray).darker(130));
+      painter.drawText(0, top, m_lineNumberArea->width() - 3,
                        fontMetrics().height(), Qt::AlignRight, number);
     }
 
@@ -149,7 +161,16 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
 
 void CodeEditor::breakpointAreaPaintEvent(QPaintEvent *event) {
   QPainter painter(m_breakpointArea);
-  painter.fillRect(event->rect(), QColor(Colors::FoundersRock).lighter(120));
+
+  // When caret flashes in QPlainTextEdit a paint event is sent to this widget,
+  // with a height of a line in the edit. We override this paint event by always
+  // redrawing the visible breakpoint area
+  auto area = m_breakpointArea->rect();
+  QLinearGradient gradient =
+      QLinearGradient(area.topLeft(), area.bottomRight());
+  gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
+  gradient.setColorAt(1, QColor(Colors::FoundersRock));
+  painter.fillRect(area, gradient);
 
   QTextBlock block = firstVisibleBlock();
   int blockNumber = block.blockNumber();

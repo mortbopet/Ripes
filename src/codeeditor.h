@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QPlainTextEdit>
 #include <QScrollBar>
+#include <QTimer>
 
 #include <set>
 
@@ -35,10 +36,15 @@ private slots:
 private:
   LineNumberArea *m_lineNumberArea;
   BreakpointArea *m_breakpointArea;
+  int m_sidebarWidth;
 
   std::set<int> m_breakpoints;
 
   QFont m_font = font();
+
+  // A timer is needed for only catching one of the multiple wheel events that
+  // occur on a regular mouse scroll
+  QTimer m_fontTimer;
 
   bool eventFilter(QObject *observed, QEvent *event) override;
 };
