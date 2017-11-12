@@ -17,7 +17,8 @@ public:
 
   void lineNumberAreaPaintEvent(QPaintEvent *event);
   void breakpointAreaPaintEvent(QPaintEvent *event);
-  void breakpointClick(QMouseEvent *event);
+  void breakpointClick(QMouseEvent *event, int forceState);
+  void clearBreakpoints() { m_breakpoints.clear(); }
   int lineNumberAreaWidth();
 
 protected:
@@ -84,13 +85,23 @@ protected:
     codeEditor->breakpointAreaPaintEvent(event);
   }
 
+  void contextMenuEvent(QContextMenuEvent *event) override;
+
 private:
   CodeEditor *codeEditor;
   int m_blockHeight = 0;
 
   void mouseReleaseEvent(QMouseEvent *event) {
-    codeEditor->breakpointClick(event);
+    if (event->button() == Qt::LeftButton) {
+      codeEditor->breakpointClick(event, 0);
+    }
   }
+
+  QAction *m_removeAction;
+  QAction *m_addAction;
+  QAction *m_removeAllAction;
+
+  QMouseEvent *m_event;
 };
 
 #endif // CODEEDITOR_H

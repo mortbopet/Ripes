@@ -1,5 +1,7 @@
 #include "codeeditor.h"
 
+#include <QAction>
+#include <QMenu>
 #include <QPainter>
 #include <QTextBlock>
 
@@ -142,7 +144,8 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent *event) {
   }
 }
 
-void CodeEditor::breakpointClick(QMouseEvent *event) {
+void CodeEditor::breakpointClick(QMouseEvent *event, int forceState) {
+
   // Get line height
   QTextBlock block = firstVisibleBlock();
   auto height = blockBoundingRect(block).height();
@@ -163,10 +166,16 @@ void CodeEditor::breakpointClick(QMouseEvent *event) {
   int blockNumber = block.blockNumber();
   if (block.isValid()) {
     // Set/unset breakpoint
-    if (m_breakpoints.contains(blockNumber)) {
+    if (forceState == 1) {
+      m_breakpoints.insert(blockNumber);
+    } else if (forceState == 2) {
       m_breakpoints.remove(blockNumber);
     } else {
-      m_breakpoints.insert(blockNumber);
+      if (m_breakpoints.contains(blockNumber)) {
+        m_breakpoints.remove(blockNumber);
+      } else {
+        m_breakpoints.insert(blockNumber);
+      }
     }
     repaint();
   }
@@ -175,4 +184,37 @@ void CodeEditor::breakpointClick(QMouseEvent *event) {
 BreakpointArea::BreakpointArea(CodeEditor *editor) : QWidget(editor) {
   codeEditor = editor;
   setCursor(Qt::PointingHandCursor);
+
+  m_removeAction = new QAction("Remove breakpoint", this);
+  m_removeAllAction = new QAction("Remove all breakpoints", this);
+  m_addAction = new QAction("Add breakpoint", this);
+
+  connect(m_removeAction, &QAction::triggered,
+          [=] { codeEditor->breakpointClick(m_event, 2); });
+  connect(m_addAction, &QAction::triggered,
+          [=] { codeEditor->breakpointClick(m_event, 1); });
+  connect(m_removeAllAction, &QAction::triggered, [=] {
+    codeEditor->clearBreakpoints();
+    repaint();
+  });
+
+  // Construct default mouseButtonEvent
+  m_event = new QMouseEvent(QEvent::MouseButtonRelease, QPoint(0, 0),
+                            Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+}
+
+void BreakpointArea::contextMenuEvent(QContextMenuEvent *event) {
+  // setup context menu
+  QMenu contextMenu;
+
+  // Translate event to a QMouseEvent in case add/remove single breakpoint is
+  // triggered
+  *m_event = QMouseEvent(QEvent::MouseButtonRelease, event->pos(),
+                         Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+
+  contextMenu.addAction(m_addAction);
+  contextMenu.addAction(m_removeAction);
+  contextMenu.addAction(m_removeAllAction);
+
+  contextMenu.exec(event->globalPos());
 }
