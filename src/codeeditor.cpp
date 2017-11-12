@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QTextBlock>
 
+#include <iterator>
+
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
   m_lineNumberArea = new LineNumberArea(this);
   m_breakpointArea = new BreakpointArea(this);
@@ -17,9 +19,6 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
   connect(this, SIGNAL(cursorPositionChanged()), this,
           SLOT(highlightCurrentLine()));
-
-  // add some breakpoints
-  m_breakpoints = QSet<int>() << 3 << 5 << 10 << 20;
 
   updateSidebarWidth(0);
   highlightCurrentLine();
@@ -58,10 +57,9 @@ void CodeEditor::updateSidebar(const QRect &rect, int dy) {
 
   // Remove breakpoints if a breakpoint line has been removed
   auto a = blockCount();
-  while (!m_breakpoints.isEmpty() &&
-         *(m_breakpoints.end() - 1) > (blockCount() - 1)) {
-
-    m_breakpoints.erase(m_breakpoints.end() - 1);
+  while (!m_breakpoints.empty() &&
+         *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
+    m_breakpoints.erase(std::prev(m_breakpoints.end()));
   }
 }
 
@@ -130,7 +128,7 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent *event) {
 
   while (block.isValid() && top <= event->rect().bottom()) {
     if (block.isVisible() && bottom >= event->rect().top()) {
-      if (m_breakpoints.contains(blockNumber)) {
+      if (m_breakpoints.find(blockNumber) != m_breakpoints.end()) {
         painter.drawPixmap(
             m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
             m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
@@ -165,14 +163,16 @@ void CodeEditor::breakpointClick(QMouseEvent *event, int forceState) {
   // Set or unset breakpoint
   int blockNumber = block.blockNumber();
   if (block.isValid()) {
+    auto brkptIter = m_breakpoints.find(blockNumber);
     // Set/unset breakpoint
     if (forceState == 1) {
       m_breakpoints.insert(blockNumber);
     } else if (forceState == 2) {
-      m_breakpoints.remove(blockNumber);
+      if (brkptIter != m_breakpoints.end())
+        m_breakpoints.erase(m_breakpoints.find(blockNumber));
     } else {
-      if (m_breakpoints.contains(blockNumber)) {
-        m_breakpoints.remove(blockNumber);
+      if (brkptIter != m_breakpoints.end()) {
+        m_breakpoints.erase(brkptIter);
       } else {
         m_breakpoints.insert(blockNumber);
       }

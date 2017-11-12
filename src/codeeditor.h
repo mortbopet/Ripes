@@ -2,7 +2,7 @@
 #define CODEEDITOR_H
 
 #include <QPlainTextEdit>
-#include <QSet>
+#include <set>
 
 // Extended version of Qt's CodeEditor example
 // http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
@@ -17,7 +17,7 @@ public:
 
   void lineNumberAreaPaintEvent(QPaintEvent *event);
   void breakpointAreaPaintEvent(QPaintEvent *event);
-  void breakpointClick(QMouseEvent *event, int forceState);
+  void breakpointClick(QMouseEvent *event, int forceState = 0);
   void clearBreakpoints() { m_breakpoints.clear(); }
   int lineNumberAreaWidth();
 
@@ -33,7 +33,7 @@ private:
   LineNumberArea *m_lineNumberArea;
   BreakpointArea *m_breakpointArea;
 
-  QSet<int> m_breakpoints;
+  std::set<int> m_breakpoints;
 };
 
 // base class for side area widgets that are attached to the code editor
@@ -93,7 +93,7 @@ private:
 
   void mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
-      codeEditor->breakpointClick(event, 0);
+      codeEditor->breakpointClick(event);
     }
   }
 
