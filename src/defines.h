@@ -63,6 +63,39 @@ enum instrState {
   ERR_ECALL
 };
 
+const static QStringList ABInames = QStringList() << "zero"
+                                                  << "ra"
+                                                  << "sp"
+                                                  << "gp"
+                                                  << "tp"
+                                                  << "t0"
+                                                  << "t1"
+                                                  << "t2"
+                                                  << "s0/fp"
+                                                  << "s1"
+                                                  << "a0"
+                                                  << "a1"
+                                                  << "a2"
+                                                  << "a3"
+                                                  << "a4"
+                                                  << "a5"
+                                                  << "a6"
+                                                  << "a7"
+                                                  << "s2"
+                                                  << "s3"
+                                                  << "s4"
+                                                  << "s5"
+                                                  << "s6"
+                                                  << "s7"
+                                                  << "s8"
+                                                  << "s9"
+                                                  << "s10"
+                                                  << "s11"
+                                                  << "t3"
+                                                  << "t4"
+                                                  << "t5"
+                                                  << "t6";
+
 const static std::map<int, QString> cacheSizes = {
     {32, QString("32 Bytes")},   {64, QString("64 Bytes")},
     {128, QString("128 Bytes")}, {256, {QString("256 Bytes")}},

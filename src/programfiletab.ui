@@ -70,6 +70,24 @@
       </widget>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Original code</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Translated code</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <widget class="QStackedWidget" name="stackedWidget_2">
        <property name="currentIndex">
         <number>0</number>
@@ -86,7 +104,7 @@
              <number>20</number>
             </property>
            </widget>
-           <widget class="QPlainTextEdit" name="binaryedit">
+           <widget class="CodeEditor" name="binaryedit">
             <property name="enabled">
              <bool>true</bool>
             </property>
