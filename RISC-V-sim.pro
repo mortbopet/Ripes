@@ -3,7 +3,8 @@ QT += widgets printsupport
 CONFIG += c++14
 
 INCLUDEPATH  += $$PWD/src/ \
-                $$PWD/external/QCustomPlot/
+                $$PWD/external/QCustomPlot/ \
+                $$PWD/external/fancytabbar/
 
 
 SOURCES += src/main.cpp \
@@ -27,7 +28,8 @@ SOURCES += src/main.cpp \
     src/gotocombobox.cpp \
     src/addressdialog.cpp \
     src/codeeditor.cpp \
-    src/asmhighlighter.cpp
+    src/asmhighlighter.cpp \
+    src/tabbar.cpp
 
 HEADERS += \
     src/parser.h \
@@ -52,7 +54,8 @@ HEADERS += \
     src/addressdialog.h \
     src/addressdialog.h \
     src/codeeditor.h \
-    src/asmhighlighter.h
+    src/asmhighlighter.h \
+    src/tabbar.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -68,10 +71,15 @@ FORMS += \
 
 # External
 HEADERS += \
-   external/QCustomPlot/qcustomplot.h
+   external/QCustomPlot/qcustomplot.h \
+    external/fancytabbar/fancytab.h \
+    external/fancytabbar/fancytabbar.h \
+
 
 SOURCES += \
-    external/QCustomPlot/qcustomplot.cpp
+    external/QCustomPlot/qcustomplot.cpp \
+    external/fancytabbar/fancytab.cpp \
+    external/fancytabbar/fancytabbar.cpp \
 
 RESOURCES += \
     resources/images.qrc

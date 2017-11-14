@@ -3,5 +3,10 @@
         <file>logo.png</file>
         <file>breakpoint_disabled.png</file>
         <file>breakpoint_enabled.png</file>
+        <file>binary-code.svg</file>
+        <file>cpu.svg</file>
+        <file>graph.svg</file>
+        <file>server.svg</file>
+        <file>ram-memory.svg</file>
     </qresource>
 </RCC>

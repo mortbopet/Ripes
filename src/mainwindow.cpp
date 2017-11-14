@@ -2,6 +2,9 @@
 #include "QFileDialog"
 #include "ui_mainwindow.h"
 
+#include <QIcon>
+#include <QPushButton>
+
 #include "programfiletab.h"
 #include "registerwidget.h"
 #include "runner.h"
@@ -15,6 +18,23 @@ MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)
   setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
   m_runnerPtr = runnerPtr;
   m_parserPtr = parserPtr;
+
+  // Setup tab bar
+  m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/binary-code.svg")), "Code");
+  m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/cpu.svg")), "Processor");
+  m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/ram-memory.svg")), "Memory");
+  m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/server.svg")), "Cache");
+  m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/graph.svg")), "Results");
+  connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget,
+          &QStackedWidget::setCurrentIndex);
+  m_ui->tabbar->setActiveIndex(0);
+
+  // Setup splitter such that consoles are always as small as possible
+  auto splitterSize = m_ui->splitter->size();
+  m_ui->splitter->setSizes(QList<int>()
+                           << splitterSize.height() -
+                                  (m_ui->consoles->minimumHeight() - 1)
+                           << (m_ui->consoles->minimumHeight() + 1));
 
   // Setup tab pointers
   m_ui->cachetab->setRunnerCachePtr(m_runnerPtr->getRunnerCachePtr());
@@ -38,8 +58,6 @@ MainWindow::MainWindow(Runner *runnerPtr, Parser *parserPtr, QWidget *parent)
       m_ui->consoles->hide();
     };
   });
-  connect(m_ui->consoles, &QDockWidget::visibilityChanged,
-          m_ui->actionShow_consoles, &QAction::setChecked);
 }
 
 MainWindow::~MainWindow() { delete m_ui; }
