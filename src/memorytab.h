@@ -17,32 +17,32 @@ class MemoryTab;
 class RegisterWidget;
 
 class MemoryTab : public QWidget {
-  Q_OBJECT
+    Q_OBJECT
 
-public:
-  explicit MemoryTab(QWidget *parent = 0);
-  ~MemoryTab();
+  public:
+    explicit MemoryTab(QWidget* parent = 0);
+    ~MemoryTab();
 
-  void setMemoryPtr(memory *ptr) { m_memoryPtr = ptr; }
-  void setRegPtr(std::vector<uint32_t> *ptr) { m_regPtr = ptr; }
-  void init();
+    void setMemoryPtr(memory* ptr) { m_memoryPtr = ptr; }
+    void setRegPtr(std::vector< uint32_t >* ptr) { m_regPtr = ptr; }
+    void init();
 
-public slots:
-  void updateRegisterWidget(int n);
-  void saveAddress();
+  public slots:
+    void updateRegisterWidget(int n);
+    void saveAddress();
 
-private:
-  void initializeMemoryView();
-  void initializeRegisterView();
+  private:
+    void initializeMemoryView();
+    void initializeRegisterView();
 
-  Ui::MemoryTab *m_ui;
-  MemoryModel *m_model;
-  MemoryDisplayDelegate *m_delegate;
+    Ui::MemoryTab* m_ui;
+    MemoryModel* m_model;
+    MemoryDisplayDelegate* m_delegate;
 
-  memory *m_memoryPtr;
-  std::vector<uint32_t> *m_regPtr;
+    memory* m_memoryPtr;
+    std::vector< uint32_t >* m_regPtr;
 
-  std::vector<RegisterWidget *> m_regWidgetPtrs;
+    std::vector< RegisterWidget* > m_regWidgetPtrs;
 };
 
 #endif // MEMORYTAB_H

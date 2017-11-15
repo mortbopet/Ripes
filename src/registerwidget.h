@@ -11,7 +11,7 @@ class RegisterWidget;
 }
 
 namespace {
-typedef QPair<long long, long long> rangePair;
+typedef QPair< long long, long long > rangePair;
 }
 
 /*
@@ -19,32 +19,32 @@ typedef QPair<long long, long long> rangePair;
 */
 
 class RegisterWidget : public QWidget {
-  Q_OBJECT
+    Q_OBJECT
 
-public:
-  explicit RegisterWidget(QWidget *parent = 0);
-  ~RegisterWidget();
+  public:
+    explicit RegisterWidget(QWidget* parent = 0);
+    ~RegisterWidget();
 
-  void setAlias(QString text);
-  void setNumber(int number);
-  void setRegPtr(uint32_t *ptr) { m_regPtr = ptr; }
-  void enableInput(bool state);
+    void setAlias(QString text);
+    void setNumber(int number);
+    void setRegPtr(uint32_t* ptr) { m_regPtr = ptr; }
+    void enableInput(bool state);
 
-public slots:
-  void setText();
-  void setDisplayType(displayTypeN type);
+  public slots:
+    void setText();
+    void setDisplayType(displayTypeN type);
 
-private slots:
-  void validateInput();
+  private slots:
+    void validateInput();
 
-private:
-  Ui::RegisterWidget *m_ui;
-  QIntValidator m_validator;
-  displayTypeN m_displayType;
-  int m_displayBase = 10;
-  uint32_t *m_regPtr;
+  private:
+    Ui::RegisterWidget* m_ui;
+    QIntValidator m_validator;
+    displayTypeN m_displayType;
+    int m_displayBase = 10;
+    uint32_t* m_regPtr;
 
-  rangePair m_range;
+    rangePair m_range;
 };
 
 #endif // REGISTERWIDGET_H

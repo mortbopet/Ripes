@@ -7,16 +7,15 @@ namespace Ui {
 class ProcessorTab;
 }
 
-class ProcessorTab : public QWidget
-{
+class ProcessorTab : public QWidget {
     Q_OBJECT
 
-public:
-    explicit ProcessorTab(QWidget *parent = 0);
+  public:
+    explicit ProcessorTab(QWidget* parent = 0);
     ~ProcessorTab();
 
-private:
-    Ui::ProcessorTab *m_ui;
+  private:
+    Ui::ProcessorTab* m_ui;
 };
 
 #endif // PROCESSORTAB_H

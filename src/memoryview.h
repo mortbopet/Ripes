@@ -9,15 +9,15 @@
 // central address
 
 class MemoryView : public QTableView {
-  Q_OBJECT
+    Q_OBJECT
 
-public:
-  MemoryView(QWidget *parent = nullptr);
+  public:
+    MemoryView(QWidget* parent = nullptr);
 
-  void wheelEvent(QWheelEvent *event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
-signals:
-  void scrolled(bool dir);
+  signals:
+    void scrolled(bool dir);
 };
 
 #endif // MEMORYVIEW_H

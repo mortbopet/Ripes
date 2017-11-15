@@ -11,29 +11,29 @@ class CacheTab;
 class CacheSetupWidget;
 
 class CacheTab : public QWidget {
-  friend class RunnerCache;
-  Q_OBJECT
+    friend class RunnerCache;
+    Q_OBJECT
 
-public:
-  explicit CacheTab(QWidget *parent = 0);
-  ~CacheTab();
+  public:
+    explicit CacheTab(QWidget* parent = 0);
+    ~CacheTab();
 
-  void setRunnerCachePtr(RunnerCache *ptr);
+    void setRunnerCachePtr(RunnerCache* ptr);
 
-private:
-  Ui::CacheTab *m_ui;
+  private:
+    Ui::CacheTab* m_ui;
 
-  void connectWidgets();
-  void setupWidgets();
-  RunnerCache *m_runnerCachePtr;
-  void connectSetupWidget(CacheBase *cachePtr, cacheLevel level);
+    void connectWidgets();
+    void setupWidgets();
+    RunnerCache* m_runnerCachePtr;
+    void connectSetupWidget(CacheBase* cachePtr, cacheLevel level);
 
-signals:
-  void countChanged();
-  void cacheChanged();
+  signals:
+    void countChanged();
+    void cacheChanged();
 
-private slots:
-  void cacheCountChanged(bool state);
+  private slots:
+    void cacheCountChanged(bool state);
 };
 
 #endif // CACHETAB_H

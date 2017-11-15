@@ -5,28 +5,28 @@
 #include <QItemDelegate>
 
 class ComboboxDelegate : public QItemDelegate {
-  Q_OBJECT
-public:
-  explicit ComboboxDelegate(QWidget *parent = nullptr);
+    Q_OBJECT
+  public:
+    explicit ComboboxDelegate(QWidget* parent = nullptr);
 
-  void mousePressEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent* event);
 };
 
 class GoToComboBox : public QComboBox {
-  Q_OBJECT
-public:
-  explicit GoToComboBox(QWidget *parent = nullptr);
+    Q_OBJECT
+  public:
+    explicit GoToComboBox(QWidget* parent = nullptr);
 
-signals:
-  void indexChanged();
-  void jumpToAddress(uint32_t address);
+  signals:
+    void indexChanged();
+    void jumpToAddress(uint32_t address);
 
-public slots:
+  public slots:
 
-private:
-  void signalFilter(int index);
+  private:
+    void signalFilter(int index);
 
-  // ComboboxDelegate m_delegate;
+    // ComboboxDelegate m_delegate;
 };
 
 #endif // GOTOCOMBOBOX_H
