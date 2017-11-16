@@ -8,6 +8,7 @@ AddressDialog::AddressDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::Ad
 
     // set input range
     m_ui->address->setInputMask("hhhhhhhh");
+    setWindowTitle("RISC-V Simulator");
 
     connect(m_ui->address, &QLineEdit::textChanged, this, &AddressDialog::validateTargetAddress);
 }

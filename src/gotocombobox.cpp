@@ -28,8 +28,8 @@ void GoToComboBox::signalFilter(int index) {
             AddressDialog dialog;
             if (dialog.exec() == QDialog::Accepted) {
                 emit jumpToAddress(dialog.getAddress());
-                break;
             }
+            break;
         }
         default:
             // All other indexes should just emit their data - which is their target
