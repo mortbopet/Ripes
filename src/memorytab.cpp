@@ -152,6 +152,8 @@ void MemoryTab::initializeMemoryView() {
 
     // Connect save address button
     connect(m_ui->save, &QPushButton::clicked, this, &MemoryTab::saveAddress);
+
+    connect(m_model, &MemoryModel::dataChanged, m_ui->memoryView, &MemoryView::setVisibleRows);
 }
 
 MemoryTab::~MemoryTab() { delete m_ui; }

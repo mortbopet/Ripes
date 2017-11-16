@@ -17,6 +17,7 @@ class MemoryModel : public QStandardItemModel {
     void offsetCentralAddress(int byteOffset);
     void setAddressCount(int count);
     long long getCentralAddress() const { return m_centralAddress; }
+    int getModelRows() const { return rowCount(); }
 
   public slots:
     void jumpToAddress(uint32_t address);
@@ -31,7 +32,7 @@ class MemoryModel : public QStandardItemModel {
     memory* m_memoryPtr;
 
     long long m_centralAddress = 4; // Address at the center of the model
-    int m_addressRadius = 5;        // amount of addresses in each direction, from
+    int m_addressRadius = 20;       // amount of addresses in each direction, from
                                     // centralAddress
 };
 
