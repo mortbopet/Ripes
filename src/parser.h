@@ -16,7 +16,7 @@ class Parser {
     int getFileSize() { return m_fileSize; }
 
   public:
-    bool init(char* filename);
+    bool init(char    * filename);
     void parseFile(memory* memoryPtr);
 
   private:

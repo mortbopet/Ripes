@@ -8,7 +8,6 @@ AlignTrailingComments: true
 AllowShortFunctionsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
-
 AlwaysBreakBeforeMultilineStrings: true
 ContinuationIndentWidth: 2
 IndentCaseLabels: true
@@ -16,6 +15,6 @@ MaxEmptyLinesToKeep: 1
 PointerBindsToType: true
 SpaceBeforeAssignmentOperators: true
 SpaceInEmptyParentheses: false
-SpacesInAngles: true
+SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false

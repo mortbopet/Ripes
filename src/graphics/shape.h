@@ -7,29 +7,36 @@
 
 namespace Graphics {
 
+enum class ShapeType { Block, ALU, MUX };
+
 class Shape : public QGraphicsItem {
-  Q_OBJECT
-public:
-  Shape();
+   public:
+    Shape();
 
-private:
-  QSize m_size; // height, width
+    QRectF boundingRect() const;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+               QWidget* widget);
+    void addInput(QString input) { m_inputs.append(input); }
+    void addInput(QStringList input) { m_inputs.append(input); }
+    void addOutput(QString output) { m_inputs.append(output); }
+    void addOutput(QStringList output) { m_inputs.append(output); }
+    void setName(QString name) { m_name = name; }
 
-  QString m_name;
-  QList<QPair<QPoint, QString>> m_inputPoints;
-  QList<QPair<QPoint, QString>> m_outputPoints;
+   private:
+    QRectF calculateRect() const;
 
-  QPen m_pen;
-  QBrush m_brush;
+    ShapeType m_type = ShapeType::Block;
+    QString m_name;
+
+    QList<QString> m_inputs;
+    QList<QString> m_outputs;
+
+    // drawing constants
+    qreal nodeHeight = 10;
+    qreal nameFontSize = 14;
+    qreal ioFontSize = 10;
 };
 
-class Rectangle : public Shape {
+}  // namespace Graphics
 
-protected:
-  // void paintEvent(QPaintEvent *event);
-};
-
-class ALU : public Shape {};
-}
-
-#endif // SHAPE_H
+#endif  // SHAPE_H

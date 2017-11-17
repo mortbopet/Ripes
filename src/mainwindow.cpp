@@ -16,29 +16,34 @@ MainWindow::MainWindow(Runner* runnerPtr, Parser* parserPtr, QWidget* parent)
     m_ui->setupUi(this);
     setWindowTitle("RISC-V Simulator");
     setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
+
     m_runnerPtr = runnerPtr;
     m_parserPtr = parserPtr;
 
     // Setup tab bar
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/binary-code.svg")), "Code");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/binary-code.svg")),
+                              "Code");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/cpu.svg")), "Processor");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/ram-memory.svg")), "Memory");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/ram-memory.svg")),
+                              "Memory");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/server.svg")), "Cache");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/graph.svg")), "Results");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget,
             &QStackedWidget::setCurrentIndex);
-    m_ui->tabbar->setActiveIndex(0);
+    m_ui->tabbar->setActiveIndex(1);
 
     // Setup splitter such that consoles are always as small as possible
     auto splitterSize = m_ui->splitter->size();
-    m_ui->splitter->setSizes(QList< int >()
-                             << splitterSize.height() - (m_ui->consoles->minimumHeight() - 1)
+    m_ui->splitter->setSizes(QList<int>()
+                             << splitterSize.height() -
+                                  (m_ui->consoles->minimumHeight() - 1)
                              << (m_ui->consoles->minimumHeight() + 1));
 
     // Setup tab pointers
     m_ui->cachetab->setRunnerCachePtr(m_runnerPtr->getRunnerCachePtr());
     m_ui->memorytab->setMemoryPtr(m_runnerPtr->getMemoryPtr());
     m_ui->memorytab->setRegPtr(m_runnerPtr->getRegPtr());
+    m_ui->processortab->initRegWidget(m_runnerPtr->getRegPtr());
 
     m_ui->memorytab->init();
 
@@ -71,7 +76,8 @@ void MainWindow::setupExamples() {
         binaryExampleMenu->setTitle("Binary");
         for (const auto& fileName : binaryExamples) {
             binaryExampleMenu->addAction(fileName, [=] {
-                this->loadBinaryFile(QDir::currentPath() + QString("/examples/binary/") + fileName);
+                this->loadBinaryFile(QDir::currentPath() +
+                                     QString("/examples/binary/") + fileName);
             });
         }
         // Add binary example menu to example menu
@@ -83,7 +89,8 @@ void MainWindow::setupExamples() {
         assemblyExampleMenu->setTitle("Assembly");
         for (const auto& fileName : assemblyExamples) {
             assemblyExampleMenu->addAction(fileName, [=] {
-                this->loadAssemblyFile(QDir::currentPath() + QString("/examples/assembly/") +
+                this->loadAssemblyFile(QDir::currentPath() +
+                                       QString("/examples/assembly/") +
                                        fileName);
             });
         }
@@ -95,12 +102,13 @@ void MainWindow::setupExamples() {
 void MainWindow::on_actionexit_triggered() { close(); }
 
 void MainWindow::on_actionLoadBinaryFile_triggered() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open binary file", "", "Binary file (*)");
+    auto filename = QFileDialog::getOpenFileName(this, "Open binary file", "",
+                                                 "Binary file (*)");
 }
 
 void MainWindow::on_actionLoadAssemblyFile_triggered() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open assembly file", "",
-                                                 "Assembly file (*.s *.as *.asm)");
+    auto filename = QFileDialog::getOpenFileName(
+      this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
 }
 
 void MainWindow::loadBinaryFile(QString fileName) {
@@ -115,7 +123,9 @@ void MainWindow::loadBinaryFile(QString fileName) {
         for (int i = 0; i < length; i += 4) {
             in.readRawData(buffer, 4);
             for (int j = 0; j < 4; j++) {
-                output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
+                output.append(QString()
+                                .setNum((uint8_t)buffer[j], 2)
+                                .rightJustified(8, '0'));
             }
             output.append("\n");
         }

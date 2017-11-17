@@ -3,6 +3,7 @@ QT += widgets printsupport
 CONFIG += c++14
 
 INCLUDEPATH  += $$PWD/src/ \
+                $$PWD/src/graphics/ \
                 $$PWD/external/QCustomPlot/ \
                 $$PWD/external/fancytabbar/
 
@@ -32,7 +33,8 @@ SOURCES += src/main.cpp \
     src/tabbar.cpp \
     src/graphics/shape.cpp \
     src/graphics/connection.cpp \
-    src/graphics/pipelinewidget.cpp
+    src/graphics/pipelinewidget.cpp \
+    src/registercontainerwidget.cpp
 
 HEADERS += \
     src/parser.h \
@@ -61,7 +63,8 @@ HEADERS += \
     src/tabbar.h \
     src/graphics/shape.h \
     src/graphics/connection.h \
-    src/graphics/pipelinewidget.h
+    src/graphics/pipelinewidget.h \
+    src/registercontainerwidget.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -72,7 +75,8 @@ FORMS += \
     src/cachetab.ui \
     src/cachesetupwidget.ui \
     src/cacheinspector.ui \
-    src/addressdialog.ui
+    src/addressdialog.ui \
+    src/registercontainerwidget.ui
 
 
 # External

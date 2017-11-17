@@ -17,77 +17,10 @@
    <item row="0" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Registers</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QScrollArea" name="scrollArea">
-         <property name="minimumSize">
-          <size>
-           <width>300</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>298</width>
-            <height>342</height>
-           </rect>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_5">
-           <item row="0" column="0">
-            <layout class="QVBoxLayout" name="registerLayout">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Display type</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="registerdisplaytype"/>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-      </layout>
+      <widget class="RegisterContainerWidget" name="registerContainer" native="true"/>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
@@ -105,7 +38,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>514</width>
+            <width>816</width>
             <height>342</height>
            </rect>
           </property>
@@ -128,7 +61,14 @@
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="memoryLayout">
              <item>
-              <widget class="MemoryView" name="memoryView"/>
+              <widget class="MemoryView" name="memoryView">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -214,6 +154,12 @@
    <class>GoToComboBox</class>
    <extends>QComboBox</extends>
    <header>gotocombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>RegisterContainerWidget</class>
+   <extends>QWidget</extends>
+   <header>registercontainerwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

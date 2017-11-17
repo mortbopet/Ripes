@@ -10,12 +10,14 @@ class ProcessorTab;
 class ProcessorTab : public QWidget {
     Q_OBJECT
 
-  public:
+   public:
     explicit ProcessorTab(QWidget* parent = 0);
     ~ProcessorTab();
 
-  private:
+    void initRegWidget(std::vector<uint32_t>* regPtr);
+
+   private:
     Ui::ProcessorTab* m_ui;
 };
 
-#endif // PROCESSORTAB_H
+#endif  // PROCESSORTAB_H
