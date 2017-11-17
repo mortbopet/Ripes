@@ -29,7 +29,10 @@ SOURCES += src/main.cpp \
     src/addressdialog.cpp \
     src/codeeditor.cpp \
     src/asmhighlighter.cpp \
-    src/tabbar.cpp
+    src/tabbar.cpp \
+    src/graphics/shape.cpp \
+    src/graphics/connection.cpp \
+    src/graphics/pipelinewidget.cpp
 
 HEADERS += \
     src/parser.h \
@@ -55,7 +58,10 @@ HEADERS += \
     src/addressdialog.h \
     src/codeeditor.h \
     src/asmhighlighter.h \
-    src/tabbar.h
+    src/tabbar.h \
+    src/graphics/shape.h \
+    src/graphics/connection.h \
+    src/graphics/pipelinewidget.h
 
 FORMS += \
     src/mainwindow.ui \
