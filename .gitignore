@@ -1,4 +1,5 @@
 *.user
 *.stash
+*.autosave
 *.o
 Makefile
