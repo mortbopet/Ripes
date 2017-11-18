@@ -3,6 +3,7 @@
 
 #include <QBrush>
 #include <QGraphicsItem>
+#include <QPainterPath>
 #include <QPen>
 
 namespace Graphics {
@@ -17,13 +18,14 @@ class Shape : public QGraphicsItem {
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget);
     void addInput(QString input);
-    void addInput(QStringList input) { m_inputs.append(input); }
+    void addInput(QStringList input);
     void addOutput(QString output) { m_outputs.append(output); }
     void addOutput(QStringList output) { m_outputs.append(output); }
     void setName(QString name) { m_name = name; }
 
    private:
     QRectF calculateRect() const;
+    QPainterPath drawALUPath(QRectF boundingRect) const;
 
     ShapeType m_type;
     QString m_name;
@@ -35,6 +37,9 @@ class Shape : public QGraphicsItem {
 
     QList<QString> m_inputs;
     QList<QString> m_outputs;
+
+    QList<QPointF> m_inputPoints;
+    QList<QPointF> m_outputPoints;
 
     // drawing constants
     qreal nodeHeight = 20;

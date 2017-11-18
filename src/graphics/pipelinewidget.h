@@ -4,9 +4,14 @@
 #include <QGraphicsView>
 
 class PipelineWidget : public QGraphicsView {
-  Q_OBJECT
-public:
-  PipelineWidget(QWidget *parent = nullptr);
+    Q_OBJECT
+   public:
+    PipelineWidget(QWidget* parent = nullptr);
+
+    void wheelEvent(QWheelEvent* event);
+
+   private:
+    void scaleView(qreal scaleFactor);
 };
 
-#endif // PIPELINEWIDGET_H
+#endif  // PIPELINEWIDGET_H

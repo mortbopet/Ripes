@@ -7,15 +7,26 @@ namespace Graphics {
 Shape::Shape(ShapeType type, int verticalPad, int horizontalPad)
     : m_verticalPad(verticalPad), m_horizontalPad(horizontalPad), m_type(type) {
     setCacheMode(DeviceCoordinateCache);
+
+    // ALU's are assumed to have 2 input points and 1 output point, so these
+    // can be created straight away
+    if (m_type == ShapeType::ALU) {
+        auto rect = calculateRect();
+        auto point = rect.topLeft();
+        point.setY(rect.topLeft().y() + rect.height() / 5);
+        m_inputPoints.append(point);
+        point.setY(rect.topLeft().y() + 4 * rect.height() / 5);
+        m_inputPoints.append(point);
+        // Output point
+        point = rect.topRight();
+        point.setY(point.y() + rect.height() / 2);
+        m_outputPoints.append(point);
+    }
 }
 
-QRectF Shape::boundingRect() const {
-    if (m_type == ShapeType::Block) {
-        return calculateRect();
-    }
-    return QRectF();
-}
+QRectF Shape::boundingRect() const { return calculateRect(); }
 void Shape::addInput(QString input) { m_inputs.append(input); }
+
 void Shape::addInput(QStringList inputs) {
     for (const auto &input : inputs) {
         addInput(input);
@@ -23,8 +34,11 @@ void Shape::addInput(QStringList inputs) {
 }
 
 QRectF Shape::calculateRect() const {
+    // Placeholder rect used for calculating (0,0) aligned text rects
+    QRect largeRect = QRect(0, 0, 200, 200);
+
     auto fontMetricsObject = QFontMetrics(QFont());
-    auto nameRect = fontMetricsObject.boundingRect(m_name);
+    auto nameRect = fontMetricsObject.boundingRect(largeRect, 0, m_name);
 
     // Get size of the largest left and right IO descriptors
     int leftIOsize = 0;
@@ -35,7 +49,7 @@ QRectF Shape::calculateRect() const {
     // the largest width of a descriptor
     for (const auto &input : m_inputs) {
         auto textRect = fontMetricsObject.boundingRect(
-          QRect(0, 0, 200, 200), 0,
+          largeRect, 0,
           input);  // create a rect large enough to not obstruct the text rect
         leftHeight += textRect.height();
         int width = textRect.width();
@@ -46,7 +60,7 @@ QRectF Shape::calculateRect() const {
     int rightHeight = 0;
     for (const auto &output : m_outputs) {
         QRect textRect = fontMetricsObject.boundingRect(
-          QRect(0, 0, 200, 200), 0,
+          largeRect, 0,
           output);  // create a rect large enough to not obstruct the text rect
         rightHeight += textRect.height();
         int width = textRect.width();
@@ -62,22 +76,40 @@ QRectF Shape::calculateRect() const {
     return QRectF(-(width / 2), -(height / 2), width, height);
 }
 
-void Shape::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
-                  QWidget *) {
+QPainterPath Shape::drawALUPath(QRectF rect) const {
+    QPointF topLeft = rect.topLeft();
+    rect.moveTo(0, 0);
+    QPainterPath path;
+    path.moveTo(rect.topLeft());
+    path.lineTo(rect.right(), rect.height() / 4);
+    path.lineTo(rect.right(), 3 * rect.height() / 4);
+    path.lineTo(rect.left(), rect.height());
+    path.lineTo(rect.left(), 5 * rect.height() / 8);
+    path.lineTo(rect.width() / 8, rect.height() / 2);
+    path.lineTo(rect.left(), 3 * rect.height() / 8);
+    path.lineTo(rect.topLeft());
+    path.translate(topLeft);
+    return path;
+}
+
+void Shape::paint(QPainter *painter,
+                  const QStyleOptionGraphicsItem * /*option*/, QWidget *) {
     auto boundingRect = calculateRect();
 
+    painter->setPen(QPen(Qt::black, 1));
     switch (m_type) {
         case ShapeType::Block: {
-            painter->setPen(QPen(Qt::black, 1));
             painter->drawRect(boundingRect);
         } break;
         case ShapeType::ALU: {
+            painter->drawPath(drawALUPath(boundingRect));
         } break;
         case ShapeType::MUX: {
+            painter->drawRoundedRect(boundingRect, 40, 15);
         } break;
     }
 
-    // Translate text in relation to the bounding rectangle, and draw text
+    // Translate text in relation to the bounding rectangle, and draw shape name
     QFont font;
     font.setPointSize(nameFontSize);
     font.setBold(true);
@@ -88,8 +120,15 @@ void Shape::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     textRect.translate(-textRect.width() / 2,
                        -textRect.height() / 2);  // center text rect
     painter->setFont(font);
-    painter->drawText(textRect, m_name);
-
+    if (m_type == ShapeType::MUX) {
+        painter->drawText(textRect, Qt::AlignCenter, m_name);
+    } else if (m_type == ShapeType::ALU) {
+        // Shift ALU name a bit to the right
+        textRect.translate(-boundingRect.width() / 8, 0);
+        painter->drawText(textRect, m_name);
+    } else {
+        painter->drawText(textRect, m_name);
+    }
     // Iterate through node descriptors and draw text
     font.setPointSize(ioFontSize);
     font.setBold(false);
@@ -97,7 +136,7 @@ void Shape::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
       QFontMetrics(font);  // update fontMetrics object to new font
     painter->setFont(font);
 
-    // Inputs
+    // Draw input descriptors
     QPointF top = boundingRect.topLeft();
     for (const auto &input : m_inputs) {
         textRect =
@@ -108,7 +147,7 @@ void Shape::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         top.setY(top.y() + textRect.height() + nodePadding);
     }
 
-    // Outputs
+    // Draw output descriptors
     top = boundingRect.topRight();
     for (const auto &output : m_outputs) {
         textRect =
@@ -116,6 +155,12 @@ void Shape::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         textRect.moveTo(top);
         textRect.translate(-textRect.width(), 0);
         textRect.translate(-sidePadding, 0);  // Move text away from side
+        if (m_type == ShapeType::ALU) {
+            // With ALU's we assume óne output descriptor, and move it to the
+            // center of the ALU
+            textRect.translate(
+              0, boundingRect.height() / 2 - textRect.height() / 2);
+        }
         painter->drawText(textRect, output);
         top.setY(top.y() + textRect.height() + nodePadding);
     }

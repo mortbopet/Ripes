@@ -38,7 +38,11 @@
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
             <item row="0" column="0">
-             <layout class="QVBoxLayout" name="registerLayout"/>
+             <layout class="QVBoxLayout" name="registerLayout">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+             </layout>
             </item>
            </layout>
           </widget>
