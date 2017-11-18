@@ -19,12 +19,16 @@ class Shape : public QGraphicsItem {
                QWidget* widget);
     void addInput(QString input);
     void addInput(QStringList input);
-    void addOutput(QString output) { m_outputs.append(output); }
-    void addOutput(QStringList output) { m_outputs.append(output); }
-    void setName(QString name) { m_name = name; }
+    void addOutput(QString output);
+    void addOutput(QStringList output);
+    void setName(QString name);
 
    private:
-    QRectF calculateRect() const;
+    void calculateRect();
+    QRectF m_rect;
+    bool m_hasChanged = true;  // Flag is set whenever the item has changed (ie.
+                               // when new descriptors have been added)
+
     QPainterPath drawALUPath(QRectF boundingRect) const;
 
     ShapeType m_type;
@@ -40,6 +44,11 @@ class Shape : public QGraphicsItem {
 
     QList<QPointF> m_inputPoints;
     QList<QPointF> m_outputPoints;
+
+    // Top- and bottom center-points of the shape
+    // Can be used to affix labels to shapes in the graphics scene
+    QPointF m_topPoint;
+    QPointF m_bottomPoint;
 
     // drawing constants
     qreal nodeHeight = 20;
