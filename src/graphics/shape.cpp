@@ -149,15 +149,12 @@ void Shape::paint(QPainter *painter,
     textRect.translate(-textRect.width() / 2,
                        -textRect.height() / 2);  // center text rect
     painter->setFont(font);
-    if (m_type == ShapeType::MUX) {
-        painter->drawText(textRect, Qt::AlignCenter, m_name);
-    } else if (m_type == ShapeType::ALU) {
+    if (m_type == ShapeType::ALU) {
         // Shift ALU name a bit to the right
         textRect.translate(-rect.width() / 8, 0);
-        painter->drawText(textRect, m_name);
-    } else {
-        painter->drawText(textRect, m_name);
     }
+    painter->drawText(textRect, Qt::AlignCenter, m_name);
+
     // Iterate through node descriptors and draw text
     font.setPointSize(ioFontSize);
     font.setBold(false);

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>546</width>
+    <width>1152</width>
     <height>411</height>
    </rect>
   </property>
@@ -19,40 +19,115 @@
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>Processor type</string>
+        <string>Simulation settings</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QRadioButton" name="singlecycle">
-            <property name="text">
-             <string>Single cycle</string>
+           <widget class="QPushButton" name="run">
+            <property name="toolTip">
+             <string>Run until encountering a breakpoint or to the end of the program</string>
             </property>
-            <property name="checked">
+            <property name="text">
+             <string>Run</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="start">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Start simulation, stepping through the program</string>
+            </property>
+            <property name="text">
+             <string>Start simulation</string>
+            </property>
+            <property name="checkable">
              <bool>true</bool>
             </property>
+            <property name="autoRepeatDelay">
+             <number>300</number>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="pipeline">
+           <widget class="QPushButton" name="step">
             <property name="text">
-             <string>5-stage pipeline</string>
+             <string>Step</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="forwarding">
-            <property name="enabled">
-             <bool>false</bool>
+           <widget class="QPushButton" name="reset">
+            <property name="toolTip">
+             <string/>
             </property>
             <property name="text">
-             <string>Forwarding</string>
+             <string>Reset</string>
             </property>
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_5">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Execution speed:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="execSpeed">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>5</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="displayValues">
+            <property name="text">
+             <string>Display signal values</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -63,42 +138,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Clock rate</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit">
-            <property name="text">
-             <string>1</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBox">
-            <item>
-             <property name="text">
-              <string>GHz</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>MHz</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Hz</string>
-             </property>
-            </item>
-           </widget>
           </item>
          </layout>
         </item>
@@ -120,7 +159,20 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="RegisterContainerWidget" name="registerContainer" native="true"/>
+          <widget class="RegisterContainerWidget" name="registerContainer" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QGroupBox" name="groupBox_3">
