@@ -73,7 +73,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 }
 
 void PipelineWidget::wheelEvent(QWheelEvent* event) {
-    scaleView(pow((double)2, -event->delta() / 240.0));
+    scaleView(pow((double)2, -event->delta() / 350.0));
 }
 
 void PipelineWidget::scaleView(qreal scaleFactor) {
