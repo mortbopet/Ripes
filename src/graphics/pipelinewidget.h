@@ -10,25 +10,26 @@ class Shape;
 }
 
 class PipelineWidget : public QGraphicsView {
-  Q_OBJECT
- public:
-  PipelineWidget(QWidget* parent = nullptr);
+    Q_OBJECT
+   public:
+    PipelineWidget(QWidget* parent = nullptr);
 
-  void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent* event);
 
- private:
-  void scaleView(qreal scaleFactor);
-  void adjustPositioning();
+   private:
+    void scaleView(qreal scaleFactor);
+    void adjustPositioning();
 
-  void createConnection(Graphics::Shape* source, int index1,
-                        Graphics::Shape* dest, int index2);
+    void createConnection(Graphics::Shape* source, int index1,
+                          Graphics::Shape* dest, int index2);
 
-  QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape,
-                                           QList<QGraphicsItem*> items);
+    QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape,
+                                             QList<QGraphicsItem*> items);
 
-  qreal shapeMargin = 10;  // Minimum distance between two shapes
+    qreal shapeMargin = 10;  // Minimum distance between two shapes
+    qreal minConnectionLen = 50;
 
-  QList<Graphics::Connection*> m_connections;
+    QList<Graphics::Connection*> m_connections;
 };
 
 #endif  // PIPELINEWIDGET_H
