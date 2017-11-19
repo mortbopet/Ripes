@@ -8,5 +8,8 @@
         <file>server.svg</file>
         <file>ram-memory.svg</file>
         <file>binary-code.svg</file>
+        <file>info.svg</file>
+        <file>loadfile.svg</file>
+        <file>exit.svg</file>
     </qresource>
 </RCC>

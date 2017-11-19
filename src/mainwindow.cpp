@@ -2,7 +2,11 @@
 #include "QFileDialog"
 #include "ui_mainwindow.h"
 
+#include "aboutwidget.h"
+
+#include <QDesktopServices>
 #include <QIcon>
+#include <QMessageBox>
 #include <QPushButton>
 
 #include "programfiletab.h"
@@ -14,7 +18,7 @@
 MainWindow::MainWindow(Runner* runnerPtr, Parser* parserPtr, QWidget* parent)
     : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
-    setWindowTitle("RISC-V Simulator");
+    setWindowTitle("RISC-V-SIM");
     setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
 
     m_runnerPtr = runnerPtr;
@@ -140,5 +144,23 @@ void MainWindow::loadAssemblyFile(QString fileName) {
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_ui->programfiletab->setAssemblyText(file.readAll());
         file.close();
+    }
+}
+
+void MainWindow::on_actionAbout_triggered() {
+    AboutWidget about;
+    about.exec();
+}
+
+void MainWindow::on_actionOpen_documentation_triggered() {
+    // Look for documentation pdf
+    QFileInfo file("riscvsim_doc.pdf");
+    if (file.exists()) {
+        QDesktopServices::openUrl(QUrl("riscvsim_doc.pdf"));
+    } else {
+        QMessageBox info;
+        info.setIcon(QMessageBox::Warning);
+        info.setText("Could not locate documentation file");
+        info.exec();
     }
 }

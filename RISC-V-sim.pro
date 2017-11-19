@@ -34,7 +34,8 @@ SOURCES += src/main.cpp \
     src/graphics/shape.cpp \
     src/graphics/connection.cpp \
     src/graphics/pipelinewidget.cpp \
-    src/registercontainerwidget.cpp
+    src/registercontainerwidget.cpp \
+    src/aboutwidget.cpp
 
 HEADERS += \
     src/parser.h \
@@ -64,7 +65,8 @@ HEADERS += \
     src/graphics/shape.h \
     src/graphics/connection.h \
     src/graphics/pipelinewidget.h \
-    src/registercontainerwidget.h
+    src/registercontainerwidget.h \
+    src/aboutwidget.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -76,7 +78,8 @@ FORMS += \
     src/cachesetupwidget.ui \
     src/cacheinspector.ui \
     src/addressdialog.ui \
-    src/registercontainerwidget.ui
+    src/registercontainerwidget.ui \
+    src/aboutwidget.ui
 
 
 # External

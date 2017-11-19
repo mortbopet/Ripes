@@ -145,30 +145,26 @@
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
-     <string>Edit</string>
+     <string>Settings</string>
     </property>
     <addaction name="actionShow_consoles"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionOpen_documentation"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
-  </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionRun"/>
-   <addaction name="actionStep"/>
-   <addaction name="actionPrev"/>
-   <addaction name="actionReset"/>
-   <addaction name="actionDump"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadBinaryFile">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/logos/loadfile.svg</normaloff>:/logos/loadfile.svg</iconset>
+   </property>
    <property name="text">
     <string>Load binary file</string>
    </property>
@@ -177,6 +173,10 @@
    </property>
   </action>
   <action name="actionexit">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/logos/exit.svg</normaloff>:/logos/exit.svg</iconset>
+   </property>
    <property name="text">
     <string>Exit</string>
    </property>
@@ -210,6 +210,10 @@
    </property>
   </action>
   <action name="actionLoadAssemblyFile">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/logos/loadfile.svg</normaloff>:/logos/loadfile.svg</iconset>
+   </property>
    <property name="text">
     <string>Load Assembly File</string>
    </property>
@@ -221,8 +225,25 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Show consoles</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/logos/info.svg</normaloff>:/logos/info.svg</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionOpen_documentation">
+   <property name="text">
+    <string>Documentation</string>
    </property>
   </action>
  </widget>
@@ -258,6 +279,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../resources/images.qrc"/>
+ </resources>
  <connections/>
 </ui>

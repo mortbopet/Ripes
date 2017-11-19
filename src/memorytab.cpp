@@ -29,6 +29,7 @@ void MemoryTab::saveAddress() {
     // address in the view
 
     QInputDialog dialog;
+    dialog.setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
     dialog.setLabelText(
       QString("Please enter a label for address: %1")
         .arg(QString("0x%1").arg(QString()

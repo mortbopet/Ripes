@@ -3,14 +3,17 @@
 
 #include <QPushButton>
 
-AddressDialog::AddressDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::AddressDialog) {
+AddressDialog::AddressDialog(QWidget* parent)
+    : QDialog(parent), m_ui(new Ui::AddressDialog) {
     m_ui->setupUi(this);
 
     // set input range
     m_ui->address->setInputMask("hhhhhhhh");
     setWindowTitle("RISC-V Simulator");
+    setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
 
-    connect(m_ui->address, &QLineEdit::textChanged, this, &AddressDialog::validateTargetAddress);
+    connect(m_ui->address, &QLineEdit::textChanged, this,
+            &AddressDialog::validateTargetAddress);
 }
 
 AddressDialog::~AddressDialog() { delete m_ui; }
