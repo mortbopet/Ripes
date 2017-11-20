@@ -8,6 +8,11 @@
 namespace Graphics {
 class Shape;
 
+enum directionFlags {
+  feedbackUp = 0b1,
+  feedbackDown = 0b0,
+  rightAngles = 0b100
+};
 enum class ValueDrawPos { Source, Middle, Destination };
 
 /*

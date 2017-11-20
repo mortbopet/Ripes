@@ -8,16 +8,19 @@ class ProcessorTab;
 }
 
 class ProcessorTab : public QWidget {
-    Q_OBJECT
+  Q_OBJECT
 
-   public:
-    explicit ProcessorTab(QWidget* parent = 0);
-    ~ProcessorTab();
+ public:
+  explicit ProcessorTab(QWidget* parent = 0);
+  ~ProcessorTab();
 
-    void initRegWidget(std::vector<uint32_t>* regPtr);
+  void initRegWidget(std::vector<uint32_t>* regPtr);
 
-   private:
-    Ui::ProcessorTab* m_ui;
+ private slots:
+  void on_toolButton_clicked();
+
+ private:
+  Ui::ProcessorTab* m_ui;
 };
 
 #endif  // PROCESSORTAB_H

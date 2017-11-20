@@ -178,6 +178,9 @@ void Shape::paint(QPainter *painter,
     case ShapeType::MUX: {
       painter->drawRoundedRect(rect, 40, 15);
     } break;
+    case ShapeType::Static: {
+      painter->drawEllipse(rect);
+    } break;
   }
 
   // Translate text in relation to the bounding rectangle, and draw shape name
@@ -220,8 +223,8 @@ void Shape::paint(QPainter *painter,
   }
 
   // draw IO points
-  painter->drawEllipse(m_topPoint, 5, 5);
-  painter->drawEllipse(m_bottomPoint, 5, 5);
+  if (m_drawTopPoint) painter->drawEllipse(m_topPoint, 5, 5);
+  if (m_drawBotPoint) painter->drawEllipse(m_bottomPoint, 5, 5);
 
   for (const auto &point : m_inputPoints) {
     painter->drawEllipse(point, 5, 5);

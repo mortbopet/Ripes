@@ -11,7 +11,7 @@
 
 namespace Graphics {
 class Connection;
-enum class ShapeType { Block, ALU, MUX };
+enum class ShapeType { Block, ALU, MUX, Static };
 enum class Stage { IF = 1, ID = 2, EX = 3, MEM = 4, WB = 5 };
 
 class Shape : public QGraphicsItem {
@@ -35,8 +35,13 @@ class Shape : public QGraphicsItem {
 
   QPointF* getInputPoint(int index);
   QPointF* getOutputPoint(int index);
+  QPointF* getTopPoint() { return &m_topPoint; }
+  QPointF* getBotPoint() { return &m_bottomPoint; }
+
   void calculateRect();
   void calculatePoints();
+  void drawTopPoint(bool state) { m_drawTopPoint = state; }
+  void drawBotPoint(bool state) { m_drawBotPoint = state; }
 
   static int connectionType() { return QGraphicsItem::UserType + 2; }
   int type() const { return connectionType(); }
@@ -62,6 +67,8 @@ class Shape : public QGraphicsItem {
 
   QList<QPointF> m_inputPoints;
   QList<QPointF> m_outputPoints;
+  bool m_drawTopPoint = false;
+  bool m_drawBotPoint = false;
 
   QList<Connection*> m_connections;
 

@@ -10,26 +10,36 @@ class Shape;
 }
 
 class PipelineWidget : public QGraphicsView {
-    Q_OBJECT
-   public:
-    PipelineWidget(QWidget* parent = nullptr);
+  Q_OBJECT
+ public:
+  PipelineWidget(QWidget* parent = nullptr);
 
-    void wheelEvent(QWheelEvent* event);
+  void wheelEvent(QWheelEvent* event);
+  void expandToView() {
+    fitInView(scene()->sceneRect().adjusted(-10, 0, 10, 0),
+              Qt::KeepAspectRatio);
+  }
 
-   private:
-    void scaleView(qreal scaleFactor);
-    void adjustPositioning();
+ private:
+  void scaleView(qreal scaleFactor);
+  void adjustPositioning();
 
-    void createConnection(Graphics::Shape* source, int index1,
-                          Graphics::Shape* dest, int index2);
+  void createConnection(Graphics::Shape* source, int index1,
+                        Graphics::Shape* dest, int index2);
+  void createConnection(Graphics::Shape* source, Graphics::Shape* dest,
+                        QPointF* sourcePoint, QPointF* destPoint);
 
-    QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape,
-                                             QList<QGraphicsItem*> items);
+  void moveToIO(Graphics::Shape* source, Graphics::Shape* dest,
+                QPointF* sourcePoint, QPointF* destPointm,
+                int connectionLength = minConnectionLen);
 
-    qreal shapeMargin = 10;  // Minimum distance between two shapes
-    qreal minConnectionLen = 50;
+  QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape,
+                                           QList<QGraphicsItem*> items);
 
-    QList<Graphics::Connection*> m_connections;
+  qreal shapeMargin = 15;  // Minimum distance between two shapes
+  constexpr static qreal minConnectionLen = 50;
+
+  QList<Graphics::Connection*> m_connections;
 };
 
 #endif  // PIPELINEWIDGET_H

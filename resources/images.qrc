@@ -11,5 +11,6 @@
         <file>info.svg</file>
         <file>loadfile.svg</file>
         <file>exit.svg</file>
+        <file>expand.svg</file>
     </qresource>
 </RCC>
