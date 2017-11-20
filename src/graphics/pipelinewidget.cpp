@@ -91,7 +91,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     // State registers
     Graphics::Shape* ifid = new Graphics::Shape(Graphics::ShapeType::Block,
-                                                Graphics::Stage::ID, 250, 10);
+                                                Graphics::Stage::ID, 350, 10);
     ifid->setName("IF/ID");
     for (int i = 0; i < 2; i++) {
         ifid->addInput("");
@@ -99,7 +99,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
 
     Graphics::Shape* idex = new Graphics::Shape(Graphics::ShapeType::Block,
-                                                Graphics::Stage::EX, 250, 10);
+                                                Graphics::Stage::EX, 350, 10);
     idex->setName("ID/EX");
     for (int i = 0; i < 4; i++) {
         idex->addInput("");
@@ -107,7 +107,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
 
     Graphics::Shape* exmem = new Graphics::Shape(Graphics::ShapeType::Block,
-                                                 Graphics::Stage::EX, 250, 10);
+                                                 Graphics::Stage::EX, 350, 10);
     exmem->setName("EX/MEM");
     for (int i = 0; i < 4; i++) {
         exmem->addInput("");
@@ -115,7 +115,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
 
     Graphics::Shape* memwb = new Graphics::Shape(Graphics::ShapeType::Block,
-                                                 Graphics::Stage::EX, 250, 10);
+                                                 Graphics::Stage::EX, 350, 10);
     memwb->setName("MEM/WB");
     for (int i = 0; i < 2; i++) {
         memwb->addInput("");
@@ -173,7 +173,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     createConnection(exmem, 1, memwb, 1);
     // WB
     createConnection(memwb, 0, mux3, 0);
-    createConnection(memwb, 1, mux3, 0);
+    createConnection(memwb, 1, mux3, 1);
     createConnection(mux3, 0, registers, 3);
 
     // Adjust positioning of items in scene
@@ -193,21 +193,18 @@ void PipelineWidget::createConnection(Graphics::Shape* source, int index1,
 
 QList<QGraphicsItem*> PipelineWidget::filterAllowedItems(
   Graphics::Shape* shape, QList<QGraphicsItem*> items) {
-    // Removes $shape and all of its connections from $items
+    // Removes the shape itself and all connections from items
     auto returnList = items;
     for (const auto& item : items) {
         if (item->type() == Graphics::Connection::connectionType()) {
-            if (shape->isConnectedTo(
-                  qgraphicsitem_cast<Graphics::Connection*>(item))) {
-                returnList.removeAll(item);
-            }
+            returnList.removeAll(item);
+
         } else if (item->type() == Graphics::Shape::connectionType()) {
             if (shape == item) {
                 // Remove item if it intersects with itself (this happens when
-                // we just
-                // check what is intersecting with a rectangle in the scene
-                // -ofcourse
-                // the item itself will intersect that rectangle)
+                // we just check what is intersecting with a rectangle in the
+                // scene
+                // -ofcourse the item itself will intersect that rectangle)
                 returnList.removeAll(item);
             }
         }
@@ -274,42 +271,43 @@ void PipelineWidget::adjustPositioning() {
             intersectingItems =
               filterAllowedItems(shapes.second, intersectingItems);
 
-            if (/*intersectingItems.size() == 0*/ true) {
+            if (intersectingItems.size() == 0) {
                 // Accept new position
                 movedShapes.append(shapes.second);
             } else {
-                // Intersecting items detected. Move second shape in pair up or
-                // down,
-                // until the shapeMargin requirement is met
-                auto rectBelow = shapes.second->boundingRect().toRect();
-                auto rectAbove = shapes.second->boundingRect().toRect();
-                while (intersectingItems.size() != 0) {
-                    auto intersectingRect =
-                      intersectingItems.first()->boundingRect();
-                    // Translate the shapes rect to be below and above the
-                    // intersecting
-                    // item
-                    rectBelow.translate(
-                      0, intersectingRect.bottom() + shapeMargin);
-                    rectAbove.translate(0,
-                                        intersectingRect.top() - shapeMargin);
+                // Intersecting items detected. Move second shape in air up or
+                // down, until the shapeMargin requirement is met
+                QRect rectBelow = newRect.toRect();
+                QRect rectAbove = newRect.toRect();
+                auto intersectingRect =
+                  intersectingItems.first()->boundingRect();
+                // Translate the shapes rect to be below and above the
+                // intersecting item
+                rectBelow.translate(
+                  0, intersectingRect.bottom() - rectBelow.top() + shapeMargin);
+                rectAbove.translate(
+                  0, intersectingRect.top() - rectAbove.bottom() - shapeMargin);
 
-                    // Initially, test with the rect that is closest to y=0
-                    QPair<QRect, QRect> rectOrdered =
-                      abs(rectBelow.y()) < abs(rectAbove.y())
-                        ? QPair<QRect, QRect>(rectBelow, rectAbove)
-                        : QPair<QRect, QRect>(rectAbove, rectBelow);
-                    if (items(rectOrdered.first, Qt::IntersectsItemBoundingRect)
-                          .size() == 0) {
-                        shapes.second->setPos(rectOrdered.first.topLeft());
-                        break;
-                    } else if (items(rectOrdered.second,
-                                     Qt::IntersectsItemBoundingRect)
-                                 .size() == 0) {
-                        shapes.second->setPos(rectOrdered.second.topLeft());
-                        break;
-                    }
+                // We prefer a new position that is closest to y = 0; order
+                // the top and bottom rectangles with respect to this
+                QPair<QRect, QRect> rectOrdered =
+                  abs(rectBelow.top()) > abs(rectAbove.bottom())
+                    ? QPair<QRect, QRect>(rectBelow, rectAbove)
+                    : QPair<QRect, QRect>(rectAbove, rectBelow);
+
+                // Check for intersection
+                intersectingItems =
+                  items(rectOrdered.first, Qt::IntersectsItemBoundingRect);
+                intersectingItems =
+                  filterAllowedItems(nullptr, intersectingItems);
+
+                if (intersectingItems.size() == 0) {
+                    int a = intersectingRect.bottom();
+                    a += -rectOrdered.first.bottom();
+                    a += shapeMargin;
+                    shapes.second->moveBy(0, a);
                 }
+                movedShapes.append(shapes.second);
             }
         }
     }
