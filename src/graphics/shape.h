@@ -30,6 +30,9 @@ class Shape : public QGraphicsItem {
   void addConnection(Connection* connection) {
     m_connections.append(connection);
   }
+  void setFixedHeight(bool state, int height = 0) {
+    m_isFixedHeight = state, m_fixedHeight = height;
+  }
 
   bool isConnectedTo(Connection* connection) const;
 
@@ -87,6 +90,8 @@ class Shape : public QGraphicsItem {
   qreal nodePadding = 5;  // padding between each text descriptor for a node
   qreal sidePadding =
       7;  // padding between an IO description and the side of the shape
+  int m_fixedHeight;
+  bool m_isFixedHeight = false;
 };
 
 }  // namespace Graphics

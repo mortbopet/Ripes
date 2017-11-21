@@ -20,14 +20,19 @@ class PipelineWidget : public QGraphicsView {
               Qt::KeepAspectRatio);
   }
 
+ protected:
+  void drawBackground(QPainter* painter, const QRectF& rect) override;
+
  private:
   void scaleView(qreal scaleFactor);
   void adjustPositioning();
 
-  void createConnection(Graphics::Shape* source, int index1,
-                        Graphics::Shape* dest, int index2);
-  void createConnection(Graphics::Shape* source, Graphics::Shape* dest,
-                        QPointF* sourcePoint, QPointF* destPoint);
+  Graphics::Connection* createConnection(Graphics::Shape* source, int index1,
+                                         Graphics::Shape* dest, int index2);
+  Graphics::Connection* createConnection(Graphics::Shape* source,
+                                         Graphics::Shape* dest,
+                                         QPointF* sourcePoint,
+                                         QPointF* destPoint);
 
   void moveToIO(Graphics::Shape* source, Graphics::Shape* dest,
                 QPointF* sourcePoint, QPointF* destPointm,
@@ -37,9 +42,23 @@ class PipelineWidget : public QGraphicsView {
                                            QList<QGraphicsItem*> items);
 
   qreal shapeMargin = 15;  // Minimum distance between two shapes
-  constexpr static qreal minConnectionLen = 50;
+  qreal stateRegHeight = 500;
+  constexpr static qreal minConnectionLen = 30;
 
   QList<Graphics::Connection*> m_connections;
+
+  // Stage instructions
+  QString* if_instr;
+  QString* id_instr;
+  QString* ex_instr;
+  QString* mem_instr;
+  QString* wb_instr;
+
+  // Shape pointers
+  Graphics::Shape* ifid;
+  Graphics::Shape* idex;
+  Graphics::Shape* exmem;
+  Graphics::Shape* memwb;
 };
 
 #endif  // PIPELINEWIDGET_H

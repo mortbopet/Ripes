@@ -1,5 +1,6 @@
 #include "pipelinewidget.h"
 #include "connection.h"
+#include "defines.h"
 #include "shape.h"
 
 #include <QDebug>
@@ -16,6 +17,13 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
   setRenderHint(QPainter::Antialiasing);
   setRenderHint(QPainter::TextAntialiasing);
   setDragMode(QGraphicsView::ScrollHandDrag);
+
+  // Create some temporary instructions to draw
+  if_instr = new QString("and x12, x2, x5");
+  id_instr = new QString("beq x1, x3, 16");
+  ex_instr = new QString("sub x10, x4, x8");
+  mem_instr = new QString("nop");
+  wb_instr = new QString("rd x10 24 x2");
 
   //  ------------ Create pipeline objects ---------------
   // Registers memory
@@ -53,75 +61,83 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
   // MUXes
   Graphics::Shape* mux1 =
-      new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::IF, 20, 8);
-  mux1->addInput(QStringList() << "0"
-                               << "1");
+      new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::IF, 20, 0);
+  mux1->addInput(QStringList() << ""
+                               << "");
   mux1->addOutput("");
   mux1->setName("M\nu\nx");
 
   Graphics::Shape* mux2 =
-      new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 20, 8);
-  mux2->addInput(QStringList() << "0"
-                               << "1");
+      new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 20, 0);
+  mux2->addInput(QStringList() << ""
+                               << "");
   mux2->addOutput("");
   mux2->setName("M\nu\nx");
 
   Graphics::Shape* mux3 =
-      new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 20, 8);
-  mux3->addInput(QStringList() << "0"
-                               << "1");
+      new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 20, 0);
+  mux3->addInput(QStringList() << ""
+                               << "");
   mux3->addOutput("");
   mux3->setName("M\nu\nx");
 
   // ALUs
   Graphics::Shape* alu1 = new Graphics::Shape(Graphics::ShapeType::ALU,
-                                              Graphics::Stage::ID, 70, 30);
-  alu1->setName("Add");
-  alu1->addOutput("Sum");
+                                              Graphics::Stage::ID, 70, 10);
+  alu1->setName("+");
+  alu1->addOutput("");
 
   Graphics::Shape* alu2 = new Graphics::Shape(Graphics::ShapeType::ALU,
-                                              Graphics::Stage::EX, 70, 30);
-  alu2->setName("Add");
-  alu2->addOutput("Sum");
+                                              Graphics::Stage::EX, 70, 10);
+  alu2->setName("+");
+  alu2->addOutput("");
 
   Graphics::Shape* alu3 = new Graphics::Shape(Graphics::ShapeType::ALU,
-                                              Graphics::Stage::EX, 70, 30);
-  alu3->setName("Add");
-  alu3->addOutput("Sum");
+                                              Graphics::Stage::EX, 70, 10);
+  alu3->setName("ALU");
+  alu3->addOutput("");
 
   // State registers
-  Graphics::Shape* ifid = new Graphics::Shape(Graphics::ShapeType::Block,
-                                              Graphics::Stage::ID, 350, 10);
+  ifid = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::ID, 0,
+                             10);
   ifid->setName("IF/ID");
+  ifid->setFixedHeight(true, stateRegHeight);
   for (int i = 0; i < 2; i++) {
     ifid->addInput("");
     ifid->addOutput("");
   }
 
-  Graphics::Shape* idex = new Graphics::Shape(Graphics::ShapeType::Block,
-                                              Graphics::Stage::EX, 350, 10);
+  idex = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::EX, 0,
+                             10);
   idex->setName("ID/EX");
-  for (int i = 0; i < 4; i++) {
+  idex->setFixedHeight(true, stateRegHeight);
+  for (int i = 0; i < 9; i++) {
     idex->addInput("");
     idex->addOutput("");
   }
+  idex->addOutput("");
 
-  Graphics::Shape* exmem = new Graphics::Shape(Graphics::ShapeType::Block,
-                                               Graphics::Stage::EX, 350, 10);
+  exmem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::EX,
+                              0, 10);
   exmem->setName("EX/MEM");
-  for (int i = 0; i < 4; i++) {
+  exmem->setFixedHeight(true, stateRegHeight);
+  for (int i = 0; i < 7; i++) {
     exmem->addInput("");
     exmem->addOutput("");
   }
+  exmem->addOutput("");
 
-  Graphics::Shape* memwb = new Graphics::Shape(Graphics::ShapeType::Block,
-                                               Graphics::Stage::EX, 350, 10);
+  memwb = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::EX,
+                              0, 10);
   memwb->setName("MEM/WB");
-  for (int i = 0; i < 2; i++) {
+  memwb->setFixedHeight(true, stateRegHeight);
+  for (int i = 0; i < 4; i++) {
     memwb->addInput("");
     memwb->addOutput("");
   }
+  memwb->addOutput("");
 
+  // Static items
   Graphics::Shape* immgen = new Graphics::Shape(Graphics::ShapeType::Static,
                                                 Graphics::Stage::EX, 20, 50);
   immgen->setName("Imm\ngen");
@@ -133,9 +149,6 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
   sl1->setName("Shift\nleft 1");
   sl1->addOutput("");
   sl1->drawBotPoint(true);
-
-  // add a point at 0,0 for testing purposes
-  scene->addEllipse(0, 0, 5, 5, QPen(Qt::red));
 
   // Add pipeline objects to graphics scene
 
@@ -157,34 +170,47 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
   scene->addItem(memwb);
 
   //  ----------- Create connections ----------------------
+  Graphics::Connection* connPtr;
   // IF
   createConnection(mux1, 0, pc, 0);
   createConnection(pc, 0, instr_mem, 0);
   createConnection(pc, 0, alu1, 0);
-  createConnection(alu1, 0, mux1, 0);
+  connPtr = createConnection(alu1, 0, mux1, 0);
+  connPtr->setFeedbackSettings(false, minConnectionLen - 20,
+                               minConnectionLen - 20);
+  connPtr->setKinkBias(100);
   createConnection(instr_mem, 0, ifid, 1);
   createConnection(pc, 0, ifid, 0);
   // ID
-  createConnection(ifid, 0, registers, 0);
-  createConnection(ifid, 0, registers, 1);
-  createConnection(ifid, 0, registers, 2);
+  connPtr = createConnection(ifid, 0, registers, 0);
+  connPtr->setKinkPoints(QList<int>() << 0 << 1);
+  connPtr = createConnection(ifid, 0, registers, 1);
+  connPtr->setKinkPoints(QList<int>() << 1);
+  connPtr = createConnection(ifid, 0, registers, 2);
   createConnection(ifid, 0, immgen, 0);
-  createConnection(registers, 0, idex, 1);
-  createConnection(registers, 1, idex, 2);
-  createConnection(ifid, 0, idex, 0);
-  createConnection(immgen, 0, idex, 3);
+  connPtr = createConnection(registers, 0, idex, 4);
+  connPtr->setKinkBias(-10);
+  connPtr = createConnection(registers, 1, idex, 5);
+  connPtr->setKinkBias(10);
+  createConnection(ifid, 0, idex, 3);
+  createConnection(immgen, 0, idex, 6);
   // EX
-  createConnection(idex, 0, alu2, 0);
-  createConnection(idex, 1, alu3, 0);
-  createConnection(idex, 2, mux2, 0);
+  connPtr = createConnection(idex, 0, alu2, 0);
+  connPtr->setKinkBias(-25);
+  createConnection(idex, 4, alu3, 0);
+  createConnection(idex, 6, mux2, 0);
   createConnection(mux2, 0, alu3, 1);
   createConnection(alu2, 0, exmem, 0);
   createConnection(alu3, 0, exmem, 1);
-  createConnection(idex, sl1, idex->getOutputPoint(3), sl1->getBotPoint());
+  createConnection(idex, sl1, idex->getOutputPoint(7), sl1->getBotPoint());
   createConnection(sl1, 0, alu2, 1);
   createConnection(idex, 2, exmem, 3);
+  createConnection(idex, 6, mux2, 1);
   // MEM
-  createConnection(exmem, 0, mux1, 1);
+  connPtr = createConnection(exmem, 0, mux1, 1);
+  connPtr->setFeedbackSettings(false, minConnectionLen - 20, minConnectionLen);
+  connPtr->setKinkBias(70);
+
   createConnection(exmem, 1, data_mem, 0);
   createConnection(exmem, 2, data_mem, 1);
   createConnection(data_mem, 0, memwb, 0);
@@ -192,14 +218,18 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
   // WB
   createConnection(memwb, 0, mux3, 0);
   createConnection(memwb, 1, mux3, 1);
-  createConnection(mux3, 0, registers, 3);
+  connPtr = createConnection(mux3, 0, registers, 3);
+  connPtr->setFeedbackSettings(true, minConnectionLen - 20,
+                               minConnectionLen - 20);
+  connPtr->setKinkBias(430);
 
   // ------- ITEM POSITIONING ------
   // Item positioning will mostly be done manually.
-  // Most of it is based on positioning an "anchor" item, and calculating other
+  // Most of it is based on positioning an "anchor" item, and calculating
+  // other
   // items position relative to these
 
-  int spaceBetweenStateRegs = 350;
+  int spaceBetweenStateRegs = 300;
   // Position state registers
   ifid->moveBy(0, 0);
   idex->moveBy(spaceBetweenStateRegs * 1, 0);
@@ -207,7 +237,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
   memwb->moveBy(spaceBetweenStateRegs * 3, 0);
 
   // position IF stage
-  instr_mem->moveBy(-spaceBetweenStateRegs * 0.5, 50);
+  moveToIO(instr_mem, ifid, instr_mem->getOutputPoint(0),
+           ifid->getInputPoint(1));
   pc->moveBy(instr_mem->sceneBoundingRect().left() - shapeMargin -
                  pc->boundingRect().width(),
              0);
@@ -220,14 +251,14 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
   // position ID stage
   registers->moveBy(spaceBetweenStateRegs * 0.5, 0);
-  moveToIO(immgen, idex, immgen->getOutputPoint(0), idex->getInputPoint(3));
+  moveToIO(immgen, idex, immgen->getOutputPoint(0), idex->getInputPoint(6));
 
   // position EX stage
-  moveToIO(alu2, exmem, alu2->getOutputPoint(0), exmem->getInputPoint(0));
-  alu3->moveBy(idex->sceneBoundingRect().right() + spaceBetweenStateRegs / 2,
-               30);
-  moveToIO(mux2, alu3, mux3->getOutputPoint(0), alu3->getInputPoint(1));
+  moveToIO(alu2, exmem, alu2->getOutputPoint(0), exmem->getInputPoint(2));
+  moveToIO(alu3, exmem, alu3->getOutputPoint(0), exmem->getInputPoint(4));
+  moveToIO(mux2, alu3, mux3->getOutputPoint(0), alu3->getInputPoint(1), 40);
   moveToIO(sl1, alu2, sl1->getOutputPoint(0), alu1->getInputPoint(1));
+  mux2->moveBy(0, 1);
 
   // position MEM stage
   data_mem->moveBy(spaceBetweenStateRegs * 2.5, 0);
@@ -252,8 +283,10 @@ void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest,
   source->moveBy(-newX, -newY);
 }
 
-void PipelineWidget::createConnection(Graphics::Shape* source, int index1,
-                                      Graphics::Shape* dest, int index2) {
+Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source,
+                                                       int index1,
+                                                       Graphics::Shape* dest,
+                                                       int index2) {
   Graphics::Connection* connection =
       new Graphics::Connection(source, source->getOutputPoint(index1), dest,
                                dest->getInputPoint(index2));
@@ -261,18 +294,20 @@ void PipelineWidget::createConnection(Graphics::Shape* source, int index1,
   source->addConnection(connection);
   dest->addConnection(connection);
   scene()->addItem(connection);
+  return connection;
 }
 
-void PipelineWidget::createConnection(Graphics::Shape* source,
-                                      Graphics::Shape* dest,
-                                      QPointF* sourcePoint,
-                                      QPointF* destPoint) {
+Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source,
+                                                       Graphics::Shape* dest,
+                                                       QPointF* sourcePoint,
+                                                       QPointF* destPoint) {
   Graphics::Connection* connection =
       new Graphics::Connection(source, sourcePoint, dest, destPoint);
   m_connections.append(connection);
   source->addConnection(connection);
   dest->addConnection(connection);
   scene()->addItem(connection);
+  return connection;
 }
 
 QList<QGraphicsItem*> PipelineWidget::filterAllowedItems(
@@ -309,3 +344,5 @@ void PipelineWidget::scaleView(qreal scaleFactor) {
 
   scale(scaleFactor, scaleFactor);
 }
+
+void drawBackground(QPainter* painter, const QRectF& rect) {}

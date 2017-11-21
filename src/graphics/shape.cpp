@@ -66,7 +66,11 @@ void Shape::calculateRect() {
               2 * sidePadding;
   int height = leftHeight > rightHeight ? leftHeight : rightHeight;
   height += nameRect.height() + m_verticalPad;
-  m_rect = QRectF(-(width / 2), -(height / 2), width, height);
+  if (m_isFixedHeight) {
+    m_rect = QRectF(-(width / 2), -(m_fixedHeight / 2), width, m_fixedHeight);
+  } else {
+    m_rect = QRectF(-(width / 2), -(height / 2), width, height);
+  }
 }
 
 void Shape::calculatePoints() {
@@ -191,10 +195,6 @@ void Shape::paint(QPainter *painter,
   textRect.translate(-textRect.width() / 2,
                      -textRect.height() / 2);  // center text rect
   painter->setFont(m_nameFont);
-  if (m_type == ShapeType::ALU) {
-    // Shift ALU name a bit to the right
-    textRect.translate(-rect.width() / 8, 0);
-  }
   painter->drawText(textRect, Qt::AlignCenter, m_name);
 
   // Iterate through node descriptors and draw text
