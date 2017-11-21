@@ -35,7 +35,8 @@ SOURCES += src/main.cpp \
     src/graphics/connection.cpp \
     src/graphics/pipelinewidget.cpp \
     src/registercontainerwidget.cpp \
-    src/aboutwidget.cpp
+    src/aboutwidget.cpp \
+    src/graphics/backgrounditems.cpp
 
 HEADERS += \
     src/parser.h \
@@ -66,7 +67,8 @@ HEADERS += \
     src/graphics/connection.h \
     src/graphics/pipelinewidget.h \
     src/registercontainerwidget.h \
-    src/aboutwidget.h
+    src/aboutwidget.h \
+    src/graphics/backgrounditems.h
 
 FORMS += \
     src/mainwindow.ui \
