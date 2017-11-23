@@ -13,28 +13,28 @@ class CacheSetupWidget : public QWidget {
     Q_OBJECT
     friend class CacheTab;
 
-  public:
+public:
     explicit CacheSetupWidget(QWidget* parent = 0);
     ~CacheSetupWidget();
 
     void setName(QString name);
     void setCachePtr(CacheBase* cachePtr) { m_cachePtr = cachePtr; }
 
-  signals:
+signals:
     void groupBoxToggled(bool state);
 
-  public slots:
+public slots:
     void enable(bool state);
 
-  private slots:
+private slots:
     void on_groupbox_toggled(bool arg1);
 
     void cacheSizeChanged(const QString& index);
     void cacheDelayChanged(int);
 
-  private:
+private:
     Ui::CacheSetupWidget* m_ui;
     CacheBase* m_cachePtr;
 };
 
-#endif // CACHESETUPWIDGET_H
+#endif  // CACHESETUPWIDGET_H

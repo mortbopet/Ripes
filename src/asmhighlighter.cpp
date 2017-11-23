@@ -27,11 +27,11 @@ QString FieldType::validateField(const QString& field) const {
                 return QString();
             } else {
                 return QString(
-                         "Immediate %1 out of valid range; must be within [%2 "
-                         ": %3]")
-                  .arg(field)
-                  .arg(m_lowerBound)
-                  .arg(m_upperBound);
+                           "Immediate %1 out of valid range; must be within [%2 "
+                           ": %3]")
+                    .arg(field)
+                    .arg(m_lowerBound)
+                    .arg(m_upperBound);
             }
         }
         case Type::Register: {
@@ -50,7 +50,6 @@ QString FieldType::validateField(const QString& field) const {
 }
 
 AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
-
     createSyntaxRules();
     errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
     errorFormat.setUnderlineColor(Qt::red);
@@ -185,7 +184,7 @@ void AsmHighlighter::highlightBlock(const QString& text) {
 void AsmHighlighter::createSyntaxRules() {
     // Create syntax rules for all base- and pseudoinstructions
     auto rule = SyntaxRule();
-    QList< FieldType > types = QList< FieldType >();
+    QList<FieldType> types = QList<FieldType>();
     QStringList names;
 
     // nop
@@ -267,8 +266,7 @@ void AsmHighlighter::createSyntaxRules() {
     // I type instructions
     types.clear();
     names.clear();
-    types << FieldType(Type::Register) << FieldType(Type::Register)
-          << FieldType(Type::Immediate, -2048, 2047);
+    types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047);
     names << "addi"
           << "slti"
           << "sltiu"
@@ -288,8 +286,7 @@ void AsmHighlighter::createSyntaxRules() {
     // Load instructions
     types.clear();
     names.clear();
-    types << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047)
-          << FieldType(Type::Register);
+    types << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047) << FieldType(Type::Register);
     names << "lb"
           << "lh"
           << "lw"
@@ -327,8 +324,7 @@ void AsmHighlighter::createSyntaxRules() {
     // S type instructions
     types.clear();
     names.clear();
-    types << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047)
-          << FieldType(Type::Register);
+    types << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047) << FieldType(Type::Register);
     names << "sb"
           << "sh"
           << "sw";

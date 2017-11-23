@@ -18,7 +18,7 @@ class BreakpointArea;
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
-  public:
+public:
     CodeEditor(QWidget* parent = 0);
 
     void lineNumberAreaPaintEvent(QPaintEvent* event);
@@ -27,21 +27,21 @@ class CodeEditor : public QPlainTextEdit {
     void clearBreakpoints() { m_breakpoints.clear(); }
     int lineNumberAreaWidth();
 
-  protected:
+protected:
     void resizeEvent(QResizeEvent* event) override;
 
-  private slots:
+private slots:
     void updateSidebarWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
 
-  private:
+private:
     AsmHighlighter* m_highlighter;
     LineNumberArea* m_lineNumberArea;
     BreakpointArea* m_breakpointArea;
     int m_sidebarWidth;
 
-    std::set< int > m_breakpoints;
+    std::set<int> m_breakpoints;
 
     QFont m_font = font();
 
@@ -55,19 +55,19 @@ class CodeEditor : public QPlainTextEdit {
 // base class for side area widgets that are attached to the code editor
 class SideArea : public QWidget {
     Q_OBJECT
-  public:
+public:
     SideArea(QWidget* parent = nullptr);
 
-  private:
+private:
 };
 
 class LineNumberArea : public QWidget {
-  public:
+public:
     LineNumberArea(CodeEditor* editor) : QWidget(editor) { codeEditor = editor; }
 
     QSize sizeHint() const override { return QSize(codeEditor->lineNumberAreaWidth(), 0); }
 
-  protected:
+protected:
     void paintEvent(QPaintEvent* event) override { codeEditor->lineNumberAreaPaintEvent(event); }
 
     void wheelEvent(QWheelEvent* event) override {
@@ -75,12 +75,12 @@ class LineNumberArea : public QWidget {
                                                   (-event->angleDelta().y()) / 30);
     }
 
-  private:
+private:
     CodeEditor* codeEditor;
 };
 
 class BreakpointArea : public QWidget {
-  public:
+public:
     BreakpointArea(CodeEditor* editor);
 
     QSize sizeHint() const override { return QSize(width(), 0); }
@@ -89,20 +89,18 @@ class BreakpointArea : public QWidget {
 
     int imageWidth = 16;
     int imageHeight = 16;
-    int padding = 3; // padding on each side of the breakpoint
-    QPixmap m_breakpoint =
-      QPixmap(":/logos/breakpoint_enabled.png").scaled(imageWidth, imageHeight);
-    QPixmap m_breakpoint_disabled =
-      QPixmap(":/logos/breakpoint_disabled.png").scaled(imageWidth, imageWidth);
+    int padding = 3;  // padding on each side of the breakpoint
+    QPixmap m_breakpoint = QPixmap(":/logos/breakpoint_enabled.png").scaled(imageWidth, imageHeight);
+    QPixmap m_breakpoint_disabled = QPixmap(":/logos/breakpoint_disabled.png").scaled(imageWidth, imageWidth);
 
     void setBlockHeight(int height) { m_blockHeight = height; }
 
-  protected:
+protected:
     void paintEvent(QPaintEvent* event) override { codeEditor->breakpointAreaPaintEvent(event); }
 
     void contextMenuEvent(QContextMenuEvent* event) override;
 
-  private:
+private:
     CodeEditor* codeEditor;
     int m_blockHeight = 0;
 
@@ -124,4 +122,4 @@ class BreakpointArea : public QWidget {
     QMouseEvent* m_event;
 };
 
-#endif // CODEEDITOR_H
+#endif  // CODEEDITOR_H

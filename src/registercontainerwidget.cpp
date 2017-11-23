@@ -19,39 +19,38 @@ RegisterContainerWidget::RegisterContainerWidget(QWidget* parent)
 
 void RegisterContainerWidget::init() {
     // Initialize register descriptions
-    QStringList descriptions =
-      QStringList() << "Hard-Wired zero"
-                    << "Return Address \nSaver: Caller"
-                    << "Stack pointer\nSaver: Callee"
-                    << "Global pointer"
-                    << "Thread pointer"
-                    << "Temporary/alternate link register\nSaver: Caller"
-                    << "Temporary\nSaver: Caller"
-                    << "Temporary\nSaver: Caller"
-                    << "Saved register/frame pointer\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Function argument/return value\nSaver: Caller"
-                    << "Function argument/return value\nSaver: Caller"
-                    << "Function argument\nSaver: Caller"
-                    << "Function argument\nSaver: Caller"
-                    << "Function argument\nSaver: Caller"
-                    << "Function argument\nSaver: Caller"
-                    << "Function argument\nSaver: Caller"
-                    << "Function argument\nSaver: Caller"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Saved register\nSaver: Callee"
-                    << "Temporary register\nSaver: Caller"
-                    << "Temporary register\nSaver: Caller"
-                    << "Temporary register\nSaver: Caller"
-                    << "Temporary register\nSaver: Caller";
+    QStringList descriptions = QStringList() << "Hard-Wired zero"
+                                             << "Return Address \nSaver: Caller"
+                                             << "Stack pointer\nSaver: Callee"
+                                             << "Global pointer"
+                                             << "Thread pointer"
+                                             << "Temporary/alternate link register\nSaver: Caller"
+                                             << "Temporary\nSaver: Caller"
+                                             << "Temporary\nSaver: Caller"
+                                             << "Saved register/frame pointer\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Function argument/return value\nSaver: Caller"
+                                             << "Function argument/return value\nSaver: Caller"
+                                             << "Function argument\nSaver: Caller"
+                                             << "Function argument\nSaver: Caller"
+                                             << "Function argument\nSaver: Caller"
+                                             << "Function argument\nSaver: Caller"
+                                             << "Function argument\nSaver: Caller"
+                                             << "Function argument\nSaver: Caller"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Saved register\nSaver: Callee"
+                                             << "Temporary register\nSaver: Caller"
+                                             << "Temporary register\nSaver: Caller"
+                                             << "Temporary register\nSaver: Caller"
+                                             << "Temporary register\nSaver: Caller";
 
     // Initialize 32 register widgets
     for (int i = 0; i < 32; i++) {
@@ -64,14 +63,9 @@ void RegisterContainerWidget::init() {
         reg->setAlias(ABInames[i]);
         reg->setNumber(i);
         reg->setToolTip(descriptions[i]);
-        reg->setDisplayType(
-          qvariant_cast<displayTypeN>(m_ui->displayType->currentData()));
-        connect(
-          m_ui->displayType,
-          QOverload<const QString&>::of(&QComboBox::currentTextChanged), [=] {
-              reg->setDisplayType(
-                qvariant_cast<displayTypeN>(m_ui->displayType->currentData()));
-          });
+        reg->setDisplayType(qvariant_cast<displayTypeN>(m_ui->displayType->currentData()));
+        connect(m_ui->displayType, QOverload<const QString&>::of(&QComboBox::currentTextChanged),
+                [=] { reg->setDisplayType(qvariant_cast<displayTypeN>(m_ui->displayType->currentData())); });
         m_ui->registerLayout->addWidget(reg);
     }
 }

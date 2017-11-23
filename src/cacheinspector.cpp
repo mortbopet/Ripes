@@ -33,11 +33,13 @@ CacheInspector::CacheInspector(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     m_ui->selectedPlot->setId(m_ui->crrbutton, 1);
     m_ui->selectedPlot->setId(m_ui->trbutton, 2);
     m_ui->selectedPlot->setId(m_ui->trrbutton, 3);
-    connect(m_ui->selectedPlot, QOverload< int >::of(&QButtonGroup::buttonClicked),
+    connect(m_ui->selectedPlot, QOverload<int>::of(&QButtonGroup::buttonClicked),
             [=] { changePlotView(m_ui->selectedPlot->checkedId()); });
 }
 
-void CacheInspector::changePlotView(int view) { m_ui->plotview->setCurrentIndex(view); }
+void CacheInspector::changePlotView(int view) {
+    m_ui->plotview->setCurrentIndex(view);
+}
 
 void CacheInspector::setupCacheRequestPlot() {
     // Setup bars
@@ -57,12 +59,12 @@ void CacheInspector::setupCacheRequestPlot() {
     misses->moveAbove(hits);
 
     // Setup ticker
-    QSharedPointer< QCPAxisTickerText > ticker(new QCPAxisTickerText);
-    QVector< double > ticks = {1, 2, 3};
+    QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
+    QVector<double> ticks = {1, 2, 3};
     ticker->addTicks(ticks,
-                     QVector< QString >() << "L1"
-                                          << "L2"
-                                          << "L3");
+                     QVector<QString>() << "L1"
+                                        << "L2"
+                                        << "L3");
     m_ui->cacheRequestPlot->xAxis->setTicker(ticker);
     m_ui->cacheRequestPlot->xAxis->setRange(0, 4);
     m_ui->cacheRequestPlot->xAxis->setLabel("Cache level");
@@ -78,8 +80,8 @@ void CacheInspector::setupCacheRequestPlot() {
     m_ui->cacheRequestPlot->legend->setVisible(true);
 
     // Set data
-    QVector< double > hitData;
-    QVector< double > missData;
+    QVector<double> hitData;
+    QVector<double> missData;
     for (int i = 0; i < 3; i++) {
         hitData.push_back(m_hitData[i].last());
         missData.push_back(m_missData[i].last());
@@ -107,19 +109,18 @@ void CacheInspector::updateData(int value, dataRole role, cacheLevel level) {
 
 void CacheInspector::setupCacheRequestRatioPlot() {
     // Setup bars
-    QCPBars* ratio =
-      new QCPBars(m_ui->cacheRequestRatioPlot->xAxis, m_ui->cacheRequestRatioPlot->yAxis);
+    QCPBars* ratio = new QCPBars(m_ui->cacheRequestRatioPlot->xAxis, m_ui->cacheRequestRatioPlot->yAxis);
     ratio->setName("Miss ratio");
     ratio->setPen(QPen(QColor(QRgb(Colors::FoundersRock)).lighter(170)));
     ratio->setBrush(QColor(QRgb(Colors::FoundersRock)));
 
     // Setup ticker
-    QSharedPointer< QCPAxisTickerText > ticker(new QCPAxisTickerText);
-    QVector< double > ticks = {1, 2, 3};
+    QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
+    QVector<double> ticks = {1, 2, 3};
     ticker->addTicks(ticks,
-                     QVector< QString >() << "L1"
-                                          << "L2"
-                                          << "L3");
+                     QVector<QString>() << "L1"
+                                        << "L2"
+                                        << "L3");
     m_ui->cacheRequestRatioPlot->xAxis->setTicker(ticker);
     m_ui->cacheRequestRatioPlot->xAxis->setRange(0, 4);
     m_ui->cacheRequestRatioPlot->xAxis->setLabel("Cache level");
@@ -135,7 +136,7 @@ void CacheInspector::setupCacheRequestRatioPlot() {
     m_ui->cacheRequestRatioPlot->legend->setVisible(true);
 
     // Set data
-    QVector< double > data;
+    QVector<double> data;
     for (int i = 0; i < 3; i++) {
         data.push_back(m_missData[i].last() * 100 / (m_missData[i].last() + m_hitData[i].last()));
     }
@@ -146,7 +147,7 @@ void CacheInspector::setupTemporalPlot() {}
 
 void CacheInspector::setupTemporalRatioPlot() {
     // Preallocate graph data vector
-    QVector< QVector< QCPGraphData > > graphData(3);
+    QVector<QVector<QCPGraphData>> graphData(3);
 
     for (int i = 0; i < 3; i++) {
         graphData[i].resize(m_missData[0].size());
@@ -178,4 +179,6 @@ void CacheInspector::setupTemporalRatioPlot() {
     m_ui->temporalRatioPlot->yAxis->setLabel("Miss ratio [%]");
 }
 
-CacheInspector::~CacheInspector() { delete m_ui; }
+CacheInspector::~CacheInspector() {
+    delete m_ui;
+}

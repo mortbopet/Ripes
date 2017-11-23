@@ -15,14 +15,14 @@ class CacheInspector;
 class CacheInspector : public QWidget {
     Q_OBJECT
 
-  public:
+public:
     explicit CacheInspector(QWidget* parent = 0);
     ~CacheInspector();
 
     void updateData(int value, dataRole role, cacheLevel level);
     void changePlotView(int view);
 
-  private:
+private:
     Ui::CacheInspector* m_ui;
 
     void setupCacheRequestPlot();
@@ -32,11 +32,11 @@ class CacheInspector : public QWidget {
 
     // Miss data vector:
 
-    QVector< QVector< double > > m_missData; // For each cache, inner vector shows
-                                             // missData for each instruction request
-    QVector< QVector< double > > m_hitData;
+    QVector<QVector<double>> m_missData;  // For each cache, inner vector shows
+                                          // missData for each instruction request
+    QVector<QVector<double>> m_hitData;
 
     void setupBar(QCPBars* bar);
 };
 
-#endif // CACHEINSPECTOR_H
+#endif  // CACHEINSPECTOR_H

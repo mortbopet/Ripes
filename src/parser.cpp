@@ -13,7 +13,7 @@ bool Parser::init(char* filename) {
     }
 
     // Create filestream iterator
-    m_fileIter = istreambuf_iterator< char >(m_fileStream);
+    m_fileIter = istreambuf_iterator<char>(m_fileStream);
 
     // get file size
     m_fileStream.seekg(0, ios::end);
@@ -28,7 +28,7 @@ Parser::~Parser() {}
 void Parser::parseFile(memory* memoryPtr) {
     // Parse the file in 8-bit segments and write to memory map
     int pc = 0;
-    while (m_fileIter != istreambuf_iterator< char >()) {
+    while (m_fileIter != istreambuf_iterator<char>()) {
         (*memoryPtr)[pc] = *m_fileIter;
         pc++;
         m_fileIter++;

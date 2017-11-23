@@ -8,20 +8,20 @@ class TabBar;
 
 class TabItem : public QWidget {
     Q_OBJECT
-  public:
+public:
     TabItem(QString iconPath, QString name, TabBar* parent = nullptr);
 
-  private:
+private:
     QIcon* m_icon;
     QLabel* m_name;
 };
 
 class TabBar : public QListWidget {
     Q_OBJECT
-  public:
+public:
     explicit TabBar(QWidget* parent = nullptr);
 
     void addTabItem(QString label, QString iconPath);
 };
 
-#endif // TABBAR_H
+#endif  // TABBAR_H

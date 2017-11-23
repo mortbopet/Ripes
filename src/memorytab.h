@@ -19,7 +19,7 @@ class RegisterWidget;
 class MemoryTab : public QWidget {
     Q_OBJECT
 
-   public:
+public:
     explicit MemoryTab(QWidget* parent = 0);
     ~MemoryTab();
 
@@ -27,10 +27,10 @@ class MemoryTab : public QWidget {
     void setRegPtr(std::vector<uint32_t>* ptr) { m_regPtr = ptr; }
     void init();
 
-   public slots:
+public slots:
     void saveAddress();
 
-   private:
+private:
     void initializeMemoryView();
     void initializeRegisterView();
 

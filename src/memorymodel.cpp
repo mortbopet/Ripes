@@ -41,9 +41,8 @@ void MemoryModel::updateModel() {
             auto iter = m_memoryPtr->find(lineAddress);
             if (iter != m_memoryPtr->end()) {
                 auto addr = new QStandardItem();
-                addr->setData(
-                  QString("0x%1").arg(QString().setNum(iter->first, 16).rightJustified(8, '0')),
-                  Qt::DisplayRole);
+                addr->setData(QString("0x%1").arg(QString().setNum(iter->first, 16).rightJustified(8, '0')),
+                              Qt::DisplayRole);
                 addr->setTextAlignment(Qt::AlignCenter);
                 auto b1 = new QStandardItem();
                 b1->setData(iter->second, Qt::DisplayRole);
@@ -53,9 +52,8 @@ void MemoryModel::updateModel() {
             } else {
                 // No address in memory - create "fake" address in model
                 auto addr = new QStandardItem();
-                addr->setData(
-                  QString("0x%1").arg(QString().setNum(lineAddress, 16).rightJustified(8, '0')),
-                  Qt::DisplayRole);
+                addr->setData(QString("0x%1").arg(QString().setNum(lineAddress, 16).rightJustified(8, '0')),
+                              Qt::DisplayRole);
                 addr->setTextAlignment(Qt::AlignCenter);
                 auto b1 = new QStandardItem();
                 b1->setData(0, Qt::DisplayRole);

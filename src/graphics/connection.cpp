@@ -6,95 +6,82 @@
 namespace Graphics {
 static const float Pi = 3.1415926535;
 
-Connection::Connection(Shape *source, QPointF *sourcePoint, Shape *dest,
-                       QPointF *destPoint)
-    : m_source(source),
-      m_dest(dest),
-      m_sourcePointPtr(sourcePoint),
-      m_destPointPtr(destPoint) {}
+Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint)
+    : m_source(source), m_dest(dest), m_sourcePointPtr(sourcePoint), m_destPointPtr(destPoint) {}
 
 QRectF Connection::boundingRect() const {
-  qreal penWidth = 1;
-  qreal extra = (penWidth + m_arrowSize) / 2.0;
+    qreal penWidth = 1;
+    qreal extra = (penWidth + m_arrowSize) / 2.0;
 
-  QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
-  QPointF destPoint = mapFromItem(m_dest, *m_destPointPtr);
+    QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
+    QPointF destPoint = mapFromItem(m_dest, *m_destPointPtr);
 
-  if ((destPoint.x() - sourcePoint.x()) > 0) {
-    return QRectF(sourcePoint, QSizeF(destPoint.x() - sourcePoint.x(),
-                                      destPoint.y() - sourcePoint.y()))
-        .normalized()
-        .adjusted(-extra, -extra, extra, extra);
-  } else if (m_kinkBiases.size() > 0) {
-    return QRectF(QPointF(destPoint.x() - m_destStubLen,
-                          sourcePoint.y() + m_feedbackDir * m_kinkBiases[0]),
-                  QPointF(sourcePoint.x() + m_sourceStubLen, destPoint.y()))
-        .normalized()
-        .adjusted(-extra, -extra, extra, extra);
-  }
-  return QRectF();
+    if ((destPoint.x() - sourcePoint.x()) > 0) {
+        return QRectF(sourcePoint, QSizeF(destPoint.x() - sourcePoint.x(), destPoint.y() - sourcePoint.y()))
+            .normalized()
+            .adjusted(-extra, -extra, extra, extra);
+    } else if (m_kinkBiases.size() > 0) {
+        return QRectF(QPointF(destPoint.x() - m_destStubLen, sourcePoint.y() + m_feedbackDir * m_kinkBiases[0]),
+                      QPointF(sourcePoint.x() + m_sourceStubLen, destPoint.y()))
+            .normalized()
+            .adjusted(-extra, -extra, extra, extra);
+    }
+    return QRectF();
 }
 
 QPair<QPointF, QPointF> Connection::getPoints() const {
-  return QPair<QPointF, QPointF>(mapFromItem(m_source, *m_sourcePointPtr),
-                                 mapFromItem(m_dest, *m_destPointPtr));
+    return QPair<QPointF, QPointF>(mapFromItem(m_source, *m_sourcePointPtr), mapFromItem(m_dest, *m_destPointPtr));
 }
 
-void Connection::paint(QPainter *painter,
-                       const QStyleOptionGraphicsItem *option,
-                       QWidget *widget) {
-  QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
-  QPointF destPoint = mapFromItem(m_dest, *m_destPointPtr);
+void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+    QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
+    QPointF destPoint = mapFromItem(m_dest, *m_destPointPtr);
 
-  // Number of kinks depends on the directon of the line. If its left to right,
-  // óne kink will be present, if it is right to left, 3 kinks will be present
-  bool dir = (destPoint.x() - sourcePoint.x()) > 0 ? true : false;
+    // Number of kinks depends on the directon of the line. If its left to right,
+    // óne kink will be present, if it is right to left, 3 kinks will be present
+    bool dir = (destPoint.x() - sourcePoint.x()) > 0 ? true : false;
 
-  // Generate polygon from calculated points
-  QVector<QPointF> polyLine;
-  polyLine << sourcePoint;
+    // Generate polygon from calculated points
+    QVector<QPointF> polyLine;
+    polyLine << sourcePoint;
 
-  if (dir) {
-    // Feed forward connection
-    int bias = m_kinkBiases.size() > 0 ? m_kinkBiases[0] : 0;
-    int xDiff = destPoint.x() - sourcePoint.x();
-    QPointF point(sourcePoint.x() + xDiff / 2 + bias, sourcePoint.y());
-    QPointF point2(point.x(), destPoint.y());
-    polyLine << point << point2;
-  } else {
-    // Feedback connection
-    // 1. traverse to the right of the input
-    if (m_kinkBiases.size() >= 1) {
-      QPointF point(sourcePoint.x() + m_sourceStubLen, sourcePoint.y());
-      QPointF point2(point.x(), point.y() + m_feedbackDir * m_kinkBiases[0]);
-      QPointF point3(destPoint.x() - m_destStubLen, point2.y());
-      QPointF point4(point3.x(), destPoint.y());
-      polyLine << point << point2 << point3 << point4;
+    if (dir) {
+        // Feed forward connection
+        int bias = m_kinkBiases.size() > 0 ? m_kinkBiases[0] : 0;
+        int xDiff = destPoint.x() - sourcePoint.x();
+        QPointF point(sourcePoint.x() + xDiff / 2 + bias, sourcePoint.y());
+        QPointF point2(point.x(), destPoint.y());
+        polyLine << point << point2;
+    } else {
+        // Feedback connection
+        // 1. traverse to the right of the input
+        if (m_kinkBiases.size() >= 1) {
+            QPointF point(sourcePoint.x() + m_sourceStubLen, sourcePoint.y());
+            QPointF point2(point.x(), point.y() + m_feedbackDir * m_kinkBiases[0]);
+            QPointF point3(destPoint.x() - m_destStubLen, point2.y());
+            QPointF point4(point3.x(), destPoint.y());
+            polyLine << point << point2 << point3 << point4;
+        }
     }
-  }
-  polyLine << destPoint;
+    polyLine << destPoint;
 
-  // Draw connection polyline
-  painter->setPen(
-      QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-  painter->drawPolyline(QPolygonF(polyLine));
+    // Draw connection polyline
+    painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter->drawPolyline(QPolygonF(polyLine));
 
-  // Draw destination arrow
-  qreal angle = 0;
-  QPointF destArrowP1 = destPoint + QPointF(sin(angle - Pi / 3) * m_arrowSize,
-                                            cos(angle - Pi / 3) * m_arrowSize);
-  QPointF destArrowP2 =
-      destPoint + QPointF(sin(angle - Pi + Pi / 3) * m_arrowSize,
-                          cos(angle - Pi + Pi / 3) * m_arrowSize);
-  painter->setBrush(Qt::black);
-  painter->drawPolygon(QPolygonF() << destPoint << destArrowP1 << destArrowP2);
+    // Draw destination arrow
+    qreal angle = 0;
+    QPointF destArrowP1 = destPoint + QPointF(sin(angle - Pi / 3) * m_arrowSize, cos(angle - Pi / 3) * m_arrowSize);
+    QPointF destArrowP2 =
+        destPoint + QPointF(sin(angle - Pi + Pi / 3) * m_arrowSize, cos(angle - Pi + Pi / 3) * m_arrowSize);
+    painter->setBrush(Qt::black);
+    painter->drawPolygon(QPolygonF() << destPoint << destArrowP1 << destArrowP2);
 
-  // Draw kink points
-  painter->setPen(
-      QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-  for (const auto &point : m_kinkPoints) {
-    painter->drawPoint(polyLine[point + 1]);
-  }
+    // Draw kink points
+    painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    for (const auto& point : m_kinkPoints) {
+        painter->drawPoint(polyLine[point + 1]);
+    }
 }
 
 }  // namespace Graphics

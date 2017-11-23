@@ -9,20 +9,20 @@
 using namespace std;
 
 class Parser {
-  public:
+public:
     Parser();
     ~Parser();
 
     int getFileSize() { return m_fileSize; }
 
-  public:
-    bool init(char    * filename);
+public:
+    bool init(char* filename);
     void parseFile(memory* memoryPtr);
 
-  private:
+private:
     ifstream m_fileStream;
-    istreambuf_iterator< char > m_fileIter;
+    istreambuf_iterator<char> m_fileIter;
     int m_fileSize;
 };
 
-#endif // PARSER_H
+#endif  // PARSER_H

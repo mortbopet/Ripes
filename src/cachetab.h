@@ -14,13 +14,13 @@ class CacheTab : public QWidget {
     friend class RunnerCache;
     Q_OBJECT
 
-  public:
+public:
     explicit CacheTab(QWidget* parent = 0);
     ~CacheTab();
 
     void setRunnerCachePtr(RunnerCache* ptr);
 
-  private:
+private:
     Ui::CacheTab* m_ui;
 
     void connectWidgets();
@@ -28,12 +28,12 @@ class CacheTab : public QWidget {
     RunnerCache* m_runnerCachePtr;
     void connectSetupWidget(CacheBase* cachePtr, cacheLevel level);
 
-  signals:
+signals:
     void countChanged();
     void cacheChanged();
 
-  private slots:
+private slots:
     void cacheCountChanged(bool state);
 };
 
-#endif // CACHETAB_H
+#endif  // CACHETAB_H

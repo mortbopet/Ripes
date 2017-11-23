@@ -1,13 +1,12 @@
 #include "dmcache.h"
 
-DMCache::DMCache(CacheProperties properties, int* cycleCounterPtr)
-    : CacheBase(properties, cycleCounterPtr) {
+DMCache::DMCache(CacheProperties properties, int* cycleCounterPtr) : CacheBase(properties, cycleCounterPtr) {
     assertSize(m_properties.size);
 
     // Initialize cache to all zeros and invalidated
     for (auto i = 0; i < m_properties.size; i++) {
         // Initialize cache line to 0, and invalid
-        m_cache[i] = std::pair< bool, uint32_t >(false, 0);
+        m_cache[i] = std::pair<bool, uint32_t>(false, 0);
     }
 }
 

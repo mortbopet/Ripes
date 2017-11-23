@@ -3,10 +3,9 @@
 MemoryDisplayDelegate::MemoryDisplayDelegate(QWidget* parent) : QStyledItemDelegate(parent) {}
 
 QString MemoryDisplayDelegate::displayText(const QVariant& value, const QLocale& /*locale*/) const {
-
     // check for invalid memory - hacky solution. Check for values that can
     // be converted to a qstring larger than any valid value could be
-    QString ret = qvariant_cast< QString >(value);
+    QString ret = qvariant_cast<QString>(value);
     if (ret.size() > 4) {
         return "---";
     }

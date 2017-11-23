@@ -13,24 +13,18 @@ enum class ShapeType { Block, ALU, MUX, Static };
 enum class Stage { IF = 1, ID = 2, EX = 3, MEM = 4, WB = 5 };
 
 class Shape : public QGraphicsItem {
-   public:
-    Shape(ShapeType type = ShapeType::Block, Stage stage = Stage::IF,
-          int verticalPad = 0, int horizontalPad = 0);
+public:
+    Shape(ShapeType type = ShapeType::Block, Stage stage = Stage::IF, int verticalPad = 0, int horizontalPad = 0);
 
     QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-               QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
     void addInput(QString input);
     void addInput(QStringList input);
     void addOutput(QString output);
     void addOutput(QStringList output);
     void setName(QString name);
-    void addConnection(Connection* connection) {
-        m_connections.append(connection);
-    }
-    void setFixedHeight(bool state, int height = 0) {
-        m_isFixedHeight = state, m_fixedHeight = height;
-    }
+    void addConnection(Connection* connection) { m_connections.append(connection); }
+    void setFixedHeight(bool state, int height = 0) { m_isFixedHeight = state, m_fixedHeight = height; }
 
     bool isConnectedTo(Connection* connection) const;
 
@@ -47,7 +41,7 @@ class Shape : public QGraphicsItem {
     static int connectionType() { return QGraphicsItem::UserType + 2; }
     int type() const { return connectionType(); }
 
-   private:
+private:
     QRectF m_rect;
     bool m_hasChanged = true;  // Flag is set whenever the item has changed (ie.
                                // when new descriptors have been added)
@@ -86,8 +80,7 @@ class Shape : public QGraphicsItem {
     qreal nameFontSize = 10;
     qreal ioFontSize = 8;
     qreal nodePadding = 5;  // padding between each text descriptor for a node
-    qreal sidePadding =
-      7;  // padding between an IO description and the side of the shape
+    qreal sidePadding = 7;  // padding between an IO description and the side of the shape
     int m_fixedHeight;
     bool m_isFixedHeight = false;
 };

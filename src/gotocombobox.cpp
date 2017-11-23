@@ -14,15 +14,14 @@ GoToComboBox::GoToComboBox(QWidget* parent) : QComboBox(parent) {
     addItem("Stack", 0x7ffffff0);
 
     // connect to a "signal filter"
-    connect(this, QOverload< int >::of(&GoToComboBox::activated), this,
-            &GoToComboBox::signalFilter);
+    connect(this, QOverload<int>::of(&GoToComboBox::activated), this, &GoToComboBox::signalFilter);
 }
 
 void GoToComboBox::signalFilter(int index) {
     // Get modifier keys
     switch (index) {
         case 0:
-            return; // "select" has been clicked
+            return;  // "select" has been clicked
         case 1: {
             // Create goto-address dialog
             AddressDialog dialog;

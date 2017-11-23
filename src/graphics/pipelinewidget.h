@@ -11,35 +11,26 @@ class Shape;
 
 class PipelineWidget : public QGraphicsView {
     Q_OBJECT
-   public:
+public:
     PipelineWidget(QWidget* parent = nullptr);
 
     void wheelEvent(QWheelEvent* event);
-    void expandToView() {
-        fitInView(scene()->sceneRect().adjusted(-10, 0, 10, 0),
-                  Qt::KeepAspectRatio);
-    }
+    void expandToView() { fitInView(scene()->sceneRect().adjusted(-10, 0, 10, 0), Qt::KeepAspectRatio); }
 
-   private:
+private:
     void scaleView(qreal scaleFactor);
     void adjustPositioning();
 
-    Graphics::Connection* createConnection(Graphics::Shape* source, int index1,
-                                           Graphics::Shape* dest, int index2);
-    Graphics::Connection* createConnection(Graphics::Shape* source,
-                                           Graphics::Shape* dest,
-                                           QPointF* sourcePoint,
+    Graphics::Connection* createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest, int index2);
+    Graphics::Connection* createConnection(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint,
                                            QPointF* destPoint);
 
-    void moveToIO(Graphics::Shape* source, Graphics::Shape* dest,
-                  QPointF* sourcePoint, QPointF* destPointm,
+    void moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint, QPointF* destPointm,
                   int connectionLength = minConnectionLen);
 
-    QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape,
-                                             QList<QGraphicsItem*> items);
+    QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape, QList<QGraphicsItem*> items);
 
-    constexpr static qreal shapeMargin =
-      15;  // Minimum distance between two shapes
+    constexpr static qreal shapeMargin = 15;  // Minimum distance between two shapes
     constexpr static qreal stateRegHeight = 500;
     constexpr static qreal spaceBetweenStateRegs = 350;
     constexpr static qreal minConnectionLen = 30;

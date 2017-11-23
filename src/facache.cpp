@@ -1,7 +1,6 @@
 #include "facache.h"
 
-FACache::FACache(CacheProperties properties, int* cycleCounterPtr)
-    : CacheBase(properties, cycleCounterPtr) {}
+FACache::FACache(CacheProperties properties, int* cycleCounterPtr) : CacheBase(properties, cycleCounterPtr) {}
 
 uint32_t FACache::readData(uint32_t /*address*/) {
     m_properties.readCount++;

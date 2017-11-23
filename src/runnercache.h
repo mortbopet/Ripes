@@ -13,12 +13,11 @@ CacheProperties defaultProperties;
 class RunnerCache {
     friend class CacheTab;
 
-  public:
+public:
     RunnerCache();
 
-  public:
-    void setCacheLevel(cacheLevel level, bool enable,
-                       CacheProperties properties = defaultProperties);
+public:
+    void setCacheLevel(cacheLevel level, bool enable, CacheProperties properties = defaultProperties);
     void deleteCache(cacheLevel level);
     void modifyCache(cacheLevel level, CacheProperties properties);
 
@@ -28,14 +27,14 @@ class RunnerCache {
     bool isEnabled() const { return m_enabled; }
     bool setEnabled(bool state) { m_enabled = state; }
 
-  private:
-    std::unique_ptr< CacheBase > createCache(CacheProperties properties);
-    std::unique_ptr< CacheBase > m_L1;
-    std::unique_ptr< CacheBase > m_L2;
-    std::unique_ptr< CacheBase > m_L3;
+private:
+    std::unique_ptr<CacheBase> createCache(CacheProperties properties);
+    std::unique_ptr<CacheBase> m_L1;
+    std::unique_ptr<CacheBase> m_L2;
+    std::unique_ptr<CacheBase> m_L3;
 
     bool m_enabled = false;
     CacheTab* m_cacheTabPtr;
 };
 
-#endif // RUNNERCACHE_H
+#endif  // RUNNERCACHE_H

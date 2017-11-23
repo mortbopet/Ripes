@@ -8,26 +8,24 @@ namespace Graphics {
 class Shape;
 
 class DashLine : public QGraphicsItem {
-   public:
+public:
     DashLine(Shape* reg);
     QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-               QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-   private:
+private:
     Shape* m_regPtr;
     constexpr static int dashHeight = 100;
 };
 
 class Text : public QGraphicsItem {
-   public:
+public:
     Text(QPointF pos);
     void setTextPtr(QString* text) { m_text = text; }
     QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-               QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-   private:
+private:
     QString* m_text;
     QFont m_font;
     QPointF m_pos;

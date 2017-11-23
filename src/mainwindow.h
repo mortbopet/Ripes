@@ -13,12 +13,11 @@ class Parser;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
-   public:
-    explicit MainWindow(Runner* runnerPtr, Parser* parserPtr,
-                        QWidget* parent = 0);
+public:
+    explicit MainWindow(Runner* runnerPtr, Parser* parserPtr, QWidget* parent = 0);
     ~MainWindow();
 
-   private slots:
+private slots:
     void on_actionexit_triggered();
 
     void on_actionLoadBinaryFile_triggered();
@@ -30,7 +29,7 @@ class MainWindow : public QMainWindow {
 
     void on_actionOpen_documentation_triggered();
 
-   private:
+private:
     Ui::MainWindow* m_ui;
     void setupExamples();
 

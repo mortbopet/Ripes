@@ -11,22 +11,22 @@ class ProgramfileTab;
 class ProgramfileTab : public QWidget {
     Q_OBJECT
 
-  public:
+public:
     explicit ProgramfileTab(QWidget* parent = 0);
     ~ProgramfileTab();
 
     void setAssemblyText(const QString& text);
     void setBinaryText(const QString& text);
 
-  signals:
+signals:
     void loadBinaryFile();
     void loadAssemblyFile();
 
-  private slots:
+private slots:
     void on_pushButton_clicked();
 
-  private:
+private:
     Ui::ProgramfileTab* m_ui;
 };
 
-#endif // PROGRAMFILETAB_H
+#endif  // PROGRAMFILETAB_H

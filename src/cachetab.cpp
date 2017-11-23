@@ -54,7 +54,7 @@ void CacheTab::cacheCountChanged(bool state) {
     // CHANGE ALL THIS STUFF TO JUST CONNECT The checkbox::changed signal to
     // enable/disable slot of the other widgets.
     // and then only do check/uncheck in the below checks
-    auto cachewidget = dynamic_cast< CacheSetupWidget* >(sender());
+    auto cachewidget = dynamic_cast<CacheSetupWidget*>(sender());
     if (cachewidget == m_ui->l1) {
         if (state) {
             m_ui->l2->enable(true);
@@ -75,8 +75,10 @@ void CacheTab::cacheCountChanged(bool state) {
 
 void CacheTab::setRunnerCachePtr(RunnerCache* ptr) {
     // Setup connection between RunnerCache and CacheTab
-    m_runnerCachePtr = const_cast< RunnerCache* >(ptr);
+    m_runnerCachePtr = const_cast<RunnerCache*>(ptr);
     m_runnerCachePtr->m_cacheTabPtr = this;
 }
 
-CacheTab::~CacheTab() { delete m_ui; }
+CacheTab::~CacheTab() {
+    delete m_ui;
+}

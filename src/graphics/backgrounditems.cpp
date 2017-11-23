@@ -9,7 +9,9 @@
 
 namespace Graphics {
 
-DashLine::DashLine(Shape* reg) { m_regPtr = reg; }
+DashLine::DashLine(Shape* reg) {
+    m_regPtr = reg;
+}
 
 QRectF DashLine::boundingRect() const {
     auto regRect = m_regPtr->sceneBoundingRect();
@@ -17,22 +19,17 @@ QRectF DashLine::boundingRect() const {
                   QPointF(regRect.right(), regRect.bottom() + dashHeight));
 }
 
-void DashLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*,
-                     QWidget*) {
+void DashLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
     QPen pen(Qt::DashLine);
     pen.setColor(Colors::FoundersRock);
     pen.setWidth(2);
     painter->setPen(pen);
     auto regRect = m_regPtr->sceneBoundingRect();
-    painter->drawLine(
-      QPointF(regRect.left() + (regRect.width() / 2),
-              regRect.top() - dashHeight),
-      QPointF(regRect.left() + (regRect.width() / 2), regRect.top()));
+    painter->drawLine(QPointF(regRect.left() + (regRect.width() / 2), regRect.top() - dashHeight),
+                      QPointF(regRect.left() + (regRect.width() / 2), regRect.top()));
 
-    painter->drawLine(
-      QPointF(regRect.left() + (regRect.width() / 2), regRect.bottom()),
-      QPointF(regRect.left() + (regRect.width() / 2),
-              regRect.bottom() + dashHeight));
+    painter->drawLine(QPointF(regRect.left() + (regRect.width() / 2), regRect.bottom()),
+                      QPointF(regRect.left() + (regRect.width() / 2), regRect.bottom() + dashHeight));
 }
 
 Text::Text(QPointF pos) {

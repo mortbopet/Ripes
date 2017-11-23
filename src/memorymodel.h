@@ -10,7 +10,7 @@
 class MemoryModel : public QStandardItemModel {
     Q_OBJECT
 
-  public:
+public:
     explicit MemoryModel(memory* memoryPtr, QObject* parent = nullptr);
 
     // Custom functionality
@@ -19,21 +19,20 @@ class MemoryModel : public QStandardItemModel {
     long long getCentralAddress() const { return m_centralAddress; }
     int getModelRows() const { return rowCount(); }
 
-  public slots:
+public slots:
     void jumpToAddress(uint32_t address);
 
-  private:
+private:
     void updateModel();
     void setInvalidAddresLine(int row);
 
-    // instead of direct access to the memory, we should have a pointer
-    // to the runner, which can return requested values, or null, if memory
-    // doesnt exist
+    // instead of direct access to the memory, we should have a pointer to the runner, which can return requested
+    // values, or null, if memory doesnt exist
     memory* m_memoryPtr;
 
-    long long m_centralAddress = 4; // Address at the center of the model
-    int m_addressRadius = 20;       // amount of addresses in each direction, from
-                                    // centralAddress
+    long long m_centralAddress = 4;  // Address at the center of the model
+    int m_addressRadius = 20;        // amount of addresses in each direction, from
+                                     // centralAddress
 };
 
-#endif // MEMORYMODEL_H
+#endif  // MEMORYMODEL_H

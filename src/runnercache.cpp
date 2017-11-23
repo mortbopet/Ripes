@@ -7,7 +7,9 @@
 
 RunnerCache::RunnerCache() {}
 
-uint32_t RunnerCache::readData(uint32_t /*address*/) { return 0; }
+uint32_t RunnerCache::readData(uint32_t /*address*/) {
+    return 0;
+}
 
 void RunnerCache::writeData(uint32_t /*address*/) {}
 
@@ -46,15 +48,15 @@ void RunnerCache::setCacheLevel(cacheLevel level, bool enable, CacheProperties p
     }
 }
 
-std::unique_ptr< CacheBase > RunnerCache::createCache(CacheProperties properties) {
+std::unique_ptr<CacheBase> RunnerCache::createCache(CacheProperties properties) {
     switch (properties.type) {
         case DM:
-            return std::make_unique< DMCache >(properties);
+            return std::make_unique<DMCache>(properties);
         case SA:
         // return std::make_unique<>(properties);
         case FA:
-            return std::make_unique< FACache >(properties);
+            return std::make_unique<FACache>(properties);
         default:
-            return std::make_unique< DMCache >(properties);
+            return std::make_unique<DMCache>(properties);
     }
 }

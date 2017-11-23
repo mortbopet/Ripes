@@ -21,7 +21,7 @@ typedef struct {
 // Base class for all cache types
 
 class CacheBase {
-  public:
+public:
     CacheBase(CacheProperties properties, int* cycleCounterPtr);
     virtual uint32_t readData(uint32_t address) = 0;
     virtual void writeData(uint32_t address) = 0;
@@ -31,14 +31,14 @@ class CacheBase {
     void setChildCache(CacheBase* childCache) { m_childCache = childCache; }
     virtual void resize(int size) = 0;
 
-  protected:
+protected:
     void assertSize(int size) const;
 
     CacheProperties m_properties;
 
     uint32_t* m_memoryPtr;
-    int* m_cycleCounterPtr;            // pointer to Runner's cycle counter
-    CacheBase* m_childCache = nullptr; // pointer to child cache (ie. L1 -> L2)
+    int* m_cycleCounterPtr;             // pointer to Runner's cycle counter
+    CacheBase* m_childCache = nullptr;  // pointer to child cache (ie. L1 -> L2)
 };
 
-#endif // CACHE_H
+#endif  // CACHE_H

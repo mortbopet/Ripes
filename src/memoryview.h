@@ -11,22 +11,22 @@
 class MemoryView : public QTableView {
     Q_OBJECT
 
-  public:
+public:
     MemoryView(QWidget* parent = nullptr);
 
     void wheelEvent(QWheelEvent* event) override;
 
-  protected:
+protected:
     void resizeEvent(QResizeEvent* event);
 
-  public slots:
+public slots:
     void setVisibleRows();
 
-  signals:
+signals:
     void scrolled(bool dir);
 
-  private:
+private:
     int m_rowHeight = 0;
 };
 
-#endif // MEMORYVIEW_H
+#endif  // MEMORYVIEW_H

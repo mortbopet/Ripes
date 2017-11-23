@@ -5,8 +5,7 @@
 #include <QWheelEvent>
 #include <algorithm>
 
-MemoryTab::MemoryTab(QWidget* parent)
-    : QWidget(parent), m_ui(new Ui::MemoryTab) {
+MemoryTab::MemoryTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
     // Add display types to display comboboxes
@@ -31,13 +30,10 @@ void MemoryTab::saveAddress() {
     QInputDialog dialog;
     dialog.setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
     dialog.setLabelText(
-      QString("Please enter a label for address: %1")
-        .arg(QString("0x%1").arg(QString()
-                                   .setNum(m_model->getCentralAddress(), 16)
-                                   .rightJustified(8, '0'))));
+        QString("Please enter a label for address: %1")
+            .arg(QString("0x%1").arg(QString().setNum(m_model->getCentralAddress(), 16).rightJustified(8, '0'))));
     if (dialog.exec() == QDialog::Accepted) {
-        m_ui->gotoCombobox->addItem(dialog.textValue(),
-                                    m_model->getCentralAddress());
+        m_ui->gotoCombobox->addItem(dialog.textValue(), m_model->getCentralAddress());
     }
 }
 
@@ -45,8 +41,7 @@ void MemoryTab::initializeMemoryView() {
     m_model = new MemoryModel(m_memoryPtr);
     m_delegate = new MemoryDisplayDelegate();
     m_ui->memoryView->setModel(m_model);
-    m_ui->memoryView->horizontalHeader()->setSectionResizeMode(
-      0, QHeaderView::Stretch);
+    m_ui->memoryView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     m_ui->memoryView->verticalHeader()->hide();
 
     // Only set delegate on byte columns
@@ -56,14 +51,11 @@ void MemoryTab::initializeMemoryView() {
     m_ui->memoryView->setItemDelegateForColumn(4, m_delegate);
 
     // Memory display type
-    connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged, m_delegate,
-            [=] {
-                m_delegate->setDisplayType(qvariant_cast<displayTypeN>(
-                  m_ui->memorydisplaytype->currentData()));
-                m_ui->memoryView->viewport()->repaint();
-            });
-    m_delegate->setDisplayType(
-      qvariant_cast<displayTypeN>(m_ui->memorydisplaytype->currentData()));
+    connect(m_ui->memorydisplaytype, &QComboBox::currentTextChanged, m_delegate, [=] {
+        m_delegate->setDisplayType(qvariant_cast<displayTypeN>(m_ui->memorydisplaytype->currentData()));
+        m_ui->memoryView->viewport()->repaint();
+    });
+    m_delegate->setDisplayType(qvariant_cast<displayTypeN>(m_ui->memorydisplaytype->currentData()));
 
     // connect up/down buttons to adjust the central address of the model
     connect(m_ui->memoryUp, &QPushButton::clicked, [=] {
@@ -89,14 +81,14 @@ void MemoryTab::initializeMemoryView() {
 
     // Connect goto combobox
 
-    connect(m_ui->gotoCombobox, &GoToComboBox::jumpToAddress, m_model,
-            &MemoryModel::jumpToAddress);
+    connect(m_ui->gotoCombobox, &GoToComboBox::jumpToAddress, m_model, &MemoryModel::jumpToAddress);
 
     // Connect save address button
     connect(m_ui->save, &QPushButton::clicked, this, &MemoryTab::saveAddress);
 
-    connect(m_model, &MemoryModel::dataChanged, m_ui->memoryView,
-            &MemoryView::setVisibleRows);
+    connect(m_model, &MemoryModel::dataChanged, m_ui->memoryView, &MemoryView::setVisibleRows);
 }
 
-MemoryTab::~MemoryTab() { delete m_ui; }
+MemoryTab::~MemoryTab() {
+    delete m_ui;
+}

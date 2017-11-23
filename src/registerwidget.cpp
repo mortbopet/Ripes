@@ -8,9 +8,13 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->value, &QLineEdit::editingFinished, this, &RegisterWidget::validateInput);
 }
 
-RegisterWidget::~RegisterWidget() { delete m_ui; }
+RegisterWidget::~RegisterWidget() {
+    delete m_ui;
+}
 
-void RegisterWidget::setAlias(QString text) { m_ui->alias->setText(text); }
+void RegisterWidget::setAlias(QString text) {
+    m_ui->alias->setText(text);
+}
 
 void RegisterWidget::validateInput() {
     // Instead of subclassing QValidator for ie. hex, we do some simple input
@@ -19,9 +23,8 @@ void RegisterWidget::validateInput() {
 
     bool ok;
     auto value = input.toLongLong(&ok, m_displayBase);
-    if (ok && value >= m_range.first &&
-        value <= m_range.second) { // verify "ok" and that value is within current
-                                   // accepted range of the display type
+    if (ok && value >= m_range.first && value <= m_range.second) {  // verify "ok" and that value is within current
+                                                                    // accepted range of the display type
         *m_regPtr = value;
     } else {
         // revert lineedit to the current register value
@@ -33,8 +36,7 @@ void RegisterWidget::setText() {
     // Sets line edit text based on current display type and register value
     if (m_displayType == displayTypeN::Hex) {
         // hex
-        m_ui->value->setText(
-          QString().setNum(*m_regPtr, 16).rightJustified(8, '0')); // zero padding on hex numbers
+        m_ui->value->setText(QString().setNum(*m_regPtr, 16).rightJustified(8, '0'));  // zero padding on hex numbers
     } else if (m_displayType == displayTypeN::Binary) {
         // binary
         m_ui->value->setText(QString().setNum(*m_regPtr, 2));
@@ -58,7 +60,9 @@ void RegisterWidget::setText() {
     }
 }
 
-void RegisterWidget::setNumber(int number) { m_ui->number->setText(QString("x(%1)").arg(number)); }
+void RegisterWidget::setNumber(int number) {
+    m_ui->number->setText(QString("x(%1)").arg(number));
+}
 
 void RegisterWidget::setDisplayType(displayTypeN type) {
     // Given a display type "type", sets validators for the input.

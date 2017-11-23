@@ -4,8 +4,7 @@
 
 #include "defines.h"
 
-CacheSetupWidget::CacheSetupWidget(QWidget* parent)
-    : QWidget(parent), m_ui(new Ui::CacheSetupWidget) {
+CacheSetupWidget::CacheSetupWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheSetupWidget) {
     m_ui->setupUi(this);
 
     // set combobox entries
@@ -20,13 +19,13 @@ CacheSetupWidget::CacheSetupWidget(QWidget* parent)
 
     // Connect widget to its m_cachePtr
     // Connect widget
-    connect(m_ui->cachesize, &QComboBox::currentTextChanged, this,
-            &CacheSetupWidget::cacheSizeChanged);
-    connect(m_ui->cachedelay, QOverload< int >::of(&QSpinBox::valueChanged), this,
-            &CacheSetupWidget::cacheDelayChanged);
+    connect(m_ui->cachesize, &QComboBox::currentTextChanged, this, &CacheSetupWidget::cacheSizeChanged);
+    connect(m_ui->cachedelay, QOverload<int>::of(&QSpinBox::valueChanged), this, &CacheSetupWidget::cacheDelayChanged);
 }
 
-CacheSetupWidget::~CacheSetupWidget() { delete m_ui; }
+CacheSetupWidget::~CacheSetupWidget() {
+    delete m_ui;
+}
 
 void CacheSetupWidget::cacheSizeChanged(const QString& index) {
     if (m_cachePtr != nullptr) {
@@ -42,11 +41,15 @@ void CacheSetupWidget::cacheDelayChanged(int delay) {
     }
 }
 
-void CacheSetupWidget::on_groupbox_toggled(bool state) { emit groupBoxToggled(state); }
+void CacheSetupWidget::on_groupbox_toggled(bool state) {
+    emit groupBoxToggled(state);
+}
 
 void CacheSetupWidget::enable(bool state) {
     m_ui->groupbox->setEnabled(state);
     m_ui->groupbox->setChecked(false);
 }
 
-void CacheSetupWidget::setName(QString name) { m_ui->groupbox->setTitle(name); }
+void CacheSetupWidget::setName(QString name) {
+    m_ui->groupbox->setTitle(name);
+}

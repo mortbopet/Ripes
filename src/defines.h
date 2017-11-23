@@ -21,8 +21,8 @@ enum Colors {
 };
 
 namespace {
-static QMap< QString, displayTypeN > initDisplayTypes() {
-    QMap< QString, displayTypeN > types;
+static QMap<QString, displayTypeN> initDisplayTypes() {
+    QMap<QString, displayTypeN> types;
     types.insert("Hex", displayTypeN::Hex);
     types.insert("Binary", displayTypeN::Binary);
     types.insert("Decimal", displayTypeN::Decimal);
@@ -32,7 +32,7 @@ static QMap< QString, displayTypeN > initDisplayTypes() {
 }
 }
 
-const static QMap< QString, displayTypeN > displayTypes = initDisplayTypes();
+const static QMap<QString, displayTypeN> displayTypes = initDisplayTypes();
 
 enum instrType {
     LUI = 0b0110111,
@@ -52,7 +52,7 @@ enum cacheLevel { L1 = 0, L2 = 1, L3 = 2 };
 
 enum cacheType { DM, SA, FA };
 
-typedef std::unordered_map< uint32_t, uint8_t > memory;
+typedef std::unordered_map<uint32_t, uint8_t> memory;
 
 enum instrState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS, DONE, ERR_ECALL };
 
@@ -89,17 +89,17 @@ const static QStringList ABInames = QStringList() << "zero"
                                                   << "t5"
                                                   << "t6";
 
-const static std::map< int, QString > cacheSizes = {
-  {32, QString("32 Bytes")},     {64, QString("64 Bytes")},   {128, QString("128 Bytes")},
-  {256, {QString("256 Bytes")}}, {512, QString("512 Bytes")}, {1024, QString("1024 Bytes")}};
+const static std::map<int, QString> cacheSizes = {{32, QString("32 Bytes")},   {64, QString("64 Bytes")},
+                                                  {128, QString("128 Bytes")}, {256, {QString("256 Bytes")}},
+                                                  {512, QString("512 Bytes")}, {1024, QString("1024 Bytes")}};
 
-const static std::map< QString, int > cacheTypes = {{QString("Direct mapped"), DM},
-                                                    {QString("Set associative"), SA},
-                                                    {QString("Fully associative"), FA}};
+const static std::map<QString, int> cacheTypes = {{QString("Direct mapped"), DM},
+                                                  {QString("Set associative"), SA},
+                                                  {QString("Fully associative"), FA}};
 
 typedef struct {
     instrType type = INVALID;
     uint32_t word = 0;
 } Instruction;
 
-#endif // DEFINES_H
+#endif  // DEFINES_H

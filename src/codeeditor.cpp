@@ -28,7 +28,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
-    m_font = QFont("Monospace"); // set default font to Monospace on unix systems
+    m_font = QFont("Monospace");  // set default font to Monospace on unix systems
     m_font.setStyleHint(QFont::Monospace);
     m_font.setPointSize(10);
     setFont(m_font);
@@ -63,18 +63,19 @@ void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
 
 bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
     // Event filter for catching ctrl+Scroll events, for text resizing
-    if (event->type() == QEvent::Wheel &&
-        QApplication::keyboardModifiers() == Qt::ControlModifier) {
-        auto wheelEvent = static_cast< QWheelEvent* >(event);
+    if (event->type() == QEvent::Wheel && QApplication::keyboardModifiers() == Qt::ControlModifier) {
+        auto wheelEvent = static_cast<QWheelEvent*>(event);
         // Since multiple wheelevents are issued on a scroll,
         // start a timer to only catch the first one
 
         // change font size
         if (!m_fontTimer.isActive()) {
             if (wheelEvent->angleDelta().y() > 0) {
-                if (m_font.pointSize() < 30) m_font.setPointSize(m_font.pointSize() + 1);
+                if (m_font.pointSize() < 30)
+                    m_font.setPointSize(m_font.pointSize() + 1);
             } else {
-                if (m_font.pointSize() > 6) m_font.setPointSize(m_font.pointSize() - 1);
+                if (m_font.pointSize() > 6)
+                    m_font.setPointSize(m_font.pointSize() - 1);
             }
             m_fontTimer.start(50);
         }
@@ -94,7 +95,8 @@ void CodeEditor::updateSidebar(const QRect& rect, int dy) {
         m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
     }
 
-    if (rect.contains(viewport()->rect())) updateSidebarWidth(0);
+    if (rect.contains(viewport()->rect()))
+        updateSidebarWidth(0);
 
     // Remove breakpoints if a breakpoint line has been removed
     while (!m_breakpoints.empty() && *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
@@ -107,13 +109,13 @@ void CodeEditor::resizeEvent(QResizeEvent* e) {
 
     QRect cr = contentsRect();
     m_lineNumberArea->setGeometry(
-      QRect(cr.left() + m_breakpointArea->width(), cr.top(), lineNumberAreaWidth(), cr.height()));
+        QRect(cr.left() + m_breakpointArea->width(), cr.top(), lineNumberAreaWidth(), cr.height()));
 
     m_breakpointArea->setGeometry(cr.left(), cr.top(), m_breakpointArea->width(), cr.height());
 }
 
 void CodeEditor::highlightCurrentLine() {
-    QList< QTextEdit::ExtraSelection > extraSelections;
+    QList<QTextEdit::ExtraSelection> extraSelections;
 
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
@@ -143,8 +145,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
             painter.setPen(QColor(Qt::gray).darker(130));
-            painter.drawText(0, top, m_lineNumberArea->width() - 3, fontMetrics().height(),
-                             Qt::AlignRight, number);
+            painter.drawText(0, top, m_lineNumberArea->width() - 3, fontMetrics().height(), Qt::AlignRight, number);
         }
 
         block = block.next();
@@ -187,7 +188,6 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 }
 
 void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
-
     // Get line height
     QTextBlock block = firstVisibleBlock();
     auto height = blockBoundingRect(block).height();
@@ -244,8 +244,7 @@ BreakpointArea::BreakpointArea(CodeEditor* editor) : QWidget(editor) {
     });
 
     // Construct default mouseButtonEvent
-    m_event = new QMouseEvent(QEvent::MouseButtonRelease, QPoint(0, 0), Qt::LeftButton,
-                              Qt::LeftButton, Qt::NoModifier);
+    m_event = new QMouseEvent(QEvent::MouseButtonRelease, QPoint(0, 0), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 }
 
 void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
@@ -254,8 +253,7 @@ void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
 
     // Translate event to a QMouseEvent in case add/remove single breakpoint is
     // triggered
-    *m_event = QMouseEvent(QEvent::MouseButtonRelease, event->pos(), Qt::LeftButton, Qt::LeftButton,
-                           Qt::NoModifier);
+    *m_event = QMouseEvent(QEvent::MouseButtonRelease, event->pos(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 
     contextMenu.addAction(m_addAction);
     contextMenu.addAction(m_removeAction);

@@ -13,7 +13,7 @@ class Parser;
 typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
 
 class Runner {
-   public:
+public:
     Runner(Parser* parser);
     ~Runner();
 
@@ -23,7 +23,7 @@ class Runner {
     memory* getMemoryPtr() { return &m_memory; }
     std::vector<uint32_t>* getRegPtr() { return &m_reg; }
 
-   private:
+private:
     instrState execInstruction(Instruction instr);
     void handleError(instrState err) const;
 
@@ -49,8 +49,7 @@ class Runner {
     int m_memsize;
 
     Parser* m_parser;
-    bool m_running =
-      false;  // flag for disabling UI update signals when running simulator
+    bool m_running = false;  // flag for disabling UI update signals when running simulator
 
     bool getInstruction(int pc);
     Instruction m_currentInstruction;

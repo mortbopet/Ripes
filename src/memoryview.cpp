@@ -21,11 +21,12 @@ void MemoryView::setVisibleRows() {
     }
 
     // Set visible rows from model, based on tableView size and rowheights
-    int modelRows = dynamic_cast< MemoryModel* >(model())->getModelRows();
+    int modelRows = dynamic_cast<MemoryModel*>(model())->getModelRows();
 
     // Calculate number of visible rows
     int visibleRows = (height() - horizontalHeader()->height() - 10) / m_rowHeight;
-    if ((visibleRows % 2) == 0) visibleRows--;
+    if ((visibleRows % 2) == 0)
+        visibleRows--;
 
     // Hide the rows above and below the requested range
     const int removeCnt = (modelRows - visibleRows) / 2;

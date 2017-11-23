@@ -6,7 +6,7 @@
 
 class ComboboxDelegate : public QItemDelegate {
     Q_OBJECT
-  public:
+public:
     explicit ComboboxDelegate(QWidget* parent = nullptr);
 
     void mousePressEvent(QMouseEvent* event);
@@ -14,19 +14,19 @@ class ComboboxDelegate : public QItemDelegate {
 
 class GoToComboBox : public QComboBox {
     Q_OBJECT
-  public:
+public:
     explicit GoToComboBox(QWidget* parent = nullptr);
 
-  signals:
+signals:
     void indexChanged();
     void jumpToAddress(uint32_t address);
 
-  public slots:
+public slots:
 
-  private:
+private:
     void signalFilter(int index);
 
     // ComboboxDelegate m_delegate;
 };
 
-#endif // GOTOCOMBOBOX_H
+#endif  // GOTOCOMBOBOX_H
