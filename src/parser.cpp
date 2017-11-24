@@ -1,8 +1,18 @@
 #include "parser.h"
 
+#include <assert.h>
 #include <iostream>
 
-Parser::Parser() {}
+Parser::Parser() {
+
+    // generate word parser functors
+    decodeRInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});  // from LSB to MSB
+    decodeIInstr = generateWordParser(vector<int>{5, 3, 5, 12});
+    decodeSInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});
+    decodeBInstr = generateWordParser(vector<int>{1, 4, 3, 5, 5, 6, 1});
+    decodeUInstr = generateWordParser(vector<int>{5, 20});
+    decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
+}
 
 bool Parser::init(char* filename) {
     // Open binary file
@@ -33,4 +43,59 @@ void Parser::parseFile(memory* memoryPtr) {
         pc++;
         m_fileIter++;
     }
+}
+
+namespace {
+uint32_t generateBitmask(int n) {
+    // Generate bitmask. There might be a smarter way to do this
+    uint32_t mask = 0;
+    for (int i = 0; i < n - 1; i++) {
+        mask |= 0b1;
+        mask <<= 1;
+    }
+    mask |= 0b1;
+    return mask;
+}
+
+uint32_t bitcount(int n) {
+    int count = 0;
+    while (n > 0) {
+        count += 1;
+        n = n & (n - 1);
+    }
+    return count;
+}
+}
+
+decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
+    // Generates functors that can decode a binary number based on the input
+    // vector which is supplied upon generation
+
+    // Assert that total bitField size is (32-7)=25-bit. Subtract 7 for op-code
+    int tot = 0;
+    for (const auto& field : bitFields) {
+        tot += field;
+    }
+    assert(tot == 25 && "Requested word parsing format is not 32-bit in length");
+
+    // Generate vector of <fieldsize,bitmask>
+    std::vector<std::pair<uint32_t, uint32_t>> parseVector;
+
+    // Generate bit masks and fill parse vector
+    for (const auto& field : bitFields) {
+        parseVector.push_back(std::pair<uint32_t, uint32_t>(field, generateBitmask(field)));
+    }
+
+    // Create parse functor
+    decode_functor wordParser = [=](uint32_t word) {
+        word = word >> 7;  // remove OpCode
+        std::vector<uint32_t> parsedWord;
+        for (const auto& field : parseVector) {
+            parsedWord.insert(parsedWord.begin(), word & field.second);
+            word = word >> field.first;
+        }
+        return parsedWord;
+    };
+
+    return wordParser;
 }

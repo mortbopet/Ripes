@@ -7,6 +7,8 @@ namespace Ui {
 class ProcessorTab;
 }
 
+class InstructionModel;
+
 class ProcessorTab : public QWidget {
     Q_OBJECT
 
@@ -21,6 +23,7 @@ private slots:
 
 private:
     Ui::ProcessorTab* m_ui;
+    InstructionModel* m_instrModel;
 };
 
 #endif  // PROCESSORTAB_H
