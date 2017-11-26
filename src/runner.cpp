@@ -137,7 +137,7 @@ instrState Runner::execJalrInstr(Instruction instr) {
     if (fields[3] != 0) {             // if rd = 0, dont store address
         m_reg[fields[3]] = m_pc + 4;  // store return address
     }
-    m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) & 0xffffffff;  // set LSB of result to zero
+    m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) & 0xfffffffe;  // set LSB of result to zero
 
     // Check for misaligned four-byte boundary
     if ((m_pc & 0b11) != 0) {
