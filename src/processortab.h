@@ -19,7 +19,9 @@ public:
     void initRegWidget(std::vector<uint32_t>* regPtr);
 
 private slots:
-    void on_toolButton_clicked();
+    void on_expandView_clicked();
+
+    void on_displayValues_toggled(bool checked);
 
 private:
     Ui::ProcessorTab* m_ui;

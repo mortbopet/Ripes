@@ -14,10 +14,10 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     QGraphicsScene* scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     setScene(scene);
-    // setCacheMode(CacheBackground);
     setRenderHint(QPainter::Antialiasing);
     setRenderHint(QPainter::TextAntialiasing);
     setDragMode(QGraphicsView::ScrollHandDrag);
+    setCursor(Qt::CrossCursor);
 
     //  ------------ Create pipeline objects ---------------
     // Registers memory
@@ -245,7 +245,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(dash3);
     scene->addItem(dash4);
 
-    int textPad = 20;
+    int             textPad  = 20;
     Graphics::Text* if_instr = new Graphics::Text(QPointF(
         -dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + -spaceBetweenStateRegs / 2,
         dash1->sceneBoundingRect().top() + textPad));
@@ -279,7 +279,7 @@ void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QP
     // Moves the source shape such that its sourcePoint is aligned with the
     // destination point, seperated by connectionLength
     QPointF sceneSourcePoint = source->mapToScene(*sourcePoint);
-    QPointF sceneDestPoint = dest->mapToScene(*destPoint);
+    QPointF sceneDestPoint   = dest->mapToScene(*destPoint);
 
     int newY = sceneSourcePoint.y() - sceneDestPoint.y();
     int newX = sceneSourcePoint.x() - sceneDestPoint.x() + connectionLength;
@@ -290,12 +290,19 @@ void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QP
 
 Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest,
                                                        int index2) {
+    // for testing
+    static uint32_t value = 1;
+    value <<= 1;
+    //
     Graphics::Connection* connection =
         new Graphics::Connection(source, source->getOutputPoint(index1), dest, dest->getInputPoint(index2));
+    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::showValue);
+    connection->setValue(value);
     m_connections.append(connection);
     source->addConnection(connection);
     dest->addConnection(connection);
     scene()->addItem(connection);
+    connection->addLabelToScene();
     return connection;
 }
 
@@ -339,4 +346,9 @@ void PipelineWidget::scaleView(qreal scaleFactor) {
         return;
 
     scale(scaleFactor, scaleFactor);
+}
+
+void PipelineWidget::displayAllValues(bool state) {
+    emit displayAllValuesSig(state);
+    scene()->update();
 }

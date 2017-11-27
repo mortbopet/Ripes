@@ -38,6 +38,10 @@ ProcessorTab::~ProcessorTab() {
     delete m_ui;
 }
 
-void ProcessorTab::on_toolButton_clicked() {
+void ProcessorTab::on_expandView_clicked() {
     m_ui->pipelineWidget->expandToView();
+}
+
+void ProcessorTab::on_displayValues_toggled(bool checked) {
+    m_ui->pipelineWidget->displayAllValues(checked);
 }

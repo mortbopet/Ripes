@@ -121,8 +121,11 @@
           </item>
           <item>
            <widget class="QCheckBox" name="displayValues">
+            <property name="toolTip">
+             <string>Hover over an output node to view signal value</string>
+            </property>
             <property name="text">
-             <string>Display signal values</string>
+             <string>Display all signal values</string>
             </property>
            </widget>
           </item>
@@ -134,7 +137,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="toolButton">
+           <widget class="QToolButton" name="expandView">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>

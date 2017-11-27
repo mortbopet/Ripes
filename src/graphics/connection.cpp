@@ -1,20 +1,23 @@
 #include "connection.h"
 #include "shape.h"
 
+#include <QFontMetrics>
 #include <QPainter>
 
 namespace Graphics {
-static const float Pi = 3.1415926535;
+static constexpr float Pi = 3.1415926535;
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint)
-    : m_source(source), m_dest(dest), m_sourcePointPtr(sourcePoint), m_destPointPtr(destPoint) {}
+    : QObject(), m_source(source), m_dest(dest), m_sourcePointPtr(sourcePoint), m_destPointPtr(destPoint) {
+    m_label.m_source  = source;
+    m_label.m_drawPos = sourcePoint;
+}
 
 QRectF Connection::boundingRect() const {
-    qreal penWidth = 1;
-    qreal extra = (penWidth + m_arrowSize) / 2.0;
-
+    qreal   penWidth    = 1;
+    qreal   extra       = (penWidth + m_arrowSize) / 2.0;
     QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
-    QPointF destPoint = mapFromItem(m_dest, *m_destPointPtr);
+    QPointF destPoint   = mapFromItem(m_dest, *m_destPointPtr);
 
     if ((destPoint.x() - sourcePoint.x()) > 0) {
         return QRectF(sourcePoint, QSizeF(destPoint.x() - sourcePoint.x(), destPoint.y() - sourcePoint.y()))
@@ -35,7 +38,7 @@ QPair<QPointF, QPointF> Connection::getPoints() const {
 
 void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
     QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
-    QPointF destPoint = mapFromItem(m_dest, *m_destPointPtr);
+    QPointF destPoint   = mapFromItem(m_dest, *m_destPointPtr);
 
     // Number of kinks depends on the directon of the line. If its left to right,
     // óne kink will be present, if it is right to left, 3 kinks will be present
@@ -44,11 +47,10 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     // Generate polygon from calculated points
     QVector<QPointF> polyLine;
     polyLine << sourcePoint;
-
     if (dir) {
         // Feed forward connection
-        int bias = m_kinkBiases.size() > 0 ? m_kinkBiases[0] : 0;
-        int xDiff = destPoint.x() - sourcePoint.x();
+        int     bias  = m_kinkBiases.size() > 0 ? m_kinkBiases[0] : 0;
+        int     xDiff = destPoint.x() - sourcePoint.x();
         QPointF point(sourcePoint.x() + xDiff / 2 + bias, sourcePoint.y());
         QPointF point2(point.x(), destPoint.y());
         polyLine << point << point2;
@@ -70,7 +72,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     painter->drawPolyline(QPolygonF(polyLine));
 
     // Draw destination arrow
-    qreal angle = 0;
+    qreal   angle       = 0;
     QPointF destArrowP1 = destPoint + QPointF(sin(angle - Pi / 3) * m_arrowSize, cos(angle - Pi / 3) * m_arrowSize);
     QPointF destArrowP2 =
         destPoint + QPointF(sin(angle - Pi + Pi / 3) * m_arrowSize, cos(angle - Pi + Pi / 3) * m_arrowSize);
@@ -82,6 +84,53 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     for (const auto& point : m_kinkPoints) {
         painter->drawPoint(polyLine[point + 1]);
     }
+}
+
+void Connection::setValue(uint32_t value) {
+    QString text;
+    if (value < 0b1111) {
+        // Draw in binary notation
+        text = QString("0b%1").arg(QString().setNum(value, 2));
+    } else {
+        // Draw in hex notation
+        text = QString("0x%1").arg(QString().setNum(value, 16));
+    }
+    m_label.setText(text);
+    m_label.setToolTip(text);
+}
+
+void Connection::addLabelToScene() {
+    // Must be called after connection has been added to a scene
+    scene()->addItem(&m_label);
+}
+
+// --------- label ------------
+void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+    if (m_showValue) {
+        // Draw label (connection value)
+        QPointF      pos      = mapFromItem(m_source, *m_drawPos);
+        QFontMetrics metric   = QFontMetrics(QFont());
+        QRectF       textRect = metric.boundingRect(m_text);
+        textRect.moveTo(pos);
+        textRect.translate(0, -textRect.height());
+        textRect.adjust(-5, 0, 5, 5);
+        painter->fillRect(textRect, Qt::white);
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(QPen(Qt::black, 1));
+        painter->drawRect(textRect);
+        painter->setFont(QFont());
+        painter->drawText(pos, m_text);
+    }
+}
+
+QRectF Label::boundingRect() const {
+    QPointF      pos      = mapFromItem(m_source, *m_drawPos);
+    QFontMetrics metric   = QFontMetrics(QFont());
+    QRectF       textRect = metric.boundingRect(m_text);
+    textRect.moveTo(pos);
+    textRect.translate(0, -textRect.height());
+    textRect.adjust(-5, 0, 5, 5);
+    return textRect;
 }
 
 }  // namespace Graphics

@@ -16,6 +16,10 @@ public:
 
     void wheelEvent(QWheelEvent* event);
     void expandToView() { fitInView(scene()->sceneRect().adjusted(-10, 0, 10, 0), Qt::KeepAspectRatio); }
+    void displayAllValues(bool state);
+
+signals:
+    void displayAllValuesSig(bool state);
 
 private:
     void scaleView(qreal scaleFactor);
@@ -30,10 +34,10 @@ private:
 
     QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape, QList<QGraphicsItem*> items);
 
-    constexpr static qreal shapeMargin = 15;  // Minimum distance between two shapes
-    constexpr static qreal stateRegHeight = 500;
+    constexpr static qreal shapeMargin           = 15;  // Minimum distance between two shapes
+    constexpr static qreal stateRegHeight        = 500;
     constexpr static qreal spaceBetweenStateRegs = 350;
-    constexpr static qreal minConnectionLen = 30;
+    constexpr static qreal minConnectionLen      = 30;
 
     QList<Graphics::Connection*> m_connections;
 
