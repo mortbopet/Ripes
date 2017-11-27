@@ -290,7 +290,8 @@ void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QP
 
 Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest,
                                                        int index2) {
-    // for testing
+    // Connects a source and destination shape using IO index numbers
+
     static uint32_t value = 1;
     value <<= 1;
     //
@@ -305,9 +306,35 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
     connection->addLabelToScene();
     return connection;
 }
+Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, int        index1,
+                                                       QList<QPair<Graphics::Shape*, int>> dests) {
+    // Connects multiple input points to one output point
+
+    // Generate list of output shapes and points
+    QList<QPair<Graphics::Shape*,QPointF*>> shapePointList;
+    for (const auto& dest : dests) {
+        shapePointList << QPair<Graphics::Shape*, QPointF*>(dest.first, dest.first->getOutputPoint(dest.second));
+    }
+
+    // Create connection
+    Graphics::Connection* connection =
+        new Graphics::Connection(source, source->getOutputPoint(index1), shapePointList);
+    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::showValue);
+    source->addConnection(connection);
+    m_connections.append(connection);
+    scene()->addItem(connection);
+    connection->addLabelToScene();
+
+    // Add connection to destination shapes
+    for(const auto& dest: dests){
+        dest.first->addConnection(connection);
+    }
+    return connection;
+}
 
 Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, Graphics::Shape* dest,
                                                        QPointF* sourcePoint, QPointF* destPoint) {
+    // Connects source and destinations using point pointers
     Graphics::Connection* connection = new Graphics::Connection(source, sourcePoint, dest, destPoint);
     m_connections.append(connection);
     source->addConnection(connection);

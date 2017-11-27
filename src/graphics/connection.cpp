@@ -8,8 +8,15 @@ namespace Graphics {
 static constexpr float Pi = 3.1415926535;
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint)
-    : QObject(), m_source(source), m_dest(dest), m_sourcePointPtr(sourcePoint), m_destPointPtr(destPoint) {
+    : QObject(), m_source(source), m_sourcePointPtr(sourcePoint) {
+    m_dests << QPair<Shape*, QPointF*>(dest,destPoint);
     m_label.m_source  = source;
+    m_label.m_drawPos = sourcePoint;
+}
+
+Connection::Connection(Shape* source, QPointF* sourcePoint, QList<QPair<Shape*, QPointF*>> dests) : QObject(), m_source(source),m_sourcePointPtr(sourcePoint){
+    m_dests = dests;
+    m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
 }
 
@@ -17,7 +24,7 @@ QRectF Connection::boundingRect() const {
     qreal   penWidth    = 1;
     qreal   extra       = (penWidth + m_arrowSize) / 2.0;
     QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
-    QPointF destPoint   = mapFromItem(m_dest, *m_destPointPtr);
+    QPointF destPoint   = mapFromItem(m_dests[0].first, *m_dests[0].second);
 
     if ((destPoint.x() - sourcePoint.x()) > 0) {
         return QRectF(sourcePoint, QSizeF(destPoint.x() - sourcePoint.x(), destPoint.y() - sourcePoint.y()))
@@ -33,12 +40,12 @@ QRectF Connection::boundingRect() const {
 }
 
 QPair<QPointF, QPointF> Connection::getPoints() const {
-    return QPair<QPointF, QPointF>(mapFromItem(m_source, *m_sourcePointPtr), mapFromItem(m_dest, *m_destPointPtr));
+    return QPair<QPointF, QPointF>(mapFromItem(m_source, *m_sourcePointPtr), mapFromItem(m_dests[0].first, *m_dests[0].second));
 }
 
 void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
     QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
-    QPointF destPoint   = mapFromItem(m_dest, *m_destPointPtr);
+    QPointF destPoint   = mapFromItem(m_dests[0].first, *m_dests[0].second);
 
     // Number of kinks depends on the directon of the line. If its left to right,
     // óne kink will be present, if it is right to left, 3 kinks will be present

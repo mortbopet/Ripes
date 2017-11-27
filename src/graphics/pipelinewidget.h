@@ -3,6 +3,7 @@
 
 #include <QGraphicsItem>
 #include <QGraphicsView>
+#include <QPair>
 
 namespace Graphics {
 class Connection;
@@ -28,6 +29,7 @@ private:
     Graphics::Connection* createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest, int index2);
     Graphics::Connection* createConnection(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint,
                                            QPointF* destPoint);
+    Graphics::Connection* createConnection(Graphics::Shape* source, int index1, QList<QPair<Graphics::Shape*,int>> dests);
 
     void moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint, QPointF* destPointm,
                   int connectionLength = minConnectionLen);

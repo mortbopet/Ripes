@@ -39,11 +39,12 @@ class Connection : public QObject, public QGraphicsItem {
     Q_OBJECT
 public:
     Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint);
+    Connection(Shape* source, QPointF* sourcePoint, QList<QPair<Shape*, QPointF*>> dests);
     void setValueDrawPos(ValueDrawPos pos) { m_valuePos = pos, update(); }
 
     void setValue(uint32_t value);
     QPair<QPointF, QPointF> getPoints() const;
-    QPair<Shape*, Shape*>   getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dest); }
+    QPair<Shape*, Shape*>   getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dests[0].first); }
     Shape* getSource() { return m_source; }
 
     static int connectionType() { return QGraphicsItem::UserType + 1; }
@@ -84,9 +85,8 @@ private:
     int m_arrowSize = 10;
 
     Shape*   m_source;
-    Shape*   m_dest;
     QPointF* m_sourcePointPtr;
-    QPointF* m_destPointPtr;
+    QList<QPair<Shape*,QPointF*>>   m_dests;
     Label    m_label;
 };
 
