@@ -332,7 +332,7 @@ instrState Runner::execOpInstr(Instruction instr) {
         case 0b011:
             if (fields[0] == 0b0000001) {
                 // MULHU
-                uint64_t res = m_reg[fields[1]] * m_reg[fields[2]];
+                uint64_t res = m_reg[fields[2]] * m_reg[fields[1]];
                 res >>= 32;
                 m_reg[fields[4]] = res;
                 break;
