@@ -432,13 +432,13 @@ instrState Runner::execOpInstr(Instruction instr) {
 }
 
 instrState Runner::execEcallInstr() {
-    switch (m_reg[10])  // a0
-    {
-        case 10:
-            return DONE;
-        default:
-            return ERR_ECALL;
-    }
+  switch (m_reg[10]) // a0
+  {
+  case 10:
+    return DONE;
+  default:
+    return DONE;
+  }
 }
 
 void Runner::handleError(instrState /*err*/) const {
