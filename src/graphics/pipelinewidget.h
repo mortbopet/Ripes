@@ -10,6 +10,8 @@ class Connection;
 class Shape;
 }
 
+typedef QPair<Graphics::Shape*, int> ShapePair;
+
 class PipelineWidget : public QGraphicsView {
     Q_OBJECT
 public:
@@ -29,7 +31,7 @@ private:
     Graphics::Connection* createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest, int index2);
     Graphics::Connection* createConnection(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint,
                                            QPointF* destPoint);
-    Graphics::Connection* createConnection(Graphics::Shape* source, int index1, QList<QPair<Graphics::Shape*,int>> dests);
+    Graphics::Connection* createConnection(Graphics::Shape* source, int index1, QList<ShapePair> dests);
 
     void moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint, QPointF* destPointm,
                   int connectionLength = minConnectionLen);

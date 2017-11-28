@@ -159,17 +159,13 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     createConnection(instr_mem, 0, ifid, 1);
     createConnection(pc, 0, ifid, 0);
     // ID
-    connPtr = createConnection(ifid, 0, registers, 0);
-    connPtr->setKinkPoints(QList<int>() << 0 << 1);
-    connPtr = createConnection(ifid, 0, registers, 1);
-    connPtr->setKinkPoints(QList<int>() << 1);
-    connPtr = createConnection(ifid, 0, registers, 2);
-    createConnection(ifid, 0, immgen, 0);
+    createConnection(ifid, 0,
+                     QList<ShapePair>() << ShapePair(registers, 0) << ShapePair(registers, 1) << ShapePair(registers, 2)
+                                        << ShapePair(immgen, 0) << ShapePair(idex, 3));
     connPtr = createConnection(registers, 0, idex, 4);
     connPtr->setKinkBias(-10);
     connPtr = createConnection(registers, 1, idex, 5);
     connPtr->setKinkBias(10);
-    createConnection(ifid, 0, idex, 3);
     createConnection(immgen, 0, idex, 6);
     // EX
     connPtr = createConnection(idex, 0, alu2, 0);
@@ -306,19 +302,17 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
     connection->addLabelToScene();
     return connection;
 }
-Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, int        index1,
-                                                       QList<QPair<Graphics::Shape*, int>> dests) {
+Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, int index1, QList<ShapePair> dests) {
     // Connects multiple input points to one output point
 
     // Generate list of output shapes and points
-    QList<QPair<Graphics::Shape*,QPointF*>> shapePointList;
+    QList<QPair<Graphics::Shape*, QPointF*>> shapePointList;
     for (const auto& dest : dests) {
-        shapePointList << QPair<Graphics::Shape*, QPointF*>(dest.first, dest.first->getOutputPoint(dest.second));
+        shapePointList << QPair<Graphics::Shape*, QPointF*>(dest.first, dest.first->getInputPoint(dest.second));
     }
 
     // Create connection
-    Graphics::Connection* connection =
-        new Graphics::Connection(source, source->getOutputPoint(index1), shapePointList);
+    Graphics::Connection* connection = new Graphics::Connection(source, source->getOutputPoint(index1), shapePointList);
     connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::showValue);
     source->addConnection(connection);
     m_connections.append(connection);
@@ -326,7 +320,7 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
     connection->addLabelToScene();
 
     // Add connection to destination shapes
-    for(const auto& dest: dests){
+    for (const auto& dest : dests) {
         dest.first->addConnection(connection);
     }
     return connection;
