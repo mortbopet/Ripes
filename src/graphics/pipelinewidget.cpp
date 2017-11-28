@@ -151,13 +151,11 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     Graphics::Connection* connPtr;
     // IF
     createConnection(mux1, 0, pc, 0);
-    createConnection(pc, 0, instr_mem, 0);
-    createConnection(pc, 0, alu1, 0);
+    createConnection(pc, 0, QList<ShapePair>() << ShapePair(instr_mem, 0) << ShapePair(ifid, 0) << ShapePair(alu1, 0));
     connPtr = createConnection(alu1, 0, mux1, 0);
-    connPtr->setFeedbackSettings(false, minConnectionLen - 20, minConnectionLen - 20);
+    connPtr->setFeedbackSettings(false, minConnectionLen, minConnectionLen - 10);
     connPtr->setKinkBias(100);
     createConnection(instr_mem, 0, ifid, 1);
-    createConnection(pc, 0, ifid, 0);
     // ID
     createConnection(ifid, 0,
                      QList<ShapePair>() << ShapePair(registers, 0) << ShapePair(registers, 1) << ShapePair(registers, 2)
@@ -184,15 +182,15 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     connPtr->setFeedbackSettings(false, minConnectionLen - 20, minConnectionLen);
     connPtr->setKinkBias(70);
 
-    createConnection(exmem, 1, data_mem, 0);
-    createConnection(exmem, 2, data_mem, 1);
+    createConnection(exmem, 1, QList<ShapePair>() << ShapePair(data_mem, 0) << ShapePair(memwb, 1));
+    connPtr = createConnection(exmem, 2, data_mem, 1);
+    connPtr->setKinkBias(-20);
     createConnection(data_mem, 0, memwb, 0);
-    createConnection(exmem, 1, memwb, 1);
     // WB
     createConnection(memwb, 0, mux3, 0);
     createConnection(memwb, 1, mux3, 1);
     connPtr = createConnection(mux3, 0, registers, 3);
-    connPtr->setFeedbackSettings(true, minConnectionLen - 20, minConnectionLen - 20);
+    connPtr->setFeedbackSettings(true, minConnectionLen - 20, minConnectionLen - 10);
     connPtr->setKinkBias(430);
 
     // ------- ITEM POSITIONING ------

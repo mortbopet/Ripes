@@ -18,7 +18,7 @@ public:
     PipelineWidget(QWidget* parent = nullptr);
 
     void wheelEvent(QWheelEvent* event);
-    void expandToView() { fitInView(scene()->sceneRect().adjusted(-10, 0, 10, 0), Qt::KeepAspectRatio); }
+    void expandToView() { fitInView(scene()->sceneRect().adjusted(-30, 0, 10, 0), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
 
 signals:

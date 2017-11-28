@@ -4,10 +4,14 @@
 #include <QGraphicsItem>
 #include <QObject>
 
+#include <algorithm>
+
 #include "pipelinewidget.h"
 
 namespace Graphics {
 class Shape;
+
+typedef QPair<Shape*,QPointF*> PointPair;
 
 enum class ValueDrawPos { Source, Middle, Destination };
 
@@ -39,7 +43,7 @@ class Connection : public QObject, public QGraphicsItem {
     Q_OBJECT
 public:
     Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint);
-    Connection(Shape* source, QPointF* sourcePoint, QList<QPair<Shape*, QPointF*>> dests);
+    Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> dests);
     void setValueDrawPos(ValueDrawPos pos) { m_valuePos = pos, update(); }
 
     void setValue(uint32_t value);
@@ -83,10 +87,10 @@ private:
     ValueDrawPos m_valuePos = ValueDrawPos::Source;
 
     int m_arrowSize = 10;
-
+    QList<QVector<QPointF>> m_polyLines;
     Shape*   m_source;
     QPointF* m_sourcePointPtr;
-    QList<QPair<Shape*,QPointF*>>   m_dests;
+    QList<PointPair>   m_dests;
     Label    m_label;
 };
 
