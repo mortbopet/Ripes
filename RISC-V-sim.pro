@@ -70,7 +70,8 @@ HEADERS += \
     src/registercontainerwidget.h \
     src/aboutwidget.h \
     src/graphics/backgrounditems.h \
-    src/instructionmodel.h
+    src/instructionmodel.h \
+    src/binutils.h
 
 FORMS += \
     src/mainwindow.ui \
