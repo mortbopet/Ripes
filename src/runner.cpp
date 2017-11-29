@@ -2,17 +2,7 @@
 #include "assert.h"
 #include "parser.h"
 
-namespace {
-// Sign extension of arbitrary bitfield size.
-// Courtesy of http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
-template <typename T, unsigned B>
-inline T signextend(const T x) {
-    struct {
-        T x : B;
-    } s;
-    return s.x = x;
-}
-}  // namespace
+#include "binutils.h"
 
 Runner::Runner(Parser* parser) {
     m_parser = parser;
