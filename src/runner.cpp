@@ -16,14 +16,6 @@ inline T signextend(const T x) {
 
 Runner::Runner(Parser* parser) {
     m_parser = parser;
-    // generate word parser functors
-    // Generate parse functors. This should probably be a template class!
-    decodeRInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});  // from LSB to MSB
-    decodeIInstr = generateWordParser(vector<int>{5, 3, 5, 12});
-    decodeSInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});
-    decodeBInstr = generateWordParser(vector<int>{1, 4, 3, 5, 5, 6, 1});
-    decodeUInstr = generateWordParser(vector<int>{5, 20});
-    decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
 
     // memory allocation
     // temporary allocation method - get filesize from parser, and allocate same
@@ -101,21 +93,21 @@ instrState Runner::execInstruction(Instruction instr) {
 instrState Runner::execLuiInstr(Instruction instr) {
     /* "LUI places the U-immediate value in the top 20 bits of
      * the destination m_register rd, filling in the lowest 12 bits with zeros"*/
-    std::vector<uint32_t> fields = decodeUInstr(instr.word);
-    m_reg[fields[1]]             = fields[0] << 12;
+    std::vector<uint32_t> fields = m_parser->decodeUInstr(instr.word);
+    m_reg[fields[1]] = fields[0] << 12;
     m_pc += 4;
     return SUCCESS;
 }
 
 instrState Runner::execAuipcInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeUInstr(instr.word);
-    m_reg[fields[1]]             = (fields[0] << 12) + m_pc;
+    std::vector<uint32_t> fields = m_parser->decodeUInstr(instr.word);
+    m_reg[fields[1]] = (fields[0] << 12) + m_pc;
     m_pc += 4;
     return SUCCESS;
 }
 
 instrState Runner::execJalInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeJInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeJInstr(instr.word);
     if (fields[4] != 0) {  // rd = 0 equals unconditional jump
         m_reg[fields[4]] = m_pc + 4;
     }
@@ -129,7 +121,7 @@ instrState Runner::execJalInstr(Instruction instr) {
 }
 
 instrState Runner::execJalrInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeIInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     // Store initial register state of m_reg[fields[1]], in case
     // fields[3]==fields[1]
     uint32_t reg1 = m_reg[fields[1]];
@@ -148,7 +140,7 @@ instrState Runner::execJalrInstr(Instruction instr) {
 }
 
 instrState Runner::execBranchInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeBInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeBInstr(instr.word);
 
     // calculate target address using signed offset
     uint32_t target =
@@ -179,7 +171,7 @@ instrState Runner::execBranchInstr(Instruction instr) {
 }
 
 instrState Runner::execLoadInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeIInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     if (fields[3] == 0) {
         return ERR_NULLLOAD;
     }
@@ -227,7 +219,7 @@ uint32_t Runner::memRead(uint32_t address) {
 }
 
 instrState Runner::execStoreInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeSInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeSInstr(instr.word);
 
     auto target = signextend<int32_t, 12>((fields[0] << 5) | fields[4]) + m_reg[fields[2]];
     switch (fields[3]) {
@@ -248,7 +240,7 @@ instrState Runner::execStoreInstr(Instruction instr) {
 }
 
 instrState Runner::execOpImmInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeIInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     if (fields[3] == 0) {
         return ERR_NULLLOAD;
     }
@@ -291,7 +283,7 @@ instrState Runner::execOpImmInstr(Instruction instr) {
 }
 
 instrState Runner::execOpInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeRInstr(instr.word);
+    std::vector<uint32_t> fields = m_parser->decodeRInstr(instr.word);
     switch (fields[3]) {
         case 0b000:
             if (fields[0] == 0) {
@@ -441,57 +433,4 @@ instrState Runner::execEcallInstr() {
 void Runner::handleError(instrState /*err*/) const {
     // handle error and print program counter + current instruction
     throw "Error!";
-}
-
-uint32_t generateBitmask(int n) {
-    // Generate bitmask. There might be a smarter way to do this
-    uint32_t mask = 0;
-    for (int i = 0; i < n - 1; i++) {
-        mask |= 0b1;
-        mask <<= 1;
-    }
-    mask |= 0b1;
-    return mask;
-}
-
-uint32_t bitcount(int n) {
-    int count = 0;
-    while (n > 0) {
-        count += 1;
-        n = n & (n - 1);
-    }
-    return count;
-}
-
-decode_functor Runner::generateWordParser(std::vector<int> bitFields) {
-    // Generates functors that can decode a binary number based on the input
-    // vector which is supplied upon generation
-
-    // Assert that total bitField size is (32-7)=25-bit. Subtract 7 for op-code
-    int tot = 0;
-    for (const auto& field : bitFields) {
-        tot += field;
-    }
-    assert(tot == 25 && "Requested word parsing format is not 32-bit in length");
-
-    // Generate vector of <fieldsize,bitmask>
-    std::vector<std::pair<uint32_t, uint32_t>> parseVector;
-
-    // Generate bit masks and fill parse vector
-    for (const auto& field : bitFields) {
-        parseVector.push_back(std::pair<uint32_t, uint32_t>(field, generateBitmask(field)));
-    }
-
-    // Create parse functor
-    decode_functor wordParser = [=](uint32_t word) {
-        word = word >> 7;  // remove OpCode
-        std::vector<uint32_t> parsedWord;
-        for (const auto& field : parseVector) {
-            parsedWord.insert(parsedWord.begin(), word & field.second);
-            word = word >> field.first;
-        }
-        return parsedWord;
-    };
-
-    return wordParser;
 }

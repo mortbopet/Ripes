@@ -4,20 +4,19 @@
 #include <iostream>
 
 Parser::Parser() {
-
     // generate word parser functors
-    decodeRInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});  // from LSB to MSB
-    decodeIInstr = generateWordParser(vector<int>{5, 3, 5, 12});
-    decodeSInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});
-    decodeBInstr = generateWordParser(vector<int>{1, 4, 3, 5, 5, 6, 1});
-    decodeUInstr = generateWordParser(vector<int>{5, 20});
-    decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
+    m_decodeRInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});  // from LSB to MSB
+    m_decodeIInstr = generateWordParser(vector<int>{5, 3, 5, 12});
+    m_decodeSInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});
+    m_decodeBInstr = generateWordParser(vector<int>{1, 4, 3, 5, 5, 6, 1});
+    m_decodeUInstr = generateWordParser(vector<int>{5, 20});
+    m_decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
 }
 
 bool Parser::init(char* filename) {
     // Open binary file
     const string fname = string(filename);
-    m_fileStream = ifstream(fname.c_str(), ios::binary);
+    m_fileStream       = ifstream(fname.c_str(), ios::binary);
     if (!(m_fileStream.good())) {
         return 1;
     }
