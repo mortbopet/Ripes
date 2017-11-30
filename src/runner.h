@@ -9,14 +9,16 @@
 #include "defines.h"
 #include "runnercache.h"
 
-class Parser;
+#include "parser.h"
+
 class Runner {
 public:
-    Runner(Parser* parser);
-    ~Runner();
-
     int exec();
     int step();
+    static Runner* getRunner() {
+        static Runner runner(Parser::getParser());
+        return &runner;
+    }
 
     RunnerCache* getRunnerCachePtr() { return &m_cache; }
     memory* getMemoryPtr() { return &m_memory; }
@@ -25,6 +27,8 @@ public:
     const StagePCS& getStagePCS() const { return m_stagePCS; }
 
 private:
+    Runner(Parser* parser);
+    ~Runner();
     instrState execInstruction(Instruction instr);
     void handleError(instrState err) const;
 

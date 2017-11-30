@@ -22,10 +22,7 @@ class MemoryTab : public QWidget {
 public:
     explicit MemoryTab(QWidget* parent = 0);
     ~MemoryTab();
-
-    void setMemoryPtr(memory* ptr) { m_memoryPtr = ptr; }
-    void setRegPtr(std::vector<uint32_t>* ptr) { m_regPtr = ptr; }
-    void init();
+    void initMemoryTab();
 
 public slots:
     void saveAddress();

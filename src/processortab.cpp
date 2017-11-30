@@ -20,17 +20,17 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
 }
 
-void ProcessorTab::initRegWidget(std::vector<uint32_t>* regPtr) {
+void ProcessorTab::initRegWidget() {
     // Setup register widget
-    m_ui->registerContainer->setRegPtr(regPtr);
+    m_ui->registerContainer->setRegPtr(Runner::getRunner()->getRegPtr());
     m_ui->registerContainer->init();
 }
 
-void ProcessorTab::initInstructionView(memory* mem, const StagePCS& pcsptr, Parser* parser, int textSize) {
+void ProcessorTab::initInstructionView() {
     // Setup instruction view
-    m_instrModel = new InstructionModel(pcsptr, parser);
+    m_instrModel = new InstructionModel(Runner::getRunner()->getStagePCS(), Parser::getParser());
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_instrModel->setMemory(mem, textSize);
+    m_instrModel->setMemory(Runner::getRunner()->getMemoryPtr(), Runner::getRunner()->getTextSize());
     m_ui->instructionView->setModel(m_instrModel);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);

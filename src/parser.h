@@ -12,8 +12,10 @@ typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
 
 class Parser {
 public:
-    Parser();
-    ~Parser();
+    static Parser* getParser() {
+        static Parser parser;
+        return &parser;
+    }
 
     int getFileSize() { return m_fileSize; }
     QString genStringRepr(uint32_t instr) const;
@@ -26,11 +28,12 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-public:
     bool init(char* filename);
     void parseFile(memory* memoryPtr);
 
 private:
+    Parser();
+    ~Parser();
     ifstream m_fileStream;
     istreambuf_iterator<char> m_fileIter;
     int m_fileSize;

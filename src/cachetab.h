@@ -1,8 +1,8 @@
 #ifndef CACHETAB_H
 #define CACHETAB_H
 
-#include "runnercache.h"
 #include <QWidget>
+#include "runnercache.h"
 
 namespace Ui {
 class CacheTab;
@@ -17,8 +17,6 @@ class CacheTab : public QWidget {
 public:
     explicit CacheTab(QWidget* parent = 0);
     ~CacheTab();
-
-    void setRunnerCachePtr(RunnerCache* ptr);
 
 private:
     Ui::CacheTab* m_ui;

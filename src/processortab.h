@@ -18,8 +18,8 @@ public:
     explicit ProcessorTab(QWidget* parent = 0);
     ~ProcessorTab();
 
-    void initRegWidget(std::vector<uint32_t>* regPtr);
-    void initInstructionView(memory* mem, const StagePCS& pcsptr, Parser* parser, int textSize);
+    void initRegWidget();
+    void initInstructionView();
 
 private slots:
     void on_expandView_clicked();

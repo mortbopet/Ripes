@@ -15,15 +15,14 @@
 
 #include "defines.h"
 
-MainWindow::MainWindow(Runner* runnerPtr, Parser* parserPtr, QWidget* parent)
-    : QMainWindow(parent), m_ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
     setWindowTitle("RISC-V-SIM");
     setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
     showMaximized();
 
-    m_runnerPtr = runnerPtr;
-    m_parserPtr = parserPtr;
+    m_runnerPtr = Runner::getRunner();
+    m_parserPtr = Parser::getParser();
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/binary-code.svg")), "Code");
@@ -40,14 +39,9 @@ MainWindow::MainWindow(Runner* runnerPtr, Parser* parserPtr, QWidget* parent)
                                           << (m_ui->consoles->minimumHeight() + 1));
 
     // Setup tab pointers
-    m_ui->cachetab->setRunnerCachePtr(m_runnerPtr->getRunnerCachePtr());
-    m_ui->memorytab->setMemoryPtr(m_runnerPtr->getMemoryPtr());
-    m_ui->memorytab->setRegPtr(m_runnerPtr->getRegPtr());
-    m_ui->processortab->initRegWidget(m_runnerPtr->getRegPtr());
-    m_ui->processortab->initInstructionView(m_runnerPtr->getMemoryPtr(), m_runnerPtr->getStagePCS(), m_parserPtr,
-                                            m_runnerPtr->getTextSize());
-
-    m_ui->memorytab->init();
+    m_ui->processortab->initRegWidget();
+    m_ui->processortab->initInstructionView();
+    m_ui->memorytab->initMemoryTab();
 
     // setup example projects
     setupExamples();

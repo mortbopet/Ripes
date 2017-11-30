@@ -15,15 +15,16 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    /*
     Parser parser;
     // For now, initialize parser with input argument
     if (parser.init(argv[1])) {
         return 1;
     }
+*/
 
-    Runner runner(&parser);
     QApplication app(argc, argv);
-    MainWindow m(&runner, &parser);
+    MainWindow m;
     m.show();
 
     // execute runner

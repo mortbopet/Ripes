@@ -5,6 +5,8 @@
 #include <QWheelEvent>
 #include <algorithm>
 
+#include "runner.h"
+
 MemoryTab::MemoryTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
@@ -16,8 +18,9 @@ MemoryTab::MemoryTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryTab)
     m_ui->memorydisplaytype->setCurrentIndex(displayTypeN::Hex);
 }
 
-void MemoryTab::init() {
-    Q_ASSERT(m_memoryPtr != nullptr && m_regPtr != nullptr);
+void MemoryTab::initMemoryTab() {
+    m_memoryPtr = Runner::getRunner()->getMemoryPtr();
+    m_regPtr = Runner::getRunner()->getRegPtr();
     initializeMemoryView();
     m_ui->registerContainer->setRegPtr(m_regPtr);
     m_ui->registerContainer->init();

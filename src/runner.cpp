@@ -48,7 +48,7 @@ int Runner::exec() {
 
 int Runner::step() {
     getInstruction(m_pc);
-    err = execInstruction(m_currentInstruction);
+    execInstruction(m_currentInstruction);
     return 0;
 }
 

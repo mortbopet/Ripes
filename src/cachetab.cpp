@@ -1,8 +1,8 @@
 #include "cachetab.h"
+#include <QComboBox>
 #include "cachesetupwidget.h"
 #include "ui_cachesetupwidget.h"
 #include "ui_cachetab.h"
-#include <QComboBox>
 
 CacheTab::CacheTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheTab) {
     m_ui->setupUi(this);
@@ -71,12 +71,6 @@ void CacheTab::cacheCountChanged(bool state) {
     } else if (cachewidget == m_ui->l3) {
         // nothing
     }
-}
-
-void CacheTab::setRunnerCachePtr(RunnerCache* ptr) {
-    // Setup connection between RunnerCache and CacheTab
-    m_runnerCachePtr = const_cast<RunnerCache*>(ptr);
-    m_runnerCachePtr->m_cacheTabPtr = this;
 }
 
 CacheTab::~CacheTab() {
