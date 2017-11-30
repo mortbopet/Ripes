@@ -26,6 +26,10 @@ public:
     int getTextSize() const { return m_textSize; }
     const StagePCS& getStagePCS() const { return m_stagePCS; }
 
+    void reset();
+    void restart();
+    void update();
+
 private:
     Runner(Parser* parser);
     ~Runner();
@@ -51,7 +55,7 @@ private:
     void memWrite(uint32_t address, uint32_t value, int size);
     uint32_t memRead(uint32_t address);
 
-    int m_textSize = 0;
+    uint32_t m_textSize = 0;
 
     Parser* m_parser;
     bool m_running = false;  // flag for disabling UI update signals when running simulator

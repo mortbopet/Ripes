@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
             m_ui->consoles->hide();
         };
     });
+    connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::update);
 }
 
 MainWindow::~MainWindow() {
@@ -105,27 +106,12 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
     auto filename = QFileDialog::getOpenFileName(this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
 }
 
-void MainWindow::loadBinaryFile(QString fileName) {
-    // ... load file
-    QString output = "";
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QByteArray read = file.readAll();
-        auto length = read.length();
-        QDataStream in(&read, QIODevice::ReadOnly);
-        char buffer[4];
-        for (int i = 0; i < length; i += 4) {
-            in.readRawData(buffer, 4);
-            for (int j = 0; j < 4; j++) {
-                output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
-            }
-            output.append("\n");
-        }
-
-        m_ui->programfiletab->setBinaryText(output);
-        file.close();
-    }
+void MainWindow::loadBinaryFile(QString filename) {
+    const QString& output = Parser::getParser()->loadBinaryFile(filename);
+    m_ui->programfiletab->setBinaryText(output);
+    emit update();
 }
+
 void MainWindow::loadAssemblyFile(QString fileName) {
     // ... load file
     QFile file(fileName);

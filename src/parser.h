@@ -28,8 +28,9 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    bool init(char* filename);
-    void parseFile(memory* memoryPtr);
+    const QString& loadBinaryFile(QString fileName);
+    bool initBinaryFile(char* filename);
+    void parseFile();
 
 private:
     Parser();
@@ -37,6 +38,8 @@ private:
     ifstream m_fileStream;
     istreambuf_iterator<char> m_fileIter;
     int m_fileSize;
+    QString m_binaryRepr;  // binary representation of the currently loaded binary file in the runner,, for displaying
+                           // the binary values in the binary view
 
     // Instruction decode lambda functions; runtime generated
     decode_functor generateWordParser(std::vector<int> bitFields);

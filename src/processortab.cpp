@@ -20,6 +20,12 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
 }
 
+void ProcessorTab::update() {
+    // Invoked when changes to binary simulation file has been made
+    m_instrModel->update();
+    m_ui->registerContainer->update();
+}
+
 void ProcessorTab::initRegWidget() {
     // Setup register widget
     m_ui->registerContainer->setRegPtr(Runner::getRunner()->getRegPtr());
@@ -30,11 +36,11 @@ void ProcessorTab::initInstructionView() {
     // Setup instruction view
     m_instrModel = new InstructionModel(Runner::getRunner()->getStagePCS(), Parser::getParser());
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_instrModel->setMemory(Runner::getRunner()->getMemoryPtr(), Runner::getRunner()->getTextSize());
     m_ui->instructionView->setModel(m_instrModel);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    m_instrModel->update();
 }
 
 ProcessorTab::~ProcessorTab() {
@@ -47,4 +53,16 @@ void ProcessorTab::on_expandView_clicked() {
 
 void ProcessorTab::on_displayValues_toggled(bool checked) {
     m_ui->pipelineWidget->displayAllValues(checked);
+}
+
+void ProcessorTab::on_run_clicked() {
+    Runner::getRunner()->exec();
+    m_ui->instructionView->update();
+    m_ui->registerContainer->update();
+}
+
+void ProcessorTab::on_reset_clicked() {
+    Runner::getRunner()->restart();
+    m_ui->instructionView->update();
+    m_ui->registerContainer->update();
 }

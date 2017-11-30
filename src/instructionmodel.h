@@ -17,8 +17,7 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
-    void setMemory(memory* mem, int textSize = 0);
-    void setTextSize(int textSize);
+    void update();
 
 private:
     const StagePCS& m_pcsptr;

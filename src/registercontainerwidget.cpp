@@ -17,6 +17,12 @@ RegisterContainerWidget::RegisterContainerWidget(QWidget* parent)
     m_ui->displayType->setCurrentIndex(displayTypeN::Hex);
 }
 
+void RegisterContainerWidget::update() {
+    for (auto& reg : m_registers) {
+        reg->setText();
+    }
+}
+
 void RegisterContainerWidget::init() {
     // Initialize register descriptions
     QStringList descriptions = QStringList() << "Hard-Wired zero"
@@ -67,5 +73,6 @@ void RegisterContainerWidget::init() {
         connect(m_ui->displayType, QOverload<const QString&>::of(&QComboBox::currentTextChanged),
                 [=] { reg->setDisplayType(qvariant_cast<displayTypeN>(m_ui->displayType->currentData())); });
         m_ui->registerLayout->addWidget(reg);
+        m_registers.append(reg);
     }
 }

@@ -1,4 +1,6 @@
 #include "parser.h"
+#include "defines.h"
+#include "runner.h"
 
 #include <assert.h>
 #include <iostream>
@@ -15,7 +17,7 @@ Parser::Parser() {
     m_decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
 }
 
-bool Parser::init(char* filename) {
+bool Parser::initBinaryFile(char* filename) {
     // Open binary file
     const string fname = string(filename);
     m_fileStream = ifstream(fname.c_str(), ios::binary);
@@ -36,14 +38,50 @@ bool Parser::init(char* filename) {
 
 Parser::~Parser() {}
 
-void Parser::parseFile(memory* memoryPtr) {
+void Parser::parseFile() {
     // Parse the file in 8-bit segments and write to memory map
+    memory* memPtr = Runner::getRunner()->getMemoryPtr();
     int pc = 0;
     while (m_fileIter != istreambuf_iterator<char>()) {
-        (*memoryPtr)[pc] = *m_fileIter;
+        (*memPtr)[pc] = *m_fileIter;
         pc++;
         m_fileIter++;
     }
+}
+
+const QString& Parser::loadBinaryFile(QString fileName) {
+    // Loads a binary file and converts it to a text string, as well as puts the binary information into the runner
+    // memorys text segment
+
+    // Reset the runner
+    Runner::getRunner()->reset();
+
+    QString output = "";
+    memory* memPtr = Runner::getRunner()->getMemoryPtr();
+    QFile file(fileName);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QByteArray read = file.readAll();
+        auto length = read.length();
+        QDataStream in(&read, QIODevice::ReadOnly);
+        char buffer[4];
+        int pc = 0;
+        for (int i = 0; i < length; i += 4) {
+            in.readRawData(buffer, 4);
+            for (int j = 0; j < 4; j++) {
+                output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
+                (*memPtr)[pc] = buffer[j];
+                pc++;
+            }
+            output.append("\n");
+        }
+        m_binaryRepr = output;
+        file.close();
+    }
+
+    // Update the runner
+    Runner::getRunner()->update();
+
+    return m_binaryRepr;
 }
 
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {

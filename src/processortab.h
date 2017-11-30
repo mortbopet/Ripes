@@ -21,10 +21,18 @@ public:
     void initRegWidget();
     void initInstructionView();
 
+public slots:
+    void update();
+
 private slots:
+
     void on_expandView_clicked();
 
     void on_displayValues_toggled(bool checked);
+
+    void on_run_clicked();
+
+    void on_reset_clicked();
 
 private:
     Ui::ProcessorTab* m_ui;

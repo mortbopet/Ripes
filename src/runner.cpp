@@ -11,17 +11,7 @@ Runner::Runner(Parser* parser) {
     // temporary allocation method - get filesize from parser, and allocate same
     // amount of memory
     m_reg = std::vector<uint32_t>(32, 0);
-
-    // Set default register values
-    m_reg[0] = 0;
-    m_reg[2] = m_stackStart;
-    m_reg[3] = m_dataStart;
-
-    // file parsing
-    m_parser->parseFile(&m_memory);
-    // Assuming the map was empty when parsing the program into memory, the size of the memory will now equate to the
-    // number of instructions in the text segment
-    m_textSize = m_memory.size();
+    reset();
 }
 
 Runner::~Runner() {}
@@ -432,4 +422,38 @@ instrState Runner::execEcallInstr() {
 void Runner::handleError(instrState /*err*/) const {
     // handle error and print program counter + current instruction
     throw "Error!";
+}
+
+void Runner::reset() {
+    // Restarts and clears memory of the simulator
+    restart();
+    m_memory.clear();
+    m_textSize = 0;
+}
+
+void Runner::restart() {
+    // Resets the runner to its initial state, but keeps the text segment of the memory
+    // Set default register values
+    for (auto& reg : m_reg) {
+        reg = 0;
+    }
+    for (auto it = m_memory.begin(); it != m_memory.end();) {
+        // Use standard associative-container erasing. If erased, set iterator to iterator after the erased value
+        // (default return value from .erase), else, increment iterator;
+        if (it->first > m_textSize) {
+            it = m_memory.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    m_reg[0] = 0;
+    m_reg[2] = m_stackStart;
+    m_reg[3] = m_dataStart;
+    m_pc = 0;
+}
+
+void Runner::update() {
+    // Must be called whenever external changes to the memory has been envoked
+    m_textSize = m_memory.size();
+    restart();
 }

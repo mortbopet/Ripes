@@ -29,6 +29,9 @@ private slots:
 
     void on_actionOpen_documentation_triggered();
 
+signals:
+    void update();
+
 private:
     Ui::MainWindow* m_ui;
     void setupExamples();

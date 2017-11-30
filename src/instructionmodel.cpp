@@ -1,5 +1,6 @@
 #include "instructionmodel.h"
 #include "parser.h"
+#include "runner.h"
 
 #include <QHeaderView>
 
@@ -10,18 +11,14 @@ InstructionModel::InstructionModel(const StagePCS& pcsptr, Parser* parser, QObje
     setHeaderData(1, Qt::Horizontal, "Stage");
     setHeaderData(2, Qt::Horizontal, "Instruction");
     */
+    m_memory = Runner::getRunner()->getMemoryPtr();
 }
 
-void InstructionModel::setMemory(memory* mem, int textSize) {
+void InstructionModel::update() {
+    // Called when changes to the memory has been made
+    // assumes that only instructions are present in the memory when called!
     beginResetModel();
-    m_memory = mem;
-    m_textSize = textSize;
-    endResetModel();
-}
-
-void InstructionModel::setTextSize(int textSize) {
-    beginResetModel();
-    m_textSize = textSize;
+    m_textSize = m_memory->size();
     endResetModel();
 }
 
