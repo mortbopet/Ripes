@@ -17,9 +17,10 @@ public:
 
     int exec();
 
-    RunnerCache*           getRunnerCachePtr() { return &m_cache; }
-    memory*                getMemoryPtr() { return &m_memory; }
+    RunnerCache* getRunnerCachePtr() { return &m_cache; }
+    memory* getMemoryPtr() { return &m_memory; }
     std::vector<uint32_t>* getRegPtr() { return &m_reg; }
+    int getTextSize() const { return m_textSize; }
 
 private:
     instrState execInstruction(Instruction instr);
@@ -31,23 +32,23 @@ private:
     // seperately. A symbolic pointer is set up to create the virtual index into
     // the total memory
     std::vector<uint32_t> m_reg;  // Internal registers
-    const uint32_t        m_textStart = 0x0;
-    std::vector<uint8_t>  m_data;
-    const uint32_t        m_dataStart = 0x10000000;
-    std::vector<uint8_t>  m_stack;
-    const uint32_t        m_stackStart = 0x7ffffff0;
-    std::vector<uint8_t>  m_heap;
-    const uint32_t        m_heapStart = 0x10008000;
+    const uint32_t m_textStart = 0x0;
+    std::vector<uint8_t> m_data;
+    const uint32_t m_dataStart = 0x10000000;
+    std::vector<uint8_t> m_stack;
+    const uint32_t m_stackStart = 0x7ffffff0;
+    std::vector<uint8_t> m_heap;
+    const uint32_t m_heapStart = 0x10008000;
 
     memory m_memory;
 
     void memWrite(uint32_t address, uint32_t value, int size);
     uint32_t memRead(uint32_t address);
 
-    int m_memsize;
+    int m_textSize = 0;
 
     Parser* m_parser;
-    bool    m_running = false;  // flag for disabling UI update signals when running simulator
+    bool m_running = false;  // flag for disabling UI update signals when running simulator
 
     bool getInstruction(int pc);
     Instruction m_currentInstruction;

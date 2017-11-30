@@ -19,6 +19,9 @@ Runner::Runner(Parser* parser) {
 
     // file parsing
     m_parser->parseFile(&m_memory);
+    // Assuming the map was empty when parsing the program into memory, the size of the memory will now equate to the
+    // number of instructions in the text segment
+    m_textSize = m_memory.size();
 }
 
 Runner::~Runner() {}

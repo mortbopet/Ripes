@@ -131,17 +131,17 @@ QString Parser::generateBranchString(uint32_t instr) const {
     int offset = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) | (fields[6] << 11));
     switch (fields[4]) {
         case 0b000:  // BEQ
-            return QString("beq x%1 x%2 %3").arg(fields[2]).arg(fields[3]).arg(offset);
+            return QString("beq x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
         case 0b001:  // BNE
-            return QString("bne x%1 x%2 %3").arg(fields[2]).arg(fields[3]).arg(offset);
+            return QString("bne x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
         case 0b100:  // BLT - signed comparison
-            return QString("blt x%1 x%2 %3").arg(fields[2]).arg(fields[3]).arg(offset);
+            return QString("blt x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
         case 0b101:  // BGE - signed comparison
-            return QString("bge x%1 x%2 %3").arg(fields[2]).arg(fields[3]).arg(offset);
+            return QString("bge x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
         case 0b110:  // BLTU
-            return QString("bltu x%1 x%2 %3").arg(fields[2]).arg(fields[3]).arg(offset);
+            return QString("bltu x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
         case 0b111:  // BGEU
-            return QString("bgeu x%1 x%2 %3").arg(fields[2]).arg(fields[3]).arg(offset);
+            return QString("bgeu x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
         default:
             return QString();
     }

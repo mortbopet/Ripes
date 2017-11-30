@@ -1,13 +1,13 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#include "unordered_map"
 #include <QList>
 #include <QPair>
 #include <QString>
 #include <cstdint>
 #include <map>
 #include <vector>
+#include "unordered_map"
 
 enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
 Q_DECLARE_METATYPE(displayTypeN)
