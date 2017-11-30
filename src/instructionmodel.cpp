@@ -3,7 +3,8 @@
 
 #include <QHeaderView>
 
-InstructionModel::InstructionModel(Parser* parser, QObject* parent) : m_parserPtr(parser), QAbstractTableModel(parent) {
+InstructionModel::InstructionModel(const StagePCS& pcsptr, Parser* parser, QObject* parent)
+    : m_pcsptr(pcsptr), m_parserPtr(parser), QAbstractTableModel(parent) {
     /*
     setHeaderData(0, Qt::Horizontal, "PC");
     setHeaderData(1, Qt::Horizontal, "Stage");
@@ -36,13 +37,26 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || role != Qt::DisplayRole) {
         return QVariant();
     }
+    int row = index.row();
     switch (index.column()) {
         case 0:
-            return index.row() * 4;
-        case 1:
-            return "NaN";
+            return row * 4;
+        case 1: {  // check if instruction is in any pipeline stage
+            if (row == m_pcsptr.EX)
+                return QString("EX");
+            else if (row == m_pcsptr.ID)
+                return QString("ID");
+            else if (row == m_pcsptr.IF)
+                return QString("IF");
+            else if (row == m_pcsptr.MEM)
+                return QString("MEM");
+            else if (row == m_pcsptr.WB)
+                return QString("WB");
+            else
+                return QVariant();
+        }
         case 2:
-            return m_parserPtr->genStringRepr(memRead(index.row() * 4));
+            return m_parserPtr->genStringRepr(memRead(row * 4));
         default:
             return QVariant();
     }

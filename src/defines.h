@@ -12,6 +12,14 @@
 enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
 Q_DECLARE_METATYPE(displayTypeN)
 
+typedef struct {
+    int IF = 0;
+    int ID = 0;
+    int EX = 0;
+    int MEM = 0;
+    int WB = 0;
+} StagePCS;
+
 enum Colors {
     // Berkeley primary color palette
     BerkeleyBlue = 0x003262,

@@ -44,7 +44,8 @@ MainWindow::MainWindow(Runner* runnerPtr, Parser* parserPtr, QWidget* parent)
     m_ui->memorytab->setMemoryPtr(m_runnerPtr->getMemoryPtr());
     m_ui->memorytab->setRegPtr(m_runnerPtr->getRegPtr());
     m_ui->processortab->initRegWidget(m_runnerPtr->getRegPtr());
-    m_ui->processortab->initInstructionView(m_runnerPtr->getMemoryPtr(), m_parserPtr, m_runnerPtr->getTextSize());
+    m_ui->processortab->initInstructionView(m_runnerPtr->getMemoryPtr(), m_runnerPtr->getStagePCS(), m_parserPtr,
+                                            m_runnerPtr->getTextSize());
 
     m_ui->memorytab->init();
 

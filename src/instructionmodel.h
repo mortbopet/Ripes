@@ -9,7 +9,7 @@ class Parser;
 class InstructionModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    explicit InstructionModel(Parser* parser = nullptr, QObject* parent = nullptr);
+    InstructionModel(const StagePCS& pcsptr, Parser* parser = nullptr, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -21,6 +21,7 @@ public:
     void setTextSize(int textSize);
 
 private:
+    const StagePCS& m_pcsptr;
     memory* m_memory;
     Parser* m_parserPtr;
     int m_textSize = 0;  // text segment, in bytes

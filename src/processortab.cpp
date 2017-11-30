@@ -26,9 +26,9 @@ void ProcessorTab::initRegWidget(std::vector<uint32_t>* regPtr) {
     m_ui->registerContainer->init();
 }
 
-void ProcessorTab::initInstructionView(memory* mem, Parser* parser, int textSize) {
+void ProcessorTab::initInstructionView(memory* mem, const StagePCS& pcsptr, Parser* parser, int textSize) {
     // Setup instruction view
-    m_instrModel = new InstructionModel(parser);
+    m_instrModel = new InstructionModel(pcsptr, parser);
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_instrModel->setMemory(mem, textSize);
     m_ui->instructionView->setModel(m_instrModel);

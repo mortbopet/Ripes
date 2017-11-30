@@ -21,6 +21,7 @@ public:
     memory* getMemoryPtr() { return &m_memory; }
     std::vector<uint32_t>* getRegPtr() { return &m_reg; }
     int getTextSize() const { return m_textSize; }
+    const StagePCS& getStagePCS() const { return m_stagePCS; }
 
 private:
     instrState execInstruction(Instruction instr);
@@ -52,6 +53,7 @@ private:
 
     bool getInstruction(int pc);
     Instruction m_currentInstruction;
+    StagePCS m_stagePCS;  // container for which instruction is in each pipeline stage
 
     // Instruction execution functions
     instrState execLuiInstr(Instruction instr);
