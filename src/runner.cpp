@@ -46,6 +46,12 @@ int Runner::exec() {
     return 0;
 }
 
+int Runner::step() {
+    getInstruction(m_pc);
+    err = execInstruction(m_currentInstruction);
+    return 0;
+}
+
 bool Runner::getInstruction(int pc) {
     uint32_t word;
     word = m_memory[pc] + (m_memory[pc + 1] << 8) + (m_memory[pc + 2] << 16) + (m_memory[pc + 3] << 24);

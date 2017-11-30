@@ -16,6 +16,7 @@ public:
     ~Runner();
 
     int exec();
+    int step();
 
     RunnerCache* getRunnerCachePtr() { return &m_cache; }
     memory* getMemoryPtr() { return &m_memory; }
