@@ -37,6 +37,7 @@ int Runner::exec() {
 }
 
 int Runner::step() {
+    m_stagePCS.IF = m_pc;
     getInstruction(m_pc);
     execInstruction(m_currentInstruction);
     return 0;

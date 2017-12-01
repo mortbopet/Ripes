@@ -13,11 +13,13 @@ enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
 Q_DECLARE_METATYPE(displayTypeN)
 
 typedef struct {
-    int IF = 0;
-    int ID = 0;
-    int EX = 0;
-    int MEM = 0;
-    int WB = 0;
+    // Initialize to UINT32_MAX. An instruction at PC = 0 should not be defaulted as being inside a pipeline -
+    // therefore, the maximum uint32 value is chosen
+    uint32_t IF = UINT32_MAX;
+    uint32_t ID = UINT32_MAX;
+    uint32_t EX = UINT32_MAX;
+    uint32_t MEM = UINT32_MAX;
+    uint32_t WB = UINT32_MAX;
 } StagePCS;
 
 enum Colors {

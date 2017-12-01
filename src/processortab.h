@@ -34,6 +34,8 @@ private slots:
 
     void on_reset_clicked();
 
+    void on_step_clicked();
+
 private:
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;

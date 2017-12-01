@@ -39,15 +39,16 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
         case 0:
             return row * 4;
         case 1: {  // check if instruction is in any pipeline stage
-            if (row == m_pcsptr.EX)
+            int byteIndex = row * 4;
+            if (byteIndex == m_pcsptr.EX)
                 return QString("EX");
-            else if (row == m_pcsptr.ID)
+            else if (byteIndex == m_pcsptr.ID)
                 return QString("ID");
-            else if (row == m_pcsptr.IF)
+            else if (byteIndex == m_pcsptr.IF)
                 return QString("IF");
-            else if (row == m_pcsptr.MEM)
+            else if (byteIndex == m_pcsptr.MEM)
                 return QString("MEM");
-            else if (row == m_pcsptr.WB)
+            else if (byteIndex == m_pcsptr.WB)
                 return QString("WB");
             else
                 return QVariant();

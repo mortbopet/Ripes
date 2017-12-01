@@ -66,3 +66,10 @@ void ProcessorTab::on_reset_clicked() {
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
 }
+
+void ProcessorTab::on_step_clicked() {
+    Runner::getRunner()->step();
+    m_instrModel->update();
+    m_ui->instructionView->update();
+    m_ui->registerContainer->update();
+}
