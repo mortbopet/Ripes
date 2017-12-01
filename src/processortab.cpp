@@ -11,13 +11,22 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     connect(m_ui->start, &QPushButton::toggled, [=](bool state) {
         if (state) {
             m_ui->start->setText("Pause simulation");
+            m_timer.start();
         } else {
             m_ui->start->setText("Start simulation");
+            m_timer.stop();
         };
         m_ui->step->setEnabled(!state);
     });
 
+    // Setup speed slider
+    m_timer.setInterval(1500 - 200 * m_ui->execSpeed->sliderPosition());
+    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) { m_timer.setInterval(1500 - 200 * pos); });
+
     connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
+
+    // Setup stepping timer
+    connect(&m_timer, &QTimer::timeout, this, &ProcessorTab::on_step_clicked);
 }
 
 void ProcessorTab::update() {
@@ -63,6 +72,7 @@ void ProcessorTab::on_run_clicked() {
 
 void ProcessorTab::on_reset_clicked() {
     Runner::getRunner()->restart();
+    m_instrModel->update();
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
 }

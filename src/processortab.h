@@ -1,7 +1,9 @@
 #ifndef PROCESSORTAB_H
 #define PROCESSORTAB_H
 
+#include <QTimer>
 #include <QWidget>
+
 #include "defines.h"
 
 namespace Ui {
@@ -39,6 +41,8 @@ private slots:
 private:
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;
+
+    QTimer m_timer;
 };
 
 #endif  // PROCESSORTAB_H

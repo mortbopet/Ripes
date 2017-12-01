@@ -451,6 +451,8 @@ void Runner::restart() {
     m_reg[2] = m_stackStart;
     m_reg[3] = m_dataStart;
     m_pc = 0;
+
+    m_stagePCS = StagePCS();
 }
 
 void Runner::update() {
