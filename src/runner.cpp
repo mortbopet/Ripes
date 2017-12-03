@@ -21,20 +21,20 @@ runnerState Runner::exec() {
     // Make parser parse an instruction based on the current program counter, and,
     // if successfull, execute the read instruction. Loop until parser
     // unsuccesfully parses an instruction.
-    runnerState err;
+    runnerState state;
     while (getInstruction(m_pc)) {
         setStageInstructions();
-        switch ((err = execInstruction(m_currentInstruction))) {
-            case SUCCESS:
+        switch ((state = execInstruction(m_currentInstruction))) {
+            case runnerState::SUCCESS:
                 break;
-            case DONE:
-                return DONE;
+            case runnerState::DONE:
+                return runnerState::DONE;
             default:
-                handleError(err);
-                return err;
+                handleError(state);
+                return state;
         }
     }
-    return EXEC_ERR;
+    return runnerState::EXEC_ERR;
 }
 
 void Runner::setStageInstructions() {
@@ -94,14 +94,14 @@ runnerState Runner::execLuiInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeUInstr(instr.word);
     m_reg[fields[1]] = fields[0] << 12;
     m_pc += 4;
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 runnerState Runner::execAuipcInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeUInstr(instr.word);
     m_reg[fields[1]] = (fields[0] << 12) + m_pc;
     m_pc += 4;
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 runnerState Runner::execJalInstr(Instruction instr) {
@@ -112,9 +112,9 @@ runnerState Runner::execJalInstr(Instruction instr) {
     m_pc += signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
     // Check for misaligned four-byte boundary
     if ((m_pc & 0b11) != 0) {
-        return EXEC_ERR;
+        return runnerState::EXEC_ERR;
     } else {
-        return SUCCESS;
+        return runnerState::SUCCESS;
     }
 }
 
@@ -131,9 +131,9 @@ runnerState Runner::execJalrInstr(Instruction instr) {
 
     // Check for misaligned four-byte boundary
     if ((m_pc & 0b11) != 0) {
-        return EXEC_ERR;
+        return runnerState::EXEC_ERR;
     } else {
-        return SUCCESS;
+        return runnerState::SUCCESS;
     }
 }
 
@@ -163,15 +163,15 @@ runnerState Runner::execBranchInstr(Instruction instr) {
             m_pc = m_reg[fields[3]] >= m_reg[fields[2]] ? target : m_pc + 4;
             break;
         default:
-            return ERR_BFUNCT3;
+            return runnerState::ERR_BFUNCT3;
     }
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 runnerState Runner::execLoadInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     if (fields[3] == 0) {
-        return ERR_NULLLOAD;
+        return runnerState::ERR_NULLLOAD;
     }
     uint32_t target = signextend<int32_t, 12>(fields[0]) + m_reg[fields[1]];
 
@@ -195,7 +195,7 @@ runnerState Runner::execLoadInstr(Instruction instr) {
             break;
     }
     m_pc += 4;
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 void Runner::memWrite(uint32_t address, uint32_t value, int size) {
@@ -231,16 +231,16 @@ runnerState Runner::execStoreInstr(Instruction instr) {
             memWrite(target, m_reg[fields[1]], 4);
             break;
         default:
-            return ERR_BFUNCT3;
+            return runnerState::ERR_BFUNCT3;
     }
     m_pc += 4;
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 runnerState Runner::execOpImmInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     if (fields[3] == 0) {
-        return ERR_NULLLOAD;
+        return runnerState::ERR_NULLLOAD;
     }
 
     switch (fields[2]) {
@@ -267,7 +267,7 @@ runnerState Runner::execOpImmInstr(Instruction instr) {
                 m_reg[fields[3]] = (int32_t)m_reg[fields[1]] >> (fields[0] & 0b11111);
                 break;
             } else {
-                return EXEC_ERR;
+                return runnerState::EXEC_ERR;
             }
         case 0b110:  // ORI
             m_reg[fields[3]] = m_reg[fields[1]] | fields[0];
@@ -277,7 +277,7 @@ runnerState Runner::execOpImmInstr(Instruction instr) {
             break;
     }
     m_pc += 4;
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 runnerState Runner::execOpInstr(Instruction instr) {
@@ -374,7 +374,7 @@ runnerState Runner::execOpInstr(Instruction instr) {
                     break;
                 }
             } else {
-                return EXEC_ERR;
+                return runnerState::EXEC_ERR;
             }
         case 0b110:
             if (fields[0] == 0b1) {
@@ -415,16 +415,16 @@ runnerState Runner::execOpInstr(Instruction instr) {
     }
 
     m_pc += 4;
-    return SUCCESS;
+    return runnerState::SUCCESS;
 }
 
 runnerState Runner::execEcallInstr() {
     switch (m_reg[10])  // a0
     {
         case 10:
-            return DONE;
+            return runnerState::DONE;
         default:
-            return DONE;
+            return runnerState::DONE;
     }
 }
 

@@ -79,7 +79,7 @@ void ProcessorTab::on_displayValues_toggled(bool checked) {
 void ProcessorTab::on_run_clicked() {
     auto runner = Runner::getRunner();
     if (runner->isReady()) {
-        if (runner->exec() == DONE) {
+        if (runner->exec() == runnerState::DONE) {
             m_instrModel->update();
             m_ui->instructionView->update();
             m_ui->registerContainer->update();
@@ -107,7 +107,7 @@ void ProcessorTab::on_step_clicked() {
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
 
-    if (state == DONE) {
+    if (state == runnerState::DONE) {
         m_ui->step->setEnabled(false);
         m_ui->start->setEnabled(false);
         m_ui->run->setEnabled(false);

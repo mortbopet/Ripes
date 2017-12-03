@@ -6,7 +6,7 @@
 #include "defines.h"
 #include "qcustomplot.h"
 
-enum dataRole { hit, miss };
+enum class dataRole { hit, miss };
 
 namespace Ui {
 class CacheInspector;

@@ -58,13 +58,13 @@ enum instrType {
     INVALID = 0b0
 };
 
-enum cacheLevel { L1 = 0, L2 = 1, L3 = 2 };
+enum class cacheLevel { L1, L2, L3 };
 
-enum cacheType { DM, SA, FA };
+enum class cacheType { DM, SA, FA };
 
 typedef std::unordered_map<uint32_t, uint8_t> memory;
 
-enum runnerState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS, DONE, ERR_ECALL, BREAKPOINT };
+enum class runnerState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS, DONE, ERR_ECALL, BREAKPOINT };
 
 const static QStringList ABInames = QStringList() << "zero"
                                                   << "ra"
@@ -103,9 +103,9 @@ const static std::map<int, QString> cacheSizes = {{32, QString("32 Bytes")},   {
                                                   {128, QString("128 Bytes")}, {256, {QString("256 Bytes")}},
                                                   {512, QString("512 Bytes")}, {1024, QString("1024 Bytes")}};
 
-const static std::map<QString, int> cacheTypes = {{QString("Direct mapped"), DM},
-                                                  {QString("Set associative"), SA},
-                                                  {QString("Fully associative"), FA}};
+const static std::map<QString, cacheType> cacheTypes = {{QString("Direct mapped"), cacheType::DM},
+                                                        {QString("Set associative"), cacheType::SA},
+                                                        {QString("Fully associative"), cacheType::FA}};
 
 typedef struct {
     instrType type = INVALID;

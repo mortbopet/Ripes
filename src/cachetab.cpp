@@ -27,24 +27,24 @@ void CacheTab::connectWidgets() {
 
     // connect to RunnerCache
     connect(m_ui->l1, &CacheSetupWidget::groupBoxToggled,
-            [=](bool state) { m_runnerCachePtr->setCacheLevel(L1, state); });
+            [=](bool state) { m_runnerCachePtr->setCacheLevel(cacheLevel::L1, state); });
     connect(m_ui->l2, &CacheSetupWidget::groupBoxToggled,
-            [=](bool state) { m_runnerCachePtr->setCacheLevel(L2, state); });
+            [=](bool state) { m_runnerCachePtr->setCacheLevel(cacheLevel::L2, state); });
     connect(m_ui->l3, &CacheSetupWidget::groupBoxToggled,
-            [=](bool state) { m_runnerCachePtr->setCacheLevel(L3, state); });
+            [=](bool state) { m_runnerCachePtr->setCacheLevel(cacheLevel::L3, state); });
 }
 
 void CacheTab::connectSetupWidget(CacheBase* cachePtr, cacheLevel level) {
     // Called by RunnerCache when a cache has been initialized and requests
     // connection to a cache widget
     switch (level) {
-        case L1:
+        case cacheLevel::L1:
             m_ui->l1->setCachePtr(cachePtr);
             break;
-        case L2:
+        case cacheLevel::L2:
             m_ui->l2->setCachePtr(cachePtr);
             break;
-        case L3:
+        case cacheLevel::L3:
             m_ui->l3->setCachePtr(cachePtr);
             break;
     }
