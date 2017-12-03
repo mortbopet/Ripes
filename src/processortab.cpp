@@ -19,20 +19,32 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
         m_ui->step->setEnabled(!state);
     });
 
-    // Setup speed slider
-    m_timer.setInterval(1500 - 200 * m_ui->execSpeed->sliderPosition());
-    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) { m_timer.setInterval(1500 - 200 * pos); });
+    // Setup execution speed slider
+    m_ui->execSpeed->setSliderPosition(2);
+    m_timer.setInterval(1200 - 200 * m_ui->execSpeed->sliderPosition());
+    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) { m_timer.setInterval(1200 - 200 * pos); });
 
     connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
 
     // Setup stepping timer
     connect(&m_timer, &QTimer::timeout, this, &ProcessorTab::on_step_clicked);
+
+    // Initially, no file is loaded, disable run, step and reset buttons
+    m_ui->reset->setEnabled(false);
+    m_ui->step->setEnabled(false);
+    m_ui->run->setEnabled(false);
+    m_ui->start->setEnabled(false);
 }
 
 void ProcessorTab::update() {
     // Invoked when changes to binary simulation file has been made
     m_instrModel->update();
     m_ui->registerContainer->update();
+
+    m_ui->step->setEnabled(true);
+    m_ui->run->setEnabled(true);
+    m_ui->reset->setEnabled(true);
+    m_ui->start->setEnabled(true);
 }
 
 void ProcessorTab::initRegWidget() {
@@ -65,9 +77,17 @@ void ProcessorTab::on_displayValues_toggled(bool checked) {
 }
 
 void ProcessorTab::on_run_clicked() {
-    Runner::getRunner()->exec();
-    m_ui->instructionView->update();
-    m_ui->registerContainer->update();
+    auto runner = Runner::getRunner();
+    if (runner->isReady()) {
+        if (runner->exec() == DONE) {
+            m_instrModel->update();
+            m_ui->instructionView->update();
+            m_ui->registerContainer->update();
+            m_ui->step->setEnabled(false);
+            m_ui->start->setEnabled(false);
+            m_ui->run->setEnabled(false);
+        }
+    }
 }
 
 void ProcessorTab::on_reset_clicked() {
@@ -75,11 +95,21 @@ void ProcessorTab::on_reset_clicked() {
     m_instrModel->update();
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
+
+    m_ui->step->setEnabled(true);
+    m_ui->start->setEnabled(true);
+    m_ui->run->setEnabled(true);
 }
 
 void ProcessorTab::on_step_clicked() {
-    Runner::getRunner()->step();
+    auto state = Runner::getRunner()->step();
     m_instrModel->update();
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
+
+    if (state == DONE) {
+        m_ui->step->setEnabled(false);
+        m_ui->start->setEnabled(false);
+        m_ui->run->setEnabled(false);
+    }
 }

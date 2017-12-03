@@ -16,31 +16,39 @@ Runner::Runner(Parser* parser) {
 
 Runner::~Runner() {}
 
-int Runner::exec() {
+runnerState Runner::exec() {
     // Main simulator loop:
     // Make parser parse an instruction based on the current program counter, and,
     // if successfull, execute the read instruction. Loop until parser
     // unsuccesfully parses an instruction.
-    instrState err;
+    runnerState err;
     while (getInstruction(m_pc)) {
+        setStageInstructions();
         switch ((err = execInstruction(m_currentInstruction))) {
             case SUCCESS:
                 break;
             case DONE:
-                return 0;
+                return DONE;
             default:
                 handleError(err);
-                return 1;
+                return err;
         }
     }
-    return 0;
+    return EXEC_ERR;
 }
 
-int Runner::step() {
+void Runner::setStageInstructions() {
     m_stagePCS.IF = m_pc;
+    m_stagePCS.ID = m_pc - 4 >= 0 ? m_pc - 4 : m_stagePCS.ID;
+    m_stagePCS.EX = m_pc - 8 >= 0 ? m_pc - 8 : m_stagePCS.EX;
+    m_stagePCS.MEM = m_pc - 12 >= 0 ? m_pc - 12 : m_stagePCS.MEM;
+    m_stagePCS.WB = m_pc - 16 >= 0 ? m_pc - 16 : m_stagePCS.WB;
+}
+
+runnerState Runner::step() {
+    setStageInstructions();
     getInstruction(m_pc);
-    execInstruction(m_currentInstruction);
-    return 0;
+    return execInstruction(m_currentInstruction);
 }
 
 bool Runner::getInstruction(int pc) {
@@ -52,7 +60,7 @@ bool Runner::getInstruction(int pc) {
     return true;
 }
 
-instrState Runner::execInstruction(Instruction instr) {
+runnerState Runner::execInstruction(Instruction instr) {
     switch (instr.type) {
         case LUI:
             return execLuiInstr(instr);
@@ -75,12 +83,12 @@ instrState Runner::execInstruction(Instruction instr) {
         case ECALL:
             return execEcallInstr();
         default:
-            return instrState::EXEC_ERR;
+            return runnerState::EXEC_ERR;
             break;
     }
 }
 
-instrState Runner::execLuiInstr(Instruction instr) {
+runnerState Runner::execLuiInstr(Instruction instr) {
     /* "LUI places the U-immediate value in the top 20 bits of
      * the destination m_register rd, filling in the lowest 12 bits with zeros"*/
     std::vector<uint32_t> fields = m_parser->decodeUInstr(instr.word);
@@ -89,14 +97,14 @@ instrState Runner::execLuiInstr(Instruction instr) {
     return SUCCESS;
 }
 
-instrState Runner::execAuipcInstr(Instruction instr) {
+runnerState Runner::execAuipcInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeUInstr(instr.word);
     m_reg[fields[1]] = (fields[0] << 12) + m_pc;
     m_pc += 4;
     return SUCCESS;
 }
 
-instrState Runner::execJalInstr(Instruction instr) {
+runnerState Runner::execJalInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeJInstr(instr.word);
     if (fields[4] != 0) {  // rd = 0 equals unconditional jump
         m_reg[fields[4]] = m_pc + 4;
@@ -110,7 +118,7 @@ instrState Runner::execJalInstr(Instruction instr) {
     }
 }
 
-instrState Runner::execJalrInstr(Instruction instr) {
+runnerState Runner::execJalrInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     // Store initial register state of m_reg[fields[1]], in case
     // fields[3]==fields[1]
@@ -129,7 +137,7 @@ instrState Runner::execJalrInstr(Instruction instr) {
     }
 }
 
-instrState Runner::execBranchInstr(Instruction instr) {
+runnerState Runner::execBranchInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeBInstr(instr.word);
 
     // calculate target address using signed offset
@@ -160,7 +168,7 @@ instrState Runner::execBranchInstr(Instruction instr) {
     return SUCCESS;
 }
 
-instrState Runner::execLoadInstr(Instruction instr) {
+runnerState Runner::execLoadInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     if (fields[3] == 0) {
         return ERR_NULLLOAD;
@@ -208,7 +216,7 @@ uint32_t Runner::memRead(uint32_t address) {
     return read;
 }
 
-instrState Runner::execStoreInstr(Instruction instr) {
+runnerState Runner::execStoreInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeSInstr(instr.word);
 
     auto target = signextend<int32_t, 12>((fields[0] << 5) | fields[4]) + m_reg[fields[2]];
@@ -229,7 +237,7 @@ instrState Runner::execStoreInstr(Instruction instr) {
     return SUCCESS;
 }
 
-instrState Runner::execOpImmInstr(Instruction instr) {
+runnerState Runner::execOpImmInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeIInstr(instr.word);
     if (fields[3] == 0) {
         return ERR_NULLLOAD;
@@ -272,7 +280,7 @@ instrState Runner::execOpImmInstr(Instruction instr) {
     return SUCCESS;
 }
 
-instrState Runner::execOpInstr(Instruction instr) {
+runnerState Runner::execOpInstr(Instruction instr) {
     std::vector<uint32_t> fields = m_parser->decodeRInstr(instr.word);
     switch (fields[3]) {
         case 0b000:
@@ -410,7 +418,7 @@ instrState Runner::execOpInstr(Instruction instr) {
     return SUCCESS;
 }
 
-instrState Runner::execEcallInstr() {
+runnerState Runner::execEcallInstr() {
     switch (m_reg[10])  // a0
     {
         case 10:
@@ -420,7 +428,7 @@ instrState Runner::execEcallInstr() {
     }
 }
 
-void Runner::handleError(instrState /*err*/) const {
+void Runner::handleError(runnerState /*err*/) const {
     // handle error and print program counter + current instruction
     throw "Error!";
 }
@@ -430,6 +438,7 @@ void Runner::reset() {
     restart();
     m_memory.clear();
     m_textSize = 0;
+    m_ready = false;
 }
 
 void Runner::restart() {
@@ -458,5 +467,6 @@ void Runner::restart() {
 void Runner::update() {
     // Must be called whenever external changes to the memory has been envoked
     m_textSize = m_memory.size();
+    m_ready = true;
     restart();
 }

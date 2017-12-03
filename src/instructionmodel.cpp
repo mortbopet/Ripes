@@ -18,7 +18,7 @@ void InstructionModel::update() {
     // Called when changes to the memory has been made
     // assumes that only instructions are present in the memory when called!
     beginResetModel();
-    m_textSize = m_memory->size();
+    m_textSize = Runner::getRunner()->getTextSize();
     endResetModel();
 }
 

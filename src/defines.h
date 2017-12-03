@@ -64,7 +64,7 @@ enum cacheType { DM, SA, FA };
 
 typedef std::unordered_map<uint32_t, uint8_t> memory;
 
-enum instrState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS, DONE, ERR_ECALL };
+enum runnerState { ERR_BFUNCT3, ERR_NULLLOAD, EXEC_ERR, SUCCESS, DONE, ERR_ECALL, BREAKPOINT };
 
 const static QStringList ABInames = QStringList() << "zero"
                                                   << "ra"

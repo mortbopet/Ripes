@@ -13,8 +13,8 @@
 
 class Runner {
 public:
-    int exec();
-    int step();
+    runnerState exec();
+    runnerState step();
     static Runner* getRunner() {
         static Runner runner(Parser::getParser());
         return &runner;
@@ -25,6 +25,7 @@ public:
     std::vector<uint32_t>* getRegPtr() { return &m_reg; }
     int getTextSize() const { return m_textSize; }
     const StagePCS& getStagePCS() const { return m_stagePCS; }
+    bool isReady() { return m_ready; }
 
     void reset();
     void restart();
@@ -33,8 +34,9 @@ public:
 private:
     Runner(Parser* parser);
     ~Runner();
-    instrState execInstruction(Instruction instr);
-    void handleError(instrState err) const;
+    runnerState execInstruction(Instruction instr);
+    void setStageInstructions();
+    void handleError(runnerState err) const;
 
     int m_pc = 0;  // program counter
 
@@ -59,22 +61,23 @@ private:
 
     Parser* m_parser;
     bool m_running = false;  // flag for disabling UI update signals when running simulator
+    bool m_ready;
 
     bool getInstruction(int pc);
     Instruction m_currentInstruction;
     StagePCS m_stagePCS;  // container for which instruction is in each pipeline stage
 
     // Instruction execution functions
-    instrState execLuiInstr(Instruction instr);
-    instrState execAuipcInstr(Instruction instr);
-    instrState execJalInstr(Instruction instr);
-    instrState execJalrInstr(Instruction instr);
-    instrState execBranchInstr(Instruction instr);
-    instrState execLoadInstr(Instruction instr);
-    instrState execStoreInstr(Instruction instr);
-    instrState execOpImmInstr(Instruction instr);
-    instrState execOpInstr(Instruction instr);
-    instrState execEcallInstr();
+    runnerState execLuiInstr(Instruction instr);
+    runnerState execAuipcInstr(Instruction instr);
+    runnerState execJalInstr(Instruction instr);
+    runnerState execJalrInstr(Instruction instr);
+    runnerState execBranchInstr(Instruction instr);
+    runnerState execLoadInstr(Instruction instr);
+    runnerState execStoreInstr(Instruction instr);
+    runnerState execOpImmInstr(Instruction instr);
+    runnerState execOpInstr(Instruction instr);
+    runnerState execEcallInstr();
 
     // Cache
     RunnerCache m_cache;
