@@ -257,7 +257,7 @@ runnerState Runner::execOpImmInstr(Instruction instr) {
             m_reg[fields[3]] = m_reg[fields[1]] < fields[0] ? 1 : 0;
             break;
         case 0b100:  // XORI
-            m_reg[fields[3]] = m_reg[fields[1]] ^ fields[0];
+            m_reg[fields[3]] = m_reg[fields[1]] ^ signextend<int32_t, 12>(fields[0]);
             break;
         case 0b101:
             if ((fields[0] >> 5) == 0) {
@@ -270,10 +270,10 @@ runnerState Runner::execOpImmInstr(Instruction instr) {
                 return runnerState::EXEC_ERR;
             }
         case 0b110:  // ORI
-            m_reg[fields[3]] = m_reg[fields[1]] | fields[0];
+            m_reg[fields[3]] = m_reg[fields[1]] | signextend<int32_t, 12>(fields[0]);
             break;
         case 0b111:  // ANDI
-            m_reg[fields[3]] = m_reg[fields[1]] & fields[0];
+            m_reg[fields[3]] = m_reg[fields[1]] & signextend<int32_t, 12>(fields[0]);
             break;
     }
     m_pc += 4;
@@ -342,7 +342,7 @@ runnerState Runner::execOpInstr(Instruction instr) {
                     // Divison by zero
                     m_reg[fields[4]] = -1;
                     break;
-                } else if ((int32_t)m_reg[fields[1]] == -1 && (int32_t)m_reg[fields[2]] == -pow(-2, 31)) {
+                } else if ((int32_t)m_reg[fields[1]] == -1 && (int32_t)m_reg[fields[2]] == -pow(2, 31)) {
                     // Overflow
                     m_reg[fields[4]] = -pow(2, 31);
                     break;
@@ -367,7 +367,7 @@ runnerState Runner::execOpInstr(Instruction instr) {
                 // DIVU
                 if (m_reg[fields[1]] == 0) {
                     // Divison by zero
-                    m_reg[fields[4]] = pow(2, 31) - 1;
+                    m_reg[fields[4]] = pow(2, 32) - 1;
                     break;
                 } else {
                     m_reg[fields[4]] = m_reg[fields[2]] / m_reg[fields[1]];
@@ -383,7 +383,7 @@ runnerState Runner::execOpInstr(Instruction instr) {
                     // Divison by zero
                     m_reg[fields[4]] = m_reg[fields[2]];
                     break;
-                } else if ((int32_t)m_reg[fields[1]] == -1 && (int32_t)m_reg[fields[2]] == -pow(-2, 31)) {
+                } else if ((int32_t)m_reg[fields[1]] == -1 && (int32_t)m_reg[fields[2]] == -pow(2, 31)) {
                     // Overflow
                     m_reg[fields[4]] = 0;
                     break;
