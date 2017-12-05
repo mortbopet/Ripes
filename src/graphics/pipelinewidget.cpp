@@ -56,8 +56,9 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux1->addOutput("");
     mux1->setName("M\nu\nx");
 
-    Graphics::Shape* mux2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 20, 0);
+    Graphics::Shape* mux2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 10, 0);
     mux2->addInput(QStringList() << ""
+                                 << ""
                                  << "");
     mux2->addOutput("");
     mux2->setName("M\nu\nx");
@@ -67,6 +68,13 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                                  << "");
     mux3->addOutput("");
     mux3->setName("M\nu\nx");
+
+    Graphics::Shape* mux4 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 10, 0);
+    mux4->addInput(QStringList() << ""
+                                 << ""
+                                 << "");
+    mux4->addOutput("");
+    mux4->setName("M\nu\nx");
 
     // ALUs
     Graphics::Shape* alu1 = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::ID, 70, 10);
@@ -141,6 +149,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(data_mem);
     scene->addItem(mux2);
     scene->addItem(mux3);
+    scene->addItem(mux4);
     scene->addItem(alu2);
     scene->addItem(alu3);
     scene->addItem(idex);
@@ -166,8 +175,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     connPtr->setKinkBias(10);
     createConnection(immgen, 0, idex, 6);
     // EX
-    connPtr = createConnection(idex, 0, alu2, 0);
-    connPtr->setKinkBias(-25);
+    createConnection(idex, 0, mux4, 0);
+    createConnection(mux4, 0, alu2, 0);
     createConnection(idex, 4, alu3, 0);
     createConnection(idex, 6, mux2, 0);
     createConnection(mux2, 0, alu3, 1);
@@ -220,6 +229,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     moveToIO(alu3, exmem, alu3->getOutputPoint(0), exmem->getInputPoint(4));
     moveToIO(mux2, alu3, mux3->getOutputPoint(0), alu3->getInputPoint(1), 40);
     moveToIO(sl1, alu2, sl1->getOutputPoint(0), alu1->getInputPoint(1));
+    moveToIO(mux4, alu2, mux4->getOutputPoint(0), alu2->getInputPoint(0));
     mux2->moveBy(0, 1);
 
     // position MEM stage
@@ -239,7 +249,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(dash3);
     scene->addItem(dash4);
 
-    int             textPad  = 20;
+    int textPad = 20;
     Graphics::Text* if_instr = new Graphics::Text(QPointF(
         -dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + -spaceBetweenStateRegs / 2,
         dash1->sceneBoundingRect().top() + textPad));
@@ -273,7 +283,7 @@ void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QP
     // Moves the source shape such that its sourcePoint is aligned with the
     // destination point, seperated by connectionLength
     QPointF sceneSourcePoint = source->mapToScene(*sourcePoint);
-    QPointF sceneDestPoint   = dest->mapToScene(*destPoint);
+    QPointF sceneDestPoint = dest->mapToScene(*destPoint);
 
     int newY = sceneSourcePoint.y() - sceneDestPoint.y();
     int newX = sceneSourcePoint.x() - sceneDestPoint.x() + connectionLength;
