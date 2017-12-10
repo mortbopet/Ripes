@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://github.com/mortbopet/02155-RISC-V-Sim/blob/master/resources/logo.png?raw=true" width="350">
-</p>
-
 ## RISC-V-SIM
 RISC-V-SIM is a 5-stage pipeline simulator for the RISC-V instruction set.
 Additional features are cache simulation and an integrated development environment for writing RISC-V assembly code, with added support for breakpoints when running the simulation.
