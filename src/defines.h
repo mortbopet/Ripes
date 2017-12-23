@@ -9,6 +9,8 @@
 #include <vector>
 #include "unordered_map"
 
+#define WORDSIZE 32
+
 enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
 Q_DECLARE_METATYPE(displayTypeN)
 
@@ -40,7 +42,7 @@ static QMap<QString, displayTypeN> initDisplayTypes() {
     types.insert("ASCII", displayTypeN::ASCII);
     return types;
 }
-}
+}  // namespace
 
 const static QMap<QString, displayTypeN> displayTypes = initDisplayTypes();
 

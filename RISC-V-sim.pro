@@ -71,7 +71,8 @@ HEADERS += \
     src/aboutwidget.h \
     src/graphics/backgrounditems.h \
     src/instructionmodel.h \
-    src/binutils.h
+    src/binutils.h \
+    src/pipelineobjects.h
 
 FORMS += \
     src/mainwindow.ui \
