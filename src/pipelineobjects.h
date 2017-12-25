@@ -61,11 +61,17 @@ private:
 // Register class
 // I/O of registers are handled via. the -> operator
 // reg1 -> reg2 connects m_current of reg1 to m_next of reg2
+
+class RegBase {
+public:
+    virtual void clock() = 0;
+};
+
 template <int n>
-class Reg {
+class Reg : public RegBase {
 public:
     Reg() { ASSERT_SIZE }
-    void clock() { m_current = *m_next; }
+    void clock() override { m_current = *m_next; }
     uint32_t value() const { return (uint32_t)m_current; }
 
     // Signal assignment operator

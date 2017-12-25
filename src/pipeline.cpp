@@ -1,6 +1,13 @@
 #include "pipeline.h"
 
-Pipeline::Pipeline() {}
+Pipeline::Pipeline() {
+    registerRegs();
+}
+
+void Pipeline::registerRegs() {
+    // Registers all registers in m_regs
+    m_regs.push_back(&r_IFID);
+}
 
 void Pipeline::immGen() {
     // Generates an immediate value on the basis of an instruction opcode
@@ -24,5 +31,12 @@ void Pipeline::immGen() {
                              ((v & 0xf00) >> 7) | ((v & 0x80) << 6));
             break;
         }
+    }
+}
+
+void Pipeline::clock() {
+    // Clocks all registered registers
+    for (const auto& reg : m_regs) {
+        reg->clock();
     }
 }
