@@ -21,7 +21,7 @@
 // Signal class
 // A boolean vector of immutable size
 // Can be cast to booleans, u/integers etc.
-#define ASSERT_SIZE static_assert(n >= 1 && n <= 32, "n = [1;32]");
+#define ASSERT_SIZE static_assert(n >= 1 && n <= 64, "n = [1;64]");
 #define CREATE_VEC m_value = std::vector<bool>(n);
 
 template <int n>
@@ -66,6 +66,7 @@ class Reg {
 public:
     Reg() { ASSERT_SIZE }
     void clock() { m_current = *m_next; }
+    uint32_t value() const { return (uint32_t)m_current; }
 
     // Signal assignment operator
     void connect(Reg<n>& r) { setInput(&r.m_current); }
