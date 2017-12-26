@@ -72,11 +72,15 @@ class Reg : public RegBase {
 public:
     Reg() { ASSERT_SIZE }
     void clock() override { m_current = *m_next; }
-    uint32_t value() const { return (uint32_t)m_current; }
 
-    // Signal assignment operator
+    // Signal connection
     void connect(Reg<n>& r) { setInput(&r.m_current); }
     void connect(const Signal<n>* s) { setInput(s); }
+    Signal<n>* getOutput() { return &m_current; }
+
+    explicit operator int() const { return (int)m_current; }
+    explicit operator uint32_t() const { return (uint32_t)m_current; }
+    explicit operator bool() const { return (bool)m_current; }
 
 private:
     void setInput(const Signal<n>* in) { m_next = in; }
@@ -125,6 +129,7 @@ private:
     }
 };
 
+template <int n>
 class ALU {
 public:
     // When calculating ALU control signals, the OPCODE is implicitely converted to an int in the Signal, which is later
@@ -134,7 +139,7 @@ public:
 
     void update();
 
-    void setInputs(std::vector<const Signal<WORDSIZE>*> sigs) {
+    void setInputs(std::vector<Signal<n>*> sigs) {
         if (sigs.size() != 2)
             throw std::invalid_argument("Input vector size must be 2 (2 ALU operands)");
         m_op1 = sigs[0];
@@ -152,13 +157,14 @@ private:
         return b;
     }
 
-    Signal<WORDSIZE> m_output;
-    const Signal<WORDSIZE>* m_op1;
-    const Signal<WORDSIZE>* m_op2;
+    Signal<n> m_output;
+    const Signal<n>* m_op1;
+    const Signal<n>* m_op2;
     const Signal<CTRL_SIZE>* m_control;
 };
 
-void ALU::update() {
+template <int n>
+void ALU<n>::update() {
     if (!initialized())
         throw std::runtime_error("Mux not initialized");
     switch ((OPCODE)(int)*m_control) {
@@ -198,4 +204,5 @@ void ALU::update() {
             break;
     }
 }
+
 #endif  // PIPELINEOBJECTS_H
