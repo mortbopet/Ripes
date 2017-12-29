@@ -23,30 +23,36 @@
 // Can be cast to booleans, u/integers etc.
 #define ASSERT_SIZE static_assert(n >= 1 && n <= 64, "n = [1;64]");
 #define CREATE_VEC m_value = std::vector<bool>(n);
+#define SETNAME m_name = name;
 
 template <int n>
 class Signal {
 public:
     // Constructors
-    Signal(){ASSERT_SIZE CREATE_VEC};
-    Signal(std::vector<bool> v) {
+    Signal(std::string name = ""){ASSERT_SIZE CREATE_VEC SETNAME};
+    Signal(std::vector<bool> v, std::string name = "") {
         ASSERT_SIZE
+        SETNAME
         // Builds a signal from a std::vector
         if (v.size() != n) {
             throw std::invalid_argument("Input vector size does not match Signal size");
         }
         m_value = v;
     }
-    Signal(uint32_t v) {
+    Signal(uint32_t v, std::string name = "") {
         ASSERT_SIZE
         CREATE_VEC
+        SETNAME
         buildVec(m_value, v);
     }
-    Signal(int v) {
+    Signal(int v, std::string name = "") {
         ASSERT_SIZE
         CREATE_VEC
+        SETNAME
         buildVec(m_value, (uint32_t)v);
     }
+
+    void setName(std::string name) { m_name = name; }
 
     // Casting operators
     explicit operator int() const { return signextend<int32_t, n>(accBVec(m_value)); }
@@ -56,6 +62,7 @@ public:
 private:
     std::vector<bool> value() const { return m_value; }
     std::vector<bool> m_value;
+    std::string m_name;
 };
 
 // Register class
