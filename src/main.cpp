@@ -3,7 +3,7 @@
 
 #include "mainwindow.h"
 #include "parser.h"
-#include "runner.h"
+#include "pipeline.h"
 
 #include "QDebug"
 
@@ -14,6 +14,10 @@ int main(int argc, char** argv) {
     MainWindow m;
     m.show();
 
-    // execute runner
+    if (argc == 2) {
+        // Load file specified in command-line argument
+        m.loadBinaryFile(argv[1]);
+    }
+
     return app.exec();
 }
