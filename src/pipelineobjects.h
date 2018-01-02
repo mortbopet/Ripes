@@ -115,7 +115,10 @@ protected:
         assert(m_next != nullptr);
         m_nextSaved = *m_next;
     }
-    void reset() override { m_current = Signal<n>(0); }
+    void reset() override {
+        m_current = Signal<n>(0);
+        m_nextSaved = Signal<n>(0);
+    }
 
 private:
     Signal<n> m_current;
@@ -164,15 +167,17 @@ private:
     }
 };
 
+namespace ALUDefs {
 static const int CTRL_SIZE = 5;
-enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL };
+enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT /*Less than*/, LTU /*Less than Unsigned*/, EQ };
+}  // namespace ALUDefs
 
 template <int n>
 class ALU {
 public:
     // When calculating ALU control signals, the OPCODE is implicitely converted to an int in the Signal, which is later
     // reinterpreted as an OPCODE
-
+    ALU(std::string name = "ALU") { m_name = name; }
     void update();
 
     void setInputs(Signal<n>* s1, Signal<n>* s2) {
@@ -182,7 +187,7 @@ public:
 
     Signal<n>* getOutput() { return &m_output; }
 
-    void setControl(const Signal<CTRL_SIZE>* sig) { m_control = sig; }
+    void setControl(const Signal<ALUDefs::CTRL_SIZE>* sig) { m_control = sig; }
 
 private:
     bool initialized() {
@@ -192,47 +197,56 @@ private:
         b &= m_op2 != nullptr;
         return b;
     }
-
+    std::string m_name;
     Signal<n> m_output;
     const Signal<n>* m_op1;
     const Signal<n>* m_op2;
-    const Signal<CTRL_SIZE>* m_control;
+    const Signal<ALUDefs::CTRL_SIZE>* m_control;
 };
 
 template <int n>
 void ALU<n>::update() {
     if (!initialized())
         throw std::runtime_error("Mux not initialized");
-    switch ((OPCODE)(int)*m_control) {
-        case ADD:
+    switch ((ALUDefs::OPCODE)(int)*m_control) {
+        case ALUDefs::ADD:
             m_output = (uint32_t)*m_op1 + (uint32_t)*m_op2;
             break;
-        case SUB:
+        case ALUDefs::SUB:
             m_output = (uint32_t)*m_op1 - (uint32_t)*m_op2;
             break;
-        case MUL:
+        case ALUDefs::MUL:
             m_output = (uint32_t)*m_op1 * (uint32_t)*m_op2;
             break;
-        case DIV:
+        case ALUDefs::DIV:
             m_output = (uint32_t)*m_op1 / (uint32_t)*m_op2;
             break;
-        case AND:
+        case ALUDefs::AND:
             m_output = (uint32_t)*m_op1 & (uint32_t)*m_op2;
             break;
-        case OR:
+        case ALUDefs::OR:
             m_output = (uint32_t)*m_op1 | (uint32_t)*m_op2;
             break;
-        case XOR:
+        case ALUDefs::XOR:
             m_output = (uint32_t)*m_op1 ^ (uint32_t)*m_op2;
             break;
-        case SL:
+        case ALUDefs::SL:
             m_output = (uint32_t)*m_op1 << (uint32_t)*m_op2;
             break;
-        case SRA:
+        case ALUDefs::SRA:
             m_output = (uint32_t)*m_op1 >> (uint32_t)*m_op2;
             break;
-        case SRL:
+        case ALUDefs::SRL:
             m_output = (int)*m_op1 + (uint32_t)*m_op2;
+            break;
+        case ALUDefs::LUI:
+            m_output = (uint32_t)*m_op2;
+            break;
+        case ALUDefs::LT:
+            m_output = (int)*m_op1 < (int)*m_op2 ? 1 : 0;
+            break;
+        case ALUDefs::LTU:
+            m_output = (uint32_t)*m_op1 < (uint32_t)*m_op2 ? 1 : 0;
             break;
         default:
             throw std::runtime_error("Invalid ALU opcode");
@@ -246,6 +260,7 @@ public:
 
     std::vector<uint32_t>* getRegPtr() { return &m_reg; }
     void update();
+    void clock();
     void clear() {
         for (auto& reg : m_reg)
             reg = 0;

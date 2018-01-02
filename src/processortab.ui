@@ -105,7 +105,7 @@
              <number>0</number>
             </property>
             <property name="maximum">
-             <number>4</number>
+             <number>6</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -239,15 +239,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PipelineWidget</class>
-   <extends>QGraphicsView</extends>
-   <header>pipelinewidget.h</header>
-  </customwidget>
-  <customwidget>
    <class>RegisterContainerWidget</class>
    <extends>QWidget</extends>
    <header>registercontainerwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PipelineWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pipelinewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

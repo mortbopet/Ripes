@@ -9,8 +9,10 @@ void Registers::update() {
     int readRegister2 = (((uint32_t)*m_instr) >> 20) & 0b11111;
     m_readData1 = Signal<32>(m_reg[readRegister1]);
     m_readData2 = Signal<32>(m_reg[readRegister2]);
+}
 
-    // Write
+void Registers::clock() {
+    // if regWrite is high, write data to register
     if (*m_regWrite)
         m_reg[(uint32_t)*m_writeRegister] = (uint32_t)*m_writeData;
 }
