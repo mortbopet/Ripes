@@ -1,18 +1,18 @@
 #include "pipeline.h"
 
 Pipeline::Pipeline() {
-    registerRegs();
-
     // Connect pipeline
 
     // ------ IF ---------
     // Connect alu to PC and a constant "4" signal, and set operator to "Add"
     c_4 = Signal<32>(4);
     m_add_pc4.setInputs(r_PC_IF.getOutput(), &c_4);
+    m_add_pc4.setControl(&alu_const_add);
+    r_PC_IF.setInput(m_add_pc4.getOutput());
     r_instr_IFID.setInput(&instr_IF);
 
     // ------ ID ---------
-    m_reg.setInputs(r_instr_IFID.getOutput(), r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput());
+    m_reg.setInputs(r_instr_IFID.getOutput(), r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(), &m_regWrite);
     r_imm_IDEX.setInput(&imm_ID);
     r_rd1_IDEX.setInput(m_reg.getOutput(1));
     r_rd2_IDEX.setInput(m_reg.getOutput(2));
@@ -33,6 +33,13 @@ Pipeline::Pipeline() {
     // ------ WB ---------
     mux_memToReg.setInput(0, r_alures_MEMWB.getOutput());
     mux_memToReg.setInput(1, r_readData_MEMWB.getOutput());
+    mux_memToReg.setControl(&ctrl_memToReg);
+
+    // Program counters
+    r_PC_IFID.setInput(r_PC_IF.getOutput());
+    r_PC_IDEX.setInput(r_PC_IFID.getOutput());
+    r_PC_EXMEM.setInput(r_PC_IDEX.getOutput());
+    r_PC_MEMWB.setInput(r_PC_EXMEM.getOutput());
 }
 
 void Pipeline::immGen() {
@@ -60,7 +67,7 @@ void Pipeline::immGen() {
     }
 }
 
-void Pipeline::step() {
+int Pipeline::step() {
     // Main processing loop for the pipeline
     // propagates the signals throgh the combinational logic and clocks the
     // sequential logic afterwards
@@ -80,24 +87,65 @@ void Pipeline::step() {
     // ID
     immGen();
     m_reg.update();
+    writeReg = Signal<5>(((uint32_t)r_instr_IFID >> 7) & 0b11111);
 
     // IF - Opted not to create an "Instruction memory" object
     m_add_pc4.update();
-    instr_IF = Signal<32>(m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
-    writeReg = Signal<5>(((uint32_t)r_instr_IFID >> 7) & 0b11111);
+    // Load nops if PC is greater than text size
+    instr_IF = Signal<32>(
+        (uint32_t)r_PC_IF > m_textSize ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
+
+    // Set stage program counters
+    setStagePCS();
+
+    // Execution is finished if nops are in all stages except WB
+    if (m_pcs.WB.first == m_textSize) {
+        return 1;
+    }
 
     // Clock all registers
-    clock();
+    RegBase::clockAll();
+    return 0;
 }
 
-void Pipeline::clock() {
-    // Clocks all registered registers
-    for (const auto& reg : m_regs) {
-        reg->clock();
-    }
+#define PCVAL(pc) std::pair<uint32_t, bool>((uint32_t)pc, true)
+void Pipeline::setStagePCS() {
+    // To validate a PC value (whether there is actually an instruction in the stage, or if the pipeline has been
+    // reset), the previous stage PC is used to determine the current state of a stage
+    // To facilitate this, the PCS are set in reverse order
+    m_pcs.WB = m_pcs.MEM.second ? PCVAL(r_PC_MEMWB) : m_pcs.WB;
+    m_pcs.MEM = m_pcs.EX.second ? PCVAL(r_PC_EXMEM) : m_pcs.MEM;
+    m_pcs.EX = m_pcs.ID.second ? PCVAL(r_PC_IDEX) : m_pcs.EX;
+    m_pcs.ID = m_pcs.IF.second ? PCVAL(r_PC_IFID) : m_pcs.ID;
+    m_pcs.IF = PCVAL(r_PC_IF);
 }
+
+int Pipeline::run() {
+    while (!step())
+        ;
+    return 1;
+}
+
 void Pipeline::reset() {
+    // Called when resetting the simulator (loading a new program)
+    restart();
     m_memory.clear();
+    m_textSize = 0;
+    m_ready = false;
 }
 
-void Pipeline::restart() {}
+void Pipeline::update() {
+    // Must be called whenever external changes to the memory has been envoked
+    m_textSize = m_memory.size();
+    m_ready = true;
+    restart();
+}
+
+void Pipeline::restart() {
+    // Called when restarting a simulation
+    m_reg.clear();
+    m_memory.reset(m_textSize);
+    m_reg.init();
+    m_pcs.reset();
+    RegBase::resetAll();
+}

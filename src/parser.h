@@ -38,7 +38,7 @@ private:
     ifstream m_fileStream;
     istreambuf_iterator<char> m_fileIter;
     int m_fileSize;
-    QString m_binaryRepr;  // binary representation of the currently loaded binary file in the runner,, for displaying
+    QString m_binaryRepr;  // binary representation of the currently loaded binary file in the pipeline,, for displaying
                            // the binary values in the binary view
 
     // Instruction decode lambda functions; runtime generated

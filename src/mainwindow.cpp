@@ -8,10 +8,10 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QPushButton>
+#include "parser.h"
 
 #include "programfiletab.h"
 #include "registerwidget.h"
-#include "runner.h"
 
 #include "defines.h"
 
@@ -20,9 +20,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowTitle("RISC-V-SIM");
     setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
     showMaximized();
-
-    m_runnerPtr = Runner::getRunner();
-    m_parserPtr = Parser::getParser();
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/binary-code.svg")), "Code");
@@ -66,6 +63,8 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setupExamples() {
+    // All .bin and .asm files in folder examples/.. will be added to the list of binary and assembly examples that can
+    // be selected through the menu
     auto binaryExamples = QDir("examples/binary/").entryList(QDir::Files);
     auto assemblyExamples = QDir("examples/assembly/").entryList(QDir::Files);
 

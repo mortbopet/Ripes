@@ -2,6 +2,7 @@
 #define INSTRUCTIONMODEL_H
 
 #include "defines.h"
+#include "mainmemory.h"
 
 #include <QAbstractTableModel>
 
@@ -21,7 +22,7 @@ public:
 
 private:
     const StagePCS& m_pcsptr;
-    memory* m_memory;
+    MainMemory* m_memory;
     Parser* m_parserPtr;
     int m_textSize = 0;  // text segment, in bytes
 

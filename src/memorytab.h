@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 
+#include "mainmemory.h"
 #include "memorydisplaydelegate.h"
 #include "memorymodel.h"
 
@@ -35,7 +36,7 @@ private:
     MemoryModel* m_model;
     MemoryDisplayDelegate* m_delegate;
 
-    memory* m_memoryPtr;
+    MainMemory* m_memoryPtr;
     std::vector<uint32_t>* m_regPtr;
 
     std::vector<RegisterWidget*> m_regWidgetPtrs;

@@ -39,7 +39,6 @@ SOURCES += src/main.cpp \
     src/graphics/backgrounditems.cpp \
     src/instructionmodel.cpp \
     src/pipeline.cpp \
-    src/mainmemory.cpp \
     src/pipelineobjects.cpp
 
 HEADERS += \

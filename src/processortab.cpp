@@ -2,7 +2,8 @@
 #include "instructionmodel.h"
 #include "ui_processortab.h"
 
-#include "runner.h"
+#include "parser.h"
+#include "pipeline.h"
 
 ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
@@ -49,13 +50,13 @@ void ProcessorTab::update() {
 
 void ProcessorTab::initRegWidget() {
     // Setup register widget
-    m_ui->registerContainer->setRegPtr(Runner::getRunner()->getRegPtr());
+    m_ui->registerContainer->setRegPtr(Pipeline::getPipeline()->getRegPtr());
     m_ui->registerContainer->init();
 }
 
 void ProcessorTab::initInstructionView() {
     // Setup instruction view
-    m_instrModel = new InstructionModel(Runner::getRunner()->getStagePCS(), Parser::getParser());
+    m_instrModel = new InstructionModel(Pipeline::getPipeline()->getStagePCS(), Parser::getParser());
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_ui->instructionView->setModel(m_instrModel);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -77,9 +78,9 @@ void ProcessorTab::on_displayValues_toggled(bool checked) {
 }
 
 void ProcessorTab::on_run_clicked() {
-    auto runner = Runner::getRunner();
-    if (runner->isReady()) {
-        if (runner->exec() == runnerState::DONE) {
+    auto pipeline = Pipeline::getPipeline();
+    if (pipeline->isReady()) {
+        if (pipeline->run()) {
             m_instrModel->update();
             m_ui->instructionView->update();
             m_ui->registerContainer->update();
@@ -91,7 +92,7 @@ void ProcessorTab::on_run_clicked() {
 }
 
 void ProcessorTab::on_reset_clicked() {
-    Runner::getRunner()->restart();
+    Pipeline::getPipeline()->restart();
     m_instrModel->update();
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
@@ -102,12 +103,12 @@ void ProcessorTab::on_reset_clicked() {
 }
 
 void ProcessorTab::on_step_clicked() {
-    auto state = Runner::getRunner()->step();
+    auto state = Pipeline::getPipeline()->step();
     m_instrModel->update();
     m_ui->instructionView->update();
     m_ui->registerContainer->update();
 
-    if (state == runnerState::DONE) {
+    if (state) {
         m_ui->step->setEnabled(false);
         m_ui->start->setEnabled(false);
         m_ui->run->setEnabled(false);

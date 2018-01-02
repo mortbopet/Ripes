@@ -38,11 +38,13 @@ runnerState Runner::exec() {
 }
 
 void Runner::setStageInstructions() {
+    /*
     m_stagePCS.IF = m_pc;
     m_stagePCS.ID = m_pc - 4 >= 0 ? m_pc - 4 : m_stagePCS.ID;
     m_stagePCS.EX = m_pc - 8 >= 0 ? m_pc - 8 : m_stagePCS.EX;
     m_stagePCS.MEM = m_pc - 12 >= 0 ? m_pc - 12 : m_stagePCS.MEM;
     m_stagePCS.WB = m_pc - 16 >= 0 ? m_pc - 16 : m_stagePCS.WB;
+    */
 }
 
 runnerState Runner::step() {

@@ -10,19 +10,30 @@
 #include "unordered_map"
 
 #define WORDSIZE 32
+#define STACKSTART 0x7ffffff0
+#define DATASTART 0x10000000
 
 enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
 Q_DECLARE_METATYPE(displayTypeN)
 
-typedef struct {
-    // Initialize to UINT32_MAX. An instruction at PC = 0 should not be defaulted as being inside a pipeline -
-    // therefore, the maximum uint32 value is chosen
-    uint32_t IF = UINT32_MAX;
-    uint32_t ID = UINT32_MAX;
-    uint32_t EX = UINT32_MAX;
-    uint32_t MEM = UINT32_MAX;
-    uint32_t WB = UINT32_MAX;
-} StagePCS;
+class StagePCS {
+    typedef std::pair<uint32_t, bool> PC;
+
+public:
+    StagePCS() {}
+    void reset() {
+        IF = PC(0, false);
+        ID = PC(0, false);
+        EX = PC(0, false);
+        MEM = PC(0, false);
+        WB = PC(0, false);
+    }
+    PC IF;
+    PC ID;
+    PC EX;
+    PC MEM;
+    PC WB;
+};
 
 enum Colors {
     // Berkeley primary color palette

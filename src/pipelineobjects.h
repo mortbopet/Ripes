@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <vector>
+#include "assert.h"
 
 /* PIPELINE OBJECTS
  * all pipeline objects are built around the Signal class - a boolean vector of immutable size.
@@ -76,13 +77,18 @@ public:
     static void clockAll() {
         // Each registers input value is save before clocking it, to ensure that register -> register connections are
         // clocked properly
-        std::for_each(registers.begin(), registers.end(), [](auto reg) { reg->save(); });
-        std::for_each(registers.begin(), registers.end(), [](auto reg) { reg->clock(); });
+        std::for_each(registers.begin(), registers.end(), [](auto& reg) { reg->save(); });
+        std::for_each(registers.begin(), registers.end(), [](auto& reg) { reg->clock(); });
+    }
+
+    static void resetAll() {
+        std::for_each(registers.begin(), registers.end(), [](auto& reg) { reg->reset(); });
     }
 
 protected:
     virtual void clock() = 0;
     virtual void save() = 0;
+    virtual void reset() = 0;
 };
 
 template <int n>
@@ -90,7 +96,7 @@ class Reg : public RegBase {
 public:
     Reg() {
         ASSERT_SIZE
-        RegBase::registers.push_back(this);
+        registers.push_back(this);
     }
 
     // Signal connection
@@ -105,7 +111,11 @@ public:
 
 protected:
     void clock() override { m_current = m_nextSaved; }
-    void save() override { m_nextSaved = *m_next; }
+    void save() override {
+        assert(m_next != nullptr);
+        m_nextSaved = *m_next;
+    }
+    void reset() override { m_current = Signal<n>(0); }
 
 private:
     Signal<n> m_current;
@@ -135,12 +145,12 @@ public:
         static_assert(sigs.size() == inputs, "Input vector must be equal size as number of multiplexer inputs");
         m_inputs = sigs;
     }
-    void setControl(std::vector<const Signal<bitcount(inputs)>*> sig) { m_control = sig; }
+    void setControl(const Signal<bitcount(inputs)>* sig) { m_control = sig; }
 
     Signal<n>* getOutput() { return &m_output; }
 
 private:
-    std::vector<const Signal<n>*> m_inputs;
+    std::vector<const Signal<n>*> m_inputs = std::vector<const Signal<n>*>(inputs);
     const Signal<bitcount(inputs)>* m_control;  // control size = roof(log2(inputs))
     Signal<n> m_output;
 
@@ -155,12 +165,13 @@ private:
 };
 
 static const int CTRL_SIZE = 5;
+enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL };
+
 template <int n>
 class ALU {
 public:
     // When calculating ALU control signals, the OPCODE is implicitely converted to an int in the Signal, which is later
     // reinterpreted as an OPCODE
-    enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL };
 
     void update();
 
@@ -233,9 +244,15 @@ class Registers {
 public:
     Registers() {}
 
+    std::vector<uint32_t>* getRegPtr() { return &m_reg; }
     void update();
+    void clear() {
+        for (auto& reg : m_reg)
+            reg = 0;
+    }
+    void init();
 
-    void setInputs(Signal<32>* instr, Signal<5>* writeReg, Signal<32>* writeData);
+    void setInputs(Signal<32>* instr, Signal<5>* writeReg, Signal<32>* writeData, Signal<1>* regWrite);
     Signal<32>* getOutput(int n = 1) { return n == 2 ? &m_readData2 : &m_readData1; }
 
 private:

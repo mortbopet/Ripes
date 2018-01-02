@@ -1,6 +1,6 @@
 #include "instructionmodel.h"
 #include "parser.h"
-#include "runner.h"
+#include "pipeline.h"
 
 #include <QHeaderView>
 
@@ -11,14 +11,14 @@ InstructionModel::InstructionModel(const StagePCS& pcsptr, Parser* parser, QObje
     setHeaderData(1, Qt::Horizontal, "Stage");
     setHeaderData(2, Qt::Horizontal, "Instruction");
     */
-    m_memory = Runner::getRunner()->getMemoryPtr();
+    m_memory = Pipeline::getPipeline()->getMemoryPtr();
 }
 
 void InstructionModel::update() {
     // Called when changes to the memory has been made
     // assumes that only instructions are present in the memory when called!
     beginResetModel();
-    m_textSize = Runner::getRunner()->getTextSize();
+    m_textSize = Pipeline::getPipeline()->getTextSize();
     endResetModel();
 }
 
@@ -38,17 +38,18 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
     switch (index.column()) {
         case 0:
             return row * 4;
-        case 1: {  // check if instruction is in any pipeline stage
-            int byteIndex = row * 4;
-            if (byteIndex == m_pcsptr.EX)
+        case 1: {  // check if instruction is in any pipeline stage, and whether the given PC for the pipeline stage is
+                   // valid
+            uint32_t byteIndex = row * 4;
+            if (byteIndex == m_pcsptr.EX.first && m_pcsptr.EX.second)
                 return QString("EX");
-            else if (byteIndex == m_pcsptr.ID)
+            else if (byteIndex == m_pcsptr.ID.first && m_pcsptr.ID.second)
                 return QString("ID");
-            else if (byteIndex == m_pcsptr.IF)
+            else if (byteIndex == m_pcsptr.IF.first && m_pcsptr.IF.second)
                 return QString("IF");
-            else if (byteIndex == m_pcsptr.MEM)
+            else if (byteIndex == m_pcsptr.MEM.first && m_pcsptr.MEM.second)
                 return QString("MEM");
-            else if (byteIndex == m_pcsptr.WB)
+            else if (byteIndex == m_pcsptr.WB.first && m_pcsptr.WB.second)
                 return QString("WB");
             else
                 return QVariant();
@@ -80,7 +81,7 @@ QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, 
 uint32_t InstructionModel::memRead(uint32_t address) const {
     // Note: If address is not found in memory map, a default constructed object
     // will be created, and read. in our case uint8_t() = 0
-    uint32_t read = ((*m_memory)[address] | ((*m_memory)[address + 1] << 8) | ((*m_memory)[address + 2] << 16) |
-                     ((*m_memory)[address + 3] << 24));
+    uint32_t read = (m_memory->read(address) | (m_memory->read(address + 1) << 8) |
+                     (m_memory->read(address + 2) << 16) | (m_memory->read(address + 3) << 24));
     return read;
 }

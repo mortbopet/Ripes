@@ -1,6 +1,6 @@
 #include "memorymodel.h"
 
-MemoryModel::MemoryModel(memory* memoryPtr, QObject* parent) : QStandardItemModel(parent) {
+MemoryModel::MemoryModel(MainMemory* memoryPtr, QObject* parent) : QStandardItemModel(parent) {
     m_memoryPtr = memoryPtr;
 
     updateModel();

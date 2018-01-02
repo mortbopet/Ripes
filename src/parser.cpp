@@ -1,6 +1,6 @@
 #include "parser.h"
 #include "defines.h"
-#include "runner.h"
+#include "pipeline.h"
 
 #include <assert.h>
 #include <iostream>
@@ -40,24 +40,24 @@ Parser::~Parser() {}
 
 void Parser::parseFile() {
     // Parse the file in 8-bit segments and write to memory map
-    memory* memPtr = Runner::getRunner()->getMemoryPtr();
+    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
     int pc = 0;
     while (m_fileIter != istreambuf_iterator<char>()) {
-        (*memPtr)[pc] = *m_fileIter;
+        memPtr->write(pc, *m_fileIter, 1);
         pc++;
         m_fileIter++;
     }
 }
 
 const QString& Parser::loadBinaryFile(QString fileName) {
-    // Loads a binary file and converts it to a text string, as well as puts the binary information into the runner
+    // Loads a binary file and converts it to a text string, as well as puts the binary information into the pipeline
     // memorys text segment
 
-    // Reset the runner
-    Runner::getRunner()->reset();
+    // Reset the pipeline
+    Pipeline::getPipeline()->reset();
 
     QString output = "";
-    memory* memPtr = Runner::getRunner()->getMemoryPtr();
+    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
     QFile file(fileName);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QByteArray read = file.readAll();
@@ -69,7 +69,7 @@ const QString& Parser::loadBinaryFile(QString fileName) {
             in.readRawData(buffer, 4);
             for (int j = 0; j < 4; j++) {
                 output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
-                (*memPtr)[pc] = buffer[j];
+                memPtr->write(pc, buffer[j], 1);
                 pc++;
             }
             output.append("\n");
@@ -78,8 +78,8 @@ const QString& Parser::loadBinaryFile(QString fileName) {
         file.close();
     }
 
-    // Update the runner
-    Runner::getRunner()->update();
+    // Update the pipeline
+    Pipeline::getPipeline()->update();
 
     return m_binaryRepr;
 }
