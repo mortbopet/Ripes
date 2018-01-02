@@ -1,4 +1,4 @@
-QT += widgets printsupport
+QT += widgets
 
 CONFIG += c++14
 
@@ -93,6 +93,8 @@ FORMS += \
 
 
 # External
+DEFINES += QT_NO_PRINTER
+
 HEADERS += \
    external/QCustomPlot/qcustomplot.h \
     external/fancytabbar/fancytab.h \
