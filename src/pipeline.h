@@ -19,7 +19,6 @@ public:
 
 private:
     // Simulator functions
-    void registerRegs();
     void immGen();
     void aluCtrl();
     void clock();

@@ -68,17 +68,30 @@ private:
     std::string m_name;
 };
 
+// The Reg class is used for sequential signal assignment. Has a single input/output of a given signal size.
+// Upon construction, new registers are added to "registers", which is used when clocking the pipeline
 class RegBase {
 public:
+    static std::vector<RegBase*> registers;
+    static void clockAll() {
+        // Each registers input value is save before clocking it, to ensure that register -> register connections are
+        // clocked properly
+        std::for_each(registers.begin(), registers.end(), [](auto reg) { reg->save(); });
+        std::for_each(registers.begin(), registers.end(), [](auto reg) { reg->clock(); });
+    }
+
+protected:
     virtual void clock() = 0;
+    virtual void save() = 0;
 };
 
-// The Reg class is used for sequential signal assignment. Has a single input/output of a given signal size.
 template <int n>
 class Reg : public RegBase {
 public:
-    Reg() { ASSERT_SIZE }
-    void clock() override { m_current = *m_next; }
+    Reg() {
+        ASSERT_SIZE
+        RegBase::registers.push_back(this);
+    }
 
     // Signal connection
     void connect(Reg<n>& r) { setInput(&r.m_current); }
@@ -90,8 +103,13 @@ public:
     explicit operator bool() const { return (bool)m_current; }
     void setInput(const Signal<n>* in) { m_next = in; }
 
+protected:
+    void clock() override { m_current = m_nextSaved; }
+    void save() override { m_nextSaved = *m_next; }
+
 private:
     Signal<n> m_current;
+    Signal<n> m_nextSaved;
     const Signal<n>* m_next;
 };
 

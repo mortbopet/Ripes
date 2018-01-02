@@ -35,11 +35,6 @@ Pipeline::Pipeline() {
     mux_memToReg.setInput(1, r_readData_MEMWB.getOutput());
 }
 
-void Pipeline::registerRegs() {
-    // Registers all registers in m_regs
-    m_regs.push_back(&r_instr_IFID);
-}
-
 void Pipeline::immGen() {
     // Generates an immediate value on the basis of an instruction opcode
     // Opcode bits 5 and 6 can define the required fields for generating the immediate
