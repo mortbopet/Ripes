@@ -206,6 +206,8 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
             } else {
                 return QString("and x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+        default:
+            return QString("Unknown instruction");
     }
 }
 
@@ -213,6 +215,10 @@ QString Parser::generateOpImmString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeIInstr(instr);
     switch (fields[2]) {
         case 0b000:  // ADDI
+            if (fields[3] == 0 && fields[1] == 0) {
+                // nop special case
+                return QString("nop");
+            }
             return QString("addi x%1 x%2 %3").arg(fields[3]).arg(fields[1]).arg(signextend<int32_t, 12>(fields[0]));
         case 0b001:  // SLLI
             return QString("slli x%1 x%2 %3").arg(fields[3]).arg(fields[1]).arg(fields[0] & 0b11111);

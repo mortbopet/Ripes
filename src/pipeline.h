@@ -50,8 +50,9 @@ private:
 
     // Combinatorial items & signals
     ALU<32> alu_pc4 = ALU<32>("ADD PC 4");  // ALU for incrementing PC by 4
-    Signal<32> c_4 = Signal<32>("4");
-
+    Signal<32> c_4 = Signal<32>(4, "4");
+    Mux<2, 32> mux_PCSrc;
+    Signal<1> s_PCSrc;
     ALU<32> alu_pc_target = ALU<32>("ALU PC target");  // ALU for PC target computation
 
     ALU<32> alu_mainALU = ALU<32>("Main ALU");  // Arithmetic ALU
@@ -61,7 +62,8 @@ private:
     Signal<1> ctrl_memToReg;
 
     Signal<32> imm_ID = Signal<32>("Immediate");
-    Signal<32> instr_IF = Signal<32>("Instruction");
+    Signal<32> imm_ID_shifted = Signal<32>("Immediate SL1");
+    Signal<32> s_instr_IF = Signal<32>("Instruction");
     Signal<32> readData_MEM;
 
     // Registers
@@ -85,10 +87,12 @@ private:
         (uint32_t)ALUDefs::OPCODE::ADD);  // A constant "ADD" control signal, to turn an ALU into an adder
     Signal<3> s_MemRead;
     Signal<2> s_MemWrite;
-    Signal<1> s_RegWrite, s_ALUSrc, s_MemToReg;
+    Signal<1> s_RegWrite, s_ALUSrc, s_MemToReg, s_Branch;
     Signal<ALUDefs::CTRL_SIZE> s_ALUOP;
+    Signal<3> s_CompOp;
 
     // Control signal enums
+    enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };
     enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
     enum MemWrite { SB = 1, SH = 2, SW = 3 };
 };

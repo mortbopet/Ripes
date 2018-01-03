@@ -22,7 +22,7 @@ public:
                          ((*this)[address + 3] << 24));
         return read;
     }
-    void reset(int textSize) {
+    void reset(uint32_t textSize) {
         // Reset memory - erase all elements which is not part of the textsegment of the program
         for (auto it = this->begin(); it != this->end();) {
             // Use standard associative-container erasing. If erased, set iterator to iterator after the erased value

@@ -72,6 +72,7 @@ private:
 
 // The Reg class is used for sequential signal assignment. Has a single input/output of a given signal size.
 // Upon construction, new registers are added to "registers", which is used when clocking the pipeline
+// input reset is a synchronous reset
 class RegBase {
 public:
     static std::vector<RegBase*> registers;
@@ -109,9 +110,18 @@ public:
     explicit operator uint32_t() const { return (uint32_t)m_current; }
     explicit operator bool() const { return (bool)m_current; }
     void setInput(const Signal<n>* in) { m_next = in; }
+    void setReset(const Signal<1>* in) { m_reset = in; }
 
 protected:
-    void clock() override { m_current = m_nextSaved; }
+    void clock() override {
+        if (m_reset == nullptr)
+            m_current = m_nextSaved;
+        else if ((bool)*m_reset == true) {
+            m_current = 0;
+        } else {
+            m_current = m_nextSaved;
+        }
+    }
     void save() override {
         assert(m_next != nullptr);
         m_nextSaved = *m_next;
@@ -124,11 +134,10 @@ protected:
 private:
     Signal<n> m_current;
     Signal<n> m_nextSaved;
+    const Signal<1>* m_reset;
     const Signal<n>* m_next;
 };
 
-// Multiplexor class
-// the output of the multiplexor is dependant of the input select signal
 template <int inputs, int n>
 class Combinational {
 public:
@@ -161,6 +170,8 @@ protected:
     }
 };
 
+// Multiplexor class
+// the output of the multiplexor is dependant of the input select signal
 template <int inputs, int n>
 class Mux : public Combinational<inputs, n> {
 public:

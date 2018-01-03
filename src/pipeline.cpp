@@ -2,16 +2,21 @@
 
 #include "parser.h"
 
+#include <QDebug>
+
 Pipeline::Pipeline() {
     // Connect pipeline
 
     // ------ IF ---------
     // Connect alu to PC and a constant "4" signal, and set operator to "Add"
-    c_4 = Signal<32>(4);
     alu_pc4.setInputs(r_PC_IF.getOutput(), &c_4);
     alu_pc4.setControl(&s_alu_const_add);
-    r_PC_IF.setInput(alu_pc4.getOutput());
-    r_instr_IFID.setInput(&instr_IF);
+    r_PC_IF.setInput(mux_PCSrc.getOutput());
+    r_instr_IFID.setInput(&s_instr_IF);
+    r_instr_IFID.setReset(&s_PCSrc);
+    mux_PCSrc.setControl(&s_PCSrc);
+    mux_PCSrc.setInput(0, alu_pc4.getOutput());
+    mux_PCSrc.setInput(1, alu_pc_target.getOutput());
 
     // ------ ID ---------
     m_reg.setInputs(r_instr_IFID.getOutput(), r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(),
@@ -20,6 +25,9 @@ Pipeline::Pipeline() {
     r_rd1_IDEX.setInput(m_reg.getOutput(1));
     r_rd2_IDEX.setInput(m_reg.getOutput(2));
     r_writeReg_IDEX.setInput(&writeReg);
+
+    alu_pc_target.setControl(&s_alu_const_add);
+    alu_pc_target.setInputs(r_PC_IDEX.getOutput(), &imm_ID_shifted);
 
     // Control signals
     r_regWrite_IDEX.setInput(&s_RegWrite);
@@ -67,7 +75,7 @@ Pipeline::Pipeline() {
 }
 
 void Pipeline::immGen() {
-    if ((uint32_t)r_instr_IFID & 0b1111111 == 0b0110111) {
+    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b0110111) {
         // LUI
         imm_ID = Signal<32>((uint32_t)r_instr_IFID & 0xfffff000);
     } else {
@@ -94,6 +102,7 @@ void Pipeline::immGen() {
             }
         }
     }
+    imm_ID_shifted = imm_ID;  //((uint32_t)imm_ID) << 1;
 }
 
 namespace {
@@ -102,25 +111,41 @@ namespace {
     s_MemToReg = 0; \
     s_RegWrite = 1; \
     s_MemRead = 0;  \
-    s_MemWrite = 0;
+    s_MemWrite = 0; \
+    s_Branch = 0;   \
+    s_CompOp = 0;
 
 #define CTRL_R_TYPE \
     s_ALUSrc = 0;   \
     s_MemToReg = 0; \
     s_RegWrite = 1; \
     s_MemRead = 0;  \
-    s_MemWrite = 0;
+    s_MemWrite = 0; \
+    s_Branch = 0;   \
+    s_CompOp = 0;
+
 #define CTRL_STORE  \
     s_ALUSrc = 1;   \
     s_MemToReg = 0; \
     s_RegWrite = 0; \
-    s_MemRead = 0;
+    s_MemRead = 0;  \
+    s_Branch = 0;   \
+    s_CompOp = 0;
 
 #define CTRL_LOAD   \
     s_ALUSrc = 1;   \
     s_MemToReg = 1; \
     s_RegWrite = 1; \
-    s_MemWrite = 0;
+    s_MemWrite = 0; \
+    s_Branch = 0;   \
+    s_CompOp = 0;
+
+#define CTRL_BRANCH \
+    s_ALUSrc = 0;   \
+    s_MemToReg = 0; \
+    s_RegWrite = 0; \
+    s_MemWrite = 0; \
+    s_Branch = 1;
 }
 
 void Pipeline::controlGen() {
@@ -294,6 +319,44 @@ void Pipeline::controlGen() {
             CTRL_STORE
             break;
         }
+        case 0b1100011: {
+            // Branch instruction
+            auto fields = Parser::getParser()->decodeBInstr((uint32_t)r_instr_IFID);
+            switch (fields[4]) {
+                case 0b000: {
+                    // BEQ
+                    s_CompOp = CompOp::BEQ;
+                    break;
+                }
+                case 0b001: {
+                    // BNE
+                    s_CompOp = CompOp::BNE;
+                    break;
+                }
+                case 0b100: {
+                    // BLT
+                    s_CompOp = CompOp::BLT;
+                    break;
+                }
+                case 0b101: {
+                    // BGE
+                    s_CompOp = CompOp::BGE;
+                    break;
+                }
+                case 0b110: {
+                    // BLTU
+                    s_CompOp = CompOp::BLTU;
+                    break;
+                }
+                case 0b111: {
+                    // BGEU
+                    s_CompOp = CompOp::BGEU;
+                    break;
+                }
+            }
+            CTRL_BRANCH
+            break;
+        }
         default: {
             s_ALUOP = 0;
             s_ALUSrc = 0;
@@ -301,6 +364,8 @@ void Pipeline::controlGen() {
             s_RegWrite = 0;
             s_MemRead = 0;
             s_MemWrite = 0;
+            s_Branch = 0;
+            s_CompOp = 0;
             break;
         }
     }
@@ -346,13 +411,47 @@ void Pipeline::propagateCombinational() {
     // ----- ID -----
     controlGen();
     immGen();
+    alu_pc_target.update();
     m_reg.update();
     writeReg = Signal<5>(((uint32_t)r_instr_IFID >> 7) & 0b11111);
 
+    // Compare read register values and '&' with s_branch control signal
+    switch ((CompOp)(int)s_CompOp) {
+        case BEQ: {
+            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) == (uint32_t)*m_reg.getOutput(2));
+            break;
+        }
+        case BNE: {
+            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) != (uint32_t)*m_reg.getOutput(2));
+            break;
+        }
+        case BLT: {
+            s_PCSrc = s_Branch && ((int32_t)*m_reg.getOutput(1) < (int32_t)*m_reg.getOutput(2));
+            break;
+        }
+        case BLTU: {
+            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) < (uint32_t)*m_reg.getOutput(2));
+            break;
+        }
+        case BGE: {
+            s_PCSrc = s_Branch && ((int32_t)*m_reg.getOutput(1) >= (int32_t)*m_reg.getOutput(2));
+            break;
+        }
+        case BGEU: {
+            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) >= (uint32_t)*m_reg.getOutput(2));
+            break;
+        }
+        default: { s_PCSrc = 0; }
+    }
+
     // ----- IF -----
     alu_pc4.update();
+    mux_PCSrc.update();
+    if ((uint32_t)s_PCSrc == 1) {
+        qDebug() << "a";
+    }
     // Load nops if PC is greater than text size
-    instr_IF = Signal<32>(
+    s_instr_IF = Signal<32>(
         (uint32_t)r_PC_IF > m_textSize ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
 }
 
