@@ -13,6 +13,8 @@
 #define STACKSTART 0x7ffffff0
 #define DATASTART 0x10000000
 
+enum class Stage { IF, ID, EX, MEM, WB };
+
 enum displayTypeN { Hex, Binary, Decimal, Unsigned, ASCII };
 Q_DECLARE_METATYPE(displayTypeN)
 

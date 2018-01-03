@@ -24,7 +24,7 @@ public:
     void initInstructionView();
 
 public slots:
-    void update();
+    void restart();
 
 private slots:
 
@@ -43,6 +43,9 @@ private:
     InstructionModel* m_instrModel;
 
     QTimer m_timer;
+
+signals:
+    void update();
 };
 
 #endif  // PROCESSORTAB_H

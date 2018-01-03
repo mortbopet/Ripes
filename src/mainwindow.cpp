@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
             m_ui->consoles->hide();
         };
     });
-    connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::update);
+    connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
 }
 
 MainWindow::~MainWindow() {

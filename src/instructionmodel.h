@@ -7,10 +7,12 @@
 #include <QAbstractTableModel>
 
 class Parser;
+class Pipeline;
 class InstructionModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    InstructionModel(const StagePCS& pcsptr, Parser* parser = nullptr, QObject* parent = nullptr);
+    InstructionModel(const StagePCS& pcsptr, const StagePCS& pcsptrPre, Parser* parser = nullptr,
+                     QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -22,13 +24,16 @@ public:
 
 private:
     const StagePCS& m_pcsptr;
+    const StagePCS& m_pcsptrPre;
     MainMemory* m_memory;
+    Pipeline* m_pipelinePtr;
     Parser* m_parserPtr;
     int m_textSize = 0;  // text segment, in bytes
 
     uint32_t memRead(uint32_t address) const;
 
 signals:
+    void textChanged(Stage stage, QString text) const;
 
 public slots:
 };

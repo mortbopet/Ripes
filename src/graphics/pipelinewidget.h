@@ -5,10 +5,13 @@
 #include <QGraphicsView>
 #include <QPair>
 
+#include "defines.h"
+
 namespace Graphics {
 class Connection;
+class Text;
 class Shape;
-}
+}  // namespace Graphics
 
 typedef QPair<Graphics::Shape*, int> ShapePair;
 
@@ -20,6 +23,10 @@ public:
     void wheelEvent(QWheelEvent* event);
     void expandToView() { fitInView(scene()->sceneRect().adjusted(-30, 0, 10, 0), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
+
+public slots:
+    void update();
+    void stageTextChanged(Stage stage, const QString& text);
 
 signals:
     void displayAllValuesSig(bool state);
@@ -38,10 +45,10 @@ private:
 
     QList<QGraphicsItem*> filterAllowedItems(Graphics::Shape* shape, QList<QGraphicsItem*> items);
 
-    constexpr static qreal shapeMargin           = 15;  // Minimum distance between two shapes
-    constexpr static qreal stateRegHeight        = 500;
+    constexpr static qreal shapeMargin = 15;  // Minimum distance between two shapes
+    constexpr static qreal stateRegHeight = 500;
     constexpr static qreal spaceBetweenStateRegs = 350;
-    constexpr static qreal minConnectionLen      = 30;
+    constexpr static qreal minConnectionLen = 30;
 
     QList<Graphics::Connection*> m_connections;
 
@@ -50,6 +57,13 @@ private:
     Graphics::Shape* idex;
     Graphics::Shape* exmem;
     Graphics::Shape* memwb;
+
+    // Text pointers
+    Graphics::Text* if_instr;
+    Graphics::Text* id_instr;
+    Graphics::Text* ex_instr;
+    Graphics::Text* mem_instr;
+    Graphics::Text* wb_instr;
 };
 
 #endif  // PIPELINEWIDGET_H

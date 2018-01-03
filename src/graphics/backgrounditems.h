@@ -21,12 +21,12 @@ private:
 class Text : public QGraphicsItem {
 public:
     Text(QPointF pos);
-    void setTextPtr(QString* text) { m_text = text; }
+    void setText(const QString& text) { m_text = text; }
     QRectF boundingRect() const;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 private:
-    QString* m_text;
+    QString m_text;
     QFont m_font;
     QPointF m_pos;
 };

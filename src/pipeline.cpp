@@ -391,6 +391,7 @@ int Pipeline::step() {
 
     // Execution is finished if nops are in all stages except WB
     if (m_pcs.WB.first == m_textSize) {
+        m_finished = true;
         return 1;
     } else {
         return 0;
@@ -402,6 +403,7 @@ void Pipeline::setStagePCS() {
     // To validate a PC value (whether there is actually an instruction in the stage, or if the pipeline has
     // been reset), the previous stage PC is used to determine the current state of a stage To facilitate this,
     // the PCS are set in reverse order
+    m_pcsPre = m_pcs;
     m_pcs.WB = m_pcs.MEM.second ? PCVAL(r_PC_MEMWB) : m_pcs.WB;
     m_pcs.MEM = m_pcs.EX.second ? PCVAL(r_PC_EXMEM) : m_pcs.MEM;
     m_pcs.EX = m_pcs.ID.second ? PCVAL(r_PC_IDEX) : m_pcs.EX;
@@ -436,6 +438,8 @@ void Pipeline::restart() {
     m_memory.reset(m_textSize);
     m_reg.init();
     m_pcs.reset();
+    m_pcsPre.reset();
+    m_finished = false;
 
     // Reset all registers to 0 and propagate signals through combinational logic
     RegBase::resetAll();

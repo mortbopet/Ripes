@@ -18,8 +18,10 @@ public:
     MainMemory* getMemoryPtr() { return &m_memory; }
     std::vector<uint32_t>* getRegPtr() { return m_reg.getRegPtr(); }
     const StagePCS& getStagePCS() const { return m_pcs; }
+    const StagePCS& getStagePCSPre() const { return m_pcsPre; }
     int getTextSize() const { return m_textSize; }
     bool isReady() const { return m_ready; }
+    bool isFinished() const { return m_finished; }
 
     static Pipeline* getPipeline() {
         static Pipeline pipeline;
@@ -38,6 +40,7 @@ private:
     // Program counters for each stage
     void setStagePCS();
     StagePCS m_pcs;
+    StagePCS m_pcsPre;
     bool m_finished = false;
 
     // Memory

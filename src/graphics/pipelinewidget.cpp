@@ -1,7 +1,6 @@
 #include "pipelinewidget.h"
 #include "backgrounditems.h"
 #include "connection.h"
-#include "defines.h"
 #include "shape.h"
 
 #include <QDebug>
@@ -250,32 +249,51 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(dash4);
 
     int textPad = 20;
-    Graphics::Text* if_instr = new Graphics::Text(QPointF(
+    if_instr = new Graphics::Text(QPointF(
         -dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + -spaceBetweenStateRegs / 2,
         dash1->sceneBoundingRect().top() + textPad));
-    Graphics::Text* id_instr = new Graphics::Text(
+    id_instr = new Graphics::Text(
         QPointF(dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + spaceBetweenStateRegs / 2,
                 dash1->sceneBoundingRect().top() + textPad));
-    Graphics::Text* ex_instr = new Graphics::Text(
+    ex_instr = new Graphics::Text(
         QPointF(dash2->sceneBoundingRect().left() + dash2->sceneBoundingRect().width() / 2 + spaceBetweenStateRegs / 2,
                 dash2->sceneBoundingRect().top() + textPad));
-    Graphics::Text* mem_instr = new Graphics::Text(
+    mem_instr = new Graphics::Text(
         QPointF(dash3->sceneBoundingRect().left() + dash3->sceneBoundingRect().width() / 2 + spaceBetweenStateRegs / 2,
                 dash3->sceneBoundingRect().top() + textPad));
-    Graphics::Text* wb_instr = new Graphics::Text(QPointF(dash4->sceneBoundingRect().left() + spaceBetweenStateRegs / 3,
-                                                          dash4->sceneBoundingRect().top() + textPad));
-
-    if_instr->setTextPtr(new QString("and x12, x2, x5"));
-    id_instr->setTextPtr(new QString("beq x1, x3, 16"));
-    ex_instr->setTextPtr(new QString("sub x10, x4, x8"));
-    mem_instr->setTextPtr(new QString("nop"));
-    wb_instr->setTextPtr(new QString("rd x10 24 x2"));
+    wb_instr = new Graphics::Text(QPointF(dash4->sceneBoundingRect().left() + spaceBetweenStateRegs / 3,
+                                          dash4->sceneBoundingRect().top() + textPad));
 
     scene->addItem(if_instr);
     scene->addItem(id_instr);
     scene->addItem(ex_instr);
     scene->addItem(mem_instr);
     scene->addItem(wb_instr);
+}
+
+void PipelineWidget::update() {
+    QWidget::update();
+}
+
+void PipelineWidget::stageTextChanged(Stage stage, const QString& text) {
+    switch (stage) {
+        case Stage::IF:
+            if_instr->setText(text);
+            break;
+        case Stage::ID:
+            id_instr->setText(text);
+            break;
+        case Stage::EX:
+            ex_instr->setText(text);
+            break;
+        case Stage::MEM:
+            mem_instr->setText(text);
+            break;
+        case Stage::WB:
+            wb_instr->setText(text);
+            break;
+    }
+    scene()->update();
 }
 
 void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint, QPointF* destPoint,

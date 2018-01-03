@@ -1,5 +1,6 @@
 #include "processortab.h"
 #include "instructionmodel.h"
+#include "pipelinewidget.h"
 #include "ui_processortab.h"
 
 #include "parser.h"
@@ -30,6 +31,10 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     // Setup stepping timer
     connect(&m_timer, &QTimer::timeout, this, &ProcessorTab::on_step_clicked);
 
+    // Setup updating signals
+    connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
+    connect(this, &ProcessorTab::update, m_ui->pipelineWidget, &PipelineWidget::update);
+
     // Initially, no file is loaded, disable run, step and reset buttons
     m_ui->reset->setEnabled(false);
     m_ui->step->setEnabled(false);
@@ -37,10 +42,9 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     m_ui->start->setEnabled(false);
 }
 
-void ProcessorTab::update() {
+void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
-    m_instrModel->update();
-    m_ui->registerContainer->update();
+    emit update();
 
     m_ui->step->setEnabled(true);
     m_ui->run->setEnabled(true);
@@ -56,13 +60,19 @@ void ProcessorTab::initRegWidget() {
 
 void ProcessorTab::initInstructionView() {
     // Setup instruction view
-    m_instrModel = new InstructionModel(Pipeline::getPipeline()->getStagePCS(), Parser::getParser());
+    m_instrModel = new InstructionModel(Pipeline::getPipeline()->getStagePCS(),
+                                        Pipeline::getPipeline()->getStagePCSPre(), Parser::getParser());
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_ui->instructionView->setModel(m_instrModel);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    m_instrModel->update();
+    connect(this, &ProcessorTab::update, m_ui->instructionView, QOverload<>::of(&QWidget::update));
+    connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::update);
+
+    // Connect instruction model text changes to the pipeline widget (changing instruction names displayed above each
+    // stage)
+    connect(m_instrModel, &InstructionModel::textChanged, m_ui->pipelineWidget, &PipelineWidget::stageTextChanged);
 }
 
 ProcessorTab::~ProcessorTab() {
@@ -81,9 +91,7 @@ void ProcessorTab::on_run_clicked() {
     auto pipeline = Pipeline::getPipeline();
     if (pipeline->isReady()) {
         if (pipeline->run()) {
-            m_instrModel->update();
-            m_ui->instructionView->update();
-            m_ui->registerContainer->update();
+            emit update();
             m_ui->step->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
@@ -93,9 +101,7 @@ void ProcessorTab::on_run_clicked() {
 
 void ProcessorTab::on_reset_clicked() {
     Pipeline::getPipeline()->restart();
-    m_instrModel->update();
-    m_ui->instructionView->update();
-    m_ui->registerContainer->update();
+    emit update();
 
     m_ui->step->setEnabled(true);
     m_ui->start->setEnabled(true);
@@ -104,9 +110,7 @@ void ProcessorTab::on_reset_clicked() {
 
 void ProcessorTab::on_step_clicked() {
     auto state = Pipeline::getPipeline()->step();
-    m_instrModel->update();
-    m_ui->instructionView->update();
-    m_ui->registerContainer->update();
+    emit update();
 
     if (state) {
         m_ui->step->setEnabled(false);

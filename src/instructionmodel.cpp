@@ -4,14 +4,10 @@
 
 #include <QHeaderView>
 
-InstructionModel::InstructionModel(const StagePCS& pcsptr, Parser* parser, QObject* parent)
-    : m_pcsptr(pcsptr), m_parserPtr(parser), QAbstractTableModel(parent) {
-    /*
-    setHeaderData(0, Qt::Horizontal, "PC");
-    setHeaderData(1, Qt::Horizontal, "Stage");
-    setHeaderData(2, Qt::Horizontal, "Instruction");
-    */
-    m_memory = Pipeline::getPipeline()->getMemoryPtr();
+InstructionModel::InstructionModel(const StagePCS& pcsptr, const StagePCS& pcsptrPre, Parser* parser, QObject* parent)
+    : m_pcsptr(pcsptr), m_pcsptrPre(pcsptrPre), m_parserPtr(parser), QAbstractTableModel(parent) {
+    m_pipelinePtr = Pipeline::getPipeline();
+    m_memory = m_pipelinePtr->getMemoryPtr();
 }
 
 void InstructionModel::update() {
@@ -30,6 +26,13 @@ int InstructionModel::columnCount(const QModelIndex&) const {
     return 3;
 }
 
+namespace {
+#define VALIDATE(stage)                     \
+    if (!m_pcsptr.stage.second) {           \
+        emit textChanged(Stage::stage, ""); \
+    }
+}
+
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || role != Qt::DisplayRole) {
         return QVariant();
@@ -39,20 +42,46 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
         case 0:
             return row * 4;
         case 1: {  // check if instruction is in any pipeline stage, and whether the given PC for the pipeline stage is
-                   // valid
+                   // valid. For the pipelinewidget, determine if an instruction in a given stage is equal to the text
+                   // size, if so, clear previous instruction texts in the pipeline widget
             uint32_t byteIndex = row * 4;
-            if (byteIndex == m_pcsptr.EX.first && m_pcsptr.EX.second)
+            uint32_t maxInstr = m_textSize - 4;
+            if (byteIndex == m_pcsptr.EX.first && m_pcsptr.EX.second) {
+                emit textChanged(Stage::EX, m_parserPtr->genStringRepr(memRead(row * 4)));
+                if (byteIndex == maxInstr) {
+                    emit textChanged(Stage::ID, "");
+                }
                 return QString("EX");
-            else if (byteIndex == m_pcsptr.ID.first && m_pcsptr.ID.second)
+            } else if (byteIndex == m_pcsptr.ID.first && m_pcsptr.ID.second) {
+                emit textChanged(Stage::ID, m_parserPtr->genStringRepr(memRead(row * 4)));
+                if (byteIndex == maxInstr) {
+                    emit textChanged(Stage::IF, "");
+                }
                 return QString("ID");
-            else if (byteIndex == m_pcsptr.IF.first && m_pcsptr.IF.second)
+            } else if (byteIndex == m_pcsptr.IF.first && m_pcsptr.IF.second) {
+                emit textChanged(Stage::IF, m_parserPtr->genStringRepr(memRead(row * 4)));
                 return QString("IF");
-            else if (byteIndex == m_pcsptr.MEM.first && m_pcsptr.MEM.second)
+            } else if (byteIndex == m_pcsptr.MEM.first && m_pcsptr.MEM.second) {
+                emit textChanged(Stage::MEM, m_parserPtr->genStringRepr(memRead(row * 4)));
+                if (byteIndex == maxInstr) {
+                    emit textChanged(Stage::EX, "");
+                }
                 return QString("MEM");
-            else if (byteIndex == m_pcsptr.WB.first && m_pcsptr.WB.second)
+            } else if (byteIndex == m_pcsptr.WB.first && m_pcsptr.WB.second) {
+                emit textChanged(Stage::WB, m_parserPtr->genStringRepr(memRead(row * 4)));
+                if (byteIndex == maxInstr) {
+                    emit textChanged(Stage::MEM, "");
+                }
                 return QString("WB");
-            else
+            } else {
+                // Clear invalid PC values for each stage (used when resetting the simlation)
+                VALIDATE(IF);
+                VALIDATE(ID);
+                VALIDATE(EX);
+                VALIDATE(MEM);
+                VALIDATE(WB);
                 return QVariant();
+            }
         }
         case 2:
             return m_parserPtr->genStringRepr(memRead(row * 4));
