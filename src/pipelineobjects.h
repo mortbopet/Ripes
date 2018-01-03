@@ -6,6 +6,7 @@
 #include "mainmemory.h"
 
 #include <cstdint>
+#include <functional>
 #include <stdexcept>
 #include <vector>
 #include "assert.h"
@@ -129,30 +130,23 @@ private:
 // Multiplexor class
 // the output of the multiplexor is dependant of the input select signal
 template <int inputs, int n>
-class Mux {
+class Combinational {
 public:
-    Mux() { static_assert(n >= 1 && n <= 32 && inputs > 0, "Invalid multiplexer size specification"); }
+    Combinational() { static_assert(n >= 1 && n <= 32 && inputs > 0, "Invalid multiplexer size specification"); }
 
-    void update() {
-        if (!initialized())
-            throw std::runtime_error("Mux not initialized");
-        m_output = *m_inputs[(uint32_t)*m_control];
-    }
+    virtual void update() = 0;
     bool setInput(int input, const Signal<n>* sig) {
         if (input < 0 || input >= inputs)
             return false;
         m_inputs[input] = sig;
         return true;
     }
-    void setInputs(std::vector<const Signal<n>*> sigs) {
-        static_assert(sigs.size() == inputs, "Input vector must be equal size as number of multiplexer inputs");
-        m_inputs = sigs;
-    }
+
     void setControl(const Signal<bitcount(inputs)>* sig) { m_control = sig; }
 
     Signal<n>* getOutput() { return &m_output; }
 
-private:
+protected:
     std::vector<const Signal<n>*> m_inputs = std::vector<const Signal<n>*>(inputs);
     const Signal<bitcount(inputs)>* m_control;  // control size = roof(log2(inputs))
     Signal<n> m_output;
@@ -167,6 +161,48 @@ private:
     }
 };
 
+template <int inputs, int n>
+class Mux : public Combinational<inputs, n> {
+public:
+    void update() override {
+        {
+            if (!this->initialized())
+                throw std::runtime_error("Mux not initialized");
+            this->m_output = *this->m_inputs[(uint32_t) * this->m_control];
+        }
+    }
+};
+enum class GateType { AND, OR, XOR };
+template <int inputs, int n, GateType type>
+class Gate : public Combinational<inputs, n> {
+    // Sets an operand functor according to the input GateType, which is used in computing the output of the gate
+    // Currently, only 1-bit evaluation is supported
+public:
+    Gate() {
+        switch (type) {
+            case GateType::AND:
+                m_op = [](bool a, const Signal<n>& b) { return a & (bool)b; };
+                break;
+            case GateType::OR:
+                m_op = [](bool a, const Signal<n>& b) { return a | (bool)b; };
+                break;
+            case GateType::XOR:
+                m_op = [](bool a, const Signal<n>& b) { return a ^ (bool)b; };
+                break;
+        }
+    }
+    void update() override {
+        bool b = true;
+        for (const auto& input : this->m_inputs) {
+            b = m_op(b, *input);
+        }
+        this->m_output = Signal<n>(b);
+    }
+
+private:
+    std::function<bool(bool, const Signal<n>&)> m_op;
+};
+
 namespace ALUDefs {
 static const int CTRL_SIZE = 5;
 enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT /*Less than*/, LTU /*Less than Unsigned*/, EQ };
@@ -175,8 +211,8 @@ enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT /*Less tha
 template <int n>
 class ALU {
 public:
-    // When calculating ALU control signals, the OPCODE is implicitely converted to an int in the Signal, which is later
-    // reinterpreted as an OPCODE
+    // When calculating ALU control signals, the OPCODE is implicitely converted to an int in the Signal, which is
+    // later reinterpreted as an OPCODE
     ALU(std::string name = "ALU") { m_name = name; }
     void update();
 
