@@ -82,8 +82,12 @@ private:
         (uint32_t)ALUDefs::OPCODE::ADD);  // A constant "ADD" control signal, to turn an ALU into an adder
     Signal<3> s_MemRead;
     Signal<2> s_MemWrite;
-    Signal<1> s_RegWrite, s_ALUSrc, s_MemtoReg;
+    Signal<1> s_RegWrite, s_ALUSrc, s_MemToReg;
     Signal<ALUDefs::CTRL_SIZE> s_ALUOP;
+
+    // Control signal enums
+    enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
+    enum MemWrite { SB = 1, SH = 2, SW = 3 };
 };
 
 #endif  // PIPELINE_H

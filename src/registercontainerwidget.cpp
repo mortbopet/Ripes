@@ -14,7 +14,7 @@ RegisterContainerWidget::RegisterContainerWidget(QWidget* parent)
     for (const auto& type : displayTypes.keys()) {
         m_ui->displayType->insertItem(0, type, displayTypes[type]);
     }
-    m_ui->displayType->setCurrentIndex(displayTypeN::Hex);
+    m_ui->displayType->setCurrentIndex(displayTypeN::Decimal);
 }
 
 void RegisterContainerWidget::update() {

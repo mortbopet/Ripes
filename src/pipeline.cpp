@@ -27,7 +27,7 @@ Pipeline::Pipeline() {
     r_ALUSrc_IDEX.setInput(&s_ALUSrc);
     r_MemWrite_IDEX.setInput(&s_MemWrite);
     r_MemRead_IDEX.setInput(&s_MemRead);
-    r_MemtoReg_IDEX.setInput(&s_MemtoReg);
+    r_MemtoReg_IDEX.setInput(&s_MemToReg);
 
     // ------ EX ---------
     alu_mainALU.setInputs(r_rd1_IDEX.getOutput(), mux_ALUSrc.getOutput());
@@ -99,16 +99,27 @@ void Pipeline::immGen() {
 namespace {
 #define CTRL_I_TYPE \
     s_ALUSrc = 1;   \
-    s_MemtoReg = 0; \
+    s_MemToReg = 0; \
     s_RegWrite = 1; \
     s_MemRead = 0;  \
     s_MemWrite = 0;
 
 #define CTRL_R_TYPE \
     s_ALUSrc = 0;   \
-    s_MemtoReg = 0; \
+    s_MemToReg = 0; \
     s_RegWrite = 1; \
     s_MemRead = 0;  \
+    s_MemWrite = 0;
+#define CTRL_STORE  \
+    s_ALUSrc = 1;   \
+    s_MemToReg = 0; \
+    s_RegWrite = 0; \
+    s_MemRead = 0;
+
+#define CTRL_LOAD   \
+    s_ALUSrc = 1;   \
+    s_MemToReg = 1; \
+    s_RegWrite = 1; \
     s_MemWrite = 0;
 }
 
@@ -128,40 +139,35 @@ void Pipeline::controlGen() {
                 case 0b000: {
                     // ADDI
                     s_ALUOP = ALUDefs::ADD;
-                    CTRL_I_TYPE
                     break;
                 }
                 case 0b010: {
                     // SLTI
                     s_ALUOP = ALUDefs::LT;
-                    CTRL_I_TYPE
                     break;
                 }
                 case 0b011: {
                     // SLTIU
                     s_ALUOP = ALUDefs::LTU;
-                    CTRL_I_TYPE
                     break;
                 }
                 case 0b100: {
                     // XORI
                     s_ALUOP = ALUDefs::XOR;
-                    CTRL_I_TYPE
                     break;
                 }
                 case 0b110: {
                     // ORI
                     s_ALUOP = ALUDefs::OR;
-                    CTRL_I_TYPE
                     break;
                 }
                 case 0b111: {
                     // ANDI
                     s_ALUOP = ALUDefs::AND;
-                    CTRL_I_TYPE
                     break;
                 }
             }
+            CTRL_I_TYPE
             break;
         }
         case 0b0110011: {
@@ -173,13 +179,11 @@ void Pipeline::controlGen() {
                         case 0b0000000: {
                             // ADD
                             s_ALUOP = ALUDefs::ADD;
-                            CTRL_R_TYPE
                             break;
                         }
                         case 0100000: {
                             // SUB
                             s_ALUOP = ALUDefs::SUB;
-                            CTRL_R_TYPE
                             break;
                         }
                     }
@@ -188,25 +192,21 @@ void Pipeline::controlGen() {
                 case 0b001: {
                     // SLL
                     s_ALUOP = ALUDefs::SL;
-                    CTRL_R_TYPE
                     break;
                 }
                 case 0b010: {
                     // SLT
                     s_ALUOP = ALUDefs::LT;
-                    CTRL_R_TYPE
                     break;
                 }
                 case 0b011: {
                     // SLTU
                     s_ALUOP = ALUDefs::LTU;
-                    CTRL_R_TYPE
                     break;
                 }
                 case 0b100: {
                     // XOR
                     s_ALUOP = ALUDefs::XOR;
-                    CTRL_R_TYPE
                     break;
                 }
                 case 0b101: {
@@ -214,13 +214,11 @@ void Pipeline::controlGen() {
                         case 0b0000000: {
                             // SRL
                             s_ALUOP = ALUDefs::SRL;
-                            CTRL_R_TYPE
                             break;
                         }
                         case 0b0100000: {
                             // SRA
                             s_ALUOP = ALUDefs::SRA;
-                            CTRL_R_TYPE
                             break;
                         }
                     }
@@ -229,22 +227,77 @@ void Pipeline::controlGen() {
                 case 0b110: {
                     // OR
                     s_ALUOP = ALUDefs::OR;
-                    CTRL_R_TYPE
                     break;
                 }
                 case 0b111: {
                     // AND
                     s_ALUOP = ALUDefs::AND;
-                    CTRL_R_TYPE
                     break;
                 }
             }
+            CTRL_R_TYPE
+            break;
+        }
+        case 0b0000011: {
+            // Load instructions
+            auto fields = Parser::getParser()->decodeIInstr((uint32_t)r_instr_IFID);
+            switch (fields[2]) {
+                case 0b000: {
+                    // LB
+                    s_MemRead = LB;
+                    break;
+                }
+                case 0b001: {
+                    // LH
+                    s_MemRead = LH;
+                    break;
+                }
+                case 0b010: {
+                    // LW
+                    s_MemRead = LW;
+                    break;
+                }
+                case 0b100: {
+                    // LBU
+                    s_MemRead = LBU;
+                    break;
+                }
+                case 0b101: {
+                    // LHU
+                    s_MemRead = LHU;
+                    break;
+                }
+            }
+            CTRL_LOAD
+            break;
+        }
+        case 0b0100011: {
+            // Store instructions
+            auto fields = Parser::getParser()->decodeSInstr((uint32_t)r_instr_IFID);
+            switch (fields[3]) {
+                case 0b000: {
+                    // SB
+                    s_MemWrite = SB;
+                    break;
+                }
+                case 0b001: {
+                    // SH
+                    s_MemWrite = SH;
+                    break;
+                }
+                case 0b010: {
+                    // SW
+                    s_MemWrite = SW;
+                    break;
+                }
+            }
+            CTRL_STORE
             break;
         }
         default: {
             s_ALUOP = 0;
             s_ALUSrc = 0;
-            s_MemtoReg = 0;
+            s_MemToReg = 0;
             s_RegWrite = 0;
             s_MemRead = 0;
             s_MemWrite = 0;
@@ -261,8 +314,29 @@ void Pipeline::propagateCombinational() {
     mux_memToReg.update();
 
     // ----- MEM -----
-    if (r_MemWrite_EXMEM) {
-    } else if (r_MemRead_EXMEM) {
+    if (r_MemRead_EXMEM) {
+        switch ((uint32_t)r_MemRead_EXMEM) {
+            case LB: {
+                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xff;
+                break;
+            }
+            case LH: {
+                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff;
+                break;
+            }
+            case LW: {
+                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM);
+                break;
+            }
+            case LBU: {
+                readData_MEM = signextend<int32_t, 8>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xff);
+                break;
+            }
+            case LHU: {
+                readData_MEM = signextend<int32_t, 16>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff);
+                break;
+            }
+        }
     }
 
     // ----- EX -----
@@ -283,16 +357,33 @@ void Pipeline::propagateCombinational() {
 }
 
 int Pipeline::step() {
-    // Main processing loop for the pipeline
+    // Main processing function for the pipeline
     // propagates the signals throgh the combinational logic and clocks the
-    // sequential logic afterwards
+    // sequential logic afterwards - similar to clocking a circuit
 
-    // Clock all registers
-    m_reg.clock();  // write register values. Must happen before clocking all registers (to apply the correct regWrite
-                    // value)
+    // Clock inter-stage registers
+    m_reg.clock();
+    if (r_MemWrite_EXMEM) {
+        switch ((uint32_t)r_MemWrite_EXMEM) {
+            case SB: {
+                m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 1);
+                break;
+            }
+            case SH: {
+                m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 2);
+                break;
+            }
+            case SW: {
+                m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 4);
+                break;
+            }
+        }
+    }
+
+    // Clock stage-separating registers
     RegBase::clockAll();
 
-    // Propagate signals throuh logic
+    // Propagate signals through logic
     propagateCombinational();
 
     // Set stage program counters
@@ -308,9 +399,9 @@ int Pipeline::step() {
 
 #define PCVAL(pc) std::pair<uint32_t, bool>((uint32_t)pc, true)
 void Pipeline::setStagePCS() {
-    // To validate a PC value (whether there is actually an instruction in the stage, or if the pipeline has been
-    // reset), the previous stage PC is used to determine the current state of a stage
-    // To facilitate this, the PCS are set in reverse order
+    // To validate a PC value (whether there is actually an instruction in the stage, or if the pipeline has
+    // been reset), the previous stage PC is used to determine the current state of a stage To facilitate this,
+    // the PCS are set in reverse order
     m_pcs.WB = m_pcs.MEM.second ? PCVAL(r_PC_MEMWB) : m_pcs.WB;
     m_pcs.MEM = m_pcs.EX.second ? PCVAL(r_PC_EXMEM) : m_pcs.MEM;
     m_pcs.EX = m_pcs.ID.second ? PCVAL(r_PC_IDEX) : m_pcs.EX;

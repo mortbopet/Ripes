@@ -13,7 +13,7 @@
 #define STACKSTART 0x7ffffff0
 #define DATASTART 0x10000000
 
-enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
+enum displayTypeN { Hex, Binary, Decimal, Unsigned, ASCII };
 Q_DECLARE_METATYPE(displayTypeN)
 
 class StagePCS {
