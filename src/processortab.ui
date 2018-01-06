@@ -102,13 +102,16 @@
              </sizepolicy>
             </property>
             <property name="minimum">
-             <number>0</number>
+             <number>100</number>
             </property>
             <property name="maximum">
-             <number>6</number>
+             <number>700</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="invertedControls">
+             <bool>false</bool>
             </property>
            </widget>
           </item>

@@ -21,13 +21,13 @@ Pipeline::Pipeline() {
     // ------ ID ---------
     m_reg.setInputs(r_instr_IFID.getOutput(), r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(),
                     r_regWrite_MEMWB.getOutput());
-    r_imm_IDEX.setInput(&imm_ID);
+    r_imm_IDEX.setInput(&s_imm_ID);
     r_rd1_IDEX.setInput(m_reg.getOutput(1));
     r_rd2_IDEX.setInput(m_reg.getOutput(2));
     r_writeReg_IDEX.setInput(&writeReg);
 
     alu_pc_target.setControl(&s_alu_const_add);
-    alu_pc_target.setInputs(r_PC_IDEX.getOutput(), &imm_ID_shifted);
+    alu_pc_target.setInputs(r_PC_IFID.getOutput(), &s_imm_ID);
 
     // Control signals
     r_regWrite_IDEX.setInput(&s_RegWrite);
@@ -67,42 +67,50 @@ Pipeline::Pipeline() {
     mux_memToReg.setInput(1, r_readData_MEMWB.getOutput());
     mux_memToReg.setControl(r_MemtoReg_MEMWB.getOutput());
 
-    // Program counters
+    // Program counters & PC invalidation signals
+    // Propagate invalidPC signal through pipeline, so GUI can display nop's on invalidated stages
     r_PC_IFID.setInput(r_PC_IF.getOutput());
+    r_PC_IFID.setReset(&s_PCSrc);
+    r_invalidPC_IFID.setInput(&s_PCSrc);
+
     r_PC_IDEX.setInput(r_PC_IFID.getOutput());
+    r_invalidPC_IDEX.setInput(r_invalidPC_IFID.getOutput());
+
     r_PC_EXMEM.setInput(r_PC_IDEX.getOutput());
+    r_invalidPC_EXMEM.setInput(r_invalidPC_IDEX.getOutput());
+
     r_PC_MEMWB.setInput(r_PC_EXMEM.getOutput());
+    r_invalidPC_MEMWB.setInput(r_invalidPC_EXMEM.getOutput());
 }
 
 void Pipeline::immGen() {
     if (((uint32_t)r_instr_IFID & 0b1111111) == 0b0110111) {
         // LUI
-        imm_ID = Signal<32>((uint32_t)r_instr_IFID & 0xfffff000);
+        s_imm_ID = Signal<32>((uint32_t)r_instr_IFID & 0xfffff000);
     } else {
         // Generates an immediate value on the basis of an instruction opcode
         // Opcode bits 5 and 6 can define the required fields for generating the immediate
         switch (((uint32_t)r_instr_IFID & 0b1100000) >> 5) {
             case 0b00: {
                 // Load instruction, sign extend bits 31:20
-                imm_ID = Signal<32>(signextend<int32_t, 12>(((uint32_t)r_instr_IFID >> 20)));
+                s_imm_ID = Signal<32>(signextend<int32_t, 12>(((uint32_t)r_instr_IFID >> 20)));
                 break;
             }
             case 0b01: {
                 // Store instruction
                 uint32_t v(r_instr_IFID);
-                imm_ID = Signal<32>(signextend<int32_t, 12>(((v & 0xfe000000)) >> 20) | ((v & 0xf80) >> 7));
+                s_imm_ID = Signal<32>(signextend<int32_t, 12>(((v & 0xfe000000)) >> 20) | ((v & 0xf80) >> 7));
                 break;
             }
             default: {
                 // Conditional branch instructions
-                uint32_t v(r_instr_IFID);
-                imm_ID = Signal<32>(signextend<int32_t, 13>(((v & 0x80000000)) >> 20) | ((v & 0x7e) >> 20) |
-                                    ((v & 0xf00) >> 7) | ((v & 0x80) << 6));
+                auto fields = Parser::getParser()->decodeBInstr((uint32_t)r_instr_IFID);
+                s_imm_ID = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) |
+                                                   (fields[6] << 11));
                 break;
             }
         }
     }
-    imm_ID_shifted = imm_ID;  //((uint32_t)imm_ID) << 1;
 }
 
 namespace {
@@ -447,9 +455,7 @@ void Pipeline::propagateCombinational() {
     // ----- IF -----
     alu_pc4.update();
     mux_PCSrc.update();
-    if ((uint32_t)s_PCSrc == 1) {
-        qDebug() << "a";
-    }
+
     // Load nops if PC is greater than text size
     s_instr_IF = Signal<32>(
         (uint32_t)r_PC_IF > m_textSize ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
@@ -484,12 +490,11 @@ int Pipeline::step() {
 
     // Propagate signals through logic
     propagateCombinational();
-
     // Set stage program counters
     setStagePCS();
 
     // Execution is finished if nops are in all stages except WB
-    if (m_pcs.WB.first == m_textSize) {
+    if (m_pcs.WB.pc == m_textSize) {
         m_finished = true;
         return 1;
     } else {
@@ -497,17 +502,20 @@ int Pipeline::step() {
     }
 }
 
-#define PCVAL(pc) std::pair<uint32_t, bool>((uint32_t)pc, true)
+#define PCVAL(pc, reg) \
+    StagePCS::PC { (uint32_t) pc, true, (bool)reg }
+
 void Pipeline::setStagePCS() {
     // To validate a PC value (whether there is actually an instruction in the stage, or if the pipeline has
     // been reset), the previous stage PC is used to determine the current state of a stage To facilitate this,
     // the PCS are set in reverse order
     m_pcsPre = m_pcs;
-    m_pcs.WB = m_pcs.MEM.second ? PCVAL(r_PC_MEMWB) : m_pcs.WB;
-    m_pcs.MEM = m_pcs.EX.second ? PCVAL(r_PC_EXMEM) : m_pcs.MEM;
-    m_pcs.EX = m_pcs.ID.second ? PCVAL(r_PC_IDEX) : m_pcs.EX;
-    m_pcs.ID = m_pcs.IF.second ? PCVAL(r_PC_IFID) : m_pcs.ID;
-    m_pcs.IF = PCVAL(r_PC_IF);
+    // Propagate "valid" in terms
+    m_pcs.WB = m_pcs.MEM.initialized ? PCVAL(r_PC_MEMWB, r_invalidPC_MEMWB) : m_pcs.WB;
+    m_pcs.MEM = m_pcs.EX.initialized ? PCVAL(r_PC_EXMEM, r_invalidPC_EXMEM) : m_pcs.MEM;
+    m_pcs.EX = m_pcs.ID.initialized ? PCVAL(r_PC_IDEX, r_invalidPC_IDEX) : m_pcs.EX;
+    m_pcs.ID = m_pcs.IF.initialized ? PCVAL(r_PC_IFID, r_invalidPC_IFID) : m_pcs.ID;
+    m_pcs.IF = PCVAL(r_PC_IF, false);
 }
 
 int Pipeline::run() {
@@ -545,5 +553,5 @@ void Pipeline::restart() {
     propagateCombinational();
 
     // set PC_IF stage to the first instruction
-    m_pcs.IF = PCVAL(r_PC_IF);
+    m_pcs.IF = PCVAL(r_PC_IF, s_PCSrc);
 }

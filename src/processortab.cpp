@@ -23,8 +23,13 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
 
     // Setup execution speed slider
     m_ui->execSpeed->setSliderPosition(2);
-    m_timer.setInterval(1200 - 200 * m_ui->execSpeed->sliderPosition());
-    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) { m_timer.setInterval(1200 - 200 * pos); });
+
+    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) {
+        // Reverse the slider, going from high to low
+        const static int delay = m_ui->execSpeed->maximum() + m_ui->execSpeed->minimum();
+        m_timer.setInterval(delay - pos);
+    });
+    m_ui->execSpeed->valueChanged(m_ui->execSpeed->value());
 
     connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
 

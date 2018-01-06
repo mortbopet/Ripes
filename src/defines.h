@@ -19,16 +19,20 @@ enum displayTypeN { Hex, Binary, Decimal, Unsigned, ASCII };
 Q_DECLARE_METATYPE(displayTypeN)
 
 class StagePCS {
-    typedef std::pair<uint32_t, bool> PC;
-
 public:
+    typedef struct {
+        uint32_t pc;
+        bool initialized;  // If false, no text will be written above a pipeline stage when pipeline is reset
+        bool invalid;  // If true, a stage has been flushed (the PC for the stage is  set to 0) - "nop" will be written
+                       // above the pipeline stage
+    } PC;
     StagePCS() {}
     void reset() {
-        IF = PC(0, false);
-        ID = PC(0, false);
-        EX = PC(0, false);
-        MEM = PC(0, false);
-        WB = PC(0, false);
+        IF = PC{0, false, false};
+        ID = PC{0, false, false};
+        EX = PC{0, false, false};
+        MEM = PC{0, false, false};
+        WB = PC{0, false, false};
     }
     PC IF;
     PC ID;

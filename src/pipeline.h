@@ -61,8 +61,7 @@ private:
     Mux<2, 32> mux_memToReg;
     Signal<1> ctrl_memToReg;
 
-    Signal<32> imm_ID = Signal<32>("Immediate");
-    Signal<32> imm_ID_shifted = Signal<32>("Immediate SL1");
+    Signal<32> s_imm_ID = Signal<32>("Immediate");
     Signal<32> s_instr_IF = Signal<32>("Instruction");
     Signal<32> readData_MEM;
 
@@ -71,6 +70,7 @@ private:
     Reg<32> r_instr_IFID, r_rd1_IDEX, r_rd2_IDEX, r_imm_IDEX, r_alures_EXMEM, r_writeData_EXMEM, r_readData_MEMWB,
         r_alures_MEMWB;
     Reg<32> r_PC_IF, r_PC_IFID, r_PC_IDEX, r_PC_EXMEM, r_PC_MEMWB;
+    Reg<1> r_invalidPC_IFID, r_invalidPC_IDEX, r_invalidPC_EXMEM, r_invalidPC_MEMWB;
     Signal<5> writeReg;
     Reg<5> r_writeReg_IDEX, r_writeReg_EXMEM, r_writeReg_MEMWB;  // Write register (# of register to write to)
 
@@ -90,6 +90,7 @@ private:
     Signal<1> s_RegWrite, s_ALUSrc, s_MemToReg, s_Branch;
     Signal<ALUDefs::CTRL_SIZE> s_ALUOP;
     Signal<3> s_CompOp;
+    Signal<1> s_validPC;  // used for GUI to determine whether a PC = 0 is a nop (register flush) or valid
 
     // Control signal enums
     enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };

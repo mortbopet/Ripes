@@ -27,9 +27,11 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 namespace {
-#define VALIDATE(stage)                     \
-    if (!m_pcsptr.stage.second) {           \
-        emit textChanged(Stage::stage, ""); \
+#define VALIDATE(stage)                                       \
+    if (!m_pcsptr.stage.initialized) {                        \
+        emit textChanged(Stage::stage, "");                   \
+    } else if (m_pcsptr.stage.invalid) {                      \
+        emit textChanged(Stage::stage, "nop (branch taken)"); \
     }
 }
 
@@ -46,28 +48,28 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                    // size, if so, clear previous instruction texts in the pipeline widget
             uint32_t byteIndex = row * 4;
             uint32_t maxInstr = m_textSize - 4;
-            if (byteIndex == m_pcsptr.EX.first && m_pcsptr.EX.second) {
+            if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && !m_pcsptr.EX.invalid) {
                 emit textChanged(Stage::EX, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::ID, "");
                 }
                 return QString("EX");
-            } else if (byteIndex == m_pcsptr.ID.first && m_pcsptr.ID.second) {
+            } else if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && !m_pcsptr.ID.invalid) {
                 emit textChanged(Stage::ID, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::IF, "");
                 }
                 return QString("ID");
-            } else if (byteIndex == m_pcsptr.IF.first && m_pcsptr.IF.second) {
+            } else if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && !m_pcsptr.IF.invalid) {
                 emit textChanged(Stage::IF, m_parserPtr->genStringRepr(memRead(row * 4)));
                 return QString("IF");
-            } else if (byteIndex == m_pcsptr.MEM.first && m_pcsptr.MEM.second) {
+            } else if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && !m_pcsptr.MEM.invalid) {
                 emit textChanged(Stage::MEM, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::EX, "");
                 }
                 return QString("MEM");
-            } else if (byteIndex == m_pcsptr.WB.first && m_pcsptr.WB.second) {
+            } else if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && !m_pcsptr.WB.invalid) {
                 emit textChanged(Stage::WB, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::MEM, "");
