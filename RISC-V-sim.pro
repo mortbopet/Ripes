@@ -7,7 +7,6 @@ INCLUDEPATH  += $$PWD/src/ \
                 $$PWD/external/QCustomPlot/ \
                 $$PWD/external/fancytabbar/
 
-
 SOURCES += src/main.cpp \
     src/parser.cpp \
     src/runner.cpp \
@@ -108,3 +107,27 @@ SOURCES += \
 
 RESOURCES += \
     resources/images.qrc
+
+
+# Copy example projects to build directory - https://dragly.org/2013/11/05/copying-data-files-to-the-build-directory-when-working-with-qmake.html
+# Set various variables to make sure that copying is only allowed once, when OUTDIR is set
+CONFIG(debug, debug|release) {
+    OUTDIR = debug
+}
+CONFIG(release, debug|release) {
+    OUTDIR = release
+}
+
+COPIED {
+} else {
+        if(win*){
+            copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD/$$OUTDIR/examples\"
+        } else {
+            copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD\"
+        }
+        first.depends = $(first) copydata
+        export(first.depends)
+        export(copydata.commands)
+        QMAKE_EXTRA_TARGETS += first copydata
+        CONFIG += COPIED
+}
