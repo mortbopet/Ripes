@@ -43,9 +43,12 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
     switch (index.column()) {
         case 0:
             return row * 4;
-        case 1: {  // check if instruction is in any pipeline stage, and whether the given PC for the pipeline stage is
-                   // valid. For the pipelinewidget, determine if an instruction in a given stage is equal to the text
-                   // size, if so, clear previous instruction texts in the pipeline widget
+        case 1: {
+            // check if instruction is in any pipeline stage, and whether the given PC for the pipeline stage is
+            // valid.
+            // Furthermore, because of branching, an instruction can be in multiple stages at once - therefore, we build
+            // up a return string by checking all stage program counters
+            QStringList retStrings;
             uint32_t byteIndex = row * 4;
             uint32_t maxInstr = m_textSize - 4;
             if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && !m_pcsptr.EX.invalid) {
@@ -53,29 +56,34 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::ID, "");
                 }
-                return QString("EX");
-            } else if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && !m_pcsptr.ID.invalid) {
+                retStrings << "EX";
+            }
+            if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && !m_pcsptr.ID.invalid) {
                 emit textChanged(Stage::ID, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::IF, "");
                 }
-                return QString("ID");
-            } else if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && !m_pcsptr.IF.invalid) {
+                retStrings << "ID";
+            }
+            if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && !m_pcsptr.IF.invalid) {
                 emit textChanged(Stage::IF, m_parserPtr->genStringRepr(memRead(row * 4)));
-                return QString("IF");
-            } else if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && !m_pcsptr.MEM.invalid) {
+                retStrings << "IF";
+            }
+            if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && !m_pcsptr.MEM.invalid) {
                 emit textChanged(Stage::MEM, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::EX, "");
                 }
-                return QString("MEM");
-            } else if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && !m_pcsptr.WB.invalid) {
+                retStrings << "MEM";
+            }
+            if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && !m_pcsptr.WB.invalid) {
                 emit textChanged(Stage::WB, m_parserPtr->genStringRepr(memRead(row * 4)));
                 if (byteIndex == maxInstr) {
                     emit textChanged(Stage::MEM, "");
                 }
-                return QString("WB");
-            } else {
+                retStrings << "WB";
+            }
+            if (retStrings.isEmpty()) {
                 // Clear invalid PC values for each stage (used when resetting the simlation)
                 VALIDATE(IF);
                 VALIDATE(ID);
@@ -83,6 +91,9 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                 VALIDATE(MEM);
                 VALIDATE(WB);
                 return QVariant();
+            } else {
+                // Join strings by "/"
+                return retStrings.join("/");
             }
         }
         case 2:

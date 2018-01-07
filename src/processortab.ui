@@ -59,7 +59,10 @@
              <string>Start simulation, stepping through the program</string>
             </property>
             <property name="text">
-             <string>Start simulation</string>
+             <string>Start simulation (F5)</string>
+            </property>
+            <property name="shortcut">
+             <string>F5</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -72,7 +75,10 @@
           <item>
            <widget class="QPushButton" name="step">
             <property name="text">
-             <string>Step</string>
+             <string>Step (F6)</string>
+            </property>
+            <property name="shortcut">
+             <string>F6</string>
             </property>
            </widget>
           </item>
@@ -82,7 +88,10 @@
              <string/>
             </property>
             <property name="text">
-             <string>Reset</string>
+             <string>Reset (F7)</string>
+            </property>
+            <property name="shortcut">
+             <string>F7</string>
             </property>
            </widget>
           </item>
@@ -102,10 +111,13 @@
              </sizepolicy>
             </property>
             <property name="minimum">
-             <number>100</number>
+             <number>50</number>
             </property>
             <property name="maximum">
-             <number>700</number>
+             <number>500</number>
+            </property>
+            <property name="value">
+             <number>250</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -148,7 +160,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>Fit pipeline to view</string>
+             <string>Fit pipeline to view (F10)</string>
             </property>
             <property name="text">
              <string>...</string>
@@ -162,6 +174,9 @@
               <width>24</width>
               <height>24</height>
              </size>
+            </property>
+            <property name="shortcut">
+             <string>F10</string>
             </property>
            </widget>
           </item>

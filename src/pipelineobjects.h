@@ -72,8 +72,11 @@ private:
 
 // The Reg class is used for sequential signal assignment. Has a single input/output of a given signal size.
 // Upon construction, new registers are added to "registers", which is used when clocking the pipeline
-// input reset is a synchronous reset
+// Input "Reset" is a synchronous reset
+// input "Enable" is a synchronous clock enable signal. If not set (nullptr), it is tied to High (always enabled)
 class RegBase {
+    friend class RegBank;
+
 public:
     static std::vector<RegBase*> registers;
     static void clockAll() {
@@ -86,11 +89,38 @@ public:
     static void resetAll() {
         std::for_each(registers.begin(), registers.end(), [](auto& reg) { reg->reset(); });
     }
+    void setReset(const Signal<1>* in) { m_reset = in; }
+    void setEnable(const Signal<1>* in) { m_enable = in; }
 
 protected:
     virtual void clock() = 0;
     virtual void save() = 0;
     virtual void reset() = 0;
+
+    const Signal<1>* m_reset;
+    const Signal<1>* m_enable;
+};
+
+class RegBank {
+public:
+    // Collection of RegBase pointers - for grouping registers and setting equal control signals to all
+    RegBank& addToBank(RegBase* regPtr) {
+        registers.push_back(regPtr);
+        return *this;
+    }
+    void setReset(const Signal<1>* sig) { m_reset = sig; }
+    void setEnable(const Signal<1>* sig) { m_enable = sig; }
+    void setRegisterControls() {
+        if (m_reset != nullptr)
+            std::for_each(registers.begin(), registers.end(), [this](auto& reg) { reg->setReset(m_reset); });
+        if (m_enable != nullptr)
+            std::for_each(registers.begin(), registers.end(), [this](auto& reg) { reg->setEnable(m_enable); });
+    }
+
+private:
+    std::vector<RegBase*> registers;
+    const Signal<1>* m_reset;
+    const Signal<1>* m_enable;
 };
 
 template <int n>
@@ -110,16 +140,19 @@ public:
     explicit operator uint32_t() const { return (uint32_t)m_current; }
     explicit operator bool() const { return (bool)m_current; }
     void setInput(const Signal<n>* in) { m_next = in; }
-    void setReset(const Signal<1>* in) { m_reset = in; }
 
 protected:
     void clock() override {
-        if (m_reset == nullptr)
-            m_current = m_nextSaved;
-        else if ((bool)*m_reset == true) {
-            m_current = 0;
+        if (m_enable == nullptr || (bool)*m_enable == true) {
+            if (m_reset == nullptr)
+                m_current = m_nextSaved;
+            else if ((bool)*m_reset == true) {
+                m_current = 0;
+            } else {
+                m_current = m_nextSaved;
+            }
         } else {
-            m_current = m_nextSaved;
+            // Do nothing - clock enable is deasserted
         }
     }
     void save() override {
@@ -134,7 +167,6 @@ protected:
 private:
     Signal<n> m_current;
     Signal<n> m_nextSaved;
-    const Signal<1>* m_reset;
     const Signal<n>* m_next;
 };
 
@@ -154,6 +186,8 @@ public:
     void setControl(const Signal<bitcount(inputs)>* sig) { m_control = sig; }
 
     Signal<n>* getOutput() { return &m_output; }
+    explicit operator uint32_t() const { return (uint32_t)m_output; }
+    explicit operator int() const { return (int)m_output; }
 
 protected:
     std::vector<const Signal<n>*> m_inputs = std::vector<const Signal<n>*>(inputs);
@@ -179,7 +213,7 @@ public:
         {
             if (!this->initialized())
                 throw std::runtime_error("Mux not initialized");
-            this->m_output = *this->m_inputs[(uint32_t) * this->m_control];
+            this->m_output = (uint32_t) * this->m_inputs[(uint32_t) * this->m_control];
         }
     }
 };
@@ -216,7 +250,22 @@ private:
 
 namespace ALUDefs {
 static const int CTRL_SIZE = 5;
-enum OPCODE { ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT /*Less than*/, LTU /*Less than Unsigned*/, EQ };
+enum OPCODE {
+    ADD = 0,
+    SUB = 1,
+    MUL = 2,
+    DIV = 3,
+    AND = 4,
+    OR = 5,
+    XOR = 6,
+    SL = 7,
+    SRA = 8,
+    SRL = 9,
+    LUI = 10,
+    LT = 11,
+    LTU = 12,
+    EQ = 13
+};
 }  // namespace ALUDefs
 
 template <int n>
@@ -281,10 +330,10 @@ void ALU<n>::update() {
             m_output = (uint32_t)*m_op1 << (uint32_t)*m_op2;
             break;
         case ALUDefs::SRA:
-            m_output = (uint32_t)*m_op1 >> (uint32_t)*m_op2;
+            m_output = (int32_t)*m_op1 >> (uint32_t)*m_op2;
             break;
         case ALUDefs::SRL:
-            m_output = (int)*m_op1 + (uint32_t)*m_op2;
+            m_output = (uint32_t)*m_op1 >> (uint32_t)*m_op2;
             break;
         case ALUDefs::LUI:
             m_output = (uint32_t)*m_op2;
@@ -314,13 +363,15 @@ public:
     }
     void init();
 
-    void setInputs(Signal<32>* instr, Signal<5>* writeReg, Signal<32>* writeData, Signal<1>* regWrite);
+    void setInputs(Signal<5>* readRegister1, Signal<5>* readRegister2, Signal<5>* writeReg, Signal<32>* writeData,
+                   Signal<1>* regWrite);
     Signal<32>* getOutput(int n = 1) { return n == 2 ? &m_readData2 : &m_readData1; }
 
 private:
     // ReadRegister 1/2 is deduced from the input instruction signal
     const Signal<1>* m_regWrite;
-    const Signal<32>* m_instr;
+    const Signal<5>* m_readRegister1;
+    const Signal<5>* m_readRegister2;
     const Signal<5>* m_writeRegister;
     const Signal<32>* m_writeData;
     Signal<32> m_readData1;

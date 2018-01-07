@@ -33,6 +33,8 @@ private:
     void propagateCombinational();
     void immGen();
     void controlGen();
+    void forwardingControlGen();
+    void hazardControlGen();
     void aluCtrl();
     void clock();
     bool m_ready = false;
@@ -56,7 +58,6 @@ private:
     ALU<32> alu_pc_target = ALU<32>("ALU PC target");  // ALU for PC target computation
 
     ALU<32> alu_mainALU = ALU<32>("Main ALU");  // Arithmetic ALU
-    Signal<ALUDefs::CTRL_SIZE> alu_ctrl;
     Mux<2, 32> mux_ALUSrc;
     Mux<2, 32> mux_memToReg;
     Signal<1> ctrl_memToReg;
@@ -65,7 +66,15 @@ private:
     Signal<32> s_instr_IF = Signal<32>("Instruction");
     Signal<32> readData_MEM;
 
+    Signal<5> s_readRegister1, s_readRegister2;
+
+    Mux<3, 32> mux_forwardA_EX, mux_forwardB_EX, mux_forwardA_ID,
+        mux_forwardB_ID;  // Forwarding mux'es for execute stage and ID stage (branch comparison operation)
+    Signal<2> s_forwardA_EX, s_forwardB_EX, s_forwardA_ID, s_forwardB_ID;
+    Signal<1> s_invalidPC;
+
     // Registers
+    Reg<5> r_readRegister1_IDEX, r_readRegister2_IDEX;
     std::vector<RegBase*> m_regs;
     Reg<32> r_instr_IFID, r_rd1_IDEX, r_rd2_IDEX, r_imm_IDEX, r_alures_EXMEM, r_writeData_EXMEM, r_readData_MEMWB,
         r_alures_MEMWB;
@@ -73,6 +82,7 @@ private:
     Reg<1> r_invalidPC_IFID, r_invalidPC_IDEX, r_invalidPC_EXMEM, r_invalidPC_MEMWB;
     Signal<5> writeReg;
     Reg<5> r_writeReg_IDEX, r_writeReg_EXMEM, r_writeReg_MEMWB;  // Write register (# of register to write to)
+    RegBank bank_IDEX;
 
     // Control propagation registers
     Reg<1> r_regWrite_IDEX, r_regWrite_EXMEM, r_regWrite_MEMWB;  // Register write signal
@@ -90,12 +100,18 @@ private:
     Signal<1> s_RegWrite, s_ALUSrc, s_MemToReg, s_Branch;
     Signal<ALUDefs::CTRL_SIZE> s_ALUOP;
     Signal<3> s_CompOp;
-    Signal<1> s_validPC;  // used for GUI to determine whether a PC = 0 is a nop (register flush) or valid
+    Signal<1> s_validPC;     // used for GUI to determine whether a PC = 0 is a nop (register flush) or valid
+    Signal<1> s_PCWrite;     // Used when a branch instruction requires a pipeline stall
+    Signal<1> s_IFID_write;  // Used when a branch instruction requires a pipeline stall
+    Signal<1> s_IDEX_reset;  // Used when a branch instruction requires a pipeline stall
 
     // Control signal enums
     enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };
     enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
     enum MemWrite { SB = 1, SH = 2, SW = 3 };
 };
+namespace Forwarding {
+enum MuxForward { NONE = 0, EXMEM = 1, MEMWB = 2 };
+}
 
 #endif  // PIPELINE_H

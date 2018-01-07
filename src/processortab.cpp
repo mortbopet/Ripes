@@ -12,18 +12,19 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     // Setup buttons
     connect(m_ui->start, &QPushButton::toggled, [=](bool state) {
         if (state) {
-            m_ui->start->setText("Pause simulation");
+            m_ui->start->setText("Pause simulation (F5)");
+            m_ui->start->setShortcut(
+                Qt::Key_F5);  // The shortcut is for some reason cleared when editing the button text
             m_timer.start();
         } else {
-            m_ui->start->setText("Start simulation");
+            m_ui->start->setText("Start simulation (F5)");
+            m_ui->start->setShortcut(Qt::Key_F5);
             m_timer.stop();
         };
         m_ui->step->setEnabled(!state);
     });
 
     // Setup execution speed slider
-    m_ui->execSpeed->setSliderPosition(2);
-
     connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) {
         // Reverse the slider, going from high to low
         const static int delay = m_ui->execSpeed->maximum() + m_ui->execSpeed->minimum();
@@ -70,7 +71,6 @@ void ProcessorTab::initInstructionView() {
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_ui->instructionView->setModel(m_instrModel);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     connect(this, &ProcessorTab::update, m_ui->instructionView, QOverload<>::of(&QWidget::update));
     connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::update);

@@ -12,19 +12,54 @@ Pipeline::Pipeline() {
     alu_pc4.setInputs(r_PC_IF.getOutput(), &c_4);
     alu_pc4.setControl(&s_alu_const_add);
     r_PC_IF.setInput(mux_PCSrc.getOutput());
+    r_PC_IF.setEnable(&s_PCWrite);
     r_instr_IFID.setInput(&s_instr_IF);
     r_instr_IFID.setReset(&s_PCSrc);
+    r_instr_IFID.setEnable(&s_IFID_write);
     mux_PCSrc.setControl(&s_PCSrc);
     mux_PCSrc.setInput(0, alu_pc4.getOutput());
     mux_PCSrc.setInput(1, alu_pc_target.getOutput());
 
+    r_PC_IFID.setInput(r_PC_IF.getOutput());
+    r_PC_IFID.setReset(&s_PCSrc);
+    r_PC_IFID.setEnable(&s_IFID_write);
+    r_invalidPC_IFID.setInput(&s_invalidPC);
+
     // ------ ID ---------
-    m_reg.setInputs(r_instr_IFID.getOutput(), r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(),
+    m_reg.setInputs(&s_readRegister1, &s_readRegister2, r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(),
                     r_regWrite_MEMWB.getOutput());
     r_imm_IDEX.setInput(&s_imm_ID);
     r_rd1_IDEX.setInput(m_reg.getOutput(1));
     r_rd2_IDEX.setInput(m_reg.getOutput(2));
     r_writeReg_IDEX.setInput(&writeReg);
+
+    r_readRegister1_IDEX.setInput(&s_readRegister1);
+    r_readRegister2_IDEX.setInput(&s_readRegister2);
+
+    r_PC_IDEX.setInput(r_PC_IFID.getOutput());
+    r_invalidPC_IDEX.setInput(r_invalidPC_IFID.getOutput());
+
+    // Gather all registers in a bank - making it easier assign equal signals to all
+    bank_IDEX.addToBank(&r_imm_IDEX)
+        .addToBank(&r_rd1_IDEX)
+        .addToBank(&r_rd2_IDEX)
+        .addToBank(&r_writeReg_IDEX)
+        .addToBank(&r_readRegister1_IDEX)
+        .addToBank(&r_readRegister2_IDEX)
+        .addToBank(&r_PC_IDEX)
+        .addToBank(&r_invalidPC_IDEX);
+    bank_IDEX.setReset(&s_IDEX_reset);
+    bank_IDEX.setRegisterControls();
+
+    mux_forwardA_ID.setControl(&s_forwardA_ID);
+    mux_forwardA_ID.setInput(Forwarding::NONE, m_reg.getOutput(1));
+    mux_forwardA_ID.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardA_ID.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
+
+    mux_forwardB_ID.setControl(&s_forwardB_ID);
+    mux_forwardB_ID.setInput(Forwarding::NONE, m_reg.getOutput(2));
+    mux_forwardB_ID.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardB_ID.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
 
     alu_pc_target.setControl(&s_alu_const_add);
     alu_pc_target.setInputs(r_PC_IFID.getOutput(), &s_imm_ID);
@@ -38,14 +73,28 @@ Pipeline::Pipeline() {
     r_MemtoReg_IDEX.setInput(&s_MemToReg);
 
     // ------ EX ---------
-    alu_mainALU.setInputs(r_rd1_IDEX.getOutput(), mux_ALUSrc.getOutput());
-    alu_mainALU.setControl(&alu_ctrl);
-    mux_ALUSrc.setInput(0, r_rd2_IDEX.getOutput());
+    alu_mainALU.setInputs(mux_forwardA_EX.getOutput(), mux_ALUSrc.getOutput());
+    alu_mainALU.setControl(r_ALUOP_IDEX.getOutput());
+
+    mux_ALUSrc.setInput(0, mux_forwardB_EX.getOutput());
     mux_ALUSrc.setInput(1, r_imm_IDEX.getOutput());
     mux_ALUSrc.setControl(r_ALUSrc_IDEX.getOutput());
     r_alures_EXMEM.setInput(alu_mainALU.getOutput());
-    r_writeData_EXMEM.setInput(r_rd2_IDEX.getOutput());
+    r_writeData_EXMEM.setInput(mux_forwardB_EX.getOutput());
     r_writeReg_EXMEM.setInput(r_writeReg_IDEX.getOutput());
+
+    r_PC_EXMEM.setInput(r_PC_IDEX.getOutput());
+    r_invalidPC_EXMEM.setInput(r_invalidPC_IDEX.getOutput());
+
+    mux_forwardA_EX.setControl(&s_forwardA_EX);
+    mux_forwardA_EX.setInput(Forwarding::NONE, r_rd1_IDEX.getOutput());
+    mux_forwardA_EX.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardA_EX.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
+
+    mux_forwardB_EX.setControl(&s_forwardB_EX);
+    mux_forwardB_EX.setInput(Forwarding::NONE, r_rd2_IDEX.getOutput());
+    mux_forwardB_EX.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardB_EX.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
 
     // Control signals
     r_regWrite_EXMEM.setInput(r_regWrite_IDEX.getOutput());
@@ -61,26 +110,13 @@ Pipeline::Pipeline() {
     // Control signals
     r_regWrite_MEMWB.setInput(r_regWrite_EXMEM.getOutput());
     r_MemtoReg_MEMWB.setInput(r_MemtoReg_EXMEM.getOutput());
+    r_PC_MEMWB.setInput(r_PC_EXMEM.getOutput());
+    r_invalidPC_MEMWB.setInput(r_invalidPC_EXMEM.getOutput());
 
     // ------ WB ---------
     mux_memToReg.setInput(0, r_alures_MEMWB.getOutput());
     mux_memToReg.setInput(1, r_readData_MEMWB.getOutput());
     mux_memToReg.setControl(r_MemtoReg_MEMWB.getOutput());
-
-    // Program counters & PC invalidation signals
-    // Propagate invalidPC signal through pipeline, so GUI can display nop's on invalidated stages
-    r_PC_IFID.setInput(r_PC_IF.getOutput());
-    r_PC_IFID.setReset(&s_PCSrc);
-    r_invalidPC_IFID.setInput(&s_PCSrc);
-
-    r_PC_IDEX.setInput(r_PC_IFID.getOutput());
-    r_invalidPC_IDEX.setInput(r_invalidPC_IFID.getOutput());
-
-    r_PC_EXMEM.setInput(r_PC_IDEX.getOutput());
-    r_invalidPC_EXMEM.setInput(r_invalidPC_IDEX.getOutput());
-
-    r_PC_MEMWB.setInput(r_PC_EXMEM.getOutput());
-    r_invalidPC_MEMWB.setInput(r_invalidPC_EXMEM.getOutput());
 }
 
 void Pipeline::immGen() {
@@ -197,6 +233,26 @@ void Pipeline::controlGen() {
                 case 0b111: {
                     // ANDI
                     s_ALUOP = ALUDefs::AND;
+                    break;
+                }
+                case 0b001: {
+                    // SLLI
+                    s_ALUOP = ALUDefs::SL;
+                    break;
+                }
+                case 0b101: {
+                    switch ((uint32_t)r_instr_IFID >> 25) {
+                        case 0b0: {
+                            // SRLI
+                            s_ALUOP = ALUDefs::SRL;
+                            break;
+                        }
+                        case 0b0100000: {
+                            // SRAI
+                            s_ALUOP = ALUDefs::SRA;
+                            break;
+                        }
+                    }
                     break;
                 }
             }
@@ -379,10 +435,98 @@ void Pipeline::controlGen() {
     }
 }
 
+namespace {
+// Assert that the regWrite signal is asserted for a stage when checking forwarding, and that the destination registor
+// is not 0. If this check is not done, coincidences between ie. SW immediate fields and rd fields can occur
+#define EXMEM_WILL_WRITE (uint32_t) r_writeReg_EXMEM != 0 && (bool)r_regWrite_EXMEM
+#define MEMWB_WILL_WRITE (uint32_t) r_writeReg_MEMWB != 0 && (bool)r_regWrite_MEMWB
+}
+
+void Pipeline::forwardingControlGen() {
+    // After clocking new values in all registers, examine register sources and assign forwading multiplexer control
+    // signals accordingly
+
+    // ----- ID stage ----- forwarding to register comparison logic
+    // Register 1
+    if ((uint32_t)s_readRegister1 == (uint32_t)r_writeReg_EXMEM && EXMEM_WILL_WRITE) {
+        // Forward alures
+        s_forwardA_ID = Forwarding::EXMEM;
+    } else if ((uint32_t)s_readRegister1 == (uint32_t)r_writeReg_MEMWB && MEMWB_WILL_WRITE) {
+        // Forward memread
+        s_forwardA_ID = Forwarding::MEMWB;
+    } else {
+        s_forwardA_ID = Forwarding::NONE;
+    }
+
+    // Register 2
+    if ((uint32_t)s_readRegister2 == (uint32_t)r_writeReg_EXMEM && EXMEM_WILL_WRITE) {
+        s_forwardB_ID = Forwarding::EXMEM;
+    } else if ((uint32_t)s_readRegister2 == (uint32_t)r_writeReg_MEMWB && MEMWB_WILL_WRITE) {
+        s_forwardB_ID = Forwarding::MEMWB;
+    } else {
+        s_forwardB_ID = Forwarding::NONE;
+    }
+
+    // ----- EX stage ----- forwarding to ALU
+    // Register 1
+    if ((uint32_t)r_readRegister1_IDEX == (uint32_t)r_writeReg_EXMEM && EXMEM_WILL_WRITE) {
+        s_forwardA_EX = Forwarding::EXMEM;
+    } else if ((uint32_t)r_readRegister1_IDEX == (uint32_t)r_writeReg_MEMWB && MEMWB_WILL_WRITE) {
+        s_forwardA_EX = Forwarding::MEMWB;
+    } else {
+        s_forwardA_EX = Forwarding::NONE;
+    }
+
+    // Register 2
+    if ((uint32_t)r_readRegister2_IDEX == (uint32_t)r_writeReg_EXMEM && EXMEM_WILL_WRITE) {
+        s_forwardB_EX = Forwarding::EXMEM;
+    } else if ((uint32_t)r_readRegister2_IDEX == (uint32_t)r_writeReg_MEMWB && MEMWB_WILL_WRITE) {
+        s_forwardB_EX = Forwarding::MEMWB;
+    } else {
+        s_forwardB_EX = Forwarding::NONE;
+    }
+}
+
+void Pipeline::hazardControlGen() {
+    // Some shorter names for readability
+    uint32_t r1 = (uint32_t)s_readRegister1;
+    uint32_t r2 = (uint32_t)s_readRegister2;
+
+    // Branch hazard: Result from EX stage is needed, or value from memory is needed
+    bool branchHazard = (r1 == (uint32_t)r_writeReg_IDEX ||                                               // EX hazard
+                         r2 == (uint32_t)r_writeReg_IDEX ||                                               // EX hazard
+                         ((r1 == (uint32_t)r_writeReg_EXMEM) && (r_MemRead_IDEX || r_MemRead_EXMEM)) ||   // MEM hazard
+                         ((r2 == (uint32_t)r_writeReg_EXMEM) && (r_MemRead_IDEX || r_MemRead_EXMEM))) &&  // MEM hazard
+                        ((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011;
+
+    // Load Use hazard: Loaded variable is needed in execute stage
+    bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (bool)r_MemRead_IDEX;
+
+    if (branchHazard || loadUseHazard) {  // Require branch instruction
+        // Stall until hazard is resolved - keep IFID and PC vaues, and reset IDEX registers
+        s_PCWrite = 0;
+        s_IFID_write = 0;
+        s_IDEX_reset = 1;
+    } else {
+        s_PCWrite = 1;
+        s_IFID_write = 1;
+        s_IDEX_reset = 0;
+    }
+}
+
 void Pipeline::propagateCombinational() {
     // The order of component updating must be done in the correct sequential order!
     // The rightmost stage is updated first, going from left to right in the given stage.
     // This is to ensure that feedback signals are valid
+
+    // Extract register sources from current instruction
+    s_readRegister1 = (((uint32_t)r_instr_IFID) >> 15) & 0b11111;
+    s_readRegister2 = (((uint32_t)r_instr_IFID) >> 20) & 0b11111;
+
+    // Do hazard detection and forwarding control generation
+    forwardingControlGen();
+    hazardControlGen();
+
     // ----- WB -----
     mux_memToReg.update();
 
@@ -413,7 +557,9 @@ void Pipeline::propagateCombinational() {
     }
 
     // ----- EX -----
+    mux_forwardB_EX.update();
     mux_ALUSrc.update();
+    mux_forwardA_EX.update();
     alu_mainALU.update();
 
     // ----- ID -----
@@ -422,31 +568,33 @@ void Pipeline::propagateCombinational() {
     alu_pc_target.update();
     m_reg.update();
     writeReg = Signal<5>(((uint32_t)r_instr_IFID >> 7) & 0b11111);
+    mux_forwardA_ID.update();
+    mux_forwardB_ID.update();
 
     // Compare read register values and '&' with s_branch control signal
     switch ((CompOp)(int)s_CompOp) {
         case BEQ: {
-            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) == (uint32_t)*m_reg.getOutput(2));
+            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID == (uint32_t)mux_forwardB_ID);
             break;
         }
         case BNE: {
-            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) != (uint32_t)*m_reg.getOutput(2));
+            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID != (uint32_t)mux_forwardB_ID);
             break;
         }
         case BLT: {
-            s_PCSrc = s_Branch && ((int32_t)*m_reg.getOutput(1) < (int32_t)*m_reg.getOutput(2));
+            s_PCSrc = s_Branch && ((int32_t)mux_forwardA_ID < (int32_t)mux_forwardB_ID);
             break;
         }
         case BLTU: {
-            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) < (uint32_t)*m_reg.getOutput(2));
+            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID < (uint32_t)mux_forwardB_ID);
             break;
         }
         case BGE: {
-            s_PCSrc = s_Branch && ((int32_t)*m_reg.getOutput(1) >= (int32_t)*m_reg.getOutput(2));
+            s_PCSrc = s_Branch && ((int32_t)mux_forwardA_ID >= (int32_t)mux_forwardB_ID);
             break;
         }
         case BGEU: {
-            s_PCSrc = s_Branch && ((uint32_t)*m_reg.getOutput(1) >= (uint32_t)*m_reg.getOutput(2));
+            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID >= (uint32_t)mux_forwardB_ID);
             break;
         }
         default: { s_PCSrc = 0; }
@@ -459,6 +607,10 @@ void Pipeline::propagateCombinational() {
     // Load nops if PC is greater than text size
     s_instr_IF = Signal<32>(
         (uint32_t)r_PC_IF > m_textSize ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
+
+    // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
+    // case, a new program counter value is starting to propagate, indicating an invalid ID branch
+    s_invalidPC = (bool)s_PCSrc && (bool)s_IFID_write;
 }
 
 int Pipeline::step() {
@@ -494,7 +646,7 @@ int Pipeline::step() {
     setStagePCS();
 
     // Execution is finished if nops are in all stages except WB
-    if (m_pcs.WB.pc == m_textSize) {
+    if (m_pcs.WB.pc > m_textSize) {
         m_finished = true;
         return 1;
     } else {

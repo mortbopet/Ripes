@@ -265,15 +265,15 @@ QString Parser::generateLoadString(uint32_t instr) const {
     // dereferencing. This will handle whether to sign or zero extend.
     switch (fields[2]) {
         case 0b000:  // LB - load sign extended byte
-            return QString("lb x%1 %2(x%3)").arg(fields[3]).arg(fields[0]).arg(fields[1]);
+            return QString("lb x%1 %2(x%3)").arg(fields[3]).arg(signextend<int, 12>(fields[0])).arg(fields[1]);
         case 0b001:  // LH load sign extended halfword
-            return QString("lh x%1 %2(x%3)").arg(fields[3]).arg(fields[0]).arg(fields[1]);
+            return QString("lh x%1 %2(x%3)").arg(fields[3]).arg(signextend<int, 12>(fields[0])).arg(fields[1]);
         case 0b010:  // LW load word
-            return QString("lw x%1 %2(x%3)").arg(fields[3]).arg(fields[0]).arg(fields[1]);
+            return QString("lw x%1 %2(x%3)").arg(fields[3]).arg(signextend<int, 12>(fields[0])).arg(fields[1]);
         case 0b100:  // LBU load zero extended byte
-            return QString("lbu x%1 %2(x%3)").arg(fields[3]).arg(fields[0]).arg(fields[1]);
+            return QString("lbu x%1 %2(x%3)").arg(fields[3]).arg(signextend<int, 12>(fields[0])).arg(fields[1]);
         case 0b101:  // LHU load zero extended halfword
-            return QString("lhu x%1 %2(x%3)").arg(fields[3]).arg(fields[0]).arg(fields[1]);
+            return QString("lhu x%1 %2(x%3)").arg(fields[3]).arg(signextend<int, 12>(fields[0])).arg(fields[1]);
         default:
             return QString();
     }
