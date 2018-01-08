@@ -10,8 +10,8 @@ void Registers::update() {
 }
 
 void Registers::clock() {
-    // if regWrite is high, write data to register
-    if (*m_regWrite)
+    // if regWrite is high, write data to register (x0 is read-only)
+    if (*m_regWrite && ((uint32_t)*m_writeRegister != 0))
         m_reg[(uint32_t)*m_writeRegister] = (uint32_t)*m_writeData;
     update();
 }

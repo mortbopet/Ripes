@@ -14,16 +14,20 @@ Pipeline::Pipeline() {
     r_PC_IF.setInput(mux_PCSrc.getOutput());
     r_PC_IF.setEnable(&s_PCWrite);
     r_instr_IFID.setInput(&s_instr_IF);
-    r_instr_IFID.setReset(&s_PCSrc);
+    r_instr_IFID.setReset(&s_branchTaken);
     r_instr_IFID.setEnable(&s_IFID_write);
     mux_PCSrc.setControl(&s_PCSrc);
     mux_PCSrc.setInput(0, alu_pc4.getOutput());
     mux_PCSrc.setInput(1, alu_pc_target.getOutput());
+    mux_PCSrc.setInput(
+        2, alu_mainALU.getOutput());  // Tie alures to both upper mux inputs (control signal b1 = 1) (for JALR)
+    mux_PCSrc.setInput(3, alu_mainALU.getOutput());
 
     r_PC_IFID.setInput(r_PC_IF.getOutput());
-    r_PC_IFID.setReset(&s_PCSrc);
+    r_PC_IFID.setReset(&s_branchTaken);
     r_PC_IFID.setEnable(&s_IFID_write);
     r_invalidPC_IFID.setInput(&s_invalidPC);
+    r_PC4_IFID.setInput(alu_pc4.getOutput());
 
     // ------ ID ---------
     m_reg.setInputs(&s_readRegister1, &s_readRegister2, r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(),
@@ -38,6 +42,7 @@ Pipeline::Pipeline() {
 
     r_PC_IDEX.setInput(r_PC_IFID.getOutput());
     r_invalidPC_IDEX.setInput(r_invalidPC_IFID.getOutput());
+    r_PC4_IDEX.setInput(r_PC4_IFID.getOutput());
 
     // Gather all registers in a bank - making it easier assign equal signals to all
     bank_IDEX.addToBank(&r_imm_IDEX)
@@ -47,7 +52,8 @@ Pipeline::Pipeline() {
         .addToBank(&r_readRegister1_IDEX)
         .addToBank(&r_readRegister2_IDEX)
         .addToBank(&r_PC_IDEX)
-        .addToBank(&r_invalidPC_IDEX);
+        .addToBank(&r_invalidPC_IDEX)
+        .addToBank(&r_PC4_IDEX);
     bank_IDEX.setReset(&s_IDEX_reset);
     bank_IDEX.setRegisterControls();
 
@@ -70,7 +76,7 @@ Pipeline::Pipeline() {
     r_ALUSrc_IDEX.setInput(&s_ALUSrc);
     r_MemWrite_IDEX.setInput(&s_MemWrite);
     r_MemRead_IDEX.setInput(&s_MemRead);
-    r_MemtoReg_IDEX.setInput(&s_MemToReg);
+    r_memToReg_IDEX.setInput(&s_memToReg);
 
     // ------ EX ---------
     alu_mainALU.setInputs(mux_forwardA_EX.getOutput(), mux_ALUSrc.getOutput());
@@ -85,6 +91,7 @@ Pipeline::Pipeline() {
 
     r_PC_EXMEM.setInput(r_PC_IDEX.getOutput());
     r_invalidPC_EXMEM.setInput(r_invalidPC_IDEX.getOutput());
+    r_PC4_EXMEM.setInput(r_PC4_IDEX.getOutput());
 
     mux_forwardA_EX.setControl(&s_forwardA_EX);
     mux_forwardA_EX.setInput(Forwarding::NONE, r_rd1_IDEX.getOutput());
@@ -100,29 +107,34 @@ Pipeline::Pipeline() {
     r_regWrite_EXMEM.setInput(r_regWrite_IDEX.getOutput());
     r_MemWrite_EXMEM.setInput(r_MemWrite_IDEX.getOutput());
     r_MemRead_EXMEM.setInput(r_MemRead_IDEX.getOutput());
-    r_MemtoReg_EXMEM.setInput(r_MemtoReg_IDEX.getOutput());
+    r_memToReg_EXMEM.setInput(r_memToReg_IDEX.getOutput());
 
     // ------ MEM --------
     r_readData_MEMWB.setInput(&readData_MEM);
     r_alures_MEMWB.setInput(r_alures_EXMEM.getOutput());
     r_writeReg_MEMWB.setInput(r_writeReg_EXMEM.getOutput());
 
-    // Control signals
     r_regWrite_MEMWB.setInput(r_regWrite_EXMEM.getOutput());
-    r_MemtoReg_MEMWB.setInput(r_MemtoReg_EXMEM.getOutput());
+    r_memToReg_MEMWB.setInput(r_memToReg_EXMEM.getOutput());
     r_PC_MEMWB.setInput(r_PC_EXMEM.getOutput());
     r_invalidPC_MEMWB.setInput(r_invalidPC_EXMEM.getOutput());
+    r_PC4_MEMWB.setInput(r_PC4_EXMEM.getOutput());
 
     // ------ WB ---------
-    mux_memToReg.setInput(0, r_alures_MEMWB.getOutput());
-    mux_memToReg.setInput(1, r_readData_MEMWB.getOutput());
-    mux_memToReg.setControl(r_MemtoReg_MEMWB.getOutput());
+    mux_memToReg.setInput(MemToReg::MEMREAD, r_readData_MEMWB.getOutput());
+    mux_memToReg.setInput(MemToReg::ALURES, r_alures_MEMWB.getOutput());
+    mux_memToReg.setInput(MemToReg::PC4, r_PC4_MEMWB.getOutput());
+    mux_memToReg.setControl(r_memToReg_MEMWB.getOutput());
 }
 
 void Pipeline::immGen() {
     if (((uint32_t)r_instr_IFID & 0b1111111) == 0b0110111) {
         // LUI
         s_imm_ID = Signal<32>((uint32_t)r_instr_IFID & 0xfffff000);
+    } else if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1101111) {
+        // JAL
+        auto fields = Parser::getParser()->decodeJInstr((uint32_t)r_instr_IFID);
+        s_imm_ID = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
     } else {
         // Generates an immediate value on the basis of an instruction opcode
         // Opcode bits 5 and 6 can define the required fields for generating the immediate
@@ -149,56 +161,26 @@ void Pipeline::immGen() {
     }
 }
 
-namespace {
-#define CTRL_I_TYPE \
-    s_ALUSrc = 1;   \
-    s_MemToReg = 0; \
-    s_RegWrite = 1; \
-    s_MemRead = 0;  \
-    s_MemWrite = 0; \
-    s_Branch = 0;   \
-    s_CompOp = 0;
-
-#define CTRL_R_TYPE \
-    s_ALUSrc = 0;   \
-    s_MemToReg = 0; \
-    s_RegWrite = 1; \
-    s_MemRead = 0;  \
-    s_MemWrite = 0; \
-    s_Branch = 0;   \
-    s_CompOp = 0;
-
-#define CTRL_STORE  \
-    s_ALUSrc = 1;   \
-    s_MemToReg = 0; \
-    s_RegWrite = 0; \
-    s_MemRead = 0;  \
-    s_Branch = 0;   \
-    s_CompOp = 0;
-
-#define CTRL_LOAD   \
-    s_ALUSrc = 1;   \
-    s_MemToReg = 1; \
-    s_RegWrite = 1; \
-    s_MemWrite = 0; \
-    s_Branch = 0;   \
-    s_CompOp = 0;
-
-#define CTRL_BRANCH \
-    s_ALUSrc = 0;   \
-    s_MemToReg = 0; \
-    s_RegWrite = 0; \
-    s_MemWrite = 0; \
-    s_Branch = 1;
-}
-
 void Pipeline::controlGen() {
-    // Generates control signals for the pipeline based on the input instruction
+    // Deassert all control lines
+    s_ALUOP = 0;
+    s_ALUSrc = 0;
+    s_memToReg = MemToReg::ALURES;
+    s_RegWrite = 0;
+    s_MemRead = 0;
+    s_MemWrite = 0;
+    s_Branch = 0;
+    s_CompOp = 0;
+    s_jal = 0;
+    s_jalr = 0;
+
+    // Set control signals for the pipeline based on the input instruction
     switch ((uint32_t)r_instr_IFID & 0b1111111) {
         case 0b0110111: {
             // LUI
             s_ALUOP = ALUDefs::LUI;
-            CTRL_I_TYPE
+            s_ALUSrc = 1;
+            s_RegWrite = 1;
             break;
         }
         case 0b0010011: {
@@ -256,7 +238,8 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            CTRL_I_TYPE
+            s_ALUSrc = 1;
+            s_RegWrite = 1;
             break;
         }
         case 0b0110011: {
@@ -324,7 +307,7 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            CTRL_R_TYPE
+            s_RegWrite = 1;
             break;
         }
         case 0b0000011: {
@@ -357,7 +340,9 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            CTRL_LOAD
+            s_ALUSrc = 1;
+            s_memToReg = MemToReg::MEMREAD;
+            s_RegWrite = 1;
             break;
         }
         case 0b0100011: {
@@ -380,7 +365,7 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            CTRL_STORE
+            s_ALUSrc = 1;
             break;
         }
         case 0b1100011: {
@@ -418,18 +403,25 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            CTRL_BRANCH
+            s_Branch = 1;
             break;
         }
+        case 0b1101111: {
+            // JAL
+            s_RegWrite = 1;
+            s_memToReg = MemToReg::PC4;
+            s_jal = 1;
+            break;
+        }
+        case 0b1100111: {
+            // JALR
+            s_ALUSrc = 1;
+            s_memToReg = MemToReg::PC4;
+            s_RegWrite = 1;
+            s_jalr = 1;
+        }
         default: {
-            s_ALUOP = 0;
-            s_ALUSrc = 0;
-            s_MemToReg = 0;
-            s_RegWrite = 0;
-            s_MemRead = 0;
-            s_MemWrite = 0;
-            s_Branch = 0;
-            s_CompOp = 0;
+            // Signals are already deasserted
             break;
         }
     }
@@ -502,7 +494,10 @@ void Pipeline::hazardControlGen() {
     // Load Use hazard: Loaded variable is needed in execute stage
     bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (bool)r_MemRead_IDEX;
 
-    if (branchHazard || loadUseHazard) {  // Require branch instruction
+    // Jump target must be computed before JALR jump can be performed
+    bool jalrHazard = ((uint32_t)r_instr_IFID & 0b1111111) == 0b1100111;
+
+    if (branchHazard || loadUseHazard || jalrHazard) {  // Require branch instruction
         // Stall until hazard is resolved - keep IFID and PC vaues, and reset IDEX registers
         s_PCWrite = 0;
         s_IFID_write = 0;
@@ -574,31 +569,35 @@ void Pipeline::propagateCombinational() {
     // Compare read register values and '&' with s_branch control signal
     switch ((CompOp)(int)s_CompOp) {
         case BEQ: {
-            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID == (uint32_t)mux_forwardB_ID);
+            s_branchTaken = s_Branch && ((uint32_t)mux_forwardA_ID == (uint32_t)mux_forwardB_ID);
             break;
         }
         case BNE: {
-            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID != (uint32_t)mux_forwardB_ID);
+            s_branchTaken = s_Branch && ((uint32_t)mux_forwardA_ID != (uint32_t)mux_forwardB_ID);
             break;
         }
         case BLT: {
-            s_PCSrc = s_Branch && ((int32_t)mux_forwardA_ID < (int32_t)mux_forwardB_ID);
+            s_branchTaken = s_Branch && ((int32_t)mux_forwardA_ID < (int32_t)mux_forwardB_ID);
             break;
         }
         case BLTU: {
-            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID < (uint32_t)mux_forwardB_ID);
+            s_branchTaken = s_Branch && ((uint32_t)mux_forwardA_ID < (uint32_t)mux_forwardB_ID);
             break;
         }
         case BGE: {
-            s_PCSrc = s_Branch && ((int32_t)mux_forwardA_ID >= (int32_t)mux_forwardB_ID);
+            s_branchTaken = s_Branch && ((int32_t)mux_forwardA_ID >= (int32_t)mux_forwardB_ID);
             break;
         }
         case BGEU: {
-            s_PCSrc = s_Branch && ((uint32_t)mux_forwardA_ID >= (uint32_t)mux_forwardB_ID);
+            s_branchTaken = s_Branch && ((uint32_t)mux_forwardA_ID >= (uint32_t)mux_forwardB_ID);
             break;
         }
-        default: { s_PCSrc = 0; }
+        default: { s_branchTaken = 0; }
     }
+
+    // b1=true for s_PCSrc will unconditionally take s_jalr PC target. Else, take branch outcome calculation if
+    // s_branchTaken or s_jal. if deasserted, PC+4 is selected
+    s_PCSrc = ((uint32_t)s_jalr << 1) + (uint32_t)(s_branchTaken || s_jal);
 
     // ----- IF -----
     alu_pc4.update();
@@ -610,7 +609,7 @@ void Pipeline::propagateCombinational() {
 
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
-    s_invalidPC = (bool)s_PCSrc && (bool)s_IFID_write;
+    s_invalidPC = (bool)s_branchTaken && (bool)s_IFID_write;
 }
 
 int Pipeline::step() {
@@ -705,5 +704,5 @@ void Pipeline::restart() {
     propagateCombinational();
 
     // set PC_IF stage to the first instruction
-    m_pcs.IF = PCVAL(r_PC_IF, s_PCSrc);
+    m_pcs.IF = PCVAL(r_PC_IF, s_branchTaken);
 }
