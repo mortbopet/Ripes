@@ -644,13 +644,15 @@ int Pipeline::step() {
     // Set stage program counters
     setStagePCS();
 
-    // Execution is finished if nops are in all stages except WB
+    // Check for finished execution and breakpoints
     if (m_pcs.WB.pc > m_textSize) {
         m_finished = true;
         return 1;
-    } else {
-        return 0;
+    } else if (m_breakpoints.find((uint32_t)r_PC_IF) != m_breakpoints.end()) {
+        // Breakpoint set at current r_PC_IF value
+        return 1;
     }
+    { return 0; }
 }
 
 #define PCVAL(pc, reg) \
@@ -679,6 +681,7 @@ void Pipeline::reset() {
     // Called when resetting the simulator (loading a new program)
     restart();
     m_memory.clear();
+    m_breakpoints.clear();
     m_textSize = 0;
     m_ready = false;
 }

@@ -59,7 +59,7 @@
              <string>Start simulation, stepping through the program</string>
             </property>
             <property name="text">
-             <string>Start simulation (F5)</string>
+             <string>Start autostepping (F5)</string>
             </property>
             <property name="shortcut">
              <string>F5</string>

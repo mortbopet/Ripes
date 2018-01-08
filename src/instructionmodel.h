@@ -1,6 +1,7 @@
 #ifndef INSTRUCTIONMODEL_H
 #define INSTRUCTIONMODEL_H
 
+#include <set>
 #include "defines.h"
 #include "mainmemory.h"
 
@@ -19,6 +20,9 @@ public:
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     void update();
 

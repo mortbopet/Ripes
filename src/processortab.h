@@ -38,6 +38,8 @@ private slots:
 
     void on_step_clicked();
 
+    void toggleTimer(bool state);
+
 private:
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;

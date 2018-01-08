@@ -4,6 +4,8 @@
 #include "mainmemory.h"
 #include "pipelineobjects.h"
 
+#include <set>
+
 class Pipeline {
 public:
     Pipeline();
@@ -27,6 +29,8 @@ public:
         static Pipeline pipeline;
         return &pipeline;
     }
+
+    std::set<uint32_t> m_breakpoints;
 
 private:
     // Simulator functions

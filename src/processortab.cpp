@@ -10,19 +10,7 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     m_ui->setupUi(this);
 
     // Setup buttons
-    connect(m_ui->start, &QPushButton::toggled, [=](bool state) {
-        if (state) {
-            m_ui->start->setText("Pause simulation (F5)");
-            m_ui->start->setShortcut(
-                Qt::Key_F5);  // The shortcut is for some reason cleared when editing the button text
-            m_timer.start();
-        } else {
-            m_ui->start->setText("Start simulation (F5)");
-            m_ui->start->setShortcut(Qt::Key_F5);
-            m_timer.stop();
-        };
-        m_ui->step->setEnabled(!state);
-    });
+    connect(m_ui->start, &QPushButton::toggled, this, &ProcessorTab::toggleTimer);
 
     // Setup execution speed slider
     connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) {
@@ -48,6 +36,22 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     m_ui->start->setEnabled(false);
 }
 
+void ProcessorTab::toggleTimer(bool state) {
+    const static QString pauseText = QLatin1String("Stop autostepping (F5)");
+    const static QString startText = QLatin1String("Start autostepping (F5)");
+    if (state) {
+        m_ui->start->setText(pauseText);
+        m_ui->start->setShortcut(Qt::Key_F5);  // The shortcut is for some reason cleared when editing the button text
+        m_timer.start();
+    } else {
+        m_ui->start->setText(startText);
+        m_ui->start->setShortcut(Qt::Key_F5);
+        m_ui->start->setChecked(false);
+        m_timer.stop();
+    };
+    m_ui->step->setEnabled(!state);
+}
+
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
@@ -71,7 +75,9 @@ void ProcessorTab::initInstructionView() {
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_ui->instructionView->setModel(m_instrModel);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     connect(this, &ProcessorTab::update, m_ui->instructionView, QOverload<>::of(&QWidget::update));
     connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::update);
 
@@ -95,11 +101,13 @@ void ProcessorTab::on_displayValues_toggled(bool checked) {
 void ProcessorTab::on_run_clicked() {
     auto pipeline = Pipeline::getPipeline();
     if (pipeline->isReady()) {
-        if (pipeline->run()) {
+        if (pipeline->run() && pipeline->isFinished()) {
             emit update();
             m_ui->step->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
+        } else {
+            emit update();
         }
     }
 }
@@ -114,12 +122,16 @@ void ProcessorTab::on_reset_clicked() {
 }
 
 void ProcessorTab::on_step_clicked() {
-    auto state = Pipeline::getPipeline()->step();
+    auto pipeline = Pipeline::getPipeline();
+    auto state = pipeline->step();
     emit update();
 
-    if (state) {
+    if (pipeline->isFinished()) {
         m_ui->step->setEnabled(false);
         m_ui->start->setEnabled(false);
         m_ui->run->setEnabled(false);
+    } else if (state == 1) {
+        // Breakpoint encountered, stop autostepping
+        toggleTimer(false);
     }
 }
