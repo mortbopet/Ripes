@@ -23,6 +23,8 @@ public:
     void wheelEvent(QWheelEvent* event);
     void expandToView() { fitInView(scene()->sceneRect().adjusted(-30, 0, 10, 0), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
+    void zoomIn();
+    void zoomOut();
 
 public slots:
     void update();

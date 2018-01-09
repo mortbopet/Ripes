@@ -3,6 +3,9 @@
 #include "pipelinewidget.h"
 #include "ui_processortab.h"
 
+#include <QDebug>
+#include <QFileDialog>
+
 #include "parser.h"
 #include "pipeline.h"
 
@@ -133,5 +136,32 @@ void ProcessorTab::on_step_clicked() {
     } else if (state == 1) {
         // Breakpoint encountered, stop autostepping
         toggleTimer(false);
+    }
+}
+
+void ProcessorTab::on_zoomIn_clicked() {
+    m_ui->pipelineWidget->zoomIn();
+}
+
+void ProcessorTab::on_zoomOut_clicked() {
+    m_ui->pipelineWidget->zoomOut();
+}
+
+void ProcessorTab::on_save_clicked() {
+    QFileDialog dialog;
+    dialog.setNameFilter("*.png");
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    if (dialog.exec()) {
+        auto files = dialog.selectedFiles();
+        if (files.length() == 1) {
+            auto scene = m_ui->pipelineWidget->scene();
+            QImage image(scene->sceneRect().size().toSize(), QImage::Format_ARGB32);
+            image.fill(Qt::white);
+            QPainter painter(&image);
+            painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
+                                   QPainter::SmoothPixmapTransform);
+            scene->render(&painter, QRectF(), QRect(), Qt::IgnoreAspectRatio);
+            image.save(files[0]);
+        }
     }
 }

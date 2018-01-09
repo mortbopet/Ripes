@@ -18,15 +18,15 @@
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
     setWindowTitle("RISC-V-SIM");
-    setWindowIcon(QIcon(QPixmap(":/logos/logo.png")));
+    setWindowIcon(QIcon(QPixmap(":/icons/logo.png")));
     showMaximized();
 
     // Setup tab bar
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/binary-code.svg")), "Code");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/cpu.svg")), "Processor");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/ram-memory.svg")), "Memory");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/server.svg")), "Cache");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/logos/graph.svg")), "Results");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/binary-code.svg")), "Code");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/cpu.svg")), "Processor");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/ram-memory.svg")), "Memory");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/graph.svg")), "Results");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
     m_ui->tabbar->setActiveIndex(1);
 

@@ -7,6 +7,8 @@
 #include <QPainterPath>
 #include <QPen>
 
+#include <set>
+
 namespace Graphics {
 class Connection;
 enum class ShapeType { Block, ALU, MUX, Static };
@@ -26,6 +28,9 @@ public:
     void addConnection(Connection* connection) { m_connections.append(connection); }
     void setFixedHeight(bool state, int height = 0) { m_isFixedHeight = state, m_fixedHeight = height; }
 
+    void setHiddenInputs(std::set<int> set) { m_hiddenInputPoints = set; }
+    void setHiddenOutputs(std::set<int> set) { m_hiddenOutputPoints = set; }
+
     bool isConnectedTo(Connection* connection) const;
 
     QPointF* getInputPoint(int index);
@@ -36,7 +41,7 @@ public:
     void calculateRect();
     void calculatePoints();
     void drawTopPoint(bool state) { m_drawTopPoint = state; }
-    void drawBotPoint(bool state) { m_drawBotPoint = state; }
+    void addBotPoint(bool state) { m_drawBotPoint = state; }
 
     static int connectionType() { return QGraphicsItem::UserType + 2; }
     int type() const { return connectionType(); }
@@ -62,6 +67,12 @@ private:
 
     QList<QPointF> m_inputPoints;
     QList<QPointF> m_outputPoints;
+
+    // Set hidden I/O points to disable drawing of these. Used when there are unequal number of real IO points, but we
+    // would like to have all I/O points drawn at the same Y-value
+    std::set<int> m_hiddenInputPoints;
+    std::set<int> m_hiddenOutputPoints;
+
     bool m_drawTopPoint = false;
     bool m_drawBotPoint = false;
 

@@ -13,18 +13,19 @@ inline double pointDistance(QPointF a, QPointF b) {
     return sqrt(pow(a.x() - b.x(), 2) + pow(a.y() - b.y(), 2));
 }
 }
+using namespace std;
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint)
     : QObject(), m_source(source), m_sourcePointPtr(sourcePoint) {
     m_dests << QPair<Shape*, QPointF*>(dest, destPoint);
-    m_label.m_source  = source;
+    m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
 }
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> dests)
     : QObject(), m_source(source), m_sourcePointPtr(sourcePoint) {
-    m_dests           = dests;
-    m_label.m_source  = source;
+    m_dests = dests;
+    m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
 }
 
@@ -33,10 +34,10 @@ QRectF Connection::boundingRect() const {
     // Iterate through all points in the connection line to find bounding rect
     for (const auto& pointVec : m_polyLines) {
         for (const auto& point : pointVec) {
-            left  = point.x() < left ? point.x() : left;
+            left = point.x() < left ? point.x() : left;
             right = point.x() > right ? point.x() : right;
-            top   = point.y() < top ? point.y() : top;
-            bot   = point.y() > bot ? point.y() : bot;
+            top = point.y() < top ? point.y() : top;
+            bot = point.y() > bot ? point.y() : bot;
         }
     }
     return QRectF(left, top, right - left, bot - top);
@@ -70,7 +71,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         QList<QPointF> sourcePoints = QList<QPointF>() << sourcePoint;
         for (int i = 0; i < m_dests.length(); i++) {
             QVector<QPointF> polyLine;
-            QPointF          dest = mapFromItem(m_dests[i].first, *m_dests[i].second);
+            QPointF dest = mapFromItem(m_dests[i].first, *m_dests[i].second);
 
             // Get bias for the given connection
             int bias = m_kinkBiases.size() > i ? m_kinkBiases[i] : 0;
@@ -102,10 +103,10 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         // 1. traverse to the right of the input
         if (m_kinkBiases.size() >= 1) {
             QVector<QPointF> polyLine;
-            QPointF          point(sourcePoint.x() + m_sourceStubLen, sourcePoint.y());
-            QPointF          point2(point.x(), point.y() + m_feedbackDir * m_kinkBiases[0]);
-            QPointF          point3(destPoint.x() - m_destStubLen, point2.y());
-            QPointF          point4(point3.x(), destPoint.y());
+            QPointF point(sourcePoint.x() + m_sourceStubLen, sourcePoint.y());
+            QPointF point2(point.x(), point.y() + m_feedbackDir * m_kinkBiases[0]);
+            QPointF point3(destPoint.x() - m_destStubLen, point2.y());
+            QPointF point4(point3.x(), destPoint.y());
             polyLine << sourcePoint << point << point2 << point3 << point4;
             polyLine << destPoint;
             m_polyLines.append(polyLine);
@@ -119,7 +120,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
 
         painter->drawPolyline(QPolygonF(line));
         // Draw destination arrows
-        qreal   angle = 0;
+        qreal angle = 0;
         QPointF destArrowP1 =
             *(line.end() - 1) + QPointF(sin(angle - Pi / 3) * m_arrowSize, cos(angle - Pi / 3) * m_arrowSize);
         QPointF destArrowP2 =
@@ -130,11 +131,22 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
 
     // Draw kink points
     painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    /*
-    for (const auto& point : m_kinkPoints) {
-        painter->drawPoint(polyLine[point + 1]);
+
+    // If a point is present in two lines, it is a kink point - generate a map for this, and draw the resulting points
+    QMap<QPointF, int> pointMap;
+    for (const auto& line : m_polyLines) {
+        for (const auto& point : line) {
+            pointMap[point]++;
+        }
     }
-    */
+
+    auto i = pointMap.begin();
+    while (i != pointMap.end()) {
+        if (i.value() > 1) {
+            painter->drawPoint(i.key());
+        }
+        i++;
+    }
 }
 
 void Connection::setValue(uint32_t value) {
@@ -159,9 +171,9 @@ void Connection::addLabelToScene() {
 void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
     if (m_showValue) {
         // Draw label (connection value)
-        QPointF      pos      = mapFromItem(m_source, *m_drawPos);
-        QFontMetrics metric   = QFontMetrics(QFont());
-        QRectF       textRect = metric.boundingRect(m_text);
+        QPointF pos = mapFromItem(m_source, *m_drawPos);
+        QFontMetrics metric = QFontMetrics(QFont());
+        QRectF textRect = metric.boundingRect(m_text);
         textRect.moveTo(pos);
         textRect.translate(0, -textRect.height());
         textRect.adjust(-5, 0, 5, 5);
@@ -175,9 +187,9 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
 }
 
 QRectF Label::boundingRect() const {
-    QPointF      pos      = mapFromItem(m_source, *m_drawPos);
-    QFontMetrics metric   = QFontMetrics(QFont());
-    QRectF       textRect = metric.boundingRect(m_text);
+    QPointF pos = mapFromItem(m_source, *m_drawPos);
+    QFontMetrics metric = QFontMetrics(QFont());
+    QRectF textRect = metric.boundingRect(m_text);
     textRect.moveTo(pos);
     textRect.translate(0, -textRect.height());
     textRect.adjust(-5, 0, 5, 5);

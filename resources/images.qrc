@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/logos">
+    <qresource prefix="/icons">
         <file>logo.png</file>
         <file>breakpoint_disabled.png</file>
         <file>breakpoint_enabled.png</file>
@@ -12,5 +12,8 @@
         <file>loadfile.svg</file>
         <file>exit.svg</file>
         <file>expand.svg</file>
+        <file>zoom-in.svg</file>
+        <file>zoom-out.svg</file>
+        <file>save.svg</file>
     </qresource>
 </RCC>

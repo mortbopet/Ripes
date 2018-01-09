@@ -152,8 +152,8 @@ QPainterPath Shape::drawALUPath(QRectF rect) const {
     rect.moveTo(0, 0);
     QPainterPath path;
     path.moveTo(rect.topLeft());
-    path.lineTo(rect.right(), rect.height() / 4);
-    path.lineTo(rect.right(), 3 * rect.height() / 4);
+    path.lineTo(rect.right(), rect.height() / 3);
+    path.lineTo(rect.right(), 2 * rect.height() / 3);
     path.lineTo(rect.left(), rect.height());
     path.lineTo(rect.left(), 5 * rect.height() / 8);
     path.lineTo(rect.width() / 8, rect.height() / 2);
@@ -216,23 +216,23 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
     if (m_drawBotPoint)
         painter->drawEllipse(m_bottomPoint, 5, 5);
 
-    for (const auto& point : m_inputPoints) {
-        painter->drawEllipse(point, 5, 5);
+    for (int i = 0; i < m_inputPoints.length(); i++) {
+        if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end())
+            painter->drawEllipse(m_inputPoints[i], 5, 5);
     }
-    for (const auto& point : m_outputPoints) {
-        painter->drawEllipse(point, 5, 5);
+    for (int i = 0; i < m_outputPoints.length(); i++) {
+        if (m_hiddenOutputPoints.find(i) == m_hiddenOutputPoints.end())
+            painter->drawEllipse(m_outputPoints[i], 5, 5);
     }
 }
 
 QPointF* Shape::getInputPoint(int index) {
-    if (index >= m_inputPoints.size())
-        return nullptr;
+    Q_ASSERT(index < m_inputPoints.size());
     return &m_inputPoints[index];
 }
 
 QPointF* Shape::getOutputPoint(int index) {
-    if (index >= m_outputPoints.size())
-        return nullptr;
+    Q_ASSERT(index < m_outputPoints.size());
     return &m_outputPoints[index];
 }
 

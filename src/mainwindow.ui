@@ -163,7 +163,7 @@
   <action name="actionLoadBinaryFile">
    <property name="icon">
     <iconset resource="../resources/images.qrc">
-     <normaloff>:/logos/loadfile.svg</normaloff>:/logos/loadfile.svg</iconset>
+     <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
    </property>
    <property name="text">
     <string>Load binary file</string>
@@ -175,7 +175,7 @@
   <action name="actionexit">
    <property name="icon">
     <iconset resource="../resources/images.qrc">
-     <normaloff>:/logos/exit.svg</normaloff>:/logos/exit.svg</iconset>
+     <normaloff>:/icons/exit.svg</normaloff>:/icons/exit.svg</iconset>
    </property>
    <property name="text">
     <string>Exit</string>
@@ -212,7 +212,7 @@
   <action name="actionLoadAssemblyFile">
    <property name="icon">
     <iconset resource="../resources/images.qrc">
-     <normaloff>:/logos/loadfile.svg</normaloff>:/logos/loadfile.svg</iconset>
+     <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
    </property>
    <property name="text">
     <string>Load Assembly File</string>
@@ -235,7 +235,7 @@
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="../resources/images.qrc">
-     <normaloff>:/logos/info.svg</normaloff>:/logos/info.svg</iconset>
+     <normaloff>:/icons/info.svg</normaloff>:/icons/info.svg</iconset>
    </property>
    <property name="text">
     <string>About</string>

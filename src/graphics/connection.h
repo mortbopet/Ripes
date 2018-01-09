@@ -11,7 +11,7 @@
 namespace Graphics {
 class Shape;
 
-typedef QPair<Shape*,QPointF*> PointPair;
+typedef QPair<Shape*, QPointF*> PointPair;
 
 enum class ValueDrawPos { Source, Middle, Destination };
 
@@ -30,9 +30,9 @@ protected:
 
 private:
     QPointF* m_drawPos;
-    Shape*   m_source;
-    bool     m_showValue = false;
-    QString  m_text;
+    Shape* m_source;
+    bool m_showValue = false;
+    QString m_text;
 };
 
 /*
@@ -48,18 +48,18 @@ public:
 
     void setValue(uint32_t value);
     QPair<QPointF, QPointF> getPoints() const;
-    QPair<Shape*, Shape*>   getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dests[0].first); }
+    QPair<Shape*, Shape*> getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dests[0].first); }
     Shape* getSource() { return m_source; }
 
     static int connectionType() { return QGraphicsItem::UserType + 1; }
-    int        type() const { return connectionType(); }
+    int type() const { return connectionType(); }
     void setKinkBiases(QList<int> biases) { m_kinkBiases = biases; }
     void setKinkBias(int bias) { m_kinkBiases = QList<int>() << bias; }
     void setKinkPoints(QList<int> points) { m_kinkPoints = points; }
     void setFeedbackSettings(bool dir, int sourceStubLen, int destStubLen) {
-        m_feedbackDir   = dir ? 1 : -1;
+        m_feedbackDir = dir ? 1 : -1;
         m_sourceStubLen = sourceStubLen;
-        m_destStubLen   = destStubLen;
+        m_destStubLen = destStubLen;
     }
     void addLabelToScene();
 
@@ -79,21 +79,26 @@ private:
     // Used to tune kink positioning
     QList<int> m_kinkBiases;
     QList<int> m_kinkPoints;
-    int        m_feedbackDir = 1;  // 1: down, -1: up
-    int        m_sourceStubLen;
-    int        m_destStubLen;
+    int m_feedbackDir = 1;  // 1: down, -1: up
+    int m_sourceStubLen;
+    int m_destStubLen;
 
     // Variables related to the current value of the connection (signal value)
     ValueDrawPos m_valuePos = ValueDrawPos::Source;
 
     int m_arrowSize = 10;
     QList<QVector<QPointF>> m_polyLines;
-    Shape*   m_source;
+    Shape* m_source;
     QPointF* m_sourcePointPtr;
-    QList<PointPair>   m_dests;
-    Label    m_label;
+    QList<PointPair> m_dests;
+    Label m_label;
 };
 
 }  // namespace Graphics
+
+// define < operator for QPointF to be able to use it in a map
+inline bool operator<(const QPointF& a, const QPointF& b) {
+    return a.manhattanLength() < b.manhattanLength();
+}
 
 #endif  // CONNECTION_H

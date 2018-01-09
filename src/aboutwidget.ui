@@ -14,7 +14,7 @@
    <string>About</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset>
     <normaloff>:/logos/logo.png</normaloff>:/logos/logo.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -86,7 +86,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="../resources/images.qrc">:/logos/logo.png</pixmap>
+        <pixmap resource="../resources/images.qrc">:/icons/logo.png</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>

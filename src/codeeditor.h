@@ -90,8 +90,8 @@ public:
     int imageWidth = 16;
     int imageHeight = 16;
     int padding = 3;  // padding on each side of the breakpoint
-    QPixmap m_breakpoint = QPixmap(":/logos/breakpoint_enabled.png").scaled(imageWidth, imageHeight);
-    QPixmap m_breakpoint_disabled = QPixmap(":/logos/breakpoint_disabled.png").scaled(imageWidth, imageWidth);
+    QPixmap m_breakpoint = QPixmap(":/icons/breakpoint_enabled.png").scaled(imageWidth, imageHeight);
+    QPixmap m_breakpoint_disabled = QPixmap(":/icons/breakpoint_disabled.png").scaled(imageWidth, imageWidth);
 
     void setBlockHeight(int height) { m_blockHeight = height; }
 

@@ -40,6 +40,12 @@ private slots:
 
     void toggleTimer(bool state);
 
+    void on_zoomIn_clicked();
+
+    void on_zoomOut_clicked();
+
+    void on_save_clicked();
+
 private:
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;
