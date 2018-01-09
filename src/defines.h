@@ -22,9 +22,9 @@ class StagePCS {
 public:
     typedef struct {
         uint32_t pc;
-        bool initialized;  // If false, no text will be written above a pipeline stage when pipeline is reset
-        bool invalid;  // If true, a stage has been flushed (the PC for the stage is  set to 0) - "nop" will be written
-                       // above the pipeline stage
+        bool initialized;        // If false, no text will be written above a pipeline stage when pipeline is reset
+        uint32_t invalidReason;  // 1: a stage has been flushed because of branch taken
+                                 // 2: A stage is stalled because of hazards
     } PC;
     StagePCS() {}
     void reset() {

@@ -77,7 +77,8 @@ private:
 
     Mux<3, 32> mux_forwardA_EX, mux_forwardB_EX, mux_forwardA_ID,
         mux_forwardB_ID;  // Forwarding mux'es for execute stage and ID stage (branch comparison operation)
-    Signal<1> s_invalidPC;
+
+    Signal<2> s_invalidPC;
 
     Mux<2, 32> mux_alures_PC4_MEM;
 
@@ -87,7 +88,7 @@ private:
         r_alures_MEMWB;
     Reg<32> r_PC_IF, r_PC_IFID, r_PC_IDEX, r_PC_EXMEM, r_PC_MEMWB;
     Reg<32> r_PC4_IFID, r_PC4_IDEX, r_PC4_EXMEM, r_PC4_MEMWB;
-    Reg<1> r_invalidPC_IFID, r_invalidPC_IDEX, r_invalidPC_EXMEM, r_invalidPC_MEMWB;
+    Reg<2> r_invalidPC_IFID, r_invalidPC_IDEX, r_invalidPC_EXMEM, r_invalidPC_MEMWB;
     Reg<1> r_jal_IDEX, r_jal_EXMEM, r_jalr_IDEX, r_jalr_EXMEM;
 
     Signal<5> writeReg;
@@ -135,6 +136,10 @@ enum MuxForward { NONE = 0, EXMEM = 1, MEMWB = 2 };
 }
 namespace MemToReg {
 enum values { MEMREAD = 0, ALURES = 1, PC4 = 2 };
+}
+
+namespace HazardReason {
+enum values { NONE = 0, BRANCHTAKEN = 1, STALL = 2, eof = 3 };
 }
 
 #endif  // PIPELINE_H

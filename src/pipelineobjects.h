@@ -135,6 +135,13 @@ public:
     void connect(Reg<n>& r) { setInput(&r.m_current); }
     void connect(const Signal<n>* s) { setInput(s); }
     Signal<n>* getOutput() { return &m_current; }
+    void overrideNext(uint32_t val) {
+        // Only used when transforming invalidPC reasons for a stage (for proper GUI visualization)
+        // sets the next state value of m_current to the overriden value, regardles of m_next
+        // WARNING! This disregards all control signals (clock enable, reset) etc.
+        m_overrideNext = true;
+        m_nextSaved = val;
+    }
 
     explicit operator int() const { return (int)m_current; }
     explicit operator uint32_t() const { return (uint32_t)m_current; }
@@ -154,10 +161,17 @@ protected:
         } else {
             // Do nothing - clock enable is deasserted
         }
+        if (m_overrideNext) {
+            // disregard control signals and override current value
+            m_current = m_nextSaved;
+            m_overrideNext = false;
+        }
     }
     void save() override {
         assert(m_next != nullptr);
-        m_nextSaved = *m_next;
+        if (!m_overrideNext) {
+            m_nextSaved = *m_next;
+        }
     }
     void reset() override {
         m_current = Signal<n>(0);
@@ -168,6 +182,7 @@ private:
     Signal<n> m_current;
     Signal<n> m_nextSaved;
     const Signal<n>* m_next;
+    bool m_overrideNext = false;
 };
 
 template <int inputs, int n>

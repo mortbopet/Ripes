@@ -45,19 +45,6 @@ Pipeline::Pipeline() {
     r_invalidPC_IDEX.setInput(r_invalidPC_IFID.getOutput());
     r_PC4_IDEX.setInput(r_PC4_IFID.getOutput());
 
-    // Gather all registers in a bank - making it easier assign equal signals to all
-    bank_IDEX.addToBank(&r_imm_IDEX)
-        .addToBank(&r_rd1_IDEX)
-        .addToBank(&r_rd2_IDEX)
-        .addToBank(&r_writeReg_IDEX)
-        .addToBank(&r_readRegister1_IDEX)
-        .addToBank(&r_readRegister2_IDEX)
-        .addToBank(&r_PC_IDEX)
-        .addToBank(&r_invalidPC_IDEX)
-        .addToBank(&r_PC4_IDEX);
-    bank_IDEX.setReset(&s_IDEX_reset);
-    bank_IDEX.setRegisterControls();
-
     mux_forwardA_ID.setControl(&s_forwardA_ID);
     mux_forwardA_ID.setInput(Forwarding::NONE, m_reg.getOutput(1));
     mux_forwardA_ID.setInput(Forwarding::EXMEM, mux_alures_PC4_MEM.getOutput());
@@ -81,6 +68,29 @@ Pipeline::Pipeline() {
     r_memToReg_IDEX.setInput(&s_memToReg);
     r_jal_IDEX.setInput(&s_jal);
     r_jalr_IDEX.setInput(&s_jalr);
+
+    // Gather all registers in a bank - making it easier to assign equal signals to all.
+    // We do not include r_invalidPC_IDEX since this value is needed for the GUI to correctly identify flushed/stalled
+    // stages
+    bank_IDEX.addToBank(&r_imm_IDEX)
+        .addToBank(&r_rd1_IDEX)
+        .addToBank(&r_rd2_IDEX)
+        .addToBank(&r_writeReg_IDEX)
+        .addToBank(&r_readRegister1_IDEX)
+        .addToBank(&r_readRegister2_IDEX)
+        .addToBank(&r_PC_IDEX)
+        .addToBank(&r_PC4_IDEX)
+        .addToBank(&r_regWrite_IDEX)
+        .addToBank(&r_ALUOP_IDEX)
+        .addToBank(&r_ALUSrc1_IDEX)
+        .addToBank(&r_ALUSrc2_IDEX)
+        .addToBank(&r_MemWrite_IDEX)
+        .addToBank(&r_MemRead_IDEX)
+        .addToBank(&r_memToReg_IDEX)
+        .addToBank(&r_jal_IDEX)
+        .addToBank(&r_jal_IDEX);
+    bank_IDEX.setReset(&s_IDEX_reset);
+    bank_IDEX.setRegisterControls();
 
     // ------ EX ---------
     alu_mainALU.setInputs(mux_ALUSrc1.getOutput(), mux_ALUSrc2.getOutput());
@@ -647,13 +657,22 @@ void Pipeline::propagateCombinational() {
 
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
-    s_invalidPC = (bool)s_branchTaken && (bool)s_IFID_write;
+    s_invalidPC = (bool)s_branchTaken && (bool)s_IFID_write || s_jal;
+    s_invalidPC = (uint32_t)r_PC_IFID > m_textSize ? HazardReason::eof : s_invalidPC;
+    if (s_IDEX_reset) {
+        // ID has a dependancy and requires a stall of EX. Set IDEX s_invalidPC register accordingly
+        r_invalidPC_IDEX.overrideNext(HazardReason::STALL);
+    }
 
     // handle ECALL I/O. If a0 = 10 for an ECALL, this sets m_finishing and increments finishing counter
     // if m_finishing is set, we disable PC writing
     handleEcall();
     s_PCWrite = m_finishing ? 0 : s_PCWrite;
     s_IFID_reset = m_finishing ? 1 : s_IFID_reset;
+    // if finishing, ECALL will stay in ID stage, and we will force overrideNext for idex stage
+    if (m_finishing) {
+        r_invalidPC_IDEX.overrideNext(HazardReason::eof);
+    }
 }
 
 void Pipeline::handleEcall() {
@@ -730,7 +749,7 @@ int Pipeline::step() {
 }
 
 #define PCVAL(pc, reg) \
-    StagePCS::PC { (uint32_t) pc, true, (bool)reg }
+    StagePCS::PC { (uint32_t) pc, (uint32_t)pc < m_textSize, (uint32_t)reg }
 
 void Pipeline::setStagePCS() {
     // To validate a PC value (whether there is actually an instruction in the stage, or if the pipeline has
@@ -742,7 +761,7 @@ void Pipeline::setStagePCS() {
     m_pcs.MEM = m_pcs.EX.initialized ? PCVAL(r_PC_EXMEM, r_invalidPC_EXMEM) : m_pcs.MEM;
     m_pcs.EX = m_pcs.ID.initialized ? PCVAL(r_PC_IDEX, r_invalidPC_IDEX) : m_pcs.EX;
     m_pcs.ID = m_pcs.IF.initialized ? PCVAL(r_PC_IFID, r_invalidPC_IFID) : m_pcs.ID;
-    m_pcs.IF = PCVAL(r_PC_IF, false);
+    m_pcs.IF = PCVAL(r_PC_IF, 0);
 }
 
 int Pipeline::run() {

@@ -27,11 +27,15 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 namespace {
-#define VALIDATE(stage)                                       \
-    if (!m_pcsptr.stage.initialized) {                        \
-        emit textChanged(Stage::stage, "");                   \
-    } else if (m_pcsptr.stage.invalid) {                      \
-        emit textChanged(Stage::stage, "nop (branch taken)"); \
+#define VALIDATE(stage)                                \
+    if (!m_pcsptr.stage.initialized) {                 \
+        emit textChanged(Stage::stage, "");            \
+    } else if (m_pcsptr.stage.invalidReason == 1) {    \
+        emit textChanged(Stage::stage, "nop (flush)"); \
+    } else if (m_pcsptr.stage.invalidReason == 2) {    \
+        emit textChanged(Stage::stage, "nop (stall)"); \
+    } else if (m_pcsptr.stage.invalidReason == 3) {    \
+        emit textChanged(Stage::stage, ""); /*EOF*/    \
     }
 }
 
@@ -65,32 +69,32 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                 QStringList retStrings;
                 uint32_t byteIndex = row * 4;
                 uint32_t maxInstr = m_textSize - 4;
-                if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && !m_pcsptr.EX.invalid) {
+                if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && m_pcsptr.EX.invalidReason == 0) {
                     emit textChanged(Stage::EX, m_parserPtr->genStringRepr(memRead(row * 4)));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::ID, "");
                     }
                     retStrings << "EX";
                 }
-                if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && !m_pcsptr.ID.invalid) {
+                if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && m_pcsptr.ID.invalidReason == 0) {
                     emit textChanged(Stage::ID, m_parserPtr->genStringRepr(memRead(row * 4)));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::IF, "");
                     }
                     retStrings << "ID";
                 }
-                if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && !m_pcsptr.IF.invalid) {
+                if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && m_pcsptr.IF.invalidReason == 0) {
                     emit textChanged(Stage::IF, m_parserPtr->genStringRepr(memRead(row * 4)));
                     retStrings << "IF";
                 }
-                if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && !m_pcsptr.MEM.invalid) {
+                if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && m_pcsptr.MEM.invalidReason == 0) {
                     emit textChanged(Stage::MEM, m_parserPtr->genStringRepr(memRead(row * 4)));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::EX, "");
                     }
                     retStrings << "MEM";
                 }
-                if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && !m_pcsptr.WB.invalid) {
+                if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && m_pcsptr.WB.invalidReason == 0) {
                     emit textChanged(Stage::WB, m_parserPtr->genStringRepr(memRead(row * 4)));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::MEM, "");
@@ -98,7 +102,7 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                     retStrings << "WB";
                 }
                 if (retStrings.isEmpty()) {
-                    // Clear invalid PC values for each stage (used when resetting the simlation)
+                    // Clear invalid PC values for each stage (used when resetting the program)
                     VALIDATE(IF);
                     VALIDATE(ID);
                     VALIDATE(EX);
