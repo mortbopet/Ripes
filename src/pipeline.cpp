@@ -14,7 +14,7 @@ Pipeline::Pipeline() {
     r_PC_IF.setInput(mux_PCSrc.getOutput());
     r_PC_IF.setEnable(&s_PCWrite);
     r_instr_IFID.setInput(&s_instr_IF);
-    r_instr_IFID.setReset(&s_branchTaken);
+    r_instr_IFID.setReset(&s_IFID_reset);
     r_instr_IFID.setEnable(&s_IFID_write);
     mux_PCSrc.setControl(&s_PCSrc);
     mux_PCSrc.setInput(0, alu_pc4.getOutput());
@@ -24,10 +24,11 @@ Pipeline::Pipeline() {
     mux_PCSrc.setInput(3, alu_mainALU.getOutput());
 
     r_PC_IFID.setInput(r_PC_IF.getOutput());
-    r_PC_IFID.setReset(&s_branchTaken);
+    r_PC_IFID.setReset(&s_IFID_reset);
     r_PC_IFID.setEnable(&s_IFID_write);
     r_invalidPC_IFID.setInput(&s_invalidPC);
     r_PC4_IFID.setInput(alu_pc4.getOutput());
+    r_PC4_IFID.setReset(&s_IFID_reset);
 
     // ------ ID ---------
     m_reg.setInputs(&s_readRegister1, &s_readRegister2, r_writeReg_MEMWB.getOutput(), mux_memToReg.getOutput(),
@@ -59,12 +60,12 @@ Pipeline::Pipeline() {
 
     mux_forwardA_ID.setControl(&s_forwardA_ID);
     mux_forwardA_ID.setInput(Forwarding::NONE, m_reg.getOutput(1));
-    mux_forwardA_ID.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardA_ID.setInput(Forwarding::EXMEM, mux_alures_PC4_MEM.getOutput());
     mux_forwardA_ID.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
 
     mux_forwardB_ID.setControl(&s_forwardB_ID);
     mux_forwardB_ID.setInput(Forwarding::NONE, m_reg.getOutput(2));
-    mux_forwardB_ID.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardB_ID.setInput(Forwarding::EXMEM, mux_alures_PC4_MEM.getOutput());
     mux_forwardB_ID.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
 
     alu_pc_target.setControl(&s_alu_const_add);
@@ -73,18 +74,25 @@ Pipeline::Pipeline() {
     // Control signals
     r_regWrite_IDEX.setInput(&s_RegWrite);
     r_ALUOP_IDEX.setInput(&s_ALUOP);
-    r_ALUSrc_IDEX.setInput(&s_ALUSrc);
+    r_ALUSrc1_IDEX.setInput(&s_ALUSrc1);
+    r_ALUSrc2_IDEX.setInput(&s_ALUSrc2);
     r_MemWrite_IDEX.setInput(&s_MemWrite);
     r_MemRead_IDEX.setInput(&s_MemRead);
     r_memToReg_IDEX.setInput(&s_memToReg);
+    r_jal_IDEX.setInput(&s_jal);
+    r_jalr_IDEX.setInput(&s_jalr);
 
     // ------ EX ---------
-    alu_mainALU.setInputs(mux_forwardA_EX.getOutput(), mux_ALUSrc.getOutput());
+    alu_mainALU.setInputs(mux_ALUSrc1.getOutput(), mux_ALUSrc2.getOutput());
     alu_mainALU.setControl(r_ALUOP_IDEX.getOutput());
 
-    mux_ALUSrc.setInput(0, mux_forwardB_EX.getOutput());
-    mux_ALUSrc.setInput(1, r_imm_IDEX.getOutput());
-    mux_ALUSrc.setControl(r_ALUSrc_IDEX.getOutput());
+    mux_ALUSrc1.setInput(0, mux_forwardA_EX.getOutput());
+    mux_ALUSrc1.setInput(1, r_PC_IDEX.getOutput());
+    mux_ALUSrc1.setControl(r_ALUSrc1_IDEX.getOutput());
+
+    mux_ALUSrc2.setInput(0, mux_forwardB_EX.getOutput());
+    mux_ALUSrc2.setInput(1, r_imm_IDEX.getOutput());
+    mux_ALUSrc2.setControl(r_ALUSrc2_IDEX.getOutput());
     r_alures_EXMEM.setInput(alu_mainALU.getOutput());
     r_writeData_EXMEM.setInput(mux_forwardB_EX.getOutput());
     r_writeReg_EXMEM.setInput(r_writeReg_IDEX.getOutput());
@@ -93,14 +101,17 @@ Pipeline::Pipeline() {
     r_invalidPC_EXMEM.setInput(r_invalidPC_IDEX.getOutput());
     r_PC4_EXMEM.setInput(r_PC4_IDEX.getOutput());
 
+    r_jal_EXMEM.setInput(r_jal_IDEX.getOutput());
+    r_jalr_EXMEM.setInput(r_jalr_IDEX.getOutput());
+
     mux_forwardA_EX.setControl(&s_forwardA_EX);
     mux_forwardA_EX.setInput(Forwarding::NONE, r_rd1_IDEX.getOutput());
-    mux_forwardA_EX.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardA_EX.setInput(Forwarding::EXMEM, mux_alures_PC4_MEM.getOutput());
     mux_forwardA_EX.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
 
     mux_forwardB_EX.setControl(&s_forwardB_EX);
     mux_forwardB_EX.setInput(Forwarding::NONE, r_rd2_IDEX.getOutput());
-    mux_forwardB_EX.setInput(Forwarding::EXMEM, r_alures_EXMEM.getOutput());
+    mux_forwardB_EX.setInput(Forwarding::EXMEM, mux_alures_PC4_MEM.getOutput());
     mux_forwardB_EX.setInput(Forwarding::MEMWB, mux_memToReg.getOutput());
 
     // Control signals
@@ -110,6 +121,10 @@ Pipeline::Pipeline() {
     r_memToReg_EXMEM.setInput(r_memToReg_IDEX.getOutput());
 
     // ------ MEM --------
+    mux_alures_PC4_MEM.setInput(0, r_alures_EXMEM.getOutput());
+    mux_alures_PC4_MEM.setInput(1, r_PC4_EXMEM.getOutput());
+    mux_alures_PC4_MEM.setControl(&s_alures_PC4_MEM);
+
     r_readData_MEMWB.setInput(&readData_MEM);
     r_alures_MEMWB.setInput(r_alures_EXMEM.getOutput());
     r_writeReg_MEMWB.setInput(r_writeReg_EXMEM.getOutput());
@@ -128,13 +143,17 @@ Pipeline::Pipeline() {
 }
 
 void Pipeline::immGen() {
-    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b0110111) {
-        // LUI
+    uint32_t opcode = (uint32_t)r_instr_IFID & 0b1111111;
+    if (opcode == 0b0110111 || opcode == 0b0010111) {
+        // LUI & AUIPC
         s_imm_ID = Signal<32>((uint32_t)r_instr_IFID & 0xfffff000);
-    } else if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1101111) {
+    } else if (opcode == 0b1101111) {
         // JAL
         auto fields = Parser::getParser()->decodeJInstr((uint32_t)r_instr_IFID);
         s_imm_ID = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
+    } else if (opcode == 0b1100111) {
+        // JALR
+        s_imm_ID = Signal<32>(signextend<int32_t, 12>(((uint32_t)r_instr_IFID >> 20)));
     } else {
         // Generates an immediate value on the basis of an instruction opcode
         // Opcode bits 5 and 6 can define the required fields for generating the immediate
@@ -164,7 +183,8 @@ void Pipeline::immGen() {
 void Pipeline::controlGen() {
     // Deassert all control lines
     s_ALUOP = 0;
-    s_ALUSrc = 0;
+    s_ALUSrc1 = 0;
+    s_ALUSrc2 = 0;
     s_memToReg = MemToReg::ALURES;
     s_RegWrite = 0;
     s_MemRead = 0;
@@ -178,8 +198,16 @@ void Pipeline::controlGen() {
     switch ((uint32_t)r_instr_IFID & 0b1111111) {
         case 0b0110111: {
             // LUI
-            s_ALUOP = ALUDefs::LUI;
-            s_ALUSrc = 1;
+            s_ALUOP = ALUOps::LUI;
+            s_ALUSrc2 = 1;
+            s_RegWrite = 1;
+            break;
+        }
+        case 0b0010111: {
+            // AUIPC
+            s_ALUSrc1 = 1;
+            s_ALUOP = ALUOps::ADD;
+            s_ALUSrc2 = 1;
             s_RegWrite = 1;
             break;
         }
@@ -189,56 +217,56 @@ void Pipeline::controlGen() {
             switch (fields[2]) {
                 case 0b000: {
                     // ADDI
-                    s_ALUOP = ALUDefs::ADD;
+                    s_ALUOP = ALUOps::ADD;
                     break;
                 }
                 case 0b010: {
                     // SLTI
-                    s_ALUOP = ALUDefs::LT;
+                    s_ALUOP = ALUOps::LT;
                     break;
                 }
                 case 0b011: {
                     // SLTIU
-                    s_ALUOP = ALUDefs::LTU;
+                    s_ALUOP = ALUOps::LTU;
                     break;
                 }
                 case 0b100: {
                     // XORI
-                    s_ALUOP = ALUDefs::XOR;
+                    s_ALUOP = ALUOps::XOR;
                     break;
                 }
                 case 0b110: {
                     // ORI
-                    s_ALUOP = ALUDefs::OR;
+                    s_ALUOP = ALUOps::OR;
                     break;
                 }
                 case 0b111: {
                     // ANDI
-                    s_ALUOP = ALUDefs::AND;
+                    s_ALUOP = ALUOps::AND;
                     break;
                 }
                 case 0b001: {
                     // SLLI
-                    s_ALUOP = ALUDefs::SL;
+                    s_ALUOP = ALUOps::SL;
                     break;
                 }
                 case 0b101: {
                     switch ((uint32_t)r_instr_IFID >> 25) {
                         case 0b0: {
                             // SRLI
-                            s_ALUOP = ALUDefs::SRL;
+                            s_ALUOP = ALUOps::SRL;
                             break;
                         }
                         case 0b0100000: {
                             // SRAI
-                            s_ALUOP = ALUDefs::SRA;
+                            s_ALUOP = ALUOps::SRA;
                             break;
                         }
                     }
                     break;
                 }
             }
-            s_ALUSrc = 1;
+            s_ALUSrc2 = 1;
             s_RegWrite = 1;
             break;
         }
@@ -250,12 +278,12 @@ void Pipeline::controlGen() {
                     switch (fields[0]) {
                         case 0b0000000: {
                             // ADD
-                            s_ALUOP = ALUDefs::ADD;
+                            s_ALUOP = ALUOps::ADD;
                             break;
                         }
-                        case 0100000: {
+                        case 0b0100000: {
                             // SUB
-                            s_ALUOP = ALUDefs::SUB;
+                            s_ALUOP = ALUOps::SUB;
                             break;
                         }
                     }
@@ -263,34 +291,34 @@ void Pipeline::controlGen() {
                 }
                 case 0b001: {
                     // SLL
-                    s_ALUOP = ALUDefs::SL;
+                    s_ALUOP = ALUOps::SL;
                     break;
                 }
                 case 0b010: {
                     // SLT
-                    s_ALUOP = ALUDefs::LT;
+                    s_ALUOP = ALUOps::LT;
                     break;
                 }
                 case 0b011: {
                     // SLTU
-                    s_ALUOP = ALUDefs::LTU;
+                    s_ALUOP = ALUOps::LTU;
                     break;
                 }
                 case 0b100: {
                     // XOR
-                    s_ALUOP = ALUDefs::XOR;
+                    s_ALUOP = ALUOps::XOR;
                     break;
                 }
                 case 0b101: {
                     switch (fields[0]) {
                         case 0b0000000: {
                             // SRL
-                            s_ALUOP = ALUDefs::SRL;
+                            s_ALUOP = ALUOps::SRL;
                             break;
                         }
                         case 0b0100000: {
                             // SRA
-                            s_ALUOP = ALUDefs::SRA;
+                            s_ALUOP = ALUOps::SRA;
                             break;
                         }
                     }
@@ -298,12 +326,12 @@ void Pipeline::controlGen() {
                 }
                 case 0b110: {
                     // OR
-                    s_ALUOP = ALUDefs::OR;
+                    s_ALUOP = ALUOps::OR;
                     break;
                 }
                 case 0b111: {
                     // AND
-                    s_ALUOP = ALUDefs::AND;
+                    s_ALUOP = ALUOps::AND;
                     break;
                 }
             }
@@ -340,7 +368,7 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            s_ALUSrc = 1;
+            s_ALUSrc2 = 1;
             s_memToReg = MemToReg::MEMREAD;
             s_RegWrite = 1;
             break;
@@ -365,7 +393,7 @@ void Pipeline::controlGen() {
                     break;
                 }
             }
-            s_ALUSrc = 1;
+            s_ALUSrc2 = 1;
             break;
         }
         case 0b1100011: {
@@ -415,7 +443,8 @@ void Pipeline::controlGen() {
         }
         case 0b1100111: {
             // JALR
-            s_ALUSrc = 1;
+            s_ALUOP = ALUOps::ADD;
+            s_ALUSrc2 = 1;
             s_memToReg = MemToReg::PC4;
             s_RegWrite = 1;
             s_jalr = 1;
@@ -494,19 +523,22 @@ void Pipeline::hazardControlGen() {
     // Load Use hazard: Loaded variable is needed in execute stage
     bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (bool)r_MemRead_IDEX;
 
-    // Jump target must be computed before JALR jump can be performed
-    bool jalrHazard = ((uint32_t)r_instr_IFID & 0b1111111) == 0b1100111;
-
-    if (branchHazard || loadUseHazard || jalrHazard) {  // Require branch instruction
+    if (branchHazard || loadUseHazard) {
         // Stall until hazard is resolved - keep IFID and PC vaues, and reset IDEX registers
         s_PCWrite = 0;
         s_IFID_write = 0;
         s_IDEX_reset = 1;
+
     } else {
         s_PCWrite = 1;
         s_IFID_write = 1;
         s_IDEX_reset = 0;
     }
+
+    // JALR hazard - IFID register is reset for s_jal & r_jal_idex but IDEX needs to be reset aswell for JALR
+    if (r_jalr_IDEX) {
+        s_IDEX_reset = 1;
+    };
 }
 
 void Pipeline::propagateCombinational() {
@@ -526,6 +558,8 @@ void Pipeline::propagateCombinational() {
     mux_memToReg.update();
 
     // ----- MEM -----
+    s_alures_PC4_MEM = (uint32_t)(r_jalr_EXMEM || r_jal_EXMEM);
+    mux_alures_PC4_MEM.update();
     if (r_MemRead_EXMEM) {
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
@@ -553,8 +587,9 @@ void Pipeline::propagateCombinational() {
 
     // ----- EX -----
     mux_forwardB_EX.update();
-    mux_ALUSrc.update();
+    mux_ALUSrc2.update();
     mux_forwardA_EX.update();
+    mux_ALUSrc1.update();
     alu_mainALU.update();
 
     // ----- ID -----
@@ -595,9 +630,12 @@ void Pipeline::propagateCombinational() {
         default: { s_branchTaken = 0; }
     }
 
-    // b1=true for s_PCSrc will unconditionally take s_jalr PC target. Else, take branch outcome calculation if
+    // b1=true for s_PCSrc will unconditionally take r_jal_IDEX PC target. Else, take branch outcome calculation if
     // s_branchTaken or s_jal. if deasserted, PC+4 is selected
-    s_PCSrc = ((uint32_t)s_jalr << 1) + (uint32_t)(s_branchTaken || s_jal);
+    s_PCSrc = ((uint32_t)r_jalr_IDEX << 1) + (uint32_t)(s_branchTaken || s_jal);
+
+    // IFID should be reset when branch is taken and when jumping
+    s_IFID_reset = s_branchTaken || r_jalr_IDEX || s_jal;
 
     // ----- IF -----
     alu_pc4.update();
@@ -610,6 +648,41 @@ void Pipeline::propagateCombinational() {
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
     s_invalidPC = (bool)s_branchTaken && (bool)s_IFID_write;
+
+    // handle ECALL I/O. If a0 = 10 for an ECALL, this sets m_finishing and increments finishing counter
+    // if m_finishing is set, we disable PC writing
+    handleEcall();
+    s_PCWrite = m_finishing ? 0 : s_PCWrite;
+    s_IFID_reset = m_finishing ? 1 : s_IFID_reset;
+}
+
+void Pipeline::handleEcall() {
+    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011) {
+        // ECALL
+        uint32_t a0_val = m_reg.a0();
+
+        // Since a0 is not expressed in the ECALL function (and thus not triggering the usual forwarding logic), we have
+        // to do manual forwarding
+        if ((uint32_t)r_writeReg_MEMWB == 10) {
+            // Forward a0 value from MEMWB
+            a0_val = (uint32_t)*mux_memToReg.getOutput();
+        }
+        if ((uint32_t)r_writeReg_EXMEM == 10) {
+            // Forward a0 value from EXMEM
+            a0_val = (uint32_t)*mux_alures_PC4_MEM.getOutput();
+        }
+        if ((uint32_t)r_writeReg_IDEX == 10) {
+            // Forward a0 value from EX stage
+            a0_val = (uint32_t)*alu_mainALU.getOutput();
+        }
+        if (a0_val == 10) {
+            // Start finishing sequence
+            m_finishing = true;
+        }
+    }
+    if (m_finishing) {
+        m_finishingCnt++;
+    }
 }
 
 int Pipeline::step() {
@@ -644,8 +717,9 @@ int Pipeline::step() {
     // Set stage program counters
     setStagePCS();
 
-    // Check for finished execution and breakpoints
-    if (m_pcs.WB.pc > m_textSize) {
+    // Check for finished execution(either end of file or m_finishingCnt > 4 (if ecall 10 has been called)) and
+    // breakpoints
+    if ((m_pcs.WB.pc > m_textSize) || (m_finishingCnt > 4)) {
         m_finished = true;
         return 1;
     } else if (m_breakpoints.find((uint32_t)r_PC_IF) != m_breakpoints.end()) {
@@ -701,6 +775,8 @@ void Pipeline::restart() {
     m_pcs.reset();
     m_pcsPre.reset();
     m_finished = false;
+    m_finishing = false;
+    m_finishingCnt = 0;
 
     // Reset all registers to 0 and propagate signals through combinational logic
     RegBase::resetAll();

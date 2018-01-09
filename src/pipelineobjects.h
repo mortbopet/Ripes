@@ -248,7 +248,7 @@ private:
     std::function<bool(bool, const Signal<n>&)> m_op;
 };
 
-namespace ALUDefs {
+namespace ALUOps {
 static const int CTRL_SIZE = 5;
 enum OPCODE {
     ADD = 0,
@@ -266,7 +266,7 @@ enum OPCODE {
     LTU = 12,
     EQ = 13
 };
-}  // namespace ALUDefs
+}  // namespace ALUOps
 
 template <int n>
 class ALU {
@@ -283,7 +283,7 @@ public:
 
     Signal<n>* getOutput() { return &m_output; }
 
-    void setControl(const Signal<ALUDefs::CTRL_SIZE>* sig) { m_control = sig; }
+    void setControl(const Signal<ALUOps::CTRL_SIZE>* sig) { m_control = sig; }
 
 private:
     bool initialized() {
@@ -297,51 +297,51 @@ private:
     Signal<n> m_output;
     const Signal<n>* m_op1;
     const Signal<n>* m_op2;
-    const Signal<ALUDefs::CTRL_SIZE>* m_control;
+    const Signal<ALUOps::CTRL_SIZE>* m_control;
 };
 
 template <int n>
 void ALU<n>::update() {
     if (!initialized())
         throw std::runtime_error("Mux not initialized");
-    switch ((ALUDefs::OPCODE)(int)*m_control) {
-        case ALUDefs::ADD:
+    switch ((ALUOps::OPCODE)(int)*m_control) {
+        case ALUOps::ADD:
             m_output = (uint32_t)*m_op1 + (uint32_t)*m_op2;
             break;
-        case ALUDefs::SUB:
+        case ALUOps::SUB:
             m_output = (uint32_t)*m_op1 - (uint32_t)*m_op2;
             break;
-        case ALUDefs::MUL:
+        case ALUOps::MUL:
             m_output = (uint32_t)*m_op1 * (uint32_t)*m_op2;
             break;
-        case ALUDefs::DIV:
+        case ALUOps::DIV:
             m_output = (uint32_t)*m_op1 / (uint32_t)*m_op2;
             break;
-        case ALUDefs::AND:
+        case ALUOps::AND:
             m_output = (uint32_t)*m_op1 & (uint32_t)*m_op2;
             break;
-        case ALUDefs::OR:
+        case ALUOps::OR:
             m_output = (uint32_t)*m_op1 | (uint32_t)*m_op2;
             break;
-        case ALUDefs::XOR:
+        case ALUOps::XOR:
             m_output = (uint32_t)*m_op1 ^ (uint32_t)*m_op2;
             break;
-        case ALUDefs::SL:
+        case ALUOps::SL:
             m_output = (uint32_t)*m_op1 << (uint32_t)*m_op2;
             break;
-        case ALUDefs::SRA:
+        case ALUOps::SRA:
             m_output = (int32_t)*m_op1 >> (uint32_t)*m_op2;
             break;
-        case ALUDefs::SRL:
+        case ALUOps::SRL:
             m_output = (uint32_t)*m_op1 >> (uint32_t)*m_op2;
             break;
-        case ALUDefs::LUI:
+        case ALUOps::LUI:
             m_output = (uint32_t)*m_op2;
             break;
-        case ALUDefs::LT:
+        case ALUOps::LT:
             m_output = (int)*m_op1 < (int)*m_op2 ? 1 : 0;
             break;
-        case ALUDefs::LTU:
+        case ALUOps::LTU:
             m_output = (uint32_t)*m_op1 < (uint32_t)*m_op2 ? 1 : 0;
             break;
         default:
@@ -366,6 +366,8 @@ public:
     void setInputs(Signal<5>* readRegister1, Signal<5>* readRegister2, Signal<5>* writeReg, Signal<32>* writeData,
                    Signal<1>* regWrite);
     Signal<32>* getOutput(int n = 1) { return n == 2 ? &m_readData2 : &m_readData1; }
+
+    uint32_t a0() { return m_reg[10]; }  // Direct accessor for a0 register (ECALL functionality)
 
 private:
     // ReadRegister 1/2 is deduced from the input instruction signal

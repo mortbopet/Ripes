@@ -38,6 +38,7 @@ private:
     void immGen();
     void controlGen();
     void forwardingControlGen();
+    void handleEcall();
     void hazardControlGen();
     void aluCtrl();
     void clock();
@@ -47,7 +48,10 @@ private:
     void setStagePCS();
     StagePCS m_pcs;
     StagePCS m_pcsPre;
+    bool m_finishing =
+        false;  // Set when ecall 10 is detected, and the pipeline is running its remaining instructions through
     bool m_finished = false;
+    int m_finishingCnt = 0;
 
     // Memory
     Registers m_reg;
@@ -62,9 +66,9 @@ private:
     ALU<32> alu_pc_target = ALU<32>("ALU PC target");  // ALU for PC target computation
 
     ALU<32> alu_mainALU = ALU<32>("Main ALU");  // Arithmetic ALU
-    Mux<2, 32> mux_ALUSrc;
+    Mux<2, 32> mux_ALUSrc1;
+    Mux<2, 32> mux_ALUSrc2;
     Mux<3, 32> mux_memToReg;
-
     Signal<32> s_imm_ID = Signal<32>("Immediate");
     Signal<32> s_instr_IF = Signal<32>("Instruction");
     Signal<32> readData_MEM;
@@ -73,44 +77,52 @@ private:
 
     Mux<3, 32> mux_forwardA_EX, mux_forwardB_EX, mux_forwardA_ID,
         mux_forwardB_ID;  // Forwarding mux'es for execute stage and ID stage (branch comparison operation)
-    Signal<2> s_forwardA_EX, s_forwardB_EX, s_forwardA_ID, s_forwardB_ID;
     Signal<1> s_invalidPC;
+
+    Mux<2, 32> mux_alures_PC4_MEM;
 
     // Registers
     Reg<5> r_readRegister1_IDEX, r_readRegister2_IDEX;
-    std::vector<RegBase*> m_regs;
     Reg<32> r_instr_IFID, r_rd1_IDEX, r_rd2_IDEX, r_imm_IDEX, r_alures_EXMEM, r_writeData_EXMEM, r_readData_MEMWB,
         r_alures_MEMWB;
     Reg<32> r_PC_IF, r_PC_IFID, r_PC_IDEX, r_PC_EXMEM, r_PC_MEMWB;
     Reg<32> r_PC4_IFID, r_PC4_IDEX, r_PC4_EXMEM, r_PC4_MEMWB;
     Reg<1> r_invalidPC_IFID, r_invalidPC_IDEX, r_invalidPC_EXMEM, r_invalidPC_MEMWB;
+    Reg<1> r_jal_IDEX, r_jal_EXMEM, r_jalr_IDEX, r_jalr_EXMEM;
+
     Signal<5> writeReg;
     Reg<5> r_writeReg_IDEX, r_writeReg_EXMEM, r_writeReg_MEMWB;  // Write register (# of register to write to)
     RegBank bank_IDEX;
 
     // Control propagation registers
     Reg<1> r_regWrite_IDEX, r_regWrite_EXMEM, r_regWrite_MEMWB;  // Register write signal
-    Reg<ALUDefs::CTRL_SIZE> r_ALUOP_IDEX;
-    Reg<1> r_ALUSrc_IDEX;                    // Multiplexor control signals
+    Reg<ALUOps::CTRL_SIZE> r_ALUOP_IDEX;
+    Reg<1> r_ALUSrc1_IDEX, r_ALUSrc2_IDEX;   // Multiplexor control signals
     Reg<3> r_MemRead_IDEX, r_MemRead_EXMEM;  // Write/read from memory signals. Funct3 value for instruction determines
                                              // signal value (ie. byte width and signed/unsigned load)
     Reg<2> r_MemWrite_IDEX, r_MemWrite_EXMEM, r_memToReg_IDEX, r_memToReg_EXMEM, r_memToReg_MEMWB;
 
     // Control signals
-    Signal<ALUDefs::CTRL_SIZE> s_alu_const_add = Signal<ALUDefs::CTRL_SIZE>(
-        (uint32_t)ALUDefs::OPCODE::ADD);  // A constant "ADD" control signal, to turn an ALU into an adder
+    Signal<ALUOps::CTRL_SIZE> s_alu_const_add = Signal<ALUOps::CTRL_SIZE>(
+        (uint32_t)ALUOps::OPCODE::ADD);  // A constant "ADD" control signal, to turn an ALU into an adder
     Signal<3> s_MemRead;
     Signal<2> s_MemWrite;
     Signal<2> s_memToReg;
-    Signal<1> s_RegWrite, s_ALUSrc, s_Branch;
-    Signal<ALUDefs::CTRL_SIZE> s_ALUOP;
+    Signal<1> s_RegWrite;
+    Signal<1> s_ALUSrc1, s_ALUSrc2;  // Multiplexor control signal for ALU input (2:1)
+    Signal<2> s_forwardA_EX, s_forwardB_EX, s_forwardA_ID,
+        s_forwardB_ID;  // Multiplexor control signal for ALU and ID register forwarding (3:1)
+    Signal<1> s_Branch;
+    Signal<ALUOps::CTRL_SIZE> s_ALUOP;
     Signal<3> s_CompOp;
-    Signal<1> s_validPC;     // used for GUI to determine whether a PC = 0 is a nop (register flush) or valid
-    Signal<1> s_PCWrite;     // Used when a branch instruction requires a pipeline stall
-    Signal<1> s_IFID_write;  // Used when a branch instruction requires a pipeline stall
-    Signal<1> s_IDEX_reset;  // Used when a branch instruction requires a pipeline stall
+    Signal<1> s_validPC;  // used for GUI to determine whether a PC = 0 is a nop (register flush) or valid
+    Signal<1> s_PCWrite;  // Used when a branch instruction requires a pipeline stall
+    Signal<1> s_IFID_write, s_IFID_reset;  // Used when clearing IFID after branching or jumping
+    Signal<1> s_IDEX_reset;                // Used when a branch instruction requires a pipeline stall
     Signal<2> s_PCSrc;
     Signal<1> s_jal, s_jalr;
+    Signal<1> s_auipc;           // used for controlling input 1 to main alu (registers or PC)
+    Signal<1> s_alures_PC4_MEM;  // Control signal for forwarding MUX in MEM stage
 
     // Control signal enums
     enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };
