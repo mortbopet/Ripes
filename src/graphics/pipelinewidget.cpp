@@ -183,7 +183,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                      QList<ShapePair>() << ShapePair(instr_mem, 0) << ShapePair(ifid, 1) << ShapePair(alu_pc4, 0));
     connPtr = createConnection(alu_pc4, 0, mux_PCSrc, 0);
     connPtr->setFeedbackSettings(false, minConnectionLen, minConnectionLen - 10);
-    connPtr->setKinkBias(100);
+    connPtr->setKinkBias(-70);
     createConnection(alu_pc4, 0, ifid, 0);
     createConnection(instr_mem, 0, ifid, 2);
 
@@ -200,7 +200,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     createConnection(immgen, 0, idex, 7);
     connPtr = createConnection(alu_pc_target, 0, mux_PCSrc, 1);
     connPtr->setFeedbackSettings(false, 10, minConnectionLen);
-    connPtr->setKinkBias(150);
+    connPtr->setKinkBias(-150);
     createConnection(ifid, 1, alu_pc_target, 0);
     connPtr = createConnection(immgen, 0, alu_pc_target, 1);
 
@@ -234,7 +234,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     connPtr = createConnection(mux_alures_PC4_MEM, 0,
                                QList<ShapePair>() << ShapePair(mux_forwardA_EX, 1) << ShapePair(mux_forwardB_EX, 1));
-    connPtr->setFeedbackSettings(true, 10, minConnectionLen + 10);
+    connPtr->setFeedbackSettings(true, 10, minConnectionLen - 10);
     connPtr->setKinkBias(150);
 
     // WB

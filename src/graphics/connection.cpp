@@ -100,15 +100,33 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         }
     } else {
         // Feedback connection
-        // 1. traverse to the right of the input
-        if (m_kinkBiases.size() >= 1) {
+        QList<QPointF> sourcePoints = QList<QPointF>() << sourcePoint;
+        for (int i = 0; i < m_dests.length(); i++) {
             QVector<QPointF> polyLine;
-            QPointF point(sourcePoint.x() + m_sourceStubLen, sourcePoint.y());
-            QPointF point2(point.x(), point.y() + m_feedbackDir * m_kinkBiases[0]);
-            QPointF point3(destPoint.x() - m_destStubLen, point2.y());
-            QPointF point4(point3.x(), destPoint.y());
-            polyLine << sourcePoint << point << point2 << point3 << point4;
-            polyLine << destPoint;
+            QPointF dest = mapFromItem(m_dests[i].first, *m_dests[i].second);
+
+            // Find closest available source point
+            QPointF source = sourcePoint;
+            for (const auto& p : sourcePoints) {
+                source = pointDistance(dest, p) < pointDistance(dest, source) ? p : source;
+            }
+            polyLine << source;
+
+            if (i == 0) {
+                // do kink for first line
+                QPointF point(source.x() + m_sourceStubLen, source.y());
+                QPointF point2(point.x(), m_kinkBiases[i] + point.y());
+                QPointF point3(dest.x() - m_destStubLen, point2.y());
+                QPointF point4(point3.x(), dest.y());
+                sourcePoints << point << point2 << point3 << point4;
+                polyLine << point << point2 << point3 << point4;
+            } else {
+                QPointF point(dest.x() - m_destStubLen, source.y());
+                QPointF point2(point.x(), dest.y());
+                sourcePoints << point << point2;
+                polyLine << point << point2;
+            }
+            polyLine << dest;
             m_polyLines.append(polyLine);
         }
     }
