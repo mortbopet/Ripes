@@ -166,7 +166,8 @@ QPainterPath Shape::drawALUPath(QRectF rect) const {
 void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget*) {
     auto rect = boundingRect();
 
-    painter->setPen(QPen(Qt::black, 1));
+    painter->setPen(QPen(Qt::black, 1.5));
+    painter->setBrush(Qt::white);
     switch (m_type) {
         case ShapeType::Block: {
             painter->drawRect(rect);
@@ -181,6 +182,8 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
             painter->drawEllipse(rect);
         } break;
     }
+
+    painter->setBrush(Qt::transparent);
 
     // Translate text in relation to the bounding rectangle, and draw shape name
     auto fontMetricsObject = QFontMetrics(m_nameFont);
@@ -212,17 +215,52 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
 
     // draw IO points
     if (m_drawTopPoint)
-        painter->drawEllipse(m_topPoint, 5, 5);
+        if (m_topSignal != nullptr && m_topSignal->getValue() > 0) {
+            painter->setBrush(Qt::green);
+            painter->drawEllipse(m_topPoint, 5, 5);
+            painter->setBrush(Qt::transparent);
+        } else {
+            painter->drawEllipse(m_topPoint, 5, 5);
+        }
     if (m_drawBotPoint)
-        painter->drawEllipse(m_bottomPoint, 5, 5);
+        if (m_botsignal != nullptr && m_botsignal->getValue() > 0) {
+            painter->setBrush(Qt::green);
+            painter->drawEllipse(m_bottomPoint, 5, 5);
+            painter->setBrush(Qt::transparent);
+        } else {
+            painter->drawEllipse(m_bottomPoint, 5, 5);
+        }
 
     for (int i = 0; i < m_inputPoints.length(); i++) {
         if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end())
-            painter->drawEllipse(m_inputPoints[i], 5, 5);
+            // For multiplexers, we want to color the input that is asserted
+            if (m_leftSignal != nullptr && m_leftSignal->getValue() == i) {
+                painter->setBrush(Qt::red);
+                painter->drawEllipse(m_inputPoints[i], 5, 5);
+                painter->setBrush(Qt::transparent);
+            } else {
+                painter->drawEllipse(m_inputPoints[i], 5, 5);
+            }
     }
     for (int i = 0; i < m_outputPoints.length(); i++) {
         if (m_hiddenOutputPoints.find(i) == m_hiddenOutputPoints.end())
             painter->drawEllipse(m_outputPoints[i], 5, 5);
+    }
+}
+
+void Shape::setSignal(SignalPos pos, SignalBase* sig) {
+    switch (pos) {
+        case SignalPos::Left:
+            m_leftSignal = sig;
+            break;
+        case SignalPos::Top:
+            m_topSignal = sig;
+            break;
+        case SignalPos::Bot:
+            m_botsignal = sig;
+            break;
+        default:
+            break;
     }
 }
 

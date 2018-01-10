@@ -40,9 +40,13 @@ Text::Text(QPointF pos) {
 }
 
 QRectF Text::boundingRect() const {
+    // Because text changes regularly, bounding rect is only defined by the text height, and a fixed rect width is set
     QFontMetrics obj(m_font);
-    auto rect = obj.boundingRect(m_text);
+    QRectF rect = obj.boundingRect(m_text);
+    rect.setWidth(200);
+    rect.setHeight(obj.height());
     rect.moveTo(m_pos.toPoint());
+    rect.translate(-rect.width() / 2, -rect.height() / 2);
     return rect;
 }
 

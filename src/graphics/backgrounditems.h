@@ -21,7 +21,10 @@ private:
 class Text : public QGraphicsItem {
 public:
     Text(QPointF pos);
-    void setText(const QString& text) { m_text = text; }
+    void setText(const QString& text) {
+        m_text = text;
+        update();
+    }
     QRectF boundingRect() const;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 

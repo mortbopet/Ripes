@@ -18,6 +18,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     setDragMode(QGraphicsView::ScrollHandDrag);
     setCursor(Qt::CrossCursor);
 
+    m_pipelinePtr = Pipeline::getPipeline();
+
     //  ------------ Create pipeline objects ---------------
     // Registers memory
     Graphics::Shape* registers = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::ID, 10, 15);
@@ -27,14 +29,22 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                                       << "Write\ndata");
     registers->addOutput(QStringList() << "Read\ndata 1"
                                        << "Read\ndata 2");
+    registers->addTopPoint("");
     registers->setName("Registers");
+    registers->setSignal(Graphics::SignalPos::Top, m_pipelinePtr->r_regWrite_MEMWB.getOutput());
+    m_animatedItems.push_back(registers);
 
     // Data memory
     Graphics::Shape* data_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::MEM, 50, 5);
     data_mem->addInput(QStringList() << "Address"
                                      << "Write\ndata");
     data_mem->addOutput(QStringList() << "Read\ndata");
+    data_mem->addTopPoint("Write");
+    data_mem->addBotPoint("Read");
     data_mem->setName("Data\nmemory");
+    data_mem->setSignal(Graphics::SignalPos::Top, m_pipelinePtr->r_MemWrite_EXMEM.getOutput());
+    data_mem->setSignal(Graphics::SignalPos::Bot, m_pipelinePtr->r_MemRead_EXMEM.getOutput());
+    m_animatedItems.push_back(data_mem);
 
     // Instruction memory
     Graphics::Shape* instr_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 60, 0);
@@ -55,48 +65,78 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                                       << ""
                                       << "");
     mux_PCSrc->addOutput("");
-    mux_PCSrc->addBotPoint("");
     mux_PCSrc->setName("M\nu\nx");
+    mux_PCSrc->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_PCSrc);
+    m_animatedItems.push_back(mux_PCSrc);
 
-    Graphics::Shape* mux_forwardA_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
+    Graphics::Shape* mux_forwardA_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardA_EX->addInput(QStringList() << ""
                                             << ""
                                             << "");
     mux_forwardA_EX->addOutput("");
     mux_forwardA_EX->setName("M\nu\nx");
+    mux_forwardA_EX->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardA_EX);
+    m_animatedItems.push_back(mux_forwardA_EX);
 
-    Graphics::Shape* mux_forwardB_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
+    Graphics::Shape* mux_forwardB_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardB_EX->addInput(QStringList() << ""
                                             << ""
                                             << "");
     mux_forwardB_EX->addOutput("");
     mux_forwardB_EX->setName("M\nu\nx");
+    mux_forwardB_EX->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardB_EX);
+    m_animatedItems.push_back(mux_forwardB_EX);
+
+    Graphics::Shape* mux_forwardA_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
+    mux_forwardA_ID->addInput(QStringList() << ""
+                                            << ""
+                                            << "");
+    mux_forwardA_ID->addOutput("");
+    mux_forwardA_ID->setName("M\nu\nx");
+    mux_forwardA_ID->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardA_ID);
+    m_animatedItems.push_back(mux_forwardA_ID);
+
+    Graphics::Shape* mux_forwardB_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
+    mux_forwardB_ID->addInput(QStringList() << ""
+                                            << ""
+                                            << "");
+    mux_forwardB_ID->addOutput("");
+    mux_forwardB_ID->setName("M\nu\nx");
+    mux_forwardB_ID->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardB_ID);
+    m_animatedItems.push_back(mux_forwardB_ID);
 
     Graphics::Shape* mux_ALUSrc1 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_ALUSrc1->addInput(QStringList() << ""
                                         << "");
     mux_ALUSrc1->addOutput("");
     mux_ALUSrc1->setName("M\nu\nx");
+    mux_ALUSrc1->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_ALUSrc1);
+    m_animatedItems.push_back(mux_ALUSrc1);
 
     Graphics::Shape* mux_ALUSrc2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_ALUSrc2->addInput(QStringList() << ""
                                         << "");
     mux_ALUSrc2->addOutput("");
     mux_ALUSrc2->setName("M\nu\nx");
+    mux_ALUSrc2->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_ALUSrc2);
+    m_animatedItems.push_back(mux_ALUSrc2);
 
     Graphics::Shape* mux_alures_PC4_MEM = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_alures_PC4_MEM->addInput(QStringList() << ""
                                                << "");
     mux_alures_PC4_MEM->addOutput("");
     mux_alures_PC4_MEM->setName("M\nu\nx");
+    mux_alures_PC4_MEM->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_alures_PC4_MEM);
+    m_animatedItems.push_back(mux_alures_PC4_MEM);
 
     Graphics::Shape* mux_memToReg = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 0, 0);
     mux_memToReg->addInput(QStringList() << ""
                                          << ""
                                          << "");
-    mux_memToReg->addBotPoint("");
     mux_memToReg->addOutput("");
     mux_memToReg->setName("M\nu\nx");
+    mux_memToReg->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_memToReg);
+    m_animatedItems.push_back(mux_memToReg);
 
     // ALUs
     Graphics::Shape* alu_pc4 = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::ID, 70, 10);
@@ -153,6 +193,13 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     immgen->addInput("");
     immgen->addOutput("");
 
+    Graphics::Shape* comp = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 0, 20);
+    comp->setName("=");
+    comp->addOutput("");
+    comp->setHiddenOutputs(std::set<int>{0});
+    comp->addTopPoint("");
+    comp->addBotPoint("");
+
     // Add pipeline objects to graphics scene
 
     scene->addItem(mux_PCSrc);
@@ -165,6 +212,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(data_mem);
     scene->addItem(mux_forwardA_EX);
     scene->addItem(mux_forwardB_EX);
+    scene->addItem(mux_forwardA_ID);
+    scene->addItem(mux_forwardB_ID);
     scene->addItem(mux_ALUSrc1);
     scene->addItem(mux_ALUSrc2);
     scene->addItem(mux_alures_PC4_MEM);
@@ -174,9 +223,11 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(idex);
     scene->addItem(exmem);
     scene->addItem(memwb);
+    scene->addItem(comp);
 
     //  ----------- Create connections ----------------------
     Graphics::Connection* connPtr;
+
     // IF
     createConnection(mux_PCSrc, 0, pc, 0);
     createConnection(pc, 0,
@@ -193,40 +244,50 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                                         << ShapePair(immgen, 0) << /* To IDEX*/
                          ShapePair(idex, 8) << ShapePair(idex, 9) << ShapePair(idex, 10));
 
-    connPtr = createConnection(registers, 0, idex, 5);
-    connPtr->setKinkBias(-10);
-    connPtr = createConnection(registers, 1, idex, 6);
-    connPtr->setKinkBias(10);
-    createConnection(immgen, 0, idex, 7);
+    // createConnection(registers, 0, idex, 5)->setKinkBias(-10);
+    createConnection(registers, 0, idex, 5);
+    createConnection(registers, 0, mux_forwardA_ID, 0)->setKinkBias(-10);
+    createConnection(registers, 1, idex, 6);
+    createConnection(registers, 1, mux_forwardB_ID, 0);
+
+    createConnection(immgen, 0, idex, 7)->setKinkBias(25);
     connPtr = createConnection(alu_pc_target, 0, mux_PCSrc, 1);
     connPtr->setFeedbackSettings(false, 10, minConnectionLen);
     connPtr->setKinkBias(-150);
-    createConnection(ifid, 1, alu_pc_target, 0);
-    connPtr = createConnection(immgen, 0, alu_pc_target, 1);
+    createConnection(ifid, 1, QList<ShapePair>() << ShapePair(alu_pc_target, 0) << ShapePair(idex, 4))->setKinkBias(20);
+    createConnection(ifid, 0, idex, 3)->setKinkBias(-110);
+    createConnection(immgen, 0, alu_pc_target, 1)->setKinkBias(20);
+
+    createConnection(mux_forwardA_ID, comp, mux_forwardA_ID->getOutputPoint(0), comp->getTopPoint())
+        ->setDirection(Graphics::Direction::south);
+    createConnection(mux_forwardB_ID, comp, mux_forwardB_ID->getOutputPoint(0), comp->getBotPoint())
+        ->setDirection(Graphics::Direction::north);
 
     // EX
-    createConnection(idex, 4, mux_forwardA_EX, 0);
-    createConnection(idex, 5, mux_forwardB_EX, 0);
-    createConnection(idex, 3, mux_ALUSrc1, 1);
-    createConnection(idex, 6, mux_ALUSrc2, 1);
+    createConnection(idex, 5, mux_forwardA_EX, 0);
+    createConnection(idex, 6, mux_forwardB_EX, 0);
+    createConnection(idex, 7, mux_ALUSrc2, 1)->setKinkBias(-50);
+    createConnection(idex, 3, exmem, 2)->setKinkBias(100);
+    createConnection(idex, 4, mux_ALUSrc1, 1)->setKinkBias(50);
+    createConnection(idex, 10, exmem, 5);
 
     createConnection(mux_forwardA_EX, 0, mux_ALUSrc1, 0);
-    createConnection(mux_forwardB_EX, 0, mux_ALUSrc2, 0);
+    createConnection(mux_forwardB_EX, 0, QList<ShapePair>() << ShapePair(mux_ALUSrc2, 0) << ShapePair(exmem, 4));
 
     createConnection(mux_ALUSrc1, 0, alu_mainALU, 0);
     createConnection(mux_ALUSrc2, 0, alu_mainALU, 1);
 
     createConnection(alu_mainALU, 0, exmem, 3);
     connPtr = createConnection(alu_mainALU, 0, mux_PCSrc, 2);
-    connPtr->setFeedbackSettings(false, 10, minConnectionLen + 10);
-    connPtr->setKinkBias(330);
+    connPtr->setFeedbackSettings(false, 10, minConnectionLen);
+    connPtr->setKinkBias(325);
 
     // MEM
     createConnection(exmem, 3, mux_alures_PC4_MEM, 0);
-    createConnection(exmem, 2, mux_alures_PC4_MEM, 1);
+    createConnection(exmem, 2, mux_alures_PC4_MEM, 1)->setKinkBias(-15);
 
     createConnection(exmem, 0, memwb, 0);
-    createConnection(exmem, 2, memwb, 1);
+    createConnection(exmem, 2, memwb, 1)->setKinkBias(-80);
     createConnection(exmem, 3, QList<ShapePair>() << ShapePair(data_mem, 0) << ShapePair(memwb, 3));
     createConnection(exmem, 4, data_mem, 1);
     createConnection(exmem, 5, memwb, 4);
@@ -234,15 +295,37 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     connPtr = createConnection(mux_alures_PC4_MEM, 0,
                                QList<ShapePair>() << ShapePair(mux_forwardA_EX, 1) << ShapePair(mux_forwardB_EX, 1));
+
     connPtr->setFeedbackSettings(true, 10, minConnectionLen - 10);
-    connPtr->setKinkBias(150);
+    connPtr->setKinkBias(200);
+    connPtr = createConnection(mux_alures_PC4_MEM, 0,
+                               QList<ShapePair>() << ShapePair(mux_forwardA_ID, 1) << ShapePair(mux_forwardB_ID, 1));
+
+    connPtr->setFeedbackSettings(true, 10, minConnectionLen - 10);
+    connPtr->setKinkBias(200);
 
     // WB
-    createConnection(memwb, 0, mux_memToReg, 0);
-    createConnection(memwb, 1, mux_memToReg, 1);
-    connPtr = createConnection(mux_memToReg, 0, registers, 3);
+    connPtr = createConnection(memwb, registers, memwb->getOutputPoint(0), registers->getTopPoint());
     connPtr->setFeedbackSettings(true, minConnectionLen - 20, minConnectionLen - 10);
-    connPtr->setKinkBias(430);
+    connPtr->setKinkBias(-100);
+    connPtr->setDirection(Graphics::Direction::south);
+    createConnection(memwb, 1, mux_memToReg, 0);
+    createConnection(memwb, 2, mux_memToReg, 1);
+    createConnection(memwb, 3, mux_memToReg, 2);
+
+    connPtr = createConnection(mux_memToReg, 0,
+                               QList<ShapePair>() << ShapePair(mux_forwardA_EX, 2) << ShapePair(mux_forwardB_EX, 2));
+    connPtr->setFeedbackSettings(false, minConnectionLen - 20, minConnectionLen + 20);
+    connPtr->setKinkBias(320);
+
+    connPtr = createConnection(mux_memToReg, 0,
+                               QList<ShapePair>() << ShapePair(mux_forwardA_ID, 2) << ShapePair(mux_forwardB_ID, 2));
+    connPtr->setFeedbackSettings(false, minConnectionLen - 20, minConnectionLen + 20);
+    connPtr->setKinkBias(320);
+
+    connPtr = createConnection(mux_memToReg, 0, registers, 3);
+    connPtr->setFeedbackSettings(false, minConnectionLen - 20, minConnectionLen - 10);
+    connPtr->setKinkBias(320);
 
     // ------- ITEM POSITIONING ------
     // Item positioning will mostly be done manually.
@@ -251,7 +334,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     // items position relative to these
 
     // Position state registers
-    ifid->moveBy(0, 0);
+    ifid->moveBy(-spaceBetweenStateRegs * 0.2, 0);
     idex->moveBy(spaceBetweenStateRegs * 1, 0);
     exmem->moveBy(spaceBetweenStateRegs * 2, 0);
     memwb->moveBy(spaceBetweenStateRegs * 3, 0);
@@ -264,10 +347,17 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     // position ID stage
     moveToIO(alu_pc_target, idex, alu_pc_target->getOutputPoint(0), idex->getInputPoint(2));
-    alu_pc_target->moveBy(-50, 0);
-    registers->moveBy(spaceBetweenStateRegs * 0.5, 0);
+    alu_pc_target->moveBy(-20, -30);
+    registers->moveBy(spaceBetweenStateRegs * 0.3 - 10, 20);
     moveToIO(immgen, idex, immgen->getOutputPoint(0), idex->getInputPoint(7));
-    immgen->moveBy(-120, 20);
+    immgen->moveBy(-120, 60);
+
+    moveToIO(mux_forwardA_ID, idex, mux_forwardA_ID->getOutputPoint(0), idex->getInputPoint(11));
+    mux_forwardA_ID->moveBy(-25, -10);
+    moveToIO(mux_forwardB_ID, idex, mux_forwardB_ID->getOutputPoint(0), idex->getInputPoint(11));
+    mux_forwardB_ID->moveBy(-25, 80);
+    moveToIO(comp, idex, comp->getOutputPoint(0), idex->getInputPoint(11));
+    comp->moveBy(15, 30);
 
     // position EX stage
     moveToIO(alu_mainALU, exmem, alu_mainALU->getOutputPoint(0), exmem->getInputPoint(3));
@@ -279,10 +369,10 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     // position MEM stage
     data_mem->moveBy(spaceBetweenStateRegs * 2.5, 0);
-    mux_alures_PC4_MEM->moveBy(spaceBetweenStateRegs * 2.3, 120);
+    mux_alures_PC4_MEM->moveBy(spaceBetweenStateRegs * 2.4, 130);
 
     // position WB stage
-    moveToIO(mux_memToReg, memwb, mux_memToReg->getInputPoint(0), memwb->getOutputPoint(0), -minConnectionLen);
+    moveToIO(mux_memToReg, memwb, mux_memToReg->getInputPoint(0), memwb->getOutputPoint(2), -minConnectionLen);
 
     // ----------- Create Etc. objects -----------
     Graphics::DashLine* dash1 = new Graphics::DashLine(ifid);
@@ -296,9 +386,9 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(dash4);
 
     int textPad = 20;
-    if_instr = new Graphics::Text(QPointF(
-        -dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + -spaceBetweenStateRegs / 2,
-        dash1->sceneBoundingRect().top() + textPad));
+    if_instr = new Graphics::Text(
+        QPointF(-dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + -spaceBetweenStateRegs,
+                dash1->sceneBoundingRect().top() + textPad));
     id_instr = new Graphics::Text(
         QPointF(dash1->sceneBoundingRect().left() + dash1->sceneBoundingRect().width() / 2 + spaceBetweenStateRegs / 2,
                 dash1->sceneBoundingRect().top() + textPad));
@@ -308,7 +398,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mem_instr = new Graphics::Text(
         QPointF(dash3->sceneBoundingRect().left() + dash3->sceneBoundingRect().width() / 2 + spaceBetweenStateRegs / 2,
                 dash3->sceneBoundingRect().top() + textPad));
-    wb_instr = new Graphics::Text(QPointF(dash4->sceneBoundingRect().left() + spaceBetweenStateRegs / 3,
+    wb_instr = new Graphics::Text(QPointF(dash4->sceneBoundingRect().left() + spaceBetweenStateRegs / 3 + 20,
                                           dash4->sceneBoundingRect().top() + textPad));
 
     scene->addItem(if_instr);
@@ -316,10 +406,17 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     scene->addItem(ex_instr);
     scene->addItem(mem_instr);
     scene->addItem(wb_instr);
+
+    // For some reason, the boundingrect of the leftmost connections are not forcing the scene rect to change
+    // We manually adjust it a bit
+    setSceneRect(scene->itemsBoundingRect().adjusted(-40, 0, 0, 0));
 }
 
 void PipelineWidget::update() {
     QWidget::update();
+    for (const auto& item : m_animatedItems) {
+        item->update();
+    }
 }
 
 void PipelineWidget::stageTextChanged(Stage stage, const QString& text) {
@@ -340,7 +437,6 @@ void PipelineWidget::stageTextChanged(Stage stage, const QString& text) {
             wb_instr->setText(text);
             break;
     }
-    scene()->update();
 }
 
 void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint, QPointF* destPoint,

@@ -23,7 +23,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Simulation settings</string>
+      <string>Simulator settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
       <item row="0" column="0">
@@ -63,7 +63,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>Start simulation, stepping through the program</string>
+           <string>Automatically step through the program</string>
           </property>
           <property name="text">
            <string>Start autostepping (F5)</string>

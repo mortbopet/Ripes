@@ -6,6 +6,7 @@
 #include <QPair>
 
 #include "defines.h"
+#include "pipeline.h"
 
 namespace Graphics {
 class Connection;
@@ -21,7 +22,7 @@ public:
     PipelineWidget(QWidget* parent = nullptr);
 
     void wheelEvent(QWheelEvent* event);
-    void expandToView() { fitInView(scene()->sceneRect().adjusted(-30, 0, 10, 0), Qt::KeepAspectRatio); }
+    void expandToView() { fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
     void zoomIn();
     void zoomOut();
@@ -66,6 +67,11 @@ private:
     Graphics::Text* ex_instr;
     Graphics::Text* mem_instr;
     Graphics::Text* wb_instr;
+
+    Pipeline* m_pipelinePtr;
+
+    // Vector of Shape* where each item gets its update() function called whenever stepping the simulator.
+    std::vector<Graphics::Shape*> m_animatedItems;
 };
 
 #endif  // PIPELINEWIDGET_H

@@ -30,6 +30,7 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> des
 }
 
 QRectF Connection::boundingRect() const {
+    const static double pad = 5;  // pad around each edge
     double left, top, bot, right;
     // Iterate through all points in the connection line to find bounding rect
     for (const auto& pointVec : m_polyLines) {
@@ -40,7 +41,7 @@ QRectF Connection::boundingRect() const {
             bot = point.y() > bot ? point.y() : bot;
         }
     }
-    return QRectF(left, top, right - left, bot - top);
+    return QRectF(left - pad, top - pad, right - left + pad, bot - top + pad);
 }
 
 QPair<QPointF, QPointF> Connection::getPoints() const {
@@ -86,10 +87,17 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
             int xDiff = dest.x() - source.x();
             if (i == 0) {
                 // do kink for first line
-                QPointF point(source.x() + xDiff / 2 + bias, source.y());
-                QPointF point2(point.x(), dest.y());
-                sourcePoints << point << point2;
-                polyLine << point << point2;
+                if (m_dir == Direction::east) {
+                    QPointF point(source.x() + xDiff / 2 + bias, source.y());
+                    QPointF point2(point.x(), dest.y());
+                    sourcePoints << point << point2;
+                    polyLine << point << point2;
+                } else {
+                    QPointF point(dest.x(), source.y());
+                    sourcePoints << point;
+                    polyLine << point;
+                }
+
             } else {
                 QPointF point(source.x(), dest.y());
                 sourcePoints << point;
@@ -100,6 +108,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         }
     } else {
         // Feedback connection
+        Q_ASSERT(m_kinkBiases.length() > 0);
         QList<QPointF> sourcePoints = QList<QPointF>() << sourcePoint;
         for (int i = 0; i < m_dests.length(); i++) {
             QVector<QPointF> polyLine;
@@ -116,14 +125,26 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
                 // do kink for first line
                 QPointF point(source.x() + m_sourceStubLen, source.y());
                 QPointF point2(point.x(), m_kinkBiases[i] + point.y());
-                QPointF point3(dest.x() - m_destStubLen, point2.y());
-                QPointF point4(point3.x(), dest.y());
-                sourcePoints << point << point2 << point3 << point4;
-                polyLine << point << point2 << point3 << point4;
+                if (m_dir == Direction::east) {
+                    QPointF point3(dest.x() - m_destStubLen, point2.y());
+                    QPointF point4(point3.x(), dest.y());
+                    sourcePoints << point << point2 << point3;
+                    if (!m_invalidDestSourcePoints.contains(i))
+                        sourcePoints << point4;
+                    polyLine << point << point2 << point3 << point4;
+                } else {
+                    QPointF point4(dest.x(), point2.y());
+                    sourcePoints << point << point2;
+                    if (!m_invalidDestSourcePoints.contains(i))
+                        sourcePoints << point4;
+                    polyLine << point << point2 << point4;
+                }
             } else {
                 QPointF point(dest.x() - m_destStubLen, source.y());
                 QPointF point2(point.x(), dest.y());
-                sourcePoints << point << point2;
+                sourcePoints << point;
+                if (!m_invalidDestSourcePoints.contains(i))
+                    sourcePoints << point2;
                 polyLine << point << point2;
             }
             polyLine << dest;
@@ -132,18 +153,35 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
     }
 
     painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter->setBrush(Qt::black);
+    // painter->setCompositionMode(QPainter::CompositionMode_DestinationOver);
 
     for (const auto& line : m_polyLines) {
         // Draw connection polyline
 
         painter->drawPolyline(QPolygonF(line));
-        // Draw destination arrows
-        qreal angle = 0;
+        // Draw destination arrows - angles are a bit strange
+        qreal angle;
+        switch (m_dir) {
+            case Direction::east:
+                angle = 0;
+                break;
+            case Direction::north:
+                angle = 2 * Pi / 4;
+                break;
+            case Direction::west:
+                angle = Pi / 2;
+                break;
+            case Direction::south:
+                angle = -2 * Pi / 4;
+                break;
+        }
+
         QPointF destArrowP1 =
             *(line.end() - 1) + QPointF(sin(angle - Pi / 3) * m_arrowSize, cos(angle - Pi / 3) * m_arrowSize);
         QPointF destArrowP2 =
             *(line.end() - 1) + QPointF(sin(angle - Pi + Pi / 3) * m_arrowSize, cos(angle - Pi + Pi / 3) * m_arrowSize);
-        painter->setBrush(Qt::black);
+
         painter->drawPolygon(QPolygonF() << *(line.end() - 1) << destArrowP1 << destArrowP2);
     }
 
@@ -165,6 +203,13 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         }
         i++;
     }
+
+    /*
+     * Debugging: draw bounding rect
+    painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter->setBrush(Qt::transparent);
+    painter->drawRect(boundingRect());
+    */
 }
 
 void Connection::setValue(uint32_t value) {

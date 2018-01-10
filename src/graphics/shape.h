@@ -9,10 +9,13 @@
 
 #include <set>
 
+#include "pipelineobjects.h"
+
 namespace Graphics {
 class Connection;
 enum class ShapeType { Block, ALU, MUX, Static };
 enum class Stage { IF = 1, ID = 2, EX = 3, MEM = 4, WB = 5 };
+enum class SignalPos { Left, Top, Bot };
 
 class Shape : public QGraphicsItem {
 public:
@@ -28,6 +31,8 @@ public:
     void addConnection(Connection* connection) { m_connections.append(connection); }
     void setFixedHeight(bool state, int height = 0) { m_isFixedHeight = state, m_fixedHeight = height; }
 
+    void setSignal(SignalPos pos, SignalBase* sig);
+
     void setHiddenInputs(std::set<int> set) { m_hiddenInputPoints = set; }
     void setHiddenOutputs(std::set<int> set) { m_hiddenOutputPoints = set; }
 
@@ -40,7 +45,7 @@ public:
 
     void calculateRect();
     void calculatePoints();
-    void drawTopPoint(bool state) { m_drawTopPoint = state; }
+    void addTopPoint(bool state) { m_drawTopPoint = state; }
     void addBotPoint(bool state) { m_drawBotPoint = state; }
 
     static int connectionType() { return QGraphicsItem::UserType + 2; }
@@ -94,6 +99,11 @@ private:
     qreal sidePadding = 7;  // padding between an IO description and the side of the shape
     int m_fixedHeight;
     bool m_isFixedHeight = false;
+
+    // Interfacing signals to pipeline
+    SignalBase* m_leftSignal = nullptr;
+    SignalBase* m_topSignal = nullptr;
+    SignalBase* m_botsignal = nullptr;
 };
 
 }  // namespace Graphics

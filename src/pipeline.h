@@ -7,6 +7,8 @@
 #include <set>
 
 class Pipeline {
+    friend class PipelineWidget;
+
 public:
     Pipeline();
     // Utility functions

@@ -39,6 +39,7 @@ private:
     Class for drawing connections and signal values between shapes in the
    pipeline view.
 */
+enum class Direction { east, west, north, south };
 class Connection : public QObject, public QGraphicsItem {
     Q_OBJECT
 public:
@@ -61,7 +62,9 @@ public:
         m_sourceStubLen = sourceStubLen;
         m_destStubLen = destStubLen;
     }
+    void addInvalidDestSourcePoint(int i) { m_invalidDestSourcePoints.append(i); }
     void addLabelToScene();
+    void setDirection(Direction rot) { m_dir = rot; }
 
 public slots:
     void showValue(bool state) { m_label.m_showValue = state; }
@@ -83,6 +86,8 @@ private:
     int m_sourceStubLen;
     int m_destStubLen;
 
+    Direction m_dir = Direction::east;  // By default, all arrows point towards east
+
     // Variables related to the current value of the connection (signal value)
     ValueDrawPos m_valuePos = ValueDrawPos::Source;
 
@@ -91,6 +96,8 @@ private:
     Shape* m_source;
     QPointF* m_sourcePointPtr;
     QList<PointPair> m_dests;
+    QList<int> m_invalidDestSourcePoints;  // used when algorithm shouldnt use created source points for a destination,
+                                           // when calculating connections to other destinations
     Label m_label;
 };
 

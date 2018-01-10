@@ -30,8 +30,18 @@
 #define CREATE_VEC m_value = std::vector<bool>(n);
 #define SETNAME m_name = name;
 
+class SignalBase {
+public:
+    uint32_t getValue() { return accBVec(m_value); }
+
+protected:
+    std::vector<bool> value() const { return m_value; }
+    std::vector<bool> m_value;
+    std::string m_name;
+};
+
 template <int n>
-class Signal {
+class Signal : public SignalBase {
 public:
     // Constructors
     Signal(std::string name = ""){ASSERT_SIZE CREATE_VEC SETNAME};
@@ -63,11 +73,6 @@ public:
     explicit operator int() const { return signextend<int32_t, n>(accBVec(m_value)); }
     explicit operator uint32_t() const { return accBVec(m_value); }
     explicit operator bool() const { return m_value[0]; }
-
-private:
-    std::vector<bool> value() const { return m_value; }
-    std::vector<bool> m_value;
-    std::string m_name;
 };
 
 // The Reg class is used for sequential signal assignment. Has a single input/output of a given signal size.
