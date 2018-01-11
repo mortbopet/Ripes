@@ -36,7 +36,7 @@ Text::Text(QPointF pos) {
     m_pos = pos;
     m_font = QFont("Monospace");
     m_font.setStyleHint(QFont::Monospace);
-    m_font.setPointSize(12);
+    m_font.setPointSize(14);
 }
 
 QRectF Text::boundingRect() const {

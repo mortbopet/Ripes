@@ -6,6 +6,7 @@
 
 #include <algorithm>
 
+#include "pipelineobjects.h"
 #include "pipelinewidget.h"
 
 namespace Graphics {
@@ -22,17 +23,17 @@ class Label : public QGraphicsItem {
 
 public:
     Label() {}
-    void setText(QString text) { m_text = text; }
 
 protected:
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
+    void setSignal(SignalBase* signal) { m_signal = signal; }
     QPointF* m_drawPos;
     Shape* m_source;
     bool m_showValue = false;
-    QString m_text;
+    SignalBase* m_signal = nullptr;
 };
 
 /*
@@ -46,16 +47,20 @@ public:
     Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint);
     Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> dests);
     void setValueDrawPos(ValueDrawPos pos) { m_valuePos = pos, update(); }
+    void drawPointAtFirstKink(bool val) { m_pointAtFirstKink = val; }
 
-    void setValue(uint32_t value);
     QPair<QPointF, QPointF> getPoints() const;
     QPair<Shape*, Shape*> getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dests[0].first); }
     Shape* getSource() { return m_source; }
+    QGraphicsItem* getLabel() { return &m_label; }
 
     static int connectionType() { return QGraphicsItem::UserType + 1; }
     int type() const { return connectionType(); }
     void setKinkBiases(QList<int> biases) { m_kinkBiases = biases; }
-    void setKinkBias(int bias) { m_kinkBiases = QList<int>() << bias; }
+    Connection* setKinkBias(int bias) {
+        m_kinkBiases = QList<int>() << bias;
+        return this;
+    }
     void setKinkPoints(QList<int> points) { m_kinkPoints = points; }
     void setFeedbackSettings(bool dir, int sourceStubLen, int destStubLen) {
         m_feedbackDir = dir ? 1 : -1;
@@ -64,7 +69,12 @@ public:
     }
     void addInvalidDestSourcePoint(int i) { m_invalidDestSourcePoints.append(i); }
     void addLabelToScene();
-    void setDirection(Direction rot) { m_dir = rot; }
+    Connection* setDirection(Direction rot) {
+        m_dir = rot;
+        return this;
+    }
+
+    void setSignal(SignalBase* sig) { m_label.setSignal(sig); }
 
 public slots:
     void showValue(bool state) { m_label.m_showValue = state; }
@@ -99,6 +109,8 @@ private:
     QList<int> m_invalidDestSourcePoints;  // used when algorithm shouldnt use created source points for a destination,
                                            // when calculating connections to other destinations
     Label m_label;
+
+    bool m_pointAtFirstKink = false;
 };
 
 }  // namespace Graphics

@@ -90,10 +90,20 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
                 if (m_dir == Direction::east) {
                     QPointF point(source.x() + xDiff / 2 + bias, source.y());
                     QPointF point2(point.x(), dest.y());
+                    if (m_pointAtFirstKink) {
+                        // Draw kink points
+                        painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                        painter->drawPoint(point);
+                    }
                     sourcePoints << point << point2;
                     polyLine << point << point2;
                 } else {
                     QPointF point(dest.x(), source.y());
+                    if (m_pointAtFirstKink) {
+                        // Draw kink points
+                        painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                        painter->drawPoint(point);
+                    }
                     sourcePoints << point;
                     polyLine << point;
                 }
@@ -204,25 +214,13 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         i++;
     }
 
+    // Debugging: draw bounding rect
     /*
-     * Debugging: draw bounding rect
     painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter->setBrush(Qt::transparent);
     painter->drawRect(boundingRect());
-    */
-}
-
-void Connection::setValue(uint32_t value) {
-    QString text;
-    if (value < 0b1111) {
-        // Draw in binary notation
-        text = QString("0b%1").arg(QString().setNum(value, 2));
-    } else {
-        // Draw in hex notation
-        text = QString("0x%1").arg(QString().setNum(value, 16));
-    }
-    m_label.setText(text);
-    m_label.setToolTip(text);
+*/
+    update();
 }
 
 void Connection::addLabelToScene() {
@@ -232,11 +230,12 @@ void Connection::addLabelToScene() {
 
 // --------- label ------------
 void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
-    if (m_showValue) {
+    if (m_showValue && m_signal != nullptr) {
         // Draw label (connection value)
+        auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
         QPointF pos = mapFromItem(m_source, *m_drawPos);
-        QFontMetrics metric = QFontMetrics(QFont());
-        QRectF textRect = metric.boundingRect(m_text);
+        QFontMetrics metric = QFontMetrics(QFont(text));
+        QRectF textRect = metric.boundingRect(text);
         textRect.moveTo(pos);
         textRect.translate(0, -textRect.height());
         textRect.adjust(-5, 0, 5, 5);
@@ -245,18 +244,22 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
         painter->setPen(QPen(Qt::black, 1));
         painter->drawRect(textRect);
         painter->setFont(QFont());
-        painter->drawText(pos, m_text);
+        painter->drawText(pos, text);
     }
 }
 
 QRectF Label::boundingRect() const {
-    QPointF pos = mapFromItem(m_source, *m_drawPos);
-    QFontMetrics metric = QFontMetrics(QFont());
-    QRectF textRect = metric.boundingRect(m_text);
-    textRect.moveTo(pos);
-    textRect.translate(0, -textRect.height());
-    textRect.adjust(-5, 0, 5, 5);
-    return textRect;
+    if (m_signal != nullptr) {
+        auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
+        QPointF pos = mapFromItem(m_source, *m_drawPos);
+        QFontMetrics metric = QFontMetrics(QFont());
+        QRectF textRect = metric.boundingRect(text);
+        textRect.moveTo(pos);
+        textRect.translate(0, -textRect.height());
+        textRect.adjust(-5, 0, 5, 5);
+        return textRect;
+    }
+    return QRectF();
 }
 
 }  // namespace Graphics

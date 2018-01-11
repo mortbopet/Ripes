@@ -9,10 +9,13 @@
 #include "pipeline.h"
 
 namespace Graphics {
+
 class Connection;
 class Text;
 class Shape;
 }  // namespace Graphics
+
+#define CONNECTION_Z 1
 
 typedef QPair<Graphics::Shape*, int> ShapePair;
 
@@ -22,7 +25,7 @@ public:
     PipelineWidget(QWidget* parent = nullptr);
 
     void wheelEvent(QWheelEvent* event);
-    void expandToView() { fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio); }
+    void expandToView() { fitInView(scene()->sceneRect(), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
     void zoomIn();
     void zoomOut();
@@ -37,8 +40,10 @@ signals:
 private:
     void scaleView(qreal scaleFactor);
     void adjustPositioning();
+    void setSignal(Graphics::Connection* conn, SignalBase* sig);
 
-    Graphics::Connection* createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest, int index2);
+    Graphics::Connection* createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest, int index2,
+                                           SignalBase* sig = nullptr);
     Graphics::Connection* createConnection(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint,
                                            QPointF* destPoint);
     Graphics::Connection* createConnection(Graphics::Shape* source, int index1, QList<ShapePair> dests);
@@ -71,7 +76,7 @@ private:
     Pipeline* m_pipelinePtr;
 
     // Vector of Shape* where each item gets its update() function called whenever stepping the simulator.
-    std::vector<Graphics::Shape*> m_animatedItems;
+    std::vector<QGraphicsItem*> m_animatedItems;
 };
 
 #endif  // PIPELINEWIDGET_H

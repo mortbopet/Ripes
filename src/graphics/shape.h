@@ -12,6 +12,7 @@
 #include "pipelineobjects.h"
 
 namespace Graphics {
+
 class Connection;
 enum class ShapeType { Block, ALU, MUX, Static };
 enum class Stage { IF = 1, ID = 2, EX = 3, MEM = 4, WB = 5 };
@@ -23,9 +24,9 @@ public:
 
     QRectF boundingRect() const;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-    void addInput(QString input);
+    void addInput(QString input = "");
     void addInput(QStringList input);
-    void addOutput(QString output);
+    void addOutput(QString output = "");
     void addOutput(QStringList output);
     void setName(QString name);
     void addConnection(Connection* connection) { m_connections.append(connection); }
@@ -38,6 +39,10 @@ public:
 
     bool isConnectedTo(Connection* connection) const;
 
+    void setSingleIOBlink(bool state) { m_singleIOBlink = state; }
+
+    void addIOSignalPair(int pos, SignalBase* sig);
+
     QPointF* getInputPoint(int index);
     QPointF* getOutputPoint(int index);
     QPointF* getTopPoint() { return &m_topPoint; }
@@ -45,9 +50,14 @@ public:
 
     void calculateRect();
     void calculatePoints();
-    void addTopPoint(bool state) { m_drawTopPoint = state; }
-    void addBotPoint(bool state) { m_drawBotPoint = state; }
-
+    void addTopPoint(QString desc = "") {
+        m_drawTopPoint = true;
+        m_topText = desc;
+    }
+    void addBotPoint(QString desc = "") {
+        m_drawBotPoint = true;
+        m_botText = desc;
+    }
     static int connectionType() { return QGraphicsItem::UserType + 2; }
     int type() const { return connectionType(); }
 
@@ -80,6 +90,8 @@ private:
 
     bool m_drawTopPoint = false;
     bool m_drawBotPoint = false;
+    QString m_topText;
+    QString m_botText;
 
     QList<Connection*> m_connections;
 
@@ -104,6 +116,9 @@ private:
     SignalBase* m_leftSignal = nullptr;
     SignalBase* m_topSignal = nullptr;
     SignalBase* m_botsignal = nullptr;
+
+    bool m_singleIOBlink = false;  // registers can be set to have individually controlled IO coloring
+    std::map<int, SignalBase*> m_IOSignalPairs;
 };
 
 }  // namespace Graphics

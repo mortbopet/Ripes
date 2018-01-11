@@ -166,6 +166,8 @@ QPainterPath Shape::drawALUPath(QRectF rect) const {
 void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget*) {
     auto rect = boundingRect();
 
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+
     painter->setPen(QPen(Qt::black, 1.5));
     painter->setBrush(Qt::white);
     switch (m_type) {
@@ -214,27 +216,57 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
     }
 
     // draw IO points
-    if (m_drawTopPoint)
-        if (m_topSignal != nullptr && m_topSignal->getValue() > 0) {
-            painter->setBrush(Qt::green);
+    if (m_drawTopPoint) {
+        // draw top descriptor
+        textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_topText);
+        textRect.moveTo(m_topPoint);
+        textRect.translate(-textRect.width() / 2, textRect.height());  // move text away from side
+        painter->drawText(textRect, m_topText);
+        if (m_topSignal != nullptr) {
+            QColor col = m_topSignal->getValue() == 0 ? Qt::red : Qt::green;
+            // If signal has been set, draw red for off, green for on
+            painter->setBrush(col);
             painter->drawEllipse(m_topPoint, 5, 5);
             painter->setBrush(Qt::transparent);
         } else {
             painter->drawEllipse(m_topPoint, 5, 5);
         }
-    if (m_drawBotPoint)
-        if (m_botsignal != nullptr && m_botsignal->getValue() > 0) {
-            painter->setBrush(Qt::green);
-            painter->drawEllipse(m_bottomPoint, 5, 5);
-            painter->setBrush(Qt::transparent);
-        } else {
-            painter->drawEllipse(m_bottomPoint, 5, 5);
-        }
+    }
 
+    if (m_drawBotPoint) {
+        // draw bottom descriptor
+        textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_botText);
+        textRect.moveTo(m_bottomPoint);
+        textRect.translate(-textRect.width() / 2, -textRect.height() - sidePadding);  // move text away from side
+        painter->drawText(textRect, m_botText);
+        if (m_botsignal != nullptr) {
+            // If signal has been set, draw red for off, green for on
+            QColor col = m_botsignal->getValue() == 0 ? Qt::red : Qt::green;
+            painter->setBrush(col);
+            painter->drawEllipse(m_bottomPoint, 5, 5);
+            painter->setBrush(Qt::transparent);
+        } else {
+            painter->drawEllipse(m_bottomPoint, 5, 5);
+        }
+    }
+
+    // LEFT/RIGHT IO POINTS
     for (int i = 0; i < m_inputPoints.length(); i++) {
         if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end())
-            // For multiplexers, we want to color the input that is asserted
-            if (m_leftSignal != nullptr && m_leftSignal->getValue() == i) {
+            if (m_singleIOBlink) {
+                // Color individual points
+                // find point if in ioSignalPairs
+                if (m_IOSignalPairs.find(i) != m_IOSignalPairs.end()) {
+                    QColor col = m_IOSignalPairs[i]->getValue() == 0 ? Qt::red : Qt::green;
+                    painter->setBrush(col);
+                    painter->drawEllipse(m_inputPoints[i], 5, 5);
+                    painter->setBrush(Qt::transparent);
+                } else {
+                    painter->drawEllipse(m_inputPoints[i], 5, 5);
+                }
+
+            } else if (m_leftSignal != nullptr && m_leftSignal->getValue() == i) {
+                // For multiplexers, we want to color the input that is asserted
                 painter->setBrush(Qt::red);
                 painter->drawEllipse(m_inputPoints[i], 5, 5);
                 painter->setBrush(Qt::transparent);
@@ -262,6 +294,11 @@ void Shape::setSignal(SignalPos pos, SignalBase* sig) {
         default:
             break;
     }
+}
+
+void Shape::addIOSignalPair(int pos, SignalBase* sig) {
+    Q_ASSERT(pos < m_inputPoints.size());
+    m_IOSignalPairs[pos] = sig;
 }
 
 QPointF* Shape::getInputPoint(int index) {
