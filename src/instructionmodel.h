@@ -26,6 +26,8 @@ public:
 
     void update();
 
+    int m_currentIFrow = 0;
+
 private:
     const StagePCS& m_pcsptr;
     const StagePCS& m_pcsptrPre;
@@ -38,6 +40,7 @@ private:
 
 signals:
     void textChanged(Stage stage, QString text) const;
+    void currentIFRow(int) const;
 
 public slots:
 };

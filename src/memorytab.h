@@ -28,6 +28,8 @@ public:
 public slots:
     void saveAddress();
 
+    void update();
+
 private:
     void initializeMemoryView();
     void initializeRegisterView();

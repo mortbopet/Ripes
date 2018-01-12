@@ -92,6 +92,11 @@ void MemoryTab::initializeMemoryView() {
     connect(m_model, &MemoryModel::dataChanged, m_ui->memoryView, &MemoryView::setVisibleRows);
 }
 
+void MemoryTab::update() {
+    m_ui->registerContainer->update();
+    m_model->updateModel();
+}
+
 MemoryTab::~MemoryTab() {
     delete m_ui;
 }

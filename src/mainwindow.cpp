@@ -25,8 +25,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/binary-code.svg")), "Code");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/cpu.svg")), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/ram-memory.svg")), "Memory");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/graph.svg")), "Results");
+    // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
+    // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/graph.svg")), "Results");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
     m_ui->tabbar->setActiveIndex(1);
 
@@ -55,7 +55,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
             m_ui->consoles->hide();
         };
     });
+    connect(m_ui->processortab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
     connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
+    connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
 }
 
 MainWindow::~MainWindow() {

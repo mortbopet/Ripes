@@ -26,9 +26,11 @@ private slots:
     void on_actionAbout_triggered();
 
     void on_actionOpen_documentation_triggered();
+    void processorUpdated() { emit updateMemoryTab(); }
 
 signals:
     void update();
+    void updateMemoryTab();
 
 private:
     Ui::MainWindow* m_ui;

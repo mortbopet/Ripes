@@ -19,11 +19,11 @@ public:
     long long getCentralAddress() const { return m_centralAddress; }
     int getModelRows() const { return rowCount(); }
 
+    void updateModel();
 public slots:
     void jumpToAddress(uint32_t address);
 
 private:
-    void updateModel();
     void setInvalidAddresLine(int row);
 
     // instead of direct access to the memory, we should have a pointer to the runner, which can return requested

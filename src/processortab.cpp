@@ -1,4 +1,5 @@
 #include "processortab.h"
+#include <QScrollBar>
 #include "instructionmodel.h"
 #include "pipelinewidget.h"
 #include "ui_processortab.h"
@@ -85,7 +86,7 @@ void ProcessorTab::initInstructionView() {
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     connect(this, &ProcessorTab::update, m_ui->instructionView, QOverload<>::of(&QWidget::update));
     connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::update);
-
+    connect(m_instrModel, &InstructionModel::currentIFRow, this, &ProcessorTab::setCurrentInstruction);
     // Connect instruction model text changes to the pipeline widget (changing instruction names displayed above each
     // stage)
     connect(m_instrModel, &InstructionModel::textChanged, m_ui->pipelineWidget, &PipelineWidget::stageTextChanged);
@@ -126,10 +127,28 @@ void ProcessorTab::on_reset_clicked() {
     m_ui->run->setEnabled(true);
 }
 
+void ProcessorTab::setCurrentInstruction(int row) {
+    // model emits signal with current IF instruction row
+    auto instructionView = m_ui->instructionView;
+    auto rect = instructionView->rect();
+    int indexTop = instructionView->indexAt(rect.topLeft()).row();
+    int indexBot = instructionView->indexAt(rect.bottomLeft()).row();
+
+    int nItems = indexBot - indexTop;
+
+    // move scrollbar if if is not visible
+    if (row <= indexTop || row >= indexBot) {
+        auto scrollbar = m_ui->instructionView->verticalScrollBar();
+        scrollbar->setValue(row - nItems / 2);
+    }
+}
+
 void ProcessorTab::on_step_clicked() {
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
     emit update();
+
+    // Move instruction view
 
     if (pipeline->isFinished()) {
         m_ui->step->setEnabled(false);

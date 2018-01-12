@@ -85,6 +85,7 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                 }
                 if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && m_pcsptr.IF.invalidReason == 0) {
                     emit textChanged(Stage::IF, m_parserPtr->genStringRepr(memRead(row * 4)));
+                    emit currentIFRow(row);  // for moving view to IF position
                     retStrings << "IF";
                 }
                 if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && m_pcsptr.MEM.invalidReason == 0) {
