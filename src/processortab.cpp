@@ -37,6 +37,8 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     m_ui->step->setEnabled(false);
     m_ui->run->setEnabled(false);
     m_ui->start->setEnabled(false);
+
+    // m_ui->pipelineWidget->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 }
 
 void ProcessorTab::toggleTimer(bool state) {

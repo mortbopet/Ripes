@@ -12,7 +12,7 @@ namespace {
 inline double pointDistance(QPointF a, QPointF b) {
     return sqrt(pow(a.x() - b.x(), 2) + pow(a.y() - b.y(), 2));
 }
-}
+}  // namespace
 using namespace std;
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF* destPoint)
@@ -20,6 +20,7 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF
     m_dests << QPair<Shape*, QPointF*>(dest, destPoint);
     m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
+    update();
 }
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> dests)
@@ -27,11 +28,15 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> des
     m_dests = dests;
     m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
+    update();
 }
 
 QRectF Connection::boundingRect() const {
     const static double pad = 5;  // pad around each edge
-    double left, top, bot, right;
+    double left = 0;
+    double top = 0;
+    double bot = 0;
+    double right = 0;
     // Iterate through all points in the connection line to find bounding rect
     for (const auto& pointVec : m_polyLines) {
         for (const auto& point : pointVec) {
@@ -226,6 +231,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
 void Connection::addLabelToScene() {
     // Must be called after connection has been added to a scene
     scene()->addItem(&m_label);
+    update();
 }
 
 // --------- label ------------

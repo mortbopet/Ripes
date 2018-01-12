@@ -9,6 +9,8 @@
 #include <QCoreApplication>
 #include <QWheelEvent>
 
+qreal PipelineWidget::spaceBetweenStateRegs = 350;
+
 PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     QGraphicsScene* scene = new QGraphicsScene(this);
     // scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -16,7 +18,6 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     setRenderHint(QPainter::Antialiasing);
     setRenderHint(QPainter::TextAntialiasing);
     setDragMode(QGraphicsView::ScrollHandDrag);
-    setCursor(Qt::CrossCursor);
 
     m_pipelinePtr = Pipeline::getPipeline();
 

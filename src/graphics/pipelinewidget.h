@@ -25,7 +25,7 @@ public:
     PipelineWidget(QWidget* parent = nullptr);
 
     void wheelEvent(QWheelEvent* event);
-    void expandToView() { fitInView(scene()->sceneRect(), Qt::KeepAspectRatio); }
+    void expandToView() { fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
     void zoomIn();
     void zoomOut();
@@ -55,7 +55,7 @@ private:
 
     constexpr static qreal shapeMargin = 15;  // Minimum distance between two shapes
     constexpr static qreal stateRegHeight = 500;
-    constexpr static qreal spaceBetweenStateRegs = 350;
+    static qreal spaceBetweenStateRegs;
     constexpr static qreal minConnectionLen = 30;
 
     QList<Graphics::Connection*> m_connections;
