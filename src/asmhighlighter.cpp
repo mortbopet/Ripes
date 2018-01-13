@@ -6,15 +6,14 @@
 
 #include "defines.h"
 
-FieldType::FieldType(Type type, int lowerBound, int upperBound) {
+FieldType::FieldType(Type type, int lowerBound, int upperBound, AsmHighlighter* highlighter) {
     m_type = type;
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
+    m_highlighter = highlighter;
 }
 
 QString FieldType::validateField(const QString& field) const {
-    const static auto registerRegex = QRegularExpression("\\b[(a|s|t|x)][0-9]{1,2}");
-
     switch (m_type) {
         case Type::Immediate: {
             // Check that immediate can be converted
@@ -36,15 +35,20 @@ QString FieldType::validateField(const QString& field) const {
             }
         }
         case Type::Register: {
-            if (!ABInames.contains(field) &&
-                !registerRegex.match(field, 0, QRegularExpression::NormalMatch).hasMatch()) {
-                return QString("Register %1 is unrecognized").arg(field);
-            } else {
+            if (ABInames.contains(field) || RegNames.contains(field)) {
                 return QString();
+            } else {
+                return QString("Register %1 is unrecognized").arg(field);
             }
         }
         case Type::Offset: {
-            return QString();
+            // Check if label is defined in highlighter
+            Q_ASSERT(m_highlighter != nullptr);
+            if (m_highlighter->m_labelPosMap.contains(field)) {
+                return QString();
+            } else {
+                return QString("label \"%1\" is undefined").arg(field);
+            }
         }
     }
     return QString("Validation error");
@@ -207,9 +211,10 @@ void AsmHighlighter::createSyntaxRules() {
 
     // call
     types.clear();
-    types << FieldType(Type::Offset);
+    types << FieldType(Type::Offset, 0, 0, this);
     rule.instr = "call";
     rule.fields = 2;
+    rule.inputs = types;
     m_syntaxRules.insert(rule.instr, rule);
 
     // jr
@@ -217,13 +222,37 @@ void AsmHighlighter::createSyntaxRules() {
     types << FieldType(Type::Register);
     rule.instr = "jr";
     rule.fields = 2;
+    rule.inputs = types;
     m_syntaxRules.insert(rule.instr, rule);
+
+    // jalr -- pseudo and regular op.
+    types.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
+    rule.instr = "jalr";
+    rule.fields = 4;
+    rule.fields2 = 2;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, rule);
+    rule.fields2 = -1;
+
+    // jal -- pseudo and regular op
+    types.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
+    rule.instr = "jal";
+    rule.fields = 3;
+    rule.fields2 = 2;
+    rule.inputs = types;
+    rule.skipFirstField = true;  // jal can be written as "jal offset" - allow skipping of first field
+    m_syntaxRules.insert(rule.instr, rule);
+    rule.skipFirstField = false;  // revert
+    rule.fields2 = -1;
 
     // j
     types.clear();
-    types << FieldType(Type::Register);
+    types << FieldType(Type::Offset, 0, 0, this);
     rule.instr = "j";
     rule.fields = 2;
+    rule.inputs = types;
     m_syntaxRules.insert(rule.instr, rule);
 
     // li
@@ -257,7 +286,7 @@ void AsmHighlighter::createSyntaxRules() {
     // Branch instructions
     types.clear();
     names.clear();
-    types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Offset);
+    types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
     names << "beg"
           << "bne"
           << "blt"
@@ -276,7 +305,7 @@ void AsmHighlighter::createSyntaxRules() {
     // Branch pseudo-instructions
     types.clear();
     names.clear();
-    types << FieldType(Type::Register) << FieldType(Type::Offset);
+    types << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
     names << "begz"
           << "bnez"
           << "blez"
@@ -384,7 +413,6 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
                 // duplicate label found
                 if (pos < m_labelPosMap[string]) {
                     // Label is redefined before previous use of label
-                    int prevPos = m_labelPosMap[string];
                     m_posLabelMap.remove(m_labelPosMap[string]);
                     m_labelPosMap[string] = pos;
                     m_posLabelMap[pos] = string;
@@ -399,14 +427,6 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
             }
             return QString();
         } else {
-            // remove label at given position
-            if (m_posLabelMap.contains(pos)) {
-                /*
-                m_labelPosMap.remove(m_posLabelMap[pos]);
-                m_posLabelMap.remove(pos);
-*/
-            }
-
             // Check for assembler directives
             if (string[0] == '.') {
                 string = string.remove('.');
@@ -421,17 +441,27 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
 
     // Validate remaining fields
     if (fields.size() > 0) {
-        auto rule = m_syntaxRules.find(fields[0]);
-        if (rule != m_syntaxRules.end()) {
+        auto ruleIter = m_syntaxRules.find(fields[0]);
+        if (ruleIter != m_syntaxRules.end()) {
             // A rule for the instruction has been found
-            if (fields.size() == (*rule).fields) {
+            const SyntaxRule& rule = *ruleIter;
+            if (fields.size() == rule.fields || (rule.fields2 != -1 && fields.size() == rule.fields2)) {
                 // fields size is correct, check each instruction
-                int index = 1;
-                for (const auto& input : (*rule).inputs) {
-                    QString res = input.validateField(fields[index]);
+                int nFields = fields.size();
+                for (int index = 1; index < nFields; index++) {
+                    // Get input rule - skipFirstField is a special case handler for jal pseudo-op when only 2 fields
+                    // are available
+                    auto inputRule =
+                        rule.skipFirstField && nFields == rule.fields2 ? rule.inputs[index] : rule.inputs[index - 1];
+                    // If an offset is used, store line number, to re-update after all variable declarations have been
+                    // mapped (after syntax checking the entire document)
+                    if (inputRule.m_type == Type::Offset) {
+                        m_rowsUsingLabels << pos;
+                    }
+                    QString res = inputRule.validateField(fields[index]);
                     if (res == QString()) {
                         // continue
-                        index++;
+                        // index++;
                     } else {
                         return res;
                     }
@@ -447,10 +477,19 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
     return QString();
 }
 
-void AsmHighlighter::clearAndRehighlight() {
+void AsmHighlighter::reset() {
     m_labelPosMap.clear();
     m_posLabelMap.clear();
+    m_rowsUsingLabels.clear();
+}
+
+void AsmHighlighter::clearAndRehighlight() {
+    reset();
     rehighlight();
+    for (const auto& row : m_rowsUsingLabels) {
+        // Rehighlight rows which use labels, now that all labels have been recorded
+        rehighlightBlock(document()->findBlockByLineNumber(row));
+    }
 }
 
 void AsmHighlighter::invalidateLabels(const QTextCursor& cursor) {

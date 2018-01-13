@@ -16,7 +16,7 @@ public:
     ~ProgramfileTab();
 
     void setAssemblyText(const QString& text);
-    void setBinaryText(const QString& text);
+    void setDisassemblerText(const QString& text);
 
 signals:
     void loadBinaryFile();

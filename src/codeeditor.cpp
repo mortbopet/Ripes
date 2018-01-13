@@ -21,11 +21,6 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     connect(this, SIGNAL(updateRequest(QRect, int)), this, SLOT(updateSidebar(QRect, int)));
 
-    // Connect runner PC to line hightlighting
-    // connect(this, SIGNAL(cursorPositionChanged()), this,
-    //        SLOT(highlightCurrentLine()));
-    // highlightCurrentLine();
-
     updateSidebarWidth(0);
 
     // Set font for the entire widget. calls to fontMetrics() will get the
@@ -39,20 +34,10 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     // set event filter for catching scroll events
     installEventFilter(this);
 
-    // Set syntax highlighter
-    m_highlighter = new AsmHighlighter(document());
-
     // needed for instant tooltip displaying
     setMouseTracking(true);
 
     setWordWrapMode(QTextOption::NoWrap);
-
-    // connect tooltip changes from asm highlighter
-    connect(m_highlighter, &AsmHighlighter::setTooltip, this, &CodeEditor::updateTooltip);
-
-    // The highlighting is reset upon line count changes, to detect label invalidation
-    connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter, &AsmHighlighter::invalidateLabels);
-    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter, &AsmHighlighter::clearAndRehighlight);
 }
 
 int CodeEditor::lineNumberAreaWidth() {
@@ -100,7 +85,12 @@ bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
 
 void CodeEditor::updateTooltip(int line, QString tip) {
     // Connects to AsmHighlighter::setTooltip
-    m_tooltipForLine[line] = tip;
+    if (tip == QString()) {
+        // unset tooltip - accepted syntax at line
+        m_tooltipForLine.remove(line);
+    } else {
+        m_tooltipForLine[line] = tip;
+    }
 }
 
 bool CodeEditor::event(QEvent* event) {
@@ -119,6 +109,12 @@ bool CodeEditor::event(QEvent* event) {
         return true;
     }
     return QPlainTextEdit::event(event);
+}
+
+void CodeEditor::enableBreakpointArea() {
+    // Enables breakpoint area, and sets cursor for the breakpoint area to a "clickable" cursor
+    m_breakpointAreaEnabled = true;
+    m_breakpointArea->setCursor(Qt::PointingHandCursor);
 }
 
 void CodeEditor::updateSidebar(const QRect& rect, int dy) {
@@ -198,8 +194,13 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
     // redrawing the visible breakpoint area
     auto area = m_breakpointArea->rect();
     QLinearGradient gradient = QLinearGradient(area.topLeft(), area.bottomRight());
-    gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
-    gradient.setColorAt(1, QColor(Colors::FoundersRock));
+    if (m_breakpointAreaEnabled) {
+        gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
+        gradient.setColorAt(1, QColor(Colors::FoundersRock));
+    } else {
+        gradient.setColorAt(0, QColor(Qt::lightGray).lighter(120));
+        gradient.setColorAt(1, QColor(Qt::lightGray).lighter(120));
+    }
     painter.fillRect(area, gradient);
 
     QTextBlock block = firstVisibleBlock();
@@ -222,41 +223,54 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
     }
 }
 
-void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
-    // Get line height
-    QTextBlock block = firstVisibleBlock();
-    auto height = blockBoundingRect(block).height();
+void CodeEditor::setupSyntaxHighlighter() {
+    // Creates AsmHighlighter object and connects it to the current document
+    m_highlighter = new AsmHighlighter(document());
+    // connect tooltip changes from asm highlighter
+    connect(m_highlighter, &AsmHighlighter::setTooltip, this, &CodeEditor::updateTooltip);
 
-    // Find block index in the codeeditor
-    int index;
-    if (block == document()->findBlockByLineNumber(0)) {
-        index = (event->pos().y() - contentOffset().y()) / height;
-    } else {
-        index = (event->pos().y() + contentOffset().y()) / height;
-    }
-    // Get actual block index
-    while (index > 0) {
-        block = block.next();
-        index--;
-    }
-    // Set or unset breakpoint
-    int blockNumber = block.blockNumber();
-    if (block.isValid()) {
-        auto brkptIter = m_breakpoints.find(blockNumber);
-        // Set/unset breakpoint
-        if (forceState == 1) {
-            m_breakpoints.insert(blockNumber);
-        } else if (forceState == 2) {
-            if (brkptIter != m_breakpoints.end())
-                m_breakpoints.erase(m_breakpoints.find(blockNumber));
+    // The highlighting is reset upon line count changes, to detect label invalidation
+    connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter, &AsmHighlighter::invalidateLabels);
+    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter, &AsmHighlighter::clearAndRehighlight);
+}
+
+void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
+    if (m_breakpointAreaEnabled) {
+        // Get line height
+        QTextBlock block = firstVisibleBlock();
+        auto height = blockBoundingRect(block).height();
+
+        // Find block index in the codeeditor
+        int index;
+        if (block == document()->findBlockByLineNumber(0)) {
+            index = (event->pos().y() - contentOffset().y()) / height;
         } else {
-            if (brkptIter != m_breakpoints.end()) {
-                m_breakpoints.erase(brkptIter);
-            } else {
-                m_breakpoints.insert(blockNumber);
-            }
+            index = (event->pos().y() + contentOffset().y()) / height;
         }
-        repaint();
+        // Get actual block index
+        while (index > 0) {
+            block = block.next();
+            index--;
+        }
+        // Set or unset breakpoint
+        int blockNumber = block.blockNumber();
+        if (block.isValid()) {
+            auto brkptIter = m_breakpoints.find(blockNumber);
+            // Set/unset breakpoint
+            if (forceState == 1) {
+                m_breakpoints.insert(blockNumber);
+            } else if (forceState == 2) {
+                if (brkptIter != m_breakpoints.end())
+                    m_breakpoints.erase(m_breakpoints.find(blockNumber));
+            } else {
+                if (brkptIter != m_breakpoints.end()) {
+                    m_breakpoints.erase(brkptIter);
+                } else {
+                    m_breakpoints.insert(blockNumber);
+                }
+            }
+            repaint();
+        }
     }
 }
 
@@ -264,7 +278,6 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
 
 BreakpointArea::BreakpointArea(CodeEditor* editor) : QWidget(editor) {
     codeEditor = editor;
-    setCursor(Qt::PointingHandCursor);
 
     // Create and connect actions for removing and setting breakpoints
     m_removeAction = new QAction("Remove breakpoint", this);

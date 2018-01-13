@@ -68,10 +68,13 @@ const QString& Parser::loadBinaryFile(QString fileName) {
         for (int i = 0; i < length; i += 4) {
             in.readRawData(buffer, 4);
             for (int j = 0; j < 4; j++) {
-                output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
+                // output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
                 memPtr->write(pc, buffer[j], 1);
                 pc++;
             }
+            uint32_t instr =
+                (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
+            output.append(genStringRepr(instr));
             output.append("\n");
         }
         m_binaryRepr = output;

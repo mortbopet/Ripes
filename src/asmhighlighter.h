@@ -13,23 +13,29 @@ namespace {
 enum class Type { Immediate, Register, Offset };
 }
 
+class AsmHighlighter;
 class FieldType {
     // Class for defining field-specific rules, such as immediate range checking,
     // and whether a register is recognized
 public:
-    explicit FieldType(Type type, int lowerBound = 0, int upperBound = 0);
+    explicit FieldType(Type type, int lowerBound = 0, int upperBound = 0, AsmHighlighter* highlighter = nullptr);
     QString validateField(const QString& field) const;
     Type m_type;
     int m_lowerBound;
     int m_upperBound;
+
+    AsmHighlighter* m_highlighter;
 };
 
 class AsmHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
+    friend class FieldType;
+
 public:
     explicit AsmHighlighter(QTextDocument* parent = nullptr);
 
     void highlightBlock(const QString& text);
+    void reset();
 
     QString checkSyntax(const QString& line);
 
@@ -45,8 +51,10 @@ private:
 
     struct SyntaxRule {
         QString instr;
-        int fields;               // n instruction fields, including the instruction
-        QList<FieldType> inputs;  // list of each accepted input for the instruction, in order
+        int fields;                   // n instruction fields, including the instruction
+        int fields2;                  // jal and jalr can be 2 different ops (pseudo- and base op)
+        bool skipFirstField = false;  // jal needs to skip its first operand for its pseudo-op
+        QList<FieldType> inputs;      // list of each accepted input for the instruction, in order
     };
 
     void createSyntaxRules();
@@ -62,9 +70,10 @@ private:
     QTextCharFormat commentFormat;
     QTextCharFormat errorFormat;
 
-    QMap<int, QString> m_errors;
     QMap<QString, int> m_labelPosMap;
     QMap<int, QString> m_posLabelMap;
+    QSet<int> m_rowsUsingLabels;  // List of lines that are rehighlighted once the main syntax checking is done -
+                                  // needed for supporting labels that are declared after usage
 
 public slots:
     void invalidateLabels(const QTextCursor&);

@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     showMaximized();
 
     // Setup tab bar
-    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/binary-code.svg")), "Code");
+    m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/binary-code.svg")), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/cpu.svg")), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/ram-memory.svg")), "Memory");
     // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
@@ -109,7 +109,7 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
 
 void MainWindow::loadBinaryFile(QString filename) {
     const QString& output = Parser::getParser()->loadBinaryFile(filename);
-    m_ui->programfiletab->setBinaryText(output);
+    m_ui->programfiletab->setDisassemblerText(output);
     emit update();
 }
 

@@ -24,7 +24,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="address"/>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>0x</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="address"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

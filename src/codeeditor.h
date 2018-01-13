@@ -26,6 +26,11 @@ public:
     void breakpointClick(QMouseEvent* event, int forceState = 0);
     void clearBreakpoints() { m_breakpoints.clear(); }
     int lineNumberAreaWidth();
+    void setupSyntaxHighlighter();
+    void enableBreakpointArea();
+    void reset() { m_highlighter->reset(); }
+signals:
+    void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -42,6 +47,9 @@ private:
     LineNumberArea* m_lineNumberArea;
     BreakpointArea* m_breakpointArea;
     int m_sidebarWidth;
+
+    bool m_syntaxChecking = false;
+    bool m_breakpointAreaEnabled = false;
 
     std::set<int> m_breakpoints;
     QMap<int, QString> m_tooltipForLine;
