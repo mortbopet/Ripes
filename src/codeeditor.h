@@ -29,6 +29,7 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    bool event(QEvent* e) override;
 
 private slots:
     void updateSidebarWidth(int newBlockCount);

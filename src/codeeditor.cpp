@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QPainter>
 #include <QTextBlock>
+#include <QToolTip>
 #include <QWheelEvent>
 
 #include <iterator>
@@ -39,6 +40,9 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     // Set syntax highlighter
     m_highlighter = new AsmHighlighter(document());
+
+    // needed for instant tooltip displaying
+    setMouseTracking(true);
 
     setWordWrapMode(QTextOption::NoWrap);
 }
@@ -84,6 +88,23 @@ bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
     }
 
     return false;
+}
+
+bool CodeEditor::event(QEvent* event) {
+    // Override event handler for receiving tool tips
+    if (event->type() == QEvent::ToolTip) {
+        QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
+        QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
+        QString syntaxCheck = m_highlighter->checkSyntax(textAtCursor.block().text().trimmed());
+        if (!syntaxCheck.isEmpty()) {
+            QToolTip::showText(helpEvent->globalPos(), syntaxCheck);
+        } else {
+            QToolTip::hideText();
+            event->ignore();
+        }
+        return true;
+    }
+    return QPlainTextEdit::event(event);
 }
 
 void CodeEditor::updateSidebar(const QRect& rect, int dy) {
