@@ -77,6 +77,8 @@ enum instrType {
     INVALID = 0b0
 };
 
+const static QStringList ASMDirectives = QStringList() << "text";
+
 enum class cacheLevel { L1, L2, L3 };
 
 enum class cacheType { DM, SA, FA };

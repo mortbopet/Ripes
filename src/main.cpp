@@ -1,4 +1,6 @@
 #include <QApplication>
+#include <QFileInfo>
+#include <QMessageBox>
 #include <iostream>
 
 #include "mainwindow.h"
@@ -16,7 +18,17 @@ int main(int argc, char** argv) {
 
     if (argc == 2) {
         // Load file specified in command-line argument
-        m.loadBinaryFile(argv[1]);
+        QString ext = QFileInfo(argv[1]).suffix();
+        if (ext == QString("bin")) {
+            m.loadBinaryFile(argv[1]);
+        } else if (ext == "asm" || ext == "s") {
+            m.loadAssemblyFile(argv[1]);
+        } else {
+            QMessageBox msg;
+            msg.setText(
+                QString("Unknown extension for input file.\ngot: \"%1\" - expected:\n- bin\n- asm\n- s").arg(ext));
+            msg.exec();
+        }
     }
 
     return app.exec();

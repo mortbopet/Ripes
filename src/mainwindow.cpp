@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
     // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/graph.svg")), "Results");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
-    m_ui->tabbar->setActiveIndex(1);
+    m_ui->tabbar->setActiveIndex(0);
 
     // Setup splitter such that consoles are always as small as possible
     auto splitterSize = m_ui->splitter->size();

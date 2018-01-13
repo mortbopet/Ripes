@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QRegularExpressionMatchIterator>
+#include <QTextDocument>
 
 #include "defines.h"
 
@@ -50,6 +51,7 @@ QString FieldType::validateField(const QString& field) const {
 }
 
 AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
+    connect(this, &AsmHighlighter::rehighlightInvalidBlock, this, &AsmHighlighter::rehighlightBlock);
     createSyntaxRules();
     errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
     errorFormat.setUnderlineColor(Qt::red);
@@ -109,6 +111,7 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
                         << "\\bret\\b"
                         << "\\bcall\\b"
                         << "\\btail\\b"
+                        /*
                         << "\\bfence\\b"
                         << "\\brdinstret\\b"
                         << "\\brdcycle\\b"
@@ -120,6 +123,7 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
                         << "\\bcsrwi\\b"
                         << "\\bcsrsi\\b"
                         << "\\bcsrci\\b"
+                                               */
                         << "\\bauipc\\b"
                         << "\\baddi\\b"
                         << "\\baddi\\b"
@@ -168,10 +172,14 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
 }
 
 void AsmHighlighter::highlightBlock(const QString& text) {
-    if (checkSyntax(text) != QString()) {
+    QString tooltip = checkSyntax(text);
+    int row = currentBlock().firstLineNumber();
+    if (tooltip != QString()) {
         setFormat(0, text.length(), errorFormat);
+        emit setTooltip(row, tooltip);
     } else {
-        foreach (const HighlightingRule& rule, m_highlightingRules) {
+        emit setTooltip(row, QString());
+        for (const HighlightingRule& rule : m_highlightingRules) {
             QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
             while (matchIterator.hasNext()) {
                 QRegularExpressionMatch match = matchIterator.next();
@@ -254,11 +262,30 @@ void AsmHighlighter::createSyntaxRules() {
           << "bne"
           << "blt"
           << "bge"
+          << "bgt"
           << "bltu"
-          << "bgeu";
+          << "bgeu"
+          << "bleu";
     for (const auto& name : names) {
         rule.instr = name;
         rule.fields = 4;
+        rule.inputs = types;
+        m_syntaxRules.insert(name, rule);
+    }
+
+    // Branch pseudo-instructions
+    types.clear();
+    names.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Offset);
+    names << "begz"
+          << "bnez"
+          << "blez"
+          << "bgez"
+          << "bltz"
+          << "bgtz";
+    for (const auto& name : names) {
+        rule.instr = name;
+        rule.fields = 3;
         rule.inputs = types;
         m_syntaxRules.insert(name, rule);
     }
@@ -341,9 +368,55 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
     auto fields = input.split(splitter);
     fields.removeAll("");
 
-    // Check for labels
-    if (fields.size() > 0 && fields[0].at(fields[0].length() - 1) == ':') {
-        fields.removeFirst();
+    // Throw away case information
+    std::transform(fields.begin(), fields.end(), fields.begin(), [](const QString& s) { return s.toLower(); });
+
+    int pos = currentBlock().firstLineNumber();
+
+    if (fields.size() == 1) {
+        // check for labels
+        QString string = fields[0];
+        if (string[string.length() - 1] == ':') {
+            // Label detected - check if already defined, else add to label definitions
+            string = string.remove(':');
+            // Update map entries at given block
+            if (m_labelPosMap.contains(string) && m_labelPosMap[string] != pos) {
+                // duplicate label found
+                if (pos < m_labelPosMap[string]) {
+                    // Label is redefined before previous use of label
+                    int prevPos = m_labelPosMap[string];
+                    m_posLabelMap.remove(m_labelPosMap[string]);
+                    m_labelPosMap[string] = pos;
+                    m_posLabelMap[pos] = string;
+                    return QString();
+                }
+                return QString("Multiple definitions of label %1").arg(string);
+            } else {
+                // no duplicates, update label at given pos
+                m_labelPosMap.remove(m_posLabelMap[pos]);
+                m_labelPosMap[string] = pos;
+                m_posLabelMap[pos] = string;
+            }
+            return QString();
+        } else {
+            // remove label at given position
+            if (m_posLabelMap.contains(pos)) {
+                /*
+                m_labelPosMap.remove(m_posLabelMap[pos]);
+                m_posLabelMap.remove(pos);
+*/
+            }
+
+            // Check for assembler directives
+            if (string[0] == '.') {
+                string = string.remove('.');
+                if (ASMDirectives.contains(string)) {
+                    fields.removeFirst();  // valid assembler directive detected
+                } else {
+                    return QString("Unknown assembler directive");
+                }
+            }
+        }
     }
 
     // Validate remaining fields
@@ -372,4 +445,18 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
         }
     }
     return QString();
+}
+
+void AsmHighlighter::clearAndRehighlight() {
+    m_labelPosMap.clear();
+    m_posLabelMap.clear();
+    rehighlight();
+}
+
+void AsmHighlighter::invalidateLabels(const QTextCursor& cursor) {
+    if (m_posLabelMap.contains(cursor.block().firstLineNumber())) {
+        // a current label exists at the cursor position - if current action was a newline event, we need to reset
+        // resets label mapping and rehighlights required lines
+        clearAndRehighlight();
+    }
 }

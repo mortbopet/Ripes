@@ -34,6 +34,8 @@ public:
     QString checkSyntax(const QString& line);
 
 signals:
+    void setTooltip(int, QString);
+    void rehighlightInvalidBlock(const QTextBlock&);
 
 private:
     struct HighlightingRule {
@@ -61,8 +63,12 @@ private:
     QTextCharFormat errorFormat;
 
     QMap<int, QString> m_errors;
+    QMap<QString, int> m_labelPosMap;
+    QMap<int, QString> m_posLabelMap;
 
 public slots:
+    void invalidateLabels(const QTextCursor&);
+    void clearAndRehighlight();
 };
 
 #endif  // ASMHIGHLIGHTER_H

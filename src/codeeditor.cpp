@@ -6,6 +6,7 @@
 #include <QLinearGradient>
 #include <QMenu>
 #include <QPainter>
+#include <QSyntaxHighlighter>
 #include <QTextBlock>
 #include <QToolTip>
 #include <QWheelEvent>
@@ -45,6 +46,13 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     setMouseTracking(true);
 
     setWordWrapMode(QTextOption::NoWrap);
+
+    // connect tooltip changes from asm highlighter
+    connect(m_highlighter, &AsmHighlighter::setTooltip, this, &CodeEditor::updateTooltip);
+
+    // The highlighting is reset upon line count changes, to detect label invalidation
+    connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter, &AsmHighlighter::invalidateLabels);
+    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter, &AsmHighlighter::clearAndRehighlight);
 }
 
 int CodeEditor::lineNumberAreaWidth() {
@@ -90,14 +98,20 @@ bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
     return false;
 }
 
+void CodeEditor::updateTooltip(int line, QString tip) {
+    // Connects to AsmHighlighter::setTooltip
+    m_tooltipForLine[line] = tip;
+}
+
 bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
+        // Tooltips are updated through slot handler updateTooltip
         QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
         QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
-        QString syntaxCheck = m_highlighter->checkSyntax(textAtCursor.block().text().trimmed());
-        if (!syntaxCheck.isEmpty()) {
-            QToolTip::showText(helpEvent->globalPos(), syntaxCheck);
+        int row = textAtCursor.block().firstLineNumber();
+        if (m_tooltipForLine.contains(row) && m_tooltipForLine[row] != QString()) {
+            QToolTip::showText(helpEvent->globalPos(), m_tooltipForLine[row]);
         } else {
             QToolTip::hideText();
             event->ignore();

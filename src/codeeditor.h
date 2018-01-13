@@ -35,6 +35,7 @@ private slots:
     void updateSidebarWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
+    void updateTooltip(int line, QString tip);
 
 private:
     AsmHighlighter* m_highlighter;
@@ -43,6 +44,7 @@ private:
     int m_sidebarWidth;
 
     std::set<int> m_breakpoints;
+    QMap<int, QString> m_tooltipForLine;
 
     QFont m_font = font();
 
