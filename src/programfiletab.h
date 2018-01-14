@@ -17,6 +17,7 @@ public:
 
     void setAssemblyText(const QString& text);
     void setDisassemblerText(const QString& text);
+    void setInputMode(bool isAssembly);
 
 signals:
     void loadBinaryFile();
@@ -24,6 +25,8 @@ signals:
 
 private slots:
     void on_pushButton_clicked();
+
+    void on_assemblyfile_toggled(bool checked);
 
 private:
     Ui::ProgramfileTab* m_ui;

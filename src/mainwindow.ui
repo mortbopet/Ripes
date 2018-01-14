@@ -133,13 +133,15 @@
     </property>
     <widget class="QMenu" name="menuExamples">
      <property name="title">
-      <string>Load example...</string>
+      <string>Load Example...</string>
      </property>
     </widget>
     <addaction name="actionLoadBinaryFile"/>
     <addaction name="actionLoadAssemblyFile"/>
     <addaction name="separator"/>
     <addaction name="menuExamples"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_Assembly_File"/>
     <addaction name="separator"/>
     <addaction name="actionexit"/>
    </widget>
@@ -166,7 +168,7 @@
      <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
    </property>
    <property name="text">
-    <string>Load binary file</string>
+    <string>Load Binary File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -244,6 +246,18 @@
   <action name="actionOpen_documentation">
    <property name="text">
     <string>Documentation</string>
+   </property>
+  </action>
+  <action name="actionSave_Assembly_File">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Assembly File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

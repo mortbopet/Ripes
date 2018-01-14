@@ -109,6 +109,7 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
 
 void MainWindow::loadBinaryFile(QString filename) {
     const QString& output = Parser::getParser()->loadBinaryFile(filename);
+    m_ui->programfiletab->setInputMode(false);
     m_ui->programfiletab->setDisassemblerText(output);
     emit update();
 }
@@ -116,6 +117,7 @@ void MainWindow::loadBinaryFile(QString filename) {
 void MainWindow::loadAssemblyFile(QString fileName) {
     // ... load file
     QFile file(fileName);
+    m_ui->programfiletab->setInputMode(true);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_ui->programfiletab->setAssemblyText(file.readAll());
         file.close();

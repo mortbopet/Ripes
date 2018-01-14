@@ -19,15 +19,15 @@
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>File type</string>
+        <string>Input type</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QRadioButton" name="binaryfile">
+           <widget class="QRadioButton" name="assemblyfile">
             <property name="text">
-             <string>Binary file</string>
+             <string>Assembly</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -35,9 +35,12 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="assemblyfile">
+           <widget class="QRadioButton" name="binaryfile">
             <property name="text">
-             <string>Assembly file</string>
+             <string>Binary file</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -94,7 +97,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Translated code</string>
+          <string>Disassembled code</string>
          </property>
         </widget>
        </item>

@@ -10,6 +10,12 @@ ProgramfileTab::ProgramfileTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     m_ui->binaryedit->setReadOnly(true);
     // enable breakpoint area for the translated code only
     m_ui->binaryedit->enableBreakpointArea();
+
+    // Link scrollbars together for pleasant navigation
+    connect(m_ui->assemblyedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->binaryedit->verticalScrollBar(),
+            &QScrollBar::setValue);
+    connect(m_ui->binaryedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->assemblyedit->verticalScrollBar(),
+            &QScrollBar::setValue);
 }
 
 ProgramfileTab::~ProgramfileTab() {
@@ -33,4 +39,27 @@ void ProgramfileTab::setAssemblyText(const QString& text) {
 void ProgramfileTab::setDisassemblerText(const QString& text) {
     m_ui->binaryedit->clearBreakpoints();
     m_ui->binaryedit->setPlainText(text);
+}
+
+void ProgramfileTab::on_assemblyfile_toggled(bool checked) {
+    // handles toggling between assembly input and binary input
+    if (checked) {
+        m_ui->assemblyedit->setEnabled(true);
+    } else {
+        // Disable when loading binary files
+        m_ui->assemblyedit->setEnabled(false);
+    }
+
+    // clear both editors when switching input mode and reset the highlighter for the assembly editor
+    m_ui->assemblyedit->clear();
+    m_ui->assemblyedit->reset();
+    m_ui->binaryedit->clear();
+}
+
+void ProgramfileTab::setInputMode(bool isAssembly) {
+    if (isAssembly) {
+        m_ui->assemblyfile->setChecked(true);
+    } else {
+        m_ui->binaryfile->setChecked(true);
+    }
 }
