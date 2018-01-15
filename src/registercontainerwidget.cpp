@@ -66,7 +66,7 @@ void RegisterContainerWidget::init() {
             reg->setEnabled(false);
         }
         reg->setRegPtr(&(*m_regPtr)[i]);
-        reg->setAlias(ABInames[i]);
+        reg->setAlias(ABInames.key(i));
         reg->setNumber(i);
         reg->setToolTip(descriptions[i]);
         reg->setDisplayType(qvariant_cast<displayTypeN>(m_ui->displayType->currentData()));

@@ -53,38 +53,40 @@ const QString& Parser::loadBinaryFile(QString fileName) {
     // Loads a binary file and converts it to a text string, as well as puts the binary information into the pipeline
     // memorys text segment
 
+    QFile file(fileName);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QByteArray read = file.readAll();
+        m_binaryRepr = loadFromByteArray(read);
+        file.close();
+    }
+    return m_binaryRepr;
+}
+
+QString Parser::loadFromByteArray(QByteArray arr) {
     // Reset the pipeline
     Pipeline::getPipeline()->reset();
 
     QString output = "";
     MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QByteArray read = file.readAll();
-        auto length = read.length();
-        QDataStream in(&read, QIODevice::ReadOnly);
-        char buffer[4];
-        int pc = 0;
-        for (int i = 0; i < length; i += 4) {
-            in.readRawData(buffer, 4);
-            for (int j = 0; j < 4; j++) {
-                // output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
-                memPtr->write(pc, buffer[j], 1);
-                pc++;
-            }
-            uint32_t instr =
-                (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
-            output.append(genStringRepr(instr));
-            output.append("\n");
+    auto length = arr.length();
+    QDataStream in(&arr, QIODevice::ReadOnly);
+    char buffer[4];
+    int pc = 0;
+    for (int i = 0; i < length; i += 4) {
+        in.readRawData(buffer, 4);
+        for (int j = 0; j < 4; j++) {
+            // output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
+            memPtr->write(pc, buffer[j], 1);
+            pc++;
         }
-        m_binaryRepr = output;
-        file.close();
+        uint32_t instr =
+            (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
+        output.append(genStringRepr(instr));
+        output.append("\n");
     }
-
     // Update the pipeline
     Pipeline::getPipeline()->update();
-
-    return m_binaryRepr;
+    return output;
 }
 
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
@@ -315,7 +317,7 @@ QString Parser::generateLuiString(uint32_t instr) const {
 
 QString Parser::generateAuipcString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("auipc x%1 %2").arg(fields[1]).arg(fields[0]);
+    return QString("auipc x%1 %2").arg(fields[1]).arg((int32_t)(fields[0] << 12));
 }
 
 QString Parser::generateJalString(uint32_t instr) const {

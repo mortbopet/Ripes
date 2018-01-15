@@ -1,12 +1,16 @@
 #include "programfiletab.h"
 #include "ui_programfiletab.h"
 
+#include "parser.h"
+#include "pipeline.h"
+
 ProgramfileTab::ProgramfileTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::ProgramfileTab) {
     m_ui->setupUi(this);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
     // translation is complete
     m_ui->assemblyedit->setupSyntaxHighlighter();
+    m_ui->assemblyedit->setupAssembler();
     m_ui->binaryedit->setReadOnly(true);
     // enable breakpoint area for the translated code only
     m_ui->binaryedit->enableBreakpointArea();
@@ -16,10 +20,17 @@ ProgramfileTab::ProgramfileTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::
             &QScrollBar::setValue);
     connect(m_ui->binaryedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->assemblyedit->verticalScrollBar(),
             &QScrollBar::setValue);
+
+    // Connect data parsing signals from the assembler to this
+    connect(m_ui->assemblyedit, &CodeEditor::assembledSuccessfully, this, &ProgramfileTab::assemblingComplete);
 }
 
 ProgramfileTab::~ProgramfileTab() {
     delete m_ui;
+}
+
+void ProgramfileTab::setTimerEnabled(bool state) {
+    m_ui->assemblyedit->setTimerEnabled(state);
 }
 
 void ProgramfileTab::on_pushButton_clicked() {
@@ -41,15 +52,25 @@ void ProgramfileTab::setDisassemblerText(const QString& text) {
     m_ui->binaryedit->setPlainText(text);
 }
 
+void ProgramfileTab::assemblingComplete(const QByteArray& arr) {
+    const QString& output = Parser::getParser()->loadFromByteArray(arr);
+    setDisassemblerText(output);
+    emit updateSimulator();
+}
+
 void ProgramfileTab::on_assemblyfile_toggled(bool checked) {
+    // Since we are removing the input text/binary info, we need to reset the pipeline
+    Pipeline::getPipeline()->reset();
+
     // handles toggling between assembly input and binary input
     if (checked) {
         m_ui->assemblyedit->setEnabled(true);
+        m_ui->assemblyedit->setTimerEnabled(true);
     } else {
         // Disable when loading binary files
+        m_ui->assemblyedit->setTimerEnabled(false);
         m_ui->assemblyedit->setEnabled(false);
     }
-
     // clear both editors when switching input mode and reset the highlighter for the assembly editor
     m_ui->assemblyedit->clear();
     m_ui->assemblyedit->reset();

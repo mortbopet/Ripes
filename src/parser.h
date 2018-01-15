@@ -7,6 +7,12 @@
 #include <vector>
 #include "defines.h"
 
+/*
+    Class for:
+    - Parser: Parsing input binary files into simulator memory
+    - Generating textual representation of binary instructions
+*/
+
 using namespace std;
 typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
 
@@ -28,6 +34,7 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
+    QString loadFromByteArray(QByteArray arr);
     const QString& loadBinaryFile(QString fileName);
     bool initBinaryFile(char* filename);
     void parseFile();
@@ -40,6 +47,9 @@ private:
     int m_fileSize;
     QString m_binaryRepr;  // binary representation of the currently loaded binary file in the pipeline,, for displaying
                            // the binary values in the binary view
+
+    QMap<int, uint32_t>
+        m_assembledInputFileMap;  // Intermediate assembler stage used for setting labels post-translation
 
     // Instruction decode lambda functions; runtime generated
     decode_functor generateWordParser(std::vector<int> bitFields);

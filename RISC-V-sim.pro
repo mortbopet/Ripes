@@ -38,7 +38,8 @@ SOURCES += src/main.cpp \
     src/graphics/backgrounditems.cpp \
     src/instructionmodel.cpp \
     src/pipeline.cpp \
-    src/pipelineobjects.cpp
+    src/pipelineobjects.cpp \
+    src/assembler.cpp
 
 HEADERS += \
     src/parser.h \
@@ -75,7 +76,8 @@ HEADERS += \
     src/binutils.h \
     src/pipelineobjects.h \
     src/pipeline.h \
-    src/mainmemory.h
+    src/mainmemory.h \
+    src/assembler.h
 
 FORMS += \
     src/mainwindow.ui \

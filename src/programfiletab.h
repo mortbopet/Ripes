@@ -18,15 +18,19 @@ public:
     void setAssemblyText(const QString& text);
     void setDisassemblerText(const QString& text);
     void setInputMode(bool isAssembly);
+    void setTimerEnabled(bool state);
 
 signals:
     void loadBinaryFile();
     void loadAssemblyFile();
+    void updateSimulator();  // Emitted when a file has been successfully loaded or assembled, and binary info must be
+                             // sent to the processor
 
 private slots:
     void on_pushButton_clicked();
 
     void on_assemblyfile_toggled(bool checked);
+    void assemblingComplete(const QByteArray& binaryCode);
 
 private:
     Ui::ProgramfileTab* m_ui;

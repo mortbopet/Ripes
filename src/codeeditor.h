@@ -7,6 +7,7 @@
 #include <QTimer>
 
 #include "asmhighlighter.h"
+#include "assembler.h"
 
 #include <set>
 
@@ -27,10 +28,13 @@ public:
     void clearBreakpoints() { m_breakpoints.clear(); }
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
+    void setupAssembler();
     void enableBreakpointArea();
     void reset() { m_highlighter->reset(); }
+    void setTimerEnabled(bool state) { m_timerEnabled = state; }
 signals:
     void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
+    void assembledSuccessfully(const QByteArray& code);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -41,8 +45,10 @@ private slots:
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
     void updateTooltip(int line, QString tip);
+    void assembleCode();
 
 private:
+    Assembler* m_assembler;
     AsmHighlighter* m_highlighter;
     LineNumberArea* m_lineNumberArea;
     BreakpointArea* m_breakpointArea;
@@ -59,6 +65,8 @@ private:
     // A timer is needed for only catching one of the multiple wheel events that
     // occur on a regular mouse scroll
     QTimer m_fontTimer;
+    QTimer m_changeTimer;
+    bool m_timerEnabled = true;
 
     bool eventFilter(QObject* observed, QEvent* event) override;
 };

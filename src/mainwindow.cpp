@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
         };
     });
     connect(m_ui->processortab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
+    connect(m_ui->programfiletab, &ProgramfileTab::updateSimulator, [this] { emit update(); });
     connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
 }
@@ -108,8 +109,9 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
 }
 
 void MainWindow::loadBinaryFile(QString filename) {
-    const QString& output = Parser::getParser()->loadBinaryFile(filename);
+    m_ui->programfiletab->setTimerEnabled(false);
     m_ui->programfiletab->setInputMode(false);
+    const QString& output = Parser::getParser()->loadBinaryFile(filename);
     m_ui->programfiletab->setDisassemblerText(output);
     emit update();
 }
@@ -118,6 +120,7 @@ void MainWindow::loadAssemblyFile(QString fileName) {
     // ... load file
     QFile file(fileName);
     m_ui->programfiletab->setInputMode(true);
+    m_ui->programfiletab->setTimerEnabled(true);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_ui->programfiletab->setAssemblyText(file.readAll());
         file.close();
