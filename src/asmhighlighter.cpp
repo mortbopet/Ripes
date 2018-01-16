@@ -227,7 +227,7 @@ void AsmHighlighter::createSyntaxRules() {
 
     // jalr -- pseudo and regular op.
     types.clear();
-    types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
+    types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047);
     rule.instr = "jalr";
     rule.fields = 4;
     rule.fields2 = 2;
@@ -287,7 +287,7 @@ void AsmHighlighter::createSyntaxRules() {
     types.clear();
     names.clear();
     types << FieldType(Type::Register) << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
-    names << "beg"
+    names << "beq"
           << "bne"
           << "blt"
           << "bge"
@@ -394,8 +394,19 @@ void AsmHighlighter::createSyntaxRules() {
 
 QString AsmHighlighter::checkSyntax(const QString& input) {
     const static auto splitter = QRegularExpression("(\\ |\\,|\\t|\\(|\\))");
-    auto fields = input.split(splitter);
+    QStringList fields = input.split(splitter);
     fields.removeAll("");
+
+    // Remove comments from syntax evaluation
+    const static auto commentRegEx = QRegularExpression("[#](.*)");
+    int commentIndex = fields.indexOf(commentRegEx);
+    if (commentIndex != -1) {
+        int index = fields.length();
+        while (index >= commentIndex) {
+            fields.removeAt(index);
+            index--;
+        }
+    }
 
     // Throw away case information
     std::transform(fields.begin(), fields.end(), fields.begin(), [](const QString& s) { return s.toLower(); });
