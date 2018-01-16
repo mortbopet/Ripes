@@ -49,23 +49,32 @@ void Parser::parseFile() {
     }
 }
 
-const QString& Parser::loadBinaryFile(QString fileName) {
+void Parser::clear() {
+    m_disassembledRepr.clear();
+    m_binaryRepr.clear();
+}
+
+const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
     // Loads a binary file and converts it to a text string, as well as puts the binary information into the pipeline
     // memorys text segment
 
     QFile file(fileName);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QByteArray read = file.readAll();
-        m_binaryRepr = loadFromByteArray(read);
+        m_fileByteArray = file.readAll();
+        loadFromByteArray(m_fileByteArray);
         file.close();
     }
-    return m_binaryRepr;
+    if (disassembled) {
+        return m_disassembledRepr;
+    } else {
+        return m_binaryRepr;
+    }
 }
 
-QString Parser::loadFromByteArray(QByteArray arr) {
+const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled) {
     // Reset the pipeline
+    clear();
     Pipeline::getPipeline()->reset();
-
     QString output = "";
     MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
     auto length = arr.length();
@@ -74,11 +83,13 @@ QString Parser::loadFromByteArray(QByteArray arr) {
     int pc = 0;
     for (int i = 0; i < length; i += 4) {
         in.readRawData(buffer, 4);
+        QString binaryRepString;
         for (int j = 0; j < 4; j++) {
-            // output.append(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
+            binaryRepString.prepend(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
             memPtr->write(pc, buffer[j], 1);
             pc++;
         }
+        m_binaryRepr.append(binaryRepString).append('\n');
         uint32_t instr =
             (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
         output.append(genStringRepr(instr));
@@ -86,7 +97,13 @@ QString Parser::loadFromByteArray(QByteArray arr) {
     }
     // Update the pipeline
     Pipeline::getPipeline()->update();
-    return output;
+    m_disassembledRepr = output;
+
+    if (disassembled) {
+        return m_disassembledRepr;
+    } else {
+        return m_binaryRepr;
+    }
 }
 
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {

@@ -32,6 +32,11 @@ public:
     void enableBreakpointArea();
     void reset() { m_highlighter->reset(); }
     void setTimerEnabled(bool state) { m_timerEnabled = state; }
+    const QByteArray& getCurrentOutputArray() { return m_assembler->getCurrentOutputArray(); }
+    void clearOutputArray() {
+        m_assembler->clear();
+        m_tooltipForLine.clear();
+    }
 signals:
     void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
     void assembledSuccessfully(const QByteArray& code);

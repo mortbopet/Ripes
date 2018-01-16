@@ -111,8 +111,9 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
 void MainWindow::loadBinaryFile(QString filename) {
     m_ui->programfiletab->setTimerEnabled(false);
     m_ui->programfiletab->setInputMode(false);
-    const QString& output = Parser::getParser()->loadBinaryFile(filename);
-    m_ui->programfiletab->setDisassemblerText(output);
+    m_ui->processortab->restart();
+    Parser::getParser()->loadBinaryFile(filename);
+    m_ui->programfiletab->setDisassemblerText();
     emit update();
 }
 
@@ -121,10 +122,14 @@ void MainWindow::loadAssemblyFile(QString fileName) {
     QFile file(fileName);
     m_ui->programfiletab->setInputMode(true);
     m_ui->programfiletab->setTimerEnabled(true);
+    Parser::getParser()->clear();
+    m_ui->programfiletab->clearOutputArray();
+    m_ui->processortab->restart();
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_ui->programfiletab->setAssemblyText(file.readAll());
         file.close();
     }
+    m_ui->programfiletab->setDisassemblerText();
 }
 
 void MainWindow::on_actionAbout_triggered() {

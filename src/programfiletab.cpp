@@ -25,6 +25,10 @@ ProgramfileTab::ProgramfileTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->assemblyedit, &CodeEditor::assembledSuccessfully, this, &ProgramfileTab::assemblingComplete);
 }
 
+void ProgramfileTab::clearOutputArray() {
+    m_ui->assemblyedit->clearOutputArray();
+}
+
 ProgramfileTab::~ProgramfileTab() {
     delete m_ui;
 }
@@ -47,14 +51,16 @@ void ProgramfileTab::setAssemblyText(const QString& text) {
     m_ui->assemblyedit->setPlainText(text);
 }
 
-void ProgramfileTab::setDisassemblerText(const QString& text) {
+void ProgramfileTab::setDisassemblerText() {
     m_ui->binaryedit->clearBreakpoints();
+    const QString& text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->getDisassembledRepr()
+                                                                    : Parser::getParser()->getBinaryRepr();
     m_ui->binaryedit->setPlainText(text);
 }
 
 void ProgramfileTab::assemblingComplete(const QByteArray& arr) {
-    const QString& output = Parser::getParser()->loadFromByteArray(arr);
-    setDisassemblerText(output);
+    Parser::getParser()->loadFromByteArray(arr, m_ui->disassembledViewButton->isChecked());
+    setDisassemblerText();
     emit updateSimulator();
 }
 
@@ -82,5 +88,14 @@ void ProgramfileTab::setInputMode(bool isAssembly) {
         m_ui->assemblyfile->setChecked(true);
     } else {
         m_ui->binaryfile->setChecked(true);
+    }
+}
+
+void ProgramfileTab::on_disassembledViewButton_toggled(bool checked) {
+    Q_UNUSED(checked)
+    if (m_ui->binaryfile->isChecked()) {
+        assemblingComplete(Parser::getParser()->getFileByteArray());
+    } else {
+        assemblingComplete(m_ui->assemblyedit->getCurrentOutputArray());
     }
 }

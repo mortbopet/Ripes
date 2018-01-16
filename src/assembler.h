@@ -9,6 +9,8 @@ public:
     Assembler();
     const QByteArray& assembleBinaryFile(const QTextDocument& doc);
     bool hasError() { return m_error; }
+    const QByteArray& getCurrentOutputArray() { return m_outputArray; }
+    void clear() { m_outputArray.clear(); }
 
 private:
     uint32_t getRegisterNumber(const QString& reg);

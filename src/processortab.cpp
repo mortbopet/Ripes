@@ -59,11 +59,12 @@ void ProcessorTab::toggleTimer(bool state) {
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
+    bool pipelineReady = Pipeline::getPipeline()->getTextSize() > 0;
 
-    m_ui->step->setEnabled(true);
-    m_ui->run->setEnabled(true);
-    m_ui->reset->setEnabled(true);
-    m_ui->start->setEnabled(true);
+    m_ui->step->setEnabled(pipelineReady);
+    m_ui->run->setEnabled(pipelineReady);
+    m_ui->reset->setEnabled(pipelineReady);
+    m_ui->start->setEnabled(pipelineReady);
 }
 
 void ProcessorTab::initRegWidget() {

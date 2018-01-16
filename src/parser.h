@@ -25,6 +25,7 @@ public:
 
     int getFileSize() { return m_fileSize; }
     QString genStringRepr(uint32_t instr) const;
+    void clear();
 
     // Const interfaces to intstruction decode lamdas
     std::vector<uint32_t> decodeUInstr(uint32_t instr) const { return m_decodeUInstr(instr); }
@@ -34,8 +35,11 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    QString loadFromByteArray(QByteArray arr);
-    const QString& loadBinaryFile(QString fileName);
+    const QString& loadFromByteArray(QByteArray arr, bool disassembled = true);
+    const QString& loadBinaryFile(QString fileName, bool disassembled = true);
+    const QString& getBinaryRepr() { return m_binaryRepr; }
+    const QString& getDisassembledRepr() { return m_disassembledRepr; }
+    QByteArray getFileByteArray() { return m_fileByteArray; }
     bool initBinaryFile(char* filename);
     void parseFile();
 
@@ -44,9 +48,10 @@ private:
     ~Parser();
     ifstream m_fileStream;
     istreambuf_iterator<char> m_fileIter;
+    QByteArray m_fileByteArray;
     int m_fileSize;
-    QString m_binaryRepr;  // binary representation of the currently loaded binary file in the pipeline,, for displaying
-                           // the binary values in the binary view
+    QString m_disassembledRepr;  // disassembled representation of the currently loaded binary file in the pipeline
+    QString m_binaryRepr;
 
     QMap<int, uint32_t>
         m_assembledInputFileMap;  // Intermediate assembler stage used for setting labels post-translation
