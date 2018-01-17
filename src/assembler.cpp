@@ -122,9 +122,9 @@ int Assembler::getImmediate(QString string, bool& canConvert) {
             string.remove(0, 1);
         }
         if (string.startsWith(QLatin1String("0x"))) {
-            immediate = string.remove("0x").toInt(&canConvert, 16);
+            immediate = string.remove("0x").toUInt(&canConvert, 16);
         } else if (string.startsWith(QLatin1String("0b"))) {
-            immediate = string.remove("0b").toInt(&canConvert, 2);
+            immediate = string.remove("0b").toUInt(&canConvert, 2);
         } else {
             canConvert = false;
         }

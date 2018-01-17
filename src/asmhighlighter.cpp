@@ -18,7 +18,7 @@ QString FieldType::validateField(const QString& field) const {
         case Type::Immediate: {
             // Check that immediate can be converted to int from either base 10, hex or binary
             bool ok = false;
-            auto immediate = field.toInt(&ok, 10);
+            int immediate = field.toInt(&ok, 10);
             int sign = 1;
             if (!ok) {
                 // Could not convert directly to integer - try hex or bin. Here, extra care is taken to account for a
@@ -29,11 +29,13 @@ QString FieldType::validateField(const QString& field) const {
                     field_.remove(0, 1);
                 }
                 if (field_.startsWith(QLatin1String("0x"))) {
-                    immediate = field_.remove("0x").toInt(&ok, 16);
+                    immediate = field_.remove("0x").toUInt(&ok, 16);  // .toInt gives errors where it shouldnt - convert
+                                                                      // to UInt and implicitely cast to int when
+                                                                      // assigning to variable $immediate
                     if (!ok)
                         return QString("Invalid immediate field - got %1").arg(field);
                 } else if (field_.startsWith(QLatin1String("0b"))) {
-                    immediate = field_.remove("0b").toInt(&ok, 2);
+                    immediate = field_.remove("0b").toUInt(&ok, 2);
                     if (!ok)
                         return QString("Invalid immediate field - got %1").arg(field);
                 } else {
@@ -235,12 +237,12 @@ void AsmHighlighter::createSyntaxRules() {
     // nop
     rule.instr = "nop";
     rule.fields = 1;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // ecall
     rule.instr = "ecall";
     rule.fields = 1;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // call
     types.clear();
@@ -248,7 +250,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.instr = "call";
     rule.fields = 2;
     rule.inputs = types;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // jr
     types.clear();
@@ -256,7 +258,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.instr = "jr";
     rule.fields = 2;
     rule.inputs = types;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // jalr -- pseudo and regular op.
     types.clear();
@@ -265,7 +267,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.fields = 4;
     rule.fields2 = 2;
     rule.inputs = types;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.fields2 = -1;
 
     // jal -- pseudo and regular op
@@ -276,7 +278,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.fields2 = 2;
     rule.inputs = types;
     rule.skipFirstField = true;  // jal can be written as "jal offset" - allow skipping of first field
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.skipFirstField = false;  // revert
     rule.fields2 = -1;
 
@@ -286,7 +288,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.instr = "j";
     rule.fields = 2;
     rule.inputs = types;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // li
     types.clear();
@@ -294,7 +296,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.instr = "li";
     rule.fields = 3;
     rule.inputs = types;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // la
     types.clear();
@@ -302,7 +304,7 @@ void AsmHighlighter::createSyntaxRules() {
     rule.instr = "la";
     rule.fields = 3;
     rule.inputs = types;
-    m_syntaxRules.insert(rule.instr, rule);
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // 2-register pseudoinstructions
     types.clear();
@@ -321,7 +323,7 @@ void AsmHighlighter::createSyntaxRules() {
         rule.instr = name;
         rule.fields = 3;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
     // Branch instructions
@@ -340,7 +342,7 @@ void AsmHighlighter::createSyntaxRules() {
         rule.instr = name;
         rule.fields = 4;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
     // Branch pseudo-instructions
@@ -357,7 +359,7 @@ void AsmHighlighter::createSyntaxRules() {
         rule.instr = name;
         rule.fields = 3;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
     // I type instructions
@@ -377,10 +379,11 @@ void AsmHighlighter::createSyntaxRules() {
         rule.instr = name;
         rule.fields = 4;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
     // Load instructions
+    QMap<QString, QList<SyntaxRule>> loadRules;
     types.clear();
     names.clear();
     types << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047) << FieldType(Type::Register);
@@ -389,13 +392,28 @@ void AsmHighlighter::createSyntaxRules() {
           << "lw"
           << "lbu"
           << "lhu";
-
     for (const auto& name : names) {
         rule.instr = name;
         rule.fields = 4;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        loadRules.insert(name, QList<SyntaxRule>() << rule);
     }
+
+    // Load pseudoinstructions
+    types.clear();
+    names.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
+    names << "lb"
+          << "lh"
+          << "lw";
+
+    for (const auto& name : names) {
+        rule.instr = name;
+        rule.fields = 3;
+        rule.inputs = types;
+        loadRules.insert(name, loadRules[name] << rule);
+    }
+    m_syntaxRules.unite(loadRules);
 
     // R type instructions
     types.clear();
@@ -415,10 +433,11 @@ void AsmHighlighter::createSyntaxRules() {
         rule.instr = name;
         rule.fields = 4;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
     // S type instructions
+    QMap<QString, QList<SyntaxRule>> storeRules;
     types.clear();
     names.clear();
     types << FieldType(Type::Register) << FieldType(Type::Immediate, -2048, 2047) << FieldType(Type::Register);
@@ -429,8 +448,22 @@ void AsmHighlighter::createSyntaxRules() {
         rule.instr = name;
         rule.fields = 4;
         rule.inputs = types;
-        m_syntaxRules.insert(name, rule);
+        storeRules.insert(name, QList<SyntaxRule>() << rule);
     }
+    // S type pseudo-ops
+    types.clear();
+    names.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this) << FieldType(Type::Register);
+    names << "sb"
+          << "sh"
+          << "sw";
+    for (const auto& name : names) {
+        rule.instr = name;
+        rule.fields = 4;
+        rule.inputs = types;
+        storeRules.insert(name, storeRules[name] << rule);
+    }
+    m_syntaxRules.unite(storeRules);
 }
 
 QString AsmHighlighter::checkSyntax(const QString& input) {
@@ -487,45 +520,65 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
                 } else {
                     return QString("Unknown assembler directive");
                 }
+            } else if (fields[0] == "ecall" || fields[0] == "nop") {
+                // Allow specific 1-word instructions
+                fields.removeFirst();
+            } else {
+                return QString("Unknown instruction");
             }
         }
     }
 
-    // Validate remaining fields
+    // -- Validate remaining fields --
+    // For the corresponding rules to an instruction in m_syntaxRules, the SyntaxRule list will be iterated through
+    // until either a rule has validated a field, or the end of the syntaxrule list is reached
+    QStringList resList;  // Tooltip results
     if (fields.size() > 0) {
         auto ruleIter = m_syntaxRules.find(fields[0]);
         if (ruleIter != m_syntaxRules.end()) {
             // A rule for the instruction has been found
-            const SyntaxRule& rule = *ruleIter;
-            if (fields.size() == rule.fields || (rule.fields2 != -1 && fields.size() == rule.fields2)) {
-                // fields size is correct, check each instruction
-                int nFields = fields.size();
-                for (int index = 1; index < nFields; index++) {
-                    // Get input rule - skipFirstField is a special case handler for jal pseudo-op when only 2 fields
-                    // are available
-                    auto inputRule =
-                        rule.skipFirstField && nFields == rule.fields2 ? rule.inputs[index] : rule.inputs[index - 1];
-                    // If an offset is used, store line number, to re-update after all variable declarations have been
-                    // mapped (after syntax checking the entire document)
-                    if (inputRule.m_type == Type::Offset) {
-                        m_rowsUsingLabels << pos;
+            for (const auto& rule : *ruleIter) {
+                if (fields.size() == rule.fields || (rule.fields2 != -1 && fields.size() == rule.fields2)) {
+                    // fields size is correct, check each instruction
+                    int nFields = fields.size();
+                    QString currentRes = QString();
+                    for (int index = 1; index < nFields; index++) {
+                        // Get input rule - skipFirstField is a special case handler for jal pseudo-op when only 2
+                        // fields are available
+                        auto inputRule = rule.skipFirstField && nFields == rule.fields2 ? rule.inputs[index]
+                                                                                        : rule.inputs[index - 1];
+                        // If an offset is used, store line number, to re-update after all variable declarations have
+                        // been mapped (after syntax checking the entire document)
+                        if (inputRule.m_type == Type::Offset) {
+                            m_rowsUsingLabels << pos;
+                        }
+                        // Validation for the current rule continues if res is still an empty string. If not, the string
+                        // in res is kept, which will prompt the algorithm to either return res or validate subsequent
+                        // validation rules
+                        currentRes = inputRule.validateField(fields[index]);
+                        if (currentRes == QString()) {
+                            // continue
+                            // index++;
+                        } else {
+                            resList.append(currentRes);
+                            break;
+                        }
                     }
-                    QString res = inputRule.validateField(fields[index]);
-                    if (res == QString()) {
-                        // continue
-                        // index++;
-                    } else {
-                        return res;
+                    if (currentRes.isEmpty()) {
+                        // Validation successfull
+                        return QString();
                     }
+                } else {
+                    // Invalid number of arguments
+                    resList.append(QString("Invalid number of arguments"));
                 }
-            } else {
-                // Invalid number of arguments
-                return QString("Invalid number of arguments");
             }
-        } else {
+            if (!resList.isEmpty())
+                return resList[0];
             return QString("Unknown instruction");
         }
     }
+
     return QString();
 }
 

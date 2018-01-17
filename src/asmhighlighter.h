@@ -59,7 +59,7 @@ private:
 
     void createSyntaxRules();
 
-    QMap<QString, SyntaxRule> m_syntaxRules;
+    QMap<QString, QList<SyntaxRule>> m_syntaxRules;  // Maps instruction names to syntax rule(s)
 
     QVector<HighlightingRule> m_highlightingRules;
 
