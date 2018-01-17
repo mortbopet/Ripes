@@ -25,6 +25,10 @@ ProgramfileTab::ProgramfileTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->assemblyedit, &CodeEditor::assembledSuccessfully, this, &ProgramfileTab::assemblingComplete);
 }
 
+QString ProgramfileTab::getAssemblyText() {
+    return m_ui->assemblyedit->toPlainText();
+}
+
 void ProgramfileTab::clearOutputArray() {
     m_ui->assemblyedit->clearOutputArray();
 }

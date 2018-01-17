@@ -28,6 +28,8 @@ private slots:
     void on_actionOpen_documentation_triggered();
     void processorUpdated() { emit updateMemoryTab(); }
 
+    void on_actionSave_Assembly_File_triggered();
+
 signals:
     void update();
     void updateMemoryTab();

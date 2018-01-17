@@ -8,6 +8,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QTextStream>
 #include "parser.h"
 
 #include "programfiletab.h"
@@ -68,8 +69,8 @@ MainWindow::~MainWindow() {
 void MainWindow::setupExamples() {
     // All .bin and .asm files in folder examples/.. will be added to the list of binary and assembly examples that can
     // be selected through the menu
-    auto binaryExamples = QDir("examples/binary/").entryList(QDir::Files);
-    auto assemblyExamples = QDir("examples/assembly/").entryList(QDir::Files);
+    auto binaryExamples = QDir(QDir::current().path() + "/examples/binary/").entryList(QDir::Files);
+    auto assemblyExamples = QDir(QDir::current().path() + "/examples/assembly/").entryList(QDir::Files);
 
     // Load examples
     if (!binaryExamples.isEmpty()) {
@@ -102,10 +103,14 @@ void MainWindow::on_actionexit_triggered() {
 
 void MainWindow::on_actionLoadBinaryFile_triggered() {
     auto filename = QFileDialog::getOpenFileName(this, "Open binary file", "", "Binary file (*)");
+    if (!filename.isNull())
+        loadBinaryFile(filename);
 }
 
 void MainWindow::on_actionLoadAssemblyFile_triggered() {
     auto filename = QFileDialog::getOpenFileName(this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
+    if (!filename.isNull())
+        loadAssemblyFile(filename);
 }
 
 void MainWindow::loadBinaryFile(QString filename) {
@@ -139,13 +144,22 @@ void MainWindow::on_actionAbout_triggered() {
 
 void MainWindow::on_actionOpen_documentation_triggered() {
     // Look for documentation pdf
-    QFileInfo file("riscvsim_doc.pdf");
-    if (file.exists()) {
-        QDesktopServices::openUrl(QUrl("riscvsim_doc.pdf"));
-    } else {
-        QMessageBox info;
-        info.setIcon(QMessageBox::Warning);
-        info.setText("Could not locate documentation file");
-        info.exec();
+    QDesktopServices::openUrl(QUrl(QString("https://github.com/mortbopet/Ripes")));
+}
+
+void MainWindow::on_actionSave_Assembly_File_triggered() {
+    QFileDialog dialog;
+    dialog.setNameFilter("*.as *.s");
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    if (dialog.exec()) {
+        auto files = dialog.selectedFiles();
+        if (files.length() == 1) {
+            QFile file(files[0]);
+            if (file.open(QIODevice::ReadWrite)) {
+                QTextStream stream(&file);
+                stream << m_ui->programfiletab->getAssemblyText();
+                file.close();
+            }
+        }
     }
 }

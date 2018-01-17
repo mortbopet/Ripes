@@ -20,6 +20,7 @@ public:
     void setInputMode(bool isAssembly);
     void setTimerEnabled(bool state);
     void clearOutputArray();
+    QString getAssemblyText();
 
 signals:
     void loadBinaryFile();
