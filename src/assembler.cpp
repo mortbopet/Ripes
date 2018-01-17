@@ -638,6 +638,18 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
             // Split input into fields
             fields = block.text().split(splitter);
             fields.removeAll("");
+
+            // Remove comments from syntax evaluation
+            const static auto commentRegEx = QRegularExpression("[#](.*)");
+            int commentIndex = fields.indexOf(commentRegEx);
+            if (commentIndex != -1) {
+                int index = fields.length();
+                while (index >= commentIndex) {
+                    fields.removeAt(index);
+                    index--;
+                }
+            }
+
             /* UnpackOp will:
              *  -unpack & convert pseudo operations into its required number of operations
              * - Record label positioning
