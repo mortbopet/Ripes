@@ -8,7 +8,7 @@ AddressDialog::AddressDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::Ad
 
     // set input range
     m_ui->address->setInputMask("hhhhhhhh");
-    setWindowTitle("RISC-V Simulator");
+    setWindowTitle("Ripes");
     setWindowIcon(QIcon(QPixmap(":/icons/logo.png")));
 
     connect(m_ui->address, &QLineEdit::textChanged, this, &AddressDialog::validateTargetAddress);

@@ -45,14 +45,15 @@
           </font>
          </property>
          <property name="text">
-          <string>RISC-V-SIM</string>
+          <string>Ripes</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="description">
          <property name="text">
-          <string> &lt; description &gt; </string>
+          <string>A 5-stage RISC-V pipeline simulator with assembly development environment.
+https://github.com/mortbopet/Ripes</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
