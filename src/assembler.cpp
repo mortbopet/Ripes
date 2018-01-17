@@ -109,11 +109,34 @@ uint32_t Assembler::getRegisterNumber(const QString& reg) {
     }
 }
 
+int Assembler::getImmediate(QString string, bool& canConvert) {
+    // Extracts an immediate number from a string, being base 10, 16 or 2
+    canConvert = false;
+    int immediate = string.toInt(&canConvert, 10);
+    int sign = 1;
+    if (!canConvert) {
+        // Could not convert directly to integer - try hex or bin. Here, extra care is taken to account for a
+        // potential sign, and include this is the range validation
+        if (string[0] == '-' || string[0] == '+') {
+            sign = string[0] == '-' ? -1 : 1;
+            string.remove(0, 1);
+        }
+        if (string.startsWith(QLatin1String("0x"))) {
+            immediate = string.remove("0x").toInt(&canConvert, 16);
+        } else if (string.startsWith(QLatin1String("0b"))) {
+            immediate = string.remove("0b").toInt(&canConvert, 2);
+        } else {
+            canConvert = false;
+        }
+    }
+    return sign * immediate;
+}
+
 QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int row) {
     Q_UNUSED(row);
     uint32_t funct3 = 0;
     bool canConvert;
-    int imm = fields[3].toInt(&canConvert, 10);
+    int imm = getImmediate(fields[3], canConvert);
     if (fields[0] == "addi") {
         // Requires assembler-level support for labels (for pseudo-op 'la')
         if (canConvert) {
@@ -360,7 +383,8 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
     } else if (fields.first() == "li") {
         // Determine whether an ADDI instruction is sufficient, or if both LUI and ADDI is needed, by analysing the
         // immediate size
-        int immediate = fields[2].toInt();
+        bool canConvert;
+        int immediate = getImmediate(fields[2], canConvert);
         if (immediate > 2047 || immediate < -2048) {
             int posOffset = 1;
             if (immediate < 0) {
@@ -372,7 +396,7 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
                                                        << QString::number(signextend<int32_t, 12>(immediate & 0xfff));
             pos += 2;
         } else {
-            m_instructionsMap[pos] = QStringList() << "addi" << fields[1] << "x0" << fields[2];
+            m_instructionsMap[pos] = QStringList() << "addi" << fields[1] << "x0" << QString::number(immediate);
             pos++;
         }
     } else if (fields.first() == "mv") {

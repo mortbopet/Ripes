@@ -16,14 +16,32 @@ FieldType::FieldType(Type type, int lowerBound, int upperBound, AsmHighlighter* 
 QString FieldType::validateField(const QString& field) const {
     switch (m_type) {
         case Type::Immediate: {
-            // Check that immediate can be converted
+            // Check that immediate can be converted to int from either base 10, hex or binary
             bool ok = false;
             auto immediate = field.toInt(&ok, 10);
+            int sign = 1;
             if (!ok) {
-                return QString("Invalid immediate field - got %1").arg(field);
+                // Could not convert directly to integer - try hex or bin. Here, extra care is taken to account for a
+                // potential sign, and include this is the range validation
+                QString field_ = field;
+                if (field_[0] == '-' || field_[0] == '+') {
+                    sign = field_[0] == '-' ? -1 : 1;
+                    field_.remove(0, 1);
+                }
+                if (field_.startsWith(QLatin1String("0x"))) {
+                    immediate = field_.remove("0x").toInt(&ok, 16);
+                    if (!ok)
+                        return QString("Invalid immediate field - got %1").arg(field);
+                } else if (field_.startsWith(QLatin1String("0b"))) {
+                    immediate = field_.remove("0b").toInt(&ok, 2);
+                    if (!ok)
+                        return QString("Invalid immediate field - got %1").arg(field);
+                } else {
+                    return QString("Invalid immediate field - got %1").arg(field);
+                }
             }
             // Check that immediate is within range
-            if (immediate >= m_lowerBound && immediate <= m_upperBound) {
+            if ((sign * immediate) >= m_lowerBound && (sign * immediate) <= m_upperBound) {
                 return QString();
             } else {
                 return QString(
@@ -63,7 +81,7 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
     HighlightingRule rule;
 
     // Create rules for name-specific registers
-    regFormat.setForeground(QColor(Colors::FoundersRock));
+    regFormat.setForeground(QColor(0x800000));
     QStringList registerPatterns;
     registerPatterns << "\\bzero\\b"
                      << "\\bra\\b"
@@ -147,6 +165,9 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
                         << "\\bsrli\\b"
                         << "\\bslli\\b"
                         << "\\bor\\b"
+                        << "\\bori\\b"
+                        << "\\band\\b"
+                        << "\\bandi\\b"
                         << "\\badd\\b"
                         << "\\becall\\b";
     instrFormat.setForeground(QColor(Colors::BerkeleyBlue));
@@ -168,9 +189,21 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
     rule.format = immFormat;
     m_highlightingRules.append(rule);
 
+    // Create immediate highlighting rule for prefixed numbers (0x, 0b)
+    immFormat.setForeground(QColor(Qt::darkGreen));
+    rule.pattern = QRegularExpression("([-+]?0[xX][0-9a-fA-F]+|[-+]?0[bB][0-1]+)");
+    rule.format = immFormat;
+    m_highlightingRules.append(rule);
+
     // Create comment highlighting rule
     commentFormat.setForeground(QColor(Colors::Medalist));
     rule.pattern = QRegularExpression("[#]+.*");
+    rule.format = commentFormat;
+    m_highlightingRules.append(rule);
+
+    // Create label highlighting rule
+    commentFormat.setForeground(QColor(Colors::Medalist));
+    rule.pattern = QRegularExpression("(.*?[:])");
     rule.format = commentFormat;
     m_highlightingRules.append(rule);
 }

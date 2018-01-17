@@ -17,6 +17,7 @@ private:
     void unpackPseudoOp(const QStringList& fields, int& pos);
     void unpackOp(const QStringList& fields, int& pos);
     void restart();
+    int getImmediate(QString string, bool& canConvert);
     QByteArray uintToByteArr(uint32_t);
 
     QMap<QString, int> m_labelPosMap;  // Map storing unpacked label
