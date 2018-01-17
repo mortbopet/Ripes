@@ -34,18 +34,19 @@ void RegisterWidget::validateInput() {
 
 void RegisterWidget::setText() {
     // Sets line edit text based on current display type and register value
+    QString newValue;
     if (m_displayType == displayTypeN::Hex) {
         // hex
-        m_ui->value->setText(QString().setNum(*m_regPtr, 16).rightJustified(8, '0'));  // zero padding on hex numbers
+        newValue = QString().setNum(*m_regPtr, 16).rightJustified(8, '0');  // zero padding on hex numbers
     } else if (m_displayType == displayTypeN::Binary) {
         // binary
-        m_ui->value->setText(QString().setNum(*m_regPtr, 2));
+        newValue = QString().setNum(*m_regPtr, 2);
     } else if (m_displayType == displayTypeN::Decimal) {
         // Decimal
-        m_ui->value->setText(QString().setNum(*(int32_t*)m_regPtr, 10));
+        newValue = QString().setNum(*(int32_t*)m_regPtr, 10);
     } else if (m_displayType == displayTypeN::Unsigned) {
         // Unsigned
-        m_ui->value->setText(QString().setNum(*m_regPtr, 10));
+        newValue = QString().setNum(*m_regPtr, 10);
     } else if (m_displayType == displayTypeN::ASCII) {
         // ASCII - valid ascii characters will not be able to fill the 32-bit
         // range
@@ -55,8 +56,24 @@ void RegisterWidget::setText() {
             out.append(QChar(value & 0xff));
             value >>= 8;
         }
-        m_ui->value->setText(out);
+        newValue = out;
         m_ui->value->setInputMask("nnnn");
+    }
+
+    // RegisterContainerWidget will set the background color for the most recently edited register
+    if (m_ui->value->text() != newValue) {
+        emit valueChanged();
+    }
+    m_ui->value->setText(newValue);
+}
+
+void RegisterWidget::setHighlightState(bool state) {
+    if (state) {
+        QPalette palette;
+        palette.setColor(QPalette::Base, QColor(Colors::Medalist).lighter(200));
+        m_ui->value->setPalette(palette);
+    } else {
+        m_ui->value->setPalette(QPalette());
     }
 }
 

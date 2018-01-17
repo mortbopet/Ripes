@@ -18,12 +18,14 @@ public:
 
 public slots:
     void update();
+    void registerHasChanged();
 
 private:
     Ui::RegisterContainerWidget* m_ui;
 
     std::vector<uint32_t>* m_regPtr;
     QList<RegisterWidget*> m_registers;
+    RegisterWidget* m_currentHighlightedReg = nullptr;
 };
 
 #endif  // REGISTERCONTAINERWIDGET_H

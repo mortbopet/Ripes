@@ -1,4 +1,5 @@
 #include "registercontainerwidget.h"
+#include <QScrollBar>
 #include "ui_registercontainerwidget.h"
 
 #include "registerwidget.h"
@@ -72,7 +73,20 @@ void RegisterContainerWidget::init() {
         reg->setDisplayType(qvariant_cast<displayTypeN>(m_ui->displayType->currentData()));
         connect(m_ui->displayType, QOverload<const QString&>::of(&QComboBox::currentTextChanged),
                 [=] { reg->setDisplayType(qvariant_cast<displayTypeN>(m_ui->displayType->currentData())); });
+        connect(reg, &RegisterWidget::valueChanged, this, &RegisterContainerWidget::registerHasChanged);
         m_ui->registerLayout->addWidget(reg);
         m_registers.append(reg);
     }
+}
+
+void RegisterContainerWidget::registerHasChanged() {
+    RegisterWidget* sender = qobject_cast<RegisterWidget*>(QObject::sender());
+    sender->setHighlightState(true);
+    if (m_currentHighlightedReg != sender && m_currentHighlightedReg != nullptr) {
+        m_currentHighlightedReg->setHighlightState(false);
+    }
+    m_currentHighlightedReg = sender;
+
+    // Least recently changed register should always be visible in the container
+    m_ui->scrollArea->ensureWidgetVisible(sender);
 }

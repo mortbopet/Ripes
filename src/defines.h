@@ -46,7 +46,8 @@ enum Colors {
     BerkeleyBlue = 0x003262,
     FoundersRock = 0x3B7EA1,
     CaliforniaGold = 0xFDB515,
-    Medalist = 0xC4820E
+    Medalist = 0xC4820E,
+    FlatGreen = 0x4cde75
 };
 
 namespace {

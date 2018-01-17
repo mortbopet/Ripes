@@ -16,7 +16,7 @@ typedef QPair<long long, long long> rangePair;
 
 /*
  * Widget for representing register contents
-*/
+ */
 
 class RegisterWidget : public QWidget {
     Q_OBJECT
@@ -33,6 +33,7 @@ public:
 public slots:
     void setText();
     void setDisplayType(displayTypeN type);
+    void setHighlightState(bool state);
 
 private slots:
     void validateInput();
@@ -45,6 +46,9 @@ private:
     uint32_t* m_regPtr;
 
     rangePair m_range;
+
+signals:
+    void valueChanged();
 };
 
 #endif  // REGISTERWIDGET_H
