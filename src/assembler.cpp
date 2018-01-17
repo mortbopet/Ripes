@@ -112,7 +112,18 @@ uint32_t Assembler::getRegisterNumber(const QString& reg) {
 QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int row) {
     Q_UNUSED(row);
     uint32_t funct3 = 0;
+    bool canConvert;
+    int imm = fields[3].toInt(&canConvert, 10);
     if (fields[0] == "addi") {
+        // Requires assembler-level support for labels (for pseudo-op 'la')
+        if (canConvert) {
+            // An immediate value as been provided
+        } else {
+            // An offset value has been provided ( unfolded pseudo-op)
+            m_error |= !m_labelPosMap.contains(fields[3]);
+            // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
+            imm = (m_labelPosMap[fields[3]] - row + 1) * 4;
+        }
         funct3 = 0b000;
     } else if (fields[0] == "slli") {
         funct3 = 0b001;
@@ -135,7 +146,7 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
         Q_ASSERT(false);
     };
     return uintToByteArr(OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
-                         getRegisterNumber(fields[2]) << 15 | fields[3].toInt(nullptr, 10) << 20);
+                         getRegisterNumber(fields[2]) << 15 | imm << 20);
 }
 
 QByteArray Assembler::assembleOpInstruction(const QStringList& fields, int row) {
@@ -271,11 +282,13 @@ QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int ro
     } else {
         // An offset value has been provided
         m_error |= !m_labelPosMap.contains(fields[2]);
-        // calculate offset 31:12 bits - we add +1 to offset the sign
+        // calculate offset 31:12 bits - we add +1 to offset the sign if the offset is negative
         imm = (m_labelPosMap[fields[2]] - row) * 4;
-        imm >>= 12;
-        imm += 1;
-        imm <<= 12;
+        if (imm < 0) {
+            imm >>= 12;
+            imm += 1;
+            imm <<= 12;
+        }
     }
 
     return uintToByteArr(AUIPC | getRegisterNumber(fields[1]) << 7 | (imm & 0xfffff000));
@@ -467,6 +480,13 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         m_instructionsMap[pos + 1] = QStringList() << "jalr"
                                                    << "x0"
                                                    << "x6" << fields[1];
+        m_lineLabelUsageMap[pos] = fields[1];
+        m_lineLabelUsageMap[pos + 1] = fields[1];
+
+        pos += 2;
+    } else if (fields.first() == "la") {
+        m_instructionsMap[pos] = QStringList() << "auipc" << fields[1] << fields[2];
+        m_instructionsMap[pos + 1] = QStringList() << "addi" << fields[1] << fields[1] << fields[2];
         m_lineLabelUsageMap[pos] = fields[1];
         m_lineLabelUsageMap[pos + 1] = fields[1];
 

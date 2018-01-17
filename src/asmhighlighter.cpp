@@ -263,6 +263,14 @@ void AsmHighlighter::createSyntaxRules() {
     rule.inputs = types;
     m_syntaxRules.insert(rule.instr, rule);
 
+    // la
+    types.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
+    rule.instr = "la";
+    rule.fields = 3;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, rule);
+
     // 2-register pseudoinstructions
     types.clear();
     names.clear();
