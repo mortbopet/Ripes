@@ -35,7 +35,13 @@ const QStringList pseudoOps = QStringList() << "nop"
                                             << "jalr"
                                             << "ret"
                                             << "call"
-                                            << "tail";
+                                            << "tail"
+                                            << "lb"
+                                            << "lh"
+                                            << "lw"
+                                            << "sb"
+                                            << "sh"
+                                            << "sw";
 
 const QStringList opsWithOffsets = QStringList() << "beq"
                                                  << "bne"
@@ -243,7 +249,16 @@ QByteArray Assembler::assembleStoreInstruction(const QStringList& fields, int ro
         m_error = true;
         Q_ASSERT(false);
     };
-    int imm = fields[2].toInt(nullptr, 10);
+    bool canConvert;
+    int imm = fields[2].toInt(&canConvert, 10);
+    if (canConvert) {
+        // An offset value has been provided ( unfolded pseudo-op)
+    } else {
+        m_error |= !m_labelPosMap.contains(fields[2]);
+        // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
+        imm = (m_labelPosMap[fields[2]] - row + 1) * 4;
+    }
+
     return uintToByteArr(STORE | getRegisterNumber(fields[3]) << 15 | getRegisterNumber(fields[1]) << 20 |
                          funct3 << 12 | (imm & 0b11111) << 7 | (imm & 0xFE0) << 20);
 }
@@ -265,7 +280,17 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
         m_error = true;
         Q_ASSERT(false);
     };
-    return uintToByteArr(LOAD | funct3 << 12 | getRegisterNumber(fields[1]) << 7 | fields[2].toInt(nullptr, 10) << 20 |
+    bool canConvert;
+    int imm = fields[2].toInt(&canConvert, 10);
+    if (canConvert) {
+        // An offset value has been provided ( unfolded pseudo-op)
+    } else {
+        m_error |= !m_labelPosMap.contains(fields[2]);
+        // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
+        imm = (m_labelPosMap[fields[2]] - row + 1) * 4;
+    }
+
+    return uintToByteArr(LOAD | funct3 << 12 | getRegisterNumber(fields[1]) << 7 | imm << 20 |
                          getRegisterNumber(fields[3]) << 15);
 }
 
@@ -515,6 +540,35 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         m_lineLabelUsageMap[pos + 1] = fields[1];
 
         pos += 2;
+    } else if (fields.first() == "lb" || fields.first() == "lh" || fields.first() == "lw") {
+        if (fields.length() == 4) {
+            // Non-pseudo op load
+            m_instructionsMap[pos] = fields;
+            pos++;
+        } else {
+            // Pseudo op load
+            m_instructionsMap[pos] = QStringList() << "auipc" << fields[1] << fields[2];
+            m_instructionsMap[pos + 1] = QStringList() << fields.first() << fields[1] << fields[2] << fields[1];
+            m_lineLabelUsageMap[pos] = fields[1];
+            m_lineLabelUsageMap[pos + 1] = fields[1];
+            pos += 2;
+        }
+    } else if (fields.first() == "sb" || fields.first() == "sh" || fields.first() == "sw") {
+        // not a pseudo op if the immediate value can be converted
+        bool canConvert;
+        getImmediate(fields[2], canConvert);
+        if (canConvert) {
+            // Non-pseudo op store
+            m_instructionsMap[pos] = fields;
+            pos++;
+        } else {
+            // Pseudo op store
+            m_instructionsMap[pos] = QStringList() << "auipc" << fields[3] << fields[2];
+            m_instructionsMap[pos + 1] = QStringList() << fields.first() << fields[1] << fields[2] << fields[3];
+            m_lineLabelUsageMap[pos] = fields[1];
+            m_lineLabelUsageMap[pos + 1] = fields[1];
+            pos += 2;
+        }
     } else {
         // Unknown pseudo op
         m_error = true;
