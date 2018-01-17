@@ -1,4 +1,5 @@
 #include "connection.h"
+#include <cmath>
 #include "shape.h"
 
 #include <QFontMetrics>
@@ -9,7 +10,7 @@ static constexpr float Pi = 3.1415926535;
 
 namespace {
 inline double pointDistance(QPointF a, QPointF b) {
-    return sqrt(pow(a.x() - b.x(), 2) + pow(a.y() - b.y(), 2));
+    return std::sqrt(std::pow(a.x() - b.x(), 2) + std::pow(a.y() - b.y(), 2));
 }
 }  // namespace
 using namespace std;
@@ -192,9 +193,9 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         }
 
         QPointF destArrowP1 =
-            *(line.end() - 1) + QPointF(sin(angle - Pi / 3) * m_arrowSize, cos(angle - Pi / 3) * m_arrowSize);
-        QPointF destArrowP2 =
-            *(line.end() - 1) + QPointF(sin(angle - Pi + Pi / 3) * m_arrowSize, cos(angle - Pi + Pi / 3) * m_arrowSize);
+            *(line.end() - 1) + QPointF(std::sin(angle - Pi / 3) * m_arrowSize, std::cos(angle - Pi / 3) * m_arrowSize);
+        QPointF destArrowP2 = *(line.end() - 1) + QPointF(std::sin(angle - Pi + Pi / 3) * m_arrowSize,
+                                                          std::cos(angle - Pi + Pi / 3) * m_arrowSize);
 
         painter->drawPolygon(QPolygonF() << *(line.end() - 1) << destArrowP1 << destArrowP2);
     }

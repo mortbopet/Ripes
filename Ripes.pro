@@ -120,16 +120,20 @@ CONFIG(release, debug|release) {
     OUTDIR = release
 }
 
-COPIED {
+TRAVIS_CI{
+    # Skip copy files step on travis
 } else {
-        if(win*){
-            copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD/$$OUTDIR/examples\"
-        } else {
-            copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD\"
-        }
-        first.depends = $(first) copydata
-        export(first.depends)
-        export(copydata.commands)
-        QMAKE_EXTRA_TARGETS += first copydata
-        CONFIG += COPIED
+    COPIED {
+    } else {
+            if(win*){
+                copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD/$$OUTDIR/examples\"
+            } else {
+                copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD\"
+            }
+            first.depends = $(first) copydata
+            export(first.depends)
+            export(copydata.commands)
+            QMAKE_EXTRA_TARGETS += first copydata
+            CONFIG += COPIED
+    }
 }

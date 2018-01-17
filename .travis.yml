@@ -1,0 +1,19 @@
+
+before_install:
+ - sudo add-apt-repository --yes ppa:beineri/opt-qt593-trusty
+ - sudo apt-get update
+ - sudo apt-get install qt59-meta-minimal libc6-dev
+  # C++14
+ - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+ - sudo apt-get update -qq
+
+script:
+ # C++14
+ - sudo apt-get install -qq g++-6
+ - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
+ # Set new Qt environment
+ - source /opt/qt59/bin/qt59-env.sh
+ - qmake --version
+ # build
+ - qmake Ripes.pro "CONFIG+=TRAVIS_CI" 
+ - make

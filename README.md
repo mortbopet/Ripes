@@ -1,10 +1,12 @@
 ## Ripes
+[![Build Status](https://travis-ci.org/mortbopet/Ripes.svg?branch=master)](https://travis-ci.org/mortbopet/Ripes/)
+
+Ripes is a graphical 5-stage processor pipeline simulator and integrated development environment built for the RISC-V instruction set architecture. 
 <p align="center">
 <a href="https://github.com/mortbopet/Ripes/">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/logo.png?raw=true" width="250" height="250" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/logo.png?raw=true" width="200" height="200" />
 </a>
 </p>
-Ripes is a graphical 5-stage pipeline simulator and integrated development environment built for the RISC-V instruction set architecture. 
 
 ## Features
 * **Simulator**:
@@ -66,6 +68,31 @@ To navigate the memory view, one can use the scroll view to scroll through the m
 
 ## Building
 Since RISC-V sim is built using pure C++ and Qt, all platforms that support Qt should be able to build and run the app.
+
+### Minimal (Linux)
+If you do not wish to download the entire Qt environment, the project can be built given the following dependencies are available
+* *g++* version with support for C++14
+* *qmake* with Qt version 5.5 or higher
+A minimal Qt installation can be found at https://launchpad.net/~beineri.
+A Qt environment can be set up as follows:
+```
+sudo add-apt-repository --yes ppa:beineri/opt-qt593-xenial
+apt-get update -qq
+sudo apt-get install qt59-meta-minimal
+source /opt/qt59/bin/qt59-env.sh
+```
+Verify that you have the correct qmake version installed:
+```
+qmake --version
+```
+Navigate to the project folder and run
+```
+qmake Ripes.pro
+make
+```
+
+
+### Using QtCreator (All platforms)
 Download Qt for Open Source development at https://www.qt.io/download.
 Using the Qt installer, only the prebuilt components for your chosen compiler needs to be selected. When installing Qt, you also install QtCreator. 
 
@@ -73,6 +100,7 @@ Open QtCreator and go to *Tools->Options->Build & Run->Kits* and make sure that 
 Open *Ripes.pro* in QtCreator, and build in either release or debug mode.
 When building Qt apps, various dynamic libraries are required. Running the app through QtCreator, all Qt dll's are loaded into the path, and available for the application without any extra effort. If you wish to deploy or distribute the application, the required dependencies must be packaged with the compiled binary.
 
+### Deploying
 For Windows, `windeployqt` is a command that automatically detects the dependencies of your compiled executable, and copies the required Qt libraries into the executable folder. You can find this tool in your Qt installation folder
 Similarly, `macdeployqt` should be available on mac machines.
 

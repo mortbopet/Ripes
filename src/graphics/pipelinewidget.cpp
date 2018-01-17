@@ -4,6 +4,7 @@
 #include "shape.h"
 
 #include <QRectF>
+#include <cmath>
 
 #include <QCoreApplication>
 #include <QWheelEvent>
@@ -575,7 +576,7 @@ QList<QGraphicsItem*> PipelineWidget::filterAllowedItems(Graphics::Shape* shape,
 }
 
 void PipelineWidget::wheelEvent(QWheelEvent* event) {
-    scaleView(pow((double)2, -event->delta() / 1000.0));
+    scaleView(std::pow((double)2, -event->delta() / 1000.0));
 }
 
 void PipelineWidget::zoomIn() {
