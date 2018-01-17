@@ -3,7 +3,6 @@
 #include "connection.h"
 #include "shape.h"
 
-#include <QDebug>
 #include <QRectF>
 
 #include <QCoreApplication>

@@ -1,5 +1,5 @@
-#ifndef ASMHIGHLIGHTER_H
-#define ASMHIGHLIGHTER_H
+#ifndef SYNTAXHIGHLIGHTER_H
+#define SYNTAXHIGHLIGHTER_H
 
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
@@ -9,30 +9,28 @@
 
  Matches instruction names directly, and register aliases/true name.
  Matches immediate values by regex*/
-namespace {
 enum class Type { Immediate, Register, Offset };
-}
 
-class AsmHighlighter;
+class SyntaxHighlighter;
 class FieldType {
     // Class for defining field-specific rules, such as immediate range checking,
     // and whether a register is recognized
 public:
-    explicit FieldType(Type type, int lowerBound = 0, int upperBound = 0, AsmHighlighter* highlighter = nullptr);
+    explicit FieldType(Type type, int lowerBound = 0, int upperBound = 0, SyntaxHighlighter* highlighter = nullptr);
     QString validateField(const QString& field) const;
     Type m_type;
     int m_lowerBound;
     int m_upperBound;
 
-    AsmHighlighter* m_highlighter;
+    SyntaxHighlighter* m_highlighter;
 };
 
-class AsmHighlighter : public QSyntaxHighlighter {
+class SyntaxHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
     friend class FieldType;
 
 public:
-    explicit AsmHighlighter(QTextDocument* parent = nullptr);
+    explicit SyntaxHighlighter(QTextDocument* parent = nullptr);
 
     void highlightBlock(const QString& text);
     void reset();
@@ -80,4 +78,4 @@ public slots:
     void clearAndRehighlight();
 };
 
-#endif  // ASMHIGHLIGHTER_H
+#endif  // SYNTAXHIGHLIGHTER_H

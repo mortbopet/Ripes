@@ -21,7 +21,7 @@ AddressDialog::~AddressDialog() {
 void AddressDialog::validateTargetAddress(const QString& address) {
     bool ok;
     uint32_t value = address.toUInt(&ok, 16);
-    if (ok && value >= 0 && value <= (long long)4294967295) {
+    if (ok) {
         m_address = value;
         m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     } else {

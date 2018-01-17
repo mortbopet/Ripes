@@ -1,7 +1,6 @@
 #include "connection.h"
 #include "shape.h"
 
-#include <QDebug>
 #include <QFontMetrics>
 #include <QPainter>
 
@@ -236,6 +235,8 @@ void Connection::addLabelToScene() {
 
 // --------- label ------------
 void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
     if (m_showValue && m_signal != nullptr) {
         // Draw label (connection value)
         auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));

@@ -251,8 +251,8 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
     }
 
     // LEFT/RIGHT IO POINTS
-    for (int i = 0; i < m_inputPoints.length(); i++) {
-        if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end())
+    for (uint32_t i = 0; i < m_inputPoints.length(); i++) {
+        if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end()) {
             if (m_singleIOBlink) {
                 // Color individual points
                 // find point if in ioSignalPairs
@@ -273,6 +273,7 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
             } else {
                 painter->drawEllipse(m_inputPoints[i], 5, 5);
             }
+        }
     }
     for (int i = 0; i < m_outputPoints.length(); i++) {
         if (m_hiddenOutputPoints.find(i) == m_hiddenOutputPoints.end())

@@ -33,7 +33,7 @@ private:
     const StagePCS& m_pcsptrPre;
     MainMemory* m_memory;
     Pipeline* m_pipelinePtr;
-    Parser* m_parserPtr;
+    const Parser* m_parserPtr;
     int m_textSize = 0;  // text segment, in bytes
 
     uint32_t memRead(uint32_t address) const;

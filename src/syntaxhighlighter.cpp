@@ -1,4 +1,4 @@
-#include "asmhighlighter.h"
+#include "syntaxhighlighter.h"
 
 #include <QList>
 #include <QRegularExpressionMatchIterator>
@@ -6,7 +6,7 @@
 
 #include "defines.h"
 
-FieldType::FieldType(Type type, int lowerBound, int upperBound, AsmHighlighter* highlighter) {
+FieldType::FieldType(Type type, int lowerBound, int upperBound, SyntaxHighlighter* highlighter) {
     m_type = type;
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
@@ -74,8 +74,8 @@ QString FieldType::validateField(const QString& field) const {
     return QString("Validation error");
 }
 
-AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
-    connect(this, &AsmHighlighter::rehighlightInvalidBlock, this, &AsmHighlighter::rehighlightBlock);
+SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
+    connect(this, &SyntaxHighlighter::rehighlightInvalidBlock, this, &SyntaxHighlighter::rehighlightBlock);
     createSyntaxRules();
     errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
     errorFormat.setUnderlineColor(Qt::red);
@@ -210,7 +210,7 @@ AsmHighlighter::AsmHighlighter(QTextDocument* parent) : QSyntaxHighlighter(paren
     m_highlightingRules.append(rule);
 }
 
-void AsmHighlighter::highlightBlock(const QString& text) {
+void SyntaxHighlighter::highlightBlock(const QString& text) {
     QString tooltip = checkSyntax(text);
     int row = currentBlock().firstLineNumber();
     if (tooltip != QString()) {
@@ -228,7 +228,7 @@ void AsmHighlighter::highlightBlock(const QString& text) {
     }
 }
 
-void AsmHighlighter::createSyntaxRules() {
+void SyntaxHighlighter::createSyntaxRules() {
     // Create syntax rules for all base- and pseudoinstructions
     auto rule = SyntaxRule();
     QList<FieldType> types = QList<FieldType>();
@@ -466,7 +466,7 @@ void AsmHighlighter::createSyntaxRules() {
     m_syntaxRules.unite(storeRules);
 }
 
-QString AsmHighlighter::checkSyntax(const QString& input) {
+QString SyntaxHighlighter::checkSyntax(const QString& input) {
     const static auto splitter = QRegularExpression("(\\ |\\,|\\t|\\(|\\))");
     QStringList fields = input.split(splitter);
     fields.removeAll("");
@@ -582,13 +582,13 @@ QString AsmHighlighter::checkSyntax(const QString& input) {
     return QString();
 }
 
-void AsmHighlighter::reset() {
+void SyntaxHighlighter::reset() {
     m_labelPosMap.clear();
     m_posLabelMap.clear();
     m_rowsUsingLabels.clear();
 }
 
-void AsmHighlighter::clearAndRehighlight() {
+void SyntaxHighlighter::clearAndRehighlight() {
     reset();
     rehighlight();
     for (const auto& row : m_rowsUsingLabels) {
@@ -597,7 +597,7 @@ void AsmHighlighter::clearAndRehighlight() {
     }
 }
 
-void AsmHighlighter::invalidateLabels(const QTextCursor& cursor) {
+void SyntaxHighlighter::invalidateLabels(const QTextCursor& cursor) {
     if (m_posLabelMap.contains(cursor.block().firstLineNumber())) {
         // a current label exists at the cursor position - if current action was a newline event, we need to reset
         // resets label mapping and rehighlights required lines

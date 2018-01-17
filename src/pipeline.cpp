@@ -2,8 +2,6 @@
 
 #include "parser.h"
 
-#include <QDebug>
-
 Pipeline::Pipeline() {
     // Connect pipeline
 
@@ -657,7 +655,7 @@ void Pipeline::propagateCombinational() {
 
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
-    s_invalidPC = (bool)s_branchTaken && (bool)s_IFID_write || s_jal;
+    s_invalidPC = ((bool)s_branchTaken && (bool)s_IFID_write) || s_jal;
     s_invalidPC = (uint32_t)r_PC_IFID > m_textSize ? HazardReason::eof : s_invalidPC;
     if (s_IDEX_reset) {
         // ID has a dependancy and requires a stall of EX. Set IDEX s_invalidPC register accordingly

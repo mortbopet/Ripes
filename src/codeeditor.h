@@ -6,7 +6,7 @@
 #include <QScrollBar>
 #include <QTimer>
 
-#include "asmhighlighter.h"
+#include "syntaxhighlighter.h"
 #include "assembler.h"
 
 #include <set>
@@ -54,7 +54,7 @@ private slots:
 
 private:
     Assembler* m_assembler;
-    AsmHighlighter* m_highlighter;
+    SyntaxHighlighter* m_highlighter;
     LineNumberArea* m_lineNumberArea;
     BreakpointArea* m_breakpointArea;
     int m_sidebarWidth;

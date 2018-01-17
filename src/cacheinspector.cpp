@@ -61,10 +61,9 @@ void CacheInspector::setupCacheRequestPlot() {
     // Setup ticker
     QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
     QVector<double> ticks = {1, 2, 3};
-    ticker->addTicks(ticks,
-                     QVector<QString>() << "L1"
-                                        << "L2"
-                                        << "L3");
+    ticker->addTicks(ticks, QVector<QString>() << "L1"
+                                               << "L2"
+                                               << "L3");
     m_ui->cacheRequestPlot->xAxis->setTicker(ticker);
     m_ui->cacheRequestPlot->xAxis->setRange(0, 4);
     m_ui->cacheRequestPlot->xAxis->setLabel("Cache level");
@@ -97,7 +96,7 @@ void CacheInspector::setupBar(QCPBars* bar) {
     bar->setStackingGap(1);
 }
 
-void CacheInspector::updateData(int value, dataRole role, cacheLevel level) {
+void CacheInspector::updateData(int /*value*/, dataRole /*role*/, cacheLevel /*level*/) {
     /*
       if (role == dataRole::miss) {
       m_missData[level] = value;
@@ -117,10 +116,9 @@ void CacheInspector::setupCacheRequestRatioPlot() {
     // Setup ticker
     QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
     QVector<double> ticks = {1, 2, 3};
-    ticker->addTicks(ticks,
-                     QVector<QString>() << "L1"
-                                        << "L2"
-                                        << "L3");
+    ticker->addTicks(ticks, QVector<QString>() << "L1"
+                                               << "L2"
+                                               << "L3");
     m_ui->cacheRequestRatioPlot->xAxis->setTicker(ticker);
     m_ui->cacheRequestRatioPlot->xAxis->setRange(0, 4);
     m_ui->cacheRequestRatioPlot->xAxis->setLabel("Cache level");

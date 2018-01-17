@@ -68,14 +68,14 @@ private:
 
     QPainterPath drawALUPath(QRectF boundingRect) const;
 
-    ShapeType m_type;
+    const ShapeType m_type;
     Stage m_stage;  // Used for correctly positioning the shape
     QString m_name;
 
     // Extra size that is added onto each dimension of the shape.
     // Used to fine-tune the shape of the widget
-    int m_verticalPad;
-    int m_horizontalPad;
+    const int m_verticalPad;
+    const int m_horizontalPad;
 
     QList<QString> m_inputs;
     QList<QString> m_outputs;

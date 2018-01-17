@@ -4,7 +4,6 @@
 #include "pipelinewidget.h"
 #include "ui_processortab.h"
 
-#include <QDebug>
 #include <QFileDialog>
 
 #include "parser.h"

@@ -1,8 +1,8 @@
 #ifndef RUNNERCACHE_H
 #define RUNNERCACHE_H
 
-#include "cachebase.h"
 #include <memory>
+#include "cachebase.h"
 class CacheTab;
 
 // Class for handling cache fetching and structuring, for the runner
@@ -25,7 +25,7 @@ public:
     void writeData(uint32_t address);
 
     bool isEnabled() const { return m_enabled; }
-    bool setEnabled(bool state) { m_enabled = state; }
+    void setEnabled(bool state) { m_enabled = state; }
 
 private:
     std::unique_ptr<CacheBase> createCache(CacheProperties properties);

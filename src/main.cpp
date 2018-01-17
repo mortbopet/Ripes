@@ -7,8 +7,6 @@
 #include "parser.h"
 #include "pipeline.h"
 
-#include "QDebug"
-
 using namespace std;
 
 int main(int argc, char** argv) {

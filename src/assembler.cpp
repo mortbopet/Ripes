@@ -5,8 +5,6 @@
 #include <QRegularExpression>
 #include <QTextBlock>
 
-#include <QDebug>
-
 namespace {
 // Instruction groupings needed for various identification operations
 const QStringList pseudoOps = QStringList() << "nop"
@@ -543,7 +541,10 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
     } else if (fields.first() == "lb" || fields.first() == "lh" || fields.first() == "lw") {
         if (fields.length() == 4) {
             // Non-pseudo op load
-            m_instructionsMap[pos] = fields;
+            // convert immediate value
+            bool canConvert;
+            int imm = getImmediate(fields[2], canConvert);
+            m_instructionsMap[pos] = QStringList() << fields[0] << fields[1] << QString::number(imm) << fields[3];
             pos++;
         } else {
             // Pseudo op load
@@ -556,7 +557,7 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
     } else if (fields.first() == "sb" || fields.first() == "sh" || fields.first() == "sw") {
         // not a pseudo op if the immediate value can be converted
         bool canConvert;
-        getImmediate(fields[2], canConvert);
+        int imm = getImmediate(fields[2], canConvert);
         if (canConvert) {
             // Non-pseudo op store
             m_instructionsMap[pos] = fields;
@@ -564,7 +565,8 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         } else {
             // Pseudo op store
             m_instructionsMap[pos] = QStringList() << "auipc" << fields[3] << fields[2];
-            m_instructionsMap[pos + 1] = QStringList() << fields.first() << fields[1] << fields[2] << fields[3];
+            m_instructionsMap[pos + 1] = QStringList()
+                                         << fields.first() << fields[1] << QString::number(imm) << fields[3];
             m_lineLabelUsageMap[pos] = fields[1];
             m_lineLabelUsageMap[pos + 1] = fields[1];
             pos += 2;
@@ -577,9 +579,9 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
 }
 
 void Assembler::unpackOp(const QStringList& fields, int& pos) {
-    if (pos == 7) {
-        qDebug() << "waddup";
-    }
+    // unpackOp
+    // All pseudo-instructions will be converted to their corresponding sequence of operations
+    // All hex- and binary immediate values will be converted to integer values, suitable for the assembly stage
     if (pseudoOps.contains(fields[0])) {
         // A pseudo-operation is detected - unpack using unpackPseudoOp
         unpackPseudoOp(fields, pos);
@@ -653,9 +655,6 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // bytearray
     for (auto item : m_instructionsMap.toStdMap()) {
         m_outputArray.append(assembleInstruction(item.second, item.first));
-    }
-    if (m_error == true) {
-        qDebug() << "waddup";
     }
     return m_outputArray;
 }

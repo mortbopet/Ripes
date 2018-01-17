@@ -12,8 +12,6 @@
 #include <QToolTip>
 #include <QWheelEvent>
 
-#include <QDebug>
-
 #include <iterator>
 
 CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
@@ -80,7 +78,7 @@ int CodeEditor::lineNumberAreaWidth() {
         max /= 10;
         ++digits;
     }
-    int space = rightPadding + fontMetrics().width(QLatin1Char('15')) * digits;
+    int space = rightPadding + fontMetrics().width(QString("1")) * digits;
     return space;
 }
 
@@ -257,13 +255,15 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
 void CodeEditor::setupSyntaxHighlighter() {
     // Creates AsmHighlighter object and connects it to the current document
-    m_highlighter = new AsmHighlighter(document());
+    m_highlighter = new SyntaxHighlighter(document());
     // connect tooltip changes from asm highlighter
-    connect(m_highlighter, &AsmHighlighter::setTooltip, this, &CodeEditor::updateTooltip);
+    connect(m_highlighter, &SyntaxHighlighter::setTooltip, this, &CodeEditor::updateTooltip);
 
     // The highlighting is reset upon line count changes, to detect label invalidation
-    connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter, &AsmHighlighter::invalidateLabels);
-    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter, &AsmHighlighter::clearAndRehighlight);
+    connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter,
+            &SyntaxHighlighter::invalidateLabels);
+    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter,
+            &SyntaxHighlighter::clearAndRehighlight);
 }
 
 void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {

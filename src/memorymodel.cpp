@@ -25,7 +25,7 @@ void MemoryModel::setInvalidAddresLine(int row) {
 void MemoryModel::offsetCentralAddress(int byteOffset) {
     // Changes the central address of the model by byteOffset, and updates the
     // model
-    if (byteOffset % 4 == 0 && (m_centralAddress + byteOffset >= 0)) {
+    if (byteOffset % 4 == 0 && (m_centralAddress + byteOffset >= 0) && (m_centralAddress + byteOffset <= 0xffffffff)) {
         m_centralAddress += byteOffset;
         updateModel();
     }
@@ -34,7 +34,7 @@ void MemoryModel::offsetCentralAddress(int byteOffset) {
 void MemoryModel::updateModel() {
     for (int i = 0; i < m_addressRadius * 2 + 1; i++) {
         auto lineAddress = m_centralAddress + (m_addressRadius * 4) - i * 4;
-        if (lineAddress < 0) {
+        if (lineAddress < 0 || lineAddress > 0xffffffff) {
             // Memory is not available on negative addresses, set invalid data
             setInvalidAddresLine(i);
         } else {
@@ -80,8 +80,6 @@ void MemoryModel::updateModel() {
 }
 
 void MemoryModel::jumpToAddress(uint32_t address) {
-    if (address >= 0) {
-        m_centralAddress = address;
-        updateModel();
-    }
+    m_centralAddress = address;
+    updateModel();
 }

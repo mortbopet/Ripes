@@ -9,7 +9,7 @@ INCLUDEPATH  += $$PWD/src/ \
 
 SOURCES += src/main.cpp \
     src/parser.cpp \
-    src/runner.cpp \
+    #src/runner.cpp \
     src/dmcache.cpp \
     src/facache.cpp \
     src/mainwindow.cpp \
@@ -28,7 +28,6 @@ SOURCES += src/main.cpp \
     src/gotocombobox.cpp \
     src/addressdialog.cpp \
     src/codeeditor.cpp \
-    src/asmhighlighter.cpp \
     src/tabbar.cpp \
     src/graphics/shape.cpp \
     src/graphics/connection.cpp \
@@ -39,12 +38,13 @@ SOURCES += src/main.cpp \
     src/instructionmodel.cpp \
     src/pipeline.cpp \
     src/pipelineobjects.cpp \
-    src/assembler.cpp
+    src/assembler.cpp \
+    src/syntaxhighlighter.cpp
 
 HEADERS += \
     src/parser.h \
     src/defines.h \
-    src/runner.h \
+    #src/runner.h \
     src/dmcache.h \
     src/facache.h \
     src/mainwindow.h \
@@ -64,7 +64,6 @@ HEADERS += \
     src/addressdialog.h \
     src/addressdialog.h \
     src/codeeditor.h \
-    src/asmhighlighter.h \
     src/tabbar.h \
     src/graphics/shape.h \
     src/graphics/connection.h \
@@ -77,7 +76,8 @@ HEADERS += \
     src/pipelineobjects.h \
     src/pipeline.h \
     src/mainmemory.h \
-    src/assembler.h
+    src/assembler.h \
+    src/syntaxhighlighter.h
 
 FORMS += \
     src/mainwindow.ui \
