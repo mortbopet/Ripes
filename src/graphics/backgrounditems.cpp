@@ -43,7 +43,7 @@ QRectF Text::boundingRect() const {
     // Because text changes regularly, bounding rect is only defined by the text height, and a fixed rect width is set
     QFontMetrics obj(m_font);
     QRectF rect = obj.boundingRect(m_text);
-    rect.setWidth(200);
+    rect.setWidth(250);
     rect.setHeight(obj.height());
     rect.moveTo(m_pos.toPoint());
     rect.translate(-rect.width() / 2, -rect.height() / 2);
@@ -51,10 +51,7 @@ QRectF Text::boundingRect() const {
 }
 
 void Text::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
-    QFontMetrics obj(m_font);
-    QRectF rect = obj.boundingRect(m_text);
-    rect.moveTo(m_pos.toPoint());
-    rect.translate(-rect.width() / 2, -rect.height() / 2);
+    QRectF rect = boundingRect();
     painter->setFont(m_font);
     painter->drawText(rect, Qt::AlignCenter, m_text);
 }
