@@ -23,7 +23,9 @@ Ripes is a graphical 5-stage processor pipeline simulator and integrated develop
 
 ## Downloading & installation
 No installation is required - all required libraries are packaged with the compiled executable.
-Precompiled versions for Windows are available at the [Releases page](https://github.com/mortbopet/Ripes/releases)
+Precompiled versions for Windows are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).
+
+For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
 # Usage
 ## Editor
