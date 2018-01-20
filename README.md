@@ -3,9 +3,7 @@
 
 Ripes is a graphical 5-stage processor pipeline simulator and integrated development environment built for the RISC-V instruction set architecture. 
 <p align="center">
-<a href="https://github.com/mortbopet/Ripes/">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/logo.png?raw=true" width="200" height="200" />
-</a>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/animation.gif?raw=true" />
 </p>
 
 ## Features
