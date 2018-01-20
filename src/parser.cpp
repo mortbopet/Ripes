@@ -334,7 +334,7 @@ QString Parser::generateLuiString(uint32_t instr) const {
 
 QString Parser::generateAuipcString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("auipc x%1 %2").arg(fields[1]).arg((int32_t)(fields[0] << 12));
+    return QString("auipc x%1 %2").arg(fields[1]).arg((uint32_t)(fields[0]));
 }
 
 QString Parser::generateJalString(uint32_t instr) const {

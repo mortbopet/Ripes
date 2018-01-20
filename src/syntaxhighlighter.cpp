@@ -306,6 +306,14 @@ void SyntaxHighlighter::createSyntaxRules() {
     rule.inputs = types;
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
+    // auipc
+    types.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Immediate, 0, 1048575);
+    rule.instr = "auipc";
+    rule.fields = 3;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+
     // 2-register pseudoinstructions
     types.clear();
     names.clear();

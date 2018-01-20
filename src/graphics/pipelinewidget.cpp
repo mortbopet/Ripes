@@ -116,7 +116,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                                         << "");
     mux_ALUSrc1->addOutput();
     mux_ALUSrc1->setName("M\nu\nx");
-    mux_ALUSrc1->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_ALUSrc1);
+    mux_ALUSrc1->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_ALUSrc1_IDEX.getOutput());
     m_animatedItems.push_back(mux_ALUSrc1);
 
     Graphics::Shape* mux_ALUSrc2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
@@ -124,7 +124,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
                                         << "");
     mux_ALUSrc2->addOutput();
     mux_ALUSrc2->setName("M\nu\nx");
-    mux_ALUSrc2->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_ALUSrc2);
+    mux_ALUSrc2->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_ALUSrc2_IDEX.getOutput());
     m_animatedItems.push_back(mux_ALUSrc2);
 
     Graphics::Shape* mux_alures_PC4_MEM = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);

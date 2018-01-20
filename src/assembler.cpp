@@ -322,7 +322,7 @@ QByteArray Assembler::assembleBranchInstruction(const QStringList& fields, int r
 
 QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int row) {
     bool canConvert;
-    int imm = fields[2].toInt(&canConvert, 10);
+    int imm = getImmediate(fields[2], canConvert) << 12;
     if (canConvert) {
         // An immediate value as been provided
     } else {
@@ -342,7 +342,7 @@ QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int ro
 
 QByteArray Assembler::assembleJalrInstruction(const QStringList& fields, int row) {
     bool canConvert;
-    int imm = fields[3].toInt(&canConvert, 10);
+    int imm = getImmediate(fields[3], canConvert);
     if (canConvert) {
         // An immediate value as been provided
     } else {
