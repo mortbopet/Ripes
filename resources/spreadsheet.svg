@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 455 455" style="enable-background:new 0 0 455 455;" xml:space="preserve" width="512px" height="512px" class=""><g><script xmlns=""/><g>
+	<rect x="40" y="317.595" style="fill:#FBFDFD" width="98.333" height="60.19" data-original="#9BFBFF" class="" data-old_color="#F8FBFC"/>
+	<rect x="178.333" y="117.215" style="fill:#FBFDFD" width="49.167" height="60.19" data-original="#9BFBFF" class="" data-old_color="#F8FBFC"/>
+	<rect x="178.333" y="317.595" style="fill:#FBFDFD" width="49.167" height="60.19" data-original="#9BFBFF" class="" data-old_color="#F8FBFC"/>
+	<rect x="40" y="117.215" style="fill:#FBFDFD" width="98.333" height="60.19" data-original="#9BFBFF" class="" data-old_color="#F8FBFC"/>
+	<rect x="40" y="217.405" style="fill:#FBFDFD" width="98.333" height="60.19" data-original="#9BFBFF" class="" data-old_color="#F8FBFC"/>
+	<rect x="178.333" y="217.405" style="fill:#FBFDFD" width="49.167" height="60.19" data-original="#9BFBFF" class="" data-old_color="#F8FBFC"/>
+	<rect x="316.667" y="217.405" style="fill:#F7F7F7" width="98.333" height="60.19" data-original="#46F8FF" class="" data-old_color="#F4F6F6"/>
+	<rect x="227.5" y="117.215" style="fill:#F7F7F7" width="49.167" height="60.19" data-original="#46F8FF" class="" data-old_color="#F4F6F6"/>
+	<rect x="316.667" y="117.215" style="fill:#F7F7F7" width="98.333" height="60.19" data-original="#46F8FF" class="" data-old_color="#F4F6F6"/>
+	<rect x="316.667" y="317.595" style="fill:#F7F7F7" width="98.333" height="60.19" data-original="#46F8FF" class="" data-old_color="#F4F6F6"/>
+	<rect x="227.5" y="217.405" style="fill:#F7F7F7" width="49.167" height="60.19" data-original="#46F8FF" class="" data-old_color="#F4F6F6"/>
+	<rect x="227.5" y="317.595" style="fill:#F7F7F7" width="49.167" height="60.19" data-original="#46F8FF" class="" data-old_color="#F4F6F6"/>
+	<path style="fill:#AEADAD" d="M415,117.215v60.19h-98.333v-60.19h-40v60.19h-98.334v-60.19h-40v60.19H40v-60.19H0v300.57h455   v-300.57H415z M40,317.595h98.333v60.19H40V317.595z M178.333,317.595h98.334v60.19h-98.334V317.595z M316.667,317.595H415v60.19   h-98.333V317.595z M415,217.405v60.19h-98.333v-60.19H415z M276.667,217.405v60.19h-98.334v-60.19H276.667z M138.333,217.405v60.19   H40v-60.19H138.333z" data-original="#2488FF" class="active-path" data-old_color="#A9A8A8"/>
+	<rect y="37.215" style="fill:#7383BF" width="227.5" height="80" data-original="#005ECE" class="" data-old_color="#005ECE"/>
+	<rect x="227.5" y="37.215" style="fill:#7383BF" width="227.5" height="80" data-original="#003F8A" class="" data-old_color="#003F8A"/>
+</g></g> </svg>

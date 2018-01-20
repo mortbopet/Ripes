@@ -70,33 +70,33 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                 uint32_t byteIndex = row * 4;
                 uint32_t maxInstr = m_textSize - 4;
                 if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && m_pcsptr.EX.invalidReason == 0) {
-                    emit textChanged(Stage::EX, m_parserPtr->genStringRepr(memRead(row * 4)));
+                    emit textChanged(Stage::EX, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::ID, "");
                     }
                     retStrings << "EX";
                 }
                 if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && m_pcsptr.ID.invalidReason == 0) {
-                    emit textChanged(Stage::ID, m_parserPtr->genStringRepr(memRead(row * 4)));
+                    emit textChanged(Stage::ID, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::IF, "");
                     }
                     retStrings << "ID";
                 }
                 if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && m_pcsptr.IF.invalidReason == 0) {
-                    emit textChanged(Stage::IF, m_parserPtr->genStringRepr(memRead(row * 4)));
+                    emit textChanged(Stage::IF, m_parserPtr->getInstructionString(row * 4));
                     emit currentIFRow(row);  // for moving view to IF position
                     retStrings << "IF";
                 }
                 if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && m_pcsptr.MEM.invalidReason == 0) {
-                    emit textChanged(Stage::MEM, m_parserPtr->genStringRepr(memRead(row * 4)));
+                    emit textChanged(Stage::MEM, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::EX, "");
                     }
                     retStrings << "MEM";
                 }
                 if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && m_pcsptr.WB.invalidReason == 0) {
-                    emit textChanged(Stage::WB, m_parserPtr->genStringRepr(memRead(row * 4)));
+                    emit textChanged(Stage::WB, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::MEM, "");
                     }
@@ -119,7 +119,7 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
         }
         case 3:
             if (role == Qt::DisplayRole) {
-                return m_parserPtr->genStringRepr(memRead(row * 4));
+                return m_parserPtr->getInstructionString(row * 4);
             }
         default:
             return QVariant();
@@ -167,12 +167,4 @@ QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, 
     }
 
     return QVariant();
-}
-
-uint32_t InstructionModel::memRead(uint32_t address) const {
-    // Note: If address is not found in memory map, a default constructed object
-    // will be created, and read. in our case uint8_t() = 0
-    uint32_t read = (m_memory->read(address) | (m_memory->read(address + 1) << 8) |
-                     (m_memory->read(address + 2) << 16) | (m_memory->read(address + 3) << 24));
-    return read;
 }

@@ -2,6 +2,7 @@
 #include <QScrollBar>
 #include "instructionmodel.h"
 #include "pipelinewidget.h"
+#include "ui_pipelinetable.h"
 #include "ui_processortab.h"
 
 #include <QFileDialog>
@@ -37,6 +38,7 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     m_ui->step->setEnabled(false);
     m_ui->run->setEnabled(false);
     m_ui->start->setEnabled(false);
+    m_ui->table->setEnabled(false);
 }
 
 void ProcessorTab::toggleTimer(bool state) {
@@ -64,6 +66,7 @@ void ProcessorTab::restart() {
     m_ui->run->setEnabled(pipelineReady);
     m_ui->reset->setEnabled(pipelineReady);
     m_ui->start->setEnabled(pipelineReady);
+    m_ui->table->setEnabled(pipelineReady);
 }
 
 void ProcessorTab::initRegWidget() {
@@ -111,6 +114,7 @@ void ProcessorTab::on_run_clicked() {
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
         } else {
+            m_ui->table->setEnabled(true);
             emit update();
         }
     }
@@ -123,6 +127,7 @@ void ProcessorTab::on_reset_clicked() {
     m_ui->step->setEnabled(true);
     m_ui->start->setEnabled(true);
     m_ui->run->setEnabled(true);
+    m_ui->table->setEnabled(true);
 }
 
 void ProcessorTab::setCurrentInstruction(int row) {
@@ -147,7 +152,6 @@ void ProcessorTab::on_step_clicked() {
     emit update();
 
     // Move instruction view
-
     if (pipeline->isFinished()) {
         m_ui->step->setEnabled(false);
         m_ui->start->setEnabled(false);
@@ -183,4 +187,12 @@ void ProcessorTab::on_save_clicked() {
             image.save(files[0]);
         }
     }
+}
+
+void ProcessorTab::on_table_clicked() {
+    // Setup pipeline table window
+    PipelineTable window;
+    PipelineTableModel model;
+    window.setModel(&model);
+    window.exec();
 }

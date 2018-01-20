@@ -37,8 +37,6 @@ private:
     const Parser* m_parserPtr;
     int m_textSize = 0;  // text segment, in bytes
 
-    uint32_t memRead(uint32_t address) const;
-
 signals:
     void textChanged(Stage stage, QString text, QColor col = QColor()) const;
     void currentIFRow(int) const;

@@ -26,6 +26,7 @@ public:
     int getTextSize() const { return m_textSize; }
     bool isReady() const { return m_ready; }
     bool isFinished() const { return m_finished; }
+    const std::vector<StagePCS>& getPcsList() { return m_pcsCycles; }
 
     static Pipeline* getPipeline() {
         static Pipeline pipeline;
@@ -54,6 +55,7 @@ private:
         false;  // Set when ecall 10 is detected, and the pipeline is running its remaining instructions through
     bool m_finished = false;
     int m_finishingCnt = 0;
+    std::vector<StagePCS> m_pcsCycles;  // list of PCs for each cycle
 
     // Memory
     Registers m_reg;

@@ -39,7 +39,9 @@ SOURCES += src/main.cpp \
     src/pipeline.cpp \
     src/pipelineobjects.cpp \
     src/assembler.cpp \
-    src/syntaxhighlighter.cpp
+    src/syntaxhighlighter.cpp \
+    src/pipelinetable.cpp \
+    src/pipelinetablemodel.cpp
 
 HEADERS += \
     src/parser.h \
@@ -77,7 +79,9 @@ HEADERS += \
     src/pipeline.h \
     src/mainmemory.h \
     src/assembler.h \
-    src/syntaxhighlighter.h
+    src/syntaxhighlighter.h \
+    src/pipelinetable.h \
+    src/pipelinetablemodel.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -90,7 +94,8 @@ FORMS += \
     src/cacheinspector.ui \
     src/addressdialog.ui \
     src/registercontainerwidget.ui \
-    src/aboutwidget.ui
+    src/aboutwidget.ui \
+    src/pipelinetable.ui
 
 
 # External

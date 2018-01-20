@@ -35,6 +35,8 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
+    QString getInstructionString(uint32_t address) const;
+
     const QString& loadFromByteArray(QByteArray arr, bool disassembled = true);
     const QString& loadBinaryFile(QString fileName, bool disassembled = true);
     const QString& getBinaryRepr() { return m_binaryRepr; }

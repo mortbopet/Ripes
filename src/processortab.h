@@ -5,6 +5,8 @@
 #include <QWidget>
 
 #include "defines.h"
+#include "pipelinetable.h"
+#include "pipelinetablemodel.h"
 
 namespace Ui {
 class ProcessorTab;
@@ -37,6 +39,8 @@ private slots:
     void on_zoomOut_clicked();
     void on_save_clicked();
     void setCurrentInstruction(int row);
+
+    void on_table_clicked();
 
 private:
     Ui::ProcessorTab* m_ui;

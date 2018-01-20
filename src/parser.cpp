@@ -343,3 +343,12 @@ QString Parser::generateJalString(uint32_t instr) const {
     // Check for misaligned four-byte boundary
     return QString("jal x%1 %2").arg(fields[4]).arg(target);
 }
+
+QString Parser::getInstructionString(uint32_t address) const {
+    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
+    // Note: If address is not found in memory map, a default constructed object
+    // will be created, and read. in our case uint8_t() = 0
+    uint32_t read = (memPtr->read(address) | (memPtr->read(address + 1) << 8) | (memPtr->read(address + 2) << 16) |
+                     (memPtr->read(address + 3) << 24));
+    return genStringRepr(read);
+}

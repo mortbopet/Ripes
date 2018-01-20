@@ -734,6 +734,9 @@ int Pipeline::step() {
     // Set stage program counters
     setStagePCS();
 
+    // Store program counter for the current cycle
+    m_pcsCycles.push_back(m_pcs);
+
     // Check for finished execution(either end of file or m_finishingCnt > 4 (if ecall 10 has been called)) and
     // breakpoints
     if ((m_pcs.WB.pc > m_textSize) || (m_finishingCnt > 4)) {
@@ -794,6 +797,7 @@ void Pipeline::restart() {
     m_finished = false;
     m_finishing = false;
     m_finishingCnt = 0;
+    m_pcsCycles.clear();
 
     // Reset all registers to 0 and propagate signals through combinational logic
     RegBase::resetAll();
@@ -801,4 +805,5 @@ void Pipeline::restart() {
 
     // set PC_IF stage to the first instruction
     m_pcs.IF = PCVAL(r_PC_IF, s_branchTaken);
+    m_pcsCycles.push_back(m_pcs);
 }
