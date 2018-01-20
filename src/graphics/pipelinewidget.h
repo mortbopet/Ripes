@@ -32,7 +32,7 @@ public:
 
 public slots:
     void update();
-    void stageTextChanged(Stage stage, const QString& text);
+    void stageTextChanged(Stage stage, const QString& text, QColor col);
 
 signals:
     void displayAllValuesSig(bool state);

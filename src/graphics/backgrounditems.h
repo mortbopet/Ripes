@@ -21,10 +21,7 @@ private:
 class Text : public QGraphicsItem {
 public:
     Text(QPointF pos);
-    void setText(const QString& text) {
-        m_text = text;
-        update();
-    }
+    void setText(const QString& text, QColor col = QColor());
     QRectF boundingRect() const;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
@@ -32,6 +29,7 @@ private:
     QString m_text;
     QFont m_font;
     QPointF m_pos;
+    QColor m_textColor;
 };
 
 }  // namespace Graphics

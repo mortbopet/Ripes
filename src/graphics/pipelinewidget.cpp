@@ -468,22 +468,22 @@ void PipelineWidget::setSignal(Graphics::Connection* conn, SignalBase* sig) {
     m_animatedItems.push_back(conn->getLabel());
 }
 
-void PipelineWidget::stageTextChanged(Stage stage, const QString& text) {
+void PipelineWidget::stageTextChanged(Stage stage, const QString& text, QColor col) {
     switch (stage) {
         case Stage::IF:
-            if_instr->setText(text);
+            if_instr->setText(text, col);
             break;
         case Stage::ID:
-            id_instr->setText(text);
+            id_instr->setText(text, col);
             break;
         case Stage::EX:
-            ex_instr->setText(text);
+            ex_instr->setText(text, col);
             break;
         case Stage::MEM:
-            mem_instr->setText(text);
+            mem_instr->setText(text, col);
             break;
         case Stage::WB:
-            wb_instr->setText(text);
+            wb_instr->setText(text, col);
             break;
     }
 }

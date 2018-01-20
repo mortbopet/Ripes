@@ -1,6 +1,7 @@
 #ifndef INSTRUCTIONMODEL_H
 #define INSTRUCTIONMODEL_H
 
+#include <QColor>
 #include <set>
 #include "defines.h"
 #include "mainmemory.h"
@@ -39,7 +40,7 @@ private:
     uint32_t memRead(uint32_t address) const;
 
 signals:
-    void textChanged(Stage stage, QString text) const;
+    void textChanged(Stage stage, QString text, QColor col = QColor()) const;
     void currentIFRow(int) const;
 
 public slots:

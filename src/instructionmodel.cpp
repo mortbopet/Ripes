@@ -27,15 +27,15 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 namespace {
-#define VALIDATE(stage)                                \
-    if (!m_pcsptr.stage.initialized) {                 \
-        emit textChanged(Stage::stage, "");            \
-    } else if (m_pcsptr.stage.invalidReason == 1) {    \
-        emit textChanged(Stage::stage, "nop (flush)"); \
-    } else if (m_pcsptr.stage.invalidReason == 2) {    \
-        emit textChanged(Stage::stage, "nop (stall)"); \
-    } else if (m_pcsptr.stage.invalidReason == 3) {    \
-        emit textChanged(Stage::stage, ""); /*EOF*/    \
+#define VALIDATE(stage)                                                 \
+    if (!m_pcsptr.stage.initialized) {                                  \
+        emit textChanged(Stage::stage, "");                             \
+    } else if (m_pcsptr.stage.invalidReason == 1) {                     \
+        emit textChanged(Stage::stage, "nop (flush)", QColor(Qt::red)); \
+    } else if (m_pcsptr.stage.invalidReason == 2) {                     \
+        emit textChanged(Stage::stage, "nop (stall)", QColor(Qt::red)); \
+    } else if (m_pcsptr.stage.invalidReason == 3) {                     \
+        emit textChanged(Stage::stage, ""); /*EOF*/                     \
     }
 }
 

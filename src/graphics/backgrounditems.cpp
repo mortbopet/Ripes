@@ -50,8 +50,15 @@ QRectF Text::boundingRect() const {
     return rect;
 }
 
+void Text::setText(const QString& text, QColor col) {
+    m_textColor = col;
+    m_text = text;
+    update();
+}
+
 void Text::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
     QRectF rect = boundingRect();
+    painter->setPen(m_textColor);
     painter->setFont(m_font);
     painter->drawText(rect, Qt::AlignCenter, m_text);
 }
