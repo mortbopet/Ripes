@@ -55,6 +55,10 @@ Furthermore, the following options are available:
 * **Display all signal values** will show the underlying output signals for most signals in the datapath
 * Various buttons are available for zooming & expanding the datapath view
 * The datapath image can be saved to a file
+* **Pipeline table** will display a pop-up window with the stage information for the current program. The program must be run to propagate the chart
+<p align="center">
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/ptable.PNG?raw=true"/>
+</p>
 
 During execution, the instructions will propagate through the datapath, and be visible both above each stage of the pipeline, as well as in the instruction memory view. Furthermore, when the pipeline is stalled or flushed, this will be indicated above a pipeline stage.
 ## Memory
