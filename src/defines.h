@@ -2,6 +2,7 @@
 #define DEFINES_H
 
 #include <QList>
+#include <QMetaType>
 #include <QPair>
 #include <QString>
 #include <cstdint>
