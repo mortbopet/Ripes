@@ -41,7 +41,9 @@ SOURCES += src/main.cpp \
     src/assembler.cpp \
     src/syntaxhighlighter.cpp \
     src/pipelinetable.cpp \
-    src/pipelinetablemodel.cpp
+    src/pipelinetablemodel.cpp \
+    src/rwjumpwidget.cpp \
+    src/rwjumpmodel.cpp
 
 HEADERS += \
     src/parser.h \
@@ -81,7 +83,9 @@ HEADERS += \
     src/assembler.h \
     src/syntaxhighlighter.h \
     src/pipelinetable.h \
-    src/pipelinetablemodel.h
+    src/pipelinetablemodel.h \
+    src/rwjumpwidget.h \
+    src/rwjumpmodel.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -95,7 +99,8 @@ FORMS += \
     src/addressdialog.ui \
     src/registercontainerwidget.ui \
     src/aboutwidget.ui \
-    src/pipelinetable.ui
+    src/pipelinetable.ui \
+    src/rwjumpwidget.ui
 
 
 # External

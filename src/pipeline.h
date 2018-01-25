@@ -8,6 +8,7 @@
 
 class Pipeline {
     friend class PipelineWidget;
+    friend class RWJumpModel;
 
 public:
     Pipeline();
@@ -55,7 +56,8 @@ private:
         false;  // Set when ecall 10 is detected, and the pipeline is running its remaining instructions through
     bool m_finished = false;
     int m_finishingCnt = 0;
-    std::vector<StagePCS> m_pcsCycles;  // list of PCs for each cycle
+    std::vector<StagePCS> m_pcsCycles;   // list of PCs for each cycle
+    std::vector<RVAccess> m_RVAccesses;  // List of all read/write accesses to memory
 
     // Memory
     Registers m_reg;

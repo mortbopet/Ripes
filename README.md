@@ -57,14 +57,15 @@ Furthermore, the following options are available:
 * The datapath image can be saved to a file
 * **Pipeline table** will display a pop-up window with the stage information for the current program. The program must be run to propagate the chart
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/ptable.PNG?raw=true"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/ptable.?raw=true"/>
 </p>
 
 During execution, the instructions will propagate through the datapath, and be visible both above each stage of the pipeline, as well as in the instruction memory view. Furthermore, when the pipeline is stalled or flushed, this will be indicated above a pipeline stage.
 ## Memory
-Selecting the **Memory** tab will show both the register and memory view. The register view is similar to the one in the processor tab.
-With the memory view, one can inspect all parts of the program memory - text, data, stack and other segments.
-To navigate the memory view, one can use the scroll view to scroll through the memory. Furthermore, an adress can be saved for future use, which can be selected through the "Go-to" combobox. In the "Go-to" combobox, one can specify a specific adress to jump to
+Selecting the **Memory** tab will show you three different views:
+* **Registers** Is similar to the view presented in the processor tab, giving an overview of the contents of each register
+* A memory view, where all parts of the program memory can be inspected. To navigate, one can use the scroll view or select one of the predefined destinations (or to a specific address) via the *Go to* combobox. A label for an address can be saved for future use, via. the *Save address* button. 
+* A list of the most recent memory accesses. Selecting an entry and pressing *Go to selected address* sets the right side memory view to center at the address for the given entry
 
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/memorytab.png?raw=true"/>

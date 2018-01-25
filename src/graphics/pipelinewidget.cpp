@@ -165,7 +165,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
         ifid->addInput();
         ifid->addOutput();
     }
-    ifid->addInput("Clock\nenable");
+    ifid->addInput("Enable");
     ifid->addInput("Reset\n(sync.)");
     ifid->addOutput();
     ifid->addOutput();

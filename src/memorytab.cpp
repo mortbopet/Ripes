@@ -24,6 +24,8 @@ void MemoryTab::initMemoryTab() {
     initializeMemoryView();
     m_ui->registerContainer->setRegPtr(m_regPtr);
     m_ui->registerContainer->init();
+    m_ui->rwjumpwidget->init();
+    connect(m_ui->rwjumpwidget, &RWJumpWidget::jumpToAdress, this, &MemoryTab::jumpToAdress);
 }
 
 void MemoryTab::saveAddress() {
@@ -95,6 +97,11 @@ void MemoryTab::initializeMemoryView() {
 void MemoryTab::update() {
     m_ui->registerContainer->update();
     m_model->updateModel();
+    m_ui->rwjumpwidget->updateModel();
+}
+
+void MemoryTab::jumpToAdress(uint32_t address) {
+    m_model->jumpToAddress(address);
 }
 
 MemoryTab::~MemoryTab() {

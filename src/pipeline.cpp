@@ -569,6 +569,9 @@ void Pipeline::propagateCombinational() {
     s_alures_PC4_MEM = (uint32_t)(r_jalr_EXMEM || r_jal_EXMEM);
     mux_alures_PC4_MEM.update();
     if (r_MemRead_EXMEM) {
+        // Store read access for use in GUI
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM};
+        m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
                 readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xff;
@@ -710,6 +713,9 @@ int Pipeline::step() {
     // Clock inter-stage registers
     m_reg.clock();
     if (r_MemWrite_EXMEM) {
+        // Store write access for use in GUI
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM};
+        m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemWrite_EXMEM) {
             case SB: {
                 m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 1);
@@ -798,6 +804,7 @@ void Pipeline::restart() {
     m_finishing = false;
     m_finishingCnt = 0;
     m_pcsCycles.clear();
+    m_RVAccesses.clear();
 
     // Reset all registers to 0 and propagate signals through combinational logic
     RegBase::resetAll();

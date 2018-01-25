@@ -29,6 +29,7 @@ public slots:
     void saveAddress();
 
     void update();
+    void jumpToAdress(uint32_t address);
 
 private:
     void initializeMemoryView();

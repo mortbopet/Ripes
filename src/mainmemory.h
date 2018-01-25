@@ -3,6 +3,14 @@
 
 #include "defines.h"
 
+// RVAccess struct - used for keeping track of read and write access to memory, for displaying in GUI
+enum class RW { Read, Write };
+typedef struct {
+    uint32_t pc;  // GUI converts pc value to an instruction
+    RW rw;
+    uint32_t addr;
+} RVAccess;
+
 template <typename key_T, typename value_T>
 class MainMemoryTemplate : public std::unordered_map<key_T, value_T> {
 public:

@@ -15,9 +15,26 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,1">
      <item>
-      <widget class="RegisterContainerWidget" name="registerContainer" native="true"/>
+      <widget class="RegisterContainerWidget" name="registerContainer" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>250</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="RWJumpWidget" name="rwjumpwidget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
@@ -38,7 +55,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
+            <width>460</width>
             <height>342</height>
            </rect>
           </property>
@@ -159,6 +176,12 @@
    <class>RegisterContainerWidget</class>
    <extends>QWidget</extends>
    <header>registercontainerwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RWJumpWidget</class>
+   <extends>QWidget</extends>
+   <header>rwjumpwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
