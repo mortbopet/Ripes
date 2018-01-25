@@ -15,5 +15,5 @@ script:
  - source /opt/qt59/bin/qt59-env.sh
  - qmake --version
  # build
- - qmake Ripes.pro "CONFIG+=TRAVIS_CI" 
+ - qmake Ripes.pro
  - make
