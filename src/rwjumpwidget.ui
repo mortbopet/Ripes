@@ -21,7 +21,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Most recent memory accesses</string>
+          <string>Memory accesses</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

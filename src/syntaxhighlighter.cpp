@@ -535,6 +535,7 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
                 return QString("Unknown instruction");
             }
         }
+        return QString();
     }
 
     // -- Validate remaining fields --
@@ -584,9 +585,10 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
             if (!resList.isEmpty())
                 return resList[0];
             return QString("Unknown instruction");
+        } else {
+            return QString("Unknown instruction");
         }
     }
-
     return QString();
 }
 
