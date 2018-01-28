@@ -70,6 +70,14 @@ QString FieldType::validateField(const QString& field) const {
                 return QString("label \"%1\" is undefined").arg(field);
             }
         }
+        case Type::String: {
+            if ((field[0] == "\'" || field[0] == "\"") &&
+                (field[field.length() - 1] == "\'" || field[field.length() - 1] == "\"")) {
+                return QString();
+            } else {
+                return QString("Invalid string").arg(field);
+            }
+        }
     }
     return QString("Validation error");
 }
@@ -207,6 +215,12 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
     commentFormat.setForeground(QColor(Colors::Medalist));
     rule.pattern = QRegularExpression("(.*?[:])");
     rule.format = commentFormat;
+    m_highlightingRules.append(rule);
+
+    // Create string highlighting rule
+    stringFormat.setForeground(QColor(Colors::Medalist));
+    rule.pattern = QRegularExpression("([\"'])(?:\\\1|.)*?\1");
+    rule.format = stringFormat;
     m_highlightingRules.append(rule);
 }
 
@@ -390,6 +404,20 @@ void SyntaxHighlighter::createSyntaxRules() {
         m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
+    // No-op instructions
+    // I type instructions
+    types.clear();
+    names.clear();
+    types.clear();
+    names << "ecall"
+          << "nop";
+    for (const auto& name : names) {
+        rule.instr = name;
+        rule.fields = 1;
+        rule.inputs = types;
+        m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
+    }
+
     // Load instructions
     QMap<QString, QList<SyntaxRule>> loadRules;
     types.clear();
@@ -458,6 +486,7 @@ void SyntaxHighlighter::createSyntaxRules() {
         rule.inputs = types;
         storeRules.insert(name, QList<SyntaxRule>() << rule);
     }
+
     // S type pseudo-ops
     types.clear();
     names.clear();
@@ -535,24 +564,6 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
         // Empty fields? return
         if (fields.isEmpty())
             return QString();
-    }
-
-    // Check for assembler directives
-    string = fields[0];
-    if (fields.size() == 1) {
-        if (string[0] == '.') {
-            string = string.remove('.');
-            if (ASMDirectives.contains(string)) {
-                fields.removeFirst();  // valid assembler directive detected
-            } else {
-                return QString("Unknown assembler directive");
-            }
-        } else if (fields[0] == "ecall" || fields[0] == "nop") {
-            // Allow specific 1-word instructions
-            fields.removeFirst();
-        } else {
-            return QString("Unknown instruction");
-        }
     }
 
     // -- Validate remaining fields --

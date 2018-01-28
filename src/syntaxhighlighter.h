@@ -9,7 +9,7 @@
 
  Matches instruction names directly, and register aliases/true name.
  Matches immediate values by regex*/
-enum class Type { Immediate, Register, Offset };
+enum class Type { Immediate, Register, Offset, String };
 
 class SyntaxHighlighter;
 class FieldType {
@@ -66,6 +66,7 @@ private:
     QTextCharFormat instrFormat;
     QTextCharFormat immFormat;
     QTextCharFormat commentFormat;
+    QTextCharFormat stringFormat;
     QTextCharFormat errorFormat;
 
     QMap<QString, int> m_labelPosMap;
