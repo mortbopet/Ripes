@@ -71,11 +71,10 @@ QString FieldType::validateField(const QString& field) const {
             }
         }
         case Type::String: {
-            if ((field[0] == "\'" || field[0] == "\"") &&
-                (field[field.length() - 1] == "\'" || field[field.length() - 1] == "\"")) {
+            if (field.length() > 1 && field[0] == "\"" && field[field.length() - 1] == "\"") {
                 return QString();
             } else {
-                return QString("Invalid string").arg(field);
+                return QString("Invalid string - must be delimitered with quotes (\")");
             }
         }
     }
@@ -218,8 +217,8 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
     m_highlightingRules.append(rule);
 
     // Create string highlighting rule
-    stringFormat.setForeground(QColor(Colors::Medalist));
-    rule.pattern = QRegularExpression("([\"'])(?:\\\1|.)*?\1");
+    stringFormat.setForeground(QColor(0x800000));
+    rule.pattern = QRegularExpression("\"(?:[^\"]|\\.)*\"");
     rule.format = stringFormat;
     m_highlightingRules.append(rule);
 }
@@ -404,13 +403,14 @@ void SyntaxHighlighter::createSyntaxRules() {
         m_syntaxRules.insert(name, QList<SyntaxRule>() << rule);
     }
 
-    // No-op instructions
-    // I type instructions
+    // No-op instructions and assembler directives
     types.clear();
     names.clear();
     types.clear();
     names << "ecall"
-          << "nop";
+          << "nop"
+          << ".text"
+          << ".data";
     for (const auto& name : names) {
         rule.instr = name;
         rule.fields = 1;
@@ -501,6 +501,52 @@ void SyntaxHighlighter::createSyntaxRules() {
         storeRules.insert(name, storeRules[name] << rule);
     }
     m_syntaxRules.unite(storeRules);
+
+    // .byte
+    types.clear();
+    types << FieldType(Type::Immediate, -128, 255);
+    rule.instr = ".byte";
+    rule.fields = 2;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+
+    // .2byte & half
+    types.clear();
+    types << FieldType(Type::Immediate, -32768, 65535);
+    rule.instr = ".2byte";
+    rule.fields = 2;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+    rule.instr = ".half";
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+
+    // .4byte & word
+    types.clear();
+    types << FieldType(Type::Immediate, INT_MIN, INT_MAX);
+    rule.instr = ".4byte";
+    rule.fields = 2;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+    rule.instr = ".word";
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+
+    // .string & .asciz
+    types.clear();
+    types << FieldType(Type::String);
+    rule.instr = ".string";
+    rule.fields = 2;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+    rule.instr = ".asciz";
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+}
+
+namespace {
+// Shorthand macro for returning unknown instruction string, based on whether user tried to input an assembler directive
+#define UNKNOWN_OP(string)                             \
+    if (string[0] == ".")                              \
+        return QString("Unknown assembler directive"); \
+    return QString("Unknown operation");
 }
 
 QString SyntaxHighlighter::checkSyntax(const QString& input) {
@@ -612,9 +658,9 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
             }
             if (!resList.isEmpty())
                 return resList[0];
-            return QString("Unknown instruction");
+            /* return */ UNKNOWN_OP(fields[0]);
         } else {
-            return QString("Unknown instruction");
+            /* return */ UNKNOWN_OP(fields[0]);
         }
     }
     return QString();

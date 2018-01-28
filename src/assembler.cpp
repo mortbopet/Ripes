@@ -661,36 +661,39 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
 
     QStringList fields;
     for (QTextBlock block = doc.begin(); block != doc.end(); block = block.next()) {
+        QString text = block.text();
+        Q_UNUSED(text);
         if (!block.text().isEmpty()) {
             // Split input into fields
             fields = block.text().split(splitter);
             fields.removeAll("");
-
-            // Split label fields, and keep separator ':'
-            if (fields[0].contains(':')) {
-                auto firstFields = splitColon(fields.takeAt(0));
-                fields = firstFields + fields;
-            }
-
-            // Remove comments from syntax evaluation
-            const static auto commentRegEx = QRegularExpression("[#](.*)");
-            int commentIndex = fields.indexOf(commentRegEx);
-            if (commentIndex != -1) {
-                int index = fields.length();
-                while (index >= commentIndex) {
-                    fields.removeAt(index);
-                    index--;
+            if (!fields.isEmpty()) {
+                // Split label fields, and keep separator ':'
+                if (fields[0].contains(':')) {
+                    auto firstFields = splitColon(fields.takeAt(0));
+                    fields = firstFields + fields;
                 }
-            }
 
-            /* UnpackOp will:
-             *  -unpack & convert pseudo operations into its required number of operations
-             * - Record label positioning
-             * - Reord position of instructions which use labels
-             * - add instructions to m_instructionsMap
-             */
-            if (fields.length() > 0) {
-                unpackOp(fields, line);
+                // Remove comments from syntax evaluation
+                const static auto commentRegEx = QRegularExpression("[#](.*)");
+                int commentIndex = fields.indexOf(commentRegEx);
+                if (commentIndex != -1) {
+                    int index = fields.length();
+                    while (index >= commentIndex) {
+                        fields.removeAt(index);
+                        index--;
+                    }
+                }
+
+                /* UnpackOp will:
+                 *  -unpack & convert pseudo operations into its required number of operations
+                 * - Record label positioning
+                 * - Reord position of instructions which use labels
+                 * - add instructions to m_instructionsMap
+                 */
+                if (fields.length() > 0) {
+                    unpackOp(fields, line);
+                }
             }
         }
     }
