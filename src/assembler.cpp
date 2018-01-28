@@ -578,26 +578,42 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
     }
 }
 
-void Assembler::unpackOp(const QStringList& fields, int& pos) {
+void Assembler::unpackOp(const QStringList& _fields, int& pos) {
     // unpackOp
     // All pseudo-instructions will be converted to their corresponding sequence of operations
     // All hex- and binary immediate values will be converted to integer values, suitable for the assembly stage
+    QStringList fields = _fields;
+
+    // Check for labels
+    QString string = fields[0];
+    if (string.contains(':')) {
+        // Label detected
+        QStringList splitFirst = string.split(':');
+        string = splitFirst[0];  // get label
+
+        // Update fields vector
+        splitFirst.removeAll("");
+        if (splitFirst.size() == 1) {
+            fields.removeAt(0);
+        } else {
+            fields[0] = splitFirst[1];
+        }
+
+        // Update map entries at given block
+        m_labelPosMap[string] = pos;
+        if (fields.isEmpty()) {
+            return;
+        }
+    }
+
+    // Unpack operations
     if (pseudoOps.contains(fields[0])) {
         // A pseudo-operation is detected - unpack using unpackPseudoOp
         unpackPseudoOp(fields, pos);
     } else {
-        if (fields.size() == 1) {
-            if (fields[0][fields[0].length() - 1] == ':') {
-                // Label detected
-                // Add label to label maps - pos is NOT incremented
-                QString label = fields[0];
-                label.remove(':');
-                m_labelPosMap[label] = pos;
-                return;
-            } else if (fields[0][0] == '.') {
-                // Assembler directive detected - do nothing - pos is NOT incremented
-                return;
-            }
+        if (fields[0][0] == '.') {
+            // Assembler directive detected - do nothing - pos is NOT incremented
+            return;
         } else if (opsWithOffsets.contains(fields[0])) {
             m_lineLabelUsageMap[pos] =
                 fields.last();  // All offset using instructions have their offset as the last field value
@@ -625,6 +641,17 @@ void Assembler::restart() {
     m_outputArray.clear();
 }
 
+namespace {
+inline QStringList splitColon(const QString& string) {
+    QStringList out = string.split(':');
+    for (int i = 0; i < out.length() - 1; i++) {
+        out[i].append(':');
+    }
+    out.removeAll("");
+    return out;
+}
+}
+
 const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // Called by codeEditor when syntax has been accepted, and the document should be assembled into binary
     // Because of the previously accepted syntax, !no! error handling will be done, to ensure a fast execution
@@ -638,6 +665,12 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
             // Split input into fields
             fields = block.text().split(splitter);
             fields.removeAll("");
+
+            // Split label fields, and keep separator ':'
+            if (fields[0].contains(':')) {
+                auto firstFields = splitColon(fields.takeAt(0));
+                fields = firstFields + fields;
+            }
 
             // Remove comments from syntax evaluation
             const static auto commentRegEx = QRegularExpression("[#](.*)");

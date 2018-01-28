@@ -479,6 +479,50 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
     QStringList fields = input.split(splitter);
     fields.removeAll("");
 
+    // Empty fields? return
+    if (fields.isEmpty())
+        return QString();
+
+    // Throw away case information
+    std::transform(fields.begin(), fields.end(), fields.begin(), [](const QString& s) { return s.toLower(); });
+
+    int pos = currentBlock().firstLineNumber();
+
+    // check for labels
+    QString string = fields[0];
+    if (string.contains(':')) {
+        // Label detected - check if already defined, else add to label definitions
+        QStringList splitFirst = string.split(':');
+        string = splitFirst[0];  // get label
+        // Update map entries at given block
+        if (m_labelPosMap.contains(string) && m_labelPosMap[string] != pos) {
+            // duplicate label found
+            if (pos < m_labelPosMap[string]) {
+                // Label is redefined before previous use of label
+                m_posLabelMap.remove(m_labelPosMap[string]);
+                m_labelPosMap[string] = pos;
+                m_posLabelMap[pos] = string;
+            } else {
+                return QString("Multiple definitions of label %1").arg(string);
+            }
+        } else {
+            // no duplicates, update label at given pos
+            m_labelPosMap.remove(m_posLabelMap[pos]);
+            m_labelPosMap[string] = pos;
+            m_posLabelMap[pos] = string;
+        }
+        // Remove label from fields vector
+        if (splitFirst.size() > 1) {
+            fields[0] = splitFirst[1];
+        } else {
+            fields.removeAt(0);
+        }
+        // Return if empty fields vector
+        fields.removeAll("");
+        if (fields.isEmpty())
+            return QString();
+    }
+
     // Remove comments from syntax evaluation
     const static auto commentRegEx = QRegularExpression("[#](.*)");
     int commentIndex = fields.indexOf(commentRegEx);
@@ -488,54 +532,27 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
             fields.removeAt(index);
             index--;
         }
+        // Empty fields? return
+        if (fields.isEmpty())
+            return QString();
     }
 
-    // Throw away case information
-    std::transform(fields.begin(), fields.end(), fields.begin(), [](const QString& s) { return s.toLower(); });
-
-    int pos = currentBlock().firstLineNumber();
-
+    // Check for assembler directives
+    string = fields[0];
     if (fields.size() == 1) {
-        // check for labels
-        QString string = fields[0];
-        if (string[string.length() - 1] == ':') {
-            // Label detected - check if already defined, else add to label definitions
-            string = string.remove(':');
-            // Update map entries at given block
-            if (m_labelPosMap.contains(string) && m_labelPosMap[string] != pos) {
-                // duplicate label found
-                if (pos < m_labelPosMap[string]) {
-                    // Label is redefined before previous use of label
-                    m_posLabelMap.remove(m_labelPosMap[string]);
-                    m_labelPosMap[string] = pos;
-                    m_posLabelMap[pos] = string;
-                    return QString();
-                }
-                return QString("Multiple definitions of label %1").arg(string);
+        if (string[0] == '.') {
+            string = string.remove('.');
+            if (ASMDirectives.contains(string)) {
+                fields.removeFirst();  // valid assembler directive detected
             } else {
-                // no duplicates, update label at given pos
-                m_labelPosMap.remove(m_posLabelMap[pos]);
-                m_labelPosMap[string] = pos;
-                m_posLabelMap[pos] = string;
+                return QString("Unknown assembler directive");
             }
-            return QString();
+        } else if (fields[0] == "ecall" || fields[0] == "nop") {
+            // Allow specific 1-word instructions
+            fields.removeFirst();
         } else {
-            // Check for assembler directives
-            if (string[0] == '.') {
-                string = string.remove('.');
-                if (ASMDirectives.contains(string)) {
-                    fields.removeFirst();  // valid assembler directive detected
-                } else {
-                    return QString("Unknown assembler directive");
-                }
-            } else if (fields[0] == "ecall" || fields[0] == "nop") {
-                // Allow specific 1-word instructions
-                fields.removeFirst();
-            } else {
-                return QString("Unknown instruction");
-            }
+            return QString("Unknown instruction");
         }
-        return QString();
     }
 
     // -- Validate remaining fields --
