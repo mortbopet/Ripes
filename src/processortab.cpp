@@ -174,6 +174,7 @@ void ProcessorTab::on_save_clicked() {
     QFileDialog dialog;
     dialog.setNameFilter("*.png");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setOption(QFileDialog::DontUseNativeDialog);
     if (dialog.exec()) {
         auto files = dialog.selectedFiles();
         if (files.length() == 1) {
