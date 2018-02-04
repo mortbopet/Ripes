@@ -14,6 +14,7 @@ void RWJumpWidget::init() {
     ui->view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->view->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     ui->view->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    ui->view->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
     ui->view->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 

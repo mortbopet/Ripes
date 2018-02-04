@@ -12,13 +12,15 @@ QVariant RWJumpModel::headerData(int section, Qt::Orientation orientation, int r
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
         switch (section) {
             case 0:
-                return "PC";
+                return "Cycle";
             case 1:
-                return "Access type";
+                return "PC";
             case 2:
-                return "Instruction";
+                return "Access type";
             case 3:
-                return "Target address";
+                return "Instruction";
+            case 4:
+                return "Access address";
             default:
                 return QVariant();
         }
@@ -41,7 +43,7 @@ void RWJumpModel::update() {
 
 int RWJumpModel::columnCount(const QModelIndex& parent) const {
     Q_UNUSED(parent)
-    return 4;  // PC, Write type and instrution
+    return 5;  // PC, Write type and instrution
 }
 
 QVariant RWJumpModel::data(const QModelIndex& index, int role) const {
@@ -54,16 +56,18 @@ QVariant RWJumpModel::data(const QModelIndex& index, int role) const {
         return QVariant();
     switch (index.column()) {
         case 0:
+            return access.cycle - 1;
+        case 1:
             return access.pc;
-        case 1: {
+        case 2: {
             if (access.rw == RW::Read)
                 return "Read";
             return "Write";
         }
-        case 2: {
+        case 3: {
             return m_parserPtr->getInstructionString(access.pc);
         }
-        case 3: {
+        case 4: {
             return QString("0x%1").arg(QString::number(access.addr, 16));
         }
     }

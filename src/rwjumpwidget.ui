@@ -31,7 +31,7 @@
        <item>
         <widget class="QPushButton" name="jump">
          <property name="text">
-          <string>Go to selected address</string>
+          <string>Go to selected access address</string>
          </property>
         </widget>
        </item>
