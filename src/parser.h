@@ -37,7 +37,7 @@ public:
 
     QString getInstructionString(uint32_t address) const;
 
-    const QString& loadFromByteArray(QByteArray arr, bool disassembled = true);
+    const QString& loadFromByteArray(QByteArray arr, bool disassembled = true, uint32_t baseAddress = 0x0);
     const QString& loadBinaryFile(QString fileName, bool disassembled = true);
     const QString& getBinaryRepr() { return m_binaryRepr; }
     const QString& getDisassembledRepr() { return m_disassembledRepr; }

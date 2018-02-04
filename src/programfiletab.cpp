@@ -62,8 +62,10 @@ void ProgramfileTab::setDisassemblerText() {
     m_ui->binaryedit->setPlainText(text);
 }
 
-void ProgramfileTab::assemblingComplete(const QByteArray& arr) {
-    Parser::getParser()->loadFromByteArray(arr, m_ui->disassembledViewButton->isChecked());
+void ProgramfileTab::assemblingComplete(const QByteArray& arr, bool clear, uint32_t baseAddress) {
+    if (clear)
+        Parser::getParser()->clear();
+    Parser::getParser()->loadFromByteArray(arr, m_ui->disassembledViewButton->isChecked(), baseAddress);
     setDisassemblerText();
     emit updateSimulator();
 }

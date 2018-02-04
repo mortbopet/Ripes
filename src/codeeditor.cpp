@@ -59,9 +59,13 @@ void CodeEditor::setupAssembler() {
 void CodeEditor::assembleCode() {
     if (m_tooltipForLine.isEmpty()) {
         // No tooltips available => syntax is accepted
+
         const QByteArray& ret = m_assembler->assembleBinaryFile(*document());
         if (!m_assembler->hasError()) {
-            emit assembledSuccessfully(ret);
+            emit assembledSuccessfully(ret, true, 0x0);
+            if (m_assembler->hasData()) {
+                emit assembledSuccessfully(m_assembler->getDataSegment(), false, DATASTART);
+            }
         } else {
             QMessageBox err;
             err.setText("Error in assembling file.");

@@ -52,6 +52,9 @@ void Parser::parseFile() {
 void Parser::clear() {
     m_disassembledRepr.clear();
     m_binaryRepr.clear();
+
+    // Reset the pipeline
+    Pipeline::getPipeline()->reset();
 }
 
 const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
@@ -71,23 +74,23 @@ const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
     }
 }
 
-const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled) {
-    // Reset the pipeline
-    clear();
-    Pipeline::getPipeline()->reset();
+const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint32_t baseAddress) {
+    // Loads the input arr into the memory of the simulator
+    // Baseaddress is default = 0 (text). Can be changed for inserting into ie. data memory
+
     QString output = "";
     MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
     auto length = arr.length();
     QDataStream in(&arr, QIODevice::ReadOnly);
     char buffer[4];
-    int pc = 0;
+    int byteIndex = baseAddress;
     for (int i = 0; i < length; i += 4) {
         in.readRawData(buffer, 4);
         QString binaryRepString;
         for (int j = 0; j < 4; j++) {
             binaryRepString.prepend(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
-            memPtr->write(pc, buffer[j], 1);
-            pc++;
+            memPtr->write(byteIndex, buffer[j], 1);
+            byteIndex++;
         }
         m_binaryRepr.append(binaryRepString).append('\n');
         uint32_t instr =
@@ -97,7 +100,8 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled) {
     }
     // Update the pipeline
     Pipeline::getPipeline()->update();
-    m_disassembledRepr = output;
+    if (baseAddress == 0)
+        m_disassembledRepr = output;
 
     if (disassembled) {
         return m_disassembledRepr;

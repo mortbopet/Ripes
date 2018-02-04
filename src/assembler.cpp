@@ -388,7 +388,7 @@ QByteArray Assembler::assembleInstruction(const QStringList& fields, int row) {
         m_error = true;
         Q_ASSERT(false);
     }
-    return 0;
+    return QByteArray();
 }
 
 void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
@@ -635,10 +635,11 @@ inline QByteArray Assembler::uintToByteArr(uint32_t in) {
 
 void Assembler::restart() {
     m_error = false;
+    m_hasData = false;
     m_instructionsMap.clear();
     m_lineLabelUsageMap.clear();
     m_labelPosMap.clear();
-    m_outputArray.clear();
+    m_textSegment.clear();
 }
 
 namespace {
@@ -650,7 +651,7 @@ inline QStringList splitColon(const QString& string) {
     out.removeAll("");
     return out;
 }
-}
+}  // namespace
 
 const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // Called by codeEditor when syntax has been accepted, and the document should be assembled into binary
@@ -702,7 +703,7 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // Since the keys (line numbers) are sorted, we iterate straight over the map when inserting into the output
     // bytearray
     for (auto item : m_instructionsMap.toStdMap()) {
-        m_outputArray.append(assembleInstruction(item.second, item.first));
+        m_textSegment.append(assembleInstruction(item.second, item.first));
     }
-    return m_outputArray;
+    return m_textSegment;
 }

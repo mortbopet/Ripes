@@ -9,8 +9,10 @@ public:
     Assembler();
     const QByteArray& assembleBinaryFile(const QTextDocument& doc);
     bool hasError() { return m_error; }
-    const QByteArray& getCurrentOutputArray() { return m_outputArray; }
-    void clear() { m_outputArray.clear(); }
+    bool hasData() { return m_hasData; }
+    const QByteArray& getTextSegment() { return m_textSegment; }
+    const QByteArray& getDataSegment() { return m_dataSegment; }
+    void clear() { m_textSegment.clear(); }
 
 private:
     uint32_t getRegisterNumber(const QString& reg);
@@ -26,8 +28,10 @@ private:
         m_lineLabelUsageMap;  // Lines that need to be updated with label values (offsets) after unpacking is finished
     QMap<int, QStringList> m_instructionsMap;  // Map containing unpacked and offset-modified instruction
 
-    QByteArray m_outputArray;
+    QByteArray m_textSegment;
+    QByteArray m_dataSegment;
     bool m_error = false;
+    bool m_hasData = false;
 
     // Assembler functions
     QByteArray assembleInstruction(const QStringList& fields, int row);

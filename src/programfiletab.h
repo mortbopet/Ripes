@@ -32,7 +32,7 @@ private slots:
     void on_pushButton_clicked();
 
     void on_assemblyfile_toggled(bool checked);
-    void assemblingComplete(const QByteArray& binaryCode);
+    void assemblingComplete(const QByteArray& binaryCode, bool clear = true, uint32_t baseAddress = 0x0);
 
     void on_disassembledViewButton_toggled(bool checked);
 

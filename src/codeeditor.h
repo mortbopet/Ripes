@@ -6,8 +6,8 @@
 #include <QScrollBar>
 #include <QTimer>
 
-#include "syntaxhighlighter.h"
 #include "assembler.h"
+#include "syntaxhighlighter.h"
 
 #include <set>
 
@@ -32,14 +32,14 @@ public:
     void enableBreakpointArea();
     void reset() { m_highlighter->reset(); }
     void setTimerEnabled(bool state) { m_timerEnabled = state; }
-    const QByteArray& getCurrentOutputArray() { return m_assembler->getCurrentOutputArray(); }
+    const QByteArray& getCurrentOutputArray() { return m_assembler->getTextSegment(); }
     void clearOutputArray() {
         m_assembler->clear();
         m_tooltipForLine.clear();
     }
 signals:
     void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
-    void assembledSuccessfully(const QByteArray& code);
+    void assembledSuccessfully(const QByteArray& bytearray, bool clearSimulatorMemory, uint32_t baseAddress);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
