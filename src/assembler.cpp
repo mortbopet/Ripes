@@ -356,39 +356,39 @@ QByteArray Assembler::assembleJalrInstruction(const QStringList& fields, int row
                          (imm & 0xfff) << 20);
 }
 
-QByteArray Assembler::assembleInstruction(const QStringList& fields, int row) {
+void Assembler::assembleInstruction(const QStringList& fields, int row) {
     // Translates a single assembly instruction into binary
     QString instruction = fields[0];
     if (opImmInstructions.contains(instruction)) {
-        return assembleOpImmInstruction(fields, row);
+        m_textSegment.append(assembleOpImmInstruction(fields, row));
     } else if (opInstructions.contains(instruction)) {
-        return assembleOpInstruction(fields, row);
+        m_textSegment.append(assembleOpInstruction(fields, row));
     } else if (storeInstructions.contains(instruction)) {
-        return assembleStoreInstruction(fields, row);
+        m_textSegment.append(assembleStoreInstruction(fields, row));
     } else if (loadInstructions.contains(instruction)) {
-        return assembleLoadInstruction(fields, row);
+        m_textSegment.append(assembleLoadInstruction(fields, row));
     } else if (branchInstructions.contains(instruction)) {
-        return assembleBranchInstruction(fields, row);
+        m_textSegment.append(assembleBranchInstruction(fields, row));
     } else if (instruction == "jalr") {
-        return assembleJalrInstruction(fields, row);
+        m_textSegment.append(assembleJalrInstruction(fields, row));
     } else if (instruction == "lui") {
-        return uintToByteArr(LUI | getRegisterNumber(fields[1]) << 7 | fields[2].toInt(nullptr, 10) << 12);
+        m_textSegment.append(
+            uintToByteArr(LUI | getRegisterNumber(fields[1]) << 7 | fields[2].toInt(nullptr, 10) << 12));
     } else if (instruction == "auipc") {
-        return assembleAuipcInstruction(fields, row);
+        m_textSegment.append(assembleAuipcInstruction(fields, row));
     } else if (instruction == "jal") {
         Q_ASSERT(m_labelPosMap.contains(fields[2]));
         int32_t imm = m_labelPosMap[fields[2]];
         imm = (imm - row) * 4;
         imm = (imm & 0x7fe) << 20 | (imm & 0x800) << 9 | (imm & 0xff000) | (imm & 0x100000) << 11;
-        return uintToByteArr(JAL | getRegisterNumber(fields[1]) << 7 | imm);
+        m_textSegment.append(uintToByteArr(JAL | getRegisterNumber(fields[1]) << 7 | imm));
     } else if (instruction == "ecall") {
-        return uintToByteArr(ECALL);
+        m_textSegment.append(uintToByteArr(ECALL));
     } else {
         //  Unknown instruction
         m_error = true;
         Q_ASSERT(false);
     }
-    return QByteArray();
 }
 
 void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
@@ -703,7 +703,7 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // Since the keys (line numbers) are sorted, we iterate straight over the map when inserting into the output
     // bytearray
     for (auto item : m_instructionsMap.toStdMap()) {
-        m_textSegment.append(assembleInstruction(item.second, item.first));
+        assembleInstruction(item.second, item.first);
     }
     return m_textSegment;
 }

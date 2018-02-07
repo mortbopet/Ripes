@@ -34,7 +34,7 @@ private:
     bool m_hasData = false;
 
     // Assembler functions
-    QByteArray assembleInstruction(const QStringList& fields, int row);
+    void assembleInstruction(const QStringList& fields, int row);
     QByteArray assembleOpImmInstruction(const QStringList& fields, int row);
     QByteArray assembleOpInstruction(const QStringList& fields, int row);
     QByteArray assembleStoreInstruction(const QStringList& fields, int row);
