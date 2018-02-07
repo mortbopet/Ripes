@@ -578,6 +578,24 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
     }
 }
 
+void Assembler::assembleAssemblerDirective(const QStringList& fields) {
+    QByteArray byteArray;
+    if (fields[0] == QString(".string")) {
+        QString string = fields[1];
+        string.remove('\"');
+        byteArray = string.toUtf8();
+    }
+
+    // Since we want aligned memory accesses, we pad the byte array to word-sized indexes (4-byte chunks)
+    int padding = 4 - byteArray.length() % 4;
+    for (int i = 0; i < padding; i++)
+        byteArray.append('\0');
+    m_dataSegment.append(byteArray);
+
+    // Set hasData flag to trigger data segment insertion into simulator memory
+    m_hasData = true;
+}
+
 void Assembler::unpackOp(const QStringList& _fields, int& pos) {
     // unpackOp
     // All pseudo-instructions will be converted to their corresponding sequence of operations
@@ -612,7 +630,8 @@ void Assembler::unpackOp(const QStringList& _fields, int& pos) {
         unpackPseudoOp(fields, pos);
     } else {
         if (fields[0][0] == '.') {
-            // Assembler directive detected - do nothing - pos is NOT incremented
+            // Assembler directive detected - handle directive (ie. setting data segment) POS is NOT incremented
+            assembleAssemblerDirective(fields);
             return;
         } else if (opsWithOffsets.contains(fields[0])) {
             m_lineLabelUsageMap[pos] =
@@ -640,6 +659,7 @@ void Assembler::restart() {
     m_lineLabelUsageMap.clear();
     m_labelPosMap.clear();
     m_textSegment.clear();
+    m_dataSegment.clear();
 }
 
 namespace {
@@ -705,5 +725,6 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     for (auto item : m_instructionsMap.toStdMap()) {
         assembleInstruction(item.second, item.first);
     }
+
     return m_textSegment;
 }

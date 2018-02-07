@@ -18,6 +18,7 @@ private:
     uint32_t getRegisterNumber(const QString& reg);
     void unpackPseudoOp(const QStringList& fields, int& pos);
     void unpackOp(const QStringList& fields, int& pos);
+    void assembleAssemblerDirective(const QStringList& fields);
     void restart();
     int getImmediate(QString string, bool& canConvert);
     QByteArray uintToByteArr(uint32_t);
