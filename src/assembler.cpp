@@ -584,12 +584,21 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         QString string = fields[1];
         string.remove('\"');
         byteArray = string.toUtf8();
+    } else if (fields[0] == QString(".word")) {
+        bool ok;
+        qlonglong val = getImmediate(fields[1], ok);
+        for (int i = 0; i < 4; i++) {
+            byteArray.append(val & 0xff);
+            val >>= 8;
+        }
     }
 
     // Since we want aligned memory accesses, we pad the byte array to word-sized indexes (4-byte chunks)
-    int padding = 4 - byteArray.length() % 4;
-    for (int i = 0; i < padding; i++)
-        byteArray.append('\0');
+    if (byteArray.length() % 4 != 0) {
+        int padding = 4 - byteArray.length() % 4;
+        for (int i = 0; i < padding; i++)
+            byteArray.append('\0');
+    }
     m_dataSegment.append(byteArray);
 
     // Set hasData flag to trigger data segment insertion into simulator memory
