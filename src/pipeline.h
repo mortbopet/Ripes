@@ -21,6 +21,7 @@ public:
 
     // Pointers for GUI
     MainMemory* getMemoryPtr() { return &m_memory; }
+    std::unordered_map<uint32_t, uint8_t>* getDataMemoryPtr() { return &m_dataMemory; }
     std::vector<uint32_t>* getRegPtr() { return m_reg.getRegPtr(); }
     const StagePCS& getStagePCS() const { return m_pcs; }
     const StagePCS& getStagePCSPre() const { return m_pcsPre; }
@@ -62,6 +63,8 @@ private:
     // Memory
     Registers m_reg;
     MainMemory m_memory;
+    std::unordered_map<uint32_t, uint8_t> m_dataMemory;  // Since the data memory needs to be restarted on a simulator
+                                                         // reset, the assembler-provided data segment must be stored
     uint32_t m_textSize = 0;
 
     // Combinatorial items & signals

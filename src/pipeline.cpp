@@ -781,6 +781,7 @@ void Pipeline::reset() {
     // Called when resetting the simulator (loading a new program)
     restart();
     m_memory.clear();
+    m_dataMemory.clear();
     m_breakpoints.clear();
     m_textSize = 0;
     m_ready = false;
@@ -796,7 +797,9 @@ void Pipeline::update() {
 void Pipeline::restart() {
     // Called when restarting a simulation
     m_reg.clear();
-    m_memory.reset(m_textSize);
+    m_memory.reset(m_textSize);  // Wipe simulator memory, but keep text segment
+    m_memory.insert(m_dataMemory.begin(),
+                    m_dataMemory.end());  // Merge assembler-provided data memory into simulator memory
     m_reg.init();
     m_pcs.reset();
     m_pcsPre.reset();

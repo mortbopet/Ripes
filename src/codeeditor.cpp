@@ -1,5 +1,6 @@
 #include "codeeditor.h"
 #include "defines.h"
+#include "pipeline.h"
 
 #include <QAction>
 #include <QApplication>
@@ -72,6 +73,9 @@ void CodeEditor::assembleCode() {
             err.exec();
         }
     }
+    // Restart the simulator to trigger the data memory to be loaded into the main memory. Bad code that this is done
+    // from here, but it works
+    Pipeline::getPipeline()->restart();
 }
 
 int CodeEditor::lineNumberAreaWidth() {

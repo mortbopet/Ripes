@@ -110,6 +110,24 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
     }
 }
 
+void Parser::loadFromByteArrayIntoData(QByteArray arr) {
+    // Loads a byte array into the data segment of the simulator
+    // In this, we do no string convertion etc., which is usually done for generating the disassembled view of the
+    // program
+    auto memPtr = Pipeline::getPipeline()->getDataMemoryPtr();
+    auto length = arr.length();
+    QDataStream in(&arr, QIODevice::ReadOnly);
+    char buffer[4];
+    uint32_t byteIndex = DATASTART;
+    for (int i = 0; i < length; i += 4) {
+        in.readRawData(buffer, 4);
+        for (int j = 0; j < 4; j++) {
+            memPtr->insert({byteIndex, buffer[j]});
+            byteIndex++;
+        }
+    }
+}
+
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
     // Generates functors that can decode a binary number based on the input
     // vector which is supplied upon generation

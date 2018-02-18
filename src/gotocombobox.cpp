@@ -1,5 +1,6 @@
 #include "gotocombobox.h"
 #include "addressdialog.h"
+#include "defines.h"
 
 #include <QAbstractItemView>
 #include <QEvent>
@@ -11,7 +12,8 @@ GoToComboBox::GoToComboBox(QWidget* parent) : QComboBox(parent) {
     addItem("Select", 0);
     addItem("Address...", 0);
     addItem("Text", 0);
-    addItem("Stack", 0x7ffffff0);
+    addItem("Data", DATASTART);
+    addItem("Stack", STACKSTART);
 
     // connect to a "signal filter"
     connect(this, QOverload<int>::of(&GoToComboBox::activated), this, &GoToComboBox::signalFilter);

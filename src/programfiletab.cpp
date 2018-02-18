@@ -65,8 +65,13 @@ void ProgramfileTab::setDisassemblerText() {
 void ProgramfileTab::assemblingComplete(const QByteArray& arr, bool clear, uint32_t baseAddress) {
     if (clear)
         Parser::getParser()->clear();
-    Parser::getParser()->loadFromByteArray(arr, m_ui->disassembledViewButton->isChecked(), baseAddress);
-    setDisassemblerText();
+    // Pretty hacky way to discern between the text and data segments
+    if (baseAddress > 0) {
+        Parser::getParser()->loadFromByteArrayIntoData(arr);
+    } else {
+        Parser::getParser()->loadFromByteArray(arr, m_ui->disassembledViewButton->isChecked(), baseAddress);
+        setDisassemblerText();
+    }
     emit updateSimulator();
 }
 
