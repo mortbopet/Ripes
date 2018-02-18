@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->programfiletab, &ProgramfileTab::updateSimulator, [this] { emit update(); });
     connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
+    connect(m_ui->stackedWidget, &QStackedWidget::currentChanged, m_ui->memorytab, &MemoryTab::update);
 }
 
 MainWindow::~MainWindow() {
