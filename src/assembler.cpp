@@ -1,6 +1,7 @@
 #include "assembler.h"
 #include "binutils.h"
 #include "defines.h"
+#include "lexerutilities.h"
 
 #include <QRegularExpression>
 #include <QTextBlock>
@@ -581,7 +582,11 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
 void Assembler::assembleAssemblerDirective(const QStringList& fields) {
     QByteArray byteArray;
     if (fields[0] == QString(".string")) {
-        QString string = fields[1];
+        QString string;
+        // Merge input fields
+        for (int i = 1; i < fields.length(); i++) {
+            string += fields[i];
+        }
         string.remove('\"');
         byteArray = string.toUtf8();
     } else if (fields[0] == QString(".word")) {
@@ -591,6 +596,9 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
             byteArray.append(val & 0xff);
             val >>= 8;
         }
+    } else if (fields[0] == QString(".data")) {
+        // Do nothing
+        return;
     }
 
     // Since we want aligned memory accesses, we pad the byte array to word-sized indexes (4-byte chunks)
@@ -685,7 +693,7 @@ inline QStringList splitColon(const QString& string) {
 const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // Called by codeEditor when syntax has been accepted, and the document should be assembled into binary
     // Because of the previously accepted syntax, !no! error handling will be done, to ensure a fast execution
-    const static auto splitter = QRegularExpression("(\\ |\\,|\\t|\\(|\\))");
+    const static auto splitter = QRegularExpression("(\\,|\\t|\\(|\\))");
     int line = 0;
     restart();
 
@@ -697,6 +705,7 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
             // Split input into fields
             fields = block.text().split(splitter);
             fields.removeAll("");
+            fields = splitQuotes(fields);
             if (!fields.isEmpty()) {
                 // Split label fields, and keep separator ':'
                 if (fields[0].contains(':')) {

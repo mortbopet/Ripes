@@ -5,6 +5,7 @@
 #include <QTextDocument>
 
 #include "defines.h"
+#include "lexerutilities.h"
 
 FieldType::FieldType(Type type, int lowerBound, int upperBound, SyntaxHighlighter* highlighter) {
     m_type = type;
@@ -547,28 +548,6 @@ namespace {
     if (string[0] == ".")                              \
         return QString("Unknown assembler directive"); \
     return QString("Unknown operation");
-}
-
-QStringList splitQuotes(const QStringList& list) {
-    // Manual string splitter - splits at "\ " (space) characters, unless test is delimitered by "\""
-    QStringList ret;
-    for (const auto& s : list) {
-        QString outString;
-        bool inQuote = false;
-        for (int i = 0; i < s.length(); i++) {
-            inQuote ^= s[i] == '"';
-            if (s[i] == ' ' && !inQuote) {
-                ret.append(outString);
-                outString.clear();
-            } else {
-                outString.append(s[i]);
-                if (i == s.length() - 1)
-                    ret.append(outString);
-            }
-        }
-    }
-    ret.removeAll("");
-    return ret;
 }
 
 QString SyntaxHighlighter::checkSyntax(const QString& input) {
