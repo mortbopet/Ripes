@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>846</width>
+    <width>986</width>
     <height>415</height>
    </rect>
   </property>
@@ -15,28 +15,36 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,1">
-     <item>
-      <widget class="RegisterContainerWidget" name="registerContainer" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>250</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="RWJumpWidget" name="rwjumpwidget" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
+     </property>
+     <widget class="RegisterContainerWidget" name="registerContainer" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>250</width>
+        <height>0</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="RWJumpWidget" name="rwjumpwidget" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="QWidget" name="">
       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
        <item>
         <widget class="QLabel" name="label_4">
@@ -55,8 +63,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>460</width>
-            <height>342</height>
+            <width>606</width>
+            <height>337</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -156,12 +164,18 @@
         </layout>
        </item>
       </layout>
-     </item>
-    </layout>
+     </widget>
+    </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>RegisterContainerWidget</class>
+   <extends>QWidget</extends>
+   <header>registercontainerwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>MemoryView</class>
    <extends>QTableView</extends>
@@ -171,12 +185,6 @@
    <class>GoToComboBox</class>
    <extends>QComboBox</extends>
    <header>gotocombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>RegisterContainerWidget</class>
-   <extends>QWidget</extends>
-   <header>registercontainerwidget.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>RWJumpWidget</class>
