@@ -33,6 +33,8 @@ private:
     QByteArray m_dataSegment;
     bool m_error = false;
     bool m_hasData = false;
+    bool m_inDataSegment = false;  // Set when stating .data directive. Following instructions will be added to the data
+                                   // segment of the program
 
     // Assembler functions
     void assembleInstruction(const QStringList& fields, int row);

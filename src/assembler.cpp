@@ -597,7 +597,12 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
             val >>= 8;
         }
     } else if (fields[0] == QString(".data")) {
-        // Do nothing
+        // Following instructions will be assembled into the data segment
+        m_inDataSegment = true;
+        return;
+    } else if (fields[0] == QString(".text")) {
+        // Following instructions will be assembled in to the text segment
+        m_inDataSegment = false;
         return;
     }
 
@@ -635,7 +640,14 @@ void Assembler::unpackOp(const QStringList& _fields, int& pos) {
         }
 
         // Update map entries at given block
-        m_labelPosMap[string] = pos;
+        if (m_inDataSegment) {
+            m_labelPosMap[string] =
+                // Offset label by data segment position and length of the data segment
+                m_dataSegment.length() + (DATASTART / 4);  // Divide by 4 since labelPosMap is word indexed
+        } else {
+            // The label is in the text segment. Label is defined without an offset
+            m_labelPosMap[string] = pos;
+        }
         if (fields.isEmpty()) {
             return;
         }
@@ -699,8 +711,6 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
 
     QStringList fields;
     for (QTextBlock block = doc.begin(); block != doc.end(); block = block.next()) {
-        QString text = block.text();
-        Q_UNUSED(text);
         if (!block.text().isEmpty()) {
             // Split input into fields
             fields = block.text().split(splitter);
