@@ -2,7 +2,6 @@
 #include <QScrollBar>
 #include "instructionmodel.h"
 #include "pipelinewidget.h"
-#include "ui_pipelinetable.h"
 #include "ui_processortab.h"
 
 #include <QFileDialog>

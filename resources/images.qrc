@@ -16,5 +16,6 @@
         <file>zoom-out.svg</file>
         <file>save.svg</file>
         <file>spreadsheet.svg</file>
+        <file>documents.svg</file>
     </qresource>
 </RCC>

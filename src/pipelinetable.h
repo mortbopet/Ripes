@@ -17,8 +17,14 @@ public:
     ~PipelineTable();
     void setModel(QAbstractItemModel* model);
 
+private slots:
+    void on_save_clicked();
+
+    void on_copy_clicked();
+
 private:
     Ui::PipelineTable* ui;
+    QAbstractItemModel* m_model = nullptr;
 };
 
 #endif  // PIPELINETABLE_H
