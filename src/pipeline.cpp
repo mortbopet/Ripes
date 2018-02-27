@@ -782,7 +782,6 @@ void Pipeline::reset() {
     restart();
     m_memory.clear();
     m_dataMemory.clear();
-    m_breakpoints.clear();
     m_textSize = 0;
     m_ready = false;
 }

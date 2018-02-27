@@ -20,6 +20,7 @@ public:
     int run();
 
     // Pointers for GUI
+    std::set<uint32_t>* getBreakpoints() { return &m_breakpoints; }
     MainMemory* getMemoryPtr() { return &m_memory; }
     std::unordered_map<uint32_t, uint8_t>* getDataMemoryPtr() { return &m_dataMemory; }
     std::vector<uint32_t>* getRegPtr() { return m_reg.getRegPtr(); }

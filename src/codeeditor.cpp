@@ -131,12 +131,18 @@ void CodeEditor::updateTooltip(int line, QString tip) {
     }
 }
 
+void CodeEditor::clearBreakpoints() {
+    auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
+    breakpoints->clear();
+}
+
 void CodeEditor::updateBreakpoints() {
     // called after disassembler text has been set
 
+    auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
     // Remove breakpoints if a breakpoint line has been removed
-    while (!m_breakpoints.empty() && *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
-        m_breakpoints.erase(std::prev(m_breakpoints.end()));
+    while (!breakpoints->empty() && *(breakpoints->rbegin()) > ((blockCount() - 1) * 4)) {  // byte indexed
+        breakpoints->erase(std::prev(breakpoints->end()));
     }
 }
 
@@ -245,23 +251,27 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
     }
     painter.fillRect(area, gradient);
 
-    QTextBlock block = firstVisibleBlock();
-    int blockNumber = block.blockNumber();
-    int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
-    int bottom = top + (int)blockBoundingRect(block).height();
+    if (m_breakpointAreaEnabled) {
+        QTextBlock block = firstVisibleBlock();
+        int blockNumber = block.blockNumber() * 4;  // byte indexed
+        int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
+        int bottom = top + (int)blockBoundingRect(block).height();
 
-    while (block.isValid() && top <= event->rect().bottom()) {
-        if (block.isVisible() && bottom >= event->rect().top()) {
-            if (m_breakpoints.find(blockNumber) != m_breakpoints.end()) {
-                painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
-                                   m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+        auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
+
+        while (block.isValid() && top <= event->rect().bottom()) {
+            if (block.isVisible() && bottom >= event->rect().top()) {
+                if (breakpoints->find(blockNumber) != breakpoints->end()) {
+                    painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
+                                       m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+                }
             }
-        }
 
-        block = block.next();
-        top = bottom;
-        bottom = top + (int)blockBoundingRect(block).height();
-        ++blockNumber;
+            block = block.next();
+            top = bottom;
+            bottom = top + (int)blockBoundingRect(block).height();
+            blockNumber += 4;
+        }
     }
 }
 
@@ -297,20 +307,22 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
             index--;
         }
         // Set or unset breakpoint
-        int blockNumber = block.blockNumber();
+        // Since we want the simulator as fast as possible, the breakpoints are byte-indexed
+        auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
+        int blockNumber = block.blockNumber() * 4;
         if (block.isValid()) {
-            auto brkptIter = m_breakpoints.find(blockNumber);
+            auto brkptIter = breakpoints->find(blockNumber);
             // Set/unset breakpoint
             if (forceState == 1) {
-                m_breakpoints.insert(blockNumber);
+                breakpoints->insert(blockNumber);
             } else if (forceState == 2) {
-                if (brkptIter != m_breakpoints.end())
-                    m_breakpoints.erase(m_breakpoints.find(blockNumber));
+                if (brkptIter != breakpoints->end())
+                    breakpoints->erase(breakpoints->find(blockNumber));
             } else {
-                if (brkptIter != m_breakpoints.end()) {
-                    m_breakpoints.erase(brkptIter);
+                if (brkptIter != breakpoints->end()) {
+                    breakpoints->erase(brkptIter);
                 } else {
-                    m_breakpoints.insert(blockNumber);
+                    breakpoints->insert(blockNumber);
                 }
             }
             repaint();

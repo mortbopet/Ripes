@@ -25,7 +25,7 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     void breakpointAreaPaintEvent(QPaintEvent* event);
     void breakpointClick(QMouseEvent* event, int forceState = 0);
-    void clearBreakpoints() { m_breakpoints.clear(); }
+    void clearBreakpoints();
     void updateBreakpoints();
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
@@ -63,7 +63,6 @@ private:
     bool m_syntaxChecking = false;
     bool m_breakpointAreaEnabled = false;
 
-    std::set<int> m_breakpoints;
     QMap<int, QString> m_tooltipForLine;
 
     QFont m_font = font();
