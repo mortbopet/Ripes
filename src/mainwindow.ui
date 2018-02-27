@@ -91,26 +91,6 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="tab_6">
-          <attribute name="title">
-           <string>Log</string>
-          </attribute>
-          <layout class="QGridLayout" name="gridLayout_7">
-           <item row="0" column="0">
-            <widget class="QPlainTextEdit" name="logConsole">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
         </widget>
        </widget>
       </item>
@@ -231,7 +211,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show consoles</string>
+    <string>Show application output console</string>
    </property>
   </action>
   <action name="actionAbout">
