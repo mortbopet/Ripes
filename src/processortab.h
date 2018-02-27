@@ -5,6 +5,7 @@
 #include <QWidget>
 
 #include "defines.h"
+#include "pipeline.h"
 #include "pipelinetable.h"
 #include "pipelinetablemodel.h"
 
@@ -43,6 +44,8 @@ private slots:
     void on_table_clicked();
 
 private:
+    void handleEcall();
+
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;
 
@@ -50,6 +53,7 @@ private:
 
 signals:
     void update();
+    void appendToLog(QString string);
 };
 
 #endif  // PROCESSORTAB_H

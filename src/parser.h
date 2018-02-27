@@ -42,6 +42,7 @@ public:
     const QString& loadBinaryFile(QString fileName, bool disassembled = true);
     const QString& getBinaryRepr() { return m_binaryRepr; }
     const QString& getDisassembledRepr() { return m_disassembledRepr; }
+    QString getStringAt(uint32_t address) const;
     QByteArray getFileByteArray() { return m_fileByteArray; }
     bool initBinaryFile(char* filename);
     void parseFile();

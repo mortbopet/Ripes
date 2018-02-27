@@ -387,7 +387,9 @@ public:
                    Signal<1>* regWrite);
     Signal<32>* getOutput(int n = 1) { return n == 2 ? &m_readData2 : &m_readData1; }
 
-    uint32_t a0() { return m_reg[10]; }  // Direct accessor for a0 register (ECALL functionality)
+    // Direct accessors for a0 & a1 registers (ECALL functionality)
+    uint32_t a0() const { return m_reg[10]; }
+    uint32_t a1() const { return m_reg[11]; }
 
 private:
     // ReadRegister 1/2 is deduced from the input instruction signal

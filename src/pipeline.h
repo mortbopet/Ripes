@@ -11,6 +11,7 @@ class Pipeline {
     friend class RWJumpModel;
 
 public:
+    enum class ECALL { none, exit, print_string, print_int };
     Pipeline();
     // Utility functions
     void restart();
@@ -24,6 +25,7 @@ public:
     MainMemory* getMemoryPtr() { return &m_memory; }
     std::unordered_map<uint32_t, uint8_t>* getDataMemoryPtr() { return &m_dataMemory; }
     std::vector<uint32_t>* getRegPtr() { return m_reg.getRegPtr(); }
+    std::pair<Pipeline::ECALL, uint32_t> checkEcall(bool reset = true);
     const StagePCS& getStagePCS() const { return m_pcs; }
     const StagePCS& getStagePCSPre() const { return m_pcsPre; }
     int getTextSize() const { return m_textSize; }
@@ -49,6 +51,7 @@ private:
     void aluCtrl();
     void clock();
     bool m_ready = false;
+    ECALL m_ecallval;
 
     // Program counters for each stage
     void setStagePCS();

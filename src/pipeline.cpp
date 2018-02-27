@@ -698,11 +698,26 @@ void Pipeline::handleEcall() {
         if (a0_val == 10) {
             // Start finishing sequence
             m_finishing = true;
+        } else if (a0_val == 4) {
+            // Print string
+            m_ecallval = ECALL::print_string;
+        } else if (a0_val == 1) {
+            // Print string
+            m_ecallval = ECALL::print_int;
         }
     }
+
+    // Start finishing counter
     if (m_finishing) {
         m_finishingCnt++;
     }
+}
+
+std::pair<Pipeline::ECALL, uint32_t> Pipeline::checkEcall(bool reset) {
+    // Called from GUI after each clock cycle - resets the internal ECALL request
+    return {m_ecallval, m_reg.a1()};
+    if (reset)
+        m_ecallval = ECALL::none;
 }
 
 int Pipeline::step() {
@@ -751,6 +766,8 @@ int Pipeline::step() {
     } else if (m_breakpoints.find((uint32_t)r_PC_IF) != m_breakpoints.end()) {
         // Breakpoint set at current r_PC_IF value
         return 1;
+    } else if (m_ecallval != ECALL::none) {
+        return 1;  // GUI will automatically resume execution if in "running" mode
     }
     { return 0; }
 }

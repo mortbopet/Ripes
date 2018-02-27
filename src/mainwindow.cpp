@@ -61,6 +61,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
     connect(m_ui->stackedWidget, &QStackedWidget::currentChanged, m_ui->memorytab, &MemoryTab::update);
+
+    // Connect ECALL functionality to application output log
+    connect(m_ui->processortab, &ProcessorTab::appendToLog,
+            [this](QString string) { m_ui->applicationConsole->appendPlainText(string + '\n'); });
 }
 
 MainWindow::~MainWindow() {

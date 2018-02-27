@@ -49,6 +49,20 @@ void Parser::parseFile() {
     }
 }
 
+QString Parser::getStringAt(uint32_t address) const {
+    // Returns the null-terminated string starting at @address
+    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
+    QString string;
+
+    char read = memPtr->read(address) & 0xff;
+    while (read != 0) {
+        string.append(read);
+        address++;
+        read = memPtr->read(address) & 0xff;
+    }
+    return string;
+}
+
 void Parser::clear() {
     m_disassembledRepr.clear();
     m_binaryRepr.clear();

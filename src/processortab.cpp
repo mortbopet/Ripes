@@ -112,6 +112,10 @@ void ProcessorTab::on_run_clicked() {
             m_ui->step->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
+        } else if (pipeline->checkEcall(false).first != Pipeline::ECALL::none) {
+            // An ECALL has been invoked during continuous running. Handle ecall and continue to run
+            handleEcall();
+            on_run_clicked();
         } else {
             m_ui->table->setEnabled(true);
             emit update();
@@ -148,6 +152,9 @@ void ProcessorTab::setCurrentInstruction(int row) {
 void ProcessorTab::on_step_clicked() {
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
+
+    handleEcall();
+
     emit update();
 
     // Move instruction view
@@ -158,6 +165,25 @@ void ProcessorTab::on_step_clicked() {
     } else if (state == 1) {
         // Breakpoint encountered, stop autostepping
         toggleTimer(false);
+    }
+}
+
+void ProcessorTab::handleEcall() {
+    // Check if ecall has been invoked
+    auto pipeline = Pipeline::getPipeline();
+    auto ecall_val = pipeline->checkEcall();
+    if (ecall_val.first != Pipeline::ECALL::none) {
+        switch (ecall_val.first) {
+            case Pipeline::ECALL::print_string: {
+                emit appendToLog(Parser::getParser()->getStringAt(ecall_val.second));
+            }
+            case Pipeline::ECALL::print_int: {
+                emit appendToLog(QString::number(ecall_val.second));
+                break;
+            }
+            default:
+                return;
+        }
     }
 }
 
