@@ -131,6 +131,15 @@ void CodeEditor::updateTooltip(int line, QString tip) {
     }
 }
 
+void CodeEditor::updateBreakpoints() {
+    // called after disassembler text has been set
+
+    // Remove breakpoints if a breakpoint line has been removed
+    while (!m_breakpoints.empty() && *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
+        m_breakpoints.erase(std::prev(m_breakpoints.end()));
+    }
+}
+
 bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
@@ -166,11 +175,6 @@ void CodeEditor::updateSidebar(const QRect& rect, int dy) {
 
     if (rect.contains(viewport()->rect()))
         updateSidebarWidth(0);
-
-    // Remove breakpoints if a breakpoint line has been removed
-    while (!m_breakpoints.empty() && *(m_breakpoints.rbegin()) > (blockCount() - 1)) {
-        m_breakpoints.erase(std::prev(m_breakpoints.end()));
-    }
 }
 
 void CodeEditor::resizeEvent(QResizeEvent* e) {

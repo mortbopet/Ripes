@@ -98,6 +98,9 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
         output.append(genStringRepr(instr));
         output.append("\n");
     }
+    // Remove trailing \n character
+    output.truncate(output.lastIndexOf('\n'));
+
     // Update the pipeline
     Pipeline::getPipeline()->update();
     if (baseAddress == 0)

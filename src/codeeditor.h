@@ -26,6 +26,7 @@ public:
     void breakpointAreaPaintEvent(QPaintEvent* event);
     void breakpointClick(QMouseEvent* event, int forceState = 0);
     void clearBreakpoints() { m_breakpoints.clear(); }
+    void updateBreakpoints();
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
     void setupAssembler();

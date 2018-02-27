@@ -56,10 +56,10 @@ void ProgramfileTab::setAssemblyText(const QString& text) {
 }
 
 void ProgramfileTab::setDisassemblerText() {
-    m_ui->binaryedit->clearBreakpoints();
     const QString& text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->getDisassembledRepr()
                                                                     : Parser::getParser()->getBinaryRepr();
     m_ui->binaryedit->setPlainText(text);
+    m_ui->binaryedit->updateBreakpoints();
 }
 
 void ProgramfileTab::assemblingComplete(const QByteArray& arr, bool clear, uint32_t baseAddress) {
