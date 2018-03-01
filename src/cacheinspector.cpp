@@ -43,12 +43,12 @@ void CacheInspector::changePlotView(int view) {
 
 void CacheInspector::setupCacheRequestPlot() {
     // Setup bars
-    QCPBars* hits = new QCPBars(m_ui->cacheRequestPlot->xAxis, m_ui->cacheRequestPlot->yAxis);
+    auto* hits = new QCPBars(m_ui->cacheRequestPlot->xAxis, m_ui->cacheRequestPlot->yAxis);
     hits->setName("Cache Hit");
     hits->setPen(QPen(QColor(QRgb(Colors::FoundersRock))));
     hits->setBrush(QColor(QRgb(Colors::FoundersRock)));
 
-    QCPBars* misses = new QCPBars(m_ui->cacheRequestPlot->xAxis, m_ui->cacheRequestPlot->yAxis);
+    auto* misses = new QCPBars(m_ui->cacheRequestPlot->xAxis, m_ui->cacheRequestPlot->yAxis);
     misses->setName("Cache Miss");
     misses->setPen(QPen(QColor(QRgb(Colors::CaliforniaGold)).lighter(170)));
     misses->setBrush(QColor(QRgb(Colors::CaliforniaGold)));
@@ -108,7 +108,7 @@ void CacheInspector::updateData(int /*value*/, dataRole /*role*/, cacheLevel /*l
 
 void CacheInspector::setupCacheRequestRatioPlot() {
     // Setup bars
-    QCPBars* ratio = new QCPBars(m_ui->cacheRequestRatioPlot->xAxis, m_ui->cacheRequestRatioPlot->yAxis);
+    auto* ratio = new QCPBars(m_ui->cacheRequestRatioPlot->xAxis, m_ui->cacheRequestRatioPlot->yAxis);
     ratio->setName("Miss ratio");
     ratio->setPen(QPen(QColor(QRgb(Colors::FoundersRock)).lighter(170)));
     ratio->setBrush(QColor(QRgb(Colors::FoundersRock)));

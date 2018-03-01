@@ -79,7 +79,7 @@ void MainWindow::setupExamples() {
 
     // Load examples
     if (!binaryExamples.isEmpty()) {
-        QMenu* binaryExampleMenu = new QMenu();
+        auto* binaryExampleMenu = new QMenu();
         binaryExampleMenu->setTitle("Binary");
         for (const auto& fileName : binaryExamples) {
             binaryExampleMenu->addAction(
@@ -90,7 +90,7 @@ void MainWindow::setupExamples() {
     }
 
     if (!assemblyExamples.isEmpty()) {
-        QMenu* assemblyExampleMenu = new QMenu();
+        auto* assemblyExampleMenu = new QMenu();
         assemblyExampleMenu->setTitle("Assembly");
         for (const auto& fileName : assemblyExamples) {
             assemblyExampleMenu->addAction(fileName, [=] {

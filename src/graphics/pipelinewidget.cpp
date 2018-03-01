@@ -12,7 +12,7 @@
 qreal PipelineWidget::spaceBetweenStateRegs = 350;
 
 PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
-    QGraphicsScene* scene = new QGraphicsScene(this);
+    auto* scene = new QGraphicsScene(this);
     // scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     setScene(scene);
     setRenderHint(QPainter::Antialiasing);
@@ -26,7 +26,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     // update function to be triggered after a simulator step
 
     // Registers memory
-    Graphics::Shape* registers = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::ID, 10, 15);
+    auto* registers = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::ID, 10, 15);
     registers->addInput(QStringList() << "Read\nregister 1"
                                       << "Read\nregister 2"
                                       << "Write\nregister"
@@ -39,7 +39,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     m_animatedItems.push_back(registers);
 
     // Data memory
-    Graphics::Shape* data_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::MEM, 50, 5);
+    auto* data_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::MEM, 50, 5);
     data_mem->addInput(QStringList() << "Address"
                                      << "Write\ndata");
     data_mem->addOutput(QStringList() << "Read\ndata");
@@ -51,13 +51,13 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     m_animatedItems.push_back(data_mem);
 
     // Instruction memory
-    Graphics::Shape* instr_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 60, 0);
+    auto* instr_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 60, 0);
     instr_mem->addInput(QStringList() << "");
     instr_mem->addOutput(QStringList() << "");
     instr_mem->setName("Instruction\nmemory");
 
     // PC
-    Graphics::Shape* pc = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 30, 3);
+    auto* pc = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 30, 3);
     pc->addInput();
     pc->addOutput();
     pc->addBotPoint("");
@@ -66,7 +66,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     m_animatedItems.push_back(pc);
 
     // MUXes
-    Graphics::Shape* mux_PCSrc = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::IF, 0, 0);
+    auto* mux_PCSrc = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::IF, 0, 0);
     mux_PCSrc->addInput(QStringList() << ""
                                       << ""
                                       << "");
@@ -75,7 +75,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_PCSrc->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_PCSrc);
     m_animatedItems.push_back(mux_PCSrc);
 
-    Graphics::Shape* mux_forwardA_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
+    auto* mux_forwardA_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardA_EX->addInput(QStringList() << ""
                                             << ""
                                             << "");
@@ -84,7 +84,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardA_EX->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardA_EX);
     m_animatedItems.push_back(mux_forwardA_EX);
 
-    Graphics::Shape* mux_forwardB_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
+    auto* mux_forwardB_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardB_EX->addInput(QStringList() << ""
                                             << ""
                                             << "");
@@ -93,7 +93,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardB_EX->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardB_EX);
     m_animatedItems.push_back(mux_forwardB_EX);
 
-    Graphics::Shape* mux_forwardA_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
+    auto* mux_forwardA_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardA_ID->addInput(QStringList() << ""
                                             << ""
                                             << "");
@@ -102,7 +102,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardA_ID->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardA_ID);
     m_animatedItems.push_back(mux_forwardA_ID);
 
-    Graphics::Shape* mux_forwardB_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
+    auto* mux_forwardB_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardB_ID->addInput(QStringList() << ""
                                             << ""
                                             << "");
@@ -111,7 +111,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardB_ID->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardB_ID);
     m_animatedItems.push_back(mux_forwardB_ID);
 
-    Graphics::Shape* mux_ALUSrc1 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
+    auto* mux_ALUSrc1 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_ALUSrc1->addInput(QStringList() << ""
                                         << "");
     mux_ALUSrc1->addOutput();
@@ -119,7 +119,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_ALUSrc1->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_ALUSrc1_IDEX.getOutput());
     m_animatedItems.push_back(mux_ALUSrc1);
 
-    Graphics::Shape* mux_ALUSrc2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
+    auto* mux_ALUSrc2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_ALUSrc2->addInput(QStringList() << ""
                                         << "");
     mux_ALUSrc2->addOutput();
@@ -127,7 +127,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_ALUSrc2->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_ALUSrc2_IDEX.getOutput());
     m_animatedItems.push_back(mux_ALUSrc2);
 
-    Graphics::Shape* mux_alures_PC4_MEM = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
+    auto* mux_alures_PC4_MEM = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_alures_PC4_MEM->addInput(QStringList() << ""
                                                << "");
     mux_alures_PC4_MEM->addOutput();
@@ -135,7 +135,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_alures_PC4_MEM->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_alures_PC4_MEM);
     m_animatedItems.push_back(mux_alures_PC4_MEM);
 
-    Graphics::Shape* mux_memToReg = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 0, 0);
+    auto* mux_memToReg = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 0, 0);
     mux_memToReg->addInput(QStringList() << ""
                                          << ""
                                          << "");
@@ -145,15 +145,15 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     m_animatedItems.push_back(mux_memToReg);
 
     // ALUs
-    Graphics::Shape* alu_pc4 = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::ID, 70, 10);
+    auto* alu_pc4 = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::ID, 70, 10);
     alu_pc4->setName("+");
     alu_pc4->addOutput();
 
-    Graphics::Shape* alu_pc_target = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::EX, 70, 10);
+    auto* alu_pc_target = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::EX, 70, 10);
     alu_pc_target->setName("+");
     alu_pc_target->addOutput();
 
-    Graphics::Shape* alu_mainALU = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::EX, 135, 10);
+    auto* alu_mainALU = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::EX, 135, 10);
     alu_mainALU->setName("ALU");
     alu_mainALU->addOutput();
 
@@ -208,12 +208,12 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
 
     // Static items
-    Graphics::Shape* immgen = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 20, 0);
+    auto* immgen = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 20, 0);
     immgen->setName("Imm\ngen");
     immgen->addInput();
     immgen->addOutput();
 
-    Graphics::Shape* comp = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 0, 20);
+    auto* comp = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 0, 20);
     comp->setName("=");
     comp->addOutput();
     comp->setHiddenOutputs(std::set<int>{0});
@@ -389,10 +389,10 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     moveToIO(mux_memToReg, memwb, mux_memToReg->getInputPoint(0), memwb->getOutputPoint(2), -minConnectionLen);
 
     // ----------- Create Etc. objects -----------
-    Graphics::DashLine* dash1 = new Graphics::DashLine(ifid);
-    Graphics::DashLine* dash2 = new Graphics::DashLine(idex);
-    Graphics::DashLine* dash3 = new Graphics::DashLine(exmem);
-    Graphics::DashLine* dash4 = new Graphics::DashLine(memwb);
+    auto* dash1 = new Graphics::DashLine(ifid);
+    auto* dash2 = new Graphics::DashLine(idex);
+    auto* dash3 = new Graphics::DashLine(exmem);
+    auto* dash4 = new Graphics::DashLine(memwb);
 
     scene->addItem(dash1);
     scene->addItem(dash2);
@@ -505,7 +505,7 @@ void PipelineWidget::moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QP
 Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest,
                                                        int index2, SignalBase* sig) {
     // Connects a source and destination shape using IO index numbers
-    Graphics::Connection* connection =
+    auto* connection =
         new Graphics::Connection(source, source->getOutputPoint(index1), dest, dest->getInputPoint(index2));
     connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::showValue);
     m_connections.append(connection);
@@ -547,7 +547,7 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
 Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, Graphics::Shape* dest,
                                                        QPointF* sourcePoint, QPointF* destPoint) {
     // Connects source and destinations using point pointers
-    Graphics::Connection* connection = new Graphics::Connection(source, sourcePoint, dest, destPoint);
+    auto* connection = new Graphics::Connection(source, sourcePoint, dest, destPoint);
     m_connections.append(connection);
     source->addConnection(connection);
     dest->addConnection(connection);

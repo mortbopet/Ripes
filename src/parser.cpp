@@ -342,7 +342,7 @@ QString Parser::generateLoadString(uint32_t instr) const {
 
 QString Parser::generateBranchString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeBInstr(instr);
-    int offset = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) | (fields[6] << 11));
+    auto offset = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) | (fields[6] << 11));
     switch (fields[4]) {
         case 0b000:  // BEQ
             return QString("beq x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
@@ -378,7 +378,7 @@ QString Parser::generateAuipcString(uint32_t instr) const {
 
 QString Parser::generateJalString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeJInstr(instr);
-    int target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
+    auto target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
     // Check for misaligned four-byte boundary
     return QString("jal x%1 %2").arg(fields[4]).arg(target);
 }

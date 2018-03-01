@@ -150,7 +150,7 @@ bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
         // Tooltips are updated through slot handler updateTooltip
-        QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
+        auto* helpEvent = static_cast<QHelpEvent*>(event);
         QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
         int row = textAtCursor.block().firstLineNumber();
         if (m_tooltipForLine.contains(row) && m_tooltipForLine[row] != QString()) {

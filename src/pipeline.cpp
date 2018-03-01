@@ -518,8 +518,8 @@ void Pipeline::forwardingControlGen() {
 
 void Pipeline::hazardControlGen() {
     // Some shorter names for readability
-    uint32_t r1 = (uint32_t)s_readRegister1;
-    uint32_t r2 = (uint32_t)s_readRegister2;
+    auto r1 = (uint32_t)s_readRegister1;
+    auto r2 = (uint32_t)s_readRegister2;
 
     // Branch hazard: Result from EX stage is needed, or value from memory is needed
     bool branchHazard = (r1 == (uint32_t)r_writeReg_IDEX ||                                               // EX hazard
@@ -570,7 +570,7 @@ void Pipeline::propagateCombinational() {
     mux_alures_PC4_MEM.update();
     if (r_MemRead_EXMEM) {
         // Store read access for use in GUI
-        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM, m_pcsCycles.size()};
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM, static_cast<uint32_t>(m_pcsCycles.size())};
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
@@ -729,7 +729,7 @@ int Pipeline::step() {
     m_reg.clock();
     if (r_MemWrite_EXMEM) {
         // Store write access for use in GUI
-        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM, m_pcsCycles.size()};
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM, static_cast<uint32_t>(m_pcsCycles.size())};
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemWrite_EXMEM) {
             case SB: {

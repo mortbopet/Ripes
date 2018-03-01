@@ -80,7 +80,7 @@ void RegisterContainerWidget::init() {
 }
 
 void RegisterContainerWidget::registerHasChanged() {
-    RegisterWidget* sender = qobject_cast<RegisterWidget*>(QObject::sender());
+    auto* sender = qobject_cast<RegisterWidget*>(QObject::sender());
     sender->setHighlightState(true);
     if (m_currentHighlightedReg != sender && m_currentHighlightedReg != nullptr) {
         m_currentHighlightedReg->setHighlightState(false);
