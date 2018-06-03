@@ -151,38 +151,45 @@ Pipeline::Pipeline() {
 }
 
 void Pipeline::immGen() {
-    uint32_t opcode = (uint32_t)r_instr_IFID & 0b1111111;
+    uint32_t instr = (uint32_t)r_instr_IFID;
+    uint32_t opcode = instr & 0b1111111;
     if (opcode == 0b0110111 || opcode == 0b0010111) {
         // LUI & AUIPC
-        s_imm_ID = Signal<32>((uint32_t)r_instr_IFID & 0xfffff000);
+        s_imm_ID = Signal<32>(instr & 0xfffff000);
     } else if (opcode == 0b1101111) {
         // JAL
-        auto fields = Parser::getParser()->decodeJInstr((uint32_t)r_instr_IFID);
+        auto fields = Parser::getParser()->decodeJInstr(instr);
         s_imm_ID = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
     } else if (opcode == 0b1100111) {
         // JALR
-        s_imm_ID = Signal<32>(signextend<int32_t, 12>(((uint32_t)r_instr_IFID >> 20)));
+        s_imm_ID = Signal<32>(signextend<int32_t, 12>((instr >> 20)));
     } else {
-        // Generates an immediate value on the basis of an instruction opcode
-        // Opcode bits 5 and 6 can define the required fields for generating the immediate
-        switch (((uint32_t)r_instr_IFID & 0b1100000) >> 5) {
-            case 0b00: {
-                // Load instruction, sign extend bits 31:20
-                s_imm_ID = Signal<32>(signextend<int32_t, 12>(((uint32_t)r_instr_IFID >> 20)));
-                break;
-            }
-            case 0b01: {
-                // Store instruction
-                uint32_t v(r_instr_IFID);
-                s_imm_ID = Signal<32>(signextend<int32_t, 12>(((v & 0xfe000000)) >> 20) | ((v & 0xf80) >> 7));
-                break;
-            }
-            default: {
-                // Conditional branch instructions
-                auto fields = Parser::getParser()->decodeBInstr((uint32_t)r_instr_IFID);
-                s_imm_ID = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) |
-                                                   (fields[6] << 11));
-                break;
+        auto fields = Parser::getParser()->decodeRInstr(instr);
+        if (opcode == 0b0010011 && (fields[3] == 0b001 || fields[3] == 0b101)) {
+            // SLLI/SRLI/SRAI
+            s_imm_ID = Signal<32>(fields[1]);
+        } else {
+            // Load, store or regular immediate instruction
+            // Opcode bits 5 and 6 can define the required fields for generating the immediate
+            switch ((instr & 0b1100000) >> 5) {
+                case 0b00: {
+                    // Load or regular immediate instruction, sign extend bits 31:20
+                    s_imm_ID = Signal<32>(signextend<int32_t, 12>((instr >> 20)));
+                    break;
+                }
+                case 0b01: {
+                    // Store instruction
+                    uint32_t v(r_instr_IFID);
+                    s_imm_ID = Signal<32>(signextend<int32_t, 12>(((v & 0xfe000000)) >> 20) | ((v & 0xf80) >> 7));
+                    break;
+                }
+                default: {
+                    // Conditional branch instructions
+                    auto fields = Parser::getParser()->decodeBInstr(instr);
+                    s_imm_ID = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) |
+                                                       (fields[6] << 11));
+                    break;
+                }
             }
         }
     }
@@ -570,7 +577,8 @@ void Pipeline::propagateCombinational() {
     mux_alures_PC4_MEM.update();
     if (r_MemRead_EXMEM) {
         // Store read access for use in GUI
-        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM, static_cast<uint32_t>(m_pcsCycles.size())};
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM,
+                     static_cast<uint32_t>(m_pcsCycles.size())};
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
@@ -729,7 +737,8 @@ int Pipeline::step() {
     m_reg.clock();
     if (r_MemWrite_EXMEM) {
         // Store write access for use in GUI
-        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM, static_cast<uint32_t>(m_pcsCycles.size())};
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM,
+                     static_cast<uint32_t>(m_pcsCycles.size())};
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemWrite_EXMEM) {
             case SB: {

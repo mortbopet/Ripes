@@ -140,6 +140,8 @@ int Assembler::getImmediate(QString string, bool& canConvert) {
 QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int row) {
     Q_UNUSED(row);
     uint32_t funct3 = 0;
+    bool hasFunct7 = false;
+    uint32_t funct7 = 0;
     bool canConvert;
     int imm = getImmediate(fields[3], canConvert);
     if (fields[0] == "addi") {
@@ -164,7 +166,9 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
     } else if (fields[0] == "srli") {
         funct3 = 0b101;
     } else if (fields[0] == "srai") {
+        hasFunct7 = true;
         funct3 = 0b101;
+        funct7 = 0b0100000;
     } else if (fields[0] == "ori") {
         funct3 = 0b110;
     } else if (fields[0] == "andi") {
@@ -173,8 +177,14 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
         m_error = true;
         Q_ASSERT(false);
     };
-    return uintToByteArr(OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
-                         getRegisterNumber(fields[2]) << 15 | imm << 20);
+
+    if (hasFunct7) {
+        return uintToByteArr(OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
+                             getRegisterNumber(fields[2]) << 15 | funct7 << 25 | imm << 20);
+    } else {
+        return uintToByteArr(OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
+                             getRegisterNumber(fields[2]) << 15 | imm << 20);
+    }
 }
 
 QByteArray Assembler::assembleOpInstruction(const QStringList& fields, int row) {

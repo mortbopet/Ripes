@@ -174,6 +174,7 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
                         << "\\bbgeu\\b"
                         << "\\bsrli\\b"
                         << "\\bslli\\b"
+                        << "\\bsrai\\b"
                         << "\\bor\\b"
                         << "\\bori\\b"
                         << "\\band\\b"
