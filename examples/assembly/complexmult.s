@@ -6,7 +6,6 @@ dd: .word 4 # Im part of w
 str: .string " + i* "
 
 .text
-.globl main
 main:
 lw a0 , aa
 lw a1 , bb
