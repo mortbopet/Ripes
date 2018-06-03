@@ -1,7 +1,7 @@
 ## Ripes
 [![Build Status](https://travis-ci.org/mortbopet/Ripes.svg?branch=master)](https://travis-ci.org/mortbopet/Ripes/)
 
-Ripes is a graphical 5-stage processor pipeline simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf), suitable for teaching how assembly level code is executed on a classic pipelined architecture.
+Ripes is a graphical 5-stage processor pipeline simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf), suitable for teaching how assembly level code is executed on a classic pipelined architecture. Ripes is especially suitable for illustrating how concepts such as forwarding and stalling works, giving a visual representation of both cases.
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/animation.gif?raw=true" />
 </p>
@@ -37,7 +37,7 @@ If you want to view the raw binary information, select *Binary* as *View mode*.
 
 ## Processor
 Once no syntax errors have been found in your assembly code, your code will automatically be assembled and loaded into the simulator.
-Switching to the **Processor** tab, you'll be greeted by a datapath picturing a common RISC-V pipeline architecture. Note that a *Control* component nor most control signals aren't included in the view. This descision has been made to reduce clutter. All control signals are generated in the ID (Instruction decode) stage, and are propagated through the stage-separating registers accordingly.
+Switching to the **Processor** tab, you'll be greeted by a datapath picturing a classic 5-stage RISC pipeline architecture. Note that a *Control* component nor most control signals aren't included in the view. This descision has been made to reduce clutter. All control signals are generated in the ID (Instruction decode) stage, and are propagated through the stage-separating registers accordingly.
 
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/processortab.png?raw=true"/>
@@ -72,7 +72,7 @@ Selecting the **Memory** tab will show you three different views:
 </p>
 
 ## Building
-Since RISC-V sim is built using pure C++ and Qt, all platforms that support Qt should be able to build and run the app.
+Since Ripes is built using pure C++ and Qt, all platforms that support Qt should be able to build and run the app.
 
 ### Minimal (Linux)
 If you do not wish to download the entire Qt environment, the project can be built given the following dependencies are available
@@ -111,12 +111,8 @@ Similarly, `macdeployqt` should be available on mac machines.
 
 For Linux, an open-source tool called [linuxdeployqt](https://github.com/probonopd/linuxdeployqt) exists. The purpose of this tool is similar to the windows equivalent, and is run in the same fashion. I've experienced that not all dependencies gets copied to the binary location when using this tools - ie. dependencies such as Qt svg libraries will be missing. Sadly, these remaining dependencies will have to be manually copied from your Qt installations *lib* folder.
 
-# Credits
-Ripes is made by Morten Borup Petersen
-
+---
 Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
-
-Powered by:
 
 <a href="https://www.qt.io/">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/QtIcon.png" width="60" height="60" />
