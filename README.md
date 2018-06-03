@@ -1,7 +1,7 @@
 ## Ripes
 [![Build Status](https://travis-ci.org/mortbopet/Ripes.svg?branch=master)](https://travis-ci.org/mortbopet/Ripes/)
 
-Ripes is a graphical 5-stage processor pipeline simulator and integrated development environment built for the RISC-V instruction set architecture. 
+Ripes is a graphical 5-stage processor pipeline simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf), suitable for teaching how assembly level code is executed on a classic pipelined architecture.
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/animation.gif?raw=true" />
 </p>
