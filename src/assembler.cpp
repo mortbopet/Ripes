@@ -273,7 +273,6 @@ QByteArray Assembler::assembleStoreInstruction(const QStringList& fields, int ro
 }
 
 QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row) {
-    Q_UNUSED(row);
     uint32_t funct3 = 0;
     if (fields[0] == "lb") {
         funct3 = 0b000;
@@ -296,7 +295,7 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
     } else {
         m_error |= !m_labelPosMap.contains(fields[2]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
-        imm = (m_labelPosMap[fields[2]] - row + 1) * 4;
+        imm = (m_labelPosMap[fields[2]] & 0xfff) - ((row - 1) * 4);
     }
 
     return uintToByteArr(LOAD | funct3 << 12 | getRegisterNumber(fields[1]) << 7 | imm << 20 |
