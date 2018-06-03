@@ -529,11 +529,14 @@ void Pipeline::hazardControlGen() {
     auto r2 = (uint32_t)s_readRegister2;
 
     // Branch hazard: Result from EX stage is needed, or value from memory is needed
-    bool branchHazard = (r1 == (uint32_t)r_writeReg_IDEX ||                                               // EX hazard
-                         r2 == (uint32_t)r_writeReg_IDEX ||                                               // EX hazard
-                         ((r1 == (uint32_t)r_writeReg_EXMEM) && (r_MemRead_IDEX || r_MemRead_EXMEM)) ||   // MEM hazard
-                         ((r2 == (uint32_t)r_writeReg_EXMEM) && (r_MemRead_IDEX || r_MemRead_EXMEM))) &&  // MEM hazard
-                        ((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011;
+    bool branchHazardFromMem = ((r1 == (uint32_t)r_writeReg_EXMEM) || (r2 == (uint32_t)r_writeReg_EXMEM)) &&
+                               ((uint32_t)r_regWrite_EXMEM & 0b1) &&
+                               (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011);
+
+    bool branchHazardFromEx = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) &&
+                              ((uint32_t)r_regWrite_IDEX & 0b1) && ((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011;
+
+    bool branchHazard = branchHazardFromMem || branchHazardFromEx;
 
     // Load Use hazard: Loaded variable is needed in execute stage
     bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (bool)r_MemRead_IDEX;
