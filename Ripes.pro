@@ -86,7 +86,8 @@ HEADERS += \
     src/pipelinetablemodel.h \
     src/rwjumpwidget.h \
     src/rwjumpmodel.h \
-    src/lexerutilities.h
+    src/lexerutilities.h \
+    src/graphics/descriptions.h
 
 FORMS += \
     src/mainwindow.ui \

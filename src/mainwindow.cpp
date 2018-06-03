@@ -71,9 +71,11 @@ MainWindow::~MainWindow() {
     delete m_ui;
 }
 
+#include <QDebug>
 void MainWindow::setupExamples() {
     // All .bin and .asm files in folder examples/.. will be added to the list of binary and assembly examples that can
     // be selected through the menu
+    qDebug() << QDir::current().path();
     auto binaryExamples = QDir(QDir::current().path() + "/examples/binary/").entryList(QDir::Files);
     auto assemblyExamples = QDir(QDir::current().path() + "/examples/assembly/").entryList(QDir::Files);
 

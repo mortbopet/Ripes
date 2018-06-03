@@ -3,6 +3,8 @@
 #include "connection.h"
 #include "shape.h"
 
+#include "descriptions.h"
+
 #include <QRectF>
 #include <cmath>
 
@@ -37,6 +39,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     registers->setName("Registers");
     registers->setSignal(Graphics::SignalPos::Top, m_pipelinePtr->r_regWrite_MEMWB.getOutput());
     m_animatedItems.push_back(registers);
+    registers->setToolTip(Descriptions::m["Registers"]);
 
     // Data memory
     auto* data_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::MEM, 50, 5);
@@ -49,12 +52,14 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     data_mem->setSignal(Graphics::SignalPos::Top, m_pipelinePtr->r_MemWrite_EXMEM.getOutput());
     data_mem->setSignal(Graphics::SignalPos::Bot, m_pipelinePtr->r_MemRead_EXMEM.getOutput());
     m_animatedItems.push_back(data_mem);
+    data_mem->setToolTip(Descriptions::m["Data memory"]);
 
     // Instruction memory
     auto* instr_mem = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 60, 0);
     instr_mem->addInput(QStringList() << "");
     instr_mem->addOutput(QStringList() << "");
     instr_mem->setName("Instruction\nmemory");
+    instr_mem->setToolTip(Descriptions::m["Instruction memory"]);
 
     // PC
     auto* pc = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::IF, 30, 3);
@@ -64,6 +69,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     pc->setSignal(Graphics::SignalPos::Bot, &m_pipelinePtr->s_PCWrite);
     pc->setName("PC");
     m_animatedItems.push_back(pc);
+    pc->setToolTip(Descriptions::m["PC"]);
 
     // MUXes
     auto* mux_PCSrc = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::IF, 0, 0);
@@ -74,6 +80,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_PCSrc->setName("M\nu\nx");
     mux_PCSrc->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_PCSrc);
     m_animatedItems.push_back(mux_PCSrc);
+    mux_PCSrc->setToolTip(Descriptions::m["PC Mux"]);
 
     auto* mux_forwardA_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardA_EX->addInput(QStringList() << ""
@@ -83,6 +90,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardA_EX->setName("M\nu\nx");
     mux_forwardA_EX->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardA_EX);
     m_animatedItems.push_back(mux_forwardA_EX);
+    mux_forwardA_EX->setToolTip(Descriptions::m["Forward A EX Mux"]);
 
     auto* mux_forwardB_EX = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardB_EX->addInput(QStringList() << ""
@@ -92,6 +100,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardB_EX->setName("M\nu\nx");
     mux_forwardB_EX->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardB_EX);
     m_animatedItems.push_back(mux_forwardB_EX);
+    mux_forwardB_EX->setToolTip(Descriptions::m["Forward B EX Mux"]);
 
     auto* mux_forwardA_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardA_ID->addInput(QStringList() << ""
@@ -101,6 +110,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardA_ID->setName("M\nu\nx");
     mux_forwardA_ID->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardA_ID);
     m_animatedItems.push_back(mux_forwardA_ID);
+    mux_forwardA_ID->setToolTip(Descriptions::m["Forward A ID Mux"]);
 
     auto* mux_forwardB_ID = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, -15, 0);
     mux_forwardB_ID->addInput(QStringList() << ""
@@ -110,6 +120,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_forwardB_ID->setName("M\nu\nx");
     mux_forwardB_ID->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_forwardB_ID);
     m_animatedItems.push_back(mux_forwardB_ID);
+    mux_forwardB_ID->setToolTip(Descriptions::m["Forward B ID Mux"]);
 
     auto* mux_ALUSrc1 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_ALUSrc1->addInput(QStringList() << ""
@@ -118,6 +129,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_ALUSrc1->setName("M\nu\nx");
     mux_ALUSrc1->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_ALUSrc1_IDEX.getOutput());
     m_animatedItems.push_back(mux_ALUSrc1);
+    mux_ALUSrc1->setToolTip(Descriptions::m["ALUSrc 1 Mux"]);
 
     auto* mux_ALUSrc2 = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_ALUSrc2->addInput(QStringList() << ""
@@ -126,6 +138,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_ALUSrc2->setName("M\nu\nx");
     mux_ALUSrc2->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_ALUSrc2_IDEX.getOutput());
     m_animatedItems.push_back(mux_ALUSrc2);
+    mux_ALUSrc2->setToolTip(Descriptions::m["ALUSrc 2 Mux"]);
 
     auto* mux_alures_PC4_MEM = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::EX, 0, 0);
     mux_alures_PC4_MEM->addInput(QStringList() << ""
@@ -134,6 +147,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_alures_PC4_MEM->setName("M\nu\nx");
     mux_alures_PC4_MEM->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_alures_PC4_MEM);
     m_animatedItems.push_back(mux_alures_PC4_MEM);
+    mux_alures_PC4_MEM->setToolTip(Descriptions::m["ALURES PC4 Mux"]);
 
     auto* mux_memToReg = new Graphics::Shape(Graphics::ShapeType::MUX, Graphics::Stage::WB, 0, 0);
     mux_memToReg->addInput(QStringList() << ""
@@ -143,19 +157,25 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     mux_memToReg->setName("M\nu\nx");
     mux_memToReg->setSignal(Graphics::SignalPos::Left, m_pipelinePtr->r_memToReg_MEMWB.getOutput());
     m_animatedItems.push_back(mux_memToReg);
+    mux_memToReg->setToolTip(Descriptions::m["memToReg Mux"]);
 
     // ALUs
     auto* alu_pc4 = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::ID, 70, 10);
     alu_pc4->setName("+");
     alu_pc4->addOutput();
+    alu_pc4->addInput(QStringList() << ""
+                                    << " 4");
+    alu_pc4->setToolTip(Descriptions::m["pc4 ALU"]);
 
     auto* alu_pc_target = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::EX, 70, 10);
     alu_pc_target->setName("+");
     alu_pc_target->addOutput();
+    alu_pc_target->setToolTip(Descriptions::m["pc target ALU"]);
 
     auto* alu_mainALU = new Graphics::Shape(Graphics::ShapeType::ALU, Graphics::Stage::EX, 135, 10);
     alu_mainALU->setName("ALU");
     alu_mainALU->addOutput();
+    alu_mainALU->setToolTip(Descriptions::m["main ALU"]);
 
     // State registers
     ifid = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::ID, 0, 10);
@@ -212,6 +232,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     immgen->setName("Imm\ngen");
     immgen->addInput();
     immgen->addOutput();
+    immgen->setToolTip(Descriptions::m["immgen"]);
 
     auto* comp = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 0, 20);
     comp->setName("=");
@@ -219,6 +240,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     comp->setHiddenOutputs(std::set<int>{0});
     comp->addTopPoint("");
     comp->addBotPoint("");
+    comp->setToolTip(Descriptions::m["comp"]);
 
     //  ----------- Create connections ----------------------
     Graphics::Connection* connPtr;
