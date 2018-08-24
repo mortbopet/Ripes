@@ -21,7 +21,7 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
 
 ## Downloading & installation
 No installation is required - all required libraries are packaged with the compiled executable.
-Precompiled versions for Windows are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).
+Prebuilt versions for Windows and Ubuntu are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).
 
 For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
@@ -104,12 +104,6 @@ Using the Qt installer, only the prebuilt components for your chosen compiler ne
 Open QtCreator and go to *Tools->Options->Build & Run->Kits* and make sure that your compilers have been detected properly and your kit (ie. your toolchain) is ready for use. A warning will be issued if you do not set a Debugger for your kit - this does not prevent you from building the project. 
 Open *Ripes.pro* in QtCreator, and build in either release or debug mode.
 When building Qt apps, various dynamic libraries are required. Running the app through QtCreator, all Qt dll's are loaded into the path, and available for the application without any extra effort. If you wish to deploy or distribute the application, the required dependencies must be packaged with the compiled binary.
-
-### Deploying
-For Windows, `windeployqt` is a command that automatically detects the dependencies of your compiled executable, and copies the required Qt libraries into the executable folder. You can find this tool in your Qt installation folder
-Similarly, `macdeployqt` should be available on mac machines.
-
-For Linux, an open-source tool called [linuxdeployqt](https://github.com/probonopd/linuxdeployqt) exists. The purpose of this tool is similar to the windows equivalent, and is run in the same fashion. I've experienced that not all dependencies gets copied to the binary location when using this tools - ie. dependencies such as Qt svg libraries will be missing. Sadly, these remaining dependencies will have to be manually copied from your Qt installations *lib* folder.
 
 ---
 Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
