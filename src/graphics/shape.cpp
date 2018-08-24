@@ -2,16 +2,23 @@
 
 #include <QPainter>
 
+#include <QGuiApplication>
+#include <QScreen>
+
 namespace Graphics {
 
 Shape::Shape(ShapeType type, Stage stage, int verticalPad, int horizontalPad)
     : m_verticalPad(verticalPad), m_horizontalPad(horizontalPad), m_type(type), m_stage(stage) {
     setCacheMode(DeviceCoordinateCache);
 
-    m_nameFont.setPointSize(nameFontSize);
+    setPointSize();
+}
+
+void Shape::setPointSize() {
+    m_nameFont.setPixelSize(nameFontSize);
     m_nameFont.setBold(true);
 
-    m_ioFont.setPointSize(ioFontSize);
+    m_ioFont.setPixelSize(ioFontSize);
 }
 
 QRectF Shape::boundingRect() const {

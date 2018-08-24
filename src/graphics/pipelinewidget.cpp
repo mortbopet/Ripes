@@ -370,10 +370,10 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     // items position relative to these
 
     // Position state registers
-    ifid->moveBy(-spaceBetweenStateRegs * 0.2, 0);
+    ifid->moveBy(-spaceBetweenStateRegs * 0.22, 0);
     idex->moveBy(spaceBetweenStateRegs * 1, 0);
-    exmem->moveBy(spaceBetweenStateRegs * 2, 0);
-    memwb->moveBy(spaceBetweenStateRegs * 3, 0);
+    exmem->moveBy(spaceBetweenStateRegs * 2.05, 0);
+    memwb->moveBy(spaceBetweenStateRegs * 3.05, 0);
 
     // position IF stage
     moveToIO(instr_mem, ifid, instr_mem->getOutputPoint(0), ifid->getInputPoint(2));
@@ -404,7 +404,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     moveToIO(mux_forwardB_EX, mux_ALUSrc2, mux_forwardB_EX->getOutputPoint(0), mux_ALUSrc2->getInputPoint(0), 30);
 
     // position MEM stage
-    data_mem->moveBy(spaceBetweenStateRegs * 2.5, 0);
+    data_mem->moveBy(spaceBetweenStateRegs * 2.63, 0);
     mux_alures_PC4_MEM->moveBy(spaceBetweenStateRegs * 2.4, 130);
 
     // position WB stage
@@ -475,7 +475,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     // For some reason, the boundingrect of the leftmost connections are not forcing the scene rect to change
     // We manually adjust it a bit
-    setSceneRect(scene->itemsBoundingRect().adjusted(-40, 0, 0, 0));
+    setSceneRect(scene->itemsBoundingRect().adjusted(-50, -50, 50, 100));
 }
 
 void PipelineWidget::update() {

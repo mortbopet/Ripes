@@ -62,6 +62,8 @@ public:
     int type() const { return connectionType(); }
 
 private:
+    void setPointSize();
+
     QRectF m_rect;
     bool m_hasChanged = true;  // Flag is set whenever the item has changed (ie.
                                // when new descriptors have been added)
@@ -105,8 +107,8 @@ private:
 
     // drawing constants
     qreal nodeHeight = 20;
-    qreal nameFontSize = 10;
-    qreal ioFontSize = 8;
+    qreal nameFontSize = 14;
+    qreal ioFontSize = 11;
     qreal nodePadding = 5;  // padding between each text descriptor for a node
     qreal sidePadding = 7;  // padding between an IO description and the side of the shape
     int m_fixedHeight;
