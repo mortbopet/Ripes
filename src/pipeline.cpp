@@ -624,7 +624,7 @@ void Pipeline::propagateCombinational() {
     mux_forwardB_ID.update();
 
     // Compare read register values and '&' with s_branch control signal
-    switch ((CompOp)(int)s_CompOp) {
+    switch ((CompOp)(uint32_t)s_CompOp) {
         case BEQ: {
             s_branchTaken = s_Branch && ((uint32_t)mux_forwardA_ID == (uint32_t)mux_forwardB_ID);
             break;
