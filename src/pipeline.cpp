@@ -664,8 +664,8 @@ void Pipeline::propagateCombinational() {
     mux_PCSrc.update();
 
     // Load nops if PC is greater than text size
-    s_instr_IF = Signal<32>(
-        (uint32_t)r_PC_IF > m_textSize ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
+    m_finishing = ((uint32_t)r_PC_IF > m_textSize) | m_finishing;
+    s_instr_IF = Signal<32>(m_finishing ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
 
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
@@ -683,7 +683,7 @@ void Pipeline::propagateCombinational() {
     s_IFID_reset = m_finishing ? 1 : s_IFID_reset;
     // if finishing, ECALL will stay in ID stage, and we will force overrideNext for idex stage
     if (m_finishing) {
-        r_invalidPC_IDEX.overrideNext(HazardReason::eof);
+        r_invalidPC_IFID.overrideNext(HazardReason::eof);
     }
 }
 
@@ -796,8 +796,8 @@ void Pipeline::setStagePCS() {
     m_pcs.WB = m_pcs.MEM.initialized ? PCVAL(r_PC_MEMWB, r_invalidPC_MEMWB) : m_pcs.WB;
     m_pcs.MEM = m_pcs.EX.initialized ? PCVAL(r_PC_EXMEM, r_invalidPC_EXMEM) : m_pcs.MEM;
     m_pcs.EX = m_pcs.ID.initialized ? PCVAL(r_PC_IDEX, r_invalidPC_IDEX) : m_pcs.EX;
-    m_pcs.ID = m_pcs.IF.initialized ? PCVAL(r_PC_IFID, r_invalidPC_IFID) : m_pcs.ID;
-    m_pcs.IF = PCVAL(r_PC_IF, 0);
+    m_pcs.ID = m_pcs.IF.initialized | m_finishing ? PCVAL(r_PC_IFID, r_invalidPC_IFID) : m_pcs.ID;
+    m_pcs.IF = PCVAL(r_PC_IF, m_finishing | m_finished);
 }
 
 int Pipeline::run() {

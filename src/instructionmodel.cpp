@@ -69,33 +69,33 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
                 QStringList retStrings;
                 uint32_t byteIndex = row * 4;
                 uint32_t maxInstr = m_textSize - 4;
-                if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && m_pcsptr.EX.invalidReason == 0) {
+                if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && m_pcsptr.EX.isValid()) {
                     emit textChanged(Stage::EX, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::ID, "");
                     }
                     retStrings << "EX";
                 }
-                if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && m_pcsptr.ID.invalidReason == 0) {
+                if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && m_pcsptr.ID.isValid()) {
                     emit textChanged(Stage::ID, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::IF, "");
                     }
                     retStrings << "ID";
                 }
-                if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && m_pcsptr.IF.invalidReason == 0) {
+                if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && m_pcsptr.IF.isValid()) {
                     emit textChanged(Stage::IF, m_parserPtr->getInstructionString(row * 4));
                     emit currentIFRow(row);  // for moving view to IF position
                     retStrings << "IF";
                 }
-                if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && m_pcsptr.MEM.invalidReason == 0) {
+                if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && m_pcsptr.MEM.isValid()) {
                     emit textChanged(Stage::MEM, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::EX, "");
                     }
                     retStrings << "MEM";
                 }
-                if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && m_pcsptr.WB.invalidReason == 0) {
+                if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && m_pcsptr.WB.isValid()) {
                     emit textChanged(Stage::WB, m_parserPtr->getInstructionString(row * 4));
                     if (byteIndex == maxInstr) {
                         emit textChanged(Stage::MEM, "");

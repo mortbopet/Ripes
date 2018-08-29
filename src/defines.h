@@ -26,6 +26,7 @@ public:
         bool initialized;        // If false, no text will be written above a pipeline stage when pipeline is reset
         uint32_t invalidReason;  // 1: a stage has been flushed because of branch taken
                                  // 2: A stage is stalled because of hazards
+        bool isValid() const { return invalidReason == 0; }
     } PC;
     StagePCS() {}
     void reset() {
