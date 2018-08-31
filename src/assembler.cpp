@@ -339,7 +339,7 @@ QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int ro
         // An offset value has been provided
         m_error |= !m_labelPosMap.contains(fields[2]);
         // calculate offset 31:12 bits - we add +1 to offset the sign if the offset is negative
-        imm = (m_labelPosMap[fields[2]] - row) * 4;
+        imm = (m_labelPosMap[fields[2]]) * 4;
         if (imm < 0) {
             imm >>= 12;
             imm += 1;
