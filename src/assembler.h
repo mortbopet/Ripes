@@ -19,6 +19,7 @@ private:
     void unpackPseudoOp(const QStringList& fields, int& pos);
     void unpackOp(const QStringList& fields, int& pos);
     void assembleAssemblerDirective(const QStringList& fields);
+    void assembleWords(const QStringList& fields, QByteArray& byteArr, size_t size);
     void restart();
     int getImmediate(QString string, bool& canConvert);
     QByteArray uintToByteArr(uint32_t);
