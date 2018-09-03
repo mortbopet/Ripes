@@ -10,6 +10,8 @@
 #include <vector>
 #include "unordered_map"
 
+#include <QRegularExpression>
+
 #define WORDSIZE 32
 #define STACKSTART 0x7ffffff0
 #define DATASTART 0x10000000
@@ -139,5 +141,7 @@ typedef struct {
     instrType type = INVALID;
     uint32_t word = 0;
 } Instruction;
+
+const static auto splitter = QRegularExpression("(\\,|\\t|\\(|\\))");
 
 #endif  // DEFINES_H

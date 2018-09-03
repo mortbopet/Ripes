@@ -600,10 +600,12 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         byteArray = string.toUtf8();
     } else if (fields[0] == QString(".word")) {
         bool ok;
-        qlonglong val = getImmediate(fields[1], ok);
-        for (int i = 0; i < 4; i++) {
-            byteArray.append(val & 0xff);
-            val >>= 8;
+        for(int i = 1; i < fields.size(); i++){
+            qlonglong val = getImmediate(fields[i], ok);
+            for (int i = 0; i < 4; i++) {
+                byteArray.append(val & 0xff);
+                val >>= 8;
+            }
         }
     } else if (fields[0] == QString(".data")) {
         // Following instructions will be assembled into the data segment
@@ -714,7 +716,6 @@ inline QStringList splitColon(const QString& string) {
 const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
     // Called by codeEditor when syntax has been accepted, and the document should be assembled into binary
     // Because of the previously accepted syntax, !no! error handling will be done, to ensure a fast execution
-    const static auto splitter = QRegularExpression("(\\,|\\t|\\(|\\))");
     int line = 0;
     restart();
 

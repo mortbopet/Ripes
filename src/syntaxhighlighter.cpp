@@ -507,6 +507,7 @@ void SyntaxHighlighter::createSyntaxRules() {
     // .byte
     types.clear();
     types << FieldType(Type::Immediate, -128, 255);
+    rule.hasListField = true;  // a list of immediates can be provided
     rule.instr = ".byte";
     rule.fields = 2;
     rule.inputs = types;
@@ -515,6 +516,7 @@ void SyntaxHighlighter::createSyntaxRules() {
     // .2byte & half
     types.clear();
     types << FieldType(Type::Immediate, -32768, 65535);
+    rule.hasListField = true;  // a list of immediates can be provided
     rule.instr = ".2byte";
     rule.fields = 2;
     rule.inputs = types;
@@ -525,6 +527,7 @@ void SyntaxHighlighter::createSyntaxRules() {
     // .4byte & word
     types.clear();
     types << FieldType(Type::Immediate, INT_MIN, INT_MAX);
+    rule.hasListField = true;  // a list of immediates can be provided
     rule.instr = ".4byte";
     rule.fields = 2;
     rule.inputs = types;
@@ -552,7 +555,6 @@ namespace {
 }
 
 QString SyntaxHighlighter::checkSyntax(const QString& input) {
-    const static auto splitter = QRegularExpression("(\\,|\\t|\\(|\\))");
     QStringList fields = input.split(splitter);
     fields.removeAll("");
     fields = splitQuotes(fields);
@@ -624,15 +626,22 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
         if (ruleIter != m_syntaxRules.end()) {
             // A rule for the instruction has been found
             for (const auto& rule : *ruleIter) {
-                if (fields.size() == rule.fields || (rule.fields2 != -1 && fields.size() == rule.fields2)) {
+                if (fields.size() == rule.fields || (rule.fields2 != -1 && fields.size() == rule.fields2) ||
+                    rule.hasListField) {
                     // fields size is correct, check each instruction
                     int nFields = fields.size();
                     QString currentRes = QString();
                     for (int index = 1; index < nFields; index++) {
                         // Get input rule - skipFirstField is a special case handler for jal pseudo-op when only 2
                         // fields are available
-                        auto inputRule = rule.skipFirstField && nFields == rule.fields2 ? rule.inputs[index]
-                                                                                        : rule.inputs[index - 1];
+                        int ruleIndex = index;
+                        if (rule.hasListField) {
+                            // For list arguments, the last available syntax rule will be the rule for all inputs
+                            ruleIndex = rule.inputs.size();
+                        }
+
+                        auto inputRule = rule.skipFirstField && nFields == rule.fields2 ? rule.inputs[ruleIndex]
+                                                                                        : rule.inputs[ruleIndex - 1];
                         // If an offset is used, store line number, to re-update after all variable declarations have
                         // been mapped (after syntax checking the entire document)
                         if (inputRule.m_type == Type::Offset) {

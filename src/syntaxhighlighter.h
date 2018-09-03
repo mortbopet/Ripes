@@ -52,6 +52,8 @@ private:
         int fields;                   // n instruction fields, including the instruction
         int fields2;                  // jal and jalr can be 2 different ops (pseudo- and base op)
         bool skipFirstField = false;  // jal needs to skip its first operand for its pseudo-op
+        bool hasListField = false;    // .byte/.word etc. can accept a list of arguments. Last argument in the inputs
+                                      // fieldtype list can be a list
         QList<FieldType> inputs;      // list of each accepted input for the instruction, in order
     };
 
