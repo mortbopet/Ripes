@@ -11,7 +11,7 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
   * 5-stage graphical pipeline simulator with visualization for multiplexer input selection, register write/enable signals and more.
   * Stage information: Current stage instructions are displayed above each stage, as well as in the instruction memory view
   * Breakpoint setting
-  * Supports RISC-V assembly files & RISC-V binary files (extracted *.text* segments)
+  * Supports RISC-V assembly files & RISC-V binary files (extracted *.text* segments) - supported instructions are the **RV32I** Base Instruction Set as well as **RV32M** Standard Extension.
 * **Memory**:
   * Display type selection for various display formats (Hex, Decimal, ...)
   * Memory view with features such as scrolling adress saving and adress jumping
