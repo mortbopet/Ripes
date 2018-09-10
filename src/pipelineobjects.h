@@ -284,7 +284,13 @@ enum OPCODE {
     LUI = 10,
     LT = 11,
     LTU = 12,
-    EQ = 13
+    EQ = 13,
+    MULH = 14,
+    MULHU = 15,
+    MULHSU = 16,
+    DIVU = 17,
+    REM = 18,
+    REMU = 19
 };
 }  // namespace ALUOps
 
@@ -324,7 +330,7 @@ template <int n>
 void ALU<n>::update() {
     if (!initialized())
         throw std::runtime_error("Mux not initialized");
-    switch ((ALUOps::OPCODE)(int)*m_control) {
+    switch ((ALUOps::OPCODE)(uint32_t)*m_control) {
         case ALUOps::ADD:
             m_output = (uint32_t)*m_op1 + (uint32_t)*m_op2;
             break;
@@ -332,10 +338,37 @@ void ALU<n>::update() {
             m_output = (uint32_t)*m_op1 - (uint32_t)*m_op2;
             break;
         case ALUOps::MUL:
-            m_output = (uint32_t)*m_op1 * (uint32_t)*m_op2;
+            m_output = (int)*m_op1 * (int)*m_op2;
             break;
+        case ALUOps::MULH:
+            {
+            int64_t res = (int)*m_op1 * (int)*m_op2;
+            m_output = static_cast<uint32_t>(res >> 32);
+            break;
+            }
+        case ALUOps::MULHU:
+            {
+            int64_t res = (uint32_t)*m_op1 * (uint32_t)*m_op2;
+            m_output = static_cast<uint32_t>(res >> 32);
+            break;
+            }
+        case ALUOps::MULHSU:
+            {
+            int64_t res = (int)*m_op1 * (uint32_t)*m_op2;
+            m_output = static_cast<uint32_t>(res >> 32);
+            break;
+            }
         case ALUOps::DIV:
+            m_output = (int)*m_op1 / (int)*m_op2;
+            break;
+        case ALUOps::DIVU:
             m_output = (uint32_t)*m_op1 / (uint32_t)*m_op2;
+            break;
+        case ALUOps::REM:
+            m_output = (int)*m_op1 % (int)*m_op2;
+            break;
+        case ALUOps::REMU:
+            m_output = (uint32_t)*m_op1 % (uint32_t)*m_op2;
             break;
         case ALUOps::AND:
             m_output = (uint32_t)*m_op1 & (uint32_t)*m_op2;

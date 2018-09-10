@@ -180,7 +180,18 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
                         << "\\band\\b"
                         << "\\bandi\\b"
                         << "\\badd\\b"
-                        << "\\becall\\b";
+                        << "\\becall\\b"
+
+                        << "\\bmul\\b"
+                        << "\\bmulh\\b"
+                        << "\\bmulhu\\b"
+                        << "\\bmulhsu\\b"
+
+                        << "\\bdiv\\b"
+                        << "\\bdivu\\b"
+                        << "\\brem\\b"
+                        << "\\bremu\\b";
+
     instrFormat.setForeground(QColor(Colors::BerkeleyBlue));
     for (const auto& pattern : instructionPatterns) {
         rule.pattern = QRegularExpression(pattern);
@@ -466,7 +477,15 @@ void SyntaxHighlighter::createSyntaxRules() {
           << "srl"
           << "sra"
           << "or"
-          << "and";
+          << "and"
+          << "mul"
+          << "mulh"
+          << "mulhu"
+          << "mulhsu"
+          << "rem"
+          << "remu"
+          << "div"
+          << "divu";
     for (const auto& name : names) {
         rule.instr = name;
         rule.fields = 4;

@@ -288,66 +288,112 @@ void Pipeline::controlGen() {
         case 0b0110011: {
             // R-type
             auto fields = Parser::getParser()->decodeRInstr((uint32_t)r_instr_IFID);
-            switch (fields[3]) {
-                case 0b000: {
-                    switch (fields[0]) {
-                        case 0b0000000: {
-                            // ADD
-                            s_ALUOP = ALUOps::ADD;
-                            break;
-                        }
-                        case 0b0100000: {
-                            // SUB
-                            s_ALUOP = ALUOps::SUB;
-                            break;
-                        }
+            if(fields[0] == 0b1){
+                // RV32M Standard extension
+                switch(fields[3]){
+                    case 0b000: {
+                        // mul
+                        s_ALUOP = ALUOps::MUL;
+                        break;
                     }
-                    break;
-                }
-                case 0b001: {
-                    // SLL
-                    s_ALUOP = ALUOps::SL;
-                    break;
-                }
-                case 0b010: {
-                    // SLT
-                    s_ALUOP = ALUOps::LT;
-                    break;
-                }
-                case 0b011: {
-                    // SLTU
-                    s_ALUOP = ALUOps::LTU;
-                    break;
-                }
-                case 0b100: {
-                    // XOR
-                    s_ALUOP = ALUOps::XOR;
-                    break;
-                }
-                case 0b101: {
-                    switch (fields[0]) {
-                        case 0b0000000: {
-                            // SRL
-                            s_ALUOP = ALUOps::SRL;
-                            break;
-                        }
-                        case 0b0100000: {
-                            // SRA
-                            s_ALUOP = ALUOps::SRA;
-                            break;
-                        }
+                    case 0b001: {
+                        // mulh
+                        s_ALUOP = ALUOps::MULH;
+                        break;
                     }
-                    break;
+                    case 0b010: {
+                        // mulhsu
+                        s_ALUOP = ALUOps::MULHSU;
+                        break;
+                    }
+                    case 0b011: {
+                        // mulhu
+                        s_ALUOP = ALUOps::MULHU;
+                        break;
+                    }
+                    case 0b100: {
+                        // div
+                        s_ALUOP = ALUOps::DIV;
+                        break;
+                    }
+                    case 0b101: {
+                        // divu
+                        s_ALUOP = ALUOps::DIVU;
+                        break;
+                    }
+                    case 0b110: {
+                        // rem
+                        s_ALUOP = ALUOps::REM;
+                        break;
+                    }
+                    case 0b111: {
+                        // remu
+                        s_ALUOP = ALUOps::REMU;
+                        break;
+                    }
                 }
-                case 0b110: {
-                    // OR
-                    s_ALUOP = ALUOps::OR;
-                    break;
-                }
-                case 0b111: {
-                    // AND
-                    s_ALUOP = ALUOps::AND;
-                    break;
+            } else {
+                switch (fields[3]) {
+                    case 0b000: {
+                        switch (fields[0]) {
+                            case 0b0000000: {
+                                // ADD
+                                s_ALUOP = ALUOps::ADD;
+                                break;
+                            }
+                            case 0b0100000: {
+                                // SUB
+                                s_ALUOP = ALUOps::SUB;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case 0b001: {
+                        // SLL
+                        s_ALUOP = ALUOps::SL;
+                        break;
+                    }
+                    case 0b010: {
+                        // SLT
+                        s_ALUOP = ALUOps::LT;
+                        break;
+                    }
+                    case 0b011: {
+                        // SLTU
+                        s_ALUOP = ALUOps::LTU;
+                        break;
+                    }
+                    case 0b100: {
+                        // XOR
+                        s_ALUOP = ALUOps::XOR;
+                        break;
+                    }
+                    case 0b101: {
+                        switch (fields[0]) {
+                            case 0b0000000: {
+                                // SRL
+                                s_ALUOP = ALUOps::SRL;
+                                break;
+                            }
+                            case 0b0100000: {
+                                // SRA
+                                s_ALUOP = ALUOps::SRA;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case 0b110: {
+                        // OR
+                        s_ALUOP = ALUOps::OR;
+                        break;
+                    }
+                    case 0b111: {
+                        // AND
+                        s_ALUOP = ALUOps::AND;
+                        break;
+                    }
                 }
             }
             s_RegWrite = 1;
