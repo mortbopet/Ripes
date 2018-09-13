@@ -359,16 +359,39 @@ void ALU<n>::update() {
             break;
             }
         case ALUOps::DIV:
-            m_output = (int)*m_op1 / (int)*m_op2;
+            if((int)*m_op2 == 0){
+                m_output = -1;
+            } else if((int)*m_op1 == (-(std::pow(2,32-1))) && (int)*m_op2 == -1){
+                // Overflow
+                m_output = static_cast<int>(-(std::pow(2,32-1)));
+            } else {
+                m_output = (int)*m_op1 / (int)*m_op2;
+            }
             break;
         case ALUOps::DIVU:
-            m_output = (uint32_t)*m_op1 / (uint32_t)*m_op2;
+            if((int)*m_op2 == 0){
+                m_output = static_cast<uint32_t>(std::pow(2,32) - 1);
+            } else {
+                m_output = (uint32_t)*m_op1 / (uint32_t)*m_op2;
+            }
             break;
         case ALUOps::REM:
-            m_output = (int)*m_op1 % (int)*m_op2;
+            if((int)*m_op2 == 0){
+                m_output = (int)*m_op1;
+            } else if((int)*m_op1 == (-(std::pow(2,32-1))) && (int)*m_op2 == -1){
+                // Overflow
+                m_output = 0;
+            }
+            else {
+                m_output = (int)*m_op1 % (int)*m_op2;
+            }
             break;
         case ALUOps::REMU:
-            m_output = (uint32_t)*m_op1 % (uint32_t)*m_op2;
+            if((uint32_t)*m_op2 == 0){
+                m_output = (uint32_t)*m_op1;
+            } else {
+                m_output = (uint32_t)*m_op1 % (uint32_t)*m_op2;
+            }
             break;
         case ALUOps::AND:
             m_output = (uint32_t)*m_op1 & (uint32_t)*m_op2;
