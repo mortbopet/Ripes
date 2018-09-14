@@ -5,6 +5,7 @@
 #include "defines.h"
 #include "mainmemory.h"
 
+#include <math.h>
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
