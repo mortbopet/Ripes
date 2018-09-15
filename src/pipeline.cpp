@@ -710,7 +710,7 @@ void Pipeline::propagateCombinational() {
     mux_PCSrc.update();
 
     // Load nops if PC is greater than text size
-    m_finishing = ((uint32_t)r_PC_IF > m_textSize) | m_finishing;
+    m_finishing = ((uint32_t)r_PC_IFID > m_textSize) | m_finishing;
     s_instr_IF = Signal<32>(m_finishing ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
 
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
