@@ -1,0 +1,24 @@
+<RCC>
+    <qresource prefix="/examples">
+        <file>assembly/addlarge.s</file>
+        <file>assembly/addneg.s</file>
+        <file>assembly/addpos.s</file>
+        <file>assembly/branchcnt.s</file>
+        <file>assembly/branchmany.s</file>
+        <file>assembly/complexmult.s</file>
+        <file>assembly/factorial.s</file>
+        <file>assembly/loop.s</file>
+        <file>assembly/shift.s</file>
+        <file>binary/addlarge.bin</file>
+        <file>binary/addneg.bin</file>
+        <file>binary/addpos.bin</file>
+        <file>binary/addposnoforwarding.bin</file>
+        <file>binary/branchcnt.bin</file>
+        <file>binary/branchmany.bin</file>
+        <file>binary/branchnoforwarding.bin</file>
+        <file>binary/loadbranch.bin</file>
+        <file>binary/loop.bin</file>
+        <file>binary/shift.bin</file>
+        <file>binary/storeloadnoforwarding.bin</file>
+    </qresource>
+</RCC>
