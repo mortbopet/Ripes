@@ -136,9 +136,9 @@ COPYEXAMPLES{
     COPIED {
     } else {
         if(win*){
-            copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD/$$OUTDIR/examples\"
+            copydata.commands = $(COPY_DIR) \"$$PWD/appdir/usr/bin/examples\" \"$$OUT_PWD/$$OUTDIR/examples\"
         } else {
-            copydata.commands = $(COPY_DIR) \"$$PWD/examples\" \"$$OUT_PWD\"
+            copydata.commands = $(COPY_DIR) \"$$PWD/appdir/usr/bin/examples\" \"$$OUT_PWD\"
         }
         first.depends = $(first) copydata
         export(first.depends)
@@ -167,4 +167,38 @@ unix {
     INSTALLS += icon256
     INSTALLS += desktop
     INSTALLS += target
+
+    # Examples
+    ASSEMBlY_EX_PATH = $$PREFIX/bin/examples/assembly
+    BINARY_EX_PATH   = $$PREFIX/bin/examples/binary
+
+    S_EXAMPLES =    addlarge        \
+                    addpos          \
+                    branchmany      \
+                    factorial       \
+                    shift           \
+                    addneg          \
+                    branchcnt       \
+                    complexmult     \
+                    loop
+
+    for(ex, S_EXAMPLES){
+        $${ex}.path = $$ASSEMBlY_EX_PATH
+        $${ex}.files += $${ex}.s
+    }
+
+    B_EXAMPLES =    addlarge                \
+                    branchcnt               \
+                    loop addneg             \
+                    branchmany              \
+                    shift addpos            \
+                    branchnoforwarding      \
+                    storeloadnoforwarding   \
+                    addposnoforwarding      \
+                    loadbranch
+
+    for(ex, B_EXAMPLES){
+        $${ex}.path = $$BINARY_EX_PATH
+        $${ex}.files += $${ex}.s
+    }
 }
