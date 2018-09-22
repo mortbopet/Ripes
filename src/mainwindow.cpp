@@ -76,8 +76,14 @@ void MainWindow::setupExamples() {
     // All .bin and .asm files in folder examples/.. will be added to the list of binary and assembly examples that can
     // be selected through the menu
     qDebug() << QDir::current().path();
-    auto binaryExamples = QDir(QDir::current().path() + "/examples/binary/").entryList(QDir::Files);
-    auto assemblyExamples = QDir(QDir::current().path() + "/examples/assembly/").entryList(QDir::Files);
+    auto examplesPath = QDir(QDir::current().path() + "/examples/");
+    if (!examplesPath.exists()) {
+        // Application has been deployed to unix, use alternate example directory
+        examplesPath = QDir(QDir::current().path() + "/usr/bin/examples/");
+    }
+
+    auto binaryExamples = QDir(examplesPath.path() + "/binary/").entryList(QDir::Files);
+    auto assemblyExamples = QDir(examplesPath.path() + "/assembly/").entryList(QDir::Files);
 
     // Load examples
     if (!binaryExamples.isEmpty()) {
