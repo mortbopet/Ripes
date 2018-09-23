@@ -20,8 +20,10 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
   * Real-time assembler for side-by-side comparison of assembly code and (disassembled) binary code
 
 ## Downloading & installation
-No installation is required - all required libraries are packaged with the compiled executable.
-Prebuilt versions for Windows and Ubuntu are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).
+No installation is required - all required libraries are packaged with the compiled executable - these are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).
+
+A continuous build is available for Linux through the provided AppImage. To run an AppImage; download the file, run `chmod a+x` on the .AppImage, and run the file. The AppImage for Linux should be compatible with most distributions.
+Furthermore, incremental releases for Windows are available.
 
 For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
