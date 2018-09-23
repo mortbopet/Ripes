@@ -1,4 +1,4 @@
-QT += widgets
+QT += widgets svg
 
 CONFIG += c++14
 
