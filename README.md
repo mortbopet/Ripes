@@ -20,7 +20,7 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
   * Real-time assembler for side-by-side comparison of assembly code and (disassembled) binary code
 
 ## Downloading & installation
-No installation is required - all required libraries are packaged with the compiled executable - these are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).  
+Prebuilt applications are available for Linux, Windows & Mac/OSX. No installation is required - all required libraries are packaged with the compiled executable - these are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).  
 **It is recommended to use the *continuous releases*, since they contain all of the most-recent bug-fixes.**
 
 ### Linux
@@ -33,7 +33,7 @@ The AppImage for Linux should be compatible with most Linux distributions.
 For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You most likely already have this installed, but if this is not the case, you download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
 ### Mac/OSX
-*Continuous builds for Mac/OSX are currently not provided*.
+Please note that the Mac/OSX is *mostly untested* and as such, there may be various visual glitches as well as performance issues.
 
 # Usage
 ## Editor
@@ -55,25 +55,26 @@ Switching to the **Processor** tab, you'll be greeted by a datapath picturing a 
 
 Besides the datapath, this tab contains the following elements:
 * Simulator control:
-    * **Step** is equal to activating the clock signal in the circuit. This will clock next-state signals into the registers, and new signals are calculated (propagate through the circuit)
-    * **Autostepping** will automatically step through the program with a speed determined by the execution speed slider. 
-    * **Run** will run the program until a breakpoint is encountered or execution is finished. This will postpone updating the visualized datapath until the break is encountered.
-    * **Reset** resets the simulator, resetting all stages and setting the program counter to point to the first instruction
-* Register view: A list of all registers in the processor, with highlighting for the most-recently used register
-* Instruction memory: A view of the disassembled instructions that are currently loaded in the processor. This view displays which instructions are present in each pipeline stage, as well as breakpoint setting functionality
+    * **(1) Run** will run the program until a breakpoint is encountered or execution is finished. This will postpone updating the visualized datapath until the break is encountered.
+    * **(2) Autostepping** will automatically step through the program with a speed determined by the execution speed slider **(5)**. 
+    * **(3) Step** is equal to activating the clock signal in the circuit. This will clock next-state signals into the registers, and new signals are calculated (propagate through the circuit)
+    * **(4) Reset** resets the simulator, resetting all stages and setting the program counter to point to the first instruction
+* **(6) Display all signal values** will show the underlying output signals for most signals in the datapath
+* **(7) Pipeline table**: see below
+* **(8)** Various buttons are available for zooming & expanding the datapath view
+* **(9)Registers** is a view of the value of all registers in the processor, with highlighting for the most-recently used register
+* **(10) Instruction memory**: A view of the disassembled instructions that are currently loaded in the processor. This view displays which instructions are present in each pipeline stage, as well as breakpoint setting functionality
 Furthermore, the following options are available:
-* **Display all signal values** will show the underlying output signals for most signals in the datapath
-* Various buttons are available for zooming & expanding the datapath view
-* The datapath image can be saved to a file
-* **Pipeline table** will display a pop-up window with the stage information for the current program. The program must be run to propagate the chart
+
+### Pipelining table 
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/ptable.PNG?raw=true"/>
 </p>
+will display a pop-up window with the stage information for the current program. The program must be run to propagate the chart. The pipeline table can be copied and pasted to spreadsheets.
 
-During execution, the instructions will propagate through the datapath, and be visible both above each stage of the pipeline, as well as in the instruction memory view. Furthermore, when the pipeline is stalled or flushed, this will be indicated above a pipeline stage.
 ## Memory
 Selecting the **Memory** tab will show you three different views:
-* **Registers** Is similar to the view presented in the processor tab, giving an overview of the contents of each register
+* Registers - similar to the view presented in the processor tab
 * A memory view, where all parts of the program memory can be inspected. To navigate, one can use the scroll view or select one of the predefined destinations (or to a specific address) via the *Go to* combobox. A label for an address can be saved for future use, via. the *Save address* button. 
 * A list of the most recent memory accesses. Selecting an entry and pressing *Go to selected address* sets the right side memory view to center at the address for the given entry
 
