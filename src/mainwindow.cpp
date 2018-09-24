@@ -36,6 +36,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->splitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consoles->minimumHeight() - 1)
                                           << (m_ui->consoles->minimumHeight() + 1));
 
+    /// @todo implement application output!
+    /// since we dont have any way to do application output yet, disable consoles
+    m_ui->consoles->hide();
+    /*
+    connect(m_ui->actionShow_consoles, &QAction::triggered, [=](bool state) {
+        if (state) {
+            m_ui->consoles->show();
+        } else {
+            m_ui->consoles->hide();
+        };
+    });
+    m_ui->menuSettings->setVisible(false);
+    */
+    // -----------------------------------------------------------------------
+
     // Setup tab pointers
     m_ui->processortab->initRegWidget();
     m_ui->processortab->initInstructionView();
@@ -49,13 +64,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
             &MainWindow::on_actionLoadBinaryFile_triggered);
     connect(m_ui->programfiletab, &ProgramfileTab::loadAssemblyFile, this,
             &MainWindow::on_actionLoadAssemblyFile_triggered);
-    connect(m_ui->actionShow_consoles, &QAction::triggered, [=](bool state) {
-        if (state) {
-            m_ui->consoles->show();
-        } else {
-            m_ui->consoles->hide();
-        };
-    });
+
     connect(m_ui->processortab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
     connect(m_ui->programfiletab, &ProgramfileTab::updateSimulator, [this] { emit update(); });
     connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);

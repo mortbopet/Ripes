@@ -125,12 +125,6 @@
     <addaction name="separator"/>
     <addaction name="actionexit"/>
    </widget>
-   <widget class="QMenu" name="menuSettings">
-    <property name="title">
-     <string>Settings</string>
-    </property>
-    <addaction name="actionShow_consoles"/>
-   </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
@@ -139,7 +133,6 @@
     <addaction name="actionOpen_documentation"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadBinaryFile">
