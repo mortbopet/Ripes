@@ -17,10 +17,10 @@ make -j$(nproc)
 # Start bundling the app
 macdeployqt Ripes.app
 
-APPNAME=Ripes-continuous-mac-x86_64.app
-sudo mv Ripes.app $APPNAME
+APPNAME=Ripes-continuous-mac-x86_64
+sudo mv Ripes.app $APPNAME.app
 
-sudo zip -r ${APPNAME}.zip ${APPNAME}/
+sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
 
 ln -s . 5.0
 popd

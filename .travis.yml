@@ -3,10 +3,10 @@
 matrix:
   include:
 
-    #- env: RIPES_PLATFORM='mac'
-    #  os: osx
-    #  osx_image: xcode8
-    #  language: c++ ruby
+    - env: RIPES_PLATFORM='mac'
+      os: osx
+      osx_image: xcode8
+      language: c++
 
     - env: RIPES_PLATFORM='windows'
       os: linux
