@@ -18,8 +18,6 @@ public:
     void setModel(QAbstractItemModel* model);
 
 private slots:
-    void on_save_clicked();
-
     void on_copy_clicked();
 
 private:

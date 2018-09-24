@@ -9,6 +9,8 @@ PipelineTable::PipelineTable(QWidget* parent) : QDialog(parent), ui(new Ui::Pipe
     ui->setupUi(this);
     this->setModal(true);
     ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    ui->description->setText(QString("<b>Note:</b> The pipeline table can be copied as tab separated,<br>suitable for pasting into a spreadsheet"));
 }
 
 void PipelineTable::setModel(QAbstractItemModel* model) {
@@ -18,23 +20,6 @@ void PipelineTable::setModel(QAbstractItemModel* model) {
 
 PipelineTable::~PipelineTable() {
     delete ui;
-}
-
-void PipelineTable::on_save_clicked() {
-    QFileDialog dialog;
-    dialog.setNameFilter("*.png");
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setOption(QFileDialog::DontUseNativeDialog);
-    if (dialog.exec()) {
-        auto files = dialog.selectedFiles();
-        if (files.length() == 1) {
-            ui->table->resizeColumnsToContents();
-            ui->table->resizeRowsToContents();
-            QPixmap pixmap(ui->table->size());
-            ui->table->render(&pixmap);
-            pixmap.save(files[0]);
-        }
-    }
 }
 
 void PipelineTable::on_copy_clicked() {

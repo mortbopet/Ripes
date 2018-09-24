@@ -23,22 +23,12 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QToolButton" name="save">
-         <property name="toolTip">
-          <string>Save image of currently viewable part of table</string>
-         </property>
+        <widget class="QLabel" name="description">
          <property name="text">
-          <string>...</string>
+          <string>description...</string>
          </property>
-         <property name="icon">
-          <iconset resource="../resources/images.qrc">
-           <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
          </property>
         </widget>
        </item>
