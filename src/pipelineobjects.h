@@ -5,7 +5,7 @@
 #include "defines.h"
 #include "mainmemory.h"
 
-#include <math.h>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
@@ -341,54 +341,50 @@ void ALU<n>::update() {
         case ALUOps::MUL:
             m_output = (int)*m_op1 * (int)*m_op2;
             break;
-        case ALUOps::MULH:
-            {
+        case ALUOps::MULH: {
             int64_t res = (int)*m_op1 * (int)*m_op2;
             m_output = static_cast<uint32_t>(res >> 32);
             break;
-            }
-        case ALUOps::MULHU:
-            {
+        }
+        case ALUOps::MULHU: {
             int64_t res = (uint32_t)*m_op1 * (uint32_t)*m_op2;
             m_output = static_cast<uint32_t>(res >> 32);
             break;
-            }
-        case ALUOps::MULHSU:
-            {
+        }
+        case ALUOps::MULHSU: {
             int64_t res = (int)*m_op1 * (uint32_t)*m_op2;
             m_output = static_cast<uint32_t>(res >> 32);
             break;
-            }
+        }
         case ALUOps::DIV:
-            if((int)*m_op2 == 0){
+            if ((int)*m_op2 == 0) {
                 m_output = -1;
-            } else if((int)*m_op1 == (-(std::pow(2,32-1))) && (int)*m_op2 == -1){
+            } else if ((int)*m_op1 == (-(std::pow(2, 32 - 1))) && (int)*m_op2 == -1) {
                 // Overflow
-                m_output = static_cast<int>(-(std::pow(2,32-1)));
+                m_output = static_cast<int>(-(std::pow(2, 32 - 1)));
             } else {
                 m_output = (int)*m_op1 / (int)*m_op2;
             }
             break;
         case ALUOps::DIVU:
-            if((int)*m_op2 == 0){
-                m_output = static_cast<uint32_t>(std::pow(2,32) - 1);
+            if ((int)*m_op2 == 0) {
+                m_output = static_cast<uint32_t>(std::pow(2, 32) - 1);
             } else {
                 m_output = (uint32_t)*m_op1 / (uint32_t)*m_op2;
             }
             break;
         case ALUOps::REM:
-            if((int)*m_op2 == 0){
+            if ((int)*m_op2 == 0) {
                 m_output = (int)*m_op1;
-            } else if((int)*m_op1 == (-(std::pow(2,32-1))) && (int)*m_op2 == -1){
+            } else if ((int)*m_op1 == (-(std::pow(2, 32 - 1))) && (int)*m_op2 == -1) {
                 // Overflow
                 m_output = 0;
-            }
-            else {
+            } else {
                 m_output = (int)*m_op1 % (int)*m_op2;
             }
             break;
         case ALUOps::REMU:
-            if((uint32_t)*m_op2 == 0){
+            if ((uint32_t)*m_op2 == 0) {
                 m_output = (uint32_t)*m_op1;
             } else {
                 m_output = (uint32_t)*m_op1 % (uint32_t)*m_op2;
