@@ -20,12 +20,20 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
   * Real-time assembler for side-by-side comparison of assembly code and (disassembled) binary code
 
 ## Downloading & installation
-No installation is required - all required libraries are packaged with the compiled executable - these are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).
+No installation is required - all required libraries are packaged with the compiled executable - these are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).  
+**It is recommended to use the *continuous releases*, since they contain all of the most-recent bug-fixes.**
 
-A continuous build is available for Linux through the provided AppImage. To run an AppImage; download the file, run `chmod a+x` on the .AppImage, and run the file. The AppImage for Linux should be compatible with most distributions.
-Furthermore, incremental releases for Windows are available.
+### Linux
+Releases for Linux are distributed in the AppImage format. To run an AppImage:
+* Run `chmod a+x` on the AppImage file
+* Run the file!
+The AppImage for Linux should be compatible with most Linux distributions.
 
-For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
+### Windows
+For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You most likely already have this installed, but if this is not the case, you download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
+
+### Mac/OSX
+*Continuous builds for Mac/OSX are currently not provided*.
 
 # Usage
 ## Editor
@@ -75,37 +83,15 @@ Selecting the **Memory** tab will show you three different views:
 
 ## Building
 Since Ripes is built using pure C++ and Qt, all platforms that support Qt should be able to build and run the app.
-
-### Minimal (Linux)
-If you do not wish to download the entire Qt environment, the project can be built given the following dependencies are available
-* *g++* version with support for C++14
-* *qmake* with Qt version 5.5 or higher
-A minimal Qt installation can be found at https://launchpad.net/~beineri.
-A Qt environment can be set up as follows:
+Ripes contains no external dependencies and (Assuming you have a Qt environment in your PATH) can be built by the following commands:
 ```
-sudo add-apt-repository --yes ppa:beineri/opt-qt593-xenial
-apt-get update -qq
-sudo apt-get install qt59-meta-minimal
-source /opt/qt59/bin/qt59-env.sh
+Unix:               Windows:
+cd Ripes/           cd Ripes/
+qmake               qmake.exe
+make                jom.exe
 ```
-Verify that you have the correct qmake version installed:
-```
-qmake --version
-```
-Navigate to the project folder and run
-```
-qmake Ripes.pro
-make
-```
-
-
-### Using QtCreator (All platforms)
 Download Qt for Open Source development at https://www.qt.io/download.
-Using the Qt installer, only the prebuilt components for your chosen compiler needs to be selected. When installing Qt, you also install QtCreator. 
-
-Open QtCreator and go to *Tools->Options->Build & Run->Kits* and make sure that your compilers have been detected properly and your kit (ie. your toolchain) is ready for use. A warning will be issued if you do not set a Debugger for your kit - this does not prevent you from building the project. 
-Open *Ripes.pro* in QtCreator, and build in either release or debug mode.
-When building Qt apps, various dynamic libraries are required. Running the app through QtCreator, all Qt dll's are loaded into the path, and available for the application without any extra effort. If you wish to deploy or distribute the application, the required dependencies must be packaged with the compiled binary.
+Using the Qt installer, only the prebuilt components for your chosen compiler needs to be selected.
 
 ---
 Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
