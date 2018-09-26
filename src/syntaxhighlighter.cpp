@@ -422,6 +422,7 @@ void SyntaxHighlighter::createSyntaxRules() {
     types.clear();
     names << "ecall"
           << "nop"
+          << "ret"
           << ".text"
           << ".data";
     for (const auto& name : names) {
