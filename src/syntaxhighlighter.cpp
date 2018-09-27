@@ -111,6 +111,7 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
                         << "\\brd\\b"
                         << "\\blw\\b"
                         << "\\blh\\b"
+                        << "\\blui\\b"
                         << "\\blb\\b"
                         << "\\bsb\\b"
                         << "\\bsh\\b"
@@ -307,6 +308,14 @@ void SyntaxHighlighter::createSyntaxRules() {
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.skipFirstField = false;  // revert
     rule.fields2 = -1;
+
+    // lui -- pseudo
+    types.clear();
+    types << FieldType(Type::Register) << FieldType(Type::Immediate, 0, 1048575, this);
+    rule.instr = "lui";
+    rule.fields = 3;
+    rule.inputs = types;
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // j
     types.clear();
@@ -591,6 +600,9 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
     // check for labels
     QString string = fields[0];
     if (string.contains(':')) {
+        if(string.count(':') > 1){
+            return QString("Multiple instances of ':' in label");
+        }
         // Label detected - check if already defined, else add to label definitions
         QStringList splitFirst = string.split(':');
         string = splitFirst[0];  // get label
