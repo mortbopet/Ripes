@@ -479,9 +479,11 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 }
 
 void PipelineWidget::update() {
-    QWidget::update();
-    for (const auto& item : m_animatedItems) {
-        item->update();
+    if(!m_pipelinePtr->isRunning()){
+        QWidget::update();
+        for (const auto& item : m_animatedItems) {
+            item->update();
+        }
     }
 }
 

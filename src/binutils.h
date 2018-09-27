@@ -33,17 +33,5 @@ constexpr uint32_t bitcount(int n) {
     return count;
 }
 
-inline uint32_t accBVec(std::vector<bool> v) {
-    uint32_t r = 0;
-    for (uint32_t i = 0; i < v.size(); i++) {
-        r |= v[i] << i;
-    }
-    return r;
-}
-
-inline void buildVec(std::vector<bool>& v, uint32_t n) {
-    for (uint32_t i = 0; i < v.size(); i++) {
-        v[i] = n & 0b1;
-        n >>= 1;
-    }
-}
+uint32_t accBVec(const std::vector<bool>& v);
+void buildVec(std::vector<bool>& v, uint32_t n);

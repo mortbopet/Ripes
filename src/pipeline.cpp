@@ -772,9 +772,9 @@ void Pipeline::handleEcall() {
 
 std::pair<Pipeline::ECALL, uint32_t> Pipeline::checkEcall(bool reset) {
     // Called from GUI after each clock cycle - resets the internal ECALL request
-    return {m_ecallval, m_reg.a1()};
     if (reset)
         m_ecallval = ECALL::none;
+    return {m_ecallval, m_reg.a1()};
 }
 
 int Pipeline::step() {
@@ -846,10 +846,21 @@ void Pipeline::setStagePCS() {
     m_pcs.IF = PCVAL(r_PC_IF, m_finishing | m_finished);
 }
 
+void Pipeline::abort(){
+    m_abort = true; // async abort of run()
+}
+
 int Pipeline::run() {
-    while (!step())
+    m_running = true;
+    while (!step() && !m_abort)
         ;
-    return 1;
+    m_running = false;
+    if(m_abort){
+        restart();
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 void Pipeline::reset() {
@@ -859,6 +870,7 @@ void Pipeline::reset() {
     m_dataMemory.clear();
     m_textSize = 0;
     m_ready = false;
+    m_abort = false;
 }
 
 void Pipeline::update() {
@@ -879,6 +891,7 @@ void Pipeline::restart() {
     m_pcsPre.reset();
     m_finished = false;
     m_finishing = false;
+    m_abort = false;
     m_finishingCnt = 0;
     m_pcsCycles.clear();
     m_RVAccesses.clear();

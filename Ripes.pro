@@ -43,7 +43,9 @@ SOURCES += src/main.cpp \
     src/pipelinetable.cpp \
     src/pipelinetablemodel.cpp \
     src/rwjumpwidget.cpp \
-    src/rwjumpmodel.cpp
+    src/rwjumpmodel.cpp \
+    src/rundialog.cpp \
+    src/binutils.cpp
 
 HEADERS += \
     src/parser.h \
@@ -87,7 +89,8 @@ HEADERS += \
     src/rwjumpwidget.h \
     src/rwjumpmodel.h \
     src/lexerutilities.h \
-    src/graphics/descriptions.h
+    src/graphics/descriptions.h \
+    src/rundialog.h
 
 FORMS += \
     src/mainwindow.ui \
@@ -102,7 +105,8 @@ FORMS += \
     src/registercontainerwidget.ui \
     src/aboutwidget.ui \
     src/pipelinetable.ui \
-    src/rwjumpwidget.ui
+    src/rwjumpwidget.ui \
+    src/rundialog.ui
 
 
 # External

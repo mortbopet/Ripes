@@ -1,4 +1,5 @@
 #include "shape.h"
+#include "pipeline.h"
 
 #include <QPainter>
 
@@ -171,120 +172,122 @@ QPainterPath Shape::drawALUPath(QRectF rect) const {
 }
 
 void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget*) {
-    auto rect = boundingRect();
+    if(!Pipeline::getPipeline()->isRunning()){
+        auto rect = boundingRect();
 
-    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
 
-    painter->setPen(QPen(Qt::black, 1.5));
-    painter->setBrush(Qt::white);
-    switch (m_type) {
-        case ShapeType::Block: {
-            painter->drawRect(rect);
-        } break;
-        case ShapeType::ALU: {
-            painter->drawPath(drawALUPath(rect));
-        } break;
-        case ShapeType::MUX: {
-            painter->drawRoundedRect(rect, 40, 15);
-        } break;
-        case ShapeType::Static: {
-            painter->drawEllipse(rect);
-        } break;
-    }
-
-    painter->setBrush(Qt::transparent);
-
-    // Translate text in relation to the bounding rectangle, and draw shape name
-    auto fontMetricsObject = QFontMetrics(m_nameFont);
-    QRectF textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_name);
-    textRect.moveTo(0, 0);
-    textRect.translate(-textRect.width() / 2, -textRect.height() / 2);  // center text rect
-    painter->setFont(m_nameFont);
-    painter->drawText(textRect, Qt::AlignCenter, m_name);
-
-    // Iterate through node descriptors and draw text
-    fontMetricsObject = QFontMetrics(m_ioFont);  // update fontMetrics object to new font
-    painter->setFont(m_ioFont);
-
-    // Draw input descriptors
-    for (int i = 0; i < m_inputs.size(); i++) {
-        textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_inputs[i]);
-        textRect.moveTo(m_inputPoints[i]);
-        textRect.translate(sidePadding, -textRect.height() / 2);  // move text away from side
-        painter->drawText(textRect, m_inputs[i]);
-    }
-
-    // Draw output descriptors
-    for (int i = 0; i < m_outputs.size(); i++) {
-        textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_outputs[i]);
-        textRect.moveTo(m_outputPoints[i]);
-        textRect.translate(-textRect.width() - sidePadding, -textRect.height() / 2);  // move text away from side
-        painter->drawText(textRect, m_outputs[i]);
-    }
-
-    // draw IO points
-    if (m_drawTopPoint) {
-        // draw top descriptor
-        textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_topText);
-        textRect.moveTo(m_topPoint);
-        textRect.translate(-textRect.width() / 2, textRect.height());  // move text away from side
-        painter->drawText(textRect, m_topText);
-        if (m_topSignal != nullptr) {
-            QColor col = m_topSignal->getValue() == 0 ? Qt::red : Qt::green;
-            // If signal has been set, draw red for off, green for on
-            painter->setBrush(col);
-            painter->drawEllipse(m_topPoint, 5, 5);
-            painter->setBrush(Qt::transparent);
-        } else {
-            painter->drawEllipse(m_topPoint, 5, 5);
+        painter->setPen(QPen(Qt::black, 1.5));
+        painter->setBrush(Qt::white);
+        switch (m_type) {
+            case ShapeType::Block: {
+                painter->drawRect(rect);
+            } break;
+            case ShapeType::ALU: {
+                painter->drawPath(drawALUPath(rect));
+            } break;
+            case ShapeType::MUX: {
+                painter->drawRoundedRect(rect, 40, 15);
+            } break;
+            case ShapeType::Static: {
+                painter->drawEllipse(rect);
+            } break;
         }
-    }
 
-    if (m_drawBotPoint) {
-        // draw bottom descriptor
-        textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_botText);
-        textRect.moveTo(m_bottomPoint);
-        textRect.translate(-textRect.width() / 2, -textRect.height() - sidePadding);  // move text away from side
-        painter->drawText(textRect, m_botText);
-        if (m_botsignal != nullptr) {
-            // If signal has been set, draw red for off, green for on
-            QColor col = m_botsignal->getValue() == 0 ? Qt::red : Qt::green;
-            painter->setBrush(col);
-            painter->drawEllipse(m_bottomPoint, 5, 5);
-            painter->setBrush(Qt::transparent);
-        } else {
-            painter->drawEllipse(m_bottomPoint, 5, 5);
+        painter->setBrush(Qt::transparent);
+
+        // Translate text in relation to the bounding rectangle, and draw shape name
+        auto fontMetricsObject = QFontMetrics(m_nameFont);
+        QRectF textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_name);
+        textRect.moveTo(0, 0);
+        textRect.translate(-textRect.width() / 2, -textRect.height() / 2);  // center text rect
+        painter->setFont(m_nameFont);
+        painter->drawText(textRect, Qt::AlignCenter, m_name);
+
+        // Iterate through node descriptors and draw text
+        fontMetricsObject = QFontMetrics(m_ioFont);  // update fontMetrics object to new font
+        painter->setFont(m_ioFont);
+
+        // Draw input descriptors
+        for (int i = 0; i < m_inputs.size(); i++) {
+            textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_inputs[i]);
+            textRect.moveTo(m_inputPoints[i]);
+            textRect.translate(sidePadding, -textRect.height() / 2);  // move text away from side
+            painter->drawText(textRect, m_inputs[i]);
         }
-    }
 
-    // LEFT/RIGHT IO POINTS
-    for (uint32_t i = 0; i < m_inputPoints.length(); i++) {
-        if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end()) {
-            if (m_singleIOBlink) {
-                // Color individual points
-                // find point if in ioSignalPairs
-                if (m_IOSignalPairs.find(i) != m_IOSignalPairs.end()) {
-                    QColor col = m_IOSignalPairs[i]->getValue() == 0 ? Qt::red : Qt::green;
-                    painter->setBrush(col);
+        // Draw output descriptors
+        for (int i = 0; i < m_outputs.size(); i++) {
+            textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_outputs[i]);
+            textRect.moveTo(m_outputPoints[i]);
+            textRect.translate(-textRect.width() - sidePadding, -textRect.height() / 2);  // move text away from side
+            painter->drawText(textRect, m_outputs[i]);
+        }
+
+        // draw IO points
+        if (m_drawTopPoint) {
+            // draw top descriptor
+            textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_topText);
+            textRect.moveTo(m_topPoint);
+            textRect.translate(-textRect.width() / 2, textRect.height());  // move text away from side
+            painter->drawText(textRect, m_topText);
+            if (m_topSignal != nullptr) {
+                QColor col = m_topSignal->getValue() == 0 ? Qt::red : Qt::green;
+                // If signal has been set, draw red for off, green for on
+                painter->setBrush(col);
+                painter->drawEllipse(m_topPoint, 5, 5);
+                painter->setBrush(Qt::transparent);
+            } else {
+                painter->drawEllipse(m_topPoint, 5, 5);
+            }
+        }
+
+        if (m_drawBotPoint) {
+            // draw bottom descriptor
+            textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_botText);
+            textRect.moveTo(m_bottomPoint);
+            textRect.translate(-textRect.width() / 2, -textRect.height() - sidePadding);  // move text away from side
+            painter->drawText(textRect, m_botText);
+            if (m_botsignal != nullptr) {
+                // If signal has been set, draw red for off, green for on
+                QColor col = m_botsignal->getValue() == 0 ? Qt::red : Qt::green;
+                painter->setBrush(col);
+                painter->drawEllipse(m_bottomPoint, 5, 5);
+                painter->setBrush(Qt::transparent);
+            } else {
+                painter->drawEllipse(m_bottomPoint, 5, 5);
+            }
+        }
+
+        // LEFT/RIGHT IO POINTS
+        for (uint32_t i = 0; i < m_inputPoints.length(); i++) {
+            if (m_hiddenInputPoints.find(i) == m_hiddenInputPoints.end()) {
+                if (m_singleIOBlink) {
+                    // Color individual points
+                    // find point if in ioSignalPairs
+                    if (m_IOSignalPairs.find(i) != m_IOSignalPairs.end()) {
+                        QColor col = m_IOSignalPairs[i]->getValue() == 0 ? Qt::red : Qt::green;
+                        painter->setBrush(col);
+                        painter->drawEllipse(m_inputPoints[i], 5, 5);
+                        painter->setBrush(Qt::transparent);
+                    } else {
+                        painter->drawEllipse(m_inputPoints[i], 5, 5);
+                    }
+
+                } else if (m_leftSignal != nullptr && m_leftSignal->getValue() == i) {
+                    // For multiplexers, we want to color the input that is asserted
+                    painter->setBrush(Qt::red);
                     painter->drawEllipse(m_inputPoints[i], 5, 5);
                     painter->setBrush(Qt::transparent);
                 } else {
                     painter->drawEllipse(m_inputPoints[i], 5, 5);
                 }
-
-            } else if (m_leftSignal != nullptr && m_leftSignal->getValue() == i) {
-                // For multiplexers, we want to color the input that is asserted
-                painter->setBrush(Qt::red);
-                painter->drawEllipse(m_inputPoints[i], 5, 5);
-                painter->setBrush(Qt::transparent);
-            } else {
-                painter->drawEllipse(m_inputPoints[i], 5, 5);
             }
         }
-    }
-    for (int i = 0; i < m_outputPoints.length(); i++) {
-        if (m_hiddenOutputPoints.find(i) == m_hiddenOutputPoints.end())
-            painter->drawEllipse(m_outputPoints[i], 5, 5);
+        for (int i = 0; i < m_outputPoints.length(); i++) {
+            if (m_hiddenOutputPoints.find(i) == m_hiddenOutputPoints.end())
+                painter->drawEllipse(m_outputPoints[i], 5, 5);
+        }
     }
 }
 

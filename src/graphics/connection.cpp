@@ -257,7 +257,7 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
 }
 
 QRectF Label::boundingRect() const {
-    if (m_signal != nullptr) {
+    if (m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
         auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
         QPointF pos = mapFromItem(m_source, *m_drawPos);
         QFontMetrics metric = QFontMetrics(QFont());

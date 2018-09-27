@@ -2,6 +2,7 @@
 #include <QScrollBar>
 #include "instructionmodel.h"
 #include "pipelinewidget.h"
+#include "rundialog.h"
 #include "ui_processortab.h"
 
 #include <QFileDialog>
@@ -106,13 +107,14 @@ void ProcessorTab::on_displayValues_toggled(bool checked) {
 
 void ProcessorTab::on_run_clicked() {
     auto pipeline = Pipeline::getPipeline();
+    RunDialog dialog(this);
     if (pipeline->isReady()) {
-        if (pipeline->run() && pipeline->isFinished()) {
+        if (dialog.exec() && pipeline->isFinished()) {
             emit update();
             m_ui->step->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
-        } else if (pipeline->checkEcall(false).first != Pipeline::ECALL::none) {
+        } else if (pipeline->checkEcall(true).first != Pipeline::ECALL::none) {
             // An ECALL has been invoked during continuous running. Handle ecall and continue to run
             handleEcall();
             on_run_clicked();
@@ -152,6 +154,7 @@ void ProcessorTab::setCurrentInstruction(int row) {
 void ProcessorTab::on_step_clicked() {
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
+
 
     handleEcall();
 

@@ -19,6 +19,8 @@ public:
     void update();
     int step();
     int run();
+    void abort();
+    bool isRunning() const {return m_running;}
 
     // Pointers for GUI
     std::set<uint32_t>* getBreakpoints() { return &m_breakpoints; }
@@ -51,6 +53,7 @@ private:
     void aluCtrl();
     void clock();
     bool m_ready = false;
+    bool m_running;
     ECALL m_ecallval;
 
     // Program counters for each stage
@@ -60,6 +63,7 @@ private:
     bool m_finishing =
         false;  // Set when ecall 10 is detected, and the pipeline is running its remaining instructions through
     bool m_finished = false;
+    bool m_abort = false;
     int m_finishingCnt = 0;
     std::vector<StagePCS> m_pcsCycles;   // list of PCs for each cycle
     std::vector<RVAccess> m_RVAccesses;  // List of all read/write accesses to memory
