@@ -260,26 +260,32 @@ void Connection::toggleLabel(bool show){
 
 // --------- label ------------
 void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
-    if (m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
-        // Draw label (connection value)
-        const auto text = getText();
-        QRectF textRect = getTextRect(text);
-        textRect.adjust(-5, 0, 5, 5);// adjust for pen width
-        painter->fillRect(textRect, Qt::white);
-        painter->setBrush(Qt::NoBrush);
-        painter->setPen(QPen(Qt::black,  PENWIDTH));
-        painter->drawRect(textRect);
-        painter->setFont(QFont());
-        // Calculate drawing position
-        QPointF textPos = textRect.topLeft();
-        textPos.rx() += 5;
-        textPos.ry() += 14;
-        painter->drawText(textPos, text);
-    }
+    // Dont draw if we have not attached the label to a signal
+    if(m_signal == nullptr)
+        return;
+
+    // Draw label (connection value)
+    const auto text = getText();
+    QRectF textRect = getTextRect(text);
+    textRect.adjust(-5, 0, 5, 5);// adjust for pen width
+    painter->fillRect(textRect, Qt::white);
+    painter->setBrush(Qt::NoBrush);
+    painter->setPen(QPen(Qt::black,  PENWIDTH));
+    painter->drawRect(textRect);
+    painter->setFont(QFont());
+    // Calculate drawing position
+    QPointF textPos = textRect.topLeft();
+    textPos.rx() += 5;
+    textPos.ry() += 14;
+    painter->drawText(textPos, text);
 }
 
 QString Label::getText() const {
-    return QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
+    if(m_signal != nullptr && !Pipeline::getPipeline()->isRunning()){
+        return QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
+    } else {
+        return QString();
+    }
 }
 
 QRectF Label::getTextRect(const QString& text) const{
@@ -289,15 +295,11 @@ QRectF Label::getTextRect(const QString& text) const{
 }
 
 QRectF Label::boundingRect() const {
-    if (m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
-        auto boundingRect = getTextRect(getText());
+    auto boundingRect = getTextRect(getText());
 
-        // Adjust for pen width etc.
-        boundingRect.adjust(-5 - PENWIDTH, - PENWIDTH, 5 + PENWIDTH, 5 + PENWIDTH);
-        return boundingRect;
-    } else {
-        return QRectF();
-    }
+    // Adjust for pen width etc.
+    boundingRect.adjust(-5 - PENWIDTH, - PENWIDTH, 5 + PENWIDTH, 5 + PENWIDTH);
+    return boundingRect;
 }
 
 }  // namespace Graphics
