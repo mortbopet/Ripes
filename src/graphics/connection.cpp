@@ -20,7 +20,6 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF
     m_dests << QPair<Shape*, QPointF*>(dest, destPoint);
     m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
-    update();
 }
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> dests)
@@ -28,33 +27,32 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> des
     m_dests = dests;
     m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
-    update();
 }
 
 QRectF Connection::boundingRect() const {
+    return m_boundingRect;
+}
+
+QRectF Connection::calculateBoundingRect() const{
     const static double pad = 5;  // pad around each edge
-    double left = 0;
-    double top = 0;
-    double bot = 0;
-    double right = 0;
+    QRectF br;
+
     // Iterate through all points in the connection line to find bounding rect
-    for (const auto& pointVec : m_polyLines) {
-        for (const auto& point : pointVec) {
-            left = point.x() < left ? point.x() : left;
-            right = point.x() > right ? point.x() : right;
-            top = point.y() < top ? point.y() : top;
-            bot = point.y() > bot ? point.y() : bot;
+    if(m_polyLines.size() > 0){
+        br = m_polyLines.at(0).boundingRect();
+        for (const auto& polyLine : m_polyLines) {
+            QRectF pr = polyLine.boundingRect();
+            br.setLeft(pr.left() < br.left() ? pr.left() : br.left());
+            br.setTop(pr.top() < br.top() ? pr.top() : br.top());
+            br.setRight(pr.right() > br.right() ? pr.right() : br.right());
+            br.setBottom(pr.bottom() > br.bottom() ? pr.bottom() : br.bottom());
         }
     }
-    return QRectF(left - pad, top - pad, right - left + pad, bot - top + pad);
+    return br;
 }
 
-QPair<QPointF, QPointF> Connection::getPoints() const {
-    return QPair<QPointF, QPointF>(mapFromItem(m_source, *m_sourcePointPtr),
-                                   mapFromItem(m_dests[0].first, *m_dests[0].second));
-}
+void Connection::calculatePaths(){
 
-void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
     QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
 
     // sort destinations
@@ -95,20 +93,24 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
                 if (m_dir == Direction::east) {
                     QPointF point(source.x() + xDiff / 2 + bias, source.y());
                     QPointF point2(point.x(), dest.y());
+                    /*
                     if (m_pointAtFirstKink) {
                         // Draw kink points
                         painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                         painter->drawPoint(point);
                     }
+                    */
                     sourcePoints << point << point2;
                     polyLine << point << point2;
                 } else {
                     QPointF point(dest.x(), source.y());
+                    /*
                     if (m_pointAtFirstKink) {
                         // Draw kink points
                         painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                         painter->drawPoint(point);
                     }
+                    */
                     sourcePoints << point;
                     polyLine << point;
                 }
@@ -166,7 +168,23 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
             m_polyLines.append(polyLine);
         }
     }
+}
 
+void Connection::finalize(){
+    // This function will calculate the paths which needs to be painted, as well as
+    // lock in the bounding rect of the connection
+    calculatePaths();
+
+    // Cache bounding rect
+    m_boundingRect = calculateBoundingRect();
+}
+
+QPair<QPointF, QPointF> Connection::getPoints() const {
+    return QPair<QPointF, QPointF>(mapFromItem(m_source, *m_sourcePointPtr),
+                                   mapFromItem(m_dests[0].first, *m_dests[0].second));
+}
+
+void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
     painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter->setBrush(Qt::black);
     // painter->setCompositionMode(QPainter::CompositionMode_DestinationOver);
@@ -174,7 +192,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
     for (const auto& line : m_polyLines) {
         // Draw connection polyline
 
-        painter->drawPolyline(QPolygonF(line));
+        painter->drawPolyline(line);
         // Draw destination arrows - angles are a bit strange
         qreal angle;
         switch (m_dir) {
@@ -218,20 +236,11 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         }
         i++;
     }
-
-    // Debugging: draw bounding rect
-    /*
-    painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    painter->setBrush(Qt::transparent);
-    painter->drawRect(boundingRect());
-*/
-    update();
 }
 
 void Connection::addLabelToScene() {
     // Must be called after connection has been added to a scene
     scene()->addItem(&m_label);
-    update();
 }
 
 // --------- label ------------

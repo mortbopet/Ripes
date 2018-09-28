@@ -471,6 +471,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     // Add labels to scene (on top of all items and connections)
     for (auto& conn : m_connections) {
         conn->addLabelToScene();
+        // Calculate connection paths
+        conn->finalize();
     }
 
     // For some reason, the boundingrect of the leftmost connections are not forcing the scene rect to change

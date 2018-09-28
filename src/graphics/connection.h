@@ -49,6 +49,7 @@ public:
     void setValueDrawPos(ValueDrawPos pos) { m_valuePos = pos, update(); }
     void drawPointAtFirstKink(bool val) { m_pointAtFirstKink = val; }
 
+    void finalize();
     QPair<QPointF, QPointF> getPoints() const;
     QPair<Shape*, Shape*> getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dests[0].first); }
     Shape* getSource() { return m_source; }
@@ -84,9 +85,13 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
+    QRectF calculateBoundingRect() const;
+    void calculatePaths();
+
     // A list of IO points, which all connect to this widget -
     // used to form attachment points to this connection
     QList<QPointF*> m_connectsToThis;
+    QRectF m_boundingRect;
 
     // List of biases for each kink in the connection
     // Used to tune kink positioning
@@ -102,7 +107,7 @@ private:
     ValueDrawPos m_valuePos = ValueDrawPos::Source;
 
     int m_arrowSize = 10;
-    QList<QVector<QPointF>> m_polyLines;
+    QList<QPolygonF> m_polyLines;
     Shape* m_source;
     QPointF* m_sourcePointPtr;
     QList<PointPair> m_dests;
