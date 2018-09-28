@@ -12,6 +12,8 @@ namespace {
 inline double pointDistance(QPointF a, QPointF b) {
     return std::sqrt(std::pow(a.x() - b.x(), 2) + std::pow(a.y() - b.y(), 2));
 }
+
+#define PENWIDTH 1
 }  // namespace
 using namespace std;
 
@@ -54,6 +56,9 @@ QRectF Connection::calculateBoundingRect() const{
 void Connection::calculatePaths(){
 
     QPointF sourcePoint = mapFromItem(m_source, *m_sourcePointPtr);
+
+    // move label to source point
+    m_label.setPos(sourcePoint);
 
     // sort destinations
     if (m_dests.size() > 1) {
@@ -243,40 +248,50 @@ void Connection::addLabelToScene() {
     scene()->addItem(&m_label);
 }
 
+void Connection::toggleLabel(bool show){
+    m_label.setVisible(show);
+}
+
 // --------- label ------------
-void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    if (m_showValue && m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
+void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
+    if (m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
         // Draw label (connection value)
-        auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
-        QPointF pos = mapFromItem(m_source, *m_drawPos);
-        QFontMetrics metric = QFontMetrics(QFont(text));
-        QRectF textRect = metric.boundingRect(text);
-        textRect.moveTo(pos);
-        textRect.translate(0, -textRect.height());
-        textRect.adjust(-5, 0, 5, 5);
+        const auto text = getText();
+        QRectF textRect = getTextRect(text);
+        textRect.adjust(-5, 0, 5, 5);// adjust for pen width
         painter->fillRect(textRect, Qt::white);
         painter->setBrush(Qt::NoBrush);
-        painter->setPen(QPen(Qt::black, 1));
+        painter->setPen(QPen(Qt::black,  PENWIDTH));
         painter->drawRect(textRect);
         painter->setFont(QFont());
-        painter->drawText(pos, text);
+        // Calculate drawing position
+        QPointF textPos = textRect.topLeft();
+        textPos.rx() += 5;
+        textPos.ry() += 14;
+        painter->drawText(textPos, text);
     }
+}
+
+QString Label::getText() const {
+    return QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
+}
+
+QRectF Label::getTextRect(const QString& text) const{
+    QFontMetrics metric = QFontMetrics(QFont());
+    QRectF generalRect = metric.boundingRect(text);
+    return generalRect;
 }
 
 QRectF Label::boundingRect() const {
     if (m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
-        auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
-        QPointF pos = mapFromItem(m_source, *m_drawPos);
-        QFontMetrics metric = QFontMetrics(QFont());
-        QRectF textRect = metric.boundingRect(text);
-        textRect.moveTo(pos);
-        textRect.translate(0, -textRect.height());
-        textRect.adjust(-5, 0, 5, 5);
-        return textRect;
+        auto boundingRect = getTextRect(getText());
+
+        // Adjust for pen width etc.
+        boundingRect.adjust(-5 - PENWIDTH, - PENWIDTH, 5 + PENWIDTH, 5 + PENWIDTH);
+        return boundingRect;
+    } else {
+        return QRectF();
     }
-    return QRectF();
 }
 
 }  // namespace Graphics

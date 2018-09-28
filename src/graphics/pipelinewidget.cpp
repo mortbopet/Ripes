@@ -533,7 +533,8 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
     // Connects a source and destination shape using IO index numbers
     auto* connection =
         new Graphics::Connection(source, source->getOutputPoint(index1), dest, dest->getInputPoint(index2));
-    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::showValue);
+    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::toggleLabel);
+
     m_connections.append(connection);
     source->addConnection(connection);
     dest->addConnection(connection);
@@ -558,7 +559,7 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
 
     // Create connection
     Graphics::Connection* connection = new Graphics::Connection(source, source->getOutputPoint(index1), shapePointList);
-    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::showValue);
+    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::toggleLabel);
     source->addConnection(connection);
     m_connections.append(connection);
     scene()->addItem(connection);

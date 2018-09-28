@@ -25,6 +25,8 @@ public:
     Label() {}
 
 protected:
+    QRectF getTextRect(const QString& text) const;
+    QString getText() const;
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -32,7 +34,6 @@ private:
     void setSignal(SignalBase* signal) { m_signal = signal; }
     QPointF* m_drawPos;
     Shape* m_source;
-    bool m_showValue = false;
     SignalBase* m_signal = nullptr;
 };
 
@@ -78,7 +79,7 @@ public:
     void setSignal(SignalBase* sig) { m_label.setSignal(sig); }
 
 public slots:
-    void showValue(bool state) { m_label.m_showValue = state; }
+    void toggleLabel(bool show);
 
 protected:
     QRectF boundingRect() const override;
