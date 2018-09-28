@@ -51,6 +51,7 @@ public:
     void drawPointAtFirstKink(bool val) { m_pointAtFirstKink = val; }
 
     void finalize();
+    void updateLabel();
     QPair<QPointF, QPointF> getPoints() const;
     QPair<Shape*, Shape*> getShapes() const { return QPair<Shape*, Shape*>(m_source, m_dests[0].first); }
     Shape* getSource() { return m_source; }

@@ -22,6 +22,7 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, Shape* dest, QPointF
     m_dests << QPair<Shape*, QPointF*>(dest, destPoint);
     m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
+    m_label.setVisible(false);
 }
 
 Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> dests)
@@ -29,6 +30,11 @@ Connection::Connection(Shape* source, QPointF* sourcePoint, QList<PointPair> des
     m_dests = dests;
     m_label.m_source = source;
     m_label.m_drawPos = sourcePoint;
+    m_label.setVisible(false);
+}
+
+void Connection::updateLabel(){
+    m_label.prepareGeometryChange();
 }
 
 QRectF Connection::boundingRect() const {

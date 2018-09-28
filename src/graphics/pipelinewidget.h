@@ -38,6 +38,7 @@ signals:
     void displayAllValuesSig(bool state);
 
 private:
+    void notifyLabelsGeometryChange();
     void scaleView(qreal scaleFactor);
     void adjustPositioning();
     void setSignal(Graphics::Connection* conn, SignalBase* sig);

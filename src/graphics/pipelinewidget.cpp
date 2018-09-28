@@ -480,10 +480,18 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     setSceneRect(scene->itemsBoundingRect().adjusted(-50, -50, 50, 100));
 }
 
+void PipelineWidget::notifyLabelsGeometryChange(){
+    // Since labels geometry can change from clock cycle to clock cycle,
+    // make connections call prepareGeometryChange on their labels
+    for(const auto& c : m_connections){
+        c->updateLabel();
+    }
+}
+
 void PipelineWidget::update() {
     if(!m_pipelinePtr->isRunning()){
-        QWidget::update();
         for (const auto& item : m_animatedItems) {
+            notifyLabelsGeometryChange();
             item->update();
         }
     }
@@ -624,5 +632,4 @@ void PipelineWidget::scaleView(qreal scaleFactor) {
 
 void PipelineWidget::displayAllValues(bool state) {
     emit displayAllValuesSig(state);
-    scene()->update();
 }
