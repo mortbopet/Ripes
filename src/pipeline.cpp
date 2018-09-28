@@ -522,6 +522,10 @@ namespace {
 // is not 0. If this check is not done, coincidences between ie. SW immediate fields and rd fields can occur
 #define EXMEM_WILL_WRITE (uint32_t) r_writeReg_EXMEM != 0 && (bool)r_regWrite_EXMEM
 #define MEMWB_WILL_WRITE (uint32_t) r_writeReg_MEMWB != 0 && (bool)r_regWrite_MEMWB
+#define TAS(sig, expr, value)   \
+    if(expr){                   \
+        sig = value;            \
+    }
 }
 
 void Pipeline::forwardingControlGen() {
@@ -716,7 +720,7 @@ void Pipeline::propagateCombinational() {
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
     s_invalidPC = ((bool)s_branchTaken && (bool)s_IFID_write) || s_jal;
-    s_invalidPC = (uint32_t)r_PC_IFID > m_textSize ? HazardReason::eof : s_invalidPC;
+    TAS(s_invalidPC, (uint32_t)r_PC_IFID > m_textSize, HazardReason::eof);
     if (s_IDEX_reset) {
         // ID has a dependancy and requires a stall of EX. Set IDEX s_invalidPC register accordingly
         r_invalidPC_IDEX.overrideNext(HazardReason::STALL);
@@ -725,8 +729,8 @@ void Pipeline::propagateCombinational() {
     // handle ECALL I/O. If a0 = 10 for an ECALL, this sets m_finishing and increments finishing counter
     // if m_finishing is set, we disable PC writing
     handleEcall();
-    s_PCWrite = m_finishing ? 0 : s_PCWrite;
-    s_IFID_reset = m_finishing ? 1 : s_IFID_reset;
+    TAS(s_PCWrite, m_finishing, 0);
+    TAS(s_IFID_reset, m_finishing, 1);
     // if finishing, ECALL will stay in ID stage, and we will force overrideNext for idex stage
     if (m_finishing) {
         r_invalidPC_IFID.overrideNext(HazardReason::eof);
