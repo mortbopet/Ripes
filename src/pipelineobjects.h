@@ -28,16 +28,14 @@
 // A boolean vector of immutable size
 // Can be cast to booleans, u/integers etc.
 #define ASSERT_SIZE static_assert(n >= 1 && n <= 64, "n = [1;64]");
-#define CREATE_VEC m_value = std::vector<bool>(n);
 #define SETNAME m_name = name;
 
 class SignalBase {
 public:
-    uint32_t getValue() const { return accBVec(m_value); }
+    uint32_t getValue() const { return m_value; }
 
 protected:
-    std::vector<bool> value() const { return m_value; }
-    std::vector<bool> m_value;
+    uint32_t m_value = 0;
     std::string m_name;
 };
 
@@ -45,7 +43,7 @@ template <int n>
 class Signal : public SignalBase {
 public:
     // Constructors
-    Signal(std::string name = ""){ASSERT_SIZE CREATE_VEC SETNAME};
+    Signal(std::string name = ""){ASSERT_SIZE SETNAME};
     Signal(std::vector<bool> v, std::string name = "") {
         ASSERT_SIZE
         // Builds a signal from a std::vector
@@ -59,34 +57,32 @@ public:
     // Mark as explicit, so new signals are not constructed upon assignment to simple types
     explicit Signal(uint32_t v, std::string name = "") {
         ASSERT_SIZE
-        CREATE_VEC
         SETNAME
-        buildVec(m_value, v);
+        m_value = v;
     }
     explicit Signal(int v, std::string name = "") {
         ASSERT_SIZE
-        CREATE_VEC
         SETNAME
-        buildVec(m_value, (uint32_t)v);
+        m_value = signextend<int32_t, n>(v);
     }
 
     void setName(std::string name) { m_name = name; }
 
     // Casting operators
-    explicit operator int() const { return signextend<int32_t, n>(accBVec(m_value)); }
-    explicit operator uint32_t() const { return accBVec(m_value); }
-    explicit operator bool() const { return m_value[0]; }
+    explicit operator int() const { return signextend<int32_t, n>(m_value); }
+    explicit operator uint32_t() const { return m_value; }
+    explicit operator bool() const { return m_value & 0b1; }
 
     Signal& operator = (const uint32_t& v){
-        buildVec(m_value, v);
+        m_value = v;
         return *this;
     }
     Signal& operator = (const int& v){
-        *this = (uint32_t)v;
+        *this = static_cast<uint32_t>(v);
         return *this;
     }
     Signal& operator = (const Signal& other){
-        buildVec(m_value, other.getValue());
+        m_value = other.getValue();
         return *this;
     }
 };
