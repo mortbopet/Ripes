@@ -238,7 +238,7 @@ void Connection::addLabelToScene() {
 void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    if (m_showValue && m_signal != nullptr) {
+    if (m_showValue && m_signal != nullptr && !Pipeline::getPipeline()->isRunning()) {
         // Draw label (connection value)
         auto text = QString("0x%1").arg(QString().setNum(m_signal->getValue(), 16));
         QPointF pos = mapFromItem(m_source, *m_drawPos);
