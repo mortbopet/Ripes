@@ -205,7 +205,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
     idex->addInput("Reset\n(sync.)");
     idex->addOutput();
-    idex->setHiddenOutputs(std::set<int>{2, 11});
+    idex->setHiddenOutputs(std::set<int>{0, 1, 2, 8, 9, 11});
+    idex->setHiddenInputs(std::set<int>{0, 1, 2});
     idex->setSingleIOBlink(true);
     idex->addIOSignalPair(11, &m_pipelinePtr->s_IDEX_reset);
     m_animatedItems.push_back(idex);
@@ -217,6 +218,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
         exmem->addInput();
         exmem->addOutput();
     }
+    exmem->setHiddenInputs(std::set<int>{0, 1});
     exmem->setHiddenOutputs(std::set<int>{1});
 
     memwb = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::EX, 0, 10);
