@@ -50,7 +50,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     data_mem->addBotPoint("Read");
     data_mem->setName("Data\nmemory");
     data_mem->setSignal(Graphics::SignalPos::Top, m_pipelinePtr->r_MemWrite_EXMEM.getOutput());
-    data_mem->setSignal(Graphics::SignalPos::Bot, m_pipelinePtr->r_MemRead_EXMEM.getOutput());
+    data_mem->setSignal(Graphics::SignalPos::Bottom, m_pipelinePtr->r_MemRead_EXMEM.getOutput());
     m_animatedItems.push_back(data_mem);
     data_mem->setToolTip(Descriptions::m["Data memory"]);
 
@@ -66,7 +66,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     pc->addInput();
     pc->addOutput();
     pc->addBotPoint("");
-    pc->setSignal(Graphics::SignalPos::Bot, &m_pipelinePtr->s_PCWrite);
+    pc->setSignal(Graphics::SignalPos::Bottom, &m_pipelinePtr->s_PCWrite);
     pc->setName("PC");
     m_animatedItems.push_back(pc);
     pc->setToolTip(Descriptions::m["PC"]);
@@ -236,13 +236,16 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     immgen->addOutput();
     immgen->setToolTip(Descriptions::m["immgen"]);
 
-    auto* comp = new Graphics::Shape(Graphics::ShapeType::Static, Graphics::Stage::EX, 0, 20);
-    comp->setName("=");
+    auto* comp = new Graphics::Shape(Graphics::ShapeType::Comparator, Graphics::Stage::EX, 0, 20);
     comp->addOutput();
     comp->setHiddenOutputs(std::set<int>{0});
     comp->addTopPoint("");
     comp->addBotPoint("");
     comp->setToolTip(Descriptions::m["comp"]);
+    comp->setSignal(Graphics::SignalPos::Bottom, &m_pipelinePtr->s_branchTaken);
+    comp->setSignal(Graphics::SignalPos::Top, &m_pipelinePtr->s_CompOp);
+    comp->setSignal(Graphics::SignalPos::Left, &m_pipelinePtr->s_Branch);
+    m_animatedItems.push_back(comp);
 
     //  ----------- Create connections ----------------------
     Graphics::Connection* connPtr;

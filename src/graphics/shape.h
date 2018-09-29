@@ -14,9 +14,9 @@
 namespace Graphics {
 
 class Connection;
-enum class ShapeType { Block, ALU, MUX, Static };
+enum class ShapeType { Block, ALU, MUX, Comparator, Static };
 enum class Stage { IF = 1, ID = 2, EX = 3, MEM = 4, WB = 5 };
-enum class SignalPos { Left, Top, Bot };
+enum class SignalPos { Left, Top, Bottom };
 
 class Shape : public QGraphicsItem {
 public:
@@ -69,6 +69,7 @@ private:
                                // when new descriptors have been added)
 
     QPainterPath drawALUPath(QRectF boundingRect) const;
+    QString getName() const;
 
     const ShapeType m_type;
     Stage m_stage;  // Used for correctly positioning the shape
@@ -117,7 +118,7 @@ private:
     // Interfacing signals to pipeline
     SignalBase* m_leftSignal = nullptr;
     SignalBase* m_topSignal = nullptr;
-    SignalBase* m_botsignal = nullptr;
+    SignalBase* m_botSignal = nullptr;
 
     bool m_singleIOBlink = false;  // registers can be set to have individually controlled IO coloring
     std::map<int, SignalBase*> m_IOSignalPairs;

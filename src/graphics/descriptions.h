@@ -30,7 +30,8 @@ static QMap<QString, QString> init() {
     map.insert("main ALU", "Main functional unit for arithmetic instructions");
 
     map.insert("immgen", "Immediate value generator");
-    map.insert("comp", "Comparator used for branch instructions");
+    map.insert("comp", "Comparator used for branch instructions.\nWhen the ID stage contains a branch instruction,\nthe "
+                       "color of the comparator will indicate the comparison result.");
 
     return map;
 }

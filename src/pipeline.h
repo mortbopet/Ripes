@@ -11,6 +11,10 @@ class Pipeline {
     friend class RWJumpModel;
 
 public:
+    // Control signal enums
+    enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };
+    enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
+    enum MemWrite { SB = 1, SH = 2, SW = 3 };
     enum class ECALL { none, exit, print_string, print_int };
     Pipeline();
     // Utility functions
@@ -141,11 +145,6 @@ private:
     Signal<1> s_jal, s_jalr;
     Signal<1> s_auipc;           // used for controlling input 1 to main alu (registers or PC)
     Signal<1> s_alures_PC4_MEM;  // Control signal for forwarding MUX in MEM stage
-
-    // Control signal enums
-    enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };
-    enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
-    enum MemWrite { SB = 1, SH = 2, SW = 3 };
 };
 
 namespace Forwarding {

@@ -171,6 +171,24 @@ QPainterPath Shape::drawALUPath(QRectF rect) const {
     return path;
 }
 
+QString Shape::getName() const {
+    if(m_type == ShapeType::Comparator){
+        // Draw the logical symbol for the operation
+        switch(static_cast<Pipeline::CompOp>(m_topSignal->getValue())){
+            default: return QString();
+            case Pipeline::CompOp::BEQ: return QString("=");
+            case Pipeline::CompOp::BNE: return QString("≠");
+            case Pipeline::CompOp::BLT: return QString("<");
+            case Pipeline::CompOp::BLTU: return QString("<");
+            case Pipeline::CompOp::BGE: return QString("≥");
+            case Pipeline::CompOp::BGEU: return QString("≥");
+        }
+    } else {
+        return m_name;
+    }
+
+}
+
 void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget*) {
     if(!Pipeline::getPipeline()->isRunning()){
         auto rect = boundingRect();
@@ -189,6 +207,18 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
             case ShapeType::MUX: {
                 painter->drawRoundedRect(rect, 40, 15);
             } break;
+            case ShapeType::Comparator: {
+                // Draw background color based on whether current instruction is a branch
+                // operation and the outcome of the operation
+                if(static_cast<bool>(m_leftSignal->getValue())) {
+                    painter->setBrush(static_cast<bool>(m_botSignal->getValue()) ? Qt::green : Qt::red);
+                }
+                // We draw the outline of the comparator at a later stage
+                painter->setPen(QPen(Qt::black, 0));
+                painter->drawEllipse(rect);
+                painter->setPen(QPen(Qt::black, 1.5));
+                break;
+            }
             case ShapeType::Static: {
                 painter->drawEllipse(rect);
             } break;
@@ -198,11 +228,11 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
 
         // Translate text in relation to the bounding rectangle, and draw shape name
         auto fontMetricsObject = QFontMetrics(m_nameFont);
-        QRectF textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, m_name);
+        QRectF textRect = fontMetricsObject.boundingRect(QRect(0, 0, 200, 200), 0, getName());
         textRect.moveTo(0, 0);
         textRect.translate(-textRect.width() / 2, -textRect.height() / 2);  // center text rect
         painter->setFont(m_nameFont);
-        painter->drawText(textRect, Qt::AlignCenter, m_name);
+        painter->drawText(textRect, Qt::AlignCenter, getName());
 
         // Iterate through node descriptors and draw text
         fontMetricsObject = QFontMetrics(m_ioFont);  // update fontMetrics object to new font
@@ -232,7 +262,12 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
             textRect.translate(-textRect.width() / 2, textRect.height());  // move text away from side
             painter->drawText(textRect, m_topText);
             if (m_topSignal != nullptr) {
-                QColor col = m_topSignal->getValue() == 0 ? Qt::red : Qt::green;
+                QColor col;
+                if(m_type != ShapeType::Comparator){
+                    col = m_topSignal->getValue() == 0 ? Qt::red : Qt::green;
+                } else {
+                    col = Qt::white;
+                }
                 // If signal has been set, draw red for off, green for on
                 painter->setBrush(col);
                 painter->drawEllipse(m_topPoint, 5, 5);
@@ -248,9 +283,13 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
             textRect.moveTo(m_bottomPoint);
             textRect.translate(-textRect.width() / 2, -textRect.height() - sidePadding);  // move text away from side
             painter->drawText(textRect, m_botText);
-            if (m_botsignal != nullptr) {
-                // If signal has been set, draw red for off, green for on
-                QColor col = m_botsignal->getValue() == 0 ? Qt::red : Qt::green;
+            if (m_botSignal != nullptr) {
+                QColor col;
+                if(m_type != ShapeType::Comparator){
+                    col = m_botSignal->getValue() == 0 ? Qt::red : Qt::green;
+                } else {
+                    col = Qt::white;
+                }
                 painter->setBrush(col);
                 painter->drawEllipse(m_bottomPoint, 5, 5);
                 painter->setBrush(Qt::transparent);
@@ -288,7 +327,14 @@ void Shape::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
             if (m_hiddenOutputPoints.find(i) == m_hiddenOutputPoints.end())
                 painter->drawEllipse(m_outputPoints[i], 5, 5);
         }
+
+        // Hacky - to draw the outline of the comparator correctly, we redraw its ellipse
+        if(m_type == ShapeType::Comparator){
+            painter->setBrush(Qt::transparent);
+            painter->drawEllipse(rect);
+        }
     }
+
 }
 
 void Shape::setSignal(SignalPos pos, SignalBase* sig) {
@@ -299,8 +345,8 @@ void Shape::setSignal(SignalPos pos, SignalBase* sig) {
         case SignalPos::Top:
             m_topSignal = sig;
             break;
-        case SignalPos::Bot:
-            m_botsignal = sig;
+        case SignalPos::Bottom:
+            m_botSignal = sig;
             break;
         default:
             break;
