@@ -100,14 +100,13 @@ const QStringList branchInstructions = QStringList() << "beq"
                                                      << "bgeu";
 const QStringList DataAssemblerDirectives = QStringList() << ".word"
                                                           << ".half"
+                                                          << ".short"
                                                           << ".byte"
                                                           << ".2byte"
-                                                          << ".4byte";
-const static QMap<QString, size_t> DataAssemblerSizes{{".word", 4},
-                                                      {".half", 2},
-                                                      {".byte", 1},
-                                                      {".2byte", 2},
-                                                      {".4byte", 4}};
+                                                          << ".4byte"
+                                                          << ".long";
+const static QMap<QString, size_t> DataAssemblerSizes{{".word", 4},  {".half", 2},  {".short", 2}, {".byte", 1},
+                                                      {".2byte", 2}, {".4byte", 4}, {".long", 4}};
 }  // namespace
 
 Assembler::Assembler() {}

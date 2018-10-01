@@ -552,6 +552,8 @@ void SyntaxHighlighter::createSyntaxRules() {
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.instr = ".half";
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+    rule.instr = ".short";
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // .4byte & word
     types.clear();
@@ -562,6 +564,8 @@ void SyntaxHighlighter::createSyntaxRules() {
     rule.inputs = types;
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.instr = ".word";
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+	rule.instr = ".long";
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.hasListField = false;
 
@@ -609,7 +613,7 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
     // check for labels
     QString string = fields[0];
     if (string.contains(':')) {
-        if(string.count(':') > 1){
+        if (string.count(':') > 1) {
             return QString("Multiple instances of ':' in label");
         }
         // Label detected - check if already defined, else add to label definitions
