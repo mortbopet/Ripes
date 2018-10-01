@@ -201,6 +201,7 @@ bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_
         switch (ecall_val.first) {
             case Pipeline::ECALL::print_string: {
                 emit appendToLog(Parser::getParser()->getStringAt(ecall_val.second));
+                break;
             }
             case Pipeline::ECALL::print_int: {
                 emit appendToLog(QString::number(ecall_val.second));
