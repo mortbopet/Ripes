@@ -15,7 +15,7 @@ public:
     enum CompOp { BEQ = 1, BNE = 2, BLT = 3, BLTU = 4, BGE = 5, BGEU = 6 };
     enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
     enum MemWrite { SB = 1, SH = 2, SW = 3 };
-    enum class ECALL { none, exit, print_string, print_int };
+    enum ECALL { none, print_int = 1, print_string = 4, exit = 10 };
     Pipeline();
     // Utility functions
     void restart();
@@ -31,7 +31,7 @@ public:
     MainMemory* getMemoryPtr() { return &m_memory; }
     std::unordered_map<uint32_t, uint8_t>* getDataMemoryPtr() { return &m_dataMemory; }
     std::vector<uint32_t>* getRegPtr() { return m_reg.getRegPtr(); }
-    std::pair<Pipeline::ECALL, uint32_t> checkEcall(bool reset = true);
+    std::pair<Pipeline::ECALL, int32_t> checkEcall(bool reset = true);
     const StagePCS& getStagePCS() const { return m_pcs; }
     const StagePCS& getStagePCSPre() const { return m_pcsPre; }
     int getTextSize() const { return m_textSize; }
@@ -58,7 +58,8 @@ private:
     void clock();
     bool m_ready = false;
     bool m_running;
-    ECALL m_ecallval;
+    ECALL m_ecallArg;
+    int32_t m_ecallVal;
 
     // Program counters for each stage
     void setStagePCS();

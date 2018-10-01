@@ -578,15 +578,23 @@ void Pipeline::hazardControlGen() {
     auto r1 = (uint32_t)s_readRegister1;
     auto r2 = (uint32_t)s_readRegister2;
 
-    // Branch hazard: Result from EX stage is needed, or value from memory is needed
-    bool branchHazardFromMem = ((r1 == (uint32_t)r_writeReg_EXMEM) || (r2 == (uint32_t)r_writeReg_EXMEM)) &&
-                               ((uint32_t)r_regWrite_EXMEM & 0b1) &&
-                               (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011);
+    if(r1 == 10 && r2 == 11){
+        volatile int a = 1;
+        a++;
+    }
 
-    bool branchHazardFromEx = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) &&
-                              ((uint32_t)r_regWrite_IDEX & 0b1) && ((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011;
+    // Branch/ecall hazard: Result from EX stage is needed, or value from memory is needed.
+    // This is BOTH for Branch and Ecall instructions, since these instructions work on operands forwarded
+    // to the ID stage
+    bool branchEcallHazardFromMem = ((r1 == (uint32_t)r_writeReg_EXMEM) || (r2 == (uint32_t)r_writeReg_EXMEM))
+                                && ((uint32_t)r_regWrite_EXMEM & 0b1)
+                                && (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011 || ((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011);
 
-    bool branchHazard = branchHazardFromMem || branchHazardFromEx;
+    bool branchEcallHazardFromEx = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX)
+                              && ((uint32_t)r_regWrite_IDEX & 0b1)
+                              && (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011 || ((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011);
+
+    bool branchHazard = branchEcallHazardFromMem || branchEcallHazardFromEx;
 
     // Load Use hazard: Loaded variable is needed in execute stage
     bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (bool)r_MemRead_IDEX;
@@ -615,8 +623,16 @@ void Pipeline::propagateCombinational() {
     // This is to ensure that feedback signals are valid
 
     // Extract register sources from current instruction
-    s_readRegister1 = (((uint32_t)r_instr_IFID) >> 15) & 0b11111;
-    s_readRegister2 = (((uint32_t)r_instr_IFID) >> 20) & 0b11111;
+    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011){
+        // ECALL does not contain any operands, but we require that a0/a1 is
+        // correctly forwarded. This is a bit hacky and actual processors does not handle
+        // ECALL this way, but it works with the pipeline of Ripes
+        s_readRegister1 = 10;
+        s_readRegister2 = 11;
+    } else {
+        s_readRegister1 = (((uint32_t)r_instr_IFID) >> 15) & 0b11111;
+        s_readRegister2 = (((uint32_t)r_instr_IFID) >> 20) & 0b11111;
+    }
 
     // Do hazard detection and forwarding control generation
     forwardingControlGen();
@@ -738,47 +754,34 @@ void Pipeline::propagateCombinational() {
 }
 
 void Pipeline::handleEcall() {
-    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011) {
-        // ECALL
-        uint32_t a0_val = m_reg.a0();
+    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011
+          && static_cast<bool>(s_IFID_write) // For checking load-use hazard
+          ) {
+        // ecall in EX stage
+        uint32_t a0 = (uint32_t)mux_forwardA_ID;
+        int32_t a1 = (int32_t)mux_forwardB_ID;
 
-        // Since a0 is not expressed in the ECALL function (and thus not triggering the usual forwarding logic), we have
-        // to do manual forwarding
-        if ((uint32_t)r_writeReg_MEMWB == 10) {
-            // Forward a0 value from MEMWB
-            a0_val = (uint32_t)*mux_memToReg.getOutput();
-        }
-        if ((uint32_t)r_writeReg_EXMEM == 10) {
-            // Forward a0 value from EXMEM
-            a0_val = (uint32_t)*mux_alures_PC4_MEM.getOutput();
-        }
-        if ((uint32_t)r_writeReg_IDEX == 10) {
-            // Forward a0 value from EX stage
-            a0_val = (uint32_t)*alu_mainALU.getOutput();
-        }
-        if (a0_val == 10) {
-            // Start finishing sequence
+        m_ecallArg = static_cast<ECALL>(a0);
+        m_ecallVal = a1;
+
+        if(m_ecallArg == ECALL::exit){
             m_finishing = true;
-        } else if (a0_val == 4) {
-            // Print string
-            m_ecallval = ECALL::print_string;
-        } else if (a0_val == 1) {
-            // Print string
-            m_ecallval = ECALL::print_int;
+        }
+
+        // Start finishing counter
+        if (m_finishing) {
+            m_finishingCnt++;
         }
     }
 
-    // Start finishing counter
-    if (m_finishing) {
-        m_finishingCnt++;
-    }
 }
 
-std::pair<Pipeline::ECALL, uint32_t> Pipeline::checkEcall(bool reset) {
+std::pair<Pipeline::ECALL, int32_t> Pipeline::checkEcall(bool reset) {
     // Called from GUI after each clock cycle - resets the internal ECALL request
+    const auto val = m_ecallArg;
     if (reset)
-        m_ecallval = ECALL::none;
-    return {m_ecallval, m_reg.a1()};
+        m_ecallArg = ECALL::none;
+    return {val, m_ecallVal};
 }
 
 int Pipeline::step() {
@@ -828,7 +831,7 @@ int Pipeline::step() {
     } else if (m_breakpoints.find((uint32_t)r_PC_IF) != m_breakpoints.end()) {
         // Breakpoint set at current r_PC_IF value
         return 1;
-    } else if (m_ecallval != ECALL::none) {
+    } else if (m_ecallArg != ECALL::none) {
         return 1;  // GUI will automatically resume execution if in "running" mode
     }
     { return 0; }
