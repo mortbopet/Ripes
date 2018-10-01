@@ -767,11 +767,6 @@ void Pipeline::handleEcall() {
         if(m_ecallArg == ECALL::exit){
             m_finishing = true;
         }
-
-        // Start finishing counter
-        if (m_finishing) {
-            m_finishingCnt++;
-        }
     }
 
 }
@@ -825,6 +820,9 @@ int Pipeline::step() {
 
     // Check for finished execution(either end of file or m_finishingCnt > 4 (if ecall 10 has been called)) and
     // breakpoints
+    if (m_finishing) {
+        m_finishingCnt++;
+    }
     if ((m_pcs.WB.pc > m_textSize) || (m_finishingCnt > 4)) {
         m_finished = true;
         return 1;

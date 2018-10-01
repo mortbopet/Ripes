@@ -34,9 +34,12 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     connect(this, &ProcessorTab::update, m_ui->pipelineWidget, &PipelineWidget::update);
 
 
-    // Connect ECALL functionality to application output log
+    // Connect ECALL functionality to application output log and scroll to bottom
     connect(this, &ProcessorTab::appendToLog,
-            [this](QString string) { m_ui->console->insertPlainText(string); });
+            [this](QString string) { m_ui->console->insertPlainText(string);
+                                   m_ui->console->verticalScrollBar()->setValue(
+                                               m_ui->console->verticalScrollBar()->maximum());});
+
 
     // Setup splitter such that consoles are always as small as possible
     m_ui->pipelinesplitter->setStretchFactor(0, 2);
@@ -128,13 +131,17 @@ void ProcessorTab::on_run_clicked() {
             m_ui->step->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
-        } else if (pipeline->checkEcall(true).first != Pipeline::ECALL::none) {
-            // An ECALL has been invoked during continuous running. Handle ecall and continue to run
-            handleEcall();
-            on_run_clicked();
         } else {
-            m_ui->table->setEnabled(true);
-            emit update();
+            const auto ecall_val = pipeline->checkEcall(true);
+            if (ecall_val.first != Pipeline::ECALL::none) {
+                // An ECALL has been invoked during continuous running. Handle ecall and continue to run
+                if(handleEcall(ecall_val)){
+                    on_run_clicked();
+                }
+            } else {
+                m_ui->table->setEnabled(true);
+                emit update();
+            }
         }
     }
 }
@@ -147,6 +154,7 @@ void ProcessorTab::on_reset_clicked() {
     m_ui->start->setEnabled(true);
     m_ui->run->setEnabled(true);
     m_ui->table->setEnabled(true);
+    emit appendToLog("\n");
 }
 
 void ProcessorTab::setCurrentInstruction(int row) {
@@ -169,8 +177,10 @@ void ProcessorTab::on_step_clicked() {
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
 
-
-    handleEcall();
+    const auto ecallVal = pipeline->checkEcall(true);
+    if(ecallVal.first != Pipeline::ECALL::none){
+        handleEcall(ecallVal);
+    }
 
     emit update();
 
@@ -185,10 +195,8 @@ void ProcessorTab::on_step_clicked() {
     }
 }
 
-void ProcessorTab::handleEcall() {
+bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_val) {
     // Check if ecall has been invoked
-    auto pipeline = Pipeline::getPipeline();
-    auto ecall_val = pipeline->checkEcall();
     if (ecall_val.first != Pipeline::ECALL::none) {
         switch (ecall_val.first) {
             case Pipeline::ECALL::print_string: {
@@ -198,10 +206,13 @@ void ProcessorTab::handleEcall() {
                 emit appendToLog(QString::number(ecall_val.second));
                 break;
             }
-            default:
-                return;
+            case Pipeline::ECALL::exit: {
+                return true;// The simulator will now take a few cycles to stop
+            }
         }
     }
+
+    return true; // continue
 }
 
 void ProcessorTab::on_zoomIn_clicked() {

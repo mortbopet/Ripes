@@ -44,7 +44,7 @@ private slots:
     void on_table_clicked();
 
 private:
-    void handleEcall();
+    bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;
