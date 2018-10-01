@@ -33,6 +33,20 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
     connect(this, &ProcessorTab::update, m_ui->pipelineWidget, &PipelineWidget::update);
 
+
+    // Connect ECALL functionality to application output log
+    connect(this, &ProcessorTab::appendToLog,
+            [this](QString string) { m_ui->console->insertPlainText(string); });
+
+    // Setup splitter such that consoles are always as small as possible
+    m_ui->pipelinesplitter->setStretchFactor(0, 2);
+
+    const auto splitterSize = m_ui->pipelinesplitter->size();
+    m_ui->pipelinesplitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consolesTab->minimumHeight()-1)
+                                              << (m_ui->consolesTab->minimumHeight() + 1));
+    m_ui->consolesTab->removeTab(1);
+
+
     // Initially, no file is loaded, disable run, step and reset buttons
     m_ui->reset->setEnabled(false);
     m_ui->step->setEnabled(false);

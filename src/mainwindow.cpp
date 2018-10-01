@@ -31,26 +31,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
     m_ui->tabbar->setActiveIndex(0);
 
-    // Setup splitter such that consoles are always as small as possible
-    auto splitterSize = m_ui->splitter->size();
-    m_ui->splitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consoles->minimumHeight() - 1)
-                                          << (m_ui->consoles->minimumHeight() + 1));
-
-    /// @todo implement application output!
-    /// since we dont have any way to do application output yet, disable consoles
-    m_ui->consoles->hide();
-    /*
-    connect(m_ui->actionShow_consoles, &QAction::triggered, [=](bool state) {
-        if (state) {
-            m_ui->consoles->show();
-        } else {
-            m_ui->consoles->hide();
-        };
-    });
-    m_ui->menuSettings->setVisible(false);
-    */
-    // -----------------------------------------------------------------------
-
     // Setup tab pointers
     m_ui->processortab->initRegWidget();
     m_ui->processortab->initInstructionView();
@@ -70,10 +50,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
     connect(m_ui->stackedWidget, &QStackedWidget::currentChanged, m_ui->memorytab, &MemoryTab::update);
-
-    // Connect ECALL functionality to application output log
-    connect(m_ui->processortab, &ProcessorTab::appendToLog,
-            [this](QString string) { m_ui->applicationConsole->appendPlainText(string + '\n'); });
 }
 
 MainWindow::~MainWindow() {
