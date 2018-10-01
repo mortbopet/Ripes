@@ -162,7 +162,7 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
             // An offset value has been provided ( unfolded pseudo-op)
             m_error |= !m_labelPosMap.contains(fields[3]);
             // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
-            imm = (m_labelPosMap[fields[3]] - row + 1) * 4;
+            imm = m_labelPosMap[fields[3]] - (row - 1) * 4;
         }
         funct3 = 0b000;
     } else if (fields[0] == "slli") {
@@ -275,7 +275,7 @@ QByteArray Assembler::assembleStoreInstruction(const QStringList& fields, int ro
     } else {
         m_error |= !m_labelPosMap.contains(fields[2]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
-        imm = (m_labelPosMap[fields[2]] - row + 1) * 4;
+        imm = m_labelPosMap[fields[2]] - (row - 1) * 4;
     }
 
     return uintToByteArr(STORE | getRegisterNumber(fields[3]) << 15 | getRegisterNumber(fields[1]) << 20 |
@@ -305,7 +305,7 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
     } else {
         m_error |= !m_labelPosMap.contains(fields[2]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
-        imm = (m_labelPosMap[fields[2]] & 0xfff) - ((row - 1) * 4);
+        imm = (m_labelPosMap[fields[2]] & 0xfff) - (row - 1) * 4;
     }
 
     return uintToByteArr(LOAD | funct3 << 12 | getRegisterNumber(fields[1]) << 7 | imm << 20 |
@@ -316,7 +316,7 @@ QByteArray Assembler::assembleBranchInstruction(const QStringList& fields, int r
     // calculate offset
     Q_ASSERT(m_labelPosMap.contains(fields[3]));
     int offset = m_labelPosMap[fields[3]];
-    offset = (offset - row) * 4;  // byte-wize addressing
+    offset = offset - row * 4;  // byte-wize addressing
     uint32_t funct3 = 0;
     if (fields[0] == "beq") {
         funct3 = 0b000;
@@ -349,7 +349,7 @@ QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int ro
         // An offset value has been provided
         m_error |= !m_labelPosMap.contains(fields[2]);
         // calculate offset 31:12 bits - we add +1 to offset the sign if the offset is negative
-        imm = (m_labelPosMap[fields[2]]) * 4;
+        imm = m_labelPosMap[fields[2]];
         if (imm < 0) {
             imm >>= 12;
             imm += 1;
@@ -369,7 +369,7 @@ QByteArray Assembler::assembleJalrInstruction(const QStringList& fields, int row
         // An offset value has been provided ( unfolded pseudo-op)
         m_error |= !m_labelPosMap.contains(fields[3]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
-        imm = (m_labelPosMap[fields[3]] - row + 1) * 4;
+        imm = m_labelPosMap[fields[3]] - (row - 1) * 4;
     }
 
     return uintToByteArr(JALR | getRegisterNumber(fields[1]) << 7 | getRegisterNumber(fields[2]) << 15 |
@@ -399,7 +399,7 @@ void Assembler::assembleInstruction(const QStringList& fields, int row) {
     } else if (instruction == "jal") {
         Q_ASSERT(m_labelPosMap.contains(fields[2]));
         int32_t imm = m_labelPosMap[fields[2]];
-        imm = (imm - row) * 4;
+        imm = imm - row * 4;
         imm = (imm & 0x7fe) << 20 | (imm & 0x800) << 9 | (imm & 0xff000) | (imm & 0x100000) << 11;
         m_textSegment.append(uintToByteArr(JAL | getRegisterNumber(fields[1]) << 7 | imm));
     } else if (instruction == "ecall") {
@@ -669,10 +669,10 @@ void Assembler::unpackOp(const QStringList& _fields, int& pos) {
         if (m_inDataSegment) {
             m_labelPosMap[string] =
                 // Offset label by data segment position and length of the data segment
-                m_dataSegment.length() + (DATASTART / 4);  // Divide by 4 since labelPosMap is word indexed
+                m_dataSegment.length() + DATASTART;  // Divide by 4 since labelPosMap is word indexed
         } else {
             // The label is in the text segment. Label is defined without an offset
-            m_labelPosMap[string] = pos;
+            m_labelPosMap[string] = pos * 4;
         }
         if (fields.isEmpty()) {
             return;
