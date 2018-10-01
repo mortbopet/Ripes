@@ -103,11 +103,11 @@ const QStringList DataAssemblerDirectives = QStringList() << ".word"
                                                           << ".byte"
                                                           << ".2byte"
                                                           << ".4byte";
-const static QMap<QString, size_t> DataAssemblerSizes{{".word",4},
-                                                      {".half",2},
-                                                      {".byte",1},
-                                                      {".2byte",2},
-                                                      {".4byte",4}};
+const static QMap<QString, size_t> DataAssemblerSizes{{".word", 4},
+                                                      {".half", 2},
+                                                      {".byte", 1},
+                                                      {".2byte", 2},
+                                                      {".4byte", 4}};
 }  // namespace
 
 Assembler::Assembler() {}
@@ -598,10 +598,10 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
     }
 }
 
-void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, size_t size){
+void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, size_t size) {
     Q_ASSERT(size >= 1 && size <= 4);
     bool ok;
-    for(int i = 1; i < fields.size(); i++){
+    for (int i = 1; i < fields.size(); i++) {
         qlonglong val = getImmediate(fields[i], ok);
         for (size_t i = 0; i < size; i++) {
             byteArray.append(val & 0xff);
@@ -612,7 +612,7 @@ void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, 
 
 void Assembler::assembleAssemblerDirective(const QStringList& fields) {
     QByteArray byteArray;
-    if (fields[0] == QString(".string")) {
+    if (fields[0] == QString(".string") || fields[0] == QString(".asciz")) {
         QString string;
         // Merge input fields
         for (int i = 1; i < fields.length(); i++) {
@@ -621,7 +621,7 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         string.remove('\"');
         byteArray = string.toUtf8();
     } else if (DataAssemblerDirectives.contains(fields[0])) {
-        assembleWords(fields,byteArray, DataAssemblerSizes.value(fields[0]));
+        assembleWords(fields, byteArray, DataAssemblerSizes.value(fields[0]));
     } else if (fields[0] == QString(".data")) {
         // Following instructions will be assembled into the data segment
         m_inDataSegment = true;
