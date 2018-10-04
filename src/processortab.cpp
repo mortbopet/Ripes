@@ -189,7 +189,8 @@ void ProcessorTab::on_step_clicked() {
         m_ui->step->setEnabled(false);
         m_ui->start->setEnabled(false);
         m_ui->run->setEnabled(false);
-    } else if (state == 1) {
+    } else if (state == 1 && !(ecallVal.first == Pipeline::ECALL::print_int ||
+               ecallVal.first == Pipeline::ECALL::print_string)) {
         // Breakpoint encountered, stop autostepping
         toggleTimer(false);
     }
