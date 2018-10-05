@@ -205,7 +205,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
     idex->addInput("Reset\n(sync.)");
     idex->addOutput();
-    idex->setHiddenOutputs(std::set<int>{0, 1, 2, 8, 9, 11});
+    idex->setHiddenOutputs(std::set<int>{1, 2, 8, 9, 11});
     idex->setHiddenInputs(std::set<int>{0, 1, 2});
     idex->setSingleIOBlink(true);
     idex->addIOSignalPair(11, &m_pipelinePtr->s_IDEX_reset);
@@ -218,7 +218,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
         exmem->addInput();
         exmem->addOutput();
     }
-    exmem->setHiddenInputs(std::set<int>{0, 1});
+    exmem->setHiddenInputs(std::set<int>{1});
     exmem->setHiddenOutputs(std::set<int>{1});
 
     memwb = new Graphics::Shape(Graphics::ShapeType::Block, Graphics::Stage::EX, 0, 10);
@@ -293,6 +293,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
 
     // EX
 
+    createConnection(idex, 0, exmem, 0, m_pipelinePtr->r_regWrite_IDEX.getOutput());
     createConnection(mux_forwardA_EX, 0, mux_ALUSrc1, 0, m_pipelinePtr->mux_forwardA_EX.getOutput());
     connPtr =
         createConnection(mux_forwardB_EX, 0, QList<ShapePair>() << ShapePair(mux_ALUSrc2, 0) << ShapePair(exmem, 4));
