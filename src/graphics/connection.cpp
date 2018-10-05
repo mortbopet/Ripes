@@ -228,7 +228,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
 
         painter->drawPolygon(QPolygonF() << *(line.end() - 1) << destArrowP1 << destArrowP2);
     }
-
+    /*
     // Draw kink points
     painter->setPen(QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 
@@ -247,6 +247,7 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidg
         }
         i++;
     }
+    */
 }
 
 void Connection::addLabelToScene() {
