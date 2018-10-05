@@ -11,7 +11,7 @@
 #include <QCoreApplication>
 #include <QWheelEvent>
 
-qreal PipelineWidget::spaceBetweenStateRegs = 350;
+qreal PipelineWidget::spaceBetweenStateRegs = 380;
 
 PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     auto* scene = new QGraphicsScene(this);
@@ -205,8 +205,8 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     }
     idex->addInput("Reset\n(sync.)");
     idex->addOutput();
-    idex->setHiddenOutputs(std::set<int>{1, 2, 8, 9, 11});
-    idex->setHiddenInputs(std::set<int>{0, 1, 2});
+    idex->setHiddenOutputs(std::set<int>{1, 2, 8, 10 ,11});
+    idex->setHiddenInputs(std::set<int>{0, 1, 2,8,10});
     idex->setSingleIOBlink(true);
     idex->addIOSignalPair(11, &m_pipelinePtr->s_IDEX_reset);
     m_animatedItems.push_back(idex);
@@ -264,9 +264,9 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     // ID
     connPtr = createConnection(ifid, 2,
                                QList<ShapePair>() << ShapePair(registers, 0) << ShapePair(registers, 1)
-                                                  << ShapePair(immgen, 0) << /* To IDEX*/
-                                   ShapePair(idex, 8) << ShapePair(idex, 9) << ShapePair(idex, 10));
+                                                  << ShapePair(immgen, 0) << /* To IDEX*/ ShapePair(idex, 9));
     setSignal(connPtr, m_pipelinePtr->r_instr_IFID.getOutput());
+    connPtr->setKinkBias(15);
 
     // createConnection(registers, 0, idex, 5)->setKinkBias(-10);
     createConnection(registers, 0, mux_forwardA_ID, 0)->setKinkBias(-10)->drawPointAtFirstKink(true);
@@ -311,7 +311,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     createConnection(idex, 7, mux_ALUSrc2, 1, m_pipelinePtr->r_imm_IDEX.getOutput())->setKinkBias(-50);
     createConnection(idex, 3, exmem, 2, m_pipelinePtr->r_PC4_IDEX.getOutput())->setKinkBias(100);
     createConnection(idex, 4, mux_ALUSrc1, 1, m_pipelinePtr->r_PC_IDEX.getOutput())->setKinkBias(40);
-    createConnection(idex, 10, exmem, 5, m_pipelinePtr->r_writeReg_IDEX.getOutput());
+    createConnection(idex, 9, exmem, 5, m_pipelinePtr->r_writeReg_IDEX.getOutput());
 
     // MEM
     // createConnection(exmem, 3, mux_alures_PC4_MEM, 0, m_pipelinePtr->r_alures_EXMEM.getOutput());
@@ -342,7 +342,7 @@ PipelineWidget::PipelineWidget(QWidget* parent) : QGraphicsView(parent) {
     connPtr->setKinkBias(200);
 
     // WB
-    connPtr = createConnection(memwb, registers, memwb->getOutputPoint(0), registers->getTopPoint());
+    connPtr = createConnection(memwb, registers, memwb->getOutputPoint(0), registers->getTopPoint(), m_pipelinePtr->r_regWrite_MEMWB.getOutput());
     connPtr->setFeedbackSettings(true, minConnectionLen - 20, minConnectionLen - 10);
     connPtr->setKinkBias(-100);
     connPtr->setDirection(Graphics::Direction::south);
@@ -586,13 +586,24 @@ Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, 
 }
 
 Graphics::Connection* PipelineWidget::createConnection(Graphics::Shape* source, Graphics::Shape* dest,
-                                                       QPointF* sourcePoint, QPointF* destPoint) {
+                                                       QPointF* sourcePoint, QPointF* destPoint, SignalBase* sig) {
     // Connects source and destinations using point pointers
     auto* connection = new Graphics::Connection(source, sourcePoint, dest, destPoint);
+    connect(this, &PipelineWidget::displayAllValuesSig, connection, &Graphics::Connection::toggleLabel);
+
+
     m_connections.append(connection);
     source->addConnection(connection);
     dest->addConnection(connection);
     scene()->addItem(connection);
+
+    // If a signal has been specified, set the connection to this signal, and make the label updating
+    if (sig != nullptr) {
+        connection->setSignal(sig);
+        m_animatedItems.push_back(connection->getLabel());
+    }
+
+
     return connection;
 }
 

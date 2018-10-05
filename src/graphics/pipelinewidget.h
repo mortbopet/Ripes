@@ -46,7 +46,7 @@ private:
     Graphics::Connection* createConnection(Graphics::Shape* source, int index1, Graphics::Shape* dest, int index2,
                                            SignalBase* sig = nullptr);
     Graphics::Connection* createConnection(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint,
-                                           QPointF* destPoint);
+                                           QPointF* destPoint, SignalBase* sig = nullptr);
     Graphics::Connection* createConnection(Graphics::Shape* source, int index1, QList<ShapePair> dests);
 
     void moveToIO(Graphics::Shape* source, Graphics::Shape* dest, QPointF* sourcePoint, QPointF* destPointm,
