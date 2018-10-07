@@ -71,7 +71,6 @@ void ProcessorTab::toggleTimer(bool state) {
         m_ui->start->setChecked(false);
         m_timer.stop();
     };
-    m_ui->step->setEnabled(!state);
 }
 
 void ProcessorTab::restart() {
@@ -184,14 +183,11 @@ void ProcessorTab::on_step_clicked() {
 
     emit update();
 
-    // Move instruction view
-    if (pipeline->isFinished()) {
+    // Pipeline has finished executing
+    if (pipeline->isFinished() || (state == 1 && ecallVal.first == Pipeline::ECALL::exit)) {
         m_ui->step->setEnabled(false);
         m_ui->start->setEnabled(false);
         m_ui->run->setEnabled(false);
-    } else if (state == 1 && !(ecallVal.first == Pipeline::ECALL::print_int ||
-               ecallVal.first == Pipeline::ECALL::print_string)) {
-        // Breakpoint encountered, stop autostepping
         toggleTimer(false);
     }
 }
