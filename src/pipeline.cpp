@@ -17,9 +17,7 @@ Pipeline::Pipeline() {
     mux_PCSrc.setControl(&s_PCSrc);
     mux_PCSrc.setInput(0, alu_pc4.getOutput());
     mux_PCSrc.setInput(1, alu_pc_target.getOutput());
-    mux_PCSrc.setInput(
-        2, alu_mainALU.getOutput());  // Tie alures to both upper mux inputs (control signal b1 = 1) (for JALR)
-    mux_PCSrc.setInput(3, alu_mainALU.getOutput());
+    mux_PCSrc.setInput(2, alu_mainALU.getOutput());
 
     r_PC_IFID.setInput(r_PC_IF.getOutput());
     r_PC_IFID.setReset(&s_IFID_reset);
@@ -718,9 +716,15 @@ void Pipeline::propagateCombinational() {
         default: { s_branchTaken = 0; }
     }
 
-    // b1=true for s_PCSrc will unconditionally take r_jal_IDEX PC target. Else, take branch outcome calculation if
+    // bit 1 =true for s_PCSrc will unconditionally take r_jal_IDEX PC target. Else, take branch outcome calculation if
     // s_branchTaken or s_jal. if deasserted, PC+4 is selected
-    s_PCSrc = ((uint32_t)r_jalr_IDEX << 1) + (uint32_t)(s_branchTaken || s_jal);
+    if(r_jalr_IDEX){
+        s_PCSrc = PCSRC::JALR;
+    } else if((uint32_t)s_branchTaken || s_jal){
+        s_PCSrc = PCSRC::BR;
+    } else {
+        s_PCSrc = PCSRC::PC4;
+    }
 
     // IFID should be reset when branch is taken and when jumping
     s_IFID_reset = s_branchTaken || r_jalr_IDEX || s_jal;
