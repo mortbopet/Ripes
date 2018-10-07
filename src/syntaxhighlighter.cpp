@@ -563,6 +563,15 @@ void SyntaxHighlighter::createSyntaxRules() {
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.instr = ".word";
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
+    rule.hasListField = false;
+
+    // Emit zero's (array allocation on static data segment)
+    types.clear();
+    types << FieldType(Type::Immediate, 1, 0xFFFF);
+    rule.fields = 2;
+    rule.inputs = types;
+    rule.instr = ".zero";
+    m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
 
     // .string & .asciz
     types.clear();

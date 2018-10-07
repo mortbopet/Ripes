@@ -610,6 +610,14 @@ void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, 
     }
 }
 
+// Allocates $size bytes in the static data segment
+void Assembler::assembleZeroArray(QByteArray& byteArray, size_t size){
+    Q_ASSERT(size >= 1);
+    for(int i = 0; i < size; i++){
+        byteArray.append(static_cast<char>(0x0));
+    }
+}
+
 void Assembler::assembleAssemblerDirective(const QStringList& fields) {
     QByteArray byteArray;
     if (fields[0] == QString(".string") || fields[0] == QString(".asciz")) {
@@ -622,6 +630,8 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         byteArray = string.toUtf8();
     } else if (DataAssemblerDirectives.contains(fields[0])) {
         assembleWords(fields, byteArray, DataAssemblerSizes.value(fields[0]));
+    } else if (fields[0] == QString(".zero")){
+        assembleZeroArray(byteArray, static_cast<size_t>(fields[1].toInt()));
     } else if (fields[0] == QString(".data")) {
         // Following instructions will be assembled into the data segment
         m_inDataSegment = true;
