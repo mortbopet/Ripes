@@ -76,7 +76,7 @@ const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
     // memorys text segment
 
     QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (file.open(QIODevice::ReadOnly)) {
         m_fileByteArray = file.readAll();
         loadFromByteArray(m_fileByteArray);
         file.close();
