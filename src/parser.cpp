@@ -97,7 +97,7 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
     auto length = arr.length();
     QDataStream in(&arr, QIODevice::ReadOnly);
     char buffer[4];
-    int byteIndex = baseAddress;
+    uint32_t byteIndex = baseAddress;
     for (int i = 0; i < length; i += 4) {
         in.readRawData(buffer, 4);
         QString binaryRepString;
@@ -109,7 +109,7 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
         m_binaryRepr.append(binaryRepString).append('\n');
         uint32_t instr =
             (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
-        output.append(genStringRepr(instr));
+        output.append(genStringRepr(instr,byteIndex - 4));
         output.append("\n");
     }
     // Remove trailing \n character
@@ -178,14 +178,14 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
     return wordParser;
 }
 
-QString Parser::genStringRepr(uint32_t instr) const {
+QString Parser::genStringRepr(uint32_t instr, uint32_t address) const {
     switch (instr & 0x7f) {
         case LUI:
             return generateLuiString(instr);
         case AUIPC:
             return generateAuipcString(instr);
         case JAL:
-            return generateJalString(instr);
+            return generateJalString(instr, address);
         case JALR:
             return generateJalrString(instr);
         case BRANCH:
@@ -376,9 +376,10 @@ QString Parser::generateAuipcString(uint32_t instr) const {
     return QString("auipc x%1 %2").arg(fields[1]).arg((uint32_t)(fields[0]));
 }
 
-QString Parser::generateJalString(uint32_t instr) const {
+QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
     std::vector<uint32_t> fields = decodeJInstr(instr);
     auto target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
+    target += (address);
     // Check for misaligned four-byte boundary
     return QString("jal x%1 %2").arg(fields[4]).arg(target);
 }
@@ -389,5 +390,5 @@ QString Parser::getInstructionString(uint32_t address) const {
     // will be created, and read. in our case uint8_t() = 0
     uint32_t read = (memPtr->read(address) | (memPtr->read(address + 1) << 8) | (memPtr->read(address + 2) << 16) |
                      (memPtr->read(address + 3) << 24));
-    return genStringRepr(read);
+    return genStringRepr(read, address);
 }

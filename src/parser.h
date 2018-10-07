@@ -24,7 +24,7 @@ public:
     }
 
     int getFileSize() { return m_fileSize; }
-    QString genStringRepr(uint32_t instr) const;
+    QString genStringRepr(uint32_t instr, uint32_t address) const;
     void clear();
 
     // Const interfaces to intstruction decode lamdas
@@ -73,7 +73,7 @@ private:
     QString generateBranchString(uint32_t instr) const;
     QString generateLuiString(uint32_t instr) const;
     QString generateAuipcString(uint32_t instr) const;
-    QString generateJalString(uint32_t instr) const;
+    QString generateJalString(uint32_t instr, uint32_t address) const;
     QString generateJalrString(uint32_t instr) const;
     QString generateLoadString(uint32_t instr) const;
     QString generateStoreString(uint32_t instr) const;
