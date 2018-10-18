@@ -65,7 +65,7 @@ Besides the datapath, this tab contains the following elements:
 * **(6) Display all signal values** will show the underlying output signals for most signals in the datapath
 * **(7) Pipeline table**: see below
 * **(8)** Various buttons are available for zooming & expanding the datapath view
-* **(9)Registers** is a view of the value of all registers in the processor, with highlighting for the most-recently used register
+* **(9) Registers** is a view of the value of all registers in the processor, with highlighting for the most-recently used register
 * **(10) Instruction memory**: A view of the disassembled instructions that are currently loaded in the processor. This view displays which instructions are present in each pipeline stage, as well as breakpoint setting functionality
 Furthermore, the following options are available:
 
