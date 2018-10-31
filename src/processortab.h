@@ -43,6 +43,8 @@ private slots:
 
     void on_table_clicked();
 
+    void updateMetrics();
+
 private:
     bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 

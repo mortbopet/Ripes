@@ -16,7 +16,7 @@ public:
     enum MemRead { LB = 1, LH = 2, LW = 3, LBU = 4, LHU = 5 };
     enum MemWrite { SB = 1, SH = 2, SW = 3 };
     enum ECALL { none, print_int = 1, print_string = 4, exit = 10 };
-    enum PCSRC { PC4, BR, JALR};
+    enum PCSRC { PC4, BR, JALR };
     Pipeline();
     // Utility functions
     void restart();
@@ -25,7 +25,7 @@ public:
     int step();
     int run();
     void abort();
-    bool isRunning() const {return m_running;}
+    bool isRunning() const { return m_running; }
 
     // Pointers for GUI
     std::set<uint32_t>* getBreakpoints() { return &m_breakpoints; }
@@ -39,6 +39,8 @@ public:
     bool isReady() const { return m_ready; }
     bool isFinished() const { return m_finished; }
     const std::vector<StagePCS>& getPcsList() { return m_pcsCycles; }
+    int getCycleCount() const { return m_cycleCount; }
+    int getInstructionsExecuted() const { return m_instructionsExecuted; }
 
     static Pipeline* getPipeline() {
         static Pipeline pipeline;
@@ -61,6 +63,9 @@ private:
     bool m_running;
     ECALL m_ecallArg;
     int32_t m_ecallVal;
+
+    unsigned int m_instructionsExecuted = 0;
+    unsigned int m_cycleCount = 0;
 
     // Program counters for each stage
     void setStagePCS();

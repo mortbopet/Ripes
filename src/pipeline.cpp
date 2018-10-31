@@ -286,9 +286,9 @@ void Pipeline::controlGen() {
         case 0b0110011: {
             // R-type
             auto fields = Parser::getParser()->decodeRInstr((uint32_t)r_instr_IFID);
-            if(fields[0] == 0b1){
+            if (fields[0] == 0b1) {
                 // RV32M Standard extension
-                switch(fields[3]){
+                switch (fields[3]) {
                     case 0b000: {
                         // mul
                         s_ALUOP = ALUOps::MUL;
@@ -520,9 +520,9 @@ namespace {
 // is not 0. If this check is not done, coincidences between ie. SW immediate fields and rd fields can occur
 #define EXMEM_WILL_WRITE (uint32_t) r_writeReg_EXMEM != 0 && (bool)r_regWrite_EXMEM
 #define MEMWB_WILL_WRITE (uint32_t) r_writeReg_MEMWB != 0 && (bool)r_regWrite_MEMWB
-#define TAS(sig, expr, value)   \
-    if(expr){                   \
-        sig = value;            \
+#define TAS(sig, expr, value) \
+    if (expr) {               \
+        sig = value;          \
     }
 }
 
@@ -576,7 +576,7 @@ void Pipeline::hazardControlGen() {
     auto r1 = (uint32_t)s_readRegister1;
     auto r2 = (uint32_t)s_readRegister2;
 
-    if(r1 == 10 && r2 == 11){
+    if (r1 == 10 && r2 == 11) {
         volatile int a = 1;
         a++;
     }
@@ -584,13 +584,14 @@ void Pipeline::hazardControlGen() {
     // Branch/ecall hazard: Result from EX stage is needed, or value from memory is needed.
     // This is BOTH for Branch and Ecall instructions, since these instructions work on operands forwarded
     // to the ID stage
-    bool branchEcallHazardFromMem = ((r1 == (uint32_t)r_writeReg_EXMEM) || (r2 == (uint32_t)r_writeReg_EXMEM))
-                                && ((uint32_t)r_regWrite_EXMEM & 0b1)
-                                && (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011 || ((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011);
+    bool branchEcallHazardFromMem =
+        ((r1 == (uint32_t)r_writeReg_EXMEM) || (r2 == (uint32_t)r_writeReg_EXMEM)) &&
+        ((uint32_t)r_regWrite_EXMEM & 0b1) &&
+        (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011 || ((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011);
 
-    bool branchEcallHazardFromEx = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX)
-                              && ((uint32_t)r_regWrite_IDEX & 0b1)
-                              && (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011 || ((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011);
+    bool branchEcallHazardFromEx =
+        (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && ((uint32_t)r_regWrite_IDEX & 0b1) &&
+        (((uint32_t)r_instr_IFID & 0b1111111) == 0b1100011 || ((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011);
 
     bool branchHazard = branchEcallHazardFromMem || branchEcallHazardFromEx;
 
@@ -621,7 +622,7 @@ void Pipeline::propagateCombinational() {
     // This is to ensure that feedback signals are valid
 
     // Extract register sources from current instruction
-    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011){
+    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011) {
         // ECALL does not contain any operands, but we require that a0/a1 is
         // correctly forwarded. This is a bit hacky and actual processors does not handle
         // ECALL this way, but it works with the pipeline of Ripes
@@ -718,9 +719,9 @@ void Pipeline::propagateCombinational() {
 
     // bit 1 =true for s_PCSrc will unconditionally take r_jal_IDEX PC target. Else, take branch outcome calculation if
     // s_branchTaken or s_jal. if deasserted, PC+4 is selected
-    if(r_jalr_IDEX){
+    if (r_jalr_IDEX) {
         s_PCSrc = PCSRC::JALR;
-    } else if((uint32_t)s_branchTaken || s_jal){
+    } else if ((uint32_t)s_branchTaken || s_jal) {
         s_PCSrc = PCSRC::BR;
     } else {
         s_PCSrc = PCSRC::PC4;
@@ -758,9 +759,9 @@ void Pipeline::propagateCombinational() {
 }
 
 void Pipeline::handleEcall() {
-    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011
-          && static_cast<bool>(s_IFID_write) // For checking load-use hazard
-          ) {
+    if (((uint32_t)r_instr_IFID & 0b1111111) == 0b1110011 &&
+        static_cast<bool>(s_IFID_write)  // For checking load-use hazard
+    ) {
         // ecall in EX stage
         uint32_t a0 = (uint32_t)mux_forwardA_ID;
         int32_t a1 = (int32_t)mux_forwardB_ID;
@@ -768,11 +769,10 @@ void Pipeline::handleEcall() {
         m_ecallArg = static_cast<ECALL>(a0);
         m_ecallVal = a1;
 
-        if(m_ecallArg == ECALL::exit){
+        if (m_ecallArg == ECALL::exit) {
             m_finishing = true;
         }
     }
-
 }
 
 std::pair<Pipeline::ECALL, int32_t> Pipeline::checkEcall(bool reset) {
@@ -787,6 +787,13 @@ int Pipeline::step() {
     // Main processing function for the pipeline
     // propagates the signals throgh the combinational logic and clocks the
     // sequential logic afterwards - similar to clocking a circuit
+
+    m_cycleCount++;
+
+    // We define an instruction as being executed if the IDEX stage clocks in a new instruction
+    if (s_IFID_write) {
+        m_instructionsExecuted++;
+    }
 
     // Clock inter-stage registers
     m_reg.clock();
@@ -855,8 +862,8 @@ void Pipeline::setStagePCS() {
     m_pcs.IF = PCVAL(r_PC_IF, m_finishing | m_finished);
 }
 
-void Pipeline::abort(){
-    m_abort = true; // async abort of run()
+void Pipeline::abort() {
+    m_abort = true;  // async abort of run()
 }
 
 int Pipeline::run() {
@@ -864,7 +871,7 @@ int Pipeline::run() {
     while (!step() && !m_abort)
         ;
     m_running = false;
-    if(m_abort){
+    if (m_abort) {
         restart();
         return 1;
     } else {
@@ -902,6 +909,8 @@ void Pipeline::restart() {
     m_finishing = false;
     m_abort = false;
     m_finishingCnt = 0;
+    m_instructionsExecuted = 0;
+    m_cycleCount = 0;
     m_pcsCycles.clear();
     m_RVAccesses.clear();
 

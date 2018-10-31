@@ -32,23 +32,21 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
     // Setup updating signals
     connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
     connect(this, &ProcessorTab::update, m_ui->pipelineWidget, &PipelineWidget::update);
-
+    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateMetrics);
 
     // Connect ECALL functionality to application output log and scroll to bottom
-    connect(this, &ProcessorTab::appendToLog,
-            [this](QString string) { m_ui->console->insertPlainText(string);
-                                   m_ui->console->verticalScrollBar()->setValue(
-                                               m_ui->console->verticalScrollBar()->maximum());});
-
+    connect(this, &ProcessorTab::appendToLog, [this](QString string) {
+        m_ui->console->insertPlainText(string);
+        m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
+    });
 
     // Setup splitter such that consoles are always as small as possible
     m_ui->pipelinesplitter->setStretchFactor(0, 2);
 
     const auto splitterSize = m_ui->pipelinesplitter->size();
-    m_ui->pipelinesplitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consolesTab->minimumHeight()-1)
-                                              << (m_ui->consolesTab->minimumHeight() + 1));
+    m_ui->pipelinesplitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consolesTab->minimumHeight() - 1)
+                                                  << (m_ui->consolesTab->minimumHeight() + 1));
     m_ui->consolesTab->removeTab(1);
-
 
     // Initially, no file is loaded, disable run, step and reset buttons
     m_ui->reset->setEnabled(false);
@@ -89,6 +87,11 @@ void ProcessorTab::initRegWidget() {
     // Setup register widget
     m_ui->registerContainer->setRegPtr(Pipeline::getPipeline()->getRegPtr());
     m_ui->registerContainer->init();
+}
+
+void ProcessorTab::updateMetrics() {
+    m_ui->cycleCount->setText(QString::number(Pipeline::getPipeline()->getCycleCount()));
+    m_ui->nInstrExecuted->setText(QString::number(Pipeline::getPipeline()->getInstructionsExecuted()));
 }
 
 void ProcessorTab::initInstructionView() {
@@ -134,7 +137,7 @@ void ProcessorTab::on_run_clicked() {
             const auto ecall_val = pipeline->checkEcall(true);
             if (ecall_val.first != Pipeline::ECALL::none) {
                 // An ECALL has been invoked during continuous running. Handle ecall and continue to run
-                if(handleEcall(ecall_val)){
+                if (handleEcall(ecall_val)) {
                     on_run_clicked();
                 }
             } else {
@@ -177,7 +180,7 @@ void ProcessorTab::on_step_clicked() {
     auto state = pipeline->step();
 
     const auto ecallVal = pipeline->checkEcall(true);
-    if(ecallVal.first != Pipeline::ECALL::none){
+    if (ecallVal.first != Pipeline::ECALL::none) {
         handleEcall(ecallVal);
     }
 
@@ -205,12 +208,12 @@ bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_
                 break;
             }
             case Pipeline::ECALL::exit: {
-                return true;// The simulator will now take a few cycles to stop
+                return true;  // The simulator will now take a few cycles to stop
             }
         }
     }
 
-    return true; // continue
+    return true;  // continue
 }
 
 void ProcessorTab::on_zoomIn_clicked() {
