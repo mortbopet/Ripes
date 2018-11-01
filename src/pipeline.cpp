@@ -747,9 +747,6 @@ void Pipeline::propagateCombinational() {
         r_invalidPC_IDEX.overrideNext(HazardReason::STALL);
     }
 
-    // handle ECALL I/O. If a0 = 10 for an ECALL, this sets m_finishing and increments finishing counter
-    // if m_finishing is set, we disable PC writing
-    handleEcall();
     TAS(s_PCWrite, m_finishing, 0);
     TAS(s_IFID_reset, m_finishing, 1);
     // if finishing, ECALL will stay in ID stage, and we will force overrideNext for idex stage
@@ -781,6 +778,18 @@ std::pair<Pipeline::ECALL, int32_t> Pipeline::checkEcall(bool reset) {
     if (reset)
         m_ecallArg = ECALL::none;
     return {val, m_ecallVal};
+}
+
+void Pipeline::doFinishCleanup() {
+    for (auto& reg : RegBase::registers) {
+        reg->resetAll();
+    }
+
+    m_pcs.IF.invalidReason = 3;
+    m_pcs.ID.invalidReason = 3;
+    m_pcs.EX.invalidReason = 3;
+    m_pcs.MEM.invalidReason = 3;
+    m_pcs.WB.invalidReason = 3;
 }
 
 int Pipeline::step() {
@@ -818,6 +827,10 @@ int Pipeline::step() {
         }
     }
 
+    // handle ECALL I/O. If a0 = 10 for an ECALL, this sets m_finishing and increments finishing counter
+    // if m_finishing is set, we disable PC writing
+    handleEcall();
+
     // Clock stage-separating registers
     RegBase::clockAll();
 
@@ -834,16 +847,18 @@ int Pipeline::step() {
     if (m_finishing) {
         m_finishingCnt++;
     }
-    if ((m_pcs.WB.pc > m_textSize) || (m_finishingCnt > 4)) {
+    if ((m_pcs.WB.pc > m_textSize) || (m_finishingCnt > 4) || m_ecallArg == ECALL::exit) {
         m_finished = true;
+        doFinishCleanup();
         return 1;
     } else if (m_breakpoints.find((uint32_t)r_PC_IF) != m_breakpoints.end()) {
         // Breakpoint set at current r_PC_IF value
         return 1;
     } else if (m_ecallArg != ECALL::none) {
         return 1;  // GUI will automatically resume execution if in "running" mode
+    } else {
+        return 0;
     }
-    { return 0; }
 }
 
 #define PCVAL(pc, reg) \
@@ -911,6 +926,8 @@ void Pipeline::restart() {
     m_finishingCnt = 0;
     m_instructionsExecuted = 0;
     m_cycleCount = 0;
+    m_ecallArg = ECALL::none;
+    m_ecallVal = 0;
     m_pcsCycles.clear();
     m_RVAccesses.clear();
 

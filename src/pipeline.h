@@ -59,6 +59,7 @@ private:
     void hazardControlGen();
     void aluCtrl();
     void clock();
+    void doFinishCleanup();
     bool m_ready = false;
     bool m_running;
     ECALL m_ecallArg;
