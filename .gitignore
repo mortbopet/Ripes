@@ -3,3 +3,12 @@
 *.autosave
 *.o
 Makefile
+
+
+# Qt generated files
+moc_*
+ui_*
+qrc_*
+
+# Executable
+Ripes
