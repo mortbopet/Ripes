@@ -423,21 +423,33 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
                                                << "0";
         pos++;
     } else if (fields.first() == "li") {
-        // Determine whether an ADDI instruction is sufficient, or if both LUI and ADDI is needed, by analysing the
-        // immediate size
+        // Determine whether an ADDI or LUI instruction is sufficient, or if both LUI and ADDI is needed, by analysing
+        // the immediate size
         bool canConvert;
         int immediate = getImmediate(fields[2], canConvert);
-        if (immediate > 2047 || immediate < -2048) {
-            int posOffset = 1;
-            if (immediate < 0) {
-                posOffset = 0;
+
+        // Generate offset required for discerning between positive and negative immediates
+        int posOffset = 1;
+        if (immediate < 0) {
+            posOffset = 0;
+        }
+        if (!isInt<12>(immediate)) {
+            if ((immediate & 0xFFF) == 0) {
+                // Only a LUI is required
+                m_instructionsMap[pos] = QStringList() << "lui" << fields[1]
+                                                       << QString::number(((uint32_t)immediate >> 12) + posOffset);
+                pos++;
+            } else {
+                // both ADDI and LUI is required
+                m_instructionsMap[pos] = QStringList() << "lui" << fields[1]
+                                                       << QString::number(((uint32_t)immediate >> 12) + posOffset);
+                m_instructionsMap[pos + 1] = QStringList()
+                                             << "addi" << fields[1] << fields[1]
+                                             << QString::number(signextend<int32_t, 12>(immediate & 0xfff));
+                pos += 2;
             }
-            m_instructionsMap[pos] = QStringList()
-                                     << "lui" << fields[1] << QString::number(((uint32_t)immediate >> 12) + posOffset);
-            m_instructionsMap[pos + 1] = QStringList() << "addi" << fields[1] << fields[1]
-                                                       << QString::number(signextend<int32_t, 12>(immediate & 0xfff));
-            pos += 2;
         } else {
+            // ADDI is sufficient
             m_instructionsMap[pos] = QStringList() << "addi" << fields[1] << "x0" << QString::number(immediate);
             pos++;
         }
@@ -610,9 +622,9 @@ void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, 
 }
 
 // Allocates $size bytes in the static data segment
-void Assembler::assembleZeroArray(QByteArray& byteArray, size_t size){
+void Assembler::assembleZeroArray(QByteArray& byteArray, size_t size) {
     Q_ASSERT(size >= 1);
-    for(int i = 0; i < size; i++){
+    for (int i = 0; i < size; i++) {
         byteArray.append(static_cast<char>(0x0));
     }
 }
@@ -629,7 +641,7 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         byteArray = string.toUtf8();
     } else if (DataAssemblerDirectives.contains(fields[0])) {
         assembleWords(fields, byteArray, DataAssemblerSizes.value(fields[0]));
-    } else if (fields[0] == QString(".zero")){
+    } else if (fields[0] == QString(".zero")) {
         assembleZeroArray(byteArray, static_cast<size_t>(fields[1].toInt()));
     } else if (fields[0] == QString(".data")) {
         // Following instructions will be assembled into the data segment
