@@ -13,6 +13,13 @@ inline T signextend(const T x) {
     return s.x = x;
 }
 
+/// Checks if an integer fits into the given bit width.
+/// from LLVM MathExtras.h
+template <unsigned N>
+constexpr inline bool isInt(int64_t x) {
+    return N >= 64 || (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
+}
+
 constexpr uint32_t generateBitmask(int n) {
     // Generate bitmask. There might be a smarter way to do this
     uint32_t mask = 0;
