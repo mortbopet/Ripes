@@ -650,11 +650,11 @@ void Pipeline::propagateCombinational() {
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
-                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xff;
+                readData_MEM = signextend<int32_t, 8>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xff);
                 break;
             }
             case LH: {
-                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff;
+                readData_MEM = signextend<int32_t, 16>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff);
                 break;
             }
             case LW: {
@@ -662,11 +662,11 @@ void Pipeline::propagateCombinational() {
                 break;
             }
             case LBU: {
-                readData_MEM = signextend<int32_t, 8>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xff);
+                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xff;
                 break;
             }
             case LHU: {
-                readData_MEM = signextend<int32_t, 16>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff);
+                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff;
                 break;
             }
         }
