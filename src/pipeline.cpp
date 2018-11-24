@@ -645,8 +645,7 @@ void Pipeline::propagateCombinational() {
     mux_alures_PC4_MEM.update();
     if (r_MemRead_EXMEM) {
         // Store read access for use in GUI
-        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM,
-                     static_cast<uint32_t>(m_pcsCycles.size())};
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM, m_cycleCount};
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
@@ -797,8 +796,6 @@ int Pipeline::step() {
     // propagates the signals throgh the combinational logic and clocks the
     // sequential logic afterwards - similar to clocking a circuit
 
-    m_cycleCount++;
-
     // We define an instruction as being executed if the IDEX stage clocks in a new instruction
     if (s_IFID_write) {
         m_instructionsExecuted++;
@@ -806,10 +803,14 @@ int Pipeline::step() {
 
     // Clock inter-stage registers
     m_reg.clock();
+
+    m_cycleCount++;
+
     if (r_MemWrite_EXMEM) {
-        // Store write access for use in GUI
-        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM,
-                     static_cast<uint32_t>(m_pcsCycles.size())};
+        // Store write access for use in GUI. Cycle count is current cycle count - 1 since the operation was in the MEM
+        // stage in the previous cycle (which we should convey to the user), but the memory gets stored on the rising
+        // edge of the clock (this cycle).
+        RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Write, (uint32_t)r_alures_EXMEM, m_cycleCount - 1};
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemWrite_EXMEM) {
             case SB: {
