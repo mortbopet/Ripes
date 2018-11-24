@@ -7,7 +7,7 @@
 InstructionModel::InstructionModel(const StagePCS& pcsptr, const StagePCS& pcsptrPre, Parser* parser, QObject* parent)
     : m_pcsptr(pcsptr), m_pcsptrPre(pcsptrPre), m_parserPtr(parser), QAbstractTableModel(parent) {
     m_pipelinePtr = Pipeline::getPipeline();
-    m_memory = m_pipelinePtr->getMemoryPtr();
+    m_memory = m_pipelinePtr->getRuntimeMemoryPtr();
 }
 
 void InstructionModel::update() {

@@ -29,7 +29,8 @@ public:
 
     // Pointers for GUI
     std::set<uint32_t>* getBreakpoints() { return &m_breakpoints; }
-    MainMemory* getMemoryPtr() { return &m_memory; }
+    MainMemory* getRuntimeMemoryPtr() { return &m_runtimeMemory; }
+    void setBaselineMemory(const MainMemory& memory) { m_baselineMemory = memory; }
     std::unordered_map<uint32_t, uint8_t>* getDataMemoryPtr() { return &m_dataMemory; }
     std::vector<uint32_t>* getRegPtr() { return m_reg.getRegPtr(); }
     std::pair<Pipeline::ECALL, int32_t> checkEcall(bool reset = true);
@@ -80,9 +81,16 @@ private:
     std::vector<StagePCS> m_pcsCycles;   // list of PCs for each cycle
     std::vector<RVAccess> m_RVAccesses;  // List of all read/write accesses to memory
 
-    // Memory
+    /** Memory
+     * Runtime memory: Memory as used by the processor during execution. Also used for GUI visualization of the memory
+     * state Baseline memory: Memory as it is in the initial state of loading the program Having separate runtime and
+     * baseline memory allows us to easily reset the simulator upon resetting the simulation, in case programs alter the
+     * program (.text segment) during execution
+     */
     Registers m_reg;
-    MainMemory m_memory;
+    MainMemory m_runtimeMemory;
+    MainMemory m_baselineMemory;
+
     std::unordered_map<uint32_t, uint8_t> m_dataMemory;  // Since the data memory needs to be restarted on a simulator
                                                          // reset, the assembler-provided data segment must be stored
     uint32_t m_textSize = 0;

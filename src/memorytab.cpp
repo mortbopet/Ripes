@@ -19,7 +19,7 @@ MemoryTab::MemoryTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryTab)
 }
 
 void MemoryTab::initMemoryTab() {
-    m_memoryPtr = Pipeline::getPipeline()->getMemoryPtr();
+    m_memoryPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
     m_regPtr = Pipeline::getPipeline()->getRegPtr();
     initializeMemoryView();
     m_ui->registerContainer->setRegPtr(m_regPtr);

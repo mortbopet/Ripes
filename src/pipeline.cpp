@@ -649,23 +649,23 @@ void Pipeline::propagateCombinational() {
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemRead_EXMEM) {
             case LB: {
-                readData_MEM = signextend<int32_t, 8>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xff);
+                readData_MEM = signextend<int32_t, 8>(m_runtimeMemory.read((uint32_t)r_alures_EXMEM) & 0xff);
                 break;
             }
             case LH: {
-                readData_MEM = signextend<int32_t, 16>(m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff);
+                readData_MEM = signextend<int32_t, 16>(m_runtimeMemory.read((uint32_t)r_alures_EXMEM) & 0xffff);
                 break;
             }
             case LW: {
-                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM);
+                readData_MEM = m_runtimeMemory.read((uint32_t)r_alures_EXMEM);
                 break;
             }
             case LBU: {
-                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xff;
+                readData_MEM = m_runtimeMemory.read((uint32_t)r_alures_EXMEM) & 0xff;
                 break;
             }
             case LHU: {
-                readData_MEM = m_memory.read((uint32_t)r_alures_EXMEM) & 0xffff;
+                readData_MEM = m_runtimeMemory.read((uint32_t)r_alures_EXMEM) & 0xffff;
                 break;
             }
         }
@@ -735,7 +735,8 @@ void Pipeline::propagateCombinational() {
 
     // Load nops if PC is greater than text size
     m_finishing = ((uint32_t)r_PC_IFID > m_textSize) | m_finishing;
-    s_instr_IF = Signal<32>(m_finishing ? 0 : m_memory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
+    s_instr_IF =
+        Signal<32>(m_finishing ? 0 : m_runtimeMemory.read((uint32_t)r_PC_IF));  // Read instruction at current PC
 
     // For GUI - set invalidPC (branch taken indicator) if  PCSrc both PCSrc and s_IFID_write is asserted - in this
     // case, a new program counter value is starting to propagate, indicating an invalid ID branch
@@ -814,15 +815,15 @@ int Pipeline::step() {
         m_RVAccesses.insert(m_RVAccesses.begin(), acc);
         switch ((uint32_t)r_MemWrite_EXMEM) {
             case SB: {
-                m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 1);
+                m_runtimeMemory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 1);
                 break;
             }
             case SH: {
-                m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 2);
+                m_runtimeMemory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 2);
                 break;
             }
             case SW: {
-                m_memory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 4);
+                m_runtimeMemory.write((uint32_t)r_alures_EXMEM, (uint32_t)r_writeData_EXMEM, 4);
                 break;
             }
         }
@@ -898,8 +899,9 @@ int Pipeline::run() {
 void Pipeline::reset() {
     // Called when resetting the simulator (loading a new program)
     restart();
-    m_memory.clear();
+    m_runtimeMemory.clear();
     m_dataMemory.clear();
+    m_baselineMemory.clear();
     m_textSize = 0;
     m_ready = false;
     m_abort = false;
@@ -907,7 +909,6 @@ void Pipeline::reset() {
 
 void Pipeline::update() {
     // Must be called whenever external changes to the memory has been envoked
-    m_textSize = m_memory.size();
     m_ready = true;
     restart();
 }
@@ -915,9 +916,10 @@ void Pipeline::update() {
 void Pipeline::restart() {
     // Called when restarting a simulation
     m_reg.clear();
-    m_memory.reset(m_textSize);  // Wipe simulator memory, but keep text segment
-    m_memory.insert(m_dataMemory.begin(),
-                    m_dataMemory.end());  // Merge assembler-provided data memory into simulator memory
+    m_runtimeMemory = m_baselineMemory;
+    m_textSize = m_runtimeMemory.size();
+    m_runtimeMemory.insert(m_dataMemory.begin(),
+                           m_dataMemory.end());  // Merge assembler-provided data memory into simulator memory
     m_reg.init();
     m_pcs.reset();
     m_pcsPre.reset();

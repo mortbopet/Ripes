@@ -40,26 +40,26 @@ Parser::~Parser() {}
 
 void Parser::parseFile() {
     // Parse the file in 8-bit segments and write to memory map
-    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
+    MainMemory memory;
     int pc = 0;
     while (m_fileIter != istreambuf_iterator<char>()) {
-        memPtr->write(pc, *m_fileIter, 1);
+        memory.write(pc, *m_fileIter, 1);
         pc++;
         m_fileIter++;
     }
+    Pipeline::getPipeline()->setBaselineMemory(memory);
 }
 
 QString Parser::getStringAt(uint32_t address) const {
     // Returns the null-terminated string starting at @address
-    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
+    MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
     QString string;
     char read;
-    do{
+    do {
         read = memPtr->read(address) & 0xff;
         string.append(read);
         address++;
-    }
-    while (read != '\0');
+    } while (read != '\0');
     return string;
 }
 
@@ -93,7 +93,7 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
     // Baseaddress is default = 0 (text). Can be changed for inserting into ie. data memory
 
     QString output = "";
-    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
+    MainMemory memory;
     auto length = arr.length();
     QDataStream in(&arr, QIODevice::ReadOnly);
     char buffer[4];
@@ -103,17 +103,20 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
         QString binaryRepString;
         for (int j = 0; j < 4; j++) {
             binaryRepString.prepend(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
-            memPtr->write(byteIndex, buffer[j], 1);
+            memory.write(byteIndex, buffer[j], 1);
             byteIndex++;
         }
         m_binaryRepr.append(binaryRepString).append('\n');
         uint32_t instr =
             (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
-        output.append(genStringRepr(instr,byteIndex - 4));
+        output.append(genStringRepr(instr, byteIndex - 4));
         output.append("\n");
     }
     // Remove trailing \n character
     output.truncate(output.lastIndexOf('\n'));
+
+    // Set the initial memory state of the processor
+    Pipeline::getPipeline()->setBaselineMemory(memory);
 
     // Update the pipeline
     Pipeline::getPipeline()->update();
@@ -385,7 +388,7 @@ QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
 }
 
 QString Parser::getInstructionString(uint32_t address) const {
-    MainMemory* memPtr = Pipeline::getPipeline()->getMemoryPtr();
+    MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
     // Note: If address is not found in memory map, a default constructed object
     // will be created, and read. in our case uint8_t() = 0
     uint32_t read = (memPtr->read(address) | (memPtr->read(address + 1) << 8) | (memPtr->read(address + 2) << 16) |
