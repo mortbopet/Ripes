@@ -643,7 +643,7 @@ void Pipeline::propagateCombinational() {
     // ----- MEM -----
     s_alures_PC4_MEM = (uint32_t)(r_jalr_EXMEM || r_jal_EXMEM);
     mux_alures_PC4_MEM.update();
-    if (r_MemRead_EXMEM) {
+    if ((uint32_t)r_MemRead_EXMEM != 0) {
         // Store read access for use in GUI
         RVAccess acc{(uint32_t)r_PC_EXMEM, RW::Read, (uint32_t)r_alures_EXMEM, m_cycleCount};
         m_MemoryAccesses.insert(m_MemoryAccesses.begin(), acc);
@@ -807,7 +807,7 @@ int Pipeline::step() {
 
     m_cycleCount++;
 
-    if (r_MemWrite_EXMEM) {
+    if ((uint32_t)r_MemWrite_EXMEM != 0) {
         // Store write access for use in GUI. Cycle count is current cycle count - 1 since the operation was in the MEM
         // stage in the previous cycle (which we should convey to the user), but the memory gets stored on the rising
         // edge of the clock (this cycle).
