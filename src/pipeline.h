@@ -78,8 +78,8 @@ private:
     bool m_finished = false;
     bool m_abort = false;
     int m_finishingCnt = 0;
-    std::vector<StagePCS> m_pcsCycles;   // list of PCs for each cycle
-    std::vector<RVAccess> m_RVAccesses;  // List of all read/write accesses to memory
+    std::vector<StagePCS> m_pcsCycles;       // list of PCs for each cycle
+    std::vector<RVAccess> m_MemoryAccesses;  // List of all read/write accesses to memory
 
     /** Memory
      * Runtime memory: Memory as used by the processor during execution. Also used for GUI visualization of the memory

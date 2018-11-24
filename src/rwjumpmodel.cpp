@@ -29,7 +29,7 @@ QVariant RWJumpModel::headerData(int section, Qt::Orientation orientation, int r
 
 int RWJumpModel::rowCount(const QModelIndex& parent) const {
     Q_UNUSED(parent)
-    int size = m_pipelinePtr->m_RVAccesses.size();
+    int size = m_pipelinePtr->m_MemoryAccesses.size();
     return size;
 }
 
@@ -45,7 +45,7 @@ int RWJumpModel::columnCount(const QModelIndex& parent) const {
 }
 
 QVariant RWJumpModel::data(const QModelIndex& index, int role) const {
-    const RVAccess& access = m_pipelinePtr->m_RVAccesses[index.row()];
+    const RVAccess& access = m_pipelinePtr->m_MemoryAccesses[index.row()];
     if (role == Qt::UserRole) {
         // Address is requested for jumping
         return access.addr;
