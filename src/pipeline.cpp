@@ -524,7 +524,7 @@ namespace {
     if (expr) {               \
         sig = value;          \
     }
-}
+}  // namespace
 
 void Pipeline::forwardingControlGen() {
     // After clocking new values in all registers, examine register sources and assign forwading multiplexer control
@@ -797,8 +797,8 @@ int Pipeline::step() {
     // propagates the signals throgh the combinational logic and clocks the
     // sequential logic afterwards - similar to clocking a circuit
 
-    // We define an instruction as being executed if the IDEX stage clocks in a new instruction
-    if (s_IFID_write) {
+    // We define an instruction as being when the PC of the WB stage is valid (initialized, non-stall/flush)
+    if (m_pcs.WB.isValid() && m_pcs.WB.initialized) {
         m_instructionsExecuted++;
     }
 
