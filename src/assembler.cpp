@@ -229,7 +229,7 @@ QByteArray Assembler::assembleOpInstruction(const QStringList& fields, int row) 
     } else if (fields[0] == "xor") {
         funct3 = 0b100;
     } else if (fields[0] == "srl") {
-        funct3 = 0b000;
+        funct3 = 0b101;
     } else if (fields[0] == "sra") {
         funct3 = 0b101;
         funct7 = 0b0100000;
