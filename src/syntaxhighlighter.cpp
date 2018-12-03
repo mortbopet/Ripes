@@ -158,8 +158,9 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
                         << "\\bcsrci\\b"
                                                */
                         << "\\bauipc\\b"
+                        << "\\badd\\b"
                         << "\\baddi\\b"
-                        << "\\baddi\\b"
+                        << "\\bxor\\b"
                         << "\\bxori\\b"
                         << "\\bsub\\b"
                         << "\\bsubw\\b"
@@ -173,14 +174,16 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
                         << "\\bblt\\b"
                         << "\\bbltu\\b"
                         << "\\bbgeu\\b"
+                        << "\\bsrl\\b"
                         << "\\bsrli\\b"
+                        << "\\bsll\\b"
                         << "\\bslli\\b"
+                        << "\\bsra\\b"
                         << "\\bsrai\\b"
                         << "\\bor\\b"
                         << "\\bori\\b"
                         << "\\band\\b"
                         << "\\bandi\\b"
-                        << "\\badd\\b"
                         << "\\becall\\b"
 
                         << "\\bmul\\b"
@@ -565,7 +568,7 @@ void SyntaxHighlighter::createSyntaxRules() {
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.instr = ".word";
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
-	rule.instr = ".long";
+    rule.instr = ".long";
     m_syntaxRules.insert(rule.instr, QList<SyntaxRule>() << rule);
     rule.hasListField = false;
 
@@ -594,7 +597,7 @@ namespace {
     if (string[0] == ".")                              \
         return QString("Unknown assembler directive"); \
     return QString("Unknown operation");
-}
+}  // namespace
 
 QString SyntaxHighlighter::checkSyntax(const QString& input) {
     QStringList fields = input.split(splitter);
