@@ -73,7 +73,7 @@
      <x>0</x>
      <y>0</y>
      <width>689</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -99,7 +99,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="actionOpen_documentation"/>
+    <addaction name="actionOpen_wiki"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -185,9 +185,9 @@
     <string>About</string>
    </property>
   </action>
-  <action name="actionOpen_documentation">
+  <action name="actionOpen_wiki">
    <property name="text">
-    <string>Documentation</string>
+    <string>Wiki</string>
    </property>
   </action>
   <action name="actionSave_Assembly_File">

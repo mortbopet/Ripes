@@ -130,9 +130,8 @@ void MainWindow::on_actionAbout_triggered() {
     about.exec();
 }
 
-void MainWindow::on_actionOpen_documentation_triggered() {
-    // Look for documentation pdf
-    QDesktopServices::openUrl(QUrl(QString("https://github.com/mortbopet/Ripes")));
+void MainWindow::on_actionOpen_wiki_triggered() {
+    QDesktopServices::openUrl(QUrl(QString("https://github.com/mortbopet/Ripes/wiki")));
 }
 
 void MainWindow::on_actionSave_Assembly_File_triggered() {
