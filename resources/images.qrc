@@ -17,5 +17,6 @@
         <file>save.svg</file>
         <file>spreadsheet.svg</file>
         <file>documents.svg</file>
+        <file>logo.svg</file>
     </qresource>
 </RCC>

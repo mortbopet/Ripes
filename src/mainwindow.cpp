@@ -19,7 +19,7 @@
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
     setWindowTitle("Ripes");
-    setWindowIcon(QIcon(":/icons/logo.png"));
+    setWindowIcon(QIcon(":/icons/logo.svg"));
     showMaximized();
 
     // Setup tab bar
