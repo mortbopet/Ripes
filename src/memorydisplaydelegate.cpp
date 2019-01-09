@@ -1,4 +1,5 @@
 #include "memorydisplaydelegate.h"
+#include "binutils.h"
 
 MemoryDisplayDelegate::MemoryDisplayDelegate(QWidget* parent) : QStyledItemDelegate(parent) {}
 
@@ -19,7 +20,7 @@ QString MemoryDisplayDelegate::displayText(const QVariant& value, const QLocale&
             retVal.setNum(value.toUInt());
             break;
         case displayTypeN::Decimal:
-            retVal.setNum(value.toInt());
+            retVal.setNum(signextend<int, 8>(value.toInt()));
             break;
         case displayTypeN::ASCII:
             retVal = QChar(value.toInt());
