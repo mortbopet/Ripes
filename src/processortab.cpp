@@ -100,6 +100,7 @@ void ProcessorTab::initInstructionView() {
                                         Pipeline::getPipeline()->getStagePCSPre(), Parser::getParser());
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_ui->instructionView->setModel(m_instrModel);
+    m_ui->instructionView->horizontalHeader()->setMinimumSectionSize(1);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
