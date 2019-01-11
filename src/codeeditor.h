@@ -128,7 +128,7 @@ private:
     CodeEditor* codeEditor;
     int m_blockHeight = 0;
 
-    void mouseReleaseEvent(QMouseEvent* event) {
+    void mouseReleaseEvent(QMouseEvent* event) override {
         if (event->button() == Qt::LeftButton) {
             codeEditor->breakpointClick(event);
         }

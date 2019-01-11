@@ -197,19 +197,19 @@ void ProcessorTab::on_step_clicked() {
 
 bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_val) {
     // Check if ecall has been invoked
-    if (ecall_val.first != Pipeline::ECALL::none) {
-        switch (ecall_val.first) {
-            case Pipeline::ECALL::print_string: {
-                emit appendToLog(Parser::getParser()->getStringAt(ecall_val.second));
-                break;
-            }
-            case Pipeline::ECALL::print_int: {
-                emit appendToLog(QString::number(ecall_val.second));
-                break;
-            }
-            case Pipeline::ECALL::exit: {
-                return true;  // The simulator will now take a few cycles to stop
-            }
+    switch (ecall_val.first) {
+        case Pipeline::ECALL::none:
+            break;
+        case Pipeline::ECALL::print_string: {
+            emit appendToLog(Parser::getParser()->getStringAt(static_cast<uint32_t>(ecall_val.second)));
+            break;
+        }
+        case Pipeline::ECALL::print_int: {
+            emit appendToLog(QString::number(ecall_val.second));
+            break;
+        }
+        case Pipeline::ECALL::exit: {
+            return true;  // The simulator will now take a few cycles to stop
         }
     }
 
