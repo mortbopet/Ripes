@@ -21,8 +21,8 @@ class MemoryTab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit MemoryTab(QWidget* parent = 0);
-    ~MemoryTab();
+    explicit MemoryTab(QWidget* parent = nullptr);
+    ~MemoryTab() override;
     void initMemoryTab();
 
 public slots:

@@ -12,8 +12,8 @@ class AddressDialog : public QDialog {
 
 public:
     friend class GoToComboBox;
-    explicit AddressDialog(QWidget* parent = 0);
-    ~AddressDialog();
+    explicit AddressDialog(QWidget* parent = nullptr);
+    ~AddressDialog() override;
 
     uint32_t getAddress() const { return m_address; }
 

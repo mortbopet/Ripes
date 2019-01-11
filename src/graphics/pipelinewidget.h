@@ -24,7 +24,7 @@ class PipelineWidget : public QGraphicsView {
 public:
     PipelineWidget(QWidget* parent = nullptr);
 
-    void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent* event) override;
     void expandToView() { fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio); }
     void displayAllValues(bool state);
     void zoomIn();

@@ -12,8 +12,8 @@ class ProgramfileTab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ProgramfileTab(QWidget* parent = 0);
-    ~ProgramfileTab();
+    explicit ProgramfileTab(QWidget* parent = nullptr);
+    ~ProgramfileTab() override;
 
     void setAssemblyText(const QString& text);
     void setDisassemblerText();

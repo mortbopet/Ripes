@@ -14,8 +14,8 @@ class CacheSetupWidget : public QWidget {
     friend class CacheTab;
 
 public:
-    explicit CacheSetupWidget(QWidget* parent = 0);
-    ~CacheSetupWidget();
+    explicit CacheSetupWidget(QWidget* parent = nullptr);
+    ~CacheSetupWidget() override;
 
     void setName(QString name);
     void setCachePtr(CacheBase* cachePtr) { m_cachePtr = cachePtr; }

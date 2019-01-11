@@ -9,8 +9,8 @@ uint32_t accBVec(const std::vector<bool>& v) {
 }
 
 void buildVec(std::vector<bool>& v, uint32_t n) {
-    for (uint32_t i = 0; i < v.size(); i++) {
-        v[i] = n & 0b1;
+    for (auto && i : v) {
+        i = n & 0b1;
         n >>= 1;
     }
 }

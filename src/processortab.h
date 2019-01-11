@@ -20,8 +20,8 @@ class ProcessorTab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ProcessorTab(QWidget* parent = 0);
-    ~ProcessorTab();
+    explicit ProcessorTab(QWidget* parent = nullptr);
+    ~ProcessorTab() override;
 
     void initRegWidget();
     void initInstructionView();

@@ -16,8 +16,8 @@ class RunDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RunDialog(QWidget *parent = 0);
-    ~RunDialog();
+    explicit RunDialog(QWidget *parent = nullptr);
+    ~RunDialog() override;
 
 public slots:
     int exec() override;

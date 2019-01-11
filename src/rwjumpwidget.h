@@ -12,8 +12,8 @@ class RWJumpWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit RWJumpWidget(QWidget* parent = 0);
-    ~RWJumpWidget();
+    explicit RWJumpWidget(QWidget* parent = nullptr);
+    ~RWJumpWidget() override;
     void init();
     void updateModel();
 

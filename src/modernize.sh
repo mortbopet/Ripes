@@ -1,0 +1,3 @@
+for file in ./*; do
+    clang-tidy-6.0 -checks="modernize-avoid-bind,modernize-deprecated-headers,modernize-loop-convert,modernize-make-shared,modernize-make-unique,modernize-pass-by-value,modernize-raw-string-literal,modernize-redundant-void-arg,modernize-replace-auto-ptr,modernize-shrink-to-fit,modernize-use-auto,modernize-use-bool-literals,modernize-use-default,modernize-use-emplace,modernize-use-nullptr,modernize-use-override,modernize-use-using" -fix $file -- -std=c++11
+done

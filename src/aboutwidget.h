@@ -11,8 +11,8 @@ class AboutWidget : public QDialog {
     Q_OBJECT
 
 public:
-    explicit AboutWidget(QWidget* parent = 0);
-    ~AboutWidget();
+    explicit AboutWidget(QWidget* parent = nullptr);
+    ~AboutWidget() override;
 
 private:
     Ui::AboutWidget* ui;

@@ -17,7 +17,7 @@ public:
     void wheelEvent(QWheelEvent* event) override;
 
 protected:
-    void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent* event) override;
 
 public slots:
     void setVisibleRows();

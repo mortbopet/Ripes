@@ -15,8 +15,8 @@ class CacheTab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CacheTab(QWidget* parent = 0);
-    ~CacheTab();
+    explicit CacheTab(QWidget* parent = nullptr);
+    ~CacheTab() override;
 
 private:
     Ui::CacheTab* m_ui;

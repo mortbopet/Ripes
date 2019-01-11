@@ -10,7 +10,7 @@
 #include <functional>
 #include <stdexcept>
 #include <vector>
-#include "assert.h"
+#include <cassert>
 
 /* PIPELINE OBJECTS
  * all pipeline objects are built around the Signal class - a boolean vector of immutable size.

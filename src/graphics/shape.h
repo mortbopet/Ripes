@@ -22,8 +22,8 @@ class Shape : public QGraphicsItem {
 public:
     Shape(ShapeType type = ShapeType::Block, Stage stage = Stage::IF, int verticalPad = 0, int horizontalPad = 0);
 
-    QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     void addInput(QString input = "");
     void addInput(QStringList input);
     void addOutput(QString output = "");
@@ -59,7 +59,7 @@ public:
         m_botText = desc;
     }
     static int connectionType() { return QGraphicsItem::UserType + 2; }
-    int type() const { return connectionType(); }
+    int type() const override { return connectionType(); }
 
 private:
     void setPointSize();

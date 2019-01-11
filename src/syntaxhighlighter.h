@@ -32,7 +32,7 @@ class SyntaxHighlighter : public QSyntaxHighlighter {
 public:
     explicit SyntaxHighlighter(QTextDocument* parent = nullptr);
 
-    void highlightBlock(const QString& text);
+    void highlightBlock(const QString& text) override;
     void reset();
 
     QString checkSyntax(const QString& line);

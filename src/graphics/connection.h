@@ -58,7 +58,7 @@ public:
     QGraphicsItem* getLabel() { return &m_label; }
 
     static int connectionType() { return QGraphicsItem::UserType + 1; }
-    int type() const { return connectionType(); }
+    int type() const override { return connectionType(); }
     void setKinkBiases(QList<int> biases) { m_kinkBiases = biases; }
     Connection* setKinkBias(int bias) {
         m_kinkBiases = QList<int>() << bias;

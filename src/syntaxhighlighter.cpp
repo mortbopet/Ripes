@@ -235,7 +235,7 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
 
     // Create string highlighting rule
     stringFormat.setForeground(QColor(0x800000));
-    rule.pattern = QRegularExpression("\"(?:[^\"]|\\.)*\"");
+    rule.pattern = QRegularExpression(R"("(?:[^"]|\.)*")");
     rule.format = stringFormat;
     m_highlightingRules.append(rule);
 }

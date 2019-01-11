@@ -149,7 +149,7 @@ Pipeline::Pipeline() {
 }
 
 void Pipeline::immGen() {
-    uint32_t instr = (uint32_t)r_instr_IFID;
+    auto instr = (uint32_t)r_instr_IFID;
     uint32_t opcode = instr & 0b1111111;
     if (opcode == 0b0110111 || opcode == 0b0010111) {
         // LUI & AUIPC
@@ -760,8 +760,8 @@ void Pipeline::handleEcall() {
         static_cast<bool>(s_IFID_write)  // For checking load-use hazard
     ) {
         // ecall in EX stage
-        uint32_t a0 = (uint32_t)mux_forwardA_ID;
-        int32_t a1 = (int32_t)mux_forwardB_ID;
+        auto a0 = (uint32_t)mux_forwardA_ID;
+        auto a1 = (int32_t)mux_forwardB_ID;
 
         m_ecallArg = static_cast<ECALL>(a0);
         m_ecallVal = a1;

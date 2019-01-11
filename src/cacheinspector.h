@@ -16,8 +16,8 @@ class CacheInspector : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CacheInspector(QWidget* parent = 0);
-    ~CacheInspector();
+    explicit CacheInspector(QWidget* parent = nullptr);
+    ~CacheInspector() override;
 
     void updateData(int value, dataRole role, cacheLevel level);
     void changePlotView(int view);

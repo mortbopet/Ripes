@@ -2,7 +2,7 @@
 #include "defines.h"
 #include "pipeline.h"
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 
 #include "binutils.h"
@@ -22,7 +22,7 @@ bool Parser::initBinaryFile(char* filename) {
     const string fname = string(filename);
     m_fileStream = ifstream(fname.c_str(), ios::binary);
     if (!(m_fileStream.good())) {
-        return 1;
+        return true;
     }
 
     // Create filestream iterator
@@ -33,7 +33,7 @@ bool Parser::initBinaryFile(char* filename) {
     m_fileSize = m_fileStream.tellg();
     m_fileStream.clear();
     m_fileStream.seekg(0, ios::beg);
-    return 0;
+    return false;
 }
 
 Parser::~Parser() {}
@@ -101,9 +101,9 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
     for (int i = 0; i < length; i += 4) {
         in.readRawData(buffer, 4);
         QString binaryRepString;
-        for (int j = 0; j < 4; j++) {
-            binaryRepString.prepend(QString().setNum((uint8_t)buffer[j], 2).rightJustified(8, '0'));
-            memory.write(byteIndex, buffer[j], 1);
+        for (char j : buffer) {
+            binaryRepString.prepend(QString().setNum((uint8_t)j, 2).rightJustified(8, '0'));
+            memory.write(byteIndex, j, 1);
             byteIndex++;
         }
         m_binaryRepr.append(binaryRepString).append('\n');
@@ -141,8 +141,8 @@ void Parser::loadFromByteArrayIntoData(QByteArray arr) {
     uint32_t byteIndex = DATASTART;
     for (int i = 0; i < length; i += 4) {
         in.readRawData(buffer, 4);
-        for (int j = 0; j < 4; j++) {
-            memPtr->insert({byteIndex, buffer[j]});
+        for (char & j : buffer) {
+            memPtr->insert({byteIndex, j});
             byteIndex++;
         }
     }
@@ -164,7 +164,7 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
 
     // Generate bit masks and fill parse vector
     for (const auto& field : bitFields) {
-        parseVector.push_back(std::pair<uint32_t, uint32_t>(field, generateBitmask(field)));
+        parseVector.emplace_back(field, generateBitmask(field));
     }
 
     // Create parse functor

@@ -1,5 +1,5 @@
 #include "cachebase.h"
-#include <assert.h>
+#include <cassert>
 
 CacheBase::CacheBase(CacheProperties properties, int* cycleCounterPtr) {
     // Initialize cache of size, set to zeros

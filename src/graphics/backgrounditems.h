@@ -10,8 +10,8 @@ class Shape;
 class DashLine : public QGraphicsItem {
 public:
     DashLine(Shape* reg);
-    QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
     Shape* m_regPtr;
@@ -22,8 +22,8 @@ class Text : public QGraphicsItem {
 public:
     Text(QPointF pos);
     void setText(const QString& text, QColor col = QColor());
-    QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
     QString m_text;

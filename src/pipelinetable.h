@@ -13,8 +13,8 @@ class PipelineTable : public QDialog {
     Q_OBJECT
 
 public:
-    explicit PipelineTable(QWidget* parent = 0);
-    ~PipelineTable();
+    explicit PipelineTable(QWidget* parent = nullptr);
+    ~PipelineTable() override;
     void setModel(QAbstractItemModel* model);
 
 private slots:
