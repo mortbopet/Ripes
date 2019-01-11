@@ -59,7 +59,6 @@
          <widget class="ProgramfileTab" name="programfiletab"/>
          <widget class="ProcessorTab" name="processortab"/>
          <widget class="MemoryTab" name="memorytab"/>
-         <widget class="CacheTab" name="cachetab"/>
         </widget>
        </widget>
       </item>
@@ -220,12 +219,6 @@
    <class>ProcessorTab</class>
    <extends>QWidget</extends>
    <header>processortab.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CacheTab</class>
-   <extends>QWidget</extends>
-   <header>cachetab.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

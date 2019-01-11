@@ -4,24 +4,16 @@ CONFIG += c++14
 
 INCLUDEPATH  += $$PWD/src/ \
                 $$PWD/src/graphics/ \
-                $$PWD/external/QCustomPlot/ \
                 $$PWD/external/fancytabbar/
 
 SOURCES += src/main.cpp \
     src/parser.cpp \
     #src/runner.cpp \
-    src/dmcache.cpp \
-    src/facache.cpp \
     src/mainwindow.cpp \
     src/registerwidget.cpp \
     src/programfiletab.cpp \
     src/processortab.cpp \
     src/memorytab.cpp \
-    src/cachetab.cpp \
-    src/cachesetupwidget.cpp \
-    src/cachebase.cpp \
-    src/runnercache.cpp \
-    src/cacheinspector.cpp \
     src/memorymodel.cpp \
     src/memorydisplaydelegate.cpp \
     src/memoryview.cpp \
@@ -51,18 +43,11 @@ HEADERS += \
     src/parser.h \
     src/defines.h \
     #src/runner.h \
-    src/dmcache.h \
-    src/facache.h \
     src/mainwindow.h \
     src/registerwidget.h \
     src/programfiletab.h \
     src/processortab.h \
     src/memorytab.h \
-    src/cachetab.h \
-    src/cachesetupwidget.h \
-    src/cachebase.h \
-    src/runnercache.h \
-    src/cacheinspector.h \
     src/memorymodel.h \
     src/memorydisplaydelegate.h \
     src/memoryview.h \
@@ -98,9 +83,6 @@ FORMS += \
     src/programfiletab.ui \
     src/processortab.ui \
     src/memorytab.ui \
-    src/cachetab.ui \
-    src/cachesetupwidget.ui \
-    src/cacheinspector.ui \
     src/addressdialog.ui \
     src/registercontainerwidget.ui \
     src/aboutwidget.ui \
@@ -113,13 +95,11 @@ FORMS += \
 DEFINES += QT_NO_PRINTER
 
 HEADERS += \
-   external/QCustomPlot/qcustomplot.h \
     external/fancytabbar/fancytab.h \
     external/fancytabbar/fancytabbar.h \
 
 
 SOURCES += \
-    external/QCustomPlot/qcustomplot.cpp \
     external/fancytabbar/fancytab.cpp \
     external/fancytabbar/fancytabbar.cpp \
 
