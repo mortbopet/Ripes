@@ -209,6 +209,10 @@ bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_
             emit appendToLog(QString::number(ecall_val.second));
             break;
         }
+        case Pipeline::ECALL::print_char: {
+            emit appendToLog(QChar(ecall_val.second));
+            break;
+        }
         case Pipeline::ECALL::exit: {
             return true;  // The simulator will now take a few cycles to stop
         }
