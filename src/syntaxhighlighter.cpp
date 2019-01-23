@@ -380,6 +380,7 @@ void SyntaxHighlighter::createSyntaxRules() {
           << "bne"
           << "blt"
           << "bge"
+          << "ble"
           << "bgt"
           << "bltu"
           << "bgeu"
