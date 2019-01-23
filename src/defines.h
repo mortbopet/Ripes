@@ -143,6 +143,6 @@ typedef struct {
     uint32_t word = 0;
 } Instruction;
 
-const static auto splitter = QRegularExpression(R"((\,|\t|\(|\)))");
+const static auto splitter = QRegularExpression(R"((\t|\(|\)))");
 
 #endif  // DEFINES_H

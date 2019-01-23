@@ -638,9 +638,12 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         QString string;
         // Merge input fields
         for (int i = 1; i < fields.length(); i++) {
-            string += fields[i];
+            QString strarg = fields[i];
+            strarg.replace("\\n","\n");
+            string += strarg;
         }
         string.remove('\"');
+        string.append('\0');
         byteArray = string.toUtf8();
     } else if (DataAssemblerDirectives.contains(fields[0])) {
         assembleWords(fields, byteArray, DataAssemblerSizes.value(fields[0]));
