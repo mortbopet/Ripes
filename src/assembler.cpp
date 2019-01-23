@@ -268,10 +268,11 @@ QByteArray Assembler::assembleStoreInstruction(const QStringList& fields, int ro
         Q_ASSERT(false);
     };
     bool canConvert;
-    int imm = fields[2].toInt(&canConvert, 10);
+    int imm = getImmediate(fields[2], canConvert);
     if (canConvert) {
         // An offset value has been provided ( unfolded pseudo-op)
     } else {
+        // A label was provided
         m_error |= !m_labelPosMap.contains(fields[2]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
         imm = m_labelPosMap[fields[2]] - (row - 1) * 4;
@@ -298,7 +299,7 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
         Q_ASSERT(false);
     };
     bool canConvert;
-    int imm = fields[2].toInt(&canConvert, 10);
+    int imm = getImmediate(fields[2], canConvert);
     if (canConvert) {
         // An offset value has been provided ( unfolded pseudo-op)
     } else {
@@ -391,8 +392,10 @@ void Assembler::assembleInstruction(const QStringList& fields, int row) {
     } else if (instruction == "jalr") {
         m_textSegment.append(assembleJalrInstruction(fields, row));
     } else if (instruction == "lui") {
+        bool canConvert;
         m_textSegment.append(
-            uintToByteArr(LUI | getRegisterNumber(fields[1]) << 7 | fields[2].toInt(nullptr, 10) << 12));
+            uintToByteArr(LUI | getRegisterNumber(fields[1]) << 7 | getImmediate(fields[2], canConvert) << 12));
+        m_error |= !canConvert;
     } else if (instruction == "auipc") {
         m_textSegment.append(assembleAuipcInstruction(fields, row));
     } else if (instruction == "jal") {
@@ -642,7 +645,9 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
     } else if (DataAssemblerDirectives.contains(fields[0])) {
         assembleWords(fields, byteArray, DataAssemblerSizes.value(fields[0]));
     } else if (fields[0] == QString(".zero")) {
-        assembleZeroArray(byteArray, static_cast<size_t>(fields[1].toInt()));
+        bool canConvert;
+        assembleZeroArray(byteArray, static_cast<size_t>(getImmediate(fields[1], canConvert)));
+        m_error |= !canConvert;
     } else if (fields[0] == QString(".data")) {
         // Following instructions will be assembled into the data segment
         m_inDataSegment = true;
