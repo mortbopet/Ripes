@@ -1,14 +1,5 @@
 <RCC>
     <qresource prefix="/examples">
-        <file>assembly/addlarge.s</file>
-        <file>assembly/addneg.s</file>
-        <file>assembly/addpos.s</file>
-        <file>assembly/branchcnt.s</file>
-        <file>assembly/branchmany.s</file>
-        <file>assembly/complexmult.s</file>
-        <file>assembly/factorial.s</file>
-        <file>assembly/loop.s</file>
-        <file>assembly/shift.s</file>
         <file>binary/addlarge.bin</file>
         <file>binary/addneg.bin</file>
         <file>binary/addpos.bin</file>
@@ -20,5 +11,11 @@
         <file>binary/loop.bin</file>
         <file>binary/shift.bin</file>
         <file>binary/storeloadnoforwarding.bin</file>
+        <file>assembly/Conditional branching</file>
+        <file>assembly/Complex multiplication</file>
+        <file>assembly/Factorial function</file>
+        <file>assembly/Large program</file>
+        <file>assembly/Shifts</file>
+        <file>assembly/Console printing</file>
     </qresource>
 </RCC>

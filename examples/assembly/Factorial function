@@ -1,11 +1,14 @@
+# This example shows an implementation of the mathematical
+# factorial function (! function).
+
 .data
 argument: .word 7 # Number to find the factorial value of
 
 .text
 main:
-        lw       a0, argument
-        jal      ra, fact
-        jal      zero, end
+        lw       a0, argument   # Load argument from static data
+        jal      ra, fact       # Jump-and-link to the 'fact' label
+        ecall    0              # Exit program
 
 fact:
         addi     sp, sp, -16 
@@ -29,4 +32,3 @@ nfact:
 
         mul      a0, a0, t1
         jalr     x0, x1, 0 
-end:

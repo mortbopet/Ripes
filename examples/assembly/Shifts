@@ -1,4 +1,4 @@
-	.text
+.text
 	li a0,0xff000000
 	li a1,0x000000ff
 	srai a0,a0,8

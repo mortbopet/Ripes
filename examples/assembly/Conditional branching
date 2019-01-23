@@ -1,4 +1,7 @@
-	.text
+# This example demonstrates how to specify conditional branches
+# in the RISC-V assembly language.
+
+.text
 	li a0,10
 	li a1,20
 	beq a0,a1,e

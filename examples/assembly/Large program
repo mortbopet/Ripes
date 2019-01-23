@@ -1,3 +1,7 @@
+# This is an example written to demonstrate a medium-sized assembly
+# program.  The program is not meaningful, but is instead intended
+# to test the simulator.
+
 main:
 	addi	sp,sp,-48
 	sw	ra,44(sp)

@@ -1,0 +1,66 @@
+# This example demonstrates how strings and integers may be
+# printed to the console of the Leros simulator
+
+.data
+str:        .string      "A string"
+newline:    .string      "\n"
+delimiter:  .string      ", "
+
+.text
+# ------ String printing ----------
+    la      a1 str # Load the address of the string, placed in the static data segment
+    li      a0 4   # Argument '4' for ecall instructs ecall to print to console
+    ecall
+
+    jal printNewline
+
+# ------ Integer printing ---------
+# Print numbers in the range [-10:10]
+    li      a0	-10
+    li      a1	10
+    li      a2	1
+    jal loopPrint
+
+    jal printNewline
+
+# ------ ASCII character printing ---------
+# Print ASCII characters in the range [33:53]
+    li      a0	33
+    li      a1	53
+    li      a2	2
+    jal loopPrint
+
+end:
+    # End program
+    li      a0 10
+    ecall
+
+
+# ====== Helper routines ======
+printNewline:
+    la      a1	newline
+    li      a0	4
+    ecall
+    jalr    x0 x1 0
+
+# --- LoopPrint ---
+# Loops in the range [a0;a1] and prints the loop invariant to console
+# a0: range start
+# a1: range stop
+# a2: print method (ecall ergument)
+loopPrint:
+    addi    t0 a0 0
+    addi    t1 a1 0
+loop:
+    # Print value in a1 as specified by argument a2
+    addi 	a1 t0 0
+    addi 	a0 a2 0
+    ecall
+    # Print a delimiter between the numbers
+    li 		a0 4
+    la 		a1 delimiter
+    ecall
+    # Increment
+    addi 	t0 t0 1
+    ble 	t0 t1 loop
+    jalr	x0 x1 0
