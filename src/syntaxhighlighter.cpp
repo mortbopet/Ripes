@@ -127,7 +127,7 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
                         << "\\bsnez\\b"
                         << "\\bsltz\\b"
                         << "\\bsgtz\\b"
-                        << "\\bbegz\\b"
+                        << "\\bbeqz\\b"
                         << "\\bbnez\\b"
                         << "\\bblez\\b"
                         << "\\bbgez\\b"
@@ -396,7 +396,7 @@ void SyntaxHighlighter::createSyntaxRules() {
     types.clear();
     names.clear();
     types << FieldType(Type::Register) << FieldType(Type::Offset, 0, 0, this);
-    names << "begz"
+    names << "beqz"
           << "bnez"
           << "blez"
           << "bgez"
