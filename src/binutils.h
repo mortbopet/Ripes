@@ -21,14 +21,7 @@ constexpr inline bool isInt(int64_t x) {
 }
 
 constexpr uint32_t generateBitmask(int n) {
-    // Generate bitmask. There might be a smarter way to do this
-    uint32_t mask = 0;
-    for (int i = 0; i < n - 1; i++) {
-        mask |= 0b1;
-        mask <<= 1;
-    }
-    mask |= 0b1;
-    return mask;
+    return static_cast<uint32_t>((1 << n) - 1);
 }
 
 constexpr uint32_t bitcount(int n) {
