@@ -66,8 +66,10 @@ void MainWindow::setupExamples() {
         auto* binaryExampleMenu = new QMenu();
         binaryExampleMenu->setTitle("Binary");
         for (const auto& fileName : binaryExamples) {
-            binaryExampleMenu->addAction(fileName,
-                                         [=] { this->loadBinaryFile(QString(":/examples/binary/") + fileName); });
+            binaryExampleMenu->addAction(fileName, [=] {
+                this->loadBinaryFile(QString(":/examples/binary/") + fileName);
+                m_currentFile = QString();
+            });
         }
         // Add binary example menu to example menu
         m_ui->menuExamples->addMenu(binaryExampleMenu);
@@ -77,8 +79,10 @@ void MainWindow::setupExamples() {
         auto* assemblyExampleMenu = new QMenu();
         assemblyExampleMenu->setTitle("Assembly");
         for (const auto& fileName : assemblyExamples) {
-            assemblyExampleMenu->addAction(fileName,
-                                           [=] { this->loadAssemblyFile(QString(":/examples/assembly/") + fileName); });
+            assemblyExampleMenu->addAction(fileName, [=] {
+                this->loadAssemblyFile(QString(":/examples/assembly/") + fileName);
+                m_currentFile = QString();
+            });
         }
         // Add binary example menu to example menu
         m_ui->menuExamples->addMenu(assemblyExampleMenu);
@@ -122,6 +126,7 @@ void MainWindow::loadAssemblyFile(QString fileName) {
         m_ui->programfiletab->setAssemblyText(file.readAll());
         file.close();
     }
+    m_currentFile = fileName;
     m_ui->programfiletab->setDisassemblerText();
 }
 
@@ -135,18 +140,24 @@ void MainWindow::on_actionOpen_wiki_triggered() {
 }
 
 void MainWindow::on_actionSave_Assembly_File_triggered() {
+    if (m_currentFile.isEmpty()) {
+        on_actionSave_Assembly_File_As_triggered();
+    }
+    QFile file(m_currentFile);
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&file);
+        stream << m_ui->programfiletab->getAssemblyText();
+        file.close();
+    }
+}
+
+void MainWindow::on_actionSave_Assembly_File_As_triggered() {
     QFileDialog dialog;
     dialog.setNameFilter("*.as *.s");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setDefaultSuffix(".s");
     if (dialog.exec()) {
-        auto files = dialog.selectedFiles();
-        if (files.length() == 1) {
-            QFile file(files[0]);
-            if (file.open(QIODevice::ReadWrite)) {
-                QTextStream stream(&file);
-                stream << m_ui->programfiletab->getAssemblyText();
-                file.close();
-            }
-        }
+        m_currentFile = dialog.selectedFiles()[0];
+        on_actionSave_Assembly_File_triggered();
     }
 }

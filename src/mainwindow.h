@@ -30,6 +30,8 @@ private slots:
 
     void on_actionSave_Assembly_File_triggered();
 
+    void on_actionSave_Assembly_File_As_triggered();
+
 signals:
     void update();
     void updateMemoryTab();
@@ -37,6 +39,7 @@ signals:
 private:
     Ui::MainWindow* m_ui;
     void setupExamples();
+    QString m_currentFile = QString();
 };
 
 #endif  // MAINWINDOW_H

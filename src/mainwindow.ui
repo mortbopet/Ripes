@@ -90,6 +90,7 @@
     <addaction name="menuExamples"/>
     <addaction name="separator"/>
     <addaction name="actionSave_Assembly_File"/>
+    <addaction name="actionSave_Assembly_File_As"/>
     <addaction name="separator"/>
     <addaction name="actionexit"/>
    </widget>
@@ -199,6 +200,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSave_Assembly_File_As">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Assembly File As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>
