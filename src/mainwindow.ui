@@ -89,8 +89,11 @@
     <addaction name="separator"/>
     <addaction name="menuExamples"/>
     <addaction name="separator"/>
-    <addaction name="actionSave_Assembly_File"/>
-    <addaction name="actionSave_Assembly_File_As"/>
+    <addaction name="actionSave_Files"/>
+    <addaction name="actionSave_Files_As"/>
+    <addaction name="actionSave_Source"/>
+    <addaction name="actionSave_Disassembled"/>
+    <addaction name="actionSave_Binary"/>
     <addaction name="separator"/>
     <addaction name="actionexit"/>
    </widget>
@@ -190,28 +193,61 @@
     <string>Wiki</string>
    </property>
   </action>
-  <action name="actionSave_Assembly_File">
+  <action name="actionSave_Files">
    <property name="icon">
     <iconset resource="../resources/images.qrc">
      <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
    </property>
    <property name="text">
-    <string>Save Assembly File</string>
+    <string>Save Files</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Selected Files</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionSave_Assembly_File_As">
+  <action name="actionSave_Files_As">
    <property name="icon">
     <iconset resource="../resources/images.qrc">
      <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
    </property>
    <property name="text">
-    <string>Save Assembly File As...</string>
+    <string>Save Files As...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Selected Files As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionSave_Source">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Source</string>
+   </property>
+  </action>
+  <action name="actionSave_Disassembled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Disassembled</string>
+   </property>
+  </action>
+  <action name="actionSave_Binary">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Binary</string>
    </property>
   </action>
  </widget>

@@ -21,6 +21,7 @@ public:
     void setTimerEnabled(bool state);
     void clearOutputArray();
     QString getAssemblyText();
+    const QByteArray& getBinaryData();
 
 signals:
     void loadBinaryFile();

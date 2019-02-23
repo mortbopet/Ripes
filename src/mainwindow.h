@@ -28,9 +28,9 @@ private slots:
     void on_actionOpen_wiki_triggered();
     void processorUpdated() { emit updateMemoryTab(); }
 
-    void on_actionSave_Assembly_File_triggered();
+    void on_actionSave_Files_triggered();
 
-    void on_actionSave_Assembly_File_As_triggered();
+    void on_actionSave_Files_As_triggered();
 
 signals:
     void update();

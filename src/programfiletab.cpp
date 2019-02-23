@@ -29,6 +29,10 @@ QString ProgramfileTab::getAssemblyText() {
     return m_ui->assemblyedit->toPlainText();
 }
 
+const QByteArray& ProgramfileTab::getBinaryData() {
+    return m_ui->assemblyedit->getCurrentOutputArray();
+}
+
 void ProgramfileTab::clearOutputArray() {
     m_ui->assemblyedit->clearOutputArray();
 }

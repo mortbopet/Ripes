@@ -139,25 +139,50 @@ void MainWindow::on_actionOpen_wiki_triggered() {
     QDesktopServices::openUrl(QUrl(QString("https://github.com/mortbopet/Ripes/wiki")));
 }
 
-void MainWindow::on_actionSave_Assembly_File_triggered() {
-    if (m_currentFile.isEmpty()) {
-        on_actionSave_Assembly_File_As_triggered();
-    }
-    QFile file(m_currentFile);
+namespace {
+inline QString removeFileExt(const QString& file) {
+    int lastPoint = file.lastIndexOf(".");
+    return file.left(lastPoint);
+}
+
+template <typename T>
+void writeToFile(QFile& file, const T& data) {
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
-        stream << m_ui->programfiletab->getAssemblyText();
+        stream << data;
         file.close();
     }
 }
+}  // namespace
 
-void MainWindow::on_actionSave_Assembly_File_As_triggered() {
+void MainWindow::on_actionSave_Files_triggered() {
+    if (m_currentFile.isEmpty()) {
+        on_actionSave_Files_As_triggered();
+    }
+
+    if (m_ui->actionSave_Source->isChecked()) {
+        QFile file(m_currentFile);
+        writeToFile(file, m_ui->programfiletab->getAssemblyText());
+    }
+
+    if (m_ui->actionSave_Disassembled->isChecked()) {
+        QFile file(removeFileExt(m_currentFile) + "_dis.s");
+        writeToFile(file, Parser::getParser()->getDisassembledRepr());
+    }
+
+    if (m_ui->actionSave_Binary->isChecked()) {
+        QFile file(removeFileExt(m_currentFile) + ".bin");
+        writeToFile(file, m_ui->programfiletab->getBinaryData());
+    }
+}
+
+void MainWindow::on_actionSave_Files_As_triggered() {
     QFileDialog dialog;
     dialog.setNameFilter("*.as *.s");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setDefaultSuffix(".s");
     if (dialog.exec()) {
         m_currentFile = dialog.selectedFiles()[0];
-        on_actionSave_Assembly_File_triggered();
+        on_actionSave_Files_triggered();
     }
 }
