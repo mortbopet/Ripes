@@ -432,21 +432,16 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         bool canConvert;
         int immediate = getImmediate(fields[2], canConvert);
 
-        // Generate offset required for discerning between positive and negative immediates
-        int posOffset = 1;
-        if (immediate < 0) {
-            posOffset = 0;
-        }
         if (!isInt<12>(immediate)) {
             if ((immediate & 0xFFF) == 0) {
                 // Only a LUI is required
                 m_instructionsMap[pos] = QStringList() << "lui" << fields[1]
-                                                       << QString::number(((uint32_t)immediate >> 12) + posOffset);
+                                                       << QString::number(((uint32_t)immediate >> 12));
                 pos++;
             } else {
                 // both ADDI and LUI is required
                 m_instructionsMap[pos] = QStringList() << "lui" << fields[1]
-                                                       << QString::number(((uint32_t)immediate >> 12) + posOffset);
+                                                       << QString::number(((uint32_t)immediate >> 12));
                 m_instructionsMap[pos + 1] = QStringList()
                                              << "addi" << fields[1] << fields[1]
                                              << QString::number(signextend<int32_t, 12>(immediate & 0xfff));
