@@ -433,29 +433,24 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         int immediate = getImmediate(fields[2], canConvert);
 
         // Generate offset required for discerning between positive and negative immediates
-        int posOffset = 1;
-        if (immediate < 0) {
-            posOffset = 0;
-        }
-        if (!isInt<12>(immediate)) {
-            if ((immediate & 0xFFF) == 0) {
-                // Only a LUI is required
-                m_instructionsMap[pos] = QStringList() << "lui" << fields[1]
-                                                       << QString::number(((uint32_t)immediate >> 12) + posOffset);
-                pos++;
-            } else {
-                // both ADDI and LUI is required
-                m_instructionsMap[pos] = QStringList() << "lui" << fields[1]
-                                                       << QString::number(((uint32_t)immediate >> 12) + posOffset);
-                m_instructionsMap[pos + 1] = QStringList()
-                                             << "addi" << fields[1] << fields[1]
-                                             << QString::number(signextend<int32_t, 12>(immediate & 0xfff));
-                pos += 2;
-            }
-        } else {
-            // ADDI is sufficient
+
+        if (isInt<12>(immediate)) {
+            // immediate can be represented by 12 bits, ADDI is sufficient
             m_instructionsMap[pos] = QStringList() << "addi" << fields[1] << "x0" << QString::number(immediate);
             pos++;
+        } else {
+            const int lower12Signed = signextend<int32_t, 12>(immediate & 0xFFF);
+            int signOffset = lower12Signed < 0 ? 1 : 0;
+
+            m_instructionsMap[pos] = QStringList()
+                                     << "lui" << fields[1]
+                                     << QString::number((static_cast<uint32_t>(immediate) >> 12) + signOffset);
+            pos++;
+            if ((immediate & 0xFFF) != 0) {
+                m_instructionsMap[pos] = QStringList()
+                                         << "addi" << fields[1] << fields[1] << QString::number(lower12Signed);
+                pos++;
+            }
         }
     } else if (fields.first() == "mv") {
         m_instructionsMap[pos] = QStringList() << "addi" << fields[1] << fields[2] << "0";
@@ -640,7 +635,7 @@ void Assembler::assembleAssemblerDirective(const QStringList& fields) {
         // Merge input fields
         for (int i = 1; i < fields.length(); i++) {
             QString strarg = fields[i];
-            strarg.replace("\\n","\n");
+            strarg.replace("\\n", "\n");
             string += strarg;
         }
         string.remove('\"');
