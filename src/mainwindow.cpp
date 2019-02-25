@@ -144,15 +144,21 @@ inline QString removeFileExt(const QString& file) {
     int lastPoint = file.lastIndexOf(".");
     return file.left(lastPoint);
 }
-
-template <typename T>
-void writeToFile(QFile& file, const T& data) {
+void writeTextFile(QFile& file, const QString& data) {
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
         stream << data;
         file.close();
     }
 }
+
+void writeBinaryFile(QFile& file, const QByteArray& data) {
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(data);
+        file.close();
+    }
+}
+
 }  // namespace
 
 void MainWindow::on_actionSave_Files_triggered() {
@@ -162,17 +168,17 @@ void MainWindow::on_actionSave_Files_triggered() {
 
     if (m_ui->actionSave_Source->isChecked()) {
         QFile file(m_currentFile);
-        writeToFile(file, m_ui->programfiletab->getAssemblyText());
+        writeTextFile(file, m_ui->programfiletab->getAssemblyText());
     }
 
     if (m_ui->actionSave_Disassembled->isChecked()) {
         QFile file(removeFileExt(m_currentFile) + "_dis.s");
-        writeToFile(file, Parser::getParser()->getDisassembledRepr());
+        writeTextFile(file, Parser::getParser()->getDisassembledRepr());
     }
 
     if (m_ui->actionSave_Binary->isChecked()) {
         QFile file(removeFileExt(m_currentFile) + ".bin");
-        writeToFile(file, m_ui->programfiletab->getBinaryData());
+        writeBinaryFile(file, m_ui->programfiletab->getBinaryData());
     }
 }
 
