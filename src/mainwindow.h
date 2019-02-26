@@ -7,6 +7,8 @@ namespace Ui {
 class MainWindow;
 }
 
+QT_FORWARD_DECLARE_CLASS(QActionGroup)
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -40,6 +42,7 @@ private:
     Ui::MainWindow* m_ui;
     void setupExamples();
     QString m_currentFile = QString();
+    QActionGroup* m_binaryStoreAction;
 };
 
 #endif  // MAINWINDOW_H

@@ -31,6 +31,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
     m_ui->tabbar->setActiveIndex(0);
 
+    m_binaryStoreAction = new QActionGroup(this);
+    m_binaryStoreAction->addAction(m_ui->actionSave_as_flat_binary);
+    m_binaryStoreAction->addAction(m_ui->actionSave_as_text);
+    m_binaryStoreAction->addAction(m_ui->actionDisable);
+    m_binaryStoreAction->setExclusive(true);
+    m_ui->actionDisable->setChecked(true);
+
     // Setup tab pointers
     m_ui->processortab->initRegWidget();
     m_ui->processortab->initInstructionView();
@@ -176,9 +183,13 @@ void MainWindow::on_actionSave_Files_triggered() {
         writeTextFile(file, Parser::getParser()->getDisassembledRepr());
     }
 
-    if (m_ui->actionSave_Binary->isChecked()) {
+    QAction* binaryStoreAction = m_binaryStoreAction->checkedAction();
+    if (binaryStoreAction == m_ui->actionSave_as_flat_binary) {
         QFile file(removeFileExt(m_currentFile) + ".bin");
         writeBinaryFile(file, m_ui->programfiletab->getBinaryData());
+    } else if (binaryStoreAction == m_ui->actionSave_as_text) {
+        QFile file(removeFileExt(m_currentFile) + "_bin.txt");
+        writeTextFile(file, Parser::getParser()->getBinaryRepr());
     }
 }
 
