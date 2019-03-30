@@ -2,17 +2,17 @@
 #include "ui_rundialog.h"
 
 #include "pipeline.h"
+#include "processortab.h"
 
 #include <QPushButton>
 #include <QtConcurrent/QtConcurrent>
 
-RunDialog::RunDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::RunDialog)
-{
+RunDialog::RunDialog(QWidget* parent) : QDialog(parent), ui(new Ui::RunDialog) {
     ui->setupUi(this);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setVisible(false);
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Abort");
+
+    m_processorTab = static_cast<ProcessorTab*>(parent);
 
     setWindowTitle("Running...");
 
@@ -22,37 +22,43 @@ RunDialog::RunDialog(QWidget *parent) :
     m_timer.start();
 }
 
-void RunDialog::updateText(){
+void RunDialog::updateText() {
     runtime++;
     ui->label->setText(QString("Running for %1 seconds").arg(runtime));
-    if(runtime > 15){
+    if (runtime > 15) {
         ui->extra->setText(QString("Your program may contain an infinite loop"));
     }
 }
-QFuture<int> RunDialog::startSimulation(){
+QFuture<int> RunDialog::startSimulation() {
+    // Ensure that abort flag of pipeline is cleared before running again
+    Pipeline::getPipeline()->clearAbort();
     QFuture<int> future = QtConcurrent::run(Pipeline::getPipeline(), &Pipeline::run);
     return future;
 }
 
-int RunDialog::exec(){
-    connect(&m_runWatcher, &QFutureWatcher<int>::finished,
-            this, &RunDialog::finished);
+int RunDialog::exec() {
+    connect(&m_runWatcher, &QFutureWatcher<int>::finished, this, &RunDialog::finished);
 
     m_runWatcher.setFuture(startSimulation());
     return QDialog::exec();
 }
 
-RunDialog::~RunDialog()
-{
+RunDialog::~RunDialog() {
     delete ui;
 }
 
-void RunDialog::finished(){
-    m_timer.stop();
-    if(m_runWatcher.future().result() == 0){
+void RunDialog::finished() {
+    if (m_runWatcher.future().result() == 0) {
+        m_timer.stop();
         accept();
     } else {
-        reject();
+        // Check if there was an ecall
+        const auto ecall_val = Pipeline::getPipeline()->checkEcall(true);
+        if (ecall_val.first != Pipeline::ECALL::none) {
+            // An ECALL has been invoked during continuous running. Handle ecall and continue to run
+            m_processorTab->handleEcall(ecall_val);
+            m_runWatcher.setFuture(startSimulation());
+        }
     }
 }
 

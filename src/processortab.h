@@ -17,6 +17,7 @@ class InstructionModel;
 class Parser;
 
 class ProcessorTab : public QWidget {
+    friend class RunDialog;
     Q_OBJECT
 
 public:

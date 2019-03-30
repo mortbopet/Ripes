@@ -882,6 +882,9 @@ void Pipeline::setStagePCS() {
 void Pipeline::abort() {
     m_abort = true;  // async abort of run()
 }
+void Pipeline::clearAbort() {
+    m_abort = false;
+}
 
 int Pipeline::run() {
     m_running = true;
@@ -890,6 +893,8 @@ int Pipeline::run() {
     m_running = false;
     if (m_abort) {
         restart();
+        return 1;
+    } else if (m_ecallArg != ECALL::none) {
         return 1;
     } else {
         return 0;

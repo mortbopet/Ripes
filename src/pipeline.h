@@ -25,6 +25,7 @@ public:
     int step();
     int run();
     void abort();
+    void clearAbort();
     bool isRunning() const { return m_running; }
 
     // Pointers for GUI

@@ -134,17 +134,6 @@ void ProcessorTab::on_run_clicked() {
             m_ui->step->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->run->setEnabled(false);
-        } else {
-            const auto ecall_val = pipeline->checkEcall(true);
-            if (ecall_val.first != Pipeline::ECALL::none) {
-                // An ECALL has been invoked during continuous running. Handle ecall and continue to run
-                if (handleEcall(ecall_val)) {
-                    on_run_clicked();
-                }
-            } else {
-                m_ui->table->setEnabled(true);
-                emit update();
-            }
         }
     }
 }

@@ -10,13 +10,13 @@
 namespace Ui {
 class RunDialog;
 }
+class ProcessorTab;
 
-class RunDialog : public QDialog
-{
+class RunDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit RunDialog(QWidget *parent = nullptr);
+    explicit RunDialog(QWidget* parent = nullptr);
     ~RunDialog() override;
 
 public slots:
@@ -31,10 +31,12 @@ private:
     int runtime = 0;
     QFuture<int> startSimulation();
 
-    Ui::RunDialog *ui;
+    Ui::RunDialog* ui;
+
+    ProcessorTab* m_processorTab;
 
     QFutureWatcher<int> m_runWatcher;
     QTimer m_timer;
 };
 
-#endif // RUNDIALOG_H
+#endif  // RUNDIALOG_H
