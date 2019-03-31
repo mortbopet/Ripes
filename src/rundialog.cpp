@@ -57,7 +57,12 @@ void RunDialog::finished() {
         if (ecall_val.first != Pipeline::ECALL::none) {
             // An ECALL has been invoked during continuous running. Handle ecall and continue to run
             m_processorTab->handleEcall(ecall_val);
-            m_runWatcher.setFuture(startSimulation());
+            // Check whether to stop the pipeline given an ecall::exit instruction
+            if (!(Pipeline::getPipeline()->isFinished() || ecall_val.first == Pipeline::ECALL::exit)) {
+                m_runWatcher.setFuture(startSimulation());
+            } else {
+                accept();
+            }
         }
     }
 }
