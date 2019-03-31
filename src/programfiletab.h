@@ -22,6 +22,7 @@ public:
     void clearOutputArray();
     QString getAssemblyText();
     const QByteArray& getBinaryData();
+    void newProgram();
 
 signals:
     void loadBinaryFile();

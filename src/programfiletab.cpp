@@ -45,6 +45,12 @@ void ProgramfileTab::setTimerEnabled(bool state) {
     m_ui->assemblyedit->setTimerEnabled(state);
 }
 
+void ProgramfileTab::newProgram() {
+    m_ui->assemblyfile->toggle();
+    m_ui->assemblyedit->reset();
+    m_ui->assemblyedit->clear();
+}
+
 void ProgramfileTab::on_pushButton_clicked() {
     // load file based on current file type selection
     if (m_ui->binaryfile->isChecked()) {

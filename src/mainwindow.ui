@@ -92,6 +92,7 @@
      <addaction name="actionSave_as_text"/>
      <addaction name="actionSave_as_flat_binary"/>
     </widget>
+    <addaction name="actionNew_Program"/>
     <addaction name="actionLoadBinaryFile"/>
     <addaction name="actionLoadAssemblyFile"/>
     <addaction name="separator"/>
@@ -272,6 +273,15 @@
    </property>
    <property name="text">
     <string>Save as flat binary</string>
+   </property>
+  </action>
+  <action name="actionNew_Program">
+   <property name="icon">
+    <iconset resource="../resources/images.qrc">
+     <normaloff>:/icons/file.svg</normaloff>:/icons/file.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New Program...</string>
    </property>
   </action>
  </widget>

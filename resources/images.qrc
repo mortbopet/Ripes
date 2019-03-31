@@ -18,5 +18,6 @@
         <file>spreadsheet.svg</file>
         <file>documents.svg</file>
         <file>logo.svg</file>
+        <file>file.svg</file>
     </qresource>
 </RCC>

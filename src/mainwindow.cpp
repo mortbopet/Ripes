@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
+
 #include "parser.h"
 
 #include "programfiletab.h"
@@ -202,4 +203,46 @@ void MainWindow::on_actionSave_Files_As_triggered() {
         m_currentFile = dialog.selectedFiles()[0];
         on_actionSave_Files_triggered();
     }
+}
+
+void MainWindow::on_actionNew_Program_triggered() {
+    QMessageBox mbox;
+    mbox.setWindowTitle("New Program...");
+    mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if (!m_ui->programfiletab->getAssemblyText().isEmpty() && m_currentFile.isEmpty()) {
+        // User wrote a program but did not save it to a file yet
+        mbox.setText("Save program before creating new file?");
+        auto ret = mbox.exec();
+        switch (ret) {
+            case QMessageBox::Yes: {
+                on_actionSave_Files_As_triggered();
+                break;
+            }
+            case QMessageBox::No: {
+                break;
+            }
+            case QMessageBox::Cancel: {
+                return;
+            }
+        }
+    } else if (!m_currentFile.isEmpty()) {
+        // User previously stored a program but may have updated in the meantime - prompt to ask whether the program
+        // should be stored to the current file name
+        mbox.setText(QString("Save program \"%1\" before creating new file?").arg(m_currentFile));
+        auto ret = mbox.exec();
+        switch (ret) {
+            case QMessageBox::Yes: {
+                on_actionSave_Files_triggered();
+                break;
+            }
+            case QMessageBox::No: {
+                break;
+            }
+            case QMessageBox::Cancel: {
+                return;
+            }
+        }
+    }
+    m_currentFile.clear();
+    m_ui->programfiletab->newProgram();
 }

@@ -34,6 +34,8 @@ private slots:
 
     void on_actionSave_Files_As_triggered();
 
+    void on_actionNew_Program_triggered();
+
 signals:
     void update();
     void updateMemoryTab();
