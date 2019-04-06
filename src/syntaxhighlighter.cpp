@@ -105,6 +105,12 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
         m_highlightingRules.append(rule);
     }
 
+    // Create rules for registers that can easily be regex matched
+    // (saved, temporary and argument registers)
+    rule.pattern = QRegularExpression("\\b[(a|s|t|x)][0-9]{1,2}");
+    rule.format = regFormat;
+    m_highlightingRules.append(rule);
+
     // Create match cases for instructions
     QStringList instructionPatterns;
     instructionPatterns << "\\bla\\b"
@@ -203,15 +209,9 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
         m_highlightingRules.append(rule);
     }
 
-    // Create rules for registers that can easily be regex matched
-    // (saved, temporary and argument registers)
-    rule.pattern = QRegularExpression("\\b[(a|s|t|x)][0-9]{1,2}");
-    rule.format = regFormat;
-    m_highlightingRules.append(rule);
-
     // Create immediate hightlighting rule
     immFormat.setForeground(QColor(Qt::darkGreen));
-    rule.pattern = QRegularExpression("(?<![A-Za-z])[-+]?\\d+");
+    rule.pattern = QRegularExpression("\\b(?<![A-Za-z])[-+]?\\d+");
     rule.format = immFormat;
     m_highlightingRules.append(rule);
 
