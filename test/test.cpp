@@ -52,17 +52,24 @@ void TestRipes::executeTest(const QString& testcase, const std::map<int, uint32_
     MainWindow w;
     w.loadAssemblyFile(testcase);
 
-    // After loading an assembly file, the gui will await for no further changes by the user, and then start assembling.
-    // Sleep, allowing the event loop to be processed
-    QTest::qWait(1000);
-
     auto pipeline = Pipeline::getPipeline();
 
-    pipeline->run();
+    // After loading an assembly file, the gui will await for no further changes by the user, and then start assembling.
+    // Sleep, allowing the event loop to be processed
+    while (pipeline->getTextSize() == 0) {
+        QTest::qWait(100);
+    }
+
+    w.run();
 
     const auto& regs = *pipeline->getRegPtr();
     for (const auto& v : verificationMap) {
-        QVERIFY(regs[v.first] == v.second);
+        if (regs[v.first] != v.second) {
+            QString msg = QString("Failed in test: %1\n").arg(testcase);
+            msg += QString("    Reg: %1     Expected: %2    Actual: %3")
+                       .arg(QString::number(v.first), QString::number(v.second), QString::number(regs[v.first]));
+            QFAIL(msg.toStdString().c_str());
+        }
     }
 }
 
@@ -70,6 +77,20 @@ void TestRipes::runTests() {
     // Avoid some warnings related to missing icons in the linked Ripes library
     Q_INIT_RESOURCE(images);
     Q_INIT_RESOURCE(examples);
+
+    // Test the built-in examples
+    executeTest(":/examples/assembly/Complex multiplication",
+                {{5, 19}, {7, -7}, {10, 1}, {11, 19}, {12, 5}, {13, 4}, {28, 15}});
+    executeTest(":/examples/assembly/Console printing", {
+                                                            {5, 54},
+                                                            {6, 53},
+                                                            {10, 10},
+                                                            {11, 268435468},
+                                                            {12, 2},
+                                                        });
+    executeTest(":/examples/assembly/Factorial function", {{5, 7}, {6, 5040}, {10, 10}, {11, 5040}});
+    executeTest(":/examples/assembly/Large program",
+                {{6, 328}, {10, 10}, {11, 100}, {13, 3200}, {14, 100}, {15, 4950}});
 
     executeTest(":/tests/mulh.s");
     executeTest(":/tests/mulhu.s");
