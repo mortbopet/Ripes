@@ -55,7 +55,7 @@ void TestRipes::executeTest(const QString& testcase, const std::map<int, uint32_
     auto pipeline = Pipeline::getPipeline();
 
     // After loading an assembly file, the gui will await for no further changes by the user, and then start assembling.
-    // Sleep, allowing the event loop to be processed
+    // Wait for this sequence to finish by polling whether the pipeline has loaded a program.
     while (pipeline->getTextSize() == 0) {
         QTest::qWait(100);
     }
