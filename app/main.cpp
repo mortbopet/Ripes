@@ -10,6 +10,9 @@
 using namespace std;
 
 int main(int argc, char** argv) {
+    Q_INIT_RESOURCE(images);
+    Q_INIT_RESOURCE(examples);
+
     QApplication app(argc, argv);
     MainWindow m;
     m.show();

@@ -10,11 +10,11 @@ export QT_ROOT=${TRAVIS_BUILD_DIR}/Qt/5.11.1/clang_64
 export PATH=$QT_ROOT/bin:$PATH # Make sure correct qmake is found on the $PATH
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
-
 qmake CONFIG+=release CONFIG+=c++14
 make -j$(nproc)
 
 # Start bundling the app
+pushd app/
 macdeployqt Ripes.app
 
 APPNAME=Ripes-continuous-mac-x86_64
