@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/tests">
+        <file>mulhu.s</file>
+        <file>mulhsu.s</file>
+        <file>mulh.s</file>
+    </qresource>
+</RCC>

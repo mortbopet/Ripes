@@ -7,8 +7,11 @@ Makefile
 
 # Qt generated files
 moc_*
+*.moc
 ui_*
 qrc_*
 
-# Executable
+# Executables & libraries
 Ripes
+RipesTest
+libRipesLib.a
