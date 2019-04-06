@@ -29,11 +29,11 @@ public:
 
 public slots:
     void restart();
+    void on_run_clicked();
 
 private slots:
     void on_expandView_clicked();
     void on_displayValues_toggled(bool checked);
-    void on_run_clicked();
     void on_reset_clicked();
     void on_step_clicked();
     void toggleTimer(bool state);

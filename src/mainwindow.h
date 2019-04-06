@@ -19,6 +19,8 @@ public:
     void loadBinaryFile(QString fileName);
     void loadAssemblyFile(QString fileName);
 
+    void run();
+
 private slots:
     void on_actionexit_triggered();
 

@@ -60,6 +60,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->stackedWidget, &QStackedWidget::currentChanged, m_ui->memorytab, &MemoryTab::update);
 }
 
+void MainWindow::run() {
+    // Function for triggering the run dialog from unit tests
+    m_ui->processortab->on_run_clicked();
+}
+
 MainWindow::~MainWindow() {
     delete m_ui;
 }
