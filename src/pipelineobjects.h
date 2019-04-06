@@ -5,12 +5,12 @@
 #include "defines.h"
 #include "mainmemory.h"
 
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
 #include <vector>
-#include <cassert>
 
 /* PIPELINE OBJECTS
  * all pipeline objects are built around the Signal class - a boolean vector of immutable size.
@@ -71,17 +71,19 @@ public:
     // Casting operators
     explicit operator int() const { return signextend<int32_t, n>(m_value); }
     explicit operator uint32_t() const { return m_value; }
+    explicit operator uint64_t() const { return m_value; }
+    explicit operator int64_t() const { return signextend<int64_t, 32>(static_cast<int>(*this)); }
     explicit operator bool() const { return m_value & 0b1; }
 
-    Signal& operator = (const uint32_t& v){
+    Signal& operator=(const uint32_t& v) {
         m_value = v;
         return *this;
     }
-    Signal& operator = (const int& v){
+    Signal& operator=(const int& v) {
         *this = static_cast<uint32_t>(v);
         return *this;
     }
-    Signal& operator = (const Signal& other){
+    Signal& operator=(const Signal& other) {
         m_value = other.getValue();
         return *this;
     }
@@ -353,17 +355,17 @@ void ALU<n>::update() {
             m_output = (int)*m_op1 * (int)*m_op2;
             break;
         case ALUOps::MULH: {
-            int64_t res = (int)*m_op1 * (int)*m_op2;
+            int64_t res = static_cast<int64_t>(*m_op1) * static_cast<int64_t>(*m_op2);
             m_output = static_cast<uint32_t>(res >> 32);
             break;
         }
         case ALUOps::MULHU: {
-            int64_t res = (uint32_t)*m_op1 * (uint32_t)*m_op2;
+            int64_t res = static_cast<uint64_t>(*m_op1) * static_cast<uint64_t>(*m_op2);
             m_output = static_cast<uint32_t>(res >> 32);
             break;
         }
         case ALUOps::MULHSU: {
-            int64_t res = (int)*m_op1 * (uint32_t)*m_op2;
+            int64_t res = static_cast<int64_t>(*m_op1) * static_cast<uint64_t>(*m_op2);
             m_output = static_cast<uint32_t>(res >> 32);
             break;
         }
