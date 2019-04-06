@@ -92,9 +92,11 @@ void TestRipes::runTests() {
     executeTest(":/examples/assembly/Large program",
                 {{6, 328}, {10, 10}, {11, 100}, {13, 3200}, {14, 100}, {15, 4950}});
 
-    executeTest(":/tests/mulh.s");
-    executeTest(":/tests/mulhu.s");
-    executeTest(":/tests/mulhsu.s");
+    // Execute all tests in the tests.qrc file
+    QDirIterator it(":/tests/", QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        executeTest(it.next());
+    }
 }
 
 QTEST_MAIN(TestRipes)
