@@ -72,7 +72,7 @@ public:
     explicit operator int() const { return signextend<int32_t, n>(m_value); }
     explicit operator uint32_t() const { return m_value; }
     explicit operator uint64_t() const { return m_value; }
-    explicit operator int64_t() const { return signextend<int64_t, 32>(static_cast<int>(*this)); }
+    explicit operator int64_t() const { return signextend<int64_t, n>(m_value); }
     explicit operator bool() const { return m_value & 0b1; }
 
     Signal& operator=(const uint32_t& v) {
