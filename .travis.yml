@@ -40,7 +40,7 @@ script:
 
 after_success:
     - source ${TRAVIS_BUILD_DIR}/scripts/${RIPES_PLATFORM}/after_success.sh
-    
+
 branches:
  except:
    - # Do not build tags that we create when we upload to GitHub Releases
