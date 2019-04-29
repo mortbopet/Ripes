@@ -623,6 +623,9 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
         // Label detected - check if already defined, else add to label definitions
         QStringList splitFirst = string.split(':');
         string = splitFirst[0];  // get label
+        if (string.isEmpty()) {
+            return QString("Empty label name");
+        }
         // Update map entries at given block
         if (m_labelPosMap.contains(string) && m_labelPosMap[string] != pos) {
             // duplicate label found
