@@ -7,16 +7,29 @@ CONFIG += c++14
 INCLUDEPATH += ../src/
 SOURCES += main.cpp
 
+# Add RipesLib as a static library and as a PRE_TARGETDEPS.
+# PRE_TARGETDEPS ensures that this application is relinked every time the
+# target dependency is modified.
+win32:CONFIG(release, debug|release): LIBS += -L$${PWD}/../src/release/ -lRipesLib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$${PWD}/../src/debug/ -lRipesLib
+else:unix: LIBS += -L$${PWD}/../src/ -lRipesLib
+
 win32 {
-    CONFIG(release, debug|release) {
-      BUILD_PREFIX = release/
-    }
-    CONFIG(debug, debug|release) {
-      BUILD_PREFIX = debug/
+    # if cross compiling with MXE on unix, windows libraries will still be
+    # specified as having unix library extensions.
+    # Check whether the MXE_CC variable has been set by the CI setup
+    CONFIG(mxe_cc) {
+        WIN_LIBEXT = "a"
+        WIN_LIBPREFIX = "lib"
+    } else {
+        WIN_LIBPREFIX = ""
+        WIN_LIBEXT = "lib"
     }
 }
 
-LIBS += -L$${PWD}/../src/$${BUILD_PREFIX} -lRipesLib
+win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $${PWD}/../src/release/$${WIN_LIBPREFIX}RipesLib.$${WIN_LIBEXT}
+else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $${PWD}/../src/debug/$${WIN_LIBPREFIX}RipesLib.$${WIN_LIBEXT}
+else:unix: PRE_TARGETDEPS += $${PWD}/../src/libRipesLib.a
 
 unix {
     isEmpty(PREFIX) {

@@ -9,7 +9,7 @@ echo $PATH
 export RIPES_CFG="release"
 
 echo "Building..."
-${MXE_DIR}/usr/${MXE_TARGET}/qt5/bin/qmake CONFIG+=${RIPES_CFG} CONFIG+=c++14 QMAKE_LFLAGS+=-static-libgcc
+${MXE_DIR}/usr/${MXE_TARGET}/qt5/bin/qmake CONFIG+=${RIPES_CFG} CONFIG+=mxe_cc CONFIG+=c++14 QMAKE_LFLAGS+=-static-libgcc
 make -j$(nproc)
 echo "Done."
 
