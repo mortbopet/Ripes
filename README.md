@@ -44,7 +44,7 @@ A future goal for Ripes is to contain processor models such as the following:
 
 However, describing all of these models with method of implementation currently used in Ripes would be highly tedious.
 
-Instead, the [VSRTL](https://github.com/mortbopet/VSRTL) was created. VSRTL is intended to be a collection of libraries and applications for visualizing simulations of digital circuits. VSRTL is currently in active development, and when mature, may be used to describe an arbitrary number of processor models for Ripes.  
+Instead, [VSRTL](https://github.com/mortbopet/VSRTL) was created. VSRTL is intended to be a collection of libraries and applications for visualizing simulations of digital circuits. VSRTL is currently in active development, and when mature, may be used to describe an arbitrary number of processor models for Ripes.  
 VSRTL is in active development and looking for developers - if this sounds interesting, check out the [documentation](https://github.com/mortbopet/VSRTL/tree/master/docs) or current [issues](https://github.com/mortbopet/VSRTL/issues) for further info.
 
 
