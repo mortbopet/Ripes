@@ -53,14 +53,14 @@ void Parser::parseFile() {
 QString Parser::getStringAt(uint32_t address) const {
     // Returns the null-terminated string starting at @address
     MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
-    QString string;
+    QByteArray string;
     char read;
     do {
         read = memPtr->read(address) & 0xff;
         string.append(read);
         address++;
     } while (read != '\0');
-    return string;
+    return QString::fromUtf8(string);
 }
 
 void Parser::clear() {
