@@ -1,4 +1,4 @@
-#include "pipeline.h"
+﻿#include "pipeline.h"
 
 #include "parser.h"
 
@@ -596,7 +596,7 @@ void Pipeline::hazardControlGen() {
     bool branchHazard = branchEcallHazardFromMem || branchEcallHazardFromEx;
 
     // Load Use hazard: Loaded variable is needed in execute stage
-    bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (bool)r_MemRead_IDEX;
+    bool loadUseHazard = (r1 == (uint32_t)r_writeReg_IDEX || r2 == (uint32_t)r_writeReg_IDEX) && (int)r_MemRead_IDEX;
 
     if (branchHazard || loadUseHazard) {
         // Stall until hazard is resolved - keep IFID and PC vaues, and reset IDEX registers
