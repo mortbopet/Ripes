@@ -85,7 +85,7 @@ void TestRipes::runTests() {
                                                             {5, 54},
                                                             {6, 53},
                                                             {10, 10},
-                                                            {11, 268435468},
+                                                            {11, 268435472},
                                                             {12, 2},
                                                         });
     executeTest(":/examples/assembly/Factorial function", {{5, 7}, {6, 5040}, {10, 10}, {11, 5040}});
