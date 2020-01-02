@@ -24,11 +24,6 @@ git describe
 
 pushd ${TRAVIS_BUILD_DIR}
 
-mkdir -p Qt/5.11.1
-
-echo "Get custom Qt build and unpack it"
-curl --output Qt-5.11.1-mac.tar.xz \
-                https://storage.googleapis.com/travis-cache/Qt-5.11.1-mac.tar.xz
-md5 Qt-5.11.1-mac.tar.xz
-
-tar -xJ -C Qt/5.11.1 -f Qt-5.11.1-mac.tar.xz
+mkdir -p Qt/5.13.0
+curl --output Qt-5.13.0-mac.tar.xz https://f002.backblazeb2.com/file/Subsurface-Travis/Qt-5.13.0-mac.tar.xz
+tar -xJ -C Qt/5.13.0 -f Qt-5.13.0-mac.tar.xz
