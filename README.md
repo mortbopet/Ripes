@@ -3,7 +3,7 @@
 
 Ripes is a graphical 5-stage processor pipeline simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf), suitable for teaching how assembly level code is executed on a classic pipelined architecture. Ripes is especially suitable for illustrating how concepts such as forwarding and stalling works, giving a visual representation of both cases.
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/animation.gif?raw=true" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/animation.gif?raw=true" />
 </p>
 
 - [Ripes](#ripes)
@@ -12,7 +12,6 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
   - [Downloading &amp; Installation](#downloading-amp-installation)
     - [Linux](#linux)
     - [Windows](#windows)
-    - [Mac/OSX](#macosx)
   - [Usage](#usage)
     - [Editor](#editor)
     - [Processor](#processor)
@@ -49,8 +48,8 @@ VSRTL is in active development and looking for developers - if this sounds inter
 
 
 ## Downloading & Installation
-Prebuilt applications are available for Linux, Windows & Mac/OSX. No installation is required - all required libraries are packaged with the compiled executable - these are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).  
-**It is recommended to use the *continuous releases*, since they contain all of the most-recent bug-fixes.**
+Prebuilt applications are available for Linux, Windows & Mac. These are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).  
+**It is recommended to use the *[continuous builds](https://github.com/mortbopet/Ripes/releases/tag/continuous)*, since they contain all of the most-recent bug-fixes.**
 
 ### Linux
 Releases for Linux are distributed in the AppImage format. To run an AppImage:
@@ -60,9 +59,6 @@ The AppImage for Linux should be compatible with most Linux distributions.
 
 ### Windows
 For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You most likely already have this installed, but if this is not the case, you download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
-
-### Mac/OSX
-Please note that the Mac/OSX is *mostly untested* and as such, there may be various visual glitches as well as performance issues.
 
 ## Usage
 The [Ripes wiki](https://github.com/mortbopet/Ripes/wiki) contains various pages relating to writing RISC-V assembly code, as well as a list of the supported simulator features in terms of assembler directives etc.  
@@ -74,7 +70,7 @@ Try changing some values or adding more instructions - you should see that the r
 If you want to view the raw binary information, select *Binary* as *View mode*.
 
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/asmeditorpng.png?raw=true"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/asmeditorpng.png?raw=true"/>
 </p>
 
 ### Processor
@@ -82,7 +78,7 @@ Once no syntax errors have been found in your assembly code, your code will auto
 Switching to the **Processor** tab, you'll be greeted by a datapath picturing a classic 5-stage RISC pipeline architecture. Note that a *Control* component nor most control signals aren't included in the view. This descision has been made to reduce clutter. All control signals are generated in the ID (Instruction decode) stage, and are propagated through the stage-separating registers accordingly.
 
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/processortab.png?raw=true"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/processortab.png?raw=true"/>
 </p>
 
 Besides the datapath, this tab contains the following elements:
@@ -100,7 +96,7 @@ Furthermore, the following options are available:
 
 ### Pipelining table 
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/ptable.PNG?raw=true"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/ptable.PNG?raw=true"/>
 </p>
 will display a pop-up window with the stage information for the current program. The program must be run to propagate the chart. The pipeline table can be copied and pasted to spreadsheets.
 
@@ -111,24 +107,22 @@ Selecting the **Memory** tab will show you three different views:
 * A list of the most recent memory accesses. Selecting an entry and pressing *Go to selected address* sets the right side memory view to center at the address for the given entry
 
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/memorytab.png?raw=true"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/memorytab.png?raw=true"/>
 </p>
 
 ## Building
-Since Ripes is built using pure C++ and Qt, all platforms that support Qt should be able to build and run the app.
-Ripes contains no external dependencies and (Assuming you have a Qt environment in your `PATH`) can be built by the following commands:
+Assuming you have installed a recent version of [Qt](https://www.qt.io/download) as well as [CMake](https://cmake.org/), Ripes may be built like any other CMake project:
 ```
 Unix:               Windows:
 cd Ripes/           cd Ripes/
 cmake .             cmake .
-make                jom.exe
+make                jom.exe / nmake.exe / ...
 ```
-Download Qt for Open Source development at https://www.qt.io/download.
-Using the Qt installer, only the prebuilt components for your chosen compiler needs to be selected.
+Note, that you must have Qt 5 available in your `CMAKE_PREFIX_PATH`. The easiest way to use CMake with Qt is to set the `CMAKE_PREFIX_PATH` environment variable to the install prefix of Qt 5.
 
 ---
 Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
 
 <a href="https://www.qt.io/">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/QtIcon.png" width="60" height="60" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/QtIcon.png" width="60" height="60" />
 </a>
