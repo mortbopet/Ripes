@@ -7,7 +7,7 @@ export QT_ROOT=${TRAVIS_BUILD_DIR}/Qt/5.13.0/clang_64
 export PATH=$QT_ROOT/bin:$PATH # Make sure correct qmake is found on the $PATH
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
-cmake .
+cmake -DCMAKE_BUILD_TYPE=Release .
 make -j $(nproc)
 
 echo "Post build folder contents:"

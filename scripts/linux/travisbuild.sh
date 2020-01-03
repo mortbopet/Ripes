@@ -3,7 +3,7 @@
 set -e
 
 # build
-cmake .
+cmake -DCMAKE_BUILD_TYPE=Release .
 make -j $(nproc)
 
 echo "Post build folder contents:"
