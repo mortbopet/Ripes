@@ -9,16 +9,6 @@ matrix:
         apt:
           packages:
             - tree
-    
-    #- env: RIPES_PLATFORM='windows'
-    #  os: linux
-    #  dist: trusty
-    #  sudo: required
-    #  language: c++
-    #  addons:
-    #    apt:
-    #      packages:
-    #        - tree
 
     - os: windows
       language: cpp
