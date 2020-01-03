@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>logo.png</file>
         <file>breakpoint_disabled.png</file>
         <file>breakpoint_enabled.png</file>
         <file>cpu.svg</file>
