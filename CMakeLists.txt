@@ -35,6 +35,8 @@ qt5_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
 # Platform specific pre-target setup(s)
 if(${APPLE})
     set(SYSTEM_FLAGS MACOSX_BUNDLE)
+elseif(${WIN32})
+    set(SYSTEM_FLAGS WIN32)
 endif()
 
 add_subdirectory(external)
