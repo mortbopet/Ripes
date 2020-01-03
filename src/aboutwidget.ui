@@ -86,9 +86,6 @@ https://github.com/mortbopet/Ripes</string>
        <property name="text">
         <string/>
        </property>
-       <property name="pixmap">
-        <pixmap resource="../resources/images.qrc">:/icons/logo.png</pixmap>
-       </property>
        <property name="scaledContents">
         <bool>true</bool>
        </property>
@@ -98,8 +95,6 @@ https://github.com/mortbopet/Ripes</string>
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../resources/images.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
