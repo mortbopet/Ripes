@@ -118,7 +118,7 @@
   </widget>
   <action name="actionLoadBinaryFile">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
    </property>
    <property name="text">
@@ -130,7 +130,7 @@
   </action>
   <action name="actionexit">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/exit.svg</normaloff>:/icons/exit.svg</iconset>
    </property>
    <property name="text">
@@ -167,7 +167,7 @@
   </action>
   <action name="actionLoadAssemblyFile">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
    </property>
    <property name="text">
@@ -190,7 +190,7 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/info.svg</normaloff>:/icons/info.svg</iconset>
    </property>
    <property name="text">
@@ -204,7 +204,7 @@
   </action>
   <action name="actionSave_Files">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
    </property>
    <property name="text">
@@ -219,7 +219,7 @@
   </action>
   <action name="actionSave_Files_As">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
    </property>
    <property name="text">
@@ -277,7 +277,7 @@
   </action>
   <action name="actionNew_Program">
    <property name="icon">
-    <iconset resource="../resources/images.qrc">
+    <iconset>
      <normaloff>:/icons/file.svg</normaloff>:/icons/file.svg</iconset>
    </property>
    <property name="text">
@@ -307,12 +307,10 @@
   <customwidget>
    <class>FancyTabBar</class>
    <extends>QWidget</extends>
-   <header>fancytabbar.h</header>
+   <header>fancytabbar/fancytabbar.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../resources/images.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

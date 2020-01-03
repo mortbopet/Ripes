@@ -1,7 +1,7 @@
 #include "processortab.h"
 #include <QScrollBar>
+#include "graphics/pipelinewidget.h"
 #include "instructionmodel.h"
-#include "pipelinewidget.h"
 #include "rundialog.h"
 #include "ui_processortab.h"
 

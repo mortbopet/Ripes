@@ -7,12 +7,20 @@ matrix:
       os: osx
       osx_image: xcode10
       language: c++
+      addons:
+        apt:
+          packages:
+            - tree
 
     - env: RIPES_PLATFORM='windows'
       os: linux
       dist: trusty
       sudo: required
       language: c++
+      addons:
+        apt:
+          packages:
+            - tree
 
     - env: RIPES_PLATFORM='linux'
       os: linux
@@ -30,7 +38,8 @@ matrix:
             - qt59-meta-minimal
             - qt59svg
             - libc6-dev
-            - g++-6
+            - g++-8
+            - tree
 
 before_install:
     - source ${TRAVIS_BUILD_DIR}/scripts/${RIPES_PLATFORM}/before_install.sh

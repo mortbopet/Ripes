@@ -1,21 +1,20 @@
 #include "mainwindow.h"
-#include "QFileDialog"
 #include "ui_mainwindow.h"
 
 #include "aboutwidget.h"
+#include "defines.h"
+#include "parser.h"
+#include "programfiletab.h"
+#include "registerwidget.h"
+
+#include "fancytabbar/fancytabbar.h"
 
 #include <QDesktopServices>
+#include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
-
-#include "parser.h"
-
-#include "programfiletab.h"
-#include "registerwidget.h"
-
-#include "defines.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);

@@ -1,10 +1,8 @@
-export CC=gcc-6
-export CXX=g++-6
+#!/bin/bash 
 
-git fetch --unshallow
-git pull --tags
-git describe
+export CC=gcc-8
+export CXX=g++-8
 
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
 
 source /opt/qt*/bin/qt*-env.sh

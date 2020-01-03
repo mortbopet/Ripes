@@ -75,7 +75,7 @@ void TestRipes::executeTest(const QString& testcase, const std::map<int, uint32_
 
 void TestRipes::runTests() {
     // Avoid some warnings related to missing icons in the linked Ripes library
-    Q_INIT_RESOURCE(images);
+    Q_INIT_RESOURCE(icons);
     Q_INIT_RESOURCE(examples);
 
     // Test the built-in examples
@@ -100,4 +100,4 @@ void TestRipes::runTests() {
 }
 
 QTEST_MAIN(TestRipes)
-#include "test.moc"
+#include "testall.moc"

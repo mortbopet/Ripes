@@ -1,16 +1,17 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QResource>
 #include <iostream>
 
-#include "mainwindow.h"
-#include "parser.h"
-#include "pipeline.h"
+#include "src/mainwindow.h"
+#include "src/parser.h"
+#include "src/pipeline.h"
 
 using namespace std;
 
 int main(int argc, char** argv) {
-    Q_INIT_RESOURCE(images);
+    Q_INIT_RESOURCE(icons);
     Q_INIT_RESOURCE(examples);
 
     QApplication app(argc, argv);

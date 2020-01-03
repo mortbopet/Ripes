@@ -9,7 +9,7 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
 - [Ripes](#ripes)
   - [Features](#features)
   - [Contributing](#contributing)
-  - [Downloading & Installation](#downloading--installation)
+  - [Downloading &amp; Installation](#downloading-amp-installation)
     - [Linux](#linux)
     - [Windows](#windows)
     - [Mac/OSX](#macosx)
@@ -116,11 +116,11 @@ Selecting the **Memory** tab will show you three different views:
 
 ## Building
 Since Ripes is built using pure C++ and Qt, all platforms that support Qt should be able to build and run the app.
-Ripes contains no external dependencies and (Assuming you have a Qt environment in your PATH) can be built by the following commands:
+Ripes contains no external dependencies and (Assuming you have a Qt environment in your `PATH`) can be built by the following commands:
 ```
 Unix:               Windows:
 cd Ripes/           cd Ripes/
-qmake               qmake.exe
+cmake .             cmake .
 make                jom.exe
 ```
 Download Qt for Open Source development at https://www.qt.io/download.

@@ -440,7 +440,7 @@
   <customwidget>
    <class>PipelineWidget</class>
    <extends>QGraphicsView</extends>
-   <header>pipelinewidget.h</header>
+   <header>graphics/pipelinewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>
