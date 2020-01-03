@@ -2,13 +2,16 @@
 
 set -e
 
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
-sudo add-apt-repository 'deb [arch=amd64] http://mirror.mxe.cc/repos/apt trusty main'
+export QT_VERSION=5.13.1
+export QT_PREFIX=msvc2017_64
+export QT_TOOLCHAIN=win64_${QT_PREFIX}
+export CMAKE_GENERATOR="Visual Studio 15 2017 Win64"
 
-sudo apt-get update
+# Fetch and install Qt using the qbs non-interactive qt installer script
+curl -vLO https://code.qt.io/cgit/qbs/qbs.git/plain/scripts/install-qt.sh
+bash install-qt.sh \
+    --version ${QT_VERSION} \
+    --toolchain ${QT_TOOLCHAIN}\
+    qtbase qttools svg
 
-export MXE_TARGET=i686-w64-mingw32.static #x86-64-w64-mingw32.static
-
-MXE2_TARGET=$(echo "$MXE_TARGET" | sed 's/_/-/g')
-sudo apt-get --yes install \
-    mxe-${MXE2_TARGET} || true
+choco install zip

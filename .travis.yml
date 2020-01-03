@@ -1,5 +1,3 @@
-
-
 matrix:
   include:
 
@@ -11,16 +9,21 @@ matrix:
         apt:
           packages:
             - tree
+    
+    #- env: RIPES_PLATFORM='windows'
+    #  os: linux
+    #  dist: trusty
+    #  sudo: required
+    #  language: c++
+    #  addons:
+    #    apt:
+    #      packages:
+    #        - tree
 
-    - env: RIPES_PLATFORM='windows'
-      os: linux
-      dist: trusty
-      sudo: required
-      language: c++
-      addons:
-        apt:
-          packages:
-            - tree
+    - os: windows
+      language: cpp
+      env:
+        - RIPES_PLATFORM: 'windows'
 
     - env: RIPES_PLATFORM='linux'
       os: linux

@@ -25,8 +25,8 @@ include_directories(${Qt5Core_INCLUDE_DIRS})
 ######################################################################
 ## Resources setup
 ######################################################################
-qt5_add_resources(ICONS_SRC "resources/icons/icons.qrc")
-qt5_add_resources(EXAMPLES_SRC "examples/examples.qrc")
+qt5_add_resources(ICONS_SRC ${CMAKE_SOURCE_DIR}/resources/icons/icons.qrc)
+qt5_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
 
 ######################################################################
 ## Library setup
@@ -39,7 +39,11 @@ endif()
 
 add_subdirectory(external)
 add_subdirectory(src)
-add_subdirectory(test)
+
+option(RIPES_BUILD_TESTS "Build Ripes tests" OFF)
+if(RIPES_BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 set(APP_NAME Ripes)
 add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} main.cpp)

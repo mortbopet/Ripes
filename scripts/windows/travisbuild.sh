@@ -2,19 +2,26 @@
 
 set -e
 
-echo $MXE_TARGET
-MXE_DIR=/usr/lib/mxe
+export CMAKE_PREFIX_PATH=/c/Qt/${QT_VERSION}/${QT_PREFIX}:${CMAKE_PREFIX_PATH}
+export PATH=/c/Qt/${QT_VERSION}/${QT_PREFIX}/bin:${PATH}
 
-export PATH=$MXE_DIR/usr/bin:$PATH
-export CMAKE_PREFIX_PATH=${MXE_DIR}/usr/${MXE_TARGET}/qt5/:$CMAKE_PREFIX_PATH
+cmake . -G "${CMAKE_GENERATOR}"
 
-export RIPES_CFG="release"
+find /c/Qt/${QT_VERSION}/${QT_PREFIX}/bin
 
-$MXE_TARGET-cmake .
-make -j $(nproc)
+cmake --build .         \
+    -j$(nproc)          \
+    --config Release
 
-echo "Post build folder contents:"
-ls -lh
+# Copy dependencies using windeployqt
+pushd Release
+APPNAME=Ripes-continuous-win-x86_64.zip
+windeployqt.exe -svg --release Ripes.exe
 
-APPNAME=Ripes-continuous-win-x86_64
-sudo mv Ripes.exe $APPNAME.exe
+# Clean up some unused stuff
+rm -rf translations
+
+# Bundle
+zip -r ${APPNAME} .
+popd
+mv Release/${APPNAME} .
