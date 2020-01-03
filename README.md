@@ -1,7 +1,12 @@
 # Ripes
 [![Build Status](https://travis-ci.org/mortbopet/Ripes.svg?branch=master)](https://travis-ci.org/mortbopet/Ripes/)
+[![Gitter](https://badges.gitter.im/Ripes-VSRTL/Ripes.svg)](https://gitter.im/Ripes-VSRTL/)
 
 Ripes is a graphical 5-stage processor pipeline simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf), suitable for teaching how assembly level code is executed on a classic pipelined architecture. Ripes is especially suitable for illustrating how concepts such as forwarding and stalling works, giving a visual representation of both cases.
+
+Got questions or comments? Head over to the Ripes [Gitter chat](https://gitter.im/Ripes-VSRTL/).  
+Report bugs, issues or feature requests at https://github.com/mortbopet/Ripes/issues.
+
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/animation.gif?raw=true" />
 </p>
