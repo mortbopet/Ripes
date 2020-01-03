@@ -27,8 +27,8 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
-    m_font = QFont("Monospace");  // set default font to Monospace on unix systems
-    m_font.setStyleHint(QFont::Monospace);
+    m_font = QFont("Monospace");
+    m_font.setStyleHint(QFont::TypeWriter);
     m_font.setPointSize(10);
     setFont(m_font);
     m_fontTimer.setSingleShot(true);

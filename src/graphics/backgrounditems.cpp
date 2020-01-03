@@ -35,7 +35,7 @@ void DashLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget
 Text::Text(QPointF pos) {
     m_pos = pos;
     m_font = QFont("Monospace");
-    m_font.setStyleHint(QFont::Monospace);
+    m_font.setStyleHint(QFont::TypeWriter);
     m_font.setPointSize(14);
 }
 
