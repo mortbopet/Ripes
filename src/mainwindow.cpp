@@ -3,7 +3,9 @@
 
 #include "aboutwidget.h"
 #include "defines.h"
+#include "memorytab.h"
 #include "parser.h"
+#include "processortab.h"
 #include "programfiletab.h"
 #include "registerwidget.h"
 
@@ -14,6 +16,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QStackedWidget>
 #include <QTextStream>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
@@ -22,14 +25,36 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowIcon(QIcon(":/icons/logo.svg"));
     showMaximized();
 
+    m_toolbar = addToolBar("Ripes actions");
+    setupMenus();
+
+    // Create tabs
+    m_stackedTabs = new QStackedWidget(this);
+    m_ui->centrallayout->addWidget(m_stackedTabs);
+
+    auto* tb = addToolBar("Edit");
+    tb->setVisible(false);
+    m_editTab = new ProgramfileTab(tb, this);
+    m_stackedTabs->insertWidget(0, m_editTab);
+
+    tb = addToolBar("Processor");
+    tb->setVisible(false);
+    m_processorTab = new ProcessorTab(tb, this);
+    m_stackedTabs->insertWidget(1, m_processorTab);
+
+    tb = addToolBar("Processor");
+    tb->setVisible(false);
+    m_memoryTab = new MemoryTab(tb, this);
+    m_stackedTabs->insertWidget(2, m_memoryTab);
+
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
-    // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
-    // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/graph.svg")), "Results");
-    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
+    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     m_ui->tabbar->setActiveIndex(0);
+
+    connect(m_stackedTabs, &QStackedWidget::currentChanged, this, &MainWindow::tabChanged);
 
     m_binaryStoreAction = new QActionGroup(this);
     m_binaryStoreAction->addAction(m_ui->actionSave_as_flat_binary);
@@ -39,29 +64,39 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->actionDisable->setChecked(true);
 
     // Setup tab pointers
-    m_ui->processortab->initRegWidget();
-    m_ui->processortab->initInstructionView();
-    m_ui->memorytab->initMemoryTab();
+    m_processorTab->initRegWidget();
+    m_processorTab->initInstructionView();
+    m_memoryTab->initMemoryTab();
 
     // setup example projects
     setupExamples();
 
     // setup and connect widgets
-    connect(m_ui->programfiletab, &ProgramfileTab::loadBinaryFile, this,
-            &MainWindow::on_actionLoadBinaryFile_triggered);
-    connect(m_ui->programfiletab, &ProgramfileTab::loadAssemblyFile, this,
-            &MainWindow::on_actionLoadAssemblyFile_triggered);
+    connect(m_editTab, &ProgramfileTab::loadBinaryFile, this, &MainWindow::on_actionLoadBinaryFile_triggered);
+    connect(m_editTab, &ProgramfileTab::loadAssemblyFile, this, &MainWindow::on_actionLoadAssemblyFile_triggered);
 
-    connect(m_ui->processortab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
-    connect(m_ui->programfiletab, &ProgramfileTab::updateSimulator, [this] { emit update(); });
-    connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
-    connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
-    connect(m_ui->stackedWidget, &QStackedWidget::currentChanged, m_ui->memorytab, &MemoryTab::update);
+    connect(m_processorTab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
+    connect(m_editTab, &ProgramfileTab::updateSimulator, [this] { emit update(); });
+    connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
+    connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
+    connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
 }
+
+void MainWindow::tabChanged() {
+    // Enable the toolbar associated with the currently selected tab
+    auto* tab = dynamic_cast<RipesTab*>(m_stackedTabs->currentWidget());
+    for (int i = 0; i < m_stackedTabs->count(); i++) {
+        auto* w = dynamic_cast<RipesTab*>(m_stackedTabs->widget(i));
+        auto* tb = w->getToolbar();
+        tb->setVisible(w == tab);
+    }
+}
+
+void MainWindow::setupMenus() {}
 
 void MainWindow::run() {
     // Function for triggering the run dialog from unit tests
-    m_ui->processortab->on_run_clicked();
+    m_processorTab->on_run_clicked();
 }
 
 MainWindow::~MainWindow() {
@@ -118,28 +153,28 @@ void MainWindow::on_actionLoadAssemblyFile_triggered() {
 }
 
 void MainWindow::loadBinaryFile(QString filename) {
-    m_ui->programfiletab->setTimerEnabled(false);
-    m_ui->programfiletab->setInputMode(false);
-    m_ui->processortab->restart();
+    m_editTab->setTimerEnabled(false);
+    m_editTab->setInputMode(false);
+    m_processorTab->restart();
     Parser::getParser()->loadBinaryFile(filename);
-    m_ui->programfiletab->setDisassemblerText();
+    m_editTab->setDisassemblerText();
     emit update();
 }
 
 void MainWindow::loadAssemblyFile(QString fileName) {
     // ... load file
     QFile file(fileName);
-    m_ui->programfiletab->setInputMode(true);
-    m_ui->programfiletab->setTimerEnabled(true);
+    m_editTab->setInputMode(true);
+    m_editTab->setTimerEnabled(true);
     Parser::getParser()->clear();
-    m_ui->programfiletab->clearOutputArray();
-    m_ui->processortab->restart();
+    m_editTab->clearOutputArray();
+    m_processorTab->restart();
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_ui->programfiletab->setAssemblyText(file.readAll());
+        m_editTab->setAssemblyText(file.readAll());
         file.close();
     }
     m_currentFile = fileName;
-    m_ui->programfiletab->setDisassemblerText();
+    m_editTab->setDisassemblerText();
 }
 
 void MainWindow::on_actionAbout_triggered() {
@@ -180,7 +215,7 @@ void MainWindow::on_actionSave_Files_triggered() {
 
     if (m_ui->actionSave_Source->isChecked()) {
         QFile file(m_currentFile);
-        writeTextFile(file, m_ui->programfiletab->getAssemblyText());
+        writeTextFile(file, m_editTab->getAssemblyText());
     }
 
     if (m_ui->actionSave_Disassembled->isChecked()) {
@@ -191,7 +226,7 @@ void MainWindow::on_actionSave_Files_triggered() {
     QAction* binaryStoreAction = m_binaryStoreAction->checkedAction();
     if (binaryStoreAction == m_ui->actionSave_as_flat_binary) {
         QFile file(removeFileExt(m_currentFile) + ".bin");
-        writeBinaryFile(file, m_ui->programfiletab->getBinaryData());
+        writeBinaryFile(file, m_editTab->getBinaryData());
     } else if (binaryStoreAction == m_ui->actionSave_as_text) {
         QFile file(removeFileExt(m_currentFile) + "_bin.txt");
         writeTextFile(file, Parser::getParser()->getBinaryRepr());
@@ -213,7 +248,7 @@ void MainWindow::on_actionNew_Program_triggered() {
     QMessageBox mbox;
     mbox.setWindowTitle("New Program...");
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    if (!m_ui->programfiletab->getAssemblyText().isEmpty() && m_currentFile.isEmpty()) {
+    if (!m_editTab->getAssemblyText().isEmpty() && m_currentFile.isEmpty()) {
         // User wrote a program but did not save it to a file yet
         mbox.setText("Save program before creating new file?");
         auto ret = mbox.exec();
@@ -248,5 +283,5 @@ void MainWindow::on_actionNew_Program_triggered() {
         }
     }
     m_currentFile.clear();
-    m_ui->programfiletab->newProgram();
+    m_editTab->newProgram();
 }

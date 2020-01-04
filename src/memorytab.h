@@ -10,6 +10,7 @@
 #include "mainmemory.h"
 #include "memorydisplaydelegate.h"
 #include "memorymodel.h"
+#include "ripestab.h"
 
 namespace Ui {
 class MemoryTab;
@@ -17,11 +18,11 @@ class MemoryTab;
 
 class RegisterWidget;
 
-class MemoryTab : public QWidget {
+class MemoryTab : public RipesTab {
     Q_OBJECT
 
 public:
-    explicit MemoryTab(QWidget* parent = nullptr);
+    MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~MemoryTab() override;
     void initMemoryTab();
 

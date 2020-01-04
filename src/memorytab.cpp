@@ -2,12 +2,14 @@
 #include "ui_memorytab.h"
 
 #include <QInputDialog>
+#include <QToolBar>
 #include <QWheelEvent>
+
 #include <algorithm>
 
 #include "pipeline.h"
 
-MemoryTab::MemoryTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryTab) {
+MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
     // Add display types to display comboboxes

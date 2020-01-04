@@ -1,11 +1,17 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
 namespace Ui {
 class MainWindow;
 }
+
+QT_FORWARD_DECLARE_CLASS(QToolBar)
+QT_FORWARD_DECLARE_CLASS(QStackedWidget)
+
+class ProgramfileTab;
+class MemoryTab;
+class ProcessorTab;
 
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
@@ -38,15 +44,24 @@ private slots:
 
     void on_actionNew_Program_triggered();
 
+    void tabChanged();
+
 signals:
     void update();
     void updateMemoryTab();
 
 private:
+    void setupMenus();
+
     Ui::MainWindow* m_ui;
     void setupExamples();
     QString m_currentFile = QString();
     QActionGroup* m_binaryStoreAction;
-};
+    QToolBar* m_toolbar = nullptr;
 
-#endif  // MAINWINDOW_H
+    // Tabs
+    QStackedWidget* m_stackedTabs = nullptr;
+    ProcessorTab* m_processorTab = nullptr;
+    ProgramfileTab* m_editTab = nullptr;
+    MemoryTab* m_memoryTab = nullptr;
+};

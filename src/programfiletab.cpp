@@ -4,7 +4,8 @@
 #include "parser.h"
 #include "pipeline.h"
 
-ProgramfileTab::ProgramfileTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::ProgramfileTab) {
+ProgramfileTab::ProgramfileTab(QToolBar* toolbar, QWidget* parent)
+    : RipesTab(toolbar, parent), m_ui(new Ui::ProgramfileTab) {
     m_ui->setupUi(this);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a

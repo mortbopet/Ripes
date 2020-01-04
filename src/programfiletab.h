@@ -4,15 +4,17 @@
 #include <QFile>
 #include <QWidget>
 
+#include "ripestab.h"
+
 namespace Ui {
 class ProgramfileTab;
 }
 
-class ProgramfileTab : public QWidget {
+class ProgramfileTab : public RipesTab {
     Q_OBJECT
 
 public:
-    explicit ProgramfileTab(QWidget* parent = nullptr);
+    ProgramfileTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~ProgramfileTab() override;
 
     void setAssemblyText(const QString& text);

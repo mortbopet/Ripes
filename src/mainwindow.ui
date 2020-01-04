@@ -34,33 +34,9 @@
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="centrallayout">
       <item>
        <widget class="FancyTabBar" name="tabbar" native="true"/>
-      </item>
-      <item>
-       <widget class="QSplitter" name="splitter">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="midLineWidth">
-         <number>0</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <widget class="QStackedWidget" name="stackedWidget">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>1</verstretch>
-          </sizepolicy>
-         </property>
-         <widget class="ProgramfileTab" name="programfiletab"/>
-         <widget class="ProcessorTab" name="processortab"/>
-         <widget class="MemoryTab" name="memorytab"/>
-        </widget>
-       </widget>
       </item>
      </layout>
     </item>
@@ -286,24 +262,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>MemoryTab</class>
-   <extends>QWidget</extends>
-   <header>memorytab.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ProgramfileTab</class>
-   <extends>QWidget</extends>
-   <header>programfiletab.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ProcessorTab</class>
-   <extends>QWidget</extends>
-   <header>processortab.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>FancyTabBar</class>
    <extends>QWidget</extends>

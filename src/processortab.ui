@@ -167,7 +167,7 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset resource="../resources/images.qrc">
+           <iconset resource="../resources/icons/icons.qrc">
             <normaloff>:/icons/spreadsheet.svg</normaloff>:/icons/spreadsheet.svg</iconset>
           </property>
           <property name="iconSize">
@@ -188,7 +188,7 @@
         <item>
          <widget class="QToolButton" name="expandView">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -200,7 +200,7 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset resource="../resources/images.qrc">
+           <iconset resource="../resources/icons/icons.qrc">
             <normaloff>:/icons/expand.svg</normaloff>:/icons/expand.svg</iconset>
           </property>
           <property name="iconSize">
@@ -223,7 +223,7 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset resource="../resources/images.qrc">
+           <iconset resource="../resources/icons/icons.qrc">
             <normaloff>:/icons/zoom-in.svg</normaloff>:/icons/zoom-in.svg</iconset>
           </property>
           <property name="iconSize">
@@ -243,7 +243,7 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset resource="../resources/images.qrc">
+           <iconset resource="../resources/icons/icons.qrc">
             <normaloff>:/icons/zoom-out.svg</normaloff>:/icons/zoom-out.svg</iconset>
           </property>
           <property name="iconSize">
@@ -263,7 +263,7 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset resource="../resources/images.qrc">
+           <iconset resource="../resources/icons/icons.qrc">
             <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
           </property>
           <property name="iconSize">
@@ -444,7 +444,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../resources/images.qrc"/>
+  <include location="../resources/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

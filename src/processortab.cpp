@@ -10,7 +10,7 @@
 #include "parser.h"
 #include "pipeline.h"
 
-ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::ProcessorTab) {
+ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
     // Setup buttons

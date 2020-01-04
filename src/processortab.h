@@ -2,12 +2,14 @@
 #define PROCESSORTAB_H
 
 #include <QTimer>
+#include <QToolBar>
 #include <QWidget>
 
 #include "defines.h"
 #include "pipeline.h"
 #include "pipelinetable.h"
 #include "pipelinetablemodel.h"
+#include "ripestab.h"
 
 namespace Ui {
 class ProcessorTab;
@@ -16,12 +18,12 @@ class ProcessorTab;
 class InstructionModel;
 class Parser;
 
-class ProcessorTab : public QWidget {
+class ProcessorTab : public RipesTab {
     friend class RunDialog;
     Q_OBJECT
 
 public:
-    explicit ProcessorTab(QWidget* parent = nullptr);
+    ProcessorTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~ProcessorTab() override;
 
     void initRegWidget();
