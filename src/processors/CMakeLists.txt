@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.9)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+macro(create_processor name)
+    file(GLOB LIB_SOURCES  ${name}/*.cpp)
+    file(GLOB LIB_HEADERS ripesprocessor.h ${name}/*.h)
+    add_library(${name} ${LIB_SOURCES} ${LIB_HEADERS})
+    target_link_libraries(${name} ${VSRTL_CORE_LIB})
+    target_include_directories(${name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(${name} PUBLIC ${CMAKE_SOURCE_DIR}/external)
+    target_compile_features(${name} PRIVATE cxx_std_17)
+endmacro()
+
+create_processor(ss)
