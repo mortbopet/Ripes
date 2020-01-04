@@ -18,5 +18,10 @@
         <file>documents.svg</file>
         <file>logo.svg</file>
         <file>file.svg</file>
+        <file>stop-clock.svg</file>
+        <file>step.svg</file>
+        <file>step-clock.svg</file>
+        <file>rewind.svg</file>
+        <file>reset.svg</file>
     </qresource>
 </RCC>
