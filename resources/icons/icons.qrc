@@ -23,5 +23,7 @@
         <file>step-clock.svg</file>
         <file>rewind.svg</file>
         <file>reset.svg</file>
+        <file>tag.svg</file>
+        <file>run.svg</file>
     </qresource>
 </RCC>

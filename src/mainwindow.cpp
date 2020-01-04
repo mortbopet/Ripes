@@ -25,7 +25,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowIcon(QIcon(":/icons/logo.svg"));
     showMaximized();
 
-    m_toolbar = addToolBar("Ripes actions");
     setupMenus();
 
     // Create tabs
@@ -88,7 +87,7 @@ void MainWindow::tabChanged() {
     for (int i = 0; i < m_stackedTabs->count(); i++) {
         auto* w = dynamic_cast<RipesTab*>(m_stackedTabs->widget(i));
         auto* tb = w->getToolbar();
-        tb->setVisible(w == tab);
+        tb->setVisible(w == tab && (tb->children().length() != 0));
     }
 }
 
@@ -96,7 +95,7 @@ void MainWindow::setupMenus() {}
 
 void MainWindow::run() {
     // Function for triggering the run dialog from unit tests
-    m_processorTab->on_run_clicked();
+    m_processorTab->run();
 }
 
 MainWindow::~MainWindow() {

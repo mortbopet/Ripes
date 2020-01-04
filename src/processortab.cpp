@@ -1,33 +1,20 @@
 #include "processortab.h"
-#include <QScrollBar>
-#include "graphics/pipelinewidget.h"
-#include "instructionmodel.h"
-#include "rundialog.h"
 #include "ui_processortab.h"
 
 #include <QFileDialog>
+#include <QScrollBar>
+#include <QSpinBox>
 
+#include "graphics/pipelinewidget.h"
+#include "instructionmodel.h"
 #include "parser.h"
 #include "pipeline.h"
+#include "rundialog.h"
 
 ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
-    // Setup buttons
-    connect(m_ui->start, &QPushButton::toggled, this, &ProcessorTab::toggleTimer);
-
-    // Setup execution speed slider
-    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) {
-        // Reverse the slider, going from high to low
-        const static int delay = m_ui->execSpeed->maximum() + m_ui->execSpeed->minimum();
-        m_timer.setInterval(delay - pos);
-    });
-    m_ui->execSpeed->valueChanged(m_ui->execSpeed->value());
-
-    connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
-
-    // Setup stepping timer
-    connect(&m_timer, &QTimer::timeout, this, &ProcessorTab::on_step_clicked);
+    setupSimulatorActions();
 
     // Setup updating signals
     connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
@@ -48,39 +35,86 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
                                                   << (m_ui->consolesTab->minimumHeight() + 1));
     m_ui->consolesTab->removeTab(1);
 
-    // Initially, no file is loaded, disable run, step and reset buttons
-    m_ui->reset->setEnabled(false);
-    m_ui->step->setEnabled(false);
-    m_ui->run->setEnabled(false);
-    m_ui->start->setEnabled(false);
-    m_ui->table->setEnabled(false);
+    // Initially, no file is loaded, disable toolbuttons
+    updateActionState();
 }
 
-void ProcessorTab::toggleTimer(bool state) {
-    const static QString pauseText = QLatin1String("Stop autostepping (F5)");
-    const static QString startText = QLatin1String("Start autostepping (F5)");
-    if (state) {
-        m_ui->start->setText(pauseText);
-        m_ui->start->setShortcut(Qt::Key_F5);  // The shortcut is for some reason cleared when editing the button text
-        m_timer.start();
-    } else {
-        m_ui->start->setText(startText);
-        m_ui->start->setShortcut(Qt::Key_F5);
-        m_ui->start->setChecked(false);
-        m_timer.stop();
-    };
+void ProcessorTab::setupSimulatorActions() {
+    const QIcon resetIcon = QIcon(":/icons/reset.svg");
+    m_resetAction = new QAction(resetIcon, "Reset (F4)", this);
+    connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
+    m_resetAction->setShortcut(QKeySequence("F4"));
+    m_toolbar->addAction(m_resetAction);
+
+    const QIcon reverseIcon = QIcon(":/icons/rewind.svg");
+    m_reverseAction = new QAction(reverseIcon, "Rewind (F5)", this);
+    m_reverseAction->setShortcut(QKeySequence("F5"));
+    m_toolbar->addAction(m_reverseAction);
+
+    const QIcon clockIcon = QIcon(":/icons/step.svg");
+    m_clockAction = new QAction(clockIcon, "Clock (F6)", this);
+    connect(m_clockAction, &QAction::triggered, this, &ProcessorTab::clock);
+    m_clockAction->setShortcut(QKeySequence("F6"));
+    m_toolbar->addAction(m_clockAction);
+
+    QTimer* timer = new QTimer();
+    connect(timer, &QTimer::timeout, this, &ProcessorTab::clock);
+
+    const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
+    const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
+    m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F7)", this);
+    m_autoClockAction->setShortcut(QKeySequence("F7"));
+    m_autoClockAction->setCheckable(true);
+    connect(m_autoClockAction, &QAction::toggled, [=](bool checked) {
+        if (!checked) {
+            timer->stop();
+            m_autoClockAction->setIcon(startAutoClockIcon);
+        } else {
+            timer->start();
+            m_autoClockAction->setIcon(stopAutoTimerIcon);
+        }
+    });
+    m_autoClockAction->setChecked(false);
+    m_toolbar->addAction(m_autoClockAction);
+
+    QSpinBox* stepSpinBox = new QSpinBox();
+    stepSpinBox->setRange(1, 10000);
+    stepSpinBox->setSuffix(" ms");
+    stepSpinBox->setToolTip("Auto clock interval");
+    connect(stepSpinBox, qOverload<int>(&QSpinBox::valueChanged), [timer](int msec) { timer->setInterval(msec); });
+    stepSpinBox->setValue(100);
+    m_toolbar->addWidget(stepSpinBox);
+
+    const QIcon runIcon = QIcon(":/icons/run.svg");
+    m_runAction = new QAction(runIcon, "Run (F8)", this);
+    m_runAction->setShortcut(QKeySequence("F8"));
+    connect(m_runAction, &QAction::triggered, this, &ProcessorTab::run);
+    m_toolbar->addAction(m_runAction);
+
+    m_toolbar->addSeparator();
+
+    const QIcon tagIcon = QIcon(":/icons/tag.svg");
+    m_displayValuesAction = new QAction(tagIcon, "Display signal values", this);
+    m_displayValuesAction->setCheckable(true);
+    m_displayValuesAction->setChecked(false);
+    connect(m_displayValuesAction, &QAction::triggered, this, &ProcessorTab::displayValues);
+    m_toolbar->addAction(m_displayValuesAction);
+
+    const QIcon expandIcon = QIcon(":/icons/expand.svg");
+    m_fitViewAction = new QAction(expandIcon, "Fit to view", this);
+    connect(m_fitViewAction, &QAction::triggered, this, &ProcessorTab::expandView);
+    m_toolbar->addAction(m_fitViewAction);
+
+    const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
+    m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
+    connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showPipeliningTable);
+    m_toolbar->addAction(m_pipelineTableAction);
 }
 
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
-    bool pipelineReady = Pipeline::getPipeline()->getTextSize() > 0;
-
-    m_ui->step->setEnabled(pipelineReady);
-    m_ui->run->setEnabled(pipelineReady);
-    m_ui->reset->setEnabled(pipelineReady);
-    m_ui->start->setEnabled(pipelineReady);
-    m_ui->table->setEnabled(pipelineReady);
+    updateActionState();
 }
 
 void ProcessorTab::initRegWidget() {
@@ -117,35 +151,52 @@ ProcessorTab::~ProcessorTab() {
     delete m_ui;
 }
 
-void ProcessorTab::on_expandView_clicked() {
+void ProcessorTab::expandView() {
     m_ui->pipelineWidget->expandToView();
 }
 
-void ProcessorTab::on_displayValues_toggled(bool checked) {
+void ProcessorTab::displayValues(bool checked) {
     m_ui->pipelineWidget->displayAllValues(checked);
 }
 
-void ProcessorTab::on_run_clicked() {
+void ProcessorTab::run() {
+    m_autoClockAction->setChecked(false);
     auto pipeline = Pipeline::getPipeline();
     RunDialog dialog(this);
     if (pipeline->isReady()) {
         if (dialog.exec() && pipeline->isFinished()) {
             emit update();
-            m_ui->step->setEnabled(false);
-            m_ui->start->setEnabled(false);
-            m_ui->run->setEnabled(false);
+            updateActionState();
         }
     }
 }
 
-void ProcessorTab::on_reset_clicked() {
+void ProcessorTab::updateActionState() {
+    const auto ready = Pipeline::getPipeline()->isReady();
+
+    m_clockAction->setEnabled(ready);
+    m_autoClockAction->setEnabled(ready);
+    m_runAction->setEnabled(ready);
+    m_displayValuesAction->setEnabled(ready);
+    m_fitViewAction->setEnabled(ready);
+    m_pipelineTableAction->setEnabled(ready);
+    m_reverseAction->setEnabled(ready);
+    m_resetAction->setEnabled(ready);
+
+    if (Pipeline::getPipeline()->isFinished()) {
+        m_clockAction->setEnabled(false);
+        m_autoClockAction->setChecked(false);
+        m_autoClockAction->setEnabled(false);
+        m_runAction->setEnabled(false);
+    }
+}
+
+void ProcessorTab::reset() {
+    m_autoClockAction->setChecked(false);
     Pipeline::getPipeline()->restart();
     emit update();
 
-    m_ui->step->setEnabled(true);
-    m_ui->start->setEnabled(true);
-    m_ui->run->setEnabled(true);
-    m_ui->table->setEnabled(true);
+    updateActionState();
     emit appendToLog("\n");
 }
 
@@ -165,7 +216,7 @@ void ProcessorTab::setCurrentInstruction(int row) {
     }
 }
 
-void ProcessorTab::on_step_clicked() {
+void ProcessorTab::clock() {
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
 
@@ -178,10 +229,7 @@ void ProcessorTab::on_step_clicked() {
 
     // Pipeline has finished executing
     if (pipeline->isFinished() || (state == 1 && ecallVal.first == Pipeline::ECALL::exit)) {
-        m_ui->step->setEnabled(false);
-        m_ui->start->setEnabled(false);
-        m_ui->run->setEnabled(false);
-        toggleTimer(false);
+        updateActionState();
     }
 }
 
@@ -210,35 +258,7 @@ bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_
     return true;  // continue
 }
 
-void ProcessorTab::on_zoomIn_clicked() {
-    m_ui->pipelineWidget->zoomIn();
-}
-
-void ProcessorTab::on_zoomOut_clicked() {
-    m_ui->pipelineWidget->zoomOut();
-}
-
-void ProcessorTab::on_save_clicked() {
-    QFileDialog dialog;
-    dialog.setNameFilter("*.png");
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setOption(QFileDialog::DontUseNativeDialog);
-    if (dialog.exec()) {
-        auto files = dialog.selectedFiles();
-        if (files.length() == 1) {
-            auto scene = m_ui->pipelineWidget->scene();
-            QImage image(scene->sceneRect().size().toSize(), QImage::Format_ARGB32);
-            image.fill(Qt::white);
-            QPainter painter(&image);
-            painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
-                                   QPainter::SmoothPixmapTransform);
-            scene->render(&painter, QRectF(), QRect(), Qt::IgnoreAspectRatio);
-            image.save(files[0]);
-        }
-    }
-}
-
-void ProcessorTab::on_table_clicked() {
+void ProcessorTab::showPipeliningTable() {
     // Setup pipeline table window
     PipelineTable window;
     PipelineTableModel model;

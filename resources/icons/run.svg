@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   viewBox="0 0 129 129"
+   enable-background="new 0 0 129 129"
+   id="svg367"
+   sodipodi:docname="run.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata373">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs371" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1853"
+     inkscape:window-height="1025"
+     id="namedview369"
+     showgrid="false"
+     inkscape:zoom="0.57829276"
+     inkscape:cx="755.05669"
+     inkscape:cy="-125.04766"
+     inkscape:window-x="67"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg367" />
+  <g
+     id="g365"
+     transform="translate(-15.563052,-0.64846048)">
+    <path
+       d="m 40.4,121.3 c -0.8,0.8 -1.8,1.2 -2.9,1.2 -1.1,0 -2.1,-0.4 -2.9,-1.2 -1.6,-1.6 -1.6,-4.2 0,-5.8 l 51,-51 -51,-51 C 33,11.9 33,9.3 34.6,7.7 c 1.6,-1.6 4.2,-1.6 5.8,0 l 53.9,53.9 c 1.6,1.6 1.6,4.2 0,5.8 z"
+       id="path363"
+       inkscape:connector-curvature="0" />
+  </g>
+  <g
+     transform="translate(16.821394,0.08625834)"
+     id="g365-3">
+    <path
+       inkscape:connector-curvature="0"
+       d="m 40.4,121.3 c -0.8,0.8 -1.8,1.2 -2.9,1.2 -1.1,0 -2.1,-0.4 -2.9,-1.2 -1.6,-1.6 -1.6,-4.2 0,-5.8 l 51,-51 -51,-51 C 33,11.9 33,9.3 34.6,7.7 c 1.6,-1.6 4.2,-1.6 5.8,0 l 53.9,53.9 c 1.6,1.6 1.6,4.2 0,5.8 z"
+       id="path363-6" />
+  </g>
+</svg>

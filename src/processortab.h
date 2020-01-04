@@ -1,6 +1,7 @@
 #ifndef PROCESSORTAB_H
 #define PROCESSORTAB_H
 
+#include <QAction>
 #include <QTimer>
 #include <QToolBar>
 #include <QWidget>
@@ -31,34 +32,39 @@ public:
 
 public slots:
     void restart();
-    void on_run_clicked();
+    void run();
 
 private slots:
-    void on_expandView_clicked();
-    void on_displayValues_toggled(bool checked);
-    void on_reset_clicked();
-    void on_step_clicked();
-    void toggleTimer(bool state);
-    void on_zoomIn_clicked();
-    void on_zoomOut_clicked();
-    void on_save_clicked();
+    void expandView();
+    void displayValues(bool checked);
+    void reset();
+    void clock();
     void setCurrentInstruction(int row);
-
-    void on_table_clicked();
-
+    void showPipeliningTable();
     void updateMetrics();
 
+signals:
+    void update();
+    void appendToLog(QString string);
+
 private:
+    void setupSimulatorActions();
+    void updateActionState();
+
     bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;
 
-    QTimer m_timer;
-
-signals:
-    void update();
-    void appendToLog(QString string);
+    // Actions
+    QAction* m_clockAction = nullptr;
+    QAction* m_autoClockAction = nullptr;
+    QAction* m_runAction = nullptr;
+    QAction* m_displayValuesAction = nullptr;
+    QAction* m_fitViewAction = nullptr;
+    QAction* m_pipelineTableAction = nullptr;
+    QAction* m_reverseAction = nullptr;
+    QAction* m_resetAction = nullptr;
 };
 
 #endif  // PROCESSORTAB_H
