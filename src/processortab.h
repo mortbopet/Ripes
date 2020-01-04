@@ -2,6 +2,7 @@
 #define PROCESSORTAB_H
 
 #include <QAction>
+#include <QSpinBox>
 #include <QTimer>
 #include <QToolBar>
 #include <QWidget>
@@ -65,6 +66,8 @@ private:
     QAction* m_pipelineTableAction = nullptr;
     QAction* m_reverseAction = nullptr;
     QAction* m_resetAction = nullptr;
+
+    QSpinBox* m_autoClockInterval = nullptr;
 };
 
 #endif  // PROCESSORTAB_H

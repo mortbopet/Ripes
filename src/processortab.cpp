@@ -77,13 +77,14 @@ void ProcessorTab::setupSimulatorActions() {
     m_autoClockAction->setChecked(false);
     m_toolbar->addAction(m_autoClockAction);
 
-    QSpinBox* stepSpinBox = new QSpinBox();
-    stepSpinBox->setRange(1, 10000);
-    stepSpinBox->setSuffix(" ms");
-    stepSpinBox->setToolTip("Auto clock interval");
-    connect(stepSpinBox, qOverload<int>(&QSpinBox::valueChanged), [timer](int msec) { timer->setInterval(msec); });
-    stepSpinBox->setValue(100);
-    m_toolbar->addWidget(stepSpinBox);
+    m_autoClockInterval = new QSpinBox(this);
+    m_autoClockInterval->setRange(1, 10000);
+    m_autoClockInterval->setSuffix(" ms");
+    m_autoClockInterval->setToolTip("Auto clock interval");
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged),
+            [timer](int msec) { timer->setInterval(msec); });
+    m_autoClockInterval->setValue(100);
+    m_toolbar->addWidget(m_autoClockInterval);
 
     const QIcon runIcon = QIcon(":/icons/run.svg");
     m_runAction = new QAction(runIcon, "Run (F8)", this);

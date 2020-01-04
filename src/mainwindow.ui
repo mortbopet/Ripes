@@ -55,32 +55,6 @@
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuExamples">
-     <property name="title">
-      <string>Load Example...</string>
-     </property>
-    </widget>
-    <widget class="QMenu" name="menuSave_Binary">
-     <property name="title">
-      <string>Save Binary</string>
-     </property>
-     <addaction name="actionDisable"/>
-     <addaction name="actionSave_as_text"/>
-     <addaction name="actionSave_as_flat_binary"/>
-    </widget>
-    <addaction name="actionNew_Program"/>
-    <addaction name="actionLoadBinaryFile"/>
-    <addaction name="actionLoadAssemblyFile"/>
-    <addaction name="separator"/>
-    <addaction name="menuExamples"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_Files"/>
-    <addaction name="actionSave_Files_As"/>
-    <addaction name="actionSave_Source"/>
-    <addaction name="actionSave_Disassembled"/>
-    <addaction name="menuSave_Binary"/>
-    <addaction name="separator"/>
-    <addaction name="actionexit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -92,78 +66,6 @@
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
   </widget>
-  <action name="actionLoadBinaryFile">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Load Binary File</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionexit">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/exit.svg</normaloff>:/icons/exit.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Exit</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Q</string>
-   </property>
-  </action>
-  <action name="actionRun">
-   <property name="text">
-    <string>Run</string>
-   </property>
-  </action>
-  <action name="actionStep">
-   <property name="text">
-    <string>Step</string>
-   </property>
-  </action>
-  <action name="actionPrev">
-   <property name="text">
-    <string>Prev</string>
-   </property>
-  </action>
-  <action name="actionReset">
-   <property name="text">
-    <string>Reset</string>
-   </property>
-  </action>
-  <action name="actionDump">
-   <property name="text">
-    <string>Dump</string>
-   </property>
-  </action>
-  <action name="actionLoadAssemblyFile">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/loadfile.svg</normaloff>:/icons/loadfile.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Load Assembly File</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+O</string>
-   </property>
-  </action>
-  <action name="actionShow_consoles">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show application output console</string>
-   </property>
-  </action>
   <action name="actionAbout">
    <property name="icon">
     <iconset>
@@ -176,88 +78,6 @@
   <action name="actionOpen_wiki">
    <property name="text">
     <string>Wiki</string>
-   </property>
-  </action>
-  <action name="actionSave_Files">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Save Files</string>
-   </property>
-   <property name="toolTip">
-    <string>Save Selected Files</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="actionSave_Files_As">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Save Files As...</string>
-   </property>
-   <property name="toolTip">
-    <string>Save Selected Files As...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
-   </property>
-  </action>
-  <action name="actionSave_Source">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save Source</string>
-   </property>
-  </action>
-  <action name="actionSave_Disassembled">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save Disassembled</string>
-   </property>
-  </action>
-  <action name="actionDisable">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Disable</string>
-   </property>
-  </action>
-  <action name="actionSave_as_text">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save as text</string>
-   </property>
-  </action>
-  <action name="actionSave_as_flat_binary">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Save as flat binary</string>
-   </property>
-  </action>
-  <action name="actionNew_Program">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/file.svg</normaloff>:/icons/file.svg</iconset>
-   </property>
-   <property name="text">
-    <string>New Program...</string>
    </property>
   </action>
  </widget>

@@ -1,21 +1,19 @@
-#ifndef PROGRAMFILETAB_H
-#define PROGRAMFILETAB_H
-
+#pragma once
 #include <QFile>
 #include <QWidget>
 
 #include "ripestab.h"
 
 namespace Ui {
-class ProgramfileTab;
+class EditTab;
 }
 
-class ProgramfileTab : public RipesTab {
+class EditTab : public RipesTab {
     Q_OBJECT
 
 public:
-    ProgramfileTab(QToolBar* toolbar, QWidget* parent = nullptr);
-    ~ProgramfileTab() override;
+    EditTab(QToolBar* toolbar, QWidget* parent = nullptr);
+    ~EditTab() override;
 
     void setAssemblyText(const QString& text);
     void setDisassemblerText();
@@ -33,15 +31,11 @@ signals:
                              // sent to the processor
 
 private slots:
-    void on_pushButton_clicked();
-
     void on_assemblyfile_toggled(bool checked);
     void assemblingComplete(const QByteArray& binaryCode, bool clear = true, uint32_t baseAddress = 0x0);
 
     void on_disassembledViewButton_toggled(bool checked);
 
 private:
-    Ui::ProgramfileTab* m_ui;
+    Ui::EditTab* m_ui;
 };
-
-#endif  // PROGRAMFILETAB_H

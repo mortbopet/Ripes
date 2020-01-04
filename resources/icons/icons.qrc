@@ -25,5 +25,7 @@
         <file>reset.svg</file>
         <file>tag.svg</file>
         <file>run.svg</file>
+        <file>cancel.svg</file>
+        <file>saveas.svg</file>
     </qresource>
 </RCC>

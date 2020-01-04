@@ -1,11 +1,10 @@
-#include "programfiletab.h"
-#include "ui_programfiletab.h"
+#include "edittab.h"
+#include "ui_edittab.h"
 
 #include "parser.h"
 #include "pipeline.h"
 
-ProgramfileTab::ProgramfileTab(QToolBar* toolbar, QWidget* parent)
-    : RipesTab(toolbar, parent), m_ui(new Ui::ProgramfileTab) {
+EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
@@ -23,57 +22,47 @@ ProgramfileTab::ProgramfileTab(QToolBar* toolbar, QWidget* parent)
             &QScrollBar::setValue);
 
     // Connect data parsing signals from the assembler to this
-    connect(m_ui->assemblyedit, &CodeEditor::assembledSuccessfully, this, &ProgramfileTab::assemblingComplete);
+    connect(m_ui->assemblyedit, &CodeEditor::assembledSuccessfully, this, &EditTab::assemblingComplete);
 }
 
-QString ProgramfileTab::getAssemblyText() {
+QString EditTab::getAssemblyText() {
     return m_ui->assemblyedit->toPlainText();
 }
 
-const QByteArray& ProgramfileTab::getBinaryData() {
+const QByteArray& EditTab::getBinaryData() {
     return m_ui->assemblyedit->getCurrentOutputArray();
 }
 
-void ProgramfileTab::clearOutputArray() {
+void EditTab::clearOutputArray() {
     m_ui->assemblyedit->clearOutputArray();
 }
 
-ProgramfileTab::~ProgramfileTab() {
+EditTab::~EditTab() {
     delete m_ui;
 }
 
-void ProgramfileTab::setTimerEnabled(bool state) {
+void EditTab::setTimerEnabled(bool state) {
     m_ui->assemblyedit->setTimerEnabled(state);
 }
 
-void ProgramfileTab::newProgram() {
-    m_ui->assemblyfile->toggle();
+void EditTab::newProgram() {
     m_ui->assemblyedit->reset();
     m_ui->assemblyedit->clear();
 }
 
-void ProgramfileTab::on_pushButton_clicked() {
-    // load file based on current file type selection
-    if (m_ui->binaryfile->isChecked()) {
-        emit loadBinaryFile();
-    } else {
-        loadAssemblyFile();
-    }
-}
-
-void ProgramfileTab::setAssemblyText(const QString& text) {
+void EditTab::setAssemblyText(const QString& text) {
     m_ui->assemblyedit->reset();
     m_ui->assemblyedit->setPlainText(text);
 }
 
-void ProgramfileTab::setDisassemblerText() {
+void EditTab::setDisassemblerText() {
     const QString& text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->getDisassembledRepr()
                                                                     : Parser::getParser()->getBinaryRepr();
     m_ui->binaryedit->setPlainText(text);
     m_ui->binaryedit->updateBreakpoints();
 }
 
-void ProgramfileTab::assemblingComplete(const QByteArray& arr, bool clear, uint32_t baseAddress) {
+void EditTab::assemblingComplete(const QByteArray& arr, bool clear, uint32_t baseAddress) {
     if (clear)
         Parser::getParser()->clear();
     // Pretty hacky way to discern between the text and data segments
@@ -86,7 +75,7 @@ void ProgramfileTab::assemblingComplete(const QByteArray& arr, bool clear, uint3
     emit updateSimulator();
 }
 
-void ProgramfileTab::on_assemblyfile_toggled(bool checked) {
+void EditTab::on_assemblyfile_toggled(bool checked) {
     // Since we are removing the input text/binary info, we need to reset the pipeline
     Pipeline::getPipeline()->reset();
 
@@ -105,19 +94,21 @@ void ProgramfileTab::on_assemblyfile_toggled(bool checked) {
     m_ui->binaryedit->clear();
 }
 
-void ProgramfileTab::setInputMode(bool isAssembly) {
+void EditTab::setInputMode(bool isAssembly) {
+    /*
     if (isAssembly) {
         m_ui->assemblyfile->setChecked(true);
     } else {
         m_ui->binaryfile->setChecked(true);
     }
+    */
 }
 
-void ProgramfileTab::on_disassembledViewButton_toggled(bool checked) {
+void EditTab::on_disassembledViewButton_toggled(bool checked) {
     Q_UNUSED(checked)
-    if (m_ui->binaryfile->isChecked()) {
-        assemblingComplete(Parser::getParser()->getFileByteArray());
-    } else {
-        assemblingComplete(m_ui->assemblyedit->getCurrentOutputArray());
-    }
+    // if (m_ui->binaryfile->isChecked()) {
+    //    assemblingComplete(Parser::getParser()->getFileByteArray());
+    //} else {
+    assemblingComplete(m_ui->assemblyedit->getCurrentOutputArray());
+    // }
 }
