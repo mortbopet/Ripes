@@ -35,6 +35,8 @@ public slots:
     void restart();
     void run();
 
+    void processorSelection();
+
 private slots:
     void expandView();
     void displayValues(bool checked);
@@ -58,6 +60,7 @@ private:
     InstructionModel* m_instrModel;
 
     // Actions
+    QAction* m_selectProcessorAction = nullptr;
     QAction* m_clockAction = nullptr;
     QAction* m_autoClockAction = nullptr;
     QAction* m_runAction = nullptr;

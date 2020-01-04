@@ -6,7 +6,7 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "ripesprocessor.h"
+#include "../ripesprocessor.h"
 
 #include "alu.h"
 #include "branch.h"

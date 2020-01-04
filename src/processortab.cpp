@@ -9,7 +9,10 @@
 #include "instructionmodel.h"
 #include "parser.h"
 #include "pipeline.h"
+#include "processorselectiondialog.h"
 #include "rundialog.h"
+
+#include "processors/ripesprocessor.h"
 
 ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
@@ -40,6 +43,12 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 }
 
 void ProcessorTab::setupSimulatorActions() {
+    const QIcon processorIcon = QIcon(":/icons/cpu.svg");
+    m_selectProcessorAction = new QAction(processorIcon, "Select processor", this);
+    connect(m_selectProcessorAction, &QAction::triggered, this, &ProcessorTab::processorSelection);
+    m_toolbar->addAction(m_selectProcessorAction);
+    m_toolbar->addSeparator();
+
     const QIcon resetIcon = QIcon(":/icons/reset.svg");
     m_resetAction = new QAction(resetIcon, "Reset (F4)", this);
     connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
@@ -112,6 +121,11 @@ void ProcessorTab::setupSimulatorActions() {
     m_toolbar->addAction(m_pipelineTableAction);
 }
 
+void ProcessorTab::processorSelection() {
+    ProcessorSelectionDialog diag;
+    diag.exec();
+}
+
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
@@ -178,9 +192,6 @@ void ProcessorTab::updateActionState() {
     m_clockAction->setEnabled(ready);
     m_autoClockAction->setEnabled(ready);
     m_runAction->setEnabled(ready);
-    m_displayValuesAction->setEnabled(ready);
-    m_fitViewAction->setEnabled(ready);
-    m_pipelineTableAction->setEnabled(ready);
     m_reverseAction->setEnabled(ready);
     m_resetAction->setEnabled(ready);
 
