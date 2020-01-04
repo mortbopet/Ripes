@@ -16,3 +16,5 @@ target_compile_features(${RIPES_LIB} PRIVATE cxx_std_17)
 
 # Link external libraries
 target_link_libraries(${RIPES_LIB} fancytabbar_lib)
+
+add_subdirectory(processors)
