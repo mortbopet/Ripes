@@ -1,0 +1,3 @@
+[submodule "external/VSRTL"]
+	path = external/VSRTL
+	url = https://github.com/mortbopet/VSRTL
