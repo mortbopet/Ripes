@@ -70,6 +70,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
     connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
+
+    connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
+    connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
 }
 
 void MainWindow::tabChanged() {
