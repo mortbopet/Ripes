@@ -50,8 +50,7 @@ private:
             case ProcessorID::RISCV_5S_WOF:
             case ProcessorID::RISCV_5S_WF:
             case ProcessorID::RISCV_SS:
-                break;
-                // m_currentProcessor = std::make_unique<vsrtl::RISCV::SingleCycleRISCV>();
+                m_currentProcessor = std::make_unique<vsrtl::RISCV::SingleCycleRISCV>();
         }
     }
 

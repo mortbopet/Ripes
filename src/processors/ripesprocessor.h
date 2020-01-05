@@ -51,7 +51,10 @@ public:
      */
     virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
 
-    virtual void reset() { m_instructionsRetired = 0; }
+    void reset() override {
+        vsrtl::core::Design::reset();
+        m_instructionsRetired = 0;
+    }
 
 private:
     // Statistics

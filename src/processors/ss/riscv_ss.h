@@ -127,6 +127,13 @@ public:
     // Gates
     SUBCOMPONENT(br_and, TYPE(And<1, 2>));
     SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
+
+    // Ripes interface compliance
+    virtual Ripes::SupportedISA implementsISA() const override { return Ripes::SupportedISA::RISCV; }
+    unsigned int stageCount() const override { return 1; }
+    unsigned int breakpointBreaksStage() const override { return 0; }
+    unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
+    Ripes::StageInfo stageInfo(unsigned int stageIndex) const override { return {}; }
 };
 }  // namespace RISCV
 }  // namespace vsrtl
