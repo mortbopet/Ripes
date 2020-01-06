@@ -101,7 +101,7 @@ void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
     std::vector<unsigned char> program(programByteArray.begin(), programByteArray.end());
 
     // Load program into simulator
-    m_design->instr_mem->addInitializationMemory(0x0, program.data(), program.size());
+    m_design->m_memory->addInitializationMemory(0x0, program.data(), program.size());
 }
 
 QString tst_RISCV::executeSimulator() {

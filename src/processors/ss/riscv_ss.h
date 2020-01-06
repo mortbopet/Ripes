@@ -39,6 +39,7 @@ public:
         // -----------------------------------------------------------------------
         // Instruction memory
         pc_reg->out >> instr_mem->addr;
+        instr_mem->setMemory(m_memory);
 
         // -----------------------------------------------------------------------
         // Decode
@@ -65,6 +66,8 @@ public:
         alu->res >> reg_wr_src->get(RegWrSrc::ALURES);
         pc_4->out >> reg_wr_src->get(RegWrSrc::PC4);
         control->reg_wr_src_ctrl >> reg_wr_src->select;
+
+        registerFile->setMemory(m_regMem);
 
         // -----------------------------------------------------------------------
         // Branch
@@ -100,6 +103,7 @@ public:
         control->mem_do_write_ctrl >> data_mem->wr_en;
         registerFile->r2_out >> data_mem->data_in;
         control->mem_ctrl >> data_mem->op;
+        data_mem->mem->setMemory(m_memory);
     }
 
     // Design subcomponents
@@ -128,12 +132,21 @@ public:
     SUBCOMPONENT(br_and, TYPE(And<1, 2>));
     SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
 
+    // Address spaces
+    ADDRESSSPACE(m_memory);
+    ADDRESSSPACE(m_regMem);
+
     // Ripes interface compliance
     virtual Ripes::SupportedISA implementsISA() const override { return Ripes::SupportedISA::RISCV; }
     unsigned int stageCount() const override { return 1; }
     unsigned int breakpointBreaksStage() const override { return 0; }
     unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     Ripes::StageInfo stageInfo(unsigned int stageIndex) const override { return {}; }
+    void setProgramCounter(uint32_t address) override {
+        pc_reg->forceValue(0, address);
+        propagateDesign();
+    }
+    std::unordered_map<uint32_t, uint8_t>* getMemoryPtr() override { return &m_memory->data; }
 };
 }  // namespace RISCV
 }  // namespace vsrtl

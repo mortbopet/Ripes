@@ -2,6 +2,7 @@
 
 #include <QString>
 
+#include <map>
 #include "VSRTL/core/vsrtl_design.h"
 
 namespace Ripes {
@@ -50,6 +51,18 @@ public:
      * @return Additional info related to the current execution state of stage @param stageIndex
      */
     virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
+
+    /**
+     * @brief getMemoryPtr
+     * @return pointer to the address space utilized by the implementing processor
+     */
+    virtual std::unordered_map<uint32_t, uint8_t>* getMemoryPtr() = 0;
+
+    /**
+     * @brief setEntryPoint
+     * Sets the program counter of the processor to @param address
+     */
+    virtual void setProgramCounter(uint32_t address) = 0;
 
     void reset() override {
         vsrtl::core::Design::reset();

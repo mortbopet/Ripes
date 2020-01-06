@@ -14,11 +14,6 @@ class RegisterFile : public Component {
 public:
     SetGraphicsType(ClockedComponent);
     RegisterFile(std::string name, SimComponent* parent) : Component(name, parent) {
-        // All memory components must point to the same memory
-        _wr_mem->setMemory(&m_memory);
-        _rd1_mem->setMemory(&m_memory);
-        _rd2_mem->setMemory(&m_memory);
-
         // Writes
 
         // Disable writes to register 0
@@ -51,7 +46,7 @@ public:
     OUTPUTPORT(r1_out, RV_REG_WIDTH);
     OUTPUTPORT(r2_out, RV_REG_WIDTH);
 
-    VSRTL_VT_U getRegister(unsigned i) { return readMem<false>(&m_memory, i); }
+    VSRTL_VT_U getRegister(unsigned i) { return m_memory->readMem<false>(i); }
 
     std::vector<VSRTL_VT_U> getRegisters() {
         std::vector<VSRTL_VT_U> regs;
@@ -60,8 +55,16 @@ public:
         return regs;
     }
 
+    void setMemory(SparseArray* mem) {
+        m_memory = mem;
+        // All memory components must point to the same memory
+        _wr_mem->setMemory(m_memory);
+        _rd1_mem->setMemory(m_memory);
+        _rd2_mem->setMemory(m_memory);
+    }
+
 private:
-    std::unordered_map<VSRTL_VT_U, uint8_t> m_memory;
+    SparseArray* m_memory = nullptr;
 };
 
 }  // namespace RISCV
