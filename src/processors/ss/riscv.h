@@ -1,9 +1,10 @@
 #pragma once
 
 #include <functional>
-#include "VSRTL/core/vsrtl_binutils.h"
 #include "VSRTL/core/vsrtl_enum.h"
-#include "vsrtl_instrparser.h"
+#include "VSRTL/interface/vsrtl.h"
+#include "VSRTL/interface/vsrtl_binutils.h"
+#include "instrparser.h"
 
 namespace vsrtl {
 using namespace core;
