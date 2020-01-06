@@ -22,8 +22,8 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
-    void loadBinaryFile(QString fileName);
-    void loadAssemblyFile(QString fileName);
+    void loadBinaryFile(QString fileName = QString());
+    void loadAssemblyFile(QString fileName = QString());
 
     void run();
 
@@ -32,8 +32,6 @@ private slots:
     void about();
     void wiki();
 
-    void loadBinaryFileTriggered();
-    void loadAssemblyFileTriggered();
     void saveFilesTriggered();
     void saveFilesAsTriggered();
     void newProgramTriggered();

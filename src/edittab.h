@@ -28,8 +28,6 @@ public:
     const QByteArray& getBinaryData();
 
 signals:
-    void loadBinaryFile();
-    void loadAssemblyFile();
     void updateSimulator();  // Emitted when a file has been successfully loaded or assembled, and binary info must be
                              // sent to the processor
 

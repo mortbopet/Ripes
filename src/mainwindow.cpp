@@ -62,9 +62,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setupMenus();
 
     // setup and connect widgets
-    connect(m_editTab, &EditTab::loadBinaryFile, this, &MainWindow::loadBinaryFileTriggered);
-    connect(m_editTab, &EditTab::loadAssemblyFile, this, &MainWindow::loadAssemblyFileTriggered);
-
     connect(m_processorTab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
     connect(m_editTab, &EditTab::updateSimulator, [this] { emit update(); });
     connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
@@ -97,7 +94,7 @@ void MainWindow::setupMenus() {
     const QIcon loadIcon = QIcon(":/icons/loadfile.svg");
     auto* loadAction = new QAction(loadIcon, "Load file", this);
     loadAction->setShortcut(QKeySequence::Open);
-    connect(loadAction, &QAction::triggered, this, &MainWindow::loadAssemblyFileTriggered);
+    connect(loadAction, &QAction::triggered, [=] { this->loadAssemblyFile(); });
     m_editTab->getToolbar()->addAction(loadAction);
     m_ui->menuFile->addAction(loadAction);
 
@@ -177,18 +174,6 @@ void MainWindow::exit() {
     close();
 }
 
-void MainWindow::loadBinaryFileTriggered() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open binary file", "", "Binary file (*)");
-    if (!filename.isNull())
-        loadBinaryFile(filename);
-}
-
-void MainWindow::loadAssemblyFileTriggered() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
-    if (!filename.isNull())
-        loadAssemblyFile(filename);
-}
-
 void MainWindow::loadBinaryFile(QString filename) {
     m_editTab->setInputMode(false);
     m_processorTab->restart();
@@ -197,19 +182,24 @@ void MainWindow::loadBinaryFile(QString filename) {
     emit update();
 }
 
-void MainWindow::loadAssemblyFile(QString fileName) {
-    // ... load file
-    QFile file(fileName);
-    m_editTab->setInputMode(true);
-    Parser::getParser()->clear();
-    m_editTab->clear();
-    m_processorTab->restart();
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_editTab->setAssemblyText(file.readAll());
-        file.close();
+void MainWindow::loadAssemblyFile(QString filename) {
+    if (filename == QString()) {
+        filename = QFileDialog::getOpenFileName(this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
     }
-    m_currentFile = fileName;
-    m_editTab->setDisassemblerText();
+    if (!filename.isNull()) {
+        // ... load file
+        QFile file(filename);
+        m_editTab->setInputMode(true);
+        Parser::getParser()->clear();
+        m_editTab->clear();
+        m_processorTab->restart();
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            m_editTab->setAssemblyText(file.readAll());
+            file.close();
+        }
+        m_currentFile = filename;
+        m_editTab->setDisassemblerText();
+    }
 }
 
 void MainWindow::about() {
