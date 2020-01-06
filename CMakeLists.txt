@@ -32,6 +32,11 @@ qt5_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
 ## Library setup
 ######################################################################
 
+# hack hack hack - the cereal headers within VSRTL expects the cereal include directory to be in the path.
+# This requirement propagates onto inclusions from here, so we have to make this available aswell.
+include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external/cereal/include)
+include_directories(external)
+
 # Platform specific pre-target setup(s)
 if(${APPLE})
     set(SYSTEM_FLAGS MACOSX_BUNDLE)

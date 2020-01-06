@@ -9,12 +9,10 @@ file(GLOB LIB_UIS *.ui)
 set(RIPES_LIB ripes_lib)
 add_library(${RIPES_LIB} ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UIS})
 target_include_directories (${RIPES_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-# External project includes
-target_include_directories (${RIPES_LIB} PUBLIC ../external)
-
 target_compile_features(${RIPES_LIB} PRIVATE cxx_std_17)
 
 # Link external libraries
 target_link_libraries(${RIPES_LIB} fancytabbar_lib)
+target_link_libraries(${RIPES_LIB} ${VSRTL_GRAPHICS_LIB})
 
 add_subdirectory(processors)
