@@ -220,6 +220,7 @@ void ProcessorTab::updateActionState() {
 
 void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
+    m_vsrtlWidget->reset();
     Pipeline::getPipeline()->restart();
     emit update();
 
@@ -244,6 +245,8 @@ void ProcessorTab::setCurrentInstruction(int row) {
 }
 
 void ProcessorTab::clock() {
+    m_vsrtlWidget->clock();
+
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
 
