@@ -29,18 +29,18 @@ public:
     void updateBreakpoints();
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
-    void setupAssembler();
+    void setupChangedTimer();
     void enableBreakpointArea();
-    void reset() { m_highlighter->reset(); }
-    void setTimerEnabled(bool state) { m_timerEnabled = state; }
-    const QByteArray& getCurrentOutputArray() { return m_assembler->getTextSegment(); }
-    void clearOutputArray() {
-        m_assembler->clear();
+    void reset() {
+        m_highlighter->reset();
         m_tooltipForLine.clear();
+        clear();
     }
+    bool syntaxAccepted() const { return m_tooltipForLine.isEmpty(); }
+
 signals:
     void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
-    void assembledSuccessfully(const QByteArray& bytearray, bool clearSimulatorMemory, uint32_t baseAddress);
+    void textChanged();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -51,10 +51,8 @@ private slots:
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
     void updateTooltip(int line, QString tip);
-    void assembleCode();
 
 private:
-    Assembler* m_assembler;
     SyntaxHighlighter* m_highlighter;
     LineNumberArea* m_lineNumberArea;
     BreakpointArea* m_breakpointArea;
@@ -71,7 +69,6 @@ private:
     // occur on a regular mouse scroll
     QTimer m_fontTimer;
     QTimer m_changeTimer;
-    bool m_timerEnabled = true;
 
     bool eventFilter(QObject* observed, QEvent* event) override;
 };

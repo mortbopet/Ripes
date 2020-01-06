@@ -2,11 +2,14 @@
 #include <QFile>
 #include <QWidget>
 
+#include "assembler.h"
 #include "ripestab.h"
 
 namespace Ui {
 class EditTab;
 }
+
+class Assembler;
 
 class EditTab : public RipesTab {
     Q_OBJECT
@@ -18,11 +21,11 @@ public:
     void setAssemblyText(const QString& text);
     void setDisassemblerText();
     void setInputMode(bool isAssembly);
-    void setTimerEnabled(bool state);
-    void clearOutputArray();
     QString getAssemblyText();
-    const QByteArray& getBinaryData();
     void newProgram();
+    void clear();
+
+    const QByteArray& getBinaryData();
 
 signals:
     void loadBinaryFile();
@@ -31,11 +34,13 @@ signals:
                              // sent to the processor
 
 private slots:
+    void assemble();
     void on_assemblyfile_toggled(bool checked);
-    void assemblingComplete(const QByteArray& binaryCode, bool clear = true, uint32_t baseAddress = 0x0);
-
     void on_disassembledViewButton_toggled(bool checked);
 
 private:
+    void assemblingComplete(const QByteArray& binaryCode, bool clear = true, uint32_t baseAddress = 0x0);
+
     Ui::EditTab* m_ui;
+    Assembler* m_assembler = nullptr;
 };

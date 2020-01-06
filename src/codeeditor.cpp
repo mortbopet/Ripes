@@ -40,42 +40,18 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     setMouseTracking(true);
 
     setWordWrapMode(QTextOption::NoWrap);
+    setupChangedTimer();
 }
 
-void CodeEditor::setupAssembler() {
+void CodeEditor::setupChangedTimer() {
     // configures the change-timer and assembler connectivity with Parser
     m_changeTimer.setInterval(500);
     m_changeTimer.setSingleShot(true);
     // A change in the document will start the timer - when the timer elapses, the contents will be assembled if there
     // is no syntax error. By doing this, the timer is restartet each time a change occurs (ie. a user is continuously
     // typing)
-    connect(this, &CodeEditor::textChanged, [=] {
-        if (m_timerEnabled)
-            m_changeTimer.start();
-    });
-    connect(&m_changeTimer, &QTimer::timeout, this, &CodeEditor::assembleCode);
-    m_assembler = new Assembler();
-}
-
-void CodeEditor::assembleCode() {
-    if (m_tooltipForLine.isEmpty()) {
-        // No tooltips available => syntax is accepted
-
-        const QByteArray& ret = m_assembler->assembleBinaryFile(*document());
-        if (!m_assembler->hasError()) {
-            emit assembledSuccessfully(ret, true, 0x0);
-            if (m_assembler->hasData()) {
-                emit assembledSuccessfully(m_assembler->getDataSegment(), false, DATASTART);
-            }
-        } else {
-            QMessageBox err;
-            err.setText("Error in assembling file.");
-            err.exec();
-        }
-    }
-    // Restart the simulator to trigger the data memory to be loaded into the main memory. Bad code that this is done
-    // from here, but it works
-    Pipeline::getPipeline()->restart();
+    connect(this, &QPlainTextEdit::textChanged, [=] { m_changeTimer.start(); });
+    connect(&m_changeTimer, &QTimer::timeout, this, &CodeEditor::textChanged);
 }
 
 int CodeEditor::lineNumberAreaWidth() {

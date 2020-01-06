@@ -190,7 +190,6 @@ void MainWindow::loadAssemblyFileTriggered() {
 }
 
 void MainWindow::loadBinaryFile(QString filename) {
-    m_editTab->setTimerEnabled(false);
     m_editTab->setInputMode(false);
     m_processorTab->restart();
     Parser::getParser()->loadBinaryFile(filename);
@@ -202,9 +201,8 @@ void MainWindow::loadAssemblyFile(QString fileName) {
     // ... load file
     QFile file(fileName);
     m_editTab->setInputMode(true);
-    m_editTab->setTimerEnabled(true);
     Parser::getParser()->clear();
-    m_editTab->clearOutputArray();
+    m_editTab->clear();
     m_processorTab->restart();
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_editTab->setAssemblyText(file.readAll());

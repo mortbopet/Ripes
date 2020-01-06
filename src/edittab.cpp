@@ -1,6 +1,8 @@
 #include "edittab.h"
 #include "ui_edittab.h"
 
+#include <QMessageBox>
+
 #include "parser.h"
 #include "pipeline.h"
 
@@ -10,7 +12,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
     // translation is complete
     m_ui->assemblyedit->setupSyntaxHighlighter();
-    m_ui->assemblyedit->setupAssembler();
+    m_ui->assemblyedit->setupChangedTimer();
     m_ui->binaryedit->setReadOnly(true);
     // enable breakpoint area for the translated code only
     m_ui->binaryedit->enableBreakpointArea();
@@ -21,8 +23,9 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_ui->binaryedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->assemblyedit->verticalScrollBar(),
             &QScrollBar::setValue);
 
-    // Connect data parsing signals from the assembler to this
-    connect(m_ui->assemblyedit, &CodeEditor::assembledSuccessfully, this, &EditTab::assemblingComplete);
+    m_assembler = new Assembler();
+
+    connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
 }
 
 QString EditTab::getAssemblyText() {
@@ -30,19 +33,37 @@ QString EditTab::getAssemblyText() {
 }
 
 const QByteArray& EditTab::getBinaryData() {
-    return m_ui->assemblyedit->getCurrentOutputArray();
+    return m_assembler->getTextSegment();
 }
 
-void EditTab::clearOutputArray() {
-    m_ui->assemblyedit->clearOutputArray();
+void EditTab::clear() {
+    m_ui->assemblyedit->reset();
+    m_assembler->clear();
+}
+
+void EditTab::assemble() {
+    if (m_ui->assemblyedit->syntaxAccepted()) {
+        // No tooltips available => syntax is accepted
+
+        const QByteArray& ret = m_assembler->assembleBinaryFile(*m_ui->assemblyedit->document());
+        if (!m_assembler->hasError()) {
+            assemblingComplete(ret, true, 0x0);
+            if (m_assembler->hasData()) {
+                assemblingComplete(m_assembler->getDataSegment(), false, DATASTART);
+            }
+        } else {
+            QMessageBox err;
+            err.setText("Error in assembling file.");
+            err.exec();
+        }
+    }
+    // Restart the simulator to trigger the data memory to be loaded into the main memory. Bad code that this is done
+    // from here, but it works
+    Pipeline::getPipeline()->restart();
 }
 
 EditTab::~EditTab() {
     delete m_ui;
-}
-
-void EditTab::setTimerEnabled(bool state) {
-    m_ui->assemblyedit->setTimerEnabled(state);
 }
 
 void EditTab::newProgram() {
@@ -79,13 +100,8 @@ void EditTab::on_assemblyfile_toggled(bool checked) {
     // Since we are removing the input text/binary info, we need to reset the pipeline
     Pipeline::getPipeline()->reset();
 
-    // handles toggling between assembly input and binary input
-    if (checked) {
-        m_ui->assemblyedit->setEnabled(true);
-        m_ui->assemblyedit->setTimerEnabled(true);
-    } else {
-        // Disable when loading binary files
-        m_ui->assemblyedit->setTimerEnabled(false);
+    if (!checked) {
+        // Disable assembly edit when loading binary files
         m_ui->assemblyedit->setEnabled(false);
     }
     // clear both editors when switching input mode and reset the highlighter for the assembly editor
@@ -109,6 +125,6 @@ void EditTab::on_disassembledViewButton_toggled(bool checked) {
     // if (m_ui->binaryfile->isChecked()) {
     //    assemblingComplete(Parser::getParser()->getFileByteArray());
     //} else {
-    assemblingComplete(m_ui->assemblyedit->getCurrentOutputArray());
+    assemblingComplete(getBinaryData());
     // }
 }
