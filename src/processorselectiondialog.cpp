@@ -34,13 +34,17 @@ ProcessorSelectionDialog::~ProcessorSelectionDialog() {
 }
 
 void ProcessorSelectionDialog::accept() {
-    ProcessorID id = qvariant_cast<ProcessorID>(ui->processorList->currentItem()->data(Qt::UserRole));
-    ProcessorRegistry::selectProcessor(id);
-    return QDialog::accept();
+    const ProcessorID id = qvariant_cast<ProcessorID>(ui->processorList->currentItem()->data(Qt::UserRole));
+    if (ProcessorRegistry::selectProcessor(id)) {
+        // New processor model was selected
+        return QDialog::accept();
+    } else {
+        return QDialog::reject();
+    }
 }
 
 void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListWidgetItem* previous) {
-    ProcessorID id = qvariant_cast<ProcessorID>(current->data(Qt::UserRole));
+    const ProcessorID id = qvariant_cast<ProcessorID>(current->data(Qt::UserRole));
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(id);
 
     ui->name->setText(desc.name);

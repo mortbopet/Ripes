@@ -13,8 +13,14 @@
 #include "pipelinetablemodel.h"
 #include "ripestab.h"
 
+#include "graphics/pipelinewidget.h"
+
 namespace Ui {
 class ProcessorTab;
+}
+
+namespace vsrtl {
+class VSRTLWidget;
 }
 
 class InstructionModel;
@@ -59,6 +65,8 @@ private:
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel;
 
+    vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
+
     // Actions
     QAction* m_selectProcessorAction = nullptr;
     QAction* m_clockAction = nullptr;
@@ -71,6 +79,8 @@ private:
     QAction* m_resetAction = nullptr;
 
     QSpinBox* m_autoClockInterval = nullptr;
+
+    PipelineWidget* tmp_pipelineWidget = nullptr;
 };
 
 #endif  // PROCESSORTAB_H

@@ -5,23 +5,33 @@
 #include <QScrollBar>
 #include <QSpinBox>
 
-#include "graphics/pipelinewidget.h"
 #include "instructionmodel.h"
 #include "parser.h"
 #include "pipeline.h"
+#include "processorregistry.h"
 #include "processorselectiondialog.h"
 #include "rundialog.h"
+
+#include "VSRTL/graphics/vsrtl_widget.h"
 
 #include "processors/ripesprocessor.h"
 
 ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
+    m_vsrtlWidget = m_ui->vsrtlWidget;
+
+    // Load the default processor
+    m_vsrtlWidget->setDesign(ProcessorRegistry::getProcessor());
+
     setupSimulatorActions();
+
+    // Create temporary pipeline widget to reduce changeset during VSRTL integration
+    tmp_pipelineWidget = new PipelineWidget(this);
 
     // Setup updating signals
     connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
-    connect(this, &ProcessorTab::update, m_ui->pipelineWidget, &PipelineWidget::update);
+    connect(this, &ProcessorTab::update, tmp_pipelineWidget, &PipelineWidget::update);
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateMetrics);
 
     // Connect ECALL functionality to application output log and scroll to bottom
@@ -30,12 +40,14 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
         m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
     });
 
-    // Setup splitter such that consoles are always as small as possible
-    m_ui->pipelinesplitter->setStretchFactor(0, 2);
+    // Make processor view stretch wrt. consoles
+    m_ui->pipelinesplitter->setStretchFactor(0, 1);
+    m_ui->pipelinesplitter->setStretchFactor(1, 0);
 
-    const auto splitterSize = m_ui->pipelinesplitter->size();
-    m_ui->pipelinesplitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consolesTab->minimumHeight() - 1)
-                                                  << (m_ui->consolesTab->minimumHeight() + 1));
+    // Make processor view stretch wrt. right side tabs
+    m_ui->viewSplitter->setStretchFactor(0, 1);
+    m_ui->viewSplitter->setStretchFactor(1, 0);
+
     m_ui->consolesTab->removeTab(1);
 
     // Initially, no file is loaded, disable toolbuttons
@@ -123,7 +135,10 @@ void ProcessorTab::setupSimulatorActions() {
 
 void ProcessorTab::processorSelection() {
     ProcessorSelectionDialog diag;
-    diag.exec();
+    if (diag.exec()) {
+        // New processor model was selected
+        m_vsrtlWidget->setDesign(ProcessorRegistry::getProcessor());
+    }
 }
 
 void ProcessorTab::restart() {
@@ -159,7 +174,7 @@ void ProcessorTab::initInstructionView() {
     connect(m_instrModel, &InstructionModel::currentIFRow, this, &ProcessorTab::setCurrentInstruction);
     // Connect instruction model text changes to the pipeline widget (changing instruction names displayed above each
     // stage)
-    connect(m_instrModel, &InstructionModel::textChanged, m_ui->pipelineWidget, &PipelineWidget::stageTextChanged);
+    connect(m_instrModel, &InstructionModel::textChanged, tmp_pipelineWidget, &PipelineWidget::stageTextChanged);
 }
 
 ProcessorTab::~ProcessorTab() {
@@ -167,11 +182,11 @@ ProcessorTab::~ProcessorTab() {
 }
 
 void ProcessorTab::expandView() {
-    m_ui->pipelineWidget->expandToView();
+    tmp_pipelineWidget->expandToView();
 }
 
 void ProcessorTab::displayValues(bool checked) {
-    m_ui->pipelineWidget->displayAllValues(checked);
+    tmp_pipelineWidget->displayAllValues(checked);
 }
 
 void ProcessorTab::run() {
