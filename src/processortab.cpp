@@ -1,7 +1,6 @@
 #include "processortab.h"
 #include "ui_processortab.h"
 
-#include <QFileDialog>
 #include <QScrollBar>
 #include <QSpinBox>
 

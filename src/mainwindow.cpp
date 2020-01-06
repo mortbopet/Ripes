@@ -278,10 +278,11 @@ void MainWindow::saveFilesTriggered() {
 }
 
 void MainWindow::saveFilesAsTriggered() {
-    QFileDialog dialog;
+    QFileDialog dialog(this);
     dialog.setNameFilter("*.as *.s");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setDefaultSuffix(".s");
+    dialog.setModal(true);
     if (dialog.exec()) {
         m_currentFile = dialog.selectedFiles()[0];
         saveFilesTriggered();

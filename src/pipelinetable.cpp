@@ -2,7 +2,6 @@
 #include "ui_pipelinetable.h"
 
 #include <QClipboard>
-#include <QFileDialog>
 #include <QHeaderView>
 
 PipelineTable::PipelineTable(QWidget* parent) : QDialog(parent), ui(new Ui::PipelineTable) {
@@ -10,7 +9,8 @@ PipelineTable::PipelineTable(QWidget* parent) : QDialog(parent), ui(new Ui::Pipe
     this->setModal(true);
     ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    ui->description->setText(QString("<b>Note:</b> The pipeline table can be copied as tab separated,<br>suitable for pasting into a spreadsheet"));
+    ui->description->setText(QString(
+        "<b>Note:</b> The pipeline table can be copied as tab separated,<br>suitable for pasting into a spreadsheet"));
 }
 
 void PipelineTable::setModel(QAbstractItemModel* model) {
