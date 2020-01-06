@@ -2,7 +2,7 @@
 
 #include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_memory.h"
-#include "VSRTL/core/vsrtl_signal.h"
+#include "VSRTL/core/vsrtl_wire.h"
 
 #include "riscv.h"
 
@@ -46,7 +46,7 @@ public:
     INPUTPORT(wr_addr, RV_REGS_BITS);
 
     INPUTPORT(data_in, RV_REG_WIDTH);
-    SIGNAL(wr_en_0, 1);
+    WIRE(wr_en_0, 1);
     INPUTPORT(wr_en, 1);
     OUTPUTPORT(r1_out, RV_REG_WIDTH);
     OUTPUTPORT(r2_out, RV_REG_WIDTH);

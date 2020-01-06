@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VSRTL/core/vsrtl_memory.h"
-#include "VSRTL/core/vsrtl_signal.h"
+#include "VSRTL/core/vsrtl_wire.h"
 #include "riscv.h"
 
 namespace vsrtl {
@@ -50,7 +50,7 @@ public:
 
     SUBCOMPONENT(mem, TYPE(MemoryAsyncRd<RV_REG_WIDTH, RV_REG_WIDTH>));
 
-    SIGNAL(wr_width, ceillog2(RV_REG_WIDTH / 8 + 1));
+    WIRE(wr_width, ceillog2(RV_REG_WIDTH / 8 + 1));
 
     INPUTPORT(addr, addrWidth);
     INPUTPORT(data_in, dataWidth);
