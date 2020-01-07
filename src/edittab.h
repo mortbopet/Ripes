@@ -37,7 +37,7 @@ private slots:
     void on_disassembledViewButton_toggled(bool checked);
 
 private:
-    void assemblingComplete(const QByteArray& binaryCode, bool clear = true, uint32_t baseAddress = 0x0);
+    void assemblingComplete(const QByteArray& data, bool clear = true, uint32_t baseAddress = 0x0);
 
     Ui::EditTab* m_ui;
     Assembler* m_assembler = nullptr;

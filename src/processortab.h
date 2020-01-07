@@ -11,6 +11,7 @@
 #include "pipeline.h"
 #include "pipelinetable.h"
 #include "pipelinetablemodel.h"
+#include "processorhandler.h"
 #include "ripestab.h"
 
 #include "graphics/pipelinewidget.h"
@@ -31,11 +32,15 @@ class ProcessorTab : public RipesTab {
     Q_OBJECT
 
 public:
-    ProcessorTab(QToolBar* toolbar, QWidget* parent = nullptr);
+    ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent = nullptr);
     ~ProcessorTab() override;
 
     void initRegWidget();
     void initInstructionView();
+
+signals:
+    void update();
+    void appendToLog(QString string);
 
 public slots:
     void restart();
@@ -52,10 +57,6 @@ private slots:
     void showPipeliningTable();
     void updateMetrics();
 
-signals:
-    void update();
-    void appendToLog(QString string);
-
 private:
     void setupSimulatorActions();
     void updateActionState();
@@ -66,6 +67,7 @@ private:
     InstructionModel* m_instrModel;
 
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
+    ProcessorHandler& m_handler;
 
     // Actions
     QAction* m_selectProcessorAction = nullptr;

@@ -3,6 +3,9 @@
 #include <QDialog>
 #include <QListWidget>
 
+#include "processorhandler.h"
+#include "processorregistry.h"
+
 namespace Ui {
 class ProcessorSelectionDialog;
 }
@@ -11,8 +14,10 @@ class ProcessorSelectionDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ProcessorSelectionDialog(QWidget* parent = nullptr);
+    explicit ProcessorSelectionDialog(const ProcessorHandler& handler, QWidget* parent = nullptr);
     ~ProcessorSelectionDialog();
+
+    ProcessorID selectedID;
 
 public slots:
     virtual void accept() override;
@@ -22,4 +27,6 @@ private slots:
 
 private:
     Ui::ProcessorSelectionDialog* ui;
+
+    const ProcessorHandler& m_handler;
 };

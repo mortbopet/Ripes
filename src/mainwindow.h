@@ -12,6 +12,7 @@ QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 class EditTab;
 class MemoryTab;
 class ProcessorTab;
+class ProcessorHandler;
 
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
@@ -58,4 +59,5 @@ private:
     ProcessorTab* m_processorTab = nullptr;
     EditTab* m_editTab = nullptr;
     MemoryTab* m_memoryTab = nullptr;
+    ProcessorHandler* m_processorHandler = nullptr;
 };

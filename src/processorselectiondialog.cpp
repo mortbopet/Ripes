@@ -4,10 +4,8 @@
 #include <QDialogButtonBox>
 #include <QListWidget>
 
-#include "processorregistry.h"
-
-ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
-    : QDialog(parent), ui(new Ui::ProcessorSelectionDialog) {
+ProcessorSelectionDialog::ProcessorSelectionDialog(const ProcessorHandler& handler, QWidget* parent)
+    : QDialog(parent), m_handler(handler), ui(new Ui::ProcessorSelectionDialog) {
     ui->setupUi(this);
     setWindowTitle("Select Processor");
 
@@ -15,7 +13,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         QListWidgetItem* item = new QListWidgetItem(desc.second.name);
         item->setData(Qt::UserRole, QVariant::fromValue(desc.second.id));
-        if (desc.second.id == ProcessorRegistry::currentProcessorID()) {
+        if (desc.second.id == m_handler.currentID()) {
             auto font = item->font();
             font.setBold(true);
             item->setFont(font);
@@ -35,7 +33,8 @@ ProcessorSelectionDialog::~ProcessorSelectionDialog() {
 
 void ProcessorSelectionDialog::accept() {
     const ProcessorID id = qvariant_cast<ProcessorID>(ui->processorList->currentItem()->data(Qt::UserRole));
-    if (ProcessorRegistry::selectProcessor(id)) {
+    selectedID = id;
+    if (id != m_handler.currentID()) {
         // New processor model was selected
         return QDialog::accept();
     } else {

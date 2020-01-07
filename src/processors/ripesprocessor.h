@@ -53,13 +53,13 @@ public:
     virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
 
     /**
-     * @brief getMemoryPtr
+     * @brief getMemory
      * @return pointer to the address space utilized by the implementing processor
      */
-    virtual std::unordered_map<uint32_t, uint8_t>* getMemoryPtr() = 0;
+    virtual vsrtl::SparseArray& getMemory() = 0;
 
     /**
-     * @brief setEntryPoint
+     * @brief setProgramCounter
      * Sets the program counter of the processor to @param address
      */
     virtual void setProgramCounter(uint32_t address) = 0;

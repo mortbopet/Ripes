@@ -7,7 +7,7 @@
 class Assembler {
 public:
     Assembler();
-    const QByteArray& assembleBinaryFile(const QTextDocument& doc);
+    const QByteArray& assemble(const QTextDocument& doc);
     bool hasError() { return m_error; }
     bool hasData() { return m_hasData; }
     const QByteArray& getTextSegment() { return m_textSegment; }

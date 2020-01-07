@@ -15,13 +15,14 @@
 
 #include "processors/ripesprocessor.h"
 
-ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
+ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
+    : RipesTab(toolbar, parent), m_handler(handler), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
     // Load the default processor
-    m_vsrtlWidget->setDesign(ProcessorRegistry::getProcessor());
+    m_vsrtlWidget->setDesign(m_handler.getProcessor());
 
     setupSimulatorActions();
 
@@ -133,10 +134,12 @@ void ProcessorTab::setupSimulatorActions() {
 }
 
 void ProcessorTab::processorSelection() {
-    ProcessorSelectionDialog diag;
+    ProcessorSelectionDialog diag(m_handler);
     if (diag.exec()) {
         // New processor model was selected
-        m_vsrtlWidget->setDesign(ProcessorRegistry::getProcessor());
+        m_vsrtlWidget->clearDesign();
+        m_handler.selectProcessor(diag.selectedID);
+        m_vsrtlWidget->setDesign(m_handler.getProcessor());
     }
 }
 

@@ -6,6 +6,7 @@
 #include "edittab.h"
 #include "memorytab.h"
 #include "parser.h"
+#include "processorhandler.h"
 #include "processortab.h"
 #include "registerwidget.h"
 
@@ -25,6 +26,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowIcon(QIcon(":/icons/logo.svg"));
     showMaximized();
 
+    // Setup processor handler
+    m_processorHandler = new ProcessorHandler();
+
     // Create tabs
     m_stackedTabs = new QStackedWidget(this);
     m_ui->centrallayout->addWidget(m_stackedTabs);
@@ -36,7 +40,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     tb = addToolBar("Processor");
     tb->setVisible(false);
-    m_processorTab = new ProcessorTab(tb, this);
+    m_processorTab = new ProcessorTab(*m_processorHandler, tb, this);
     m_stackedTabs->insertWidget(1, m_processorTab);
 
     tb = addToolBar("Processor");

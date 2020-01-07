@@ -753,7 +753,7 @@ inline QStringList splitColon(const QString& string) {
 }
 }  // namespace
 
-const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
+const QByteArray& Assembler::assemble(const QTextDocument& doc) {
     // Called by codeEditor when syntax has been accepted, and the document should be assembled into binary
     // Because of the previously accepted syntax, !no! error handling will be done, to ensure a fast execution
     int line = 0;

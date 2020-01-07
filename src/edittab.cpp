@@ -43,9 +43,7 @@ void EditTab::clear() {
 
 void EditTab::assemble() {
     if (m_ui->assemblyedit->syntaxAccepted()) {
-        // No tooltips available => syntax is accepted
-
-        const QByteArray& ret = m_assembler->assembleBinaryFile(*m_ui->assemblyedit->document());
+        const QByteArray& ret = m_assembler->assemble(*m_ui->assemblyedit->document());
         if (!m_assembler->hasError()) {
             assemblingComplete(ret, true, 0x0);
             if (m_assembler->hasData()) {
@@ -53,7 +51,7 @@ void EditTab::assemble() {
             }
         } else {
             QMessageBox err;
-            err.setText("Error in assembling file.");
+            err.setText("Error during assembling of program");
             err.exec();
         }
     }
@@ -83,14 +81,14 @@ void EditTab::setDisassemblerText() {
     m_ui->binaryedit->updateBreakpoints();
 }
 
-void EditTab::assemblingComplete(const QByteArray& arr, bool clear, uint32_t baseAddress) {
+void EditTab::assemblingComplete(const QByteArray& data, bool clear, uint32_t baseAddress) {
     if (clear)
         Parser::getParser()->clear();
     // Pretty hacky way to discern between the text and data segments
     if (baseAddress > 0) {
-        Parser::getParser()->loadFromByteArrayIntoData(arr);
+        Parser::getParser()->loadFromByteArrayIntoData(data);
     } else {
-        Parser::getParser()->loadFromByteArray(arr, m_ui->disassembledViewButton->isChecked(), baseAddress);
+        Parser::getParser()->loadFromByteArray(data, m_ui->disassembledViewButton->isChecked(), baseAddress);
         setDisassemblerText();
     }
     emit updateSimulator();

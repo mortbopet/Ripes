@@ -146,7 +146,7 @@ public:
         pc_reg->forceValue(0, address);
         propagateDesign();
     }
-    std::unordered_map<uint32_t, uint8_t>* getMemoryPtr() override { return &m_memory->data; }
+    SparseArray& getMemory() override { return *m_memory; }
 };
 }  // namespace RISCV
 }  // namespace vsrtl
