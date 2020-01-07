@@ -12,6 +12,7 @@
 #include "branch.h"
 #include "control.h"
 #include "decode.h"
+#include "ecallchecker.h"
 #include "immediate.h"
 #include "registerfile.h"
 #include "riscv.h"
@@ -104,6 +105,11 @@ public:
         registerFile->r2_out >> data_mem->data_in;
         control->mem_ctrl >> data_mem->op;
         data_mem->mem->setMemory(m_memory);
+
+        // -----------------------------------------------------------------------
+        // Ecall checker
+        decode->opcode >> ecallChecker->opcode;
+        ecallChecker->setSysCallSignal(&handleSysCall);
     }
 
     // Design subcomponents
@@ -136,6 +142,8 @@ public:
     ADDRESSSPACE(m_memory);
     ADDRESSSPACE(m_regMem);
 
+    SUBCOMPONENT(ecallChecker, EcallChecker);
+
     // Ripes interface compliance
     virtual Ripes::SupportedISA implementsISA() const override { return Ripes::SupportedISA::RISCV; }
     unsigned int stageCount() const override { return 1; }
@@ -147,6 +155,7 @@ public:
         propagateDesign();
     }
     SparseArray& getMemory() override { return *m_memory; }
+    unsigned int getRegister(unsigned i) override { return registerFile->getRegister(i); }
 };
 }  // namespace RISCV
 }  // namespace vsrtl

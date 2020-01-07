@@ -33,8 +33,21 @@ signals:
      */
     void reqReloadProgram();
 
+    /**
+     * @brief print
+     * Print string to log
+     */
+    void print(const QString&);
+
+    /**
+     * @brief exit
+     * end the current simulation, disallowing further clocking of the processor unless the processor is reset.
+     */
+    void exit();
+
 public slots:
     void loadProgram(const std::map<uint32_t, QByteArray*>& segments);
+    void handleSysCall();
 
 private:
     static constexpr ProcessorID defaultProcessor = ProcessorID::RISCV_SS;

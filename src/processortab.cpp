@@ -54,6 +54,11 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
     updateActionState();
 }
 
+void ProcessorTab::printToLog(const QString& text) {
+    m_ui->console->insertPlainText(text);
+    m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
+}
+
 void ProcessorTab::setupSimulatorActions() {
     const QIcon processorIcon = QIcon(":/icons/cpu.svg");
     m_selectProcessorAction = new QAction(processorIcon, "Select processor", this);
@@ -267,15 +272,15 @@ bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_
         case Pipeline::ECALL::none:
             break;
         case Pipeline::ECALL::print_string: {
-            emit appendToLog(Parser::getParser()->getStringAt(static_cast<uint32_t>(ecall_val.second)));
+            // emit appendToLog(Parser::getParser()->getStringAt(static_cast<uint32_t>(ecall_val.second)));
             break;
         }
         case Pipeline::ECALL::print_int: {
-            emit appendToLog(QString::number(ecall_val.second));
+            // emit appendToLog(QString::number(ecall_val.second));
             break;
         }
         case Pipeline::ECALL::print_char: {
-            emit appendToLog(QChar(ecall_val.second));
+            // emit appendToLog(QChar(ecall_val.second));
             break;
         }
         case Pipeline::ECALL::exit: {

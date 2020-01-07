@@ -3,9 +3,12 @@
 #include <QString>
 
 #include <map>
+#include "Signals/Signal.h"
 #include "VSRTL/core/vsrtl_design.h"
 
 namespace Ripes {
+
+enum SysCall { None = 0, PrintInt = 1, PrintChar = 2, PrintStr = 4, Exit = 10 };
 
 enum class SupportedISA { RISCV };
 
@@ -59,6 +62,12 @@ public:
     virtual vsrtl::SparseArray& getMemory() = 0;
 
     /**
+     * @brief getRegister
+     * @return value currently present in register @p i
+     */
+    virtual unsigned int getRegister(unsigned i) = 0;
+
+    /**
      * @brief setProgramCounter
      * Sets the program counter of the processor to @param address
      */
@@ -68,6 +77,8 @@ public:
         vsrtl::core::Design::reset();
         m_instructionsRetired = 0;
     }
+
+    Gallant::Signal0<> handleSysCall;
 
 private:
     // Statistics

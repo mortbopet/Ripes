@@ -46,6 +46,7 @@ public slots:
     void restart();
     void reset();
     void run();
+    void printToLog(const QString&);
 
     void processorSelection();
 
