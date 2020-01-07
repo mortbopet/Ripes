@@ -119,7 +119,7 @@ void ProcessorTab::setupSimulatorActions() {
     m_displayValuesAction = new QAction(tagIcon, "Display signal values", this);
     m_displayValuesAction->setCheckable(true);
     m_displayValuesAction->setChecked(false);
-    connect(m_displayValuesAction, &QAction::triggered, this, &ProcessorTab::displayValues);
+    connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
     m_toolbar->addAction(m_displayValuesAction);
 
     const QIcon expandIcon = QIcon(":/icons/expand.svg");
@@ -185,10 +185,6 @@ ProcessorTab::~ProcessorTab() {
 
 void ProcessorTab::expandView() {
     tmp_pipelineWidget->expandToView();
-}
-
-void ProcessorTab::displayValues(bool checked) {
-    tmp_pipelineWidget->displayAllValues(checked);
 }
 
 void ProcessorTab::run() {

@@ -51,7 +51,6 @@ public slots:
 
 private slots:
     void expandView();
-    void displayValues(bool checked);
     void clock();
     void setCurrentInstruction(int row);
     void showPipeliningTable();
