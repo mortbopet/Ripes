@@ -1,6 +1,8 @@
 #pragma once
+#include <QByteArray>
 #include <QFile>
 #include <QWidget>
+#include <map>
 
 #include "assembler.h"
 #include "ripestab.h"
@@ -30,6 +32,10 @@ public:
 signals:
     void updateSimulator();  // Emitted when a file has been successfully loaded or assembled, and binary info must be
                              // sent to the processor
+    void programChanged(const std::map<uint32_t, QByteArray*> program);
+
+public slots:
+    void emitProgramChanged();
 
 private slots:
     void assemble();

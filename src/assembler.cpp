@@ -806,3 +806,10 @@ const QByteArray& Assembler::assemble(const QTextDocument& doc) {
 
     return m_textSegment;
 }
+
+const std::map<uint32_t, QByteArray*> Assembler::getSegments() {
+    std::map<uint32_t, QByteArray*> segs;
+    segs[0] = &m_textSegment;
+    segs[DATASTART] = &m_dataSegment;
+    return segs;
+}

@@ -41,6 +41,10 @@ void EditTab::clear() {
     m_assembler->clear();
 }
 
+void EditTab::emitProgramChanged() {
+    emit programChanged(m_assembler->getSegments());
+}
+
 void EditTab::assemble() {
     if (m_ui->assemblyedit->syntaxAccepted()) {
         const QByteArray& ret = m_assembler->assemble(*m_ui->assemblyedit->document());
@@ -49,12 +53,14 @@ void EditTab::assemble() {
             if (m_assembler->hasData()) {
                 assemblingComplete(m_assembler->getDataSegment(), false, DATASTART);
             }
+            emit programChanged(m_assembler->getSegments());
         } else {
             QMessageBox err;
             err.setText("Error during assembling of program");
             err.exec();
         }
     }
+
     // Restart the simulator to trigger the data memory to be loaded into the main memory. Bad code that this is done
     // from here, but it works
     Pipeline::getPipeline()->restart();

@@ -44,6 +44,7 @@ signals:
 
 public slots:
     void restart();
+    void reset();
     void run();
 
     void processorSelection();
@@ -51,7 +52,6 @@ public slots:
 private slots:
     void expandView();
     void displayValues(bool checked);
-    void reset();
     void clock();
     void setCurrentInstruction(int row);
     void showPipeliningTable();

@@ -14,6 +14,8 @@ public:
     const QByteArray& getDataSegment() { return m_dataSegment; }
     void clear() { m_textSegment.clear(); }
 
+    const std::map<uint32_t, QByteArray*> getSegments();
+
 private:
     uint32_t getRegisterNumber(const QString& reg);
     void unpackPseudoOp(const QStringList& fields, int& pos);
