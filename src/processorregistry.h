@@ -4,8 +4,9 @@
 #include <map>
 #include <memory>
 
-#include "processors/ripesprocessor.h"
+#include "isainfo.h"
 
+#include "processors/ripesprocessor.h"
 // Processors
 #include "processors/ss/riscv_ss.h"
 
@@ -13,7 +14,7 @@ enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
 
 struct ProcessorDescription {
     ProcessorID id;
-    QString ISA;
+    ISAInfoBase* isa;
     QString name;
     QString description;
 };
@@ -41,21 +42,21 @@ private:
         // RISC-V single cycle
         ProcessorDescription desc;
         desc.id = ProcessorID::RISCV_SS;
-        desc.ISA = "RV32IM";
+        desc.isa = &ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle";
         desc.description = "A single cycle RISC-V processor";
         m_descriptions[desc.id] = desc;
 
         // RISC-V 5-Stage with forwarding
         desc.id = ProcessorID::RISCV_5S_WF;
-        desc.ISA = "RV32IM";
+        desc.isa = &ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage w/ forwarding";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
         m_descriptions[desc.id] = desc;
 
         // RISC-V 5-stage without forwarding
         desc.id = ProcessorID::RISCV_5S_WOF;
-        desc.ISA = "RV32IM";
+        desc.isa = &ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage wo/ forwarding";
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
