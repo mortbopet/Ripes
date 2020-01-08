@@ -4,6 +4,8 @@
 #include <QByteArray>
 #include <QTextDocument>
 
+#include "program.h"
+
 class Assembler {
 public:
     Assembler();
@@ -14,7 +16,7 @@ public:
     const QByteArray& getDataSegment() { return m_dataSegment; }
     void clear() { m_textSegment.clear(); }
 
-    const std::map<uint32_t, QByteArray*> getSegments();
+    const Program getProgram();
 
 private:
     uint32_t getRegisterNumber(const QString& reg);

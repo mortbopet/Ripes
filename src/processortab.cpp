@@ -248,6 +248,7 @@ void ProcessorTab::setCurrentInstruction(int row) {
 
 void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
+    m_handler.checkValidExecutionRange();
 
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();

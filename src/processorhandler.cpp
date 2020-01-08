@@ -1,6 +1,7 @@
 #include "processorhandler.h"
 
 #include "processorregistry.h"
+#include "program.h"
 
 #include <QMessageBox>
 
@@ -9,13 +10,17 @@ ProcessorHandler::ProcessorHandler() {
     selectProcessor(m_currentProcessorID);
 }
 
-void ProcessorHandler::loadProgram(const std::map<uint32_t, QByteArray*>& segments) {
+void ProcessorHandler::loadProgram(const Program& p) {
     auto& mem = m_currentProcessor->getMemory();
 
     mem.clearInitializationMemories();
-    for (const auto& seg : segments) {
+    mem.addInitializationMemory(p.text.first, p.text.second->data(), p.text.second->length());
+    for (const auto& seg : p.others) {
         mem.addInitializationMemory(seg.first, seg.second->data(), seg.second->length());
     }
+
+    // Set the valid execution range to be contained within the .text segment.
+    m_validExecutionRange = {p.text.first, p.text.first + p.text.second->length()};
 
     emit reqProcessorReset();
 }
@@ -69,6 +74,9 @@ void ProcessorHandler::processorFinished() {
     emit exit();
 }
 
-void ProcessorHandler::canClockProcessor() const {
-    const auto pc = m_currentProcessor->pcForStage(0);
+void ProcessorHandler::checkValidExecutionRange() const {
+    const auto pc = m_currentProcessor->nextPcForStage(0);
+    if (!(m_validExecutionRange.first <= pc && pc < m_validExecutionRange.second)) {
+        m_currentProcessor->finalize();
+    }
 }

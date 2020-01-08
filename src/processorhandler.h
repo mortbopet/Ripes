@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include "processorregistry.h"
+#include "program.h"
 
 /**
  * @brief The ProcessorHandler class
@@ -25,11 +26,12 @@ public:
     void selectProcessor(ProcessorID id);
 
     /**
-     * @brief canClockProcessor
-     * Checks whether it is valid to further clock the processor. A check will be performed to see whether the current
-     * program counter is at the end of the current .text segment
+     * @brief checkValidExecutionRange
+     * Checks whether the processor, given continued clocking, that it will execute within the currently validated
+     * execution range. If the processor in the next cycle will start to fetch instructions outside of the validated
+     * range, the processor is instead requested to start finalizing.
      */
-    void canClockProcessor() const;
+    void checkValidExecutionRange() const;
 
 signals:
     /**
@@ -59,7 +61,7 @@ signals:
     void exit();
 
 public slots:
-    void loadProgram(const std::map<uint32_t, QByteArray*>& segments);
+    void loadProgram(const Program& p);
 
 private slots:
     void handleSysCall();
@@ -69,4 +71,12 @@ private:
     static constexpr ProcessorID defaultProcessor = ProcessorID::RISCV_SS;
     ProcessorID m_currentProcessorID = defaultProcessor;
     std::unique_ptr<Ripes::RipesProcessor> m_currentProcessor;
+
+    /**
+     * @brief m_validExecutionRange
+     * Address range which the processor is allowed to fetch instructions from. Currently, only a single range is
+     * supported which shall encapsulate the .text segment. If, for instance JIT compilation and execution is required
+     * in the future, this range should be expanded to also include the .data or other relevant program sections.
+     */
+    std::pair<uint32_t, uint32_t> m_validExecutionRange;
 };

@@ -42,7 +42,7 @@ void EditTab::clear() {
 }
 
 void EditTab::emitProgramChanged() {
-    emit programChanged(m_assembler->getSegments());
+    emit programChanged(m_assembler->getProgram());
 }
 
 void EditTab::assemble() {
@@ -53,7 +53,7 @@ void EditTab::assemble() {
             if (m_assembler->hasData()) {
                 assemblingComplete(m_assembler->getDataSegment(), false, DATASTART);
             }
-            emit programChanged(m_assembler->getSegments());
+            emitProgramChanged();
         } else {
             QMessageBox err;
             err.setText("Error during assembling of program");

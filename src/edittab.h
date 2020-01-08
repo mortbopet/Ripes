@@ -5,6 +5,7 @@
 #include <map>
 
 #include "assembler.h"
+#include "program.h"
 #include "ripestab.h"
 
 namespace Ui {
@@ -32,7 +33,7 @@ public:
 signals:
     void updateSimulator();  // Emitted when a file has been successfully loaded or assembled, and binary info must be
                              // sent to the processor
-    void programChanged(const std::map<uint32_t, QByteArray*> program);
+    void programChanged(const Program& program);
 
 public slots:
     void emitProgramChanged();

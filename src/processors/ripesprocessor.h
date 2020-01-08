@@ -49,6 +49,13 @@ public:
     virtual unsigned int pcForStage(unsigned int stageIndex) const = 0;
 
     /**
+     * @brief nextPcForStage
+     * @param stageIndex
+     * @return Next-state program counter for stage @param stageIndex
+     */
+    virtual unsigned int nextPcForStage(unsigned int stageIndex) const = 0;
+
+    /**
      * @brief stageInfo
      * @param stageIndex
      * @return Additional info related to the current execution state of stage @param stageIndex

@@ -149,6 +149,7 @@ public:
     unsigned int stageCount() const override { return 1; }
     unsigned int breakpointBreaksStage() const override { return 0; }
     unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
+    unsigned int nextPcForStage(unsigned int) const override { return pc_src->out.uValue(); }
     Ripes::StageInfo stageInfo(unsigned int stageIndex) const override { return {}; }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
@@ -171,8 +172,13 @@ public:
         }
     }
 
+    void reset() override {
+        Design::reset();
+        m_finishInNextCycle = false;
+    }
+
 private:
     bool m_finishInNextCycle = false;
-};
+};  // namespace RISCV
 }  // namespace RISCV
 }  // namespace vsrtl
