@@ -59,7 +59,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     tabChanged();
 
     // Setup tab pointers
-    m_processorTab->initRegWidget();
     m_memoryTab->initMemoryTab();
 
     setupMenus();

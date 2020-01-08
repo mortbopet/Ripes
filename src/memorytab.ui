@@ -28,7 +28,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="RegisterContainerWidget" name="registerContainer" native="true">
+     <widget class="RegisterWidget" name="registerWidget" native="true">
       <property name="minimumSize">
        <size>
         <width>250</width>
@@ -44,7 +44,7 @@
        </size>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
        <item>
         <widget class="QLabel" name="label_4">
@@ -171,9 +171,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>RegisterContainerWidget</class>
+   <class>RegisterWidget</class>
    <extends>QWidget</extends>
-   <header>registercontainerwidget.h</header>
+   <header>registerwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

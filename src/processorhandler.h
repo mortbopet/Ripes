@@ -47,6 +47,18 @@ public:
      */
     QString parseInstrAt(const uint32_t address) const;
 
+    /**
+     * @brief setRegisterValue
+     * Set the value of register @param idx to @param value.
+     */
+    void setRegisterValue(const unsigned idx, uint32_t value);
+
+    /**
+     * @brief getRegisterValue
+     * @returns value of register @param idx
+     */
+    uint32_t getRegisterValue(const unsigned idx) const;
+
     void setBreakpoint(const uint32_t address, bool enabled);
     bool hasBreakpoint(const uint32_t address) const;
 

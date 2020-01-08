@@ -6,11 +6,11 @@
 #include "Signals/Signal.h"
 #include "VSRTL/core/vsrtl_design.h"
 
+#include "../isainfo.h"
+
 namespace Ripes {
 
 enum SysCall { None = 0, PrintInt = 1, PrintChar = 2, PrintStr = 4, Exit = 10 };
-
-enum class SupportedISA { RISCV };
 
 struct StageInfo {
     StageInfo() {}
@@ -27,7 +27,7 @@ public:
      * @brief implementsISA
      * @return ISA which this processor implements
      */
-    virtual SupportedISA implementsISA() const = 0;
+    virtual const ISAInfoBase& implementsISA() const = 0;
 
     /**
      * @brief stageCount
@@ -73,6 +73,12 @@ public:
      * @return value currently present in register @p i
      */
     virtual unsigned int getRegister(unsigned i) = 0;
+
+    /**
+     * @brief setRegister
+     * Set the value of register @param i to @param v.
+     */
+    virtual void setRegister(unsigned i, uint32_t v) = 0;
 
     /**
      * @brief setProgramCounter

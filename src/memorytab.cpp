@@ -24,8 +24,7 @@ void MemoryTab::initMemoryTab() {
     m_memoryPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
     m_regPtr = Pipeline::getPipeline()->getRegPtr();
     initializeMemoryView();
-    m_ui->registerContainer->setRegPtr(m_regPtr);
-    m_ui->registerContainer->init();
+
     m_ui->rwjumpwidget->init();
     connect(m_ui->rwjumpwidget, &RWJumpWidget::jumpToAdress, this, &MemoryTab::jumpToAdress);
 }
@@ -97,7 +96,6 @@ void MemoryTab::initializeMemoryView() {
 }
 
 void MemoryTab::update() {
-    m_ui->registerContainer->update();
     m_model->updateModel();
     m_ui->rwjumpwidget->updateModel();
 }

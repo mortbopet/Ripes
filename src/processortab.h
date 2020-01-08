@@ -25,7 +25,7 @@ class VSRTLWidget;
 }
 
 class InstructionModel;
-class Parser;
+class RegisterModel;
 
 class ProcessorTab : public RipesTab {
     friend class RunDialog;
@@ -62,6 +62,7 @@ private:
     void setupSimulatorActions();
     void enableSimulatorControls();
     void updateInstructionModel();
+    void updateRegisterModel();
 
     bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 

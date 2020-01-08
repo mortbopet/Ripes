@@ -9,6 +9,7 @@
 #include "pipeline.h"
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
+#include "registermodel.h"
 #include "rundialog.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
@@ -23,7 +24,11 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
 
     // Load the default processor
     m_vsrtlWidget->setDesign(m_handler.getProcessor());
+
     updateInstructionModel();
+    m_ui->registerWidget->setHandler(&m_handler);
+    m_ui->registerWidget->updateModel();
+    connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
 
     setupSimulatorActions();
 
@@ -31,7 +36,6 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
     tmp_pipelineWidget = new PipelineWidget(this);
 
     // Setup updating signals
-    connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
     connect(this, &ProcessorTab::update, tmp_pipelineWidget, &PipelineWidget::update);
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateMetrics);
 
@@ -148,6 +152,7 @@ void ProcessorTab::processorSelection() {
         m_handler.selectProcessor(diag.selectedID);
         m_vsrtlWidget->setDesign(m_handler.getProcessor());
         updateInstructionModel();
+        m_ui->registerWidget->updateModel();
         update();
     }
 }
@@ -174,8 +179,7 @@ void ProcessorTab::updateInstructionModel() {
     connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::processorWasClocked);
 
     // Make the instruction view follow the instruction which is currently present in the first stage of the processor
-    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this,
-            &ProcessorTab::setInstructionViewCenterAddr);
+    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
 
     if (oldModel) {
         delete oldModel;
@@ -186,12 +190,6 @@ void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
     enableSimulatorControls();
-}
-
-void ProcessorTab::initRegWidget() {
-    // Setup register widget
-    m_ui->registerContainer->setRegPtr(Pipeline::getPipeline()->getRegPtr());
-    m_ui->registerContainer->init();
 }
 
 void ProcessorTab::updateMetrics() {

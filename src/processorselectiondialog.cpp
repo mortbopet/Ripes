@@ -47,6 +47,6 @@ void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListW
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(id);
 
     ui->name->setText(desc.name);
-    ui->ISA->setText(desc.ISA);
+    ui->ISA->setText(desc.isa->name());
     ui->description->setPlainText(desc.description);
 }

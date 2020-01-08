@@ -145,7 +145,7 @@ public:
     SUBCOMPONENT(ecallChecker, EcallChecker);
 
     // Ripes interface compliance
-    virtual Ripes::SupportedISA implementsISA() const override { return Ripes::SupportedISA::RISCV; }
+    virtual const ISAInfoBase& implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
     unsigned int stageCount() const override { return 1; }
     unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextPcForStage(unsigned int) const override { return pc_src->out.uValue(); }
@@ -161,6 +161,8 @@ public:
         // Allow one additional clock cycle to clear the current instruction
         m_finishInNextCycle = true;
     }
+
+    void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
     void clock() override {
         // m_finishInNextCycle may be set during Design::clock(). Store the value before clocking the processor, and

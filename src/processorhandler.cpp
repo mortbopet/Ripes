@@ -102,3 +102,11 @@ void ProcessorHandler::checkValidExecutionRange() const {
         m_currentProcessor->finalize();
     }
 }
+
+void ProcessorHandler::setRegisterValue(const unsigned idx, uint32_t value) {
+    m_currentProcessor->setRegister(idx, value);
+}
+
+uint32_t ProcessorHandler::getRegisterValue(const unsigned idx) const {
+    return m_currentProcessor->getRegister(idx);
+}
