@@ -47,6 +47,7 @@ public slots:
     void reset();
     void run();
     void printToLog(const QString&);
+    void processorFinished();
 
     void processorSelection();
 
@@ -59,7 +60,7 @@ private slots:
 
 private:
     void setupSimulatorActions();
-    void updateActionState();
+    void enableSimulatorControls();
 
     bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 

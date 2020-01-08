@@ -76,6 +76,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_processorHandler, &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(m_processorHandler, &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
     connect(m_processorHandler, &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
+    connect(m_processorHandler, &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
 
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);

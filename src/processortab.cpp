@@ -51,7 +51,7 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
     m_ui->consolesTab->removeTab(1);
 
     // Initially, no file is loaded, disable toolbuttons
-    updateActionState();
+    enableSimulatorControls();
 }
 
 void ProcessorTab::printToLog(const QString& text) {
@@ -151,7 +151,7 @@ void ProcessorTab::processorSelection() {
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
-    updateActionState();
+    enableSimulatorControls();
 }
 
 void ProcessorTab::initRegWidget() {
@@ -199,26 +199,25 @@ void ProcessorTab::run() {
     if (pipeline->isReady()) {
         if (dialog.exec() && pipeline->isFinished()) {
             emit update();
-            updateActionState();
+            enableSimulatorControls();
         }
     }
 }
 
-void ProcessorTab::updateActionState() {
-    const auto ready = Pipeline::getPipeline()->isReady();
+void ProcessorTab::processorFinished() {
+    // Disallow further clocking of the circuit
+    m_clockAction->setEnabled(false);
+    m_autoClockAction->setChecked(false);
+    m_autoClockAction->setEnabled(false);
+    m_runAction->setEnabled(false);
+}
 
-    m_clockAction->setEnabled(ready);
-    m_autoClockAction->setEnabled(ready);
-    m_runAction->setEnabled(ready);
-    m_reverseAction->setEnabled(ready);
-    m_resetAction->setEnabled(ready);
-
-    if (Pipeline::getPipeline()->isFinished()) {
-        m_clockAction->setEnabled(false);
-        m_autoClockAction->setChecked(false);
-        m_autoClockAction->setEnabled(false);
-        m_runAction->setEnabled(false);
-    }
+void ProcessorTab::enableSimulatorControls() {
+    m_clockAction->setEnabled(true);
+    m_autoClockAction->setEnabled(true);
+    m_runAction->setEnabled(true);
+    m_reverseAction->setEnabled(true);
+    m_resetAction->setEnabled(true);
 }
 
 void ProcessorTab::reset() {
@@ -227,7 +226,7 @@ void ProcessorTab::reset() {
     Pipeline::getPipeline()->restart();
     emit update();
 
-    updateActionState();
+    enableSimulatorControls();
     emit appendToLog("\n");
 }
 
@@ -262,7 +261,7 @@ void ProcessorTab::clock() {
 
     // Pipeline has finished executing
     if (pipeline->isFinished() || (state == 1 && ecallVal.first == Pipeline::ECALL::exit)) {
-        updateActionState();
+        enableSimulatorControls();
     }
 }
 

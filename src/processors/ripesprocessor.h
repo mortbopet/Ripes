@@ -78,7 +78,28 @@ public:
         m_instructionsRetired = 0;
     }
 
+    /**
+     * @brief handleSysCall
+     * Signal for passing control to the outside environment whenever a system call must be handled (RISC-V ecall
+     * instruction).
+     */
     Gallant::Signal0<> handleSysCall;
+
+    /**
+     * @brief finalize
+     * Called from the outside environment to indicate that the processor should begin its finishing sequence. The
+     * finishing sequence is defined as executing all remaining instructions in the pipeline, but not fetching new
+     * instructions. Typically, finalize would be called once the PC of the processor starts executing outside of the
+     * current .text segment, or the processor has executed an exit system call.
+     */
+    virtual void finalize() = 0;
+
+    /**
+     * @brief finished
+     * Signal emitted by the processor to notify the outside environment that it has finished executing. Must be
+     * preceeded by a call to RipesProcessor::finalize, performed by the outside environment.
+     */
+    Gallant::Signal0<> finished;
 
 private:
     // Statistics

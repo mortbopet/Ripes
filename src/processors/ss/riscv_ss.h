@@ -156,6 +156,23 @@ public:
     }
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) override { return registerFile->getRegister(i); }
+    void finalize() override {
+        // Allow one additional clock cycle to clear the current instruction
+        m_finishInNextCycle = true;
+    }
+
+    void clock() override {
+        // m_finishInNextCycle may be set during Design::clock(). Store the value before clocking the processor, and
+        // emit finished if this was the final clock cycle.
+        const bool finishInThisCycle = m_finishInNextCycle;
+        Design::clock();
+        if (finishInThisCycle) {
+            finished.Emit();
+        }
+    }
+
+private:
+    bool m_finishInNextCycle = false;
 };
 }  // namespace RISCV
 }  // namespace vsrtl

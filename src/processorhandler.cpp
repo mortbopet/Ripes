@@ -24,6 +24,7 @@ void ProcessorHandler::selectProcessor(ProcessorID id) {
     m_currentProcessorID = id;
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentProcessorID);
     m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::handleSysCall);
+    m_currentProcessor->finished.Connect(this, &ProcessorHandler::processorFinished);
     emit reqReloadProgram();
 }
 
@@ -37,7 +38,7 @@ void ProcessorHandler::handleSysCall() {
             char byte;
             unsigned int address = m_currentProcessor->getRegister(11);
             do {
-                byte = m_currentProcessor->getMemory().readMem(address++) & 0xFF;
+                byte = static_cast<char>(m_currentProcessor->getMemory().readMem(address++) & 0xFF);
                 string.append(byte);
             } while (byte != '\0');
             emit print(QString::fromUtf8(string));
@@ -53,14 +54,21 @@ void ProcessorHandler::handleSysCall() {
             break;
         }
         case Ripes::SysCall::Exit: {
-            emit exit();
+            m_currentProcessor->finalize();
             return;
         }
         default: {
-            QString title = "Error";
-            QString text = "Unknown system call argument in register a0: " + QString::number(arg);
-            QMessageBox::warning(nullptr, title, text);
+            QMessageBox::warning(nullptr, "Error",
+                                 "Unknown system call argument in register a0: " + QString::number(arg));
             return;
         }
     }
+}
+
+void ProcessorHandler::processorFinished() {
+    emit exit();
+}
+
+void ProcessorHandler::canClockProcessor() const {
+    const auto pc = m_currentProcessor->pcForStage(0);
 }

@@ -16,7 +16,20 @@ public:
 
     Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     ProcessorID currentID() const { return m_currentProcessorID; }
+
+    /**
+     * @brief selectProcessor
+     * Constructs the processor identified by @param id, and performs all necessary initialization through the
+     * RipesProcessor interface.
+     */
     void selectProcessor(ProcessorID id);
+
+    /**
+     * @brief canClockProcessor
+     * Checks whether it is valid to further clock the processor. A check will be performed to see whether the current
+     * program counter is at the end of the current .text segment
+     */
+    void canClockProcessor() const;
 
 signals:
     /**
@@ -47,7 +60,10 @@ signals:
 
 public slots:
     void loadProgram(const std::map<uint32_t, QByteArray*>& segments);
+
+private slots:
     void handleSysCall();
+    void processorFinished();
 
 private:
     static constexpr ProcessorID defaultProcessor = ProcessorID::RISCV_SS;
