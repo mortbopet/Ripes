@@ -74,6 +74,7 @@ void ProcessorTab::setupSimulatorActions() {
 
     const QIcon reverseIcon = QIcon(":/icons/rewind.svg");
     m_reverseAction = new QAction(reverseIcon, "Rewind (F5)", this);
+    connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::rewind);
     m_reverseAction->setShortcut(QKeySequence("F5"));
     m_toolbar->addAction(m_reverseAction);
 
@@ -246,6 +247,11 @@ void ProcessorTab::setCurrentInstruction(int row) {
     }
 }
 
+void ProcessorTab::rewind() {
+    m_vsrtlWidget->rewind();
+    enableSimulatorControls();
+}
+
 void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
     m_handler.checkValidExecutionRange();
@@ -261,9 +267,11 @@ void ProcessorTab::clock() {
     emit update();
 
     // Pipeline has finished executing
+    /*
     if (pipeline->isFinished() || (state == 1 && ecallVal.first == Pipeline::ECALL::exit)) {
         enableSimulatorControls();
     }
+    */
 }
 
 bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_val) {

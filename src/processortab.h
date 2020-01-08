@@ -45,6 +45,7 @@ signals:
 public slots:
     void restart();
     void reset();
+    void rewind();
     void run();
     void printToLog(const QString&);
     void processorFinished();

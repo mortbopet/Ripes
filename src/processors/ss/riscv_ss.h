@@ -172,6 +172,12 @@ public:
         }
     }
 
+    void rewind() override {
+        Design::rewind();
+        // Ensure that rewinds performed when we expected to finish in the following cycle, clears this expectation.
+        m_finishInNextCycle = false;
+    }
+
     void reset() override {
         Design::reset();
         m_finishInNextCycle = false;
@@ -179,6 +185,7 @@ public:
 
 private:
     bool m_finishInNextCycle = false;
-};  // namespace RISCV
+};
+
 }  // namespace RISCV
 }  // namespace vsrtl
