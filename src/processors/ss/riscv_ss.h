@@ -147,10 +147,10 @@ public:
     // Ripes interface compliance
     virtual Ripes::SupportedISA implementsISA() const override { return Ripes::SupportedISA::RISCV; }
     unsigned int stageCount() const override { return 1; }
-    unsigned int breakpointBreaksStage() const override { return 0; }
     unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextPcForStage(unsigned int) const override { return pc_src->out.uValue(); }
-    Ripes::StageInfo stageInfo(unsigned int stageIndex) const override { return {}; }
+    QString stageName(unsigned int) const override { return "•"; }
+    Ripes::StageInfo stageInfo(unsigned int) const override { return Ripes::StageInfo(pc_reg->out.uValue(), true); }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();

@@ -36,7 +36,6 @@ public:
     ~ProcessorTab() override;
 
     void initRegWidget();
-    void initInstructionView();
 
 signals:
     void update();
@@ -55,18 +54,19 @@ public slots:
 private slots:
     void expandView();
     void clock();
-    void setCurrentInstruction(int row);
+    void setInstructionViewCenterAddr(uint32_t address);
     void showPipeliningTable();
     void updateMetrics();
 
 private:
     void setupSimulatorActions();
     void enableSimulatorControls();
+    void updateInstructionModel();
 
     bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 
     Ui::ProcessorTab* m_ui;
-    InstructionModel* m_instrModel;
+    InstructionModel* m_instrModel = nullptr;
 
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
     ProcessorHandler& m_handler;

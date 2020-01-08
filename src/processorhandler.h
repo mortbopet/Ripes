@@ -15,6 +15,8 @@ class ProcessorHandler : public QObject {
 public:
     ProcessorHandler();
 
+    /// @todo: this should return a const ptr - ONLY the processorhandler is allowed to modify the state of the
+    /// processor
     Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     ProcessorID currentID() const { return m_currentProcessorID; }
 
@@ -23,7 +25,7 @@ public:
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
      * RipesProcessor interface.
      */
-    void selectProcessor(ProcessorID id);
+    void selectProcessor(const ProcessorID id);
 
     /**
      * @brief checkValidExecutionRange
@@ -32,6 +34,21 @@ public:
      * range, the processor is instead requested to start finalizing.
      */
     void checkValidExecutionRange() const;
+
+    /**
+     * @brief getCurrentProgramSize
+     * @return size (in bytes) of the currently loaded .text segment
+     */
+    int getCurrentProgramSize() const;
+
+    /**
+     * @brief parseInstrAt
+     * @return string representation of the instruction at @param addr
+     */
+    QString parseInstrAt(const uint32_t address) const;
+
+    void setBreakpoint(const uint32_t address, bool enabled);
+    bool hasBreakpoint(const uint32_t address) const;
 
 signals:
     /**
@@ -79,4 +96,6 @@ private:
      * in the future, this range should be expanded to also include the .data or other relevant program sections.
      */
     std::pair<uint32_t, uint32_t> m_validExecutionRange;
+    std::set<uint32_t> m_breakpoints;
+    Program m_program;
 };

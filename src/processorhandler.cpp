@@ -1,5 +1,6 @@
 #include "processorhandler.h"
 
+#include "parser.h"
 #include "processorregistry.h"
 #include "program.h"
 
@@ -13,6 +14,7 @@ ProcessorHandler::ProcessorHandler() {
 void ProcessorHandler::loadProgram(const Program& p) {
     auto& mem = m_currentProcessor->getMemory();
 
+    m_program = p;
     mem.clearInitializationMemories();
     mem.addInitializationMemory(p.text.first, p.text.second->data(), p.text.second->length());
     for (const auto& seg : p.others) {
@@ -25,12 +27,32 @@ void ProcessorHandler::loadProgram(const Program& p) {
     emit reqProcessorReset();
 }
 
-void ProcessorHandler::selectProcessor(ProcessorID id) {
+void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
+    if (enabled) {
+        m_breakpoints.insert(address);
+    } else if (m_breakpoints.count(address)) {
+        m_breakpoints.erase(address);
+    }
+}
+
+bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {
+    return m_breakpoints.count(address);
+}
+
+void ProcessorHandler::selectProcessor(const ProcessorID id) {
     m_currentProcessorID = id;
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentProcessorID);
     m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::handleSysCall);
     m_currentProcessor->finished.Connect(this, &ProcessorHandler::processorFinished);
     emit reqReloadProgram();
+}
+
+int ProcessorHandler::getCurrentProgramSize() const {
+    return m_program.text.second->size();
+}
+
+QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
+    return Parser::getParser()->genStringRepr(m_currentProcessor->getMemory().readMem(addr), addr);
 }
 
 void ProcessorHandler::handleSysCall() {

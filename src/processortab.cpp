@@ -23,6 +23,7 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
 
     // Load the default processor
     m_vsrtlWidget->setDesign(m_handler.getProcessor());
+    updateInstructionModel();
 
     setupSimulatorActions();
 
@@ -146,6 +147,38 @@ void ProcessorTab::processorSelection() {
         m_vsrtlWidget->clearDesign();
         m_handler.selectProcessor(diag.selectedID);
         m_vsrtlWidget->setDesign(m_handler.getProcessor());
+        updateInstructionModel();
+        update();
+    }
+}
+
+void ProcessorTab::updateInstructionModel() {
+    auto* oldModel = m_instrModel;
+    m_instrModel = new InstructionModel(m_handler, this);
+
+    // Update the instruction view according to the newly created model
+    m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_ui->instructionView->setModel(m_instrModel);
+
+    // Only the instruction column should stretch
+    m_ui->instructionView->horizontalHeader()->setMinimumSectionSize(1);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Breakpoint,
+                                                                    QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::PC,
+                                                                    QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Stage,
+                                                                    QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
+                                                                    QHeaderView::Stretch);
+
+    connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::processorWasClocked);
+
+    // Make the instruction view follow the instruction which is currently present in the first stage of the processor
+    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this,
+            &ProcessorTab::setInstructionViewCenterAddr);
+
+    if (oldModel) {
+        delete oldModel;
     }
 }
 
@@ -164,25 +197,6 @@ void ProcessorTab::initRegWidget() {
 void ProcessorTab::updateMetrics() {
     m_ui->cycleCount->setText(QString::number(Pipeline::getPipeline()->getCycleCount()));
     m_ui->nInstrExecuted->setText(QString::number(Pipeline::getPipeline()->getInstructionsExecuted()));
-}
-
-void ProcessorTab::initInstructionView() {
-    // Setup instruction view
-    m_instrModel = new InstructionModel(Pipeline::getPipeline()->getStagePCS(),
-                                        Pipeline::getPipeline()->getStagePCSPre(), Parser::getParser());
-    m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_ui->instructionView->setModel(m_instrModel);
-    m_ui->instructionView->horizontalHeader()->setMinimumSectionSize(1);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-    connect(this, &ProcessorTab::update, m_ui->instructionView, QOverload<>::of(&QWidget::update));
-    connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::update);
-    connect(m_instrModel, &InstructionModel::currentIFRow, this, &ProcessorTab::setCurrentInstruction);
-    // Connect instruction model text changes to the pipeline widget (changing instruction names displayed above each
-    // stage)
-    connect(m_instrModel, &InstructionModel::textChanged, tmp_pipelineWidget, &PipelineWidget::stageTextChanged);
 }
 
 ProcessorTab::~ProcessorTab() {
@@ -231,14 +245,13 @@ void ProcessorTab::reset() {
     emit appendToLog("\n");
 }
 
-void ProcessorTab::setCurrentInstruction(int row) {
-    // model emits signal with current IF instruction row
-    auto instructionView = m_ui->instructionView;
-    auto rect = instructionView->rect();
-    int indexTop = instructionView->indexAt(rect.topLeft()).row();
-    int indexBot = instructionView->indexAt(rect.bottomLeft()).row();
-
-    int nItems = indexBot - indexTop;
+void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
+    const auto row = address / 4;
+    const auto instructionView = m_ui->instructionView;
+    const auto rect = instructionView->rect();
+    const int indexTop = instructionView->indexAt(rect.topLeft()).row();
+    const int indexBot = instructionView->indexAt(rect.bottomLeft()).row();
+    const int nItems = indexBot - indexTop;
 
     // move scrollbar if if is not visible
     if (row <= indexTop || row >= indexBot) {
@@ -250,6 +263,7 @@ void ProcessorTab::setCurrentInstruction(int row) {
 void ProcessorTab::rewind() {
     m_vsrtlWidget->rewind();
     enableSimulatorControls();
+    emit update();
 }
 
 void ProcessorTab::clock() {

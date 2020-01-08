@@ -5,16 +5,18 @@
 #include <set>
 #include "defines.h"
 #include "mainmemory.h"
+#include "processorhandler.h"
 
 #include <QAbstractTableModel>
 
 class Parser;
 class Pipeline;
+
 class InstructionModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    InstructionModel(const StagePCS& pcsptr, const StagePCS& pcsptrPre, Parser* parser = nullptr,
-                     QObject* parent = nullptr);
+    enum Column { Breakpoint = 0, PC = 1, Stage = 2, Instruction = 3, NColumns };
+    InstructionModel(ProcessorHandler& handler, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -25,23 +27,29 @@ public:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    void update();
-
-    int m_currentIFrow = 0;
-
-private:
-    const StagePCS& m_pcsptr;
-    const StagePCS& m_pcsptrPre;
-    MainMemory* m_memory;
-    Pipeline* m_pipelinePtr;
-    const Parser* m_parserPtr;
-    int m_textSize = 0;  // text segment, in bytes
+public slots:
+    void processorWasClocked();
 
 signals:
-    void textChanged(Stage stage, QString text, QColor col = QColor()) const;
-    void currentIFRow(int) const;
+    /**
+     * @brief firstStageInstrChanged
+     * Emitted whenever the PC of the first stage, changed. Argument is the address of the instruction now present in
+     * the first stage.
+     */
+    void firstStageInstrChanged(uint32_t) const;
 
-public slots:
+private:
+    void gatherStageInfo();
+
+    QVariant BPData(uint32_t addr) const;
+    QVariant PCData(uint32_t addr) const;
+    QVariant stageData(uint32_t addr) const;
+    QVariant instructionData(uint32_t addr) const;
+
+    QStringList m_stageNames;
+    std::map<QString, Ripes::StageInfo> m_stageInfos;
+
+    ProcessorHandler& m_handler;
 };
 
 #endif  // INSTRUCTIONMODEL_H

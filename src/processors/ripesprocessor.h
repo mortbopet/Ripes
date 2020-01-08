@@ -13,9 +13,10 @@ enum SysCall { None = 0, PrintInt = 1, PrintChar = 2, PrintStr = 4, Exit = 10 };
 enum class SupportedISA { RISCV };
 
 struct StageInfo {
-    QString stageName;
-    unsigned int pc;
-    bool pc_valid;
+    StageInfo() {}
+    StageInfo(uint32_t _pc, bool _valid) : pc(_pc), pc_valid(_valid) {}
+    unsigned int pc = 0;
+    bool pc_valid = false;
 };
 
 class RipesProcessor : public vsrtl::core::Design {
@@ -35,18 +36,17 @@ public:
     virtual unsigned int stageCount() const = 0;
 
     /**
-     * @brief breakpointBreaksStage
-     * If a breakpoint has been set for address A, the processor will be stopped when A has reached the specified stage
-     * @return stage to break in
-     */
-    virtual unsigned int breakpointBreaksStage() const = 0;
-
-    /**
      * @brief pcForStage
      * @param stageIndex
      * @return Program counter currently present in stage @param stageIndex
      */
     virtual unsigned int pcForStage(unsigned int stageIndex) const = 0;
+
+    /**
+     * @brief stageName
+     * @return name of stage identified by @param stageIndex
+     */
+    virtual QString stageName(unsigned int stageIndex) const = 0;
 
     /**
      * @brief nextPcForStage
