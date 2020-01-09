@@ -133,13 +133,10 @@ public:
             case RVInstr::OR: case RVInstr::AND:
                 return AluSrc2::REG2;
 
-            // Load instructions
+            // Load/Store instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
-                return AluSrc2::IMM;
-
-            // Store instructions
             case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
-                return AluSrc2::REG2;
+                return AluSrc2::IMM;
 
             // Branch instructions
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
@@ -178,6 +175,9 @@ public:
 
         alu_ctrl << [=] {
             switch(opcode.uValue()) {
+                case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
+                case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
+                    return ALUOp::ADD;
                 case RVInstr::LUI:
                     return ALUOp::LUI;
                 case RVInstr::JAL: case RVInstr::JALR: case RVInstr::AUIPC:
