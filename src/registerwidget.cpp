@@ -1,6 +1,8 @@
 #include "registerwidget.h"
 #include "ui_registerwidget.h"
 
+#include <QScrollBar>
+
 RegisterWidget::RegisterWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::RegisterWidget) {
     m_ui->setupUi(this);
     setupRadixComboBox();
@@ -43,6 +45,7 @@ void RegisterWidget::updateModel() {
     m_registerModel = new RegisterModel(*m_handler, this);
     m_ui->registerView->setModel(m_registerModel);
     updateRadixComboBoxIndex();
+    connect(m_registerModel, &RegisterModel::registerChanged, this, &RegisterWidget::setRegisterviewCenterIndex);
 
     m_ui->registerView->horizontalHeader()->setSectionResizeMode(RegisterModel::Name, QHeaderView::ResizeToContents);
     m_ui->registerView->horizontalHeader()->setSectionResizeMode(RegisterModel::Alias, QHeaderView::ResizeToContents);
@@ -55,4 +58,20 @@ void RegisterWidget::updateModel() {
 
 void RegisterWidget::updateView() {
     m_registerModel->processorWasClocked();
+}
+
+void RegisterWidget::setRegisterviewCenterIndex(unsigned index) {
+    const auto view = m_ui->registerView;
+    const auto rect = view->rect();
+    int indexTop = view->indexAt(rect.topLeft()).row();
+    int indexBot = view->indexAt(rect.bottomLeft()).row();
+    indexBot = indexBot < 0 ? m_registerModel->rowCount() : indexBot;
+
+    const int nItemsVisible = indexBot - indexTop;
+
+    // move scrollbar if if is not visible
+    if (index <= indexTop || index >= indexBot) {
+        auto scrollbar = view->verticalScrollBar();
+        scrollbar->setValue(index - nItemsVisible / 2);
+    }
 }

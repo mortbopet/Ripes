@@ -24,6 +24,7 @@ public:
 
 public slots:
     void updateView();
+    void setRegisterviewCenterIndex(unsigned index);
 
 private:
     void setupRadixComboBox();

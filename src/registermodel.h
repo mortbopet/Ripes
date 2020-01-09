@@ -31,7 +31,16 @@ public:
 public slots:
     void processorWasClocked();
 
+signals:
+    /**
+     * @brief registerChanged
+     * Emitted whenever the value of register @param i changes
+     */
+    void registerChanged(unsigned i) const;
+
 private:
+    std::vector<uint32_t> gatherRegisterValues();
+
     QVariant nameData(unsigned idx) const;
     QVariant aliasData(unsigned idx) const;
     QVariant valueData(unsigned idx) const;
@@ -39,4 +48,7 @@ private:
     ProcessorHandler& m_handler;
 
     Radix m_radix = Radix::Unsigned;
+
+    int m_mostRecentlyModifiedReg = -1;
+    std::vector<uint32_t> m_regValues;
 };

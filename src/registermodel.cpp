@@ -7,18 +7,37 @@ using namespace vsrtl;
 RegisterModel::RegisterModel(ProcessorHandler& handler, QObject* parent)
     : QAbstractTableModel(parent), m_handler(handler) {}
 
+std::vector<uint32_t> RegisterModel::gatherRegisterValues() {
+    std::vector<uint32_t> vals;
+    for (int i = 0; i < rowCount(); i++) {
+        vals.push_back(valueData(i).toUInt());
+    }
+    return vals;
+}
+
 int RegisterModel::columnCount(const QModelIndex&) const {
     return NColumns;
 }
 
 int RegisterModel::rowCount(const QModelIndex&) const {
-    return 32;
+    return m_handler.getProcessor()->implementsISA().regCnt();
 }
 
 void RegisterModel::processorWasClocked() {
     // Reload model
     beginResetModel();
     endResetModel();
+    const auto newRegValues = gatherRegisterValues();
+    if (m_regValues.size() != 0) {
+        for (unsigned i = 0; i < newRegValues.size(); i++) {
+            if (m_regValues[i] != newRegValues[i]) {
+                m_mostRecentlyModifiedReg = i;
+                emit registerChanged(i);
+                break;
+            }
+        }
+    }
+    m_regValues = newRegValues;
 }
 
 bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int role) {
@@ -53,6 +72,8 @@ QVariant RegisterModel::data(const QModelIndex& index, int role) const {
     const unsigned idx = index.row();
     if (role == Qt::ToolTipRole) {
         return tooltipData(idx);
+    } else if (role == Qt::BackgroundRole && index.row() == m_mostRecentlyModifiedReg) {
+        return QBrush(QColor("#FDB515"));
     }
 
     switch (index.column()) {

@@ -10,6 +10,7 @@ class ISAInfoBase {
 public:
     virtual QString name() const = 0;
 
+    virtual unsigned regCnt() const = 0;
     virtual QString regName(unsigned i) const = 0;
     virtual QString regAlias(unsigned i) const = 0;
     virtual QString regInfo(unsigned i) const = 0;
@@ -89,6 +90,7 @@ public:
 
     QString name() const { return "RV32IM"; }
 
+    unsigned int regCnt() const override { return 32; }
     QString regName(unsigned i) const { return RVRegNames.at(i); }
     QString regAlias(unsigned i) const { return RVRegAliases.at(i); }
     QString regInfo(unsigned i) const { return RVRegDescs.at(i); }
