@@ -5,11 +5,12 @@
 #include <QString>
 #include <map>
 
-enum class Radix { Hex, Binary, Unsigned, Signed };
+enum class Radix { Hex, Binary, Unsigned, Signed, ASCII };
 const static std::map<Radix, QString> s_radixName = {{Radix::Hex, "Hex"},
                                                      {Radix::Binary, "Binary"},
                                                      {Radix::Unsigned, "Unsigned"},
-                                                     {Radix::Signed, "Signed"}};
+                                                     {Radix::Signed, "Signed"},
+                                                     {Radix::ASCII, "ASCII"}};
 
 Q_DECLARE_METATYPE(Radix);
 
@@ -31,6 +32,14 @@ static QString encodeRadixValue(uint32_t value, const Radix type, unsigned width
         }
         case Radix::Signed: {
             return QString::number(static_cast<int32_t>(value), 10);
+        }
+        case Radix::ASCII: {
+            QString str;
+            for (int i = 0; i < width / 8; i++) {
+                str.prepend(QChar::fromLatin1(value & 0xFF));
+                value >>= 8;
+            }
+            return str;
         }
         default:
             return QString();
