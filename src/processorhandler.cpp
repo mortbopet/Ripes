@@ -24,6 +24,17 @@ void ProcessorHandler::loadProgram(const Program& p) {
     // Set the valid execution range to be contained within the .text segment.
     m_validExecutionRange = {p.text.first, p.text.first + p.text.second->length()};
 
+    // Update breakpoints to stay within the loaded program range
+    std::vector<uint32_t> bpsToRemove;
+    for (const auto& bp : m_breakpoints) {
+        if (bp < m_validExecutionRange.first | bp >= m_validExecutionRange.second) {
+            bpsToRemove.push_back(bp);
+        }
+    }
+    for (const auto& bp : bpsToRemove) {
+        m_breakpoints.erase(bp);
+    }
+
     emit reqProcessorReset();
 }
 
@@ -37,6 +48,21 @@ void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
 
 bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {
     return m_breakpoints.count(address);
+}
+
+void ProcessorHandler::checkBreakpoint() {
+    const auto pc = m_currentProcessor->pcForStage(0);
+    if (m_breakpoints.count(pc)) {
+        emit hitBreakpoint(pc);
+    }
+}
+
+void ProcessorHandler::toggleBreakpoint(const uint32_t address) {
+    setBreakpoint(address, !hasBreakpoint(address));
+}
+
+void ProcessorHandler::clearBreakpoints() {
+    m_breakpoints.clear();
 }
 
 void ProcessorHandler::selectProcessor(const ProcessorID id) {

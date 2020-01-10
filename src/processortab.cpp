@@ -30,6 +30,8 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
     m_ui->registerWidget->updateModel();
     connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
 
+    connect(&m_handler, &ProcessorHandler::hitBreakpoint, this, &ProcessorTab::pause);
+
     setupSimulatorActions();
 
     // Create temporary pipeline widget to reduce changeset during VSRTL integration
@@ -142,6 +144,10 @@ void ProcessorTab::setupSimulatorActions() {
     m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
     connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showPipeliningTable);
     m_toolbar->addAction(m_pipelineTableAction);
+}
+
+void ProcessorTab::pause() {
+    m_autoClockAction->setChecked(false);
 }
 
 void ProcessorTab::processorSelection() {
@@ -267,6 +273,7 @@ void ProcessorTab::rewind() {
 void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
     m_handler.checkValidExecutionRange();
+    m_handler.checkBreakpoint();
 
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
@@ -277,13 +284,6 @@ void ProcessorTab::clock() {
     }
 
     emit update();
-
-    // Pipeline has finished executing
-    /*
-    if (pipeline->isFinished() || (state == 1 && ecallVal.first == Pipeline::ECALL::exit)) {
-        enableSimulatorControls();
-    }
-    */
 }
 
 bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_val) {

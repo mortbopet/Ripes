@@ -6,8 +6,10 @@
 #include "parser.h"
 #include "pipeline.h"
 
-EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
+EditTab::EditTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
+    : RipesTab(toolbar, parent), m_ui(new Ui::EditTab), m_handler(handler) {
     m_ui->setupUi(this);
+    m_ui->binaryedit->setHandler(&m_handler);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
     // translation is complete
@@ -84,7 +86,6 @@ void EditTab::setDisassemblerText() {
     const QString& text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->getDisassembledRepr()
                                                                     : Parser::getParser()->getBinaryRepr();
     m_ui->binaryedit->setPlainText(text);
-    m_ui->binaryedit->updateBreakpoints();
 }
 
 void EditTab::assemblingComplete(const QByteArray& data, bool clear, uint32_t baseAddress) {

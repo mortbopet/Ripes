@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     auto* tb = addToolBar("Edit");
     tb->setVisible(false);
-    m_editTab = new EditTab(tb, this);
+    m_editTab = new EditTab(*m_processorHandler, tb, this);
     m_stackedTabs->insertWidget(0, m_editTab);
 
     tb = addToolBar("Processor");

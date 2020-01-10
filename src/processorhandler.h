@@ -59,8 +59,11 @@ public:
      */
     uint32_t getRegisterValue(const unsigned idx) const;
 
+    void checkBreakpoint();
     void setBreakpoint(const uint32_t address, bool enabled);
+    void toggleBreakpoint(const uint32_t address);
     bool hasBreakpoint(const uint32_t address) const;
+    void clearBreakpoints();
 
 signals:
     /**
@@ -88,6 +91,12 @@ signals:
      * end the current simulation, disallowing further clocking of the processor unless the processor is reset.
      */
     void exit();
+
+    /**
+     * @brief hitBreakpoint
+     * Emitted whenever the instruction at breakpoint @param address is fetched into the processor
+     */
+    void hitBreakpoint(uint32_t address);
 
 public slots:
     void loadProgram(const Program& p);

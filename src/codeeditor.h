@@ -7,6 +7,7 @@
 #include <QTimer>
 
 #include "assembler.h"
+#include "processorhandler.h"
 #include "syntaxhighlighter.h"
 
 #include <set>
@@ -21,12 +22,12 @@ class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
 public:
     CodeEditor(QWidget* parent = nullptr);
+    void setHandler(ProcessorHandler* handler) { m_handler = handler; }
 
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     void breakpointAreaPaintEvent(QPaintEvent* event);
     void breakpointClick(QMouseEvent* event, int forceState = 0);
     void clearBreakpoints();
-    void updateBreakpoints();
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
     void setupChangedTimer();
@@ -64,6 +65,8 @@ private:
     QMap<int, QString> m_tooltipForLine;
 
     QFont m_font = font();
+
+    ProcessorHandler* m_handler = nullptr;
 
     // A timer is needed for only catching one of the multiple wheel events that
     // occur on a regular mouse scroll

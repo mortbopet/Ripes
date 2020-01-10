@@ -42,6 +42,7 @@ signals:
     void appendToLog(QString string);
 
 public slots:
+    void pause();
     void restart();
     void reset();
     void rewind();

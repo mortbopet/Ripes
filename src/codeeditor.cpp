@@ -1,6 +1,5 @@
 #include "codeeditor.h"
 #include "defines.h"
-#include "pipeline.h"
 
 #include <QAction>
 #include <QApplication>
@@ -108,18 +107,7 @@ void CodeEditor::updateTooltip(int line, QString tip) {
 }
 
 void CodeEditor::clearBreakpoints() {
-    auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-    breakpoints->clear();
-}
-
-void CodeEditor::updateBreakpoints() {
-    // called after disassembler text has been set
-
-    auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-    // Remove breakpoints if a breakpoint line has been removed
-    while (!breakpoints->empty() && *(breakpoints->rbegin()) > ((blockCount() - 1) * 4)) {  // byte indexed
-        breakpoints->erase(std::prev(breakpoints->end()));
-    }
+    m_handler->clearBreakpoints();
 }
 
 bool CodeEditor::event(QEvent* event) {
@@ -229,15 +217,13 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
     if (m_breakpointAreaEnabled) {
         QTextBlock block = firstVisibleBlock();
-        int blockNumber = block.blockNumber() * 4;  // byte indexed
+        uint32_t address = block.blockNumber() * m_handler->getProcessor()->implementsISA().bytes();
         int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
         int bottom = top + (int)blockBoundingRect(block).height();
 
-        auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-
         while (block.isValid() && top <= event->rect().bottom()) {
             if (block.isVisible() && bottom >= event->rect().top()) {
-                if (breakpoints->find(blockNumber) != breakpoints->end()) {
+                if (m_handler->hasBreakpoint(address)) {
                     painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
                                        m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
                 }
@@ -246,7 +232,7 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
             block = block.next();
             top = bottom;
             bottom = top + (int)blockBoundingRect(block).height();
-            blockNumber += 4;
+            address += m_handler->getProcessor()->implementsISA().bytes();
         }
     }
 }
@@ -268,6 +254,7 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
     if (m_breakpointAreaEnabled) {
         // Get line height
         QTextBlock block = firstVisibleBlock();
+
         auto height = blockBoundingRect(block).height();
 
         // Find block index in the codeeditor
@@ -282,27 +269,13 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
             block = block.next();
             index--;
         }
-        // Set or unset breakpoint
-        // Since we want the simulator as fast as possible, the breakpoints are byte-indexed
-        auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-        int blockNumber = block.blockNumber() * 4;
-        if (block.isValid()) {
-            auto brkptIter = breakpoints->find(blockNumber);
-            // Set/unset breakpoint
-            if (forceState == 1) {
-                breakpoints->insert(blockNumber);
-            } else if (forceState == 2) {
-                if (brkptIter != breakpoints->end())
-                    breakpoints->erase(breakpoints->find(blockNumber));
-            } else {
-                if (brkptIter != breakpoints->end()) {
-                    breakpoints->erase(brkptIter);
-                } else {
-                    breakpoints->insert(blockNumber);
-                }
-            }
-            repaint();
-        }
+        if (!block.isValid())
+            return;
+
+        // Toggle breakpoint
+        const uint32_t address = block.blockNumber() * m_handler->getProcessor()->implementsISA().bytes();
+        m_handler->toggleBreakpoint(address);
+        repaint();
     }
 }
 
