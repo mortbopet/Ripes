@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     tb = addToolBar("Processor");
     tb->setVisible(false);
-    m_memoryTab = new MemoryTab(tb, this);
+    m_memoryTab = new MemoryTab(*m_processorHandler, tb, this);
     m_stackedTabs->insertWidget(2, m_memoryTab);
 
     // Setup tab bar

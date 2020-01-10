@@ -10,6 +10,7 @@
 #include "mainmemory.h"
 #include "memorydisplaydelegate.h"
 #include "memorymodel.h"
+#include "processorhandler.h"
 #include "ripestab.h"
 
 namespace Ui {
@@ -22,7 +23,7 @@ class MemoryTab : public RipesTab {
     Q_OBJECT
 
 public:
-    MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
+    MemoryTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent = nullptr);
     ~MemoryTab() override;
     void initMemoryTab();
 
@@ -44,6 +45,8 @@ private:
     std::vector<uint32_t>* m_regPtr;
 
     std::vector<RegisterWidget*> m_regWidgetPtrs;
+
+    ProcessorHandler& m_handler;
 };
 
 #endif  // MEMORYTAB_H

@@ -45,7 +45,7 @@
       </property>
      </widget>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
@@ -64,7 +64,7 @@
             <x>0</x>
             <y>0</y>
             <width>606</width>
-            <height>337</height>
+            <height>321</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -100,6 +100,9 @@
           </layout>
          </widget>
         </widget>
+       </item>
+       <item>
+        <widget class="MemoryViewerWidget" name="memoryViewerWidget" native="true"/>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -171,15 +174,15 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>MemoryView</class>
+   <extends>QTableView</extends>
+   <header>memoryview.h</header>
+  </customwidget>
+  <customwidget>
    <class>RegisterWidget</class>
    <extends>QWidget</extends>
    <header>registerwidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MemoryView</class>
-   <extends>QTableView</extends>
-   <header>memoryview.h</header>
   </customwidget>
   <customwidget>
    <class>GoToComboBox</class>
@@ -190,6 +193,12 @@
    <class>RWJumpWidget</class>
    <extends>QWidget</extends>
    <header>rwjumpwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MemoryViewerWidget</class>
+   <extends>QWidget</extends>
+   <header>memoryviewerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

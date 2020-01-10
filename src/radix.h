@@ -18,13 +18,13 @@ static const auto binRegex = QRegExp("0[bB][0-1]+");
 static const auto unsignedRegex = QRegExp("[0-9]+");
 static const auto signedRegex = QRegExp("[-]*[0-9]+");
 
-static QString encodeRadixValue(uint32_t value, const Radix type) {
+static QString encodeRadixValue(uint32_t value, const Radix type, unsigned width = 32) {
     switch (type) {
         case Radix::Hex: {
-            return "0x" + QString::number(value, 16).rightJustified(32 / 4, '0');
+            return "0x" + QString::number(value, 16).rightJustified(width / 4, '0');
         }
         case Radix::Binary: {
-            return "0b" + QString::number(value, 2).rightJustified(32, '0');
+            return "0b" + QString::number(value, 2).rightJustified(width, '0');
         }
         case Radix::Unsigned: {
             return QString::number(value, 10);

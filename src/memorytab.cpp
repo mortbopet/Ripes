@@ -9,13 +9,18 @@
 
 #include "pipeline.h"
 
-MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::MemoryTab) {
+MemoryTab::MemoryTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
+    : RipesTab(toolbar, parent), m_handler(handler), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
     // Add display types to display comboboxes
     for (const auto& type : displayTypes.keys()) {
         m_ui->memorydisplaytype->insertItem(0, type, displayTypes[type]);
     }
+
+    m_ui->memoryViewerWidget->setHandler(&m_handler);
+    m_ui->memoryViewerWidget->updateModel();
+    m_ui->memoryViewerWidget->updateView();
 
     m_ui->memorydisplaytype->setCurrentIndex(displayTypeN::Hex);
 }
@@ -98,6 +103,7 @@ void MemoryTab::initializeMemoryView() {
 void MemoryTab::update() {
     m_model->updateModel();
     m_ui->rwjumpwidget->updateModel();
+    m_ui->memoryViewerWidget->updateView();
 }
 
 void MemoryTab::jumpToAdress(uint32_t address) {

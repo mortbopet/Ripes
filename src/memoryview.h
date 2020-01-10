@@ -20,10 +20,11 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 public slots:
-    void setVisibleRows();
+    void setVisibleRows() {}
 
 signals:
     void scrolled(bool dir);
+    void resized();
 
 private:
     int m_rowHeight = 0;
