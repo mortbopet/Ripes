@@ -47,7 +47,7 @@ private:
     QVariant tooltipData(unsigned idx) const;
     ProcessorHandler& m_handler;
 
-    Radix m_radix = Radix::Unsigned;
+    Radix m_radix = Radix::Hex;
 
     int m_mostRecentlyModifiedReg = -1;
     std::vector<uint32_t> m_regValues;

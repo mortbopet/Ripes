@@ -58,9 +58,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_stackedTabs, &QStackedWidget::currentChanged, this, &MainWindow::tabChanged);
     tabChanged();
 
-    // Setup tab pointers
-    m_memoryTab->initMemoryTab();
-
     setupMenus();
 
     // setup and connect widgets

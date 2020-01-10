@@ -19,10 +19,11 @@ public:
     void updateModel();
     void setHandler(ProcessorHandler* handler);
 
-    NewMemoryModel* m_memoryModel = nullptr;
+    MemoryModel* m_memoryModel = nullptr;
 
 public slots:
     void updateView();
+    void setCentralAddress(uint32_t address);
 
 private:
     Ui::MemoryViewerWidget* m_ui;

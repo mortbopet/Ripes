@@ -15,12 +15,10 @@ GoToComboBox::GoToComboBox(QWidget* parent) : QComboBox(parent) {
     addItem("Data", DATASTART);
     addItem("Stack", STACKSTART);
 
-    // connect to a "signal filter"
     connect(this, QOverload<int>::of(&GoToComboBox::activated), this, &GoToComboBox::signalFilter);
 }
 
 void GoToComboBox::signalFilter(int index) {
-    // Get modifier keys
     switch (index) {
         case 0:
             return;  // "select" has been clicked
@@ -43,12 +41,4 @@ void GoToComboBox::signalFilter(int index) {
     blockSignals(true);
     setCurrentIndex(0);
     blockSignals(false);
-}
-
-ComboboxDelegate::ComboboxDelegate(QWidget* parent) : QItemDelegate(parent) {}
-
-void ComboboxDelegate::mousePressEvent(QMouseEvent* event) {
-    auto modifier = event->modifiers();
-    if (modifier == Qt::ShiftModifier) {
-    }
 }

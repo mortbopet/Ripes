@@ -3,6 +3,7 @@
 
 #include <QTableView>
 
+#include "gotocombobox.h"
 #include "memorymodel.h"
 
 MemoryViewerWidget::MemoryViewerWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryViewerWidget) {
@@ -18,6 +19,10 @@ void MemoryViewerWidget::setHandler(ProcessorHandler* handler) {
     updateModel();
 }
 
+void MemoryViewerWidget::setCentralAddress(uint32_t address) {
+    m_memoryModel->setCentralAddress(address);
+}
+
 void MemoryViewerWidget::updateView() {
     m_memoryModel->processorWasClocked();
 }
@@ -25,10 +30,10 @@ void MemoryViewerWidget::updateView() {
 void MemoryViewerWidget::updateModel() {
     auto* oldModel = m_memoryModel;
 
-    m_memoryModel = new NewMemoryModel(*m_handler, this);
+    m_memoryModel = new MemoryModel(*m_handler, this);
     m_ui->memoryView->setModel(m_memoryModel);
     m_ui->radixSelector->setRadix(m_memoryModel->getRadix());
-    connect(m_ui->radixSelector, &RadixSelectorWidget::radixChanged, m_memoryModel, &NewMemoryModel::setRadix);
+    connect(m_ui->radixSelector, &RadixSelectorWidget::radixChanged, m_memoryModel, &MemoryModel::setRadix);
 
     // Connect scroll events on the view to modify the center address of the model
     connect(m_ui->memoryView, &MemoryView::scrolled, [=](bool dir) {
@@ -44,8 +49,9 @@ void MemoryViewerWidget::updateModel() {
         const auto rows = m_ui->memoryView->height() / m_ui->memoryView->rowHeight(0);
         m_memoryModel->setRowsVisible(rows);
     });
+    connect(m_ui->gotoCombobox, &GoToComboBox::jumpToAddress, m_memoryModel, &MemoryModel::setCentralAddress);
 
-    m_ui->memoryView->horizontalHeader()->setSectionResizeMode(NewMemoryModel::Address, QHeaderView::Stretch);
+    m_ui->memoryView->horizontalHeader()->setSectionResizeMode(MemoryModel::Address, QHeaderView::Stretch);
 
     if (oldModel) {
         delete oldModel;
