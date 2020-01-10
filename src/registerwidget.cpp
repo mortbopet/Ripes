@@ -3,9 +3,10 @@
 
 #include <QScrollBar>
 
+#include "radixselectorwidget.h"
+
 RegisterWidget::RegisterWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::RegisterWidget) {
     m_ui->setupUi(this);
-    setupRadixComboBox();
 }
 
 RegisterWidget::~RegisterWidget() {
@@ -17,35 +18,14 @@ void RegisterWidget::setHandler(ProcessorHandler* handler) {
     updateModel();
 }
 
-void RegisterWidget::setupRadixComboBox() {
-    for (const auto& rt : s_radixName) {
-        m_ui->displayMode->addItem(rt.second, QVariant::fromValue(rt.first));
-    }
-
-    connect(m_ui->displayMode, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        Radix r = qvariant_cast<Radix>(m_ui->displayMode->itemData(index));
-        m_registerModel->setRadix(r);
-    });
-}
-
-void RegisterWidget::updateRadixComboBoxIndex() {
-    // Synchronize the index of the radix selection combo box with the radix currently set in the model
-    for (int i = 0; i < m_ui->displayMode->count(); i++) {
-        const Radix itemRadix = qvariant_cast<Radix>(m_ui->displayMode->itemData(i));
-        if (m_registerModel->getRadix() == itemRadix) {
-            m_ui->displayMode->setCurrentIndex(i);
-            return;
-        }
-    }
-}
-
 void RegisterWidget::updateModel() {
     auto* oldModel = m_registerModel;
 
     m_registerModel = new RegisterModel(*m_handler, this);
     m_ui->registerView->setModel(m_registerModel);
-    updateRadixComboBoxIndex();
+    m_ui->radixSelector->setRadix(m_registerModel->getRadix());
     connect(m_registerModel, &RegisterModel::registerChanged, this, &RegisterWidget::setRegisterviewCenterIndex);
+    connect(m_ui->radixSelector, &RadixSelectorWidget::radixChanged, m_registerModel, &RegisterModel::setRadix);
 
     m_ui->registerView->horizontalHeader()->setSectionResizeMode(RegisterModel::Name, QHeaderView::ResizeToContents);
     m_ui->registerView->horizontalHeader()->setSectionResizeMode(RegisterModel::Alias, QHeaderView::ResizeToContents);

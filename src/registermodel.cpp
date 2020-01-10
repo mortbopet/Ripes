@@ -10,7 +10,7 @@ RegisterModel::RegisterModel(ProcessorHandler& handler, QObject* parent)
 std::vector<uint32_t> RegisterModel::gatherRegisterValues() {
     std::vector<uint32_t> vals;
     for (int i = 0; i < rowCount(); i++) {
-        vals.push_back(valueData(i).toUInt());
+        vals.push_back(m_handler.getRegisterValue(i));
     }
     return vals;
 }

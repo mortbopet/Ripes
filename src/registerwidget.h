@@ -27,9 +27,6 @@ public slots:
     void setRegisterviewCenterIndex(unsigned index);
 
 private:
-    void setupRadixComboBox();
-    void updateRadixComboBoxIndex();
-
     Ui::RegisterWidget* m_ui;
     ProcessorHandler* m_handler = nullptr;
 };
