@@ -27,7 +27,7 @@ public:
      * @brief implementsISA
      * @return ISA which this processor implements
      */
-    virtual const ISAInfoBase& implementsISA() const = 0;
+    virtual const ISAInfoBase* implementsISA() const = 0;
 
     /**
      * @brief stageCount
@@ -64,7 +64,7 @@ public:
 
     /**
      * @brief getMemory
-     * @return pointer to the address space utilized by the implementing processor
+     * @return reference to the address space utilized by the implementing processor
      */
     virtual vsrtl::SparseArray& getMemory() = 0;
 
@@ -73,6 +73,12 @@ public:
      * @return value currently present in register @p i
      */
     virtual unsigned int getRegister(unsigned i) = 0;
+
+    /**
+     * @brief getRegisters
+     * @return reference to the register address space utilized by the implementing processor
+     */
+    virtual vsrtl::SparseArray& getRegisters() = 0;
 
     /**
      * @brief setRegister

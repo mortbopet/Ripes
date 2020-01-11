@@ -17,7 +17,7 @@ public:
     explicit ProcessorSelectionDialog(const ProcessorHandler& handler, QWidget* parent = nullptr);
     ~ProcessorSelectionDialog();
 
-    ProcessorID selectedID;
+    ProcessorSetup selectedSetup;
 
 public slots:
     virtual void accept() override;

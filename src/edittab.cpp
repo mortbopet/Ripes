@@ -25,7 +25,7 @@ EditTab::EditTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
     connect(m_ui->binaryedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->assemblyedit->verticalScrollBar(),
             &QScrollBar::setValue);
 
-    m_assembler = new Assembler();
+    m_assembler = new Assembler(handler);
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
 }

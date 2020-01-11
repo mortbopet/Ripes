@@ -155,7 +155,7 @@ void ProcessorTab::processorSelection() {
     if (diag.exec()) {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
-        m_handler.selectProcessor(diag.selectedID);
+        m_handler.selectProcessor(diag.selectedSetup);
         m_vsrtlWidget->setDesign(m_handler.getProcessor());
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
@@ -250,7 +250,7 @@ void ProcessorTab::reset() {
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
-    const auto index = address / m_handler.getProcessor()->implementsISA().bytes();
+    const auto index = address / m_handler.getProcessor()->implementsISA()->bytes();
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
     int indexTop = view->indexAt(rect.topLeft()).row();

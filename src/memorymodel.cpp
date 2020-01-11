@@ -7,7 +7,7 @@ MemoryModel::MemoryModel(ProcessorHandler& handler, QObject* parent)
     : QAbstractTableModel(parent), m_handler(handler) {}
 
 int MemoryModel::columnCount(const QModelIndex&) const {
-    return 1 /* address column */ + m_handler.getProcessor()->implementsISA().bytes() /* byte columns */;
+    return 1 /* address column */ + m_handler.getProcessor()->implementsISA()->bytes() /* byte columns */;
 }
 
 int MemoryModel::rowCount(const QModelIndex&) const {
@@ -21,13 +21,13 @@ void MemoryModel::processorWasClocked() {
 }
 
 void MemoryModel::setCentralAddress(uint32_t address) {
-    address = address - (address % m_handler.getProcessor()->implementsISA().bytes());
+    address = address - (address % m_handler.getProcessor()->implementsISA()->bytes());
     m_centralAddress = address;
     processorWasClocked();
 }
 
 void MemoryModel::offsetCentralAddress(int rowOffset) {
-    const int byteOffset = rowOffset * m_handler.getProcessor()->implementsISA().bytes();
+    const int byteOffset = rowOffset * m_handler.getProcessor()->implementsISA()->bytes();
     const long long newCenterAddress = static_cast<long long>(m_centralAddress) + byteOffset;
     m_centralAddress = newCenterAddress < 0 ? m_centralAddress : newCenterAddress;
     processorWasClocked();
@@ -57,7 +57,7 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
     if (role == Qt::TextAlignmentRole)
         return Qt::AlignCenter;
 
-    const auto bytes = m_handler.getProcessor()->implementsISA().bytes();
+    const auto bytes = m_handler.getProcessor()->implementsISA()->bytes();
     const long long alignedAddress = static_cast<long long>(m_centralAddress) +
                                      ((((m_rowsVisible * bytes) / 2) / bytes) * bytes) - (index.row() * bytes);
     const unsigned byteOffset = index.column() - 1;

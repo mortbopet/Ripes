@@ -15,6 +15,7 @@ const static std::map<Radix, QString> s_radixName = {{Radix::Hex, "Hex"},
 Q_DECLARE_METATYPE(Radix);
 
 static const auto hexRegex = QRegExp("0[xX][0-9a-fA-F]+");
+static const auto hexRegex32 = QRegExp("0[xX][0-9a-fA-F]{0,8}");
 static const auto binRegex = QRegExp("0[bB][0-1]+");
 static const auto unsignedRegex = QRegExp("[0-9]+");
 static const auto signedRegex = QRegExp("[-]*[0-9]+");

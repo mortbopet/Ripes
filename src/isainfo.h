@@ -17,6 +17,8 @@ public:
     virtual bool regIsReadOnly(unsigned i) const = 0;
     virtual unsigned bits() const = 0;
     unsigned bytes() const { return bits() / CHAR_BIT; }
+    virtual int spReg() const { return -1; }  // Stack pointer
+    virtual int gpReg() const { return -1; }  // Global pointer
 
 protected:
     ISAInfoBase() {}
@@ -25,7 +27,7 @@ protected:
 template <ISA isa>
 class ISAInfo : public ISAInfoBase {
 public:
-    static ISAInfo<isa>& instance();
+    static const ISAInfo<isa>* instance();
 
 private:
     ISAInfo<isa>() {}
@@ -85,9 +87,9 @@ const static QStringList RVRegDescs = QStringList() << "Hard-Wired zero"
 template <>
 class ISAInfo<ISA::RV32IM> : public ISAInfoBase {
 public:
-    static ISAInfo<ISA::RV32IM>& instance() {
+    static const ISAInfo<ISA::RV32IM>* instance() {
         static ISAInfo<ISA::RV32IM> pr;
-        return pr;
+        return &pr;
     }
 
     QString name() const { return "RV32IM"; }
@@ -98,4 +100,6 @@ public:
     QString regInfo(unsigned i) const override { return RVRegDescs.at(i); }
     bool regIsReadOnly(unsigned i) const override { return i == 0; }
     unsigned int bits() const override { return 32; }
+    int spReg() const override { return 2; }
+    int gpReg() const override { return 3; }
 };

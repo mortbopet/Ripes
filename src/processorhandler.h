@@ -18,14 +18,14 @@ public:
     /// @todo: this should return a const ptr - ONLY the processorhandler is allowed to modify the state of the
     /// processor
     Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
-    ProcessorID currentID() const { return m_currentProcessorID; }
+    const ProcessorSetup& getSetup() const { return m_currentSetup; }
 
     /**
      * @brief selectProcessor
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
      * RipesProcessor interface.
      */
-    void selectProcessor(const ProcessorID id);
+    void selectProcessor(const ProcessorSetup& id);
 
     /**
      * @brief checkValidExecutionRange
@@ -106,8 +106,7 @@ private slots:
     void processorFinished();
 
 private:
-    static constexpr ProcessorID defaultProcessor = ProcessorID::RISCV_SS;
-    ProcessorID m_currentProcessorID = defaultProcessor;
+    ProcessorSetup m_currentSetup = ProcessorRegistry::getDescription(ProcessorID::RISCV_SS).defaultSetup;
     std::unique_ptr<Ripes::RipesProcessor> m_currentProcessor;
 
     /**

@@ -16,6 +16,7 @@ MemoryViewerWidget::~MemoryViewerWidget() {
 
 void MemoryViewerWidget::setHandler(ProcessorHandler* handler) {
     m_handler = handler;
+    m_ui->gotoCombobox->setHandler(handler);
     updateModel();
 }
 
