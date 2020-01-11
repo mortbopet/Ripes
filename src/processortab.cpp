@@ -235,7 +235,7 @@ void ProcessorTab::enableSimulatorControls() {
     m_clockAction->setEnabled(true);
     m_autoClockAction->setEnabled(true);
     m_runAction->setEnabled(true);
-    m_reverseAction->setEnabled(true);
+    m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
     m_resetAction->setEnabled(true);
 }
 
@@ -274,6 +274,7 @@ void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
     m_handler.checkValidExecutionRange();
     m_handler.checkBreakpoint();
+    m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
 
     auto pipeline = Pipeline::getPipeline();
     auto state = pipeline->step();
