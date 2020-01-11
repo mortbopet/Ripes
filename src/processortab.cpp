@@ -250,17 +250,19 @@ void ProcessorTab::reset() {
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
-    const auto row = address / 4;
-    const auto instructionView = m_ui->instructionView;
-    const auto rect = instructionView->rect();
-    const int indexTop = instructionView->indexAt(rect.topLeft()).row();
-    const int indexBot = instructionView->indexAt(rect.bottomLeft()).row();
-    const int nItems = indexBot - indexTop;
+    const auto index = address / m_handler.getProcessor()->implementsISA().bytes();
+    const auto view = m_ui->instructionView;
+    const auto rect = view->rect();
+    int indexTop = view->indexAt(rect.topLeft()).row();
+    int indexBot = view->indexAt(rect.bottomLeft()).row();
+    indexBot = indexBot < 0 ? m_instrModel->rowCount() : indexBot;
+
+    const int nItemsVisible = indexBot - indexTop;
 
     // move scrollbar if if is not visible
-    if (row <= indexTop || row >= indexBot) {
-        auto scrollbar = m_ui->instructionView->verticalScrollBar();
-        scrollbar->setValue(row - nItems / 2);
+    if (index <= indexTop || index >= indexBot) {
+        auto scrollbar = view->verticalScrollBar();
+        scrollbar->setValue(index - nItemsVisible / 2);
     }
 }
 
