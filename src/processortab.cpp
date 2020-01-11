@@ -74,21 +74,21 @@ void ProcessorTab::setupSimulatorActions() {
     m_toolbar->addSeparator();
 
     const QIcon resetIcon = QIcon(":/icons/reset.svg");
-    m_resetAction = new QAction(resetIcon, "Reset (F4)", this);
+    m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
     connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
-    m_resetAction->setShortcut(QKeySequence("F4"));
+    m_resetAction->setShortcut(QKeySequence("F3"));
     m_toolbar->addAction(m_resetAction);
 
     const QIcon reverseIcon = QIcon(":/icons/rewind.svg");
-    m_reverseAction = new QAction(reverseIcon, "Rewind (F5)", this);
+    m_reverseAction = new QAction(reverseIcon, "Rewind (F4)", this);
     connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::rewind);
-    m_reverseAction->setShortcut(QKeySequence("F5"));
+    m_reverseAction->setShortcut(QKeySequence("F4"));
     m_toolbar->addAction(m_reverseAction);
 
     const QIcon clockIcon = QIcon(":/icons/step.svg");
-    m_clockAction = new QAction(clockIcon, "Clock (F6)", this);
+    m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
     connect(m_clockAction, &QAction::triggered, this, &ProcessorTab::clock);
-    m_clockAction->setShortcut(QKeySequence("F6"));
+    m_clockAction->setShortcut(QKeySequence("F5"));
     m_toolbar->addAction(m_clockAction);
 
     QTimer* timer = new QTimer();
@@ -96,8 +96,8 @@ void ProcessorTab::setupSimulatorActions() {
 
     const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
     const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
-    m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F7)", this);
-    m_autoClockAction->setShortcut(QKeySequence("F7"));
+    m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
+    m_autoClockAction->setShortcut(QKeySequence("F6"));
     m_autoClockAction->setCheckable(true);
     connect(m_autoClockAction, &QAction::toggled, [=](bool checked) {
         if (!checked) {
