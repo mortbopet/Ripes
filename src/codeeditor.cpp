@@ -14,6 +14,8 @@
 
 #include <iterator>
 
+#include "processorhandler.h"
+
 CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     m_lineNumberArea = new LineNumberArea(this);
     m_breakpointArea = new BreakpointArea(this);
@@ -107,7 +109,7 @@ void CodeEditor::updateTooltip(int line, QString tip) {
 }
 
 void CodeEditor::clearBreakpoints() {
-    m_handler->clearBreakpoints();
+    ProcessorHandler::get()->clearBreakpoints();
 }
 
 bool CodeEditor::event(QEvent* event) {
@@ -217,13 +219,13 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
     if (m_breakpointAreaEnabled) {
         QTextBlock block = firstVisibleBlock();
-        uint32_t address = block.blockNumber() * m_handler->getProcessor()->implementsISA()->bytes();
+        uint32_t address = block.blockNumber() * ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
         int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
         int bottom = top + (int)blockBoundingRect(block).height();
 
         while (block.isValid() && top <= event->rect().bottom()) {
             if (block.isVisible() && bottom >= event->rect().top()) {
-                if (m_handler->hasBreakpoint(address)) {
+                if (ProcessorHandler::get()->hasBreakpoint(address)) {
                     painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
                                        m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
                 }
@@ -232,7 +234,7 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
             block = block.next();
             top = bottom;
             bottom = top + (int)blockBoundingRect(block).height();
-            address += m_handler->getProcessor()->implementsISA()->bytes();
+            address += ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
         }
     }
 }
@@ -273,8 +275,9 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
             return;
 
         // Toggle breakpoint
-        const uint32_t address = block.blockNumber() * m_handler->getProcessor()->implementsISA()->bytes();
-        m_handler->toggleBreakpoint(address);
+        const uint32_t address =
+            block.blockNumber() * ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
+        ProcessorHandler::get()->toggleBreakpoint(address);
         repaint();
     }
 }

@@ -3,7 +3,6 @@
 #include <QWidget>
 
 #include "memorymodel.h"
-#include "processorhandler.h"
 
 namespace Ui {
 class MemoryViewerWidget;
@@ -17,7 +16,6 @@ public:
     ~MemoryViewerWidget();
 
     void updateModel();
-    void setHandler(ProcessorHandler* handler);
 
     MemoryModel* m_memoryModel = nullptr;
 
@@ -27,5 +25,4 @@ public slots:
 
 private:
     Ui::MemoryViewerWidget* m_ui;
-    ProcessorHandler* m_handler = nullptr;
 };

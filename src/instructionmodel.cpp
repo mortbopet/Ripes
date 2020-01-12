@@ -10,10 +10,9 @@ uint32_t indexToAddress(const QModelIndex& index) {
 }
 }  // namespace
 
-InstructionModel::InstructionModel(ProcessorHandler& handler, QObject* parent)
-    : QAbstractTableModel(parent), m_handler(handler) {
-    for (int i = 0; i < m_handler.getProcessor()->stageCount(); i++) {
-        m_stageNames << m_handler.getProcessor()->stageName(i);
+InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
+    for (int i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
+        m_stageNames << ProcessorHandler::get()->getProcessor()->stageName(i);
         m_stageInfos[m_stageNames.last()];
     }
 }
@@ -38,11 +37,11 @@ void InstructionModel::gatherStageInfo() {
     bool firstStageChanged = false;
     for (int i = 0; i < m_stageNames.length(); i++) {
         if (i == 0) {
-            if (m_stageInfos[m_stageNames[i]].pc != m_handler.getProcessor()->stageInfo(i).pc) {
+            if (m_stageInfos[m_stageNames[i]].pc != ProcessorHandler::get()->getProcessor()->stageInfo(i).pc) {
                 firstStageChanged = true;
             }
         }
-        m_stageInfos[m_stageNames[i]] = m_handler.getProcessor()->stageInfo(i);
+        m_stageInfos[m_stageNames[i]] = ProcessorHandler::get()->getProcessor()->stageInfo(i);
         if (firstStageChanged) {
             emit firstStageInstrChanged(m_stageInfos[m_stageNames[0]].pc);
             firstStageChanged = false;
@@ -54,7 +53,7 @@ bool InstructionModel::setData(const QModelIndex& index, const QVariant& value, 
     const uint32_t addr = indexToAddress(index);
     if ((index.column() == Column::Breakpoint) && role == Qt::CheckStateRole) {
         if (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked) {
-            m_handler.setBreakpoint(addr, !m_handler.hasBreakpoint(addr));
+            ProcessorHandler::get()->setBreakpoint(addr, !ProcessorHandler::get()->hasBreakpoint(addr));
             return true;
         }
     }
@@ -80,7 +79,7 @@ QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, 
 }
 
 QVariant InstructionModel::BPData(uint32_t addr) const {
-    return m_handler.hasBreakpoint(addr);
+    return ProcessorHandler::get()->hasBreakpoint(addr);
 }
 QVariant InstructionModel::PCData(uint32_t addr) const {
     return addr;
@@ -95,7 +94,7 @@ QVariant InstructionModel::stageData(uint32_t addr) const {
 }
 
 QVariant InstructionModel::instructionData(uint32_t addr) const {
-    return m_handler.parseInstrAt(addr);
+    return ProcessorHandler::get()->parseInstrAt(addr);
 }
 
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {

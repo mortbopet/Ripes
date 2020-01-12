@@ -13,15 +13,10 @@ RegisterWidget::~RegisterWidget() {
     delete m_ui;
 }
 
-void RegisterWidget::setHandler(ProcessorHandler* handler) {
-    m_handler = handler;
-    updateModel();
-}
-
 void RegisterWidget::updateModel() {
     auto* oldModel = m_registerModel;
 
-    m_registerModel = new RegisterModel(*m_handler, this);
+    m_registerModel = new RegisterModel(this);
     m_ui->registerView->setModel(m_registerModel);
     m_ui->radixSelector->setRadix(m_registerModel->getRadix());
     connect(m_registerModel, &RegisterModel::registerChanged, this, &RegisterWidget::setRegisterviewCenterIndex);

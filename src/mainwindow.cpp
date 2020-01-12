@@ -26,26 +26,23 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowIcon(QIcon(":/icons/logo.svg"));
     showMaximized();
 
-    // Setup processor handler
-    m_processorHandler = new ProcessorHandler();
-
     // Create tabs
     m_stackedTabs = new QStackedWidget(this);
     m_ui->centrallayout->addWidget(m_stackedTabs);
 
     auto* tb = addToolBar("Edit");
     tb->setVisible(false);
-    m_editTab = new EditTab(*m_processorHandler, tb, this);
+    m_editTab = new EditTab(tb, this);
     m_stackedTabs->insertWidget(0, m_editTab);
 
     tb = addToolBar("Processor");
     tb->setVisible(false);
-    m_processorTab = new ProcessorTab(*m_processorHandler, tb, this);
+    m_processorTab = new ProcessorTab(tb, this);
     m_stackedTabs->insertWidget(1, m_processorTab);
 
     tb = addToolBar("Processor");
     tb->setVisible(false);
-    m_memoryTab = new MemoryTab(*m_processorHandler, tb, this);
+    m_memoryTab = new MemoryTab(tb, this);
     m_stackedTabs->insertWidget(2, m_memoryTab);
 
     // Setup tab bar
@@ -66,12 +63,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
     connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
-    connect(m_editTab, &EditTab::programChanged, m_processorHandler, &ProcessorHandler::loadProgram);
+    connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
 
-    connect(m_processorHandler, &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
-    connect(m_processorHandler, &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
-    connect(m_processorHandler, &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
-    connect(m_processorHandler, &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
+    connect(ProcessorHandler::get(), &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
+    connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
 
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);

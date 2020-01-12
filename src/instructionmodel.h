@@ -16,7 +16,7 @@ class InstructionModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Breakpoint = 0, PC = 1, Stage = 2, Instruction = 3, NColumns };
-    InstructionModel(ProcessorHandler& handler, QObject* parent = nullptr);
+    InstructionModel(QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -48,8 +48,6 @@ private:
 
     QStringList m_stageNames;
     std::map<QString, Ripes::StageInfo> m_stageInfos;
-
-    ProcessorHandler& m_handler;
 };
 
 #endif  // INSTRUCTIONMODEL_H

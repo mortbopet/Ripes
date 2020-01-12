@@ -9,7 +9,7 @@ class MemoryModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Address = 0 };
-    MemoryModel(ProcessorHandler& handler, QObject* parent = nullptr);
+    MemoryModel(QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -32,7 +32,6 @@ private:
     QVariant addrData(long long address) const;
     QVariant byteData(long long address, unsigned byteOffset) const;
     QVariant fgColorData(long long address, unsigned byteOffset) const;
-    ProcessorHandler& m_handler;
 
     Radix m_radix = Radix::Hex;
 

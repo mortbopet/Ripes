@@ -4,10 +4,11 @@
 #include <QDialogButtonBox>
 #include <QListWidget>
 
+#include "processorhandler.h"
 #include "radix.h"
 
-ProcessorSelectionDialog::ProcessorSelectionDialog(const ProcessorHandler& handler, QWidget* parent)
-    : QDialog(parent), m_handler(handler), ui(new Ui::ProcessorSelectionDialog) {
+ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
+    : QDialog(parent), ui(new Ui::ProcessorSelectionDialog) {
     ui->setupUi(this);
     setWindowTitle("Select Processor");
 
@@ -15,7 +16,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(const ProcessorHandler& handl
     for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         QListWidgetItem* item = new QListWidgetItem(desc.second.name);
         item->setData(Qt::UserRole, QVariant::fromValue(desc.second.defaultSetup.id));
-        if (desc.second.defaultSetup.id == m_handler.getSetup().id) {
+        if (desc.second.defaultSetup.id == ProcessorHandler::get()->getSetup().id) {
             auto font = item->font();
             font.setBold(true);
             item->setFont(font);
@@ -44,7 +45,7 @@ void ProcessorSelectionDialog::accept() {
     selectedSetup.segmentPtrs[ProgramSegment::Data] = ui->dataPtr->text().toUInt(nullptr, 16);
     selectedSetup.segmentPtrs[ProgramSegment::Stack] = ui->stackPtr->text().toUInt(nullptr, 16);
 
-    if (id != m_handler.getSetup().id) {
+    if (id != ProcessorHandler::get()->getSetup().id) {
         // New processor model was selected
         return QDialog::accept();
     } else {

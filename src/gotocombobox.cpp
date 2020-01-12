@@ -14,17 +14,13 @@ GoToComboBox::GoToComboBox(QWidget* parent) : QComboBox(parent) {
     connect(this, QOverload<int>::of(&GoToComboBox::activated), this, &GoToComboBox::signalFilter);
 }
 
-void GoToComboBox::setHandler(ProcessorHandler* handler) {
-    m_handler = handler;
-}
-
 void GoToComboBox::showPopup() {
     if (count())
         clear();
 
     addItem("Select", QVariant::fromValue<GoToFunction>(GoToFunction::Select));
     addItem("Address...", QVariant::fromValue<GoToFunction>(GoToFunction::Address));
-    for (const auto& seg : m_handler->getSetup().segmentPtrs) {
+    for (const auto& seg : ProcessorHandler::get()->getSetup().segmentPtrs) {
         addItem(s_programSegmentName.at(seg.first), QVariant::fromValue<ProgramSegment>(seg.first));
     }
     QComboBox::showPopup();
@@ -51,7 +47,7 @@ void GoToComboBox::signalFilter(int index) {
 
     if (value.userType() == QVariant::fromValue(ProgramSegment::Data).userType()) {
         const ProgramSegment seg = qvariant_cast<ProgramSegment>(value);
-        emit jumpToAddress(m_handler->getSetup().segmentPtrs.at(seg));
+        emit jumpToAddress(ProcessorHandler::get()->getSetup().segmentPtrs.at(seg));
     }
 
     clear();

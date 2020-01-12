@@ -4,7 +4,6 @@
 #include <set>
 #include "defines.h"
 #include "mainmemory.h"
-#include "processorhandler.h"
 
 #include "radix.h"
 
@@ -14,7 +13,7 @@ class RegisterModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Name, Alias, Value, NColumns };
-    RegisterModel(ProcessorHandler& handler, QObject* parent = nullptr);
+    RegisterModel(QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -45,7 +44,6 @@ private:
     QVariant aliasData(unsigned idx) const;
     QVariant valueData(unsigned idx) const;
     QVariant tooltipData(unsigned idx) const;
-    ProcessorHandler& m_handler;
 
     Radix m_radix = Radix::Hex;
 

@@ -5,11 +5,9 @@
 
 #include "pipeline.h"
 
-MemoryTab::MemoryTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
-    : RipesTab(toolbar, parent), m_handler(handler), m_ui(new Ui::MemoryTab) {
+MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
-    m_ui->memoryViewerWidget->setHandler(&m_handler);
     m_ui->memoryViewerWidget->updateModel();
     m_ui->memoryViewerWidget->updateView();
 

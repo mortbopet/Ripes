@@ -5,11 +5,10 @@
 
 #include "parser.h"
 #include "pipeline.h"
+#include "processorhandler.h"
 
-EditTab::EditTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
-    : RipesTab(toolbar, parent), m_ui(new Ui::EditTab), m_handler(handler) {
+EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
-    m_ui->binaryedit->setHandler(&m_handler);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
     // translation is complete
@@ -25,7 +24,7 @@ EditTab::EditTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
     connect(m_ui->binaryedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->assemblyedit->verticalScrollBar(),
             &QScrollBar::setValue);
 
-    m_assembler = new Assembler(handler);
+    m_assembler = new Assembler();
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
 }

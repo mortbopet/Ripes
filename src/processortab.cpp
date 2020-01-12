@@ -7,6 +7,7 @@
 #include "instructionmodel.h"
 #include "parser.h"
 #include "pipeline.h"
+#include "processorhandler.h"
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
 #include "registermodel.h"
@@ -16,21 +17,19 @@
 
 #include "processors/ripesprocessor.h"
 
-ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent)
-    : RipesTab(toolbar, parent), m_handler(handler), m_ui(new Ui::ProcessorTab) {
+ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
     // Load the default processor
-    m_handler.loadProcessorToWidget(m_vsrtlWidget);
+    ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
 
     updateInstructionModel();
-    m_ui->registerWidget->setHandler(&m_handler);
     m_ui->registerWidget->updateModel();
     connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
 
-    connect(&m_handler, &ProcessorHandler::hitBreakpoint, this, &ProcessorTab::pause);
+    connect(ProcessorHandler::get(), &ProcessorHandler::hitBreakpoint, this, &ProcessorTab::pause);
 
     setupSimulatorActions();
 
@@ -151,12 +150,12 @@ void ProcessorTab::pause() {
 }
 
 void ProcessorTab::processorSelection() {
-    ProcessorSelectionDialog diag(m_handler);
+    ProcessorSelectionDialog diag;
     if (diag.exec()) {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
-        m_handler.selectProcessor(diag.selectedSetup);
-        m_handler.loadProcessorToWidget(m_vsrtlWidget);
+        ProcessorHandler::get()->selectProcessor(diag.selectedSetup);
+        ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
         update();
@@ -165,7 +164,7 @@ void ProcessorTab::processorSelection() {
 
 void ProcessorTab::updateInstructionModel() {
     auto* oldModel = m_instrModel;
-    m_instrModel = new InstructionModel(m_handler, this);
+    m_instrModel = new InstructionModel(this);
 
     // Update the instruction view according to the newly created model
     m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -250,7 +249,7 @@ void ProcessorTab::reset() {
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
-    const auto index = address / m_handler.getProcessor()->implementsISA()->bytes();
+    const auto index = address / ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
     int indexTop = view->indexAt(rect.topLeft()).row();
@@ -274,8 +273,8 @@ void ProcessorTab::rewind() {
 
 void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
-    m_handler.checkValidExecutionRange();
-    m_handler.checkBreakpoint();
+    ProcessorHandler::get()->checkValidExecutionRange();
+    ProcessorHandler::get()->checkBreakpoint();
     m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
 
     auto pipeline = Pipeline::getPipeline();

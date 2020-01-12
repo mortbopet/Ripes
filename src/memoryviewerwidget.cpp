@@ -8,16 +8,11 @@
 
 MemoryViewerWidget::MemoryViewerWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryViewerWidget) {
     m_ui->setupUi(this);
+    updateModel();
 }
 
 MemoryViewerWidget::~MemoryViewerWidget() {
     delete m_ui;
-}
-
-void MemoryViewerWidget::setHandler(ProcessorHandler* handler) {
-    m_handler = handler;
-    m_ui->gotoCombobox->setHandler(handler);
-    updateModel();
 }
 
 void MemoryViewerWidget::setCentralAddress(uint32_t address) {
@@ -31,7 +26,7 @@ void MemoryViewerWidget::updateView() {
 void MemoryViewerWidget::updateModel() {
     auto* oldModel = m_memoryModel;
 
-    m_memoryModel = new MemoryModel(*m_handler, this);
+    m_memoryModel = new MemoryModel(this);
     m_ui->memoryView->setModel(m_memoryModel);
     m_ui->radixSelector->setRadix(m_memoryModel->getRadix());
     connect(m_ui->radixSelector, &RadixSelectorWidget::radixChanged, m_memoryModel, &MemoryModel::setRadix);

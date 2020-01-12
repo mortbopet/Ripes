@@ -14,10 +14,12 @@
  */
 class ProcessorHandler : public QObject {
     Q_OBJECT
-    friend class VSRTLWidget;
 
 public:
-    ProcessorHandler();
+    static ProcessorHandler* get() {
+        static auto* handler = new ProcessorHandler;
+        return handler;
+    }
 
     const Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorSetup& getSetup() const { return m_currentSetup; }
@@ -122,6 +124,8 @@ private slots:
     void processorFinished();
 
 private:
+    ProcessorHandler();
+
     ProcessorSetup m_currentSetup = ProcessorRegistry::getDescription(ProcessorID::RISCV_SS).defaultSetup;
     std::unique_ptr<Ripes::RipesProcessor> m_currentProcessor;
 

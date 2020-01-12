@@ -5,7 +5,6 @@
 #include <map>
 
 #include "assembler.h"
-#include "processorhandler.h"
 #include "program.h"
 #include "ripestab.h"
 
@@ -19,7 +18,7 @@ class EditTab : public RipesTab {
     Q_OBJECT
 
 public:
-    EditTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent = nullptr);
+    EditTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~EditTab() override;
 
     void setAssemblyText(const QString& text);
@@ -49,5 +48,4 @@ private:
 
     Ui::EditTab* m_ui;
     Assembler* m_assembler = nullptr;
-    ProcessorHandler& m_handler;
 };

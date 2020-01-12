@@ -2,6 +2,7 @@
 #include "binutils.h"
 #include "defines.h"
 #include "lexerutilities.h"
+#include "processorhandler.h"
 
 #include <QRegularExpression>
 #include <QTextBlock>
@@ -110,7 +111,7 @@ const static QMap<QString, size_t> DataAssemblerSizes{{".word", 4},  {".half", 2
                                                       {".2byte", 2}, {".4byte", 4}, {".long", 4}};
 }  // namespace
 
-Assembler::Assembler(ProcessorHandler& handler) : m_handler(handler) {}
+Assembler::Assembler() {}
 
 uint32_t Assembler::getRegisterNumber(const QString& reg) {
     // Converts a textual representation of a register to its numeric value
@@ -694,7 +695,7 @@ void Assembler::unpackOp(const QStringList& _fields, int& pos) {
         if (m_inDataSegment) {
             m_labelPosMap[string] =
                 // Offset label by data segment position and length of the data segment
-                m_dataSegment.length() + m_handler.getSetup().segmentPtrs.at(ProgramSegment::Data);
+                m_dataSegment.length() + ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Data);
         } else {
             // The label is in the text segment. Label is defined without an offset
             m_labelPosMap[string] = pos * 4;
@@ -809,7 +810,7 @@ const QByteArray& Assembler::assemble(const QTextDocument& doc) {
 
 const Program Assembler::getProgram() {
     Program p;
-    p.text = {m_handler.getSetup().segmentPtrs.at(ProgramSegment::Text), &m_textSegment};
-    p.others.push_back({m_handler.getSetup().segmentPtrs.at(ProgramSegment::Data), &m_dataSegment});
+    p.text = {ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Text), &m_textSegment};
+    p.others.push_back({ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Data), &m_dataSegment});
     return p;
 }

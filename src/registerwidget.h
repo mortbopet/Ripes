@@ -18,7 +18,6 @@ public:
     ~RegisterWidget();
 
     void updateModel();
-    void setHandler(ProcessorHandler* handler);
 
     RegisterModel* m_registerModel = nullptr;
 
@@ -28,7 +27,6 @@ public slots:
 
 private:
     Ui::RegisterWidget* m_ui;
-    ProcessorHandler* m_handler = nullptr;
 };
 
 #endif  // REGISTERWIDGET_H

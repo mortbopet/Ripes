@@ -4,12 +4,11 @@
 #include <QByteArray>
 #include <QTextDocument>
 
-#include "processorhandler.h"
 #include "program.h"
 
 class Assembler {
 public:
-    Assembler(ProcessorHandler& handler);
+    Assembler();
     const QByteArray& assemble(const QTextDocument& doc);
     bool hasError() { return m_error; }
     bool hasData() { return m_hasData; }
@@ -42,8 +41,6 @@ private:
     bool m_hasData = false;
     bool m_inDataSegment = false;  // Set when stating .data directive. Following instructions will be added to the data
                                    // segment of the program
-
-    ProcessorHandler& m_handler;
 
     // Assembler functions
     void assembleInstruction(const QStringList& fields, int row);

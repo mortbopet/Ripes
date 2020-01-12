@@ -19,7 +19,7 @@ class MemoryTab : public RipesTab {
     Q_OBJECT
 
 public:
-    MemoryTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget* parent = nullptr);
+    MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~MemoryTab() override;
 
 public slots:
@@ -27,7 +27,6 @@ public slots:
 
 private:
     Ui::MemoryTab* m_ui;
-    ProcessorHandler& m_handler;
 };
 
 #endif  // MEMORYTAB_H
