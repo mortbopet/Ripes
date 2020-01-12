@@ -35,17 +35,12 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    QString getInstructionString(uint32_t address) const;
-
-    const QString& loadFromByteArray(QByteArray arr, bool disassembled = true, uint32_t baseAddress = 0x0);
-    void loadFromByteArrayIntoData(QByteArray arr);
+    const QString& loadFromByteArray(QByteArray arr, bool disassembled, uint32_t baseAddress);
     const QString& loadBinaryFile(QString fileName, bool disassembled = true);
     const QString& getBinaryRepr() { return m_binaryRepr; }
     const QString& getDisassembledRepr() { return m_disassembledRepr; }
-    QString getStringAt(uint32_t address) const;
     QByteArray getFileByteArray() { return m_fileByteArray; }
     bool initBinaryFile(char* filename);
-    void parseFile();
 
 private:
     Parser();

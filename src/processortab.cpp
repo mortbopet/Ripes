@@ -6,12 +6,10 @@
 
 #include "instructionmodel.h"
 #include "parser.h"
-#include "pipeline.h"
 #include "processorhandler.h"
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
 #include "registermodel.h"
-#include "rundialog.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
@@ -32,13 +30,6 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     connect(ProcessorHandler::get(), &ProcessorHandler::hitBreakpoint, this, &ProcessorTab::pause);
 
     setupSimulatorActions();
-
-    // Create temporary pipeline widget to reduce changeset during VSRTL integration
-    tmp_pipelineWidget = new PipelineWidget(this);
-
-    // Setup updating signals
-    connect(this, &ProcessorTab::update, tmp_pipelineWidget, &PipelineWidget::update);
-    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateMetrics);
 
     // Connect ECALL functionality to application output log and scroll to bottom
     connect(this, &ProcessorTab::appendToLog, [this](QString string) {
@@ -122,7 +113,7 @@ void ProcessorTab::setupSimulatorActions() {
     const QIcon runIcon = QIcon(":/icons/run.svg");
     m_runAction = new QAction(runIcon, "Run (F8)", this);
     m_runAction->setShortcut(QKeySequence("F8"));
-    connect(m_runAction, &QAction::triggered, this, &ProcessorTab::run);
+    // connect(m_runAction, &QAction::triggered, this, &ProcessorTab::run);
     m_toolbar->addAction(m_runAction);
 
     m_toolbar->addSeparator();
@@ -136,12 +127,12 @@ void ProcessorTab::setupSimulatorActions() {
 
     const QIcon expandIcon = QIcon(":/icons/expand.svg");
     m_fitViewAction = new QAction(expandIcon, "Fit to view", this);
-    connect(m_fitViewAction, &QAction::triggered, this, &ProcessorTab::expandView);
+    // connect(m_fitViewAction, &QAction::triggered, this, &ProcessorTab::expandView);
     m_toolbar->addAction(m_fitViewAction);
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
-    connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showPipeliningTable);
+    // connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showPipeliningTable);
     m_toolbar->addAction(m_pipelineTableAction);
 }
 
@@ -197,19 +188,11 @@ void ProcessorTab::restart() {
     enableSimulatorControls();
 }
 
-void ProcessorTab::updateMetrics() {
-    m_ui->cycleCount->setText(QString::number(Pipeline::getPipeline()->getCycleCount()));
-    m_ui->nInstrExecuted->setText(QString::number(Pipeline::getPipeline()->getInstructionsExecuted()));
-}
-
 ProcessorTab::~ProcessorTab() {
     delete m_ui;
 }
 
-void ProcessorTab::expandView() {
-    tmp_pipelineWidget->expandToView();
-}
-
+/*
 void ProcessorTab::run() {
     m_autoClockAction->setChecked(false);
     auto pipeline = Pipeline::getPipeline();
@@ -221,6 +204,7 @@ void ProcessorTab::run() {
         }
     }
 }
+*/
 
 void ProcessorTab::processorFinished() {
     // Disallow further clocking of the circuit
@@ -241,7 +225,6 @@ void ProcessorTab::enableSimulatorControls() {
 void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
-    Pipeline::getPipeline()->restart();
     emit update();
 
     enableSimulatorControls();
@@ -277,42 +260,10 @@ void ProcessorTab::clock() {
     ProcessorHandler::get()->checkBreakpoint();
     m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
 
-    auto pipeline = Pipeline::getPipeline();
-    auto state = pipeline->step();
-
-    const auto ecallVal = pipeline->checkEcall(true);
-    if (ecallVal.first != Pipeline::ECALL::none) {
-        handleEcall(ecallVal);
-    }
-
     emit update();
 }
 
-bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_val) {
-    // Check if ecall has been invoked
-    switch (ecall_val.first) {
-        case Pipeline::ECALL::none:
-            break;
-        case Pipeline::ECALL::print_string: {
-            // emit appendToLog(Parser::getParser()->getStringAt(static_cast<uint32_t>(ecall_val.second)));
-            break;
-        }
-        case Pipeline::ECALL::print_int: {
-            // emit appendToLog(QString::number(ecall_val.second));
-            break;
-        }
-        case Pipeline::ECALL::print_char: {
-            // emit appendToLog(QChar(ecall_val.second));
-            break;
-        }
-        case Pipeline::ECALL::exit: {
-            return true;  // The simulator will now take a few cycles to stop
-        }
-    }
-
-    return true;  // continue
-}
-
+/*
 void ProcessorTab::showPipeliningTable() {
     // Setup pipeline table window
     PipelineTable window;
@@ -320,3 +271,4 @@ void ProcessorTab::showPipeliningTable() {
     window.setModel(&model);
     window.exec();
 }
+*/

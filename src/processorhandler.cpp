@@ -128,7 +128,9 @@ void ProcessorHandler::selectProcessor(const ProcessorSetup& setup) {
 }
 
 int ProcessorHandler::getCurrentProgramSize() const {
-    return m_program.text.second->size();
+    if (m_program.text.second)
+        return m_program.text.second->size();
+    return 0;
 }
 
 QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {

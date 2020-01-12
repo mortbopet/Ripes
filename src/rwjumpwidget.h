@@ -2,7 +2,6 @@
 #define RWJUMPWIDGET_H
 
 #include <QWidget>
-#include "rwjumpmodel.h"
 
 namespace Ui {
 class RWJumpWidget;
@@ -25,8 +24,6 @@ private slots:
 
 private:
     Ui::RWJumpWidget* ui;
-
-    RWJumpModel* m_model;
 };
 
 #endif  // RWJUMPWIDGET_H

@@ -1,5 +1,4 @@
 #include "pipelinetablemodel.h"
-#include "pipeline.h"
 
 #include "parser.h"
 

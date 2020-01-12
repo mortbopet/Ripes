@@ -8,8 +8,9 @@ RWJumpWidget::RWJumpWidget(QWidget* parent) : QWidget(parent), ui(new Ui::RWJump
 }
 
 void RWJumpWidget::init() {
-    m_model = new RWJumpModel();
-    ui->view->setModel(m_model);
+    return;
+    // m_model = new RWJumpModel();
+    // ui->view->setModel(m_model);
     ui->view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     ui->view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->view->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
@@ -18,7 +19,7 @@ void RWJumpWidget::init() {
 }
 
 void RWJumpWidget::updateModel() {
-    m_model->update();
+    // m_model->update();
 }
 
 RWJumpWidget::~RWJumpWidget() {
@@ -30,6 +31,6 @@ void RWJumpWidget::on_jump_clicked() {
     auto selecter = ui->view->selectionModel();
     if (selecter->hasSelection()) {
         auto indexes = selecter->selectedIndexes();
-        emit jumpToAdress(m_model->data(indexes[0], Qt::UserRole).value<uint32_t>());
+        // emit jumpToAdress(m_model->data(indexes[0], Qt::UserRole).value<uint32_t>());
     }
 }

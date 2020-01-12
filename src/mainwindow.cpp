@@ -59,7 +59,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     // setup and connect widgets
     connect(m_processorTab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
-    connect(m_editTab, &EditTab::updateSimulator, [this] { emit update(); });
     connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
     connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
@@ -132,7 +131,6 @@ void MainWindow::setupMenus() {
 
 void MainWindow::run() {
     // Function for triggering the run dialog from unit tests
-    m_processorTab->run();
 }
 
 MainWindow::~MainWindow() {

@@ -8,12 +8,9 @@
 #include <QWidget>
 
 #include "defines.h"
-#include "pipeline.h"
-#include "pipelinetable.h"
-#include "pipelinetablemodel.h"
+// #include "pipelinetable.h"
+// #include "pipelinetablemodel.h"
 #include "ripestab.h"
-
-#include "graphics/pipelinewidget.h"
 
 namespace Ui {
 class ProcessorTab;
@@ -45,26 +42,21 @@ public slots:
     void restart();
     void reset();
     void rewind();
-    void run();
     void printToLog(const QString&);
     void processorFinished();
 
     void processorSelection();
 
 private slots:
-    void expandView();
     void clock();
     void setInstructionViewCenterAddr(uint32_t address);
-    void showPipeliningTable();
-    void updateMetrics();
+    // void showPipeliningTable();
 
 private:
     void setupSimulatorActions();
     void enableSimulatorControls();
     void updateInstructionModel();
     void updateRegisterModel();
-
-    bool handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecallValue);
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel = nullptr;
@@ -83,8 +75,6 @@ private:
     QAction* m_resetAction = nullptr;
 
     QSpinBox* m_autoClockInterval = nullptr;
-
-    PipelineWidget* tmp_pipelineWidget = nullptr;
 };
 
 #endif  // PROCESSORTAB_H

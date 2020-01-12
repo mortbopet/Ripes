@@ -6,7 +6,6 @@
 
 #include "src/mainwindow.h"
 #include "src/parser.h"
-#include "src/pipeline.h"
 
 using namespace std;
 

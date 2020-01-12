@@ -1,6 +1,5 @@
 #include "parser.h"
 #include "defines.h"
-#include "pipeline.h"
 
 #include <cassert>
 #include <iostream>
@@ -38,37 +37,9 @@ bool Parser::initBinaryFile(char* filename) {
 
 Parser::~Parser() {}
 
-void Parser::parseFile() {
-    // Parse the file in 8-bit segments and write to memory map
-    MainMemory memory;
-    int pc = 0;
-    while (m_fileIter != istreambuf_iterator<char>()) {
-        memory.write(pc, *m_fileIter, 1);
-        pc++;
-        m_fileIter++;
-    }
-    Pipeline::getPipeline()->setBaselineMemory(memory);
-}
-
-QString Parser::getStringAt(uint32_t address) const {
-    // Returns the null-terminated string starting at @address
-    MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
-    QByteArray string;
-    char read;
-    do {
-        read = memPtr->read(address) & 0xff;
-        string.append(read);
-        address++;
-    } while (read != '\0');
-    return QString::fromUtf8(string);
-}
-
 void Parser::clear() {
     m_disassembledRepr.clear();
     m_binaryRepr.clear();
-
-    // Reset the pipeline
-    Pipeline::getPipeline()->reset();
 }
 
 const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
@@ -78,7 +49,6 @@ const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
     QFile file(fileName);
     if (file.open(QIODevice::ReadOnly)) {
         m_fileByteArray = file.readAll();
-        loadFromByteArray(m_fileByteArray);
         file.close();
     }
     if (disassembled) {
@@ -93,7 +63,6 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
     // Baseaddress is default = 0 (text). Can be changed for inserting into ie. data memory
 
     QString output = "";
-    MainMemory memory;
     auto length = arr.length();
     QDataStream in(&arr, QIODevice::ReadOnly);
     char buffer[4];
@@ -103,7 +72,6 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
         QString binaryRepString;
         for (char j : buffer) {
             binaryRepString.prepend(QString().setNum((uint8_t)j, 2).rightJustified(8, '0'));
-            memory.write(byteIndex, j, 1);
             byteIndex++;
         }
         m_binaryRepr.append(binaryRepString).append('\n');
@@ -115,36 +83,10 @@ const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint
     // Remove trailing \n character
     output.truncate(output.lastIndexOf('\n'));
 
-    // Set the initial memory state of the processor
-    Pipeline::getPipeline()->setBaselineMemory(memory);
-
-    // Update the pipeline
-    Pipeline::getPipeline()->update();
-    if (baseAddress == 0)
-        m_disassembledRepr = output;
-
     if (disassembled) {
         return m_disassembledRepr;
     } else {
         return m_binaryRepr;
-    }
-}
-
-void Parser::loadFromByteArrayIntoData(QByteArray arr) {
-    // Loads a byte array into the data segment of the simulator
-    // In this, we do no string convertion etc., which is usually done for generating the disassembled view of the
-    // program
-    auto memPtr = Pipeline::getPipeline()->getDataMemoryPtr();
-    auto length = arr.length();
-    QDataStream in(&arr, QIODevice::ReadOnly);
-    char buffer[4];
-    uint32_t byteIndex = DATASTART;
-    for (int i = 0; i < length; i += 4) {
-        in.readRawData(buffer, 4);
-        for (char & j : buffer) {
-            memPtr->insert({byteIndex, j});
-            byteIndex++;
-        }
     }
 }
 
@@ -385,13 +327,4 @@ QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
     target += (address);
     // Check for misaligned four-byte boundary
     return QString("jal x%1 %2").arg(fields[4]).arg(target);
-}
-
-QString Parser::getInstructionString(uint32_t address) const {
-    MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
-    // Note: If address is not found in memory map, a default constructed object
-    // will be created, and read. in our case uint8_t() = 0
-    uint32_t read = (memPtr->read(address) | (memPtr->read(address + 1) << 8) | (memPtr->read(address + 2) << 16) |
-                     (memPtr->read(address + 3) << 24));
-    return genStringRepr(read, address);
 }

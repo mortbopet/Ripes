@@ -1,10 +1,8 @@
 #include "rwjumpmodel.h"
 
 #include "parser.h"
-#include "pipeline.h"
 
 RWJumpModel::RWJumpModel(QObject* parent) : QAbstractTableModel(parent) {
-    m_pipelinePtr = Pipeline::getPipeline();
     m_parserPtr = Parser::getParser();
 }
 
@@ -28,9 +26,12 @@ QVariant RWJumpModel::headerData(int section, Qt::Orientation orientation, int r
 }
 
 int RWJumpModel::rowCount(const QModelIndex& parent) const {
+    /*
     Q_UNUSED(parent)
     int size = m_pipelinePtr->m_MemoryAccesses.size();
     return size;
+    */
+    return 0;
 }
 
 void RWJumpModel::update() {
@@ -45,7 +46,7 @@ int RWJumpModel::columnCount(const QModelIndex& parent) const {
 }
 
 QVariant RWJumpModel::data(const QModelIndex& index, int role) const {
-    const RVAccess& access = m_pipelinePtr->m_MemoryAccesses[index.row()];
+    // const RVAccess& access = m_pipelinePtr->m_MemoryAccesses[index.row()];
     if (role == Qt::UserRole) {
         // Address is requested for jumping
         return access.addr;
@@ -58,7 +59,7 @@ QVariant RWJumpModel::data(const QModelIndex& index, int role) const {
         case 1:
             return access.pc;
         case 2: {
-            return m_parserPtr->getInstructionString(access.pc);
+            return QString();  // m_parserPtr->getInstructionString(access.pc);
         }
         case 3: {
             return QString("0x%1").arg(QString::number(access.addr, 16));

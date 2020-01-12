@@ -4,7 +4,6 @@
 #include <QMessageBox>
 
 #include "parser.h"
-#include "pipeline.h"
 #include "processorhandler.h"
 
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
@@ -50,10 +49,6 @@ void EditTab::assemble() {
     if (m_ui->assemblyedit->syntaxAccepted()) {
         const QByteArray& ret = m_assembler->assemble(*m_ui->assemblyedit->document());
         if (!m_assembler->hasError()) {
-            assemblingComplete(ret, true, 0x0);
-            if (m_assembler->hasData()) {
-                assemblingComplete(m_assembler->getDataSegment(), false, DATASTART);
-            }
             emitProgramChanged();
         } else {
             QMessageBox err;
@@ -61,10 +56,6 @@ void EditTab::assemble() {
             err.exec();
         }
     }
-
-    // Restart the simulator to trigger the data memory to be loaded into the main memory. Bad code that this is done
-    // from here, but it works
-    Pipeline::getPipeline()->restart();
 }
 
 EditTab::~EditTab() {
@@ -87,23 +78,7 @@ void EditTab::setDisassemblerText() {
     m_ui->binaryedit->setPlainText(text);
 }
 
-void EditTab::assemblingComplete(const QByteArray& data, bool clear, uint32_t baseAddress) {
-    if (clear)
-        Parser::getParser()->clear();
-    // Pretty hacky way to discern between the text and data segments
-    if (baseAddress > 0) {
-        Parser::getParser()->loadFromByteArrayIntoData(data);
-    } else {
-        Parser::getParser()->loadFromByteArray(data, m_ui->disassembledViewButton->isChecked(), baseAddress);
-        setDisassemblerText();
-    }
-    emit updateSimulator();
-}
-
 void EditTab::on_assemblyfile_toggled(bool checked) {
-    // Since we are removing the input text/binary info, we need to reset the pipeline
-    Pipeline::getPipeline()->reset();
-
     if (!checked) {
         // Disable assembly edit when loading binary files
         m_ui->assemblyedit->setEnabled(false);
@@ -126,9 +101,4 @@ void EditTab::setInputMode(bool isAssembly) {
 
 void EditTab::on_disassembledViewButton_toggled(bool checked) {
     Q_UNUSED(checked)
-    // if (m_ui->binaryfile->isChecked()) {
-    //    assemblingComplete(Parser::getParser()->getFileByteArray());
-    //} else {
-    assemblingComplete(getBinaryData());
-    // }
 }

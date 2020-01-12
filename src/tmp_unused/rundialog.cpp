@@ -1,7 +1,6 @@
 #include "rundialog.h"
 #include "ui_rundialog.h"
 
-#include "pipeline.h"
 #include "processortab.h"
 
 #include <QPushButton>

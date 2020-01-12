@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
 
-file(GLOB TST_SOURCES *.cpp)
-
 find_package(Qt5Test REQUIRED)
 
 macro(create_qtest name)

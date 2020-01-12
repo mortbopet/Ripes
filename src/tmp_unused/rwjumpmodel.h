@@ -3,7 +3,6 @@
 
 #include <QAbstractTableModel>
 
-class Pipeline;
 class Parser;
 class RWJumpModel : public QAbstractTableModel {
     Q_OBJECT
@@ -22,7 +21,6 @@ public:
     void update();
 
 private:
-    Pipeline* m_pipelinePtr;
     Parser* m_parserPtr;
 };
 

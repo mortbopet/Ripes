@@ -1,6 +1,5 @@
 #include "instructionmodel.h"
 #include "parser.h"
-#include "pipeline.h"
 
 #include <QHeaderView>
 
@@ -23,7 +22,7 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 
 int InstructionModel::rowCount(const QModelIndex&) const {
     // Each instruction is 4 bytes and each row represents an instruction within the .text segment
-    return Pipeline::getPipeline()->getTextSize() / 4;
+    return ProcessorHandler::get()->getCurrentProgramSize();
 }
 
 void InstructionModel::processorWasClocked() {

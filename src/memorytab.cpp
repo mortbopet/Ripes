@@ -3,8 +3,6 @@
 
 #include <QToolBar>
 
-#include "pipeline.h"
-
 MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
