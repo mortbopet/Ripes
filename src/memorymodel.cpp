@@ -97,7 +97,7 @@ QVariant MemoryModel::addrData(long long address) const {
 }
 
 QVariant MemoryModel::fgColorData(long long address, unsigned byteOffset) const {
-    if (address < 0 || !m_handler.getProcessor()->getMemory().contains(address + byteOffset)) {
+    if (address < 0 || !m_handler.getMemory().contains(address + byteOffset)) {
         return QBrush(Qt::lightGray);
     } else {
         return QVariant();  // default
@@ -107,12 +107,12 @@ QVariant MemoryModel::fgColorData(long long address, unsigned byteOffset) const 
 QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
     if (address < 0) {
         return "-";
-    } else if (!m_handler.getProcessor()->getMemory().contains(address + byteOffset)) {
+    } else if (!m_handler.getMemory().contains(address + byteOffset)) {
         // Dont read the memory (this will create an entry in the memory if done so). Instead, create a "fake" entry in
         // the memory model, containing X's.
         return "X";
     } else {
-        uint32_t value = m_handler.getProcessor()->getMemory().readMem(address);
+        uint32_t value = m_handler.getMemory().readMemConst(address);
         value = value >> (byteOffset * 8);
         return encodeRadixValue(value & 0xFF, m_radix, 8);
     }

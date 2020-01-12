@@ -72,7 +72,7 @@ public:
      * @brief getRegister
      * @return value currently present in register @p i
      */
-    virtual unsigned int getRegister(unsigned i) = 0;
+    virtual unsigned int getRegister(unsigned i) const = 0;
 
     /**
      * @brief getRegisters

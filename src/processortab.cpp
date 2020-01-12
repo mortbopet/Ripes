@@ -23,7 +23,7 @@ ProcessorTab::ProcessorTab(ProcessorHandler& handler, QToolBar* toolbar, QWidget
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
     // Load the default processor
-    m_vsrtlWidget->setDesign(m_handler.getProcessor());
+    m_handler.loadProcessorToWidget(m_vsrtlWidget);
 
     updateInstructionModel();
     m_ui->registerWidget->setHandler(&m_handler);
@@ -156,7 +156,7 @@ void ProcessorTab::processorSelection() {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
         m_handler.selectProcessor(diag.selectedSetup);
-        m_vsrtlWidget->setDesign(m_handler.getProcessor());
+        m_handler.loadProcessorToWidget(m_vsrtlWidget);
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
         update();

@@ -107,7 +107,7 @@ QVariant RegisterModel::data(const QModelIndex& index, int role) const {
     return QVariant();
 }
 
-void RegisterModel::setRadix(Radix r) {
+void RegisterModel::setRadix(::Radix r) {
     m_radix = r;
     processorWasClocked();
 }

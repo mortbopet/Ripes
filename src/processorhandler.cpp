@@ -39,12 +39,24 @@ void ProcessorHandler::loadProgram(const Program& p) {
     emit reqProcessorReset();
 }
 
+const vsrtl::SparseArray& ProcessorHandler::getMemory() const {
+    return m_currentProcessor->getMemory();
+}
+
+const vsrtl::SparseArray& ProcessorHandler::getRegisters() const {
+    return m_currentProcessor->getRegisters();
+}
+
 void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
     if (enabled) {
         m_breakpoints.insert(address);
     } else if (m_breakpoints.count(address)) {
         m_breakpoints.erase(address);
     }
+}
+
+void ProcessorHandler::loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
+    widget->setDesign(m_currentProcessor.get());
 }
 
 bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {

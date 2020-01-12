@@ -5,6 +5,8 @@
 #include "processorregistry.h"
 #include "program.h"
 
+#include "vsrtl_widget.h"
+
 /**
  * @brief The ProcessorHandler class
  * Manages construction and destruction of a VSRTL processor design, when selecting between processors.
@@ -12,13 +14,20 @@
  */
 class ProcessorHandler : public QObject {
     Q_OBJECT
+    friend class VSRTLWidget;
+
 public:
     ProcessorHandler();
 
-    /// @todo: this should return a const ptr - ONLY the processorhandler is allowed to modify the state of the
-    /// processor
-    Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
+    const Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorSetup& getSetup() const { return m_currentSetup; }
+
+    /**
+     * @brief loadProcessorToWidget
+     * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns
+     * a const ptr.
+     */
+    void loadProcessorToWidget(vsrtl::VSRTLWidget* widget);
 
     /**
      * @brief selectProcessor
@@ -46,6 +55,13 @@ public:
      * @return string representation of the instruction at @param addr
      */
     QString parseInstrAt(const uint32_t address) const;
+
+    /**
+     * @brief getMemory & getRegisters
+     * returns const-wrapped references to the current process memory elements
+     */
+    const vsrtl::SparseArray& getMemory() const;
+    const vsrtl::SparseArray& getRegisters() const;
 
     /**
      * @brief setRegisterValue
