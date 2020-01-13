@@ -1,5 +1,4 @@
-#ifndef TABBAR_H
-#define TABBAR_H
+#pragma once
 
 #include <QLabel>
 #include <QListWidget>
@@ -23,5 +22,3 @@ public:
 
     void addTabItem(QString label, QString iconPath);
 };
-
-#endif  // TABBAR_H

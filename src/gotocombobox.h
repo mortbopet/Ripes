@@ -1,5 +1,4 @@
-#ifndef GOTOCOMBOBOX_H
-#define GOTOCOMBOBOX_H
+#pragma once
 
 #include <QComboBox>
 #include <QMetaType>
@@ -22,5 +21,3 @@ public slots:
 private:
     void signalFilter(int index);
 };
-
-#endif  // GOTOCOMBOBOX_H

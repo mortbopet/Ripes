@@ -1,5 +1,4 @@
-#ifndef RADIXSELECTORWIDGET_H
-#define RADIXSELECTORWIDGET_H
+#pragma once
 
 #include <QWidget>
 
@@ -24,5 +23,3 @@ signals:
 private:
     Ui::RadixSelectorWidget* m_ui;
 };
-
-#endif  // RADIXSELECTORWIDGET_H

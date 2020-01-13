@@ -1,5 +1,4 @@
-#ifndef RWJUMPWIDGET_H
-#define RWJUMPWIDGET_H
+#pragma once
 
 #include <QWidget>
 
@@ -25,5 +24,3 @@ private slots:
 private:
     Ui::RWJumpWidget* ui;
 };
-
-#endif  // RWJUMPWIDGET_H

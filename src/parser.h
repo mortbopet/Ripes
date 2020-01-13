@@ -1,5 +1,4 @@
-#ifndef PARSER_H
-#define PARSER_H
+#pragma once
 
 #include <fstream>
 #include <functional>
@@ -76,5 +75,3 @@ private:
     QString generateOpInstrString(uint32_t instr) const;
     QString generateEcallString(uint32_t instr) const;
 };
-
-#endif  // PARSER_H

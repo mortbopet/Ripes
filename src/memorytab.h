@@ -1,5 +1,4 @@
-#ifndef MEMORYTAB_H
-#define MEMORYTAB_H
+#pragma once
 
 #include "defines.h"
 
@@ -28,5 +27,3 @@ public slots:
 private:
     Ui::MemoryTab* m_ui;
 };
-
-#endif  // MEMORYTAB_H

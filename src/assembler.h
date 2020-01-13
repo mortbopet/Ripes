@@ -1,5 +1,4 @@
-#ifndef ASSEMBLER_H
-#define ASSEMBLER_H
+#pragma once
 
 #include <QByteArray>
 #include <QTextDocument>
@@ -52,5 +51,3 @@ private:
     QByteArray assembleAuipcInstruction(const QStringList& fields, int row);
     QByteArray assembleJalrInstruction(const QStringList& fields, int row);
 };
-
-#endif  // ASSEMBLER_H

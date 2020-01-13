@@ -1,5 +1,4 @@
-#ifndef SYNTAXHIGHLIGHTER_H
-#define SYNTAXHIGHLIGHTER_H
+#pragma once
 
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
@@ -80,5 +79,3 @@ public slots:
     void invalidateLabels(const QTextCursor&);
     void clearAndRehighlight();
 };
-
-#endif  // SYNTAXHIGHLIGHTER_H

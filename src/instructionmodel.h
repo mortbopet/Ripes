@@ -1,5 +1,4 @@
-#ifndef INSTRUCTIONMODEL_H
-#define INSTRUCTIONMODEL_H
+#pragma once
 
 #include <QColor>
 #include <set>
@@ -49,5 +48,3 @@ private:
     QStringList m_stageNames;
     std::map<QString, Ripes::StageInfo> m_stageInfos;
 };
-
-#endif  // INSTRUCTIONMODEL_H

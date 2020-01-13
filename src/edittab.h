@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QByteArray>
 #include <QFile>
 #include <QWidget>

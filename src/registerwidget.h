@@ -1,5 +1,4 @@
-#ifndef REGISTERWIDGET_H
-#define REGISTERWIDGET_H
+#pragma once
 
 #include <QWidget>
 
@@ -28,5 +27,3 @@ public slots:
 private:
     Ui::RegisterWidget* m_ui;
 };
-
-#endif  // REGISTERWIDGET_H

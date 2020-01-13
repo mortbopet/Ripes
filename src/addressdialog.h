@@ -1,5 +1,4 @@
-#ifndef ADDRESSDIALOG_H
-#define ADDRESSDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -22,5 +21,3 @@ private:
     uint32_t m_address = 0;
     void validateTargetAddress(const QString& address);
 };
-
-#endif  // ADDRESSDIALOG_H

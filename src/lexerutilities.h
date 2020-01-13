@@ -1,10 +1,10 @@
-#ifndef LEXERUTILITIES_H
-#define LEXERUTILITIES_H
+#pragma once
 
 #include <QStringList>
 
 static QStringList splitQuotes(const QStringList& list) {
-    // Manual string splitter - splits at ' ' (space) and ',' (comma) characters, unless test is delimitered by quotes or parentheses
+    // Manual string splitter - splits at ' ' (space) and ',' (comma) characters, unless test is delimitered by quotes
+    // or parentheses
     QStringList ret;
     for (const auto& s : list) {
         QString outString;
@@ -26,5 +26,3 @@ static QStringList splitQuotes(const QStringList& list) {
     ret.removeAll("");
     return ret;
 }
-
-#endif  // LEXERUTILITIES_H

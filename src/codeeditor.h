@@ -1,5 +1,4 @@
-#ifndef CODEEDITOR_H
-#define CODEEDITOR_H
+#pragma once
 
 #include <QApplication>
 #include <QPlainTextEdit>
@@ -141,5 +140,3 @@ private:
 
     QMouseEvent* m_event;
 };
-
-#endif  // CODEEDITOR_H

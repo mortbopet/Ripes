@@ -1,5 +1,4 @@
-#ifndef PROCESSORTAB_H
-#define PROCESSORTAB_H
+#pragma once
 
 #include <QAction>
 #include <QSpinBox>
@@ -76,5 +75,3 @@ private:
 
     QSpinBox* m_autoClockInterval = nullptr;
 };
-
-#endif  // PROCESSORTAB_H

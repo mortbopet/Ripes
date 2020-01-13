@@ -1,5 +1,4 @@
-#ifndef MEMORYVIEW_H
-#define MEMORYVIEW_H
+#pragma once
 
 #include <QTableView>
 #include <QWheelEvent>
@@ -29,5 +28,3 @@ signals:
 private:
     int m_rowHeight = 0;
 };
-
-#endif  // MEMORYVIEW_H
