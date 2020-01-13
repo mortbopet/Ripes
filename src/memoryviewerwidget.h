@@ -12,7 +12,7 @@ class MemoryViewerWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit MemoryViewerWidget(QWidget* parent = nullptr);
+    MemoryViewerWidget(QWidget* parent = nullptr);
     ~MemoryViewerWidget();
 
     void updateModel();

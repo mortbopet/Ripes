@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PipelineTable</class>
- <widget class="QDialog" name="PipelineTable">
+ <class>StageTableWidget</class>
+ <widget class="QDialog" name="StageTableWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>748</width>
+    <height>452</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Pipeline table</string>
+   <string>Stage table</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset>
     <normaloff>:/icons/logo.png</normaloff>:/icons/logo.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -23,26 +23,12 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QLabel" name="description">
-         <property name="text">
-          <string>description...</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::RichText</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QToolButton" name="copy">
          <property name="toolTip">
           <string>Copy table to clipboard (tab sepearated)</string>
          </property>
          <property name="text">
           <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/images.qrc">
-           <normaloff>:/icons/documents.svg</normaloff>:/icons/documents.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -74,14 +60,12 @@
       </layout>
      </item>
      <item>
-      <widget class="QTableView" name="table"/>
+      <widget class="QTableView" name="stageTableView"/>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../resources/images.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

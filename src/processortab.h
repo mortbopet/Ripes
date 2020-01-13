@@ -8,8 +8,6 @@
 #include <QWidget>
 
 #include "defines.h"
-// #include "pipelinetable.h"
-// #include "pipelinetablemodel.h"
 #include "ripestab.h"
 
 namespace Ui {
@@ -22,6 +20,7 @@ class VSRTLWidget;
 
 class InstructionModel;
 class RegisterModel;
+class StageTableModel;
 
 class ProcessorTab : public RipesTab {
     friend class RunDialog;
@@ -50,7 +49,7 @@ public slots:
 private slots:
     void clock();
     void setInstructionViewCenterAddr(uint32_t address);
-    // void showPipeliningTable();
+    void showStageTable();
 
 private:
     void setupSimulatorActions();
@@ -60,6 +59,7 @@ private:
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel = nullptr;
+    StageTableModel* m_stageModel = nullptr;
 
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
 

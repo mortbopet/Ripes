@@ -10,6 +10,8 @@
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
 #include "registermodel.h"
+#include "stagetablemodel.h"
+#include "stagetablewidget.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
@@ -22,6 +24,9 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 
     // Load the default processor
     ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
+
+    m_stageModel = new StageTableModel(this);
+    connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
 
     updateInstructionModel();
     m_ui->registerWidget->updateModel();
@@ -132,7 +137,7 @@ void ProcessorTab::setupSimulatorActions() {
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
-    // connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showPipeliningTable);
+    connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
     m_toolbar->addAction(m_pipelineTableAction);
 }
 
@@ -225,6 +230,7 @@ void ProcessorTab::enableSimulatorControls() {
 void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
+    m_stageModel->reset();
     emit update();
 
     enableSimulatorControls();
@@ -263,12 +269,7 @@ void ProcessorTab::clock() {
     emit update();
 }
 
-/*
-void ProcessorTab::showPipeliningTable() {
-    // Setup pipeline table window
-    PipelineTable window;
-    PipelineTableModel model;
-    window.setModel(&model);
-    window.exec();
+void ProcessorTab::showStageTable() {
+    auto w = StageTableWidget(m_stageModel, this);
+    w.exec();
 }
-*/
