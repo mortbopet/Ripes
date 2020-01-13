@@ -4,6 +4,7 @@
 #include "aboutwidget.h"
 #include "defines.h"
 #include "edittab.h"
+#include "loaddialog.h"
 #include "memorytab.h"
 #include "parser.h"
 #include "processorhandler.h"
@@ -95,9 +96,9 @@ void MainWindow::setupMenus() {
     m_editTab->getToolbar()->addAction(newAction);
 
     const QIcon loadIcon = QIcon(":/icons/loadfile.svg");
-    auto* loadAction = new QAction(loadIcon, "Load file", this);
+    auto* loadAction = new QAction(loadIcon, "Load program", this);
     loadAction->setShortcut(QKeySequence::Open);
-    connect(loadAction, &QAction::triggered, [=] { this->loadAssemblyFile(); });
+    connect(loadAction, &QAction::triggered, [=] { this->loadFileTriggered(); });
     m_editTab->getToolbar()->addAction(loadAction);
     m_ui->menuFile->addAction(loadAction);
 
@@ -173,6 +174,11 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 
 void MainWindow::exit() {
     close();
+}
+
+void MainWindow::loadFileTriggered() {
+    LoadDialog diag;
+    diag.exec();
 }
 
 void MainWindow::loadBinaryFile(QString filename) {

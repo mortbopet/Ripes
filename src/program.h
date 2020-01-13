@@ -5,6 +5,8 @@
 
 namespace Ripes {
 
+enum class FileType { Assembly, FlatBinary, Executable };
+
 /**
  * @brief The Program struct
  * Wrapper around a program to be loaded into simulator memory. Text section shall contain the instructions of the

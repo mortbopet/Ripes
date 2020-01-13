@@ -2,6 +2,8 @@
 
 #include <QMainWindow>
 
+#include "program.h"
+
 QT_FORWARD_DECLARE_CLASS(QToolBar)
 QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
@@ -34,6 +36,8 @@ private slots:
     void about();
     void wiki();
 
+    void loadFileTriggered();
+
     void saveFilesTriggered();
     void saveFilesAsTriggered();
     void newProgramTriggered();
@@ -47,6 +51,8 @@ signals:
     void updateMemoryTab();
 
 private:
+    void loadFile(const QString& filename, FileType type);
+
     void setupMenus();
 
     Ui::MainWindow* m_ui;
