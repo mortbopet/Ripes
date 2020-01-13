@@ -2,14 +2,18 @@
 #include "ui_addressdialog.h"
 
 #include <QPushButton>
+#include <QRegExpValidator>
+
+#include "radix.h"
 
 AddressDialog::AddressDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::AddressDialog) {
     m_ui->setupUi(this);
 
-    // set input range
-    m_ui->address->setInputMask("hhhhhhhh");
+    QRegExpValidator* validator = new QRegExpValidator(this);
+    validator->setRegExp(hexRegex32);
+    m_ui->address->setValidator(validator);
+    m_ui->address->setText("0x00000000");
     setWindowTitle("Ripes");
-    setWindowIcon(QIcon(":/icons/logo.svg"));
 
     connect(m_ui->address, &QLineEdit::textChanged, this, &AddressDialog::validateTargetAddress);
 }
