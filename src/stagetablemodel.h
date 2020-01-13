@@ -4,6 +4,8 @@
 
 #include "processorhandler.h"
 
+namespace Ripes {
+
 class StageTableModel : public QAbstractTableModel {
     Q_OBJECT
 public:
@@ -23,5 +25,6 @@ public slots:
 private:
     void gatherStageInfo();
 
-    std::map<unsigned, std::map<QString, Ripes::StageInfo>> m_cycleStageInfos;
+    std::map<unsigned, std::map<QString, StageInfo>> m_cycleStageInfos;
 };
+}  // namespace Ripes

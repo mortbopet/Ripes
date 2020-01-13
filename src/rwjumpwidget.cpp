@@ -3,6 +3,8 @@
 
 #include <QHeaderView>
 
+namespace Ripes {
+
 RWJumpWidget::RWJumpWidget(QWidget* parent) : QWidget(parent), ui(new Ui::RWJumpWidget) {
     ui->setupUi(this);
 }
@@ -34,3 +36,4 @@ void RWJumpWidget::on_jump_clicked() {
         // emit jumpToAdress(m_model->data(indexes[0], Qt::UserRole).value<uint32_t>());
     }
 }
+}  // namespace Ripes

@@ -2,6 +2,8 @@
 
 #include <QWidget>
 
+namespace Ripes {
+
 namespace Ui {
 class RWJumpWidget;
 }
@@ -24,3 +26,4 @@ private slots:
 private:
     Ui::RWJumpWidget* ui;
 };
+}  // namespace Ripes

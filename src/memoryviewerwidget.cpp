@@ -6,6 +6,8 @@
 #include "gotocombobox.h"
 #include "memorymodel.h"
 
+namespace Ripes {
+
 MemoryViewerWidget::MemoryViewerWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::MemoryViewerWidget) {
     m_ui->setupUi(this);
     updateModel();
@@ -53,3 +55,4 @@ void MemoryViewerWidget::updateModel() {
         delete oldModel;
     }
 }
+}  // namespace Ripes

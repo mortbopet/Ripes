@@ -5,8 +5,8 @@
 #include "riscv.h"
 
 namespace vsrtl {
-using namespace core;
-namespace RISCV {
+namespace core {
+using namespace Ripes;
 
 template <unsigned int addrWidth, unsigned int dataWidth>
 class RVMemory : public Component {
@@ -59,5 +59,5 @@ public:
     OUTPUTPORT(data_out, dataWidth);
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

@@ -19,13 +19,12 @@
 #include "rvmemory.h"
 
 namespace vsrtl {
-using namespace core;
+namespace core {
+using namespace Ripes;
 
-namespace RISCV {
-
-class SingleCycleRISCV : public Ripes::RipesProcessor {
+class SingleCycleRISCV : public RipesProcessor {
 public:
-    SingleCycleRISCV() : Ripes::RipesProcessor("Single Cycle RISC-V Processor") {
+    SingleCycleRISCV() : RipesProcessor("Single Cycle RISC-V Processor") {
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -150,7 +149,7 @@ public:
     unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextPcForStage(unsigned int) const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int) const override { return "•"; }
-    Ripes::StageInfo stageInfo(unsigned int) const override { return Ripes::StageInfo(pc_reg->out.uValue(), true); }
+    StageInfo stageInfo(unsigned int) const override { return StageInfo(pc_reg->out.uValue(), true); }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
@@ -190,5 +189,5 @@ private:
     bool m_finishInNextCycle = false;
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

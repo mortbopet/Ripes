@@ -2,6 +2,8 @@
 
 #include <QDialog>
 
+namespace Ripes {
+
 namespace Ui {
 class AddressDialog;
 }
@@ -21,3 +23,4 @@ private:
     uint32_t m_address = 0;
     void validateTargetAddress(const QString& address);
 };
+}  // namespace Ripes

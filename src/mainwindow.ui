@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>Ripes::MainWindow</class>
+ <widget class="QMainWindow" name="Ripes::MainWindow">
   <property name="enabled">
    <bool>true</bool>
   </property>

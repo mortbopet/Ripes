@@ -6,6 +6,8 @@
 
 #include <QMessageBox>
 
+namespace Ripes {
+
 ProcessorHandler::ProcessorHandler() {
     // Contruct the default processor
     selectProcessor(m_currentSetup);
@@ -39,11 +41,11 @@ void ProcessorHandler::loadProgram(const Program& p) {
     emit reqProcessorReset();
 }
 
-const vsrtl::SparseArray& ProcessorHandler::getMemory() const {
+const vsrtl::core::SparseArray& ProcessorHandler::getMemory() const {
     return m_currentProcessor->getMemory();
 }
 
-const vsrtl::SparseArray& ProcessorHandler::getRegisters() const {
+const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
     return m_currentProcessor->getRegisters();
 }
 
@@ -140,9 +142,9 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 void ProcessorHandler::handleSysCall() {
     const unsigned int arg = m_currentProcessor->getRegister(10);
     switch (arg) {
-        case Ripes::SysCall::None:
+        case SysCall::None:
             return;
-        case Ripes::SysCall::PrintStr: {
+        case SysCall::PrintStr: {
             QByteArray string;
             char byte;
             unsigned int address = m_currentProcessor->getRegister(11);
@@ -153,16 +155,16 @@ void ProcessorHandler::handleSysCall() {
             emit print(QString::fromUtf8(string));
             return;
         }
-        case Ripes::SysCall::PrintInt: {
+        case SysCall::PrintInt: {
             emit print(QString::number(static_cast<int>(m_currentProcessor->getRegister(11))));
             return;
         }
-        case Ripes::SysCall::PrintChar: {
+        case SysCall::PrintChar: {
             QString val = QChar(m_currentProcessor->getRegister(11));
             emit print(val);
             break;
         }
-        case Ripes::SysCall::Exit: {
+        case SysCall::Exit: {
             m_currentProcessor->finalize();
             return;
         }
@@ -192,3 +194,4 @@ void ProcessorHandler::setRegisterValue(const unsigned idx, uint32_t value) {
 uint32_t ProcessorHandler::getRegisterValue(const unsigned idx) const {
     return m_currentProcessor->getRegister(idx);
 }
+}  // namespace Ripes

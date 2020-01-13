@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>StageTableWidget</class>
- <widget class="QDialog" name="StageTableWidget">
+ <class>Ripes::StageTableWidget</class>
+ <widget class="QDialog" name="Ripes::StageTableWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

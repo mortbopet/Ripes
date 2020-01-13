@@ -7,6 +7,8 @@
 #include "processorhandler.h"
 #include "radix.h"
 
+namespace Ripes {
+
 ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     : QDialog(parent), ui(new Ui::ProcessorSelectionDialog) {
     ui->setupUi(this);
@@ -68,3 +70,4 @@ void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListW
         "0x" +
         QString::number(ProcessorRegistry::getDescription(id).defaultSetup.segmentPtrs.at(ProgramSegment::Data), 16));
 }
+}  // namespace Ripes

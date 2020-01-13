@@ -4,9 +4,8 @@
 #include "riscv.h"
 
 namespace vsrtl {
-using namespace core;
-
-namespace RISCV {
+namespace core {
+using namespace Ripes;
 
 class Control : public Component {
 public:
@@ -252,5 +251,5 @@ public:
     OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

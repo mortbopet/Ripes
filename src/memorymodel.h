@@ -5,6 +5,8 @@
 #include "processorhandler.h"
 #include "radix.h"
 
+namespace Ripes {
+
 class MemoryModel : public QAbstractTableModel {
     Q_OBJECT
 public:
@@ -38,3 +40,4 @@ private:
     long long m_centralAddress = 4;  // Address at the center of the model
     unsigned m_rowsVisible = 0;      // Number of rows currently visible in the view associated with the model
 };
+}  // namespace Ripes

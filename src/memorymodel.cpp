@@ -3,6 +3,8 @@
 #include <QBrush>
 #include <QFont>
 
+namespace Ripes {
+
 MemoryModel::MemoryModel(QObject* parent) : QAbstractTableModel(parent) {}
 
 int MemoryModel::columnCount(const QModelIndex&) const {
@@ -121,3 +123,4 @@ QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
 Qt::ItemFlags MemoryModel::flags(const QModelIndex& index) const {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
+}  // namespace Ripes

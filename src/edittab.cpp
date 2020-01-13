@@ -6,6 +6,8 @@
 #include "parser.h"
 #include "processorhandler.h"
 
+namespace Ripes {
+
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
@@ -102,3 +104,4 @@ void EditTab::setInputMode(bool isAssembly) {
 void EditTab::on_disassembledViewButton_toggled(bool checked) {
     Q_UNUSED(checked)
 }
+}  // namespace Ripes

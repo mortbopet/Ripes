@@ -17,7 +17,8 @@ static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
  * As such, we directly copy the .text segment into the simulator memory and execute the test.
  */
 
-using namespace vsrtl::RISCV;
+using namespace Ripes;
+using namespace vsrtl::core;
 
 // Compilation tools & directories
 const QString s_testdir = VSRTL_RISCV_TEST_DIR;

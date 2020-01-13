@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RadixSelectorWidget</class>
- <widget class="QWidget" name="RadixSelectorWidget">
+ <class>Ripes::RadixSelectorWidget</class>
+ <widget class="QWidget" name="Ripes::RadixSelectorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

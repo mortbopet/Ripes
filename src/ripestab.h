@@ -3,6 +3,8 @@
 #include <QToolBar>
 #include <QWidget>
 
+namespace Ripes {
+
 class RipesTab : public QWidget {
 public:
     RipesTab(QToolBar* toolbar, QWidget* parent = nullptr) : QWidget(parent), m_toolbar(toolbar) {}
@@ -11,3 +13,4 @@ public:
 protected:
     QToolBar* m_toolbar = nullptr;
 };
+}  // namespace Ripes

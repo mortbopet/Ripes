@@ -3,6 +3,8 @@
 #include <QMap>
 #include <QString>
 
+namespace Ripes {
+
 /// Currently supported ISAs
 enum class ISA { RV32IM };
 
@@ -103,3 +105,4 @@ public:
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
 };
+}  // namespace Ripes

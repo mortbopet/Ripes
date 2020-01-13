@@ -3,6 +3,8 @@
 #include <QLabel>
 #include <QListWidget>
 
+namespace Ripes {
+
 class TabBar;
 
 class TabItem : public QWidget {
@@ -22,3 +24,5 @@ public:
 
     void addTabItem(QString label, QString iconPath);
 };
+
+}  // namespace Ripes

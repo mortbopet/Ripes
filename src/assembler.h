@@ -5,6 +5,8 @@
 
 #include "program.h"
 
+namespace Ripes {
+
 class Assembler {
 public:
     Assembler();
@@ -51,3 +53,4 @@ private:
     QByteArray assembleAuipcInstruction(const QStringList& fields, int row);
     QByteArray assembleJalrInstruction(const QStringList& fields, int row);
 };
+}  // namespace Ripes

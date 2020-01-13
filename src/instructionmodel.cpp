@@ -3,6 +3,8 @@
 
 #include <QHeaderView>
 
+namespace Ripes {
+
 namespace {
 uint32_t indexToAddress(const QModelIndex& index) {
     return index.row() * 4;
@@ -136,3 +138,4 @@ Qt::ItemFlags InstructionModel::flags(const QModelIndex& index) const {
         return Qt::ItemIsUserCheckable | def;
     return def;
 }
+}  // namespace Ripes

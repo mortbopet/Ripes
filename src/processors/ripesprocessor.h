@@ -9,7 +9,6 @@
 #include "../isainfo.h"
 
 namespace Ripes {
-
 enum SysCall { None = 0, PrintInt = 1, PrintChar = 2, PrintStr = 4, Exit = 10 };
 
 struct StageInfo {
@@ -18,10 +17,15 @@ struct StageInfo {
     unsigned int pc = 0;
     bool pc_valid = false;
 };
+}  // namespace Ripes
 
-class RipesProcessor : public vsrtl::core::Design {
+namespace vsrtl {
+namespace core {
+using namespace Ripes;
+
+class RipesProcessor : public Design {
 public:
-    RipesProcessor(std::string name) : vsrtl::core::Design(name) {}
+    RipesProcessor(std::string name) : Design(name) {}
 
     /**
      * @brief implementsISA
@@ -66,7 +70,7 @@ public:
      * @brief getMemory
      * @return reference to the address space utilized by the implementing processor
      */
-    virtual vsrtl::SparseArray& getMemory() = 0;
+    virtual SparseArray& getMemory() = 0;
 
     /**
      * @brief getRegister
@@ -78,7 +82,7 @@ public:
      * @brief getRegisters
      * @return reference to the register address space utilized by the implementing processor
      */
-    virtual vsrtl::SparseArray& getRegisters() = 0;
+    virtual SparseArray& getRegisters() = 0;
 
     /**
      * @brief setRegister
@@ -93,7 +97,7 @@ public:
     virtual void setProgramCounter(uint32_t address) = 0;
 
     void reset() override {
-        vsrtl::core::Design::reset();
+        Design::reset();
         m_instructionsRetired = 0;
     }
 
@@ -125,4 +129,5 @@ private:
     unsigned int m_instructionsRetired = 0;
 };
 
-}  // namespace Ripes
+}  // namespace core
+}  // namespace vsrtl

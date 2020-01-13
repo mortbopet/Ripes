@@ -3,6 +3,8 @@
 #include <QTableView>
 #include <QWheelEvent>
 
+namespace Ripes {
+
 // Extension of QTableView - catches QWheelEvents and triggers the memory model
 // to shift its
 // central address
@@ -28,3 +30,4 @@ signals:
 private:
     int m_rowHeight = 0;
 };
+}  // namespace Ripes

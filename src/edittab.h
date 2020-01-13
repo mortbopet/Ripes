@@ -9,6 +9,8 @@
 #include "program.h"
 #include "ripestab.h"
 
+namespace Ripes {
+
 namespace Ui {
 class EditTab;
 }
@@ -46,3 +48,4 @@ private:
     Ui::EditTab* m_ui;
     Assembler* m_assembler = nullptr;
 };
+}  // namespace Ripes

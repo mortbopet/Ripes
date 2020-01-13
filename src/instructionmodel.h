@@ -8,6 +8,8 @@
 
 #include <QAbstractTableModel>
 
+namespace Ripes {
+
 class Parser;
 class Pipeline;
 
@@ -46,5 +48,6 @@ private:
     QVariant instructionData(uint32_t addr) const;
 
     QStringList m_stageNames;
-    std::map<QString, Ripes::StageInfo> m_stageInfos;
+    std::map<QString, StageInfo> m_stageInfos;
 };
+}  // namespace Ripes

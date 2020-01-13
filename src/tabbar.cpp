@@ -3,6 +3,8 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+namespace Ripes {
+
 TabItem::TabItem(QString iconPath, QString name, TabBar* parent) : QWidget(parent) {
     m_name = new QLabel(name);
 
@@ -28,3 +30,4 @@ void TabBar::addTabItem(QString label, QString iconPath) {
 
     addItem(listItem);
 }
+}  // namespace Ripes

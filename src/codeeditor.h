@@ -13,6 +13,8 @@
 // Extended version of Qt's CodeEditor example
 // http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 
+namespace Ripes {
+
 class LineNumberArea;
 class BreakpointArea;
 
@@ -140,3 +142,4 @@ private:
 
     QMouseEvent* m_event;
 };
+}  // namespace Ripes

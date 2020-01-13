@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProcessorTab</class>
- <widget class="QWidget" name="ProcessorTab">
+ <class>Ripes::ProcessorTab</class>
+ <widget class="QWidget" name="Ripes::ProcessorTab">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -54,7 +54,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab">
            <property name="minimumSize">
@@ -213,15 +213,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>vsrtl::VSRTLWidget</class>
-   <extends>QWidget</extends>
-   <header>VSRTL/graphics/vsrtl_widget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>RegisterWidget</class>
    <extends>QWidget</extends>
    <header>registerwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>vsrtl::VSRTLWidget</class>
+   <extends>QWidget</extends>
+   <header>VSRTL/graphics/vsrtl_widget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

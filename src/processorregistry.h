@@ -7,19 +7,17 @@
 #include "isainfo.h"
 #include "processors/ripesprocessor.h"
 
-// =============================== Processors =================================
-enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
-Q_DECLARE_METATYPE(ProcessorID);
-
 #include "processors/ss/riscv_ss.h"
 
+namespace Ripes {
+
+// =============================== Processors =================================
+enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
 // ============================================================================
 
 enum class ProgramSegment { Text, Data, Stack };
-Q_DECLARE_METATYPE(ProgramSegment);
 const static std::map<ProgramSegment, QString> s_programSegmentName = {{ProgramSegment::Text, "Text"},
                                                                        {ProgramSegment::Data, "Data"},
-
                                                                        {ProgramSegment::Stack, "Stack"}};
 struct ProcessorSetup {
     ProcessorID id;
@@ -38,12 +36,12 @@ public:
     using ProcessorMap = std::map<ProcessorID, ProcessorDescription>;
     static const ProcessorMap& getAvailableProcessors() { return instance().m_descriptions; }
     static const ProcessorDescription& getDescription(ProcessorID id) { return instance().m_descriptions[id]; }
-    static std::unique_ptr<Ripes::RipesProcessor> constructProcessor(ProcessorID id) {
+    static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id) {
         switch (id) {
             case ProcessorID::RISCV_5S_WOF:
             case ProcessorID::RISCV_5S_WF:
             case ProcessorID::RISCV_SS: {
-                return std::make_unique<vsrtl::RISCV::SingleCycleRISCV>();
+                return std::make_unique<vsrtl::core::SingleCycleRISCV>();
             }
         }
     }
@@ -94,3 +92,7 @@ private:
 
     ProcessorMap m_descriptions;
 };
+}  // namespace Ripes
+
+Q_DECLARE_METATYPE(Ripes::ProcessorID);
+Q_DECLARE_METATYPE(Ripes::ProgramSegment);

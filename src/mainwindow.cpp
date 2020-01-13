@@ -20,6 +20,8 @@
 #include <QStackedWidget>
 #include <QTextStream>
 
+namespace Ripes {
+
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
     setWindowTitle("Ripes");
@@ -137,7 +139,6 @@ MainWindow::~MainWindow() {
     delete m_ui;
 }
 
-#include <QDebug>
 void MainWindow::setupExamplesMenu(QMenu* parent) {
     auto binaryExamples = QDir(":/examples/binary/").entryList(QDir::Files);
     auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
@@ -320,3 +321,4 @@ void MainWindow::newProgramTriggered() {
     m_currentFile.clear();
     m_editTab->newProgram();
 }
+}  // namespace Ripes

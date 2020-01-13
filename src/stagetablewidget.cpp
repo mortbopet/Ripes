@@ -6,6 +6,8 @@
 
 #include "stagetablemodel.h"
 
+namespace Ripes {
+
 StageTableWidget::StageTableWidget(StageTableModel* model, QWidget* parent)
     : QDialog(parent), m_ui(new Ui::StageTableWidget) {
     m_ui->setupUi(this);
@@ -46,3 +48,4 @@ void StageTableWidget::on_copy_clicked() {
     }
     QApplication::clipboard()->setText(textualRepr);
 }
+}  // namespace Ripes

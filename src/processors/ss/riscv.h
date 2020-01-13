@@ -6,9 +6,7 @@
 #include "VSRTL/interface/vsrtl_binutils.h"
 #include "instrparser.h"
 
-namespace vsrtl {
-using namespace core;
-namespace RISCV {
+namespace Ripes {
 
 #define RV_INSTR_WIDTH 32
 #define RV_REG_WIDTH 32
@@ -46,12 +44,12 @@ public:
         return &parser;
     }
 
-    std::vector<VSRTL_VT_U> decodeUInstr(VSRTL_VT_U instr) const { return m_decodeUInstr(instr); }
-    std::vector<VSRTL_VT_U> decodeJInstr(VSRTL_VT_U instr) const { return m_decodeJInstr(instr); }
-    std::vector<VSRTL_VT_U> decodeIInstr(VSRTL_VT_U instr) const { return m_decodeIInstr(instr); }
-    std::vector<VSRTL_VT_U> decodeSInstr(VSRTL_VT_U instr) const { return m_decodeSInstr(instr); }
-    std::vector<VSRTL_VT_U> decodeRInstr(VSRTL_VT_U instr) const { return m_decodeRInstr(instr); }
-    std::vector<VSRTL_VT_U> decodeBInstr(VSRTL_VT_U instr) const { return m_decodeBInstr(instr); }
+    std::vector<::vsrtl::VSRTL_VT_U> decodeUInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeUInstr(instr); }
+    std::vector<::vsrtl::VSRTL_VT_U> decodeJInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeJInstr(instr); }
+    std::vector<::vsrtl::VSRTL_VT_U> decodeIInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeIInstr(instr); }
+    std::vector<::vsrtl::VSRTL_VT_U> decodeSInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeSInstr(instr); }
+    std::vector<::vsrtl::VSRTL_VT_U> decodeRInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeRInstr(instr); }
+    std::vector<::vsrtl::VSRTL_VT_U> decodeBInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeBInstr(instr); }
 
 private:
     RVInstrParser() {
@@ -69,6 +67,4 @@ private:
     decode_functor m_decodeRInstr;
     decode_functor m_decodeBInstr;
 };
-
-}  // namespace RISCV
-}  // namespace vsrtl
+}  // namespace Ripes

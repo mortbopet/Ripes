@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     Q_INIT_RESOURCE(examples);
 
     QApplication app(argc, argv);
-    MainWindow m;
+    Ripes::MainWindow m;
     m.show();
 
     if (argc == 2) {

@@ -4,6 +4,8 @@
 
 #include "processorhandler.h"
 
+namespace Ripes {
+
 using namespace vsrtl;
 
 RegisterModel::RegisterModel(QObject* parent) : QAbstractTableModel(parent) {}
@@ -108,7 +110,7 @@ QVariant RegisterModel::data(const QModelIndex& index, int role) const {
     return QVariant();
 }
 
-void RegisterModel::setRadix(::Radix r) {
+void RegisterModel::setRadix(Ripes::Radix r) {
     m_radix = r;
     processorWasClocked();
 }
@@ -137,3 +139,4 @@ Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {
         return Qt::ItemIsEditable | def;
     return def;
 }
+}  // namespace Ripes

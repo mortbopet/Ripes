@@ -3,6 +3,8 @@
 
 #include <QToolBar>
 
+namespace Ripes {
+
 MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::MemoryTab) {
     m_ui->setupUi(this);
 
@@ -22,3 +24,4 @@ void MemoryTab::update() {
 MemoryTab::~MemoryTab() {
     delete m_ui;
 }
+}  // namespace Ripes

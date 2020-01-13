@@ -9,12 +9,14 @@
 #include "defines.h"
 #include "ripestab.h"
 
-namespace Ui {
-class ProcessorTab;
-}
-
 namespace vsrtl {
 class VSRTLWidget;
+}
+
+namespace Ripes {
+
+namespace Ui {
+class ProcessorTab;
 }
 
 class InstructionModel;
@@ -75,3 +77,4 @@ private:
 
     QSpinBox* m_autoClockInterval = nullptr;
 };
+}  // namespace Ripes

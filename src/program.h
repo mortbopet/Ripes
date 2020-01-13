@@ -3,6 +3,8 @@
 #include <QByteArray>
 #include <vector>
 
+namespace Ripes {
+
 /**
  * @brief The Program struct
  * Wrapper around a program to be loaded into simulator memory. Text section shall contain the instructions of the
@@ -13,3 +15,4 @@ struct Program {
     Section text;
     std::vector<Section> others;
 };
+}  // namespace Ripes

@@ -7,8 +7,8 @@
 #include "VSRTL/core/vsrtl_component.h"
 
 namespace vsrtl {
-using namespace core;
-namespace RISCV {
+namespace core {
+using namespace Ripes;
 
 class ALU : public Component {
 public:
@@ -110,5 +110,5 @@ public:
     OUTPUTPORT(res, RV_REG_WIDTH);
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

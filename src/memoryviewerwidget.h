@@ -4,6 +4,8 @@
 
 #include "memorymodel.h"
 
+namespace Ripes {
+
 namespace Ui {
 class MemoryViewerWidget;
 }
@@ -26,3 +28,4 @@ public slots:
 private:
     Ui::MemoryViewerWidget* m_ui;
 };
+}  // namespace Ripes

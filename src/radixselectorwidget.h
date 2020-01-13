@@ -4,6 +4,8 @@
 
 #include "radix.h"
 
+namespace Ripes {
+
 namespace Ui {
 class RadixSelectorWidget;
 }
@@ -23,3 +25,4 @@ signals:
 private:
     Ui::RadixSelectorWidget* m_ui;
 };
+}  // namespace Ripes

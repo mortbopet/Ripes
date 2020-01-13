@@ -4,9 +4,8 @@
 #include "riscv.h"
 
 namespace vsrtl {
-using namespace core;
-
-namespace RISCV {
+namespace core {
+using namespace Ripes;
 
 class Decode : public Component {
 public:
@@ -164,5 +163,5 @@ private:
     void unknownInstruction() {}
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

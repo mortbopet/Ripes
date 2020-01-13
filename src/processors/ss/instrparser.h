@@ -1,9 +1,11 @@
 #pragma once
 
+#include <assert.h>
 #include <functional>
-#include "VSRTL/interface/vsrtl_binutils.h"
+#include "../../binutils.h"
 
-namespace vsrtl {
+namespace Ripes {
+
 typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
 static inline decode_functor generateInstrParser(std::vector<int> bitFields) {
     // Generates functors that can decode a binary number based on the input
@@ -38,4 +40,4 @@ static inline decode_functor generateInstrParser(std::vector<int> bitFields) {
     return instrParser;
 }
 
-}  // namespace vsrtl
+}  // namespace Ripes

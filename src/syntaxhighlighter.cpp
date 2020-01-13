@@ -7,6 +7,8 @@
 #include "defines.h"
 #include "lexerutilities.h"
 
+namespace Ripes {
+
 FieldType::FieldType(Type type, int lowerBound, int upperBound, SyntaxHighlighter* highlighter) {
     m_type = type;
     m_lowerBound = lowerBound;
@@ -752,3 +754,4 @@ void SyntaxHighlighter::invalidateLabels(const QTextCursor& cursor) {
         clearAndRehighlight();
     }
 }
+}  // namespace Ripes

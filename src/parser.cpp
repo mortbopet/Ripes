@@ -6,6 +6,8 @@
 
 #include "binutils.h"
 
+namespace Ripes {
+
 Parser::Parser() {
     // generate word parser functors
     m_decodeRInstr = generateWordParser(vector<int>{5, 3, 5, 5, 7});  // from LSB to MSB
@@ -125,29 +127,28 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
 
 QString Parser::genStringRepr(uint32_t instr, uint32_t address) const {
     switch (instr & 0x7f) {
-        case LUI:
+        case instrType::LUI:
             return generateLuiString(instr);
-        case AUIPC:
+        case instrType::AUIPC:
             return generateAuipcString(instr);
-        case JAL:
+        case instrType::JAL:
             return generateJalString(instr, address);
-        case JALR:
+        case instrType::JALR:
             return generateJalrString(instr);
-        case BRANCH:
+        case instrType::BRANCH:
             return generateBranchString(instr);
-        case LOAD:
+        case instrType::LOAD:
             return generateLoadString(instr);
-        case STORE:
+        case instrType::STORE:
             return generateStoreString(instr);
-        case OP_IMM:
+        case instrType::OP_IMM:
             return generateOpImmString(instr);
-        case OP:
+        case instrType::OP:
             return generateOpInstrString(instr);
-        case ECALL:
+        case instrType::ECALL:
             return generateEcallString(instr);
         default:
             return QString("Invalid instruction");
-            break;
     }
 }
 QString Parser::generateEcallString(uint32_t) const {
@@ -328,3 +329,4 @@ QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
     // Check for misaligned four-byte boundary
     return QString("jal x%1 %2").arg(fields[4]).arg(target);
 }
+}  // namespace Ripes

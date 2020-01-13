@@ -5,6 +5,8 @@
 
 #include "processorregistry.h"
 
+namespace Ripes {
+
 namespace Ui {
 class ProcessorSelectionDialog;
 }
@@ -27,3 +29,4 @@ private slots:
 private:
     Ui::ProcessorSelectionDialog* ui;
 };
+}  // namespace Ripes

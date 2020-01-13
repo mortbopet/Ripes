@@ -5,6 +5,8 @@
 
 #include "radixselectorwidget.h"
 
+namespace Ripes {
+
 RegisterWidget::RegisterWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::RegisterWidget) {
     m_ui->setupUi(this);
 }
@@ -50,3 +52,4 @@ void RegisterWidget::setRegisterviewCenterIndex(unsigned index) {
         scrollbar->setValue(index - nItemsVisible / 2);
     }
 }
+}  // namespace Ripes

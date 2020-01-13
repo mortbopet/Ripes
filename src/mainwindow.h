@@ -2,19 +2,20 @@
 
 #include <QMainWindow>
 
+QT_FORWARD_DECLARE_CLASS(QToolBar)
+QT_FORWARD_DECLARE_CLASS(QStackedWidget)
+QT_FORWARD_DECLARE_CLASS(QActionGroup)
+
+namespace Ripes {
+
 namespace Ui {
 class MainWindow;
 }
-
-QT_FORWARD_DECLARE_CLASS(QToolBar)
-QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 
 class EditTab;
 class MemoryTab;
 class ProcessorTab;
 class ProcessorHandler;
-
-QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -60,3 +61,4 @@ private:
     EditTab* m_editTab = nullptr;
     MemoryTab* m_memoryTab = nullptr;
 };
+}  // namespace Ripes

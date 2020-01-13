@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProcessorSelectionDialog</class>
- <widget class="QDialog" name="ProcessorSelectionDialog">
+ <class>Ripes::ProcessorSelectionDialog</class>
+ <widget class="QDialog" name="Ripes::ProcessorSelectionDialog">
   <property name="geometry">
    <rect>
     <x>0</x>

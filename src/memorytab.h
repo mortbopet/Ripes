@@ -10,6 +10,8 @@
 #include "processorhandler.h"
 #include "ripestab.h"
 
+namespace Ripes {
+
 namespace Ui {
 class MemoryTab;
 }
@@ -27,3 +29,4 @@ public slots:
 private:
     Ui::MemoryTab* m_ui;
 };
+}  // namespace Ripes

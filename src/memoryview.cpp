@@ -4,6 +4,8 @@
 
 #include <QHeaderView>
 
+namespace Ripes {
+
 MemoryView::MemoryView(QWidget* parent) : QTableView(parent) {}
 
 void MemoryView::wheelEvent(QWheelEvent* event) {
@@ -18,3 +20,4 @@ void MemoryView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     emit resized();
 }
+}  // namespace Ripes

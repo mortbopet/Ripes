@@ -9,6 +9,8 @@
 
 #include <QAbstractTableModel>
 
+namespace Ripes {
+
 class RegisterModel : public QAbstractTableModel {
     Q_OBJECT
 public:
@@ -50,3 +52,4 @@ private:
     int m_mostRecentlyModifiedReg = -1;
     std::vector<uint32_t> m_regValues;
 };
+}  // namespace Ripes

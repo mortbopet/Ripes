@@ -2,6 +2,8 @@
 
 #include <QDialog>
 
+namespace Ripes {
+
 namespace Ui {
 class AboutWidget;
 }
@@ -16,3 +18,4 @@ public:
 private:
     Ui::AboutWidget* ui;
 };
+}  // namespace Ripes

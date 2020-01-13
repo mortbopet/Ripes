@@ -17,6 +17,8 @@
 
 #include "processors/ripesprocessor.h"
 
+namespace Ripes {
+
 ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
@@ -273,3 +275,4 @@ void ProcessorTab::showStageTable() {
     auto w = StageTableWidget(m_stageModel, this);
     w.exec();
 }
+}  // namespace Ripes

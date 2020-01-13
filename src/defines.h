@@ -15,10 +15,11 @@
 #define STACKSTART 0x7ffffff0
 #define DATASTART 0x10000000
 
+namespace Ripes {
+
 enum class Stage { IF, ID, EX, MEM, WB };
 
 enum displayTypeN { Hex, Binary, Decimal, Unsigned, ASCII };
-Q_DECLARE_METATYPE(displayTypeN)
 
 class StagePCS {
 public:
@@ -68,7 +69,8 @@ static QMap<QString, displayTypeN> initDisplayTypes() {
 
 const static QMap<QString, displayTypeN> displayTypes = initDisplayTypes();
 
-enum instrType {
+namespace instrType {
+enum {
     LUI = 0b0110111,
     JAL = 0b1101111,
     JALR = 0b1100111,
@@ -81,10 +83,7 @@ enum instrType {
     AUIPC = 0b0010111,
     INVALID = 0b0
 };
-
-enum class cacheLevel { L1, L2, L3 };
-
-enum class cacheType { DM, SA, FA };
+}
 
 typedef std::unordered_map<uint32_t, uint8_t> memory;
 
@@ -133,15 +132,9 @@ const static std::map<int, QString> cacheSizes = {{32, QString("32 Bytes")},   {
                                                   {128, QString("128 Bytes")}, {256, {QString("256 Bytes")}},
                                                   {512, QString("512 Bytes")}, {1024, QString("1024 Bytes")}};
 
-const static std::map<QString, cacheType> cacheTypes = {{QString("Direct mapped"), cacheType::DM},
-                                                        {QString("Set associative"), cacheType::SA},
-                                                        {QString("Fully associative"), cacheType::FA}};
-
-typedef struct {
-    instrType type = INVALID;
-    uint32_t word = 0;
-} Instruction;
-
 // splits only at tab characters and parentheses when they include a register name
 const static auto splitter = QRegularExpression(
     R"(\t|\((?=x(?:[1-2]\d|3[0-1]|\d)|t[0-6]|a[0-7]|s(?:1[0-1]|\d)|[sgt]p|zero)|(?:x(?:[1-2]\d|3[0-1]|\d)|t[0-6]|a[0-7]|s(?:1[0-1]|\d)|[sgt]p|zero)\K\))");
+}  // namespace Ripes
+
+Q_DECLARE_METATYPE(Ripes::displayTypeN)

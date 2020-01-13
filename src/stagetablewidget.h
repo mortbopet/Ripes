@@ -2,13 +2,13 @@
 
 #include <QDialog>
 
+QT_FORWARD_DECLARE_CLASS(QAbstractItemModel)
+
+namespace Ripes {
+class StageTableModel;
 namespace Ui {
 class StageTableWidget;
 }
-
-class StageTableModel;
-
-QT_FORWARD_DECLARE_CLASS(QAbstractItemModel)
 
 class StageTableWidget : public QDialog {
     Q_OBJECT
@@ -24,3 +24,4 @@ private:
     Ui::StageTableWidget* m_ui;
     StageTableModel* m_stageModel = nullptr;
 };
+}  // namespace Ripes

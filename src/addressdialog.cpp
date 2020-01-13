@@ -6,6 +6,8 @@
 
 #include "radix.h"
 
+namespace Ripes {
+
 AddressDialog::AddressDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::AddressDialog) {
     m_ui->setupUi(this);
 
@@ -32,3 +34,4 @@ void AddressDialog::validateTargetAddress(const QString& address) {
         m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
 }
+}  // namespace Ripes

@@ -4,9 +4,9 @@
 #include "riscv.h"
 
 namespace vsrtl {
-using namespace core;
+namespace core {
+using namespace Ripes;
 
-namespace RISCV {
 class Branch : public Component {
 public:
     Branch(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -32,5 +32,5 @@ public:
     OUTPUTPORT(res, 1);
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

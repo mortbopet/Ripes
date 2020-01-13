@@ -7,6 +7,8 @@
 
 #include "vsrtl_widget.h"
 
+namespace Ripes {
+
 /**
  * @brief The ProcessorHandler class
  * Manages construction and destruction of a VSRTL processor design, when selecting between processors.
@@ -21,7 +23,7 @@ public:
         return handler;
     }
 
-    const Ripes::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
+    const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorSetup& getSetup() const { return m_currentSetup; }
 
     /**
@@ -62,8 +64,8 @@ public:
      * @brief getMemory & getRegisters
      * returns const-wrapped references to the current process memory elements
      */
-    const vsrtl::SparseArray& getMemory() const;
-    const vsrtl::SparseArray& getRegisters() const;
+    const vsrtl::core::SparseArray& getMemory() const;
+    const vsrtl::core::SparseArray& getRegisters() const;
 
     /**
      * @brief setRegisterValue
@@ -127,7 +129,7 @@ private:
     ProcessorHandler();
 
     ProcessorSetup m_currentSetup = ProcessorRegistry::getDescription(ProcessorID::RISCV_SS).defaultSetup;
-    std::unique_ptr<Ripes::RipesProcessor> m_currentProcessor;
+    std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
 
     /**
      * @brief m_validExecutionRange
@@ -139,3 +141,4 @@ private:
     std::set<uint32_t> m_breakpoints;
     Program m_program;
 };
+}  // namespace Ripes

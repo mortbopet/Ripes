@@ -3,6 +3,8 @@
 
 #include <QtGlobal>
 
+namespace Ripes {
+
 RadixSelectorWidget::RadixSelectorWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::RadixSelectorWidget) {
     m_ui->setupUi(this);
     setupRadixComboBox();
@@ -33,3 +35,4 @@ void RadixSelectorWidget::setupRadixComboBox() {
         emit radixChanged(r);
     });
 }
+}  // namespace Ripes

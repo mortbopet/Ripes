@@ -16,6 +16,8 @@
 
 #include "processorhandler.h"
 
+namespace Ripes {
+
 CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     m_lineNumberArea = new LineNumberArea(this);
     m_breakpointArea = new BreakpointArea(this);
@@ -317,3 +319,4 @@ void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
 
     contextMenu.exec(event->globalPos());
 }
+}  // namespace Ripes

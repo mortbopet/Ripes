@@ -6,6 +6,8 @@
 #include <vector>
 #include "defines.h"
 
+namespace Ripes {
+
 /*
     Class for:
     - Parser: Parsing input binary files into simulator memory
@@ -75,3 +77,4 @@ private:
     QString generateOpInstrString(uint32_t instr) const;
     QString generateEcallString(uint32_t instr) const;
 };
+}  // namespace Ripes

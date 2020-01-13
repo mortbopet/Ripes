@@ -5,6 +5,8 @@
 #include "processorhandler.h"
 #include "registermodel.h"
 
+namespace Ripes {
+
 namespace Ui {
 class RegisterWidget;
 }
@@ -27,3 +29,4 @@ public slots:
 private:
     Ui::RegisterWidget* m_ui;
 };
+}  // namespace Ripes

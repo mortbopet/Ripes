@@ -7,8 +7,8 @@
 #include "riscv.h"
 
 namespace vsrtl {
-using namespace core;
-namespace RISCV {
+namespace core {
+using namespace Ripes;
 
 class RegisterFile : public Component {
 public:
@@ -67,5 +67,5 @@ private:
     SparseArray* m_memory = nullptr;
 };
 
-}  // namespace RISCV
+}  // namespace core
 }  // namespace vsrtl

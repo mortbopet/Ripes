@@ -2,6 +2,8 @@
 
 #include <QStringList>
 
+namespace Ripes {
+
 static QStringList splitQuotes(const QStringList& list) {
     // Manual string splitter - splits at ' ' (space) and ',' (comma) characters, unless test is delimitered by quotes
     // or parentheses
@@ -26,3 +28,4 @@ static QStringList splitQuotes(const QStringList& list) {
     ret.removeAll("");
     return ret;
 }
+}  // namespace Ripes

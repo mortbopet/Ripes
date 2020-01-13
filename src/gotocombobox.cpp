@@ -10,6 +10,8 @@
 
 #include "processorhandler.h"
 
+namespace Ripes {
+
 GoToComboBox::GoToComboBox(QWidget* parent) : QComboBox(parent) {
     connect(this, QOverload<int>::of(&GoToComboBox::activated), this, &GoToComboBox::signalFilter);
 }
@@ -52,3 +54,4 @@ void GoToComboBox::signalFilter(int index) {
 
     clear();
 }
+}  // namespace Ripes
