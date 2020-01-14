@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_stackedTabs->insertWidget(0, m_editTab);
 
     tb = addToolBar("Processor");
-    tb->setVisible(false);
+    tb->setVisible(true);
     m_processorTab = new ProcessorTab(tb, this);
     m_stackedTabs->insertWidget(1, m_processorTab);
 
@@ -54,9 +54,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     m_ui->tabbar->setActiveIndex(0);
-
-    connect(m_stackedTabs, &QStackedWidget::currentChanged, this, &MainWindow::tabChanged);
-    tabChanged();
 
     setupMenus();
 
@@ -76,26 +73,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
 }
 
-void MainWindow::tabChanged() {
-    // Enable the toolbar associated with the currently selected tab
-    auto* tab = dynamic_cast<RipesTab*>(m_stackedTabs->currentWidget());
-    for (int i = 0; i < m_stackedTabs->count(); i++) {
-        auto* w = dynamic_cast<RipesTab*>(m_stackedTabs->widget(i));
-        auto* tb = w->getToolbar();
-        tb->setVisible(w == tab && (tb->children().length() != 0));
-    }
-}
-
 void MainWindow::setupMenus() {
     // Edit actions
     const QIcon newIcon = QIcon(":/icons/file.svg");
-    auto* newAction = new QAction(newIcon, "New Assembly Program", this);
+    auto* newAction = new QAction(newIcon, "New Program", this);
     newAction->setShortcut(QKeySequence::New);
     connect(newAction, &QAction::triggered, this, &MainWindow::newProgramTriggered);
     m_ui->menuFile->addAction(newAction);
 
     const QIcon loadIcon = QIcon(":/icons/loadfile.svg");
-    auto* loadAction = new QAction(loadIcon, "Load program", this);
+    auto* loadAction = new QAction(loadIcon, "Load Program", this);
     loadAction->setShortcut(QKeySequence::Open);
     connect(loadAction, &QAction::triggered, [=] { this->loadFileTriggered(); });
     m_ui->menuFile->addAction(loadAction);
