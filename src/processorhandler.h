@@ -25,6 +25,7 @@ public:
 
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorSetup& getSetup() const { return m_currentSetup; }
+    const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
 
     /**
      * @brief loadProcessorToWidget

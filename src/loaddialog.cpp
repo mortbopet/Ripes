@@ -44,6 +44,7 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     connect(m_ui->binaryEntryPoint, &QLineEdit::textChanged, [=] { this->validateCurrentFile(); });
 
     // ELF page
+    m_ui->currentISA->setText(ProcessorHandler::get()->currentISA()->name());
 
     // default selection
     m_ui->assemblyRadioButton->toggle();
@@ -99,6 +100,7 @@ void LoadDialog::paletteValidate(QWidget* w, bool valid) {
 bool LoadDialog::validateAssemblyFile(const QFile& file) {
     return true;
 }
+
 bool LoadDialog::validateBinaryFile(const QFile& file) {
     bool loadAtValid, entryPointValid;
     m_ui->binaryLoadAt->text().toUInt(&loadAtValid, 16);
@@ -109,6 +111,7 @@ bool LoadDialog::validateBinaryFile(const QFile& file) {
 
     return loadAtValid && entryPointValid;
 }
+
 bool LoadDialog::validateELFFile(const QFile& file) {
     return true;
 }

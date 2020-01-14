@@ -23,7 +23,7 @@ int RegisterModel::columnCount(const QModelIndex&) const {
 }
 
 int RegisterModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::get()->getProcessor()->implementsISA()->regCnt();
+    return ProcessorHandler::get()->currentISA()->regCnt();
 }
 
 void RegisterModel::processorWasClocked() {
@@ -116,15 +116,15 @@ void RegisterModel::setRadix(Ripes::Radix r) {
 }
 
 QVariant RegisterModel::nameData(unsigned idx) const {
-    return ProcessorHandler::get()->getProcessor()->implementsISA()->regName(idx);
+    return ProcessorHandler::get()->currentISA()->regName(idx);
 }
 
 QVariant RegisterModel::aliasData(unsigned idx) const {
-    return ProcessorHandler::get()->getProcessor()->implementsISA()->regAlias(idx);
+    return ProcessorHandler::get()->currentISA()->regAlias(idx);
 }
 
 QVariant RegisterModel::tooltipData(unsigned idx) const {
-    return ProcessorHandler::get()->getProcessor()->implementsISA()->regInfo(idx);
+    return ProcessorHandler::get()->currentISA()->regInfo(idx);
 }
 
 QVariant RegisterModel::valueData(unsigned idx) const {
@@ -132,7 +132,7 @@ QVariant RegisterModel::valueData(unsigned idx) const {
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {
-    const auto def = ProcessorHandler::get()->getProcessor()->implementsISA()->regIsReadOnly(index.row())
+    const auto def = ProcessorHandler::get()->currentISA()->regIsReadOnly(index.row())
                          ? Qt::NoItemFlags
                          : Qt::ItemIsEnabled;
     if (index.column() == Column::Value)

@@ -141,34 +141,15 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setupExamplesMenu(QMenu* parent) {
-    auto binaryExamples = QDir(":/examples/binary/").entryList(QDir::Files);
-    auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
-
-    // Load examples
-    if (!binaryExamples.isEmpty()) {
-        auto* binaryExampleMenu = new QMenu();
-        binaryExampleMenu->setTitle("Binary");
-        for (const auto& fileName : binaryExamples) {
-            binaryExampleMenu->addAction(fileName, [=] {
-                this->loadBinaryFile(QString(":/examples/binary/") + fileName);
-                m_currentFile = QString();
-            });
-        }
-        // Add binary example menu to example menu
-        parent->addMenu(binaryExampleMenu);
-    }
+    const auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
 
     if (!assemblyExamples.isEmpty()) {
-        auto* assemblyExampleMenu = new QMenu();
-        assemblyExampleMenu->setTitle("Assembly");
         for (const auto& fileName : assemblyExamples) {
-            assemblyExampleMenu->addAction(fileName, [=] {
+            parent->addAction(fileName, [=] {
                 this->loadAssemblyFile(QString(":/examples/assembly/") + fileName);
                 m_currentFile = QString();
             });
         }
-        // Add binary example menu to example menu
-        parent->addMenu(assemblyExampleMenu);
     }
 }
 

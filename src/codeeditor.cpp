@@ -221,7 +221,7 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
     if (m_breakpointAreaEnabled) {
         QTextBlock block = firstVisibleBlock();
-        uint32_t address = block.blockNumber() * ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
+        uint32_t address = block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
         int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
         int bottom = top + (int)blockBoundingRect(block).height();
 
@@ -236,7 +236,7 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
             block = block.next();
             top = bottom;
             bottom = top + (int)blockBoundingRect(block).height();
-            address += ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
+            address += ProcessorHandler::get()->currentISA()->bytes();
         }
     }
 }
@@ -278,7 +278,7 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
 
         // Toggle breakpoint
         const uint32_t address =
-            block.blockNumber() * ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
+            block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
         ProcessorHandler::get()->toggleBreakpoint(address);
         repaint();
     }

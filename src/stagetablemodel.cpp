@@ -16,13 +16,13 @@ QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, i
         return QString::number(section);
     } else {
         return ProcessorHandler::get()->parseInstrAt(section *
-                                                     ProcessorHandler::get()->getProcessor()->implementsISA()->bytes());
+                                                     ProcessorHandler::get()->currentISA()->bytes());
     }
 }
 
 int StageTableModel::rowCount(const QModelIndex&) const {
     return ProcessorHandler::get()->getCurrentProgramSize() /
-           ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
+           ProcessorHandler::get()->currentISA()->bytes();
 }
 
 int StageTableModel::columnCount(const QModelIndex&) const {
@@ -63,7 +63,7 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
     if (!m_cycleStageInfos.count(index.column()))
         return QVariant();
 
-    const uint32_t addr = index.row() * ProcessorHandler::get()->getProcessor()->implementsISA()->bytes();
+    const uint32_t addr = index.row() * ProcessorHandler::get()->currentISA()->bytes();
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
     for (const auto& si : stageInfo) {
         if (si.second.pc == addr && si.second.pc_valid) {
