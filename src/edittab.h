@@ -43,8 +43,7 @@ public slots:
 
 private slots:
     void assemble();
-    void on_assemblyfile_toggled(bool checked);
-    void on_disassembledViewButton_toggled(bool checked);
+    void on_disassembledViewButton_toggled();
 
 private:
     void loadFlatBinaryFile(const LoadFileParams&);

@@ -136,7 +136,7 @@ int ProcessorHandler::getCurrentProgramSize() const {
 }
 
 QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
-    return Parser::getParser()->genStringRepr(m_currentProcessor->getMemory().readMem(addr), addr);
+    return Parser::getParser()->disassemble(m_currentProcessor->getMemory().readMem(addr), addr);
 }
 
 void ProcessorHandler::handleSysCall() {

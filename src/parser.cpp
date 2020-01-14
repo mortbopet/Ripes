@@ -2,6 +2,7 @@
 #include "defines.h"
 
 #include <cassert>
+#include <functional>
 #include <iostream>
 
 #include "binutils.h"
@@ -18,78 +19,44 @@ Parser::Parser() {
     m_decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
 }
 
-bool Parser::initBinaryFile(char* filename) {
-    // Open binary file
-    const string fname = string(filename);
-    m_fileStream = ifstream(fname.c_str(), ios::binary);
-    if (!(m_fileStream.good())) {
-        return true;
-    }
-
-    // Create filestream iterator
-    m_fileIter = istreambuf_iterator<char>(m_fileStream);
-
-    // get file size
-    m_fileStream.seekg(0, ios::end);
-    m_fileSize = m_fileStream.tellg();
-    m_fileStream.clear();
-    m_fileStream.seekg(0, ios::beg);
-    return false;
-}
-
 Parser::~Parser() {}
 
-void Parser::clear() {
-    m_disassembledRepr.clear();
-    m_binaryRepr.clear();
-}
-
-const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
-    // Loads a binary file and converts it to a text string, as well as puts the binary information into the pipeline
-    // memorys text segment
-
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly)) {
-        m_fileByteArray = file.readAll();
-        file.close();
-    }
-    if (disassembled) {
-        return m_disassembledRepr;
-    } else {
-        return m_binaryRepr;
-    }
-}
-
-const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint32_t baseAddress) {
-    // Loads the input arr into the memory of the simulator
-    // Baseaddress is default = 0 (text). Can be changed for inserting into ie. data memory
-
-    QString output = "";
-    auto length = arr.length();
-    QDataStream in(&arr, QIODevice::ReadOnly);
-    char buffer[4];
-    uint32_t byteIndex = baseAddress;
-    for (int i = 0; i < length; i += 4) {
-        in.readRawData(buffer, 4);
-        QString binaryRepString;
-        for (char j : buffer) {
-            binaryRepString.prepend(QString().setNum((uint8_t)j, 2).rightJustified(8, '0'));
-            byteIndex++;
+QString Parser::disassemble(const QByteArray& text) const {
+    return stringifyByteArray(text, 4, [this](const std::vector<char>& buffer, uint32_t index) {
+        // Hardcoded for RV32 for now
+        uint32_t instr = 0;
+        for (int i = 0; i < 4; i++) {
+            instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
         }
-        m_binaryRepr.append(binaryRepString).append('\n');
-        uint32_t instr =
-            (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
-        output.append(genStringRepr(instr, byteIndex - 4));
-        output.append("\n");
-    }
-    // Remove trailing \n character
-    output.truncate(output.lastIndexOf('\n'));
+        return disassemble(instr, index);
+    });
+}
 
-    if (disassembled) {
-        return m_disassembledRepr;
-    } else {
-        return m_binaryRepr;
+QString Parser::binarize(const QByteArray& text) const {
+    return stringifyByteArray(text, 4, [](const std::vector<char>& buffer, uint32_t) {
+        QString binaryString;
+        for (auto byte : buffer) {
+            binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));
+        }
+        return binaryString;
+    });
+}
+
+QString Parser::stringifyByteArray(const QByteArray& data, unsigned stride,
+                                   std::function<QString(const std::vector<char>&, uint32_t index)> stringifier) const {
+    QString out;
+    auto dataStream = QDataStream(data);
+    std::vector<char> buffer;
+    buffer.resize(stride);
+    uint32_t byteIndex = 0;
+
+    for (int i = 0; i < data.length(); i += stride) {
+        dataStream.readRawData(buffer.data(), stride);
+        out += stringifier(buffer, byteIndex);
+        out += "\n";
+        byteIndex += stride;
     }
+    return out;
 }
 
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
@@ -125,7 +92,7 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
     return wordParser;
 }
 
-QString Parser::genStringRepr(uint32_t instr, uint32_t address) const {
+QString Parser::disassemble(uint32_t instr, uint32_t address) const {
     switch (instr & 0x7f) {
         case instrType::LUI:
             return generateLuiString(instr);

@@ -115,10 +115,6 @@ void MainWindow::setupMenus() {
     m_ui->menuFile->addAction(exitAction);
 }
 
-void MainWindow::run() {
-    // Function for triggering the run dialog from unit tests
-}
-
 MainWindow::~MainWindow() {
     delete m_ui;
 }
@@ -148,13 +144,6 @@ void MainWindow::loadFileTriggered() {
         return;
 
     m_editTab->loadFile(diag.getParams());
-}
-
-void MainWindow::loadBinaryFile(QString filename) {
-    m_processorTab->restart();
-    Parser::getParser()->loadBinaryFile(filename);
-    m_editTab->setDisassemblerText();
-    emit update();
 }
 
 void MainWindow::about() {
@@ -200,26 +189,12 @@ void MainWindow::saveFilesTriggered() {
     }
     //}
 
-    // if (m_ui->actionSave_Disassembled->isChecked()) {
-    {
-        QFile file(removeFileExt(m_currentFile) + "_dis.s");
-        writeTextFile(file, Parser::getParser()->getDisassembledRepr());
-    }
-    //}
-
     // QAction* binaryStoreAction = m_binaryStoreAction->checkedAction();
     // if (binaryStoreAction == m_ui->actionSave_as_flat_binary) {
     {
         QFile file(removeFileExt(m_currentFile) + ".bin");
         writeBinaryFile(file, m_editTab->getBinaryData());
     }
-    //} else if (binaryStoreAction == m_ui->actionSave_as_text) {
-
-    {
-        QFile file(removeFileExt(m_currentFile) + "_bin.txt");
-        writeTextFile(file, Parser::getParser()->getBinaryRepr());
-    }
-    //}
 }
 
 void MainWindow::saveFilesAsTriggered() {

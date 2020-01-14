@@ -23,6 +23,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_ui->assemblyedit->setupSyntaxHighlighter();
     m_ui->assemblyedit->setupChangedTimer();
     m_ui->binaryedit->setReadOnly(true);
+
     // enable breakpoint area for the translated code only
     m_ui->binaryedit->enableBreakpointArea();
 
@@ -66,6 +67,7 @@ void EditTab::clear() {
 
 void EditTab::emitProgramChanged() {
     emit programChanged(m_assembler->getProgram());
+    setDisassemblerText();
 }
 
 void EditTab::assemble() {
@@ -96,20 +98,10 @@ void EditTab::setAssemblyText(const QString& text) {
 }
 
 void EditTab::setDisassemblerText() {
-    const QString& text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->getDisassembledRepr()
-                                                                    : Parser::getParser()->getBinaryRepr();
+    const QString& text = m_ui->disassembledViewButton->isChecked()
+                              ? Parser::getParser()->disassemble(m_assembler->getTextSegment())
+                              : Parser::getParser()->binarize(m_assembler->getTextSegment());
     m_ui->binaryedit->setPlainText(text);
-}
-
-void EditTab::on_assemblyfile_toggled(bool checked) {
-    if (!checked) {
-        // Disable assembly edit when loading binary files
-        m_ui->assemblyedit->setEnabled(false);
-    }
-    // clear both editors when switching input mode and reset the highlighter for the assembly editor
-    m_ui->assemblyedit->clear();
-    m_ui->assemblyedit->reset();
-    m_ui->binaryedit->clear();
 }
 
 void EditTab::enableEditor() {
@@ -120,8 +112,8 @@ void EditTab::disableEditor() {
     m_ui->editorStackedWidget->setCurrentIndex(1);
 }
 
-void EditTab::on_disassembledViewButton_toggled(bool checked) {
-    Q_UNUSED(checked)
+void EditTab::on_disassembledViewButton_toggled() {
+    setDisassemblerText();
 }
 
 void EditTab::loadFlatBinaryFile(const LoadFileParams& params) {
@@ -132,7 +124,6 @@ void EditTab::loadFlatBinaryFile(const LoadFileParams& params) {
 void EditTab::loadAssemblyFile(const LoadFileParams& params) {
     // ... load file
     QFile file(params.filepath);
-    Parser::getParser()->clear();
     clear();
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         setAssemblyText(file.readAll());

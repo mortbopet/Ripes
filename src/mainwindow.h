@@ -27,10 +27,6 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
-    void loadBinaryFile(QString fileName = QString());
-
-    void run();
-
 private slots:
     void exit();
     void about();
