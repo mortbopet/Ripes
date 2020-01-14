@@ -159,8 +159,42 @@ void MainWindow::exit() {
 
 void MainWindow::loadFileTriggered() {
     LoadDialog diag;
-    diag.exec();
+    if (!diag.exec())
+        return;
+
+    const auto& fileParams = diag.getParams();
+
+    switch (fileParams.type) {
+        case FileType::Assembly:
+            loadAssemblyFile(fileParams);
+            break;
+        case FileType::FlatBinary:
+            loadFlatBinaryFile(fileParams);
+            break;
+        case FileType::Executable:
+            loadElfFile(fileParams);
+            break;
+    }
 }
+
+void MainWindow::loadFlatBinaryFile(const LoadFileParams& params) {}
+
+void MainWindow::loadAssemblyFile(const LoadFileParams& params) {
+    // ... load file
+    QFile file(params.filepath);
+    m_editTab->setInputMode(true);
+    Parser::getParser()->clear();
+    m_editTab->clear();
+    m_processorTab->restart();
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        m_editTab->setAssemblyText(file.readAll());
+        file.close();
+    }
+    m_currentFile = params.filepath;
+    m_editTab->setDisassemblerText();
+}
+
+void MainWindow::loadElfFile(const LoadFileParams& params) {}
 
 void MainWindow::loadBinaryFile(QString filename) {
     m_editTab->setInputMode(false);
@@ -307,5 +341,5 @@ void MainWindow::newProgramTriggered() {
     }
     m_currentFile.clear();
     m_editTab->newProgram();
-}
+}  // namespace Ripes
 }  // namespace Ripes

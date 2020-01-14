@@ -18,6 +18,7 @@ class EditTab;
 class MemoryTab;
 class ProcessorTab;
 class ProcessorHandler;
+struct LoadFileParams;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -51,6 +52,10 @@ signals:
     void updateMemoryTab();
 
 private:
+    void loadFlatBinaryFile(const LoadFileParams&);
+    void loadAssemblyFile(const LoadFileParams&);
+    void loadElfFile(const LoadFileParams&);
+
     void loadFile(const QString& filename, FileType type);
 
     void setupMenus();

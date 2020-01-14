@@ -12,6 +12,13 @@ namespace Ui {
 class LoadDialog;
 }
 
+struct LoadFileParams {
+    QString filepath;
+    FileType type;
+    uint32_t binaryEntryPoint;
+    uint32_t binaryLoadAt;
+};
+
 class LoadDialog : public QDialog {
     Q_OBJECT
 
@@ -20,6 +27,7 @@ public:
     ~LoadDialog();
 
     void accept() override;
+    const LoadFileParams& getParams() const { return m_params; }
 
 private slots:
     void validateCurrentFile();
@@ -40,9 +48,11 @@ private:
 
     void paletteValidate(QWidget* w, bool valid);
 
-    FileType m_currentFileType;
+    FileType m_fileType;
+    LoadFileParams m_params;
+
     Ui::LoadDialog* m_ui;
     QButtonGroup* m_fileTypeButtons = nullptr;
-};
+};  // namespace Ripes
 
 }  // namespace Ripes

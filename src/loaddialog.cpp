@@ -54,13 +54,13 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
 void LoadDialog::inputTypeChanged() {
     auto* button = m_fileTypeButtons->checkedButton();
     if (button == m_ui->assemblyRadioButton) {
-        m_currentFileType = FileType::Assembly;
+        m_fileType = FileType::Assembly;
         updateAssemblyPageState();
     } else if (button == m_ui->binaryRadioButton) {
-        m_currentFileType = FileType::FlatBinary;
+        m_fileType = FileType::FlatBinary;
         updateBinaryPageState();
     } else if (button == m_ui->elfRadioButton) {
-        m_currentFileType = FileType::Executable;
+        m_fileType = FileType::Executable;
         updateELFPageState();
     }
     validateCurrentFile();
@@ -68,19 +68,21 @@ void LoadDialog::inputTypeChanged() {
 
 void LoadDialog::openFileButtonTriggered() {
     QString title;
-    QString filter = "*";
-    switch (m_currentFileType) {
+    QString filter;
+    switch (m_fileType) {
         case FileType::Assembly: {
             title = "Open assembly file";
-            filter = "Assembly file (*.s *.as *.asm)";
+            filter = "Assembly files [*.s, *.as, *.asm] (*.s *.as *.asm);; All files (*.*)";
             break;
         }
         case FileType::FlatBinary: {
             title = "Open binary file";
+            filter = "All files (*.*)";
             break;
         }
         case FileType::Executable: {
             title = "Open executable (ELF) file";
+            filter = "All files (*.*)";
             break;
         }
     }
@@ -117,7 +119,7 @@ bool LoadDialog::validateELFFile(const QFile& file) {
 }
 
 bool LoadDialog::fileTypeValidate(const QFile& file) {
-    switch (m_currentFileType) {
+    switch (m_fileType) {
         case FileType::Assembly:
             return validateAssemblyFile(file);
         case FileType::FlatBinary:
@@ -143,12 +145,12 @@ void LoadDialog::loadFileError(const QString& filename) {
 }
 
 void LoadDialog::accept() {
-    switch (m_currentFileType) {
-        case FileType::Assembly:
-        case FileType::FlatBinary:
-        case FileType::Executable:
-            break;
-    }
+    // It is assumed that the currently selected file will always be valid for the currently selected type, if the
+    // accept button is enabled. No further validation is performed.
+    m_params.filepath = m_ui->filePath->text();
+    m_params.type = m_fileType;
+    m_params.binaryLoadAt = m_ui->binaryLoadAt->text().toUInt(nullptr, 16);
+    m_params.binaryEntryPoint = m_ui->binaryEntryPoint->text().toUInt(nullptr, 16);
 
     QDialog::accept();
 }
