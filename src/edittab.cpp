@@ -1,15 +1,22 @@
 #include "edittab.h"
 #include "ui_edittab.h"
 
+#include <QCheckBox>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
 
 #include "parser.h"
 #include "processorhandler.h"
+#include "program.h"
 
 namespace Ripes {
 
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
+
+    connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableEditor);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
     // translation is complete
@@ -28,6 +35,20 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_assembler = new Assembler();
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+}
+
+void EditTab::loadFile(const LoadFileParams& fileParams) {
+    switch (fileParams.type) {
+        case FileType::Assembly:
+            loadAssemblyFile(fileParams);
+            break;
+        case FileType::FlatBinary:
+            loadFlatBinaryFile(fileParams);
+            break;
+        case FileType::Executable:
+            loadElfFile(fileParams);
+            break;
+    }
 }
 
 QString EditTab::getAssemblyText() {
@@ -91,17 +112,41 @@ void EditTab::on_assemblyfile_toggled(bool checked) {
     m_ui->binaryedit->clear();
 }
 
-void EditTab::setInputMode(bool isAssembly) {
-    /*
-    if (isAssembly) {
-        m_ui->assemblyfile->setChecked(true);
-    } else {
-        m_ui->binaryfile->setChecked(true);
-    }
-    */
+void EditTab::enableEditor() {
+    m_ui->editorStackedWidget->setCurrentIndex(0);
+}
+
+void EditTab::disableEditor() {
+    m_ui->editorStackedWidget->setCurrentIndex(1);
 }
 
 void EditTab::on_disassembledViewButton_toggled(bool checked) {
     Q_UNUSED(checked)
 }
+
+void EditTab::loadFlatBinaryFile(const LoadFileParams& params) {
+    m_ui->curInputSrcLabel->setText("Flat binary");
+    disableEditor();
+}
+
+void EditTab::loadAssemblyFile(const LoadFileParams& params) {
+    // ... load file
+    QFile file(params.filepath);
+    Parser::getParser()->clear();
+    clear();
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        setAssemblyText(file.readAll());
+        file.close();
+    }
+
+    setDisassemblerText();
+    enableEditor();
+    emit programChanged(m_assembler->getProgram());
+}
+
+void EditTab::loadElfFile(const LoadFileParams& params) {
+    m_ui->curInputSrcLabel->setText("Executable (ELF)");
+    disableEditor();
+}
+
 }  // namespace Ripes

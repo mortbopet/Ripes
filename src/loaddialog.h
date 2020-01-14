@@ -12,13 +12,6 @@ namespace Ui {
 class LoadDialog;
 }
 
-struct LoadFileParams {
-    QString filepath;
-    FileType type;
-    uint32_t binaryEntryPoint;
-    uint32_t binaryLoadAt;
-};
-
 class LoadDialog : public QDialog {
     Q_OBJECT
 

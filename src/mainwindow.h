@@ -28,7 +28,6 @@ public:
     ~MainWindow() override;
 
     void loadBinaryFile(QString fileName = QString());
-    void loadAssemblyFile(QString fileName = QString());
 
     void run();
 
@@ -52,10 +51,6 @@ signals:
     void updateMemoryTab();
 
 private:
-    void loadFlatBinaryFile(const LoadFileParams&);
-    void loadAssemblyFile(const LoadFileParams&);
-    void loadElfFile(const LoadFileParams&);
-
     void loadFile(const QString& filename, FileType type);
 
     void setupMenus();

@@ -22,8 +22,6 @@ int main(int argc, char** argv) {
         QString ext = QFileInfo(argv[1]).suffix();
         if (ext == QString("bin")) {
             m.loadBinaryFile(argv[1]);
-        } else if (ext == "asm" || ext == "s") {
-            m.loadAssemblyFile(argv[1]);
         } else {
             QMessageBox msg;
             msg.setText(

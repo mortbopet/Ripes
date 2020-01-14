@@ -16,6 +16,7 @@ class EditTab;
 }
 
 class Assembler;
+class LoadFileParams;
 
 class EditTab : public RipesTab {
     Q_OBJECT
@@ -26,12 +27,13 @@ public:
 
     void setAssemblyText(const QString& text);
     void setDisassemblerText();
-    void setInputMode(bool isAssembly);
     QString getAssemblyText();
     void newProgram();
     void clear();
 
     const QByteArray& getBinaryData();
+
+    void loadFile(const LoadFileParams&);
 
 signals:
     void programChanged(const Program& program);
@@ -45,6 +47,14 @@ private slots:
     void on_disassembledViewButton_toggled(bool checked);
 
 private:
+    void loadFlatBinaryFile(const LoadFileParams&);
+    void loadAssemblyFile(const LoadFileParams&);
+    void loadElfFile(const LoadFileParams&);
+
+    void setupActions();
+    void enableEditor();
+    void disableEditor();
+
     Ui::EditTab* m_ui;
     Assembler* m_assembler = nullptr;
 };

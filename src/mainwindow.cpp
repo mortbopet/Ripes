@@ -93,13 +93,11 @@ void MainWindow::setupMenus() {
     newAction->setShortcut(QKeySequence::New);
     connect(newAction, &QAction::triggered, this, &MainWindow::newProgramTriggered);
     m_ui->menuFile->addAction(newAction);
-    m_editTab->getToolbar()->addAction(newAction);
 
     const QIcon loadIcon = QIcon(":/icons/loadfile.svg");
     auto* loadAction = new QAction(loadIcon, "Load program", this);
     loadAction->setShortcut(QKeySequence::Open);
     connect(loadAction, &QAction::triggered, [=] { this->loadFileTriggered(); });
-    m_editTab->getToolbar()->addAction(loadAction);
     m_ui->menuFile->addAction(loadAction);
 
     m_ui->menuFile->addSeparator();
@@ -113,14 +111,12 @@ void MainWindow::setupMenus() {
     auto* saveAction = new QAction(saveIcon, "Save File", this);
     saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFilesTriggered);
-    m_editTab->getToolbar()->addAction(saveAction);
     m_ui->menuFile->addAction(saveAction);
 
     const QIcon saveAsIcon = QIcon(":/icons/saveas.svg");
     auto* saveAsAction = new QAction(saveAsIcon, "Save File As...", this);
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::saveFilesAsTriggered);
-    m_editTab->getToolbar()->addAction(saveAsAction);
     m_ui->menuFile->addAction(saveAsAction);
 
     m_ui->menuFile->addSeparator();
@@ -146,8 +142,10 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     if (!assemblyExamples.isEmpty()) {
         for (const auto& fileName : assemblyExamples) {
             parent->addAction(fileName, [=] {
-                this->loadAssemblyFile(QString(":/examples/assembly/") + fileName);
-                m_currentFile = QString();
+                LoadFileParams parms;
+                parms.filepath = QString(":/examples/assembly/") + fileName;
+                parms.type = FileType::Assembly;
+                m_editTab->loadFile(parms);
             });
         }
     }
@@ -162,66 +160,14 @@ void MainWindow::loadFileTriggered() {
     if (!diag.exec())
         return;
 
-    const auto& fileParams = diag.getParams();
-
-    switch (fileParams.type) {
-        case FileType::Assembly:
-            loadAssemblyFile(fileParams);
-            break;
-        case FileType::FlatBinary:
-            loadFlatBinaryFile(fileParams);
-            break;
-        case FileType::Executable:
-            loadElfFile(fileParams);
-            break;
-    }
+    m_editTab->loadFile(diag.getParams());
 }
-
-void MainWindow::loadFlatBinaryFile(const LoadFileParams& params) {}
-
-void MainWindow::loadAssemblyFile(const LoadFileParams& params) {
-    // ... load file
-    QFile file(params.filepath);
-    m_editTab->setInputMode(true);
-    Parser::getParser()->clear();
-    m_editTab->clear();
-    m_processorTab->restart();
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_editTab->setAssemblyText(file.readAll());
-        file.close();
-    }
-    m_currentFile = params.filepath;
-    m_editTab->setDisassemblerText();
-}
-
-void MainWindow::loadElfFile(const LoadFileParams& params) {}
 
 void MainWindow::loadBinaryFile(QString filename) {
-    m_editTab->setInputMode(false);
     m_processorTab->restart();
     Parser::getParser()->loadBinaryFile(filename);
     m_editTab->setDisassemblerText();
     emit update();
-}
-
-void MainWindow::loadAssemblyFile(QString filename) {
-    if (filename == QString()) {
-        filename = QFileDialog::getOpenFileName(this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
-    }
-    if (!filename.isNull()) {
-        // ... load file
-        QFile file(filename);
-        m_editTab->setInputMode(true);
-        Parser::getParser()->clear();
-        m_editTab->clear();
-        m_processorTab->restart();
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            m_editTab->setAssemblyText(file.readAll());
-            file.close();
-        }
-        m_currentFile = filename;
-        m_editTab->setDisassemblerText();
-    }
 }
 
 void MainWindow::about() {

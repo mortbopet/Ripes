@@ -77,12 +77,12 @@ void LoadDialog::openFileButtonTriggered() {
         }
         case FileType::FlatBinary: {
             title = "Open binary file";
-            filter = "All files (*.*)";
+            filter = "All files (*)";
             break;
         }
         case FileType::Executable: {
             title = "Open executable (ELF) file";
-            filter = "All files (*.*)";
+            filter = "All files (*)";
             break;
         }
     }

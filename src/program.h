@@ -1,11 +1,19 @@
 #pragma once
 
 #include <QByteArray>
+#include <QString>
 #include <vector>
 
 namespace Ripes {
 
 enum class FileType { Assembly, FlatBinary, Executable };
+
+struct LoadFileParams {
+    QString filepath;
+    FileType type;
+    uint32_t binaryEntryPoint;
+    uint32_t binaryLoadAt;
+};
 
 /**
  * @brief The Program struct
