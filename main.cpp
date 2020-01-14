@@ -16,19 +16,5 @@ int main(int argc, char** argv) {
     QApplication app(argc, argv);
     Ripes::MainWindow m;
     m.show();
-
-    if (argc == 2) {
-        // Load file specified in command-line argument
-        QString ext = QFileInfo(argv[1]).suffix();
-        if (ext == QString("bin")) {
-            m.loadBinaryFile(argv[1]);
-        } else {
-            QMessageBox msg;
-            msg.setText(
-                QString("Unknown extension for input file.\ngot: \"%1\" - expected:\n- bin\n- asm\n- s").arg(ext));
-            msg.exec();
-        }
-    }
-
     return app.exec();
 }
