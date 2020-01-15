@@ -34,6 +34,9 @@ private slots:
     void loadFileError(const QString& filename);
 
 private:
+    enum TypeButtonID { Assembly, FlatBinary, ELF };
+    static TypeButtonID s_typeIndex;
+
     bool fileTypeValidate(const QFile& file);
     bool validateAssemblyFile(const QFile& file);
     bool validateBinaryFile(const QFile& file);

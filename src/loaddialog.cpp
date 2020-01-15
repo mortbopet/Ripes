@@ -14,15 +14,17 @@
 
 namespace Ripes {
 
+LoadDialog::TypeButtonID LoadDialog::s_typeIndex = TypeButtonID::Assembly;
+
 LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDialog) {
     m_ui->setupUi(this);
 
     setWindowTitle("Load program...");
 
     m_fileTypeButtons = new QButtonGroup(this);
-    m_fileTypeButtons->addButton(m_ui->assemblyRadioButton);
-    m_fileTypeButtons->addButton(m_ui->binaryRadioButton);
-    m_fileTypeButtons->addButton(m_ui->elfRadioButton);
+    m_fileTypeButtons->addButton(m_ui->assemblyRadioButton, TypeButtonID::Assembly);
+    m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::FlatBinary);
+    m_fileTypeButtons->addButton(m_ui->elfRadioButton, TypeButtonID::ELF);
 
     connect(m_fileTypeButtons, QOverload<int, bool>::of(&QButtonGroup::buttonToggled), this,
             &LoadDialog::inputTypeChanged);
@@ -47,21 +49,28 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     m_ui->currentISA->setText(ProcessorHandler::get()->currentISA()->name());
 
     // default selection
-    m_ui->assemblyRadioButton->toggle();
+    m_fileTypeButtons->button(s_typeIndex)->toggle();
     validateCurrentFile();
 }
 
 void LoadDialog::inputTypeChanged() {
-    auto* button = m_fileTypeButtons->checkedButton();
-    if (button == m_ui->assemblyRadioButton) {
-        m_fileType = FileType::Assembly;
-        updateAssemblyPageState();
-    } else if (button == m_ui->binaryRadioButton) {
-        m_fileType = FileType::FlatBinary;
-        updateBinaryPageState();
-    } else if (button == m_ui->elfRadioButton) {
-        m_fileType = FileType::Executable;
-        updateELFPageState();
+    s_typeIndex = static_cast<LoadDialog::TypeButtonID>(m_fileTypeButtons->checkedId());
+    switch (m_fileTypeButtons->checkedId()) {
+        case LoadDialog::TypeButtonID::Assembly: {
+            m_fileType = FileType::Assembly;
+            updateAssemblyPageState();
+            break;
+        }
+        case LoadDialog::TypeButtonID::FlatBinary: {
+            m_fileType = FileType::FlatBinary;
+            updateBinaryPageState();
+            break;
+        }
+        case LoadDialog::TypeButtonID::ELF: {
+            m_fileType = FileType::Executable;
+            updateELFPageState();
+            break;
+        }
     }
     validateCurrentFile();
 }
