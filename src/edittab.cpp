@@ -66,6 +66,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     } else {
         QMessageBox::warning(this, "Error", "Error: Could not load file " + fileParams.filepath);
     }
+    file.close();
 }
 
 QString EditTab::getAssemblyText() {
@@ -158,9 +159,7 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPo
 
 bool EditTab::loadAssemblyFile(Program& program, QFile& file) {
     enableEditor();
-    // Loading text to editor will trigger the assembler
     setAssemblyText(file.readAll());
-    file.close();
     return true;
 }
 
