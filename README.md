@@ -7,22 +7,23 @@ Ripes is a graphical 5-stage processor pipeline simulator and assembly code edit
 Got questions or comments? Head over to the Ripes [Gitter chat](https://gitter.im/Ripes-VSRTL/).  
 Report bugs, issues or feature requests at https://github.com/mortbopet/Ripes/issues.
 
+
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/animation.gif?raw=true" />
 </p>
 
-- [Ripes](#ripes)
-  - [Features](#features)
-  - [Contributing](#contributing)
-  - [Downloading &amp; Installation](#downloading-amp-installation)
-    - [Linux](#linux)
-    - [Windows](#windows)
-  - [Usage](#usage)
-    - [Editor](#editor)
-    - [Processor](#processor)
-    - [Pipelining table](#pipelining-table)
-    - [Memory](#memory)
-  - [Building](#building)
+
+## Contributing
+The next major version (2.0.0) of Ripes is currently in **active development**! Head over to the [2.0-dev branch](https://github.com/mortbopet/Ripes/tree/2.0-dev) to see and try out some of the upcoming features.
+Version 2.0 will introduce the addition of multiple processor models, shipping with a *single cycle*, a *5-stage pipeline with forwarding/hazard detection* and a *5-stage pipeline without forwarding/hazard detection*. The introduction of multiple processor models represents an overhaul of the underlying simulator and graphics infrastructure, based on [VSRTL](https://github.com/mortbopet/VSRTL).  
+
+After 2.0, the next major feature will be the addition of multi-ISA support in Ripes. In this, we are looking for collaborators mainly for the implementation of the following:
+1. Implementation of a generic assembler/disassembler
+2. New ISAs (ie. Nios/MIPS/etc.), in terms of:
+   - Processor model(s)
+   - Language support (assembler/disassembler)
+
+Contributions and collaborators are very welcome!
 
 ## Features
 * **Simulator**:
@@ -36,21 +37,6 @@ Report bugs, issues or feature requests at https://github.com/mortbopet/Ripes/is
 * **Editor**:
   * Syntax highlighting and syntax error information
   * Real-time assembler for side-by-side comparison of assembly code and (disassembled) binary code
-
-## Contributing
-Currently, Ripes features a single processor model - a 5 stage pipeline. However, in learning about computer architecture it may be valuable to have access to both less and more complex processor models.  
-A future goal for Ripes is to contain processor models such as the following:
-* Single-cycle
-* 2/3 stage pipeline
-* 5 stage pipeline without forwarding/hazard detection
-* 5 stage pipeline with forwarding/hazard detection
-* 5 stage pipeline(s) with varying placements of branching logic
-
-However, describing all of these models with method of implementation currently used in Ripes would be highly tedious.
-
-Instead, [VSRTL](https://github.com/mortbopet/VSRTL) was created. VSRTL is intended to be a collection of libraries and applications for visualizing simulations of digital circuits. VSRTL is currently in active development, and when mature, may be used to describe an arbitrary number of processor models for Ripes.  
-VSRTL is in active development and looking for developers - if this sounds interesting, check out the [documentation](https://github.com/mortbopet/VSRTL/tree/master/docs) or current [issues](https://github.com/mortbopet/VSRTL/issues) for further info.
-
 
 ## Downloading & Installation
 Prebuilt applications are available for Linux, Windows & Mac. These are available at the [Releases page](https://github.com/mortbopet/Ripes/releases).  
