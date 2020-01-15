@@ -60,7 +60,7 @@
              <item>
               <widget class="QStackedWidget" name="editorStackedWidget">
                <property name="currentIndex">
-                <number>0</number>
+                <number>1</number>
                </property>
                <widget class="QWidget" name="editorPage">
                 <layout class="QGridLayout" name="gridLayout_3">
@@ -149,7 +149,24 @@
                     </item>
                     <item row="1" column="1">
                      <layout class="QGridLayout" name="gridLayout_7">
+                      <item row="1" column="1">
+                       <widget class="QLabel" name="inputSrcPath">
+                        <property name="text">
+                         <string>TextLabel</string>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
                       <item row="1" column="0">
+                       <widget class="QLabel" name="label_5">
+                        <property name="text">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;File:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="0">
                        <widget class="QLabel" name="label_7">
                         <property name="text">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; Enabling the editor will clear any currently loaded program from the simulator&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -159,6 +176,13 @@
                         </property>
                         <property name="wordWrap">
                          <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QLabel" name="curInputSrcLabel">
+                        <property name="text">
+                         <string>Foo</string>
                         </property>
                        </widget>
                       </item>
@@ -172,19 +196,29 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="0" column="1">
-                       <widget class="QLabel" name="curInputSrcLabel">
-                        <property name="text">
-                         <string>Foo</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="1" column="1">
-                       <widget class="QPushButton" name="enableEditor">
-                        <property name="text">
-                         <string>Enable editor</string>
-                        </property>
-                       </widget>
+                      <item row="2" column="1">
+                       <layout class="QHBoxLayout" name="horizontalLayout">
+                        <item>
+                         <widget class="QPushButton" name="enableEditor">
+                          <property name="text">
+                           <string>Enable editor</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_5">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
                       </item>
                      </layout>
                     </item>

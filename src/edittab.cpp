@@ -153,6 +153,7 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPo
     program.text.second = text;
 
     m_ui->curInputSrcLabel->setText("Flat binary");
+    m_ui->inputSrcPath->setText(file.fileName());
     disableEditor();
     return true;
 }
@@ -166,6 +167,7 @@ bool EditTab::loadAssemblyFile(Program& program, QFile& file) {
 bool EditTab::loadElfFile(Program& program, QFile& file) {
     bool success = true;
     m_ui->curInputSrcLabel->setText("Executable (ELF)");
+    m_ui->inputSrcPath->setText(file.fileName());
     clearAssemblyEditor();
 
     if (success) {
