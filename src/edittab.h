@@ -29,26 +29,32 @@ public:
     void setDisassemblerText();
     QString getAssemblyText();
     void newProgram();
-    void clear();
+    void clearAssemblyEditor();
 
     const QByteArray& getBinaryData();
 
     void loadFile(const LoadFileParams&);
 
 signals:
-    void programChanged(const Program& program);
+    void programChanged(const Program* program);
 
 public slots:
     void emitProgramChanged();
+
+    /**
+     * @brief enableAssemblyInput
+     * Called whenever the user wants to switch from binary/ELF file input to typed assembly input
+     */
+    void enableAssemblyInput();
 
 private slots:
     void assemble();
     void on_disassembledViewButton_toggled();
 
 private:
-    void loadFlatBinaryFile(const LoadFileParams&);
-    void loadAssemblyFile(const LoadFileParams&);
-    void loadElfFile(const LoadFileParams&);
+    bool loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPoint, uint32_t loadAt);
+    bool loadAssemblyFile(Program& program, QFile& file);
+    bool loadElfFile(Program& program, QFile& file);
 
     void setupActions();
     void enableEditor();
@@ -56,5 +62,8 @@ private:
 
     Ui::EditTab* m_ui;
     Assembler* m_assembler = nullptr;
+
+    LoadFileParams m_loadedFile;
+    Program m_activeProgram;
 };
 }  // namespace Ripes

@@ -16,7 +16,7 @@ namespace Ripes {
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
-    connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableEditor);
+    connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
 
     // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
     // translation is complete
@@ -39,16 +39,32 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 }
 
 void EditTab::loadFile(const LoadFileParams& fileParams) {
+    QFile file(fileParams.filepath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "Error", "Error: Could not open file " + fileParams.filepath);
+        return;
+    }
+
+    bool success = true;
+    Program loadedProgram;
     switch (fileParams.type) {
         case FileType::Assembly:
-            loadAssemblyFile(fileParams);
+            success &= loadAssemblyFile(loadedProgram, file);
             break;
         case FileType::FlatBinary:
-            loadFlatBinaryFile(fileParams);
+            success &= loadFlatBinaryFile(loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
             break;
         case FileType::Executable:
-            loadElfFile(fileParams);
+            success &= loadElfFile(loadedProgram, file);
             break;
+    }
+
+    if (success) {
+        m_loadedFile = fileParams;
+        m_activeProgram = loadedProgram;
+        emitProgramChanged();
+    } else {
+        QMessageBox::warning(this, "Error", "Error: Could not load file " + fileParams.filepath);
     }
 }
 
@@ -60,20 +76,21 @@ const QByteArray& EditTab::getBinaryData() {
     return m_assembler->getTextSegment();
 }
 
-void EditTab::clear() {
+void EditTab::clearAssemblyEditor() {
     m_ui->assemblyedit->reset();
     m_assembler->clear();
 }
 
 void EditTab::emitProgramChanged() {
-    emit programChanged(m_assembler->getProgram());
     setDisassemblerText();
+    emit programChanged(&m_activeProgram);
 }
 
 void EditTab::assemble() {
     if (m_ui->assemblyedit->syntaxAccepted()) {
-        const QByteArray& ret = m_assembler->assemble(*m_ui->assemblyedit->document());
+        m_assembler->assemble(*m_ui->assemblyedit->document());
         if (!m_assembler->hasError()) {
+            m_activeProgram = m_assembler->getProgram();
             emitProgramChanged();
         } else {
             QMessageBox err;
@@ -97,47 +114,67 @@ void EditTab::setAssemblyText(const QString& text) {
     m_ui->assemblyedit->setPlainText(text);
 }
 
+void EditTab::enableAssemblyInput() {
+    // Clear currently loaded binary/ELF program
+    m_activeProgram = Program();
+    m_ui->binaryedit->clear();
+    enableEditor();
+}
+
 void EditTab::setDisassemblerText() {
-    const QString& text = m_ui->disassembledViewButton->isChecked()
-                              ? Parser::getParser()->disassemble(m_assembler->getTextSegment())
-                              : Parser::getParser()->binarize(m_assembler->getTextSegment());
+    auto text = m_ui->disassembledViewButton->isChecked()
+                    ? Parser::getParser()->disassemble(m_activeProgram.text.second)
+                    : Parser::getParser()->binarize(m_activeProgram.text.second);
     m_ui->binaryedit->setPlainText(text);
 }
 
 void EditTab::enableEditor() {
+    connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(0);
+    clearAssemblyEditor();
 }
 
 void EditTab::disableEditor() {
+    disconnect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(1);
+    clearAssemblyEditor();
 }
 
 void EditTab::on_disassembledViewButton_toggled() {
     setDisassemblerText();
 }
 
-void EditTab::loadFlatBinaryFile(const LoadFileParams& params) {
+bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPoint, uint32_t loadAt) {
+    QByteArray text;
+    text = file.readAll();
+
+    program.text.first = loadAt;
+    program.text.second = text;
+
     m_ui->curInputSrcLabel->setText("Flat binary");
     disableEditor();
+    return true;
 }
 
-void EditTab::loadAssemblyFile(const LoadFileParams& params) {
-    // ... load file
-    QFile file(params.filepath);
-    clear();
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        setAssemblyText(file.readAll());
-        file.close();
-    }
-
-    setDisassemblerText();
+bool EditTab::loadAssemblyFile(Program& program, QFile& file) {
     enableEditor();
-    emit programChanged(m_assembler->getProgram());
+    // Loading text to editor will trigger the assembler
+    setAssemblyText(file.readAll());
+    file.close();
+    return true;
 }
 
-void EditTab::loadElfFile(const LoadFileParams& params) {
+bool EditTab::loadElfFile(Program& program, QFile& file) {
+    bool success = true;
     m_ui->curInputSrcLabel->setText("Executable (ELF)");
-    disableEditor();
+    clearAssemblyEditor();
+
+    if (success) {
+        disableEditor();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 }  // namespace Ripes

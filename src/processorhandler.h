@@ -120,7 +120,7 @@ signals:
     void hitBreakpoint(uint32_t address);
 
 public slots:
-    void loadProgram(const Program& p);
+    void loadProgram(const Program* p);
 
 private slots:
     void handleSysCall();
@@ -140,6 +140,6 @@ private:
      */
     std::pair<uint32_t, uint32_t> m_validExecutionRange;
     std::set<uint32_t> m_breakpoints;
-    Program m_program;
+    const Program* m_program = nullptr;
 };
 }  // namespace Ripes

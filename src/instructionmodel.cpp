@@ -23,8 +23,7 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 int InstructionModel::rowCount(const QModelIndex&) const {
-    // Each instruction is 4 bytes and each row represents an instruction within the .text segment
-    return ProcessorHandler::get()->getCurrentProgramSize();
+    return ProcessorHandler::get()->getCurrentProgramSize() / ProcessorHandler::get()->currentISA()->bytes();
 }
 
 void InstructionModel::processorWasClocked() {

@@ -13,19 +13,19 @@ ProcessorHandler::ProcessorHandler() {
     selectProcessor(m_currentSetup);
 }
 
-void ProcessorHandler::loadProgram(const Program& p) {
+void ProcessorHandler::loadProgram(const Program* p) {
     auto& mem = m_currentProcessor->getMemory();
 
     m_program = p;
     // Memory initializations
     mem.clearInitializationMemories();
-    mem.addInitializationMemory(p.text.first, p.text.second->data(), p.text.second->length());
-    for (const auto& seg : p.others) {
-        mem.addInitializationMemory(seg.first, seg.second->data(), seg.second->length());
+    mem.addInitializationMemory(p->text.first, p->text.second.data(), p->text.second.length());
+    for (const auto& seg : p->others) {
+        mem.addInitializationMemory(seg.first, seg.second.data(), seg.second.length());
     }
 
     // Set the valid execution range to be contained within the .text segment.
-    m_validExecutionRange = {p.text.first, p.text.first + p.text.second->length()};
+    m_validExecutionRange = {p->text.first, p->text.first + p->text.second.length()};
 
     // Update breakpoints to stay within the loaded program range
     std::vector<uint32_t> bpsToRemove;
@@ -130,8 +130,8 @@ void ProcessorHandler::selectProcessor(const ProcessorSetup& setup) {
 }
 
 int ProcessorHandler::getCurrentProgramSize() const {
-    if (m_program.text.second)
-        return m_program.text.second->size();
+    if (m_program)
+        return m_program->text.second.size();
     return 0;
 }
 

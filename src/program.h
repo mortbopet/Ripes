@@ -21,7 +21,7 @@ struct LoadFileParams {
  * program. Others section may contain all other program sections (.bss, .data, ...)
  */
 struct Program {
-    using Section = std::pair<uint32_t, QByteArray*>;
+    using Section = std::pair<uint32_t, QByteArray>;
     Section text;
     std::vector<Section> others;
 };

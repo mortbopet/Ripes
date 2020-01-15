@@ -812,8 +812,8 @@ const QByteArray& Assembler::assemble(const QTextDocument& doc) {
 
 const Program Assembler::getProgram() {
     Program p;
-    p.text = {ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Text), &m_textSegment};
-    p.others.push_back({ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Data), &m_dataSegment});
+    p.text = {ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Text), m_textSegment};
+    p.others.push_back({ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Data), m_dataSegment});
     return p;
 }
 }  // namespace Ripes
