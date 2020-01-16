@@ -82,7 +82,7 @@ QVariant InstructionModel::BPData(uint32_t addr) const {
     return ProcessorHandler::get()->hasBreakpoint(addr);
 }
 QVariant InstructionModel::PCData(uint32_t addr) const {
-    return addr;
+    return "0x" + QString::number(addr, 16);
 }
 QVariant InstructionModel::stageData(uint32_t addr) const {
     for (const auto& si : m_stageInfos) {
