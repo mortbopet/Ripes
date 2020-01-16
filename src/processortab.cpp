@@ -241,7 +241,7 @@ void ProcessorTab::reset() {
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
-    const auto index = address / ProcessorHandler::get()->currentISA()->bytes();
+    const auto index = addressToIndex(address);
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
     int indexTop = view->indexAt(rect.topLeft()).row();

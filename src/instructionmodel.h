@@ -13,6 +13,14 @@ namespace Ripes {
 class Parser;
 class Pipeline;
 
+static inline uint32_t indexToAddress(const QModelIndex& index) {
+    return (index.row() * 4) + ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
+}
+
+static inline unsigned addressToIndex(uint32_t addr) {
+    return (addr - ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address) / 4;
+}
+
 class InstructionModel : public QAbstractTableModel {
     Q_OBJECT
 public:

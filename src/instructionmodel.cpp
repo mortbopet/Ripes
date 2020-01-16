@@ -5,12 +5,6 @@
 
 namespace Ripes {
 
-namespace {
-uint32_t indexToAddress(const QModelIndex& index) {
-    return (index.row() * 4) + ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
-}
-}  // namespace
-
 InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
     for (int i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
         m_stageNames << ProcessorHandler::get()->getProcessor()->stageName(i);
