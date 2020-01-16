@@ -151,6 +151,7 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPo
 
     program.text.first = loadAt;
     program.text.second = text;
+    program.entryPoint = entryPoint;
 
     m_ui->curInputSrcLabel->setText("Flat binary");
     m_ui->inputSrcPath->setText(file.fileName());

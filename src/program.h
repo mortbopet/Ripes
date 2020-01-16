@@ -23,6 +23,7 @@ struct LoadFileParams {
 struct Program {
     using Section = std::pair<uint32_t, QByteArray>;
     Section text;
+    uint32_t entryPoint = 0;
     std::vector<Section> others;
 };
 }  // namespace Ripes

@@ -154,6 +154,7 @@ public:
         pc_reg->forceValue(0, address);
         propagateDesign();
     }
+    void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getRegisters() override { return *m_regMem; }

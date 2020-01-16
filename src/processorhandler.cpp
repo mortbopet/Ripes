@@ -24,6 +24,8 @@ void ProcessorHandler::loadProgram(const Program* p) {
         mem.addInitializationMemory(seg.first, seg.second.data(), seg.second.length());
     }
 
+    m_currentProcessor->setPCInitialValue(p->entryPoint);
+
     // Set the valid execution range to be contained within the .text segment.
     m_validExecutionRange = {p->text.first, p->text.first + p->text.second.length()};
 

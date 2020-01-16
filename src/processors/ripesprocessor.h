@@ -96,6 +96,12 @@ public:
      */
     virtual void setProgramCounter(uint32_t address) = 0;
 
+    /**
+     * @brief setPCInitialValue
+     * Sets the program counters value upon reset to @param address
+     */
+    virtual void setPCInitialValue(uint32_t address) = 0;
+
     void reset() override {
         Design::reset();
         m_instructionsRetired = 0;
