@@ -6,7 +6,18 @@ QT_FORWARD_DECLARE_CLASS(QFile);
 
 #include "program.h"
 
+namespace ELFIO {
+class elfio;
+}
+
 namespace Ripes {
+
+struct ELFInfo {
+    bool valid;
+    QString errorMessage;
+    QString entryPoint;
+    std::vector<QString> sectionInfo;
+};
 
 namespace Ui {
 class LoadDialog;
@@ -37,6 +48,7 @@ private:
     enum TypeButtonID { Assembly, FlatBinary, ELF };
     static TypeButtonID s_typeIndex;
 
+    void setElfInfo(const ELFInfo& info);
     bool fileTypeValidate(const QFile& file);
     bool validateAssemblyFile(const QFile& file);
     bool validateBinaryFile(const QFile& file);

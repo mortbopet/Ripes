@@ -1,6 +1,9 @@
 #include "loaddialog.h"
 #include "ui_loaddialog.h"
 
+#include "elfinfostrings.h"
+#include "elfio/elfio.hpp"
+
 #include "processorhandler.h"
 #include "program.h"
 #include "radix.h"
@@ -123,8 +126,61 @@ bool LoadDialog::validateBinaryFile(const QFile& file) {
     return loadAtValid && entryPointValid;
 }
 
+void LoadDialog::setElfInfo(const ELFInfo& info) {
+    if (info.valid) {
+        m_ui->elfInfo->clear();
+
+        QString text;
+        text += "Sections to be loaded:<br/>";
+        for (const auto& s : info.sectionInfo) {
+            text += s + "<br/>";
+        }
+
+        m_ui->elfInfo->setText(text);
+    } else {
+        m_ui->elfInfo->setText("<b>Error:</b> " + info.errorMessage);
+    }
+}
+
 bool LoadDialog::validateELFFile(const QFile& file) {
-    return true;
+    ELFIO::elfio reader;
+    ELFInfo info;
+    info.valid = true;
+
+    // Is it an ELF file?
+    if (!reader.load(file.fileName().toStdString())) {
+        info.errorMessage = "Not an ELF file";
+        info.valid = false;
+        goto finish;
+    }
+    // Is it a compatible machine format?
+    if (reader.get_machine() != ProcessorHandler::get()->currentISA()->elfMachineId()) {
+        info.errorMessage = "Incompatible ELF machine type (ISA).<br/><br/>Expected machine type:<br/>'" +
+                            QString::number(ProcessorHandler::get()->currentISA()->elfMachineId()) + "' (" +
+                            getNameForElfMachine(ProcessorHandler::get()->currentISA()->elfMachineId()) +
+                            ")<br/>but file has machine type:<br/>    '" + QString::number(reader.get_machine()) +
+                            "' (" + getNameForElfMachine(reader.get_machine()) + ")";
+        info.valid = false;
+        goto finish;
+    }
+
+    // executable? (Not dynamically linked nor relocateable)
+    if (!(reader.get_type() == ET_EXEC)) {
+        info.errorMessage = "Only executable files are supported.<br/><br/>File type is<br/>" +
+                            QString::number(reader.get_type()) + " (" + getNameForElfType(reader.get_type()) +
+                            ")<br/>Expected<br/>" + QString::number(ET_EXEC) + " (" + getNameForElfType(ET_EXEC) + ")";
+        info.valid = false;
+        goto finish;
+    }
+
+    // All checks successfull. Generate string indicating which segments will be loaded.
+    for (const auto& s : reader.sections) {
+        info.sectionInfo.push_back(QString::fromStdString(s->get_name()) + ": " + s->get_address());
+    }
+
+finish:
+    setElfInfo(info);
+    return info.valid;
 }
 
 bool LoadDialog::fileTypeValidate(const QFile& file) {
@@ -142,7 +198,10 @@ void LoadDialog::validateCurrentFile() {
     const QString& filename = m_ui->filePath->text();
     QFile file(filename);
     const bool filePathValid = file.exists();
-    const bool fileTypeValid = fileTypeValidate(file);
+    bool fileTypeValid = false;
+    if (filePathValid) {
+        fileTypeValid = fileTypeValidate(file);
+    }
 
     paletteValidate(m_ui->filePath, filePathValid);
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(filePathValid & fileTypeValid);
