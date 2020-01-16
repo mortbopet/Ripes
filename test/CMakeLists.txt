@@ -13,17 +13,17 @@ endmacro()
 # =============================================================================
 # RISC-V Tests
 # =============================================================================
-option(VSRTL_ENABLE_RISCV_TESTS "Enable RISC-V unit tests" OFF)
-if(VSRTL_ENABLE_RISCV_TESTS)
+option(RIPES_ENABLE_RISCV_TESTS "Enable RISC-V unit tests" OFF)
+if(RIPES_ENABLE_RISCV_TESTS)
     # Ensure required RISC-V toolchain tools are available
     find_program(RV_AS riscv64-linux-gnu-as)
     if(NOT RV_AS)
-        message(FATAL_ERROR "riscv64-linux-gnu-as not found!")
+        message(FATAL_ERROR "riscv64-linux-gnu-as not found! A RISC-V toolchain must be available to build and run the RISC-V tests.")
     endif()
 
     find_program(RV_OBJCOPY riscv64-linux-gnu-objcopy)
     if(NOT RV_OBJCOPY)
-        message(FATAL_ERROR "riscv64-linux-gnu-objcopy not found!")
+        message(FATAL_ERROR "riscv64-linux-gnu-objcopy not found! A RISC-V toolchain must be available to build and run the RISC-V tests.")
     endif()
 
     # Point to bundled tests within source directory
