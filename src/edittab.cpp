@@ -1,6 +1,8 @@
 #include "edittab.h"
 #include "ui_edittab.h"
 
+#include "elfio/elfio.hpp"
+
 #include <QCheckBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -170,17 +172,29 @@ bool EditTab::loadAssemblyFile(Program&, QFile& file) {
 }
 
 bool EditTab::loadElfFile(Program& program, QFile& file) {
-    bool success = true;
+    ELFIO::elfio reader;
+
+    // No file validity checking is performed - it is expected that Loaddialog has done all validity
+    // checking.
+    if (!reader.load(file.fileName().toStdString())) {
+        assert(false);
+    }
+
+    for (const auto& elfSection : reader.sections) {
+        ProgramSection& section = program.sections.emplace_back();
+        section.name = QString::fromStdString(elfSection->get_name());
+        section.address = elfSection->get_address();
+        // QByteArray performs a deep copy of the data when the data array is initialized at construction
+        section.data = QByteArray(elfSection->get_data(), elfSection->get_size());
+    }
+
+    program.entryPoint = reader.get_entry();
+
     m_ui->curInputSrcLabel->setText("Executable (ELF)");
     m_ui->inputSrcPath->setText(file.fileName());
-    clearAssemblyEditor();
 
-    if (success) {
-        disableEditor();
-        return true;
-    } else {
-        return false;
-    }
+    disableEditor();
+    return true;
 }
 
 }  // namespace Ripes

@@ -145,6 +145,8 @@ void LoadDialog::setElfInfo(const ELFInfo& info) {
 bool LoadDialog::validateELFFile(const QFile& file) {
     ELFIO::elfio reader;
     ELFInfo info;
+    QString flagErr;
+    unsigned elfbits;
     info.valid = true;
 
     // Is it an ELF file?
@@ -153,6 +155,7 @@ bool LoadDialog::validateELFFile(const QFile& file) {
         info.valid = false;
         goto finish;
     }
+
     // Is it a compatible machine format?
     if (reader.get_machine() != ProcessorHandler::get()->currentISA()->elfMachineId()) {
         info.errorMessage = "Incompatible ELF machine type (ISA).<br/><br/>Expected machine type:<br/>'" +
@@ -164,11 +167,27 @@ bool LoadDialog::validateELFFile(const QFile& file) {
         goto finish;
     }
 
+    // Is it a compatible file class?
+    elfbits = reader.get_class() == ELFCLASS32 ? 32 : 64;
+    if (elfbits != ProcessorHandler::get()->currentISA()->bits()) {
+        const QString bitSize = elfbits == 32 ? "32" : "64";
+        info.errorMessage = "Expected " + QString::number(ProcessorHandler::get()->currentISA()->bits()) +
+                            " bit executable, but input file is a " + bitSize + " bit executable.";
+    }
+
     // executable? (Not dynamically linked nor relocateable)
     if (!(reader.get_type() == ET_EXEC)) {
-        info.errorMessage = "Only executable files are supported.<br/><br/>File type is<br/>" +
+        info.errorMessage = "Only executable ELF files are supported.<br/><br/>File type is<br/>" +
                             QString::number(reader.get_type()) + " (" + getNameForElfType(reader.get_type()) +
                             ")<br/>Expected<br/>" + QString::number(ET_EXEC) + " (" + getNameForElfType(ET_EXEC) + ")";
+        info.valid = false;
+        goto finish;
+    }
+
+    // Supported flags?
+    flagErr = ProcessorHandler::get()->currentISA()->elfSupportsFlags(reader.get_flags());
+    if (!flagErr.isEmpty()) {
+        info.errorMessage = flagErr;
         info.valid = false;
         goto finish;
     }

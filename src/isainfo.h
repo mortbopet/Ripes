@@ -26,6 +26,14 @@ public:
 
     virtual unsigned elfMachineId() const = 0;
 
+    /**
+     * @brief elfSupportsFlags
+     * The instructcion set should determine whether the provided @p flags, as retrieved from an ELF file, are valid
+     * flags for the instruction set. If a mismatch is found, an error message describing the
+     * mismatch is returned. Else, returns an empty QString(), validating the flags.
+     */
+    virtual QString elfSupportsFlags(unsigned flags) const = 0;
+
 protected:
     ISAInfoBase() {}
 };
@@ -86,6 +94,18 @@ const static QStringList RVRegDescs = QStringList() << "Hard-Wired zero"
                                          << "Temporary register\nSaver: Caller"
                                          << "Temporary register\nSaver: Caller"
                                          << "Temporary register\nSaver: Caller";
+// RISC-V ELF info
+
+// Elf flag masks
+enum RVElfFlags {
+    RVC = 0b1,
+    FloatABI = 0b110,
+    RVE = 0b1000,
+    TSO = 0b10000
+};
+
+const static std::map<RVElfFlags, QString> RVELFFlagStrings {{RVC, "RVC"}, {FloatABI, "Float ABI"}, {RVE, "RVE"}, {TSO, "TSO"}};
+
 // clang-format on
 
 }  // namespace
@@ -109,5 +129,21 @@ public:
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
     unsigned elfMachineId() const override { return EM_RISCV; }
+
+    QString elfSupportsFlags(unsigned flags) const override {
+        /** We expect no flags for RV32IM compiled RISC-V executables.
+         *  Refer to: https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#-elf-object-files
+         */
+        if (flags == 0)
+            return QString();
+        QString err;
+        for (const auto& flag : RVELFFlagStrings) {
+            if (flags & flag.first) {
+                err += "ELF flag '" + RVELFFlagStrings.at(flag.first) + "' unsupported<br/>";
+            }
+        }
+        return err;
+    }
 };
+
 }  // namespace Ripes

@@ -86,6 +86,7 @@ void ProcessorHandler::clearBreakpoints() {
 }
 
 void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterSetup setup) {
+    m_program = nullptr;
     m_currentID = id;
 
     // Processor initializations
