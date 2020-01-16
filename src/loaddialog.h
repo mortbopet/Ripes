@@ -47,6 +47,7 @@ private slots:
 private:
     enum TypeButtonID { Assembly, FlatBinary, ELF };
     static TypeButtonID s_typeIndex;
+    static QString s_filePath;
 
     void setElfInfo(const ELFInfo& info);
     bool fileTypeValidate(const QFile& file);

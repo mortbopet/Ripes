@@ -18,6 +18,7 @@
 namespace Ripes {
 
 LoadDialog::TypeButtonID LoadDialog::s_typeIndex = TypeButtonID::Assembly;
+QString LoadDialog::s_filePath = QString();
 
 LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDialog) {
     m_ui->setupUi(this);
@@ -52,8 +53,8 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     m_ui->currentISA->setText(ProcessorHandler::get()->currentISA()->name());
 
     // default selection
+    m_ui->filePath->setText(s_filePath);
     m_fileTypeButtons->button(s_typeIndex)->toggle();
-    validateCurrentFile();
 }
 
 void LoadDialog::inputTypeChanged() {
@@ -100,7 +101,9 @@ void LoadDialog::openFileButtonTriggered() {
     }
 
     const auto filename = QFileDialog::getOpenFileName(this, title, "", filter);
-    m_ui->filePath->setText(filename);
+    if (!filename.isEmpty()) {
+        m_ui->filePath->setText(filename);
+    }
 }
 
 void LoadDialog::paletteValidate(QWidget* w, bool valid) {
@@ -215,6 +218,7 @@ bool LoadDialog::fileTypeValidate(const QFile& file) {
 
 void LoadDialog::validateCurrentFile() {
     const QString& filename = m_ui->filePath->text();
+    s_filePath = filename;
     QFile file(filename);
     const bool filePathValid = file.exists();
     bool fileTypeValid = false;
