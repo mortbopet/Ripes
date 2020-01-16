@@ -17,7 +17,7 @@
 
 namespace Ripes {
 
-LoadDialog::TypeButtonID LoadDialog::s_typeIndex = TypeButtonID::Assembly;
+LoadDialog::TypeButtonID LoadDialog::s_typeIndex = TypeButtonID::ELF;
 QString LoadDialog::s_filePath = QString();
 
 LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDialog) {
