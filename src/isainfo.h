@@ -3,6 +3,8 @@
 #include <QMap>
 #include <QString>
 
+#include "elfio/elf_types.hpp"
+
 namespace Ripes {
 
 /// Currently supported ISAs
@@ -21,6 +23,8 @@ public:
     unsigned bytes() const { return bits() / CHAR_BIT; }
     virtual int spReg() const { return -1; }  // Stack pointer
     virtual int gpReg() const { return -1; }  // Global pointer
+
+    virtual unsigned elfMachineId() const = 0;
 
 protected:
     ISAInfoBase() {}
@@ -104,5 +108,6 @@ public:
     unsigned int bits() const override { return 32; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
+    unsigned elfMachineId() const override { return EM_RISCV; }
 };
 }  // namespace Ripes
