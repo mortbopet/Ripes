@@ -281,12 +281,12 @@ QString Parser::generateJalrString(uint32_t instr) const {
 
 QString Parser::generateLuiString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("lui x%1 %2").arg(fields[1]).arg(fields[0]);
+    return QString("lui x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
 }
 
 QString Parser::generateAuipcString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("auipc x%1 %2").arg(fields[1]).arg((uint32_t)(fields[0]));
+    return QString("auipc x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
 }
 
 QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
@@ -294,6 +294,6 @@ QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
     auto target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
     target += (address);
     // Check for misaligned four-byte boundary
-    return QString("jal x%1 %2").arg(fields[4]).arg(target);
+    return QString("jal x%1 %2").arg(fields[4]).arg("0x" + QString::number(target, 16));
 }
 }  // namespace Ripes
