@@ -152,7 +152,8 @@ void ProcessorTab::processorSelection() {
     if (diag.exec()) {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
-        ProcessorHandler::get()->selectProcessor(diag.selectedSetup);
+        ProcessorHandler::get()->selectProcessor(
+            diag.selectedID, ProcessorRegistry::getDescription(diag.selectedID).defaultRegisterVals);
         ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
         updateInstructionModel();
         m_ui->registerWidget->updateModel();

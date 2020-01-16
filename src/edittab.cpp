@@ -123,9 +123,12 @@ void EditTab::enableAssemblyInput() {
 }
 
 void EditTab::setDisassemblerText() {
-    auto text = m_ui->disassembledViewButton->isChecked()
-                    ? Parser::getParser()->disassemble(m_activeProgram.text.second)
-                    : Parser::getParser()->binarize(m_activeProgram.text.second);
+    const auto* textSection = m_activeProgram.getSection(TEXT_SECTION_NAME);
+    if (!textSection)
+        return;
+
+    auto text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->disassemble(textSection->data)
+                                                          : Parser::getParser()->binarize(textSection->data);
     m_ui->binaryedit->setPlainText(text);
 }
 
@@ -146,11 +149,12 @@ void EditTab::on_disassembledViewButton_toggled() {
 }
 
 bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPoint, uint32_t loadAt) {
-    QByteArray text;
-    text = file.readAll();
+    ProgramSection section;
+    section.name = TEXT_SECTION_NAME;
+    section.address = loadAt;
+    section.data = file.readAll();
 
-    program.text.first = loadAt;
-    program.text.second = text;
+    program.sections.push_back(section);
     program.entryPoint = entryPoint;
 
     m_ui->curInputSrcLabel->setText("Flat binary");
@@ -159,7 +163,7 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPo
     return true;
 }
 
-bool EditTab::loadAssemblyFile(Program& program, QFile& file) {
+bool EditTab::loadAssemblyFile(Program&, QFile& file) {
     enableEditor();
     setAssemblyText(file.readAll());
     return true;

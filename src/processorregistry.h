@@ -15,17 +15,11 @@ namespace Ripes {
 enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
 // ============================================================================
 
-enum class ProgramSegment { Text, Data, Stack };
-const static std::map<ProgramSegment, QString> s_programSegmentName = {{ProgramSegment::Text, "Text"},
-                                                                       {ProgramSegment::Data, "Data"},
-                                                                       {ProgramSegment::Stack, "Stack"}};
-struct ProcessorSetup {
-    ProcessorID id;
-    std::map<ProgramSegment, uint32_t> segmentPtrs;
-};
+using RegisterSetup = std::map<unsigned, uint32_t>;
 
 struct ProcessorDescription {
-    ProcessorSetup defaultSetup;
+    ProcessorID id;
+    RegisterSetup defaultRegisterVals;
     const ISAInfoBase* isa;
     QString name;
     QString description;
@@ -52,37 +46,30 @@ private:
 
         // RISC-V single cycle
         ProcessorDescription desc;
-        desc.defaultSetup.id = ProcessorID::RISCV_SS;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Text] = 0;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Data] = 0x10000000;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Stack] = 0x7ffffff0;
-
+        desc.id = ProcessorID::RISCV_SS;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle";
         desc.description = "A single cycle RISC-V processor";
-        m_descriptions[desc.defaultSetup.id] = desc;
+        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        m_descriptions[desc.id] = desc;
 
         // RISC-V 5-Stage with forwarding
-        desc.defaultSetup.id = ProcessorID::RISCV_5S_WF;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Text] = 0;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Data] = 0x10000000;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Stack] = 0x7ffffff0;
+        desc.id = ProcessorID::RISCV_5S_WF;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage w/ forwarding";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
-        m_descriptions[desc.defaultSetup.id] = desc;
+        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        m_descriptions[desc.id] = desc;
 
         // RISC-V 5-stage without forwarding
-        desc.defaultSetup.id = ProcessorID::RISCV_5S_WOF;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Text] = 0;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Data] = 0x10000000;
-        desc.defaultSetup.segmentPtrs[ProgramSegment::Stack] = 0x7ffffff0;
+        desc.id = ProcessorID::RISCV_5S_WOF;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage wo/ forwarding";
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
-        m_descriptions[desc.defaultSetup.id] = desc;
+        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        m_descriptions[desc.id] = desc;
     }
 
     static ProcessorRegistry& instance() {
@@ -95,4 +82,3 @@ private:
 }  // namespace Ripes
 
 Q_DECLARE_METATYPE(Ripes::ProcessorID);
-Q_DECLARE_METATYPE(Ripes::ProgramSegment);

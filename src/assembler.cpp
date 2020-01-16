@@ -7,6 +7,8 @@
 #include <QRegularExpression>
 #include <QTextBlock>
 
+#define DATA_START 0x10000000
+
 namespace Ripes {
 
 namespace {
@@ -697,7 +699,7 @@ void Assembler::unpackOp(const QStringList& _fields, int& pos) {
         if (m_inDataSegment) {
             m_labelPosMap[string] =
                 // Offset label by data segment position and length of the data segment
-                m_dataSegment.length() + ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Data);
+                m_dataSegment.length() + DATA_START;
         } else {
             // The label is in the text segment. Label is defined without an offset
             m_labelPosMap[string] = pos * 4;
@@ -812,8 +814,9 @@ const QByteArray& Assembler::assemble(const QTextDocument& doc) {
 
 const Program Assembler::getProgram() {
     Program p;
-    p.text = {ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Text), m_textSegment};
-    p.others.push_back({ProcessorHandler::get()->getSetup().segmentPtrs.at(ProgramSegment::Data), m_dataSegment});
+    p.sections.push_back({TEXT_SECTION_NAME, 0, m_textSegment});
+    p.sections.push_back({".data", DATA_START, m_dataSegment});
     return p;
 }
+
 }  // namespace Ripes

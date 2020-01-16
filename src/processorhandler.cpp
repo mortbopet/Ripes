@@ -10,24 +10,27 @@ namespace Ripes {
 
 ProcessorHandler::ProcessorHandler() {
     // Contruct the default processor
-    selectProcessor(m_currentSetup);
+    selectProcessor(m_currentID);
 }
 
 void ProcessorHandler::loadProgram(const Program* p) {
+    auto* textSection = p->getSection(TEXT_SECTION_NAME);
+    if (!textSection)
+        return;
+
     auto& mem = m_currentProcessor->getMemory();
 
     m_program = p;
     // Memory initializations
     mem.clearInitializationMemories();
-    mem.addInitializationMemory(p->text.first, p->text.second.data(), p->text.second.length());
-    for (const auto& seg : p->others) {
-        mem.addInitializationMemory(seg.first, seg.second.data(), seg.second.length());
+    for (const auto& seg : p->sections) {
+        mem.addInitializationMemory(seg.address, seg.data.data(), seg.data.length());
     }
 
     m_currentProcessor->setPCInitialValue(p->entryPoint);
 
     // Set the valid execution range to be contained within the .text segment.
-    m_validExecutionRange = {p->text.first, p->text.first + p->text.second.length()};
+    m_validExecutionRange = {textSection->address, textSection->address + textSection->data.length()};
 
     // Update breakpoints to stay within the loaded program range
     std::vector<uint32_t> bpsToRemove;
@@ -82,49 +85,28 @@ void ProcessorHandler::clearBreakpoints() {
     m_breakpoints.clear();
 }
 
-void ProcessorHandler::selectProcessor(const ProcessorSetup& setup) {
-    m_currentSetup = setup;
+void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterSetup setup) {
+    m_currentID = id;
 
     // Processor initializations
-    m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentSetup.id);
+    m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);
     m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::handleSysCall);
     m_currentProcessor->finished.Connect(this, &ProcessorHandler::processorFinished);
 
     // Register initializations
     auto& regs = m_currentProcessor->getRegisters();
     regs.clearInitializationMemories();
-    for (const auto& seg : m_currentSetup.segmentPtrs) {
+    for (const auto& kv : setup) {
         // Memories are initialized through pointers to byte arrays, so we have to transform the intitial pointer
         // address to the compatible format.
         QByteArray ptrValueBytes;
-        auto ptrValue = seg.second;
+        auto ptrValue = kv.second;
         for (int i = 0; i < m_currentProcessor->implementsISA()->bytes(); i++) {
             ptrValueBytes.push_back(static_cast<char>(ptrValue & 0xFF));
             ptrValue >>= CHAR_BIT;
         }
-        switch (seg.first) {
-            case ProgramSegment::Stack: {
-                const int sp_idx = m_currentProcessor->implementsISA()->spReg();
-                if (sp_idx >= 0) {
-                    regs.addInitializationMemory(sp_idx << ceillog2(m_currentProcessor->implementsISA()->bytes()),
-                                                 ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
-                }
-                break;
-            }
-            case ProgramSegment::Data: {
-                const int gp_idx = m_currentProcessor->implementsISA()->gpReg();
-                if (gp_idx >= 0) {
-                    regs.addInitializationMemory(gp_idx << ceillog2(m_currentProcessor->implementsISA()->bytes()),
-                                                 ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
-                }
-                break;
-            }
-            default:
-                break;
-        }
-
-        if (seg.first == ProgramSegment::Stack) {
-        }
+        regs.addInitializationMemory(kv.first << ceillog2(m_currentProcessor->implementsISA()->bytes()),
+                                     ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
     }
 
     // Processor loaded. Request for the currently assembled program to be loaded into the processor
@@ -132,8 +114,12 @@ void ProcessorHandler::selectProcessor(const ProcessorSetup& setup) {
 }
 
 int ProcessorHandler::getCurrentProgramSize() const {
-    if (m_program)
-        return m_program->text.second.size();
+    if (m_program) {
+        const auto* textSection = m_program->getSection(TEXT_SECTION_NAME);
+        assert(textSection);
+        return textSection->data.length();
+    }
+
     return 0;
 }
 

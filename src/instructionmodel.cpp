@@ -7,7 +7,7 @@ namespace Ripes {
 
 namespace {
 uint32_t indexToAddress(const QModelIndex& index) {
-    return index.row() * 4;
+    return (index.row() * 4) + ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
 }
 }  // namespace
 

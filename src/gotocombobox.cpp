@@ -22,34 +22,36 @@ void GoToComboBox::showPopup() {
 
     addItem("Select", QVariant::fromValue<GoToFunction>(GoToFunction::Select));
     addItem("Address...", QVariant::fromValue<GoToFunction>(GoToFunction::Address));
-    for (const auto& seg : ProcessorHandler::get()->getSetup().segmentPtrs) {
-        addItem(s_programSegmentName.at(seg.first), QVariant::fromValue<ProgramSegment>(seg.first));
+
+    if (ProcessorHandler::get()->getProgram()) {
+        for (const auto& section : ProcessorHandler::get()->getProgram()->sections) {
+            addItem(section.name, QVariant::fromValue<GoToFunction>(GoToFunction::Section));
+        }
     }
+
     QComboBox::showPopup();
 }
 
 void GoToComboBox::signalFilter(int index) {
     const auto& value = itemData(index);
 
-    if (value.userType() == QVariant::fromValue(GoToFunction::Select).userType()) {
-        const GoToFunction f = qvariant_cast<GoToFunction>(value);
-        switch (f) {
-            case GoToFunction::Select:
-                return;
-            case GoToFunction::Address: {
-                // Create goto-address dialog
-                AddressDialog dialog;
-                if (dialog.exec() == QDialog::Accepted) {
-                    emit jumpToAddress(dialog.getAddress());
-                }
-                break;
+    const GoToFunction f = qvariant_cast<GoToFunction>(value);
+    switch (f) {
+        case GoToFunction::Select:
+            return;
+        case GoToFunction::Address: {
+            // Create goto-address dialog
+            AddressDialog dialog;
+            if (dialog.exec() == QDialog::Accepted) {
+                emit jumpToAddress(dialog.getAddress());
             }
+            break;
         }
-    }
-
-    if (value.userType() == QVariant::fromValue(ProgramSegment::Data).userType()) {
-        const ProgramSegment seg = qvariant_cast<ProgramSegment>(value);
-        emit jumpToAddress(ProcessorHandler::get()->getSetup().segmentPtrs.at(seg));
+        case GoToFunction::Section: {
+            const QString& sectionName = itemText(index);
+            emit jumpToAddress(ProcessorHandler::get()->getProgram()->getSection(sectionName)->address);
+            break;
+        }
     }
 
     clear();

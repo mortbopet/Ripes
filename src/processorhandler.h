@@ -24,7 +24,8 @@ public:
     }
 
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
-    const ProcessorSetup& getSetup() const { return m_currentSetup; }
+    const ProcessorID& getID() const { return m_currentID; }
+    const Program* getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
 
     /**
@@ -39,7 +40,7 @@ public:
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
      * RipesProcessor interface.
      */
-    void selectProcessor(const ProcessorSetup& id);
+    void selectProcessor(const ProcessorID& id, RegisterSetup setup = RegisterSetup());
 
     /**
      * @brief checkValidExecutionRange
@@ -129,7 +130,7 @@ private slots:
 private:
     ProcessorHandler();
 
-    ProcessorSetup m_currentSetup = ProcessorRegistry::getDescription(ProcessorID::RISCV_SS).defaultSetup;
+    ProcessorID m_currentID = ProcessorID::RISCV_SS;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
 
     /**

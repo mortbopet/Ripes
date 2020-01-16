@@ -17,8 +17,8 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     // Initialize processor list
     for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         QListWidgetItem* item = new QListWidgetItem(desc.second.name);
-        item->setData(Qt::UserRole, QVariant::fromValue(desc.second.defaultSetup.id));
-        if (desc.second.defaultSetup.id == ProcessorHandler::get()->getSetup().id) {
+        item->setData(Qt::UserRole, QVariant::fromValue(desc.second.id));
+        if (desc.second.id == ProcessorHandler::get()->getID()) {
             auto font = item->font();
             font.setBold(true);
             item->setFont(font);
@@ -42,12 +42,9 @@ ProcessorSelectionDialog::~ProcessorSelectionDialog() {
 
 void ProcessorSelectionDialog::accept() {
     const ProcessorID id = qvariant_cast<ProcessorID>(ui->processorList->currentItem()->data(Qt::UserRole));
-    selectedSetup = ProcessorRegistry::getDescription(id).defaultSetup;
+    selectedID = id;
 
-    selectedSetup.segmentPtrs[ProgramSegment::Data] = ui->dataPtr->text().toUInt(nullptr, 16);
-    selectedSetup.segmentPtrs[ProgramSegment::Stack] = ui->stackPtr->text().toUInt(nullptr, 16);
-
-    if (id != ProcessorHandler::get()->getSetup().id) {
+    if (id != ProcessorHandler::get()->getID()) {
         // New processor model was selected
         return QDialog::accept();
     } else {
@@ -63,11 +60,13 @@ void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListW
     ui->ISA->setText(desc.isa->name());
     ui->description->setPlainText(desc.description);
 
+    /*
     ui->stackPtr->setText(
         "0x" +
         QString::number(ProcessorRegistry::getDescription(id).defaultSetup.segmentPtrs.at(ProgramSegment::Stack), 16));
     ui->dataPtr->setText(
         "0x" +
         QString::number(ProcessorRegistry::getDescription(id).defaultSetup.segmentPtrs.at(ProgramSegment::Data), 16));
+    */
 }
 }  // namespace Ripes

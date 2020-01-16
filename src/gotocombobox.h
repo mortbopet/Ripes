@@ -5,7 +5,7 @@
 
 namespace Ripes {
 
-enum class GoToFunction { Select, Address };
+enum class GoToFunction { Select, Address, Section };
 
 class GoToComboBox : public QComboBox {
     Q_OBJECT
