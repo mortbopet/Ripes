@@ -48,12 +48,13 @@ private:
     void loadFile(const QString& filename, FileType type);
 
     void setupMenus();
+    void setupExamplesMenu(QMenu* parent);
 
     Ui::MainWindow* m_ui;
-    void setupExamplesMenu(QMenu* parent);
-    QString m_currentFile = QString();
     QActionGroup* m_binaryStoreAction;
     QToolBar* m_toolbar = nullptr;
+
+    bool m_hasSavedFile = false;
 
     // Tabs
     QStackedWidget* m_stackedTabs = nullptr;

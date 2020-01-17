@@ -10,6 +10,7 @@
 #include "processorhandler.h"
 #include "processortab.h"
 #include "registerwidget.h"
+#include "savedialog.h"
 
 #include "fancytabbar/fancytabbar.h"
 
@@ -63,6 +64,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
     connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
     connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
+    connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
@@ -98,12 +100,15 @@ void MainWindow::setupMenus() {
     auto* saveAction = new QAction(saveIcon, "Save File", this);
     saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFilesTriggered);
+    connect(m_editTab, &EditTab::editorStateChanged, [saveAction](bool enabled) { saveAction->setEnabled(enabled); });
     m_ui->menuFile->addAction(saveAction);
 
     const QIcon saveAsIcon = QIcon(":/icons/saveas.svg");
     auto* saveAsAction = new QAction(saveAsIcon, "Save File As...", this);
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::saveFilesAsTriggered);
+    connect(m_editTab, &EditTab::editorStateChanged,
+            [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
     m_ui->menuFile->addAction(saveAsAction);
 
     m_ui->menuFile->addSeparator();
@@ -129,6 +134,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = FileType::Assembly;
                 m_editTab->loadFile(parms);
+                m_hasSavedFile = false;
             });
         }
     }
@@ -144,6 +150,7 @@ void MainWindow::loadFileTriggered() {
         return;
 
     m_editTab->loadFile(diag.getParams());
+    m_hasSavedFile = false;
 }
 
 void MainWindow::about() {
@@ -178,65 +185,47 @@ void writeBinaryFile(QFile& file, const QByteArray& data) {
 }  // namespace
 
 void MainWindow::saveFilesTriggered() {
-    if (m_currentFile.isEmpty()) {
-        saveFilesAsTriggered();
+    SaveDialog diag;
+    if (!m_hasSavedFile) {
+        diag.exec();
+        m_hasSavedFile = true;
     }
 
-    // if (m_ui->actionSave_Source->isChecked()) {
-    {
-        QFile file(m_currentFile);
+    if (!diag.assemblyPath().isEmpty()) {
+        QFile file(diag.assemblyPath());
         writeTextFile(file, m_editTab->getAssemblyText());
     }
-    //}
 
-    // QAction* binaryStoreAction = m_binaryStoreAction->checkedAction();
-    // if (binaryStoreAction == m_ui->actionSave_as_flat_binary) {
-    {
-        QFile file(removeFileExt(m_currentFile) + ".bin");
+    if (!diag.binaryPath().isEmpty()) {
+        QFile file(diag.binaryPath());
         writeBinaryFile(file, m_editTab->getBinaryData());
     }
 }
 
 void MainWindow::saveFilesAsTriggered() {
-    QFileDialog dialog(this);
-    dialog.setNameFilter("*.as *.s");
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setDefaultSuffix(".s");
-    dialog.setModal(true);
-    if (dialog.exec()) {
-        m_currentFile = dialog.selectedFiles()[0];
-        saveFilesTriggered();
-    }
+    SaveDialog diag;
+    auto ret = diag.exec();
+    if (ret == QDialog::Rejected)
+        return;
+    m_hasSavedFile = true;
+    saveFilesTriggered();
 }
 
 void MainWindow::newProgramTriggered() {
     QMessageBox mbox;
     mbox.setWindowTitle("New Program...");
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    if (!m_editTab->getAssemblyText().isEmpty() && m_currentFile.isEmpty()) {
+    if (!m_editTab->getAssemblyText().isEmpty() || m_hasSavedFile) {
         // User wrote a program but did not save it to a file yet
         mbox.setText("Save program before creating new file?");
         auto ret = mbox.exec();
         switch (ret) {
             case QMessageBox::Yes: {
-                saveFilesAsTriggered();
-                break;
-            }
-            case QMessageBox::No: {
-                break;
-            }
-            case QMessageBox::Cancel: {
-                return;
-            }
-        }
-    } else if (!m_currentFile.isEmpty()) {
-        // User previously stored a program but may have updated in the meantime - prompt to ask whether the program
-        // should be stored to the current file name
-        mbox.setText(QString("Save program \"%1\" before creating new file?").arg(m_currentFile));
-        auto ret = mbox.exec();
-        switch (ret) {
-            case QMessageBox::Yes: {
                 saveFilesTriggered();
+                if (!m_hasSavedFile) {
+                    // User must have rejected the save file dialog
+                    return;
+                }
                 break;
             }
             case QMessageBox::No: {
@@ -247,7 +236,8 @@ void MainWindow::newProgramTriggered() {
             }
         }
     }
-    m_currentFile.clear();
+    m_hasSavedFile = false;
     m_editTab->newProgram();
-}  // namespace Ripes
+}
+
 }  // namespace Ripes

@@ -14,11 +14,17 @@ class Parser;
 class Pipeline;
 
 static inline uint32_t indexToAddress(const QModelIndex& index) {
-    return (index.row() * 4) + ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
+    if (ProcessorHandler::get()->getProgram()) {
+        return (index.row() * 4) + ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
+    }
+    return 0;
 }
 
 static inline unsigned addressToIndex(uint32_t addr) {
-    return (addr - ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address) / 4;
+    if (ProcessorHandler::get()->getProgram()) {
+        return (addr - ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address) / 4;
+    }
+    return 0;
 }
 
 class InstructionModel : public QAbstractTableModel {

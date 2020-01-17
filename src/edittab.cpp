@@ -122,6 +122,7 @@ void EditTab::enableAssemblyInput() {
     m_activeProgram = Program();
     m_ui->binaryedit->clear();
     enableEditor();
+    emit editorStateChanged(true);
 }
 
 void EditTab::setDisassemblerText() {
@@ -144,6 +145,7 @@ void EditTab::disableEditor() {
     disconnect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
+    emit editorStateChanged(false);
 }
 
 void EditTab::on_disassembledViewButton_toggled() {

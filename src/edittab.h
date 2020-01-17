@@ -37,6 +37,7 @@ public:
 
 signals:
     void programChanged(const Program* program);
+    void editorStateChanged(bool enabled);
 
 public slots:
     void emitProgramChanged();
