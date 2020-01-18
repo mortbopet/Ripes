@@ -9,7 +9,7 @@
 #include "../isainfo.h"
 
 namespace Ripes {
-enum SysCall { None = 0, PrintInt = 1, PrintChar = 2, PrintStr = 4, Exit = 10 };
+enum SysCall { None = 0, PrintInt = 1, PrintFloat = 2, PrintStr = 4, Exit = 10, PrintChar = 11 };
 
 struct StageInfo {
     StageInfo() {}
@@ -129,9 +129,11 @@ public:
      */
     virtual bool finished() const = 0;
 
+    long long getInstructionsRetired() const { return m_instructionsRetired; }
+
 private:
     // Statistics
-    unsigned int m_instructionsRetired = 0;
+    long long m_instructionsRetired = 0;
 };
 
 }  // namespace core

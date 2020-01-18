@@ -158,6 +158,12 @@ void ProcessorHandler::handleSysCall() {
             emit print(QString::fromUtf8(string));
             return;
         }
+        case SysCall::PrintFloat: {
+            auto v = m_currentProcessor->getRegister(11);
+            auto v_f = reinterpret_cast<float*>(&v);
+            emit print(QString::number(*v_f));
+            return;
+        }
         case SysCall::PrintInt: {
             emit print(QString::number(static_cast<int>(m_currentProcessor->getRegister(11))));
             return;
