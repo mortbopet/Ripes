@@ -143,14 +143,24 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 }
 
 void ProcessorHandler::handleSysCall() {
-    const unsigned int arg = m_currentProcessor->getRegister(10);
+    const unsigned int arg = m_currentProcessor->getRegister(17);
+    const auto val = m_currentProcessor->getRegister(10);
     switch (arg) {
         case SysCall::None:
             return;
+        case SysCall::PrintInt: {
+            emit print(QString::number(static_cast<int>(val)));
+            return;
+        }
+        case SysCall::PrintFloat: {
+            auto v_f = reinterpret_cast<const float*>(&val);
+            emit print(QString::number(*v_f));
+            return;
+        }
         case SysCall::PrintStr: {
             QByteArray string;
             char byte;
-            unsigned int address = m_currentProcessor->getRegister(11);
+            unsigned int address = val;
             do {
                 byte = static_cast<char>(m_currentProcessor->getMemory().readMem(address++) & 0xFF);
                 string.append(byte);
@@ -158,23 +168,26 @@ void ProcessorHandler::handleSysCall() {
             emit print(QString::fromUtf8(string));
             return;
         }
-        case SysCall::PrintFloat: {
-            auto v = m_currentProcessor->getRegister(11);
-            auto v_f = reinterpret_cast<float*>(&v);
-            emit print(QString::number(*v_f));
-            return;
-        }
-        case SysCall::PrintInt: {
-            emit print(QString::number(static_cast<int>(m_currentProcessor->getRegister(11))));
+        case SysCall::Exit2:
+        case SysCall::Exit: {
+            m_currentProcessor->finalize();
             return;
         }
         case SysCall::PrintChar: {
-            QString val = QChar(m_currentProcessor->getRegister(11));
-            emit print(val);
+            QString ch = QChar(val);
+            emit print(ch);
             break;
         }
-        case SysCall::Exit: {
-            m_currentProcessor->finalize();
+        case SysCall::PrintIntHex: {
+            emit print("0x" + QString::number(val, 16).rightJustified(currentISA()->bytes(), '0'));
+            return;
+        }
+        case SysCall::PrintIntBinary: {
+            emit print("0b" + QString::number(val, 2).rightJustified(currentISA()->bits(), '0'));
+            return;
+        }
+        case SysCall::PrintIntUnsigned: {
+            emit print(QString::number(static_cast<unsigned>(val)));
             return;
         }
         default: {

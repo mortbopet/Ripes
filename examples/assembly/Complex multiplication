@@ -16,17 +16,17 @@ lw a3 , dd
 jal complexMul
 nop
 mv t0, a1 #Move imaginary value to t0
-mv a1, a0 #Move real value to a1
+mv a0, a0 #Move real value to a1
 
-li a0, 1 #Set ecall to print integer
+li a7, 1 #Set ecall to print integer
 ecall #Print integer
 
-la a1, str
-li a0, 4
+la a0, str
+li a7, 4
 ecall
 
-mv a1, t0 #Move imaginary value to a1
-li a0, 1
+mv a0, t0 #Move imaginary value to a1
+li a7, 1
 ecall #Print integer
 
 j end # Jump to end of program

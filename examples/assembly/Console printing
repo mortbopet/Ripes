@@ -8,8 +8,8 @@ delimiter:  .string      ", "
 
 .text
 # ------ String printing ----------
-    la      a1 str # Load the address of the string, placed in the static data segment
-    li      a0 4   # Argument '4' for ecall instructs ecall to print to console
+    la      a0 str # Load the address of the string, placed in the static data segment
+    li      a7 4   # Argument '4' for ecall instructs ecall to print to console
     ecall
 
     jal printNewline
@@ -27,19 +27,19 @@ delimiter:  .string      ", "
 # Print ASCII characters in the range [33:53]
     li      a0	33
     li      a1	53
-    li      a2	2
+    li      a2	11
     jal loopPrint
 
 end:
     # End program
-    li      a0 10
+    li      a7 10
     ecall
 
 
 # ====== Helper routines ======
 printNewline:
-    la      a1	newline
-    li      a0	4
+    la      a0	newline
+    li      a7	4
     ecall
     jalr    x0 x1 0
 
@@ -47,18 +47,18 @@ printNewline:
 # Loops in the range [a0;a1] and prints the loop invariant to console
 # a0: range start
 # a1: range stop
-# a2: print method (ecall ergument)
+# a2: print method (ecall argument)
 loopPrint:
     addi    t0 a0 0
     addi    t1 a1 0
 loop:
-    # Print value in a1 as specified by argument a2
-    addi 	a1 t0 0
-    addi 	a0 a2 0
+    # Print value in a0 as specified by argument a2
+    addi 	a0 t0 0
+    addi 	a7 a2 0
     ecall
     # Print a delimiter between the numbers
-    li 		a0 4
-    la 		a1 delimiter
+    li 		a7 4
+    la 		a0 delimiter
     ecall
     # Increment
     addi 	t0 t0 1

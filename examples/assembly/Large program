@@ -94,7 +94,7 @@ sum:
 	call	sum
 	sw	a0,-36(s0)
 
-	addi a0, x0, 10
+	addi a7, x0, 10
 	ecall
 
 	mv	sp,s1
