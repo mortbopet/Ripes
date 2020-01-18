@@ -75,9 +75,9 @@ void ProcessorTab::setupSimulatorActions() {
     m_resetAction->setShortcut(QKeySequence("F3"));
     m_toolbar->addAction(m_resetAction);
 
-    const QIcon reverseIcon = QIcon(":/icons/rewind.svg");
-    m_reverseAction = new QAction(reverseIcon, "Rewind (F4)", this);
-    connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::rewind);
+    const QIcon reverseIcon = QIcon(":/icons/reverse.svg");
+    m_reverseAction = new QAction(reverseIcon, "Reverse (F4)", this);
+    connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::reverse);
     m_reverseAction->setShortcut(QKeySequence("F4"));
     m_toolbar->addAction(m_reverseAction);
 
@@ -152,7 +152,7 @@ void ProcessorTab::updateStatistics() {
 void ProcessorTab::pause() {
     m_autoClockAction->setChecked(false);
     m_runAction->setChecked(false);
-    m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
+    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
 void ProcessorTab::processorSelection() {
@@ -221,7 +221,7 @@ void ProcessorTab::enableSimulatorControls() {
     m_clockAction->setEnabled(true);
     m_autoClockAction->setEnabled(true);
     m_runAction->setEnabled(true);
-    m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
+    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
     m_resetAction->setEnabled(true);
 }
 
@@ -266,8 +266,8 @@ void ProcessorTab::run(bool state) {
     }
 }
 
-void ProcessorTab::rewind() {
-    m_vsrtlWidget->rewind();
+void ProcessorTab::reverse() {
+    m_vsrtlWidget->reverse();
     enableSimulatorControls();
     emit update();
 }
@@ -279,7 +279,7 @@ void ProcessorTab::clock() {
         pause();
     }
     ProcessorHandler::get()->checkProcessorFinished();
-    m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
+    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 
     emit update();
 }

@@ -176,9 +176,9 @@ public:
         }
     }
 
-    void rewind() override {
-        Design::rewind();
-        // Ensure that rewinds performed when we expected to finish in the following cycle, clears this expectation.
+    void reverse() override {
+        Design::reverse();
+        // Ensure that reverses performed when we expected to finish in the following cycle, clears this expectation.
         m_finishInNextCycle = false;
         m_finished = false;
     }
