@@ -24,12 +24,12 @@ matrix:
       addons:
         apt:
           sources:
-            - sourceline: 'ppa:beineri/opt-qt593-trusty'
+            - sourceline: 'ppa:beineri/opt-qt-5.10.1-trusty'
               key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x10C56D0DE9977759'
             - ubuntu-toolchain-r-test
           packages:
-            - qt59-meta-minimal
-            - qt59svg
+            - qt510-meta-minimal
+            - qt510svg
             - libc6-dev
             - g++-8
             - tree
