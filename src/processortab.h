@@ -45,6 +45,7 @@ public slots:
     void printToLog(const QString&);
     void processorFinished();
     void runFinished();
+    void updateStatistics();
 
     void processorSelection();
 

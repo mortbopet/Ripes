@@ -33,6 +33,7 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     updateInstructionModel();
     m_ui->registerWidget->updateModel();
     connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
+    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateStatistics);
 
     setupSimulatorActions();
 
@@ -140,6 +141,12 @@ void ProcessorTab::setupSimulatorActions() {
     m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
     connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
     m_toolbar->addAction(m_pipelineTableAction);
+}
+
+void ProcessorTab::updateStatistics() {
+    m_ui->cycleCount->setText(QString::number(ProcessorHandler::get()->getProcessor()->getCycleCount()));
+    m_ui->instructionsRetired->setText(
+        QString::number(ProcessorHandler::get()->getProcessor()->getInstructionsRetired()));
 }
 
 void ProcessorTab::pause() {

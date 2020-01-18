@@ -186,12 +186,12 @@
          <item>
           <widget class="QLabel" name="nInstrExecutedLabel">
            <property name="text">
-            <string># instructions executed:</string>
+            <string># instructions retired:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="nInstrExecuted">
+          <widget class="QLineEdit" name="instructionsRetired">
            <property name="sizePolicy">
             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
