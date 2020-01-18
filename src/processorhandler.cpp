@@ -5,6 +5,7 @@
 #include "program.h"
 
 #include <QMessageBox>
+#include <QtConcurrent/QtConcurrent>
 
 namespace Ripes {
 
@@ -54,6 +55,22 @@ const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
     return m_currentProcessor->getRegisters();
 }
 
+void ProcessorHandler::run() {
+    auto future = QtConcurrent::run([=] {
+        m_currentProcessor->setEnableSignals(false);
+        bool stopRunning = m_stopRunningFlag;
+        while (!stopRunning) {
+            m_currentProcessor->clock();
+            ProcessorHandler::get()->checkValidExecutionRange();
+            stopRunning |=
+                ProcessorHandler::get()->checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
+        }
+        m_currentProcessor->setEnableSignals(true);
+    });
+    m_runWatcher.setFuture(future);
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, &ProcessorHandler::runFinished);
+}
+
 void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
     if (enabled) {
         m_breakpoints.insert(address);
@@ -70,11 +87,9 @@ bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {
     return m_breakpoints.count(address);
 }
 
-void ProcessorHandler::checkBreakpoint() {
+bool ProcessorHandler::checkBreakpoint() {
     const auto pc = m_currentProcessor->pcForStage(0);
-    if (m_breakpoints.count(pc)) {
-        emit hitBreakpoint(pc);
-    }
+    return m_breakpoints.count(pc);
 }
 
 void ProcessorHandler::toggleBreakpoint(const uint32_t address) {
@@ -92,7 +107,6 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterSetup setu
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);
     m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::handleSysCall);
-    m_currentProcessor->finished.Connect(this, &ProcessorHandler::processorFinished);
 
     // Register initializations
     auto& regs = m_currentProcessor->getRegisters();
@@ -165,8 +179,16 @@ void ProcessorHandler::handleSysCall() {
     }
 }
 
-void ProcessorHandler::processorFinished() {
-    emit exit();
+void ProcessorHandler::checkProcessorFinished() {
+    if (m_currentProcessor->finished())
+        emit exit();
+}
+
+void ProcessorHandler::stop() {
+    if (m_runWatcher.isRunning())
+        m_stopRunningFlag = true;
+    m_runWatcher.waitForFinished();
+    m_stopRunningFlag = false;
 }
 
 void ProcessorHandler::checkValidExecutionRange() const {

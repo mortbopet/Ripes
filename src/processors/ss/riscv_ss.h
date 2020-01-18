@@ -162,6 +162,7 @@ public:
         // Allow one additional clock cycle to clear the current instruction
         m_finishInNextCycle = true;
     }
+    bool finished() const override { return m_finished; }
 
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
@@ -171,7 +172,7 @@ public:
         const bool finishInThisCycle = m_finishInNextCycle;
         Design::clock();
         if (finishInThisCycle) {
-            finished.Emit();
+            m_finished = true;
         }
     }
 
@@ -179,15 +180,18 @@ public:
         Design::rewind();
         // Ensure that rewinds performed when we expected to finish in the following cycle, clears this expectation.
         m_finishInNextCycle = false;
+        m_finished = false;
     }
 
     void reset() override {
         Design::reset();
         m_finishInNextCycle = false;
+        m_finished = false;
     }
 
 private:
     bool m_finishInNextCycle = false;
+    bool m_finished = false;
 };
 
 }  // namespace core

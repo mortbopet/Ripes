@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QObject>
 
 #include "processorregistry.h"
@@ -81,11 +83,26 @@ public:
      */
     uint32_t getRegisterValue(const unsigned idx) const;
 
-    void checkBreakpoint();
+    bool checkBreakpoint();
     void setBreakpoint(const uint32_t address, bool enabled);
     void toggleBreakpoint(const uint32_t address);
     bool hasBreakpoint(const uint32_t address) const;
     void clearBreakpoints();
+    void checkProcessorFinished();
+
+    /**
+     * @brief run
+     * Asynchronously runs the current processor. During this, the processor will not be emitting signals for updating
+     * its graphical representation. Will break upon hitting a breakpoint, going out of bounds wrt. the allowed
+     * execution area or if the stop flag has been set through stop().
+     */
+    void run();
+
+    /**
+     * @brief stop
+     * Sets the m_stopRunningFlag, and waits for any currently running asynchronous run execution to finish.
+     */
+    void stop();
 
 signals:
     /**
@@ -114,18 +131,13 @@ signals:
      */
     void exit();
 
-    /**
-     * @brief hitBreakpoint
-     * Emitted whenever the instruction at breakpoint @param address is fetched into the processor
-     */
-    void hitBreakpoint(uint32_t address);
+    void runFinished();
 
 public slots:
     void loadProgram(const Program* p);
 
 private slots:
     void handleSysCall();
-    void processorFinished();
 
 private:
     ProcessorHandler();
@@ -142,5 +154,8 @@ private:
     std::pair<uint32_t, uint32_t> m_validExecutionRange;
     std::set<uint32_t> m_breakpoints;
     const Program* m_program = nullptr;
+
+    QFutureWatcher<void> m_runWatcher;
+    bool m_stopRunningFlag = false;
 };
 }  // namespace Ripes

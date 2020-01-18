@@ -125,10 +125,9 @@ public:
 
     /**
      * @brief finished
-     * Signal emitted by the processor to notify the outside environment that it has finished executing. Must be
-     * preceeded by a call to RipesProcessor::finalize, performed by the outside environment.
+     * @returns true if the processor has finished executing.
      */
-    Gallant::Signal0<> finished;
+    virtual bool finished() const = 0;
 
 private:
     // Statistics

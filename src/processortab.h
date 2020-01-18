@@ -44,10 +44,12 @@ public slots:
     void rewind();
     void printToLog(const QString&);
     void processorFinished();
+    void runFinished();
 
     void processorSelection();
 
 private slots:
+    void run(bool state);
     void clock();
     void setInstructionViewCenterAddr(uint32_t address);
     void showStageTable();

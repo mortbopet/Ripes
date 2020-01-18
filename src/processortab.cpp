@@ -34,8 +34,6 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     m_ui->registerWidget->updateModel();
     connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::hitBreakpoint, this, &ProcessorTab::pause);
-
     setupSimulatorActions();
 
     // Connect ECALL functionality to application output log and scroll to bottom
@@ -120,9 +118,10 @@ void ProcessorTab::setupSimulatorActions() {
     const QIcon runIcon = QIcon(":/icons/run.svg");
     m_runAction = new QAction(runIcon, "Run (F8)", this);
     m_runAction->setShortcut(QKeySequence("F8"));
-    // connect(m_runAction, &QAction::triggered, this, &ProcessorTab::run);
+    m_runAction->setCheckable(true);
+    m_runAction->setChecked(false);
+    connect(m_runAction, &QAction::toggled, this, &ProcessorTab::run);
     m_toolbar->addAction(m_runAction);
-
     m_toolbar->addSeparator();
 
     const QIcon tagIcon = QIcon(":/icons/tag.svg");
@@ -145,6 +144,8 @@ void ProcessorTab::setupSimulatorActions() {
 
 void ProcessorTab::pause() {
     m_autoClockAction->setChecked(false);
+    m_runAction->setChecked(false);
+    m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
 }
 
 void ProcessorTab::processorSelection() {
@@ -200,26 +201,13 @@ ProcessorTab::~ProcessorTab() {
     delete m_ui;
 }
 
-/*
-void ProcessorTab::run() {
-    m_autoClockAction->setChecked(false);
-    auto pipeline = Pipeline::getPipeline();
-    RunDialog dialog(this);
-    if (pipeline->isReady()) {
-        if (dialog.exec() && pipeline->isFinished()) {
-            emit update();
-            enableSimulatorControls();
-        }
-    }
-}
-*/
-
 void ProcessorTab::processorFinished() {
     // Disallow further clocking of the circuit
     m_clockAction->setEnabled(false);
     m_autoClockAction->setChecked(false);
     m_autoClockAction->setEnabled(false);
     m_runAction->setEnabled(false);
+    m_runAction->setChecked(false);
 }
 
 void ProcessorTab::enableSimulatorControls() {
@@ -257,6 +245,20 @@ void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
     }
 }
 
+void ProcessorTab::runFinished() {
+    pause();
+    ProcessorHandler::get()->checkProcessorFinished();
+    emit update();
+}
+
+void ProcessorTab::run(bool state) {
+    if (state) {
+        ProcessorHandler::get()->run();
+    } else {
+        ProcessorHandler::get()->stop();
+    }
+}
+
 void ProcessorTab::rewind() {
     m_vsrtlWidget->rewind();
     enableSimulatorControls();
@@ -266,7 +268,10 @@ void ProcessorTab::rewind() {
 void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
     ProcessorHandler::get()->checkValidExecutionRange();
-    ProcessorHandler::get()->checkBreakpoint();
+    if (ProcessorHandler::get()->checkBreakpoint()) {
+        pause();
+    }
+    ProcessorHandler::get()->checkProcessorFinished();
     m_reverseAction->setEnabled(m_vsrtlWidget->isRewindable());
 
     emit update();

@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowIcon(QIcon(":/icons/logo.svg"));
     showMaximized();
 
+    // Initialize processor handler
+    ProcessorHandler::get();
+
     // Create tabs
     m_stackedTabs = new QStackedWidget(this);
     m_ui->centrallayout->addWidget(m_stackedTabs);
@@ -70,6 +73,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
     connect(ProcessorHandler::get(), &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
 
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
