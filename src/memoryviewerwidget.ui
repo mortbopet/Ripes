@@ -38,14 +38,40 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Go to:</string>
+          <string>Go to register:</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="GoToComboBox" name="gotoCombobox"/>
+        <widget class="GoToRegisterComboBox" name="goToRegister"/>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Minimum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Go to section:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="GoToSectionComboBox" name="goToSection"/>
        </item>
       </layout>
      </item>
@@ -66,7 +92,12 @@
    <header>memoryview.h</header>
   </customwidget>
   <customwidget>
-   <class>GoToComboBox</class>
+   <class>GoToSectionComboBox</class>
+   <extends>QComboBox</extends>
+   <header>gotocombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GoToRegisterComboBox</class>
    <extends>QComboBox</extends>
    <header>gotocombobox.h</header>
   </customwidget>

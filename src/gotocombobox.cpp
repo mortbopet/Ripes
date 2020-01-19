@@ -20,14 +20,8 @@ void GoToComboBox::showPopup() {
     if (count())
         clear();
 
-    addItem("Select", QVariant::fromValue<GoToFunction>(GoToFunction::Select));
-    addItem("Address...", QVariant::fromValue<GoToFunction>(GoToFunction::Address));
-
-    if (ProcessorHandler::get()->getProgram()) {
-        for (const auto& section : ProcessorHandler::get()->getProgram()->sections) {
-            addItem(section.name, QVariant::fromValue<GoToFunction>(GoToFunction::Section));
-        }
-    }
+    addItem("Select", QVariant::fromValue<GoToUserData>({GoToFunction::Select, 0}));
+    addTargets();
 
     QComboBox::showPopup();
 }
@@ -35,10 +29,10 @@ void GoToComboBox::showPopup() {
 void GoToComboBox::signalFilter(int index) {
     const auto& value = itemData(index);
 
-    const GoToFunction f = qvariant_cast<GoToFunction>(value);
-    switch (f) {
+    const auto f = qvariant_cast<GoToUserData>(value);
+    switch (f.func) {
         case GoToFunction::Select:
-            return;
+            break;
         case GoToFunction::Address: {
             // Create goto-address dialog
             AddressDialog dialog;
@@ -47,13 +41,39 @@ void GoToComboBox::signalFilter(int index) {
             }
             break;
         }
-        case GoToFunction::Section: {
-            const QString& sectionName = itemText(index);
-            emit jumpToAddress(ProcessorHandler::get()->getProgram()->getSection(sectionName)->address);
+        case GoToFunction::Custom: {
+            emit jumpToAddress(addrForIndex(index));
             break;
         }
     }
-
     clear();
 }
+
+void GoToSectionComboBox::addTargets() {
+    addItem("Address...", QVariant::fromValue<GoToUserData>({GoToFunction::Address, 0}));
+    if (ProcessorHandler::get()->getProgram()) {
+        for (const auto& section : ProcessorHandler::get()->getProgram()->sections) {
+            addItem(section.name, QVariant::fromValue<GoToUserData>({GoToFunction::Custom, 0}));
+        }
+    }
+}
+
+uint32_t GoToSectionComboBox::addrForIndex(int i) {
+    const QString& sectionName = itemText(i);
+    return ProcessorHandler::get()->getProgram()->getSection(sectionName)->address;
+}
+
+void GoToRegisterComboBox::addTargets() {
+    const auto& isa = ProcessorHandler::get()->currentISA();
+    for (unsigned i = 0; i < isa->regCnt(); i++) {
+        addItem(isa->regName(i) + " (" + isa->regAlias(i) + ")",
+                QVariant::fromValue<GoToUserData>({GoToFunction::Custom, i}));
+    }
+}
+
+uint32_t GoToRegisterComboBox::addrForIndex(int i) {
+    const auto& data = qvariant_cast<GoToUserData>(itemData(i));
+    return ProcessorHandler::get()->getRegisterValue(data.arg);
+}
+
 }  // namespace Ripes

@@ -47,7 +47,8 @@ void MemoryViewerWidget::updateModel() {
         const auto rows = m_ui->memoryView->height() / m_ui->memoryView->rowHeight(0);
         m_memoryModel->setRowsVisible(rows);
     });
-    connect(m_ui->gotoCombobox, &GoToComboBox::jumpToAddress, m_memoryModel, &MemoryModel::setCentralAddress);
+    connect(m_ui->goToSection, &GoToComboBox::jumpToAddress, m_memoryModel, &MemoryModel::setCentralAddress);
+    connect(m_ui->goToRegister, &GoToComboBox::jumpToAddress, m_memoryModel, &MemoryModel::setCentralAddress);
 
     m_ui->memoryView->horizontalHeader()->setSectionResizeMode(MemoryModel::Address, QHeaderView::Stretch);
 
