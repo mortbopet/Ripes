@@ -16,7 +16,6 @@ struct ELFInfo {
     bool valid;
     QString errorMessage;
     QString entryPoint;
-    std::vector<QString> sectionInfo;
 };
 
 namespace Ui {

@@ -132,14 +132,6 @@ bool LoadDialog::validateBinaryFile(const QFile& file) {
 void LoadDialog::setElfInfo(const ELFInfo& info) {
     if (info.valid) {
         m_ui->elfInfo->clear();
-
-        QString text;
-        text += "Sections to be loaded:<br/>";
-        for (const auto& s : info.sectionInfo) {
-            text += s + "<br/>";
-        }
-
-        m_ui->elfInfo->setText(text);
     } else {
         m_ui->elfInfo->setText("<b>Error:</b> " + info.errorMessage);
     }
@@ -195,10 +187,7 @@ bool LoadDialog::validateELFFile(const QFile& file) {
         goto finish;
     }
 
-    // All checks successfull. Generate string indicating which segments will be loaded.
-    for (const auto& s : reader.sections) {
-        info.sectionInfo.push_back(QString::fromStdString(s->get_name()) + ": " + s->get_address());
-    }
+    // All checks successfull - ELF file is valid.
 
 finish:
     setElfInfo(info);
