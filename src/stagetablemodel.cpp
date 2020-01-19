@@ -6,6 +6,14 @@
 
 namespace Ripes {
 
+static inline uint32_t indexToAddress(unsigned index) {
+    if (ProcessorHandler::get()->getProgram()) {
+        return (index * ProcessorHandler::get()->currentISA()->bytes()) +
+               ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
+    }
+    return 0;
+}
+
 StageTableModel::StageTableModel(QObject* parent) : QAbstractTableModel(parent) {}
 
 QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -15,14 +23,13 @@ QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, i
         // Cycle number
         return QString::number(section);
     } else {
-        return ProcessorHandler::get()->parseInstrAt(section *
-                                                     ProcessorHandler::get()->currentISA()->bytes());
+        const auto addr = indexToAddress(section);
+        return ProcessorHandler::get()->parseInstrAt(addr);
     }
 }
 
 int StageTableModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::get()->getCurrentProgramSize() /
-           ProcessorHandler::get()->currentISA()->bytes();
+    return ProcessorHandler::get()->getCurrentProgramSize() / ProcessorHandler::get()->currentISA()->bytes();
 }
 
 int StageTableModel::columnCount(const QModelIndex&) const {
@@ -30,9 +37,7 @@ int StageTableModel::columnCount(const QModelIndex&) const {
 }
 
 void StageTableModel::processorWasClocked() {
-    beginResetModel();
     gatherStageInfo();
-    endResetModel();
 }
 
 void StageTableModel::reset() {
@@ -63,7 +68,7 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
     if (!m_cycleStageInfos.count(index.column()))
         return QVariant();
 
-    const uint32_t addr = index.row() * ProcessorHandler::get()->currentISA()->bytes();
+    const uint32_t addr = indexToAddress(index.row());
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
     for (const auto& si : stageInfo) {
         if (si.second.pc == addr && si.second.pc_valid) {
