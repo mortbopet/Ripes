@@ -23,8 +23,8 @@ using namespace vsrtl::core;
 // Compilation tools & directories
 const QString s_testdir = VSRTL_RISCV_TEST_DIR;
 const QString s_outdir = s_testdir + QDir::separator() + "build";
-const QString s_assembler = "riscv64-linux-gnu-as";
-const QString s_objcopy = "riscv64-linux-gnu-objcopy";
+const QString s_assembler = "riscv64-unknown-elf-as";
+const QString s_objcopy = "riscv64-unknown-elf-objcopy";
 const QString s_linkerScript = "rvtest.ld";
 
 // Ecall status codes
@@ -67,6 +67,7 @@ private:
     void loadBinaryToSimulator(const QString& binFile);
     bool skipTest(const QString& test);
     QString executeSimulator();
+    QString dumpRegs();
 
     QString m_currentTest;
     std::unique_ptr<SingleCycleRISCV> m_design;
@@ -89,6 +90,16 @@ bool tst_RISCV::skipTest(const QString& test) {
         }
     }
     return false;
+}
+
+QString tst_RISCV::dumpRegs() {
+    QString str = "\n" + m_currentTest + "\nRegister dump:";
+    str += "\t PC:" + QString::number(m_design->pcForStage(0), 16) + "\n";
+    for (int i = 0; i < m_design->implementsISA()->regCnt(); i++) {
+        str += "\t" + m_design->implementsISA()->regName(i) + ":" + m_design->implementsISA()->regAlias(i) + ":\t" +
+               QString::number(m_design->registerFile->getRegister(i)) + "\n";
+    }
+    return str;
 }
 
 void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
@@ -120,15 +131,19 @@ QString tst_RISCV::executeSimulator() {
             if (status == s_success) {
                 stop |= true;
             } else if (status == s_fail) {
-                return "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
-                       QString::number(m_design->registerFile->getRegister(s_statusreg));
+                auto err = "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
+                           QString::number(m_design->registerFile->getRegister(s_statusreg));
+                err += dumpRegs();
+                return err;
             }
         }
     } while (!stop);
 
     if (maxCyclesReached) {
-        return "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
-               QString::number(m_design->registerFile->getRegister(s_statusreg));
+        auto err = "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
+                   QString::number(m_design->registerFile->getRegister(s_statusreg));
+        err += dumpRegs();
+        return err;
     }
 
     // Test successful
@@ -156,7 +171,7 @@ void tst_RISCV::runTests() {
         loadBinaryToSimulator(binFile);
         m_design->verifyAndInitialize();
 
-        QString err = executeSimulator();
+        const QString err = executeSimulator();
         if (!err.isNull()) {
             QFAIL(err.toStdString().c_str());
         }

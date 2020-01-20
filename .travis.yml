@@ -1,6 +1,7 @@
 matrix:
   include:
 
+    # OSX continuous release build
     - env: RIPES_PLATFORM='mac'
       os: osx
       osx_image: xcode10
@@ -10,11 +11,13 @@ matrix:
           packages:
             - tree
 
+    # Windows continuous release build
     - os: windows
       language: cpp
       env:
         - RIPES_PLATFORM: 'windows'
 
+    # Trusty continuous release build
     - env: RIPES_PLATFORM='linux'
       os: linux
       dist: trusty
@@ -33,6 +36,27 @@ matrix:
             - libc6-dev
             - g++-8
             - tree
+
+     # Bionic unit test build
+    - env: RIPES_PLATFORM='linux_test'
+      os: linux
+      dist: bionic
+      sudo: required
+      language: c++
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:beineri/opt-qt-5.11.0-bionic'
+              key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x10C56D0DE9977759'
+            - ubuntu-toolchain-r-test
+          packages:
+            - qt511-meta-minimal
+            - qt511svg
+            - libc6-dev
+            - g++-8
+            - tree
+            - mesa-common-dev
 
 before_install:
     - source ${TRAVIS_BUILD_DIR}/scripts/${RIPES_PLATFORM}/before_install.sh

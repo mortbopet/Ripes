@@ -15,19 +15,27 @@ endmacro()
 # =============================================================================
 option(RIPES_ENABLE_RISCV_TESTS "Enable RISC-V unit tests" OFF)
 if(RIPES_ENABLE_RISCV_TESTS)
-    # Ensure required RISC-V toolchain tools are available
-    find_program(RV_AS riscv64-linux-gnu-as)
-    if(NOT RV_AS)
-        message(FATAL_ERROR "riscv64-linux-gnu-as not found! A RISC-V toolchain must be available to build and run the RISC-V tests.")
-    endif()
+    message(STATUS "RISC-V Tests enabled")
+    message(STATUS "Locating required toolchain tools...")
+    list (APPEND RV_TOOLS
+        riscv64-unknown-elf-as
+        riscv64-unknown-elf-objdump
+        riscv64-unknown-elf-gcc
+    )
 
-    find_program(RV_OBJCOPY riscv64-linux-gnu-objcopy)
-    if(NOT RV_OBJCOPY)
-        message(FATAL_ERROR "riscv64-linux-gnu-objcopy not found! A RISC-V toolchain must be available to build and run the RISC-V tests.")
-    endif()
+    foreach(tool ${RV_TOOLS})
+        # Ensure required RISC-V toolchain tools are available
+        unset(RV_TOOL CACHE)
+        find_program(RV_TOOL ${tool})
+        if(NOT RV_TOOL)
+            message(FATAL_ERROR "'${tool}' not found! A RISC-V toolchain must be available to build and run the RISC-V tests.")
+        endif()
+        message(STATUS "Found tool '${RV_TOOL}'")
+    endforeach()
 
     # Point to bundled tests within source directory
     set(VSRTL_RISCV_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests)
     add_definitions(-DVSRTL_RISCV_TEST_DIR="${VSRTL_RISCV_TEST_DIR}")
     create_qtest(tst_riscv)
+    message(STATUS "RISC-V tests configured successfully")
 endif()
