@@ -5,6 +5,9 @@
 #include <cassert>
 #include <iostream>
 
+#include <QDataStream>
+#include <QFile>
+
 #include "binutils.h"
 
 Parser::Parser() {
@@ -141,7 +144,7 @@ void Parser::loadFromByteArrayIntoData(QByteArray arr) {
     uint32_t byteIndex = DATASTART;
     for (int i = 0; i < length; i += 4) {
         in.readRawData(buffer, 4);
-        for (char & j : buffer) {
+        for (char& j : buffer) {
             memPtr->insert({byteIndex, j});
             byteIndex++;
         }
