@@ -38,7 +38,7 @@ public:
                         return static_cast<uint32_t>(-1);
                     } else if (op1.sValue() == static_cast<int64_t>(-(std::pow(2, 32 - 1))) && op2.sValue() == -1) {
                         // Overflow
-                        return static_cast<uint32_t>(-(std::pow(2, 32 - 1)));
+                        return static_cast<uint32_t>(0x80000000);  // -2^(32-1)
                     } else {
                         return static_cast<uint32_t>(op1.sValue() / op2.sValue());
                     }
