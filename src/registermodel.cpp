@@ -46,7 +46,13 @@ void RegisterModel::processorWasClocked() {
 bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int role) {
     const int i = index.row();
     if (index.column() == Column::Value) {
-        ProcessorHandler::get()->setRegisterValue(i, value.toUInt());
+        bool ok;
+        uint32_t v = decodeRadixValue(value.toString(), m_radix, &ok);
+        if (ok) {
+            ProcessorHandler::get()->setRegisterValue(i, v);
+            emit dataChanged(index, index);
+            return true;
+        }
     }
     return false;
 }
@@ -132,9 +138,8 @@ QVariant RegisterModel::valueData(unsigned idx) const {
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {
-    const auto def = ProcessorHandler::get()->currentISA()->regIsReadOnly(index.row())
-                         ? Qt::NoItemFlags
-                         : Qt::ItemIsEnabled;
+    const auto def =
+        ProcessorHandler::get()->currentISA()->regIsReadOnly(index.row()) ? Qt::NoItemFlags : Qt::ItemIsEnabled;
     if (index.column() == Column::Value)
         return Qt::ItemIsEditable | def;
     return def;

@@ -46,6 +46,44 @@ static QString encodeRadixValue(uint32_t value, const Radix type, unsigned width
             return QString();
     }
 }
+
+static uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nullptr) {
+    switch (type) {
+        case Radix::Hex: {
+            return value.toUInt(ok, 16);
+        }
+        case Radix::Binary: {
+            // Qt doesn't support 0b[0-1]* conversion, so remove any possible 0b prefix
+            if (value.startsWith("0b")) {
+                value.remove(0, 2);
+            }
+            return value.toUInt(ok, 2);
+        }
+        case Radix::Unsigned: {
+            return value.toUInt(ok, 10);
+        }
+        case Radix::Signed: {
+            return value.toInt(ok, 10);
+        }
+        case Radix::ASCII: {
+            QString valueRev;
+            for (const auto& c : value) {
+                valueRev.prepend(c);
+            }
+            uint32_t v = 0;
+            for (int i = 0; i < valueRev.length(); i++) {
+                v |= (valueRev[i].toLatin1() & 0xFF) << (i * 8);
+            }
+            *ok = true;
+            return v;
+        }
+        default: {
+            *ok = false;
+            return 0;
+        }
+    }
+}
+
 }  // namespace Ripes
 
 Q_DECLARE_METATYPE(Ripes::Radix);
