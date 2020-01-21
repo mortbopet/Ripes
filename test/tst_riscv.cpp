@@ -121,6 +121,7 @@ QString tst_RISCV::executeSimulator() {
     bool maxCyclesReached = false;
     unsigned cycles = 0;
     do {
+        qInfo() << "cycle '" << QString::number(cycles);
         m_design->clock();
         cycles++;
 
@@ -160,6 +161,8 @@ void tst_RISCV::runTests() {
         if (skipTest(m_currentTest))
             continue;
 
+        qInfo() << "Running test: " << m_currentTest;
+
         // Compile test file
         const auto binFile = compileTestFile(test);
         if (binFile.isNull()) {
@@ -175,6 +178,8 @@ void tst_RISCV::runTests() {
         if (!err.isNull()) {
             QFAIL(err.toStdString().c_str());
         }
+
+        qInfo() << "Test '" << m_currentTest << "' succeeded.";
     }
 }
 
