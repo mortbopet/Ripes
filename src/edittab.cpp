@@ -29,12 +29,6 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     // enable breakpoint area for the translated code only
     m_ui->binaryedit->enableBreakpointArea();
 
-    // Link scrollbars together for pleasant navigation
-    connect(m_ui->assemblyedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->binaryedit->verticalScrollBar(),
-            &QScrollBar::setValue);
-    connect(m_ui->binaryedit->verticalScrollBar(), &QScrollBar::valueChanged, m_ui->assemblyedit->verticalScrollBar(),
-            &QScrollBar::setValue);
-
     m_assembler = new Assembler();
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
