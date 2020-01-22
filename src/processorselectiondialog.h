@@ -18,7 +18,8 @@ public:
     explicit ProcessorSelectionDialog(QWidget* parent = nullptr);
     ~ProcessorSelectionDialog();
 
-    ProcessorID selectedID;
+    ProcessorID getSelectedId() const { return selectedID; }
+    RegisterInitialization getRegisterInitialization() const;
 
 public slots:
     virtual void accept() override;
@@ -27,6 +28,7 @@ private slots:
     void selectionChanged(QListWidgetItem* current, QListWidgetItem* previous);
 
 private:
+    ProcessorID selectedID;
     Ui::ProcessorSelectionDialog* ui;
 };
 }  // namespace Ripes

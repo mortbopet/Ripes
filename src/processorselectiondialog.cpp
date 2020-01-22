@@ -26,14 +26,14 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
         ui->processorList->addItem(item);
     }
 
-    QRegExpValidator* validator = new QRegExpValidator(this);
-    validator->setRegExp(hexRegex32);
-    ui->stackPtr->setValidator(validator);
-    ui->dataPtr->setValidator(validator);
     connect(ui->processorList, &QListWidget::currentItemChanged, this, &ProcessorSelectionDialog::selectionChanged);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+}
+
+RegisterInitialization ProcessorSelectionDialog::getRegisterInitialization() const {
+    return ui->regInitWidget->getInitialization();
 }
 
 ProcessorSelectionDialog::~ProcessorSelectionDialog() {
@@ -43,13 +43,7 @@ ProcessorSelectionDialog::~ProcessorSelectionDialog() {
 void ProcessorSelectionDialog::accept() {
     const ProcessorID id = qvariant_cast<ProcessorID>(ui->processorList->currentItem()->data(Qt::UserRole));
     selectedID = id;
-
-    if (id != ProcessorHandler::get()->getID()) {
-        // New processor model was selected
-        return QDialog::accept();
-    } else {
-        return QDialog::reject();
-    }
+    QDialog::accept();
 }
 
 void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListWidgetItem* previous) {
@@ -59,14 +53,6 @@ void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListW
     ui->name->setText(desc.name);
     ui->ISA->setText(desc.isa->name());
     ui->description->setPlainText(desc.description);
-
-    /*
-    ui->stackPtr->setText(
-        "0x" +
-        QString::number(ProcessorRegistry::getDescription(id).defaultSetup.segmentPtrs.at(ProgramSegment::Stack), 16));
-    ui->dataPtr->setText(
-        "0x" +
-        QString::number(ProcessorRegistry::getDescription(id).defaultSetup.segmentPtrs.at(ProgramSegment::Data), 16));
-    */
+    ui->regInitWidget->processorSelectionChanged(id);
 }
 }  // namespace Ripes

@@ -42,7 +42,7 @@ public:
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
      * RipesProcessor interface.
      */
-    void selectProcessor(const ProcessorID& id, RegisterSetup setup = RegisterSetup());
+    void selectProcessor(const ProcessorID& id, RegisterInitialization setup = RegisterInitialization());
 
     /**
      * @brief checkValidExecutionRange

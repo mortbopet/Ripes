@@ -28,5 +28,7 @@
         <file>cancel.svg</file>
         <file>saveas.svg</file>
         <file>notepad.svg</file>
+        <file>plus.svg</file>
+        <file>delete.svg</file>
     </qresource>
 </RCC>

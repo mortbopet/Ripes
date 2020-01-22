@@ -15,11 +15,11 @@ namespace Ripes {
 enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
 // ============================================================================
 
-using RegisterSetup = std::map<unsigned, uint32_t>;
+using RegisterInitialization = std::map<unsigned, uint32_t>;
 
 struct ProcessorDescription {
     ProcessorID id;
-    RegisterSetup defaultRegisterVals;
+    RegisterInitialization defaultRegisterVals;
     const ISAInfoBase* isa;
     QString name;
     QString description;
