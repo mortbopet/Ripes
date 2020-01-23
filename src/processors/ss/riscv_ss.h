@@ -167,24 +167,28 @@ public:
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
     void clock() override {
+        // Single cycle processor; 1 instruction retired per cycle!
+        m_instructionsRetired++;
+
         // m_finishInNextCycle may be set during Design::clock(). Store the value before clocking the processor, and
         // emit finished if this was the final clock cycle.
         const bool finishInThisCycle = m_finishInNextCycle;
-        Design::clock();
+        RipesProcessor::clock();
         if (finishInThisCycle) {
             m_finished = true;
         }
     }
 
     void reverse() override {
-        Design::reverse();
+        m_instructionsRetired--;
+        RipesProcessor::reverse();
         // Ensure that reverses performed when we expected to finish in the following cycle, clears this expectation.
         m_finishInNextCycle = false;
         m_finished = false;
     }
 
     void reset() override {
-        Design::reset();
+        RipesProcessor::reset();
         m_finishInNextCycle = false;
         m_finished = false;
     }

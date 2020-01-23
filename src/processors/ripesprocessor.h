@@ -140,9 +140,13 @@ public:
      */
     virtual bool finished() const = 0;
 
+    /**
+     * @brief getInstructionsRetired
+     * @returns the number of instructions which has retired (ie. executed and no longer in the pipeline).
+     */
     long long getInstructionsRetired() const { return m_instructionsRetired; }
 
-private:
+protected:
     // Statistics
     long long m_instructionsRetired = 0;
 };
