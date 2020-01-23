@@ -284,7 +284,7 @@ void ProcessorTab::clock() {
 }
 
 void ProcessorTab::showStageTable() {
-    auto w = StageTableWidget(m_stageModel, this);
+    auto w = StageTableWidget(m_stageModel);
     w.exec();
 }
 }  // namespace Ripes
