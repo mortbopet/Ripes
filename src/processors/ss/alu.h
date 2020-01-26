@@ -12,6 +12,7 @@ using namespace Ripes;
 
 class ALU : public Component {
 public:
+    SetGraphicsType(ALU);
     ALU(std::string name, SimComponent* parent) : Component(name, parent) {
         res << [=] {
             switch (ctrl.uValue()) {
