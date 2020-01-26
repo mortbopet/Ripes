@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/layouts">
+        <file>ss/rv_ss_layout.json</file>
+    </qresource>
+</RCC>

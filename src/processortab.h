@@ -60,6 +60,7 @@ private:
     void enableSimulatorControls();
     void updateInstructionModel();
     void updateRegisterModel();
+    void loadDefaultLayout();
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel = nullptr;

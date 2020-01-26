@@ -26,6 +26,7 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 
     // Load the default processor
     ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
+    loadDefaultLayout();
 
     m_stageModel = new StageTableModel(this);
     connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
@@ -60,6 +61,17 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 void ProcessorTab::printToLog(const QString& text) {
     m_ui->console->insertPlainText(text);
     m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
+}
+
+void ProcessorTab::loadDefaultLayout() {
+    // cereal expects the archive file to be present standalone on disk, and available through an ifstream. Copy the
+    // resource layout file temporarily, while loading the layout.
+    const auto& layoutResourceFilename = ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layout;
+    QFile layoutResourceFile(layoutResourceFilename);
+    const QString tmpLayoutFilename = "_tmp_layout.ripes";
+    layoutResourceFile.copy(tmpLayoutFilename);
+    m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFilename);
+    QFile::remove(tmpLayoutFilename);
 }
 
 void ProcessorTab::setupSimulatorActions() {
@@ -162,6 +174,7 @@ void ProcessorTab::processorSelection() {
         m_vsrtlWidget->clearDesign();
         ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
         ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
+        loadDefaultLayout();
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
         update();

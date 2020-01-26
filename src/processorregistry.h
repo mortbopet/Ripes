@@ -23,6 +23,7 @@ struct ProcessorDescription {
     const ISAInfoBase* isa;
     QString name;
     QString description;
+    QString layout;
 };
 
 class ProcessorRegistry {
@@ -50,6 +51,7 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle";
         desc.description = "A single cycle RISC-V processor";
+        desc.layout = ":/layouts/ss/rv_ss_layout.json";
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -58,6 +60,7 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage w/ forwarding";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
+        desc.layout = ":/layouts/ss/rv_ss_layout.json";
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -68,6 +71,7 @@ private:
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
+        desc.layout = ":/layouts/ss/rv_ss_layout.json";
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }
