@@ -20,6 +20,7 @@ public:
 
     ProcessorID getSelectedId() const { return selectedID; }
     RegisterInitialization getRegisterInitialization() const;
+    Layout getSelectedLayout() const;
 
 public slots:
     virtual void accept() override;

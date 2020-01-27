@@ -16,6 +16,11 @@ enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
 // ============================================================================
 
 using RegisterInitialization = std::map<unsigned, uint32_t>;
+struct Layout {
+    QString name;
+    QString file;
+    bool showPortWidth;
+};
 
 struct ProcessorDescription {
     ProcessorID id;
@@ -23,7 +28,7 @@ struct ProcessorDescription {
     const ISAInfoBase* isa;
     QString name;
     QString description;
-    QString layout;
+    std::vector<Layout> layouts;
 };
 
 class ProcessorRegistry {
@@ -51,7 +56,8 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle";
         desc.description = "A single cycle RISC-V processor";
-        desc.layout = ":/layouts/ss/rv_ss_layout.json";
+        desc.layouts = {{"Standard", ":/layouts/ss/rv_ss_standard_layout.json", false},
+                        {"Extended", ":/layouts/ss/rv_ss_extended_layout.json", true}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -60,7 +66,7 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage w/ forwarding";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
-        desc.layout = ":/layouts/ss/rv_ss_layout.json";
+        desc.layouts.push_back({"Standard", ":/layouts/ss/rv_ss_layout.json", false});
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -71,7 +77,7 @@ private:
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
-        desc.layout = ":/layouts/ss/rv_ss_layout.json";
+        desc.layouts.push_back({"Standard", ":/layouts/ss/rv_ss_layout.json", false});
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }

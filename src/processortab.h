@@ -22,6 +22,7 @@ class ProcessorTab;
 class InstructionModel;
 class RegisterModel;
 class StageTableModel;
+struct Layout;
 
 class ProcessorTab : public RipesTab {
     friend class RunDialog;
@@ -60,7 +61,7 @@ private:
     void enableSimulatorControls();
     void updateInstructionModel();
     void updateRegisterModel();
-    void loadDefaultLayout();
+    void loadLayout(const Layout&);
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel = nullptr;

@@ -54,5 +54,21 @@ void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListW
     ui->ISA->setText(desc.isa->name());
     ui->description->setPlainText(desc.description);
     ui->regInitWidget->processorSelectionChanged(id);
+
+    ui->layout->clear();
+    for (const auto& layout : desc.layouts) {
+        ui->layout->addItem(layout.name);
+    }
 }
+
+Layout ProcessorSelectionDialog::getSelectedLayout() const {
+    const auto& desc = ProcessorRegistry::getAvailableProcessors().at(getSelectedId());
+    for (const auto& layout : desc.layouts) {
+        if (layout.name == ui->layout->currentText()) {
+            return layout;
+        }
+    }
+    Q_UNREACHABLE();
+}
+
 }  // namespace Ripes
