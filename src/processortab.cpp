@@ -24,6 +24,10 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
+    // Set default settings
+    m_vsrtlWidget->setShowPortWidth(false);
+    m_vsrtlWidget->setLocked(true);
+
     // Load the default processor
     ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
     loadDefaultLayout();
