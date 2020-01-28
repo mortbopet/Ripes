@@ -184,8 +184,8 @@ void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
     m_stageInstructionLabels.clear();
     const auto& proc = ProcessorHandler::get()->getProcessor();
     for (int i = 0; i < proc->stageCount(); i++) {
-        auto* stagelabel = new vsrtl::Label("Stage" + QString::number(i), topLevelComponent);
-        stagelabel->setPos(topLevelComponent->boundingRect().width() / (proc->stageCount() + 1),
+        auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
+        stagelabel->setPos((i + 1) * (topLevelComponent->boundingRect().width() / (proc->stageCount() + 1)),
                            stagelabel->boundingRect().height());
         m_stageInstructionLabels[i] = stagelabel;
     }
