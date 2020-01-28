@@ -11,7 +11,8 @@
 
 namespace vsrtl {
 class VSRTLWidget;
-}
+class Label;
+}  // namespace vsrtl
 
 namespace Ripes {
 
@@ -47,6 +48,7 @@ public slots:
     void processorFinished();
     void runFinished();
     void updateStatistics();
+    void updateInstructionLabels();
 
     void processorSelection();
 
@@ -62,12 +64,15 @@ private:
     void updateInstructionModel();
     void updateRegisterModel();
     void loadLayout(const Layout&);
+    void loadProcessorToWidget(const Layout&);
 
     Ui::ProcessorTab* m_ui;
     InstructionModel* m_instrModel = nullptr;
     StageTableModel* m_stageModel = nullptr;
 
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
+
+    std::map<unsigned, vsrtl::Label*> m_stageInstructionLabels;
 
     // Actions
     QAction* m_selectProcessorAction = nullptr;

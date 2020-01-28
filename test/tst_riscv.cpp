@@ -94,7 +94,7 @@ bool tst_RISCV::skipTest(const QString& test) {
 
 QString tst_RISCV::dumpRegs() {
     QString str = "\n" + m_currentTest + "\nRegister dump:";
-    str += "\t PC:" + QString::number(m_design->pcForStage(0), 16) + "\n";
+    str += "\t PC:" + QString::number(m_design->getPcForStage(0), 16) + "\n";
     for (int i = 0; i < m_design->implementsISA()->regCnt(); i++) {
         str += "\t" + m_design->implementsISA()->regName(i) + ":" + m_design->implementsISA()->regAlias(i) + ":\t" +
                QString::number(m_design->registerFile->getRegister(i)) + "\n";

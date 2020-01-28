@@ -28,9 +28,8 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     m_vsrtlWidget->setShowPortWidth(false);
     m_vsrtlWidget->setLocked(true);
 
-    // Load the default processor
-    ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
-    loadLayout(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(0));
+    // Load the default constructed processor to the VSRTL widget
+    loadProcessorToWidget(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(0));
 
     m_stageModel = new StageTableModel(this);
     connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
@@ -39,6 +38,7 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     m_ui->registerWidget->updateModel();
     connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateStatistics);
+    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateInstructionLabels);
 
     setupSimulatorActions();
 
@@ -172,15 +172,30 @@ void ProcessorTab::pause() {
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
+void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
+    ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
+    loadLayout(layout);
+
+    // Construct stage instruction labels
+    auto* topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
+
+    m_stageInstructionLabels.clear();
+    const auto& proc = ProcessorHandler::get()->getProcessor();
+    for (int i = 0; i < proc->stageCount(); i++) {
+        auto* stagelabel = new vsrtl::Label("Stage" + QString::number(i), topLevelComponent);
+        stagelabel->setPos(topLevelComponent->boundingRect().width() / (proc->stageCount() + 1),
+                           stagelabel->boundingRect().height());
+        m_stageInstructionLabels[i] = stagelabel;
+    }
+}
+
 void ProcessorTab::processorSelection() {
     ProcessorSelectionDialog diag;
     if (diag.exec()) {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
         ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
-        ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
-        const Layout layout = diag.getSelectedLayout();
-        loadLayout(layout);
+        loadProcessorToWidget(diag.getSelectedLayout());
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
         update();
@@ -241,6 +256,14 @@ void ProcessorTab::enableSimulatorControls() {
     m_runAction->setEnabled(true);
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
     m_resetAction->setEnabled(true);
+}
+
+void ProcessorTab::updateInstructionLabels() {
+    const auto& proc = ProcessorHandler::get()->getProcessor();
+    for (unsigned i = 0; i < proc->stageCount(); i++) {
+        const QString instr = ProcessorHandler::get()->parseInstrAt(proc->getPcForStage(i));
+        m_stageInstructionLabels.at(i)->setText(instr);
+    }
 }
 
 void ProcessorTab::reset() {

@@ -23,8 +23,6 @@ enum SysCall {
 };
 
 struct StageInfo {
-    StageInfo() {}
-    StageInfo(uint32_t _pc, bool _valid) : pc(_pc), pc_valid(_valid) {}
     unsigned int pc = 0;
     bool pc_valid = false;
 };
@@ -51,11 +49,11 @@ public:
     virtual unsigned int stageCount() const = 0;
 
     /**
-     * @brief pcForStage
+     * @brief getPcForStage
      * @param stageIndex
      * @return Program counter currently present in stage @param stageIndex
      */
-    virtual unsigned int pcForStage(unsigned int stageIndex) const = 0;
+    virtual unsigned int getPcForStage(unsigned int stageIndex) const = 0;
 
     /**
      * @brief stageName

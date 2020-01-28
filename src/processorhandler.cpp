@@ -88,7 +88,7 @@ bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {
 }
 
 bool ProcessorHandler::checkBreakpoint() {
-    const auto pc = m_currentProcessor->pcForStage(0);
+    const auto pc = m_currentProcessor->getPcForStage(0);
     return m_breakpoints.count(pc);
 }
 

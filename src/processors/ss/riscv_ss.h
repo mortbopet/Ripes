@@ -146,10 +146,10 @@ public:
     // Ripes interface compliance
     virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
     unsigned int stageCount() const override { return 1; }
-    unsigned int pcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
+    unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextPcForStage(unsigned int) const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int) const override { return "•"; }
-    StageInfo stageInfo(unsigned int) const override { return StageInfo(pc_reg->out.uValue(), true); }
+    StageInfo stageInfo(unsigned int) const override { return StageInfo({pc_reg->out.uValue(), true}); }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
