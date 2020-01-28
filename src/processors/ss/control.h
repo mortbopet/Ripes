@@ -152,26 +152,6 @@ public:
             }
         };
 
-        mem_do_read_ctrl << [=] {
-            switch(opcode.uValue()) {
-                case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
-                    return 1;
-                default: return 0;
-            }
-        };
-
-        pc_src_ctrl << [=] {
-            switch(opcode.uValue()){
-            case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
-            case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
-            case RVInstr::JALR:
-            case RVInstr::JAL:
-                return PcSrc::ALU;
-            default:
-                return PcSrc::PC4;
-            }
-        };
-
         alu_ctrl << [=] {
             switch(opcode.uValue()) {
                 case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
@@ -236,16 +216,12 @@ public:
     INPUTPORT_ENUM(opcode, RVInstr);
 
     OUTPUTPORT(reg_do_write_ctrl, 1);
-    OUTPUTPORT(mem_do_read_ctrl, 1);
     OUTPUTPORT(mem_do_write_ctrl, 1);
     OUTPUTPORT(do_branch, 1);
     OUTPUTPORT(do_jump, 1);
-
     OUTPUTPORT_ENUM(comp_ctrl, CompOp);
     OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
     OUTPUTPORT_ENUM(mem_ctrl, MemOp);
-    OUTPUTPORT_ENUM(pc_src_ctrl, PcSrc);
-
     OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
     OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
     OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
