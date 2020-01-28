@@ -68,6 +68,8 @@ void ProcessorTab::printToLog(const QString& text) {
 }
 
 void ProcessorTab::loadLayout(const Layout& layout) {
+    if (layout.name.isEmpty() || layout.file.isEmpty())
+        return;  // Not a valid layout
     // cereal expects the archive file to be present standalone on disk, and available through an ifstream. Copy the
     // resource layout file temporarily, while loading the layout.
     const auto& layoutResourceFilename = layout.file;

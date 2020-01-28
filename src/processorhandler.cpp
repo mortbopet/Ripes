@@ -211,7 +211,7 @@ void ProcessorHandler::stop() {
 }
 
 void ProcessorHandler::checkValidExecutionRange() const {
-    const auto pc = m_currentProcessor->nextPcForStage(0);
+    const auto pc = m_currentProcessor->nextFetchedAddress();
     if (!(m_validExecutionRange.first <= pc && pc < m_validExecutionRange.second)) {
         m_currentProcessor->finalize();
     }

@@ -62,11 +62,10 @@ public:
     virtual QString stageName(unsigned int stageIndex) const = 0;
 
     /**
-     * @brief nextPcForStage
-     * @param stageIndex
-     * @return Next-state program counter for stage @param stageIndex
+     * @brief nextFetchedAddress
+     * @return Address will be fetched from instruction memory in the next clock cycle
      */
-    virtual unsigned int nextPcForStage(unsigned int stageIndex) const = 0;
+    virtual unsigned int nextFetchedAddress() const = 0;
 
     /**
      * @brief stageInfo
