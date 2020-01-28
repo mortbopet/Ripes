@@ -13,3 +13,4 @@ macro(create_processor name)
 endmacro()
 
 create_processor(ss)
+create_processor(5s)

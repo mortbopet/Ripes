@@ -8,23 +8,25 @@
 
 #include "../ripesprocessor.h"
 
-#include "alu.h"
-#include "branch.h"
-#include "control.h"
-#include "decode.h"
-#include "ecallchecker.h"
-#include "immediate.h"
-#include "registerfile.h"
-#include "riscv.h"
-#include "rvmemory.h"
+#include "../ss/alu.h"
+#include "../ss/branch.h"
+#include "../ss/control.h"
+#include "../ss/decode.h"
+#include "../ss/ecallchecker.h"
+#include "../ss/immediate.h"
+#include "../ss/registerfile.h"
+#include "../ss/riscv.h"
+#include "../ss/rvmemory.h"
+
+#include "5s_ifid.h"
 
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-class SingleCycleRISCV : public RipesProcessor {
+class FiveStageRISCV : public RipesProcessor {
 public:
-    SingleCycleRISCV() : RipesProcessor("Single Cycle RISC-V Processor") {
+    FiveStageRISCV() : RipesProcessor("5-Stage RISC-V Processor") {
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -109,6 +111,14 @@ public:
         // Ecall checker
         decode->opcode >> ecallChecker->opcode;
         ecallChecker->setSysCallSignal(&handleSysCall);
+
+        // -----------------------------------------------------------------------
+        // IF/ID
+        pc_4->out >> ifid_reg->pc4_in;
+        pc_reg->out >> ifid_reg->pc_in;
+        instr_mem->data_out >> ifid_reg->instr_in;
+        1 >> ifid_reg->enable;
+        0 >> ifid_reg->clear;
     }
 
     // Design subcomponents
@@ -122,6 +132,9 @@ public:
 
     // Registers
     SUBCOMPONENT(pc_reg, Register<RV_REG_WIDTH>);
+
+    // Stage seperating registers
+    SUBCOMPONENT(ifid_reg, IFID);
 
     // Multiplexers
     SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, RV_REG_WIDTH>));
@@ -145,11 +158,29 @@ public:
 
     // Ripes interface compliance
     virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
-    unsigned int stageCount() const override { return 1; }
-    unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
+    unsigned int stageCount() const override { return 2; }
+    unsigned int getPcForStage(unsigned int idx) const override {
+        switch (idx) {
+            case 0:
+                return pc_reg->out.uValue();
+            case 1:
+                return ifid_reg->pc_out.uValue();
+            default:
+                return 0;
+        }
+    }
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
-    QString stageName(unsigned int) const override { return "•"; }
-    StageInfo stageInfo(unsigned int) const override { return StageInfo({pc_reg->out.uValue(), true}); }
+    QString stageName(unsigned int idx) const override {
+        switch (idx) {
+            case 0:
+                return "IF";
+            case 1:
+                return "ID";
+            default:
+                return "N/A";
+        }
+    }
+    StageInfo stageInfo(unsigned int idx) const override { return StageInfo({getPcForStage(idx), true}); }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
@@ -182,7 +213,8 @@ public:
     void reverse() override {
         m_instructionsRetired--;
         RipesProcessor::reverse();
-        // Ensure that reverses performed when we expected to finish in the following cycle, clears this expectation.
+        // Ensure that reverses performed when we expected to finish in the following cycle, clears this
+        // expectation.
         m_finishInNextCycle = false;
         m_finished = false;
     }
