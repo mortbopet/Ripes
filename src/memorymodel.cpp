@@ -8,8 +8,7 @@ namespace Ripes {
 MemoryModel::MemoryModel(QObject* parent) : QAbstractTableModel(parent) {}
 
 int MemoryModel::columnCount(const QModelIndex&) const {
-    return 1 /* address column */ +
-           ProcessorHandler::get()->currentISA()->bytes() /* byte columns */;
+    return 1 /* address column */ + ProcessorHandler::get()->currentISA()->bytes() /* byte columns */;
 }
 
 int MemoryModel::rowCount(const QModelIndex&) const {
@@ -22,6 +21,10 @@ void MemoryModel::processorWasClocked() {
     endResetModel();
 }
 
+bool MemoryModel::validAddress(long long address) const {
+    return !(address < 0 || (address > (std::pow(2, ProcessorHandler::get()->currentISA()->bits()) - 1)));
+}
+
 void MemoryModel::setCentralAddress(uint32_t address) {
     address = address - (address % ProcessorHandler::get()->currentISA()->bytes());
     m_centralAddress = address;
@@ -31,7 +34,7 @@ void MemoryModel::setCentralAddress(uint32_t address) {
 void MemoryModel::offsetCentralAddress(int rowOffset) {
     const int byteOffset = rowOffset * ProcessorHandler::get()->currentISA()->bytes();
     const long long newCenterAddress = static_cast<long long>(m_centralAddress) + byteOffset;
-    m_centralAddress = newCenterAddress < 0 ? m_centralAddress : newCenterAddress;
+    m_centralAddress = !validAddress(newCenterAddress) ? m_centralAddress : newCenterAddress;
     processorWasClocked();
 }
 
@@ -40,7 +43,7 @@ QVariant MemoryModel::headerData(int section, Qt::Orientation orientation, int r
         if (section == Column::Address) {
             return "Address";
         } else {
-            return "+" + QString::number(section);
+            return "+" + QString::number(section - 1);
         }
     }
     return QVariant();
@@ -67,8 +70,18 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
     if (index.column() == Column::Address) {
         if (role == Qt::DisplayRole) {
             return addrData(alignedAddress);
-        } else if (role == Qt::ForegroundRole && alignedAddress < 0) {
-            return fgColorData(alignedAddress, 0);
+        } else if (role == Qt::ForegroundRole) {
+            // Assign a brush if one of the byte-indexed address covered by the aligned address has been written to
+            QVariant unusedAddressBrush;
+            for (int i = 0; i < ProcessorHandler::get()->currentISA()->bytes(); i++) {
+                QVariant addressBrush = fgColorData(alignedAddress, i);
+                if (addressBrush.isNull()) {
+                    return addressBrush;
+                } else {
+                    unusedAddressBrush = addressBrush;
+                }
+            }
+            return unusedAddressBrush;
         }
     } else {
         switch (role) {
@@ -92,14 +105,14 @@ void MemoryModel::setRadix(Radix r) {
 }
 
 QVariant MemoryModel::addrData(long long address) const {
-    if (address < 0) {
+    if (!validAddress(address)) {
         return "-";
     }
     return encodeRadixValue(address, Radix::Hex);
 }
 
 QVariant MemoryModel::fgColorData(long long address, unsigned byteOffset) const {
-    if (address < 0 || !ProcessorHandler::get()->getMemory().contains(address + byteOffset)) {
+    if (!validAddress(address) || !ProcessorHandler::get()->getMemory().contains(address + byteOffset)) {
         return QBrush(Qt::lightGray);
     } else {
         return QVariant();  // default
@@ -107,7 +120,7 @@ QVariant MemoryModel::fgColorData(long long address, unsigned byteOffset) const 
 }
 
 QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
-    if (address < 0) {
+    if (!validAddress(address)) {
         return "-";
     } else if (!ProcessorHandler::get()->getMemory().contains(address + byteOffset)) {
         // Dont read the memory (this will create an entry in the memory if done so). Instead, create a "fake" entry in

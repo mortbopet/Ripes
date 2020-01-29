@@ -31,6 +31,7 @@ public slots:
     void setCentralAddress(uint32_t address);
 
 private:
+    bool validAddress(long long address) const;
     QVariant addrData(long long address) const;
     QVariant byteData(long long address, unsigned byteOffset) const;
     QVariant fgColorData(long long address, unsigned byteOffset) const;
