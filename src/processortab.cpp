@@ -188,6 +188,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
                            stagelabel->boundingRect().height());
         m_stageInstructionLabels[i] = stagelabel;
     }
+    updateInstructionLabels();
 }
 
 void ProcessorTab::processorSelection() {
@@ -261,9 +262,9 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
     const auto& proc = ProcessorHandler::get()->getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
-        const QString instr = ProcessorHandler::get()->parseInstrAt(proc->getPcForStage(i));
-        m_stageInstructionLabels.at(i)->setText(instr);
+    for (const auto& il : m_stageInstructionLabels) {
+        const QString instr = ProcessorHandler::get()->parseInstrAt(proc->getPcForStage(il.first));
+        il.second->setText(instr);
     }
 }
 
