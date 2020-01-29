@@ -41,6 +41,11 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 
     setupSimulatorActions();
 
+    // Setup statistics update timer
+    m_statUpdateTimer = new QTimer(this);
+    m_statUpdateTimer->setInterval(100);
+    connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
+
     // Connect ECALL functionality to application output log and scroll to bottom
     connect(this, &ProcessorTab::appendToLog, [this](QString string) {
         m_ui->console->insertPlainText(string);
@@ -297,6 +302,7 @@ void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
 void ProcessorTab::runFinished() {
     pause();
     ProcessorHandler::get()->checkProcessorFinished();
+    m_statUpdateTimer->stop();
     emit update();
 }
 
@@ -307,8 +313,10 @@ void ProcessorTab::run(bool state) {
     }
     if (state) {
         ProcessorHandler::get()->run();
+        m_statUpdateTimer->start();
     } else {
         ProcessorHandler::get()->stop();
+        m_statUpdateTimer->stop();
     }
 
     // Enable/Disable all actions based on whether the processor is running.

@@ -74,6 +74,8 @@ private:
 
     std::map<unsigned, vsrtl::Label*> m_stageInstructionLabels;
 
+    QTimer* m_statUpdateTimer;
+
     // Actions
     QAction* m_selectProcessorAction = nullptr;
     QAction* m_clockAction = nullptr;
