@@ -82,7 +82,7 @@ private:
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
-        desc.layouts.push_back({});
+        desc.layouts.push_back({"Extended", ":/layouts/5s/rv_5s_wof_extended_layout.json", true});
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }

@@ -2,5 +2,6 @@
     <qresource prefix="/layouts">
         <file>ss/rv_ss_extended_layout.json</file>
         <file>ss/rv_ss_standard_layout.json</file>
+        <file>5s/rv_5s_wof_extended_layout.json</file>
     </qresource>
 </RCC>
