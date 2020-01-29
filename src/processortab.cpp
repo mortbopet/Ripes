@@ -155,11 +155,6 @@ void ProcessorTab::setupSimulatorActions() {
     connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
     m_toolbar->addAction(m_displayValuesAction);
 
-    const QIcon expandIcon = QIcon(":/icons/expand.svg");
-    m_fitViewAction = new QAction(expandIcon, "Fit to view", this);
-    // connect(m_fitViewAction, &QAction::triggered, this, &ProcessorTab::expandView);
-    m_toolbar->addAction(m_fitViewAction);
-
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
     connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
