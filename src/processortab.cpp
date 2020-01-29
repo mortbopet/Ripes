@@ -24,12 +24,11 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
-    // Set default settings
-    m_vsrtlWidget->setShowPortWidth(false);
-    m_vsrtlWidget->setLocked(true);
-
     // Load the default constructed processor to the VSRTL widget
     loadProcessorToWidget(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(0));
+
+    // By default, lock the VSRTL widget
+    m_vsrtlWidget->setLocked(true);
 
     m_stageModel = new StageTableModel(this);
     connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
@@ -302,11 +301,24 @@ void ProcessorTab::runFinished() {
 }
 
 void ProcessorTab::run(bool state) {
+    // Stop any currently exeuting auto-clocking
+    if (m_autoClockAction->isChecked()) {
+        m_autoClockAction->setChecked(false);
+    }
     if (state) {
         ProcessorHandler::get()->run();
     } else {
         ProcessorHandler::get()->stop();
     }
+
+    // Enable/Disable all actions based on whether the processor is running.
+    m_selectProcessorAction->setEnabled(!state);
+    m_clockAction->setEnabled(!state);
+    m_autoClockAction->setEnabled(!state);
+    m_reverseAction->setEnabled(!state);
+    m_resetAction->setEnabled(!state);
+    m_displayValuesAction->setEnabled(!state);
+    m_vsrtlWidget->setEnabled(!state);
 }
 
 void ProcessorTab::reverse() {
