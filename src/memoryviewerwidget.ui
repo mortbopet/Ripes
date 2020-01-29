@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>462</width>
     <height>300</height>
    </rect>
   </property>
@@ -17,7 +17,14 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="MemoryView" name="memoryView"/>
+      <widget class="MemoryView" name="memoryView">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">

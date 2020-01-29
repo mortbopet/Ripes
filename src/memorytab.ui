@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>986</width>
-    <height>415</height>
+    <width>453</width>
+    <height>427</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,46 +15,41 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QSplitter" name="splitter">
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
+    <widget class="QSplitter" name="splitter_2">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="RegisterWidget" name="registerWidget" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>250</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-     <widget class="RWJumpWidget" name="rwjumpwidget" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Memory</string>
-         </property>
-        </widget>
-       </item>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
         <widget class="MemoryViewerWidget" name="memoryViewerWidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <item>
+        <widget class="RWJumpWidget" name="rwjumpwidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_3">
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -63,12 +58,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>RegisterWidget</class>
-   <extends>QWidget</extends>
-   <header>registerwidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>RWJumpWidget</class>
    <extends>QWidget</extends>
