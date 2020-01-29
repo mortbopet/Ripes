@@ -8,6 +8,7 @@
 
 #include "../ripesprocessor.h"
 
+// Functional units
 #include "../ss/alu.h"
 #include "../ss/branch.h"
 #include "../ss/control.h"
@@ -18,7 +19,11 @@
 #include "../ss/riscv.h"
 #include "../ss/rvmemory.h"
 
+// Stage separating registers
+#include "5s_exmem.h"
+#include "5s_idex.h"
 #include "5s_ifid.h"
+#include "5s_memwb.h"
 
 namespace vsrtl {
 namespace core {
@@ -45,7 +50,7 @@ public:
 
         // -----------------------------------------------------------------------
         // Decode
-        instr_mem->data_out >> decode->instr;
+        ifid_reg->instr_out >> decode->instr;
 
         // -----------------------------------------------------------------------
         // Control signals
@@ -54,57 +59,61 @@ public:
         // -----------------------------------------------------------------------
         // Immediate
         decode->opcode >> immediate->opcode;
-        instr_mem->data_out >> immediate->instr;
+        ifid_reg->instr_out >> immediate->instr;
 
         // -----------------------------------------------------------------------
         // Registers
-        decode->wr_reg_idx >> registerFile->wr_addr;
         decode->r1_reg_idx >> registerFile->r1_addr;
         decode->r2_reg_idx >> registerFile->r2_addr;
-        control->reg_do_write_ctrl >> registerFile->wr_en;
         reg_wr_src->out >> registerFile->data_in;
 
-        data_mem->data_out >> reg_wr_src->get(RegWrSrc::MEMREAD);
-        alu->res >> reg_wr_src->get(RegWrSrc::ALURES);
-        pc_4->out >> reg_wr_src->get(RegWrSrc::PC4);
-        control->reg_wr_src_ctrl >> reg_wr_src->select;
+        memwb_reg->wr_reg_idx_out >> registerFile->wr_addr;
+        memwb_reg->reg_do_write_out >> registerFile->wr_en;
+        memwb_reg->mem_read_out >> reg_wr_src->get(RegWrSrc::MEMREAD);
+        memwb_reg->alures_out >> reg_wr_src->get(RegWrSrc::ALURES);
+        memwb_reg->pc4_out >> reg_wr_src->get(RegWrSrc::PC4);
+        memwb_reg->reg_wr_src_ctrl_out >> reg_wr_src->select;
 
         registerFile->setMemory(m_regMem);
 
         // -----------------------------------------------------------------------
         // Branch
         control->comp_ctrl >> branch->comp_op;
-        registerFile->r1_out >> branch->op1;
-        registerFile->r2_out >> branch->op2;
+        idex_reg->r1_out >> branch->op1;
+        idex_reg->r2_out >> branch->op2;
 
         branch->res >> *br_and->in[0];
         control->do_branch >> *br_and->in[1];
         br_and->out >> *controlflow_or->in[0];
         control->do_jump >> *controlflow_or->in[1];
+
         pc_4->out >> pc_src->get(PcSrc::PC4);
-        alu->res >> pc_src->get(PcSrc::ALU);
+        jmpTarget->out >> pc_src->get(PcSrc::ALU);
+
+        idex_reg->pc4_out >> jmpTarget->op1;
+        idex_reg->imm_out >> jmpTarget->op2;
 
         // -----------------------------------------------------------------------
         // ALU
-        registerFile->r1_out >> alu_op1_src->get(AluSrc1::REG1);
-        pc_reg->out >> alu_op1_src->get(AluSrc1::PC);
-        control->alu_op1_ctrl >> alu_op1_src->select;
+        idex_reg->r1_out >> alu_op1_src->get(AluSrc1::REG1);
+        idex_reg->pc_out >> alu_op1_src->get(AluSrc1::PC);
+        idex_reg->alu_op1_ctrl_out >> alu_op1_src->select;
 
-        registerFile->r2_out >> alu_op2_src->get(AluSrc2::REG2);
-        immediate->imm >> alu_op2_src->get(AluSrc2::IMM);
-        control->alu_op2_ctrl >> alu_op2_src->select;
+        idex_reg->r2_out >> alu_op2_src->get(AluSrc2::REG2);
+        idex_reg->imm_out >> alu_op2_src->get(AluSrc2::IMM);
+        idex_reg->alu_op2_ctrl_out >> alu_op2_src->select;
 
         alu_op1_src->out >> alu->op1;
         alu_op2_src->out >> alu->op2;
 
-        control->alu_ctrl >> alu->ctrl;
+        idex_reg->alu_ctrl_out >> alu->ctrl;
 
         // -----------------------------------------------------------------------
         // Data memory
-        alu->res >> data_mem->addr;
-        control->mem_do_write_ctrl >> data_mem->wr_en;
-        registerFile->r2_out >> data_mem->data_in;
-        control->mem_ctrl >> data_mem->op;
+        exmem_reg->alures_out >> data_mem->addr;
+        exmem_reg->mem_do_write_out >> data_mem->wr_en;
+        exmem_reg->r2_out >> data_mem->data_in;
+        exmem_reg->mem_op_out >> data_mem->op;
         data_mem->mem->setMemory(m_memory);
 
         // -----------------------------------------------------------------------
@@ -119,6 +128,59 @@ public:
         instr_mem->data_out >> ifid_reg->instr_in;
         1 >> ifid_reg->enable;
         0 >> ifid_reg->clear;
+
+        // -----------------------------------------------------------------------
+        // ID/EX
+        1 >> idex_reg->enable;
+        0 >> idex_reg->clear;
+
+        // Data
+        ifid_reg->pc4_out >> idex_reg->pc4_in;
+        ifid_reg->pc_out >> idex_reg->pc_in;
+        registerFile->r1_out >> idex_reg->r1_in;
+        registerFile->r2_out >> idex_reg->r2_in;
+        immediate->imm >> idex_reg->imm_in;
+
+        // Control
+        decode->wr_reg_idx >> idex_reg->wr_reg_idx_in;
+        control->reg_wr_src_ctrl >> idex_reg->reg_wr_src_ctrl_in;
+        control->reg_do_write_ctrl >> idex_reg->reg_do_write_in;
+        control->alu_op1_ctrl >> idex_reg->alu_op1_ctrl_in;
+        control->alu_op2_ctrl >> idex_reg->alu_op2_ctrl_in;
+        control->mem_do_write_ctrl >> idex_reg->mem_do_write_in;
+        control->alu_ctrl >> idex_reg->alu_ctrl_in;
+        control->mem_ctrl >> idex_reg->mem_op_in;
+
+        // -----------------------------------------------------------------------
+        // EX/MEM
+
+        // Data
+        idex_reg->pc_out >> exmem_reg->pc_in;
+        idex_reg->pc4_out >> exmem_reg->pc4_in;
+        jmpTarget->out >> exmem_reg->jmpTarget_in;
+        idex_reg->r2_out >> exmem_reg->r2_in;
+        alu->res >> exmem_reg->alures_in;
+
+        // Control
+        idex_reg->reg_wr_src_ctrl_out >> exmem_reg->reg_wr_src_ctrl_in;
+        idex_reg->wr_reg_idx_out >> exmem_reg->wr_reg_idx_in;
+        idex_reg->reg_do_write_out >> exmem_reg->reg_do_write_in;
+        idex_reg->mem_do_write_out >> exmem_reg->mem_do_write_in;
+        idex_reg->mem_op_out >> exmem_reg->mem_op_in;
+
+        // -----------------------------------------------------------------------
+        // MEM/WB
+
+        // Data
+        exmem_reg->pc_out >> memwb_reg->pc_in;
+        exmem_reg->pc4_out >> memwb_reg->pc4_in;
+        exmem_reg->alures_out >> memwb_reg->alures_in;
+        data_mem->data_out >> memwb_reg->mem_read_in;
+
+        // Control
+        exmem_reg->reg_wr_src_ctrl_out >> memwb_reg->reg_wr_src_ctrl_in;
+        exmem_reg->wr_reg_idx_out >> memwb_reg->wr_reg_idx_in;
+        exmem_reg->reg_do_write_out >> memwb_reg->reg_do_write_in;
     }
 
     // Design subcomponents
@@ -129,12 +191,16 @@ public:
     SUBCOMPONENT(decode, Decode);
     SUBCOMPONENT(branch, Branch);
     SUBCOMPONENT(pc_4, Adder<RV_REG_WIDTH>);
+    SUBCOMPONENT(jmpTarget, Adder<RV_REG_WIDTH>);
 
     // Registers
     SUBCOMPONENT(pc_reg, Register<RV_REG_WIDTH>);
 
     // Stage seperating registers
     SUBCOMPONENT(ifid_reg, IFID);
+    SUBCOMPONENT(idex_reg, IDEX);
+    SUBCOMPONENT(exmem_reg, EXMEM);
+    SUBCOMPONENT(memwb_reg, MEMWB);
 
     // Multiplexers
     SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, RV_REG_WIDTH>));
@@ -158,13 +224,19 @@ public:
 
     // Ripes interface compliance
     virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
-    unsigned int stageCount() const override { return 2; }
+    unsigned int stageCount() const override { return 5; }
     unsigned int getPcForStage(unsigned int idx) const override {
         switch (idx) {
             case 0:
                 return pc_reg->out.uValue();
             case 1:
                 return ifid_reg->pc_out.uValue();
+            case 2:
+                return idex_reg->pc_out.uValue();
+            case 3:
+                return exmem_reg->pc_out.uValue();
+            case 4:
+                return memwb_reg->pc_out.uValue();
             default:
                 return 0;
         }
@@ -176,6 +248,12 @@ public:
                 return "IF";
             case 1:
                 return "ID";
+            case 2:
+                return "EX";
+            case 3:
+                return "MEM";
+            case 4:
+                return "WB";
             default:
                 return "N/A";
         }
