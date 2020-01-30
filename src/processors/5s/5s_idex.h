@@ -26,6 +26,9 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(mem_do_write, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(alu_ctrl, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(mem_op, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(br_op, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(do_br, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(do_jmp, clear, enable);
     }
 
     // Data
@@ -44,6 +47,9 @@ public:
     REGISTERED_CLEN_INPUT(alu_ctrl, ALUOp::width());
     REGISTERED_CLEN_INPUT(mem_do_write, 1);
     REGISTERED_CLEN_INPUT(mem_op, MemOp::width());
+    REGISTERED_CLEN_INPUT(br_op, CompOp::width());
+    REGISTERED_CLEN_INPUT(do_br, 1);
+    REGISTERED_CLEN_INPUT(do_jmp, 1);
 
     // Register bank controls
     INPUTPORT(enable, 1);

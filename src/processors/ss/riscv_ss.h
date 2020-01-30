@@ -158,9 +158,11 @@ public:
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getRegisters() override { return *m_regMem; }
-    void finalize() override {
-        // Allow one additional clock cycle to clear the current instruction
-        m_finishInNextCycle = true;
+    void finalize(bool enable) override {
+        if (enable) {
+            // Allow one additional clock cycle to clear the current instruction
+            m_finishInNextCycle = true;
+        }
     }
     bool finished() const override { return m_finished; }
 

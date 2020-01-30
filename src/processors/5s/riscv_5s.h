@@ -29,6 +29,46 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+struct FinishingCounter {
+    void start(int _target) {
+        if (finishing || finished)
+            return;  // Already running
+        target = _target;
+        finishing = true;
+        count = 0;
+        finished = false;
+    }
+    void reset() {
+        finishing = false;
+        finished = false;
+    }
+
+    bool finishing = false;
+    int count;
+    int target;
+    bool finished = false;
+    void operator++(int) {
+        if (!finishing || finished)
+            return;
+        count++;
+        if (count == target) {
+            finishing = false;
+            finished = true;
+        }
+    }
+    void operator--(int) {
+        if (finished) {
+            finished = false;
+            finishing = true;
+        }
+        if (!finishing)
+            return;
+        count--;
+        if (count == 0)
+            finishing = false;
+    }
+};
+
 class FiveStageRISCV : public RipesProcessor {
 public:
     FiveStageRISCV() : RipesProcessor("5-Stage RISC-V Processor") {
@@ -78,20 +118,17 @@ public:
 
         // -----------------------------------------------------------------------
         // Branch
-        control->comp_ctrl >> branch->comp_op;
+        idex_reg->br_op_out >> branch->comp_op;
         idex_reg->r1_out >> branch->op1;
         idex_reg->r2_out >> branch->op2;
 
         branch->res >> *br_and->in[0];
-        control->do_branch >> *br_and->in[1];
+        idex_reg->do_br_out >> *br_and->in[1];
         br_and->out >> *controlflow_or->in[0];
-        control->do_jump >> *controlflow_or->in[1];
+        idex_reg->do_jmp_out >> *controlflow_or->in[1];
 
         pc_4->out >> pc_src->get(PcSrc::PC4);
-        jmpTarget->out >> pc_src->get(PcSrc::ALU);
-
-        idex_reg->pc4_out >> jmpTarget->op1;
-        idex_reg->imm_out >> jmpTarget->op2;
+        alu->res >> pc_src->get(PcSrc::ALU);
 
         // -----------------------------------------------------------------------
         // ALU
@@ -127,7 +164,7 @@ public:
         pc_reg->out >> ifid_reg->pc_in;
         instr_mem->data_out >> ifid_reg->instr_in;
         1 >> ifid_reg->enable;
-        0 >> ifid_reg->clear;
+        controlflow_or->out >> ifid_reg->clear;
 
         // -----------------------------------------------------------------------
         // ID/EX
@@ -150,6 +187,9 @@ public:
         control->mem_do_write_ctrl >> idex_reg->mem_do_write_in;
         control->alu_ctrl >> idex_reg->alu_ctrl_in;
         control->mem_ctrl >> idex_reg->mem_op_in;
+        control->comp_ctrl >> idex_reg->br_op_in;
+        control->do_branch >> idex_reg->do_br_in;
+        control->do_jump >> idex_reg->do_jmp_in;
 
         // -----------------------------------------------------------------------
         // EX/MEM
@@ -157,7 +197,6 @@ public:
         // Data
         idex_reg->pc_out >> exmem_reg->pc_in;
         idex_reg->pc4_out >> exmem_reg->pc4_in;
-        jmpTarget->out >> exmem_reg->jmpTarget_in;
         idex_reg->r2_out >> exmem_reg->r2_in;
         alu->res >> exmem_reg->alures_in;
 
@@ -191,7 +230,6 @@ public:
     SUBCOMPONENT(decode, Decode);
     SUBCOMPONENT(branch, Branch);
     SUBCOMPONENT(pc_4, Adder<RV_REG_WIDTH>);
-    SUBCOMPONENT(jmpTarget, Adder<RV_REG_WIDTH>);
 
     // Registers
     SUBCOMPONENT(pc_reg, Register<RV_REG_WIDTH>);
@@ -267,45 +305,38 @@ public:
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getRegisters() override { return *m_regMem; }
-    void finalize() override {
-        // Allow one additional clock cycle to clear the current instruction
-        m_finishInNextCycle = true;
+    void finalize(bool enable) override {
+        if (enable) {
+            m_fcntr.start(5);
+        } else {
+            m_fcntr.reset();
+        }
     }
-    bool finished() const override { return m_finished; }
+    bool finished() const override { return m_fcntr.finished; }
 
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
     void clock() override {
-        // Single cycle processor; 1 instruction retired per cycle!
+        // @todo fix for staged pipeline
         m_instructionsRetired++;
 
-        // m_finishInNextCycle may be set during Design::clock(). Store the value before clocking the processor, and
-        // emit finished if this was the final clock cycle.
-        const bool finishInThisCycle = m_finishInNextCycle;
         RipesProcessor::clock();
-        if (finishInThisCycle) {
-            m_finished = true;
-        }
+        m_fcntr++;
     }
 
     void reverse() override {
         m_instructionsRetired--;
         RipesProcessor::reverse();
-        // Ensure that reverses performed when we expected to finish in the following cycle, clears this
-        // expectation.
-        m_finishInNextCycle = false;
-        m_finished = false;
+        m_fcntr--;
     }
 
     void reset() override {
         RipesProcessor::reset();
-        m_finishInNextCycle = false;
-        m_finished = false;
+        m_fcntr.reset();
     }
 
 private:
-    bool m_finishInNextCycle = false;
-    bool m_finished = false;
+    FinishingCounter m_fcntr;
 };
 
 }  // namespace core

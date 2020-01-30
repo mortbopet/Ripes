@@ -124,12 +124,15 @@ public:
 
     /**
      * @brief finalize
-     * Called from the outside environment to indicate that the processor should begin its finishing sequence. The
-     * finishing sequence is defined as executing all remaining instructions in the pipeline, but not fetching new
+     * Called from the outside environment to indicate that the processor should start or stop its finishing sequence.
+     * The finishing sequence is defined as executing all remaining instructions in the pipeline, but not fetching new
      * instructions. Typically, finalize would be called once the PC of the processor starts executing outside of the
      * current .text segment, or the processor has executed an exit system call.
+     * Stopping the finalizing will happen if the processor returns from fetching instructions from outside the .text
+     * segment to inside the .text segment. This will typically happen when a control-flow instruction is near the end
+     * of the .text segment.
      */
-    virtual void finalize() = 0;
+    virtual void finalize(bool enable) = 0;
 
     /**
      * @brief finished

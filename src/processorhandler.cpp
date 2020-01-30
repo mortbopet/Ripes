@@ -170,7 +170,7 @@ void ProcessorHandler::handleSysCall() {
         }
         case SysCall::Exit2:
         case SysCall::Exit: {
-            m_currentProcessor->finalize();
+            m_currentProcessor->finalize(true);
             return;
         }
         case SysCall::PrintChar: {
@@ -213,7 +213,9 @@ void ProcessorHandler::stop() {
 void ProcessorHandler::checkValidExecutionRange() const {
     const auto pc = m_currentProcessor->nextFetchedAddress();
     if (!(m_validExecutionRange.first <= pc && pc < m_validExecutionRange.second)) {
-        m_currentProcessor->finalize();
+        m_currentProcessor->finalize(true);
+    } else {
+        m_currentProcessor->finalize(false);
     }
 }
 
