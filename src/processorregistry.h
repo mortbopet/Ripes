@@ -7,13 +7,14 @@
 #include "isainfo.h"
 #include "processors/ripesprocessor.h"
 
+#include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5swof/rv5swof.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
 
 // =============================== Processors =================================
-enum class ProcessorID { RISCV_SS, RISCV_5S_WF, RISCV_5S_WOF };
+enum class ProcessorID { RISCV_SS, RISCV_5S, RISCV_5S_WOF };
 // ============================================================================
 
 using RegisterInitialization = std::map<unsigned, uint32_t>;
@@ -39,10 +40,10 @@ public:
     static const ProcessorDescription& getDescription(ProcessorID id) { return instance().m_descriptions[id]; }
     static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id) {
         switch (id) {
-            case ProcessorID::RISCV_5S_WOF: {
+            case ProcessorID::RISCV_5S_WOF:
                 return std::make_unique<vsrtl::core::RV5SWOF>();
-            }
-            case ProcessorID::RISCV_5S_WF:
+            case ProcessorID::RISCV_5S:
+                return std::make_unique<vsrtl::core::RV5S>();
             case ProcessorID::RISCV_SS: {
                 return std::make_unique<vsrtl::core::RVSS>();
             }
@@ -57,7 +58,7 @@ private:
         ProcessorDescription desc;
         desc.id = ProcessorID::RISCV_SS;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
-        desc.name = "RISC-V Single Cycle";
+        desc.name = "RISC-V Single Cycle Processor";
         desc.description = "A single cycle RISC-V processor";
         desc.layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", false},
                         {"Extended", ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json", true}};
@@ -66,11 +67,11 @@ private:
 
         // RISC-V 5-Stage with forwarding
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RISCV_5S_WF;
+        desc.id = ProcessorID::RISCV_5S;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
-        desc.name = "RISC-V 5-Stage w/ forwarding";
+        desc.name = "RISC-V 5-Stage Processor";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
-        desc.layouts.push_back({"Standard", ":/layouts/ss/rv_ss_layout.json", false});
+        desc.layouts.push_back({});
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -78,7 +79,7 @@ private:
         desc = ProcessorDescription();
         desc.id = ProcessorID::RISCV_5S_WOF;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
-        desc.name = "RISC-V 5-Stage wo/ forwarding";
+        desc.name = "RISC-V 5-Stage Processor wo/ forwarding";
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";

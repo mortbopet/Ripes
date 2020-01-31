@@ -22,4 +22,5 @@ endmacro()
 # RISC-V Processors
 create_isa_lib(RISC-V)
 create_processor(RISC-V rvss)
+create_processor(RISC-V rv5s)
 create_processor(RISC-V rv5swof)
