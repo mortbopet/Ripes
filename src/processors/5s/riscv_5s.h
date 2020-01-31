@@ -71,6 +71,7 @@ struct FinishingCounter {
 
 class FiveStageRISCV : public RipesProcessor {
 public:
+    enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
     FiveStageRISCV() : RipesProcessor("5-Stage RISC-V Processor") {
         // -----------------------------------------------------------------------
         // Program counter
@@ -276,15 +277,15 @@ public:
 
     // Ripes interface compliance
     virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
-    unsigned int stageCount() const override { return 5; }
+    unsigned int stageCount() const override { return STAGECOUNT; }
     unsigned int getPcForStage(unsigned int idx) const override {
         // clang-format off
         switch (idx) {
-            case 0: return pc_reg->out.uValue();
-            case 1: return ifid_reg->pc_out.uValue();
-            case 2: return idex_reg->pc_out.uValue();
-            case 3: return exmem_reg->pc_out.uValue();
-            case 4: return memwb_reg->pc_out.uValue();
+            case IF: return pc_reg->out.uValue();
+            case ID: return ifid_reg->pc_out.uValue();
+            case EX: return idex_reg->pc_out.uValue();
+            case MEM: return exmem_reg->pc_out.uValue();
+            case WB: return memwb_reg->pc_out.uValue();
             default: assert(false && "Processor does not contain stage");
         }
         // clang-format on
@@ -293,46 +294,46 @@ public:
     QString stageName(unsigned int idx) const override {
         // clang-format off
         switch (idx) {
-            case 0: return "IF";
-            case 1: return "ID";
-            case 2: return "EX";
-            case 3: return "MEM";
-            case 4: return "WB";
+            case IF: return "IF";
+            case ID: return "ID";
+            case EX: return "EX";
+            case MEM: return "MEM";
+            case WB: return "WB";
             default: assert(false && "Processor does not contain stage");
         }
         // clang-format on
     }
-    StageInfo stageInfo(unsigned int idx) const override {
+    StageInfo stageInfo(unsigned int stage) const override {
         bool stageValid = true;
         // Has the pipeline stage been filled?
-        stageValid &= idx <= m_cycleCount;
+        stageValid &= stage <= m_cycleCount;
 
         // clang-format off
         // Has the stage been cleared?
-        switch(idx){
-        case 1: stageValid &= ifid_reg->valid_out.uValue(); break;
-        case 2: stageValid &= idex_reg->valid_out.uValue(); break;
-        case 3: stageValid &= exmem_reg->valid_out.uValue(); break;
-        case 4: stageValid &= memwb_reg->valid_out.uValue(); break;
-        default: case 0: break;
+        switch(stage){
+        case ID: stageValid &= ifid_reg->valid_out.uValue(); break;
+        case EX: stageValid &= idex_reg->valid_out.uValue(); break;
+        case MEM: stageValid &= exmem_reg->valid_out.uValue(); break;
+        case WB: stageValid &= memwb_reg->valid_out.uValue(); break;
+        default: case IF: break;
         }
 
         // Is the stage carrying a valid (executable) PC?
-        switch(idx){
-        case 1: stageValid &= isExecutableAddress(ifid_reg->pc_out.uValue()); break;
-        case 2: stageValid &= isExecutableAddress(idex_reg->pc_out.uValue()); break;
-        case 3: stageValid &= isExecutableAddress(exmem_reg->pc_out.uValue()); break;
-        case 4: stageValid &= isExecutableAddress(memwb_reg->pc_out.uValue()); break;
-        default: case 0: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
+        switch(stage){
+        case ID: stageValid &= isExecutableAddress(ifid_reg->pc_out.uValue()); break;
+        case EX: stageValid &= isExecutableAddress(idex_reg->pc_out.uValue()); break;
+        case MEM: stageValid &= isExecutableAddress(exmem_reg->pc_out.uValue()); break;
+        case WB: stageValid &= isExecutableAddress(memwb_reg->pc_out.uValue()); break;
+        default: case IF: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
         }
 
         // Are we currently clearing the pipeline due to a syscall exit? if such, the first stage (IF) is never valid
-        if(idx == 0){
+        if(stage == IF){
             stageValid &= !ecallChecker->isSysCallExiting();
         }
 
         // clang-format on
-        return StageInfo({getPcForStage(idx), stageValid});
+        return StageInfo({getPcForStage(stage), stageValid});
     }
 
     void setProgramCounter(uint32_t address) override {
@@ -348,7 +349,7 @@ public:
         // its pipeline. Else, a finalize sequence may occur through deassertion of the finalization reason(s).
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
         if (ecallChecker->isSysCallExiting() || fr.any()) {
-            m_fcntr.start(5);
+            m_fcntr.start(STAGECOUNT);
         } else {
             m_fcntr.reset();
         }
