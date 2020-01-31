@@ -60,21 +60,11 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout"/>
     <addaction name="actionOpen_wiki"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
   </widget>
-  <action name="actionAbout">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/info.svg</normaloff>:/icons/info.svg</iconset>
-   </property>
-   <property name="text">
-    <string>About</string>
-   </property>
-  </action>
   <action name="actionOpen_wiki">
    <property name="text">
     <string>Wiki</string>

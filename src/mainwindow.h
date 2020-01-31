@@ -29,7 +29,6 @@ public:
 
 private slots:
     void exit();
-    void about();
     void wiki();
 
     void loadFileTriggered();

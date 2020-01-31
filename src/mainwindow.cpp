@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "aboutwidget.h"
 #include "defines.h"
 #include "edittab.h"
 #include "loaddialog.h"
@@ -28,6 +27,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->setupUi(this);
     setWindowTitle("Ripes");
     setWindowIcon(QIcon(":/icons/logo.svg"));
+    m_ui->actionOpen_wiki->setIcon(QIcon(":/icons/info.svg"));
     showMaximized();
 
     // Initialize processor handler
@@ -75,7 +75,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
 
-    connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
 }
 
@@ -155,11 +154,6 @@ void MainWindow::loadFileTriggered() {
 
     m_editTab->loadFile(diag.getParams());
     m_hasSavedFile = false;
-}
-
-void MainWindow::about() {
-    AboutWidget about;
-    about.exec();
 }
 
 void MainWindow::wiki() {
