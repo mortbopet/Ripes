@@ -345,8 +345,11 @@ public:
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
-        // If we have received an exit syscall, the finishing sequence cannot be stopped, and the processor will empty
-        // its pipeline. Else, a finalize sequence may occur through deassertion of the finalization reason(s).
+        if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
+            // An exit system call was executed. Record the cycle of the execution, and enable the ecallChecker's system
+            // call exiting signal.
+            m_syscallExitCycle = m_cycleCount;
+        }
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
         if (ecallChecker->isSysCallExiting() || fr.any()) {
             m_fcntr.start(STAGECOUNT);
@@ -370,6 +373,13 @@ public:
     }
 
     void reverse() override {
+        if (m_syscallExitCycle != -1 && (m_cycleCount - 1) == m_syscallExitCycle) {
+            // We are about to undo an exit syscall instruction. In this case, the syscall exiting sequence should be
+            // terminate
+            ecallChecker->setSysCallExiting(false);
+            m_syscallExitCycle = -1;
+            finalize(FinalizeReason());
+        }
         RipesProcessor::reverse();
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
             m_instructionsRetired--;
@@ -382,10 +392,18 @@ public:
         RipesProcessor::reset();
         m_fcntr.reset();
         ecallChecker->setSysCallExiting(false);
+        m_syscallExitCycle = -1;
     }
 
 private:
     FinishingCounter m_fcntr;
+
+    /**
+     * @brief m_syscallExitCycle
+     * The variable will contain the cycle of which an exit system call was executed. From this, we may determine when
+     * we roll back an exit system call during rewinding.
+     */
+    long long m_syscallExitCycle = -1;
 };
 
 }  // namespace core
