@@ -171,7 +171,9 @@ void ProcessorHandler::handleSysCall() {
         }
         case SysCall::Exit2:
         case SysCall::Exit: {
-            m_currentProcessor->finalize(true);
+            FinalizeReason fr;
+            fr.exitSyscall = true;
+            m_currentProcessor->finalize(fr);
             return;
         }
         case SysCall::PrintChar: {
@@ -217,11 +219,9 @@ bool ProcessorHandler::isExecutableAddress(uint32_t address) const {
 
 void ProcessorHandler::checkValidExecutionRange() const {
     const auto pc = m_currentProcessor->nextFetchedAddress();
-    if (!isExecutableAddress(pc)) {
-        m_currentProcessor->finalize(true);
-    } else {
-        m_currentProcessor->finalize(false);
-    }
+    FinalizeReason fr;
+    fr.exitedExecutableRegion = !isExecutableAddress(pc);
+    m_currentProcessor->finalize(fr);
 }
 
 void ProcessorHandler::setRegisterValue(const unsigned idx, uint32_t value) {

@@ -83,6 +83,9 @@ public:
         // 0/1 values.
         controlflow_or->out >> pc_src->select;
 
+        controlflow_or->out >> *efsc_or->in[0];
+        ecallChecker->syscallExit >> *efsc_or->in[1];
+
         // -----------------------------------------------------------------------
         // Instruction memory
         pc_reg->out >> instr_mem->addr;
@@ -164,13 +167,13 @@ public:
         pc_reg->out >> ifid_reg->pc_in;
         instr_mem->data_out >> ifid_reg->instr_in;
         1 >> ifid_reg->enable;
-        controlflow_or->out >> ifid_reg->clear;
+        efsc_or->out >> ifid_reg->clear;
         1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
 
         // -----------------------------------------------------------------------
         // ID/EX
         1 >> idex_reg->enable;
-        0 >> idex_reg->clear;
+        controlflow_or->out >> idex_reg->clear;
 
         // Data
         ifid_reg->pc4_out >> idex_reg->pc4_in;
@@ -258,8 +261,12 @@ public:
     SUBCOMPONENT(data_mem, TYPE(RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>));
 
     // Gates
+    // True if branch instruction and branch taken
     SUBCOMPONENT(br_and, TYPE(And<1, 2>));
+    // True if branch taken or jump instruction
     SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
+    // True if controlflow action or performing syscall finishing
+    SUBCOMPONENT(efsc_or, TYPE(Or<1, 2>));
 
     // Address spaces
     ADDRESSSPACE(m_memory);
@@ -271,37 +278,29 @@ public:
     virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
     unsigned int stageCount() const override { return 5; }
     unsigned int getPcForStage(unsigned int idx) const override {
+        // clang-format off
         switch (idx) {
-            case 0:
-                return pc_reg->out.uValue();
-            case 1:
-                return ifid_reg->pc_out.uValue();
-            case 2:
-                return idex_reg->pc_out.uValue();
-            case 3:
-                return exmem_reg->pc_out.uValue();
-            case 4:
-                return memwb_reg->pc_out.uValue();
-            default:
-                return 0;
+            case 0: return pc_reg->out.uValue();
+            case 1: return ifid_reg->pc_out.uValue();
+            case 2: return idex_reg->pc_out.uValue();
+            case 3: return exmem_reg->pc_out.uValue();
+            case 4: return memwb_reg->pc_out.uValue();
+            default: assert(false && "Processor does not contain stage");
         }
+        // clang-format on
     }
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int idx) const override {
+        // clang-format off
         switch (idx) {
-            case 0:
-                return "IF";
-            case 1:
-                return "ID";
-            case 2:
-                return "EX";
-            case 3:
-                return "MEM";
-            case 4:
-                return "WB";
-            default:
-                return "N/A";
+            case 0: return "IF";
+            case 1: return "ID";
+            case 2: return "EX";
+            case 3: return "MEM";
+            case 4: return "WB";
+            default: assert(false && "Processor does not contain stage");
         }
+        // clang-format on
     }
     StageInfo stageInfo(unsigned int idx) const override {
         bool stageValid = true;
@@ -327,6 +326,11 @@ public:
         default: case 0: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
         }
 
+        // Are we currently clearing the pipeline due to a syscall exit? if such, the first stage (IF) is never valid
+        if(idx == 0){
+            stageValid &= !ecallChecker->isSysCallExiting();
+        }
+
         // clang-format on
         return StageInfo({getPcForStage(idx), stageValid});
     }
@@ -339,8 +343,11 @@ public:
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getRegisters() override { return *m_regMem; }
-    void finalize(bool enable) override {
-        if (enable) {
+    void finalize(const FinalizeReason& fr) override {
+        // If we have received an exit syscall, the finishing sequence cannot be stopped, and the processor will empty
+        // its pipeline. Else, a finalize sequence may occur through deassertion of the finalization reason(s).
+        ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
+        if (ecallChecker->isSysCallExiting() || fr.any()) {
             m_fcntr.start(5);
         } else {
             m_fcntr.reset();
@@ -373,6 +380,7 @@ public:
     void reset() override {
         RipesProcessor::reset();
         m_fcntr.reset();
+        ecallChecker->setSysCallExiting(false);
     }
 
 private:

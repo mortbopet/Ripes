@@ -22,10 +22,26 @@ enum SysCall {
     Exit2 = 93
 };
 
+/**
+ * @brief The StageInfo struct
+ * Contains information regarding the state of the instruction currently present in a given stage, as well as any
+ * additional information which the processor may communicate to the GUI regarding the given stage.
+ */
 struct StageInfo {
     unsigned int pc = 0;
     bool pc_valid = false;
 };
+
+/**
+ * @brief The FinalizeReason struct
+ * Transmitted to the processor to indicate the reason for why the finalization sequence has been initialized.
+ */
+struct FinalizeReason {
+    bool exitedExecutableRegion = false;
+    bool exitSyscall = false;
+    bool any() const { return exitedExecutableRegion || exitSyscall; }
+};
+
 }  // namespace Ripes
 
 namespace vsrtl {
@@ -139,7 +155,7 @@ public:
      * segment to inside the .text segment. This will typically happen when a control-flow instruction is near the end
      * of the .text segment.
      */
-    virtual void finalize(bool enable) = 0;
+    virtual void finalize(const FinalizeReason&) = 0;
 
     /**
      * @brief finished
