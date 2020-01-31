@@ -67,4 +67,50 @@ private:
     decode_functor m_decodeRInstr;
     decode_functor m_decodeBInstr;
 };
+
+/**
+ * @brief The FinishingCounter struct
+ * May be used to control how many cycles are allowed to be performed once a processor has been designated to begin its
+ * finishing sequence. Increment/decrement operators may be used in conjunction with clocking/reversing the circuit.
+ */
+struct FinishingCounter {
+    void start(int _target) {
+        if (finishing || finished)
+            return;  // Already running
+        target = _target;
+        finishing = true;
+        count = 0;
+        finished = false;
+    }
+    void reset() {
+        finishing = false;
+        finished = false;
+    }
+
+    bool finishing = false;
+    int count;
+    int target;
+    bool finished = false;
+    void operator++(int) {
+        if (!finishing || finished)
+            return;
+        count++;
+        if (count == target) {
+            finishing = false;
+            finished = true;
+        }
+    }
+    void operator--(int) {
+        if (finished) {
+            finished = false;
+            finishing = true;
+        }
+        if (!finishing)
+            return;
+        count--;
+        if (count == 0)
+            finishing = false;
+    }
+};
+
 }  // namespace Ripes

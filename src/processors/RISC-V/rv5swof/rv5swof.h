@@ -29,46 +29,6 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-struct FinishingCounter {
-    void start(int _target) {
-        if (finishing || finished)
-            return;  // Already running
-        target = _target;
-        finishing = true;
-        count = 0;
-        finished = false;
-    }
-    void reset() {
-        finishing = false;
-        finished = false;
-    }
-
-    bool finishing = false;
-    int count;
-    int target;
-    bool finished = false;
-    void operator++(int) {
-        if (!finishing || finished)
-            return;
-        count++;
-        if (count == target) {
-            finishing = false;
-            finished = true;
-        }
-    }
-    void operator--(int) {
-        if (finished) {
-            finished = false;
-            finishing = true;
-        }
-        if (!finishing)
-            return;
-        count--;
-        if (count == 0)
-            finishing = false;
-    }
-};
-
 class RV5SWOF : public RipesProcessor {
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
