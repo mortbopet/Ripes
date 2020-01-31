@@ -15,6 +15,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     setWindowTitle("Select Processor");
 
     // Initialize processor list
+    QListWidgetItem* selectedItem = nullptr;
     for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         QListWidgetItem* item = new QListWidgetItem(desc.second.name);
         item->setData(Qt::UserRole, QVariant::fromValue(desc.second.id));
@@ -22,6 +23,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
             auto font = item->font();
             font.setBold(true);
             item->setFont(font);
+            selectedItem = item;
         }
         ui->processorList->addItem(item);
     }
@@ -30,6 +32,10 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    if (selectedItem != nullptr) {
+        ui->processorList->setCurrentItem(selectedItem);
+    }
 }
 
 RegisterInitialization ProcessorSelectionDialog::getRegisterInitialization() const {
