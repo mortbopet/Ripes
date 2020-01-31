@@ -87,5 +87,11 @@ private:
     QAction* m_resetAction = nullptr;
 
     QSpinBox* m_autoClockInterval = nullptr;
+
+    /**
+     * @brief m_hasRun
+     * True whenever the processor has been executed through the "Run" action.
+     */
+    bool m_hasRun;
 };
 }  // namespace Ripes

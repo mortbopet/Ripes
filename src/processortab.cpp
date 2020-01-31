@@ -258,11 +258,14 @@ void ProcessorTab::enableSimulatorControls() {
     m_runAction->setEnabled(true);
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
     m_resetAction->setEnabled(true);
+    m_stageTableAction->setEnabled(!m_hasRun);
 }
 
 void ProcessorTab::updateInstructionLabels() {
     const auto& proc = ProcessorHandler::get()->getProcessor();
     for (unsigned i = 0; i < proc->stageCount(); i++) {
+        if (!m_stageInstructionLabels.count(i))
+            continue;
         const auto stageInfo = proc->stageInfo(i);
         QString instrString;
         if (stageInfo.pc_valid) {
@@ -273,6 +276,7 @@ void ProcessorTab::updateInstructionLabels() {
 }
 
 void ProcessorTab::reset() {
+    m_hasRun = false;
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
     m_stageModel->reset();
@@ -307,6 +311,7 @@ void ProcessorTab::runFinished() {
 }
 
 void ProcessorTab::run(bool state) {
+    m_hasRun = true;
     // Stop any currently exeuting auto-clocking
     if (m_autoClockAction->isChecked()) {
         m_autoClockAction->setChecked(false);
@@ -327,6 +332,7 @@ void ProcessorTab::run(bool state) {
     m_resetAction->setEnabled(!state);
     m_displayValuesAction->setEnabled(!state);
     m_vsrtlWidget->setEnabled(!state);
+    m_stageTableAction->setEnabled(false);
 }
 
 void ProcessorTab::reverse() {
