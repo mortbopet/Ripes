@@ -6,24 +6,24 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../ripesprocessor.h"
+#include "../../ripesprocessor.h"
 
 // Functional units
-#include "../ss/alu.h"
-#include "../ss/branch.h"
-#include "../ss/control.h"
-#include "../ss/decode.h"
-#include "../ss/ecallchecker.h"
-#include "../ss/immediate.h"
-#include "../ss/registerfile.h"
-#include "../ss/riscv.h"
-#include "../ss/rvmemory.h"
+#include "../riscv.h"
+#include "../rv_alu.h"
+#include "../rv_branch.h"
+#include "../rv_control.h"
+#include "../rv_decode.h"
+#include "../rv_ecallchecker.h"
+#include "../rv_immediate.h"
+#include "../rv_memory.h"
+#include "../rv_registerfile.h"
 
 // Stage separating registers
-#include "5s_exmem.h"
-#include "5s_idex.h"
-#include "5s_ifid.h"
-#include "5s_memwb.h"
+#include "rv5swof_exmem.h"
+#include "rv5swof_idex.h"
+#include "rv5swof_ifid.h"
+#include "rv5swof_memwb.h"
 
 namespace vsrtl {
 namespace core {
@@ -69,10 +69,10 @@ struct FinishingCounter {
     }
 };
 
-class FiveStageRISCV : public RipesProcessor {
+class RV5SWOF : public RipesProcessor {
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-    FiveStageRISCV() : RipesProcessor("5-Stage RISC-V Processor") {
+    RV5SWOF() : RipesProcessor("5-Stage RISC-V Processor without forwarding") {
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;

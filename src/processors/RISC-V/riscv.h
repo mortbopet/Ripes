@@ -4,7 +4,7 @@
 #include "VSRTL/core/vsrtl_enum.h"
 #include "VSRTL/interface/vsrtl.h"
 #include "VSRTL/interface/vsrtl_binutils.h"
-#include "instrparser.h"
+#include "rv_instrparser.h"
 
 namespace Ripes {
 

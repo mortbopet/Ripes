@@ -7,8 +7,8 @@
 #include "isainfo.h"
 #include "processors/ripesprocessor.h"
 
-#include "processors/5s/riscv_5s.h"
-#include "processors/ss/riscv_ss.h"
+#include "processors/RISC-V/rv5swof/rv5swof.h"
+#include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
 
@@ -40,11 +40,11 @@ public:
     static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id) {
         switch (id) {
             case ProcessorID::RISCV_5S_WOF: {
-                return std::make_unique<vsrtl::core::FiveStageRISCV>();
+                return std::make_unique<vsrtl::core::RV5SWOF>();
             }
             case ProcessorID::RISCV_5S_WF:
             case ProcessorID::RISCV_SS: {
-                return std::make_unique<vsrtl::core::SingleCycleRISCV>();
+                return std::make_unique<vsrtl::core::RVSS>();
             }
         }
     }
@@ -59,8 +59,8 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle";
         desc.description = "A single cycle RISC-V processor";
-        desc.layouts = {{"Standard", ":/layouts/ss/rv_ss_standard_layout.json", false},
-                        {"Extended", ":/layouts/ss/rv_ss_extended_layout.json", true}};
+        desc.layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", false},
+                        {"Extended", ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json", true}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 

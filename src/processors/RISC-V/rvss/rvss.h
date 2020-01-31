@@ -6,25 +6,25 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../ripesprocessor.h"
+#include "../../ripesprocessor.h"
 
-#include "alu.h"
-#include "branch.h"
-#include "control.h"
-#include "decode.h"
-#include "ecallchecker.h"
-#include "immediate.h"
-#include "registerfile.h"
-#include "riscv.h"
-#include "rvmemory.h"
+#include "../riscv.h"
+#include "../rv_alu.h"
+#include "../rv_branch.h"
+#include "../rv_control.h"
+#include "../rv_decode.h"
+#include "../rv_ecallchecker.h"
+#include "../rv_immediate.h"
+#include "../rv_memory.h"
+#include "../rv_registerfile.h"
 
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-class SingleCycleRISCV : public RipesProcessor {
+class RVSS : public RipesProcessor {
 public:
-    SingleCycleRISCV() : RipesProcessor("Single Cycle RISC-V Processor") {
+    RVSS() : RipesProcessor("Single Cycle RISC-V Processor") {
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;

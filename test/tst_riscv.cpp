@@ -3,7 +3,7 @@
 #include <QStringList>
 #include <QtTest/QTest>
 
-#include "../src/processors/ss/riscv_ss.h"
+#include "../src/processors/RISC-V/rvss/rvss.h"
 
 #ifndef VSRTL_RISCV_TEST_DIR
 static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
@@ -70,7 +70,7 @@ private:
     QString dumpRegs();
 
     QString m_currentTest;
-    std::unique_ptr<SingleCycleRISCV> m_design;
+    std::unique_ptr<RVSS> m_design;
 
 private slots:
     void runTests();
@@ -170,7 +170,7 @@ void tst_RISCV::runTests() {
             QFAIL(err.toStdString().c_str());
         }
 
-        m_design = std::make_unique<SingleCycleRISCV>();
+        m_design = std::make_unique<RVSS>();
         loadBinaryToSimulator(binFile);
         m_design->verifyAndInitialize();
 
