@@ -116,6 +116,13 @@ public:
     }
 
     /**
+     * @brief isExecutableAddress
+     * Callback registerred by the environment instantiating the processor. The environment shall return whether the @p
+     * address is an address which is valid to be executed.
+     */
+    std::function<bool(uint32_t)> isExecutableAddress;
+
+    /**
      * @brief handleSysCall
      * Signal for passing control to the outside environment whenever a system call must be handled (RISC-V ecall
      * instruction).

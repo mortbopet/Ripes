@@ -53,6 +53,12 @@ public:
     void checkValidExecutionRange() const;
 
     /**
+     * @brief isExecutableAddress
+     * @returns whether @param address is within the executable section of the currently loaded program.
+     */
+    bool isExecutableAddress(uint32_t address) const;
+
+    /**
      * @brief getCurrentProgramSize
      * @return size (in bytes) of the currently loaded .text segment
      */

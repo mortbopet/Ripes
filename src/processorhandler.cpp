@@ -107,6 +107,7 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);
     m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::handleSysCall);
+    m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return isExecutableAddress(address); };
 
     // Register initializations
     auto& regs = m_currentProcessor->getRegisters();
@@ -210,9 +211,13 @@ void ProcessorHandler::stop() {
     m_stopRunningFlag = false;
 }
 
+bool ProcessorHandler::isExecutableAddress(uint32_t address) const {
+    return m_validExecutionRange.first <= address && address < m_validExecutionRange.second;
+}
+
 void ProcessorHandler::checkValidExecutionRange() const {
     const auto pc = m_currentProcessor->nextFetchedAddress();
-    if (!(m_validExecutionRange.first <= pc && pc < m_validExecutionRange.second)) {
+    if (!isExecutableAddress(pc)) {
         m_currentProcessor->finalize(true);
     } else {
         m_currentProcessor->finalize(false);
