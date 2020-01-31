@@ -79,12 +79,17 @@ QVariant InstructionModel::PCData(uint32_t addr) const {
     return "0x" + QString::number(addr, 16);
 }
 QVariant InstructionModel::stageData(uint32_t addr) const {
+    QStringList stagesForAddr;
     for (const auto& si : m_stageInfos) {
         if ((si.second.pc == addr) && si.second.pc_valid) {
-            return si.first;
+            stagesForAddr << si.first;
         }
     }
-    return QVariant();
+    if (stagesForAddr.isEmpty()) {
+        return QVariant();
+    } else {
+        return stagesForAddr.join("/");
+    }
 }
 
 QVariant InstructionModel::instructionData(uint32_t addr) const {
