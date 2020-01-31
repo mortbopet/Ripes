@@ -262,9 +262,13 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
     const auto& proc = ProcessorHandler::get()->getProcessor();
-    for (const auto& il : m_stageInstructionLabels) {
-        const QString instr = ProcessorHandler::get()->parseInstrAt(proc->getPcForStage(il.first));
-        il.second->setText(instr);
+    for (unsigned i = 0; i < proc->stageCount(); i++) {
+        const auto stageInfo = proc->stageInfo(i);
+        QString instrString;
+        if (stageInfo.pc_valid) {
+            instrString = ProcessorHandler::get()->parseInstrAt(stageInfo.pc);
+        }
+        m_stageInstructionLabels.at(i)->setText(instrString);
     }
 }
 
