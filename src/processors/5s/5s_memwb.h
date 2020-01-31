@@ -20,6 +20,8 @@ public:
         CONNECT_REGISTERED_INPUT(reg_wr_src_ctrl);
         CONNECT_REGISTERED_INPUT(wr_reg_idx);
         CONNECT_REGISTERED_INPUT(reg_do_write);
+
+        CONNECT_REGISTERED_INPUT(valid);
     }
 
     // Data
@@ -32,6 +34,10 @@ public:
     REGISTERED_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
     REGISTERED_INPUT(wr_reg_idx, RV_REGS_BITS);
     REGISTERED_INPUT(reg_do_write, 1);
+
+    // Valid signal. False when the register bank has been cleared. May be used by UI to determine whether the NOP in
+    // the stage is a user-inserted nop or the result of some pipeline action.
+    REGISTERED_INPUT(valid, 1);
 };
 
 }  // namespace core

@@ -29,6 +29,8 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(br_op, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(do_br, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(do_jmp, clear, enable);
+
+        CONNECT_REGISTERED_CLEN_INPUT(valid, clear, enable);
     }
 
     // Data
@@ -54,6 +56,10 @@ public:
     // Register bank controls
     INPUTPORT(enable, 1);
     INPUTPORT(clear, 1);
+
+    // Valid signal. False when the register bank has been cleared. May be used by UI to determine whether the NOP in
+    // the stage is a user-inserted nop or the result of some pipeline action.
+    REGISTERED_CLEN_INPUT(valid, 1);
 };
 
 }  // namespace core

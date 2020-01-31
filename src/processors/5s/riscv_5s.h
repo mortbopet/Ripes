@@ -165,6 +165,7 @@ public:
         instr_mem->data_out >> ifid_reg->instr_in;
         1 >> ifid_reg->enable;
         controlflow_or->out >> ifid_reg->clear;
+        1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
 
         // -----------------------------------------------------------------------
         // ID/EX
@@ -191,6 +192,8 @@ public:
         control->do_branch >> idex_reg->do_br_in;
         control->do_jump >> idex_reg->do_jmp_in;
 
+        ifid_reg->valid_out >> idex_reg->valid_in;
+
         // -----------------------------------------------------------------------
         // EX/MEM
 
@@ -207,6 +210,8 @@ public:
         idex_reg->mem_do_write_out >> exmem_reg->mem_do_write_in;
         idex_reg->mem_op_out >> exmem_reg->mem_op_in;
 
+        idex_reg->valid_out >> exmem_reg->valid_in;
+
         // -----------------------------------------------------------------------
         // MEM/WB
 
@@ -220,6 +225,8 @@ public:
         exmem_reg->reg_wr_src_ctrl_out >> memwb_reg->reg_wr_src_ctrl_in;
         exmem_reg->wr_reg_idx_out >> memwb_reg->wr_reg_idx_in;
         exmem_reg->reg_do_write_out >> memwb_reg->reg_do_write_in;
+
+        exmem_reg->valid_out >> memwb_reg->valid_in;
     }
 
     // Design subcomponents
@@ -296,7 +303,34 @@ public:
                 return "N/A";
         }
     }
-    StageInfo stageInfo(unsigned int idx) const override { return StageInfo({getPcForStage(idx), true}); }
+    StageInfo stageInfo(unsigned int idx) const override {
+        bool stageValid = true;
+        // Has the pipeline stage been filled?
+        stageValid &= idx <= m_cycleCount;
+
+        // clang-format off
+        // Has the stage been cleared?
+        switch(idx){
+        case 1: stageValid &= ifid_reg->valid_out.uValue(); break;
+        case 2: stageValid &= idex_reg->valid_out.uValue(); break;
+        case 3: stageValid &= exmem_reg->valid_out.uValue(); break;
+        case 4: stageValid &= memwb_reg->valid_out.uValue(); break;
+        default: case 0: break;
+        }
+
+        // Is the stage carrying a valid (executable) PC?
+        switch(idx){
+        case 1: stageValid &= isExecutableAddress(ifid_reg->pc_out.uValue()); break;
+        case 2: stageValid &= isExecutableAddress(idex_reg->pc_out.uValue()); break;
+        case 3: stageValid &= isExecutableAddress(exmem_reg->pc_out.uValue()); break;
+        case 4: stageValid &= isExecutableAddress(memwb_reg->pc_out.uValue()); break;
+        default: case 0: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
+        }
+
+        // clang-format on
+        return StageInfo({getPcForStage(idx), stageValid});
+    }
+
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
@@ -317,16 +351,22 @@ public:
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
     void clock() override {
-        // @todo fix for staged pipeline
-        m_instructionsRetired++;
+        // An instruction has been retired if the instruction in the WB stage is valid and the PC is within the
+        // executable range of the program
+        if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
+            m_instructionsRetired++;
+        }
 
         RipesProcessor::clock();
         m_fcntr++;
     }
 
     void reverse() override {
-        m_instructionsRetired--;
         RipesProcessor::reverse();
+        if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
+            m_instructionsRetired--;
+        }
+
         m_fcntr--;
     }
 
