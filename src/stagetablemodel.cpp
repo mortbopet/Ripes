@@ -70,12 +70,17 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
 
     const uint32_t addr = indexToAddress(index.row());
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
+    QStringList stagesForAddr;
     for (const auto& si : stageInfo) {
         if (si.second.pc == addr && si.second.pc_valid) {
-            return si.first;
+            stagesForAddr << si.first;
         }
     }
 
-    return QVariant();
+    if (stagesForAddr.size() == 0) {
+        return QVariant();
+    }
+
+    return stagesForAddr.join('/');
 }
 }  // namespace Ripes
