@@ -156,9 +156,9 @@ void ProcessorTab::setupSimulatorActions() {
     m_toolbar->addAction(m_displayValuesAction);
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
-    m_pipelineTableAction = new QAction(tableIcon, "Show pipelining table", this);
-    connect(m_pipelineTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
-    m_toolbar->addAction(m_pipelineTableAction);
+    m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
+    connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
+    m_toolbar->addAction(m_stageTableAction);
 }
 
 void ProcessorTab::updateStatistics() {

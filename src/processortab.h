@@ -82,7 +82,7 @@ private:
     QAction* m_autoClockAction = nullptr;
     QAction* m_runAction = nullptr;
     QAction* m_displayValuesAction = nullptr;
-    QAction* m_pipelineTableAction = nullptr;
+    QAction* m_stageTableAction = nullptr;
     QAction* m_reverseAction = nullptr;
     QAction* m_resetAction = nullptr;
 
