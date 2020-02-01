@@ -3,8 +3,8 @@
 #include <QStringList>
 #include <QtTest/QTest>
 
-#include "../src/processors/RISC-V/rv5s/rv5s.h"
-#include "../src/processors/RISC-V/rvss/rvss.h"
+#include "processorhandler.h"
+#include "processorregistry.h"
 
 #ifndef VSRTL_RISCV_TEST_DIR
 static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
@@ -71,20 +71,19 @@ private:
     QString dumpRegs();
 
     QString m_currentTest;
-    std::unique_ptr<RipesProcessor> m_design;
 
-    template <typename PROCESSOR>
-    void runTests();
+    void runTests(const ProcessorID& id);
 
     void handleSysCall();
 
     bool m_stop = false;
+    Program m_program;
     QString m_err;
 
 private slots:
 
-    void testRVSingleCycle() { runTests<RVSS>(); }
-    void testRV5Stage() { runTests<RV5S>(); }
+    void testRVSingleCycle() { runTests(ProcessorID::RISCV_SS); }
+    void testRV5StagePipeline() { runTests(ProcessorID::RISCV_5S); }
 
     void cleanupTestCase();
 };
@@ -105,10 +104,11 @@ bool tst_RISCV::skipTest(const QString& test) {
 
 QString tst_RISCV::dumpRegs() {
     QString str = "\n" + m_currentTest + "\nRegister dump:";
-    str += "\t PC:" + QString::number(m_design->getPcForStage(0), 16) + "\n";
-    for (int i = 0; i < m_design->implementsISA()->regCnt(); i++) {
-        str += "\t" + m_design->implementsISA()->regName(i) + ":" + m_design->implementsISA()->regAlias(i) + ":\t" +
-               QString::number(m_design->getRegister(i)) + "\n";
+    str += "\t PC:" + QString::number(ProcessorHandler::get()->getProcessor()->getPcForStage(0), 16) + "\n";
+    for (int i = 0; i < ProcessorHandler::get()->currentISA()->regCnt(); i++) {
+        str += "\t" + ProcessorHandler::get()->currentISA()->regName(i) + ":" +
+               ProcessorHandler::get()->currentISA()->regAlias(i) + ":\t" +
+               QString::number(ProcessorHandler::get()->getProcessor()->getRegister(i)) + "\n";
     }
     return str;
 }
@@ -121,19 +121,19 @@ void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
         QFAIL(err.toStdString().c_str());
     }
     QByteArray programByteArray = testFile.readAll();
-    std::vector<unsigned char> program(programByteArray.begin(), programByteArray.end());
 
-    // Load program into simulator
-    m_design->getMemory().addInitializationMemory(0x0, program.data(), program.size());
+    m_program = Program();
+    m_program.sections.push_back({TEXT_SECTION_NAME, 0, programByteArray});
+    ProcessorHandler::get()->loadProgram(&m_program);
 }
 
 void tst_RISCV::handleSysCall() {
-    unsigned status = m_design->getRegister(s_ecallreg);
+    unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(s_ecallreg);
     if (status == s_success) {
         m_stop |= true;
     } else if (status == s_fail) {
         m_err = "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
-                QString::number(m_design->getRegister(s_statusreg));
+                QString::number(ProcessorHandler::get()->getProcessor()->getRegister(s_statusreg));
         m_err += dumpRegs();
     }
 }
@@ -144,7 +144,8 @@ QString tst_RISCV::executeSimulator() {
     bool maxCyclesReached = false;
     unsigned cycles = 0;
     do {
-        m_design->clock();
+        ProcessorHandler::get()->getProcessorNonConst()->clock();
+
         cycles++;
 
         maxCyclesReached |= cycles >= s_maxCycles;
@@ -153,7 +154,7 @@ QString tst_RISCV::executeSimulator() {
 
     if (maxCyclesReached) {
         m_err = "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
-                QString::number(m_design->getRegister(s_statusreg));
+                QString::number(ProcessorHandler::get()->getProcessor()->getRegister(s_statusreg));
         m_err += dumpRegs();
     }
 
@@ -161,8 +162,7 @@ QString tst_RISCV::executeSimulator() {
     return m_err;
 }
 
-template <typename PROCESSOR>
-void tst_RISCV::runTests() {
+void tst_RISCV::runTests(const ProcessorID& id) {
     const auto dir = QDir(s_testdir);
     const auto testFiles = dir.entryList({"*.s"});
 
@@ -181,10 +181,13 @@ void tst_RISCV::runTests() {
             QFAIL(err.toStdString().c_str());
         }
 
-        m_design = std::make_unique<PROCESSOR>();
-        m_design->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
-        loadBinaryToSimulator(binFile);
-        m_design->verifyAndInitialize();
+        connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, [=] { loadBinaryToSimulator(binFile); });
+        connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset,
+                [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
+
+        ProcessorHandler::get()->selectProcessor(id);
+        // Override the ProcessorHandler's ECALL handling
+        ProcessorHandler::get()->getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
 
         const QString err = executeSimulator();
         if (!err.isNull()) {

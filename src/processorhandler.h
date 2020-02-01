@@ -25,6 +25,7 @@ public:
         return handler;
     }
 
+    vsrtl::core::RipesProcessor* getProcessorNonConst() { return m_currentProcessor.get(); }
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorID& getID() const { return m_currentID; }
     const Program* getProgram() const { return m_program; }
