@@ -10,6 +10,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <bool readBypass>
 class RegisterFile : public Component {
 public:
     SetGraphicsType(ClockedComponent);
@@ -28,8 +29,42 @@ public:
         // Reads
         r1_addr >> _rd1_mem->addr;
         r2_addr >> _rd2_mem->addr;
-        _rd1_mem->data_out >> r1_out;
-        _rd2_mem->data_out >> r2_out;
+
+        /** If read bypassing is enabled, we may read the next-state register value in the current state.
+         * Also note that, given that the RegisterFile is of type Component, all inputs must be propagated before
+         * outputs are propagated. Thus, we are sure to have received the next-state write address when we clock the
+         * output ports. This would >not< be the case if the RegisterFile was a clocked component.
+         */
+        if constexpr (readBypass) {
+            r1_out << [=] {
+                const int rd_idx = r1_addr.uValue();
+                if (rd_idx == 0)
+                    return static_cast<unsigned>(0);
+
+                const int wr_idx = wr_addr.uValue();
+                if (wr_en.uValue() && wr_idx == r1_addr.uValue()) {
+                    return data_in.uValue();
+                } else {
+                    return _rd1_mem->data_out.uValue();
+                }
+            };
+
+            r2_out << [=] {
+                const int rd_idx = r2_addr.uValue();
+                if (rd_idx == 0)
+                    return static_cast<unsigned>(0);
+
+                const int wr_idx = wr_addr.uValue();
+                if (wr_en.uValue() && wr_idx == r2_addr.uValue()) {
+                    return data_in.uValue();
+                } else {
+                    return _rd2_mem->data_out.uValue();
+                }
+            };
+        } else {
+            _rd1_mem->data_out >> r1_out;
+            _rd2_mem->data_out >> r2_out;
+        }
     }
 
     SUBCOMPONENT(_wr_mem, TYPE(WrMemory<RV_REGS_BITS, RV_REG_WIDTH, false>));

@@ -89,8 +89,8 @@ public:
         // -----------------------------------------------------------------------
         // Branch
         idex_reg->br_op_out >> branch->comp_op;
-        idex_reg->r1_out >> branch->op1;
-        idex_reg->r2_out >> branch->op2;
+        reg1_fw_src->out >> branch->op1;
+        reg2_fw_src->out >> branch->op2;
 
         branch->res >> *br_and->in[0];
         idex_reg->do_br_out >> *br_and->in[1];
@@ -246,7 +246,7 @@ public:
     }
 
     // Design subcomponents
-    SUBCOMPONENT(registerFile, RegisterFile);
+    SUBCOMPONENT(registerFile, RegisterFile<true>);
     SUBCOMPONENT(alu, ALU);
     SUBCOMPONENT(control, Control);
     SUBCOMPONENT(immediate, Immediate);

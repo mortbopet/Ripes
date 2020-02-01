@@ -113,7 +113,7 @@ public:
     }
 
     // Design subcomponents
-    SUBCOMPONENT(registerFile, RegisterFile);
+    SUBCOMPONENT(registerFile, RegisterFile<false>);
     SUBCOMPONENT(alu, ALU);
     SUBCOMPONENT(control, Control);
     SUBCOMPONENT(immediate, Immediate);
