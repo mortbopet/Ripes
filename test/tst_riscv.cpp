@@ -83,7 +83,8 @@ private:
 
 private slots:
 
-    void testRVSS() { runTests<RVSS>(); }
+    void testRVSingleCycle() { runTests<RVSS>(); }
+    void testRV5Stage() { runTests<RV5S>(); }
 
     void cleanupTestCase();
 };
