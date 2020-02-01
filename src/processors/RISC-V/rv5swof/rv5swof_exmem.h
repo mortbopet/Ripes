@@ -12,36 +12,42 @@ using namespace Ripes;
 class EXMEM : public Component {
 public:
     EXMEM(std::string name, SimComponent* parent) : Component(name, parent) {
-        CONNECT_REGISTERED_INPUT(pc);
-        CONNECT_REGISTERED_INPUT(pc4);
-        CONNECT_REGISTERED_INPUT(alures);
-        CONNECT_REGISTERED_INPUT(r2);
+        CONNECT_REGISTERED_CLEN_INPUT(pc, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(pc4, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(alures, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(r2, clear, enable);
 
-        CONNECT_REGISTERED_INPUT(reg_wr_src_ctrl);
-        CONNECT_REGISTERED_INPUT(wr_reg_idx);
-        CONNECT_REGISTERED_INPUT(reg_do_write);
-        CONNECT_REGISTERED_INPUT(mem_do_write);
-        CONNECT_REGISTERED_INPUT(mem_op);
+        CONNECT_REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(wr_reg_idx, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(reg_do_write, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(mem_do_write, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(mem_do_read, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(mem_op, clear, enable);
 
-        CONNECT_REGISTERED_INPUT(valid);
+        CONNECT_REGISTERED_CLEN_INPUT(valid, clear, enable);
     }
 
     // Data
-    REGISTERED_INPUT(pc, RV_REG_WIDTH);
-    REGISTERED_INPUT(pc4, RV_REG_WIDTH);
-    REGISTERED_INPUT(alures, RV_REG_WIDTH);
-    REGISTERED_INPUT(r2, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(pc, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(pc4, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(alures, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(r2, RV_REG_WIDTH);
 
     // Control
-    REGISTERED_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
-    REGISTERED_INPUT(wr_reg_idx, RV_REGS_BITS);
-    REGISTERED_INPUT(reg_do_write, 1);
-    REGISTERED_INPUT(mem_do_write, 1);
-    REGISTERED_INPUT(mem_op, MemOp::width());
+    REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
+    REGISTERED_CLEN_INPUT(wr_reg_idx, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(reg_do_write, 1);
+    REGISTERED_CLEN_INPUT(mem_do_write, 1);
+    REGISTERED_CLEN_INPUT(mem_do_read, 1);
+    REGISTERED_CLEN_INPUT(mem_op, MemOp::width());
+
+    // Register bank controls
+    INPUTPORT(enable, 1);
+    INPUTPORT(clear, 1);
 
     // Valid signal. False when the register bank has been cleared. May be used by UI to determine whether the NOP in
     // the stage is a user-inserted nop or the result of some pipeline action.
-    REGISTERED_INPUT(valid, 1);
+    REGISTERED_CLEN_INPUT(valid, 1);
 };
 
 }  // namespace core

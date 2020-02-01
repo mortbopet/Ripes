@@ -210,6 +210,14 @@ public:
             }
         };
 
+        mem_do_read_ctrl << [=] {
+            switch(opcode.uValue()) {
+                case RVInstr::LB: case RVInstr::LH: case RVInstr::LW:
+                    return 1;
+                default: return 0;
+            }
+        };
+
         // clang-format on
     }
 
@@ -217,6 +225,7 @@ public:
 
     OUTPUTPORT(reg_do_write_ctrl, 1);
     OUTPUTPORT(mem_do_write_ctrl, 1);
+    OUTPUTPORT(mem_do_read_ctrl, 1);
     OUTPUTPORT(do_branch, 1);
     OUTPUTPORT(do_jump, 1);
     OUTPUTPORT_ENUM(comp_ctrl, CompOp);

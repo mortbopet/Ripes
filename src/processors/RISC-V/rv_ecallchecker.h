@@ -13,7 +13,7 @@ class EcallChecker : public Component {
 public:
     EcallChecker(std::string name, SimComponent* parent) : Component(name, parent) {
         dummy << [=] {
-            if (opcode.uValue() == RVInstr::ECALL) {
+            if (opcode.uValue() == RVInstr::ECALL && !stallEcallHandling.uValue()) {
                 m_signal->Emit();
             }
             return 0;
@@ -33,6 +33,12 @@ public:
     Gallant::Signal0<>* m_signal;
 
     INPUTPORT_ENUM(opcode, RVInstr);
+
+    // Handling an ecall puts an implicit dependence on all outstanding writes to any register being performed before
+    // the ecall is handled. As such, the hazard unit may stall handling of the Ecall until all outstanding writes have
+    // been perfomed.
+    INPUTPORT(stallEcallHandling, 1);
+
     OUTPUTPORT(dummy, 1);
     OUTPUTPORT(syscallExit, 1);
 

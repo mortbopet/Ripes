@@ -42,6 +42,8 @@ public:
         pc_reg->out >> pc_4->op1;
         4 >> pc_4->op2;
         pc_src->out >> pc_reg->in;
+        0 >> pc_reg->clear;
+        hzunit->hazardEnable >> pc_reg->enable;
 
         // Note: pc_src works uses the PcSrc enum, but is selected by the boolean signal
         // from the controlflow OR gate. PcSrc enum values must adhere to the boolean
@@ -137,21 +139,23 @@ public:
 
         // -----------------------------------------------------------------------
         // Ecall checker
-        decode->opcode >> ecallChecker->opcode;
+
+        idex_reg->opcode_out >> ecallChecker->opcode;
         ecallChecker->setSysCallSignal(&handleSysCall);
+        hzunit->stallEcallHandling >> ecallChecker->stallEcallHandling;
 
         // -----------------------------------------------------------------------
         // IF/ID
         pc_4->out >> ifid_reg->pc4_in;
         pc_reg->out >> ifid_reg->pc_in;
         instr_mem->data_out >> ifid_reg->instr_in;
-        1 >> ifid_reg->enable;
+        hzunit->hazardEnable >> ifid_reg->enable;
         efsc_or->out >> ifid_reg->clear;
         1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
 
         // -----------------------------------------------------------------------
         // ID/EX
-        1 >> idex_reg->enable;
+        hzunit->hazardEnable >> idex_reg->enable;
         controlflow_or->out >> idex_reg->clear;
 
         // Data
@@ -175,11 +179,15 @@ public:
         control->do_jump >> idex_reg->do_jmp_in;
         decode->r1_reg_idx >> idex_reg->rd_reg1_idx_in;
         decode->r2_reg_idx >> idex_reg->rd_reg2_idx_in;
+        decode->opcode >> idex_reg->opcode_in;
+        control->mem_do_read_ctrl >> idex_reg->mem_do_read_in;
 
         ifid_reg->valid_out >> idex_reg->valid_in;
 
         // -----------------------------------------------------------------------
         // EX/MEM
+        1 >> exmem_reg->enable;
+        hzunit->hazardClear >> exmem_reg->clear;
 
         // Data
         idex_reg->pc_out >> exmem_reg->pc_in;
@@ -192,6 +200,7 @@ public:
         idex_reg->wr_reg_idx_out >> exmem_reg->wr_reg_idx_in;
         idex_reg->reg_do_write_out >> exmem_reg->reg_do_write_in;
         idex_reg->mem_do_write_out >> exmem_reg->mem_do_write_in;
+        idex_reg->mem_do_read_out >> exmem_reg->mem_do_read_in;
         idex_reg->mem_op_out >> exmem_reg->mem_op_in;
 
         idex_reg->valid_out >> exmem_reg->valid_in;
@@ -225,6 +234,15 @@ public:
 
         // -----------------------------------------------------------------------
         // Hazard detection unit
+        idex_reg->rd_reg1_idx_out >> hzunit->id_reg1_idx;
+        idex_reg->rd_reg2_idx_out >> hzunit->id_reg2_idx;
+
+        exmem_reg->wr_reg_idx_out >> hzunit->mem_reg_wr_idx;
+        exmem_reg->mem_do_read_out >> hzunit->mem_do_read_en;
+        exmem_reg->reg_do_write_out >> hzunit->mem_reg_do_write;
+
+        memwb_reg->reg_do_write_out >> hzunit->wb_reg_do_write;
+        idex_reg->opcode_out >> hzunit->opcode;
     }
 
     // Design subcomponents
@@ -237,7 +255,7 @@ public:
     SUBCOMPONENT(pc_4, Adder<RV_REG_WIDTH>);
 
     // Registers
-    SUBCOMPONENT(pc_reg, Register<RV_REG_WIDTH>);
+    SUBCOMPONENT(pc_reg, RegisterClEn<RV_REG_WIDTH>);
 
     // Stage seperating registers
     SUBCOMPONENT(ifid_reg, IFID);

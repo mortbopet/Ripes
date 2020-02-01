@@ -109,6 +109,7 @@ public:
         // Ecall checker
         decode->opcode >> ecallChecker->opcode;
         ecallChecker->setSysCallSignal(&handleSysCall);
+        0 >> ecallChecker->stallEcallHandling;
     }
 
     // Design subcomponents

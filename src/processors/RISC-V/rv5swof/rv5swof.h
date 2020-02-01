@@ -121,6 +121,7 @@ public:
         // Ecall checker
         decode->opcode >> ecallChecker->opcode;
         ecallChecker->setSysCallSignal(&handleSysCall);
+        0 >> ecallChecker->stallEcallHandling;
 
         // -----------------------------------------------------------------------
         // IF/ID
@@ -150,6 +151,7 @@ public:
         control->alu_op1_ctrl >> idex_reg->alu_op1_ctrl_in;
         control->alu_op2_ctrl >> idex_reg->alu_op2_ctrl_in;
         control->mem_do_write_ctrl >> idex_reg->mem_do_write_in;
+        control->mem_do_read_ctrl >> idex_reg->mem_do_read_in;
         control->alu_ctrl >> idex_reg->alu_ctrl_in;
         control->mem_ctrl >> idex_reg->mem_op_in;
         control->comp_ctrl >> idex_reg->br_op_in;
@@ -160,6 +162,8 @@ public:
 
         // -----------------------------------------------------------------------
         // EX/MEM
+        0 >> exmem_reg->clear;
+        1 >> exmem_reg->enable;
 
         // Data
         idex_reg->pc_out >> exmem_reg->pc_in;
@@ -173,6 +177,7 @@ public:
         idex_reg->reg_do_write_out >> exmem_reg->reg_do_write_in;
         idex_reg->mem_do_write_out >> exmem_reg->mem_do_write_in;
         idex_reg->mem_op_out >> exmem_reg->mem_op_in;
+        idex_reg->mem_do_read_out >> exmem_reg->mem_do_read_in;
 
         idex_reg->valid_out >> exmem_reg->valid_in;
 

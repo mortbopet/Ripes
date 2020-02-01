@@ -21,10 +21,12 @@ public:
     RV5S_IDEX(std::string name, SimComponent* parent) : IDEX(name, parent) {
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg1_idx, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(opcode, clear, enable);
     }
 
     REGISTERED_CLEN_INPUT(rd_reg1_idx, RV_REGS_BITS);
     REGISTERED_CLEN_INPUT(rd_reg2_idx, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(opcode, RVInstr::width());
 };
 
 }  // namespace core
