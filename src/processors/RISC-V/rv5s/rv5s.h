@@ -156,7 +156,7 @@ public:
         // -----------------------------------------------------------------------
         // ID/EX
         hzunit->hazardEnable >> idex_reg->enable;
-        controlflow_or->out >> idex_reg->clear;
+        efsc_or->out >> idex_reg->clear;
 
         // Data
         ifid_reg->pc4_out >> idex_reg->pc4_in;
@@ -345,8 +345,8 @@ public:
         default: case IF: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
         }
 
-        // Are we currently clearing the pipeline due to a syscall exit? if such, the first stage (IF) is never valid
-        if(stage == IF){
+        // Are we currently clearing the pipeline due to a syscall exit? if such, all stages before the EX stage are invalid
+        if(stage < EX){
             stageValid &= !ecallChecker->isSysCallExiting();
         }
 
@@ -369,7 +369,10 @@ public:
             m_syscallExitCycle = m_cycleCount;
         }
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
-        if (ecallChecker->isSysCallExiting() || fr.any()) {
+        if (ecallChecker->isSysCallExiting()) {
+            // Ecall is handled in the EX stage. Hence, only stages > EX should be cleared. All stages < EX are invalid.
+            m_fcntr.start(STAGECOUNT - ID);
+        } else if (fr.any()) {
             m_fcntr.start(STAGECOUNT);
         } else {
             m_fcntr.reset();
@@ -387,7 +390,9 @@ public:
         }
 
         RipesProcessor::clock();
-        m_fcntr++;
+        if (!hzunit->stallEcallHandling.uValue()) {
+            m_fcntr++;
+        }
     }
 
     void reverse() override {
@@ -402,8 +407,9 @@ public:
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
             m_instructionsRetired--;
         }
-
-        m_fcntr--;
+        if (!hzunit->stallEcallHandling.uValue()) {
+            m_fcntr--;
+        }
     }
 
     void reset() override {
@@ -418,8 +424,8 @@ private:
 
     /**
      * @brief m_syscallExitCycle
-     * The variable will contain the cycle of which an exit system call was executed. From this, we may determine when
-     * we roll back an exit system call during rewinding.
+     * The variable will contain the cycle of which an exit system call was executed. From this, we may determine
+     * when we roll back an exit system call during rewinding.
      */
     long long m_syscallExitCycle = -1;
 };
