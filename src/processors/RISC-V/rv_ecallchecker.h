@@ -27,6 +27,11 @@ public:
     }
 
     void setSysCallSignal(Gallant::Signal0<>* sig) { m_signal = sig; }
+
+    /**
+     * @brief setSysCallExiting
+     * @note: Must be called _before_ propagating/clocking the circuit, to reflect the change onto the output signal.
+     */
     void setSysCallExiting(bool state) { m_syscallExit = state; }
     bool isSysCallExiting() const { return m_syscallExit; }
 

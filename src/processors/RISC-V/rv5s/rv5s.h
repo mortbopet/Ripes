@@ -413,9 +413,9 @@ public:
     }
 
     void reset() override {
+        ecallChecker->setSysCallExiting(false);
         RipesProcessor::reset();
         m_fcntr.reset();
-        ecallChecker->setSysCallExiting(false);
         m_syscallExitCycle = -1;
     }
 
