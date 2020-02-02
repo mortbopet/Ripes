@@ -43,7 +43,7 @@ public:
         4 >> pc_4->op2;
         pc_src->out >> pc_reg->in;
         0 >> pc_reg->clear;
-        hzunit->hazardEnable >> pc_reg->enable;
+        hzunit->hazardFEEnable >> pc_reg->enable;
 
         // Note: pc_src works uses the PcSrc enum, but is selected by the boolean signal
         // from the controlflow OR gate. PcSrc enum values must adhere to the boolean
@@ -52,6 +52,9 @@ public:
 
         controlflow_or->out >> *efsc_or->in[0];
         ecallChecker->syscallExit >> *efsc_or->in[1];
+
+        efsc_or->out >> *efschz_or->in[0];
+        hzunit->hazardIDEXClear >> *efschz_or->in[1];
 
         // -----------------------------------------------------------------------
         // Instruction memory
@@ -149,14 +152,14 @@ public:
         pc_4->out >> ifid_reg->pc4_in;
         pc_reg->out >> ifid_reg->pc_in;
         instr_mem->data_out >> ifid_reg->instr_in;
-        hzunit->hazardEnable >> ifid_reg->enable;
+        hzunit->hazardFEEnable >> ifid_reg->enable;
         efsc_or->out >> ifid_reg->clear;
         1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
 
         // -----------------------------------------------------------------------
         // ID/EX
-        hzunit->hazardEnable >> idex_reg->enable;
-        efsc_or->out >> idex_reg->clear;
+        hzunit->hazardIDEXEnable >> idex_reg->enable;
+        efschz_or->out >> idex_reg->clear;
 
         // Data
         ifid_reg->pc4_out >> idex_reg->pc4_in;
@@ -187,7 +190,7 @@ public:
         // -----------------------------------------------------------------------
         // EX/MEM
         1 >> exmem_reg->enable;
-        hzunit->hazardClear >> exmem_reg->clear;
+        hzunit->hazardEXMEMClear >> exmem_reg->clear;
 
         // Data
         idex_reg->pc_out >> exmem_reg->pc_in;
@@ -234,14 +237,16 @@ public:
 
         // -----------------------------------------------------------------------
         // Hazard detection unit
-        idex_reg->rd_reg1_idx_out >> hzunit->id_reg1_idx;
-        idex_reg->rd_reg2_idx_out >> hzunit->id_reg2_idx;
+        decode->r1_reg_idx >> hzunit->id_reg1_idx;
+        decode->r2_reg_idx >> hzunit->id_reg2_idx;
 
-        exmem_reg->wr_reg_idx_out >> hzunit->mem_reg_wr_idx;
-        exmem_reg->mem_do_read_out >> hzunit->mem_do_read_en;
-        exmem_reg->reg_do_write_out >> hzunit->mem_reg_do_write;
+        idex_reg->mem_do_read_out >> hzunit->ex_do_mem_read_en;
+        idex_reg->wr_reg_idx_out >> hzunit->ex_reg_wr_idx;
 
-        memwb_reg->reg_do_write_out >> hzunit->wb_reg_do_write;
+        exmem_reg->reg_do_write_out >> hzunit->mem_do_reg_write;
+
+        memwb_reg->reg_do_write_out >> hzunit->wb_do_reg_write;
+
         idex_reg->opcode_out >> hzunit->opcode;
     }
 
@@ -286,6 +291,8 @@ public:
     SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
     // True if controlflow action or performing syscall finishing
     SUBCOMPONENT(efsc_or, TYPE(Or<1, 2>));
+    // True if above or stalling due to load-use hazard
+    SUBCOMPONENT(efschz_or, TYPE(Or<1, 2>));
 
     // Address spaces
     ADDRESSSPACE(m_memory);
