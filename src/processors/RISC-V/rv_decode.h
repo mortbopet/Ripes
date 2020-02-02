@@ -134,7 +134,6 @@ public:
             }
 
             // Fallthrough - unknown instruction.
-            std::cout << ("Instruction decode: unknown instruction") << std::endl;
             return RVInstr::NOP;
         };
 
