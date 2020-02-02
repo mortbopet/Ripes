@@ -292,8 +292,8 @@ public:
         default: case IF: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
         }
 
-        // Are we currently clearing the pipeline due to a syscall exit? if such, the first stage (IF) is never valid
-        if(stage == IF){
+        // Are we currently clearing the pipeline due to a syscall exit? if such, all stages before the EX stage are invalid
+        if(stage < EX){
             stageValid &= !ecallChecker->isSysCallExiting();
         }
 
@@ -316,14 +316,18 @@ public:
             m_syscallExitCycle = m_cycleCount;
         }
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
-        if (ecallChecker->isSysCallExiting() || fr.any()) {
-            m_fcntr.start(STAGECOUNT);
-        } else {
-            m_fcntr.reset();
-        }
     }
-    bool finished() const override { return m_fcntr.finished; }
 
+    bool finished() const override {
+        // The processor is finished when there are no more valid instructions in the pipeline
+        bool allStagesInvalid = true;
+        for (int stage = IF; stage < STAGECOUNT; stage++) {
+            allStagesInvalid &= !stageInfo(stage).pc_valid;
+            if (!allStagesInvalid)
+                break;
+        }
+        return allStagesInvalid;
+    }
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
     void clock() override {
@@ -334,7 +338,6 @@ public:
         }
 
         RipesProcessor::clock();
-        m_fcntr++;
     }
 
     void reverse() override {
@@ -343,26 +346,20 @@ public:
             // terminate
             ecallChecker->setSysCallExiting(false);
             m_syscallExitCycle = -1;
-            finalize(FinalizeReason());
         }
         RipesProcessor::reverse();
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
             m_instructionsRetired--;
         }
-
-        m_fcntr--;
     }
 
     void reset() override {
         RipesProcessor::reset();
-        m_fcntr.reset();
         ecallChecker->setSysCallExiting(false);
         m_syscallExitCycle = -1;
     }
 
 private:
-    FinishingCounter m_fcntr;
-
     /**
      * @brief m_syscallExitCycle
      * The variable will contain the cycle of which an exit system call was executed. From this, we may determine when

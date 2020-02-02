@@ -376,16 +376,18 @@ public:
             m_syscallExitCycle = m_cycleCount;
         }
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
-        if (ecallChecker->isSysCallExiting()) {
-            // Ecall is handled in the EX stage. Hence, only stages > EX should be cleared. All stages < EX are invalid.
-            m_fcntr.start(STAGECOUNT - ID);
-        } else if (fr.any()) {
-            m_fcntr.start(STAGECOUNT);
-        } else {
-            m_fcntr.reset();
-        }
     }
-    bool finished() const override { return m_fcntr.finished; }
+
+    bool finished() const override {
+        // The processor is finished when there are no more valid instructions in the pipeline
+        bool allStagesInvalid = true;
+        for (int stage = IF; stage < STAGECOUNT; stage++) {
+            allStagesInvalid &= !stageInfo(stage).pc_valid;
+            if (!allStagesInvalid)
+                break;
+        }
+        return allStagesInvalid;
+    }
 
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
@@ -397,38 +399,28 @@ public:
         }
 
         RipesProcessor::clock();
-        if (!hzunit->stallEcallHandling.uValue()) {
-            m_fcntr++;
-        }
     }
 
     void reverse() override {
         if (m_syscallExitCycle != -1 && (m_cycleCount - 1) == m_syscallExitCycle) {
-            // We are about to undo an exit syscall instruction. In this case, the syscall exiting sequence should be
-            // terminate
+            // We are about to undo an exit syscall instruction. In this case, the syscall exiting sequence should
+            // be terminate
             ecallChecker->setSysCallExiting(false);
             m_syscallExitCycle = -1;
-            finalize(FinalizeReason());
         }
         RipesProcessor::reverse();
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
             m_instructionsRetired--;
-        }
-        if (!hzunit->stallEcallHandling.uValue()) {
-            m_fcntr--;
         }
     }
 
     void reset() override {
         ecallChecker->setSysCallExiting(false);
         RipesProcessor::reset();
-        m_fcntr.reset();
         m_syscallExitCycle = -1;
     }
 
 private:
-    FinishingCounter m_fcntr;
-
     /**
      * @brief m_syscallExitCycle
      * The variable will contain the cycle of which an exit system call was executed. From this, we may determine
