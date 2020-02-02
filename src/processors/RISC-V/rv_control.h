@@ -212,7 +212,7 @@ public:
 
         mem_do_read_ctrl << [=] {
             switch(opcode.uValue()) {
-                case RVInstr::LB: case RVInstr::LH: case RVInstr::LW:
+                case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
                     return 1;
                 default: return 0;
             }
