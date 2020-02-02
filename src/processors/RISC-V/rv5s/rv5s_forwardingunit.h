@@ -17,7 +17,9 @@ public:
     ForwardingUnit(std::string name, SimComponent* parent) : Component(name, parent) {
         alu_reg1_forwarding_ctrl << [=] {
             const auto idx = id_reg1_idx.uValue();
-            if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
+            if (idx == 0) {
+                return ForwardingSrc::IdStage;
+            } else if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
                 return ForwardingSrc::MemStage;
             } else if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
                 return ForwardingSrc::WbStage;
@@ -28,7 +30,9 @@ public:
 
         alu_reg2_forwarding_ctrl << [=] {
             const auto idx = id_reg2_idx.uValue();
-            if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
+            if (idx == 0) {
+                return ForwardingSrc::IdStage;
+            } else if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
                 return ForwardingSrc::MemStage;
             } else if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
                 return ForwardingSrc::WbStage;
