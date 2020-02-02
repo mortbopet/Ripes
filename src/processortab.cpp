@@ -60,8 +60,6 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     m_ui->viewSplitter->setStretchFactor(0, 1);
     m_ui->viewSplitter->setStretchFactor(1, 0);
 
-    m_ui->consolesTab->removeTab(1);
-
     // Initially, no file is loaded, disable toolbuttons
     enableSimulatorControls();
 }
@@ -162,9 +160,19 @@ void ProcessorTab::setupSimulatorActions() {
 }
 
 void ProcessorTab::updateStatistics() {
-    m_ui->cycleCount->setText(QString::number(ProcessorHandler::get()->getProcessor()->getCycleCount()));
-    m_ui->instructionsRetired->setText(
-        QString::number(ProcessorHandler::get()->getProcessor()->getInstructionsRetired()));
+    const auto cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const auto instrsRetired = ProcessorHandler::get()->getProcessor()->getInstructionsRetired();
+    m_ui->cycleCount->setText(QString::number(cycles));
+    m_ui->instructionsRetired->setText(QString::number(instrsRetired));
+    QString cpiText, ipcText;
+    if (cycles != 0 && instrsRetired != 0) {
+        const double cpi = static_cast<double>(cycles) / static_cast<double>(instrsRetired);
+        const double ipc = 1 / cpi;
+        cpiText = QString::number(cpi, 'g', 3);
+        ipcText = QString::number(ipc, 'g', 3);
+    }
+    m_ui->cpi->setText(cpiText);
+    m_ui->ipc->setText(ipcText);
 }
 
 void ProcessorTab::pause() {
