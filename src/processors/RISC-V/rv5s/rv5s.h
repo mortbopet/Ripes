@@ -192,7 +192,7 @@ public:
         // Data
         idex_reg->pc_out >> exmem_reg->pc_in;
         idex_reg->pc4_out >> exmem_reg->pc4_in;
-        idex_reg->r2_out >> exmem_reg->r2_in;
+        reg2_fw_src->out >> exmem_reg->r2_in;
         alu->res >> exmem_reg->alures_in;
 
         // Control
