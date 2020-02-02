@@ -470,7 +470,7 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         m_instructionsMap[pos] = QStringList() << "sltiu" << fields[1] << fields[2] << "1";
         pos++;
     } else if (fields.first() == "snez") {
-        m_instructionsMap[pos] = QStringList() << "sltu" << fields[1] << fields[2] << "1";
+        m_instructionsMap[pos] = QStringList() << "sltu" << fields[1] << "x0" << fields[2];
         pos++;
     } else if (fields.first() == "sltz") {
         m_instructionsMap[pos] = QStringList() << "slt" << fields[1] << fields[2] << "x0";
