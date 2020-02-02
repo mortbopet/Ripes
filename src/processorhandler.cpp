@@ -11,7 +11,7 @@ namespace Ripes {
 
 ProcessorHandler::ProcessorHandler() {
     // Contruct the default processor
-    selectProcessor(m_currentID);
+    selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 }
 
 void ProcessorHandler::loadProgram(const Program* p) {
