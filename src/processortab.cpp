@@ -198,6 +198,7 @@ void ProcessorTab::processorSelection() {
         m_vsrtlWidget->clearDesign();
         ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
         loadProcessorToWidget(diag.getSelectedLayout());
+        m_vsrtlWidget->reset();
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
         update();
