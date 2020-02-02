@@ -134,8 +134,8 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
 int ProcessorHandler::getCurrentProgramSize() const {
     if (m_program) {
         const auto* textSection = m_program->getSection(TEXT_SECTION_NAME);
-        assert(textSection);
-        return textSection->data.length();
+        if (textSection)
+            return textSection->data.length();
     }
 
     return 0;
