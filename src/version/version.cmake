@@ -1,6 +1,3 @@
-# Modified version of:
-# https://www.mattkeeter.com/blog/2018-01-06-versioning/
-
 set(ENV{GIT_DIR} ${RIPES_SRC_DIR}/.git)
 execute_process(COMMAND git describe --tags
                 OUTPUT_VARIABLE GIT_REV
@@ -15,14 +12,18 @@ else()
     string(STRIP "${GIT_REV}" RIPES_GIT_VERSION)
 endif()
 
-set(VERSION "const char* RIPES_GIT_VERSION=\"${RIPES_GIT_VERSION}\";")
+set(VERSION_FILE ${RIPES_SRC_DIR}/src/version/gen_versionnumber.h)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp)
-    file(READ ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp VERSION_)
+# New version file content
+set(VERSION "#define RIPES_GIT_VERSION \"${RIPES_GIT_VERSION}\"")
+
+# Only rewrite the version file if a change is seen
+if(EXISTS ${VERSION_FILE})
+    file(READ ${VERSION_FILE} OLD_VERSION)
 else()
-    set(VERSION_ "")
+    set(OLD_VERSION "")
 endif()
 
-if (NOT "${VERSION}" STREQUAL "${VERSION_}")
-    file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/version/version.cpp "${VERSION}")
+if (NOT "${VERSION}" STREQUAL "${OLD_VERSION}")
+    file(WRITE ${VERSION_FILE} "${VERSION}")
 endif()
