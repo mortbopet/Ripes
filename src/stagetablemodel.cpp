@@ -47,9 +47,8 @@ void StageTableModel::reset() {
 }
 
 void StageTableModel::gatherStageInfo() {
-    for (int i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
-        const auto& stageName = ProcessorHandler::get()->getProcessor()->stageName(i);
-        m_cycleStageInfos[ProcessorHandler::get()->getProcessor()->getCycleCount()][stageName] =
+    for (unsigned i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
+        m_cycleStageInfos[ProcessorHandler::get()->getProcessor()->getCycleCount()][i] =
             ProcessorHandler::get()->getProcessor()->stageInfo(i);
     }
 }
@@ -70,10 +69,18 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
 
     const uint32_t addr = indexToAddress(index.row());
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
+
     QStringList stagesForAddr;
     for (const auto& si : stageInfo) {
         if (si.second.pc == addr && si.second.stage_valid) {
-            stagesForAddr << si.first;
+            if (m_cycleStageInfos.count(index.column() - 1)) {
+                const auto& prevCycleStageInfo = m_cycleStageInfos.at(index.column() - 1);
+                if (prevCycleStageInfo.at(si.first).stage_valid && prevCycleStageInfo.at(si.first).pc == si.second.pc) {
+                    stagesForAddr << "-";
+                    continue;
+                }
+            }
+            stagesForAddr << ProcessorHandler::get()->getProcessor()->stageName(si.first);
         }
     }
 

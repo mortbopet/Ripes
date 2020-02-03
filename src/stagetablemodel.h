@@ -25,6 +25,10 @@ public slots:
 private:
     void gatherStageInfo();
 
-    std::map<unsigned, std::map<QString, StageInfo>> m_cycleStageInfos;
+    /**
+     * @brief m_cycleStageInfos
+     * map<cycle, map<stageId, stageInfo>>
+     */
+    std::map<long long, std::map<unsigned, StageInfo>> m_cycleStageInfos;
 };
 }  // namespace Ripes

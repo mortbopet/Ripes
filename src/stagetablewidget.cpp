@@ -15,7 +15,6 @@ StageTableWidget::StageTableWidget(StageTableModel* model, QWidget* parent)
     m_stageModel = model;
     m_ui->stageTableView->setModel(m_stageModel);
 
-    m_ui->stageTableView->horizontalHeader()->setMinimumSectionSize(0);
     m_ui->stageTableView->resizeColumnsToContents();
     m_ui->copy->setIcon(QIcon(":/icons/documents.svg"));
 }
