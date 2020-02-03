@@ -72,6 +72,11 @@ void ProcessorTab::printToLog(const QString& text) {
 void ProcessorTab::loadLayout(const Layout& layout) {
     if (layout.name.isEmpty() || layout.file.isEmpty())
         return;  // Not a valid layout
+
+    if (layout.stageLabelPositions.size() != ProcessorHandler::get()->getProcessor()->stageCount()) {
+        Q_ASSERT(false && "A stage label position must be specified for each stage");
+    }
+
     // cereal expects the archive file to be present standalone on disk, and available through an ifstream. Copy the
     // resource layout file temporarily, while loading the layout.
     const auto& layoutResourceFilename = layout.file;
@@ -81,6 +86,14 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFilename);
     QFile::remove(tmpLayoutFilename);
     m_vsrtlWidget->setShowPortWidth(layout.showPortWidth);
+
+    // Adjust stage label positions
+    const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
+    for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
+        auto& label = m_stageInstructionLabels.at(i);
+        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i),
+                      label->boundingRect().height());
+    }
 }
 
 void ProcessorTab::setupSimulatorActions() {
@@ -183,19 +196,17 @@ void ProcessorTab::pause() {
 
 void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
     ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
-    loadLayout(layout);
 
     // Construct stage instruction labels
     auto* topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
 
     m_stageInstructionLabels.clear();
     const auto& proc = ProcessorHandler::get()->getProcessor();
-    for (int i = 0; i < proc->stageCount(); i++) {
+    for (unsigned i = 0; i < proc->stageCount(); i++) {
         auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
-        stagelabel->setPos((i + 1) * (topLevelComponent->boundingRect().width() / (proc->stageCount() + 1)),
-                           stagelabel->boundingRect().height());
         m_stageInstructionLabels[i] = stagelabel;
     }
+    loadLayout(layout);
     updateInstructionLabels();
 }
 

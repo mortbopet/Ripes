@@ -22,6 +22,14 @@ struct Layout {
     QString name;
     QString file;
     bool showPortWidth;
+    /**
+     * @brief stageLabelPositions
+     * Stage labels are not a part of the VSRTL processor model, and as such are not serialized within the models
+     * layout. stageLabelPositions determines the position of stage labels as a relative distance based on the processor
+     * models' width in the VSRTL view. Should be in the range [0;1].
+     * Must contain an entry for each stage in the processor model.
+     */
+    std::vector<double> stageLabelPositions;
 };
 
 struct ProcessorDescription {
@@ -60,8 +68,8 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle Processor";
         desc.description = "A single cycle RISC-V processor";
-        desc.layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", false},
-                        {"Extended", ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json", true}};
+        desc.layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", false, {0.5}},
+                        {"Extended", ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json", true, {0.5}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
