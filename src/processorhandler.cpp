@@ -15,6 +15,9 @@ ProcessorHandler::ProcessorHandler() {
 }
 
 void ProcessorHandler::loadProgram(const Program* p) {
+    // Stop any currently executing simulation
+    stop();
+
     auto* textSection = p->getSection(TEXT_SECTION_NAME);
     if (!textSection)
         return;
