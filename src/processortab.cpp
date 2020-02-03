@@ -212,6 +212,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
 }
 
 void ProcessorTab::processorSelection() {
+    m_autoClockAction->setChecked(false);
     ProcessorSelectionDialog diag;
     if (diag.exec()) {
         // New processor model was selected
