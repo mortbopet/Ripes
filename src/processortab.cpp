@@ -65,6 +65,7 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
 }
 
 void ProcessorTab::printToLog(const QString& text) {
+    m_ui->console->moveCursor(QTextCursor::End);
     m_ui->console->insertPlainText(text);
     m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
 }
