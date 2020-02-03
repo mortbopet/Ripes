@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VSRTL/core/vsrtl_component.h"
+#include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_register.h"
 
 #include "../riscv.h"
@@ -22,11 +23,17 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg1_idx, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(opcode, clear, enable);
+
+        // We want stalling info to persist through clearing of the register, so stalled register is always enabled and
+        // never cleared.
+        CONNECT_REGISTERED_CLEN_INPUT(stalled, 0, 1);
     }
 
     REGISTERED_CLEN_INPUT(rd_reg1_idx, RV_REGS_BITS);
     REGISTERED_CLEN_INPUT(rd_reg2_idx, RV_REGS_BITS);
     REGISTERED_CLEN_INPUT(opcode, RVInstr::width());
+
+    REGISTERED_CLEN_INPUT(stalled, 1);
 };
 
 }  // namespace core

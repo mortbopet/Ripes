@@ -28,8 +28,10 @@ enum SysCall {
  * additional information which the processor may communicate to the GUI regarding the given stage.
  */
 struct StageInfo {
+    enum class State { None, Stalled, Flushed };
     unsigned int pc = 0;
-    bool pc_valid = false;
+    bool stage_valid = false;
+    State state;
 };
 
 /**

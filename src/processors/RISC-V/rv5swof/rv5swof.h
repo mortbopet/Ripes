@@ -296,9 +296,39 @@ public:
         if(stage < EX){
             stageValid &= !ecallChecker->isSysCallExiting();
         }
-
         // clang-format on
-        return StageInfo({getPcForStage(stage), stageValid});
+
+        // Gather stage state info
+        StageInfo::State state = StageInfo ::State::None;
+        switch (stage) {
+            case IF:
+                break;
+            case ID:
+                if (m_cycleCount > ID && ifid_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            case EX: {
+                if (m_cycleCount > EX && idex_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            }
+            case MEM: {
+                if (m_cycleCount > MEM && exmem_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            }
+            case WB: {
+                if (m_cycleCount > WB && memwb_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            }
+        }
+
+        return StageInfo({getPcForStage(stage), stageValid, state});
     }
 
     void setProgramCounter(uint32_t address) override {
@@ -322,7 +352,7 @@ public:
         // The processor is finished when there are no more valid instructions in the pipeline
         bool allStagesInvalid = true;
         for (int stage = IF; stage < STAGECOUNT; stage++) {
-            allStagesInvalid &= !stageInfo(stage).pc_valid;
+            allStagesInvalid &= !stageInfo(stage).stage_valid;
             if (!allStagesInvalid)
                 break;
         }

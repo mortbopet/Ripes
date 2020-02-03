@@ -72,7 +72,7 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
     QStringList stagesForAddr;
     for (const auto& si : stageInfo) {
-        if (si.second.pc == addr && si.second.pc_valid) {
+        if (si.second.pc == addr && si.second.stage_valid) {
             stagesForAddr << si.first;
         }
     }

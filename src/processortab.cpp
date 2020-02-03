@@ -276,11 +276,16 @@ void ProcessorTab::updateInstructionLabels() {
         if (!m_stageInstructionLabels.count(i))
             continue;
         const auto stageInfo = proc->stageInfo(i);
+        auto* instrLabel = m_stageInstructionLabels.at(i);
         QString instrString;
-        if (stageInfo.pc_valid) {
+        if (stageInfo.state != StageInfo::State::None) {
+            instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
+            instrLabel->setColor(Qt::red);
+        } else if (stageInfo.stage_valid) {
             instrString = ProcessorHandler::get()->parseInstrAt(stageInfo.pc);
+            instrLabel->setColor(QColor());
         }
-        m_stageInstructionLabels.at(i)->setText(instrString);
+        instrLabel->setText(instrString);
     }
 }
 

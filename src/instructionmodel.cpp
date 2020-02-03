@@ -81,7 +81,7 @@ QVariant InstructionModel::PCData(uint32_t addr) const {
 QVariant InstructionModel::stageData(uint32_t addr) const {
     QStringList stagesForAddr;
     for (const auto& si : m_stageInfos) {
-        if ((si.second.pc == addr) && si.second.pc_valid) {
+        if ((si.second.pc == addr) && si.second.stage_valid) {
             stagesForAddr << si.first;
         }
     }

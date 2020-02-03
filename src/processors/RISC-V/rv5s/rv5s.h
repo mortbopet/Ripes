@@ -20,10 +20,10 @@
 #include "../rv_registerfile.h"
 
 // Stage separating registers
-#include "../rv5swof/rv5swof_exmem.h"
 #include "../rv5swof/rv5swof_ifid.h"
-#include "../rv5swof/rv5swof_memwb.h"
+#include "rv5s_exmem.h"
 #include "rv5s_idex.h"
+#include "rv5s_memwb.h"
 
 // Forwarding & Hazard detection unit
 #include "rv5s_forwardingunit.h"
@@ -159,6 +159,7 @@ public:
         // -----------------------------------------------------------------------
         // ID/EX
         hzunit->hazardIDEXEnable >> idex_reg->enable;
+        hzunit->hazardIDEXClear >> idex_reg->stalled_in;
         efschz_or->out >> idex_reg->clear;
 
         // Data
@@ -191,6 +192,9 @@ public:
         // EX/MEM
         1 >> exmem_reg->enable;
         hzunit->hazardEXMEMClear >> exmem_reg->clear;
+        hzunit->hazardEXMEMClear >> *mem_stalled_or->in[0];
+        idex_reg->stalled_out >> *mem_stalled_or->in[1];
+        mem_stalled_or->out >> exmem_reg->stalled_in;
 
         // Data
         idex_reg->pc_out >> exmem_reg->pc_in;
@@ -210,6 +214,8 @@ public:
 
         // -----------------------------------------------------------------------
         // MEM/WB
+
+        exmem_reg->stalled_out >> memwb_reg->stalled_in;
 
         // Data
         exmem_reg->pc_out >> memwb_reg->pc_in;
@@ -265,8 +271,8 @@ public:
     // Stage seperating registers
     SUBCOMPONENT(ifid_reg, IFID);
     SUBCOMPONENT(idex_reg, RV5S_IDEX);
-    SUBCOMPONENT(exmem_reg, EXMEM);
-    SUBCOMPONENT(memwb_reg, MEMWB);
+    SUBCOMPONENT(exmem_reg, RV5S_EXMEM);
+    SUBCOMPONENT(memwb_reg, RV5S_MEMWB);
 
     // Multiplexers
     SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, RV_REG_WIDTH>));
@@ -293,6 +299,8 @@ public:
     SUBCOMPONENT(efsc_or, TYPE(Or<1, 2>));
     // True if above or stalling due to load-use hazard
     SUBCOMPONENT(efschz_or, TYPE(Or<1, 2>));
+
+    SUBCOMPONENT(mem_stalled_or, TYPE(Or<1, 2>));
 
     // Address spaces
     ADDRESSSPACE(m_memory);
@@ -356,9 +364,45 @@ public:
         if(stage < EX){
             stageValid &= !ecallChecker->isSysCallExiting();
         }
-
         // clang-format on
-        return StageInfo({getPcForStage(stage), stageValid});
+
+        // Gather stage state info
+        StageInfo::State state = StageInfo ::State::None;
+        switch (stage) {
+            case IF:
+                break;
+            case ID:
+                if (m_cycleCount > ID && ifid_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            case EX: {
+                if (idex_reg->stalled_out.uValue() == 1) {
+                    state = StageInfo::State::Stalled;
+                } else if (m_cycleCount > EX && idex_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            }
+            case MEM: {
+                if (exmem_reg->stalled_out.uValue() == 1) {
+                    state = StageInfo::State::Stalled;
+                } else if (m_cycleCount > MEM && exmem_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            }
+            case WB: {
+                if (memwb_reg->stalled_out.uValue() == 1) {
+                    state = StageInfo::State::Stalled;
+                } else if (m_cycleCount > WB && memwb_reg->valid_out.uValue() == 0) {
+                    state = StageInfo::State::Flushed;
+                }
+                break;
+            }
+        }
+
+        return StageInfo({getPcForStage(stage), stageValid, state});
     }
 
     void setProgramCounter(uint32_t address) override {
@@ -382,7 +426,7 @@ public:
         // The processor is finished when there are no more valid instructions in the pipeline
         bool allStagesInvalid = true;
         for (int stage = IF; stage < STAGECOUNT; stage++) {
-            allStagesInvalid &= !stageInfo(stage).pc_valid;
+            allStagesInvalid &= !stageInfo(stage).stage_valid;
             if (!allStagesInvalid)
                 break;
         }
