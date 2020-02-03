@@ -27,8 +27,9 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
+    void closeEvent(QCloseEvent* event) override;
+
 private slots:
-    void exit();
     void wiki();
     void version();
 

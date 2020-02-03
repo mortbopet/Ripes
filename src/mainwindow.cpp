@@ -145,8 +145,13 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     }
 }
 
-void MainWindow::exit() {
-    close();
+void MainWindow::closeEvent(QCloseEvent* event) {
+    if (m_editTab->isEditorEnabled() && !m_editTab->getAssemblyText().isEmpty()) {
+        if (QMessageBox::question(this, "Ripes", "Save current program before exiting?") == QMessageBox::Yes) {
+            saveFilesTriggered();
+        }
+    }
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::loadFileTriggered() {
@@ -193,8 +198,9 @@ void writeBinaryFile(QFile& file, const QByteArray& data) {
 void MainWindow::saveFilesTriggered() {
     SaveDialog diag;
     if (!m_hasSavedFile) {
-        diag.exec();
-        m_hasSavedFile = true;
+        if (diag.exec()) {
+            m_hasSavedFile = true;
+        }
     }
 
     if (!diag.assemblyPath().isEmpty()) {

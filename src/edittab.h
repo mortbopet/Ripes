@@ -31,6 +31,8 @@ public:
     void newProgram();
     void clearAssemblyEditor();
 
+    bool isEditorEnabled() const { return m_editorEnabled; }
+
     const QByteArray& getBinaryData();
 
     void loadFile(const LoadFileParams&);
@@ -66,5 +68,7 @@ private:
 
     LoadFileParams m_loadedFile;
     Program m_activeProgram;
+
+    bool m_editorEnabled = true;
 };
 }  // namespace Ripes

@@ -32,6 +32,8 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_assembler = new Assembler();
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+
+    enableEditor();
 }
 
 void EditTab::loadFile(const LoadFileParams& fileParams) {
@@ -116,7 +118,8 @@ void EditTab::enableAssemblyInput() {
     m_activeProgram = Program();
     m_ui->binaryedit->clear();
     enableEditor();
-    emit editorStateChanged(true);
+    m_editorEnabled = true;
+    emit editorStateChanged(m_editorEnabled);
 }
 
 void EditTab::setDisassemblerText() {
@@ -139,7 +142,8 @@ void EditTab::disableEditor() {
     disconnect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
-    emit editorStateChanged(false);
+    m_editorEnabled = false;
+    emit editorStateChanged(m_editorEnabled);
 }
 
 void EditTab::on_disassembledViewButton_toggled() {
