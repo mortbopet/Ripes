@@ -10,6 +10,7 @@
 #include "processortab.h"
 #include "registerwidget.h"
 #include "savedialog.h"
+#include "version/version.h"
 
 #include "fancytabbar/fancytabbar.h"
 
@@ -76,6 +77,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
 
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
+    connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
 }
 
 void MainWindow::setupMenus() {
@@ -158,6 +160,12 @@ void MainWindow::loadFileTriggered() {
 
 void MainWindow::wiki() {
     QDesktopServices::openUrl(QUrl(QString("https://github.com/mortbopet/Ripes/wiki")));
+}
+
+void MainWindow::version() {
+    QMessageBox aboutDialog(this);
+    aboutDialog.setText("Ripes version: " + getRipesVersion());
+    aboutDialog.exec();
 }
 
 namespace {

@@ -30,6 +30,7 @@ public:
 private slots:
     void exit();
     void wiki();
+    void version();
 
     void loadFileTriggered();
 

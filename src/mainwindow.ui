@@ -61,6 +61,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionOpen_wiki"/>
+    <addaction name="actionVersion"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -68,6 +69,11 @@
   <action name="actionOpen_wiki">
    <property name="text">
     <string>Wiki</string>
+   </property>
+  </action>
+  <action name="actionVersion">
+   <property name="text">
+    <string>Version</string>
    </property>
   </action>
  </widget>
