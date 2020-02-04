@@ -4,5 +4,6 @@
         <file>RISC-V/rvss/rv_ss_standard_layout.json</file>
         <file>RISC-V/rv5s/rv5s_standard_layout.json</file>
         <file>RISC-V/rv5swof/rv5swof_standard_layout.json</file>
+        <file>RISC-V/rv5s/rv5s_extended_layout.json</file>
     </qresource>
 </RCC>
