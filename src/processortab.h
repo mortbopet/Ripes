@@ -49,6 +49,7 @@ public slots:
     void runFinished();
     void updateStatistics();
     void updateInstructionLabels();
+    void fitToView();
 
     void processorSelection();
 

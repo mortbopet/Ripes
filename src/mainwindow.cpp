@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
-    m_ui->tabbar->setActiveIndex(0);
+    m_ui->tabbar->setActiveIndex(1);
 
     setupMenus();
 
@@ -78,6 +78,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
+
+    // fitToView performs unexpectetly if the eventloop has not been processed (presumably this has something to do with
+    // the visibility state of the VSRTLView within the VSRTL widget. Whilst not pretty, it has been found that updating
+    // the entire Ripes widget and processing all events will result in correct fitting.
+    update();
+    QCoreApplication::processEvents();
+    m_processorTab->fitToView();
 }
 
 void MainWindow::setupMenus() {

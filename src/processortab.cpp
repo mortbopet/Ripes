@@ -195,6 +195,10 @@ void ProcessorTab::pause() {
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
+void ProcessorTab::fitToView() {
+    m_vsrtlWidget->zoomToFit();
+}
+
 void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
     ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
 
@@ -209,6 +213,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
     }
     loadLayout(layout);
     updateInstructionLabels();
+    fitToView();
 }
 
 void ProcessorTab::processorSelection() {
@@ -217,6 +222,7 @@ void ProcessorTab::processorSelection() {
     if (diag.exec()) {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
+        m_stageInstructionLabels.clear();
         ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
         loadProcessorToWidget(diag.getSelectedLayout());
         m_vsrtlWidget->reset();
