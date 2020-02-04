@@ -79,7 +79,8 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage Processor";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
-        desc.layouts.push_back({});
+        desc.layouts.push_back(
+            {"Standard", ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json", false, {0.11, 0.31, 0.55, 0.77, 0.92}});
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -91,7 +92,10 @@ private:
         desc.description =
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
-        desc.layouts.push_back({});  //"Extended", ":/layouts/5s/rv_5s_wof_extended_layout.json", true});
+        desc.layouts.push_back({"Standard",
+                                ":/layouts/RISC-V/rv5swof/rv5swof_standard_layout.json",
+                                false,
+                                {0.12, 0.35, 0.58, 0.75, 0.92}});
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }
