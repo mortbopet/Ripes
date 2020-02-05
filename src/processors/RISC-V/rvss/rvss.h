@@ -150,7 +150,9 @@ public:
     unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int) const override { return "•"; }
-    StageInfo stageInfo(unsigned int) const override { return StageInfo({pc_reg->out.uValue(), true}); }
+    StageInfo stageInfo(unsigned int) const override {
+        return StageInfo({pc_reg->out.uValue(), true, StageInfo::State::None});
+    }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
@@ -158,7 +160,7 @@ public:
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
-    SparseArray& getRegisters() override { return *m_regMem; }
+    SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.any()) {
             // Allow one additional clock cycle to clear the current instruction

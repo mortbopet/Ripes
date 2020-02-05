@@ -39,7 +39,7 @@ void ProcessorHandler::loadProgram(const Program* p) {
     // Update breakpoints to stay within the loaded program range
     std::vector<uint32_t> bpsToRemove;
     for (const auto& bp : m_breakpoints) {
-        if (bp < m_validExecutionRange.first | bp >= m_validExecutionRange.second) {
+        if ((bp < m_validExecutionRange.first) || (bp >= m_validExecutionRange.second)) {
             bpsToRemove.push_back(bp);
         }
     }
@@ -55,7 +55,7 @@ const vsrtl::core::SparseArray& ProcessorHandler::getMemory() const {
 }
 
 const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
-    return m_currentProcessor->getRegisters();
+    return m_currentProcessor->getArchRegisters();
 }
 
 void ProcessorHandler::run() {
@@ -113,14 +113,14 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
     m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return isExecutableAddress(address); };
 
     // Register initializations
-    auto& regs = m_currentProcessor->getRegisters();
+    auto& regs = m_currentProcessor->getArchRegisters();
     regs.clearInitializationMemories();
     for (const auto& kv : setup) {
         // Memories are initialized through pointers to byte arrays, so we have to transform the intitial pointer
         // address to the compatible format.
         QByteArray ptrValueBytes;
         auto ptrValue = kv.second;
-        for (int i = 0; i < m_currentProcessor->implementsISA()->bytes(); i++) {
+        for (unsigned i = 0; i < m_currentProcessor->implementsISA()->bytes(); i++) {
             ptrValueBytes.push_back(static_cast<char>(ptrValue & 0xFF));
             ptrValue >>= CHAR_BIT;
         }
@@ -159,8 +159,8 @@ void ProcessorHandler::handleSysCall() {
             return;
         }
         case SysCall::PrintFloat: {
-            auto v_f = reinterpret_cast<const float*>(&val);
-            emit print(QString::number(*v_f));
+            auto* v_f = reinterpret_cast<const float*>(&val);
+            emit print(QString::number(static_cast<double>(*v_f)));
             return;
         }
         case SysCall::PrintStr: {

@@ -46,7 +46,7 @@ private:
     int getNonInitializedRegIdx();
     void removeRegInitWidget(RegInitWidgets* w);
 
-    Ui::RegisterInitializationWidget* m_ui;
+    Ui::RegisterInitializationWidget* m_ui = nullptr;
 
     static std::map<ProcessorID, RegisterInitialization> m_initializations;
     ProcessorID m_currentID;

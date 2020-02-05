@@ -67,7 +67,7 @@ private:
     void loadLayout(const Layout&);
     void loadProcessorToWidget(const Layout&);
 
-    Ui::ProcessorTab* m_ui;
+    Ui::ProcessorTab* m_ui = nullptr;
     InstructionModel* m_instrModel = nullptr;
     StageTableModel* m_stageModel = nullptr;
 
@@ -93,6 +93,6 @@ private:
      * @brief m_hasRun
      * True whenever the processor has been executed through the "Run" action.
      */
-    bool m_hasRun;
+    bool m_hasRun = false;
 };
 }  // namespace Ripes

@@ -41,7 +41,7 @@ public:
                 if (rd_idx == 0)
                     return static_cast<unsigned>(0);
 
-                const int wr_idx = wr_addr.uValue();
+                const unsigned wr_idx = wr_addr.uValue();
                 if (wr_en.uValue() && wr_idx == r1_addr.uValue()) {
                     return data_in.uValue();
                 } else {
@@ -50,11 +50,11 @@ public:
             };
 
             r2_out << [=] {
-                const int rd_idx = r2_addr.uValue();
+                const unsigned rd_idx = r2_addr.uValue();
                 if (rd_idx == 0)
                     return static_cast<unsigned>(0);
 
-                const int wr_idx = wr_addr.uValue();
+                const unsigned wr_idx = wr_addr.uValue();
                 if (wr_en.uValue() && wr_idx == r2_addr.uValue()) {
                     return data_in.uValue();
                 } else {

@@ -27,6 +27,6 @@ public slots:
     void update();
 
 private:
-    Ui::MemoryTab* m_ui;
+    Ui::MemoryTab* m_ui = nullptr;
 };
 }  // namespace Ripes

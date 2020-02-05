@@ -59,7 +59,7 @@ private:
     FileType m_fileType;
     LoadFileParams m_params;
 
-    Ui::LoadDialog* m_ui;
+    Ui::LoadDialog* m_ui = nullptr;
     QButtonGroup* m_fileTypeButtons = nullptr;
 };  // namespace Ripes
 

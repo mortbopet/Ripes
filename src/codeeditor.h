@@ -25,7 +25,9 @@ public:
 
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     void breakpointAreaPaintEvent(QPaintEvent* event);
-    void breakpointClick(QMouseEvent* event, int forceState = 0);
+    void breakpointClick(const QPoint& pos);
+    bool hasBreakpoint(const QPoint& pos) const;
+    long addressForPos(const QPoint& pos) const;
     void clearBreakpoints();
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
@@ -127,7 +129,7 @@ private:
 
     void mouseReleaseEvent(QMouseEvent* event) override {
         if (event->button() == Qt::LeftButton) {
-            codeEditor->breakpointClick(event);
+            codeEditor->breakpointClick(event->pos());
         }
     }
 
@@ -135,11 +137,5 @@ private:
         codeEditor->verticalScrollBar()->setValue(codeEditor->verticalScrollBar()->value() +
                                                   (-event->angleDelta().y()) / 30);
     }
-
-    QAction* m_removeAction;
-    QAction* m_addAction;
-    QAction* m_removeAllAction;
-
-    QMouseEvent* m_event;
 };
 }  // namespace Ripes

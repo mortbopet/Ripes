@@ -186,7 +186,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
     int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-    int bottom = top + (int)blockBoundingRect(block).height();
+    int bottom = top + static_cast<int>(blockBoundingRect(block).height());
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
@@ -197,7 +197,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
         block = block.next();
         top = bottom;
-        bottom = top + (int)blockBoundingRect(block).height();
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
 }
@@ -222,8 +222,8 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
     if (m_breakpointAreaEnabled) {
         QTextBlock block = firstVisibleBlock();
         uint32_t address = block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
-        int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
-        int bottom = top + (int)blockBoundingRect(block).height();
+        int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+        int bottom = top + static_cast<int>(blockBoundingRect(block).height());
 
         while (block.isValid() && top <= event->rect().bottom()) {
             if (block.isVisible() && bottom >= event->rect().top()) {
@@ -235,7 +235,7 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
             block = block.next();
             top = bottom;
-            bottom = top + (int)blockBoundingRect(block).height();
+            bottom = top + static_cast<int>(blockBoundingRect(block).height());
             address += ProcessorHandler::get()->currentISA()->bytes();
         }
     }
@@ -254,33 +254,49 @@ void CodeEditor::setupSyntaxHighlighter() {
             &SyntaxHighlighter::clearAndRehighlight);
 }
 
-void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
+long CodeEditor::addressForPos(const QPoint& pos) const {
+    if (!m_breakpointAreaEnabled)
+        return -1;
+
+    // Get line height
+    QTextBlock block = firstVisibleBlock();
+
+    const auto height = blockBoundingRect(block).height();
+
+    // Find block index in the codeeditor
+    int index;
+    if (block == document()->findBlockByLineNumber(0)) {
+        index = static_cast<int>((pos.y() - contentOffset().y()) / height);
+    } else {
+        index = static_cast<int>((pos.y() + contentOffset().y()) / height);
+    }
+    // Get actual block index
+    while (index > 0) {
+        block = block.next();
+        index--;
+    }
+    if (!block.isValid())
+        return -1;
+
+    // Toggle breakpoint
+    return block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
+}
+
+bool CodeEditor::hasBreakpoint(const QPoint& pos) const {
+    if (!m_breakpointAreaEnabled)
+        return false;
+
+    return ProcessorHandler::get()->hasBreakpoint(static_cast<unsigned>(addressForPos(pos)));
+}
+
+void CodeEditor::breakpointClick(const QPoint& pos) {
     if (m_breakpointAreaEnabled) {
-        // Get line height
-        QTextBlock block = firstVisibleBlock();
-
-        auto height = blockBoundingRect(block).height();
-
-        // Find block index in the codeeditor
-        int index;
-        if (block == document()->findBlockByLineNumber(0)) {
-            index = (event->pos().y() - contentOffset().y()) / height;
-        } else {
-            index = (event->pos().y() + contentOffset().y()) / height;
-        }
-        // Get actual block index
-        while (index > 0) {
-            block = block.next();
-            index--;
-        }
-        if (!block.isValid())
-            return;
-
         // Toggle breakpoint
-        const uint32_t address =
-            block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
-        ProcessorHandler::get()->toggleBreakpoint(address);
-        repaint();
+        auto address = addressForPos(pos);
+        if (!(address < 0)) {
+            ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
+            repaint();
+        }
     }
 }
 
@@ -288,34 +304,21 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
 
 BreakpointArea::BreakpointArea(CodeEditor* editor) : QWidget(editor) {
     codeEditor = editor;
-
-    // Create and connect actions for removing and setting breakpoints
-    m_removeAction = new QAction("Remove breakpoint", this);
-    m_removeAllAction = new QAction("Remove all breakpoints", this);
-    m_addAction = new QAction("Add breakpoint", this);
-
-    connect(m_removeAction, &QAction::triggered, [=] { codeEditor->breakpointClick(m_event, 2); });
-    connect(m_addAction, &QAction::triggered, [=] { codeEditor->breakpointClick(m_event, 1); });
-    connect(m_removeAllAction, &QAction::triggered, [=] {
-        codeEditor->clearBreakpoints();
-        repaint();
-    });
-
-    // Construct default mouseButtonEvent
-    m_event = new QMouseEvent(QEvent::MouseButtonRelease, QPoint(0, 0), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 }
 
 void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
     // setup context menu
     QMenu contextMenu;
 
-    // Translate event to a QMouseEvent in case add/remove single breakpoint is
-    // triggered
-    *m_event = QMouseEvent(QEvent::MouseButtonRelease, event->pos(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    // Create and connect actions for removing and setting breakpoints
+    auto* toggleAction = contextMenu.addAction("Toggle breakpoint");
+    auto* removeAllAction = contextMenu.addAction("Remove all breakpoints");
 
-    contextMenu.addAction(m_addAction);
-    contextMenu.addAction(m_removeAction);
-    contextMenu.addAction(m_removeAllAction);
+    connect(toggleAction, &QAction::triggered, [=] { codeEditor->breakpointClick(event->pos()); });
+    connect(removeAllAction, &QAction::triggered, [=] {
+        codeEditor->clearBreakpoints();
+        repaint();
+    });
 
     contextMenu.exec(event->globalPos());
 }

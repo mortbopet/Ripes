@@ -21,7 +21,7 @@ private slots:
     void on_copy_clicked();
 
 private:
-    Ui::StageTableWidget* m_ui;
+    Ui::StageTableWidget* m_ui = nullptr;
     StageTableModel* m_stageModel = nullptr;
 };
 }  // namespace Ripes

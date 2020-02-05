@@ -25,7 +25,7 @@ private:
     void openFileButtonTriggered();
     void pathChanged();
 
-    Ui::SaveDialog* m_ui;
+    Ui::SaveDialog* m_ui = nullptr;
 
     static QString m_path;
     static bool m_saveAssembly;

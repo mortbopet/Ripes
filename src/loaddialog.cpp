@@ -114,11 +114,11 @@ void LoadDialog::paletteValidate(QWidget* w, bool valid) {
     w->setPalette(palette);
 }
 
-bool LoadDialog::validateAssemblyFile(const QFile& file) {
+bool LoadDialog::validateAssemblyFile(const QFile&) {
     return true;
 }
 
-bool LoadDialog::validateBinaryFile(const QFile& file) {
+bool LoadDialog::validateBinaryFile(const QFile&) {
     bool loadAtValid, entryPointValid;
     m_ui->binaryLoadAt->text().toUInt(&loadAtValid, 16);
     paletteValidate(m_ui->binaryLoadAt, loadAtValid);
@@ -203,6 +203,7 @@ bool LoadDialog::fileTypeValidate(const QFile& file) {
         case FileType::Executable:
             return validateELFFile(file);
     }
+    Q_UNREACHABLE();
 }
 
 void LoadDialog::validateCurrentFile() {

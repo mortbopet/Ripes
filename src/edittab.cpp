@@ -29,7 +29,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     // enable breakpoint area for the translated code only
     m_ui->binaryedit->enableBreakpointArea();
 
-    m_assembler = new Assembler();
+    m_assembler = std::make_unique<Assembler>();
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
 
@@ -150,7 +150,7 @@ void EditTab::on_disassembledViewButton_toggled() {
     setDisassemblerText();
 }
 
-bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPoint, uint32_t loadAt) {
+bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt) {
     ProgramSection section;
     section.name = TEXT_SECTION_NAME;
     section.address = loadAt;
@@ -185,7 +185,7 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
         section.name = QString::fromStdString(elfSection->get_name());
         section.address = elfSection->get_address();
         // QByteArray performs a deep copy of the data when the data array is initialized at construction
-        section.data = QByteArray(elfSection->get_data(), elfSection->get_size());
+        section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
     }
 
     program.entryPoint = reader.get_entry();

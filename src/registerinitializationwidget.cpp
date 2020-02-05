@@ -82,8 +82,6 @@ RegisterInitializationWidget::~RegisterInitializationWidget() {
 }
 
 void RegisterInitializationWidget::updateAddButtonState() {
-    const auto& desc = ProcessorRegistry::getAvailableProcessors().at(m_currentID);
-
     // Disable add button if we have exhausted the number of registers to initialize for the given processor
     if (getNonInitializedRegIdx() != -1) {
         m_ui->addInitButton->setEnabled(true);
@@ -95,7 +93,7 @@ void RegisterInitializationWidget::updateAddButtonState() {
 int RegisterInitializationWidget::getNonInitializedRegIdx() {
     const auto& currentISA = ProcessorRegistry::getAvailableProcessors().at(m_currentID).isa;
     const auto& currentInitForProc = m_initializations.at(m_currentID);
-    int id = 0;
+    unsigned id = 0;
     while (currentInitForProc.count(id) || currentISA->regIsReadOnly(id)) {
         id++;
     }

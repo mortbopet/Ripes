@@ -44,6 +44,8 @@ public:
                     return mem->data_out.uValue() & 0xFFFF;
                 case MemOp::LW:
                     return mem->data_out.uValue();
+                default:
+                    return mem->data_out.uValue();
             }
         };
     }

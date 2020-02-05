@@ -19,7 +19,7 @@ public:
     uint32_t getAddress() const { return m_address; }
 
 private:
-    Ui::AddressDialog* m_ui;
+    Ui::AddressDialog* m_ui = nullptr;
     uint32_t m_address = 0;
     void validateTargetAddress(const QString& address);
 };

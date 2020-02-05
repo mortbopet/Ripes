@@ -37,7 +37,7 @@ void RegisterWidget::updateView() {
     m_registerModel->processorWasClocked();
 }
 
-void RegisterWidget::setRegisterviewCenterIndex(unsigned index) {
+void RegisterWidget::setRegisterviewCenterIndex(int index) {
     const auto view = m_ui->registerView;
     const auto rect = view->rect();
     int indexTop = view->indexAt(rect.topLeft()).row();

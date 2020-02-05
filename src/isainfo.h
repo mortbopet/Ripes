@@ -118,7 +118,7 @@ public:
         return &pr;
     }
 
-    QString name() const { return "RV32IM"; }
+    QString name() const override { return "RV32IM"; }
 
     unsigned int regCnt() const override { return 32; }
     QString regName(unsigned i) const override { return RVRegNames.at(i); }

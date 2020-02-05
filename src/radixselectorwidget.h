@@ -23,6 +23,6 @@ signals:
     void radixChanged(Radix r);
 
 private:
-    Ui::RadixSelectorWidget* m_ui;
+    Ui::RadixSelectorWidget* m_ui = nullptr;
 };
 }  // namespace Ripes

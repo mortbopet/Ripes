@@ -55,6 +55,7 @@ public:
                 return std::make_unique<vsrtl::core::RVSS>();
             }
         }
+        Q_UNREACHABLE();
     }
 
 private:

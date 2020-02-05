@@ -20,7 +20,7 @@ static const auto binRegex = QRegExp("0[bB][0-1]+");
 static const auto unsignedRegex = QRegExp("[0-9]+");
 static const auto signedRegex = QRegExp("[-]*[0-9]+");
 
-static QString encodeRadixValue(uint32_t value, const Radix type, unsigned width = 32) {
+static QString encodeRadixValue(unsigned long value, const Radix type, unsigned width = 32) {
     switch (type) {
         case Radix::Hex: {
             return "0x" + QString::number(value, 16).rightJustified(width / 4, '0');
@@ -36,15 +36,14 @@ static QString encodeRadixValue(uint32_t value, const Radix type, unsigned width
         }
         case Radix::ASCII: {
             QString str;
-            for (int i = 0; i < width / 8; i++) {
+            for (unsigned i = 0; i < width / 8; i++) {
                 str.prepend(QChar::fromLatin1(value & 0xFF));
                 value >>= 8;
             }
             return str;
         }
-        default:
-            return QString();
     }
+    Q_UNREACHABLE();
 }
 
 static uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nullptr) {
@@ -77,11 +76,8 @@ static uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nul
             *ok = true;
             return v;
         }
-        default: {
-            *ok = false;
-            return 0;
-        }
     }
+    Q_UNREACHABLE();
 }
 
 }  // namespace Ripes

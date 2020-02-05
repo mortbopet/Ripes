@@ -127,7 +127,7 @@ void ProcessorTab::setupSimulatorActions() {
     m_clockAction->setShortcut(QKeySequence("F5"));
     m_toolbar->addAction(m_clockAction);
 
-    QTimer* timer = new QTimer();
+    QTimer* timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &ProcessorTab::clock);
 
     const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");

@@ -346,7 +346,7 @@ QByteArray Assembler::assembleBranchInstruction(const QStringList& fields, int r
                          (offset & 0x1000) << 19 | funct3 << 12);
 }
 
-QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int row) {
+QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int) {
     bool canConvert;
     int imm = getImmediate(fields[2], canConvert) << 12;
     if (canConvert) {
@@ -628,7 +628,7 @@ void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, 
 // Allocates $size bytes in the static data segment
 void Assembler::assembleZeroArray(QByteArray& byteArray, size_t size) {
     Q_ASSERT(size >= 1);
-    for (int i = 0; i < size; i++) {
+    for (unsigned i = 0; i < size; i++) {
         byteArray.append(static_cast<char>(0x0));
     }
 }

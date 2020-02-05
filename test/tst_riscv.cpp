@@ -105,7 +105,7 @@ bool tst_RISCV::skipTest(const QString& test) {
 QString tst_RISCV::dumpRegs() {
     QString str = "\n" + m_currentTest + "\nRegister dump:";
     str += "\t PC:" + QString::number(ProcessorHandler::get()->getProcessor()->getPcForStage(0), 16) + "\n";
-    for (int i = 0; i < ProcessorHandler::get()->currentISA()->regCnt(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt(); i++) {
         str += "\t" + ProcessorHandler::get()->currentISA()->regName(i) + ":" +
                ProcessorHandler::get()->currentISA()->regAlias(i) + ":\t" +
                QString::number(ProcessorHandler::get()->getProcessor()->getRegister(i)) + "\n";

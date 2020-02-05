@@ -105,10 +105,10 @@ public:
     virtual unsigned int getRegister(unsigned i) const = 0;
 
     /**
-     * @brief getRegisters
+     * @brief getArchRegisters
      * @return reference to the register address space utilized by the implementing processor
      */
-    virtual SparseArray& getRegisters() = 0;
+    virtual SparseArray& getArchRegisters() = 0;
 
     /**
      * @brief setRegister

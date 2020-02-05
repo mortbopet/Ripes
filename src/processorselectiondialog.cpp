@@ -52,7 +52,7 @@ void ProcessorSelectionDialog::accept() {
     QDialog::accept();
 }
 
-void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListWidgetItem* previous) {
+void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListWidgetItem*) {
     const ProcessorID id = qvariant_cast<ProcessorID>(current->data(Qt::UserRole));
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(id);
 

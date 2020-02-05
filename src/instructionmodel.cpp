@@ -6,7 +6,7 @@
 namespace Ripes {
 
 InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
-    for (int i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
         m_stageNames << ProcessorHandler::get()->getProcessor()->stageName(i);
         m_stageInfos[m_stageNames.last()];
     }

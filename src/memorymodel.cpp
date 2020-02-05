@@ -76,7 +76,7 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
         } else if (role == Qt::ForegroundRole) {
             // Assign a brush if one of the byte-indexed address covered by the aligned address has been written to
             QVariant unusedAddressBrush;
-            for (int i = 0; i < ProcessorHandler::get()->currentISA()->bytes(); i++) {
+            for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->bytes(); i++) {
                 QVariant addressBrush = fgColorData(alignedAddress, i);
                 if (addressBrush.isNull()) {
                     return addressBrush;
@@ -119,7 +119,8 @@ QVariant MemoryModel::addrData(long long address) const {
 }
 
 QVariant MemoryModel::fgColorData(long long address, unsigned byteOffset) const {
-    if (!validAddress(address) || !ProcessorHandler::get()->getMemory().contains(address + byteOffset)) {
+    if (!validAddress(address) ||
+        !ProcessorHandler::get()->getMemory().contains(static_cast<unsigned>(address + byteOffset))) {
         return QBrush(Qt::lightGray);
     } else {
         return QVariant();  // default
@@ -129,12 +130,12 @@ QVariant MemoryModel::fgColorData(long long address, unsigned byteOffset) const 
 QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
     if (!validAddress(address)) {
         return "-";
-    } else if (!ProcessorHandler::get()->getMemory().contains(address + byteOffset)) {
+    } else if (!ProcessorHandler::get()->getMemory().contains(static_cast<unsigned>(address + byteOffset))) {
         // Dont read the memory (this will create an entry in the memory if done so). Instead, create a "fake" entry in
         // the memory model, containing X's.
         return "X";
     } else {
-        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(address);
+        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(static_cast<unsigned>(address));
         value = value >> (byteOffset * 8);
         return encodeRadixValue(value & 0xFF, m_radix, 8);
     }
@@ -143,17 +144,17 @@ QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
 QVariant MemoryModel::wordData(long long address) const {
     if (!validAddress(address)) {
         return "-";
-    } else if (!ProcessorHandler::get()->getMemory().contains(address)) {
+    } else if (!ProcessorHandler::get()->getMemory().contains(static_cast<unsigned>(address))) {
         // Dont read the memory (this will create an entry in the memory if done so). Instead, create a "fake" entry in
         // the memory model, containing X's.
         return "X";
     } else {
-        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(address);
+        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(static_cast<unsigned>(address));
         return encodeRadixValue(value, m_radix, ProcessorHandler::get()->currentISA()->bits());
     }
 }
 
-Qt::ItemFlags MemoryModel::flags(const QModelIndex& index) const {
+Qt::ItemFlags MemoryModel::flags(const QModelIndex&) const {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 }  // namespace Ripes

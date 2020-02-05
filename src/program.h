@@ -14,13 +14,13 @@ enum class FileType { Assembly, FlatBinary, Executable };
 struct LoadFileParams {
     QString filepath;
     FileType type;
-    uint32_t binaryEntryPoint;
-    uint32_t binaryLoadAt;
+    unsigned long binaryEntryPoint;
+    unsigned long binaryLoadAt;
 };
 
 struct ProgramSection {
     QString name;
-    uint32_t address;
+    unsigned long address;
     QByteArray data;
 };
 
@@ -30,7 +30,7 @@ struct ProgramSection {
  * program. Others section may contain all other program sections (.bss, .data, ...)
  */
 struct Program {
-    uint32_t entryPoint = 0;
+    unsigned long entryPoint = 0;
     std::vector<ProgramSection> sections;
 
     const ProgramSection* getSection(const QString& name) const {

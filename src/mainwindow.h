@@ -51,7 +51,7 @@ private:
     void setupMenus();
     void setupExamplesMenu(QMenu* parent);
 
-    Ui::MainWindow* m_ui;
+    Ui::MainWindow* m_ui = nullptr;
     QActionGroup* m_binaryStoreAction;
     QToolBar* m_toolbar = nullptr;
 

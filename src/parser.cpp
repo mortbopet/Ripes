@@ -130,22 +130,24 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
                 return QString("add x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             } else if (fields[0] == 0b0100000) {
                 return QString("sub x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
-                break;
             } else if (fields[0] == 0b0000001) {
                 return QString("mul x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b001:
             if (fields[0] == 0b0000001) {
                 return QString("mulh x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             } else if (fields[0] == 0) {
                 return QString("sll x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b010:
             if (fields[0] == 0b0000001) {
                 return QString("mulhsu x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             } else if (fields[0] == 0) {
                 return QString("slt x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b011:
             if (fields[0] == 0b0000001) {
                 return QString("mulhu x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
@@ -168,6 +170,7 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
             } else if (fields[0] == 0b1) {
                 return QString("divu x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b110:
             if (fields[0] == 0b1) {
                 return QString("rem x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
@@ -181,8 +184,9 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
                 return QString("and x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
         default:
-            return QString("Unknown instruction");
+            break;
     }
+    return QString("Unknown instruction");
 }
 
 QString Parser::generateOpImmString(uint32_t instr) const {

@@ -26,6 +26,6 @@ public slots:
     void setCentralAddress(uint32_t address);
 
 private:
-    Ui::MemoryViewerWidget* m_ui;
+    Ui::MemoryViewerWidget* m_ui = nullptr;
 };
 }  // namespace Ripes

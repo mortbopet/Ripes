@@ -321,6 +321,7 @@ public:
             case WB: return memwb_reg->pc_out.uValue();
             default: assert(false && "Processor does not contain stage");
         }
+        Q_UNREACHABLE();
         // clang-format on
     }
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
@@ -334,6 +335,7 @@ public:
             case WB: return "WB";
             default: assert(false && "Processor does not contain stage");
         }
+        Q_UNREACHABLE();
         // clang-format on
     }
     StageInfo stageInfo(unsigned int stage) const override {
@@ -412,7 +414,7 @@ public:
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
     unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
-    SparseArray& getRegisters() override { return *m_regMem; }
+    SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
             // An exit system call was executed. Record the cycle of the execution, and enable the ecallChecker's system

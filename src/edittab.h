@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QWidget>
 #include <map>
+#include <memory>
 
 #include "assembler.h"
 #include "program.h"
@@ -55,7 +56,7 @@ private slots:
     void on_disassembledViewButton_toggled();
 
 private:
-    bool loadFlatBinaryFile(Program& program, QFile& file, uint32_t entryPoint, uint32_t loadAt);
+    bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
     bool loadAssemblyFile(Program& program, QFile& file);
     bool loadElfFile(Program& program, QFile& file);
 
@@ -63,8 +64,8 @@ private:
     void enableEditor();
     void disableEditor();
 
-    Ui::EditTab* m_ui;
-    Assembler* m_assembler = nullptr;
+    Ui::EditTab* m_ui = nullptr;
+    std::unique_ptr<Assembler> m_assembler;
 
     LoadFileParams m_loadedFile;
     Program m_activeProgram;

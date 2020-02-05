@@ -24,9 +24,9 @@ public:
 
 public slots:
     void updateView();
-    void setRegisterviewCenterIndex(unsigned index);
+    void setRegisterviewCenterIndex(int index);
 
 private:
-    Ui::RegisterWidget* m_ui;
+    Ui::RegisterWidget* m_ui = nullptr;
 };
 }  // namespace Ripes

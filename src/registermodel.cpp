@@ -43,7 +43,7 @@ void RegisterModel::processorWasClocked() {
     m_regValues = newRegValues;
 }
 
-bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int) {
     const int i = index.row();
     if (index.column() == Column::Value) {
         bool ok;
