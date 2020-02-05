@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QSplitter" name="splitter_2">
+    <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -25,14 +25,14 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
-        <widget class="MemoryViewerWidget" name="memoryViewerWidget" native="true"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="verticalLayoutWidget_2">
-      <layout class="QVBoxLayout" name="verticalLayout_8">
-       <item>
-        <widget class="RWJumpWidget" name="rwjumpwidget" native="true"/>
+        <widget class="MemoryViewerWidget" name="memoryViewerWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -42,6 +42,9 @@
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::MinimumExpanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -58,12 +61,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>RWJumpWidget</class>
-   <extends>QWidget</extends>
-   <header>rwjumpwidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>MemoryViewerWidget</class>
    <extends>QWidget</extends>
