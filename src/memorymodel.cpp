@@ -8,7 +8,7 @@ namespace Ripes {
 MemoryModel::MemoryModel(QObject* parent) : QAbstractTableModel(parent) {}
 
 int MemoryModel::columnCount(const QModelIndex&) const {
-    return 1 /* address column */ + ProcessorHandler::get()->currentISA()->bytes() /* byte columns */;
+    return FIXED_COLUMNS_CNT + ProcessorHandler::get()->currentISA()->bytes() /* byte columns */;
 }
 
 int MemoryModel::rowCount(const QModelIndex&) const {
@@ -40,10 +40,13 @@ void MemoryModel::offsetCentralAddress(int rowOffset) {
 
 QVariant MemoryModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-        if (section == Column::Address) {
-            return "Address";
-        } else {
-            return "+" + QString::number(section - 1);
+        switch (section) {
+            case Column::Address:
+                return "Address";
+            case Column::WordValue:
+                return "Word";
+            default:
+                return "Byte " + QString::number(section - FIXED_COLUMNS_CNT);
         }
     }
     return QVariant();
@@ -65,7 +68,7 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
     const auto bytes = ProcessorHandler::get()->currentISA()->bytes();
     const long long alignedAddress = static_cast<long long>(m_centralAddress) +
                                      ((((m_rowsVisible * bytes) / 2) / bytes) * bytes) - (index.row() * bytes);
-    const unsigned byteOffset = index.column() - 1;
+    const unsigned byteOffset = index.column() - FIXED_COLUMNS_CNT;
 
     if (index.column() == Column::Address) {
         if (role == Qt::DisplayRole) {
@@ -88,9 +91,13 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
             case Qt::FontRole:
                 return QFont("monospace");
             case Qt::ForegroundRole:
-                return fgColorData(alignedAddress, byteOffset);
+                return fgColorData(alignedAddress, index.column() == Column::WordValue ? 0 : byteOffset);
             case Qt::DisplayRole:
-                return byteData(alignedAddress, byteOffset);
+                if (index.column() == Column::WordValue) {
+                    return wordData(alignedAddress);
+                } else {
+                    return byteData(alignedAddress, byteOffset);
+                }
             default:
                 break;
         }
@@ -130,6 +137,19 @@ QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
         uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(address);
         value = value >> (byteOffset * 8);
         return encodeRadixValue(value & 0xFF, m_radix, 8);
+    }
+}
+
+QVariant MemoryModel::wordData(long long address) const {
+    if (!validAddress(address)) {
+        return "-";
+    } else if (!ProcessorHandler::get()->getMemory().contains(address)) {
+        // Dont read the memory (this will create an entry in the memory if done so). Instead, create a "fake" entry in
+        // the memory model, containing X's.
+        return "X";
+    } else {
+        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(address);
+        return encodeRadixValue(value, m_radix, ProcessorHandler::get()->currentISA()->bits());
     }
 }
 

@@ -10,7 +10,7 @@ namespace Ripes {
 class MemoryModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    enum Column { Address = 0 };
+    enum Column { Address = 0, WordValue = 1, FIXED_COLUMNS_CNT };
     MemoryModel(QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -34,6 +34,7 @@ private:
     bool validAddress(long long address) const;
     QVariant addrData(long long address) const;
     QVariant byteData(long long address, unsigned byteOffset) const;
+    QVariant wordData(long long address) const;
     QVariant fgColorData(long long address, unsigned byteOffset) const;
 
     Radix m_radix = Radix::Hex;
