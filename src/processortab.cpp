@@ -86,7 +86,6 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     layoutResourceFile.copy(tmpLayoutFilename);
     m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFilename);
     QFile::remove(tmpLayoutFilename);
-    m_vsrtlWidget->setShowPortWidth(layout.showPortWidth);
 
     // Adjust stage label positions
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
