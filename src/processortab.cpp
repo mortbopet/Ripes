@@ -1,6 +1,8 @@
 #include "processortab.h"
 #include "ui_processortab.h"
 
+#include <QDir>
+#include <QMessageBox>
 #include <QScrollBar>
 #include <QSpinBox>
 
@@ -79,13 +81,17 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     }
 
     // cereal expects the archive file to be present standalone on disk, and available through an ifstream. Copy the
-    // resource layout file temporarily, while loading the layout.
+    // resource layout file (bundled within the binary as a Qt resource) to a temporary file, for loading the layout.
     const auto& layoutResourceFilename = layout.file;
     QFile layoutResourceFile(layoutResourceFilename);
-    const QString tmpLayoutFilename = "_tmp_layout.ripes";
-    layoutResourceFile.copy(tmpLayoutFilename);
-    m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFilename);
-    QFile::remove(tmpLayoutFilename);
+    const QString tmpLayoutFile = QDir::tempPath() + QDir::separator() + "ripes_tmp_layout";
+    layoutResourceFile.copy(tmpLayoutFile);
+    if (!QFile::exists(tmpLayoutFile)) {
+        QMessageBox::warning(this, "Error", "Could not load layout. Is Ripes running in a read-only directory?");
+        return;
+    }
+    m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFile);
+    QFile::remove(tmpLayoutFile);
 
     // Adjust stage label positions
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
