@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QSpinBox>
+#include <QTemporaryFile>
 
 #include "instructionmodel.h"
 #include "parser.h"
@@ -84,14 +85,14 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     // resource layout file (bundled within the binary as a Qt resource) to a temporary file, for loading the layout.
     const auto& layoutResourceFilename = layout.file;
     QFile layoutResourceFile(layoutResourceFilename);
-    const QString tmpLayoutFile = QDir::tempPath() + QDir::separator() + "ripes_tmp_layout";
-    layoutResourceFile.copy(tmpLayoutFile);
-    if (!QFile::exists(tmpLayoutFile)) {
-        QMessageBox::warning(this, "Error", "Could not load layout. Is Ripes running in a read-only directory?");
+    QTemporaryFile* tmpLayoutFile = QTemporaryFile::createNativeFile(layoutResourceFile);
+    if (!tmpLayoutFile->open()) {
+        QMessageBox::warning(this, "Error", "Could not create temporary layout file");
         return;
     }
-    m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFile);
-    QFile::remove(tmpLayoutFile);
+
+    m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFile->fileName());
+    tmpLayoutFile->remove();
 
     // Adjust stage label positions
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
