@@ -28,6 +28,7 @@ public:
     ~MainWindow() override;
 
     void closeEvent(QCloseEvent* event) override;
+    void fitToView();
 
 private slots:
     void wiki();
