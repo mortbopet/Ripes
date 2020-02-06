@@ -16,6 +16,6 @@ int main(int argc, char** argv) {
 
     QApplication app(argc, argv);
     Ripes::MainWindow m;
-    m.show();
+    m.showMaximized();
     return app.exec();
 }

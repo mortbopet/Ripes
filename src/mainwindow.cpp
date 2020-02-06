@@ -29,7 +29,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setWindowTitle("Ripes");
     setWindowIcon(QIcon(":/icons/logo.svg"));
     m_ui->actionOpen_wiki->setIcon(QIcon(":/icons/info.svg"));
-    showMaximized();
 
     // Initialize processor handler
     ProcessorHandler::get();
