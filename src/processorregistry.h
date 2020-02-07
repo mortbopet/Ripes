@@ -79,8 +79,8 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage Processor";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
-        desc.layouts = {{"Standard", ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json", {0.11, 0.31, 0.55, 0.77, 0.92}},
-                        {"Extended", ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json", {0.11, 0.31, 0.58, 0.8, 0.94}}};
+        desc.layouts = {{"Standard", ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json", {0.08, 0.29, 0.52, 0.73, 0.87}},
+                        {"Extended", ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json", {0.08, 0.28, 0.53, 0.76, 0.9}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -93,8 +93,8 @@ private:
             "A 5-Stage in-order RISC-V processor with no hazard detection and forwarding. \n\nThe user is expected to "
             "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
         desc.layouts = {
-            {"Standard", ":/layouts/RISC-V/rv5swof/rv5swof_standard_layout.json", {0.12, 0.35, 0.58, 0.75, 0.92}},
-            {"Extended", ":/layouts/RISC-V/rv5swof/rv5swof_extended_layout.json", {0.11, 0.32, 0.55, 0.80, 0.94}}};
+            {"Standard", ":/layouts/RISC-V/rv5swof/rv5swof_standard_layout.json", {0.08, 0.3, 0.53, 0.72, 0.88}},
+            {"Extended", ":/layouts/RISC-V/rv5swof/rv5swof_extended_layout.json", {0.08, 0.28, 0.53, 0.74, 0.9}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }

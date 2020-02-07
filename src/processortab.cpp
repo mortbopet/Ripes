@@ -98,8 +98,7 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
     for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
         auto& label = m_stageInstructionLabels.at(i);
-        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i),
-                      label->boundingRect().height());
+        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i), 0);
     }
 }
 
