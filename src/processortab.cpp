@@ -215,6 +215,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
     const auto& proc = ProcessorHandler::get()->getProcessor();
     for (unsigned i = 0; i < proc->stageCount(); i++) {
         auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
+        stagelabel->setPointSize(14);
         m_stageInstructionLabels[i] = stagelabel;
     }
     loadLayout(layout);
@@ -305,10 +306,10 @@ void ProcessorTab::updateInstructionLabels() {
         QString instrString;
         if (stageInfo.state != StageInfo::State::None) {
             instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
-            instrLabel->setColor(Qt::red);
+            instrLabel->setDefaultTextColor(Qt::red);
         } else if (stageInfo.stage_valid) {
             instrString = ProcessorHandler::get()->parseInstrAt(stageInfo.pc);
-            instrLabel->setColor(QColor());
+            instrLabel->setDefaultTextColor(QColor());
         }
         instrLabel->setText(instrString);
     }
