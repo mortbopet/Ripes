@@ -21,7 +21,7 @@ static inline uint32_t indexToAddress(const QModelIndex& index) {
 }
 
 static inline int addressToIndex(uint32_t addr) {
-    if (ProcessorHandler::get()->getProgram()) {
+    if (ProcessorHandler::get()->getProgram() && ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME) != nullptr) {
         return (addr - ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address) / 4;
     }
     return 0;
