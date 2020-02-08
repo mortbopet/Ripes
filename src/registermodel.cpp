@@ -105,7 +105,7 @@ QVariant RegisterModel::data(const QModelIndex& index, int role) const {
                 case Qt::UserRole:
                     return QVariant::fromValue(m_radix);
                 case Qt::FontRole:
-                    return QFont("monospace");
+                    return QFont("Inconsolata", 11);
                 case Qt::ForegroundRole:
                     return QBrush(Qt::blue);
                 default:

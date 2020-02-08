@@ -65,6 +65,10 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
     if (role == Qt::TextAlignmentRole)
         return Qt::AlignCenter;
 
+    if (role == Qt::FontRole) {
+        return QFont("Inconsolata", 11);
+    }
+
     const auto bytes = ProcessorHandler::get()->currentISA()->bytes();
     const long long alignedAddress = static_cast<long long>(m_centralAddress) +
                                      ((((m_rowsVisible * bytes) / 2) / bytes) * bytes) - (index.row() * bytes);
@@ -88,8 +92,6 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
         }
     } else {
         switch (role) {
-            case Qt::FontRole:
-                return QFont("monospace");
             case Qt::ForegroundRole:
                 return fgColorData(alignedAddress, index.column() == Column::WordValue ? 0 : byteOffset);
             case Qt::DisplayRole:

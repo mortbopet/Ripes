@@ -16,6 +16,7 @@
 
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <QFontDatabase>
 #include <QIcon>
 #include <QMessageBox>
 #include <QPushButton>
@@ -32,6 +33,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     // Initialize processor handler
     ProcessorHandler::get();
+
+    // Initialize fonts
+    QFontDatabase::addApplicationFont(":/fonts/Inconsolata/Inconsolata-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Inconsolata/Inconsolata-Bold.ttf");
 
     // Create tabs
     m_stackedTabs = new QStackedWidget(this);

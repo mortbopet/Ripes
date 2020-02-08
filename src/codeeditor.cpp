@@ -30,9 +30,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
-    m_font = QFont("Monospace");
-    m_font.setStyleHint(QFont::TypeWriter);
-    m_font.setPointSize(10);
+    m_font = QFont("Inconsolata", 11);
     setFont(m_font);
     m_fontTimer.setSingleShot(true);
 
