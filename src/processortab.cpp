@@ -234,6 +234,11 @@ void ProcessorTab::processorSelection() {
         m_vsrtlWidget->reset();
         updateInstructionModel();
         m_ui->registerWidget->updateModel();
+
+        // Retrigger value display action if enabled
+        if (m_displayValuesAction->isChecked()) {
+            m_vsrtlWidget->setOutputPortValuesVisible(true);
+        }
         update();
     }
 }
