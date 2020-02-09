@@ -17,7 +17,6 @@ For further information, please refer to the [Ripes wiki](https://github.com/mor
 
 ## Downloading & Installation
 Prebuilt binaries are available for Linux, Windows & Mac. These are available through the [Releases page](https://github.com/mortbopet/Ripes/releases).  
-**It is recommended to use the *[continuous builds](https://github.com/mortbopet/Ripes/releases/tag/continuous)*, since they contain all of the most-recent bug-fixes.**
 
 ### Linux
 Releases for Linux are distributed in the AppImage format. To run an AppImage:
