@@ -66,6 +66,12 @@ public:
     int getCurrentProgramSize() const;
 
     /**
+     * @brief getEntryPoint
+     * @return address of the entry point of the currently loaded program
+     */
+    unsigned long getTextStart() const;
+
+    /**
      * @brief parseInstrAt
      * @return string representation of the instruction at @param addr
      */

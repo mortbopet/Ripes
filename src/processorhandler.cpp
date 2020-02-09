@@ -144,6 +144,16 @@ int ProcessorHandler::getCurrentProgramSize() const {
     return 0;
 }
 
+unsigned long ProcessorHandler::getTextStart() const {
+    if (m_program) {
+        const auto* textSection = m_program->getSection(TEXT_SECTION_NAME);
+        if (textSection)
+            return textSection->address;
+    }
+
+    return 0;
+}
+
 QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
     return Parser::getParser()->disassemble(m_currentProcessor->getMemory().readMem(addr), addr);
 }
