@@ -41,7 +41,6 @@ public:
     bool syntaxAccepted() const { return m_tooltipForLine.isEmpty(); }
 
 signals:
-    void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
     void textChanged();
 
 protected:

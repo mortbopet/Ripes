@@ -249,8 +249,16 @@ void CodeEditor::setupSyntaxHighlighter() {
     // The highlighting is reset upon line count changes, to detect label invalidation
     connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter,
             &SyntaxHighlighter::invalidateLabels);
-    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter,
-            &SyntaxHighlighter::clearAndRehighlight);
+    connect(this->document(), &QTextDocument::blockCountChanged, [=] {
+        m_highlighter->clearAndRehighlight();
+        auto errors = m_tooltipForLine;
+        for (const auto& e : errors.toStdMap()) {
+            // Remove any error tooltip for lines which have been deleted
+            if (e.first >= blockCount()) {
+                m_tooltipForLine.remove(e.first);
+            }
+        }
+    });
 }
 
 long CodeEditor::addressForPos(const QPoint& pos) const {
