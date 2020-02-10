@@ -158,13 +158,6 @@ private:
     ProcessorID m_currentID = ProcessorID::RISCV_5S;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
 
-    /**
-     * @brief m_validExecutionRange
-     * Address range which the processor is allowed to fetch instructions from. Currently, only a single range is
-     * supported which shall encapsulate the .text segment. If, for instance JIT compilation and execution is required
-     * in the future, this range should be expanded to also include the .data or other relevant program sections.
-     */
-    std::pair<uint32_t, uint32_t> m_validExecutionRange;
     std::set<uint32_t> m_breakpoints;
     const Program* m_program = nullptr;
 

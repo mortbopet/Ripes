@@ -33,13 +33,13 @@ void ProcessorHandler::loadProgram(const Program* p) {
 
     m_currentProcessor->setPCInitialValue(p->entryPoint);
 
-    // Set the valid execution range to be contained within the .text segment.
-    m_validExecutionRange = {textSection->address, textSection->address + textSection->data.length()};
+    const auto textStart = textSection->address;
+    const auto textEnd = textSection->address + textSection->data.length();
 
     // Update breakpoints to stay within the loaded program range
     std::vector<uint32_t> bpsToRemove;
     for (const auto& bp : m_breakpoints) {
-        if ((bp < m_validExecutionRange.first) || (bp >= m_validExecutionRange.second)) {
+        if ((bp < textStart) || (bp >= textEnd)) {
             bpsToRemove.push_back(bp);
         }
     }
@@ -229,7 +229,14 @@ void ProcessorHandler::stop() {
 }
 
 bool ProcessorHandler::isExecutableAddress(uint32_t address) const {
-    return m_validExecutionRange.first <= address && address < m_validExecutionRange.second;
+    if (m_program) {
+        if (auto* textSection = m_program->getSection(TEXT_SECTION_NAME)) {
+            const auto textStart = textSection->address;
+            const auto textEnd = textSection->address + textSection->data.length();
+            return textStart <= address && address < textEnd;
+        }
+    }
+    return false;
 }
 
 void ProcessorHandler::checkValidExecutionRange() const {
