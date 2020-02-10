@@ -151,7 +151,7 @@ public:
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int) const override { return "•"; }
     StageInfo stageInfo(unsigned int) const override {
-        return StageInfo({pc_reg->out.uValue(), true, StageInfo::State::None});
+        return StageInfo({pc_reg->out.uValue(), isExecutableAddress(pc_reg->out.uValue()), StageInfo::State::None});
     }
     void setProgramCounter(uint32_t address) override {
         pc_reg->forceValue(0, address);
