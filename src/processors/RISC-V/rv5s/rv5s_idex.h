@@ -6,7 +6,7 @@
 
 #include "../riscv.h"
 
-#include "../rv5swof/rv5swof_idex.h"
+#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_idex.h"
 
 namespace vsrtl {
 namespace core {
@@ -14,7 +14,7 @@ using namespace Ripes;
 
 /**
  * @brief The RV5S_IDEX class
- * A specialization of the default IDEX stage separating register utilized by the RV5SWOF processor. Storage of register
+ * A specialization of the default IDEX stage separating register utilized by the rv5s_no_fw_hz processor. Storage of register
  * read indices is added, which are required by the forwarding unit.
  */
 class RV5S_IDEX : public IDEX {

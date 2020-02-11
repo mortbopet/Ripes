@@ -20,7 +20,7 @@
 #include "../rv_registerfile.h"
 
 // Stage separating registers
-#include "../rv5swof/rv5swof_ifid.h"
+#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
 #include "rv5s_exmem.h"
 #include "rv5s_idex.h"
 #include "rv5s_memwb.h"

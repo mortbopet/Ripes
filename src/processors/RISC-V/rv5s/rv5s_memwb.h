@@ -5,7 +5,7 @@
 
 #include "../riscv.h"
 
-#include "../rv5swof/rv5swof_memwb.h"
+#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_memwb.h"
 
 namespace vsrtl {
 namespace core {

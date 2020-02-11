@@ -20,19 +20,19 @@
 #include "../rv_registerfile.h"
 
 // Stage separating registers
-#include "rv5swof_exmem.h"
-#include "rv5swof_idex.h"
-#include "rv5swof_ifid.h"
-#include "rv5swof_memwb.h"
+#include "rv5s_no_fw_hz_exmem.h"
+#include "rv5s_no_fw_hz_idex.h"
+#include "rv5s_no_fw_hz_ifid.h"
+#include "rv5s_no_fw_hz_memwb.h"
 
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-class RV5SWOF : public RipesProcessor {
+class RV5S_NO_FW_HZ : public RipesProcessor {
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-    RV5SWOF() : RipesProcessor("5-Stage RISC-V Processor without forwarding") {
+    RV5S_NO_FW_HZ() : RipesProcessor("5-Stage RISC-V Processor without forwarding or hazard detection") {
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
