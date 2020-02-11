@@ -155,7 +155,7 @@ private slots:
 private:
     ProcessorHandler();
 
-    ProcessorID m_currentID = ProcessorID::RISCV_5S;
+    ProcessorID m_currentID = ProcessorID::RV5S;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
 
     std::set<uint32_t> m_breakpoints;

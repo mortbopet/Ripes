@@ -9,12 +9,13 @@
 
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
+#include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
 
 // =============================== Processors =================================
-enum class ProcessorID { RISCV_SS, RISCV_5S, RISCV_5S_NO_FW_HZ };
+enum class ProcessorID { RVSS, RV5S, RV5S_NO_HZ, RV5S_NO_FW_HZ };
 // ============================================================================
 
 using RegisterInitialization = std::map<unsigned, uint32_t>;
@@ -47,13 +48,14 @@ public:
     static const ProcessorDescription& getDescription(ProcessorID id) { return instance().m_descriptions[id]; }
     static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id) {
         switch (id) {
-            case ProcessorID::RISCV_5S_NO_FW_HZ:
+            case ProcessorID::RV5S_NO_FW_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ>();
-            case ProcessorID::RISCV_5S:
+            case ProcessorID::RV5S:
                 return std::make_unique<vsrtl::core::RV5S>();
-            case ProcessorID::RISCV_SS: {
+            case ProcessorID::RVSS:
                 return std::make_unique<vsrtl::core::RVSS>();
-            }
+            case ProcessorID::RV5S_NO_HZ:
+                return std::make_unique<vsrtl::core::RV5S_NO_HZ>();
         }
         Q_UNREACHABLE();
     }
@@ -64,7 +66,7 @@ private:
 
         // RISC-V single cycle
         ProcessorDescription desc;
-        desc.id = ProcessorID::RISCV_SS;
+        desc.id = ProcessorID::RVSS;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V Single Cycle Processor";
         desc.description = "A single cycle RISC-V processor";
@@ -73,9 +75,9 @@ private:
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
-        // RISC-V 5-Stage with forwarding
+        // RISC-V 5-Stage
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RISCV_5S;
+        desc.id = ProcessorID::RV5S;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage Processor";
         desc.description = "A 5-Stage in-order RISC-V processor with hazard detection and forwarding.";
@@ -84,14 +86,28 @@ private:
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
-        // RISC-V 5-stage without forwarding
+        // RISC-V 5-stage without hazard detection
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RISCV_5S_NO_FW_HZ;
+        desc.id = ProcessorID::RV5S_NO_HZ;
+        desc.isa = ISAInfo<ISA::RV32IM>::instance();
+        desc.name = "RISC-V 5-Stage Processor wo/ hazard detection";
+        desc.description =
+            "A 5-Stage in-order RISC-V processor with forwarding but no hazard detection. \n\nThe user is expected to "
+            "resolve all hazard through insertions of NOP instructions to correctly schedule the code.";
+        desc.layouts = {
+            {"Standard", ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_standard_layout.json", {0.08, 0.3, 0.53, 0.75, 0.88}},
+            {"Extended", ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_extended_layout.json", {0.08, 0.28, 0.53, 0.78, 0.9}}};
+        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        m_descriptions[desc.id] = desc;
+
+        // RISC-V 5-stage without forwarding or hazard detection
+        desc = ProcessorDescription();
+        desc.id = ProcessorID::RV5S_NO_FW_HZ;
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "RISC-V 5-Stage Processor wo/ forwarding or hazard detection";
         desc.description =
             "A 5-Stage in-order RISC-V processor with no forwarding or hazard detection. \n\nThe user is expected to "
-            "resolve all data hazard through insertions of NOP instructions to correctly schedule the code.";
+            "resolve all hazard through insertions of NOP instructions to correctly schedule the code.";
         desc.layouts = {{"Standard",
                          ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
                          {0.08, 0.3, 0.53, 0.72, 0.88}},
