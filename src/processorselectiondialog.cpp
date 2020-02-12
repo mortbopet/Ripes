@@ -2,7 +2,6 @@
 #include "ui_processorselectiondialog.h"
 
 #include <QDialogButtonBox>
-#include <QListWidget>
 
 #include "processorhandler.h"
 #include "radix.h"
@@ -10,67 +9,83 @@
 namespace Ripes {
 
 ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
-    : QDialog(parent), ui(new Ui::ProcessorSelectionDialog) {
-    ui->setupUi(this);
+    : QDialog(parent), m_ui(new Ui::ProcessorSelectionDialog) {
+    m_ui->setupUi(this);
     setWindowTitle("Select Processor");
 
-    // Initialize processor list
-    QListWidgetItem* selectedItem = nullptr;
-    for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
-        QListWidgetItem* item = new QListWidgetItem(desc.second.name);
-        item->setData(Qt::UserRole, QVariant::fromValue(desc.second.id));
-        if (desc.second.id == ProcessorHandler::get()->getID()) {
-            auto font = item->font();
-            font.setBold(true);
-            item->setFont(font);
-            selectedItem = item;
-        }
-        ui->processorList->addItem(item);
+    // Initialize top level ISA items
+    m_ui->processors->setHeaderHidden(true);
+    std::map<ISA, QTreeWidgetItem*> isaItems;
+    for (const auto& isa : ISANames) {
+        auto* isaItem = new QTreeWidgetItem({isa.second});
+        isaItems[isa.first] = isaItem;
+        isaItem->setFlags(isaItem->flags() & ~(Qt::ItemIsSelectable));
+        m_ui->processors->insertTopLevelItem(m_ui->processors->topLevelItemCount(), isaItem);
     }
 
-    connect(ui->processorList, &QListWidget::currentItemChanged, this, &ProcessorSelectionDialog::selectionChanged);
+    // Initialize processor list
+    QTreeWidgetItem* selectedItem = nullptr;
 
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
+        QTreeWidgetItem* processorItem = new QTreeWidgetItem({desc.second.name});
+        processorItem->setData(ProcessorColumn, Qt::UserRole, QVariant::fromValue(desc.second.id));
+        if (desc.second.id == ProcessorHandler::get()->getID()) {
+            auto font = processorItem->font(ProcessorColumn);
+            font.setBold(true);
+            processorItem->setFont(ProcessorColumn, font);
+            selectedItem = processorItem;
+        }
+        auto* isaItem = isaItems.at(desc.second.isa->isaID());
+        isaItem->insertChild(isaItem->childCount(), processorItem);
+    }
+
+    connect(m_ui->processors, &QTreeWidget::currentItemChanged, this, &ProcessorSelectionDialog::selectionChanged);
+
+    connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     if (selectedItem != nullptr) {
-        ui->processorList->setCurrentItem(selectedItem);
+        m_ui->processors->setCurrentItem(selectedItem);
     }
 }
 
 RegisterInitialization ProcessorSelectionDialog::getRegisterInitialization() const {
-    return ui->regInitWidget->getInitialization();
+    return m_ui->regInitWidget->getInitialization();
 }
 
 ProcessorSelectionDialog::~ProcessorSelectionDialog() {
-    delete ui;
+    delete m_ui;
 }
 
-void ProcessorSelectionDialog::accept() {
-    const ProcessorID id = qvariant_cast<ProcessorID>(ui->processorList->currentItem()->data(Qt::UserRole));
-    selectedID = id;
-    QDialog::accept();
-}
+void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeWidgetItem*) {
+    QVariant selectedItemData = current->data(ProcessorColumn, Qt::UserRole);
+    const bool validSelection = selectedItemData.canConvert<ProcessorID>();
+    m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(validSelection);
+    if (!validSelection) {
+        // Something which is not a processor was selected (ie. an ISA). Disable OK button
+        return;
+    }
 
-void ProcessorSelectionDialog::selectionChanged(QListWidgetItem* current, QListWidgetItem*) {
-    const ProcessorID id = qvariant_cast<ProcessorID>(current->data(Qt::UserRole));
+    const ProcessorID id = qvariant_cast<ProcessorID>(current->data(ProcessorColumn, Qt::UserRole));
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(id);
 
-    ui->name->setText(desc.name);
-    ui->ISA->setText(desc.isa->name());
-    ui->description->setPlainText(desc.description);
-    ui->regInitWidget->processorSelectionChanged(id);
+    // Update information widgets with the current processor info
+    m_selectedID = id;
+    m_ui->name->setText(desc.name);
+    m_ui->ISA->setText(desc.isa->name());
+    m_ui->description->setPlainText(desc.description);
+    m_ui->regInitWidget->processorSelectionChanged(id);
 
-    ui->layout->clear();
+    m_ui->layout->clear();
     for (const auto& layout : desc.layouts) {
-        ui->layout->addItem(layout.name);
+        m_ui->layout->addItem(layout.name);
     }
 }
 
 Layout ProcessorSelectionDialog::getSelectedLayout() const {
-    const auto& desc = ProcessorRegistry::getAvailableProcessors().at(getSelectedId());
+    const auto& desc = ProcessorRegistry::getAvailableProcessors().at(m_selectedID);
     for (const auto& layout : desc.layouts) {
-        if (layout.name == ui->layout->currentText()) {
+        if (layout.name == m_ui->layout->currentText()) {
             return layout;
         }
     }

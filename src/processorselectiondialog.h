@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include <QListWidget>
+#include <QTreeWidget>
 
 #include "processorregistry.h"
 
@@ -18,18 +18,16 @@ public:
     explicit ProcessorSelectionDialog(QWidget* parent = nullptr);
     ~ProcessorSelectionDialog();
 
-    ProcessorID getSelectedId() const { return selectedID; }
+    ProcessorID getSelectedId() const { return m_selectedID; }
     RegisterInitialization getRegisterInitialization() const;
     Layout getSelectedLayout() const;
 
-public slots:
-    virtual void accept() override;
-
 private slots:
-    void selectionChanged(QListWidgetItem* current, QListWidgetItem* previous);
+    void selectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
 private:
-    ProcessorID selectedID;
-    Ui::ProcessorSelectionDialog* ui;
+    enum ProcessorTreeColums { ProcessorColumn, ColumnCount };
+    ProcessorID m_selectedID;
+    Ui::ProcessorSelectionDialog* m_ui;
 };
 }  // namespace Ripes

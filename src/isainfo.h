@@ -9,10 +9,12 @@ namespace Ripes {
 
 /// Currently supported ISAs
 enum class ISA { RV32IM };
+const static std::map<ISA, QString> ISANames = {{ISA::RV32IM, "RISC-V"}};
 
 class ISAInfoBase {
 public:
     virtual QString name() const = 0;
+    virtual ISA isaID() const = 0;
 
     virtual unsigned regCnt() const = 0;
     virtual QString regName(unsigned i) const = 0;
@@ -119,6 +121,7 @@ public:
     }
 
     QString name() const override { return "RV32IM"; }
+    ISA isaID() const override { return ISA::RV32IM; }
 
     unsigned int regCnt() const override { return 32; }
     QString regName(unsigned i) const override { return RVRegNames.at(i); }

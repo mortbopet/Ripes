@@ -22,17 +22,16 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
        <item>
-        <widget class="QListWidget" name="processorList">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
+        <widget class="QTreeWidget" name="processors">
+         <column>
+          <property name="text">
+           <string notr="true">1</string>
+          </property>
+         </column>
         </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,2">
+        <layout class="QVBoxLayout" name="infoLayout" stretch="0,2">
          <item>
           <layout class="QGridLayout" name="gridLayout">
            <item row="1" column="1">
