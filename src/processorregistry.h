@@ -81,8 +81,8 @@ private:
         desc.isa = ISAInfo<ISA::RV32IM>::instance();
         desc.name = "5-Stage Processor";
         desc.description = "A 5-Stage in-order processor with hazard detection/elimination and forwarding.";
-        desc.layouts = {{"Standard", ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json", {0.08, 0.29, 0.52, 0.73, 0.87}},
-                        {"Extended", ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json", {0.08, 0.28, 0.53, 0.76, 0.9}}};
+        desc.layouts = {{"Standard", ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json", {0.08, 0.29, 0.55, 0.75, 0.87}},
+                        {"Extended", ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json", {0.08, 0.28, 0.54, 0.78, 0.9}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -106,10 +106,10 @@ private:
         desc.description = "A 5-Stage in-order processor with no forwarding or hazard detection/elimination.";
         desc.layouts = {{"Standard",
                          ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
-                         {0.08, 0.3, 0.53, 0.72, 0.88}},
+                         {0.08, 0.3, 0.54, 0.73, 0.88}},
                         {"Extended",
                          ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json",
-                         {0.08, 0.28, 0.53, 0.76, 0.9}}};
+                         {0.08, 0.31, 0.56, 0.76, 0.9}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }
