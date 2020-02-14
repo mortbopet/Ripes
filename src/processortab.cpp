@@ -113,18 +113,21 @@ void ProcessorTab::setupSimulatorActions() {
     m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
     connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
     m_resetAction->setShortcut(QKeySequence("F3"));
+    m_resetAction->setToolTip("Reset the simulator (F3)");
     m_toolbar->addAction(m_resetAction);
 
     const QIcon reverseIcon = QIcon(":/icons/reverse.svg");
     m_reverseAction = new QAction(reverseIcon, "Reverse (F4)", this);
     connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::reverse);
     m_reverseAction->setShortcut(QKeySequence("F4"));
+    m_reverseAction->setToolTip("Undo a clock cycle (F4)");
     m_toolbar->addAction(m_reverseAction);
 
     const QIcon clockIcon = QIcon(":/icons/step.svg");
     m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
     connect(m_clockAction, &QAction::triggered, this, &ProcessorTab::clock);
     m_clockAction->setShortcut(QKeySequence("F5"));
+    m_clockAction->setToolTip("Clock the circuit (F5)");
     m_toolbar->addAction(m_clockAction);
 
     QTimer* timer = new QTimer(this);
@@ -134,6 +137,7 @@ void ProcessorTab::setupSimulatorActions() {
     const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
     m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
     m_autoClockAction->setShortcut(QKeySequence("F6"));
+    m_autoClockAction->setToolTip("Clock the circuit with the selected frequency (F6)");
     m_autoClockAction->setCheckable(true);
     connect(m_autoClockAction, &QAction::toggled, [=](bool checked) {
         if (!checked) {
@@ -161,6 +165,9 @@ void ProcessorTab::setupSimulatorActions() {
     m_runAction->setShortcut(QKeySequence("F8"));
     m_runAction->setCheckable(true);
     m_runAction->setChecked(false);
+    m_runAction->setToolTip(
+        "Execute simulator without updating UI (fast execution).\n Running will stop once the program exits or a "
+        "breakpoint is hit.");
     connect(m_runAction, &QAction::toggled, this, &ProcessorTab::run);
     m_toolbar->addAction(m_runAction);
     m_toolbar->addSeparator();

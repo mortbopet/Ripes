@@ -68,6 +68,9 @@
             <layout class="QGridLayout" name="gridLayout_7">
              <item row="2" column="0">
               <widget class="QLabel" name="label">
+               <property name="toolTip">
+                <string>Cycles per instruction</string>
+               </property>
                <property name="text">
                 <string>CPI:</string>
                </property>
@@ -113,6 +116,9 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="toolTip">
+                <string>An instruction has been retired once leaving the final stage of the processor</string>
+               </property>
                <property name="text">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Instrs. retired:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -155,6 +161,9 @@
              </item>
              <item row="3" column="0">
               <widget class="QLabel" name="label_2">
+               <property name="toolTip">
+                <string>Instructions per cycle</string>
+               </property>
                <property name="text">
                 <string>IPC:</string>
                </property>
