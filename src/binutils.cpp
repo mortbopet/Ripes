@@ -1,5 +1,7 @@
 #include "binutils.h"
 
+namespace Ripes {
+
 uint32_t accBVec(const std::vector<bool>& v) {
     uint32_t r = 0;
     for (uint32_t i = 0; i < v.size(); i++) {
@@ -9,8 +11,9 @@ uint32_t accBVec(const std::vector<bool>& v) {
 }
 
 void buildVec(std::vector<bool>& v, uint32_t n) {
-    for (auto && i : v) {
+    for (auto&& i : v) {
         i = n & 0b1;
         n >>= 1;
     }
 }
+}  // namespace Ripes

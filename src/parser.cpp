@@ -1,14 +1,16 @@
 #include "parser.h"
 #include "defines.h"
-#include "pipeline.h"
 
 #include <cassert>
+#include <functional>
 #include <iostream>
 
 #include <QDataStream>
 #include <QFile>
 
 #include "binutils.h"
+
+namespace Ripes {
 
 Parser::Parser() {
     // generate word parser functors
@@ -20,135 +22,44 @@ Parser::Parser() {
     m_decodeJInstr = generateWordParser(vector<int>{5, 8, 1, 10, 1});
 }
 
-bool Parser::initBinaryFile(char* filename) {
-    // Open binary file
-    const string fname = string(filename);
-    m_fileStream = ifstream(fname.c_str(), ios::binary);
-    if (!(m_fileStream.good())) {
-        return true;
-    }
-
-    // Create filestream iterator
-    m_fileIter = istreambuf_iterator<char>(m_fileStream);
-
-    // get file size
-    m_fileStream.seekg(0, ios::end);
-    m_fileSize = m_fileStream.tellg();
-    m_fileStream.clear();
-    m_fileStream.seekg(0, ios::beg);
-    return false;
-}
-
 Parser::~Parser() {}
 
-void Parser::parseFile() {
-    // Parse the file in 8-bit segments and write to memory map
-    MainMemory memory;
-    int pc = 0;
-    while (m_fileIter != istreambuf_iterator<char>()) {
-        memory.write(pc, *m_fileIter, 1);
-        pc++;
-        m_fileIter++;
-    }
-    Pipeline::getPipeline()->setBaselineMemory(memory);
-}
-
-QString Parser::getStringAt(uint32_t address) const {
-    // Returns the null-terminated string starting at @address
-    MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
-    QByteArray string;
-    char read;
-    do {
-        read = memPtr->read(address) & 0xff;
-        string.append(read);
-        address++;
-    } while (read != '\0');
-    return QString::fromUtf8(string);
-}
-
-void Parser::clear() {
-    m_disassembledRepr.clear();
-    m_binaryRepr.clear();
-
-    // Reset the pipeline
-    Pipeline::getPipeline()->reset();
-}
-
-const QString& Parser::loadBinaryFile(QString fileName, bool disassembled) {
-    // Loads a binary file and converts it to a text string, as well as puts the binary information into the pipeline
-    // memorys text segment
-
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly)) {
-        m_fileByteArray = file.readAll();
-        loadFromByteArray(m_fileByteArray);
-        file.close();
-    }
-    if (disassembled) {
-        return m_disassembledRepr;
-    } else {
-        return m_binaryRepr;
-    }
-}
-
-const QString& Parser::loadFromByteArray(QByteArray arr, bool disassembled, uint32_t baseAddress) {
-    // Loads the input arr into the memory of the simulator
-    // Baseaddress is default = 0 (text). Can be changed for inserting into ie. data memory
-
-    QString output = "";
-    MainMemory memory;
-    auto length = arr.length();
-    QDataStream in(&arr, QIODevice::ReadOnly);
-    char buffer[4];
-    uint32_t byteIndex = baseAddress;
-    for (int i = 0; i < length; i += 4) {
-        in.readRawData(buffer, 4);
-        QString binaryRepString;
-        for (char j : buffer) {
-            binaryRepString.prepend(QString().setNum((uint8_t)j, 2).rightJustified(8, '0'));
-            memory.write(byteIndex, j, 1);
-            byteIndex++;
+QString Parser::disassemble(const QByteArray& text) const {
+    return stringifyByteArray(text, 4, [this](const std::vector<char>& buffer, uint32_t index) {
+        // Hardcoded for RV32 for now
+        uint32_t instr = 0;
+        for (int i = 0; i < 4; i++) {
+            instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
         }
-        m_binaryRepr.append(binaryRepString).append('\n');
-        uint32_t instr =
-            (buffer[3] & 0xff) << 24 | (buffer[2] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[0] & 0xff);
-        output.append(genStringRepr(instr, byteIndex - 4));
-        output.append("\n");
-    }
-    // Remove trailing \n character
-    output.truncate(output.lastIndexOf('\n'));
-
-    // Set the initial memory state of the processor
-    Pipeline::getPipeline()->setBaselineMemory(memory);
-
-    // Update the pipeline
-    Pipeline::getPipeline()->update();
-    if (baseAddress == 0)
-        m_disassembledRepr = output;
-
-    if (disassembled) {
-        return m_disassembledRepr;
-    } else {
-        return m_binaryRepr;
-    }
+        return disassemble(instr, index);
+    });
 }
 
-void Parser::loadFromByteArrayIntoData(QByteArray arr) {
-    // Loads a byte array into the data segment of the simulator
-    // In this, we do no string convertion etc., which is usually done for generating the disassembled view of the
-    // program
-    auto memPtr = Pipeline::getPipeline()->getDataMemoryPtr();
-    auto length = arr.length();
-    QDataStream in(&arr, QIODevice::ReadOnly);
-    char buffer[4];
-    uint32_t byteIndex = DATASTART;
-    for (int i = 0; i < length; i += 4) {
-        in.readRawData(buffer, 4);
-        for (char& j : buffer) {
-            memPtr->insert({byteIndex, j});
-            byteIndex++;
+QString Parser::binarize(const QByteArray& text) const {
+    return stringifyByteArray(text, 4, [](const std::vector<char>& buffer, uint32_t) {
+        QString binaryString;
+        for (auto byte : buffer) {
+            binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));
         }
+        return binaryString;
+    });
+}
+
+QString Parser::stringifyByteArray(const QByteArray& data, unsigned stride,
+                                   std::function<QString(const std::vector<char>&, uint32_t index)> stringifier) const {
+    QString out;
+    auto dataStream = QDataStream(data);
+    std::vector<char> buffer;
+    buffer.resize(stride);
+    uint32_t byteIndex = 0;
+
+    for (int i = 0; i < data.length(); i += stride) {
+        dataStream.readRawData(buffer.data(), stride);
+        out += stringifier(buffer, byteIndex);
+        out += "\n";
+        byteIndex += stride;
     }
+    return out;
 }
 
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
@@ -184,31 +95,30 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
     return wordParser;
 }
 
-QString Parser::genStringRepr(uint32_t instr, uint32_t address) const {
+QString Parser::disassemble(uint32_t instr, uint32_t address) const {
     switch (instr & 0x7f) {
-        case LUI:
+        case instrType::LUI:
             return generateLuiString(instr);
-        case AUIPC:
+        case instrType::AUIPC:
             return generateAuipcString(instr);
-        case JAL:
+        case instrType::JAL:
             return generateJalString(instr, address);
-        case JALR:
+        case instrType::JALR:
             return generateJalrString(instr);
-        case BRANCH:
+        case instrType::BRANCH:
             return generateBranchString(instr);
-        case LOAD:
+        case instrType::LOAD:
             return generateLoadString(instr);
-        case STORE:
+        case instrType::STORE:
             return generateStoreString(instr);
-        case OP_IMM:
+        case instrType::OP_IMM:
             return generateOpImmString(instr);
-        case OP:
+        case instrType::OP:
             return generateOpInstrString(instr);
-        case ECALL:
+        case instrType::ECALL:
             return generateEcallString(instr);
         default:
             return QString("Invalid instruction");
-            break;
     }
 }
 QString Parser::generateEcallString(uint32_t) const {
@@ -223,22 +133,24 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
                 return QString("add x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             } else if (fields[0] == 0b0100000) {
                 return QString("sub x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
-                break;
             } else if (fields[0] == 0b0000001) {
                 return QString("mul x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b001:
             if (fields[0] == 0b0000001) {
                 return QString("mulh x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             } else if (fields[0] == 0) {
                 return QString("sll x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b010:
             if (fields[0] == 0b0000001) {
                 return QString("mulhsu x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             } else if (fields[0] == 0) {
                 return QString("slt x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b011:
             if (fields[0] == 0b0000001) {
                 return QString("mulhu x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
@@ -261,6 +173,7 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
             } else if (fields[0] == 0b1) {
                 return QString("divu x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
+            break;
         case 0b110:
             if (fields[0] == 0b1) {
                 return QString("rem x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
@@ -274,8 +187,9 @@ QString Parser::generateOpInstrString(uint32_t instr) const {
                 return QString("and x%1 x%2 x%3").arg(fields[4]).arg(fields[2]).arg(fields[1]);
             }
         default:
-            return QString("Unknown instruction");
+            break;
     }
+    return QString("Unknown instruction");
 }
 
 QString Parser::generateOpImmString(uint32_t instr) const {
@@ -374,12 +288,12 @@ QString Parser::generateJalrString(uint32_t instr) const {
 
 QString Parser::generateLuiString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("lui x%1 %2").arg(fields[1]).arg(fields[0]);
+    return QString("lui x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
 }
 
 QString Parser::generateAuipcString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("auipc x%1 %2").arg(fields[1]).arg((uint32_t)(fields[0]));
+    return QString("auipc x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
 }
 
 QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
@@ -387,14 +301,6 @@ QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
     auto target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
     target += (address);
     // Check for misaligned four-byte boundary
-    return QString("jal x%1 %2").arg(fields[4]).arg(target);
+    return QString("jal x%1 %2").arg(fields[4]).arg("0x" + QString::number(target, 16));
 }
-
-QString Parser::getInstructionString(uint32_t address) const {
-    MainMemory* memPtr = Pipeline::getPipeline()->getRuntimeMemoryPtr();
-    // Note: If address is not found in memory map, a default constructed object
-    // will be created, and read. in our case uint8_t() = 0
-    uint32_t read = (memPtr->read(address) | (memPtr->read(address + 1) << 8) | (memPtr->read(address + 2) << 16) |
-                     (memPtr->read(address + 3) << 24));
-    return genStringRepr(read, address);
-}
+}  // namespace Ripes

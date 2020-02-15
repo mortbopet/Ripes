@@ -1,11 +1,12 @@
-#ifndef PARSER_H
-#define PARSER_H
+#pragma once
 
 #include <fstream>
 #include <functional>
 #include <unordered_map>
 #include <vector>
 #include "defines.h"
+
+namespace Ripes {
 
 /*
     Class for:
@@ -23,9 +24,7 @@ public:
         return &parser;
     }
 
-    int getFileSize() { return m_fileSize; }
-    QString genStringRepr(uint32_t instr, uint32_t address) const;
-    void clear();
+    QString disassemble(uint32_t instr, uint32_t address) const;
 
     // Const interfaces to intstruction decode lamdas
     std::vector<uint32_t> decodeUInstr(uint32_t instr) const { return m_decodeUInstr(instr); }
@@ -35,30 +34,16 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    QString getInstructionString(uint32_t address) const;
-
-    const QString& loadFromByteArray(QByteArray arr, bool disassembled = true, uint32_t baseAddress = 0x0);
-    void loadFromByteArrayIntoData(QByteArray arr);
-    const QString& loadBinaryFile(QString fileName, bool disassembled = true);
-    const QString& getBinaryRepr() { return m_binaryRepr; }
-    const QString& getDisassembledRepr() { return m_disassembledRepr; }
-    QString getStringAt(uint32_t address) const;
-    QByteArray getFileByteArray() { return m_fileByteArray; }
-    bool initBinaryFile(char* filename);
-    void parseFile();
+    QString disassemble(const QByteArray& text) const;
+    QString binarize(const QByteArray& text) const;
 
 private:
+    QString
+    stringifyByteArray(const QByteArray& data, unsigned stride,
+                       std::function<QString(const std::vector<char>& buffer, uint32_t index)> stringifier) const;
+
     Parser();
     ~Parser();
-    ifstream m_fileStream;
-    istreambuf_iterator<char> m_fileIter;
-    QByteArray m_fileByteArray;
-    int m_fileSize;
-    QString m_disassembledRepr;  // disassembled representation of the currently loaded binary file in the pipeline
-    QString m_binaryRepr;
-
-    QMap<int, uint32_t>
-        m_assembledInputFileMap;  // Intermediate assembler stage used for setting labels post-translation
 
     // Instruction decode lambda functions; runtime generated
     decode_functor generateWordParser(std::vector<int> bitFields);
@@ -81,5 +66,4 @@ private:
     QString generateOpInstrString(uint32_t instr) const;
     QString generateEcallString(uint32_t instr) const;
 };
-
-#endif  // PARSER_H
+}  // namespace Ripes

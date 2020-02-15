@@ -1,7 +1,7 @@
-#ifndef MAINMEMORY_H
-#define MAINMEMORY_H
-
+#pragma once
 #include "defines.h"
+
+namespace Ripes {
 
 // RVAccess struct - used for keeping track of read and write access to memory, for displaying in GUI
 enum class RW { Read, Write };
@@ -47,4 +47,4 @@ public:
 
 typedef MainMemoryTemplate<uint32_t, uint8_t> MainMemory;
 
-#endif  // MAiNMEMORY_H
+}  // namespace Ripes

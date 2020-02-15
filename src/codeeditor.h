@@ -1,5 +1,4 @@
-#ifndef CODEEDITOR_H
-#define CODEEDITOR_H
+#pragma once
 
 #include <QApplication>
 #include <QPlainTextEdit>
@@ -14,6 +13,8 @@
 // Extended version of Qt's CodeEditor example
 // http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 
+namespace Ripes {
+
 class LineNumberArea;
 class BreakpointArea;
 
@@ -24,23 +25,23 @@ public:
 
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     void breakpointAreaPaintEvent(QPaintEvent* event);
-    void breakpointClick(QMouseEvent* event, int forceState = 0);
+    void breakpointClick(const QPoint& pos);
+    bool hasBreakpoint(const QPoint& pos) const;
+    long addressForPos(const QPoint& pos) const;
     void clearBreakpoints();
-    void updateBreakpoints();
     int lineNumberAreaWidth();
     void setupSyntaxHighlighter();
-    void setupAssembler();
+    void setupChangedTimer();
     void enableBreakpointArea();
-    void reset() { m_highlighter->reset(); }
-    void setTimerEnabled(bool state) { m_timerEnabled = state; }
-    const QByteArray& getCurrentOutputArray() { return m_assembler->getTextSegment(); }
-    void clearOutputArray() {
-        m_assembler->clear();
+    void reset() {
+        m_highlighter->reset();
         m_tooltipForLine.clear();
+        clear();
     }
+    bool syntaxAccepted() const { return m_tooltipForLine.isEmpty(); }
+
 signals:
-    void readyToTranslate();  // Emitted when syntax has been accepted, and the input text can be translated to
-    void assembledSuccessfully(const QByteArray& bytearray, bool clearSimulatorMemory, uint32_t baseAddress);
+    void textChanged();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -51,10 +52,8 @@ private slots:
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
     void updateTooltip(int line, QString tip);
-    void assembleCode();
 
 private:
-    Assembler* m_assembler;
     SyntaxHighlighter* m_highlighter;
     LineNumberArea* m_lineNumberArea;
     BreakpointArea* m_breakpointArea;
@@ -71,7 +70,6 @@ private:
     // occur on a regular mouse scroll
     QTimer m_fontTimer;
     QTimer m_changeTimer;
-    bool m_timerEnabled = true;
 
     bool eventFilter(QObject* observed, QEvent* event) override;
 };
@@ -130,7 +128,7 @@ private:
 
     void mouseReleaseEvent(QMouseEvent* event) override {
         if (event->button() == Qt::LeftButton) {
-            codeEditor->breakpointClick(event);
+            codeEditor->breakpointClick(event->pos());
         }
     }
 
@@ -138,12 +136,5 @@ private:
         codeEditor->verticalScrollBar()->setValue(codeEditor->verticalScrollBar()->value() +
                                                   (-event->angleDelta().y()) / 30);
     }
-
-    QAction* m_removeAction;
-    QAction* m_addAction;
-    QAction* m_removeAllAction;
-
-    QMouseEvent* m_event;
 };
-
-#endif  // CODEEDITOR_H
+}  // namespace Ripes

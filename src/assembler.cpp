@@ -2,9 +2,14 @@
 #include "binutils.h"
 #include "defines.h"
 #include "lexerutilities.h"
+#include "processorhandler.h"
 
 #include <QRegularExpression>
 #include <QTextBlock>
+
+#define DATA_START 0x10000000
+
+namespace Ripes {
 
 namespace {
 // Instruction groupings needed for various identification operations
@@ -189,10 +194,10 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
     };
 
     if (hasFunct7) {
-        return uintToByteArr(OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
+        return uintToByteArr(instrType::OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
                              getRegisterNumber(fields[2]) << 15 | funct7 << 25 | imm << 20);
     } else {
-        return uintToByteArr(OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
+        return uintToByteArr(instrType::OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
                              getRegisterNumber(fields[2]) << 15 | imm << 20);
     }
 }
@@ -251,7 +256,7 @@ QByteArray Assembler::assembleOpInstruction(const QStringList& fields, int row) 
         m_error = true;
         Q_ASSERT(false);
     };
-    return uintToByteArr(OP | funct3 << 12 | funct7 << 25 | getRegisterNumber(fields[1]) << 7 |
+    return uintToByteArr(instrType::OP | funct3 << 12 | funct7 << 25 | getRegisterNumber(fields[1]) << 7 |
                          getRegisterNumber(fields[2]) << 15 | getRegisterNumber(fields[3]) << 20);
 }
 
@@ -279,7 +284,7 @@ QByteArray Assembler::assembleStoreInstruction(const QStringList& fields, int ro
         imm = m_labelPosMap[fields[2]] - (row - 1) * 4;
     }
 
-    return uintToByteArr(STORE | getRegisterNumber(fields[3]) << 15 | getRegisterNumber(fields[1]) << 20 |
+    return uintToByteArr(instrType::STORE | getRegisterNumber(fields[3]) << 15 | getRegisterNumber(fields[1]) << 20 |
                          funct3 << 12 | (imm & 0b11111) << 7 | (imm & 0xFE0) << 20);
 }
 
@@ -309,7 +314,7 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
         imm = (m_labelPosMap[fields[2]] & 0xfff) - (row - 1) * 4;
     }
 
-    return uintToByteArr(LOAD | funct3 << 12 | getRegisterNumber(fields[1]) << 7 | imm << 20 |
+    return uintToByteArr(instrType::LOAD | funct3 << 12 | getRegisterNumber(fields[1]) << 7 | imm << 20 |
                          getRegisterNumber(fields[3]) << 15);
 }
 
@@ -336,12 +341,12 @@ QByteArray Assembler::assembleBranchInstruction(const QStringList& fields, int r
         Q_ASSERT(false);
     };
 
-    return uintToByteArr(BRANCH | getRegisterNumber(fields[1]) << 15 | getRegisterNumber(fields[2]) << 20 |
+    return uintToByteArr(instrType::BRANCH | getRegisterNumber(fields[1]) << 15 | getRegisterNumber(fields[2]) << 20 |
                          (offset & 0b11110) << 7 | (offset & 0x800) >> 4 | (offset & 0x7E0) << 20 |
                          (offset & 0x1000) << 19 | funct3 << 12);
 }
 
-QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int row) {
+QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int) {
     bool canConvert;
     int imm = getImmediate(fields[2], canConvert) << 12;
     if (canConvert) {
@@ -358,7 +363,7 @@ QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int ro
         }
     }
 
-    return uintToByteArr(AUIPC | getRegisterNumber(fields[1]) << 7 | (imm & 0xfffff000));
+    return uintToByteArr(instrType::AUIPC | getRegisterNumber(fields[1]) << 7 | (imm & 0xfffff000));
 }
 
 QByteArray Assembler::assembleJalrInstruction(const QStringList& fields, int row) {
@@ -373,7 +378,7 @@ QByteArray Assembler::assembleJalrInstruction(const QStringList& fields, int row
         imm = m_labelPosMap[fields[3]] - (row - 1) * 4;
     }
 
-    return uintToByteArr(JALR | getRegisterNumber(fields[1]) << 7 | getRegisterNumber(fields[2]) << 15 |
+    return uintToByteArr(instrType::JALR | getRegisterNumber(fields[1]) << 7 | getRegisterNumber(fields[2]) << 15 |
                          (imm & 0xfff) << 20);
 }
 
@@ -394,8 +399,8 @@ void Assembler::assembleInstruction(const QStringList& fields, int row) {
         m_textSegment.append(assembleJalrInstruction(fields, row));
     } else if (instruction == "lui") {
         bool canConvert;
-        m_textSegment.append(
-            uintToByteArr(LUI | getRegisterNumber(fields[1]) << 7 | getImmediate(fields[2], canConvert) << 12));
+        m_textSegment.append(uintToByteArr(instrType::LUI | getRegisterNumber(fields[1]) << 7 |
+                                           getImmediate(fields[2], canConvert) << 12));
         m_error |= !canConvert;
     } else if (instruction == "auipc") {
         m_textSegment.append(assembleAuipcInstruction(fields, row));
@@ -404,9 +409,9 @@ void Assembler::assembleInstruction(const QStringList& fields, int row) {
         int32_t imm = m_labelPosMap[fields[2]];
         imm = imm - row * 4;
         imm = (imm & 0x7fe) << 20 | (imm & 0x800) << 9 | (imm & 0xff000) | (imm & 0x100000) << 11;
-        m_textSegment.append(uintToByteArr(JAL | getRegisterNumber(fields[1]) << 7 | imm));
+        m_textSegment.append(uintToByteArr(instrType::JAL | getRegisterNumber(fields[1]) << 7 | imm));
     } else if (instruction == "ecall") {
-        m_textSegment.append(uintToByteArr(ECALL));
+        m_textSegment.append(uintToByteArr(instrType::ECALL));
     } else {
         //  Unknown instruction
         m_error = true;
@@ -465,7 +470,7 @@ void Assembler::unpackPseudoOp(const QStringList& fields, int& pos) {
         m_instructionsMap[pos] = QStringList() << "sltiu" << fields[1] << fields[2] << "1";
         pos++;
     } else if (fields.first() == "snez") {
-        m_instructionsMap[pos] = QStringList() << "sltu" << fields[1] << fields[2] << "1";
+        m_instructionsMap[pos] = QStringList() << "sltu" << fields[1] << "x0" << fields[2];
         pos++;
     } else if (fields.first() == "sltz") {
         m_instructionsMap[pos] = QStringList() << "slt" << fields[1] << fields[2] << "x0";
@@ -623,7 +628,7 @@ void Assembler::assembleWords(const QStringList& fields, QByteArray& byteArray, 
 // Allocates $size bytes in the static data segment
 void Assembler::assembleZeroArray(QByteArray& byteArray, size_t size) {
     Q_ASSERT(size >= 1);
-    for (int i = 0; i < size; i++) {
+    for (unsigned i = 0; i < size; i++) {
         byteArray.append(static_cast<char>(0x0));
     }
 }
@@ -694,7 +699,7 @@ void Assembler::unpackOp(const QStringList& _fields, int& pos) {
         if (m_inDataSegment) {
             m_labelPosMap[string] =
                 // Offset label by data segment position and length of the data segment
-                m_dataSegment.length() + DATASTART;  // Divide by 4 since labelPosMap is word indexed
+                m_dataSegment.length() + DATA_START;
         } else {
             // The label is in the text segment. Label is defined without an offset
             m_labelPosMap[string] = pos * 4;
@@ -753,7 +758,7 @@ inline QStringList splitColon(const QString& string) {
 }
 }  // namespace
 
-const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
+const QByteArray& Assembler::assemble(const QTextDocument& doc) {
     // Called by codeEditor when syntax has been accepted, and the document should be assembled into binary
     // Because of the previously accepted syntax, !no! error handling will be done, to ensure a fast execution
     int line = 0;
@@ -806,3 +811,12 @@ const QByteArray& Assembler::assembleBinaryFile(const QTextDocument& doc) {
 
     return m_textSegment;
 }
+
+const Program Assembler::getProgram() {
+    Program p;
+    p.sections.push_back({TEXT_SECTION_NAME, 0, m_textSegment});
+    p.sections.push_back({".data", DATA_START, m_dataSegment});
+    return p;
+}
+
+}  // namespace Ripes

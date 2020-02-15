@@ -1,8 +1,9 @@
-#ifndef SYNTAXHIGHLIGHTER_H
-#define SYNTAXHIGHLIGHTER_H
+#pragma once
 
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
+
+namespace Ripes {
 
 /* Class for highlighting RISC-V assembly code Based on QT's rich text syntax highlighter example.
  http://doc.qt.io/qt-5/qtwidgets-richtext-syntaxhighlighter-example.html
@@ -80,5 +81,4 @@ public slots:
     void invalidateLabels(const QTextCursor&);
     void clearAndRehighlight();
 };
-
-#endif  // SYNTAXHIGHLIGHTER_H
+}  // namespace Ripes

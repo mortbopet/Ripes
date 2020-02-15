@@ -1,195 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MemoryTab</class>
- <widget class="QWidget" name="MemoryTab">
+ <class>Ripes::MemoryTab</class>
+ <widget class="QWidget" name="Ripes::MemoryTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>986</width>
-    <height>415</height>
+    <width>839</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QSplitter" name="splitter">
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="childrenCollapsible">
-      <bool>false</bool>
-     </property>
-     <widget class="RegisterContainerWidget" name="registerContainer" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>250</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-     <widget class="RWJumpWidget" name="rwjumpwidget" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-     <widget class="QWidget" name="">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Memory</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QScrollArea" name="scrollArea_2">
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents_2">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>606</width>
-            <height>337</height>
-           </rect>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_6">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <property name="horizontalSpacing">
-            <number>6</number>
-           </property>
-           <item row="0" column="0">
-            <layout class="QVBoxLayout" name="memoryLayout">
-             <item>
-              <widget class="MemoryView" name="memoryView">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                 <horstretch>1</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Display type:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="memorydisplaytype">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Go to:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="GoToComboBox" name="gotoCombobox"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="memoryUp">
-           <property name="text">
-            <string>Up</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="memoryDown">
-           <property name="text">
-            <string>Down</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="save">
-           <property name="text">
-            <string>Save Address</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </widget>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="MemoryViewerWidget" name="memoryViewerWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>RegisterContainerWidget</class>
+   <class>MemoryViewerWidget</class>
    <extends>QWidget</extends>
-   <header>registercontainerwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MemoryView</class>
-   <extends>QTableView</extends>
-   <header>memoryview.h</header>
-  </customwidget>
-  <customwidget>
-   <class>GoToComboBox</class>
-   <extends>QComboBox</extends>
-   <header>gotocombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>RWJumpWidget</class>
-   <extends>QWidget</extends>
-   <header>rwjumpwidget.h</header>
+   <header>memoryviewerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

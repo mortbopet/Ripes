@@ -1,54 +1,32 @@
-#ifndef REGISTERWIDGET_H
-#define REGISTERWIDGET_H
+#pragma once
 
-#include <QValidator>
 #include <QWidget>
 
-#include "defines.h"
+#include "processorhandler.h"
+#include "registermodel.h"
+
+namespace Ripes {
 
 namespace Ui {
 class RegisterWidget;
 }
-
-namespace {
-typedef QPair<long long, long long> rangePair;
-}
-
-/*
- * Widget for representing register contents
- */
 
 class RegisterWidget : public QWidget {
     Q_OBJECT
 
 public:
     explicit RegisterWidget(QWidget* parent = nullptr);
-    ~RegisterWidget() override;
+    ~RegisterWidget();
 
-    void setAlias(QString text);
-    void setNumber(int number);
-    void setRegPtr(uint32_t* ptr) { m_regPtr = ptr; }
-    void enableInput(bool state);
+    void updateModel();
+
+    RegisterModel* m_registerModel = nullptr;
 
 public slots:
-    void setText();
-    void setDisplayType(displayTypeN type);
-    void setHighlightState(bool state);
-
-private slots:
-    void validateInput();
+    void updateView();
+    void setRegisterviewCenterIndex(int index);
 
 private:
-    Ui::RegisterWidget* m_ui;
-    QIntValidator m_validator;
-    displayTypeN m_displayType;
-    int m_displayBase = 10;
-    uint32_t* m_regPtr;
-
-    rangePair m_range;
-
-signals:
-    void valueChanged();
+    Ui::RegisterWidget* m_ui = nullptr;
 };
-
-#endif  // REGISTERWIDGET_H
+}  // namespace Ripes

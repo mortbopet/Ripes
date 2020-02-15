@@ -1,38 +1,53 @@
 #include "processortab.h"
-#include <QScrollBar>
-#include "graphics/pipelinewidget.h"
-#include "instructionmodel.h"
-#include "rundialog.h"
 #include "ui_processortab.h"
 
-#include <QFileDialog>
+#include <QDir>
+#include <QMessageBox>
+#include <QScrollBar>
+#include <QSpinBox>
+#include <QTemporaryFile>
 
+#include "instructionmodel.h"
 #include "parser.h"
-#include "pipeline.h"
+#include "processorhandler.h"
+#include "processorregistry.h"
+#include "processorselectiondialog.h"
+#include "registermodel.h"
+#include "stagetablemodel.h"
+#include "stagetablewidget.h"
 
-ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::ProcessorTab) {
+#include "VSRTL/graphics/vsrtl_widget.h"
+
+#include "processors/ripesprocessor.h"
+
+namespace Ripes {
+
+ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
-    // Setup buttons
-    connect(m_ui->start, &QPushButton::toggled, this, &ProcessorTab::toggleTimer);
+    m_vsrtlWidget = m_ui->vsrtlWidget;
 
-    // Setup execution speed slider
-    connect(m_ui->execSpeed, &QSlider::valueChanged, [=](int pos) {
-        // Reverse the slider, going from high to low
-        const static int delay = m_ui->execSpeed->maximum() + m_ui->execSpeed->minimum();
-        m_timer.setInterval(delay - pos);
-    });
-    m_ui->execSpeed->valueChanged(m_ui->execSpeed->value());
+    // Load the default constructed processor to the VSRTL widget
+    loadProcessorToWidget(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(0));
 
-    connect(m_ui->reset, &QPushButton::clicked, [=] { m_ui->start->setChecked(false); });
+    // By default, lock the VSRTL widget
+    m_vsrtlWidget->setLocked(true);
 
-    // Setup stepping timer
-    connect(&m_timer, &QTimer::timeout, this, &ProcessorTab::on_step_clicked);
+    m_stageModel = new StageTableModel(this);
+    connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
 
-    // Setup updating signals
-    connect(this, &ProcessorTab::update, m_ui->registerContainer, &RegisterContainerWidget::update);
-    connect(this, &ProcessorTab::update, m_ui->pipelineWidget, &PipelineWidget::update);
-    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateMetrics);
+    updateInstructionModel();
+    m_ui->registerWidget->updateModel();
+    connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
+    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateStatistics);
+    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateInstructionLabels);
+
+    setupSimulatorActions();
+
+    // Setup statistics update timer
+    m_statUpdateTimer = new QTimer(this);
+    m_statUpdateTimer->setInterval(100);
+    connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
 
     // Connect ECALL functionality to application output log and scroll to bottom
     connect(this, &ProcessorTab::appendToLog, [this](QString string) {
@@ -40,208 +55,357 @@ ProcessorTab::ProcessorTab(QWidget* parent) : QWidget(parent), m_ui(new Ui::Proc
         m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
     });
 
-    // Setup splitter such that consoles are always as small as possible
-    m_ui->pipelinesplitter->setStretchFactor(0, 2);
+    // Make processor view stretch wrt. consoles
+    m_ui->pipelinesplitter->setStretchFactor(0, 1);
+    m_ui->pipelinesplitter->setStretchFactor(1, 0);
 
-    const auto splitterSize = m_ui->pipelinesplitter->size();
-    m_ui->pipelinesplitter->setSizes(QList<int>() << splitterSize.height() - (m_ui->consolesTab->minimumHeight() - 1)
-                                                  << (m_ui->consolesTab->minimumHeight() + 1));
-    m_ui->consolesTab->removeTab(1);
+    // Make processor view stretch wrt. right side tabs
+    m_ui->viewSplitter->setStretchFactor(0, 1);
+    m_ui->viewSplitter->setStretchFactor(1, 0);
 
-    // Initially, no file is loaded, disable run, step and reset buttons
-    m_ui->reset->setEnabled(false);
-    m_ui->step->setEnabled(false);
-    m_ui->run->setEnabled(false);
-    m_ui->start->setEnabled(false);
-    m_ui->table->setEnabled(false);
+    // Initially, no file is loaded, disable toolbuttons
+    enableSimulatorControls();
 }
 
-void ProcessorTab::toggleTimer(bool state) {
-    const static QString pauseText = QLatin1String("Stop autostepping (F5)");
-    const static QString startText = QLatin1String("Start autostepping (F5)");
-    if (state) {
-        m_ui->start->setText(pauseText);
-        m_ui->start->setShortcut(Qt::Key_F5);  // The shortcut is for some reason cleared when editing the button text
-        m_timer.start();
-    } else {
-        m_ui->start->setText(startText);
-        m_ui->start->setShortcut(Qt::Key_F5);
-        m_ui->start->setChecked(false);
-        m_timer.stop();
-    };
+void ProcessorTab::printToLog(const QString& text) {
+    m_ui->console->moveCursor(QTextCursor::End);
+    m_ui->console->insertPlainText(text);
+    m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
+}
+
+void ProcessorTab::loadLayout(const Layout& layout) {
+    if (layout.name.isEmpty() || layout.file.isEmpty())
+        return;  // Not a valid layout
+
+    if (layout.stageLabelPositions.size() != ProcessorHandler::get()->getProcessor()->stageCount()) {
+        Q_ASSERT(false && "A stage label position must be specified for each stage");
+    }
+
+    // cereal expects the archive file to be present standalone on disk, and available through an ifstream. Copy the
+    // resource layout file (bundled within the binary as a Qt resource) to a temporary file, for loading the layout.
+    const auto& layoutResourceFilename = layout.file;
+    QFile layoutResourceFile(layoutResourceFilename);
+    QTemporaryFile* tmpLayoutFile = QTemporaryFile::createNativeFile(layoutResourceFile);
+    if (!tmpLayoutFile->open()) {
+        QMessageBox::warning(this, "Error", "Could not create temporary layout file");
+        return;
+    }
+
+    m_vsrtlWidget->getTopLevelComponent()->loadLayoutFile(tmpLayoutFile->fileName());
+    tmpLayoutFile->remove();
+
+    // Adjust stage label positions
+    const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
+    for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
+        auto& label = m_stageInstructionLabels.at(i);
+        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i), 0);
+    }
+}
+
+void ProcessorTab::setupSimulatorActions() {
+    const QIcon processorIcon = QIcon(":/icons/cpu.svg");
+    m_selectProcessorAction = new QAction(processorIcon, "Select processor", this);
+    connect(m_selectProcessorAction, &QAction::triggered, this, &ProcessorTab::processorSelection);
+    m_toolbar->addAction(m_selectProcessorAction);
+    m_toolbar->addSeparator();
+
+    const QIcon resetIcon = QIcon(":/icons/reset.svg");
+    m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
+    connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
+    m_resetAction->setShortcut(QKeySequence("F3"));
+    m_resetAction->setToolTip("Reset the simulator (F3)");
+    m_toolbar->addAction(m_resetAction);
+
+    const QIcon reverseIcon = QIcon(":/icons/reverse.svg");
+    m_reverseAction = new QAction(reverseIcon, "Reverse (F4)", this);
+    connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::reverse);
+    m_reverseAction->setShortcut(QKeySequence("F4"));
+    m_reverseAction->setToolTip("Undo a clock cycle (F4)");
+    m_toolbar->addAction(m_reverseAction);
+
+    const QIcon clockIcon = QIcon(":/icons/step.svg");
+    m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
+    connect(m_clockAction, &QAction::triggered, this, &ProcessorTab::clock);
+    m_clockAction->setShortcut(QKeySequence("F5"));
+    m_clockAction->setToolTip("Clock the circuit (F5)");
+    m_toolbar->addAction(m_clockAction);
+
+    QTimer* timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &ProcessorTab::clock);
+
+    const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
+    const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
+    m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
+    m_autoClockAction->setShortcut(QKeySequence("F6"));
+    m_autoClockAction->setToolTip("Clock the circuit with the selected frequency (F6)");
+    m_autoClockAction->setCheckable(true);
+    connect(m_autoClockAction, &QAction::toggled, [=](bool checked) {
+        if (!checked) {
+            timer->stop();
+            m_autoClockAction->setIcon(startAutoClockIcon);
+        } else {
+            timer->start();
+            m_autoClockAction->setIcon(stopAutoTimerIcon);
+        }
+    });
+    m_autoClockAction->setChecked(false);
+    m_toolbar->addAction(m_autoClockAction);
+
+    m_autoClockInterval = new QSpinBox(this);
+    m_autoClockInterval->setRange(1, 10000);
+    m_autoClockInterval->setSuffix(" ms");
+    m_autoClockInterval->setToolTip("Auto clock interval");
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged),
+            [timer](int msec) { timer->setInterval(msec); });
+    m_autoClockInterval->setValue(100);
+    m_toolbar->addWidget(m_autoClockInterval);
+
+    const QIcon runIcon = QIcon(":/icons/run.svg");
+    m_runAction = new QAction(runIcon, "Run (F8)", this);
+    m_runAction->setShortcut(QKeySequence("F8"));
+    m_runAction->setCheckable(true);
+    m_runAction->setChecked(false);
+    m_runAction->setToolTip(
+        "Execute simulator without updating UI (fast execution).\n Running will stop once the program exits or a "
+        "breakpoint is hit.");
+    connect(m_runAction, &QAction::toggled, this, &ProcessorTab::run);
+    m_toolbar->addAction(m_runAction);
+    m_toolbar->addSeparator();
+
+    const QIcon tagIcon = QIcon(":/icons/tag.svg");
+    m_displayValuesAction = new QAction(tagIcon, "Display signal values", this);
+    m_displayValuesAction->setCheckable(true);
+    m_displayValuesAction->setChecked(false);
+    connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
+    m_toolbar->addAction(m_displayValuesAction);
+
+    const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
+    m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
+    connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
+    m_toolbar->addAction(m_stageTableAction);
+}
+
+void ProcessorTab::updateStatistics() {
+    const auto cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const auto instrsRetired = ProcessorHandler::get()->getProcessor()->getInstructionsRetired();
+    m_ui->cycleCount->setText(QString::number(cycles));
+    m_ui->instructionsRetired->setText(QString::number(instrsRetired));
+    QString cpiText, ipcText;
+    if (cycles != 0 && instrsRetired != 0) {
+        const double cpi = static_cast<double>(cycles) / static_cast<double>(instrsRetired);
+        const double ipc = 1 / cpi;
+        cpiText = QString::number(cpi, 'g', 3);
+        ipcText = QString::number(ipc, 'g', 3);
+    }
+    m_ui->cpi->setText(cpiText);
+    m_ui->ipc->setText(ipcText);
+}
+
+void ProcessorTab::pause() {
+    m_autoClockAction->setChecked(false);
+    m_runAction->setChecked(false);
+    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
+}
+
+void ProcessorTab::fitToView() {
+    m_vsrtlWidget->zoomToFit();
+}
+
+void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
+    ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
+
+    // Construct stage instruction labels
+    auto* topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
+
+    m_stageInstructionLabels.clear();
+    const auto& proc = ProcessorHandler::get()->getProcessor();
+    for (unsigned i = 0; i < proc->stageCount(); i++) {
+        auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
+        stagelabel->setPointSize(14);
+        m_stageInstructionLabels[i] = stagelabel;
+    }
+    loadLayout(layout);
+    updateInstructionLabels();
+    fitToView();
+}
+
+void ProcessorTab::processorSelection() {
+    m_autoClockAction->setChecked(false);
+    ProcessorSelectionDialog diag;
+    if (diag.exec()) {
+        // New processor model was selected
+        m_vsrtlWidget->clearDesign();
+        m_stageInstructionLabels.clear();
+        ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
+        loadProcessorToWidget(diag.getSelectedLayout());
+        m_vsrtlWidget->reset();
+        updateInstructionModel();
+        m_ui->registerWidget->updateModel();
+
+        // Retrigger value display action if enabled
+        if (m_displayValuesAction->isChecked()) {
+            m_vsrtlWidget->setOutputPortValuesVisible(true);
+        }
+        update();
+    }
+}
+
+void ProcessorTab::updateInstructionModel() {
+    auto* oldModel = m_instrModel;
+    m_instrModel = new InstructionModel(this);
+
+    // Update the instruction view according to the newly created model
+    m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_ui->instructionView->setModel(m_instrModel);
+
+    // Only the instruction column should stretch
+    m_ui->instructionView->horizontalHeader()->setMinimumSectionSize(1);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Breakpoint,
+                                                                    QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::PC,
+                                                                    QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Stage,
+                                                                    QHeaderView::ResizeToContents);
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
+                                                                    QHeaderView::Stretch);
+
+    connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::processorWasClocked);
+
+    // Make the instruction view follow the instruction which is currently present in the first stage of the processor
+    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
+
+    if (oldModel) {
+        delete oldModel;
+    }
 }
 
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
     emit update();
-    bool pipelineReady = Pipeline::getPipeline()->getTextSize() > 0;
-
-    m_ui->step->setEnabled(pipelineReady);
-    m_ui->run->setEnabled(pipelineReady);
-    m_ui->reset->setEnabled(pipelineReady);
-    m_ui->start->setEnabled(pipelineReady);
-    m_ui->table->setEnabled(pipelineReady);
-}
-
-void ProcessorTab::initRegWidget() {
-    // Setup register widget
-    m_ui->registerContainer->setRegPtr(Pipeline::getPipeline()->getRegPtr());
-    m_ui->registerContainer->init();
-}
-
-void ProcessorTab::updateMetrics() {
-    m_ui->cycleCount->setText(QString::number(Pipeline::getPipeline()->getCycleCount()));
-    m_ui->nInstrExecuted->setText(QString::number(Pipeline::getPipeline()->getInstructionsExecuted()));
-}
-
-void ProcessorTab::initInstructionView() {
-    // Setup instruction view
-    m_instrModel = new InstructionModel(Pipeline::getPipeline()->getStagePCS(),
-                                        Pipeline::getPipeline()->getStagePCSPre(), Parser::getParser());
-    m_ui->instructionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_ui->instructionView->setModel(m_instrModel);
-    m_ui->instructionView->horizontalHeader()->setMinimumSectionSize(1);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-    connect(this, &ProcessorTab::update, m_ui->instructionView, QOverload<>::of(&QWidget::update));
-    connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::update);
-    connect(m_instrModel, &InstructionModel::currentIFRow, this, &ProcessorTab::setCurrentInstruction);
-    // Connect instruction model text changes to the pipeline widget (changing instruction names displayed above each
-    // stage)
-    connect(m_instrModel, &InstructionModel::textChanged, m_ui->pipelineWidget, &PipelineWidget::stageTextChanged);
+    enableSimulatorControls();
 }
 
 ProcessorTab::~ProcessorTab() {
     delete m_ui;
 }
 
-void ProcessorTab::on_expandView_clicked() {
-    m_ui->pipelineWidget->expandToView();
+void ProcessorTab::processorFinished() {
+    // Disallow further clocking of the circuit
+    m_clockAction->setEnabled(false);
+    m_autoClockAction->setChecked(false);
+    m_autoClockAction->setEnabled(false);
+    m_runAction->setEnabled(false);
+    m_runAction->setChecked(false);
 }
 
-void ProcessorTab::on_displayValues_toggled(bool checked) {
-    m_ui->pipelineWidget->displayAllValues(checked);
+void ProcessorTab::enableSimulatorControls() {
+    m_clockAction->setEnabled(true);
+    m_autoClockAction->setEnabled(true);
+    m_runAction->setEnabled(true);
+    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
+    m_resetAction->setEnabled(true);
+    m_stageTableAction->setEnabled(!m_hasRun);
 }
 
-void ProcessorTab::on_run_clicked() {
-    auto pipeline = Pipeline::getPipeline();
-    RunDialog dialog(this);
-    if (pipeline->isReady()) {
-        if (dialog.exec() && pipeline->isFinished()) {
-            emit update();
-            m_ui->step->setEnabled(false);
-            m_ui->start->setEnabled(false);
-            m_ui->run->setEnabled(false);
+void ProcessorTab::updateInstructionLabels() {
+    const auto& proc = ProcessorHandler::get()->getProcessor();
+    for (unsigned i = 0; i < proc->stageCount(); i++) {
+        if (!m_stageInstructionLabels.count(i))
+            continue;
+        const auto stageInfo = proc->stageInfo(i);
+        auto* instrLabel = m_stageInstructionLabels.at(i);
+        QString instrString;
+        if (stageInfo.state != StageInfo::State::None) {
+            instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
+            instrLabel->setDefaultTextColor(Qt::red);
+        } else if (stageInfo.stage_valid) {
+            instrString = ProcessorHandler::get()->parseInstrAt(stageInfo.pc);
+            instrLabel->setDefaultTextColor(QColor());
         }
+        instrLabel->setText(instrString);
     }
 }
 
-void ProcessorTab::on_reset_clicked() {
-    Pipeline::getPipeline()->restart();
+void ProcessorTab::reset() {
+    m_hasRun = false;
+    m_autoClockAction->setChecked(false);
+    m_vsrtlWidget->reset();
+    m_stageModel->reset();
     emit update();
 
-    m_ui->step->setEnabled(true);
-    m_ui->start->setEnabled(true);
-    m_ui->run->setEnabled(true);
-    m_ui->table->setEnabled(true);
+    enableSimulatorControls();
     emit appendToLog("\n");
 }
 
-void ProcessorTab::setCurrentInstruction(int row) {
-    // model emits signal with current IF instruction row
-    auto instructionView = m_ui->instructionView;
-    auto rect = instructionView->rect();
-    int indexTop = instructionView->indexAt(rect.topLeft()).row();
-    int indexBot = instructionView->indexAt(rect.bottomLeft()).row();
+void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
+    const auto index = addressToIndex(address);
+    const auto view = m_ui->instructionView;
+    const auto rect = view->rect();
+    int indexTop = view->indexAt(rect.topLeft()).row();
+    int indexBot = view->indexAt(rect.bottomLeft()).row();
+    indexBot = indexBot < 0 ? m_instrModel->rowCount() : indexBot;
 
-    int nItems = indexBot - indexTop;
+    const int nItemsVisible = indexBot - indexTop;
 
     // move scrollbar if if is not visible
-    if (row <= indexTop || row >= indexBot) {
-        auto scrollbar = m_ui->instructionView->verticalScrollBar();
-        scrollbar->setValue(row - nItems / 2);
+    if (index <= indexTop || index >= indexBot) {
+        auto scrollbar = view->verticalScrollBar();
+        scrollbar->setValue(index - nItemsVisible / 2);
     }
 }
 
-void ProcessorTab::on_step_clicked() {
-    auto pipeline = Pipeline::getPipeline();
-    auto state = pipeline->step();
+void ProcessorTab::runFinished() {
+    pause();
+    ProcessorHandler::get()->checkProcessorFinished();
+    m_statUpdateTimer->stop();
+    emit update();
+}
 
-    const auto ecallVal = pipeline->checkEcall(true);
-    if (ecallVal.first != Pipeline::ECALL::none) {
-        handleEcall(ecallVal);
+void ProcessorTab::run(bool state) {
+    m_hasRun = true;
+    // Stop any currently exeuting auto-clocking
+    if (m_autoClockAction->isChecked()) {
+        m_autoClockAction->setChecked(false);
     }
+    if (state) {
+        ProcessorHandler::get()->run();
+        m_statUpdateTimer->start();
+    } else {
+        ProcessorHandler::get()->stop();
+        m_statUpdateTimer->stop();
+    }
+
+    // Enable/Disable all actions based on whether the processor is running.
+    m_selectProcessorAction->setEnabled(!state);
+    m_clockAction->setEnabled(!state);
+    m_autoClockAction->setEnabled(!state);
+    m_reverseAction->setEnabled(!state);
+    m_resetAction->setEnabled(!state);
+    m_displayValuesAction->setEnabled(!state);
+    m_vsrtlWidget->setEnabled(!state);
+    m_stageTableAction->setEnabled(false);
+}
+
+void ProcessorTab::reverse() {
+    m_vsrtlWidget->reverse();
+    enableSimulatorControls();
+    emit update();
+}
+
+void ProcessorTab::clock() {
+    m_vsrtlWidget->clock();
+    ProcessorHandler::get()->checkValidExecutionRange();
+    if (ProcessorHandler::get()->checkBreakpoint()) {
+        pause();
+    }
+    ProcessorHandler::get()->checkProcessorFinished();
+    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 
     emit update();
-
-    // Pipeline has finished executing
-    if (pipeline->isFinished() || (state == 1 && ecallVal.first == Pipeline::ECALL::exit)) {
-        m_ui->step->setEnabled(false);
-        m_ui->start->setEnabled(false);
-        m_ui->run->setEnabled(false);
-        toggleTimer(false);
-    }
 }
 
-bool ProcessorTab::handleEcall(const std::pair<Pipeline::ECALL, int32_t>& ecall_val) {
-    // Check if ecall has been invoked
-    switch (ecall_val.first) {
-        case Pipeline::ECALL::none:
-            break;
-        case Pipeline::ECALL::print_string: {
-            emit appendToLog(Parser::getParser()->getStringAt(static_cast<uint32_t>(ecall_val.second)));
-            break;
-        }
-        case Pipeline::ECALL::print_int: {
-            emit appendToLog(QString::number(ecall_val.second));
-            break;
-        }
-        case Pipeline::ECALL::print_char: {
-            emit appendToLog(QChar(ecall_val.second));
-            break;
-        }
-        case Pipeline::ECALL::exit: {
-            return true;  // The simulator will now take a few cycles to stop
-        }
-    }
-
-    return true;  // continue
+void ProcessorTab::showStageTable() {
+    auto w = StageTableWidget(m_stageModel);
+    w.exec();
 }
-
-void ProcessorTab::on_zoomIn_clicked() {
-    m_ui->pipelineWidget->zoomIn();
-}
-
-void ProcessorTab::on_zoomOut_clicked() {
-    m_ui->pipelineWidget->zoomOut();
-}
-
-void ProcessorTab::on_save_clicked() {
-    QFileDialog dialog;
-    dialog.setNameFilter("*.png");
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setOption(QFileDialog::DontUseNativeDialog);
-    if (dialog.exec()) {
-        auto files = dialog.selectedFiles();
-        if (files.length() == 1) {
-            auto scene = m_ui->pipelineWidget->scene();
-            QImage image(scene->sceneRect().size().toSize(), QImage::Format_ARGB32);
-            image.fill(Qt::white);
-            QPainter painter(&image);
-            painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
-                                   QPainter::SmoothPixmapTransform);
-            scene->render(&painter, QRectF(), QRect(), Qt::IgnoreAspectRatio);
-            image.save(files[0]);
-        }
-    }
-}
-
-void ProcessorTab::on_table_clicked() {
-    // Setup pipeline table window
-    PipelineTable window;
-    PipelineTableModel model;
-    window.setModel(&model);
-    window.exec();
-}
+}  // namespace Ripes

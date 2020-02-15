@@ -2,36 +2,29 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QResource>
+#include <QTimer>
 #include <iostream>
 
 #include "src/mainwindow.h"
 #include "src/parser.h"
-#include "src/pipeline.h"
 
 using namespace std;
 
 int main(int argc, char** argv) {
     Q_INIT_RESOURCE(icons);
     Q_INIT_RESOURCE(examples);
+    Q_INIT_RESOURCE(layouts);
+    Q_INIT_RESOURCE(fonts);
 
     QApplication app(argc, argv);
-    MainWindow m;
-    m.show();
+    Ripes::MainWindow m;
 
-    if (argc == 2) {
-        // Load file specified in command-line argument
-        QString ext = QFileInfo(argv[1]).suffix();
-        if (ext == QString("bin")) {
-            m.loadBinaryFile(argv[1]);
-        } else if (ext == "asm" || ext == "s") {
-            m.loadAssemblyFile(argv[1]);
-        } else {
-            QMessageBox msg;
-            msg.setText(
-                QString("Unknown extension for input file.\ngot: \"%1\" - expected:\n- bin\n- asm\n- s").arg(ext));
-            msg.exec();
-        }
-    }
+    // The following sequence of events manages to successfully start the application as maximized, with the processor
+    // at a reasonable size. This has been found to be specially a problem on windows.
+    m.resize(800, 600);
+    m.showMaximized();
+    m.setWindowState(Qt::WindowMaximized);
+    QTimer::singleShot(100, [&m] { m.fitToView(); });
 
     return app.exec();
 }

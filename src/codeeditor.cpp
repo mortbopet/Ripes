@@ -1,6 +1,5 @@
 #include "codeeditor.h"
 #include "defines.h"
-#include "pipeline.h"
 
 #include <QAction>
 #include <QApplication>
@@ -15,6 +14,10 @@
 
 #include <iterator>
 
+#include "processorhandler.h"
+
+namespace Ripes {
+
 CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     m_lineNumberArea = new LineNumberArea(this);
     m_breakpointArea = new BreakpointArea(this);
@@ -27,9 +30,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
-    m_font = QFont("Monospace");
-    m_font.setStyleHint(QFont::TypeWriter);
-    m_font.setPointSize(10);
+    m_font = QFont("Inconsolata", 11);
     setFont(m_font);
     m_fontTimer.setSingleShot(true);
 
@@ -40,42 +41,18 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     setMouseTracking(true);
 
     setWordWrapMode(QTextOption::NoWrap);
+    setupChangedTimer();
 }
 
-void CodeEditor::setupAssembler() {
+void CodeEditor::setupChangedTimer() {
     // configures the change-timer and assembler connectivity with Parser
     m_changeTimer.setInterval(500);
     m_changeTimer.setSingleShot(true);
     // A change in the document will start the timer - when the timer elapses, the contents will be assembled if there
     // is no syntax error. By doing this, the timer is restartet each time a change occurs (ie. a user is continuously
     // typing)
-    connect(this, &CodeEditor::textChanged, [=] {
-        if (m_timerEnabled)
-            m_changeTimer.start();
-    });
-    connect(&m_changeTimer, &QTimer::timeout, this, &CodeEditor::assembleCode);
-    m_assembler = new Assembler();
-}
-
-void CodeEditor::assembleCode() {
-    if (m_tooltipForLine.isEmpty()) {
-        // No tooltips available => syntax is accepted
-
-        const QByteArray& ret = m_assembler->assembleBinaryFile(*document());
-        if (!m_assembler->hasError()) {
-            emit assembledSuccessfully(ret, true, 0x0);
-            if (m_assembler->hasData()) {
-                emit assembledSuccessfully(m_assembler->getDataSegment(), false, DATASTART);
-            }
-        } else {
-            QMessageBox err;
-            err.setText("Error in assembling file.");
-            err.exec();
-        }
-    }
-    // Restart the simulator to trigger the data memory to be loaded into the main memory. Bad code that this is done
-    // from here, but it works
-    Pipeline::getPipeline()->restart();
+    connect(this, &QPlainTextEdit::textChanged, [=] { m_changeTimer.start(); });
+    connect(&m_changeTimer, &QTimer::timeout, this, &CodeEditor::textChanged);
 }
 
 int CodeEditor::lineNumberAreaWidth() {
@@ -132,18 +109,7 @@ void CodeEditor::updateTooltip(int line, QString tip) {
 }
 
 void CodeEditor::clearBreakpoints() {
-    auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-    breakpoints->clear();
-}
-
-void CodeEditor::updateBreakpoints() {
-    // called after disassembler text has been set
-
-    auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-    // Remove breakpoints if a breakpoint line has been removed
-    while (!breakpoints->empty() && *(breakpoints->rbegin()) > ((blockCount() - 1) * 4)) {  // byte indexed
-        breakpoints->erase(std::prev(breakpoints->end()));
-    }
+    ProcessorHandler::get()->clearBreakpoints();
 }
 
 bool CodeEditor::event(QEvent* event) {
@@ -218,7 +184,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
     int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-    int bottom = top + (int)blockBoundingRect(block).height();
+    int bottom = top + static_cast<int>(blockBoundingRect(block).height());
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
@@ -229,7 +195,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
         block = block.next();
         top = bottom;
-        bottom = top + (int)blockBoundingRect(block).height();
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
 }
@@ -253,15 +219,14 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
     if (m_breakpointAreaEnabled) {
         QTextBlock block = firstVisibleBlock();
-        int blockNumber = block.blockNumber() * 4;  // byte indexed
-        int top = (int)blockBoundingGeometry(block).translated(contentOffset()).top();
-        int bottom = top + (int)blockBoundingRect(block).height();
-
-        auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
+        uint32_t address = ProcessorHandler::get()->getTextStart() +
+                           block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
+        int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+        int bottom = top + static_cast<int>(blockBoundingRect(block).height());
 
         while (block.isValid() && top <= event->rect().bottom()) {
             if (block.isVisible() && bottom >= event->rect().top()) {
-                if (breakpoints->find(blockNumber) != breakpoints->end()) {
+                if (ProcessorHandler::get()->hasBreakpoint(address)) {
                     painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
                                        m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
                 }
@@ -269,8 +234,8 @@ void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
 
             block = block.next();
             top = bottom;
-            bottom = top + (int)blockBoundingRect(block).height();
-            blockNumber += 4;
+            bottom = top + static_cast<int>(blockBoundingRect(block).height());
+            address += ProcessorHandler::get()->currentISA()->bytes();
         }
     }
 }
@@ -284,47 +249,60 @@ void CodeEditor::setupSyntaxHighlighter() {
     // The highlighting is reset upon line count changes, to detect label invalidation
     connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter,
             &SyntaxHighlighter::invalidateLabels);
-    connect(this->document(), &QTextDocument::blockCountChanged, m_highlighter,
-            &SyntaxHighlighter::clearAndRehighlight);
+    connect(this->document(), &QTextDocument::blockCountChanged, [=] {
+        m_highlighter->clearAndRehighlight();
+        auto errors = m_tooltipForLine;
+        for (const auto& e : errors.toStdMap()) {
+            // Remove any error tooltip for lines which have been deleted
+            if (e.first >= blockCount()) {
+                m_tooltipForLine.remove(e.first);
+            }
+        }
+    });
 }
 
-void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
-    if (m_breakpointAreaEnabled) {
-        // Get line height
-        QTextBlock block = firstVisibleBlock();
-        auto height = blockBoundingRect(block).height();
+long CodeEditor::addressForPos(const QPoint& pos) const {
+    if (!m_breakpointAreaEnabled)
+        return -1;
 
-        // Find block index in the codeeditor
-        int index;
-        if (block == document()->findBlockByLineNumber(0)) {
-            index = (event->pos().y() - contentOffset().y()) / height;
-        } else {
-            index = (event->pos().y() + contentOffset().y()) / height;
-        }
-        // Get actual block index
-        while (index > 0) {
-            block = block.next();
-            index--;
-        }
-        // Set or unset breakpoint
-        // Since we want the simulator as fast as possible, the breakpoints are byte-indexed
-        auto breakpoints = Pipeline::getPipeline()->getBreakpoints();
-        int blockNumber = block.blockNumber() * 4;
-        if (block.isValid()) {
-            auto brkptIter = breakpoints->find(blockNumber);
-            // Set/unset breakpoint
-            if (forceState == 1) {
-                breakpoints->insert(blockNumber);
-            } else if (forceState == 2) {
-                if (brkptIter != breakpoints->end())
-                    breakpoints->erase(breakpoints->find(blockNumber));
-            } else {
-                if (brkptIter != breakpoints->end()) {
-                    breakpoints->erase(brkptIter);
-                } else {
-                    breakpoints->insert(blockNumber);
-                }
-            }
+    // Get line height
+    QTextBlock block = firstVisibleBlock();
+
+    const auto height = blockBoundingRect(block).height();
+
+    // Find block index in the codeeditor
+    int index;
+    if (block == document()->findBlockByLineNumber(0)) {
+        index = static_cast<int>((pos.y() - contentOffset().y()) / height);
+    } else {
+        index = static_cast<int>((pos.y() + contentOffset().y()) / height);
+    }
+    // Get actual block index
+    while (index > 0) {
+        block = block.next();
+        index--;
+    }
+    if (!block.isValid())
+        return -1;
+
+    // Toggle breakpoint
+    return block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes() +
+           ProcessorHandler::get()->getTextStart();
+}
+
+bool CodeEditor::hasBreakpoint(const QPoint& pos) const {
+    if (!m_breakpointAreaEnabled)
+        return false;
+
+    return ProcessorHandler::get()->hasBreakpoint(static_cast<unsigned>(addressForPos(pos)));
+}
+
+void CodeEditor::breakpointClick(const QPoint& pos) {
+    if (m_breakpointAreaEnabled) {
+        // Toggle breakpoint
+        auto address = addressForPos(pos);
+        if (!(address < 0)) {
+            ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
             repaint();
         }
     }
@@ -334,34 +312,22 @@ void CodeEditor::breakpointClick(QMouseEvent* event, int forceState) {
 
 BreakpointArea::BreakpointArea(CodeEditor* editor) : QWidget(editor) {
     codeEditor = editor;
-
-    // Create and connect actions for removing and setting breakpoints
-    m_removeAction = new QAction("Remove breakpoint", this);
-    m_removeAllAction = new QAction("Remove all breakpoints", this);
-    m_addAction = new QAction("Add breakpoint", this);
-
-    connect(m_removeAction, &QAction::triggered, [=] { codeEditor->breakpointClick(m_event, 2); });
-    connect(m_addAction, &QAction::triggered, [=] { codeEditor->breakpointClick(m_event, 1); });
-    connect(m_removeAllAction, &QAction::triggered, [=] {
-        codeEditor->clearBreakpoints();
-        repaint();
-    });
-
-    // Construct default mouseButtonEvent
-    m_event = new QMouseEvent(QEvent::MouseButtonRelease, QPoint(0, 0), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 }
 
 void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
     // setup context menu
     QMenu contextMenu;
 
-    // Translate event to a QMouseEvent in case add/remove single breakpoint is
-    // triggered
-    *m_event = QMouseEvent(QEvent::MouseButtonRelease, event->pos(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    // Create and connect actions for removing and setting breakpoints
+    auto* toggleAction = contextMenu.addAction("Toggle breakpoint");
+    auto* removeAllAction = contextMenu.addAction("Remove all breakpoints");
 
-    contextMenu.addAction(m_addAction);
-    contextMenu.addAction(m_removeAction);
-    contextMenu.addAction(m_removeAllAction);
+    connect(toggleAction, &QAction::triggered, [=] { codeEditor->breakpointClick(event->pos()); });
+    connect(removeAllAction, &QAction::triggered, [=] {
+        codeEditor->clearBreakpoints();
+        repaint();
+    });
 
     contextMenu.exec(event->globalPos());
 }
+}  // namespace Ripes

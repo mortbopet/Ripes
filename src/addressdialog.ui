@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddressDialog</class>
- <widget class="QDialog" name="AddressDialog">
+ <class>Ripes::AddressDialog</class>
+ <widget class="QDialog" name="Ripes::AddressDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>230</width>
-    <height>96</height>
+    <height>101</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,13 +25,6 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>0x</string>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QLineEdit" name="address"/>
        </item>
@@ -56,7 +49,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddressDialog</receiver>
+   <receiver>Ripes::AddressDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -72,7 +65,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddressDialog</receiver>
+   <receiver>Ripes::AddressDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

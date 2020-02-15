@@ -15,7 +15,13 @@ cmake --build .         \
 
 # Copy dependencies using windeployqt
 pushd Release
-APPNAME=Ripes-continuous-win-x86_64.zip
+
+if [ "${TRAVIS_BRANCH}" = "prerelease" ]; then
+    APPNAME=Ripes-continuous-win-x86_64.zip
+else 
+    APPNAME=Ripes-${TRAVIS_BRANCH}-win-x86_64.zip
+fi
+
 windeployqt.exe -svg --release Ripes.exe
 
 # Clean up some unused stuff

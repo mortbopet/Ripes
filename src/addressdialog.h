@@ -1,7 +1,8 @@
-#ifndef ADDRESSDIALOG_H
-#define ADDRESSDIALOG_H
+#pragma once
 
 #include <QDialog>
+
+namespace Ripes {
 
 namespace Ui {
 class AddressDialog;
@@ -18,9 +19,8 @@ public:
     uint32_t getAddress() const { return m_address; }
 
 private:
-    Ui::AddressDialog* m_ui;
+    Ui::AddressDialog* m_ui = nullptr;
     uint32_t m_address = 0;
     void validateTargetAddress(const QString& address);
 };
-
-#endif  // ADDRESSDIALOG_H
+}  // namespace Ripes

@@ -1,0 +1,6 @@
+[submodule "external/VSRTL"]
+	path = external/VSRTL
+	url = https://github.com/mortbopet/VSRTL
+[submodule "external/ELFIO"]
+	path = external/ELFIO
+	url = https://github.com/serge1/ELFIO

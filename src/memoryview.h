@@ -1,8 +1,9 @@
-#ifndef MEMORYVIEW_H
-#define MEMORYVIEW_H
+#pragma once
 
 #include <QTableView>
 #include <QWheelEvent>
+
+namespace Ripes {
 
 // Extension of QTableView - catches QWheelEvents and triggers the memory model
 // to shift its
@@ -20,13 +21,13 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 public slots:
-    void setVisibleRows();
+    void setVisibleRows() {}
 
 signals:
     void scrolled(bool dir);
+    void resized();
 
 private:
     int m_rowHeight = 0;
 };
-
-#endif  // MEMORYVIEW_H
+}  // namespace Ripes

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProcessorTab</class>
- <widget class="QWidget" name="ProcessorTab">
+ <class>Ripes::ProcessorTab</class>
+ <widget class="QWidget" name="Ripes::ProcessorTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1152</width>
-    <height>563</height>
+    <width>868</width>
+    <height>413</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,411 +15,258 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Simulator control</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_7">
-      <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
-        <item>
-         <widget class="QPushButton" name="run">
-          <property name="toolTip">
-           <string>Run until encountering a breakpoint or to the end of the program</string>
-          </property>
-          <property name="text">
-           <string>Run (F4)</string>
-          </property>
-          <property name="shortcut">
-           <string>F4</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="start">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>90</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string>Automatically step through the program</string>
-          </property>
-          <property name="text">
-           <string>Start autostepping (F5)</string>
-          </property>
-          <property name="shortcut">
-           <string>F5</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="autoRepeatDelay">
-           <number>300</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="step">
-          <property name="text">
-           <string>Step (F6)</string>
-          </property>
-          <property name="shortcut">
-           <string>F6</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="reset">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="text">
-           <string>Reset (F7)</string>
-          </property>
-          <property name="shortcut">
-           <string>F7</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Autostep speed:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSlider" name="execSpeed">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimum">
-           <number>50</number>
-          </property>
-          <property name="maximum">
-           <number>500</number>
-          </property>
-          <property name="value">
-           <number>250</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="invertedControls">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="displayValues">
-          <property name="toolTip">
-           <string>Hover over an output node to view signal value</string>
-          </property>
-          <property name="text">
-           <string>Display all signal values</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line_4">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="table">
-          <property name="toolTip">
-           <string>View program pipeline chart</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../resources/images.qrc">
-            <normaloff>:/icons/spreadsheet.svg</normaloff>:/icons/spreadsheet.svg</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line_3">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="expandView">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Fit pipeline to view (F10)</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../resources/images.qrc">
-            <normaloff>:/icons/expand.svg</normaloff>:/icons/expand.svg</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-          <property name="shortcut">
-           <string>F10</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="zoomIn">
-          <property name="toolTip">
-           <string>Zoom in</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../resources/images.qrc">
-            <normaloff>:/icons/zoom-in.svg</normaloff>:/icons/zoom-in.svg</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="zoomOut">
-          <property name="toolTip">
-           <string>Zoom out</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../resources/images.qrc">
-            <normaloff>:/icons/zoom-out.svg</normaloff>:/icons/zoom-out.svg</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="save">
-          <property name="toolTip">
-           <string>Save image to file</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../resources/images.qrc">
-            <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QSplitter" name="splitter">
+    <widget class="QSplitter" name="viewSplitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="childrenCollapsible">
-      <bool>false</bool>
-     </property>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
-       <item>
-        <widget class="QSplitter" name="pipelinesplitter">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <widget class="PipelineWidget" name="pipelineWidget"/>
-         <widget class="QTabWidget" name="consolesTab">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+     <widget class="QSplitter" name="pipelinesplitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="vsrtl::VSRTLWidget" name="vsrtlWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+      <widget class="QWidget" name="horizontalLayoutWidget_2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+        <item>
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string>Output</string>
           </property>
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <widget class="QWidget" name="tab_5">
-           <attribute name="title">
-            <string>Application output</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_2">
-            <item row="0" column="0">
-             <widget class="QPlainTextEdit" name="console">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tab_6">
-           <attribute name="title">
-            <string>Tab 2</string>
-           </attribute>
-          </widget>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <widget class="QPlainTextEdit" name="console">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </widget>
-       </item>
-      </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Statistics</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_7">
+             <item row="2" column="0">
+              <widget class="QLabel" name="label">
+               <property name="toolTip">
+                <string>Cycles per instruction</string>
+               </property>
+               <property name="text">
+                <string>CPI:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cycles:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="cycleCount">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="nInstrExecutedLabel">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>An instruction has been retired once leaving the final stage of the processor</string>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Instrs. retired:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="cpi">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="instructionsRetired">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="toolTip">
+                <string>Instructions per cycle</string>
+               </property>
+               <property name="text">
+                <string>IPC:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="ipc">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0">
        <item>
-        <widget class="RegisterContainerWidget" name="registerContainer" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>100</height>
-          </size>
-         </property>
-         <property name="baseSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_3">
-         <property name="minimumSize">
-          <size>
-           <width>250</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="title">
-          <string>Instruction memory</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="0">
-           <widget class="QTableView" name="instructionView">
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QSplitter" name="rightBarSplitter">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="childrenCollapsible">
+            <bool>false</bool>
+           </property>
+           <widget class="QGroupBox" name="groupBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="title">
+             <string>Registers</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_2">
+             <item row="0" column="0">
+              <widget class="RegisterWidget" name="registerWidget" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Cycle count:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="cycleCount">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="nInstrExecutedLabel">
-           <property name="text">
-            <string># instructions executed:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="nInstrExecuted">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="minimumSize">
+             <size>
+              <width>250</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Instruction memory</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <widget class="QTableView" name="instructionView">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </widget>
          </item>
         </layout>
@@ -432,19 +279,18 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>RegisterContainerWidget</class>
+   <class>RegisterWidget</class>
    <extends>QWidget</extends>
-   <header>registercontainerwidget.h</header>
+   <header>registerwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>PipelineWidget</class>
-   <extends>QGraphicsView</extends>
-   <header>graphics/pipelinewidget.h</header>
+   <class>vsrtl::VSRTLWidget</class>
+   <extends>QWidget</extends>
+   <header>VSRTL/graphics/vsrtl_widget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../resources/images.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

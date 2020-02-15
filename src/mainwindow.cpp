@@ -1,154 +1,184 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "aboutwidget.h"
 #include "defines.h"
+#include "edittab.h"
+#include "loaddialog.h"
+#include "memorytab.h"
 #include "parser.h"
-#include "programfiletab.h"
+#include "processorhandler.h"
+#include "processortab.h"
 #include "registerwidget.h"
+#include "savedialog.h"
+#include "version/version.h"
 
 #include "fancytabbar/fancytabbar.h"
 
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <QFontDatabase>
 #include <QIcon>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QStackedWidget>
 #include <QTextStream>
+
+namespace Ripes {
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
     setWindowTitle("Ripes");
     setWindowIcon(QIcon(":/icons/logo.svg"));
-    showMaximized();
+    m_ui->actionOpen_wiki->setIcon(QIcon(":/icons/info.svg"));
+
+    // Initialize processor handler
+    ProcessorHandler::get();
+
+    // Initialize fonts
+    QFontDatabase::addApplicationFont(":/fonts/Inconsolata/Inconsolata-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Inconsolata/Inconsolata-Bold.ttf");
+
+    // Create tabs
+    m_stackedTabs = new QStackedWidget(this);
+    m_ui->centrallayout->addWidget(m_stackedTabs);
+
+    auto* tb = addToolBar("Edit");
+    tb->setVisible(false);
+    m_editTab = new EditTab(tb, this);
+    m_stackedTabs->insertWidget(0, m_editTab);
+
+    tb = addToolBar("Processor");
+    tb->setVisible(true);
+    m_processorTab = new ProcessorTab(tb, this);
+    m_stackedTabs->insertWidget(1, m_processorTab);
+
+    tb = addToolBar("Processor");
+    tb->setVisible(false);
+    m_memoryTab = new MemoryTab(tb, this);
+    m_stackedTabs->insertWidget(2, m_memoryTab);
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
-    // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/server.svg")), "Cache");
-    // m_ui->tabbar->addFancyTab(QIcon(QPixmap(":/icons/graph.svg")), "Results");
-    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_ui->stackedWidget, &QStackedWidget::setCurrentIndex);
-    m_ui->tabbar->setActiveIndex(0);
+    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
+    m_ui->tabbar->setActiveIndex(1);
 
-    m_binaryStoreAction = new QActionGroup(this);
-    m_binaryStoreAction->addAction(m_ui->actionSave_as_flat_binary);
-    m_binaryStoreAction->addAction(m_ui->actionSave_as_text);
-    m_binaryStoreAction->addAction(m_ui->actionDisable);
-    m_binaryStoreAction->setExclusive(true);
-    m_ui->actionDisable->setChecked(true);
-
-    // Setup tab pointers
-    m_ui->processortab->initRegWidget();
-    m_ui->processortab->initInstructionView();
-    m_ui->memorytab->initMemoryTab();
-
-    // setup example projects
-    setupExamples();
+    setupMenus();
 
     // setup and connect widgets
-    connect(m_ui->programfiletab, &ProgramfileTab::loadBinaryFile, this,
-            &MainWindow::on_actionLoadBinaryFile_triggered);
-    connect(m_ui->programfiletab, &ProgramfileTab::loadAssemblyFile, this,
-            &MainWindow::on_actionLoadAssemblyFile_triggered);
+    connect(m_processorTab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
+    connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
+    connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
+    connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
+    connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
+    connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
-    connect(m_ui->processortab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
-    connect(m_ui->programfiletab, &ProgramfileTab::updateSimulator, [this] { emit update(); });
-    connect(this, &MainWindow::update, m_ui->processortab, &ProcessorTab::restart);
-    connect(this, &MainWindow::updateMemoryTab, m_ui->memorytab, &MemoryTab::update);
-    connect(m_ui->stackedWidget, &QStackedWidget::currentChanged, m_ui->memorytab, &MemoryTab::update);
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
+    connect(ProcessorHandler::get(), &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
+    connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
+
+    connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
+    connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
 }
 
-void MainWindow::run() {
-    // Function for triggering the run dialog from unit tests
-    m_ui->processortab->on_run_clicked();
+void MainWindow::fitToView() {
+    m_processorTab->fitToView();
+}
+
+void MainWindow::setupMenus() {
+    // Edit actions
+    const QIcon newIcon = QIcon(":/icons/file.svg");
+    auto* newAction = new QAction(newIcon, "New Program", this);
+    newAction->setShortcut(QKeySequence::New);
+    connect(newAction, &QAction::triggered, this, &MainWindow::newProgramTriggered);
+    m_ui->menuFile->addAction(newAction);
+
+    const QIcon loadIcon = QIcon(":/icons/loadfile.svg");
+    auto* loadAction = new QAction(loadIcon, "Load Program", this);
+    loadAction->setShortcut(QKeySequence::Open);
+    connect(loadAction, &QAction::triggered, [=] { this->loadFileTriggered(); });
+    m_ui->menuFile->addAction(loadAction);
+
+    m_ui->menuFile->addSeparator();
+
+    auto* examplesMenu = m_ui->menuFile->addMenu("Load Example...");
+    setupExamplesMenu(examplesMenu);
+
+    m_ui->menuFile->addSeparator();
+
+    const QIcon saveIcon = QIcon(":/icons/save.svg");
+    auto* saveAction = new QAction(saveIcon, "Save File", this);
+    saveAction->setShortcut(QKeySequence::Save);
+    connect(saveAction, &QAction::triggered, this, &MainWindow::saveFilesTriggered);
+    connect(m_editTab, &EditTab::editorStateChanged, [saveAction](bool enabled) { saveAction->setEnabled(enabled); });
+    m_ui->menuFile->addAction(saveAction);
+
+    const QIcon saveAsIcon = QIcon(":/icons/saveas.svg");
+    auto* saveAsAction = new QAction(saveAsIcon, "Save File As...", this);
+    saveAsAction->setShortcut(QKeySequence::SaveAs);
+    connect(saveAsAction, &QAction::triggered, this, &MainWindow::saveFilesAsTriggered);
+    connect(m_editTab, &EditTab::editorStateChanged,
+            [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
+    m_ui->menuFile->addAction(saveAsAction);
+
+    m_ui->menuFile->addSeparator();
+
+    const QIcon exitIcon = QIcon(":/icons/cancel.svg");
+    auto* exitAction = new QAction(exitIcon, "Exit", this);
+    exitAction->setShortcut(QKeySequence::Quit);
+    connect(exitAction, &QAction::triggered, this, &MainWindow::close);
+    m_ui->menuFile->addAction(exitAction);
 }
 
 MainWindow::~MainWindow() {
     delete m_ui;
 }
 
-#include <QDebug>
-void MainWindow::setupExamples() {
-    auto binaryExamples = QDir(":/examples/binary/").entryList(QDir::Files);
-    auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
-
-    // Load examples
-    if (!binaryExamples.isEmpty()) {
-        auto* binaryExampleMenu = new QMenu();
-        binaryExampleMenu->setTitle("Binary");
-        for (const auto& fileName : binaryExamples) {
-            binaryExampleMenu->addAction(fileName, [=] {
-                this->loadBinaryFile(QString(":/examples/binary/") + fileName);
-                m_currentFile = QString();
-            });
-        }
-        // Add binary example menu to example menu
-        m_ui->menuExamples->addMenu(binaryExampleMenu);
-    }
+void MainWindow::setupExamplesMenu(QMenu* parent) {
+    const auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
 
     if (!assemblyExamples.isEmpty()) {
-        auto* assemblyExampleMenu = new QMenu();
-        assemblyExampleMenu->setTitle("Assembly");
         for (const auto& fileName : assemblyExamples) {
-            assemblyExampleMenu->addAction(fileName, [=] {
-                this->loadAssemblyFile(QString(":/examples/assembly/") + fileName);
-                m_currentFile = QString();
+            parent->addAction(fileName, [=] {
+                LoadFileParams parms;
+                parms.filepath = QString(":/examples/assembly/") + fileName;
+                parms.type = FileType::Assembly;
+                m_editTab->loadFile(parms);
+                m_hasSavedFile = false;
             });
         }
-        // Add binary example menu to example menu
-        m_ui->menuExamples->addMenu(assemblyExampleMenu);
     }
 }
 
-void MainWindow::on_actionexit_triggered() {
-    close();
-}
-
-void MainWindow::on_actionLoadBinaryFile_triggered() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open binary file", "", "Binary file (*)");
-    if (!filename.isNull())
-        loadBinaryFile(filename);
-}
-
-void MainWindow::on_actionLoadAssemblyFile_triggered() {
-    auto filename = QFileDialog::getOpenFileName(this, "Open assembly file", "", "Assembly file (*.s *.as *.asm)");
-    if (!filename.isNull())
-        loadAssemblyFile(filename);
-}
-
-void MainWindow::loadBinaryFile(QString filename) {
-    m_ui->programfiletab->setTimerEnabled(false);
-    m_ui->programfiletab->setInputMode(false);
-    m_ui->processortab->restart();
-    Parser::getParser()->loadBinaryFile(filename);
-    m_ui->programfiletab->setDisassemblerText();
-    emit update();
-}
-
-void MainWindow::loadAssemblyFile(QString fileName) {
-    // ... load file
-    QFile file(fileName);
-    m_ui->programfiletab->setInputMode(true);
-    m_ui->programfiletab->setTimerEnabled(true);
-    Parser::getParser()->clear();
-    m_ui->programfiletab->clearOutputArray();
-    m_ui->processortab->restart();
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_ui->programfiletab->setAssemblyText(file.readAll());
-        file.close();
+void MainWindow::closeEvent(QCloseEvent* event) {
+    if (m_editTab->isEditorEnabled() && !m_editTab->getAssemblyText().isEmpty()) {
+        if (QMessageBox::question(this, "Ripes", "Save current program before exiting?") == QMessageBox::Yes) {
+            saveFilesTriggered();
+        }
     }
-    m_currentFile = fileName;
-    m_ui->programfiletab->setDisassemblerText();
+    QMainWindow::closeEvent(event);
 }
 
-void MainWindow::on_actionAbout_triggered() {
-    AboutWidget about;
-    about.exec();
+void MainWindow::loadFileTriggered() {
+    LoadDialog diag;
+    if (!diag.exec())
+        return;
+
+    m_editTab->loadFile(diag.getParams());
+    m_hasSavedFile = false;
 }
 
-void MainWindow::on_actionOpen_wiki_triggered() {
+void MainWindow::wiki() {
     QDesktopServices::openUrl(QUrl(QString("https://github.com/mortbopet/Ripes/wiki")));
+}
+
+void MainWindow::version() {
+    QMessageBox aboutDialog(this);
+    aboutDialog.setText("Ripes version: " + getRipesVersion());
+    aboutDialog.exec();
 }
 
 namespace {
@@ -173,70 +203,49 @@ void writeBinaryFile(QFile& file, const QByteArray& data) {
 
 }  // namespace
 
-void MainWindow::on_actionSave_Files_triggered() {
-    if (m_currentFile.isEmpty()) {
-        on_actionSave_Files_As_triggered();
+void MainWindow::saveFilesTriggered() {
+    SaveDialog diag;
+    if (!m_hasSavedFile) {
+        if (diag.exec()) {
+            m_hasSavedFile = true;
+        }
     }
 
-    if (m_ui->actionSave_Source->isChecked()) {
-        QFile file(m_currentFile);
-        writeTextFile(file, m_ui->programfiletab->getAssemblyText());
+    if (!diag.assemblyPath().isEmpty()) {
+        QFile file(diag.assemblyPath());
+        writeTextFile(file, m_editTab->getAssemblyText());
     }
 
-    if (m_ui->actionSave_Disassembled->isChecked()) {
-        QFile file(removeFileExt(m_currentFile) + "_dis.s");
-        writeTextFile(file, Parser::getParser()->getDisassembledRepr());
-    }
-
-    QAction* binaryStoreAction = m_binaryStoreAction->checkedAction();
-    if (binaryStoreAction == m_ui->actionSave_as_flat_binary) {
-        QFile file(removeFileExt(m_currentFile) + ".bin");
-        writeBinaryFile(file, m_ui->programfiletab->getBinaryData());
-    } else if (binaryStoreAction == m_ui->actionSave_as_text) {
-        QFile file(removeFileExt(m_currentFile) + "_bin.txt");
-        writeTextFile(file, Parser::getParser()->getBinaryRepr());
+    if (!diag.binaryPath().isEmpty()) {
+        QFile file(diag.binaryPath());
+        writeBinaryFile(file, m_editTab->getBinaryData());
     }
 }
 
-void MainWindow::on_actionSave_Files_As_triggered() {
-    QFileDialog dialog;
-    dialog.setNameFilter("*.as *.s");
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setDefaultSuffix(".s");
-    if (dialog.exec()) {
-        m_currentFile = dialog.selectedFiles()[0];
-        on_actionSave_Files_triggered();
-    }
+void MainWindow::saveFilesAsTriggered() {
+    SaveDialog diag;
+    auto ret = diag.exec();
+    if (ret == QDialog::Rejected)
+        return;
+    m_hasSavedFile = true;
+    saveFilesTriggered();
 }
 
-void MainWindow::on_actionNew_Program_triggered() {
+void MainWindow::newProgramTriggered() {
     QMessageBox mbox;
     mbox.setWindowTitle("New Program...");
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    if (!m_ui->programfiletab->getAssemblyText().isEmpty() && m_currentFile.isEmpty()) {
+    if (!m_editTab->getAssemblyText().isEmpty() || m_hasSavedFile) {
         // User wrote a program but did not save it to a file yet
         mbox.setText("Save program before creating new file?");
         auto ret = mbox.exec();
         switch (ret) {
             case QMessageBox::Yes: {
-                on_actionSave_Files_As_triggered();
-                break;
-            }
-            case QMessageBox::No: {
-                break;
-            }
-            case QMessageBox::Cancel: {
-                return;
-            }
-        }
-    } else if (!m_currentFile.isEmpty()) {
-        // User previously stored a program but may have updated in the meantime - prompt to ask whether the program
-        // should be stored to the current file name
-        mbox.setText(QString("Save program \"%1\" before creating new file?").arg(m_currentFile));
-        auto ret = mbox.exec();
-        switch (ret) {
-            case QMessageBox::Yes: {
-                on_actionSave_Files_triggered();
+                saveFilesTriggered();
+                if (!m_hasSavedFile) {
+                    // User must have rejected the save file dialog
+                    return;
+                }
                 break;
             }
             case QMessageBox::No: {
@@ -247,6 +256,8 @@ void MainWindow::on_actionNew_Program_triggered() {
             }
         }
     }
-    m_currentFile.clear();
-    m_ui->programfiletab->newProgram();
+    m_hasSavedFile = false;
+    m_editTab->newProgram();
 }
+
+}  // namespace Ripes

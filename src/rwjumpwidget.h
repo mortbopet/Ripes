@@ -1,8 +1,8 @@
-#ifndef RWJUMPWIDGET_H
-#define RWJUMPWIDGET_H
+#pragma once
 
 #include <QWidget>
-#include "rwjumpmodel.h"
+
+namespace Ripes {
 
 namespace Ui {
 class RWJumpWidget;
@@ -25,8 +25,5 @@ private slots:
 
 private:
     Ui::RWJumpWidget* ui;
-
-    RWJumpModel* m_model;
 };
-
-#endif  // RWJUMPWIDGET_H
+}  // namespace Ripes

@@ -1,13 +1,24 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
+
+#include "program.h"
+
+QT_FORWARD_DECLARE_CLASS(QToolBar)
+QT_FORWARD_DECLARE_CLASS(QStackedWidget)
+QT_FORWARD_DECLARE_CLASS(QActionGroup)
+
+namespace Ripes {
 
 namespace Ui {
 class MainWindow;
 }
 
-QT_FORWARD_DECLARE_CLASS(QActionGroup)
+class EditTab;
+class MemoryTab;
+class ProcessorTab;
+class ProcessorHandler;
+struct LoadFileParams;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -16,37 +27,41 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
-    void loadBinaryFile(QString fileName);
-    void loadAssemblyFile(QString fileName);
-
-    void run();
+    void closeEvent(QCloseEvent* event) override;
+    void fitToView();
 
 private slots:
-    void on_actionexit_triggered();
+    void wiki();
+    void version();
 
-    void on_actionLoadBinaryFile_triggered();
-    void on_actionLoadAssemblyFile_triggered();
+    void loadFileTriggered();
 
-    void on_actionAbout_triggered();
+    void saveFilesTriggered();
+    void saveFilesAsTriggered();
+    void newProgramTriggered();
 
-    void on_actionOpen_wiki_triggered();
     void processorUpdated() { emit updateMemoryTab(); }
-
-    void on_actionSave_Files_triggered();
-
-    void on_actionSave_Files_As_triggered();
-
-    void on_actionNew_Program_triggered();
 
 signals:
     void update();
     void updateMemoryTab();
 
 private:
-    Ui::MainWindow* m_ui;
-    void setupExamples();
-    QString m_currentFile = QString();
-    QActionGroup* m_binaryStoreAction;
-};
+    void loadFile(const QString& filename, FileType type);
 
-#endif  // MAINWINDOW_H
+    void setupMenus();
+    void setupExamplesMenu(QMenu* parent);
+
+    Ui::MainWindow* m_ui = nullptr;
+    QActionGroup* m_binaryStoreAction;
+    QToolBar* m_toolbar = nullptr;
+
+    bool m_hasSavedFile = false;
+
+    // Tabs
+    QStackedWidget* m_stackedTabs = nullptr;
+    ProcessorTab* m_processorTab = nullptr;
+    EditTab* m_editTab = nullptr;
+    MemoryTab* m_memoryTab = nullptr;
+};
+}  // namespace Ripes

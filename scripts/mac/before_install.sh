@@ -22,3 +22,7 @@ pushd ${TRAVIS_BUILD_DIR}
 mkdir -p Qt/5.13.0
 curl --output Qt-5.13.0-mac.tar.xz https://f002.backblazeb2.com/file/Subsurface-Travis/Qt-5.13.0-mac.tar.xz
 tar -xJ -C Qt/5.13.0 -f Qt-5.13.0-mac.tar.xz
+
+if [ "${TRAVIS_BRANCH}" = "prerelease" ]; then
+    echo "Ripes prerelease build"
+fi

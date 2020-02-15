@@ -4,6 +4,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 project(Ripes CXX)
 
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "-Wextra -Wall -Wno-unused-local-typedefs -Wno-unused-function")
+endif()
+
 ######################################################################
 ## GUI setup
 ######################################################################
@@ -27,10 +31,18 @@ include_directories(${Qt5Core_INCLUDE_DIRS})
 ######################################################################
 qt5_add_resources(ICONS_SRC ${CMAKE_SOURCE_DIR}/resources/icons/icons.qrc)
 qt5_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
+qt5_add_resources(LAYOUTS_SRC ${CMAKE_SOURCE_DIR}/src/processors/layouts.qrc)
+qt5_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 
 ######################################################################
 ## Library setup
 ######################################################################
+
+# Header-only libraries used in the project must be included from top CMakeLists.txt file
+include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external/cereal/include)
+include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
+include_directories(external/ELFIO)
+include_directories(external)
 
 # Platform specific pre-target setup(s)
 if(${APPLE})
@@ -48,7 +60,7 @@ if(RIPES_BUILD_TESTS)
 endif()
 
 set(APP_NAME Ripes)
-add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} main.cpp)
+add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUTS_SRC} ${FONTS_SRC} main.cpp)
 
 # Link Qt libraries
 target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)

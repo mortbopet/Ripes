@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace Ripes {
+
 // Sign extension of arbitrary bitfield size.
 // Courtesy of http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
 template <typename T, unsigned B>
@@ -35,3 +37,4 @@ constexpr uint32_t bitcount(int n) {
 
 uint32_t accBVec(const std::vector<bool>& v);
 void buildVec(std::vector<bool>& v, uint32_t n);
+}  // namespace Ripes

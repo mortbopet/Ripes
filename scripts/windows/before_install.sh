@@ -15,3 +15,8 @@ bash install-qt.sh \
     qtbase qttools svg
 
 choco install zip
+
+
+if [ "${TRAVIS_BRANCH}" = "prerelease" ]; then
+    echo "Ripes prerelease build"
+fi

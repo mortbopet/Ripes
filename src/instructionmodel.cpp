@@ -1,170 +1,139 @@
 #include "instructionmodel.h"
 #include "parser.h"
-#include "pipeline.h"
 
 #include <QHeaderView>
 
-InstructionModel::InstructionModel(const StagePCS& pcsptr, const StagePCS& pcsptrPre, Parser* parser, QObject* parent)
-    : m_pcsptr(pcsptr), m_pcsptrPre(pcsptrPre), m_parserPtr(parser), QAbstractTableModel(parent) {
-    m_pipelinePtr = Pipeline::getPipeline();
-    m_memory = m_pipelinePtr->getRuntimeMemoryPtr();
-}
+namespace Ripes {
 
-void InstructionModel::update() {
-    // Called when changes to the memory has been made
-    // assumes that only instructions are present in the memory when called!
-    beginResetModel();
-    m_textSize = Pipeline::getPipeline()->getTextSize();
-    endResetModel();
-}
-
-int InstructionModel::rowCount(const QModelIndex&) const {
-    return m_textSize / 4;
+InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
+    for (unsigned i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
+        m_stageNames << ProcessorHandler::get()->getProcessor()->stageName(i);
+        m_stageInfos[m_stageNames.last()];
+    }
 }
 
 int InstructionModel::columnCount(const QModelIndex&) const {
-    return 4;
+    return NColumns;
 }
 
-namespace {
-#define VALIDATE(stage)                                                 \
-    if (!m_pcsptr.stage.initialized) {                                  \
-        emit textChanged(Stage::stage, "");                             \
-    } else if (m_pcsptr.stage.invalidReason == 1) {                     \
-        emit textChanged(Stage::stage, "nop (flush)", QColor(Qt::red)); \
-    } else if (m_pcsptr.stage.invalidReason == 2) {                     \
-        emit textChanged(Stage::stage, "nop (stall)", QColor(Qt::red)); \
-    } else if (m_pcsptr.stage.invalidReason == 3) {                     \
-        emit textChanged(Stage::stage, ""); /*EOF*/                     \
+int InstructionModel::rowCount(const QModelIndex&) const {
+    return ProcessorHandler::get()->getCurrentProgramSize() / ProcessorHandler::get()->currentISA()->bytes();
+}
+
+void InstructionModel::processorWasClocked() {
+    // Reload model
+    beginResetModel();
+    gatherStageInfo();
+    endResetModel();
+}
+
+void InstructionModel::gatherStageInfo() {
+    bool firstStageChanged = false;
+    for (int i = 0; i < m_stageNames.length(); i++) {
+        if (i == 0) {
+            if (m_stageInfos[m_stageNames[i]].pc != ProcessorHandler::get()->getProcessor()->stageInfo(i).pc) {
+                firstStageChanged = true;
+            }
+        }
+        m_stageInfos[m_stageNames[i]] = ProcessorHandler::get()->getProcessor()->stageInfo(i);
+        if (firstStageChanged) {
+            emit firstStageInstrChanged(m_stageInfos[m_stageNames[0]].pc);
+            firstStageChanged = false;
+        }
     }
+}
+
+bool InstructionModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    const uint32_t addr = indexToAddress(index);
+    if ((index.column() == Column::Breakpoint) && role == Qt::CheckStateRole) {
+        if (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked) {
+            ProcessorHandler::get()->setBreakpoint(addr, !ProcessorHandler::get()->hasBreakpoint(addr));
+            return true;
+        }
+    }
+    return false;
+}
+
+QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
+        switch (section) {
+            case Column::Breakpoint:
+                return "BP";
+            case Column::PC:
+                return "PC";
+            case Column::Stage:
+                return "Stage";
+            case Column::Instruction:
+                return "Instruction";
+            default:
+                return QVariant();
+        }
+    }
+    return QVariant();
+}
+
+QVariant InstructionModel::BPData(uint32_t addr) const {
+    return ProcessorHandler::get()->hasBreakpoint(addr);
+}
+QVariant InstructionModel::PCData(uint32_t addr) const {
+    return "0x" + QString::number(addr, 16);
+}
+QVariant InstructionModel::stageData(uint32_t addr) const {
+    QStringList stagesForAddr;
+    for (const auto& si : m_stageInfos) {
+        if ((si.second.pc == addr) && si.second.stage_valid) {
+            stagesForAddr << si.first;
+        }
+    }
+    if (stagesForAddr.isEmpty()) {
+        return QVariant();
+    } else {
+        return stagesForAddr.join("/");
+    }
+}
+
+QVariant InstructionModel::instructionData(uint32_t addr) const {
+    return ProcessorHandler::get()->parseInstrAt(addr);
 }
 
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) {
         return QVariant();
     }
-    int row = index.row();
+    const uint32_t addr = indexToAddress(index);
     switch (index.column()) {
-        case 0: {
-            // Breakpoints. Return true if breakpoint is found
+        case Column::Breakpoint: {
             if (role == Qt::CheckStateRole) {
-                if (m_pipelinePtr->m_breakpoints.find(row * 4) != m_pipelinePtr->m_breakpoints.end()) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return BPData(addr);
             }
             break;
         }
-        case 1: {
-            if (role == Qt::DisplayRole)
-                return row * 4;
-            break;
-        }
-        case 2: {
+        case Column::PC: {
             if (role == Qt::DisplayRole) {
-                // check if instruction is in any pipeline stage, and whether the given PC for the pipeline
-                // stage is valid. Furthermore, because of branching, an instruction can be in multiple stages
-                // at once - therefore, we build up a return string by checking all stage program counters
-                QStringList retStrings;
-                uint32_t byteIndex = row * 4;
-                uint32_t maxInstr = m_textSize - 4;
-                if (byteIndex == m_pcsptr.EX.pc && m_pcsptr.EX.initialized && m_pcsptr.EX.isValid()) {
-                    emit textChanged(Stage::EX, m_parserPtr->getInstructionString(row * 4));
-                    if (byteIndex == maxInstr) {
-                        emit textChanged(Stage::ID, "");
-                    }
-                    retStrings << "EX";
-                }
-                if (byteIndex == m_pcsptr.ID.pc && m_pcsptr.ID.initialized && m_pcsptr.ID.isValid()) {
-                    emit textChanged(Stage::ID, m_parserPtr->getInstructionString(row * 4));
-                    if (byteIndex == maxInstr) {
-                        emit textChanged(Stage::IF, "");
-                    }
-                    retStrings << "ID";
-                }
-                if (byteIndex == m_pcsptr.IF.pc && m_pcsptr.IF.initialized && m_pcsptr.IF.isValid()) {
-                    emit textChanged(Stage::IF, m_parserPtr->getInstructionString(row * 4));
-                    emit currentIFRow(row);  // for moving view to IF position
-                    retStrings << "IF";
-                }
-                if (byteIndex == m_pcsptr.MEM.pc && m_pcsptr.MEM.initialized && m_pcsptr.MEM.isValid()) {
-                    emit textChanged(Stage::MEM, m_parserPtr->getInstructionString(row * 4));
-                    if (byteIndex == maxInstr) {
-                        emit textChanged(Stage::EX, "");
-                    }
-                    retStrings << "MEM";
-                }
-                if (byteIndex == m_pcsptr.WB.pc && m_pcsptr.WB.initialized && m_pcsptr.WB.isValid()) {
-                    emit textChanged(Stage::WB, m_parserPtr->getInstructionString(row * 4));
-                    if (byteIndex == maxInstr) {
-                        emit textChanged(Stage::MEM, "");
-                    }
-                    retStrings << "WB";
-                }
-                if (retStrings.isEmpty()) {
-                    // Clear invalid PC values for each stage (used when resetting the program)
-                    VALIDATE(IF);
-                    VALIDATE(ID);
-                    VALIDATE(EX);
-                    VALIDATE(MEM);
-                    VALIDATE(WB);
-                    return QVariant();
-                } else {
-                    // Join strings by "/"
-                    return retStrings.join("/");
-                }
+                return PCData(addr);
             }
             break;
         }
-        case 3:
+        case Column::Stage: {
             if (role == Qt::DisplayRole) {
-                return m_parserPtr->getInstructionString(row * 4);
+                return stageData(addr);
             }
-        default:
-            return QVariant();
+            break;
+        }
+        case Column::Instruction: {
+            if (role == Qt::DisplayRole) {
+                return instructionData(addr);
+            }
+            break;
+        }
     }
     return QVariant();
-}
-
-bool InstructionModel::setData(const QModelIndex& index, const QVariant& value, int role) {
-    if (index.column() == 0 && role == Qt::CheckStateRole) {
-        if ((Qt::CheckState)value.toInt() == Qt::Checked) {
-            if (m_pipelinePtr->m_breakpoints.find(index.row() * 4) != m_pipelinePtr->m_breakpoints.end()) {
-                // Breakpoint is already set - remove breakpoint
-                m_pipelinePtr->m_breakpoints.erase(index.row() * 4);
-            } else {
-                // Set breakpoint
-                m_pipelinePtr->m_breakpoints.insert(index.row() * 4);
-            }
-        }
-        return true;
-    }
-    return false;
 }
 
 Qt::ItemFlags InstructionModel::flags(const QModelIndex& index) const {
-    auto def = Qt::ItemIsEnabled;
-    if (index.column() == 0)
+    const auto def = Qt::ItemIsEnabled;
+    if (index.column() == Column::Breakpoint)
         return Qt::ItemIsUserCheckable | def;
     return def;
 }
-
-QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-        switch (section) {
-            case 0:
-                return "BP";
-            case 1:
-                return "PC";
-            case 2:
-                return "Stage";
-            case 3:
-                return "Instruction";
-            default:
-                return QVariant();
-        }
-    }
-
-    return QVariant();
-}
+}  // namespace Ripes

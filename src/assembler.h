@@ -1,18 +1,23 @@
-#ifndef ASSEMBLER_H
-#define ASSEMBLER_H
+#pragma once
 
 #include <QByteArray>
 #include <QTextDocument>
 
+#include "program.h"
+
+namespace Ripes {
+
 class Assembler {
 public:
     Assembler();
-    const QByteArray& assembleBinaryFile(const QTextDocument& doc);
+    const QByteArray& assemble(const QTextDocument& doc);
     bool hasError() { return m_error; }
     bool hasData() { return m_hasData; }
     const QByteArray& getTextSegment() { return m_textSegment; }
     const QByteArray& getDataSegment() { return m_dataSegment; }
     void clear() { m_textSegment.clear(); }
+
+    const Program getProgram();
 
 private:
     uint32_t getRegisterNumber(const QString& reg);
@@ -48,5 +53,4 @@ private:
     QByteArray assembleAuipcInstruction(const QStringList& fields, int row);
     QByteArray assembleJalrInstruction(const QStringList& fields, int row);
 };
-
-#endif  // ASSEMBLER_H
+}  // namespace Ripes
