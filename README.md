@@ -12,11 +12,11 @@ Report bugs, issues or feature requests at https://github.com/mortbopet/Ripes/is
 </p>
 
 ## Usage
-If this is your first time using Ripes, please refer to the [introduction](https://github.com/mortbopet/Ripes/wiki/(2.0)-Introduction).  
+If this is your first time using Ripes, please refer to the [introduction](https://github.com/mortbopet/Ripes/wiki/Ripes-Introduction).  
 For further information, please refer to the [Ripes wiki](https://github.com/mortbopet/Ripes/wiki).
 
 ## Downloading & Installation
-Prebuilt binaries are available for Linux, Windows & Mac. These are available through the [Releases page](https://github.com/mortbopet/Ripes/releases).  
+Prebuilt binaries are available for Linux, Windows & Mac through the [Releases page](https://github.com/mortbopet/Ripes/releases).  
 
 ### Linux
 Releases for Linux are distributed in the AppImage format. To run an AppImage:
@@ -28,14 +28,14 @@ The AppImage for Linux should be compatible with most Linux distributions.
 For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You most likely already have this installed, but if this is not the case, you download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
 ## Building
-Assuming you have installed a recent version of [Qt](https://www.qt.io/download) as well as [CMake](https://cmake.org/), Ripes may be built like any other CMake project:
+Assuming you have installed a recent (5.10+) version of [Qt](https://www.qt.io/download) as well as [CMake](https://cmake.org/), Ripes may be built like any other CMake project:
 ```
 Unix:               Windows:
 cd Ripes/           cd Ripes/
 cmake .             cmake .
 make                jom.exe / nmake.exe / ...
 ```
-Note, that you must have Qt 5 available in your `CMAKE_PREFIX_PATH`. The easiest way to use CMake with Qt is to set the `CMAKE_PREFIX_PATH` environment variable to the install prefix of Qt 5.
+Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
 
 ---
 Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
