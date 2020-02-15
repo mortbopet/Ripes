@@ -10,8 +10,6 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
 
     m_ui->memoryViewerWidget->updateModel();
     m_ui->memoryViewerWidget->updateView();
-
-    m_ui->splitter->setStretchFactor(1, 1);
 }
 
 void MemoryTab::update() {
