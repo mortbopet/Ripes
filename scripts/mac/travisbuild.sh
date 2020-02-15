@@ -16,11 +16,7 @@ ls -lh
 # Bundle the app
 macdeployqt Ripes.app
 
-if [ "${TRAVIS_BRANCH}" = "prerelease" ]; then
-    APPNAME=Ripes-${TRAVIS_BRANCH}-mac-x86_64
-else 
-    APPNAME=Ripes-continuous-mac-x86_64
-fi
+APPNAME=Ripes-${TRAVIS_BRANCH}-mac-x86_64
 
 sudo mv Ripes.app $APPNAME.app
 
