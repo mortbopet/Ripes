@@ -19,6 +19,8 @@ namespace Ripes {
 using namespace std;
 typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
 
+using AddrOffsetMap = std::map<unsigned long, int>;
+
 class Parser {
 public:
     static Parser* getParser() {
@@ -36,12 +38,13 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    QString disassemble(const Program& program) const;
-    QString binarize(const Program& program) const;
+    QString disassemble(const Program& program, AddrOffsetMap& addrOffsetMap) const;
+    QString binarize(const Program& program, AddrOffsetMap& addrOffsetMap) const;
 
 private:
     QString stringifyProgram(const Program& program, unsigned stride,
-                             std::function<QString(const std::vector<char>& buffer, uint32_t index)> stringifier) const;
+                             std::function<QString(const std::vector<char>& buffer, uint32_t index)> stringifier,
+                             AddrOffsetMap& addrOffsetMap) const;
 
     Parser();
     ~Parser();

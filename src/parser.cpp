@@ -24,29 +24,41 @@ Parser::Parser() {
 
 Parser::~Parser() {}
 
-QString Parser::disassemble(const Program& program) const {
-    return stringifyProgram(program, 4, [this](const std::vector<char>& buffer, uint32_t index) {
-        // Hardcoded for RV32 for now
-        uint32_t instr = 0;
-        for (int i = 0; i < 4; i++) {
-            instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
-        }
-        return disassemble(instr, index);
-    });
+QString Parser::disassemble(const Program& program, AddrOffsetMap& addrOffsetMap) const {
+    return stringifyProgram(program, 4,
+                            [this](const std::vector<char>& buffer, uint32_t index) {
+                                // Hardcoded for RV32 for now
+                                uint32_t instr = 0;
+                                for (int i = 0; i < 4; i++) {
+                                    instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
+                                }
+                                return disassemble(instr, index);
+                            },
+                            addrOffsetMap);
 }
 
-QString Parser::binarize(const Program& program) const {
-    return stringifyProgram(program, 4, [](const std::vector<char>& buffer, uint32_t) {
-        QString binaryString;
-        for (auto byte : buffer) {
-            binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));
-        }
-        return binaryString;
-    });
+QString Parser::binarize(const Program& program, AddrOffsetMap& addrOffsetMap) const {
+    return stringifyProgram(
+        program, 4,
+        [](const std::vector<char>& buffer, uint32_t) {
+            QString binaryString;
+            for (auto byte : buffer) {
+                binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));
+            }
+            return binaryString;
+        },
+        addrOffsetMap);
 }
+
+namespace {
+void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets) {
+    map[text.count('\n')] = offsets++;
+}
+}  // namespace
 
 QString Parser::stringifyProgram(const Program& program, unsigned stride,
-                                 std::function<QString(const std::vector<char>&, uint32_t index)> stringifier) const {
+                                 std::function<QString(const std::vector<char>&, uint32_t index)> stringifier,
+                                 AddrOffsetMap& addrOffsetMap) const {
     const auto* textSection = program.getSection(TEXT_SECTION_NAME);
     if (!textSection)
         return QString();
@@ -57,13 +69,20 @@ QString Parser::stringifyProgram(const Program& program, unsigned stride,
     buffer.resize(stride);
     uint32_t byteIndex = 0;
 
+    int infoOffsets = 0;
+
     for (unsigned long addr = textSection->address; addr < textSection->address + textSection->data.length();
          addr += stride) {
         dataStream.readRawData(buffer.data(), stride);
 
         // Function label
         if (program.symbols.count(addr)) {
-            out += "\n" + QString::number(addr, 16).rightJustified(8, '0') + " <" + program.symbols.at(addr) + ">:\n";
+            // We are adding non-instruction lines to the output string. Record the line number as well as the sum of
+            // invalid lines up to the given point.
+            incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
+            out += "\n";
+            incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
+            out += QString::number(addr, 16).rightJustified(8, '0') + " <" + program.symbols.at(addr) + ">:\n";
         }
 
         // Instruction address

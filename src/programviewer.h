@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QTimer>
 
+#include "parser.h"
 #include "program.h"
 
 namespace Ripes {
@@ -47,6 +48,15 @@ private:
     int m_sidebarWidth;
 
     BreakpointArea* m_breakpointArea;
+
+    /**
+     * @brief m_labelAddrOffsetMap
+     * To correctly correlate a line index with program address location whilst accounting for additional output in the
+     * disassembled view of a program, we provide the AddrOffsetMap. Key in this map indicate line numbers (starting
+     * from 0) which does >not< correspond with an address. The value of the key corresponds to the total sum of
+     * non-address lines encountered up to and including the given label.
+     */
+    AddrOffsetMap m_labelAddrOffsetMap;
 
     bool eventFilter(QObject* observed, QEvent* event) override;
 };
