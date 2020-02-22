@@ -816,6 +816,11 @@ const Program Assembler::getProgram() {
     Program p;
     p.sections.push_back({TEXT_SECTION_NAME, 0, m_textSegment});
     p.sections.push_back({".data", DATA_START, m_dataSegment});
+
+    for (const auto& kv : m_labelPosMap.toStdMap()) {
+        p.symbols[kv.second] = kv.first;
+    }
+
     return p;
 }
 
