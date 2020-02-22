@@ -1,0 +1,179 @@
+#include "programviewer.h"
+
+#include "defines.h"
+#include "processorhandler.h"
+
+#include <QMenu>
+#include <QAction>
+#include <QTextBlock>
+#include <QEvent>
+#include <QApplication>
+
+namespace Ripes {
+
+ProgramViewer::ProgramViewer(QWidget* parent) : QPlainTextEdit(parent)
+{
+    m_breakpointArea = new BreakpointArea(this);
+
+    connect(this, &QPlainTextEdit::blockCountChanged, this, &ProgramViewer::updateSidebarWidth);
+    connect(this, &QPlainTextEdit::updateRequest, this, &ProgramViewer::updateSidebar);
+    updateSidebarWidth(0);
+
+
+    // Set font for the entire widget. calls to fontMetrics() will get the
+    // dimensions of the currently set font
+    m_font = QFont("Inconsolata", 11);
+    setFont(m_font);
+    m_fontTimer.setSingleShot(true);
+}
+
+bool ProgramViewer::eventFilter(QObject*, QEvent* event) {
+    // Event filter for catching ctrl+Scroll events, for text resizing
+    if (event->type() == QEvent::Wheel && QApplication::keyboardModifiers() == Qt::ControlModifier) {
+        auto wheelEvent = static_cast<QWheelEvent*>(event);
+        // Since multiple wheelevents are issued on a scroll,
+        // start a timer to only catch the first one
+
+        // change font size
+        if (!m_fontTimer.isActive()) {
+            if (wheelEvent->angleDelta().y() > 0) {
+                if (m_font.pointSize() < 30)
+                    m_font.setPointSize(m_font.pointSize() + 1);
+            } else {
+                if (m_font.pointSize() > 6)
+                    m_font.setPointSize(m_font.pointSize() - 1);
+            }
+            m_fontTimer.start(50);
+        }
+        setFont(m_font);
+        return true;
+    }
+
+    return false;
+}
+
+void ProgramViewer::clearBreakpoints() {
+    ProcessorHandler::get()->clearBreakpoints();
+}
+
+void ProgramViewer::resizeEvent(QResizeEvent* e) {
+    QPlainTextEdit::resizeEvent(e);
+
+    const QRect cr = contentsRect();
+    m_breakpointArea->setGeometry(cr.left(), cr.top(), m_breakpointArea->width(), cr.height());
+}
+
+void ProgramViewer::updateSidebar(const QRect& rect, int dy) {
+
+        m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
+
+
+    if (rect.contains(viewport()->rect()))
+        updateSidebarWidth(0);
+}
+
+void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
+    // Set margins of the text edit area
+    m_sidebarWidth = m_breakpointArea->width();
+    setViewportMargins(m_sidebarWidth, 0, 0, 0);
+}
+
+void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
+    QPainter painter(m_breakpointArea);
+
+    // When caret flashes in QPlainTextEdit a paint event is sent to this widget,
+    // with a height of a line in the edit. We override this paint event by always
+    // redrawing the visible breakpoint area
+    auto area = m_breakpointArea->rect();
+    QLinearGradient gradient = QLinearGradient(area.topLeft(), area.bottomRight());
+        gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
+        gradient.setColorAt(1, QColor(Colors::FoundersRock));
+
+    painter.fillRect(area, gradient);
+
+        QTextBlock block = firstVisibleBlock();
+        uint32_t address = ProcessorHandler::get()->getTextStart() +
+                           block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
+        int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+        int bottom = top + static_cast<int>(blockBoundingRect(block).height());
+
+        while (block.isValid() && top <= event->rect().bottom()) {
+            if (block.isVisible() && bottom >= event->rect().top()) {
+                if (ProcessorHandler::get()->hasBreakpoint(address)) {
+                    painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
+                                       m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+                }
+            }
+
+            block = block.next();
+            top = bottom;
+            bottom = top + static_cast<int>(blockBoundingRect(block).height());
+            address += ProcessorHandler::get()->currentISA()->bytes();
+        }
+
+}
+
+
+long ProgramViewer::addressForPos(const QPoint& pos) const {
+    // Get line height
+    QTextBlock block = firstVisibleBlock();
+
+    const auto height = blockBoundingRect(block).height();
+
+    // Find block index in the ProgramViewer
+    int index;
+    if (block == document()->findBlockByLineNumber(0)) {
+        index = static_cast<int>((pos.y() - contentOffset().y()) / height);
+    } else {
+        index = static_cast<int>((pos.y() + contentOffset().y()) / height);
+    }
+    // Get actual block index
+    while (index > 0) {
+        block = block.next();
+        index--;
+    }
+    if (!block.isValid())
+        return -1;
+
+    // Toggle breakpoint
+    return block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes() +
+           ProcessorHandler::get()->getTextStart();
+}
+
+bool ProgramViewer::hasBreakpoint(const QPoint& pos) const {
+    return ProcessorHandler::get()->hasBreakpoint(static_cast<unsigned>(addressForPos(pos)));
+}
+
+void ProgramViewer::breakpointClick(const QPoint& pos) {
+        const auto address = addressForPos(pos);
+        if (!(address < 0)) {
+            ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
+            repaint();
+        }
+}
+
+// -------------- breakpoint area ----------------------------------
+
+BreakpointArea::BreakpointArea(ProgramViewer* viewer) : QWidget(viewer) {
+    m_programViewer = viewer;
+    setCursor(Qt::PointingHandCursor);
+}
+
+void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
+    // setup context menu
+    QMenu contextMenu;
+
+    // Create and connect actions for removing and setting breakpoints
+    auto* toggleAction = contextMenu.addAction("Toggle breakpoint");
+    auto* removeAllAction = contextMenu.addAction("Remove all breakpoints");
+
+    connect(toggleAction, &QAction::triggered, [=] { m_programViewer->breakpointClick(event->pos()); });
+    connect(removeAllAction, &QAction::triggered, [=] {
+        m_programViewer->clearBreakpoints();
+        repaint();
+    });
+
+    contextMenu.exec(event->globalPos());
+}
+
+}

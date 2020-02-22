@@ -291,7 +291,7 @@
               </layout>
              </item>
              <item>
-              <widget class="CodeEditor" name="binaryedit"/>
+              <widget class="ProgramViewer" name="programViewer"/>
              </item>
             </layout>
            </widget>
@@ -311,6 +311,11 @@
    <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
    <header>codeeditor.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ProgramViewer</class>
+   <extends>QPlainTextEdit</extends>
+   <header>programviewer.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

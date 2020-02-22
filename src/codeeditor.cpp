@@ -20,12 +20,9 @@ namespace Ripes {
 
 CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     m_lineNumberArea = new LineNumberArea(this);
-    m_breakpointArea = new BreakpointArea(this);
 
-    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateSidebarWidth(int)));
-
-    connect(this, SIGNAL(updateRequest(QRect, int)), this, SLOT(updateSidebar(QRect, int)));
-
+    connect(this, &QPlainTextEdit::blockCountChanged, this, &CodeEditor::updateSidebarWidth);
+    connect(this, &QPlainTextEdit::updateRequest, this, &CodeEditor::updateSidebar);
     updateSidebarWidth(0);
 
     // Set font for the entire widget. calls to fontMetrics() will get the
@@ -69,7 +66,7 @@ int CodeEditor::lineNumberAreaWidth() {
 
 void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
     // Set margins of the text edit area
-    m_sidebarWidth = lineNumberAreaWidth() + m_breakpointArea->width();
+    m_sidebarWidth = lineNumberAreaWidth();
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
 }
 
@@ -108,10 +105,6 @@ void CodeEditor::updateTooltip(int line, QString tip) {
     }
 }
 
-void CodeEditor::clearBreakpoints() {
-    ProcessorHandler::get()->clearBreakpoints();
-}
-
 bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
@@ -130,19 +123,11 @@ bool CodeEditor::event(QEvent* event) {
     return QPlainTextEdit::event(event);
 }
 
-void CodeEditor::enableBreakpointArea() {
-    // Enables breakpoint area, and sets cursor for the breakpoint area to a "clickable" cursor
-    m_breakpointAreaEnabled = true;
-    m_breakpointArea->setCursor(Qt::PointingHandCursor);
-}
-
 void CodeEditor::updateSidebar(const QRect& rect, int dy) {
     if (dy) {
         m_lineNumberArea->scroll(0, dy);
-        m_breakpointArea->scroll(0, dy);
     } else {
         m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(), rect.height());
-        m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
     }
 
     if (rect.contains(viewport()->rect()))
@@ -152,11 +137,8 @@ void CodeEditor::updateSidebar(const QRect& rect, int dy) {
 void CodeEditor::resizeEvent(QResizeEvent* e) {
     QPlainTextEdit::resizeEvent(e);
 
-    QRect cr = contentsRect();
-    m_lineNumberArea->setGeometry(
-        QRect(cr.left() + m_breakpointArea->width(), cr.top(), lineNumberAreaWidth(), cr.height()));
-
-    m_breakpointArea->setGeometry(cr.left(), cr.top(), m_breakpointArea->width(), cr.height());
+    const QRect cr = contentsRect();
+    m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
 void CodeEditor::highlightCurrentLine() {
@@ -200,46 +182,6 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
     }
 }
 
-void CodeEditor::breakpointAreaPaintEvent(QPaintEvent* event) {
-    QPainter painter(m_breakpointArea);
-
-    // When caret flashes in QPlainTextEdit a paint event is sent to this widget,
-    // with a height of a line in the edit. We override this paint event by always
-    // redrawing the visible breakpoint area
-    auto area = m_breakpointArea->rect();
-    QLinearGradient gradient = QLinearGradient(area.topLeft(), area.bottomRight());
-    if (m_breakpointAreaEnabled) {
-        gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
-        gradient.setColorAt(1, QColor(Colors::FoundersRock));
-    } else {
-        gradient.setColorAt(0, QColor(Qt::lightGray).lighter(120));
-        gradient.setColorAt(1, QColor(Qt::lightGray).lighter(120));
-    }
-    painter.fillRect(area, gradient);
-
-    if (m_breakpointAreaEnabled) {
-        QTextBlock block = firstVisibleBlock();
-        uint32_t address = ProcessorHandler::get()->getTextStart() +
-                           block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
-        int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-        int bottom = top + static_cast<int>(blockBoundingRect(block).height());
-
-        while (block.isValid() && top <= event->rect().bottom()) {
-            if (block.isVisible() && bottom >= event->rect().top()) {
-                if (ProcessorHandler::get()->hasBreakpoint(address)) {
-                    painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
-                                       m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
-                }
-            }
-
-            block = block.next();
-            top = bottom;
-            bottom = top + static_cast<int>(blockBoundingRect(block).height());
-            address += ProcessorHandler::get()->currentISA()->bytes();
-        }
-    }
-}
-
 void CodeEditor::setupSyntaxHighlighter() {
     // Creates AsmHighlighter object and connects it to the current document
     m_highlighter = new SyntaxHighlighter(document());
@@ -261,73 +203,4 @@ void CodeEditor::setupSyntaxHighlighter() {
     });
 }
 
-long CodeEditor::addressForPos(const QPoint& pos) const {
-    if (!m_breakpointAreaEnabled)
-        return -1;
-
-    // Get line height
-    QTextBlock block = firstVisibleBlock();
-
-    const auto height = blockBoundingRect(block).height();
-
-    // Find block index in the codeeditor
-    int index;
-    if (block == document()->findBlockByLineNumber(0)) {
-        index = static_cast<int>((pos.y() - contentOffset().y()) / height);
-    } else {
-        index = static_cast<int>((pos.y() + contentOffset().y()) / height);
-    }
-    // Get actual block index
-    while (index > 0) {
-        block = block.next();
-        index--;
-    }
-    if (!block.isValid())
-        return -1;
-
-    // Toggle breakpoint
-    return block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes() +
-           ProcessorHandler::get()->getTextStart();
-}
-
-bool CodeEditor::hasBreakpoint(const QPoint& pos) const {
-    if (!m_breakpointAreaEnabled)
-        return false;
-
-    return ProcessorHandler::get()->hasBreakpoint(static_cast<unsigned>(addressForPos(pos)));
-}
-
-void CodeEditor::breakpointClick(const QPoint& pos) {
-    if (m_breakpointAreaEnabled) {
-        // Toggle breakpoint
-        auto address = addressForPos(pos);
-        if (!(address < 0)) {
-            ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
-            repaint();
-        }
-    }
-}
-
-// -------------- breakpoint area ----------------------------------
-
-BreakpointArea::BreakpointArea(CodeEditor* editor) : QWidget(editor) {
-    codeEditor = editor;
-}
-
-void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
-    // setup context menu
-    QMenu contextMenu;
-
-    // Create and connect actions for removing and setting breakpoints
-    auto* toggleAction = contextMenu.addAction("Toggle breakpoint");
-    auto* removeAllAction = contextMenu.addAction("Remove all breakpoints");
-
-    connect(toggleAction, &QAction::triggered, [=] { codeEditor->breakpointClick(event->pos()); });
-    connect(removeAllAction, &QAction::triggered, [=] {
-        codeEditor->clearBreakpoints();
-        repaint();
-    });
-
-    contextMenu.exec(event->globalPos());
-}
 }  // namespace Ripes

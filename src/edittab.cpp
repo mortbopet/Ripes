@@ -24,10 +24,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     // translation is complete
     m_ui->assemblyedit->setupSyntaxHighlighter();
     m_ui->assemblyedit->setupChangedTimer();
-    m_ui->binaryedit->setReadOnly(true);
-
-    // enable breakpoint area for the translated code only
-    m_ui->binaryedit->enableBreakpointArea();
+    m_ui->programViewer->setReadOnly(true);
 
     m_assembler = std::make_unique<Assembler>();
 
@@ -116,7 +113,7 @@ void EditTab::setAssemblyText(const QString& text) {
 void EditTab::enableAssemblyInput() {
     // Clear currently loaded binary/ELF program
     m_activeProgram = Program();
-    m_ui->binaryedit->clear();
+    m_ui->programViewer->clear();
     enableEditor();
     m_editorEnabled = true;
     emit editorStateChanged(m_editorEnabled);
@@ -129,7 +126,7 @@ void EditTab::setDisassemblerText() {
 
     auto text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->disassemble(textSection->data)
                                                           : Parser::getParser()->binarize(textSection->data);
-    m_ui->binaryedit->setPlainText(text);
+    m_ui->programViewer->setPlainText(text);
 }
 
 void EditTab::enableEditor() {
@@ -186,6 +183,25 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
         section.address = elfSection->get_address();
         // QByteArray performs a deep copy of the data when the data array is initialized at construction
         section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
+
+        if (elfSection->get_type() == SHT_SYMTAB) {
+            // Collect function symbols
+            const ELFIO::symbol_section_accessor symbols(reader, elfSection);
+            for (unsigned int j = 0; j < symbols.get_symbols_num(); ++j) {
+                std::string name;
+                ELFIO::Elf64_Addr value;
+                ELFIO::Elf_Xword size;
+                unsigned char bind;
+                unsigned char type;
+                ELFIO::Elf_Half section_index;
+                unsigned char other;
+                symbols.get_symbol(j, name, value, size, bind, type, section_index, other);
+
+                if (type != STT_FUNC)
+                    continue;
+                program.symbols[value] = QString::fromStdString(name);
+            }
+        }
     }
 
     program.entryPoint = reader.get_entry();

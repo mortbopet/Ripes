@@ -32,6 +32,7 @@ struct ProgramSection {
 struct Program {
     unsigned long entryPoint = 0;
     std::vector<ProgramSection> sections;
+    std::map<unsigned long, QString> symbols;
 
     const ProgramSection* getSection(const QString& name) const {
         const auto secIter =
