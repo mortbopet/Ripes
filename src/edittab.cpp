@@ -78,7 +78,7 @@ void EditTab::clearAssemblyEditor() {
 }
 
 void EditTab::emitProgramChanged() {
-    setDisassemblerText();
+    updateProgramViewer();
     emit programChanged(&m_activeProgram);
 }
 
@@ -119,14 +119,8 @@ void EditTab::enableAssemblyInput() {
     emit editorStateChanged(m_editorEnabled);
 }
 
-void EditTab::setDisassemblerText() {
-    const auto* textSection = m_activeProgram.getSection(TEXT_SECTION_NAME);
-    if (!textSection)
-        return;
-
-    auto text = m_ui->disassembledViewButton->isChecked() ? Parser::getParser()->disassemble(textSection->data)
-                                                          : Parser::getParser()->binarize(textSection->data);
-    m_ui->programViewer->setPlainText(text);
+void EditTab::updateProgramViewer() {
+    m_ui->programViewer->updateProgram(m_activeProgram, !m_ui->disassembledViewButton->isChecked());
 }
 
 void EditTab::enableEditor() {
@@ -144,7 +138,7 @@ void EditTab::disableEditor() {
 }
 
 void EditTab::on_disassembledViewButton_toggled() {
-    setDisassemblerText();
+    updateProgramViewer();
 }
 
 bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt) {

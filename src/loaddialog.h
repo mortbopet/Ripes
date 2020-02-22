@@ -56,7 +56,7 @@ private:
 
     void paletteValidate(QWidget* w, bool valid);
 
-    FileType m_fileType;
+    FileType m_fileType = FileType::Assembly;
     LoadFileParams m_params;
 
     Ui::LoadDialog* m_ui = nullptr;

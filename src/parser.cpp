@@ -24,8 +24,8 @@ Parser::Parser() {
 
 Parser::~Parser() {}
 
-QString Parser::disassemble(const QByteArray& text) const {
-    return stringifyByteArray(text, 4, [this](const std::vector<char>& buffer, uint32_t index) {
+QString Parser::disassemble(const Program& program) const {
+    return stringifyProgram(program, 4, [this](const std::vector<char>& buffer, uint32_t index) {
         // Hardcoded for RV32 for now
         uint32_t instr = 0;
         for (int i = 0; i < 4; i++) {
@@ -35,8 +35,8 @@ QString Parser::disassemble(const QByteArray& text) const {
     });
 }
 
-QString Parser::binarize(const QByteArray& text) const {
-    return stringifyByteArray(text, 4, [](const std::vector<char>& buffer, uint32_t) {
+QString Parser::binarize(const Program& program) const {
+    return stringifyProgram(program, 4, [](const std::vector<char>& buffer, uint32_t) {
         QString binaryString;
         for (auto byte : buffer) {
             binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));
@@ -45,18 +45,39 @@ QString Parser::binarize(const QByteArray& text) const {
     });
 }
 
-QString Parser::stringifyByteArray(const QByteArray& data, unsigned stride,
-                                   std::function<QString(const std::vector<char>&, uint32_t index)> stringifier) const {
+QString Parser::stringifyProgram(const Program& program, unsigned stride,
+                                 std::function<QString(const std::vector<char>&, uint32_t index)> stringifier) const {
+    const auto* textSection = program.getSection(TEXT_SECTION_NAME);
+    if (!textSection)
+        return QString();
+
     QString out;
-    auto dataStream = QDataStream(data);
+    auto dataStream = QDataStream(textSection->data);
     std::vector<char> buffer;
     buffer.resize(stride);
     uint32_t byteIndex = 0;
 
-    for (int i = 0; i < data.length(); i += stride) {
+    for (unsigned long addr = textSection->address; addr < textSection->address + textSection->data.length();
+         addr += stride) {
         dataStream.readRawData(buffer.data(), stride);
-        out += stringifier(buffer, byteIndex);
-        out += "\n";
+
+        // Function label
+        if (program.symbols.count(addr)) {
+            out += "\n" + QString::number(addr, 16).rightJustified(8, '0') + " <" + program.symbols.at(addr) + ">:\n";
+        }
+
+        // Instruction address
+        out += "\t" + QString::number(addr, 16) + ":\t\t";
+
+        // Instruction word
+        QString wordString;
+        for (auto byte : buffer) {
+            wordString.prepend(QString().setNum(static_cast<uint8_t>(byte), 16).rightJustified(2, '0'));
+        }
+        out += wordString + "\t\t";
+
+        // Stringified instruction
+        out += stringifier(buffer, byteIndex) + "\n";
         byteIndex += stride;
     }
     return out;

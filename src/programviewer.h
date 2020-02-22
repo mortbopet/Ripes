@@ -6,6 +6,8 @@
 #include <QScrollBar>
 #include <QTimer>
 
+#include "program.h"
+
 namespace Ripes {
 
 class BreakpointArea;
@@ -20,6 +22,13 @@ public:
     bool hasBreakpoint(const QPoint& pos) const;
     long addressForPos(const QPoint& pos) const;
     void clearBreakpoints();
+
+    ///
+    /// \brief updateProgram
+    /// Refreshes the programViewer view with @p program, using the parser to either disassemble or (if @p binary is
+    /// true) show the raw binary version of the loaded program.
+    ///
+    void updateProgram(const Program& program, bool binary = false);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;

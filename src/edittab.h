@@ -27,7 +27,7 @@ public:
     ~EditTab() override;
 
     void setAssemblyText(const QString& text);
-    void setDisassemblerText();
+    void updateProgramViewer();
     QString getAssemblyText();
     void newProgram();
     void clearAssemblyEditor();

@@ -4,7 +4,9 @@
 #include <functional>
 #include <unordered_map>
 #include <vector>
+
 #include "defines.h"
+#include "program.h"
 
 namespace Ripes {
 
@@ -34,13 +36,12 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    QString disassemble(const QByteArray& text) const;
-    QString binarize(const QByteArray& text) const;
+    QString disassemble(const Program& program) const;
+    QString binarize(const Program& program) const;
 
 private:
-    QString
-    stringifyByteArray(const QByteArray& data, unsigned stride,
-                       std::function<QString(const std::vector<char>& buffer, uint32_t index)> stringifier) const;
+    QString stringifyProgram(const Program& program, unsigned stride,
+                             std::function<QString(const std::vector<char>& buffer, uint32_t index)> stringifier) const;
 
     Parser();
     ~Parser();

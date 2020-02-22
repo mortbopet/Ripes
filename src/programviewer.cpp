@@ -1,30 +1,32 @@
 #include "programviewer.h"
 
 #include "defines.h"
+#include "parser.h"
 #include "processorhandler.h"
 
-#include <QMenu>
 #include <QAction>
-#include <QTextBlock>
-#include <QEvent>
 #include <QApplication>
+#include <QEvent>
+#include <QFontMetricsF>
+#include <QMenu>
+#include <QTextBlock>
 
 namespace Ripes {
 
-ProgramViewer::ProgramViewer(QWidget* parent) : QPlainTextEdit(parent)
-{
+ProgramViewer::ProgramViewer(QWidget* parent) : QPlainTextEdit(parent) {
     m_breakpointArea = new BreakpointArea(this);
 
     connect(this, &QPlainTextEdit::blockCountChanged, this, &ProgramViewer::updateSidebarWidth);
     connect(this, &QPlainTextEdit::updateRequest, this, &ProgramViewer::updateSidebar);
     updateSidebarWidth(0);
 
-
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
     m_font = QFont("Inconsolata", 11);
     setFont(m_font);
     m_fontTimer.setSingleShot(true);
+
+    setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') * 4);
 }
 
 bool ProgramViewer::eventFilter(QObject*, QEvent* event) {
@@ -63,10 +65,13 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
     m_breakpointArea->setGeometry(cr.left(), cr.top(), m_breakpointArea->width(), cr.height());
 }
 
+void ProgramViewer::updateProgram(const Program& program, bool binary) {
+    const auto text = binary ? Parser::getParser()->binarize(program) : Parser::getParser()->disassemble(program);
+    setPlainText(text);
+}
+
 void ProgramViewer::updateSidebar(const QRect& rect, int dy) {
-
-        m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
-
+    m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
 
     if (rect.contains(viewport()->rect()))
         updateSidebarWidth(0);
@@ -86,33 +91,31 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
     // redrawing the visible breakpoint area
     auto area = m_breakpointArea->rect();
     QLinearGradient gradient = QLinearGradient(area.topLeft(), area.bottomRight());
-        gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
-        gradient.setColorAt(1, QColor(Colors::FoundersRock));
+    gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
+    gradient.setColorAt(1, QColor(Colors::FoundersRock));
 
     painter.fillRect(area, gradient);
 
-        QTextBlock block = firstVisibleBlock();
-        uint32_t address = ProcessorHandler::get()->getTextStart() +
-                           block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
-        int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-        int bottom = top + static_cast<int>(blockBoundingRect(block).height());
+    QTextBlock block = firstVisibleBlock();
+    uint32_t address =
+        ProcessorHandler::get()->getTextStart() + block.blockNumber() * ProcessorHandler::get()->currentISA()->bytes();
+    int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+    int bottom = top + static_cast<int>(blockBoundingRect(block).height());
 
-        while (block.isValid() && top <= event->rect().bottom()) {
-            if (block.isVisible() && bottom >= event->rect().top()) {
-                if (ProcessorHandler::get()->hasBreakpoint(address)) {
-                    painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
-                                       m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
-                }
+    while (block.isValid() && top <= event->rect().bottom()) {
+        if (block.isVisible() && bottom >= event->rect().top()) {
+            if (ProcessorHandler::get()->hasBreakpoint(address)) {
+                painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
+                                   m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
             }
-
-            block = block.next();
-            top = bottom;
-            bottom = top + static_cast<int>(blockBoundingRect(block).height());
-            address += ProcessorHandler::get()->currentISA()->bytes();
         }
 
+        block = block.next();
+        top = bottom;
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
+        address += ProcessorHandler::get()->currentISA()->bytes();
+    }
 }
-
 
 long ProgramViewer::addressForPos(const QPoint& pos) const {
     // Get line height
@@ -145,11 +148,11 @@ bool ProgramViewer::hasBreakpoint(const QPoint& pos) const {
 }
 
 void ProgramViewer::breakpointClick(const QPoint& pos) {
-        const auto address = addressForPos(pos);
-        if (!(address < 0)) {
-            ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
-            repaint();
-        }
+    const auto address = addressForPos(pos);
+    if (!(address < 0)) {
+        ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
+        repaint();
+    }
 }
 
 // -------------- breakpoint area ----------------------------------
@@ -176,4 +179,4 @@ void BreakpointArea::contextMenuEvent(QContextMenuEvent* event) {
     contextMenu.exec(event->globalPos());
 }
 
-}
+}  // namespace Ripes

@@ -238,7 +238,7 @@
                <item>
                 <widget class="QLabel" name="label_2">
                  <property name="text">
-                  <string>Assembled code</string>
+                  <string>Executable code</string>
                  </property>
                 </widget>
                </item>

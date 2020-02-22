@@ -53,8 +53,8 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     m_ui->currentISA->setText(ProcessorHandler::get()->currentISA()->name());
 
     // default selection
-    m_ui->filePath->setText(s_filePath);
     m_fileTypeButtons->button(s_typeIndex)->toggle();
+    m_ui->filePath->setText(s_filePath);
 }
 
 void LoadDialog::inputTypeChanged() {

@@ -30,6 +30,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
     m_font = QFont("Inconsolata", 11);
     setFont(m_font);
     m_fontTimer.setSingleShot(true);
+    setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') * 4);
 
     // set event filter for catching scroll events
     installEventFilter(this);
