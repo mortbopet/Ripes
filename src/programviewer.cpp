@@ -38,6 +38,10 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
 
     const QRect cr = contentsRect();
     m_breakpointArea->setGeometry(cr.left(), cr.top(), m_breakpointArea->width(), cr.height());
+
+    // we need to update the highlighted lines whenever resizing the window to recalculate the highlighting gradient,
+    // reflecting the new widget size
+    updateHighlightedAddresses();
 }
 
 void ProgramViewer::updateProgram(const Program& program, bool binary) {
