@@ -1,7 +1,6 @@
 #include "programviewer.h"
 
 #include "defines.h"
-#include "processorhandler.h"
 
 #include <QAction>
 #include <QApplication>
@@ -26,31 +25,8 @@ ProgramViewer::ProgramViewer(QWidget* parent) : QPlainTextEdit(parent) {
     m_fontTimer.setSingleShot(true);
 
     setTabStopDistance(QFontMetricsF(m_font).width(' ') * 4);
-}
 
-bool ProgramViewer::eventFilter(QObject*, QEvent* event) {
-    // Event filter for catching ctrl+Scroll events, for text resizing
-    if (event->type() == QEvent::Wheel && QApplication::keyboardModifiers() == Qt::ControlModifier) {
-        auto wheelEvent = static_cast<QWheelEvent*>(event);
-        // Since multiple wheelevents are issued on a scroll,
-        // start a timer to only catch the first one
-
-        // change font size
-        if (!m_fontTimer.isActive()) {
-            if (wheelEvent->angleDelta().y() > 0) {
-                if (m_font.pointSize() < 30)
-                    m_font.setPointSize(m_font.pointSize() + 1);
-            } else {
-                if (m_font.pointSize() > 6)
-                    m_font.setPointSize(m_font.pointSize() - 1);
-            }
-            m_fontTimer.start(50);
-        }
-        setFont(m_font);
-        return true;
-    }
-
-    return false;
+    setLineWrapMode(QPlainTextEdit::NoWrap);
 }
 
 void ProgramViewer::clearBreakpoints() {
@@ -91,6 +67,7 @@ void ProgramViewer::updateHighlightedAddresses() {
     const int decRatio = 100 + 80 / stages;
     QList<QTextEdit::ExtraSelection> highlights;
     std::set<unsigned long> highlightedPCs;
+    m_highlightedBlocksText.clear();
 
     for (unsigned sid = 0; sid < stages; sid++) {
         const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(sid);
@@ -98,19 +75,48 @@ void ProgramViewer::updateHighlightedAddresses() {
             auto block = blockForAddress(stageInfo.pc);
             if (!block.isValid())
                 continue;
+
+            // Record the stage name for the highlighted block for later painting
+            m_highlightedBlocksText[block] << ProcessorHandler::get()->getProcessor()->stageName(sid);
+
+            // If a stage has already been highlighted (ie. an instruction exists in more than 1 stage at once), keep
+            // the already set highlighting.
             if (highlightedPCs.count(stageInfo.pc)) {
                 continue;
             }
+
             QTextEdit::ExtraSelection es;
             es.cursor = QTextCursor(block);
             es.format.setProperty(QTextFormat::FullWidthSelection, true);
-            es.format.setBackground(bg);
+
+            const auto bbr = blockBoundingRect(block);
+            QLinearGradient grad(bbr.topLeft(), bbr.bottomRight());
+            grad.setColorAt(0, palette().base().color());
+            grad.setColorAt(1, bg);
+            es.format.setBackground(grad);
+
             highlights << es;
             highlightedPCs.insert(stageInfo.pc);
         }
         bg = bg.lighter(decRatio);
     }
     setExtraSelections(highlights);
+}
+
+void ProgramViewer::paintEvent(QPaintEvent* event) {
+    QPlainTextEdit::paintEvent(event);
+
+    // Draw stage names for highlighted addresses
+    QPainter painter(viewport());
+
+    for (const auto& hb : m_highlightedBlocksText) {
+        const QString stageString = hb.second.join('/');
+        const auto bbr = blockBoundingGeometry(hb.first);
+        painter.setFont(font());
+        painter.drawText(bbr.width() - painter.fontMetrics().boundingRect(stageString).width() - /*padding*/ 10,
+                         bbr.top() + bbr.height(), stageString);
+    }
+    painter.end();
 }
 
 void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
@@ -131,7 +137,6 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
     int bottom = top + static_cast<int>(blockBoundingRect(block).height());
 
     while (block.isValid() && top <= event->rect().bottom()) {
-        volatile int line = block.blockNumber();
         if (block.isVisible() && bottom >= event->rect().top()) {
             const long address = addressForBlock(block);
             if (address >= 0) {

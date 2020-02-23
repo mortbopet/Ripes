@@ -7,6 +7,7 @@
 #include <QTimer>
 
 #include "parser.h"
+#include "processorhandler.h"
 #include "program.h"
 
 namespace Ripes {
@@ -17,6 +18,7 @@ class ProgramViewer : public QPlainTextEdit {
     Q_OBJECT
 public:
     ProgramViewer(QWidget* parent = nullptr);
+    void paintEvent(QPaintEvent* e) override;
 
     void breakpointAreaPaintEvent(QPaintEvent* event);
     void breakpointClick(const QPoint& pos);
@@ -63,8 +65,7 @@ private:
      * non-address lines encountered up to and including the given label.
      */
     AddrOffsetMap m_labelAddrOffsetMap;
-
-    bool eventFilter(QObject* observed, QEvent* event) override;
+    std::map<QTextBlock, QStringList> m_highlightedBlocksText;
 };
 
 class BreakpointArea : public QWidget {
