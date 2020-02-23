@@ -55,14 +55,14 @@ bool InstructionModel::setData(const QModelIndex& index, const QVariant& value, 
 }
 
 QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
+    if (orientation == Qt::Horizontal && (role == Qt::DisplayRole || role == Qt::ToolTipRole)) {
         switch (section) {
             case Column::Breakpoint:
-                return "BP";
+                return role == Qt::DisplayRole ? "BP" : "Breakpoints";
             case Column::PC:
-                return "PC";
+                return role == Qt::DisplayRole ? "Addr" : "Instruction Address";
             case Column::Stage:
-                return "Stage";
+                return role == Qt::DisplayRole ? "Stage" : "Stages currently executing instructon";
             case Column::Instruction:
                 return "Instruction";
             default:
