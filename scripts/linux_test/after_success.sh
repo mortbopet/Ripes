@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 # Fail on failing QTest executions
-# set -e
+set -e
 
 pushd test
 
