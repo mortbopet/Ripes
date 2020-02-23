@@ -184,10 +184,8 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
     auto high = low;
     if (low != m_labelAddrOffsetMap.begin()) {
         low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
-        high = std::next(low);
-    } else {
-        high = m_labelAddrOffsetMap.end();
     }
+    high = std::next(low);
 
     auto validBlockRange = [this, adjustedLineNumber](auto& low, auto& high, long lineNumber) {
         if (m_labelAddrOffsetMap.count(lineNumber))
@@ -203,14 +201,9 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 
     // Adjust low and high iterators to locate the range bounds of the address
     while (!validBlockRange(low, high, lineNumber)) {
-        if (high == m_labelAddrOffsetMap.end()) {
-            lineNumber = low->first + 1;
-        } else {
-            lineNumber = high->first + 1;
-        }
-
-        low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
+        low = m_labelAddrOffsetMap.lower_bound(lineNumber);
         high = std::next(low);
+        lineNumber = low->first + 1;
     }
 
     const int offsetSum = high == m_labelAddrOffsetMap.end() ? low->second + 1 : high->second;
@@ -220,6 +213,10 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 }
 
 long ProgramViewer::addressForBlock(QTextBlock block) const {
+    const static auto calcAddressFunc = [](int lineNumber) {
+        return lineNumber * ProcessorHandler::get()->currentISA()->bytes() + ProcessorHandler::get()->getTextStart();
+    };
+
     const int lineNumber = block.blockNumber();
 
     // Clicking an invalid line? (non-instruction line)
@@ -230,14 +227,24 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
     // To identify the program address corresponding to the selected line, we find the lower bound of the selected block
     // in the m_labelAddrOffsetMap and subtract the invalid line count up to the given point.
     int adjustedLineNumber = lineNumber;
-    auto offsetsToLine = m_labelAddrOffsetMap.lower_bound(lineNumber);
-    if (offsetsToLine != m_labelAddrOffsetMap.end()) {
-        adjustedLineNumber -= offsetsToLine->second;
+
+    if (m_labelAddrOffsetMap.empty())
+        return calcAddressFunc(adjustedLineNumber);
+
+    auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
+
+    if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
+        // The line number is less that the position of the first offset block; address is directly inferred from
+        // linenumber.
+        return calcAddressFunc(adjustedLineNumber);
     }
 
-    // Toggle breakpoint
-    return adjustedLineNumber * ProcessorHandler::get()->currentISA()->bytes() +
-           ProcessorHandler::get()->getTextStart();
+    if (low != m_labelAddrOffsetMap.begin()) {
+        low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
+    }
+
+    adjustedLineNumber -= (low->second + 1);
+    return calcAddressFunc(adjustedLineNumber);
 }
 
 long ProgramViewer::addressForPos(const QPoint& pos) const {

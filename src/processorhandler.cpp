@@ -75,9 +75,9 @@ void ProcessorHandler::run() {
 }
 
 void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
-    if (enabled) {
+    if (enabled && isExecutableAddress(address)) {
         m_breakpoints.insert(address);
-    } else if (m_breakpoints.count(address)) {
+    } else {
         m_breakpoints.erase(address);
     }
 }
