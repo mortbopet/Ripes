@@ -69,6 +69,7 @@ void ProgramViewer::updateProgram(const Program& program, bool binary) {
     const auto text = binary ? Parser::getParser()->binarize(program, m_labelAddrOffsetMap)
                              : Parser::getParser()->disassemble(program, m_labelAddrOffsetMap);
     setPlainText(text);
+    updateHighlightedAddresses();
 }
 
 void ProgramViewer::updateSidebar(const QRect& rect, int dy) {
@@ -82,6 +83,34 @@ void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
     // Set margins of the text edit area
     m_sidebarWidth = m_breakpointArea->width();
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
+}
+
+void ProgramViewer::updateHighlightedAddresses() {
+    const unsigned stages = ProcessorHandler::get()->getProcessor()->stageCount();
+    QColor bg = QColor(Qt::red).lighter(120);
+    const int decRatio = 100 + 80 / stages;
+    QList<QTextEdit::ExtraSelection> highlights;
+    std::set<unsigned long> highlightedPCs;
+
+    for (unsigned sid = 0; sid < stages; sid++) {
+        const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(sid);
+        if (stageInfo.stage_valid) {
+            auto block = blockForAddress(stageInfo.pc);
+            if (!block.isValid())
+                continue;
+            if (highlightedPCs.count(stageInfo.pc)) {
+                continue;
+            }
+            QTextEdit::ExtraSelection es;
+            es.cursor = QTextCursor(block);
+            es.format.setProperty(QTextFormat::FullWidthSelection, true);
+            es.format.setBackground(bg);
+            highlights << es;
+            highlightedPCs.insert(stageInfo.pc);
+        }
+        bg = bg.lighter(decRatio);
+    }
+    setExtraSelections(highlights);
 }
 
 void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
@@ -103,18 +132,13 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
 
     while (block.isValid() && top <= event->rect().bottom()) {
         volatile int line = block.blockNumber();
-        const bool invalidLine = m_labelAddrOffsetMap.count(block.blockNumber());
-        if (block.isVisible() && bottom >= event->rect().top() && !invalidLine) {
-            int adjustedLineNumber = block.blockNumber();
-            auto offsetsToLine = m_labelAddrOffsetMap.lower_bound(adjustedLineNumber);
-            if (offsetsToLine != m_labelAddrOffsetMap.end()) {
-                adjustedLineNumber -= offsetsToLine->second;
-            }
-            const unsigned long address = ProcessorHandler::get()->getTextStart() +
-                                          adjustedLineNumber * ProcessorHandler::get()->currentISA()->bytes();
-            if (ProcessorHandler::get()->hasBreakpoint(address)) {
-                painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
-                                   m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+        if (block.isVisible() && bottom >= event->rect().top()) {
+            const long address = addressForBlock(block);
+            if (address >= 0) {
+                if (ProcessorHandler::get()->hasBreakpoint(address)) {
+                    painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
+                                       m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+                }
             }
         }
 
@@ -122,6 +146,77 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
         top = bottom;
         bottom = top + static_cast<int>(blockBoundingRect(block).height());
     }
+}
+
+namespace {}
+
+QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
+    const long adjustedLineNumber =
+        (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::get()->currentISA()->bytes();
+
+    if (m_labelAddrOffsetMap.empty()) {
+        return document()->findBlockByNumber(adjustedLineNumber);
+    }
+
+    long lineNumber = adjustedLineNumber;
+    auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
+    auto high = low;
+    if (low != m_labelAddrOffsetMap.begin()) {
+        low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
+        high = std::next(low);
+    } else {
+        high = m_labelAddrOffsetMap.end();
+    }
+
+    auto validBlockRange = [this, adjustedLineNumber](auto& low, auto& high, long lineNumber) {
+        if (m_labelAddrOffsetMap.count(lineNumber))
+            return false;
+
+        bool valid = true;
+        valid &= (low->first - low->second) <= adjustedLineNumber;
+        if (high != m_labelAddrOffsetMap.end()) {
+            valid &= adjustedLineNumber < (high->first - high->second);
+        }
+        return valid;
+    };
+
+    // Adjust low and high iterators to locate the range bounds of the address
+    while (!validBlockRange(low, high, lineNumber)) {
+        if (high == m_labelAddrOffsetMap.end()) {
+            lineNumber = low->first + 1;
+        } else {
+            lineNumber = high->first + 1;
+        }
+
+        low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
+        high = std::next(low);
+    }
+
+    const int offsetSum = high == m_labelAddrOffsetMap.end() ? low->second + 1 : high->second;
+    lineNumber = offsetSum + adjustedLineNumber;
+
+    return document()->findBlockByNumber(lineNumber);
+}
+
+long ProgramViewer::addressForBlock(QTextBlock block) const {
+    const int lineNumber = block.blockNumber();
+
+    // Clicking an invalid line? (non-instruction line)
+    if (m_labelAddrOffsetMap.count(lineNumber)) {
+        return -1;
+    }
+
+    // To identify the program address corresponding to the selected line, we find the lower bound of the selected block
+    // in the m_labelAddrOffsetMap and subtract the invalid line count up to the given point.
+    int adjustedLineNumber = lineNumber;
+    auto offsetsToLine = m_labelAddrOffsetMap.lower_bound(lineNumber);
+    if (offsetsToLine != m_labelAddrOffsetMap.end()) {
+        adjustedLineNumber -= offsetsToLine->second;
+    }
+
+    // Toggle breakpoint
+    return adjustedLineNumber * ProcessorHandler::get()->currentISA()->bytes() +
+           ProcessorHandler::get()->getTextStart();
 }
 
 long ProgramViewer::addressForPos(const QPoint& pos) const {
@@ -145,24 +240,7 @@ long ProgramViewer::addressForPos(const QPoint& pos) const {
     if (!block.isValid())
         return -1;
 
-    const int lineNumber = block.blockNumber();
-
-    // Clicking an invalid line? (non-instruction line)
-    if (m_labelAddrOffsetMap.count(lineNumber)) {
-        return -1;
-    }
-
-    // To identify the program address corresponding to the selected line, we find the lower bound of the selected block
-    // in the m_labelAddrOffsetMap and subtract the invalid line count up to the given point.
-    int adjustedLineNumber = lineNumber;
-    auto offsetsToLine = m_labelAddrOffsetMap.lower_bound(lineNumber);
-    if (offsetsToLine != m_labelAddrOffsetMap.end()) {
-        adjustedLineNumber -= offsetsToLine->second;
-    }
-
-    // Toggle breakpoint
-    return adjustedLineNumber * ProcessorHandler::get()->currentISA()->bytes() +
-           ProcessorHandler::get()->getTextStart();
+    return addressForBlock(block);
 }
 
 bool ProgramViewer::hasBreakpoint(const QPoint& pos) const {

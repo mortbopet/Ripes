@@ -21,8 +21,11 @@ public:
     void breakpointAreaPaintEvent(QPaintEvent* event);
     void breakpointClick(const QPoint& pos);
     bool hasBreakpoint(const QPoint& pos) const;
-    long addressForPos(const QPoint& pos) const;
     void clearBreakpoints();
+
+    long addressForPos(const QPoint& pos) const;
+    long addressForBlock(QTextBlock block) const;
+    QTextBlock blockForAddress(unsigned long) const;
 
     ///
     /// \brief updateProgram
@@ -30,6 +33,9 @@ public:
     /// true) show the raw binary version of the loaded program.
     ///
     void updateProgram(const Program& program, bool binary = false);
+
+public slots:
+    void updateHighlightedAddresses();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;

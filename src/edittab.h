@@ -27,7 +27,6 @@ public:
     ~EditTab() override;
 
     void setAssemblyText(const QString& text);
-    void updateProgramViewer();
     QString getAssemblyText();
     void newProgram();
     void clearAssemblyEditor();
@@ -43,6 +42,8 @@ signals:
     void editorStateChanged(bool enabled);
 
 public slots:
+    void updateProgramViewerHighlighting();
+
     void emitProgramChanged();
 
     /**
@@ -56,6 +57,7 @@ private slots:
     void on_disassembledViewButton_toggled();
 
 private:
+    void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
     bool loadAssemblyFile(Program& program, QFile& file);
     bool loadElfFile(Program& program, QFile& file);

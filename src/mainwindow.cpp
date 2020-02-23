@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     // setup and connect widgets
     connect(m_processorTab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
+    connect(m_processorTab, &ProcessorTab::update, m_editTab, &EditTab::updateProgramViewerHighlighting);
     connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
     connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
     connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);

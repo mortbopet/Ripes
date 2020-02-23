@@ -77,6 +77,12 @@ void EditTab::clearAssemblyEditor() {
     m_assembler->clear();
 }
 
+void EditTab::updateProgramViewerHighlighting() {
+    if (isVisible()) {
+        m_ui->programViewer->updateHighlightedAddresses();
+    }
+}
+
 void EditTab::emitProgramChanged() {
     updateProgramViewer();
     emit programChanged(&m_activeProgram);
