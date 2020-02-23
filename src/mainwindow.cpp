@@ -164,6 +164,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 }
 
 void MainWindow::loadFileTriggered() {
+    m_processorTab->pause();
     LoadDialog diag;
     if (!diag.exec())
         return;
