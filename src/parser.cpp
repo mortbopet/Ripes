@@ -26,13 +26,13 @@ Parser::~Parser() {}
 
 QString Parser::disassemble(const Program& program, AddrOffsetMap& addrOffsetMap) const {
     return stringifyProgram(program, 4,
-                            [this](const std::vector<char>& buffer, uint32_t index) {
+                            [this, &program](const std::vector<char>& buffer, uint32_t index) {
                                 // Hardcoded for RV32 for now
                                 uint32_t instr = 0;
                                 for (int i = 0; i < 4; i++) {
                                     instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
                                 }
-                                return disassemble(instr, index);
+                                return disassemble(program, instr, index);
                             },
                             addrOffsetMap);
 }
@@ -67,7 +67,6 @@ QString Parser::stringifyProgram(const Program& program, unsigned stride,
     auto dataStream = QDataStream(textSection->data);
     std::vector<char> buffer;
     buffer.resize(stride);
-    uint32_t byteIndex = 0;
 
     int infoOffsets = 0;
 
@@ -96,8 +95,7 @@ QString Parser::stringifyProgram(const Program& program, unsigned stride,
         out += wordString + "\t\t";
 
         // Stringified instruction
-        out += stringifier(buffer, byteIndex) + "\n";
-        byteIndex += stride;
+        out += stringifier(buffer, addr) + "\n";
     }
     return out;
 }
@@ -135,18 +133,18 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
     return wordParser;
 }
 
-QString Parser::disassemble(uint32_t instr, uint32_t address) const {
+QString Parser::disassemble(const Program& program, uint32_t instr, uint32_t address) const {
     switch (instr & 0x7f) {
         case instrType::LUI:
             return generateLuiString(instr);
         case instrType::AUIPC:
             return generateAuipcString(instr);
         case instrType::JAL:
-            return generateJalString(instr, address);
+            return generateJalString(instr, address, program);
         case instrType::JALR:
             return generateJalrString(instr);
         case instrType::BRANCH:
-            return generateBranchString(instr);
+            return generateBranchString(instr, address, program);
         case instrType::LOAD:
             return generateLoadString(instr);
         case instrType::STORE:
@@ -300,25 +298,42 @@ QString Parser::generateLoadString(uint32_t instr) const {
     }
 }
 
-QString Parser::generateBranchString(uint32_t instr) const {
+QString Parser::generateBranchString(uint32_t instr, uint32_t address, const Program& program) const {
     std::vector<uint32_t> fields = decodeBInstr(instr);
     auto offset = signextend<int32_t, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) | (fields[6] << 11));
+
+    QString brStr;
+
     switch (fields[4]) {
         case 0b000:  // BEQ
-            return QString("beq x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            brStr = QString("beq x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            break;
         case 0b001:  // BNE
-            return QString("bne x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            brStr = QString("bne x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            break;
         case 0b100:  // BLT - signed comparison
-            return QString("blt x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            brStr = QString("blt x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            break;
         case 0b101:  // BGE - signed comparison
-            return QString("bge x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            brStr = QString("bge x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            break;
         case 0b110:  // BLTU
-            return QString("bltu x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            brStr = QString("bltu x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            break;
         case 0b111:  // BGEU
-            return QString("bgeu x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            brStr = QString("bgeu x%1 x%2 %3").arg(fields[3]).arg(fields[2]).arg(offset);
+            break;
         default:
             return QString();
     }
+
+    QString landingPadSymbol;
+    const uint32_t landingPad = address + offset;
+    if (program.symbols.count(landingPad)) {
+        landingPadSymbol = " <" + program.symbols.at(landingPad) + ">";
+    }
+
+    return brStr + landingPadSymbol;
 }
 
 QString Parser::generateJalrString(uint32_t instr) const {
@@ -336,11 +351,17 @@ QString Parser::generateAuipcString(uint32_t instr) const {
     return QString("auipc x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
 }
 
-QString Parser::generateJalString(uint32_t instr, uint32_t address) const {
+QString Parser::generateJalString(uint32_t instr, uint32_t address, const Program& program) const {
     std::vector<uint32_t> fields = decodeJInstr(instr);
-    auto target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
-    target += (address);
-    // Check for misaligned four-byte boundary
-    return QString("jal x%1 %2").arg(fields[4]).arg("0x" + QString::number(target, 16));
+    uint32_t target = signextend<int32_t, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12);
+
+    target += address;
+
+    QString landingPadSymbol;
+    if (program.symbols.count(target)) {
+        landingPadSymbol = " <" + program.symbols.at(target) + ">";
+    }
+
+    return QString("jal x%1 %2").arg(fields[4]).arg("0x" + QString::number(target, 16)) + landingPadSymbol;
 }
 }  // namespace Ripes

@@ -28,7 +28,7 @@ public:
         return &parser;
     }
 
-    QString disassemble(uint32_t instr, uint32_t address) const;
+    QString disassemble(const Program& program, uint32_t instr, uint32_t address) const;
 
     // Const interfaces to intstruction decode lamdas
     std::vector<uint32_t> decodeUInstr(uint32_t instr) const { return m_decodeUInstr(instr); }
@@ -59,10 +59,10 @@ private:
     decode_functor m_decodeBInstr;
 
     // String generating functions
-    QString generateBranchString(uint32_t instr) const;
+    QString generateBranchString(uint32_t instr, uint32_t address, const Program& program) const;
     QString generateLuiString(uint32_t instr) const;
     QString generateAuipcString(uint32_t instr) const;
-    QString generateJalString(uint32_t instr, uint32_t address) const;
+    QString generateJalString(uint32_t instr, uint32_t address, const Program& program) const;
     QString generateJalrString(uint32_t instr) const;
     QString generateLoadString(uint32_t instr) const;
     QString generateStoreString(uint32_t instr) const;
