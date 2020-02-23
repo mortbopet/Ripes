@@ -84,8 +84,8 @@ void EditTab::updateProgramViewerHighlighting() {
 }
 
 void EditTab::emitProgramChanged() {
-    updateProgramViewer();
     emit programChanged(&m_activeProgram);
+    updateProgramViewer();
 }
 
 void EditTab::assemble() {
@@ -132,7 +132,6 @@ void EditTab::updateProgramViewer() {
 void EditTab::enableEditor() {
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(0);
-    clearAssemblyEditor();
 }
 
 void EditTab::disableEditor() {

@@ -46,8 +46,13 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
 
 void ProgramViewer::updateProgram(const Program& program, bool binary) {
     m_labelAddrOffsetMap.clear();
-    const auto text = binary ? Parser::getParser()->binarize(program, m_labelAddrOffsetMap)
-                             : Parser::getParser()->disassemble(program, m_labelAddrOffsetMap);
+    const QString text = binary ? Parser::getParser()->binarize(program, m_labelAddrOffsetMap)
+                                : Parser::getParser()->disassemble(program, m_labelAddrOffsetMap);
+
+    // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug, but
+    // seems to be fixed if we manually clear the selections before we clear (and add new text) to the text edit.
+    setExtraSelections({});
+
     setPlainText(text);
     updateHighlightedAddresses();
 }
@@ -169,6 +174,13 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 
     long lineNumber = adjustedLineNumber;
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
+
+    if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
+        // The line number is less that the position of the first offset block; block is directly inferred from
+        // linenumber.
+        return document()->findBlockByNumber(adjustedLineNumber);
+    }
+
     auto high = low;
     if (low != m_labelAddrOffsetMap.begin()) {
         low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
