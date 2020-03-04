@@ -26370,7 +26370,7 @@
             "Italic": false,
             "PtSize": 18,
             "Text": {
-                "str": "5-Stage RISC-V Processor wo/ Hazard Detection"
+                "str": "5-Stage RISC-V Processor w/o Hazard Detection"
             },
             "Pos": {
                 "x": 840.9834782481146,

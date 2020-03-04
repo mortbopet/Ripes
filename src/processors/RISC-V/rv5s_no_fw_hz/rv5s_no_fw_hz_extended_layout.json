@@ -23505,7 +23505,7 @@
             "Italic": false,
             "PtSize": 18,
             "Text": {
-                "str": "5-Stage RISC-V Processor  wo/ Forwarding or Hazard Detection"
+                "str": "5-Stage RISC-V Processor  w/o Forwarding or Hazard Detection"
             },
             "Pos": {
                 "x": 650.1103101784723,
