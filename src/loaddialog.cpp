@@ -168,6 +168,8 @@ bool LoadDialog::validateELFFile(const QFile& file) {
         const QString bitSize = elfbits == 32 ? "32" : "64";
         info.errorMessage = "Expected " + QString::number(ProcessorHandler::get()->currentISA()->bits()) +
                             " bit executable, but input file is a " + bitSize + " bit executable.";
+        info.valid = false;
+        goto finish;
     }
 
     // executable? (Not dynamically linked nor relocateable)
