@@ -29,7 +29,7 @@ fact:
 
         addi a0, zero, 1
         addi sp, sp, 16
-        jalr x0, x1, 0
+        jr x1
 
 nfact:
         addi a0, a0, -1
