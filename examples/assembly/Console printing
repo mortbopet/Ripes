@@ -46,7 +46,7 @@ printNewline:
     la a0, newline
     li a7, 4
     ecall
-    jalr x0, x1, 0
+    jr x1
 
 # --- LoopPrint ---
 # Loops in the range [a0;a1] and prints the loop invariant to console
@@ -68,7 +68,7 @@ loop:
     # Increment
     addi t0, t0, 1
     ble  t0, t1, loop
-    jalr x0, x1, 0
+    jr x1
 
 exit:
     li a7, 10
