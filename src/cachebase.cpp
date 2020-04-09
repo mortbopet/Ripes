@@ -20,6 +20,36 @@ void CacheBase::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
     line[lruIdx].lru = 0;
 }
 
+CacheSize CacheBase::getCacheSize() const {
+    CacheSize size;
+
+    const int entries = getLines() * getWays();
+
+    // Valid bits
+    unsigned componentBits = entries;  // 1 bit per entry
+    size.components.push_back("Valid bits: " + QString::number(componentBits));
+    size.bits += componentBits;
+
+    if (m_policy == CacheReplPlcy::LRU) {
+        // LRU bits
+        componentBits = getWaysBits() * entries;
+        size.components.push_back("LRU bits: " + QString::number(componentBits));
+        size.bits += componentBits;
+    }
+
+    // Tag bits
+    componentBits = bitcount(m_tagMask) * entries;
+    size.components.push_back("Tag bits: " + QString::number(componentBits));
+    size.bits += componentBits;
+
+    // Data bits
+    componentBits = 32 * entries * getBlocks();
+    size.components.push_back("Data bits: " + QString::number(componentBits));
+    size.bits += componentBits;
+
+    return size;
+}
+
 void CacheBase::updateCacheValue(uint32_t address) {
     const unsigned lineIdx = getAccessLineIdx();
     const unsigned blockIdx = getAccessBlockIdx();

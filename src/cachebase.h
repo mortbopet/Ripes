@@ -12,6 +12,11 @@ enum class CacheReplPlcy { Random, LRU };
 static std::map<CacheReplPlcy, QString> CachePolicyStrings{{CacheReplPlcy::Random, "Random"},
                                                            {CacheReplPlcy::LRU, "LRU"}};
 
+struct CacheSize {
+    unsigned bits = 0;
+    std::vector<QString> components;
+};
+
 class CacheBase : public QObject {
     Q_OBJECT
 public:
@@ -29,7 +34,7 @@ public:
     CacheReplPlcy getReplacementPolicy() const { return m_policy; }
 
     double getHitRate() const;
-    int getSizeInBits();
+    CacheSize getCacheSize() const;
 
     int getBlockBits() const { return m_blocks; }
     int getWaysBits() const { return m_ways; }

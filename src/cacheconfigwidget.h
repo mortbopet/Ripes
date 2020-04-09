@@ -19,8 +19,10 @@ public:
 
 public slots:
     void setHitRate(double hitrate);
+    void setCacheSize(unsigned);
 
 private:
+    void showSizeBreakdown();
     CacheBase* m_cache;
     Ui::CacheConfigWidget* m_ui = nullptr;
 };
