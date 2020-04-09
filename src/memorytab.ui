@@ -27,17 +27,14 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
+       <item>
+        <widget class="CacheConfigWidget" name="cacheConfig" native="true"/>
+       </item>
+       <item>
+        <widget class="QGraphicsView" name="cacheView"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -48,6 +45,12 @@
    <class>MemoryViewerWidget</class>
    <extends>QWidget</extends>
    <header>memoryviewerwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CacheConfigWidget</class>
+   <extends>QWidget</extends>
+   <header>cacheconfigwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

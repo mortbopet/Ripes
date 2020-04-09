@@ -1,6 +1,12 @@
 #include "memorytab.h"
 #include "ui_memorytab.h"
 
+#include "cachebase.h"
+#include "cachegraphic.h"
+
+#include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QToolBar>
 
 namespace Ripes {
@@ -10,6 +16,14 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
 
     m_ui->memoryViewerWidget->updateModel();
     m_ui->memoryViewerWidget->updateView();
+
+    auto* scene = new QGraphicsScene(this);
+    auto* cacheSim = new CacheBase(this);
+    m_ui->cacheConfig->setCache(cacheSim);
+
+    auto* cacheGraphic = new CacheGraphic(*cacheSim);
+    m_ui->cacheView->setScene(scene);
+    scene->addItem(cacheGraphic);
 }
 
 void MemoryTab::update() {
