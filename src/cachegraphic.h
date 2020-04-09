@@ -25,10 +25,15 @@ public:
     void cacheParametersChanged();
 
 private:
+    /**
+     * @brief initializeControlBits
+     * Constructs all of the "Valid" and "LRU" text items within the cache
+     */
+    void initializeControlBits();
     void updateHighlighting(bool active);
     void drawText(const QString& text, qreal x, qreal y);
 
-    QFont m_font = QFont("Roboto", 12);
+    QFont m_font = QFont("Inconsolata", 12);
     CacheBase& m_cache;
 
     std::vector<std::unique_ptr<QGraphicsRectItem>> m_highlightingItems;
@@ -42,9 +47,17 @@ private:
     qreal m_tagWidth = 0;
     qreal m_cacheWidth = 0;
     qreal m_widthBeforeBlocks = 0;
+    qreal m_widthBeforeTag = 0;
+    qreal m_lruWidth = 0;
 
     // Data structure modelling the cache; keeping graphics text items for each entry
-    using CacheWay = std::map<unsigned, QGraphicsSimpleTextItem*>;
+    struct CacheWay {
+        std::map<unsigned, QGraphicsSimpleTextItem*> blocks;
+        QGraphicsSimpleTextItem* tag = nullptr;
+        QGraphicsSimpleTextItem* lru = nullptr;
+        QGraphicsSimpleTextItem* valid = nullptr;
+    };
+
     using CacheLine = std::map<unsigned, CacheWay>;
     std::map<unsigned, CacheLine> m_cacheTextItems;
 };

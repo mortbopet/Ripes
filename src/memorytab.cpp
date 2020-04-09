@@ -28,7 +28,7 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     scene->addItem(cacheGraphic);
 
     auto* accessTimer = new QTimer(this);
-    accessTimer->setInterval(500);
+    accessTimer->setInterval(100);
     connect(accessTimer, &QTimer::timeout, [=] {
         static unsigned address = 0x0;
         cacheSim->read(address);

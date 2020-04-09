@@ -19,13 +19,30 @@
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Cache configuration</string>
+        <string>Cache configuration:</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="sets">
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="checkBox">
+            <property name="text">
+             <string>Valid bit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="presets"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="lines">
+            <property name="maximum">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="blocks">
             <property name="maximum">
              <number>10</number>
             </property>
@@ -38,16 +55,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Sets</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="presets"/>
-          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
@@ -55,10 +62,17 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QSpinBox" name="lines">
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="sets">
             <property name="maximum">
              <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Sets</string>
             </property>
            </widget>
           </item>
@@ -69,26 +83,25 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="blocks">
-            <property name="maximum">
-             <number>10</number>
+          <item row="5" column="1">
+           <widget class="QCheckBox" name="checkBox_2">
+            <property name="toolTip">
+             <string>Setting the valid bit implies a write-back cache</string>
+            </property>
+            <property name="text">
+             <string>Dirty bit (WB)</string>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Valid bit</string>
+             <string>Repl. policy:</string>
             </property>
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QCheckBox" name="checkBox_2">
-            <property name="text">
-             <string>Dirty bit</string>
-            </property>
-           </widget>
+           <widget class="QComboBox" name="replacementPolicy"/>
           </item>
          </layout>
         </item>
@@ -98,7 +111,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>Statistics</string>
+        <string>Statistics:</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">

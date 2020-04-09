@@ -9,15 +9,24 @@
 namespace Ripes {
 
 enum class CacheReplPlcy { Random, LRU };
+static std::map<CacheReplPlcy, QString> CachePolicyStrings{{CacheReplPlcy::Random, "Random"},
+                                                           {CacheReplPlcy::LRU, "LRU"}};
 
 class CacheBase : public QObject {
     Q_OBJECT
 public:
     CacheBase(QObject* parent) : QObject(parent) {}
 
+    void setReplacementPolicy(CacheReplPlcy policy) {
+        m_policy = policy;
+        updateConfiguration();
+    }
+
     void read(uint32_t address);
     void write(uint32_t address);
     void undo();
+
+    CacheReplPlcy getReplacementPolicy() const { return m_policy; }
 
     int getSizeInBits();
 
@@ -56,11 +65,11 @@ signals:
     void dataChanged(uint32_t address);
 
 private:
-    void updateCacheValue(uint32_t address, uint32_t value);
-    bool checkCacheHit();
+    void updateCacheValue(uint32_t address);
+    bool analyzeCacheHit();
     void updateConfiguration();
 
-    CacheReplPlcy m_policy = CacheReplPlcy::Random;
+    CacheReplPlcy m_policy = CacheReplPlcy::LRU;
     uint32_t m_currentAccessAddress;
     bool m_currentAccessIsHit;
     unsigned m_currentSetIdx;
@@ -70,19 +79,28 @@ private:
     unsigned m_tagMask;
 
     int m_blocks = 1;  // Some power of 2
-    int m_lines = 4;   // Some power of 2
-    int m_sets = 0;    // Some power of 2
+    int m_lines = 2;   // Some power of 2
+    int m_sets = 2;    // Some power of 2
 
     struct CacheWay {
         uint32_t tag;
         // std::map<unsigned, uint32_t> blocks; we do not store the actual data; no reason to!
         bool dirty = false;
-        bool valid = true;
-        unsigned lru = 0;
+        bool valid = false;
+
+        // LRU algorithm relies on invalid cache ways to have an initial high value. -1 ensures maximum value for all
+        // set sizes.
+        unsigned lru = -1;
     };
 
     using CacheLine = std::map<unsigned, CacheWay>;
     std::map<unsigned, CacheLine> m_cacheLines;
+
+    void updateCacheLineLRU(CacheLine& line, unsigned lruIdx);
+    CacheLine const* m_currentAccessLine = nullptr;
+
+public:
+    const CacheLine* getCurrentAccessLine() const { return m_currentAccessLine; }
 };
 
 }  // namespace Ripes
