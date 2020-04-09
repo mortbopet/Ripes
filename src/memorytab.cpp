@@ -23,6 +23,7 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     auto* cacheSim = new CacheBase(this);
     m_ui->cacheConfig->setCache(cacheSim);
 
+    connect(cacheSim, &CacheBase::hitRateChanged, m_ui->cacheConfig, &CacheConfigWidget::setHitRate);
     auto* cacheGraphic = new CacheGraphic(*cacheSim);
     m_ui->cacheView->setScene(scene);
     scene->addItem(cacheGraphic);
@@ -33,6 +34,9 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
         static unsigned address = 0x0;
         cacheSim->read(address);
         address += 4;
+        if (address > 128) {
+            address = 0;
+        }
     });
 
     accessTimer->start();

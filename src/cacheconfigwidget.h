@@ -17,6 +17,9 @@ public:
 
     void setCache(CacheBase* cache);
 
+public slots:
+    void setHitRate(double hitrate);
+
 private:
     CacheBase* m_cache;
     Ui::CacheConfigWidget* m_ui = nullptr;

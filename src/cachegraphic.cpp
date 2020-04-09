@@ -23,7 +23,7 @@ CacheGraphic::CacheGraphic(CacheBase& cache) : QGraphicsObject(nullptr), m_cache
 void CacheGraphic::dataChanged(uint32_t address) {
     const unsigned lineIdx = m_cache.getAccessLineIdx();
     const unsigned blockIdx = m_cache.getAccessBlockIdx();
-    const unsigned setIdx = m_cache.getAccessSetIdx();
+    const unsigned setIdx = m_cache.getAccessWayIdx();
 
     const auto data = ProcessorHandler::get()->getMemory().readMemConst(address);
     auto fm = QFontMetricsF(m_font);
@@ -62,14 +62,14 @@ void CacheGraphic::dataChanged(uint32_t address) {
     // Update valid & LRU text
     // A value cannot be invalidated with the current schema (uniprocessor)
     cacheline.valid->setText(QString::number(1));
-    if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getSets() > 1) {
+    if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
         if (m_cache.getCurrentAccessLine()) {
             auto* currentAccessLine = m_cache.getCurrentAccessLine();
             for (const auto& way : m_cacheTextItems[m_cache.getAccessLineIdx()]) {
                 // If LRU was just initialized, the actual (software) LRU value may be very large. Mask to the number of
                 // actual LRU bits.
                 unsigned lruVal = currentAccessLine->at(way.first).lru;
-                lruVal &= generateBitmask(m_cache.getSetBits());
+                lruVal &= generateBitmask(m_cache.getWaysBits());
                 const QString lruText = QString::number(lruVal);
                 way.second.lru->setText(lruText);
 
@@ -98,13 +98,14 @@ void CacheGraphic::updateHighlighting(bool active) {
         // Redraw highlighting rectangles indicating the current indexing
         const unsigned lineIdx = m_cache.getAccessLineIdx();
         const unsigned blockIdx = m_cache.getAccessBlockIdx();
+        const unsigned setIdx = m_cache.getAccessWayIdx();
 
         // Draw cache line highlighting rectangle
         QPointF topLeft = QPointF(0, lineIdx * m_lineHeight);
         QPointF bottomRight = QPointF(m_cacheWidth, (lineIdx + 1) * m_lineHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* lineRectItem = m_highlightingItems.rbegin()->get();
-        lineRectItem->setZValue(-1);
+        lineRectItem->setZValue(-2);
         lineRectItem->setOpacity(0.25);
         lineRectItem->setBrush(Qt::yellow);
 
@@ -113,9 +114,23 @@ void CacheGraphic::updateHighlighting(bool active) {
         bottomRight = QPointF((blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks, m_cacheHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* blockRectItem = m_highlightingItems.rbegin()->get();
-        blockRectItem->setZValue(-1);
+        blockRectItem->setZValue(-2);
         blockRectItem->setOpacity(0.25);
         blockRectItem->setBrush(Qt::yellow);
+
+        // Draw highlighting on the currently accessed block
+        topLeft = QPointF(blockIdx * m_blockWidth + m_widthBeforeBlocks, lineIdx * m_lineHeight + setIdx * m_setHeight);
+        bottomRight = QPointF((blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks,
+                              lineIdx * m_lineHeight + (setIdx + 1) * m_setHeight);
+        m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
+        auto* hitRectItem = m_highlightingItems.rbegin()->get();
+        hitRectItem->setZValue(-1);
+        hitRectItem->setOpacity(0.4);
+        if (m_cache.isCacheHit()) {
+            hitRectItem->setBrush(Qt::green);
+        } else {
+            hitRectItem->setBrush(Qt::red);
+        }
     }
 }
 
@@ -124,7 +139,7 @@ void CacheGraphic::initializeControlBits() {
 
     for (int lineIdx = 0; lineIdx < m_cache.getLines(); lineIdx++) {
         auto& line = m_cacheTextItems[lineIdx];
-        for (int setIdx = 0; setIdx < m_cache.getSets(); setIdx++) {
+        for (int setIdx = 0; setIdx < m_cache.getWays(); setIdx++) {
             const qreal y = lineIdx * m_lineHeight + setIdx * m_setHeight;
             qreal x;
 
@@ -136,11 +151,11 @@ void CacheGraphic::initializeControlBits() {
             validItem->setPos(x, y);
             line[setIdx].valid = validItem;
 
-            if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getSets() > 1) {
+            if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
                 // Create LRU field
                 auto* lruItem = new QGraphicsSimpleTextItem(this);
                 lruItem->setFont(m_font);
-                const QString lruText = QString::number(m_cache.getSets() - 1);
+                const QString lruText = QString::number(m_cache.getWays() - 1);
                 lruItem->setText(lruText);
                 x = m_bitWidth + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
                 lruItem->setPos(x, y);
@@ -162,10 +177,10 @@ void CacheGraphic::cacheParametersChanged() {
     // Determine cell dimensions
     auto metrics = QFontMetricsF(m_font);
     m_setHeight = metrics.height();
-    m_lineHeight = m_setHeight * m_cache.getSets();
+    m_lineHeight = m_setHeight * m_cache.getWays();
     m_blockWidth = metrics.horizontalAdvance(" 0x00000000 ");
     m_bitWidth = metrics.horizontalAdvance("00");
-    m_lruWidth = metrics.horizontalAdvance(QString::number(m_cache.getSets()) + " ");
+    m_lruWidth = metrics.horizontalAdvance(QString::number(m_cache.getWays()) + " ");
     m_cacheHeight = m_lineHeight * m_cache.getLines();
     m_tagWidth = m_blockWidth;
 
@@ -179,7 +194,7 @@ void CacheGraphic::cacheParametersChanged() {
     drawText(validBitText, 0, -metrics.height());
     horizontalAdvance += m_bitWidth;
 
-    if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getSets() > 1) {
+    if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
         // Draw LRU bit column
         new QGraphicsLineItem(horizontalAdvance, 0, horizontalAdvance, m_cacheHeight, this);
         new QGraphicsLineItem(m_bitWidth + m_lruWidth, 0, m_bitWidth + m_lruWidth, m_cacheHeight, this);
@@ -217,7 +232,7 @@ void CacheGraphic::cacheParametersChanged() {
 
         if (i < m_cache.getLines()) {
             // Draw cache set rows
-            for (int j = 1; j < m_cache.getSets(); j++) {
+            for (int j = 1; j < m_cache.getWays(); j++) {
                 verticalAdvance += m_setHeight;
                 auto* setLine = new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
                 auto pen = setLine->pen();

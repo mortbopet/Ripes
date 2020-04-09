@@ -12,13 +12,17 @@ CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(ne
 void CacheConfigWidget::setCache(CacheBase* cache) {
     m_cache = cache;
 
-    connect(m_ui->sets, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheBase::setSets);
+    connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheBase::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheBase::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheBase::setLines);
 
-    m_ui->sets->setValue(m_cache->getSetBits());
+    m_ui->ways->setValue(m_cache->getWaysBits());
     m_ui->lines->setValue(m_cache->getLineBits());
     m_ui->blocks->setValue(m_cache->getBlockBits());
+}
+
+void CacheConfigWidget::setHitRate(double hitrate) {
+    m_ui->hitrate->setText(QString::number(hitrate));
 }
 
 CacheConfigWidget::~CacheConfigWidget() {

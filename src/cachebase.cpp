@@ -29,22 +29,22 @@ void CacheBase::updateCacheValue(uint32_t address) {
     // Update based on replacement policy
     if (m_policy == CacheReplPlcy::Random) {
         // Select a random way
-        m_currentSetIdx = std::rand() % getSets();
-        auto& way = cacheLine[m_currentSetIdx];
+        m_currentWayIdx = std::rand() % getWays();
+        auto& way = cacheLine[m_currentWayIdx];
         // Todo: this is not valid; the entire cache line (all blocks) should be read
         way.valid = true;
         way.tag = getAccessTag();
     } else if (m_policy == CacheReplPlcy::LRU) {
-        if (getSets() == 1) {
+        if (getWays() == 1) {
             // Nothing to do if we are in LRU and only have 1 set
-            m_currentSetIdx = 0;
-            cacheLine[m_currentSetIdx].valid = true;
-            cacheLine[m_currentSetIdx].tag = getAccessTag();
+            m_currentWayIdx = 0;
+            cacheLine[m_currentWayIdx].valid = true;
+            cacheLine[m_currentWayIdx].tag = getAccessTag();
             return;
         }
 
         // Ensure that all ways in the cache line has been initialized
-        for (int i = 0; i < getSets(); i++) {
+        for (int i = 0; i < getWays(); i++) {
             cacheLine[i];
         }
 
@@ -61,7 +61,7 @@ void CacheBase::updateCacheValue(uint32_t address) {
         if (selectedWay == nullptr) {
             // Else, Find LRU way
             for (auto& way : cacheLine) {
-                if (way.second.lru == getSets() - 1) {
+                if (way.second.lru == getWays() - 1) {
                     wayIdx = way.first;
                     selectedWay = &way.second;
                 }
@@ -70,34 +70,56 @@ void CacheBase::updateCacheValue(uint32_t address) {
 
         Q_ASSERT(selectedWay != nullptr && "There must have been an issue with setting the LRU bits");
 
-        m_currentSetIdx = wayIdx;
+        m_currentWayIdx = wayIdx;
         selectedWay->valid = true;
         selectedWay->tag = getAccessTag();
         updateCacheLineLRU(cacheLine, wayIdx);
     }
 }
 
-bool CacheBase::analyzeCacheHit() {
+void CacheBase::updateHitRate() {
+    if (m_accessTrace.size() == 0) {
+        m_hitrate = 0;
+    } else {
+        auto& trace = m_accessTrace.rbegin()->second;
+        m_hitrate = static_cast<double>(trace.hits) / (trace.hits + trace.misses);
+    }
+}
+
+void CacheBase::analyzeCacheAccess() {
     const unsigned lineIdx = getAccessLineIdx();
 
     m_currentAccessLine = &m_cacheLines[lineIdx];
 
+    m_currentAccessIsHit = false;
     if (m_cacheLines.count(lineIdx) != 0) {
-        int setIdx = 0;
+        int wayIdx = 0;
         for (const auto& way : m_cacheLines.at(lineIdx)) {
             if (way.second.tag == getAccessTag() && way.second.valid) {
-                m_currentSetIdx = setIdx;
-                return true;
+                m_currentWayIdx = wayIdx;
+                m_currentAccessIsHit = true;
+                break;
             }
-            setIdx++;
+            wayIdx++;
         }
     }
-    return false;
+
+    // Update cache access trace for the current cycle
+    if (m_accessTrace.size() == 0) {
+        m_accessTrace[0] = CacheAccessTrace(m_currentAccessIsHit);
+    } else {
+        m_accessTrace[m_accessTrace.size()] =
+            CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], m_currentAccessIsHit);
+    }
+    updateHitRate();
+    emit hitRateChanged(m_hitrate);
+
+    return;
 }
 
 void CacheBase::read(uint32_t address) {
     m_currentAccessAddress = address;
-    m_currentAccessIsHit = analyzeCacheHit();
+    analyzeCacheAccess();
     if (!m_currentAccessIsHit) {
         updateCacheValue(m_currentAccessAddress);
     }
@@ -115,8 +137,8 @@ unsigned CacheBase::getAccessLineIdx() const {
     return maskedAddress;
 }
 
-unsigned CacheBase::getAccessSetIdx() const {
-    return m_currentSetIdx;
+unsigned CacheBase::getAccessWayIdx() const {
+    return m_currentWayIdx;
 }
 
 unsigned CacheBase::getAccessTag() const {
@@ -134,6 +156,7 @@ unsigned CacheBase::getAccessBlockIdx() const {
 void CacheBase::updateConfiguration() {
     // Cache configuration changes shall enforce a full reset of the computing system
     m_cacheLines.clear();
+    m_accessTrace.clear();
 
     // Recalculate masks
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
@@ -146,6 +169,7 @@ void CacheBase::updateConfiguration() {
 
     m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
 
+    emit hitRateChanged(m_hitrate);
     emit configurationChanged();
 }
 
