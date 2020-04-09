@@ -9,6 +9,8 @@
 #include <QGraphicsView>
 #include <QToolBar>
 
+#include <QTimer>
+
 namespace Ripes {
 
 MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::MemoryTab) {
@@ -24,6 +26,16 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     auto* cacheGraphic = new CacheGraphic(*cacheSim);
     m_ui->cacheView->setScene(scene);
     scene->addItem(cacheGraphic);
+
+    auto* accessTimer = new QTimer(this);
+    accessTimer->setInterval(500);
+    connect(accessTimer, &QTimer::timeout, [=] {
+        static unsigned address = 0x0;
+        cacheSim->read(address);
+        address += 4;
+    });
+
+    accessTimer->start();
 }
 
 void MemoryTab::update() {

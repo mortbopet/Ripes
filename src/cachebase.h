@@ -8,17 +8,11 @@
 
 namespace Ripes {
 
+enum class CacheReplPlcy { Random, LRU };
+
 class CacheBase : public QObject {
     Q_OBJECT
 public:
-    struct CacheLine {
-        uint32_t tag;
-        std::vector<uint32_t> blocks;
-        bool hasDirty = false;
-        bool hasValid = true;
-    };
-    using CacheSet = std::map<unsigned, CacheLine>;
-
     CacheBase(QObject* parent) : QObject(parent) {}
 
     void read(uint32_t address);
@@ -35,29 +29,60 @@ public:
     int getSets() const { return static_cast<int>(std::pow(2, m_sets)); }
     int getLines() const { return static_cast<int>(std::pow(2, m_lines)); }
 
+    unsigned getAccessLineIdx() const;
+    unsigned getAccessSetIdx() const;
+    unsigned getAccessBlockIdx() const;
+    unsigned getAccessTag() const;
+
+    bool isCacheHit() const { return m_currentAccessIsHit; }
+
 public slots:
     void setBlocks(unsigned blocks) {
         m_blocks = blocks;
-        emit parametersChanged();
+        updateConfiguration();
     }
     void setLines(unsigned lines) {
         m_lines = lines;
-        emit parametersChanged();
+        updateConfiguration();
     }
     void setSets(unsigned sets) {
         m_sets = sets;
-        emit parametersChanged();
+        updateConfiguration();
     }
 
 signals:
-    void parametersChanged();
+    void configurationChanged();
+    void accessChanged(bool active);
+    void dataChanged(uint32_t address);
 
 private:
+    void updateCacheValue(uint32_t address, uint32_t value);
+    bool checkCacheHit();
+    void updateConfiguration();
+
+    CacheReplPlcy m_policy = CacheReplPlcy::Random;
+    uint32_t m_currentAccessAddress;
+    bool m_currentAccessIsHit;
+    unsigned m_currentSetIdx;
+
+    unsigned m_blockMask;
+    unsigned m_lineMask;
+    unsigned m_tagMask;
+
     int m_blocks = 1;  // Some power of 2
     int m_lines = 4;   // Some power of 2
     int m_sets = 0;    // Some power of 2
 
-    std::map<unsigned, CacheSet> m_cacheSets;
+    struct CacheWay {
+        uint32_t tag;
+        // std::map<unsigned, uint32_t> blocks; we do not store the actual data; no reason to!
+        bool dirty = false;
+        bool valid = true;
+        unsigned lru = 0;
+    };
+
+    using CacheLine = std::map<unsigned, CacheWay>;
+    std::map<unsigned, CacheLine> m_cacheLines;
 };
 
 }  // namespace Ripes
