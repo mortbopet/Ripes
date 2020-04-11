@@ -37,6 +37,16 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     m_ui->replacementPolicy->setCurrentIndex(0);
 
     updateIndexingText();
+
+    // For testing purposes only
+    connect(m_ui->randomread, &QPushButton::clicked, [=] {
+        unsigned address = std::rand() % 128;
+        m_cache->read(address);
+    });
+    connect(m_ui->randomwrite, &QPushButton::clicked, [=] {
+        unsigned address = std::rand() % 128;
+        m_cache->write(address);
+    });
 }
 
 void CacheConfigWidget::setupPresets() {

@@ -26,7 +26,7 @@ struct CachePreset {
 class CacheSim : public QObject {
     Q_OBJECT
 public:
-    CacheSim(QObject* parent) : QObject(parent) {}
+    CacheSim(QObject* parent);
 
     void setReplacementPolicy(CacheReplPlcy policy) {
         m_policy = policy;

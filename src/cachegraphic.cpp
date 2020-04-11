@@ -165,9 +165,13 @@ void CacheGraphic::initializeControlBits() {
     }
 }
 
-void CacheGraphic::cacheParametersChanged() {
-    prepareGeometryChange();
+QRectF CacheGraphic::boundingRect() const {
+    // We do not paint anything in Cachegraphic; only instantiate other QGraphicsItem-derived objects. So just return
+    // the bounding rect of child items
+    return childrenBoundingRect();
+}
 
+void CacheGraphic::cacheParametersChanged() {
     // Remove all items
     m_highlightingItems.clear();
     m_cacheTextItems.clear();

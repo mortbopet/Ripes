@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
@@ -27,15 +27,30 @@
        </sizepolicy>
       </property>
      </widget>
-     <widget class="QWidget" name="">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
-       <item>
-        <widget class="CacheConfigWidget" name="cacheConfig" native="true"/>
-       </item>
-       <item>
-        <widget class="QGraphicsView" name="cacheView"/>
-       </item>
-      </layout>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Data cache</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="CacheWidget" name="dataCache" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>Instruction cache</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="CacheWidget" name="instructionCache" native="true"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>
@@ -49,9 +64,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>CacheConfigWidget</class>
+   <class>CacheWidget</class>
    <extends>QWidget</extends>
-   <header>cacheconfigwidget.h</header>
+   <header>cachewidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

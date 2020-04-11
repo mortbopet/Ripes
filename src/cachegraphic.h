@@ -12,7 +12,7 @@ class CacheGraphic : public QGraphicsObject {
 public:
     CacheGraphic(CacheSim& cache);
 
-    QRectF boundingRect() const override {}
+    QRectF boundingRect() const override;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override {}
 

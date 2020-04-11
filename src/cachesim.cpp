@@ -5,6 +5,10 @@
 
 namespace Ripes {
 
+CacheSim::CacheSim(QObject* parent) : QObject(parent) {
+    updateConfiguration();
+}
+
 void CacheSim::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
     // Find previous LRU value for the updated index
     const unsigned preLRU = line[lruIdx].lru;
