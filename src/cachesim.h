@@ -9,18 +9,24 @@
 namespace Ripes {
 
 enum class CacheReplPlcy { Random, LRU };
-static std::map<CacheReplPlcy, QString> CachePolicyStrings{{CacheReplPlcy::Random, "Random"},
-                                                           {CacheReplPlcy::LRU, "LRU"}};
+static std::map<CacheReplPlcy, QString> s_cachePolicyStrings{{CacheReplPlcy::Random, "Random"},
+                                                             {CacheReplPlcy::LRU, "LRU"}};
 
 struct CacheSize {
     unsigned bits = 0;
     std::vector<QString> components;
 };
 
-class CacheBase : public QObject {
+struct CachePreset {
+    int blocks;
+    int lines;
+    int ways;
+};
+
+class CacheSim : public QObject {
     Q_OBJECT
 public:
-    CacheBase(QObject* parent) : QObject(parent) {}
+    CacheSim(QObject* parent) : QObject(parent) {}
 
     void setReplacementPolicy(CacheReplPlcy policy) {
         m_policy = policy;
@@ -39,6 +45,7 @@ public:
     int getBlockBits() const { return m_blocks; }
     int getWaysBits() const { return m_ways; }
     int getLineBits() const { return m_lines; }
+    int getTagBits() const { return 32 - 2 /*byte offset*/ - getBlockBits() - getLineBits(); }
 
     int getBlocks() const { return static_cast<int>(std::pow(2, m_blocks)); }
     int getWays() const { return static_cast<int>(std::pow(2, m_ways)); }
@@ -52,18 +59,10 @@ public:
     bool isCacheHit() const { return m_currentAccessIsHit; }
 
 public slots:
-    void setBlocks(unsigned blocks) {
-        m_blocks = blocks;
-        updateConfiguration();
-    }
-    void setLines(unsigned lines) {
-        m_lines = lines;
-        updateConfiguration();
-    }
-    void setWays(unsigned ways) {
-        m_ways = ways;
-        updateConfiguration();
-    }
+    void setBlocks(unsigned blocks);
+    void setLines(unsigned lines);
+    void setWays(unsigned ways);
+    void setPreset(const CachePreset& preset);
 
 signals:
     void configurationChanged();

@@ -1,11 +1,11 @@
-#include "cachebase.h"
+#include "cachesim.h"
 #include "binutils.h"
 
 #include <random>
 
 namespace Ripes {
 
-void CacheBase::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
+void CacheSim::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
     // Find previous LRU value for the updated index
     const unsigned preLRU = line[lruIdx].lru;
 
@@ -20,7 +20,7 @@ void CacheBase::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
     line[lruIdx].lru = 0;
 }
 
-CacheSize CacheBase::getCacheSize() const {
+CacheSize CacheSim::getCacheSize() const {
     CacheSize size;
 
     const int entries = getLines() * getWays();
@@ -50,7 +50,7 @@ CacheSize CacheBase::getCacheSize() const {
     return size;
 }
 
-void CacheBase::updateCacheValue(uint32_t address) {
+void CacheSim::updateCacheValue(uint32_t address) {
     const unsigned lineIdx = getAccessLineIdx();
     const unsigned blockIdx = getAccessBlockIdx();
 
@@ -107,7 +107,7 @@ void CacheBase::updateCacheValue(uint32_t address) {
     }
 }
 
-void CacheBase::updateHitRate() {
+void CacheSim::updateHitRate() {
     if (m_accessTrace.size() == 0) {
         m_hitrate = 0;
     } else {
@@ -116,7 +116,7 @@ void CacheBase::updateHitRate() {
     }
 }
 
-void CacheBase::analyzeCacheAccess() {
+void CacheSim::analyzeCacheAccess() {
     const unsigned lineIdx = getAccessLineIdx();
 
     m_currentAccessLine = &m_cacheLines[lineIdx];
@@ -147,7 +147,7 @@ void CacheBase::analyzeCacheAccess() {
     return;
 }
 
-void CacheBase::read(uint32_t address) {
+void CacheSim::read(uint32_t address) {
     m_currentAccessAddress = address;
     analyzeCacheAccess();
     if (!m_currentAccessIsHit) {
@@ -155,35 +155,35 @@ void CacheBase::read(uint32_t address) {
     }
     emit dataChanged(m_currentAccessAddress);
 }
-void CacheBase::write(uint32_t address) {
+void CacheSim::write(uint32_t address) {
     m_currentAccessAddress = address;
     emit accessChanged(m_currentAccessAddress);
 }
-void CacheBase::undo() {}
+void CacheSim::undo() {}
 
-unsigned CacheBase::getAccessLineIdx() const {
+unsigned CacheSim::getAccessLineIdx() const {
     uint32_t maskedAddress = m_currentAccessAddress & m_lineMask;
     maskedAddress >>= 2 + getBlockBits();
     return maskedAddress;
 }
 
-unsigned CacheBase::getAccessWayIdx() const {
+unsigned CacheSim::getAccessWayIdx() const {
     return m_currentWayIdx;
 }
 
-unsigned CacheBase::getAccessTag() const {
+unsigned CacheSim::getAccessTag() const {
     uint32_t maskedAddress = m_currentAccessAddress & m_tagMask;
     maskedAddress >>= 2 + getBlockBits() + getLineBits();
     return maskedAddress;
 }
 
-unsigned CacheBase::getAccessBlockIdx() const {
+unsigned CacheSim::getAccessBlockIdx() const {
     uint32_t maskedAddress = m_currentAccessAddress & m_blockMask;
     maskedAddress >>= 2;
     return maskedAddress;
 }
 
-void CacheBase::updateConfiguration() {
+void CacheSim::updateConfiguration() {
     // Cache configuration changes shall enforce a full reset of the computing system
     m_cacheLines.clear();
     m_accessTrace.clear();
@@ -201,6 +201,26 @@ void CacheBase::updateConfiguration() {
 
     emit hitRateChanged(m_hitrate);
     emit configurationChanged();
+}
+
+void CacheSim::setBlocks(unsigned blocks) {
+    m_blocks = blocks;
+    updateConfiguration();
+}
+void CacheSim::setLines(unsigned lines) {
+    m_lines = lines;
+    updateConfiguration();
+}
+void CacheSim::setWays(unsigned ways) {
+    m_ways = ways;
+    updateConfiguration();
+}
+
+void CacheSim::setPreset(const CachePreset& preset) {
+    m_blocks = preset.blocks;
+    m_ways = preset.ways;
+    m_lines = preset.lines;
+    updateConfiguration();
 }
 
 }  // namespace Ripes

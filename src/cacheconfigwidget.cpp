@@ -20,6 +20,10 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     m_ui->lines->setValue(m_cache->getLineBits());
     m_ui->blocks->setValue(m_cache->getBlockBits());
 
+    m_ui->indexingKey->setText(
+        "Offsets: <font color=\"gray\">█</font> = Tag <font color=\"red\">█</font> = Index <font "
+        "color=\"green\">█</font> = Block <font color=\"black\">█</font> = Byte");
+
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setLines);
@@ -27,9 +31,12 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         m_cache->setReplacementPolicy(qvariant_cast<CacheReplPlcy>(m_ui->replacementPolicy->itemData(index)));
     });
+    connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::configChanged);
 
     setupPresets();
     m_ui->replacementPolicy->setCurrentIndex(0);
+
+    updateIndexingText();
 }
 
 void CacheConfigWidget::setupPresets() {
@@ -68,6 +75,19 @@ void CacheConfigWidget::setCacheSize(unsigned size) {
     m_ui->size->setText(QString::number(size));
 }
 
+void CacheConfigWidget::configChanged() {
+    m_ui->ways->blockSignals(true);
+    m_ui->lines->blockSignals(true);
+    m_ui->blocks->blockSignals(true);
+    m_ui->ways->setValue(m_cache->getWaysBits());
+    m_ui->lines->setValue(m_cache->getLineBits());
+    m_ui->blocks->setValue(m_cache->getBlockBits());
+    m_ui->ways->blockSignals(false);
+    m_ui->lines->blockSignals(false);
+    m_ui->blocks->blockSignals(false);
+    updateIndexingText();
+}
+
 void CacheConfigWidget::setHitRate(double hitrate) {
     m_ui->hitrate->setText(QString::number(hitrate));
 }
@@ -88,6 +108,40 @@ void CacheConfigWidget::showSizeBreakdown() {
 
 CacheConfigWidget::~CacheConfigWidget() {
     delete m_ui;
+}
+
+void CacheConfigWidget::updateIndexingText() {
+    QString indexingText = "0";
+
+    // Byte offset bits
+    indexingText = "<font color=\"black\">┃┃</font>" + indexingText;
+
+    // Block offset bits
+    QString blocks = "";
+    for (int i = 0; i < m_cache->getBlockBits(); i++) {
+        blocks += "┃";
+    }
+    indexingText = "<font color=\"green\">" + blocks + "</font>" + indexingText;
+
+    // Line index bits
+    QString index = "";
+    for (int i = 0; i < m_cache->getLineBits(); i++) {
+        index += "┃";
+    }
+
+    indexingText = "<font color=\"red\">" + index + "</font>" + indexingText;
+
+    // Tag index bits
+    QString tag = "";
+    for (int i = 0; i < m_cache->getTagBits(); i++) {
+        tag += "┃";
+    }
+
+    indexingText = "<font color=\"gray\">" + tag + "</font>" + indexingText;
+
+    indexingText = "31" + indexingText;
+
+    m_ui->indexingText->setText(indexingText);
 }
 
 }  // namespace Ripes

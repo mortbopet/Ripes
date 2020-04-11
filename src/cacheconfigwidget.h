@@ -21,8 +21,10 @@ public:
 public slots:
     void setHitRate(double hitrate);
     void setCacheSize(unsigned);
+    void configChanged();
 
 private:
+    void updateIndexingText();
     void setupPresets();
     void showSizeBreakdown();
     CacheSim* m_cache;
