@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-#include "cachebase.h"
+#include "cachesim.h"
 
 namespace Ripes {
 
@@ -11,20 +11,25 @@ class CacheConfigWidget;
 
 class CacheConfigWidget : public QWidget {
     Q_OBJECT
+
 public:
     CacheConfigWidget(QWidget* parent);
     ~CacheConfigWidget() override;
 
-    void setCache(CacheBase* cache);
+    void setCache(CacheSim* cache);
 
 public slots:
     void setHitRate(double hitrate);
     void setCacheSize(unsigned);
 
 private:
+    void setupPresets();
     void showSizeBreakdown();
-    CacheBase* m_cache;
+    CacheSim* m_cache;
     Ui::CacheConfigWidget* m_ui = nullptr;
 };
 
 }  // namespace Ripes
+
+Q_DECLARE_METATYPE(Ripes::CacheReplPlcy);
+Q_DECLARE_METATYPE(Ripes::CachePreset);

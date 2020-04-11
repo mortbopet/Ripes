@@ -12,10 +12,10 @@
 
 namespace Ripes {
 
-CacheGraphic::CacheGraphic(CacheBase& cache) : QGraphicsObject(nullptr), m_cache(cache) {
-    connect(&cache, &CacheBase::configurationChanged, this, &CacheGraphic::cacheParametersChanged);
-    connect(&cache, &CacheBase::accessChanged, this, &CacheGraphic::updateHighlighting);
-    connect(&cache, &CacheBase::dataChanged, this, &CacheGraphic::dataChanged);
+CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(cache) {
+    connect(&cache, &CacheSim::configurationChanged, this, &CacheGraphic::cacheParametersChanged);
+    connect(&cache, &CacheSim::accessChanged, this, &CacheGraphic::updateHighlighting);
+    connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged);
 
     cacheParametersChanged();
 }

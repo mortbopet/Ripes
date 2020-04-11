@@ -4,13 +4,13 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <memory>
-#include "cachebase.h"
+#include "cachesim.h"
 
 namespace Ripes {
 
 class CacheGraphic : public QGraphicsObject {
 public:
-    CacheGraphic(CacheBase& cache);
+    CacheGraphic(CacheSim& cache);
 
     QRectF boundingRect() const override {}
 
@@ -34,7 +34,7 @@ private:
     void drawText(const QString& text, qreal x, qreal y);
 
     QFont m_font = QFont("Inconsolata", 12);
-    CacheBase& m_cache;
+    CacheSim& m_cache;
 
     std::vector<std::unique_ptr<QGraphicsRectItem>> m_highlightingItems;
 

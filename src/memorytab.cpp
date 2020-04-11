@@ -1,7 +1,7 @@
 #include "memorytab.h"
 #include "ui_memorytab.h"
 
-#include "cachebase.h"
+#include "cachesim.h"
 #include "cachegraphic.h"
 
 #include <QGraphicsItem>
@@ -20,10 +20,10 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     m_ui->memoryViewerWidget->updateView();
 
     auto* scene = new QGraphicsScene(this);
-    auto* cacheSim = new CacheBase(this);
+    auto* cacheSim = new CacheSim(this);
     m_ui->cacheConfig->setCache(cacheSim);
 
-    connect(cacheSim, &CacheBase::hitRateChanged, m_ui->cacheConfig, &CacheConfigWidget::setHitRate);
+    connect(cacheSim, &CacheSim::hitRateChanged, m_ui->cacheConfig, &CacheConfigWidget::setHitRate);
     auto* cacheGraphic = new CacheGraphic(*cacheSim);
     m_ui->cacheView->setScene(scene);
     scene->addItem(cacheGraphic);
