@@ -55,30 +55,6 @@
           </item>
           <item>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="1" column="2">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Blocks</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QCheckBox" name="writeback">
-              <property name="toolTip">
-               <string>Setting the valid bit implies a write-back cache</string>
-              </property>
-              <property name="text">
-               <string>Writeback</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QSpinBox" name="ways">
-              <property name="maximum">
-               <number>10</number>
-              </property>
-             </widget>
-            </item>
             <item row="3" column="1">
              <widget class="QSpinBox" name="lines">
               <property name="maximum">
@@ -93,10 +69,17 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_4">
+            <item row="1" column="2">
+             <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Lines</string>
+               <string>Blocks</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="ways">
+              <property name="maximum">
+               <number>10</number>
               </property>
              </widget>
             </item>
@@ -104,6 +87,13 @@
              <widget class="QSpinBox" name="blocks">
               <property name="maximum">
                <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Lines</string>
               </property>
              </widget>
             </item>
@@ -116,6 +106,26 @@
             </item>
             <item row="3" column="3">
              <widget class="QComboBox" name="replacementPolicy"/>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Wr. hit</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Wr. miss</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QComboBox" name="wrHit"/>
+            </item>
+            <item row="5" column="3">
+             <widget class="QComboBox" name="wrMiss"/>
             </item>
            </layout>
           </item>
@@ -159,6 +169,13 @@
         <string>Statistics:</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_5">
+        <item row="3" column="0">
+         <widget class="QPushButton" name="undo">
+          <property name="text">
+           <string>Undo</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="1">
@@ -204,6 +221,13 @@
           </item>
          </layout>
         </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="randomwrite">
+          <property name="text">
+           <string>Random write</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0">
          <widget class="QPushButton" name="randomread">
           <property name="text">
@@ -211,7 +235,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -224,17 +248,10 @@
           </property>
          </spacer>
         </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="randomwrite">
+        <item row="4" column="0">
+         <widget class="QPushButton" name="autoAccess">
           <property name="text">
-           <string>Random write</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QPushButton" name="undo">
-          <property name="text">
-           <string>Undo</string>
+           <string>auto</string>
           </property>
          </widget>
         </item>

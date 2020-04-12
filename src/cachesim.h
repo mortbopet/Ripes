@@ -11,6 +11,7 @@ namespace Ripes {
 class CacheSim : public QObject {
     Q_OBJECT
 public:
+    enum class WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
     enum class WritePolicy { WriteThrough, WriteBack };
     enum class ReplPolicy { Random, LRU };
     enum class AccessType { Read, Write };
@@ -24,6 +25,10 @@ public:
         int blocks;
         int lines;
         int ways;
+
+        WritePolicy wrPolicy;
+        WriteAllocPolicy wrAllocPolicy;
+        ReplPolicy replPolicy;
     };
 
     struct CacheTransaction {
@@ -59,6 +64,11 @@ public:
         updateConfiguration();
     }
 
+    void setWriteAllocatePolicy(WriteAllocPolicy policy) {
+        m_wrAllocPolicy = policy;
+        updateConfiguration();
+    }
+
     void setReplacementPolicy(ReplPolicy policy) {
         m_replPolicy = policy;
         updateConfiguration();
@@ -68,6 +78,7 @@ public:
     void undo();
     void reset();
 
+    WriteAllocPolicy getWriteAllocPolicy() const { return m_wrAllocPolicy; }
     ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
     WritePolicy getWritePolicy() const { return m_wrPolicy; }
 
@@ -111,6 +122,7 @@ private:
 
     ReplPolicy m_replPolicy = ReplPolicy::LRU;
     WritePolicy m_wrPolicy = WritePolicy::WriteBack;
+    WriteAllocPolicy m_wrAllocPolicy = WriteAllocPolicy::WriteAllocate;
 
     unsigned m_blockMask = -1;
     unsigned m_lineMask = -1;
@@ -142,7 +154,14 @@ private:
     std::map<unsigned, CacheAccessTrace> m_accessTrace;
 };
 
-static std::map<CacheSim::ReplPolicy, QString> s_cachePolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
-                                                                    {CacheSim::ReplPolicy::LRU, "LRU"}};
+static std::map<CacheSim::ReplPolicy, QString> s_cacheReplPolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
+                                                                        {CacheSim::ReplPolicy::LRU, "LRU"}};
+static std::map<CacheSim::WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
+    {CacheSim::WriteAllocPolicy::WriteAllocate, "Write allocate"},
+    {CacheSim::WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
+
+static std::map<CacheSim::WritePolicy, QString> s_cacheWritePolicyStrings{
+    {CacheSim::WritePolicy::WriteThrough, "Write-through"},
+    {CacheSim::WritePolicy::WriteBack, "Write-back"}};
 
 }  // namespace Ripes

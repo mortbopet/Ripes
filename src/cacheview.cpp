@@ -8,7 +8,6 @@ namespace Ripes {
 CacheView::CacheView(QWidget* parent) : QGraphicsView(parent) {
     m_zoom = 250;
 
-    setDragMode(QGraphicsView::RubberBandDrag);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setRenderHint(QPainter::Antialiasing, false);
     setInteractive(true);

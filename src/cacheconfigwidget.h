@@ -33,5 +33,7 @@ private:
 
 }  // namespace Ripes
 
+Q_DECLARE_METATYPE(Ripes::CacheSim::WritePolicy);
+Q_DECLARE_METATYPE(Ripes::CacheSim::WriteAllocPolicy);
 Q_DECLARE_METATYPE(Ripes::CacheSim::ReplPolicy);
 Q_DECLARE_METATYPE(Ripes::CacheSim::CachePreset);

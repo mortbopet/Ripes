@@ -245,6 +245,10 @@ void CacheSim::setPreset(const CachePreset& preset) {
     m_blocks = preset.blocks;
     m_ways = preset.ways;
     m_lines = preset.lines;
+    m_wrPolicy = preset.wrPolicy;
+    m_wrAllocPolicy = preset.wrAllocPolicy;
+    m_replPolicy = preset.replPolicy;
+
     updateConfiguration();
 }
 

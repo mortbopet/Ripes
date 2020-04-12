@@ -48,6 +48,7 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
         QGraphicsSimpleTextItem* blockTextItem = cacheWay.blocks[transaction.blockIdx];
         const QString text = encodeRadixValue(data, Radix::Hex);
         blockTextItem->setText(text);
+        blockTextItem->setToolTip("Address: " + encodeRadixValue(transaction.address, Radix::Hex));
     } else {
         /* The access is a miss. This implies that:
          * - The entirety of the cache way must be reread/reinitialized given that a new cache line is to be read.
