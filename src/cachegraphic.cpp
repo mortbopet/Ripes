@@ -60,7 +60,6 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
         QGraphicsSimpleTextItem* tagTextItem = tryCreateGraphicsTextItem(&cacheline.tag, x, y);
         const QString tagText = encodeRadixValue(transaction.tag, Radix::Hex);
         tagTextItem->setText(tagText);
-        tagTextItem->setToolTip("Address: " + encodeRadixValue(transaction.address, Radix::Hex));
 
         // Update all blocks
         for (unsigned i = 0; i < m_cache.getBlocks(); i++) {
@@ -73,6 +72,7 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
             const auto data = ProcessorHandler::get()->getMemory().readMemConst(addressForBlock);
             const QString text = encodeRadixValue(data, Radix::Hex);
             blockTextItem->setText(text);
+            blockTextItem->setToolTip("Address: " + encodeRadixValue(addressForBlock, Radix::Hex));
         }
 
         // Update valid
@@ -96,7 +96,7 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
 
                     // LRU text might have changed; update LRU field position to center in column
                     const qreal y = transaction.lineIdx * m_lineHeight + way.first * m_setHeight;
-                    const qreal x = m_bitWidth + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
+                    const qreal x = m_widthBeforeLRU + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
 
                     way.second.lru->setPos(x, y);
                 }
@@ -107,10 +107,11 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
     updateHighlighting(true, &transaction);
 }
 
-void CacheGraphic::drawText(const QString& text, qreal x, qreal y) {
+QGraphicsSimpleTextItem* CacheGraphic::drawText(const QString& text, qreal x, qreal y) {
     auto* textItem = new QGraphicsSimpleTextItem(text, this);
     textItem->setFont(m_font);
     textItem->setPos(x, y);
+    return textItem;
 }
 
 void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransaction* transaction) {
@@ -165,22 +166,20 @@ void CacheGraphic::initializeControlBits() {
             qreal x;
 
             // Create valid field
-            auto* validItem = new QGraphicsSimpleTextItem(this);
-            validItem->setFont(m_font);
-            validItem->setText("0");
-            x = fm.horizontalAdvance(validItem->text()) / 2;
-            validItem->setPos(x, y);
-            line[setIdx].valid = validItem;
+            x = m_bitWidth / 2 - fm.horizontalAdvance("0") / 2;
+            line[setIdx].valid = drawText("0", x, y);
+
+            if (m_cache.getWritePolicy() == CacheWrPlcy::WriteBack) {
+                // Create dirty bit field
+                x = m_widthBeforeDirty + m_bitWidth / 2 - fm.horizontalAdvance("0") / 2;
+                line[setIdx].dirty = drawText("0", x, y);
+            }
 
             if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
                 // Create LRU field
-                auto* lruItem = new QGraphicsSimpleTextItem(this);
-                lruItem->setFont(m_font);
                 const QString lruText = QString::number(m_cache.getWays() - 1);
-                lruItem->setText(lruText);
-                x = m_bitWidth + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
-                lruItem->setPos(x, y);
-                line[setIdx].lru = lruItem;
+                x = m_widthBeforeLRU + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
+                line[setIdx].lru = drawText(lruText, x, y);
             }
         }
     }
@@ -210,22 +209,37 @@ void CacheGraphic::cacheParametersChanged() {
     m_tagWidth = m_blockWidth;
 
     // Draw cache:
+    new QGraphicsLineItem(0, 0, 0, m_cacheHeight, this);
 
     qreal horizontalAdvance = 0;
     // Draw valid bit column
-    new QGraphicsLineItem(0, 0, 0, m_cacheHeight, this);
     new QGraphicsLineItem(m_bitWidth, 0, m_bitWidth, m_cacheHeight, this);
     const QString validBitText = "V";
-    drawText(validBitText, 0, -metrics.height());
+    auto* validItem = drawText(validBitText, 0, -metrics.height());
+    validItem->setToolTip("Valid bit");
     horizontalAdvance += m_bitWidth;
+
+    if (m_cache.getWritePolicy() == CacheWrPlcy::WriteBack) {
+        m_widthBeforeDirty = horizontalAdvance;
+
+        // Draw dirty bit column
+        new QGraphicsLineItem(horizontalAdvance + m_bitWidth, 0, horizontalAdvance + m_bitWidth, m_cacheHeight, this);
+        const QString dirtyBitText = "D";
+        auto* dirtyItem = drawText(dirtyBitText, m_widthBeforeDirty, -metrics.height());
+        dirtyItem->setToolTip("Dirty bit");
+        horizontalAdvance += m_bitWidth;
+    }
+
+    m_widthBeforeLRU = horizontalAdvance;
 
     if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
         // Draw LRU bit column
-        new QGraphicsLineItem(horizontalAdvance, 0, horizontalAdvance, m_cacheHeight, this);
-        new QGraphicsLineItem(m_bitWidth + m_lruWidth, 0, m_bitWidth + m_lruWidth, m_cacheHeight, this);
+        new QGraphicsLineItem(horizontalAdvance + m_lruWidth, 0, horizontalAdvance + m_lruWidth, m_cacheHeight, this);
         const QString LRUBitText = "LRU";
-        drawText(LRUBitText, horizontalAdvance + m_lruWidth / 2 - metrics.horizontalAdvance(LRUBitText) / 2,
-                 -metrics.height());
+        auto* textItem =
+            drawText(LRUBitText, horizontalAdvance + m_lruWidth / 2 - metrics.horizontalAdvance(LRUBitText) / 2,
+                     -metrics.height());
+        textItem->setToolTip("Least Recently Used bits");
         horizontalAdvance += m_lruWidth;
     }
 

@@ -34,7 +34,14 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
     size.components.push_back("Valid bits: " + QString::number(componentBits));
     size.bits += componentBits;
 
-    if (m_policy == CacheReplPlcy::LRU) {
+    if (m_wrPolicy == CacheWrPlcy::WriteBack) {
+        // Dirty bits
+        unsigned componentBits = entries;  // 1 bit per entry
+        size.components.push_back("Dirty bits: " + QString::number(componentBits));
+        size.bits += componentBits;
+    }
+
+    if (m_replPolicy == CacheReplPlcy::LRU) {
         // LRU bits
         componentBits = getWaysBits() * entries;
         size.components.push_back("LRU bits: " + QString::number(componentBits));
@@ -60,11 +67,11 @@ void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
     CacheWay* currentWay = nullptr;
 
     // Update based on replacement policy
-    if (m_policy == CacheReplPlcy::Random) {
+    if (m_replPolicy == CacheReplPlcy::Random) {
         // Select a random way
         transaction.wayIdx = std::rand() % getWays();
         currentWay = &cacheLine[transaction.wayIdx];
-    } else if (m_policy == CacheReplPlcy::LRU) {
+    } else if (m_replPolicy == CacheReplPlcy::LRU) {
         if (getWays() == 1) {
             // Nothing to do if we are in LRU and only have 1 set
             transaction.wayIdx = 0;
@@ -193,6 +200,7 @@ void CacheSim::updateConfiguration() {
     // Cache configuration changes shall enforce a full reset of the computing system
     m_cacheLines.clear();
     m_accessTrace.clear();
+    m_hitrate = 0;
 
     // Recalculate masks
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)

@@ -8,6 +8,7 @@
 
 namespace Ripes {
 
+enum class CacheWrPlcy { WriteThrough, WriteBack };
 enum class CacheReplPlcy { Random, LRU };
 static std::map<CacheReplPlcy, QString> s_cachePolicyStrings{{CacheReplPlcy::Random, "Random"},
                                                              {CacheReplPlcy::LRU, "LRU"}};
@@ -55,8 +56,13 @@ public:
 
     CacheSim(QObject* parent);
 
+    void setWritePolicy(CacheWrPlcy policy) {
+        m_wrPolicy = policy;
+        updateConfiguration();
+    }
+
     void setReplacementPolicy(CacheReplPlcy policy) {
-        m_policy = policy;
+        m_replPolicy = policy;
         updateConfiguration();
     }
 
@@ -65,9 +71,10 @@ public:
     void undo();
     void reset();
 
-    CacheReplPlcy getReplacementPolicy() const { return m_policy; }
+    CacheReplPlcy getReplacementPolicy() const { return m_replPolicy; }
+    CacheWrPlcy getWritePolicy() const { return m_wrPolicy; }
 
-    double getHitRate() const;
+    double getHitRate() const { return m_hitrate; }
     CacheSize getCacheSize() const;
 
     int getBlockBits() const { return m_blocks; }
@@ -105,7 +112,8 @@ private:
     void analyzeCacheAccess(CacheTransaction& transaction);
     void updateConfiguration();
 
-    CacheReplPlcy m_policy = CacheReplPlcy::LRU;
+    CacheReplPlcy m_replPolicy = CacheReplPlcy::LRU;
+    CacheWrPlcy m_wrPolicy = CacheWrPlcy::WriteBack;
 
     unsigned m_blockMask = -1;
     unsigned m_lineMask = -1;

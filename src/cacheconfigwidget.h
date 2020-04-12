@@ -20,10 +20,10 @@ public:
 
 public slots:
     void setHitRate(double hitrate);
-    void setCacheSize(unsigned);
     void configChanged();
 
 private:
+    void updateCacheSize();
     void updateIndexingText();
     void setupPresets();
     void showSizeBreakdown();

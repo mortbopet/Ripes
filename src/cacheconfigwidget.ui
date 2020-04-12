@@ -146,13 +146,6 @@
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="1" column="2">
-           <widget class="QPushButton" name="sizeBreakdownButton">
-            <property name="text">
-             <string>Breakdown</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="hitrate"/>
           </item>
@@ -162,9 +155,6 @@
              <string>Size (bits):</string>
             </property>
            </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="size"/>
           </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_5">
@@ -182,6 +172,20 @@
           </item>
           <item row="2" column="1">
            <widget class="QLineEdit" name="writebacks"/>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLineEdit" name="size"/>
+            </item>
+            <item>
+             <widget class="QToolButton" name="sizeBreakdownButton">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>

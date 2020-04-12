@@ -13,6 +13,9 @@ CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(ne
 void CacheConfigWidget::setCache(CacheSim* cache) {
     m_cache = cache;
 
+    const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
+    m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
+
     for (const auto& policy : s_cachePolicyStrings) {
         m_ui->replacementPolicy->addItem(policy.second, QVariant::fromValue(policy.first));
     }
@@ -24,6 +27,9 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
         "Offsets: <font color=\"gray\">█</font> = Tag <font color=\"red\">█</font> = Index <font "
         "color=\"green\">█</font> = Block <font color=\"black\">█</font> = Byte");
 
+    connect(m_ui->writeback, &QCheckBox::clicked, m_cache, [=](bool checked) {
+        m_cache->setWritePolicy(checked ? CacheWrPlcy::WriteBack : CacheWrPlcy::WriteThrough);
+    });
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setLines);
@@ -36,8 +42,6 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     setupPresets();
     m_ui->replacementPolicy->setCurrentIndex(0);
 
-    updateIndexingText();
-
     // For testing purposes only
     connect(m_ui->randomread, &QPushButton::clicked, [=] {
         unsigned address = std::rand() % 128;
@@ -49,6 +53,9 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     });
 
     connect(m_ui->undo, &QPushButton::clicked, m_cache, &CacheSim::undo);
+
+    // Synchronize config widgets with initial cache configuration
+    configChanged();
 }
 
 void CacheConfigWidget::setupPresets() {
@@ -83,21 +90,23 @@ void CacheConfigWidget::setupPresets() {
     m_ui->presets->setCurrentIndex(0);
 }
 
-void CacheConfigWidget::setCacheSize(unsigned size) {
-    m_ui->size->setText(QString::number(size));
-}
+void CacheConfigWidget::updateCacheSize() {}
 
 void CacheConfigWidget::configChanged() {
-    m_ui->ways->blockSignals(true);
-    m_ui->lines->blockSignals(true);
-    m_ui->blocks->blockSignals(true);
+    std::vector<QObject*> configItems{m_ui->ways, m_ui->lines, m_ui->blocks, m_ui->writeback};
+
+    std::for_each(configItems.begin(), configItems.end(), [](QObject* o) { o->blockSignals(true); });
+
     m_ui->ways->setValue(m_cache->getWaysBits());
     m_ui->lines->setValue(m_cache->getLineBits());
     m_ui->blocks->setValue(m_cache->getBlockBits());
-    m_ui->ways->blockSignals(false);
-    m_ui->lines->blockSignals(false);
-    m_ui->blocks->blockSignals(false);
+    m_ui->writeback->setChecked(m_cache->getWritePolicy() == CacheWrPlcy::WriteBack);
+
+    std::for_each(configItems.begin(), configItems.end(), [](QObject* o) { o->blockSignals(false); });
+
     updateIndexingText();
+    m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
+    setHitRate(m_cache->getHitRate());
 }
 
 void CacheConfigWidget::setHitRate(double hitrate) {
@@ -115,7 +124,7 @@ void CacheConfigWidget::showSizeBreakdown() {
 
     sizeText += "\nTotal: " + QString::number(cacheSize.bits) + " Bits";
 
-    QMessageBox::information(this, "Cache size breakdown", sizeText);
+    QMessageBox::information(this, "Cache Size Breakdown", sizeText);
 }
 
 CacheConfigWidget::~CacheConfigWidget() {

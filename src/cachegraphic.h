@@ -34,7 +34,7 @@ private:
      */
     void initializeControlBits();
     void updateHighlighting(bool active, const CacheSim::CacheTransaction* transaction);
-    void drawText(const QString& text, qreal x, qreal y);
+    QGraphicsSimpleTextItem* drawText(const QString& text, qreal x, qreal y);
     QGraphicsSimpleTextItem* tryCreateGraphicsTextItem(QGraphicsSimpleTextItem** item, qreal x, qreal y);
 
     QFont m_font = QFont("Inconsolata", 12);
@@ -52,6 +52,8 @@ private:
     qreal m_cacheWidth = 0;
     qreal m_widthBeforeBlocks = 0;
     qreal m_widthBeforeTag = 0;
+    qreal m_widthBeforeLRU = 0;
+    qreal m_widthBeforeDirty = 0;
     qreal m_lruWidth = 0;
 
     // Data structure modelling the cache; keeping graphics text items for each entry
@@ -60,6 +62,7 @@ private:
         QGraphicsSimpleTextItem* tag = nullptr;
         QGraphicsSimpleTextItem* lru = nullptr;
         QGraphicsSimpleTextItem* valid = nullptr;
+        QGraphicsSimpleTextItem* dirty = nullptr;
     };
 
     using CacheLine = std::map<unsigned, CacheWay>;
