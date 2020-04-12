@@ -12,20 +12,47 @@ enum class CacheReplPlcy { Random, LRU };
 static std::map<CacheReplPlcy, QString> s_cachePolicyStrings{{CacheReplPlcy::Random, "Random"},
                                                              {CacheReplPlcy::LRU, "LRU"}};
 
-struct CacheSize {
-    unsigned bits = 0;
-    std::vector<QString> components;
-};
-
-struct CachePreset {
-    int blocks;
-    int lines;
-    int ways;
-};
-
 class CacheSim : public QObject {
     Q_OBJECT
 public:
+    struct CacheSize {
+        unsigned bits = 0;
+        std::vector<QString> components;
+    };
+
+    struct CachePreset {
+        int blocks;
+        int lines;
+        int ways;
+    };
+
+    struct CacheTransaction {
+        uint32_t address;
+        unsigned lineIdx = -1;
+        unsigned wayIdx = -1;
+        unsigned blockIdx = -1;
+        unsigned tag = -1;
+
+        bool isHit = false;
+        bool read = false;
+        bool write = false;
+        bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
+        bool tagChanged = false;    // True if transToValid or the previous entry was evicted
+    };
+
+    struct CacheWay {
+        uint32_t tag;
+        // std::map<unsigned, uint32_t> blocks; we do not store the actual data; no reason to!
+        bool dirty = false;
+        bool valid = false;
+
+        // LRU algorithm relies on invalid cache ways to have an initial high value. -1 ensures maximum value for all
+        // way sizes.
+        unsigned lru = -1;
+    };
+
+    using CacheLine = std::map<unsigned, CacheWay>;
+
     CacheSim(QObject* parent);
 
     void setReplacementPolicy(CacheReplPlcy policy) {
@@ -36,6 +63,7 @@ public:
     void read(uint32_t address);
     void write(uint32_t address);
     void undo();
+    void reset();
 
     CacheReplPlcy getReplacementPolicy() const { return m_policy; }
 
@@ -50,13 +78,15 @@ public:
     int getBlocks() const { return static_cast<int>(std::pow(2, m_blocks)); }
     int getWays() const { return static_cast<int>(std::pow(2, m_ways)); }
     int getLines() const { return static_cast<int>(std::pow(2, m_lines)); }
+    unsigned getBlockMask() const { return m_blockMask; }
+    unsigned getTagMask() const { return m_tagMask; }
+    unsigned getLineMask() const { return m_lineMask; }
 
-    unsigned getAccessLineIdx() const;
-    unsigned getAccessWayIdx() const;
-    unsigned getAccessBlockIdx() const;
-    unsigned getAccessTag() const;
+    unsigned getLineIdx(const uint32_t address) const;
+    unsigned getBlockIdx(const uint32_t address) const;
+    unsigned getTag(const uint32_t address) const;
 
-    bool isCacheHit() const { return m_currentAccessIsHit; }
+    const CacheLine* getLine(unsigned idx) const;
 
 public slots:
     void setBlocks(unsigned blocks);
@@ -66,47 +96,30 @@ public slots:
 
 signals:
     void configurationChanged();
-    void accessChanged(bool active);
-    void dataChanged(uint32_t address);
+    void dataChanged(const CacheTransaction& transaction);
     void hitRateChanged(double hitrate);
 
 private:
     void updateHitRate();
-    void updateCacheValue(uint32_t address);
-    void analyzeCacheAccess();
+    void evictAndUpdate(CacheTransaction& transaction);
+    void analyzeCacheAccess(CacheTransaction& transaction);
     void updateConfiguration();
 
     CacheReplPlcy m_policy = CacheReplPlcy::LRU;
-    uint32_t m_currentAccessAddress;
-    bool m_currentAccessIsHit;
-    unsigned m_currentWayIdx;
 
-    unsigned m_blockMask;
-    unsigned m_lineMask;
-    unsigned m_tagMask;
+    unsigned m_blockMask = -1;
+    unsigned m_lineMask = -1;
+    unsigned m_tagMask = -1;
 
     int m_blocks = 1;  // Some power of 2
     int m_lines = 2;   // Some power of 2
     int m_ways = 2;    // Some power of 2
 
-    double m_hitrate;  // Most recent hitrate
+    double m_hitrate = 0;  // Most recent hitrate
 
-    struct CacheWay {
-        uint32_t tag;
-        // std::map<unsigned, uint32_t> blocks; we do not store the actual data; no reason to!
-        bool dirty = false;
-        bool valid = false;
-
-        // LRU algorithm relies on invalid cache ways to have an initial high value. -1 ensures maximum value for all
-        // way sizes.
-        unsigned lru = -1;
-    };
-
-    using CacheLine = std::map<unsigned, CacheWay>;
     std::map<unsigned, CacheLine> m_cacheLines;
 
     void updateCacheLineLRU(CacheLine& line, unsigned lruIdx);
-    CacheLine const* m_currentAccessLine = nullptr;
 
     struct CacheAccessTrace {
         int hits = 0;
@@ -122,9 +135,6 @@ private:
         }
     };
     std::map<unsigned, CacheAccessTrace> m_accessTrace;
-
-public:
-    const CacheLine* getCurrentAccessLine() const { return m_currentAccessLine; }
 };
 
 }  // namespace Ripes

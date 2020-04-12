@@ -16,7 +16,8 @@ public:
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override {}
 
-    void dataChanged(uint32_t address);
+public slots:
+    void dataChanged(const CacheSim::CacheTransaction& transaction);
 
     /**
      * @brief cacheParametersChanged
@@ -24,14 +25,17 @@ public:
      */
     void cacheParametersChanged();
 
+    void reset();
+
 private:
     /**
      * @brief initializeControlBits
      * Constructs all of the "Valid" and "LRU" text items within the cache
      */
     void initializeControlBits();
-    void updateHighlighting(bool active);
+    void updateHighlighting(bool active, const CacheSim::CacheTransaction* transaction);
     void drawText(const QString& text, qreal x, qreal y);
+    QGraphicsSimpleTextItem* tryCreateGraphicsTextItem(QGraphicsSimpleTextItem** item, qreal x, qreal y);
 
     QFont m_font = QFont("Inconsolata", 12);
     CacheSim& m_cache;

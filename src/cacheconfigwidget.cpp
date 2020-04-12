@@ -47,21 +47,23 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
         unsigned address = std::rand() % 128;
         m_cache->write(address);
     });
+
+    connect(m_ui->undo, &QPushButton::clicked, m_cache, &CacheSim::undo);
 }
 
 void CacheConfigWidget::setupPresets() {
-    std::vector<std::pair<QString, CachePreset>> presets;
+    std::vector<std::pair<QString, CacheSim::CachePreset>> presets;
 
-    presets.push_back({"32-entry 4-word direct-mapped", CachePreset{2, 5, 0}});
-    presets.push_back({"32-entry 4-word fully associative", CachePreset{2, 0, 5}});
-    presets.push_back({"32-entry 4-word 2-way set associative", CachePreset{2, 4, 1}});
+    presets.push_back({"32-entry 4-word direct-mapped", CacheSim::CachePreset{2, 5, 0}});
+    presets.push_back({"32-entry 4-word fully associative", CacheSim::CachePreset{2, 0, 5}});
+    presets.push_back({"32-entry 4-word 2-way set associative", CacheSim::CachePreset{2, 4, 1}});
 
     for (const auto& preset : presets) {
-        m_ui->presets->addItem(preset.first, QVariant::fromValue<CachePreset>(preset.second));
+        m_ui->presets->addItem(preset.first, QVariant::fromValue<CacheSim::CachePreset>(preset.second));
     }
 
     connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        const CachePreset preset = qvariant_cast<CachePreset>(m_ui->presets->itemData(index));
+        const CacheSim::CachePreset preset = qvariant_cast<CacheSim::CachePreset>(m_ui->presets->itemData(index));
 
         // Block signal emmision from the value widgets; the cache sim is updated all at once internally, so no need to
         // emit signals.

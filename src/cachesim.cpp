@@ -24,7 +24,7 @@ void CacheSim::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
     line[lruIdx].lru = 0;
 }
 
-CacheSize CacheSim::getCacheSize() const {
+CacheSim::CacheSize CacheSim::getCacheSize() const {
     CacheSize size;
 
     const int entries = getLines() * getWays();
@@ -54,84 +54,83 @@ CacheSize CacheSim::getCacheSize() const {
     return size;
 }
 
-void CacheSim::updateCacheValue(uint32_t address) {
-    const unsigned lineIdx = getAccessLineIdx();
-    const unsigned blockIdx = getAccessBlockIdx();
+void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
+    auto& cacheLine = m_cacheLines[transaction.lineIdx];
 
-    auto& cacheLine = m_cacheLines[lineIdx];
+    CacheWay* currentWay = nullptr;
 
     // Update based on replacement policy
     if (m_policy == CacheReplPlcy::Random) {
         // Select a random way
-        m_currentWayIdx = std::rand() % getWays();
-        auto& way = cacheLine[m_currentWayIdx];
-        // Todo: this is not valid; the entire cache line (all blocks) should be read
-        way.valid = true;
-        way.tag = getAccessTag();
+        transaction.wayIdx = std::rand() % getWays();
+        currentWay = &cacheLine[transaction.wayIdx];
     } else if (m_policy == CacheReplPlcy::LRU) {
         if (getWays() == 1) {
             // Nothing to do if we are in LRU and only have 1 set
-            m_currentWayIdx = 0;
-            cacheLine[m_currentWayIdx].valid = true;
-            cacheLine[m_currentWayIdx].tag = getAccessTag();
-            return;
-        }
-
-        // Ensure that all ways in the cache line has been initialized
-        for (int i = 0; i < getWays(); i++) {
-            cacheLine[i];
-        }
-
-        // If there is an invalid cache line, select that
-        unsigned wayIdx = 0;
-        CacheWay* selectedWay = nullptr;
-        for (auto& way : cacheLine) {
-            if (!way.second.valid) {
-                wayIdx = way.first;
-                selectedWay = &way.second;
-                break;
+            transaction.wayIdx = 0;
+            currentWay = &cacheLine[transaction.wayIdx];
+        } else {
+            // Lazily all ways in the cacheline before starting to iterate
+            for (int i = 0; i < getWays(); i++) {
+                cacheLine[i];
             }
-        }
-        if (selectedWay == nullptr) {
-            // Else, Find LRU way
+
+            // If there is an invalid cache line, select that
             for (auto& way : cacheLine) {
-                if (way.second.lru == getWays() - 1) {
-                    wayIdx = way.first;
-                    selectedWay = &way.second;
+                if (!way.second.valid) {
+                    transaction.wayIdx = way.first;
+                    currentWay = &way.second;
+                    break;
                 }
             }
+            if (currentWay == nullptr) {
+                // Else, Find LRU way
+                for (auto& way : cacheLine) {
+                    if (way.second.lru == getWays() - 1) {
+                        transaction.wayIdx = way.first;
+                        currentWay = &way.second;
+                    }
+                }
+            }
+
+            Q_ASSERT(currentWay != nullptr && "There must have been an issue with setting the LRU bits");
+            updateCacheLineLRU(cacheLine, transaction.wayIdx);
         }
-
-        Q_ASSERT(selectedWay != nullptr && "There must have been an issue with setting the LRU bits");
-
-        m_currentWayIdx = wayIdx;
-        selectedWay->valid = true;
-        selectedWay->tag = getAccessTag();
-        updateCacheLineLRU(cacheLine, wayIdx);
     }
+
+    if (!currentWay->valid) {
+        // Record that this was an invalid->valid transition
+        transaction.transToValid = true;
+        currentWay->valid = true;
+    }
+
+    currentWay->tag = transaction.tag;
+    transaction.tagChanged = true;
 }
 
 void CacheSim::updateHitRate() {
+    auto oldHitRate = m_hitrate;
     if (m_accessTrace.size() == 0) {
         m_hitrate = 0;
     } else {
         auto& trace = m_accessTrace.rbegin()->second;
         m_hitrate = static_cast<double>(trace.hits) / (trace.hits + trace.misses);
     }
+    emit hitRateChanged(m_hitrate);
 }
 
-void CacheSim::analyzeCacheAccess() {
-    const unsigned lineIdx = getAccessLineIdx();
+void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) {
+    transaction.lineIdx = getLineIdx(transaction.address);
+    transaction.blockIdx = getBlockIdx(transaction.address);
+    transaction.tag = getTag(transaction.address);
 
-    m_currentAccessLine = &m_cacheLines[lineIdx];
-
-    m_currentAccessIsHit = false;
-    if (m_cacheLines.count(lineIdx) != 0) {
+    transaction.isHit = false;
+    if (m_cacheLines.count(transaction.lineIdx) != 0) {
         int wayIdx = 0;
-        for (const auto& way : m_cacheLines.at(lineIdx)) {
-            if (way.second.tag == getAccessTag() && way.second.valid) {
-                m_currentWayIdx = wayIdx;
-                m_currentAccessIsHit = true;
+        for (const auto& way : m_cacheLines.at(transaction.lineIdx)) {
+            if (way.second.tag == transaction.tag && way.second.valid) {
+                transaction.wayIdx = wayIdx;
+                transaction.isHit = true;
                 break;
             }
             wayIdx++;
@@ -140,51 +139,54 @@ void CacheSim::analyzeCacheAccess() {
 
     // Update cache access trace for the current cycle
     if (m_accessTrace.size() == 0) {
-        m_accessTrace[0] = CacheAccessTrace(m_currentAccessIsHit);
+        m_accessTrace[0] = CacheAccessTrace(transaction.isHit);
     } else {
         m_accessTrace[m_accessTrace.size()] =
-            CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], m_currentAccessIsHit);
+            CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], transaction.isHit);
     }
     updateHitRate();
-    emit hitRateChanged(m_hitrate);
-
-    return;
 }
 
 void CacheSim::read(uint32_t address) {
-    m_currentAccessAddress = address;
-    analyzeCacheAccess();
-    if (!m_currentAccessIsHit) {
-        updateCacheValue(m_currentAccessAddress);
+    address = address & ~0b11;  // Disregard unaligned accesses
+    CacheTransaction transaction;
+    transaction.address = address;
+
+    analyzeCacheAccess(transaction);
+
+    if (!transaction.isHit) {
+        evictAndUpdate(transaction);
     }
-    emit dataChanged(m_currentAccessAddress);
+
+    emit dataChanged(transaction);
 }
-void CacheSim::write(uint32_t address) {
-    m_currentAccessAddress = address;
-    emit accessChanged(m_currentAccessAddress);
-}
+void CacheSim::write(uint32_t address) {}
 void CacheSim::undo() {}
 
-unsigned CacheSim::getAccessLineIdx() const {
-    uint32_t maskedAddress = m_currentAccessAddress & m_lineMask;
+unsigned CacheSim::getLineIdx(const uint32_t address) const {
+    uint32_t maskedAddress = address & m_lineMask;
     maskedAddress >>= 2 + getBlockBits();
     return maskedAddress;
 }
 
-unsigned CacheSim::getAccessWayIdx() const {
-    return m_currentWayIdx;
-}
-
-unsigned CacheSim::getAccessTag() const {
-    uint32_t maskedAddress = m_currentAccessAddress & m_tagMask;
+unsigned CacheSim::getTag(const uint32_t address) const {
+    uint32_t maskedAddress = address & m_tagMask;
     maskedAddress >>= 2 + getBlockBits() + getLineBits();
     return maskedAddress;
 }
 
-unsigned CacheSim::getAccessBlockIdx() const {
-    uint32_t maskedAddress = m_currentAccessAddress & m_blockMask;
+unsigned CacheSim::getBlockIdx(const uint32_t address) const {
+    uint32_t maskedAddress = address & m_blockMask;
     maskedAddress >>= 2;
     return maskedAddress;
+}
+
+const CacheSim::CacheLine* CacheSim::getLine(unsigned idx) const {
+    if (m_cacheLines.count(idx)) {
+        return &m_cacheLines.at(idx);
+    } else {
+        return nullptr;
+    }
 }
 
 void CacheSim::updateConfiguration() {
