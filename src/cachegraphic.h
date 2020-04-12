@@ -17,6 +17,11 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override {}
 
 public slots:
+    /**
+     * @brief dataChanged
+     * The cache simulator indicates that some entries in the cache has changed. CacheGraphic will, using @p
+     * transaction, lazily initialize and update all required values to reflect the new state of the cache.
+     */
     void dataChanged(const CacheSim::CacheTransaction& transaction);
 
     /**
@@ -66,6 +71,16 @@ private:
     };
 
     using CacheLine = std::map<unsigned, CacheWay>;
+
+    /**
+     * @brief m_cacheTextItems
+     * All text items in the cache are managed in @var m_cacheTextItems.
+     * This object models the hierarchy of the cache, and stores all currently initialized text items for the cache.
+     * The object is indexed similarly to how the cache simulator is indexed. As such, a cache transaction is used to
+     * traverse the object.
+     * All items are lazily initialized in calls to dataChanged(). This prevents initializing a ton of items if a user
+     * has created a very large cache.
+     */
     std::map<unsigned, CacheLine> m_cacheTextItems;
 };
 
