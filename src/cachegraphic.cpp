@@ -84,7 +84,7 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
 
         // Update LRU fields.
         // This field must be updated for all
-        if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
+        if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
             if (auto* currentAccessLine = m_cache.getLine(transaction.lineIdx)) {
                 for (const auto& way : m_cacheTextItems[transaction.lineIdx]) {
                     // If LRU was just initialized, the actual (software) LRU value may be very large. Mask to the
@@ -169,13 +169,13 @@ void CacheGraphic::initializeControlBits() {
             x = m_bitWidth / 2 - fm.horizontalAdvance("0") / 2;
             line[setIdx].valid = drawText("0", x, y);
 
-            if (m_cache.getWritePolicy() == CacheWrPlcy::WriteBack) {
+            if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
                 // Create dirty bit field
                 x = m_widthBeforeDirty + m_bitWidth / 2 - fm.horizontalAdvance("0") / 2;
                 line[setIdx].dirty = drawText("0", x, y);
             }
 
-            if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
+            if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
                 // Create LRU field
                 const QString lruText = QString::number(m_cache.getWays() - 1);
                 x = m_widthBeforeLRU + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
@@ -219,7 +219,7 @@ void CacheGraphic::cacheParametersChanged() {
     validItem->setToolTip("Valid bit");
     horizontalAdvance += m_bitWidth;
 
-    if (m_cache.getWritePolicy() == CacheWrPlcy::WriteBack) {
+    if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
         m_widthBeforeDirty = horizontalAdvance;
 
         // Draw dirty bit column
@@ -232,7 +232,7 @@ void CacheGraphic::cacheParametersChanged() {
 
     m_widthBeforeLRU = horizontalAdvance;
 
-    if (m_cache.getReplacementPolicy() == CacheReplPlcy::LRU && m_cache.getWays() > 1) {
+    if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
         // Draw LRU bit column
         new QGraphicsLineItem(horizontalAdvance + m_lruWidth, 0, horizontalAdvance + m_lruWidth, m_cacheHeight, this);
         const QString LRUBitText = "LRU";

@@ -33,5 +33,5 @@ private:
 
 }  // namespace Ripes
 
-Q_DECLARE_METATYPE(Ripes::CacheReplPlcy);
+Q_DECLARE_METATYPE(Ripes::CacheSim::ReplPolicy);
 Q_DECLARE_METATYPE(Ripes::CacheSim::CachePreset);

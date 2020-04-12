@@ -8,14 +8,13 @@
 
 namespace Ripes {
 
-enum class CacheWrPlcy { WriteThrough, WriteBack };
-enum class CacheReplPlcy { Random, LRU };
-static std::map<CacheReplPlcy, QString> s_cachePolicyStrings{{CacheReplPlcy::Random, "Random"},
-                                                             {CacheReplPlcy::LRU, "LRU"}};
-
 class CacheSim : public QObject {
     Q_OBJECT
 public:
+    enum class WritePolicy { WriteThrough, WriteBack };
+    enum class ReplPolicy { Random, LRU };
+    enum class AccessType { Read, Write };
+
     struct CacheSize {
         unsigned bits = 0;
         std::vector<QString> components;
@@ -56,23 +55,22 @@ public:
 
     CacheSim(QObject* parent);
 
-    void setWritePolicy(CacheWrPlcy policy) {
+    void setWritePolicy(WritePolicy policy) {
         m_wrPolicy = policy;
         updateConfiguration();
     }
 
-    void setReplacementPolicy(CacheReplPlcy policy) {
+    void setReplacementPolicy(ReplPolicy policy) {
         m_replPolicy = policy;
         updateConfiguration();
     }
 
-    void read(uint32_t address);
-    void write(uint32_t address);
+    void access(uint32_t address, AccessType type);
     void undo();
     void reset();
 
-    CacheReplPlcy getReplacementPolicy() const { return m_replPolicy; }
-    CacheWrPlcy getWritePolicy() const { return m_wrPolicy; }
+    ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
+    WritePolicy getWritePolicy() const { return m_wrPolicy; }
 
     double getHitRate() const { return m_hitrate; }
     CacheSize getCacheSize() const;
@@ -112,8 +110,8 @@ private:
     void analyzeCacheAccess(CacheTransaction& transaction);
     void updateConfiguration();
 
-    CacheReplPlcy m_replPolicy = CacheReplPlcy::LRU;
-    CacheWrPlcy m_wrPolicy = CacheWrPlcy::WriteBack;
+    ReplPolicy m_replPolicy = ReplPolicy::LRU;
+    WritePolicy m_wrPolicy = WritePolicy::WriteBack;
 
     unsigned m_blockMask = -1;
     unsigned m_lineMask = -1;
@@ -144,5 +142,8 @@ private:
     };
     std::map<unsigned, CacheAccessTrace> m_accessTrace;
 };
+
+static std::map<CacheSim::ReplPolicy, QString> s_cachePolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
+                                                                    {CacheSim::ReplPolicy::LRU, "LRU"}};
 
 }  // namespace Ripes

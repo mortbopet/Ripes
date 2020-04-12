@@ -28,14 +28,14 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
         "color=\"green\">█</font> = Block <font color=\"black\">█</font> = Byte");
 
     connect(m_ui->writeback, &QCheckBox::clicked, m_cache, [=](bool checked) {
-        m_cache->setWritePolicy(checked ? CacheWrPlcy::WriteBack : CacheWrPlcy::WriteThrough);
+        m_cache->setWritePolicy(checked ? CacheSim::WritePolicy::WriteBack : CacheSim::WritePolicy::WriteThrough);
     });
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setLines);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CacheConfigWidget::showSizeBreakdown);
     connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        m_cache->setReplacementPolicy(qvariant_cast<CacheReplPlcy>(m_ui->replacementPolicy->itemData(index)));
+        m_cache->setReplacementPolicy(qvariant_cast<CacheSim::ReplPolicy>(m_ui->replacementPolicy->itemData(index)));
     });
     connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::configChanged);
 
@@ -44,12 +44,12 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
 
     // For testing purposes only
     connect(m_ui->randomread, &QPushButton::clicked, [=] {
-        unsigned address = std::rand() % 128;
-        m_cache->read(address);
+        unsigned address = (std::rand() % 128) & ~0b11;
+        m_cache->access(address, CacheSim::AccessType::Read);
     });
     connect(m_ui->randomwrite, &QPushButton::clicked, [=] {
-        unsigned address = std::rand() % 128;
-        m_cache->write(address);
+        unsigned address = (std::rand() % 128) & ~0b11;
+        m_cache->access(address, CacheSim::AccessType::Write);
     });
 
     connect(m_ui->undo, &QPushButton::clicked, m_cache, &CacheSim::undo);
@@ -100,7 +100,7 @@ void CacheConfigWidget::configChanged() {
     m_ui->ways->setValue(m_cache->getWaysBits());
     m_ui->lines->setValue(m_cache->getLineBits());
     m_ui->blocks->setValue(m_cache->getBlockBits());
-    m_ui->writeback->setChecked(m_cache->getWritePolicy() == CacheWrPlcy::WriteBack);
+    m_ui->writeback->setChecked(m_cache->getWritePolicy() == CacheSim::WritePolicy::WriteBack);
 
     std::for_each(configItems.begin(), configItems.end(), [](QObject* o) { o->blockSignals(false); });
 

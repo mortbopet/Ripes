@@ -34,14 +34,14 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
     size.components.push_back("Valid bits: " + QString::number(componentBits));
     size.bits += componentBits;
 
-    if (m_wrPolicy == CacheWrPlcy::WriteBack) {
+    if (m_wrPolicy == WritePolicy::WriteBack) {
         // Dirty bits
         unsigned componentBits = entries;  // 1 bit per entry
         size.components.push_back("Dirty bits: " + QString::number(componentBits));
         size.bits += componentBits;
     }
 
-    if (m_replPolicy == CacheReplPlcy::LRU) {
+    if (m_replPolicy == ReplPolicy::LRU) {
         // LRU bits
         componentBits = getWaysBits() * entries;
         size.components.push_back("LRU bits: " + QString::number(componentBits));
@@ -67,11 +67,11 @@ void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
     CacheWay* currentWay = nullptr;
 
     // Update based on replacement policy
-    if (m_replPolicy == CacheReplPlcy::Random) {
+    if (m_replPolicy == ReplPolicy::Random) {
         // Select a random way
         transaction.wayIdx = std::rand() % getWays();
         currentWay = &cacheLine[transaction.wayIdx];
-    } else if (m_replPolicy == CacheReplPlcy::LRU) {
+    } else if (m_replPolicy == ReplPolicy::LRU) {
         if (getWays() == 1) {
             // Nothing to do if we are in LRU and only have 1 set
             transaction.wayIdx = 0;
@@ -154,7 +154,7 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) {
     updateHitRate();
 }
 
-void CacheSim::read(uint32_t address) {
+void CacheSim::access(uint32_t address, AccessType access) {
     address = address & ~0b11;  // Disregard unaligned accesses
     CacheTransaction transaction;
     transaction.address = address;
@@ -167,7 +167,7 @@ void CacheSim::read(uint32_t address) {
 
     emit dataChanged(transaction);
 }
-void CacheSim::write(uint32_t address) {}
+
 void CacheSim::undo() {}
 
 unsigned CacheSim::getLineIdx(const uint32_t address) const {
