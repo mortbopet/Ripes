@@ -68,6 +68,7 @@ private:
         QGraphicsSimpleTextItem* lru = nullptr;
         QGraphicsSimpleTextItem* valid = nullptr;
         QGraphicsSimpleTextItem* dirty = nullptr;
+        std::map<unsigned, std::unique_ptr<QGraphicsRectItem>> dirtyBlocks;
     };
 
     using CacheLine = std::map<unsigned, CacheWay>;

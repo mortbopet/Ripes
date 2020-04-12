@@ -34,8 +34,7 @@ public:
         unsigned tag = -1;
 
         bool isHit = false;
-        bool read = false;
-        bool write = false;
+        AccessType type;
         bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
         bool tagChanged = false;    // True if transToValid or the previous entry was evicted
     };

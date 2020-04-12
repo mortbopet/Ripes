@@ -116,7 +116,7 @@ void CacheConfigWidget::setHitRate(double hitrate) {
 void CacheConfigWidget::showSizeBreakdown() {
     QString sizeText;
 
-    auto cacheSize = m_cache->getCacheSize();
+    const auto cacheSize = m_cache->getCacheSize();
 
     for (const auto& component : cacheSize.components) {
         sizeText += component + "\n";

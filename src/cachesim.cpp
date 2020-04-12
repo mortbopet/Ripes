@@ -101,7 +101,6 @@ void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
             }
 
             Q_ASSERT(currentWay != nullptr && "There must have been an issue with setting the LRU bits");
-            updateCacheLineLRU(cacheLine, transaction.wayIdx);
         }
     }
 
@@ -111,6 +110,7 @@ void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
         currentWay->valid = true;
     }
 
+    currentWay->dirty = false;
     currentWay->tag = transaction.tag;
     transaction.tagChanged = true;
 }
@@ -133,14 +133,12 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) {
 
     transaction.isHit = false;
     if (m_cacheLines.count(transaction.lineIdx) != 0) {
-        int wayIdx = 0;
         for (const auto& way : m_cacheLines.at(transaction.lineIdx)) {
-            if (way.second.tag == transaction.tag && way.second.valid) {
-                transaction.wayIdx = wayIdx;
+            if ((way.second.tag == transaction.tag) && way.second.valid) {
+                transaction.wayIdx = way.first;
                 transaction.isHit = true;
                 break;
             }
-            wayIdx++;
         }
     }
 
@@ -154,15 +152,28 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) {
     updateHitRate();
 }
 
-void CacheSim::access(uint32_t address, AccessType access) {
+void CacheSim::access(uint32_t address, AccessType type) {
     address = address & ~0b11;  // Disregard unaligned accesses
     CacheTransaction transaction;
     transaction.address = address;
+    transaction.type = type;
 
     analyzeCacheAccess(transaction);
 
     if (!transaction.isHit) {
         evictAndUpdate(transaction);
+    }
+
+    // Lazily ensure that the located way has been initialized
+    m_cacheLines[transaction.lineIdx][transaction.wayIdx];
+
+    if (type == AccessType::Write) {
+        CacheWay& way = m_cacheLines[transaction.lineIdx][transaction.wayIdx];
+        way.dirty = true;
+    }
+
+    if (getReplacementPolicy() == ReplPolicy::LRU) {
+        updateCacheLineLRU(m_cacheLines[transaction.lineIdx], transaction.wayIdx);
     }
 
     emit dataChanged(transaction);
