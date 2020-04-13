@@ -33,6 +33,7 @@ private:
 
 }  // namespace Ripes
 
+// Qt Metatypes for enum combo boxes
 Q_DECLARE_METATYPE(Ripes::CacheSim::WritePolicy);
 Q_DECLARE_METATYPE(Ripes::CacheSim::WriteAllocPolicy);
 Q_DECLARE_METATYPE(Ripes::CacheSim::ReplPolicy);

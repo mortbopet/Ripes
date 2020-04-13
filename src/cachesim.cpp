@@ -99,7 +99,7 @@ void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
                     }
                 }
             }
-
+            Q_ASSERT(transaction.wayIdx != s_invalidIndex);
             Q_ASSERT(currentWay != nullptr && "There must have been an issue with setting the LRU bits");
         }
     }
@@ -161,19 +161,24 @@ void CacheSim::access(uint32_t address, AccessType type) {
     analyzeCacheAccess(transaction);
 
     if (!transaction.isHit) {
-        evictAndUpdate(transaction);
+        if (type == AccessType::Read ||
+            (type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate)) {
+            evictAndUpdate(transaction);
+        }
     }
 
-    // Lazily ensure that the located way has been initialized
-    m_cacheLines[transaction.lineIdx][transaction.wayIdx];
+    if (transaction.wayIdx != s_invalidIndex) {
+        // Lazily ensure that the located way has been initialized
+        m_cacheLines[transaction.lineIdx][transaction.wayIdx];
 
-    if (type == AccessType::Write) {
-        CacheWay& way = m_cacheLines[transaction.lineIdx][transaction.wayIdx];
-        way.dirty = true;
-    }
+        if (type == AccessType::Write) {
+            CacheWay& way = m_cacheLines[transaction.lineIdx][transaction.wayIdx];
+            way.dirty = true;
+        }
 
-    if (getReplacementPolicy() == ReplPolicy::LRU) {
-        updateCacheLineLRU(m_cacheLines[transaction.lineIdx], transaction.wayIdx);
+        if (getReplacementPolicy() == ReplPolicy::LRU) {
+            updateCacheLineLRU(m_cacheLines[transaction.lineIdx], transaction.wayIdx);
+        }
     }
 
     emit dataChanged(transaction);

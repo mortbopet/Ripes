@@ -31,8 +31,15 @@ QGraphicsSimpleTextItem* CacheGraphic::tryCreateGraphicsTextItem(QGraphicsSimple
 void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
     auto fm = QFontMetricsF(m_font);
 
-    auto& cacheWay = m_cacheTextItems[transaction.lineIdx][transaction.wayIdx];
-    auto& simCacheWay = m_cache.getLine(transaction.lineIdx)->at(transaction.wayIdx);
+    if (!transaction.isHit && transaction.type == CacheSim::AccessType::Write &&
+        m_cache.getWriteAllocPolicy() == CacheSim::WriteAllocPolicy::NoWriteAllocate) {
+        // Nothing to do graphically; the access was a miss and we are not write allocating. So there is no new line
+        // written into the cache => no line to be set dirty.
+        return;
+    }
+
+    auto& way = m_cacheTextItems[transaction.lineIdx][transaction.wayIdx];
+    auto& simWay = m_cache.getLine(transaction.lineIdx)->at(transaction.wayIdx);
 
     if (transaction.isHit) {
         /* The access is a hit. This implies that:
@@ -45,7 +52,7 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
         const qreal y = transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight;
 
         const auto data = ProcessorHandler::get()->getMemory().readMemConst(transaction.address);
-        QGraphicsSimpleTextItem* blockTextItem = cacheWay.blocks[transaction.blockIdx];
+        QGraphicsSimpleTextItem* blockTextItem = way.blocks[transaction.blockIdx];
         const QString text = encodeRadixValue(data, Radix::Hex);
         blockTextItem->setText(text);
         blockTextItem->setToolTip("Address: " + encodeRadixValue(transaction.address, Radix::Hex));
@@ -60,7 +67,7 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
                 m_widthBeforeBlocks + i * m_blockWidth + (m_blockWidth / 2 - fm.horizontalAdvance("0x00000000") / 2);
             const qreal y = transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight;
 
-            QGraphicsSimpleTextItem* blockTextItem = tryCreateGraphicsTextItem(&cacheWay.blocks[i], x, y);
+            QGraphicsSimpleTextItem* blockTextItem = tryCreateGraphicsTextItem(&way.blocks[i], x, y);
             const uint32_t addressForBlock = (transaction.address & ~m_cache.getBlockMask()) | (i << 2);
             const auto data = ProcessorHandler::get()->getMemory().readMemConst(addressForBlock);
             const QString text = encodeRadixValue(data, Radix::Hex);
@@ -72,42 +79,43 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
         // Given that a value cannot be invalidated with the current schema (uniprocessor), the valid bit is simply
         // flipped if we see a transition
         if (transaction.transToValid) {
-            cacheWay.valid->setText(QString::number(1));
+            way.valid->setText(QString::number(1));
         }
     }
 
     // Update dirty field
-    if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
-        cacheWay.dirty->setText(QString::number(simCacheWay.dirty));
+    if (transaction.isHit && m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
+        way.dirty->setText(QString::number(simWay.dirty));
     }
 
-    // Update dirty blocks
+    // Update tag
     if (transaction.tagChanged) {
         // Tag changing implies that the entries of the way was evicted. Clear any highlighting blocks for the way,
         // before setting new write blocks.
-        cacheWay.dirtyBlocks.clear();
+        way.dirtyBlocks.clear();
 
-        // Update tag
         const qreal x = m_widthBeforeTag + (m_tagWidth / 2 - fm.horizontalAdvance("0x00000000") / 2);
         const qreal y = transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight;
 
-        QGraphicsSimpleTextItem* tagTextItem = tryCreateGraphicsTextItem(&cacheWay.tag, x, y);
+        QGraphicsSimpleTextItem* tagTextItem = tryCreateGraphicsTextItem(&way.tag, x, y);
         const QString tagText = encodeRadixValue(transaction.tag, Radix::Hex);
         tagTextItem->setText(tagText);
     }
 
-    if (transaction.type == CacheSim::AccessType::Write) {
-        if (cacheWay.dirtyBlocks.count(transaction.blockIdx) == 0) {
+    // Update dirty blocks
+    if (transaction.type == CacheSim::AccessType::Write &&
+        m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
+        if (way.dirtyBlocks.count(transaction.blockIdx) == 0) {
             // The block was dirtied by this transaction; create a dirty rect
             const auto topLeft = QPointF(transaction.blockIdx * m_blockWidth + m_widthBeforeBlocks,
                                          transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight);
             const auto bottomRight =
                 QPointF((transaction.blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks,
                         transaction.lineIdx * m_lineHeight + (transaction.wayIdx + 1) * m_setHeight);
-            cacheWay.dirtyBlocks[transaction.blockIdx] =
+            way.dirtyBlocks[transaction.blockIdx] =
                 std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this);
 
-            const auto& dirtyRectItem = cacheWay.dirtyBlocks[transaction.blockIdx];
+            const auto& dirtyRectItem = way.dirtyBlocks[transaction.blockIdx];
             dirtyRectItem->setZValue(-1);
             dirtyRectItem->setOpacity(0.4);
             dirtyRectItem->setBrush(Qt::darkCyan);
@@ -115,8 +123,14 @@ void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
     }
 
     // Update LRU fields.
-    // This field must be updated for all
-    if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
+    // This field must be updated for all ways in a set
+    bool updateLRU = true;
+    updateLRU &= m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1;
+    // Special case handling for writing to a missed block with no write alloc. In this case, we do not update LRU bits
+    // because technically the write does not map to any cache line.
+    updateLRU &= !(!transaction.isHit && m_cache.getWriteAllocPolicy() == CacheSim::WriteAllocPolicy::NoWriteAllocate);
+
+    if (updateLRU) {
         if (auto* currentAccessLine = m_cache.getLine(transaction.lineIdx)) {
             for (const auto& way : m_cacheTextItems[transaction.lineIdx]) {
                 // If LRU was just initialized, the actual (software) LRU value may be very large. Mask to the

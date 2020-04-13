@@ -11,6 +11,8 @@ namespace Ripes {
 class CacheSim : public QObject {
     Q_OBJECT
 public:
+    static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
+
     enum class WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
     enum class WritePolicy { WriteThrough, WriteBack };
     enum class ReplPolicy { Random, LRU };
@@ -33,10 +35,10 @@ public:
 
     struct CacheTransaction {
         uint32_t address;
-        unsigned lineIdx = -1;
-        unsigned wayIdx = -1;
-        unsigned blockIdx = -1;
-        unsigned tag = -1;
+        unsigned lineIdx = s_invalidIndex;
+        unsigned wayIdx = s_invalidIndex;
+        unsigned blockIdx = s_invalidIndex;
+        unsigned tag = s_invalidIndex;
 
         bool isHit = false;
         AccessType type;

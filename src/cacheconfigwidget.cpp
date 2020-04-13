@@ -85,7 +85,18 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     QTimer* timer = new QTimer(this);
     timer->setInterval(20);
     connect(timer, &QTimer::timeout, [=] {
-        unsigned address = (std::rand() % (int)std::pow(2, 14)) & ~0b11;
+        static int address;
+        static int strideCount = 0;
+
+        // Simulate some random access pattern with a bit of spatial locality
+        if (strideCount == 0) {
+            strideCount = (std::rand() % 32);
+            address = (std::rand() % (int)std::pow(2, 14)) & ~0b11;
+        } else {
+            strideCount--;
+            address += 4;
+        }
+
         CacheSim::AccessType type = (std::rand() % 100) > 80 ? CacheSim::AccessType::Write : CacheSim::AccessType::Read;
         m_cache->access(address, type);
     });
