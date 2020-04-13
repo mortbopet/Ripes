@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>779</width>
-    <height>274</height>
+    <width>645</width>
+    <height>271</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
@@ -169,6 +169,13 @@
         <string>Statistics:</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_5">
+        <item row="2" column="0">
+         <widget class="QPushButton" name="randomwrite">
+          <property name="text">
+           <string>Random write</string>
+          </property>
+         </widget>
+        </item>
         <item row="3" column="0">
          <widget class="QPushButton" name="undo">
           <property name="text">
@@ -177,38 +184,31 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="hitrate"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Size (bits):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Hit rate:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Writebacks:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="writebacks"/>
-          </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
-             <widget class="QLineEdit" name="size"/>
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>Size (bits):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="size">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QToolButton" name="sizeBreakdownButton">
@@ -219,21 +219,107 @@
             </item>
            </layout>
           </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Hit rate:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="hitrate">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Writebacks:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="writebacks">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Hits:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="hits">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Misses:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="misses">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
-        </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="randomwrite">
-          <property name="text">
-           <string>Random write</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="randomread">
-          <property name="text">
-           <string>Random read</string>
-          </property>
-         </widget>
         </item>
         <item row="5" column="0">
          <spacer name="verticalSpacer">
@@ -247,6 +333,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="randomread">
+          <property name="text">
+           <string>Random read</string>
+          </property>
+         </widget>
         </item>
         <item row="4" column="0">
          <widget class="QPushButton" name="autoAccess">

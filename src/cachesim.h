@@ -84,7 +84,9 @@ public:
     ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
     WritePolicy getWritePolicy() const { return m_wrPolicy; }
 
-    double getHitRate() const { return m_hitrate; }
+    double getHitRate() const;
+    unsigned getHits() const;
+    unsigned getMisses() const;
     CacheSize getCacheSize() const;
 
     int getBlockBits() const { return m_blocks; }
@@ -114,10 +116,9 @@ public slots:
 signals:
     void configurationChanged();
     void dataChanged(const CacheTransaction& transaction);
-    void hitRateChanged(double hitrate);
+    void hitrateChanged();
 
 private:
-    void updateHitRate();
     void evictAndUpdate(CacheTransaction& transaction);
     void analyzeCacheAccess(CacheTransaction& transaction);
     void updateConfiguration();
@@ -133,8 +134,6 @@ private:
     int m_blocks = 1;  // Some power of 2
     int m_lines = 2;   // Some power of 2
     int m_ways = 2;    // Some power of 2
-
-    double m_hitrate = 0;  // Most recent hitrate
 
     std::map<unsigned, CacheLine> m_cacheLines;
 

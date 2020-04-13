@@ -63,6 +63,7 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     });
 
     connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::configChanged);
+    connect(m_cache, &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
 
     setupPresets();
     m_ui->replacementPolicy->setCurrentIndex(0);
@@ -178,11 +179,13 @@ void CacheConfigWidget::configChanged() {
 
     updateIndexingText();
     m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
-    setHitRate(m_cache->getHitRate());
+    updateHitrate();
 }
 
-void CacheConfigWidget::setHitRate(double hitrate) {
-    m_ui->hitrate->setText(QString::number(hitrate));
+void CacheConfigWidget::updateHitrate() {
+    m_ui->hitrate->setText(QString::number(m_cache->getHitRate(), 'G', 4));
+    m_ui->hits->setText(QString::number(m_cache->getHits()));
+    m_ui->misses->setText(QString::number(m_cache->getMisses()));
 }
 
 void CacheConfigWidget::showSizeBreakdown() {

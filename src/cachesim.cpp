@@ -115,15 +115,31 @@ void CacheSim::evictAndUpdate(CacheTransaction& transaction) {
     transaction.tagChanged = true;
 }
 
-void CacheSim::updateHitRate() {
-    auto oldHitRate = m_hitrate;
+unsigned CacheSim::getHits() const {
     if (m_accessTrace.size() == 0) {
-        m_hitrate = 0;
+        return 0;
     } else {
         auto& trace = m_accessTrace.rbegin()->second;
-        m_hitrate = static_cast<double>(trace.hits) / (trace.hits + trace.misses);
+        return trace.hits;
     }
-    emit hitRateChanged(m_hitrate);
+}
+
+unsigned CacheSim::getMisses() const {
+    if (m_accessTrace.size() == 0) {
+        return 0;
+    } else {
+        auto& trace = m_accessTrace.rbegin()->second;
+        return trace.misses;
+    }
+}
+
+double CacheSim::getHitRate() const {
+    if (m_accessTrace.size() == 0) {
+        return 0;
+    } else {
+        auto& trace = m_accessTrace.rbegin()->second;
+        return static_cast<double>(trace.hits) / (trace.hits + trace.misses);
+    }
 }
 
 void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) {
@@ -149,7 +165,7 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) {
         m_accessTrace[m_accessTrace.size()] =
             CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], transaction.isHit);
     }
-    updateHitRate();
+    emit hitrateChanged();
 }
 
 void CacheSim::access(uint32_t address, AccessType type) {
@@ -216,7 +232,6 @@ void CacheSim::updateConfiguration() {
     // Cache configuration changes shall enforce a full reset of the computing system
     m_cacheLines.clear();
     m_accessTrace.clear();
-    m_hitrate = 0;
 
     // Recalculate masks
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
@@ -229,7 +244,6 @@ void CacheSim::updateConfiguration() {
 
     m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
 
-    emit hitRateChanged(m_hitrate);
     emit configurationChanged();
 }
 

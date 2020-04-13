@@ -16,7 +16,6 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
     auto* cacheSim = new CacheSim(this);
     m_ui->cacheConfig->setCache(cacheSim);
 
-    connect(cacheSim, &CacheSim::hitRateChanged, m_ui->cacheConfig, &CacheConfigWidget::setHitRate);
     auto* cacheGraphic = new CacheGraphic(*cacheSim);
     m_ui->cacheView->setScene(scene);
     scene->addItem(cacheGraphic);

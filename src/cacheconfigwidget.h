@@ -19,7 +19,7 @@ public:
     void setCache(CacheSim* cache);
 
 public slots:
-    void setHitRate(double hitrate);
+    void updateHitrate();
     void configChanged();
 
 private:
