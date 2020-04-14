@@ -10,19 +10,35 @@ CacheSim::CacheSim(QObject* parent) : QObject(parent) {
     updateConfiguration();
 }
 
-void CacheSim::updateCacheLineLRU(CacheLine& line, unsigned lruIdx) {
-    // Find previous LRU value for the updated index
-    const unsigned preLRU = line[lruIdx].lru;
+void CacheSim::updateCacheLineReplFields(CacheLine& line, unsigned wayIdx) {
+    if (getReplacementPolicy() == ReplPolicy::LRU) {
+        // Find previous LRU value for the updated index
+        const unsigned preLRU = line[wayIdx].lru;
 
-    // All indicies which are curently more recent than preLRU shall be incremented
-    for (auto& set : line) {
-        if (set.second.valid && set.second.lru < preLRU) {
-            set.second.lru++;
+        // All indicies which are curently more recent than preLRU shall be incremented
+        for (auto& set : line) {
+            if (set.second.valid && set.second.lru < preLRU) {
+                set.second.lru++;
+            }
         }
-    }
 
-    // Upgrade @p lruIdx to the most recently used
-    line[lruIdx].lru = 0;
+        // Upgrade @p lruIdx to the most recently used
+        line[wayIdx].lru = 0;
+    }
+}
+
+void CacheSim::revertCacheLineReplFields(CacheLine& line, const CacheWay& oldWay, unsigned wayIdx) {
+    if (getReplacementPolicy() == ReplPolicy::LRU) {
+        // All indicies which are curently less than or equal to the old LRU shall be decremented
+        for (auto& set : line) {
+            if (set.second.valid && set.second.lru <= oldWay.lru) {
+                set.second.lru--;
+            }
+        }
+
+        // Revert the oldWay LRU
+        line[wayIdx].lru = oldWay.lru;
+    }
 }
 
 CacheSim::CacheSize CacheSim::getCacheSize() const {
@@ -111,17 +127,17 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
     return ew;
 }
 
-CacheSim::CacheTrace CacheSim::evictAndUpdate(CacheTransaction& transaction) {
+CacheSim::CacheWay CacheSim::evictAndUpdate(CacheTransaction& transaction) {
     const auto [wayIdx, wayPtr] = locateEvictionWay(transaction);
 
-    CacheTrace eviction;
+    CacheWay eviction;
 
     if (!wayPtr->valid) {
         // Record that this was an invalid->valid transition
         transaction.transToValid = true;
     } else {
         // Store the old way info in our eviction trace, in case of rollbacks
-        eviction.oldWay = *wayPtr;
+        eviction = *wayPtr;
     }
 
     // Invalidate the target way
@@ -133,7 +149,6 @@ CacheSim::CacheTrace CacheSim::evictAndUpdate(CacheTransaction& transaction) {
     wayPtr->tag = getTag(transaction.address);
     transaction.tagChanged = true;
     transaction.index.way = wayIdx;
-    eviction.transaction = transaction;
 
     return eviction;
 }
@@ -193,6 +208,7 @@ void CacheSim::updateHitTrace(const CacheTransaction& transaction) {
 void CacheSim::access(uint32_t address, AccessType type) {
     address = address & ~0b11;  // Disregard unaligned accesses
     CacheTrace trace;
+    CacheWay oldWay;
     CacheTransaction transaction;
     transaction.address = address;
     transaction.type = type;
@@ -203,17 +219,25 @@ void CacheSim::access(uint32_t address, AccessType type) {
     if (!transaction.isHit) {
         if (type == AccessType::Read ||
             (type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate)) {
-            trace = evictAndUpdate(transaction);
+            oldWay = evictAndUpdate(transaction);
         }
+    } else {
+        oldWay = m_cacheLines[transaction.index.line][transaction.index.way];
     }
 
     // At this point, no further changes shall be made to the transaction.
     // We record the transaction as well as a possible eviction
+    trace.oldWay = oldWay;
     trace.transaction = transaction;
     pushTrace(trace);
 
-    // Update dirty and LRU bits
-    if (transaction.index.way != s_invalidIndex) {
+    // Update dirty and LRU bits.
+    // Initially, we need a check for the case of "write + miss + noWriteAlloc". In this case, we should not update
+    // replacement/dirty fields. In all other cases, this is a valid action.
+    const bool writeMissNoAlloc =
+        !transaction.isHit && type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::NoWriteAllocate;
+
+    if (!writeMissNoAlloc) {
         // Lazily ensure that the located way has been initialized
         m_cacheLines[transaction.index.line][transaction.index.way];
 
@@ -223,9 +247,7 @@ void CacheSim::access(uint32_t address, AccessType type) {
             way.dirtyBlocks.insert(transaction.index.block);
         }
 
-        if (getReplacementPolicy() == ReplPolicy::LRU) {
-            updateCacheLineLRU(m_cacheLines[transaction.index.line], transaction.index.way);
-        }
+        updateCacheLineReplFields(m_cacheLines[transaction.index.line], transaction.index.way);
     }
 
     // === Some sanity checking ===
@@ -238,14 +260,13 @@ void CacheSim::access(uint32_t address, AccessType type) {
     if (type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate) {
         transaction.index.assertValid();
     }
+    // ===========================
 
-    if (!transaction.isHit && type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::NoWriteAllocate) {
+    if (writeMissNoAlloc) {
         // There are no graphical changes to perform since nothing is pulled into the cache upon a missed write without
         // write allocation
         return;
     }
-
-    // ===========================
 
     emit dataChanged(transaction);
 }
@@ -261,24 +282,23 @@ void CacheSim::undo() {
     const unsigned& lineIdx = trace.transaction.index.line;
     const unsigned& blockIdx = trace.transaction.index.block;
     const unsigned& wayIdx = trace.transaction.index.way;
+    auto& line = m_cacheLines.at(lineIdx);
+    auto& way = line.at(wayIdx);
 
     // Case 1: A cache way was transitioned to valid. In this case, we simply invalidate the cache way
     if (trace.transaction.transToValid) {
         // Invalidate the way
         Q_ASSERT(m_cacheLines.at(lineIdx).count(wayIdx) != 0);
-        auto& way = m_cacheLines.at(lineIdx).at(wayIdx);
         way = CacheWay();
     }
-    // Case 2: A cache hit occured. In this case, we have to:
-    // - if LRU, revert any LRU changes
-    // - if write, undo any write effects (dirty bit, dirty blocks etc.), depending on the current policy
-    else if (transaction.isHit) {
-    }
-    // Case 3: A cache miss occured. In this case we have to:
+    // Case 2: A miss occured on a valid entry. In this case, we have to restore the old way, which was evicted
     // - Restore the old entry which was evicted
-    // - if LRU, revert any LRU changes
-    else {
+    else if (!trace.transaction.isHit) {
+        way = oldWay;
     }
+    // Case 3: Else, it was a cache hit, and only the replacement fields needs to be updated
+
+    revertCacheLineReplFields(line, oldWay, wayIdx);
 
     // Notify that changes to teh way has been performed
     emit wayInvalidated(lineIdx, wayIdx);
@@ -336,6 +356,7 @@ void CacheSim::updateConfiguration() {
     // Cache configuration changes shall enforce a full reset of the computing system
     m_cacheLines.clear();
     m_hitTrace.clear();
+    m_traceStack.clear();
 
     // Recalculate masks
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
