@@ -1,6 +1,5 @@
 #include "cachegraphic.h"
 
-#include <QFontMetrics>
 #include <QGraphicsLineItem>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
@@ -10,13 +9,139 @@
 #include "processorhandler.h"
 #include "radix.h"
 
+namespace {
+
+// Return a set of all keys in a map
+template <typename TK, typename TV>
+std::set<TK> keys(std::map<TK, TV> const& input_map) {
+    std::set<TK> keyset;
+    for (auto const& element : input_map) {
+        keyset.insert(element.first);
+    }
+    return keyset;
+}
+}  // namespace
+
 namespace Ripes {
 
-CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(cache) {
+CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(cache), m_fm(m_font) {
     connect(&cache, &CacheSim::configurationChanged, this, &CacheGraphic::cacheParametersChanged);
     connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged);
+    connect(&cache, &CacheSim::wayInvalidated, this, &CacheGraphic::wayInvalidated);
 
     cacheParametersChanged();
+}
+
+void CacheGraphic::updateLineReplFields(unsigned lineIdx) {
+    auto* cacheLine = m_cache.getLine(lineIdx);
+
+    if (cacheLine == nullptr) {
+        // Nothing to do
+        return;
+    }
+
+    if (m_cacheTextItems.at(0).at(0).lru == nullptr) {
+        // The current cache configuration does not have any replacement field
+        return;
+    }
+
+    for (const auto& way : m_cacheTextItems[lineIdx]) {
+        // If LRU was just initialized, the actual (software) LRU value may be very large. Mask to the
+        // number of actual LRU bits.
+        unsigned lruVal = cacheLine->at(way.first).lru;
+        lruVal &= generateBitmask(m_cache.getWaysBits());
+        const QString lruText = QString::number(lruVal);
+        way.second.lru->setText(lruText);
+
+        // LRU text might have changed; update LRU field position to center in column
+        const qreal y = lineIdx * m_lineHeight + way.first * m_setHeight;
+        const qreal x = m_widthBeforeLRU + m_lruWidth / 2 - m_fm.horizontalAdvance(lruText) / 2;
+
+        way.second.lru->setPos(x, y);
+    }
+}
+
+void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
+    CacheWay& way = m_cacheTextItems.at(lineIdx).at(wayIdx);
+    const CacheSim::CacheWay& simWay = m_cache.getLine(lineIdx)->at(wayIdx);
+
+    // ======================== Update block text fields ======================
+    if (simWay.valid) {
+        for (int i = 0; i < m_cache.getBlocks(); i++) {
+            QGraphicsSimpleTextItem* blockTextItem = nullptr;
+            if (way.blocks.count(i) == 0) {
+                // Block text item has not yet been created
+                const qreal x = m_widthBeforeBlocks + i * m_blockWidth +
+                                (m_blockWidth / 2 - m_fm.horizontalAdvance("0x00000000") / 2);
+                const qreal y = lineIdx * m_lineHeight + wayIdx * m_setHeight;
+
+                way.blocks[i] = createGraphicsTextItemSP(x, y);
+                blockTextItem = way.blocks[i].get();
+            } else {
+                blockTextItem = way.blocks.at(i).get();
+            }
+
+            // Update block text
+            const uint32_t addressForBlock = m_cache.buildAddress(simWay.tag, lineIdx, i);
+            const auto data = ProcessorHandler::get()->getMemory().readMemConst(addressForBlock);
+            const QString text = encodeRadixValue(data, Radix::Hex);
+            blockTextItem->setText(text);
+            blockTextItem->setToolTip("Address: " + encodeRadixValue(addressForBlock, Radix::Hex));
+        }
+    } else {
+        // The way is invalid so no block text should be present
+        way.blocks.clear();
+    }
+
+    // =========================== Update dirty field =========================
+    if (way.dirty) {
+        way.dirty->setText(QString::number(simWay.dirty));
+    }
+
+    // ============================ Update tag field ==========================
+    if (simWay.valid) {
+        QGraphicsSimpleTextItem* tagTextItem = way.tag.get();
+        if (tagTextItem == nullptr) {
+            const qreal x = m_widthBeforeTag + (m_tagWidth / 2 - m_fm.horizontalAdvance("0x00000000") / 2);
+            const qreal y = lineIdx * m_lineHeight + wayIdx * m_setHeight;
+            way.tag = createGraphicsTextItemSP(x, y);
+            tagTextItem = way.tag.get();
+        }
+        const QString tagText = encodeRadixValue(simWay.tag, Radix::Hex);
+        tagTextItem->setText(tagText);
+    } else {
+        // The way is invalid so no tag text should be present
+        if (way.tag) {
+            way.tag.reset();
+        }
+    }
+
+    // ==================== Update dirty blocks highlighting ==================
+    const std::set<unsigned> graphicDirtyBlocks = keys(way.dirtyBlocks);
+    std::set<unsigned> newDirtyBlocks;
+    std::set<unsigned> dirtyBlocksToDelete;
+    std::set_difference(graphicDirtyBlocks.begin(), graphicDirtyBlocks.end(), simWay.dirtyBlocks.begin(),
+                        simWay.dirtyBlocks.end(), std::inserter(dirtyBlocksToDelete, dirtyBlocksToDelete.begin()));
+    std::set_difference(simWay.dirtyBlocks.begin(), simWay.dirtyBlocks.end(), graphicDirtyBlocks.begin(),
+                        graphicDirtyBlocks.end(), std::inserter(newDirtyBlocks, newDirtyBlocks.begin()));
+
+    // Delete blocks which are not in sync with the current dirty status of the way
+    for (const unsigned& blockToDelete : dirtyBlocksToDelete) {
+        way.dirtyBlocks.erase(blockToDelete);
+    }
+    // Create all required new blocks
+    for (const auto& blockIdx : newDirtyBlocks) {
+        const auto topLeft =
+            QPointF(blockIdx * m_blockWidth + m_widthBeforeBlocks, lineIdx * m_lineHeight + wayIdx * m_setHeight);
+        const auto bottomRight = QPointF((blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks,
+                                         lineIdx * m_lineHeight + (wayIdx + 1) * m_setHeight);
+        way.dirtyBlocks[blockIdx] = std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this);
+
+        const auto& dirtyRectItem = way.dirtyBlocks[blockIdx];
+        dirtyRectItem->setZValue(-1);
+        dirtyRectItem->setOpacity(0.4);
+        dirtyRectItem->setBrush(Qt::darkCyan);
+    }
 }
 
 QGraphicsSimpleTextItem* CacheGraphic::tryCreateGraphicsTextItem(QGraphicsSimpleTextItem** item, qreal x, qreal y) {
@@ -28,127 +153,20 @@ QGraphicsSimpleTextItem* CacheGraphic::tryCreateGraphicsTextItem(QGraphicsSimple
     return *item;
 }
 
+std::unique_ptr<QGraphicsSimpleTextItem> CacheGraphic::createGraphicsTextItemSP(qreal x, qreal y) {
+    std::unique_ptr<QGraphicsSimpleTextItem> ptr = std::make_unique<QGraphicsSimpleTextItem>(this);
+    ptr->setFont(m_font);
+    ptr->setPos(x, y);
+    return ptr;
+}
+
+void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {
+    updateWay(lineIdx, wayIdx);
+    updateLineReplFields(lineIdx);
+}
+
 void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
-    auto fm = QFontMetricsF(m_font);
-
-    if (!transaction.isHit && transaction.type == CacheSim::AccessType::Write &&
-        m_cache.getWriteAllocPolicy() == CacheSim::WriteAllocPolicy::NoWriteAllocate) {
-        // Nothing to do graphically; the access was a miss and we are not write allocating. So there is no new line
-        // written into the cache => no line to be set dirty.
-        return;
-    }
-
-    auto& way = m_cacheTextItems[transaction.lineIdx][transaction.wayIdx];
-    auto& simWay = m_cache.getLine(transaction.lineIdx)->at(transaction.wayIdx);
-
-    if (transaction.isHit) {
-        /* The access is a hit. This implies that:
-         * - There exists a previous cycle where text objects were initialized for the given cache line
-         * - Given the above, we only need to update the block which the access is indexing to
-         */
-
-        const qreal x = m_widthBeforeBlocks + transaction.blockIdx * m_blockWidth +
-                        (m_blockWidth / 2 - fm.horizontalAdvance("0x00000000") / 2);
-        const qreal y = transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight;
-
-        const auto data = ProcessorHandler::get()->getMemory().readMemConst(transaction.address);
-        QGraphicsSimpleTextItem* blockTextItem = way.blocks[transaction.blockIdx];
-        const QString text = encodeRadixValue(data, Radix::Hex);
-        blockTextItem->setText(text);
-        blockTextItem->setToolTip("Address: " + encodeRadixValue(transaction.address, Radix::Hex));
-    } else {
-        /* The access is a miss. This implies that:
-         * - The entirety of the cache way must be reread/reinitialized given that a new cache line is to be read.
-         */
-
-        // Update all blocks
-        for (unsigned i = 0; i < m_cache.getBlocks(); i++) {
-            const qreal x =
-                m_widthBeforeBlocks + i * m_blockWidth + (m_blockWidth / 2 - fm.horizontalAdvance("0x00000000") / 2);
-            const qreal y = transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight;
-
-            QGraphicsSimpleTextItem* blockTextItem = tryCreateGraphicsTextItem(&way.blocks[i], x, y);
-            const uint32_t addressForBlock = (transaction.address & ~m_cache.getBlockMask()) | (i << 2);
-            const auto data = ProcessorHandler::get()->getMemory().readMemConst(addressForBlock);
-            const QString text = encodeRadixValue(data, Radix::Hex);
-            blockTextItem->setText(text);
-            blockTextItem->setToolTip("Address: " + encodeRadixValue(addressForBlock, Radix::Hex));
-        }
-
-        // Update valid
-        // Given that a value cannot be invalidated with the current schema (uniprocessor), the valid bit is simply
-        // flipped if we see a transition
-        if (transaction.transToValid) {
-            way.valid->setText(QString::number(1));
-        }
-    }
-
-    // Update dirty field
-    if (transaction.isHit && m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
-        way.dirty->setText(QString::number(simWay.dirty));
-    }
-
-    // Update tag
-    if (transaction.tagChanged) {
-        // Tag changing implies that the entries of the way was evicted. Clear any highlighting blocks for the way,
-        // before setting new write blocks.
-        way.dirtyBlocks.clear();
-
-        const qreal x = m_widthBeforeTag + (m_tagWidth / 2 - fm.horizontalAdvance("0x00000000") / 2);
-        const qreal y = transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight;
-
-        QGraphicsSimpleTextItem* tagTextItem = tryCreateGraphicsTextItem(&way.tag, x, y);
-        const QString tagText = encodeRadixValue(transaction.tag, Radix::Hex);
-        tagTextItem->setText(tagText);
-    }
-
-    // Update dirty blocks
-    if (transaction.type == CacheSim::AccessType::Write &&
-        m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
-        if (way.dirtyBlocks.count(transaction.blockIdx) == 0) {
-            // The block was dirtied by this transaction; create a dirty rect
-            const auto topLeft = QPointF(transaction.blockIdx * m_blockWidth + m_widthBeforeBlocks,
-                                         transaction.lineIdx * m_lineHeight + transaction.wayIdx * m_setHeight);
-            const auto bottomRight =
-                QPointF((transaction.blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks,
-                        transaction.lineIdx * m_lineHeight + (transaction.wayIdx + 1) * m_setHeight);
-            way.dirtyBlocks[transaction.blockIdx] =
-                std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this);
-
-            const auto& dirtyRectItem = way.dirtyBlocks[transaction.blockIdx];
-            dirtyRectItem->setZValue(-1);
-            dirtyRectItem->setOpacity(0.4);
-            dirtyRectItem->setBrush(Qt::darkCyan);
-        }
-    }
-
-    // Update LRU fields.
-    // This field must be updated for all ways in a set
-    bool updateLRU = true;
-    updateLRU &= m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1;
-    // Special case handling for writing to a missed block with no write alloc. In this case, we do not update LRU bits
-    // because technically the write does not map to any cache line.
-    updateLRU &= !(!transaction.isHit && m_cache.getWriteAllocPolicy() == CacheSim::WriteAllocPolicy::NoWriteAllocate);
-
-    if (updateLRU) {
-        if (auto* currentAccessLine = m_cache.getLine(transaction.lineIdx)) {
-            for (const auto& way : m_cacheTextItems[transaction.lineIdx]) {
-                // If LRU was just initialized, the actual (software) LRU value may be very large. Mask to the
-                // number of actual LRU bits.
-                unsigned lruVal = currentAccessLine->at(way.first).lru;
-                lruVal &= generateBitmask(m_cache.getWaysBits());
-                const QString lruText = QString::number(lruVal);
-                way.second.lru->setText(lruText);
-
-                // LRU text might have changed; update LRU field position to center in column
-                const qreal y = transaction.lineIdx * m_lineHeight + way.first * m_setHeight;
-                const qreal x = m_widthBeforeLRU + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
-
-                way.second.lru->setPos(x, y);
-            }
-        }
-    }
-
+    wayInvalidated(transaction.index.line, transaction.index.way);
     updateHighlighting(true, &transaction);
 }
 
@@ -166,8 +184,8 @@ void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransact
         // Redraw highlighting rectangles indicating the current indexing
 
         // Draw cache line highlighting rectangle
-        QPointF topLeft = QPointF(0, transaction->lineIdx * m_lineHeight);
-        QPointF bottomRight = QPointF(m_cacheWidth, (transaction->lineIdx + 1) * m_lineHeight);
+        QPointF topLeft = QPointF(0, transaction->index.line * m_lineHeight);
+        QPointF bottomRight = QPointF(m_cacheWidth, (transaction->index.line + 1) * m_lineHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* lineRectItem = m_highlightingItems.rbegin()->get();
         lineRectItem->setZValue(-2);
@@ -175,8 +193,8 @@ void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransact
         lineRectItem->setBrush(Qt::yellow);
 
         // Draw cache block highlighting rectangle
-        topLeft = QPointF(transaction->blockIdx * m_blockWidth + m_widthBeforeBlocks, 0);
-        bottomRight = QPointF((transaction->blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks, m_cacheHeight);
+        topLeft = QPointF(transaction->index.block * m_blockWidth + m_widthBeforeBlocks, 0);
+        bottomRight = QPointF((transaction->index.block + 1) * m_blockWidth + m_widthBeforeBlocks, m_cacheHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* blockRectItem = m_highlightingItems.rbegin()->get();
         blockRectItem->setZValue(-2);
@@ -184,10 +202,10 @@ void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransact
         blockRectItem->setBrush(Qt::yellow);
 
         // Draw highlighting on the currently accessed block
-        topLeft = QPointF(transaction->blockIdx * m_blockWidth + m_widthBeforeBlocks,
-                          transaction->lineIdx * m_lineHeight + transaction->wayIdx * m_setHeight);
-        bottomRight = QPointF((transaction->blockIdx + 1) * m_blockWidth + m_widthBeforeBlocks,
-                              transaction->lineIdx * m_lineHeight + (transaction->wayIdx + 1) * m_setHeight);
+        topLeft = QPointF(transaction->index.block * m_blockWidth + m_widthBeforeBlocks,
+                          transaction->index.line * m_lineHeight + transaction->index.way * m_setHeight);
+        bottomRight = QPointF((transaction->index.block + 1) * m_blockWidth + m_widthBeforeBlocks,
+                              transaction->index.line * m_lineHeight + (transaction->index.way + 1) * m_setHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* hitRectItem = m_highlightingItems.rbegin()->get();
         hitRectItem->setZValue(-1);
@@ -202,8 +220,6 @@ void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransact
 }
 
 void CacheGraphic::initializeControlBits() {
-    auto fm = QFontMetricsF(m_font);
-
     for (int lineIdx = 0; lineIdx < m_cache.getLines(); lineIdx++) {
         auto& line = m_cacheTextItems[lineIdx];
         for (int setIdx = 0; setIdx < m_cache.getWays(); setIdx++) {
@@ -211,19 +227,19 @@ void CacheGraphic::initializeControlBits() {
             qreal x;
 
             // Create valid field
-            x = m_bitWidth / 2 - fm.horizontalAdvance("0") / 2;
+            x = m_bitWidth / 2 - m_fm.horizontalAdvance("0") / 2;
             line[setIdx].valid = drawText("0", x, y);
 
             if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
                 // Create dirty bit field
-                x = m_widthBeforeDirty + m_bitWidth / 2 - fm.horizontalAdvance("0") / 2;
+                x = m_widthBeforeDirty + m_bitWidth / 2 - m_fm.horizontalAdvance("0") / 2;
                 line[setIdx].dirty = drawText("0", x, y);
             }
 
             if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
                 // Create LRU field
                 const QString lruText = QString::number(m_cache.getWays() - 1);
-                x = m_widthBeforeLRU + m_lruWidth / 2 - fm.horizontalAdvance(lruText) / 2;
+                x = m_widthBeforeLRU + m_lruWidth / 2 - m_fm.horizontalAdvance(lruText) / 2;
                 line[setIdx].lru = drawText(lruText, x, y);
             }
         }
@@ -244,12 +260,11 @@ void CacheGraphic::cacheParametersChanged() {
         delete item;
 
     // Determine cell dimensions
-    auto metrics = QFontMetricsF(m_font);
-    m_setHeight = metrics.height();
+    m_setHeight = m_fm.height();
     m_lineHeight = m_setHeight * m_cache.getWays();
-    m_blockWidth = metrics.horizontalAdvance(" 0x00000000 ");
-    m_bitWidth = metrics.horizontalAdvance("00");
-    m_lruWidth = metrics.horizontalAdvance(QString::number(m_cache.getWays()) + " ");
+    m_blockWidth = m_fm.horizontalAdvance(" 0x00000000 ");
+    m_bitWidth = m_fm.horizontalAdvance("00");
+    m_lruWidth = m_fm.horizontalAdvance(QString::number(m_cache.getWays()) + " ");
     m_cacheHeight = m_lineHeight * m_cache.getLines();
     m_tagWidth = m_blockWidth;
 
@@ -260,7 +275,7 @@ void CacheGraphic::cacheParametersChanged() {
     // Draw valid bit column
     new QGraphicsLineItem(m_bitWidth, 0, m_bitWidth, m_cacheHeight, this);
     const QString validBitText = "V";
-    auto* validItem = drawText(validBitText, 0, -metrics.height());
+    auto* validItem = drawText(validBitText, 0, -m_fm.height());
     validItem->setToolTip("Valid bit");
     horizontalAdvance += m_bitWidth;
 
@@ -270,7 +285,7 @@ void CacheGraphic::cacheParametersChanged() {
         // Draw dirty bit column
         new QGraphicsLineItem(horizontalAdvance + m_bitWidth, 0, horizontalAdvance + m_bitWidth, m_cacheHeight, this);
         const QString dirtyBitText = "D";
-        auto* dirtyItem = drawText(dirtyBitText, m_widthBeforeDirty, -metrics.height());
+        auto* dirtyItem = drawText(dirtyBitText, m_widthBeforeDirty, -m_fm.height());
         dirtyItem->setToolTip("Dirty bit");
         horizontalAdvance += m_bitWidth;
     }
@@ -281,9 +296,8 @@ void CacheGraphic::cacheParametersChanged() {
         // Draw LRU bit column
         new QGraphicsLineItem(horizontalAdvance + m_lruWidth, 0, horizontalAdvance + m_lruWidth, m_cacheHeight, this);
         const QString LRUBitText = "LRU";
-        auto* textItem =
-            drawText(LRUBitText, horizontalAdvance + m_lruWidth / 2 - metrics.horizontalAdvance(LRUBitText) / 2,
-                     -metrics.height());
+        auto* textItem = drawText(
+            LRUBitText, horizontalAdvance + m_lruWidth / 2 - m_fm.horizontalAdvance(LRUBitText) / 2, -m_fm.height());
         textItem->setToolTip("Least Recently Used bits");
         horizontalAdvance += m_lruWidth;
     }
@@ -293,7 +307,7 @@ void CacheGraphic::cacheParametersChanged() {
     // Draw tag column
     new QGraphicsLineItem(m_tagWidth + horizontalAdvance, 0, m_tagWidth + horizontalAdvance, m_cacheHeight, this);
     const QString tagText = "Tag";
-    drawText(tagText, horizontalAdvance + m_tagWidth / 2 - metrics.horizontalAdvance(tagText) / 2, -metrics.height());
+    drawText(tagText, horizontalAdvance + m_tagWidth / 2 - m_fm.horizontalAdvance(tagText) / 2, -m_fm.height());
     horizontalAdvance += m_tagWidth;
 
     m_widthBeforeBlocks = horizontalAdvance;
@@ -301,10 +315,9 @@ void CacheGraphic::cacheParametersChanged() {
     // Draw horizontal lines between cache blocks
     for (int i = 0; i < m_cache.getBlocks(); i++) {
         const QString blockText = "Block " + QString::number(i);
-        drawText(blockText, horizontalAdvance + m_tagWidth / 2 - metrics.horizontalAdvance(blockText) / 2,
-                 -metrics.height());
+        drawText(blockText, horizontalAdvance + m_tagWidth / 2 - m_fm.horizontalAdvance(blockText) / 2, -m_fm.height());
         horizontalAdvance += m_blockWidth;
-        auto* l3 = new QGraphicsLineItem(horizontalAdvance, 0, horizontalAdvance, m_cacheHeight, this);
+        new QGraphicsLineItem(horizontalAdvance, 0, horizontalAdvance, m_cacheHeight, this);
     }
 
     m_cacheWidth = horizontalAdvance;
@@ -331,14 +344,14 @@ void CacheGraphic::cacheParametersChanged() {
         const QString text = QString::number(i);
 
         const qreal y = i * m_lineHeight + m_lineHeight / 2 - m_setHeight / 2;
-        const qreal x = -metrics.horizontalAdvance(text) * 1.2;
+        const qreal x = -m_fm.horizontalAdvance(text) * 1.2;
         drawText(text, x, y);
     }
 
     // Draw index column text
     const QString indexText = "Index";
-    const qreal x = -metrics.horizontalAdvance(indexText) * 1.2;
-    drawText(indexText, x, -metrics.height());
+    const qreal x = -m_fm.horizontalAdvance(indexText) * 1.2;
+    drawText(indexText, x, -m_fm.height());
 
     initializeControlBits();
 }

@@ -6,6 +6,8 @@
 
 #include <QObject>
 
+#include "../external/VSRTL/core/vsrtl_register.h"
+
 namespace Ripes {
 
 class CacheSim : public QObject {
@@ -33,28 +35,36 @@ public:
         ReplPolicy replPolicy;
     };
 
-    struct CacheTransaction {
-        uint32_t address;
-        unsigned lineIdx = s_invalidIndex;
-        unsigned wayIdx = s_invalidIndex;
-        unsigned blockIdx = s_invalidIndex;
-        unsigned tag = s_invalidIndex;
-
-        bool isHit = false;
-        AccessType type;
-        bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
-        bool tagChanged = false;    // True if transToValid or the previous entry was evicted
-    };
-
     struct CacheWay {
-        uint32_t tag;
-        // std::map<unsigned, uint32_t> blocks; we do not store the actual data; no reason to!
+        uint32_t tag = -1;
+        std::set<unsigned> dirtyBlocks;
         bool dirty = false;
         bool valid = false;
 
         // LRU algorithm relies on invalid cache ways to have an initial high value. -1 ensures maximum value for all
         // way sizes.
         unsigned lru = -1;
+    };
+
+    struct CacheIndex {
+        unsigned line = s_invalidIndex;
+        unsigned way = s_invalidIndex;
+        unsigned block = s_invalidIndex;
+        void assertValid() const {
+            Q_ASSERT(line != s_invalidIndex && "Cache line index is invalid");
+            Q_ASSERT(way != s_invalidIndex && "Cache way index is invalid");
+            Q_ASSERT(block != s_invalidIndex && "Cache block index is invalid");
+        }
+    };
+
+    struct CacheTransaction {
+        uint32_t address;
+        CacheIndex index;
+
+        bool isHit = false;
+        AccessType type;
+        bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
+        bool tagChanged = false;    // True if transToValid or the previous entry was evicted
     };
 
     using CacheLine = std::map<unsigned, CacheWay>;
@@ -89,6 +99,8 @@ public:
     unsigned getMisses() const;
     CacheSize getCacheSize() const;
 
+    uint32_t buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const;
+
     int getBlockBits() const { return m_blocks; }
     int getWaysBits() const { return m_ways; }
     int getLineBits() const { return m_lines; }
@@ -116,12 +128,20 @@ public slots:
 signals:
     void configurationChanged();
     void dataChanged(const CacheTransaction& transaction);
+    void wayInvalidated(unsigned lineIdx, unsigned wayIdx);
     void hitrateChanged();
 
 private:
-    void evictAndUpdate(CacheTransaction& transaction);
-    void analyzeCacheAccess(CacheTransaction& transaction);
+    struct CacheTrace {
+        CacheTransaction transaction;
+        CacheWay oldWay;
+    };
+
+    std::pair<unsigned, CacheSim::CacheWay*> locateEvictionWay(const CacheTransaction& transaction);
+    CacheTrace evictAndUpdate(CacheTransaction& transaction);
+    void analyzeCacheAccess(CacheTransaction& transaction) const;
     void updateConfiguration();
+    void updateHitTrace(const CacheTransaction& transaction);
 
     ReplPolicy m_replPolicy = ReplPolicy::LRU;
     WritePolicy m_wrPolicy = WritePolicy::WriteBack;
@@ -139,20 +159,28 @@ private:
 
     void updateCacheLineLRU(CacheLine& line, unsigned lruIdx);
 
-    struct CacheAccessTrace {
+    struct CacheHitTrace {
         int hits = 0;
         int misses = 0;
-        CacheAccessTrace() {}
-        CacheAccessTrace(bool hit) {
+        CacheHitTrace() {}
+        CacheHitTrace(bool hit) {
             hits = hit ? 1 : 0;
             misses = hit ? 0 : 1;
         }
-        CacheAccessTrace(const CacheAccessTrace& pre, bool hit) {
+        CacheHitTrace(const CacheHitTrace& pre, bool hit) {
             hits = pre.hits + (hit ? 1 : 0);
             misses = pre.misses + (hit ? 0 : 1);
         }
     };
-    std::map<unsigned, CacheAccessTrace> m_accessTrace;
+    std::map<unsigned, CacheHitTrace> m_hitTrace;
+
+    // Cache access trace
+    // The following information is used to track all most-recent modifications (up to a given set constant) made to the
+    // stack. Storing all modifications allows us to rollback any changes performed to the cache, when clock cycles are
+    // undone.
+    std::deque<CacheTrace> m_traceStack;
+    CacheTrace popTrace();
+    void pushTrace(const CacheTrace& trace);
 };
 
 static std::map<CacheSim::ReplPolicy, QString> s_cacheReplPolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
