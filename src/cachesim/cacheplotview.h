@@ -19,6 +19,7 @@ class Callout;
 QT_CHARTS_USE_NAMESPACE
 
 namespace Ripes {
+class ChartLineMarker;
 
 class CachePlotView : public QGraphicsView {
     Q_OBJECT
@@ -31,6 +32,8 @@ public:
 protected:
     void resizeEvent(QResizeEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 public slots:
     void keepCallout();
@@ -39,12 +42,16 @@ public slots:
     void enableCrosshair(bool enabled);
 
 private:
+    void updateCoordinateValues(const QPointF& pos);
+    void resizeObjects(const QSizeF& size);
+
     QPointF m_hoverPos;
 
     QGraphicsSimpleTextItem* m_coordX;
     QGraphicsSimpleTextItem* m_coordY;
     QChart* m_chart = nullptr;
     Callout* m_tooltip = nullptr;
+    ChartLineMarker* m_marker = nullptr;
     QMutex m_tooltipLock;
 
     bool m_crosshairEnabled = true;
