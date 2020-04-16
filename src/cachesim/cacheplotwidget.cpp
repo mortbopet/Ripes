@@ -270,12 +270,9 @@ void CachePlotWidget::setPlot(QChart* plot) {
     if (plot == nullptr)
         return;
 
-    auto* oldChart = m_ui->plotView->chart();
+    // The plotView takes ownership of @param plot once the plot is set on the view
     m_currentPlot = plot;
-    m_ui->plotView->setChart(m_currentPlot);
-    if (oldChart) {
-        delete oldChart;
-    }
+    m_ui->plotView->setPlot(m_currentPlot);
 }
 
 }  // namespace Ripes

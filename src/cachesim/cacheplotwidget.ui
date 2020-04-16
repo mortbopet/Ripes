@@ -137,12 +137,9 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
          <item>
-          <layout class="QGridLayout" name="gridLayout_2"/>
-         </item>
-         <item>
-          <widget class="QtCharts::QChartView" name="plotView" native="true"/>
+          <widget class="CachePlotView" name="plotView"/>
          </item>
         </layout>
        </item>
@@ -154,10 +151,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QtCharts::QChartView</class>
-   <extends>QWidget</extends>
-   <header>QtCharts/QChartView</header>
-   <container>1</container>
+   <class>CachePlotView</class>
+   <extends>QGraphicsView</extends>
+   <header>cachesim/cacheplotview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
