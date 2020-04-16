@@ -67,6 +67,26 @@ public:
         bool tagChanged = false;    // True if transToValid or the previous entry was evicted
     };
 
+    struct CacheAccessTrace {
+        int hits = 0;
+        int misses = 0;
+        int reads = 0;
+        int writes = 0;
+        int writebacks = 0;
+        CacheAccessTrace() {}
+        CacheAccessTrace(bool hit) {
+            hits = hit ? 1 : 0;
+            misses = hit ? 0 : 1;
+        }
+        CacheAccessTrace(const CacheAccessTrace& pre, AccessType type, bool hit, bool writeback) {
+            reads = pre.reads + (type == AccessType::Read ? 1 : 0);
+            writes = pre.writes + (type == AccessType::Write ? 1 : 0);
+            writebacks = pre.writebacks + (writeback ? 1 : 0);
+            hits = pre.hits + (hit ? 1 : 0);
+            misses = pre.misses + (hit ? 0 : 1);
+        }
+    };
+
     using CacheLine = std::map<unsigned, CacheWay>;
 
     CacheSim(QObject* parent);
@@ -93,6 +113,8 @@ public:
     WriteAllocPolicy getWriteAllocPolicy() const { return m_wrAllocPolicy; }
     ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
     WritePolicy getWritePolicy() const { return m_wrPolicy; }
+
+    const std::map<unsigned, CacheAccessTrace>& getAccessTrace() const { return m_accessTrace; }
 
     double getHitRate() const;
     unsigned getHits() const;
@@ -165,20 +187,7 @@ private:
      */
     void revertCacheLineReplFields(CacheLine& line, const CacheWay& oldWay, unsigned wayIdx);
 
-    struct CacheHitTrace {
-        int hits = 0;
-        int misses = 0;
-        CacheHitTrace() {}
-        CacheHitTrace(bool hit) {
-            hits = hit ? 1 : 0;
-            misses = hit ? 0 : 1;
-        }
-        CacheHitTrace(const CacheHitTrace& pre, bool hit) {
-            hits = pre.hits + (hit ? 1 : 0);
-            misses = pre.misses + (hit ? 0 : 1);
-        }
-    };
-    std::map<unsigned, CacheHitTrace> m_hitTrace;
+    std::map<unsigned, CacheAccessTrace> m_accessTrace;
 
     // Cache access trace
     // The following information is used to track all most-recent modifications (up to a given set constant) made to the

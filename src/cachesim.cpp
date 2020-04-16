@@ -154,28 +154,28 @@ CacheSim::CacheWay CacheSim::evictAndUpdate(CacheTransaction& transaction) {
 }
 
 unsigned CacheSim::getHits() const {
-    if (m_hitTrace.size() == 0) {
+    if (m_accessTrace.size() == 0) {
         return 0;
     } else {
-        auto& trace = m_hitTrace.rbegin()->second;
+        auto& trace = m_accessTrace.rbegin()->second;
         return trace.hits;
     }
 }
 
 unsigned CacheSim::getMisses() const {
-    if (m_hitTrace.size() == 0) {
+    if (m_accessTrace.size() == 0) {
         return 0;
     } else {
-        auto& trace = m_hitTrace.rbegin()->second;
+        auto& trace = m_accessTrace.rbegin()->second;
         return trace.misses;
     }
 }
 
 double CacheSim::getHitRate() const {
-    if (m_hitTrace.size() == 0) {
+    if (m_accessTrace.size() == 0) {
         return 0;
     } else {
-        auto& trace = m_hitTrace.rbegin()->second;
+        auto& trace = m_accessTrace.rbegin()->second;
         return static_cast<double>(trace.hits) / (trace.hits + trace.misses);
     }
 }
@@ -197,10 +197,11 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) const {
 }
 
 void CacheSim::updateHitTrace(const CacheTransaction& transaction) {
-    if (m_hitTrace.size() == 0) {
-        m_hitTrace[0] = CacheHitTrace(transaction.isHit);
+    if (m_accessTrace.size() == 0) {
+        m_accessTrace[0] = CacheAccessTrace(transaction.isHit);
     } else {
-        m_hitTrace[m_hitTrace.size()] = CacheHitTrace(m_hitTrace[m_hitTrace.size() - 1], transaction.isHit);
+        m_accessTrace[m_accessTrace.size()] =
+            CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], transaction.type, transaction.isHit, false);
     }
     emit hitrateChanged();
 }
@@ -355,7 +356,7 @@ const CacheSim::CacheLine* CacheSim::getLine(unsigned idx) const {
 void CacheSim::updateConfiguration() {
     // Cache configuration changes shall enforce a full reset of the computing system
     m_cacheLines.clear();
-    m_hitTrace.clear();
+    m_accessTrace.clear();
     m_traceStack.clear();
 
     // Recalculate masks

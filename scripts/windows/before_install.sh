@@ -12,7 +12,7 @@ curl -vLO https://code.qt.io/cgit/qbs/qbs.git/plain/scripts/install-qt.sh
 bash install-qt.sh \
     --version ${QT_VERSION} \
     --toolchain ${QT_TOOLCHAIN}\
-    qtbase qttools svg
+    qtbase qttools svg qtcharts
 
 choco install zip
 

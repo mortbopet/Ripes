@@ -21,6 +21,7 @@ public:
 public slots:
     void updateHitrate();
     void configChanged();
+    void showCachePlot();
 
 private:
     void updateCacheSize();

@@ -13,7 +13,7 @@ target_compile_features(${RIPES_LIB} PRIVATE cxx_std_17)
 
 # Link external libraries
 target_link_libraries(${RIPES_LIB} fancytabbar_lib)
-target_link_libraries(${RIPES_LIB} ${VSRTL_GRAPHICS_LIB})
+target_link_libraries(${RIPES_LIB} ${VSRTL_GRAPHICS_LIB} Qt5::Charts)
 
 add_subdirectory(processors)
 

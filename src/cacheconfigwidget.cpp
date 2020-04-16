@@ -4,26 +4,12 @@
 #include <QMessageBox>
 #include <QSpinBox>
 #include <QTimer>
+#include <QtCharts/QChartView>
+
+#include "cacheplotwidget.h"
+#include "enumcombobox.h"
 
 namespace Ripes {
-
-template <typename Enum>
-void setupEnumCombobox(QComboBox* combobox, std::map<Enum, QString>& nameMap) {
-    for (const auto& iter : nameMap) {
-        combobox->addItem(iter.second, QVariant::fromValue(iter.first));
-    }
-}
-
-template <typename Enum>
-void setEnumIndex(QComboBox* combobox, Enum enumItem) {
-    for (int i = 0; i < combobox->count(); i++) {
-        if (qvariant_cast<Enum>(combobox->itemData(i)) == enumItem) {
-            combobox->setCurrentIndex(i);
-            return;
-        }
-    }
-    Q_ASSERT(false && "Index not found");
-}
 
 CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheConfigWidget) {
     m_ui->setupUi(this);
@@ -34,6 +20,10 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
 
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
+
+    const QIcon plotIcon = QIcon(":/icons/analytics.svg");
+    m_ui->cachePlot->setIcon(plotIcon);
+    connect(m_ui->cachePlot, &QPushButton::clicked, this, &CacheConfigWidget::showCachePlot);
 
     setupEnumCombobox(m_ui->replacementPolicy, s_cacheReplPolicyStrings);
     setupEnumCombobox(m_ui->wrHit, s_cacheWritePolicyStrings);
@@ -110,6 +100,11 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
             timer->stop();
         }
     });
+}
+
+void CacheConfigWidget::showCachePlot() {
+    CachePlotWidget plotWidget(*m_cache);
+    plotWidget.exec();
 }
 
 void CacheConfigWidget::setupPresets() {
