@@ -44,12 +44,13 @@ private:
      * @returns a list of QPoints containing plotable data gathered from the cache simulator, as per the specified
      * @param types.
      */
-    QMap<Variable, QList<QPoint>> gatherData(const std::set<Variable> types) const;
+    std::map<Variable, QList<QPoint>> gatherData(const std::set<Variable> types) const;
     void setupToolbar();
     void setupStackedVariablesList();
-    void setPlot(const Variable num, const Variable den);
+    void setPlot(QChart* plot);
 
     QChart* createRatioPlot(const Variable num, const Variable den) const;
+    QChart* createStackedPlot(const std::set<Variable>& variables) const;
 
     PlotType m_plotType = PlotType::Ratio;
     QChart* m_currentPlot = nullptr;
@@ -62,7 +63,7 @@ private:
     QAction* m_savePlotAction = nullptr;
 };
 
-static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings{
+const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings{
     {CachePlotWidget::Variable::Writes, "Writes"},
     {CachePlotWidget::Variable::Reads, "Reads"},
     {CachePlotWidget::Variable::Hits, "Hits"},
@@ -70,7 +71,7 @@ static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings{
     {CachePlotWidget::Variable::Writebacks, "Writebacks"},
     {CachePlotWidget::Variable::Accesses, "Accesses"}};
 
-static std::map<CachePlotWidget::PlotType, QString> s_cachePlotTypeStrings{
+const static std::map<CachePlotWidget::PlotType, QString> s_cachePlotTypeStrings{
     {CachePlotWidget::PlotType::Ratio, "Ratio"},
     {CachePlotWidget::PlotType::Stacked, "Stacked"}};
 

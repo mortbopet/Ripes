@@ -2,6 +2,7 @@
 #include "ui_cacheplotwidget.h"
 
 #include <QToolBar>
+#include <QtCharts/QAreaSeries>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
@@ -33,6 +34,7 @@ CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
 
     connect(m_ui->num, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
+    connect(m_ui->stackedVariables, &QListWidget::itemChanged, this, &CachePlotWidget::variablesChanged);
 
     const auto& accessTrace = m_cache.getAccessTrace();
     m_ui->rangeMin->setValue(0);
@@ -57,7 +59,7 @@ CachePlotWidget::~CachePlotWidget() {
 void CachePlotWidget::setupStackedVariablesList() {
     for (const auto& iter : s_cacheVariableStrings) {
         auto* stackedVariableItem = new QListWidgetItem(iter.second);
-        stackedVariableItem->setData(Qt::UserRole, iter.second);
+        stackedVariableItem->setData(Qt::UserRole, QVariant::fromValue<Variable>(iter.first));
         stackedVariableItem->setCheckState(Qt::Unchecked);
         m_ui->stackedVariables->addItem(stackedVariableItem);
     }
@@ -85,6 +87,8 @@ void CachePlotWidget::plotTypeChanged() {
     } else {
         Q_ASSERT(false);
     }
+
+    variablesChanged();
 }
 
 void CachePlotWidget::rangeChanged() {
@@ -104,14 +108,25 @@ void CachePlotWidget::variablesChanged() {
     if (m_plotType == PlotType::Ratio) {
         const Variable numerator = getEnumValue<Variable>(m_ui->num);
         const Variable denominator = getEnumValue<Variable>(m_ui->den);
-        setPlot(numerator, denominator);
+        setPlot(createRatioPlot(numerator, denominator));
+    } else if (m_plotType == PlotType::Stacked) {
+        std::set<Variable> vars;
+        for (int i = 0; i < m_ui->stackedVariables->count(); ++i) {
+            QListWidgetItem* item = m_ui->stackedVariables->item(i);
+            if (item->checkState() == Qt::Checked) {
+                vars.insert(qvariant_cast<Variable>(item->data(Qt::UserRole)));
+            }
+        }
+        setPlot(createStackedPlot(vars));
+    } else {
+        Q_ASSERT(false);
     }
 }
 
-QMap<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(const std::set<Variable> types) const {
+std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(const std::set<Variable> types) const {
     const auto& trace = m_cache.getAccessTrace();
 
-    QMap<CachePlotWidget::Variable, QList<QPoint>> data;
+    std::map<CachePlotWidget::Variable, QList<QPoint>> data;
 
     for (const auto& type : types) {
         // Initialize all data types
@@ -146,15 +161,15 @@ QMap<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(const
 QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den) const {
     const auto data = gatherData({num, den});
 
-    const QList<QPoint>& numerator = data[num];
-    const QList<QPoint>& denominator = data[den];
+    const QList<QPoint>& numerator = data.at(num);
+    const QList<QPoint>& denominator = data.at(den);
 
     Q_ASSERT(numerator.size() == denominator.size());
 
     const unsigned points = numerator.size();
 
     QChart* chart = new QChart();
-    chart->setTitle(s_cacheVariableStrings[num] + "/" + s_cacheVariableStrings[den]);
+    chart->setTitle(s_cacheVariableStrings.at(num) + "/" + s_cacheVariableStrings.at(den));
 
     QLineSeries* series = new QLineSeries(chart);
     double maxval = 0;
@@ -177,7 +192,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     chart->axes(Qt::Horizontal).first()->setRange(0, points);
     chart->axes(Qt::Vertical).first()->setRange(0, maxval * 1.1);
 
-    chart->legend()->setEnabled(false);
+    chart->legend()->hide();
 
     // Add space to label to add space between labels and axis
     QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
@@ -194,11 +209,69 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     return chart;
 }
 
-void CachePlotWidget::setPlot(const Variable num, const Variable den) {
-    const auto& accessTrace = m_cache.getAccessTrace();
+QChart* CachePlotWidget::createStackedPlot(const std::set<Variable>& variables) const {
+    if (variables.size() == 0) {
+        return nullptr;
+    }
+
+    const auto data = gatherData(variables);
+    const unsigned len = data.at(*variables.begin()).size();
+    for (const auto& iter : data) {
+        Q_ASSERT(len == iter.second.size());
+    }
+
+    QChart* chart = new QChart();
+    chart->setTitle("Access type count");
+
+    // The lower series initialized to zero values
+
+    // We create a stacked chart by repeatedly creating line series with y values equal to the variable set's y value +
+    // the preceding linesets envelope values.
+    QLineSeries* lowerSeries = nullptr;
+    unsigned maxValue = 0;
+    for (const auto& variableData : data) {
+        QLineSeries* upperSeries = new QLineSeries(chart);
+        for (unsigned i = 0; i < len; i++) {
+            const auto& dataPoint = variableData.second.at(i);
+            unsigned x = dataPoint.x();
+            unsigned y = dataPoint.y();
+            if (lowerSeries) {
+                // Stack on top of the preceding line
+                const auto& lowerPoints = lowerSeries->pointsVector();
+                y = lowerPoints[i].y() + dataPoint.y();
+            }
+            maxValue = y > maxValue ? y : maxValue;
+            upperSeries->append(QPoint(x, y));
+        }
+        QAreaSeries* area = new QAreaSeries(upperSeries, lowerSeries);
+        area->setName(s_cacheVariableStrings.at(variableData.first));
+        chart->addSeries(area);
+        lowerSeries = upperSeries;
+    }
+
+    chart->createDefaultAxes();
+    chart->axes(Qt::Horizontal).first()->setRange(0, len);
+    chart->axes(Qt::Vertical).first()->setRange(0, maxValue);
+
+    // Add space to label to add space between labels and axis
+    QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+    QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+    Q_ASSERT(axisY);
+    axisY->setLabelFormat("%d  ");
+    axisY->setTitleText("#");
+
+    axisX->setLabelFormat("%d  ");
+    axisX->setTitleText("Cycle");
+
+    return chart;
+}
+
+void CachePlotWidget::setPlot(QChart* plot) {
+    if (plot == nullptr)
+        return;
 
     auto* oldChart = m_ui->plotView->chart();
-    m_currentPlot = createRatioPlot(num, den);
+    m_currentPlot = plot;
     m_ui->plotView->setChart(m_currentPlot);
     if (oldChart) {
         delete oldChart;

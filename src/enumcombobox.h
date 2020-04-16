@@ -7,7 +7,7 @@
 namespace Ripes {
 
 template <typename Enum>
-void setupEnumCombobox(QComboBox* combobox, std::map<Enum, QString>& nameMap) {
+void setupEnumCombobox(QComboBox* combobox, const std::map<Enum, QString>& nameMap) {
     for (const auto& iter : nameMap) {
         combobox->addItem(iter.second, QVariant::fromValue(iter.first));
     }
