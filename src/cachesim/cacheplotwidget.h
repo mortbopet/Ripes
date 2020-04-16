@@ -61,6 +61,7 @@ private:
     QToolBar* m_toolbar = nullptr;
     QAction* m_copyDataAction = nullptr;
     QAction* m_savePlotAction = nullptr;
+    QAction* m_crosshairAction = nullptr;
 };
 
 const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings{

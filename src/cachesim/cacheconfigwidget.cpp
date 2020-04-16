@@ -34,7 +34,7 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     m_ui->blocks->setValue(m_cache->getBlockBits());
 
     m_ui->indexingKey->setText(
-        "Offsets: <font color=\"gray\">█</font> = Tag <font color=\"red\">█</font> = Index <font "
+        "Bits: <font color=\"gray\">█</font> = Tag <font color=\"red\">█</font> = Index <font "
         "color=\"green\">█</font> = Block <font color=\"black\">█</font> = Byte");
 
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);

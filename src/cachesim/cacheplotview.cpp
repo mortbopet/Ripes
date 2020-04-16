@@ -90,6 +90,10 @@ void CachePlotView::deleteCallout(Callout* callout) {
     delete callout;
 }
 
+void CachePlotView::enableCrosshair(bool enabled) {
+    m_crosshairEnabled = enabled;
+}
+
 void CachePlotView::tooltip(QPointF point, bool state) {
     m_tooltipLock.lock();
     if (m_tooltip == nullptr)

@@ -66,6 +66,16 @@ void CachePlotWidget::setupStackedVariablesList() {
 }
 
 void CachePlotWidget::setupToolbar() {
+    const QIcon crosshairIcon = QIcon(":/icons/crosshair.svg");
+    m_crosshairAction = new QAction("Enable plot crosshair", this);
+    m_crosshairAction->setIcon(crosshairIcon);
+    m_crosshairAction->setCheckable(true);
+    m_crosshairAction->setChecked(true);
+    m_toolbar->addAction(m_crosshairAction);
+    connect(m_crosshairAction, &QAction::triggered, m_ui->plotView, &CachePlotView::enableCrosshair);
+
+    m_toolbar->addSeparator();
+
     const QIcon copyIcon = QIcon(":/icons/documents.svg");
     m_copyDataAction = new QAction("Copy plot data to clipboard", this);
     m_copyDataAction->setIcon(copyIcon);

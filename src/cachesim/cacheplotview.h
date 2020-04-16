@@ -36,6 +36,7 @@ public slots:
     void keepCallout();
     void deleteCallout(Callout* callout);
     void tooltip(QPointF point, bool state);
+    void enableCrosshair(bool enabled);
 
 private:
     QPointF m_hoverPos;
@@ -45,6 +46,8 @@ private:
     QChart* m_chart = nullptr;
     Callout* m_tooltip = nullptr;
     QMutex m_tooltipLock;
+
+    bool m_crosshairEnabled = true;
 };
 
 }  // namespace Ripes
