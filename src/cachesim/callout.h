@@ -44,9 +44,13 @@ QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
+namespace Ripes {
+class CachePlotView;
+}
+
 class Callout : public QGraphicsItem {
 public:
-    Callout(QChart* parent);
+    Callout(Ripes::CachePlotView* view, QChart* parent);
 
     void setText(const QString& text);
     void setAnchor(QPointF point);
@@ -61,6 +65,7 @@ protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
+    Ripes::CachePlotView* m_view = nullptr;
     QString m_text;
     QRectF m_textRect;
     QRectF m_rect;

@@ -34,6 +34,7 @@ protected:
 
 public slots:
     void keepCallout();
+    void deleteCallout(Callout* callout);
     void tooltip(QPointF point, bool state);
 
 private:

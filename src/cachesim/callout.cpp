@@ -36,7 +36,9 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 
-Callout::Callout(QChart* chart) : QGraphicsItem(chart), m_chart(chart) {}
+#include "cacheplotview.h"
+
+Callout::Callout(Ripes::CachePlotView* view, QChart* chart) : QGraphicsItem(chart), m_view(view), m_chart(chart) {}
 
 QRectF Callout::boundingRect() const {
     QPointF anchor = mapFromParent(m_chart->mapToPosition(m_anchor));
@@ -100,7 +102,7 @@ void Callout::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
 }
 
 void Callout::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
-    delete this;
+    m_view->deleteCallout(this);
 }
 
 void Callout::mousePressEvent(QGraphicsSceneMouseEvent* event) {

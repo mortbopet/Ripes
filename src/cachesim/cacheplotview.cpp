@@ -32,6 +32,7 @@ CachePlotView::CachePlotView(QWidget* parent) : QGraphicsView(new QGraphicsScene
 void CachePlotView::setPlot(QChart* chart) {
     // Clear any previous plot or plot markers
     scene()->clear();
+    m_tooltip = nullptr;
     m_chart = chart;
     scene()->addItem(chart);
 
@@ -82,10 +83,17 @@ void CachePlotView::keepCallout() {
     m_tooltipLock.unlock();
 }
 
+void CachePlotView::deleteCallout(Callout* callout) {
+    if (m_tooltip == callout) {
+        m_tooltip = nullptr;
+    }
+    delete callout;
+}
+
 void CachePlotView::tooltip(QPointF point, bool state) {
     m_tooltipLock.lock();
     if (m_tooltip == nullptr)
-        m_tooltip = new Callout(m_chart);
+        m_tooltip = new Callout(this, m_chart);
 
     if (state) {
         m_tooltip->setText(QString("X: %1 \nY: %2 ").arg(point.x()).arg(point.y()));
