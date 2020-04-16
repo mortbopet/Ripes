@@ -2,9 +2,18 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB LIB_SOURCES *.cpp graphics/*.cpp version/version.cpp)
-file(GLOB LIB_HEADERS *.h graphics/*.h)
-file(GLOB LIB_UIS *.ui)
+file(GLOB LIB_SOURCES
+    *.cpp
+    cachesim/*.cpp
+    version/version.cpp)
+file(GLOB LIB_HEADERS
+    *.h
+    cachesim/*.h
+    graphics/*.h)
+file(GLOB LIB_UIS
+    *.ui
+    cachesim/*.ui
+)
 
 set(RIPES_LIB ripes_lib)
 add_library(${RIPES_LIB} ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UIS})
