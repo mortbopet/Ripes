@@ -1,6 +1,7 @@
 #include "cacheview.h"
 
 #include <qmath.h>
+#include <QGraphicsSimpleTextItem>
 #include <QWheelEvent>
 
 namespace Ripes {
@@ -12,6 +13,21 @@ CacheView::CacheView(QWidget* parent) : QGraphicsView(parent) {
     setRenderHint(QPainter::Antialiasing, false);
     setInteractive(true);
     setupMatrix();
+}
+
+void CacheView::mousePressEvent(QMouseEvent* event) {
+    // If we press on a cache data block, get the address stored for that block and emit a signal indicating that the
+    // address was selected through the cache
+    for (const auto& item : items(event->pos())) {
+        if (auto* textItem = dynamic_cast<QGraphicsSimpleTextItem*>(item)) {
+            const QVariant data = textItem->data(Qt::UserRole);
+            if (data.isValid()) {
+                emit cacheAddressSelected(data.toUInt());
+                break;
+            }
+        }
+    }
+    QGraphicsView::mousePressEvent(event);
 }
 
 void CacheView::wheelEvent(QWheelEvent* e) {

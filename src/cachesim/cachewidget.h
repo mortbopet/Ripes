@@ -23,6 +23,9 @@ public:
 
     void setType(CacheSim::CacheType type);
 
+signals:
+    void cacheAddressSelected(uint32_t);
+
 private:
     Ui::CacheWidget* m_ui;
     CacheSim* m_cacheSim = nullptr;

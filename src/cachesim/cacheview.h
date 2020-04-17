@@ -5,11 +5,16 @@
 namespace Ripes {
 
 class CacheView : public QGraphicsView {
+    Q_OBJECT
 public:
     CacheView(QWidget* parent);
 
 protected:
     void wheelEvent(QWheelEvent*) override;
+    void mousePressEvent(QMouseEvent* event) override;
+
+signals:
+    void cacheAddressSelected(uint32_t);
 
 private slots:
     void setupMatrix();

@@ -88,6 +88,9 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
             const QString text = encodeRadixValue(data, Radix::Hex);
             blockTextItem->setText(text);
             blockTextItem->setToolTip("Address: " + encodeRadixValue(addressForBlock, Radix::Hex));
+            // Store the address within the userrole of the block text. Doing this, we are able to easily retrieve the
+            // address for the block if the block is clicked.
+            blockTextItem->setData(Qt::UserRole, addressForBlock);
         }
     } else {
         // The way is invalid so no block text should be present

@@ -18,6 +18,9 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
     auto* cacheGraphic = new CacheGraphic(*m_cacheSim);
     m_ui->cacheView->setScene(scene);
     scene->addItem(cacheGraphic);
+
+    connect(m_ui->cacheView, &CacheView::cacheAddressSelected,
+            [=](uint32_t address) { emit cacheAddressSelected(address); });
 }
 
 void CacheWidget::setType(CacheSim::CacheType type) {

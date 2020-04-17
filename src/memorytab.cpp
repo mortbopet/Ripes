@@ -16,6 +16,12 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
 
     m_ui->dataCache->setType(CacheSim::CacheType::DataCache);
     m_ui->instructionCache->setType(CacheSim::CacheType::InstrCache);
+
+    // Make selection changes in the cache trigger the memory viewer to set its central address to the selected address
+    connect(m_ui->dataCache, &CacheWidget::cacheAddressSelected, m_ui->memoryViewerWidget,
+            &MemoryViewerWidget::setCentralAddress);
+    connect(m_ui->instructionCache, &CacheWidget::cacheAddressSelected, m_ui->memoryViewerWidget,
+            &MemoryViewerWidget::setCentralAddress);
 }
 
 void MemoryTab::update() {
