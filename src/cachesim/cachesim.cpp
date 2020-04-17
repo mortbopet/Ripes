@@ -196,13 +196,20 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) const {
     }
 }
 
-void CacheSim::updateHitTrace(const CacheTransaction& transaction) {
+void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
     if (m_accessTrace.size() == 0) {
         m_accessTrace[0] = CacheAccessTrace(transaction.isHit);
     } else {
         m_accessTrace[m_accessTrace.size()] =
             CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], transaction.type, transaction.isHit, false);
     }
+    emit hitrateChanged();
+}
+
+void CacheSim::popAccessTrace() {
+    Q_ASSERT(m_accessTrace.size() > 0);
+    // The access trace should have an entry
+    m_accessTrace.erase(m_accessTrace.rbegin()->first);
     emit hitrateChanged();
 }
 
@@ -215,7 +222,7 @@ void CacheSim::access(uint32_t address, AccessType type) {
     transaction.type = type;
 
     analyzeCacheAccess(transaction);
-    updateHitTrace(transaction);
+    pushAccessTrace(transaction);
 
     if (!transaction.isHit) {
         if (type == AccessType::Read ||
@@ -277,6 +284,7 @@ void CacheSim::undo() {
         return;
 
     const auto trace = popTrace();
+    popAccessTrace();
 
     const auto& oldWay = trace.oldWay;
     const auto& transaction = trace.transaction;

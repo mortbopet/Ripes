@@ -163,7 +163,8 @@ private:
     CacheWay evictAndUpdate(CacheTransaction& transaction);
     void analyzeCacheAccess(CacheTransaction& transaction) const;
     void updateConfiguration();
-    void updateHitTrace(const CacheTransaction& transaction);
+    void pushAccessTrace(const CacheTransaction& transaction);
+    void popAccessTrace();
 
     ReplPolicy m_replPolicy = ReplPolicy::LRU;
     WritePolicy m_wrPolicy = WritePolicy::WriteBack;
@@ -177,6 +178,10 @@ private:
     int m_lines = 2;   // Some power of 2
     int m_ways = 2;    // Some power of 2
 
+    /**
+     * @brief m_cacheLines
+     * The datastructure for storing our cache hierachy, as per the current cache configuration.
+     */
     std::map<unsigned, CacheLine> m_cacheLines;
 
     void updateCacheLineReplFields(CacheLine& line, unsigned wayIdx);
@@ -187,24 +192,32 @@ private:
      */
     void revertCacheLineReplFields(CacheLine& line, const CacheWay& oldWay, unsigned wayIdx);
 
+    /**
+     * @brief m_accessTrace
+     * The access trace stack contains cache access statistics for each simulation cycle. Contrary to the TraceStack
+     * (m_traceStack).
+     */
     std::map<unsigned, CacheAccessTrace> m_accessTrace;
 
-    // Cache access trace
-    // The following information is used to track all most-recent modifications (up to a given set constant) made to the
-    // stack. Storing all modifications allows us to rollback any changes performed to the cache, when clock cycles are
-    // undone.
+    /**
+     * @brief m_traceStack
+     * The following information is used to track all most-recent modifications made to the stack. The stack is of a
+     * fixed sized which is equal to the undo stack of VSRTL memory elements. Storing all modifications allows us to
+     * rollback any changes performed to the cache, when clock cycles are undone.
+     */
     std::deque<CacheTrace> m_traceStack;
+
     CacheTrace popTrace();
     void pushTrace(const CacheTrace& trace);
 };
 
-static std::map<CacheSim::ReplPolicy, QString> s_cacheReplPolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
-                                                                        {CacheSim::ReplPolicy::LRU, "LRU"}};
-static std::map<CacheSim::WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
+const static std::map<CacheSim::ReplPolicy, QString> s_cacheReplPolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
+                                                                              {CacheSim::ReplPolicy::LRU, "LRU"}};
+const static std::map<CacheSim::WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
     {CacheSim::WriteAllocPolicy::WriteAllocate, "Write allocate"},
     {CacheSim::WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
 
-static std::map<CacheSim::WritePolicy, QString> s_cacheWritePolicyStrings{
+const static std::map<CacheSim::WritePolicy, QString> s_cacheWritePolicyStrings{
     {CacheSim::WritePolicy::WriteThrough, "Write-through"},
     {CacheSim::WritePolicy::WriteBack, "Write-back"}};
 
