@@ -384,6 +384,9 @@ public:
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
     }
 
+    const Component* getDataMemory() const override { return data_mem; }
+    const Component* getInstrMemory() const override { return instr_mem; }
+
     bool finished() const override {
         // The processor is finished when there are no more valid instructions in the pipeline
         bool allStagesInvalid = true;

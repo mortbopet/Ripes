@@ -1,6 +1,8 @@
 #include "cachesim.h"
 #include "binutils.h"
 
+#include "processorhandler.h"
+
 #include <random>
 #include <utility>
 
@@ -8,6 +10,21 @@ namespace Ripes {
 
 CacheSim::CacheSim(QObject* parent) : QObject(parent) {
     updateConfiguration();
+}
+
+void CacheSim::setType(CacheSim::CacheType type) {
+    m_type = type;
+    reassociateMemory();
+}
+
+void CacheSim::reassociateMemory() {
+    if (m_type == CacheType::DataCache) {
+        m_memory = ProcessorHandler::get()->getDataMemory();
+    } else if (m_type == CacheType::InstrCache) {
+        m_memory = ProcessorHandler::get()->getInstrMemory();
+    } else {
+        Q_ASSERT(false);
+    }
 }
 
 void CacheSim::updateCacheLineReplFields(CacheLine& line, unsigned wayIdx) {

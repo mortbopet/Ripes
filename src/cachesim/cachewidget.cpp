@@ -5,7 +5,6 @@
 #include <QGraphicsView>
 
 #include "cachegraphic.h"
-#include "cachesim.h"
 
 namespace Ripes {
 
@@ -13,12 +12,16 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
     m_ui->setupUi(this);
 
     auto* scene = new QGraphicsScene(this);
-    auto* cacheSim = new CacheSim(this);
-    m_ui->cacheConfig->setCache(cacheSim);
+    m_cacheSim = new CacheSim(this);
+    m_ui->cacheConfig->setCache(m_cacheSim);
 
-    auto* cacheGraphic = new CacheGraphic(*cacheSim);
+    auto* cacheGraphic = new CacheGraphic(*m_cacheSim);
     m_ui->cacheView->setScene(scene);
     scene->addItem(cacheGraphic);
+}
+
+void CacheWidget::setType(CacheSim::CacheType type) {
+    m_cacheSim->setType(type);
 }
 
 CacheWidget::~CacheWidget() {

@@ -7,6 +7,9 @@
 #include <QObject>
 
 #include "../external/VSRTL/core/vsrtl_register.h"
+#include "processors/RISC-V/rv_memory.h"
+
+using RVMemory = vsrtl::core::RVMemory<32, 32>;
 
 namespace Ripes {
 
@@ -19,6 +22,7 @@ public:
     enum class WritePolicy { WriteThrough, WriteBack };
     enum class ReplPolicy { Random, LRU };
     enum class AccessType { Read, Write };
+    enum class CacheType { DataCache, InstrCache };
 
     struct CacheSize {
         unsigned bits = 0;
@@ -90,6 +94,7 @@ public:
     using CacheLine = std::map<unsigned, CacheWay>;
 
     CacheSim(QObject* parent);
+    void setType(CacheType type);
 
     void setWritePolicy(WritePolicy policy) {
         m_wrPolicy = policy;
@@ -166,6 +171,12 @@ private:
     void pushAccessTrace(const CacheTransaction& transaction);
     void popAccessTrace();
 
+    /**
+     * @brief reassociateMemory
+     * Binds to a memory component exposed by the processor handler, based on the current cache type.
+     */
+    void reassociateMemory();
+
     ReplPolicy m_replPolicy = ReplPolicy::LRU;
     WritePolicy m_wrPolicy = WritePolicy::WriteBack;
     WriteAllocPolicy m_wrAllocPolicy = WriteAllocPolicy::WriteAllocate;
@@ -177,6 +188,9 @@ private:
     int m_blocks = 1;  // Some power of 2
     int m_lines = 2;   // Some power of 2
     int m_ways = 2;    // Some power of 2
+
+    CacheType m_type;
+    RVMemory const* m_memory = nullptr;
 
     /**
      * @brief m_cacheLines

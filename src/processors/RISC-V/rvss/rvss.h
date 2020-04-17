@@ -169,6 +169,9 @@ public:
     }
     bool finished() const override { return m_finished; }
 
+    const Component* getDataMemory() const override { return data_mem; }
+    const Component* getInstrMemory() const override { return instr_mem; }
+
     void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
 
     void clock() override {
