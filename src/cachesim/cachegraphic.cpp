@@ -28,6 +28,7 @@ CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(
     connect(&cache, &CacheSim::configurationChanged, this, &CacheGraphic::cacheParametersChanged);
     connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged);
     connect(&cache, &CacheSim::wayInvalidated, this, &CacheGraphic::wayInvalidated);
+    connect(&cache, &CacheSim::cacheInvalidated, this, &CacheGraphic::cacheInvalidated);
 
     cacheParametersChanged();
 }
@@ -158,6 +159,16 @@ std::unique_ptr<QGraphicsSimpleTextItem> CacheGraphic::createGraphicsTextItemSP(
     ptr->setFont(m_font);
     ptr->setPos(x, y);
     return ptr;
+}
+
+void CacheGraphic::cacheInvalidated() {
+    for (int lineIdx = 0; lineIdx < m_cache.getLines(); lineIdx++) {
+        const auto* line = m_cache.getLine(lineIdx);
+        for (const auto& way : *line) {
+            wayInvalidated(lineIdx, way.first);
+        }
+        updateLineReplFields(lineIdx);
+    }
 }
 
 void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {

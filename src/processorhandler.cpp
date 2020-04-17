@@ -57,8 +57,8 @@ const vsrtl::core::SparseArray& ProcessorHandler::getMemory() const {
 const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* ProcessorHandler::getDataMemory() const {
     return dynamic_cast<const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>*>(m_currentProcessor->getDataMemory());
 }
-const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* ProcessorHandler::getInstrMemory() const {
-    return dynamic_cast<const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>*>(m_currentProcessor->getInstrMemory());
+const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* ProcessorHandler::getInstrMemory() const {
+    return dynamic_cast<const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>*>(m_currentProcessor->getInstrMemory());
 }
 
 const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {

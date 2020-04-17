@@ -33,6 +33,12 @@ public slots:
     void wayInvalidated(unsigned lineIdx, unsigned wayIdx);
 
     /**
+     * @brief cacheInvalidated
+     * The cache simulator has signalled that the entirety of the cache simulator graphical view should be reloaded.
+     */
+    void cacheInvalidated();
+
+    /**
      * @brief cacheParametersChanged
      * Recalculates and redraws the graphic based on the current cache parameters
      */

@@ -84,7 +84,7 @@ public:
     const vsrtl::core::SparseArray& getMemory() const;
     const vsrtl::core::SparseArray& getRegisters() const;
     const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* getDataMemory() const;
-    const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* getInstrMemory() const;
+    const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* getInstrMemory() const;
 
     /**
      * @brief setRegisterValue

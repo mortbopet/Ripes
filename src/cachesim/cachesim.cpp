@@ -9,6 +9,14 @@
 namespace Ripes {
 
 CacheSim::CacheSim(QObject* parent) : QObject(parent) {
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &CacheSim::processorReset);
+
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
+        // Given that we are not updating the graphical state of the cache simulator whilst the processor is running,
+        // once running is finished, the entirety of the cache view should be reloaded in the graphical view.
+        emit cacheInvalidated();
+    });
+
     updateConfiguration();
 }
 
@@ -19,12 +27,13 @@ void CacheSim::setType(CacheSim::CacheType type) {
 
 void CacheSim::reassociateMemory() {
     if (m_type == CacheType::DataCache) {
-        m_memory = ProcessorHandler::get()->getDataMemory();
+        m_memory.rw = ProcessorHandler::get()->getDataMemory();
     } else if (m_type == CacheType::InstrCache) {
-        m_memory = ProcessorHandler::get()->getInstrMemory();
+        m_memory.rom = ProcessorHandler::get()->getInstrMemory();
     } else {
         Q_ASSERT(false);
     }
+    Q_ASSERT(m_memory.rw != nullptr);
 }
 
 void CacheSim::updateCacheLineReplFields(CacheLine& line, unsigned wayIdx) {
@@ -214,11 +223,16 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) const {
 }
 
 void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
+    // Access traces are pushed in sorted order into the access trace map; indexed by a key corresponding to the cycle
+    // of the acces.
+    const auto currentCycle = ProcessorHandler::get()->getProcessor()->getCycleCount();
     if (m_accessTrace.size() == 0) {
-        m_accessTrace[0] = CacheAccessTrace(transaction.isHit);
+        m_accessTrace[currentCycle] = CacheAccessTrace(transaction.isHit);
     } else {
-        m_accessTrace[m_accessTrace.size()] =
-            CacheAccessTrace(m_accessTrace[m_accessTrace.size() - 1], transaction.type, transaction.isHit, false);
+        // The access trace should be constructed by the conjunction of the most-recent access trace + the access of the
+        // current cycle
+        const CacheAccessTrace& mostRecentTrace = m_accessTrace.rbegin()->second;
+        m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction.type, transaction.isHit, false);
     }
     emit hitrateChanged();
 }
@@ -326,7 +340,7 @@ void CacheSim::undo() {
 
     revertCacheLineReplFields(line, oldWay, wayIdx);
 
-    // Notify that changes to teh way has been performed
+    // Notify that changes to the way has been performed
     emit wayInvalidated(lineIdx, wayIdx);
 }
 
@@ -378,8 +392,57 @@ const CacheSim::CacheLine* CacheSim::getLine(unsigned idx) const {
     }
 }
 
+void CacheSim::processorWasClocked() {
+    if (m_type == CacheType::DataCache) {
+        AccessType type;
+        // Determine whether the memory is being accessed in the current cycle, and if so, the access type.
+        switch (m_memory.rw->op.uValue()) {
+            case MemOp::SB:
+            case MemOp::SH:
+            case MemOp::SW:
+                if (m_memory.rw->wr_en.uValue() == 1) {
+                    type = AccessType::Write;
+                    break;
+                } else {
+                    // Nothing to do
+                    return;
+                }
+            case MemOp::LB:
+            case MemOp::LBU:
+            case MemOp::LH:
+            case MemOp::LHU:
+            case MemOp::LW:
+                type = AccessType::Read;
+                break;
+            case MemOp::NOP:
+            default:
+                // Nothing to do
+                return;
+        }
+
+        access(m_memory.rw->addr.uValue(), type);
+    } else {
+        // ROM; read in every cycle
+        access(m_memory.rom->addr.uValue(), AccessType::Read);
+    }
+}
+
+void CacheSim::processorWasReversed() {
+    if (m_accessTrace.size() == 0) {
+        // Nothing to reverse
+        return;
+    }
+
+    if (m_accessTrace.rbegin()->first != ProcessorHandler::get()->getProcessor()->getCycleCount()) {
+        // No cache access in this cycle
+        return;
+    }
+
+    volatile int a;
+}
+
 void CacheSim::updateConfiguration() {
-    // Cache configuration changes shall enforce a full reset of the computing system
+    // Cache configuration changed. Reset all state
     m_cacheLines.clear();
     m_accessTrace.clear();
     m_traceStack.clear();
@@ -395,7 +458,26 @@ void CacheSim::updateConfiguration() {
 
     m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
 
+    // Reset the graphical view
     emit configurationChanged();
+
+    if (m_memory.rw || m_memory.rom) {
+        // Reload the initial (cycle 0) state of the processor. This is necessary to reflect ie. the instruction which
+        // is loaded from the instruction memory in cycle 0.
+        processorWasClocked();
+    }
+}
+
+void CacheSim::processorReset() {
+    // The processor might have changed. Since our signals/slot library cannot check for existing connection, we do the
+    // safe, slightly redundant, thing of disconnecting and reconnecting the VSRTL design update signals.
+    reassociateMemory();
+    auto* proc = ProcessorHandler::get()->getProcessorNonConst();
+    proc->designWasClocked.Connect(this, &CacheSim::processorWasClocked);
+    proc->designWasReversed.Connect(this, &CacheSim::processorWasReversed);
+    proc->designWasReset.Connect(this, &CacheSim::updateConfiguration);
+
+    updateConfiguration();
 }
 
 void CacheSim::setBlocks(unsigned blocks) {

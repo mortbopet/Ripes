@@ -9,7 +9,8 @@
 #include "../external/VSRTL/core/vsrtl_register.h"
 #include "processors/RISC-V/rv_memory.h"
 
-using RVMemory = vsrtl::core::RVMemory<32, 32>;
+using RWMemory = vsrtl::core::RVMemory<32, 32>;
+using ROMMemory = vsrtl::core::ROM<32, 32>;
 
 namespace Ripes {
 
@@ -113,7 +114,7 @@ public:
 
     void access(uint32_t address, AccessType type);
     void undo();
-    void reset();
+    void processorReset();
 
     WriteAllocPolicy getWriteAllocPolicy() const { return m_wrAllocPolicy; }
     ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
@@ -152,11 +153,31 @@ public slots:
     void setWays(unsigned ways);
     void setPreset(const CachePreset& preset);
 
+    /**
+     * @brief processorWasClocked/processorWasReversed
+     * Slot functions for clocked/Reversed signals emitted by the currently attached processor.
+     */
+    void processorWasClocked();
+    void processorWasReversed();
+
 signals:
     void configurationChanged();
     void dataChanged(const CacheTransaction& transaction);
-    void wayInvalidated(unsigned lineIdx, unsigned wayIdx);
     void hitrateChanged();
+
+    // Signals that the entire cache line @p
+    /**
+     * @brief wayInvalidated
+     * Signals that all ways in the cacheline @param lineIdx which contains way @param wayIdx should be invalidated in
+     * the graphical view.
+     */
+    void wayInvalidated(unsigned lineIdx, unsigned wayIdx);
+
+    /**
+     * @brief cacheInvalidated
+     * Signals that all cachelines in the cache should be invalidated in the graphical view
+     */
+    void cacheInvalidated();
 
 private:
     struct CacheTrace {
@@ -189,8 +210,17 @@ private:
     int m_lines = 2;   // Some power of 2
     int m_ways = 2;    // Some power of 2
 
+    /**
+     * @brief m_memory
+     * The cache simulator may be attached to either a ROM or a Read/Write memory element. Accessing the underlying
+     * VSRTL component signals are dependent on the given type of the memory.
+     */
     CacheType m_type;
-    RVMemory const* m_memory = nullptr;
+    union {
+        RWMemory const* rw = nullptr;
+        ROMMemory const* rom;
+
+    } m_memory;
 
     /**
      * @brief m_cacheLines
