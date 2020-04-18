@@ -23,7 +23,7 @@ public slots:
      * The cache simulator indicates that some entries in the cache has changed. CacheGraphic will, using @p
      * transaction, lazily initialize and update all required values to reflect the new state of the cache.
      */
-    void dataChanged(const CacheSim::CacheTransaction& transaction);
+    void dataChanged(const CacheSim::CacheTransaction* transaction);
 
     /**
      * @brief wayInvalidated

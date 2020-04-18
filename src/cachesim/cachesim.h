@@ -162,7 +162,7 @@ public slots:
 
 signals:
     void configurationChanged();
-    void dataChanged(const CacheTransaction& transaction);
+    void dataChanged(const CacheTransaction* transaction);
     void hitrateChanged();
 
     // Signals that the entire cache line @p
@@ -191,6 +191,14 @@ private:
     void updateConfiguration();
     void pushAccessTrace(const CacheTransaction& transaction);
     void popAccessTrace();
+    /**
+     * @brief isAsynchronouslyAccessed
+     * If the processor is in its 'running' state, it is currently being executed in a separate thread. In this case,
+     * cache accessing is also performed asynchronously, and we do not want to perform any signalling to the GUI (the
+     * entirety of the graphical representation of the cache is invalidated and redrawn upon asynchronous running
+     * finishing).
+     */
+    bool isAsynchronouslyAccessed() const;
 
     /**
      * @brief reassociateMemory

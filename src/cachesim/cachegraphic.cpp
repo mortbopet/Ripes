@@ -166,11 +166,12 @@ std::unique_ptr<QGraphicsSimpleTextItem> CacheGraphic::createGraphicsTextItemSP(
 
 void CacheGraphic::cacheInvalidated() {
     for (int lineIdx = 0; lineIdx < m_cache.getLines(); lineIdx++) {
-        const auto* line = m_cache.getLine(lineIdx);
-        for (const auto& way : *line) {
-            wayInvalidated(lineIdx, way.first);
+        if (const auto* line = m_cache.getLine(lineIdx)) {
+            for (const auto& way : *line) {
+                wayInvalidated(lineIdx, way.first);
+            }
+            updateLineReplFields(lineIdx);
         }
-        updateLineReplFields(lineIdx);
     }
 }
 
@@ -179,9 +180,13 @@ void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {
     updateLineReplFields(lineIdx);
 }
 
-void CacheGraphic::dataChanged(const CacheSim::CacheTransaction& transaction) {
-    wayInvalidated(transaction.index.line, transaction.index.way);
-    updateHighlighting(true, &transaction);
+void CacheGraphic::dataChanged(const CacheSim::CacheTransaction* transaction) {
+    if (transaction != nullptr) {
+        wayInvalidated(transaction->index.line, transaction->index.way);
+        updateHighlighting(true, transaction);
+    } else {
+        updateHighlighting(false, nullptr);
+    }
 }
 
 QGraphicsSimpleTextItem* CacheGraphic::drawText(const QString& text, qreal x, qreal y) {

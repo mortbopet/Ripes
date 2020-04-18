@@ -3,6 +3,8 @@
 
 #include "processorhandler.h"
 
+#include <QApplication>
+#include <QThread>
 #include <random>
 #include <utility>
 
@@ -14,6 +16,7 @@ CacheSim::CacheSim(QObject* parent) : QObject(parent) {
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
         // Given that we are not updating the graphical state of the cache simulator whilst the processor is running,
         // once running is finished, the entirety of the cache view should be reloaded in the graphical view.
+        emit hitrateChanged();
         emit cacheInvalidated();
     });
 
@@ -234,7 +237,10 @@ void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
         const CacheAccessTrace& mostRecentTrace = m_accessTrace.rbegin()->second;
         m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction.type, transaction.isHit, false);
     }
-    emit hitrateChanged();
+
+    if (!isAsynchronouslyAccessed()) {
+        emit hitrateChanged();
+    }
 }
 
 void CacheSim::popAccessTrace() {
@@ -307,7 +313,15 @@ void CacheSim::access(uint32_t address, AccessType type) {
         return;
     }
 
-    emit dataChanged(transaction);
+    if (isAsynchronouslyAccessed()) {
+        return;
+    }
+
+    emit dataChanged(&transaction);
+}
+
+bool CacheSim::isAsynchronouslyAccessed() const {
+    return QThread::currentThread() != QApplication::instance()->thread();
 }
 
 void CacheSim::undo() {
@@ -342,6 +356,14 @@ void CacheSim::undo() {
 
     // Notify that changes to the way has been performed
     emit wayInvalidated(lineIdx, wayIdx);
+
+    // Finally, re-emit the transaction which occurred in the previous cache access to update the cache
+    // highlighting state
+    if (m_traceStack.size() > 0) {
+        emit dataChanged(&m_traceStack.begin()->transaction);
+    } else {
+        emit dataChanged(nullptr);
+    }
 }
 
 CacheSim::CacheTrace CacheSim::popTrace() {
@@ -433,12 +455,14 @@ void CacheSim::processorWasReversed() {
         return;
     }
 
-    if (m_accessTrace.rbegin()->first != ProcessorHandler::get()->getProcessor()->getCycleCount()) {
+    const unsigned cycleToUndo = ProcessorHandler::get()->getProcessor()->getCycleCount() + 1;
+    if (m_accessTrace.rbegin()->first != cycleToUndo) {
         // No cache access in this cycle
         return;
     }
 
-    volatile int a;
+    // It is now safe to undo the cycle at the top of our access stack(s).
+    undo();
 }
 
 void CacheSim::updateConfiguration() {
