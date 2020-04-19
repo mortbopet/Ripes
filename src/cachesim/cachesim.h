@@ -200,9 +200,9 @@ private:
     unsigned m_lineMask = -1;
     unsigned m_tagMask = -1;
 
-    int m_blocks = 1;  // Some power of 2
-    int m_lines = 2;   // Some power of 2
-    int m_ways = 2;    // Some power of 2
+    int m_blocks = 2;  // Some power of 2
+    int m_lines = 5;   // Some power of 2
+    int m_ways = 0;    // Some power of 2
 
     /**
      * @brief m_memory

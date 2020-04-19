@@ -58,8 +58,6 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     connect(m_cache, &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
 
     setupPresets();
-    m_ui->replacementPolicy->setCurrentIndex(0);
-    handleConfigurationChanged();
 }
 
 void CacheConfigWidget::showCachePlot() {
@@ -111,8 +109,6 @@ void CacheConfigWidget::setupPresets() {
 
         m_cache->setPreset(preset);
     });
-
-    m_ui->presets->setCurrentIndex(0);
 }
 
 void CacheConfigWidget::updateCacheSize() {}
