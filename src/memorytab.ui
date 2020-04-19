@@ -21,7 +21,7 @@
      </property>
      <widget class="MemoryViewerWidget" name="memoryViewerWidget" native="true">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>

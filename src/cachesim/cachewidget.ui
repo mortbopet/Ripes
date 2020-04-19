@@ -29,9 +29,9 @@
      </widget>
      <widget class="CacheView" name="cacheView">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
-        <verstretch>3</verstretch>
+        <verstretch>0</verstretch>
        </sizepolicy>
       </property>
      </widget>
