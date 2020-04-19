@@ -8,6 +8,7 @@
 #include <QtCharts/QValueAxis>
 
 #include "enumcombobox.h"
+#include "processorhandler.h"
 
 #include "limits.h"
 
@@ -38,7 +39,7 @@ CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
 
     const auto& accessTrace = m_cache.getAccessTrace();
     m_ui->rangeMin->setValue(0);
-    m_ui->rangeMax->setValue(accessTrace.size());
+    m_ui->rangeMax->setValue(ProcessorHandler::get()->getProcessor()->getCycleCount());
 
     connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
     connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
@@ -108,10 +109,11 @@ void CachePlotWidget::rangeChanged() {
 
     // Update allowed ranges
     const auto& accessTrace = m_cache.getAccessTrace();
+    const unsigned cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
     m_ui->rangeMin->setMinimum(0);
     m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
     m_ui->rangeMax->setMinimum(m_ui->rangeMin->value());
-    m_ui->rangeMax->setMaximum(accessTrace.size());
+    m_ui->rangeMax->setMaximum(cycles);
 }
 
 void CachePlotWidget::variablesChanged() {
@@ -182,7 +184,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     chart->setTitle(s_cacheVariableStrings.at(num) + "/" + s_cacheVariableStrings.at(den));
 
     QLineSeries* series = new QLineSeries(chart);
-    double maxval = 0;
+    double maxY = 0;
     for (int i = 0; i < points; i++) {
         const auto& p1 = numerator[i];
         const auto& p2 = denominator[i];
@@ -193,14 +195,15 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
             ratio *= 100;
         }
         series->append(p1.x(), ratio);
-        maxval = ratio > maxval ? ratio : maxval;
+        maxY = ratio > maxY ? ratio : maxY;
     }
+    const unsigned maxX = numerator.rbegin()->x();
 
     chart->addSeries(series);
 
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(0, points);
-    chart->axes(Qt::Vertical).first()->setRange(0, maxval * 1.1);
+    chart->axes(Qt::Horizontal).first()->setRange(0, maxX);
+    chart->axes(Qt::Vertical).first()->setRange(0, maxY * 1.1);
 
     chart->legend()->hide();
 
@@ -238,7 +241,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::set<Variable>& variables) 
     // We create a stacked chart by repeatedly creating line series with y values equal to the variable set's y value +
     // the preceding linesets envelope values.
     QLineSeries* lowerSeries = nullptr;
-    unsigned maxValue = 0;
+    unsigned maxY = 0;
     for (const auto& variableData : data) {
         QLineSeries* upperSeries = new QLineSeries(chart);
         for (unsigned i = 0; i < len; i++) {
@@ -250,7 +253,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::set<Variable>& variables) 
                 const auto& lowerPoints = lowerSeries->pointsVector();
                 y = lowerPoints[i].y() + dataPoint.y();
             }
-            maxValue = y > maxValue ? y : maxValue;
+            maxY = y > maxY ? y : maxY;
             upperSeries->append(QPoint(x, y));
         }
         QAreaSeries* area = new QAreaSeries(upperSeries, lowerSeries);
@@ -258,10 +261,11 @@ QChart* CachePlotWidget::createStackedPlot(const std::set<Variable>& variables) 
         chart->addSeries(area);
         lowerSeries = upperSeries;
     }
+    const unsigned maxX = data.at(*variables.begin()).rbegin()->x();
 
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(0, len);
-    chart->axes(Qt::Vertical).first()->setRange(0, maxValue);
+    chart->axes(Qt::Horizontal).first()->setRange(0, maxX);
+    chart->axes(Qt::Vertical).first()->setRange(0, maxY);
 
     // Add space to label to add space between labels and axis
     QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
