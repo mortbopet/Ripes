@@ -5,6 +5,7 @@
 #include <QToolBar>
 
 #include "cachesim/cachesim.h"
+#include "processorhandler.h"
 
 namespace Ripes {
 
@@ -26,6 +27,10 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     // Make cache configuration changes emit processor reset requests
     connect(m_ui->dataCache, &CacheWidget::configurationChanged, [=] { emit reqProcessorReset(); });
     connect(m_ui->instructionCache, &CacheWidget::configurationChanged, [=] { emit reqProcessorReset(); });
+
+    // During processor running, it should not be possible to interact with the memory viewer or cache widgets
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] { setEnabled(true); });
 }
 
 void MemoryTab::update() {
