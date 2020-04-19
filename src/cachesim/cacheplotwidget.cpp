@@ -20,16 +20,26 @@ namespace {
  * @brief stepifySeries
  * Adds additional points to a QLineSeries, effectively transforming it into a step plot to avoid the default point
  * interpolation of a QLineSeries.
+ * We create a new pointsVector, preallocate the known final size and finally exchange the points. This is a lot faster
+ * than individually inseting points into the series, which each will trigger events within the QLineSeries.
  */
 void stepifySeries(QLineSeries& series) {
     if (series.count() == 0)
         return;
 
-    for (int i = series.count() - 1; i != 0; i--) {
-        QPointF interPoint = series.at(i);
-        interPoint.setY(series.at(i - 1).y());
-        series.insert(i, interPoint);
+    QVector<QPointF> points;
+    points.reserve(series.count() * 2);
+
+    points << series.at(0);  // No stepping is done for the first point
+    for (int i = 1; i < series.count(); i++) {
+        const QPointF& stepFrom = series.at(i - 1);
+        const QPointF& stepTo = series.at(i);
+        QPointF interPoint = stepFrom;
+        interPoint.setX(stepTo.x());
+        points << interPoint << stepTo;
     }
+
+    series.replace(points);
 }
 
 /**
