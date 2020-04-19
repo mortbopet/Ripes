@@ -58,6 +58,7 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     connect(m_cache, &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
 
     setupPresets();
+    handleConfigurationChanged();
 }
 
 void CacheConfigWidget::showCachePlot() {
