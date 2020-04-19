@@ -2,8 +2,9 @@
 #include "ui_cacheconfigwidget.h"
 
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSpinBox>
-#include <QTimer>
+#include <QToolButton>
 #include <QtCharts/QChartView>
 
 #include "cacheplotwidget.h"
@@ -58,49 +59,7 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
 
     setupPresets();
     m_ui->replacementPolicy->setCurrentIndex(0);
-
-    // For testing purposes only
-    connect(m_ui->randomread, &QPushButton::clicked, [=] {
-        unsigned address = (std::rand() % 128) & ~0b11;
-        m_cache->access(address, CacheSim::AccessType::Read);
-    });
-    connect(m_ui->randomwrite, &QPushButton::clicked, [=] {
-        unsigned address = (std::rand() % 128) & ~0b11;
-        m_cache->access(address, CacheSim::AccessType::Write);
-    });
-
-    connect(m_ui->undo, &QPushButton::clicked, m_cache, &CacheSim::undo);
-
-    // Synchronize config widgets with initial cache configuration
     handleConfigurationChanged();
-
-    QTimer* timer = new QTimer(this);
-    timer->setInterval(20);
-    connect(timer, &QTimer::timeout, [=] {
-        static int address;
-        static int strideCount = 0;
-
-        // Simulate some random access pattern with a bit of spatial locality
-        if (strideCount == 0) {
-            strideCount = (std::rand() % 32);
-            address = (std::rand() % (int)std::pow(2, 14)) & ~0b11;
-        } else {
-            strideCount--;
-            address += 4;
-        }
-
-        CacheSim::AccessType type = (std::rand() % 100) > 80 ? CacheSim::AccessType::Write : CacheSim::AccessType::Read;
-        m_cache->access(address, type);
-    });
-
-    m_ui->autoAccess->setCheckable(true);
-    connect(m_ui->autoAccess, &QPushButton::toggled, [=](bool enabled) {
-        if (enabled) {
-            timer->start();
-        } else {
-            timer->stop();
-        }
-    });
 }
 
 void CacheConfigWidget::showCachePlot() {
