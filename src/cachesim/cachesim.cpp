@@ -532,7 +532,7 @@ void CacheSim::setPreset(const CachePreset& preset) {
     m_wrAllocPolicy = preset.wrAllocPolicy;
     m_replPolicy = preset.replPolicy;
 
-    updateConfiguration();
+    processorReset();
 }
 
 }  // namespace Ripes
