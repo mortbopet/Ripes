@@ -79,10 +79,8 @@ public:
         int writes = 0;
         int writebacks = 0;
         CacheAccessTrace() {}
-        CacheAccessTrace(bool hit) {
-            hits = hit ? 1 : 0;
-            misses = hit ? 0 : 1;
-        }
+        CacheAccessTrace(AccessType type, bool hit, bool writeback)
+            : CacheAccessTrace(CacheAccessTrace(), type, hit, writeback) {}
         CacheAccessTrace(const CacheAccessTrace& pre, AccessType type, bool hit, bool writeback) {
             reads = pre.reads + (type == AccessType::Read ? 1 : 0);
             writes = pre.writes + (type == AccessType::Write ? 1 : 0);

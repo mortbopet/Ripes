@@ -72,7 +72,7 @@ const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings
     {CachePlotWidget::Variable::Hits, "Hits"},
     {CachePlotWidget::Variable::Misses, "Misses"},
     {CachePlotWidget::Variable::Writebacks, "Writebacks"},
-    {CachePlotWidget::Variable::Accesses, "Accesses"}};
+    {CachePlotWidget::Variable::Accesses, "Total accesses"}};
 
 const static std::map<CachePlotWidget::PlotType, QString> s_cachePlotTypeStrings{
     {CachePlotWidget::PlotType::Ratio, "Ratio"},

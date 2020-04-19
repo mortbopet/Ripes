@@ -230,7 +230,7 @@ void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
     // of the acces.
     const auto currentCycle = ProcessorHandler::get()->getProcessor()->getCycleCount();
     if (m_accessTrace.size() == 0) {
-        m_accessTrace[currentCycle] = CacheAccessTrace(transaction.isHit);
+        m_accessTrace[currentCycle] = CacheAccessTrace(transaction.type, transaction.isHit, false);
     } else {
         // The access trace should be constructed by the conjunction of the most-recent access trace + the access of the
         // current cycle

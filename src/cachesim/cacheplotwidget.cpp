@@ -14,6 +14,41 @@
 
 #include "limits.h"
 
+namespace {
+
+/**
+ * @brief stepifySeries
+ * Adds additional points to a QLineSeries, effectively transforming it into a step plot to avoid the default point
+ * interpolation of a QLineSeries.
+ */
+void stepifySeries(QLineSeries& series) {
+    if (series.count() == 0)
+        return;
+
+    for (int i = series.count() - 1; i != 0; i--) {
+        QPointF interPoint = series.at(i);
+        interPoint.setY(series.at(i - 1).y());
+        series.insert(i, interPoint);
+    }
+}
+
+/**
+ * @brief finishSeries
+ * Adds an additional point at x value @p max with an equal value of the last value in the series.
+ */
+void finishSeries(QLineSeries& series, const unsigned max) {
+    if (series.count() == 0) {
+        return;
+    }
+
+    const QPointF lastPoint = series.at(series.count() - 1);
+    if (lastPoint.toPoint().x() != max) {
+        series.append(max, lastPoint.y());
+    }
+}
+
+}  // namespace
+
 namespace Ripes {
 
 CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
@@ -80,7 +115,7 @@ void CachePlotWidget::setupToolbar() {
     m_toolbar->addSeparator();
 
     const QIcon copyIcon = QIcon(":/icons/documents.svg");
-    m_copyDataAction = new QAction("Copy plot data to clipboard", this);
+    m_copyDataAction = new QAction("Copy data to clipboard", this);
     m_copyDataAction->setIcon(copyIcon);
     m_toolbar->addAction(m_copyDataAction);
     connect(m_copyDataAction, &QAction::triggered, this, &CachePlotWidget::copyPlotDataToClipboard);
@@ -248,6 +283,9 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
 
     QChart* chart = new QChart();
     chart->setTitle(s_cacheVariableStrings.at(num) + "/" + s_cacheVariableStrings.at(den));
+    QFont font;
+    font.setPointSize(16);
+    chart->setTitleFont(font);
 
     QLineSeries* series = new QLineSeries(chart);
     double maxY = 0;
@@ -263,7 +301,10 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
         series->append(p1.x(), ratio);
         maxY = ratio > maxY ? ratio : maxY;
     }
-    const unsigned maxX = numerator.rbegin()->x();
+    const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
+
+    stepifySeries(*series);
+    finishSeries(*series, maxX);
 
     chart->addSeries(series);
 
@@ -301,15 +342,21 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
 
     QChart* chart = new QChart();
     chart->setTitle("Access type count");
+    QFont font;
+    font.setPointSize(16);
+    chart->setTitleFont(font);
 
     // The lower series initialized to zero values
 
     // We create a stacked chart by repeatedly creating line series with y values equal to the variable set's y value +
     // the preceding linesets envelope values.
+    std::vector<std::pair<Variable, QLineSeries*>> lineSeries;
     QLineSeries* lowerSeries = nullptr;
+    QLineSeries* upperSeries = nullptr;
+    const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
     unsigned maxY = 0;
     for (const auto& variableData : data) {
-        QLineSeries* upperSeries = new QLineSeries(chart);
+        upperSeries = new QLineSeries(chart);
         for (unsigned i = 0; i < len; i++) {
             const auto& dataPoint = variableData.second.at(i);
             unsigned x = dataPoint.x();
@@ -322,25 +369,42 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
             maxY = y > maxY ? y : maxY;
             upperSeries->append(QPoint(x, y));
         }
+        lineSeries.push_back({variableData.first, upperSeries});
+        lowerSeries = upperSeries;
+    }
+
+    // Stepify created lineseries
+    std::map<Variable, QVector<QPointF>> debug;
+    for (const auto& line : lineSeries) {
+        debug[line.first] = line.second->pointsVector();
+    }
+    for (const auto& line : lineSeries) {
+        stepifySeries(*line.second);
+        finishSeries(*line.second, maxX);
+        debug[line.first] = line.second->pointsVector();
+    }
+
+    // Create area series
+    lowerSeries = nullptr;
+    for (int i = 0; i < lineSeries.size(); i++) {
+        upperSeries = lineSeries[i].second;
         QAreaSeries* area = new QAreaSeries(upperSeries, lowerSeries);
-        area->setName(s_cacheVariableStrings.at(variableData.first));
+        area->setName(s_cacheVariableStrings.at(lineSeries[i].first));
         chart->addSeries(area);
         lowerSeries = upperSeries;
     }
-    const unsigned maxX = data.at(*variables.begin()).rbegin()->x();
 
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(0, maxX);
-    chart->axes(Qt::Vertical).first()->setRange(0, maxY);
 
     // Add space to label to add space between labels and axis
     QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+    axisX->setRange(0, maxX);
+    axisY->setRange(0, axisY->max());
+
     Q_ASSERT(axisY);
-    axisY->setLabelFormat("%d  ");
     axisY->setTitleText("#");
 
-    axisX->setLabelFormat("%d  ");
     axisX->setTitleText("Cycle");
 
     return chart;
