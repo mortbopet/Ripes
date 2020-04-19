@@ -1,6 +1,7 @@
 #include "cacheplotwidget.h"
 #include "ui_cacheplotwidget.h"
 
+#include <QClipboard>
 #include <QToolBar>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QChartView>
@@ -81,6 +82,7 @@ void CachePlotWidget::setupToolbar() {
     m_copyDataAction = new QAction("Copy plot data to clipboard", this);
     m_copyDataAction->setIcon(copyIcon);
     m_toolbar->addAction(m_copyDataAction);
+    connect(m_copyDataAction, &QAction::triggered, this, &CachePlotWidget::copyPlotDataToClipboard);
 
     const QIcon saveIcon = QIcon(":/icons/save.svg");
     m_savePlotAction = new QAction("Save plot to file", this);
@@ -102,6 +104,41 @@ void CachePlotWidget::plotTypeChanged() {
     variablesChanged();
 }
 
+void CachePlotWidget::copyPlotDataToClipboard() const {
+    std::vector<Variable> allVariables;
+    for (int i = 0; i < N_Variables; i++) {
+        allVariables.push_back(static_cast<Variable>(i));
+    }
+    const auto& allData = gatherData(allVariables);
+
+    std::map<unsigned /*cycle*/, QStringList> dataStrings;
+    QStringList header;
+
+    // Write cycles
+    header << "cycle";
+    for (const auto& dataPoint : allData.begin()->second) {
+        dataStrings[dataPoint.x()] << QString::number(dataPoint.x());
+    }
+
+    // Write variables
+    for (const auto& variableData : allData) {
+        header << s_cacheVariableStrings.at(variableData.first);
+        for (const auto& dataPoint : variableData.second) {
+            dataStrings[dataPoint.x()] << QString::number(dataPoint.y());
+        }
+    }
+
+    // Assemble string
+    QString outString;
+    outString += header.join('\t') + '\n';
+
+    for (const auto& dataString : dataStrings) {
+        outString += dataString.second.join('\t') + '\n';
+    }
+
+    QApplication::clipboard()->setText(outString);
+}
+
 void CachePlotWidget::rangeChanged() {
     if (m_currentPlot) {
         m_currentPlot->axes(Qt::Horizontal).first()->setRange(m_ui->rangeMin->value(), m_ui->rangeMax->value());
@@ -116,29 +153,48 @@ void CachePlotWidget::rangeChanged() {
     m_ui->rangeMax->setMaximum(cycles);
 }
 
-void CachePlotWidget::variablesChanged() {
+std::vector<CachePlotWidget::Variable> CachePlotWidget::gatherVariables() const {
+    std::vector<Variable> variables;
     if (m_plotType == PlotType::Ratio) {
         const Variable numerator = getEnumValue<Variable>(m_ui->num);
         const Variable denominator = getEnumValue<Variable>(m_ui->den);
-        setPlot(createRatioPlot(numerator, denominator));
+        variables = {numerator, denominator};
     } else if (m_plotType == PlotType::Stacked) {
-        std::set<Variable> vars;
         for (int i = 0; i < m_ui->stackedVariables->count(); ++i) {
             QListWidgetItem* item = m_ui->stackedVariables->item(i);
             if (item->checkState() == Qt::Checked) {
-                vars.insert(qvariant_cast<Variable>(item->data(Qt::UserRole)));
+                variables.push_back(qvariant_cast<Variable>(item->data(Qt::UserRole)));
             }
         }
+    } else {
+        Q_ASSERT(false);
+    }
+    return variables;
+}
+
+void CachePlotWidget::variablesChanged() {
+    const auto vars = gatherVariables();
+    if (m_plotType == PlotType::Ratio) {
+        Q_ASSERT(vars.size() == 2);
+        setPlot(createRatioPlot(vars[0], vars[1]));
+    } else if (m_plotType == PlotType::Stacked) {
         setPlot(createStackedPlot(vars));
     } else {
         Q_ASSERT(false);
     }
 }
 
-std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(const std::set<Variable> types) const {
+std::map<CachePlotWidget::Variable, QList<QPoint>>
+CachePlotWidget::gatherData(const std::vector<Variable>& types) const {
     const auto& trace = m_cache.getAccessTrace();
 
-    std::map<CachePlotWidget::Variable, QList<QPoint>> data;
+    std::map<Variable, QList<QPoint>> data;
+
+    // Transform variable vector to set (avoid duplicates)
+    std::set<Variable> varSet;
+    for (const auto& type : types) {
+        varSet.insert(type);
+    }
 
     for (const auto& type : types) {
         // Initialize all data types
@@ -147,22 +203,22 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(c
 
     // Gather data
     for (const auto& entry : trace) {
-        if (types.count(Variable::Writes)) {
+        if (varSet.count(Variable::Writes)) {
             data[Variable::Writes].append(QPoint(entry.first, entry.second.writes));
         }
-        if (types.count(Variable::Reads)) {
+        if (varSet.count(Variable::Reads)) {
             data[Variable::Reads].append(QPoint(entry.first, entry.second.reads));
         }
-        if (types.count(Variable::Hits)) {
+        if (varSet.count(Variable::Hits)) {
             data[Variable::Hits].append(QPoint(entry.first, entry.second.hits));
         }
-        if (types.count(Variable::Misses)) {
+        if (varSet.count(Variable::Misses)) {
             data[Variable::Misses].append(QPoint(entry.first, entry.second.misses));
         }
-        if (types.count(Variable::Writebacks)) {
+        if (varSet.count(Variable::Writebacks)) {
             data[Variable::Writebacks].append(QPoint(entry.first, entry.second.writebacks));
         }
-        if (types.count(Variable::Accesses)) {
+        if (varSet.count(Variable::Accesses)) {
             data[Variable::Accesses].append(QPoint(entry.first, entry.second.hits + entry.second.misses));
         }
     }
@@ -222,7 +278,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     return chart;
 }
 
-QChart* CachePlotWidget::createStackedPlot(const std::set<Variable>& variables) const {
+QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variables) const {
     if (variables.size() == 0) {
         return nullptr;
     }

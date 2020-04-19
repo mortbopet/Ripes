@@ -26,7 +26,7 @@ class CachePlotWidget : public QDialog {
     Q_OBJECT
 
 public:
-    enum class Variable { Writes, Reads, Hits, Misses, Writebacks, Accesses };
+    enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_Variables };
     enum class PlotType { Ratio, Stacked };
     explicit CachePlotWidget(const CacheSim& sim, QWidget* parent = nullptr);
     ~CachePlotWidget();
@@ -42,15 +42,16 @@ private:
     /**
      * @brief gatherData
      * @returns a list of QPoints containing plotable data gathered from the cache simulator, as per the specified
-     * @param types.
      */
-    std::map<Variable, QList<QPoint>> gatherData(const std::set<Variable> types) const;
+    std::map<Variable, QList<QPoint>> gatherData(const std::vector<Variable>& variables) const;
     void setupToolbar();
     void setupStackedVariablesList();
     void setPlot(QChart* plot);
+    void copyPlotDataToClipboard() const;
+    std::vector<CachePlotWidget::Variable> gatherVariables() const;
 
     QChart* createRatioPlot(const Variable num, const Variable den) const;
-    QChart* createStackedPlot(const std::set<Variable>& variables) const;
+    QChart* createStackedPlot(const std::vector<Variable>& variables) const;
 
     PlotType m_plotType = PlotType::Ratio;
     QChart* m_currentPlot = nullptr;
