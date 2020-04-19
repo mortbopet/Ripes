@@ -18,9 +18,12 @@ public:
 
     void setCache(CacheSim* cache);
 
+signals:
+    void configurationChanged();
+
 public slots:
     void updateHitrate();
-    void configChanged();
+    void handleConfigurationChanged();
     void showCachePlot();
 
 private:

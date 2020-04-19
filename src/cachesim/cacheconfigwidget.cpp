@@ -52,7 +52,8 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
         m_cache->setWriteAllocatePolicy(qvariant_cast<CacheSim::WriteAllocPolicy>(m_ui->wrMiss->itemData(index)));
     });
 
-    connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::configChanged);
+    connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
+    connect(m_cache, &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
     connect(m_cache, &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
 
     setupPresets();
@@ -71,7 +72,7 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     connect(m_ui->undo, &QPushButton::clicked, m_cache, &CacheSim::undo);
 
     // Synchronize config widgets with initial cache configuration
-    configChanged();
+    handleConfigurationChanged();
 
     QTimer* timer = new QTimer(this);
     timer->setInterval(20);
@@ -157,7 +158,7 @@ void CacheConfigWidget::setupPresets() {
 
 void CacheConfigWidget::updateCacheSize() {}
 
-void CacheConfigWidget::configChanged() {
+void CacheConfigWidget::handleConfigurationChanged() {
     std::vector<QObject*> configItems{m_ui->ways,   m_ui->lines, m_ui->blocks, m_ui->replacementPolicy,
                                       m_ui->wrMiss, m_ui->wrHit};
 

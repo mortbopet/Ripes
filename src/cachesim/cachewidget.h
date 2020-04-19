@@ -25,6 +25,7 @@ public:
 
 signals:
     void cacheAddressSelected(uint32_t);
+    void configurationChanged();
 
 private:
     Ui::CacheWidget* m_ui;

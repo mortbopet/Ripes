@@ -23,6 +23,9 @@ public:
     MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~MemoryTab() override;
 
+signals:
+    void reqProcessorReset();
+
 public slots:
     void update();
 

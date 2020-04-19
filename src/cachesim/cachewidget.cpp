@@ -21,6 +21,8 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
 
     connect(m_ui->cacheView, &CacheView::cacheAddressSelected,
             [=](uint32_t address) { emit cacheAddressSelected(address); });
+
+    connect(m_cacheSim, &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
 }
 
 void CacheWidget::setType(CacheSim::CacheType type) {

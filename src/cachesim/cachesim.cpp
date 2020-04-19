@@ -482,7 +482,7 @@ void CacheSim::updateConfiguration() {
 
     m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
 
-    // Reset the graphical view
+    // Reset the graphical view & processor
     emit configurationChanged();
 
     if (m_memory.rw || m_memory.rom) {
@@ -493,15 +493,22 @@ void CacheSim::updateConfiguration() {
 }
 
 void CacheSim::processorReset() {
+    /** see comment of m_isResetting */
+    if (m_isResetting) {
+        return;
+    }
+
+    m_isResetting = true;
     // The processor might have changed. Since our signals/slot library cannot check for existing connection, we do the
     // safe, slightly redundant, thing of disconnecting and reconnecting the VSRTL design update signals.
     reassociateMemory();
     auto* proc = ProcessorHandler::get()->getProcessorNonConst();
     proc->designWasClocked.Connect(this, &CacheSim::processorWasClocked);
     proc->designWasReversed.Connect(this, &CacheSim::processorWasReversed);
-    proc->designWasReset.Connect(this, &CacheSim::updateConfiguration);
+    proc->designWasReset.Connect(this, &CacheSim::processorReset);
 
     updateConfiguration();
+    m_isResetting = false;
 }
 
 void CacheSim::setBlocks(unsigned blocks) {

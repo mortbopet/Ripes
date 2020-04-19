@@ -257,6 +257,15 @@ private:
      */
     std::deque<CacheTrace> m_traceStack;
 
+    /**
+     * @brief m_isResetting
+     * The cacheSim can be reset by either internally modyfing cache configuration parameters or externally through a
+     * processor reset. Given that modifying the cache parameters itself will prompt a reset of the processor, we need a
+     * way to distinquish whether a processor reset request originated from an internal cache configuration change. If
+     * so, we do not emit a processor request signal, avoiding a signalling loop.
+     */
+    bool m_isResetting = false;
+
     CacheTrace popTrace();
     void pushTrace(const CacheTrace& trace);
 };
