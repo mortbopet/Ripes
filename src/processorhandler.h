@@ -146,6 +146,12 @@ signals:
      */
     void exit();
 
+    /**
+     * @brief runStarted/runFinished
+     * Signals indiacting whether the processor is being started/stopped in asynchronously running without any GUI
+     * updates.
+     */
+    void runStarted();
     void runFinished();
 
 public slots:

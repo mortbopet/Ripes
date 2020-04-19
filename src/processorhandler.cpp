@@ -66,6 +66,7 @@ const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
 }
 
 void ProcessorHandler::run() {
+    emit runStarted();
     auto future = QtConcurrent::run([=] {
         m_currentProcessor->setEnableSignals(false);
         bool stopRunning = m_stopRunningFlag;
