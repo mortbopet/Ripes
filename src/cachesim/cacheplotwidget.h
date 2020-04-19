@@ -48,6 +48,7 @@ private:
     void setupStackedVariablesList();
     void setPlot(QChart* plot);
     void copyPlotDataToClipboard() const;
+    void savePlot();
     std::vector<CachePlotWidget::Variable> gatherVariables() const;
 
     QChart* createRatioPlot(const Variable num, const Variable den) const;

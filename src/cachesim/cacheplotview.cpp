@@ -46,6 +46,24 @@ void CachePlotView::leaveEvent(QEvent* event) {
     QGraphicsView::leaveEvent(event);
 }
 
+QPixmap CachePlotView::getPlotPixmap() {
+    std::vector<QGraphicsItem*> itemsToHide = {m_coordX, m_coordY, m_marker};
+
+    for (const auto& i : itemsToHide) {
+        if (i)
+            i->hide();
+    }
+
+    QPixmap p = grab();
+
+    for (const auto& i : itemsToHide) {
+        if (i)
+            i->show();
+    }
+
+    return p;
+};
+
 void CachePlotView::setPlot(QChart* chart) {
     if (m_chart) {
         // Propagate the previous chart size to the new plot

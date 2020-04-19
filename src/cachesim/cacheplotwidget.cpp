@@ -2,6 +2,7 @@
 #include "ui_cacheplotwidget.h"
 
 #include <QClipboard>
+#include <QFileDialog>
 #include <QToolBar>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QChartView>
@@ -88,6 +89,7 @@ void CachePlotWidget::setupToolbar() {
     m_savePlotAction = new QAction("Save plot to file", this);
     m_savePlotAction->setIcon(saveIcon);
     m_toolbar->addAction(m_savePlotAction);
+    connect(m_savePlotAction, &QAction::triggered, this, &CachePlotWidget::savePlot);
 }
 
 void CachePlotWidget::plotTypeChanged() {
@@ -102,6 +104,14 @@ void CachePlotWidget::plotTypeChanged() {
     }
 
     variablesChanged();
+}
+
+void CachePlotWidget::savePlot() {
+    const QString filename = QFileDialog::getSaveFileName(this, "Save file", "", "Images (*.png)");
+    if (!filename.isEmpty()) {
+        const QPixmap p = m_ui->plotView->getPlotPixmap();
+        p.save(filename, "PNG");
+    }
 }
 
 void CachePlotWidget::copyPlotDataToClipboard() const {

@@ -29,6 +29,12 @@ public:
 
     void setPlot(QChart* chart);
 
+    /**
+     * @brief getPlotPixmap
+     * @returns a pixmap containing only the plot (ie. no coordinate values nor marker)
+     */
+    QPixmap getPlotPixmap();
+
 protected:
     void resizeEvent(QResizeEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
