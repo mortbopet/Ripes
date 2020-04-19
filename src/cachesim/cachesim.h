@@ -94,21 +94,9 @@ public:
 
     CacheSim(QObject* parent);
     void setType(CacheType type);
-
-    void setWritePolicy(WritePolicy policy) {
-        m_wrPolicy = policy;
-        updateConfiguration();
-    }
-
-    void setWriteAllocatePolicy(WriteAllocPolicy policy) {
-        m_wrAllocPolicy = policy;
-        updateConfiguration();
-    }
-
-    void setReplacementPolicy(ReplPolicy policy) {
-        m_replPolicy = policy;
-        updateConfiguration();
-    }
+    void setWritePolicy(WritePolicy policy);
+    void setWriteAllocatePolicy(WriteAllocPolicy policy);
+    void setReplacementPolicy(ReplPolicy policy);
 
     void access(uint32_t address, AccessType type);
     void undo();

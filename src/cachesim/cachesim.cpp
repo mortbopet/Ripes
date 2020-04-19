@@ -513,15 +513,30 @@ void CacheSim::processorReset() {
 
 void CacheSim::setBlocks(unsigned blocks) {
     m_blocks = blocks;
-    updateConfiguration();
+    processorReset();
 }
 void CacheSim::setLines(unsigned lines) {
     m_lines = lines;
-    updateConfiguration();
+    processorReset();
 }
 void CacheSim::setWays(unsigned ways) {
     m_ways = ways;
-    updateConfiguration();
+    processorReset();
+}
+
+void CacheSim::setWritePolicy(WritePolicy policy) {
+    m_wrPolicy = policy;
+    processorReset();
+}
+
+void CacheSim::setWriteAllocatePolicy(WriteAllocPolicy policy) {
+    m_wrAllocPolicy = policy;
+    processorReset();
+}
+
+void CacheSim::setReplacementPolicy(ReplPolicy policy) {
+    m_replPolicy = policy;
+    processorReset();
 }
 
 void CacheSim::setPreset(const CachePreset& preset) {
