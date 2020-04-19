@@ -130,7 +130,7 @@ void CachePlotWidget::setupToolbar() {
     m_toolbar->addAction(m_copyDataAction);
     connect(m_copyDataAction, &QAction::triggered, this, &CachePlotWidget::copyPlotDataToClipboard);
 
-    const QIcon saveIcon = QIcon(":/icons/save.svg");
+    const QIcon saveIcon = QIcon(":/icons/saveas.svg");
     m_savePlotAction = new QAction("Save plot to file", this);
     m_savePlotAction->setIcon(saveIcon);
     m_toolbar->addAction(m_savePlotAction);

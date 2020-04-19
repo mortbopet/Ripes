@@ -98,8 +98,8 @@ void CachePlotView::setPlot(QChart* chart) {
     scene()->addItem(m_coordX);
     m_coordY = new QGraphicsSimpleTextItem();
     scene()->addItem(m_coordY);
-    m_coordX->setText("X: ");
-    m_coordY->setText("Y: ");
+    m_coordX->setText("Cycle: ");
+    m_coordY->setText("Value: ");
     m_coordX->setPos(m_chart->size().width() / 2 - 50, m_chart->size().height());
     m_coordY->setPos(m_chart->size().width() / 2 + 50, m_chart->size().height());
 
@@ -129,8 +129,8 @@ void CachePlotView::resizeEvent(QResizeEvent* event) {
 }
 
 void CachePlotView::updateCoordinateValues(const QPointF& pos) {
-    m_coordX->setText(QString("X: %1").arg(pos.x()));
-    m_coordY->setText(QString("Y: %1").arg(pos.y()));
+    m_coordX->setText(QString("Cycle: %1").arg(pos.x()));
+    m_coordY->setText(QString("Value: %1").arg(pos.y()));
 }
 
 void CachePlotView::mouseMoveEvent(QMouseEvent* event) {
@@ -170,7 +170,7 @@ void CachePlotView::tooltip(QPointF point, bool state) {
         m_tooltip = new Callout(this, m_chart);
 
     if (state) {
-        m_tooltip->setText(QString("X: %1 \nY: %2 ").arg(point.x()).arg(point.y()));
+        m_tooltip->setText(QString("Cycle: %1 \nValue: %2 ").arg(point.x()).arg(point.y()));
         m_tooltip->setAnchor(point);
         m_tooltip->setZValue(11);
         m_tooltip->updateGeometry();
