@@ -138,6 +138,7 @@ void CacheConfigWidget::updateHitrate() {
     m_ui->hitrate->setText(QString::number(m_cache->getHitRate(), 'G', 4));
     m_ui->hits->setText(QString::number(m_cache->getHits()));
     m_ui->misses->setText(QString::number(m_cache->getMisses()));
+    m_ui->writebacks->setText(QString::number(m_cache->getWritebacks()));
 }
 
 void CacheConfigWidget::showSizeBreakdown() {

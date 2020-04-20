@@ -67,6 +67,7 @@ public:
         CacheIndex index;
 
         bool isHit = false;
+        bool isWriteback = false;  // True if the transaction resulted in an eviction of a dirty cacheline
         AccessType type;
         bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
         bool tagChanged = false;    // True if transToValid or the previous entry was evicted
@@ -79,14 +80,13 @@ public:
         int writes = 0;
         int writebacks = 0;
         CacheAccessTrace() {}
-        CacheAccessTrace(AccessType type, bool hit, bool writeback)
-            : CacheAccessTrace(CacheAccessTrace(), type, hit, writeback) {}
-        CacheAccessTrace(const CacheAccessTrace& pre, AccessType type, bool hit, bool writeback) {
-            reads = pre.reads + (type == AccessType::Read ? 1 : 0);
-            writes = pre.writes + (type == AccessType::Write ? 1 : 0);
-            writebacks = pre.writebacks + (writeback ? 1 : 0);
-            hits = pre.hits + (hit ? 1 : 0);
-            misses = pre.misses + (hit ? 0 : 1);
+        CacheAccessTrace(const CacheTransaction& transaction) : CacheAccessTrace(CacheAccessTrace(), transaction) {}
+        CacheAccessTrace(const CacheAccessTrace& pre, const CacheTransaction& transaction) {
+            reads = pre.reads + (transaction.type == AccessType::Read ? 1 : 0);
+            writes = pre.writes + (transaction.type == AccessType::Write ? 1 : 0);
+            writebacks = pre.writebacks + (transaction.isWriteback ? 1 : 0);
+            hits = pre.hits + (transaction.isHit ? 1 : 0);
+            misses = pre.misses + (transaction.isHit ? 0 : 1);
         }
     };
 
@@ -111,6 +111,7 @@ public:
     double getHitRate() const;
     unsigned getHits() const;
     unsigned getMisses() const;
+    unsigned getWritebacks() const;
     CacheSize getCacheSize() const;
 
     uint32_t buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const;

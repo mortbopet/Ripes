@@ -167,6 +167,11 @@ CacheSim::CacheWay CacheSim::evictAndUpdate(CacheTransaction& transaction) {
     } else {
         // Store the old way info in our eviction trace, in case of rollbacks
         eviction = *wayPtr;
+
+        if (eviction.dirty) {
+            // The eviction will result in a writeback
+            transaction.isWriteback = true;
+        }
     }
 
     // Invalidate the target way
@@ -200,6 +205,15 @@ unsigned CacheSim::getMisses() const {
     }
 }
 
+unsigned CacheSim::getWritebacks() const {
+    if (m_accessTrace.size() == 0) {
+        return 0;
+    } else {
+        auto& trace = m_accessTrace.rbegin()->second;
+        return trace.writebacks;
+    }
+}
+
 double CacheSim::getHitRate() const {
     if (m_accessTrace.size() == 0) {
         return 0;
@@ -228,15 +242,12 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) const {
 void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
     // Access traces are pushed in sorted order into the access trace map; indexed by a key corresponding to the cycle
     // of the acces.
-    const auto currentCycle = ProcessorHandler::get()->getProcessor()->getCycleCount();
-    if (m_accessTrace.size() == 0) {
-        m_accessTrace[currentCycle] = CacheAccessTrace(transaction.type, transaction.isHit, false);
-    } else {
-        // The access trace should be constructed by the conjunction of the most-recent access trace + the access of the
-        // current cycle
-        const CacheAccessTrace& mostRecentTrace = m_accessTrace.rbegin()->second;
-        m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction.type, transaction.isHit, false);
-    }
+    const unsigned currentCycle = ProcessorHandler::get()->getProcessor()->getCycleCount();
+
+    const CacheAccessTrace& mostRecentTrace =
+        m_accessTrace.size() == 0 ? CacheAccessTrace() : m_accessTrace.rbegin()->second;
+
+    m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
     if (!isAsynchronouslyAccessed()) {
         emit hitrateChanged();
@@ -259,7 +270,6 @@ void CacheSim::access(uint32_t address, AccessType type) {
     transaction.type = type;
 
     analyzeCacheAccess(transaction);
-    pushAccessTrace(transaction);
 
     if (!transaction.isHit) {
         if (type == AccessType::Read ||
@@ -270,13 +280,8 @@ void CacheSim::access(uint32_t address, AccessType type) {
         oldWay = m_cacheLines[transaction.index.line][transaction.index.way];
     }
 
-    // At this point, no further changes shall be made to the transaction.
-    // We record the transaction as well as a possible eviction
-    trace.oldWay = oldWay;
-    trace.transaction = transaction;
-    pushTrace(trace);
+    // === Update dirty and LRU bits ===
 
-    // Update dirty and LRU bits.
     // Initially, we need a check for the case of "write + miss + noWriteAlloc". In this case, we should not update
     // replacement/dirty fields. In all other cases, this is a valid action.
     const bool writeMissNoAlloc =
@@ -293,7 +298,24 @@ void CacheSim::access(uint32_t address, AccessType type) {
         }
 
         updateCacheLineReplFields(m_cacheLines[transaction.index.line], transaction.index.way);
+    } else {
+        // In case of a write miss with no write allocate, the value is always written through to memory (a writeback)
+        transaction.isWriteback = true;
     }
+
+    // If our WritePolicy is WriteThrough and this access is a write, the transaction will always result in a WriteBack
+    if (type == AccessType::Write && getWritePolicy() == WritePolicy::WriteThrough) {
+        transaction.isWriteback = true;
+    }
+
+    // ===========================
+
+    // At this point, no further changes shall be made to the transaction.
+    // We record the transaction as well as a possible eviction
+    trace.oldWay = oldWay;
+    trace.transaction = transaction;
+    pushTrace(trace);
+    pushAccessTrace(transaction);
 
     // === Some sanity checking ===
     // It should never be possible that a read returns an invalid way index
@@ -305,8 +327,8 @@ void CacheSim::access(uint32_t address, AccessType type) {
     if (type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate) {
         transaction.index.assertValid();
     }
-    // ===========================
 
+    // ===========================
     if (writeMissNoAlloc) {
         // There are no graphical changes to perform since nothing is pulled into the cache upon a missed write without
         // write allocation
