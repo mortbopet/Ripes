@@ -14,6 +14,10 @@ namespace Ripes {
 
 CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheConfigWidget) {
     m_ui->setupUi(this);
+
+    // Gather a list of all items in this widget which will trigger a modification to the current configuration
+    m_configItems = {m_ui->presets,           m_ui->ways,   m_ui->lines, m_ui->blocks,
+                     m_ui->replacementPolicy, m_ui->wrMiss, m_ui->wrHit};
 }
 
 void CacheConfigWidget::setCache(CacheSim* cache) {
@@ -96,18 +100,6 @@ void CacheConfigWidget::setupPresets() {
     connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         const CacheSim::CachePreset preset = qvariant_cast<CacheSim::CachePreset>(m_ui->presets->itemData(index));
 
-        // Block signal emmision from the value widgets; the cache sim is updated all at once internally, so no need to
-        // emit signals.
-        m_ui->ways->blockSignals(true);
-        m_ui->lines->blockSignals(true);
-        m_ui->blocks->blockSignals(true);
-        m_ui->ways->setValue(preset.ways);
-        m_ui->lines->setValue(preset.lines);
-        m_ui->blocks->setValue(preset.blocks);
-        m_ui->ways->blockSignals(false);
-        m_ui->lines->blockSignals(false);
-        m_ui->blocks->blockSignals(false);
-
         m_cache->setPreset(preset);
     });
 }
@@ -115,10 +107,7 @@ void CacheConfigWidget::setupPresets() {
 void CacheConfigWidget::updateCacheSize() {}
 
 void CacheConfigWidget::handleConfigurationChanged() {
-    std::vector<QObject*> configItems{m_ui->ways,   m_ui->lines, m_ui->blocks, m_ui->replacementPolicy,
-                                      m_ui->wrMiss, m_ui->wrHit};
-
-    std::for_each(configItems.begin(), configItems.end(), [](QObject* o) { o->blockSignals(true); });
+    std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(true); });
 
     m_ui->ways->setValue(m_cache->getWaysBits());
     m_ui->lines->setValue(m_cache->getLineBits());
@@ -127,7 +116,9 @@ void CacheConfigWidget::handleConfigurationChanged() {
     setEnumIndex(m_ui->wrMiss, m_cache->getWriteAllocPolicy());
     setEnumIndex(m_ui->replacementPolicy, m_cache->getReplacementPolicy());
 
-    std::for_each(configItems.begin(), configItems.end(), [](QObject* o) { o->blockSignals(false); });
+    m_ui->presets->setCurrentIndex(-1);
+
+    std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(false); });
 
     updateIndexingText();
     m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));

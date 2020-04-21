@@ -33,6 +33,7 @@ private:
     void showSizeBreakdown();
     CacheSim* m_cache;
     Ui::CacheConfigWidget* m_ui = nullptr;
+    std::vector<QObject*> m_configItems;
 };
 
 }  // namespace Ripes
