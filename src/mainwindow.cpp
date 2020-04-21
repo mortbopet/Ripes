@@ -21,6 +21,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QTemporaryFile>
 #include <QTextStream>
 
 namespace Ripes {
@@ -145,7 +146,6 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setupExamplesMenu(QMenu* parent) {
     const auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
-
     if (!assemblyExamples.isEmpty()) {
         for (const auto& fileName : assemblyExamples) {
             parent->addAction(fileName, [=] {
@@ -154,6 +154,28 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.type = FileType::Assembly;
                 m_editTab->loadFile(parms);
                 m_hasSavedFile = false;
+            });
+        }
+    }
+
+    const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
+    if (!ELFExamples.isEmpty()) {
+        for (const auto& fileName : ELFExamples) {
+            parent->addAction(fileName, [=] {
+                // ELFIO Cannot read directly from the bundled resource file, so copy the ELF file to a temporary file
+                // before loading the program.
+                QTemporaryFile* tmpELFFile = QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);
+                if (!tmpELFFile->open()) {
+                    QMessageBox::warning(this, "Error", "Could not create temporary ELF file");
+                    return;
+                }
+
+                LoadFileParams parms;
+                parms.filepath = tmpELFFile->fileName();
+                parms.type = FileType::Executable;
+                m_editTab->loadFile(parms);
+                m_hasSavedFile = false;
+                tmpELFFile->remove();
             });
         }
     }
