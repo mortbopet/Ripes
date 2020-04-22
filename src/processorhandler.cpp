@@ -67,19 +67,25 @@ const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
 
 void ProcessorHandler::run() {
     emit runStarted();
-    auto future = QtConcurrent::run([=] {
-        m_currentProcessor->setEnableSignals(false);
+    /** We create a cycleFunctor for running the design which will stop further running of the design when:
+     * - The user has stopped running the processor (m_stopRunningFlag)
+     * - the processor has finished executing
+     * - the processor has hit a breakpoint
+     */
+    const auto& cycleFunctor = [=] {
         bool stopRunning = m_stopRunningFlag;
-        while (!stopRunning) {
-            m_currentProcessor->clock();
-            ProcessorHandler::get()->checkValidExecutionRange();
-            stopRunning |=
-                ProcessorHandler::get()->checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
+        ProcessorHandler::get()->checkValidExecutionRange();
+        stopRunning |=
+            ProcessorHandler::get()->checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
+
+        if (stopRunning) {
+            m_vsrtlWidget->stop();
         }
-        m_currentProcessor->setEnableSignals(true);
-    });
-    m_runWatcher.setFuture(future);
+    };
+
+    // Start running through the VSRTL Widget interface
     connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, &ProcessorHandler::runFinished);
+    m_runWatcher.setFuture(m_vsrtlWidget->run(cycleFunctor));
 }
 
 void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
@@ -91,6 +97,7 @@ void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
 }
 
 void ProcessorHandler::loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
+    m_vsrtlWidget = widget;
     widget->setDesign(m_currentProcessor.get());
 }
 

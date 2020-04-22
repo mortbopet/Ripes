@@ -166,6 +166,12 @@ private:
     ProcessorID m_currentID = ProcessorID::RV5S;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
 
+    /**
+     * @brief m_vsrtlWidget
+     * The VSRTL Widget associated which the processor models will be loaded to
+     */
+    vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
+
     std::set<uint32_t> m_breakpoints;
     const Program* m_program = nullptr;
 
