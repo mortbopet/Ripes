@@ -28,7 +28,11 @@ The AppImage for Linux should be compatible with most Linux distributions.
 For Windows, the C++ runtime library must be available (if not, a msvcp140.dll error will be produced). You most likely already have this installed, but if this is not the case, you download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
 ## Building
-Assuming you have installed a recent (5.10+) version of [Qt](https://www.qt.io/download) as well as [CMake](https://cmake.org/), Ripes may be built like any other CMake project:
+Initially, the following dependencies must be made available:
+- A recent (5.10+) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
+- [CMake](https://cmake.org/)
+
+Then, Ripes may be built as a standard CMake project:
 ```
 Unix:               Windows:
 cd Ripes/           cd Ripes/
