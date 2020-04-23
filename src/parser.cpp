@@ -343,12 +343,12 @@ QString Parser::generateJalrString(uint32_t instr) const {
 
 QString Parser::generateLuiString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("lui x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
+    return QString("lui x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0], 16));
 }
 
 QString Parser::generateAuipcString(uint32_t instr) const {
     std::vector<uint32_t> fields = decodeUInstr(instr);
-    return QString("auipc x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0]));
+    return QString("auipc x%1 %2").arg(fields[1]).arg("0x" + QString::number(fields[0], 16));
 }
 
 QString Parser::generateJalString(uint32_t instr, uint32_t address, const Program& program) const {
