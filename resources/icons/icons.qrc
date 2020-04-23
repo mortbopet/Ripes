@@ -30,5 +30,7 @@
         <file>notepad.svg</file>
         <file>plus.svg</file>
         <file>delete.svg</file>
+        <file>analytics.svg</file>
+        <file>crosshair.svg</file>
     </qresource>
 </RCC>

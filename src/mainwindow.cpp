@@ -21,6 +21,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QTemporaryFile>
 #include <QTextStream>
 
 namespace Ripes {
@@ -77,11 +78,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
     connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
     connect(ProcessorHandler::get(), &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
+
+    // Reset and program reload signals
+    connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
 
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
@@ -142,7 +146,6 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setupExamplesMenu(QMenu* parent) {
     const auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
-
     if (!assemblyExamples.isEmpty()) {
         for (const auto& fileName : assemblyExamples) {
             parent->addAction(fileName, [=] {
@@ -151,6 +154,28 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.type = FileType::Assembly;
                 m_editTab->loadFile(parms);
                 m_hasSavedFile = false;
+            });
+        }
+    }
+
+    const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
+    if (!ELFExamples.isEmpty()) {
+        for (const auto& fileName : ELFExamples) {
+            parent->addAction(fileName, [=] {
+                // ELFIO Cannot read directly from the bundled resource file, so copy the ELF file to a temporary file
+                // before loading the program.
+                QTemporaryFile* tmpELFFile = QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);
+                if (!tmpELFFile->open()) {
+                    QMessageBox::warning(this, "Error", "Could not create temporary ELF file");
+                    return;
+                }
+
+                LoadFileParams parms;
+                parms.filepath = tmpELFFile->fileName();
+                parms.type = FileType::Executable;
+                m_editTab->loadFile(parms);
+                m_hasSavedFile = false;
+                tmpELFFile->remove();
             });
         }
     }

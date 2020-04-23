@@ -99,6 +99,14 @@ public:
     virtual SparseArray& getMemory() = 0;
 
     /**
+     * @brief getData/InstrMemory
+     * @returns a pointer to the component which implements the instruction and data memory interfaces. These types may
+     * be implementation specific, and as such should be cast to these types at the callers end.
+     */
+    virtual const Component* getDataMemory() const = 0;
+    virtual const Component* getInstrMemory() const = 0;
+
+    /**
      * @brief getRegister
      * @return value currently present in register @p i
      */

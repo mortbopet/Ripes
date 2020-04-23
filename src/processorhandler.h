@@ -83,6 +83,8 @@ public:
      */
     const vsrtl::core::SparseArray& getMemory() const;
     const vsrtl::core::SparseArray& getRegisters() const;
+    const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* getDataMemory() const;
+    const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* getInstrMemory() const;
 
     /**
      * @brief setRegisterValue
@@ -144,6 +146,12 @@ signals:
      */
     void exit();
 
+    /**
+     * @brief runStarted/runFinished
+     * Signals indiacting whether the processor is being started/stopped in asynchronously running without any GUI
+     * updates.
+     */
+    void runStarted();
     void runFinished();
 
 public slots:
@@ -157,6 +165,12 @@ private:
 
     ProcessorID m_currentID = ProcessorID::RV5S;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
+
+    /**
+     * @brief m_vsrtlWidget
+     * The VSRTL Widget associated which the processor models will be loaded to
+     */
+    vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
 
     std::set<uint32_t> m_breakpoints;
     const Program* m_program = nullptr;

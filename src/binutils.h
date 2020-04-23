@@ -26,7 +26,7 @@ constexpr uint32_t generateBitmask(int n) {
     return static_cast<uint32_t>((1 << n) - 1);
 }
 
-constexpr uint32_t bitcount(int n) {
+constexpr uint32_t bitcount(unsigned n) {
     int count = 0;
     while (n > 0) {
         count += 1;

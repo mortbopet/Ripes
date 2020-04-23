@@ -33,6 +33,7 @@ matrix:
           packages:
             - qt510-meta-minimal
             - qt510svg
+            - qt510charts-no-lgpl
             - libc6-dev
             - g++-8
             - tree
@@ -53,6 +54,7 @@ matrix:
           packages:
             - qt511-meta-minimal
             - qt511svg
+            - qt511charts-no-lgpl
             - libc6-dev
             - g++-8
             - tree

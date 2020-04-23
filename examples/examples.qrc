@@ -3,5 +3,6 @@
         <file>assembly/Complex multiplication</file>
         <file>assembly/Factorial function</file>
         <file>assembly/Console printing</file>
+        <file>ELF/RanPi</file>
     </qresource>
 </RCC>
