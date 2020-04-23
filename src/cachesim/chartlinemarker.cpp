@@ -52,13 +52,28 @@ QPointF ChartLineMarker::getMarkerPos() const {
 
 void ChartLineMarker::move(const QPointF& center) {
     if (m_snapToLine) {
+        const QValueAxis* axisY = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Vertical).first());
+        const QValueAxis* axisX = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Horizontal).first());
+
         // Note: we assume that the points are in a sorted order!
         const auto& points = m_series->pointsVector();
         const QPointF chartPos = m_chart->mapToValue(center);
         auto iter = std::lower_bound(points.begin(), points.end(), chartPos.x(),
                                      [=](const QPointF& lhs, const qreal& closestX) { return lhs.x() < closestX; });
-        const auto& pointInSeries = *iter;
-        const QPointF pointInScene = m_chart->mapToPosition(pointInSeries);
+
+        if (iter != points.begin()) {
+            // we always want to select a point which is less than chartPos.x such that the marker starts on the closest
+            // step backwards in the X direction, rather than the closest step forwards in the X direction.
+            iter--;
+        }
+        // Reversing the iterator might have pushes the marker out of bounds with the plot. If so, do not decrement the
+        // iterator
+        if (iter->x() < axisX->min()) {
+            iter++;
+        }
+
+        auto& pointInSeries = *iter;
+        QPointF pointInScene = m_chart->mapToPosition(pointInSeries);
 
         const bool markerChanged = m_center != pointInScene;
         m_center = pointInScene;
