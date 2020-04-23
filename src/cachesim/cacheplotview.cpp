@@ -15,15 +15,16 @@
 void constrainInPlotRange(QPointF& pos, QChart* chart) {
     const auto plotValue = chart->mapToValue(pos);
 
-    const QPointF chartBottomLeft = chart->mapToPosition({0, 0});
     const QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     const QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+    const QPointF chartBottomLeft = chart->mapToPosition({axisX->min(), axisY->min()});
+    const QPointF chartTopRight = chart->mapToPosition({axisX->max(), axisY->max()});
 
-    pos.rx() = plotValue.x() < 0 ? chartBottomLeft.x() : pos.x();
-    pos.ry() = plotValue.y() < 0 ? chartBottomLeft.y() : pos.y();
+    pos.rx() = plotValue.x() < axisX->min() ? chartBottomLeft.x() : pos.x();
+    pos.ry() = plotValue.y() < axisY->min() ? chartBottomLeft.y() : pos.y();
 
-    pos.rx() = plotValue.x() > axisX->max() ? chart->mapToPosition({axisX->max(), 0.0}).x() : pos.x();
-    pos.ry() = plotValue.y() > axisY->max() ? chart->mapToPosition({0.0, axisY->max()}).y() : pos.y();
+    pos.rx() = plotValue.x() > axisX->max() ? chartTopRight.x() : pos.x();
+    pos.ry() = plotValue.y() > axisY->max() ? chartTopRight.y() : pos.y();
 }
 
 namespace Ripes {
