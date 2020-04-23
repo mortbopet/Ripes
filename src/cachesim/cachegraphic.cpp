@@ -102,6 +102,11 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
         way.dirty->setText(QString::number(simWay.dirty));
     }
 
+    // =========================== Update valid field =========================
+    if (way.valid) {
+        way.valid->setText(QString::number(simWay.valid));
+    }
+
     // ============================ Update tag field ==========================
     if (simWay.valid) {
         QGraphicsSimpleTextItem* tagTextItem = way.tag.get();
