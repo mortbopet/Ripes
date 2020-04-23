@@ -173,7 +173,7 @@ void CacheGraphic::cacheInvalidated() {
     for (int lineIdx = 0; lineIdx < m_cache.getLines(); lineIdx++) {
         if (const auto* line = m_cache.getLine(lineIdx)) {
             for (const auto& way : *line) {
-                wayInvalidated(lineIdx, way.first);
+                updateWay(lineIdx, way.first);
             }
             updateLineReplFields(lineIdx);
         }
