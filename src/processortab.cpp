@@ -166,7 +166,7 @@ void ProcessorTab::setupSimulatorActions() {
     m_runAction->setCheckable(true);
     m_runAction->setChecked(false);
     m_runAction->setToolTip(
-        "Execute simulator without updating UI (fast execution).\n Running will stop once the program exits or a "
+        "Execute simulator without updating UI (fast execution) (F8).\n Running will stop once the program exits or a "
         "breakpoint is hit.");
     connect(m_runAction, &QAction::toggled, this, &ProcessorTab::run);
     m_toolbar->addAction(m_runAction);
