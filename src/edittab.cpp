@@ -109,6 +109,7 @@ EditTab::~EditTab() {
 void EditTab::newProgram() {
     m_ui->assemblyedit->reset();
     m_ui->assemblyedit->clear();
+    enableAssemblyInput();
 }
 
 void EditTab::setAssemblyText(const QString& text) {
