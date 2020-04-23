@@ -14,6 +14,7 @@
 
 #include "fancytabbar/fancytabbar.h"
 
+#include <QCloseEvent>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDatabase>
@@ -183,7 +184,17 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     if (m_editTab->isEditorEnabled() && !m_editTab->getAssemblyText().isEmpty()) {
-        if (QMessageBox::question(this, "Ripes", "Save current program before exiting?") == QMessageBox::Yes) {
+        QMessageBox saveMsgBox(this);
+        saveMsgBox.setWindowTitle("Ripes");
+        saveMsgBox.setText("Save current program before exiting?");
+        saveMsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+        const auto result = saveMsgBox.exec();
+        if (result == QMessageBox::Cancel) {
+            // Dont exit
+            event->ignore();
+            return;
+        } else if (result == QMessageBox::Yes) {
             saveFilesTriggered();
         }
     }
