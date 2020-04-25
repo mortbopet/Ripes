@@ -1,11 +1,14 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
+#include "ccmanager.h"
 #include "ripessettings.h"
 
+#include <QGroupBox>
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QStackedWidget>
@@ -39,7 +42,8 @@ std::pair<QLabel*, T_Widget*> createSettingsWidgets(const QString& settingName, 
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
     } else if constexpr (std::is_same<T_Widget, QLineEdit>()) {
-        connect(widget, &QLineEdit::textChanged, settingObserver, &SettingObserver::setValue);
+        widget->connect(widget, &QLineEdit::textChanged, settingObserver, &SettingObserver::setValue);
+        widget->setText(settingObserver->value().toString());
     }
 
     return {label, widget};
@@ -52,8 +56,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::
     setWindowTitle("Settings");
 
     // Create settings pages
-    addPage("Simulator", createSimulatorPage());
     addPage("Editor", createEditorPage());
+    addPage("Simulator", createSimulatorPage());
 
     m_ui->settingsList->setCurrentRow(0);
 }
@@ -68,6 +72,29 @@ void SettingsDialog::accept() {
 
 QWidget* SettingsDialog::createEditorPage() {
     auto [pageWidget, pageLayout] = constructPage();
+
+    // Setting: RIPES_SETTING_CCPATH
+    CCManager::get();
+
+    auto* CCGroupBox = new QGroupBox("RISC-V C/C++ Compiler");
+    auto* CCLayout = new QVBoxLayout();
+    CCGroupBox->setLayout(CCLayout);
+    auto* CCDesc = new QLabel(
+        "Providing a valid C/C++ compiler enables direct editing, compilation "
+        "and execution of C-language source files within Ripes.\n\n"
+        "A compatible compiler may be autodetected if availabe in PATH.");
+    CCDesc->setWordWrap(true);
+    CCLayout->addWidget(CCDesc);
+
+    auto* CCHLayout = new QHBoxLayout();
+    auto [cclabel, ccpath] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_CCPATH, "C/C++ compiler path:");
+    CCLayout->addLayout(CCHLayout);
+    CCHLayout->addWidget(cclabel);
+    CCHLayout->addWidget(ccpath);
+    auto* pathBrowseButton = new QPushButton("Browse");
+    CCHLayout->addWidget(pathBrowseButton);
+
+    pageLayout->addWidget(CCGroupBox);
 
     return pageWidget;
 }

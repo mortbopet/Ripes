@@ -6,9 +6,11 @@ namespace Ripes {
 
 // Definitions of the name of all settings within Ripes
 #define RIPES_SETTING_REWINDSTACKSIZE ("simulator_rewindstacksize")
+#define RIPES_SETTING_CCPATH ("compiler_path")
 
 // Definitions of all default settings within Ripes
-const static std::map<QString, QVariant> s_defaultSettings = {{RIPES_SETTING_REWINDSTACKSIZE, 100}};
+const static std::map<QString, QVariant> s_defaultSettings = {{RIPES_SETTING_REWINDSTACKSIZE, 100},
+                                                              {RIPES_SETTING_CCPATH, ""}};
 
 /**
  * @brief The SettingObserver class
