@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "processorregistry.h"
 #include "program.h"
+#include "ripessettings.h"
 
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrent>
@@ -12,6 +13,12 @@ namespace Ripes {
 ProcessorHandler::ProcessorHandler() {
     // Contruct the default processor
     selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+
+    // Connect relevant settings changes to VSRTL
+    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
+            [=](const auto& size) { m_currentProcessor->setReverseStackSize(size.toUInt()); });
+    // Update VSRTL reverse stack size to reflect current settings
+    m_currentProcessor->setReverseStackSize(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
 }
 
 void ProcessorHandler::loadProgram(const Program* p) {

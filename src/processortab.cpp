@@ -13,6 +13,7 @@
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
 #include "registermodel.h"
+#include "ripessettings.h"
 #include "stagetablemodel.h"
 #include "stagetablewidget.h"
 
@@ -54,6 +55,10 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
         m_ui->console->insertPlainText(string);
         m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
     });
+
+    // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
+    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
+            [=](const auto& size) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     // Make processor view stretch wrt. consoles
     m_ui->pipelinesplitter->setStretchFactor(0, 1);

@@ -39,6 +39,7 @@ private slots:
     void saveFilesTriggered();
     void saveFilesAsTriggered();
     void newProgramTriggered();
+    void settingsTriggered();
 
     void processorUpdated() { emit updateMemoryTab(); }
 

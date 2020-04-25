@@ -9,7 +9,9 @@
 #include "processorhandler.h"
 #include "processortab.h"
 #include "registerwidget.h"
+#include "ripessettings.h"
 #include "savedialog.h"
+#include "settingsdialog.h"
 #include "version/version.h"
 
 #include "fancytabbar/fancytabbar.h"
@@ -90,6 +92,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
+    connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
 }
 
 void MainWindow::fitToView() {
@@ -269,6 +272,11 @@ void MainWindow::saveFilesAsTriggered() {
         return;
     m_hasSavedFile = true;
     saveFilesTriggered();
+}
+
+void MainWindow::settingsTriggered() {
+    SettingsDialog diag;
+    diag.exec();
 }
 
 void MainWindow::newProgramTriggered() {
