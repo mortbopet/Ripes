@@ -26,6 +26,10 @@ public:
     virtual int spReg() const { return -1; }  // Stack pointer
     virtual int gpReg() const { return -1; }  // Global pointer
 
+    // GCC Compile command architecture and ABI specification strings
+    virtual QString CCmarch() const = 0;
+    virtual QString CCmabi() const = 0;
+
     virtual unsigned elfMachineId() const = 0;
 
     /**
@@ -132,6 +136,9 @@ public:
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
     unsigned elfMachineId() const override { return EM_RISCV; }
+
+    QString CCmarch() const override { return "rv32im"; }
+    QString CCmabi() const override { return "ilp32"; }
 
     QString elfSupportsFlags(unsigned flags) const override {
         /** We expect no flags for RV32IM compiled RISC-V executables.
