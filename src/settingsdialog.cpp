@@ -81,14 +81,14 @@ QWidget* SettingsDialog::createEditorPage() {
     auto* CCLayout = new QVBoxLayout();
     CCGroupBox->setLayout(CCLayout);
     auto* CCDesc = new QLabel(
-        "Providing a valid C/C++ compiler enables direct editing, compilation "
-        "and execution of C-language source files within Ripes.\n\n"
-        "A compatible compiler may be autodetected if availabe in PATH.");
+        "Providing a compatible RISC-V C/C++ compiler enables editing, compilation "
+        "and execution of C-language programs within Ripes.\n\n"
+        "A compiler may be autodetected if availabe in PATH.");
     CCDesc->setWordWrap(true);
     CCLayout->addWidget(CCDesc);
 
     auto* CCHLayout = new QHBoxLayout();
-    auto [cclabel, ccpath] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_CCPATH, "C/C++ compiler path:");
+    auto [cclabel, ccpath] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_CCPATH, "Compiler path:");
     m_ccpath = ccpath;
     CCLayout->addLayout(CCHLayout);
     CCHLayout->addWidget(cclabel);

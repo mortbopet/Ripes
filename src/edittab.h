@@ -47,6 +47,12 @@ public slots:
     void emitProgramChanged();
 
     /**
+     * @brief sourceTypeChanged
+     * Called whenever the user requested to change the current input type (Assembly or C)
+     */
+    void sourceTypeChanged();
+
+    /**
      * @brief enableAssemblyInput
      * Called whenever the user wants to switch from binary/ELF file input to typed assembly input
      */
@@ -69,8 +75,9 @@ private:
     Ui::EditTab* m_ui = nullptr;
     std::unique_ptr<Assembler> m_assembler;
 
-    LoadFileParams m_loadedFile;
     Program m_activeProgram;
+
+    FileType m_currentFileType;
 
     bool m_editorEnabled = true;
 };

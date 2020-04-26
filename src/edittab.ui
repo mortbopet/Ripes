@@ -55,12 +55,39 @@
                  </property>
                 </spacer>
                </item>
+               <item>
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>Input type:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="setAssemblyInput">
+                 <property name="text">
+                  <string>Assembly</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="setCInput">
+                 <property name="text">
+                  <string>C</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="sourceTypeLayout"/>
+               </item>
               </layout>
              </item>
              <item>
               <widget class="QStackedWidget" name="editorStackedWidget">
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="editorPage">
                 <layout class="QGridLayout" name="gridLayout_3">
@@ -227,6 +254,7 @@
                  </item>
                 </layout>
                </widget>
+               <widget class="QWidget" name="cSourcePage"/>
               </widget>
              </item>
             </layout>

@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "ccmanager.h"
 #include "parser.h"
 #include "processorhandler.h"
 #include "program.h"
@@ -29,6 +30,16 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_assembler = std::make_unique<Assembler>();
 
     connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+
+    connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
+    connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
+
+    // Ensure that changes to the current compiler path will disable C input, if the compiler is invalid
+    connect(&CCManager::get(), &CCManager::ccChanged, [=](bool valid) {
+        if (!valid) {
+            m_ui->setAssemblyInput->setChecked(true);
+        }
+    });
 
     enableEditor();
 }
@@ -55,7 +66,6 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     }
 
     if (success) {
-        m_loadedFile = fileParams;
         m_activeProgram = loadedProgram;
         emitProgramChanged();
     } else {
@@ -80,6 +90,23 @@ void EditTab::clearAssemblyEditor() {
 void EditTab::updateProgramViewerHighlighting() {
     if (isVisible()) {
         m_ui->programViewer->updateHighlightedAddresses();
+    }
+}
+
+void EditTab::sourceTypeChanged() {
+    if (m_ui->setAssemblyInput->isChecked()) {
+        m_currentFileType = FileType::Assembly;
+    } else if (m_ui->setCInput->isChecked()) {
+        // Ensure that we have a validated C compiler available
+        if (!CCManager::get().hasValidCC()) {
+            QMessageBox::warning(
+                this, "Error",
+                "No C compiler set.\n\nProvide the path to a valid C compiler under:\n Edit->Settings->Editor");
+            // Re-enable assembly input
+            m_ui->setAssemblyInput->setChecked(true);
+        } else {
+            m_currentFileType = FileType::C;
+        }
     }
 }
 

@@ -7,7 +7,7 @@
 
 namespace Ripes {
 
-enum class FileType { Assembly, FlatBinary, Executable };
+enum class FileType { Assembly, C, FlatBinary, Executable };
 
 #define TEXT_SECTION_NAME ".text"
 
