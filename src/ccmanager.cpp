@@ -7,9 +7,21 @@
 
 namespace Ripes {
 
-const static std::vector<QString> s_validAutodetectedCCs = {"riscv64-unknown-elf-gcc"};
+const static std::vector<QString> s_validAutodetectedCCs = {"riscv64-unknown-elf-gcc", "riscv64-unknown-elf-g++",
+                                                            "riscv64-unknown-elf-c++"};
 const static QString s_testprogram = "int main() { return 0; }";
-const static QString s_baseCC = "%1 -march=%2 -mabi=%3 -s %4 -o %5";
+
+/**
+ * @brief s_baseCC
+ * Base compiler command.
+ * - %1: path to compiler executable
+ * - %2: machine architecture
+ * - %3: machine ABI
+ * - -x c: Enforce compilation as C language (allows us to use C++ compilers)
+ * - %4: input source file
+ * - %5: output executable
+ */
+const static QString s_baseCC = "%1 -march=%2 -mabi=%3 -x c -s %4 -o %5";
 
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
