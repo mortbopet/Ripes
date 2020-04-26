@@ -32,9 +32,14 @@ CCManager::CCManager() {
         }
     }
 
+    // At startup, we will always try to validate whether the current CC set in the settings is (still) valid.
     if (RipesSettings::value(RIPES_SETTING_CCPATH) != "") {
-        verifyCC(RipesSettings::value(RIPES_SETTING_CCPATH).toString());
+        trySetCC(RipesSettings::value(RIPES_SETTING_CCPATH).toString());
     }
+}
+
+bool CCManager::hasValidCC() const {
+    return !m_currentCC.isEmpty();
 }
 
 QString CCManager::tryAutodetectCC() {
@@ -53,7 +58,18 @@ QString CCManager::tryAutodetectCC() {
     return QString();
 }
 
-void CCManager::verifyCC(const QString& CCPath) {
+bool CCManager::trySetCC(const QString& CC) {
+    const bool success = verifyCC(CC);
+    if (success) {
+        m_currentCC = CC;
+    } else {
+        m_currentCC = QString();
+    }
+    emit ccChanged(success);
+    return success;
+}
+
+bool CCManager::verifyCC(const QString& CCPath) {
     // Write test program to temporary file with a .c extension
 
     QTemporaryFile testSrcFile(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() +
@@ -87,19 +103,22 @@ void CCManager::verifyCC(const QString& CCPath) {
     process.start(s_cc);
     process.waitForFinished();
 
-    if (!QFile::exists(testSrcFileOut)) {
+    const bool success = QFile::exists(testSrcFileOut);
+
 #ifdef QT_DEBUG
+    if (!success) {
         qDebug() << "Failed to compile test program";
         qDebug() << "CC output: ";
         qDebug() << "Standard output: " << process.readAllStandardOutput();
         qDebug() << "Standard error: " << process.readAllStandardError();
-#endif
-    } else {
     }
+#endif
 
     // Cleanup
     QFile::remove(testSrcFile.fileName());
     QFile::remove(testSrcFileOut);
+
+    return success;
 }
 
 }  // namespace Ripes

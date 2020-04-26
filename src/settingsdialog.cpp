@@ -4,6 +4,7 @@
 #include "ccmanager.h"
 #include "ripessettings.h"
 
+#include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLayout>
@@ -88,15 +89,44 @@ QWidget* SettingsDialog::createEditorPage() {
 
     auto* CCHLayout = new QHBoxLayout();
     auto [cclabel, ccpath] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_CCPATH, "C/C++ compiler path:");
+    m_ccpath = ccpath;
     CCLayout->addLayout(CCHLayout);
     CCHLayout->addWidget(cclabel);
     CCHLayout->addWidget(ccpath);
     auto* pathBrowseButton = new QPushButton("Browse");
+    connect(pathBrowseButton, &QPushButton::clicked, [=, ccpath = ccpath] {
+        QFileDialog dialog(this);
+        dialog.setAcceptMode(QFileDialog::AcceptOpen);
+        if (dialog.exec()) {
+            ccpath->setText(dialog.selectedFiles()[0]);
+        }
+    });
+
+    // Make changes in the CC path trigger revalidation in the CCManager
+    connect(ccpath, &QLineEdit::textChanged, &CCManager::get(), &CCManager::trySetCC);
+
+    // Make CCManager compiler changes trigger background color of the ccpath, indicating whether the CC was determined
+    // to be valid
+    connect(&CCManager::get(), &CCManager::ccChanged, this, &SettingsDialog::CCPathChanged);
+
+    // Trigger initial rehighlighting
+    CCManager::get().trySetCC(CCManager::get().currentCC());
+
     CCHLayout->addWidget(pathBrowseButton);
 
     pageLayout->addWidget(CCGroupBox);
 
     return pageWidget;
+}
+
+void SettingsDialog::CCPathChanged(bool valid) {
+    QPalette palette = this->palette();
+    if (!valid) {
+        palette.setColor(QPalette::Base, QColor(Qt::red).lighter());
+    } else {
+        palette.setColor(QPalette::Base, QColor(Qt::green).lighter());
+    }
+    m_ccpath->setPalette(palette);
 }
 
 QWidget* SettingsDialog::createSimulatorPage() {

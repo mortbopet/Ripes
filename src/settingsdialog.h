@@ -2,6 +2,8 @@
 
 #include <QDialog>
 
+QT_FORWARD_DECLARE_CLASS(QLineEdit);
+
 namespace Ripes {
 
 namespace Ui {
@@ -18,6 +20,13 @@ public:
     void accept() override;
 
 private:
+    /**
+     * @brief CCPathChanged
+     * Rehighlightss the current CCPath if the CC is @param valid
+     */
+    void CCPathChanged(bool valid);
+    QLineEdit* m_ccpath = nullptr;
+
     QWidget* createEditorPage();
     QWidget* createSimulatorPage();
 
