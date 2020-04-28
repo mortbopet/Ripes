@@ -99,7 +99,7 @@ void CacheConfigWidget::setupPresets() {
 
     connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         const CacheSim::CachePreset preset = qvariant_cast<CacheSim::CachePreset>(m_ui->presets->itemData(index));
-
+        m_justSetPreset = true;
         m_cache->setPreset(preset);
     });
 }
@@ -116,7 +116,10 @@ void CacheConfigWidget::handleConfigurationChanged() {
     setEnumIndex(m_ui->wrMiss, m_cache->getWriteAllocPolicy());
     setEnumIndex(m_ui->replacementPolicy, m_cache->getReplacementPolicy());
 
-    m_ui->presets->setCurrentIndex(-1);
+    if (!m_justSetPreset) {
+        m_ui->presets->setCurrentIndex(-1);
+    }
+    m_justSetPreset = false;
 
     std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(false); });
 
