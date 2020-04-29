@@ -102,7 +102,7 @@ void EditTab::sourceTypeChanged() {
         if (!CCManager::get().hasValidCC()) {
             QMessageBox::warning(
                 this, "Error",
-                "No C compiler set.\n\nProvide the path to a valid C compiler under:\n Edit->Settings->Editor");
+                "No C compiler set.\n\nProvide a path to a valid C compiler under:\n Edit->Settings->Editor");
             // Re-enable assembly input
             m_ui->setAssemblyInput->setChecked(true);
         } else {

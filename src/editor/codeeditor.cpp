@@ -15,6 +15,7 @@
 #include <iterator>
 
 #include "processorhandler.h"
+#include "rvassemblyhighlighter.h"
 
 namespace Ripes {
 
@@ -96,25 +97,16 @@ bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
     return false;
 }
 
-void CodeEditor::updateTooltip(int line, QString tip) {
-    // Connects to AsmHighlighter::setTooltip
-    if (tip == QString()) {
-        // unset tooltip - accepted syntax at line
-        m_tooltipForLine.remove(line);
-    } else {
-        m_tooltipForLine[line] = tip;
-    }
-}
-
 bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
         // Tooltips are updated through slot handler updateTooltip
         auto* helpEvent = static_cast<QHelpEvent*>(event);
         QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
-        int row = textAtCursor.block().firstLineNumber();
-        if (m_tooltipForLine.contains(row) && m_tooltipForLine[row] != QString()) {
-            QToolTip::showText(helpEvent->globalPos(), m_tooltipForLine[row]);
+        const int row = textAtCursor.block().firstLineNumber();
+        const QString tooltip = m_highlighter->getTooltipForLine(row);
+        if (tooltip != QString()) {
+            QToolTip::showText(helpEvent->globalPos(), tooltip);
         } else {
             QToolTip::hideText();
             event->ignore();
@@ -185,23 +177,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
 void CodeEditor::setupSyntaxHighlighter() {
     // Creates AsmHighlighter object and connects it to the current document
-    m_highlighter = new SyntaxHighlighter(document());
-    // connect tooltip changes from asm highlighter
-    connect(m_highlighter, &SyntaxHighlighter::setTooltip, this, &CodeEditor::updateTooltip);
-
-    // The highlighting is reset upon line count changes, to detect label invalidation
-    connect(this->document(), &QTextDocument::cursorPositionChanged, m_highlighter,
-            &SyntaxHighlighter::invalidateLabels);
-    connect(this->document(), &QTextDocument::blockCountChanged, [=] {
-        m_highlighter->clearAndRehighlight();
-        auto errors = m_tooltipForLine;
-        for (const auto& e : errors.toStdMap()) {
-            // Remove any error tooltip for lines which have been deleted
-            if (e.first >= blockCount()) {
-                m_tooltipForLine.remove(e.first);
-            }
-        }
-    });
+    m_highlighter = std::make_unique<RVAssemblyHighlighter>(document());
 }
 
 }  // namespace Ripes

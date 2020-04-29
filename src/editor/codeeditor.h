@@ -28,10 +28,9 @@ public:
     void setupChangedTimer();
     void reset() {
         m_highlighter->reset();
-        m_tooltipForLine.clear();
         clear();
     }
-    bool syntaxAccepted() const { return m_tooltipForLine.isEmpty(); }
+    bool syntaxAccepted() const { return m_highlighter->acceptsSyntax(); }
 
 signals:
     void textChanged();
@@ -44,17 +43,15 @@ private slots:
     void updateSidebarWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
-    void updateTooltip(int line, QString tip);
 
 private:
-    SyntaxHighlighter* m_highlighter;
+    std::unique_ptr<SyntaxHighlighter> m_highlighter;
+
     LineNumberArea* m_lineNumberArea;
     int m_sidebarWidth;
 
     bool m_syntaxChecking = false;
     bool m_breakpointAreaEnabled = false;
-
-    QMap<int, QString> m_tooltipForLine;
 
     QFont m_font;
 
