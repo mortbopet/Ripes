@@ -10,6 +10,7 @@
 #include <QPushButton>
 
 #include "ccmanager.h"
+#include "editor/codeeditor.h"
 #include "parser.h"
 #include "processorhandler.h"
 #include "program.h"

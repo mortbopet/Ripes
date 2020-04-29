@@ -5,10 +5,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 file(GLOB LIB_SOURCES
     *.cpp
     cachesim/*.cpp
+    editor/*.cpp
     version/version.cpp)
 file(GLOB LIB_HEADERS
     *.h
     cachesim/*.h
+    editor/*.h
     graphics/*.h)
 file(GLOB LIB_UIS
     *.ui

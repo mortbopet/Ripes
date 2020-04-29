@@ -338,7 +338,7 @@
   <customwidget>
    <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>codeeditor.h</header>
+   <header>editor/codeeditor.h</header>
   </customwidget>
   <customwidget>
    <class>ProgramViewer</class>
