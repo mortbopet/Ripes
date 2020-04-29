@@ -22,15 +22,11 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
 
-    // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
-    // translation is complete
-    m_ui->assemblyedit->setupSyntaxHighlighter();
-    m_ui->assemblyedit->setupChangedTimer();
     m_ui->programViewer->setReadOnly(true);
 
     m_assembler = std::make_unique<Assembler>();
 
-    connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::assemble);
 
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
@@ -55,13 +51,13 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     bool success = true;
     Program loadedProgram;
     switch (fileParams.type) {
-        case FileType::Assembly:
+        case SourceType::Assembly:
             success &= loadAssemblyFile(loadedProgram, file);
             break;
-        case FileType::FlatBinary:
+        case SourceType::FlatBinary:
             success &= loadFlatBinaryFile(loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
             break;
-        case FileType::Executable:
+        case SourceType::Executable:
             success &= loadElfFile(loadedProgram, file);
             break;
     }
@@ -76,7 +72,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
 }
 
 QString EditTab::getAssemblyText() {
-    return m_ui->assemblyedit->toPlainText();
+    return m_ui->codeEditor->toPlainText();
 }
 
 const QByteArray& EditTab::getBinaryData() {
@@ -84,7 +80,7 @@ const QByteArray& EditTab::getBinaryData() {
 }
 
 void EditTab::clearAssemblyEditor() {
-    m_ui->assemblyedit->reset();
+    m_ui->codeEditor->reset();
     m_assembler->clear();
 }
 
@@ -95,8 +91,9 @@ void EditTab::updateProgramViewerHighlighting() {
 }
 
 void EditTab::sourceTypeChanged() {
+    // Validate source type selection
     if (m_ui->setAssemblyInput->isChecked()) {
-        m_currentFileType = FileType::Assembly;
+        m_currentFileType = SourceType::Assembly;
     } else if (m_ui->setCInput->isChecked()) {
         // Ensure that we have a validated C compiler available
         if (!CCManager::get().hasValidCC()) {
@@ -105,10 +102,14 @@ void EditTab::sourceTypeChanged() {
                 "No C compiler set.\n\nProvide a path to a valid C compiler under:\n Edit->Settings->Editor");
             // Re-enable assembly input
             m_ui->setAssemblyInput->setChecked(true);
+            return;
         } else {
-            m_currentFileType = FileType::C;
+            m_currentFileType = SourceType::C;
         }
     }
+
+    // Notify the source type change to the code editor
+    m_ui->codeEditor->setSourceType(m_currentFileType);
 }
 
 void EditTab::emitProgramChanged() {
@@ -117,8 +118,8 @@ void EditTab::emitProgramChanged() {
 }
 
 void EditTab::assemble() {
-    if (m_ui->assemblyedit->syntaxAccepted()) {
-        m_assembler->assemble(*m_ui->assemblyedit->document());
+    if (m_ui->codeEditor->syntaxAccepted()) {
+        m_assembler->assemble(*m_ui->codeEditor->document());
         if (!m_assembler->hasError()) {
             m_activeProgram = m_assembler->getProgram();
             emitProgramChanged();
@@ -135,14 +136,14 @@ EditTab::~EditTab() {
 }
 
 void EditTab::newProgram() {
-    m_ui->assemblyedit->reset();
-    m_ui->assemblyedit->clear();
+    m_ui->codeEditor->reset();
+    m_ui->codeEditor->clear();
     enableAssemblyInput();
 }
 
 void EditTab::setAssemblyText(const QString& text) {
-    m_ui->assemblyedit->reset();
-    m_ui->assemblyedit->setPlainText(text);
+    m_ui->codeEditor->reset();
+    m_ui->codeEditor->setPlainText(text);
 }
 
 void EditTab::enableAssemblyInput() {
@@ -159,12 +160,12 @@ void EditTab::updateProgramViewer() {
 }
 
 void EditTab::enableEditor() {
-    connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(0);
 }
 
 void EditTab::disableEditor() {
-    disconnect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+    disconnect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
     m_editorEnabled = false;

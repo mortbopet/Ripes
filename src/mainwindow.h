@@ -48,7 +48,7 @@ signals:
     void updateMemoryTab();
 
 private:
-    void loadFile(const QString& filename, FileType type);
+    void loadFile(const QString& filename, SourceType type);
 
     void setupMenus();
     void setupExamplesMenu(QMenu* parent);

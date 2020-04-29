@@ -77,7 +77,7 @@ private:
 
     Program m_activeProgram;
 
-    FileType m_currentFileType;
+    SourceType m_currentFileType;
 
     bool m_editorEnabled = true;
 };

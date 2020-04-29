@@ -22,9 +22,9 @@ class CodeEditor : public QPlainTextEdit {
 public:
     CodeEditor(QWidget* parent = nullptr);
 
+    void setSourceType(SourceType type);
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     int lineNumberAreaWidth();
-    void setupSyntaxHighlighter();
     void setupChangedTimer();
     void reset() {
         m_highlighter->reset();
@@ -52,6 +52,8 @@ private:
 
     bool m_syntaxChecking = false;
     bool m_breakpointAreaEnabled = false;
+
+    SourceType m_sourceType = SourceType::Assembly;
 
     QFont m_font;
 

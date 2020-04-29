@@ -7,13 +7,13 @@
 
 namespace Ripes {
 
-enum class FileType { Assembly, C, FlatBinary, Executable };
+enum class SourceType { Assembly, C, FlatBinary, Executable };
 
 #define TEXT_SECTION_NAME ".text"
 
 struct LoadFileParams {
     QString filepath;
-    FileType type;
+    SourceType type;
     unsigned long binaryEntryPoint;
     unsigned long binaryLoadAt;
 };

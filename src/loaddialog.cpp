@@ -61,17 +61,17 @@ void LoadDialog::inputTypeChanged() {
     s_typeIndex = static_cast<LoadDialog::TypeButtonID>(m_fileTypeButtons->checkedId());
     switch (m_fileTypeButtons->checkedId()) {
         case LoadDialog::TypeButtonID::Assembly: {
-            m_fileType = FileType::Assembly;
+            m_fileType = SourceType::Assembly;
             updateAssemblyPageState();
             break;
         }
         case LoadDialog::TypeButtonID::FlatBinary: {
-            m_fileType = FileType::FlatBinary;
+            m_fileType = SourceType::FlatBinary;
             updateBinaryPageState();
             break;
         }
         case LoadDialog::TypeButtonID::ELF: {
-            m_fileType = FileType::Executable;
+            m_fileType = SourceType::Executable;
             updateELFPageState();
             break;
         }
@@ -83,17 +83,17 @@ void LoadDialog::openFileButtonTriggered() {
     QString title;
     QString filter;
     switch (m_fileType) {
-        case FileType::Assembly: {
+        case SourceType::Assembly: {
             title = "Open assembly file";
             filter = "Assembly files [*.s, *.as, *.asm] (*.s *.as *.asm);; All files (*.*)";
             break;
         }
-        case FileType::FlatBinary: {
+        case SourceType::FlatBinary: {
             title = "Open binary file";
             filter = "All files (*)";
             break;
         }
-        case FileType::Executable: {
+        case SourceType::Executable: {
             title = "Open executable (ELF) file";
             filter = "All files (*)";
             break;
@@ -198,11 +198,11 @@ finish:
 
 bool LoadDialog::fileTypeValidate(const QFile& file) {
     switch (m_fileType) {
-        case FileType::Assembly:
+        case SourceType::Assembly:
             return validateAssemblyFile(file);
-        case FileType::FlatBinary:
+        case SourceType::FlatBinary:
             return validateBinaryFile(file);
-        case FileType::Executable:
+        case SourceType::Executable:
             return validateELFFile(file);
     }
     Q_UNREACHABLE();

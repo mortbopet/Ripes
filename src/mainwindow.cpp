@@ -155,7 +155,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
             parent->addAction(fileName, [=] {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/assembly/") + fileName;
-                parms.type = FileType::Assembly;
+                parms.type = SourceType::Assembly;
                 m_editTab->loadFile(parms);
                 m_hasSavedFile = false;
             });
@@ -176,7 +176,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 
                 LoadFileParams parms;
                 parms.filepath = tmpELFFile->fileName();
-                parms.type = FileType::Executable;
+                parms.type = SourceType::Executable;
                 m_editTab->loadFile(parms);
                 m_hasSavedFile = false;
                 tmpELFFile->remove();

@@ -104,7 +104,7 @@
                   <number>0</number>
                  </property>
                  <item row="0" column="0">
-                  <widget class="CodeEditor" name="assemblyedit"/>
+                  <widget class="CodeEditor" name="codeEditor"/>
                  </item>
                 </layout>
                </widget>
@@ -254,7 +254,6 @@
                  </item>
                 </layout>
                </widget>
-               <widget class="QWidget" name="cSourcePage"/>
               </widget>
              </item>
             </layout>

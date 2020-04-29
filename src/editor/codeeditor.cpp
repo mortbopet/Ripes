@@ -134,6 +134,19 @@ void CodeEditor::resizeEvent(QResizeEvent* e) {
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
+void CodeEditor::setSourceType(SourceType type) {
+    m_sourceType = type;
+
+    // Creates AsmHighlighter object and connects it to the current document
+    switch (m_sourceType) {
+        case SourceType::Assembly:
+            m_highlighter = std::make_unique<RVAssemblyHighlighter>(document());
+            break;
+        default:
+            break;
+    }
+}
+
 void CodeEditor::highlightCurrentLine() {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
@@ -173,11 +186,6 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
         bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
-}
-
-void CodeEditor::setupSyntaxHighlighter() {
-    // Creates AsmHighlighter object and connects it to the current document
-    m_highlighter = std::make_unique<RVAssemblyHighlighter>(document());
 }
 
 }  // namespace Ripes
