@@ -39,10 +39,15 @@ Initially, the following dependencies must be made available:
 
 Then, Ripes may be built as a standard CMake project:
 ```
-Unix:               Windows:
-cd Ripes/           cd Ripes/
-cmake .             cmake .
-make                jom.exe / nmake.exe / ...
+Unix:                 Windows:
+cd Ripes/             cd Ripes/
+git submodule init    git submodule init
+git submodule update  git submodule update
+cd external/VSRTL     cd external/VSRTL
+git submodule init    git submodule init
+git submodule update  git submodule update
+cmake .               cmake .
+make                  jom.exe / nmake.exe / ...
 ```
 Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
 
