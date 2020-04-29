@@ -4,16 +4,18 @@
 
 namespace Ripes {
 SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
-    connect(this->document(), &QTextDocument::blockCountChanged, [=] {
-        clearAndRehighlight();
-        const auto tooltipsCopy = m_tooltipForLine;  // deep copy
-        // Remove any  tooltip for lines which have been deleted
-        for (const auto& tooltip : tooltipsCopy) {
-            if (tooltip.first >= this->document()->blockCount()) {
-                m_tooltipForLine.erase(tooltip.first);
-            }
+    connect(this->document(), &QTextDocument::blockCountChanged, this, &SyntaxHighlighter::handleBlockCountChanged);
+}
+
+void SyntaxHighlighter::handleBlockCountChanged() {
+    clearAndRehighlight();
+    const auto tooltipsCopy = m_tooltipForLine;  // deep copy
+    // Remove any  tooltip for lines which have been deleted
+    for (const auto& tooltip : tooltipsCopy) {
+        if (tooltip.first >= this->document()->blockCount()) {
+            m_tooltipForLine.erase(tooltip.first);
         }
-    });
+    }
 }
 
 QString SyntaxHighlighter::getTooltipForLine(int index) const {

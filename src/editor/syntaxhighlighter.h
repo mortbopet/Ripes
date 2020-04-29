@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QRegularExpression>
 #include <QSyntaxHighlighter>
 
 namespace Ripes {
@@ -15,8 +14,6 @@ public:
 
     virtual void highlightBlock(const QString& text) = 0;
     virtual void reset();
-    virtual QString checkSyntax(const QString& line) = 0;
-
     virtual bool acceptsSyntax() const = 0;
 
 signals:
@@ -26,6 +23,8 @@ public slots:
     virtual void clearAndRehighlight() = 0;
 
 protected:
+    void handleBlockCountChanged();
+
     void setTooltip(int line, QString tooltip);
     void clearTooltip(int line);
     /**

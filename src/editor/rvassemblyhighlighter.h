@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QRegularExpression>
+
 #include "syntaxhighlighter.h"
 
 namespace Ripes {
@@ -34,10 +36,10 @@ public:
 
     void highlightBlock(const QString& text) override;
     void reset() override;
-    QString checkSyntax(const QString& line) override;
     bool acceptsSyntax() const override;
 
 private:
+    QString checkSyntax(const QString& line);
     struct HighlightingRule {
         QRegularExpression pattern;
         QTextCharFormat format;
