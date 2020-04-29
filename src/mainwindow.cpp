@@ -162,6 +162,19 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
         }
     }
 
+    const auto cExamples = QDir(":/examples/C/").entryList(QDir::Files);
+    if (!cExamples.isEmpty()) {
+        for (const auto& fileName : cExamples) {
+            parent->addAction(fileName, [=] {
+                LoadFileParams parms;
+                parms.filepath = QString(":/examples/C/") + fileName;
+                parms.type = SourceType::C;
+                m_editTab->loadFile(parms);
+                m_hasSavedFile = false;
+            });
+        }
+    }
+
     const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
     if (!ELFExamples.isEmpty()) {
         for (const auto& fileName : ELFExamples) {

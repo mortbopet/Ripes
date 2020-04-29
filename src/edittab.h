@@ -59,10 +59,11 @@ public slots:
     void enableAssemblyInput();
 
 private slots:
-    void assemble();
+    void sourceCodeChanged();
     void on_disassembledViewButton_toggled();
 
 private:
+    void assemble();
     void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
     bool loadAssemblyFile(Program& program, QFile& file);
@@ -77,7 +78,7 @@ private:
 
     Program m_activeProgram;
 
-    SourceType m_currentFileType;
+    SourceType m_currentSourceType;
 
     bool m_editorEnabled = true;
 };

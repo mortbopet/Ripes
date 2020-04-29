@@ -9,11 +9,13 @@
 #include <QPainter>
 #include <QSyntaxHighlighter>
 #include <QTextBlock>
+#include <QTimer>
 #include <QToolTip>
 #include <QWheelEvent>
 
 #include <iterator>
 
+#include "csyntaxhighlighter.h"
 #include "processorhandler.h"
 #include "rvassemblyhighlighter.h"
 
@@ -44,14 +46,15 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 }
 
 void CodeEditor::setupChangedTimer() {
+    m_changeTimer = new QTimer(this);
     // configures the change-timer and assembler connectivity with Parser
-    m_changeTimer.setInterval(500);
-    m_changeTimer.setSingleShot(true);
+    m_changeTimer->setInterval(500);
+    m_changeTimer->setSingleShot(true);
     // A change in the document will start the timer - when the timer elapses, the contents will be assembled if there
     // is no syntax error. By doing this, the timer is restartet each time a change occurs (ie. a user is continuously
     // typing)
-    connect(this, &QPlainTextEdit::textChanged, [=] { m_changeTimer.start(); });
-    connect(&m_changeTimer, &QTimer::timeout, this, &CodeEditor::textChanged);
+    connect(this, &QPlainTextEdit::textChanged, m_changeTimer, QOverload<>::of(&QTimer::start));
+    connect(m_changeTimer, &QTimer::timeout, this, &CodeEditor::textChanged);
 }
 
 int CodeEditor::lineNumberAreaWidth() {
@@ -141,6 +144,9 @@ void CodeEditor::setSourceType(SourceType type) {
     switch (m_sourceType) {
         case SourceType::Assembly:
             m_highlighter = std::make_unique<RVAssemblyHighlighter>(document());
+            break;
+        case SourceType::C:
+            m_highlighter = std::make_unique<CSyntaxHighlighter>(document());
             break;
         default:
             break;

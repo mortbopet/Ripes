@@ -26,7 +26,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     m_assembler = std::make_unique<Assembler>();
 
-    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::assemble);
+    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::sourceCodeChanged);
 
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
@@ -39,6 +39,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     });
 
     enableEditor();
+    sourceTypeChanged();
 }
 
 void EditTab::loadFile(const LoadFileParams& fileParams) {
@@ -51,6 +52,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     bool success = true;
     Program loadedProgram;
     switch (fileParams.type) {
+        case SourceType::C:
         case SourceType::Assembly:
             success &= loadAssemblyFile(loadedProgram, file);
             break;
@@ -93,7 +95,7 @@ void EditTab::updateProgramViewerHighlighting() {
 void EditTab::sourceTypeChanged() {
     // Validate source type selection
     if (m_ui->setAssemblyInput->isChecked()) {
-        m_currentFileType = SourceType::Assembly;
+        m_currentSourceType = SourceType::Assembly;
     } else if (m_ui->setCInput->isChecked()) {
         // Ensure that we have a validated C compiler available
         if (!CCManager::get().hasValidCC()) {
@@ -104,17 +106,30 @@ void EditTab::sourceTypeChanged() {
             m_ui->setAssemblyInput->setChecked(true);
             return;
         } else {
-            m_currentFileType = SourceType::C;
+            m_currentSourceType = SourceType::C;
         }
     }
 
     // Notify the source type change to the code editor
-    m_ui->codeEditor->setSourceType(m_currentFileType);
+    m_ui->codeEditor->setSourceType(m_currentSourceType);
 }
 
 void EditTab::emitProgramChanged() {
     emit programChanged(&m_activeProgram);
     updateProgramViewer();
+}
+
+void EditTab::sourceCodeChanged() {
+    switch (m_currentSourceType) {
+        case SourceType::Assembly:
+            assemble();
+            break;
+        case SourceType::C:
+            break;
+        default:
+            // Do nothing, some external program is loaded
+            break;
+    }
 }
 
 void EditTab::assemble() {
@@ -160,12 +175,12 @@ void EditTab::updateProgramViewer() {
 }
 
 void EditTab::enableEditor() {
-    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::assemble);
+    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::sourceCodeChanged);
     m_ui->editorStackedWidget->setCurrentIndex(0);
 }
 
 void EditTab::disableEditor() {
-    disconnect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::assemble);
+    disconnect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::sourceCodeChanged);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
     m_editorEnabled = false;
