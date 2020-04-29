@@ -15,7 +15,7 @@ Report bugs, issues or feature requests at https://github.com/mortbopet/Ripes/is
 Ripes may be used to explore concepts such as:
 - How machine code is executed on a variety of microarchitectures
 - How different cache designs influence performance
-- How assembly code is translated to executable machine code
+- How assembly code is assembled to executable machine code
 
 If this is your first time using Ripes, please refer to the [introduction](https://github.com/mortbopet/Ripes/wiki/Ripes-Introduction).  
 For further information, please refer to the [Ripes wiki](https://github.com/mortbopet/Ripes/wiki).
