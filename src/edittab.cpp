@@ -42,6 +42,11 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     sourceTypeChanged();
 }
 
+void EditTab::loadExternalFile(const LoadFileParams& params) {
+    m_currentSourceType = params.type;
+    loadFile(params);
+}
+
 void EditTab::loadFile(const LoadFileParams& fileParams) {
     QFile file(fileParams.filepath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -63,9 +68,9 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
             success &= loadElfFile(loadedProgram, file);
             break;
         case SourceType::ExternalELF:
-            success &= loadElfFile(loadedProgram, file);
             // Since there is no related source code for an externally compiled ELF, the editor is disabled
             disableEditor();
+            success &= loadElfFile(loadedProgram, file);
             break;
     }
 
@@ -98,6 +103,12 @@ void EditTab::updateProgramViewerHighlighting() {
 }
 
 void EditTab::sourceTypeChanged() {
+    if (!m_editorEnabled) {
+        // Do nothing; editor is currently disabled so we should not care about updating our source type being the code
+        // editor. sourceTypeChanged() will be re-executed once the editor is reenabled.
+        return;
+    }
+
     // Validate source type selection
     if (m_ui->setAssemblyInput->isChecked()) {
         m_currentSourceType = SourceType::Assembly;
@@ -191,8 +202,6 @@ void EditTab::enableAssemblyInput() {
     m_activeProgram = Program();
     m_ui->programViewer->clear();
     enableEditor();
-    m_editorEnabled = true;
-    emit editorStateChanged(m_editorEnabled);
 }
 
 void EditTab::updateProgramViewer() {
@@ -200,7 +209,10 @@ void EditTab::updateProgramViewer() {
 }
 
 void EditTab::enableEditor() {
+    m_editorEnabled = true;
     m_ui->editorStackedWidget->setCurrentIndex(0);
+    sourceTypeChanged();
+    emit editorStateChanged(m_editorEnabled);
 }
 
 void EditTab::disableEditor() {

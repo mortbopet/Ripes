@@ -156,7 +156,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = SourceType::Assembly;
-                m_editTab->loadFile(parms);
+                m_editTab->loadExternalFile(parms);
                 m_hasSavedFile = false;
             });
         }
@@ -169,7 +169,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/C/") + fileName;
                 parms.type = SourceType::C;
-                m_editTab->loadFile(parms);
+                m_editTab->loadExternalFile(parms);
                 m_hasSavedFile = false;
             });
         }
@@ -190,7 +190,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 LoadFileParams parms;
                 parms.filepath = tmpELFFile->fileName();
                 parms.type = SourceType::ExternalELF;
-                m_editTab->loadFile(parms);
+                m_editTab->loadExternalFile(parms);
                 m_hasSavedFile = false;
                 tmpELFFile->remove();
             });
@@ -223,7 +223,7 @@ void MainWindow::loadFileTriggered() {
     if (!diag.exec())
         return;
 
-    m_editTab->loadFile(diag.getParams());
+    m_editTab->loadExternalFile(diag.getParams());
     m_hasSavedFile = false;
 }
 

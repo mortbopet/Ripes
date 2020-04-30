@@ -36,6 +36,11 @@ public:
     const QByteArray& getBinaryData();
 
     void loadFile(const LoadFileParams&);
+    /**
+     * @brief loadExternalFile
+     * sets the current source type to whatever is specified by @p params and calls loadFile(@p params);
+     */
+    void loadExternalFile(const LoadFileParams& params);
 
 signals:
     void programChanged(const Program* program);
