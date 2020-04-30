@@ -10,6 +10,7 @@
 #include <QPushButton>
 
 #include "ccmanager.h"
+#include "compilererrordialog.h"
 #include "editor/codeeditor.h"
 #include "parser.h"
 #include "processorhandler.h"
@@ -21,12 +22,11 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_ui->setupUi(this);
 
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
+    connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
 
     m_ui->programViewer->setReadOnly(true);
 
     m_assembler = std::make_unique<Assembler>();
-
-    connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
 
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
@@ -163,11 +163,10 @@ void EditTab::compile() {
         loadFile(params);
         // Clean up temporary source and output files
     } else {
-        QMessageBox compileErrorMsg(this);
-        compileErrorMsg.setWindowTitle("Compile error");
-        compileErrorMsg.setText("Compilation failed.\nView detailed text for compiler output.");
-        compileErrorMsg.setDetailedText(CCManager::getError());
-        compileErrorMsg.exec();
+        CompilerErrorDialog errDiag(this);
+        errDiag.setText("Compilation failed. Error output was:");
+        errDiag.setErrorText(CCManager::getError());
+        errDiag.exec();
     }
     res.clean();
 }
@@ -201,12 +200,10 @@ void EditTab::updateProgramViewer() {
 }
 
 void EditTab::enableEditor() {
-    connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
     m_ui->editorStackedWidget->setCurrentIndex(0);
 }
 
 void EditTab::disableEditor() {
-    disconnect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
     m_editorEnabled = false;
