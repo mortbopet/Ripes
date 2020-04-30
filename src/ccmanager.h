@@ -1,7 +1,10 @@
 #pragma once
 
+#include <QFile>
 #include <QObject>
+#include <QProcess>
 #include <QString>
+#include <QTextDocument>
 
 namespace Ripes {
 
@@ -13,6 +16,17 @@ namespace Ripes {
 class CCManager : public QObject {
     Q_OBJECT
 public:
+    struct CCRes {
+        QString inFile;
+        QString outFile;
+        bool success;
+
+        void clean() {
+            QFile::remove(inFile);
+            QFile::remove(outFile);
+        }
+    };
+
     static CCManager& get() {
         static CCManager manager;
         return manager;
@@ -20,6 +34,16 @@ public:
 
     bool hasValidCC() const;
     const QString& currentCC() const { return m_currentCC; }
+
+    /**
+     * @brief compile
+     * Runs the current compiler, with the current set of arguments, on file @p filename. @returns information about the
+     * compiled file, such as source file, output file and compilation status. If no @p outname has been provided, the
+     * output file will be placed in a temporary directory.
+     */
+    CCRes compile(const QString& filename, QString outname = QString());
+    CCRes compile(const QTextDocument& source, QString outname = QString());
+    CCRes compileRaw(const QString& rawsource, QString outname = QString());
 
 signals:
     /**
@@ -37,6 +61,8 @@ public slots:
     bool trySetCC(const QString& CC);
 
 private:
+    QString createCompileCommand(const QString& filename, const QString& outname) const;
+
     /**
      * @brief tryAutodetectCC
      * Will attempt to scan the current PATH to locate a valid compiler
@@ -51,8 +77,8 @@ private:
     bool verifyCC(const QString& CC);
 
     CCManager();
-
     QString m_currentCC;
+    QProcess m_process;
 };
 
 }  // namespace Ripes

@@ -69,25 +69,51 @@ bool CCManager::trySetCC(const QString& CC) {
     return success;
 }
 
-bool CCManager::verifyCC(const QString& CCPath) {
-    // Write test program to temporary file with a .c extension
-
-    QTemporaryFile testSrcFile(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() +
-                               ".XXXXXX.c");
-    if (testSrcFile.open()) {
-        QTextStream stream(&testSrcFile);
-        stream << s_testprogram;
+CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname) {
+    // Write program to temporary file with a .c extension
+    QTemporaryFile tmpSrcFile(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
+    if (tmpSrcFile.open()) {
+        QTextStream stream(&tmpSrcFile);
+        stream << rawsource;
     }
-    Q_ASSERT(!testSrcFile.fileName().isEmpty());
-    const QString& testSrcFileOut = testSrcFile.fileName() + ".out";
+    Q_ASSERT(!tmpSrcFile.fileName().isEmpty());
+    return compile(tmpSrcFile.fileName(), outname);
+}
 
+CCManager::CCRes CCManager::compile(const QTextDocument& source, QString outname) {
+    return compileRaw(source.toRawText(), outname);
+}
+
+CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
+    CCRes res;
+    if (outname.isEmpty()) {
+        outname = QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.out";
+    }
+
+    res.inFile = filename;
+    res.outFile = outname;
+
+    const QString ccc = createCompileCommand(filename, outname);
+
+    // Run compiler
+    m_process.close();
+    m_process.start(ccc);
+    m_process.waitForFinished();
+
+    const bool success = QFile::exists(outname);
+    res.success = success;
+
+    return res;
+}
+
+QString CCManager::createCompileCommand(const QString& filename, const QString& outname) const {
     const auto& currentISA = ProcessorHandler::get()->currentISA();
 
     // Generate compile command
     QString s_cc = s_baseCC;
 
     // Substitute compiler path
-    s_cc = s_cc.arg(CCPath);
+    s_cc = s_cc.arg(m_currentCC);
 
     // Substitute machine architecture
     s_cc = s_cc.arg(currentISA->CCmarch());
@@ -99,29 +125,29 @@ bool CCManager::verifyCC(const QString& CCPath) {
     s_cc = s_cc.arg(RipesSettings::value(RIPES_SETTING_CCARGS).toString());
 
     // Substitute in and out files
-    s_cc = s_cc.arg(testSrcFile.fileName()).arg(testSrcFileOut);
+    s_cc = s_cc.arg(filename).arg(outname);
 
-    // Run compiler
-    QProcess process;
-    process.start(s_cc);
-    process.waitForFinished();
+    return s_cc;
+}
 
-    const bool success = QFile::exists(testSrcFileOut);
+bool CCManager::verifyCC(const QString& CCPath) {
+    // Try to set CCPath as current compiler, and compile test program
+    m_currentCC = CCPath;
+    auto res = compileRaw(s_testprogram);
 
 #ifdef QT_DEBUG
-    if (!success) {
+    if (!res.success) {
         qDebug() << "Failed to compile test program";
         qDebug() << "CC output: ";
-        qDebug() << "Standard output: " << process.readAllStandardOutput();
-        qDebug() << "Standard error: " << process.readAllStandardError();
+        qDebug() << "Standard output: " << m_process.readAllStandardOutput();
+        qDebug() << "Standard error: " << m_process.readAllStandardError();
     }
 #endif
 
     // Cleanup
-    QFile::remove(testSrcFile.fileName());
-    QFile::remove(testSrcFileOut);
+    res.clean();
 
-    return success;
+    return res.success;
 }
 
 }  // namespace Ripes
