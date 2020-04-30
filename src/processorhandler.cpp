@@ -185,8 +185,10 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 }
 
 void ProcessorHandler::handleSysCall() {
-    const unsigned int arg = m_currentProcessor->getRegister(17);
-    const auto val = m_currentProcessor->getRegister(10);
+    const int argumentRegister = 17;  // a7
+    const int valueRegister = 10;     // a0
+    const unsigned int arg = m_currentProcessor->getRegister(argumentRegister);
+    const auto val = m_currentProcessor->getRegister(valueRegister);
     switch (arg) {
         case SysCall::None:
             return;
@@ -236,7 +238,8 @@ void ProcessorHandler::handleSysCall() {
         }
         default: {
             QMessageBox::warning(nullptr, "Error",
-                                 "Unknown system call argument in register a0: " + QString::number(arg));
+                                 "Unknown system call argument in register " +
+                                     currentISA()->regAlias(argumentRegister) + ": " + QString::number(arg));
             return;
         }
     }
