@@ -33,7 +33,14 @@ public:
     bool syntaxAccepted() const { return m_highlighter->acceptsSyntax(); }
 
 signals:
-    void textChanged();
+    /**
+     * @brief timedTextChanged
+     * Using m_changeTimer, timedTextChanged will be emitted whenever the user has stopped editing the text document for
+     * some time.
+     * The signal may be used as an alternative to QPlainTextEdit::textChanged(), to reduce the amount of updates
+     * performed wrt. text changes.
+     */
+    void timedTextChanged();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;

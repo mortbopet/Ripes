@@ -50,11 +50,12 @@ void CodeEditor::setupChangedTimer() {
     // configures the change-timer and assembler connectivity with Parser
     m_changeTimer->setInterval(500);
     m_changeTimer->setSingleShot(true);
+
     // A change in the document will start the timer - when the timer elapses, the contents will be assembled if there
     // is no syntax error. By doing this, the timer is restartet each time a change occurs (ie. a user is continuously
     // typing)
     connect(this, &QPlainTextEdit::textChanged, m_changeTimer, QOverload<>::of(&QTimer::start));
-    connect(m_changeTimer, &QTimer::timeout, this, &CodeEditor::textChanged);
+    connect(m_changeTimer, &QTimer::timeout, this, &CodeEditor::timedTextChanged);
 }
 
 int CodeEditor::lineNumberAreaWidth() {

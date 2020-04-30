@@ -26,7 +26,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     m_assembler = std::make_unique<Assembler>();
 
-    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::sourceCodeChanged);
+    connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
 
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
@@ -165,7 +165,7 @@ void EditTab::compile() {
     } else {
         QMessageBox compileErrorMsg(this);
         compileErrorMsg.setWindowTitle("Compile error");
-        compileErrorMsg.setText("Compilation failed. View detailed text for compiler output.");
+        compileErrorMsg.setText("Compilation failed.\nView detailed text for compiler output.");
         compileErrorMsg.setDetailedText(CCManager::getError());
         compileErrorMsg.exec();
     }
@@ -201,12 +201,12 @@ void EditTab::updateProgramViewer() {
 }
 
 void EditTab::enableEditor() {
-    connect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::sourceCodeChanged);
+    connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
     m_ui->editorStackedWidget->setCurrentIndex(0);
 }
 
 void EditTab::disableEditor() {
-    disconnect(m_ui->codeEditor, &CodeEditor::textChanged, this, &EditTab::sourceCodeChanged);
+    disconnect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
     m_editorEnabled = false;
