@@ -80,6 +80,8 @@ private:
     void enableEditor();
     void disableEditor();
 
+    QAction* m_buildAction = nullptr;
+
     Ui::EditTab* m_ui = nullptr;
     std::unique_ptr<Assembler> m_assembler;
 

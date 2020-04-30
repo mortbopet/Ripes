@@ -21,6 +21,14 @@ namespace Ripes {
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
+    m_buildAction = new QAction(this);
+    m_buildAction->setIcon(QIcon(":/icons/build.svg"));
+    m_buildAction->setText("Compile C program");
+    m_buildAction->setEnabled(false);
+    m_buildAction->setShortcut(QKeySequence("Ctrl+B"));
+    connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
+    m_toolbar->addAction(m_buildAction);
+
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
     connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
 
@@ -103,6 +111,9 @@ void EditTab::updateProgramViewerHighlighting() {
 }
 
 void EditTab::sourceTypeChanged() {
+    // Convervatively always disable build action
+    m_buildAction->setEnabled(false);
+
     if (!m_editorEnabled) {
         // Do nothing; editor is currently disabled so we should not care about updating our source type being the code
         // editor. sourceTypeChanged() will be re-executed once the editor is reenabled.
@@ -123,6 +134,7 @@ void EditTab::sourceTypeChanged() {
             return;
         } else {
             m_currentSourceType = SourceType::C;
+            m_buildAction->setEnabled(true);
         }
     }
 
@@ -140,11 +152,9 @@ void EditTab::sourceCodeChanged() {
         case SourceType::Assembly:
             assemble();
             break;
-        case SourceType::C:
-            compile();
-            break;
         default:
-            // Do nothing, some external program is loaded
+            // Do nothing, either some external program is loaded or, if compiling from C, the user shall manually
+            // select to build
             break;
     }
 }

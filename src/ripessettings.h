@@ -12,7 +12,7 @@ namespace Ripes {
 // Definitions of all default settings within Ripes
 const static std::map<QString, QVariant> s_defaultSettings = {{RIPES_SETTING_REWINDSTACKSIZE, 100},
                                                               {RIPES_SETTING_CCPATH, ""},
-                                                              {RIPES_SETTING_CCARGS, "-O3"}};
+                                                              {RIPES_SETTING_CCARGS, "-O0"}};
 
 /**
  * @brief The SettingObserver class

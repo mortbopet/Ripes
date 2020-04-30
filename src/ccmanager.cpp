@@ -21,7 +21,7 @@ const static QString s_testprogram = "int main() { return 0; }";
  * - %4: input source file
  * - %5: output executable
  */
-const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c -s %5 -o %6";
+const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6";
 
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
