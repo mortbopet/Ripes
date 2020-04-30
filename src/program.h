@@ -7,7 +7,18 @@
 
 namespace Ripes {
 
-enum class SourceType { Assembly, C, FlatBinary, Executable };
+enum class SourceType {
+    /** Assembly text */
+    Assembly,
+    /** C text */
+    C,
+    /** Flat binary external file */
+    FlatBinary,
+    /** Executable files not compiled from within ripes */
+    ExternalELF,
+    /** Executable files compiled within ripes */
+    InternalELF
+};
 
 #define TEXT_SECTION_NAME ".text"
 

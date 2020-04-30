@@ -38,8 +38,8 @@ CCManager::CCManager() {
     }
 }
 
-bool CCManager::hasValidCC() const {
-    return !m_currentCC.isEmpty();
+bool CCManager::hasValidCC() {
+    return !get().m_currentCC.isEmpty();
 }
 
 QString CCManager::tryAutodetectCC() {
@@ -71,7 +71,10 @@ bool CCManager::trySetCC(const QString& CC) {
 
 CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname) {
     // Write program to temporary file with a .c extension
-    QTemporaryFile tmpSrcFile(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
+    const auto tempFileTemplate =
+        QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
+    QTemporaryFile tmpSrcFile = QTemporaryFile(tempFileTemplate);
+    tmpSrcFile.setAutoRemove(false);
     if (tmpSrcFile.open()) {
         QTextStream stream(&tmpSrcFile);
         stream << rawsource;
@@ -80,14 +83,15 @@ CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname
     return compile(tmpSrcFile.fileName(), outname);
 }
 
-CCManager::CCRes CCManager::compile(const QTextDocument& source, QString outname) {
-    return compileRaw(source.toRawText(), outname);
+CCManager::CCRes CCManager::compile(const QTextDocument* source, QString outname) {
+    return compileRaw(source->toPlainText(), outname);
 }
 
 CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
     CCRes res;
     if (outname.isEmpty()) {
-        outname = QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.out";
+        outname = QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".temp.out";
+        QFile::remove(outname);  // Remove any previously compiled file
     }
 
     res.inFile = filename;
@@ -104,6 +108,10 @@ CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
     res.success = success;
 
     return res;
+}
+
+QString CCManager::getError() {
+    return get().m_process.readAllStandardError();
 }
 
 QString CCManager::createCompileCommand(const QString& filename, const QString& outname) const {

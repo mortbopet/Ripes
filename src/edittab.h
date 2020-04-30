@@ -64,6 +64,8 @@ private slots:
 
 private:
     void assemble();
+    void compile();
+
     void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
     bool loadAssemblyFile(Program& program, QFile& file);

@@ -32,8 +32,10 @@ public:
         return manager;
     }
 
-    bool hasValidCC() const;
-    const QString& currentCC() const { return m_currentCC; }
+    static bool hasValidCC();
+    static const QString& currentCC() { return get().m_currentCC; }
+
+    static QString getError();
 
     /**
      * @brief compile
@@ -42,7 +44,7 @@ public:
      * output file will be placed in a temporary directory.
      */
     CCRes compile(const QString& filename, QString outname = QString());
-    CCRes compile(const QTextDocument& source, QString outname = QString());
+    CCRes compile(const QTextDocument* source, QString outname = QString());
     CCRes compileRaw(const QString& rawsource, QString outname = QString());
 
 signals:

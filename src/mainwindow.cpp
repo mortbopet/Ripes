@@ -189,7 +189,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 
                 LoadFileParams parms;
                 parms.filepath = tmpELFFile->fileName();
-                parms.type = SourceType::Executable;
+                parms.type = SourceType::ExternalELF;
                 m_editTab->loadFile(parms);
                 m_hasSavedFile = false;
                 tmpELFFile->remove();

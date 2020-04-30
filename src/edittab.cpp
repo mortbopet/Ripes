@@ -59,8 +59,13 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
         case SourceType::FlatBinary:
             success &= loadFlatBinaryFile(loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
             break;
-        case SourceType::Executable:
+        case SourceType::InternalELF:
             success &= loadElfFile(loadedProgram, file);
+            break;
+        case SourceType::ExternalELF:
+            success &= loadElfFile(loadedProgram, file);
+            // Since there is no related source code for an externally compiled ELF, the editor is disabled
+            disableEditor();
             break;
     }
 
@@ -125,6 +130,7 @@ void EditTab::sourceCodeChanged() {
             assemble();
             break;
         case SourceType::C:
+            compile();
             break;
         default:
             // Do nothing, some external program is loaded
@@ -144,6 +150,26 @@ void EditTab::assemble() {
             err.exec();
         }
     }
+}
+
+void EditTab::compile() {
+    // We don't care about asking our editor for syntax accepted, since there is no C-syntax checking in Ripes.
+    auto res = CCManager::get().compile(m_ui->codeEditor->document());
+    if (res.success) {
+        // Compilation successful; load file through standard file loading functions
+        LoadFileParams params;
+        params.filepath = res.outFile;
+        params.type = SourceType::InternalELF;
+        loadFile(params);
+        // Clean up temporary source and output files
+    } else {
+        QMessageBox compileErrorMsg(this);
+        compileErrorMsg.setWindowTitle("Compile error");
+        compileErrorMsg.setText("Compilation failed. View detailed text for compiler output.");
+        compileErrorMsg.setDetailedText(CCManager::getError());
+        compileErrorMsg.exec();
+    }
+    res.clean();
 }
 
 EditTab::~EditTab() {
@@ -253,7 +279,6 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
     m_ui->curInputSrcLabel->setText("Executable (ELF)");
     m_ui->inputSrcPath->setText(file.fileName());
 
-    disableEditor();
     return true;
 }
 

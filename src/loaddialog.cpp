@@ -71,7 +71,7 @@ void LoadDialog::inputTypeChanged() {
             break;
         }
         case LoadDialog::TypeButtonID::ELF: {
-            m_fileType = SourceType::Executable;
+            m_fileType = SourceType::ExternalELF;
             updateELFPageState();
             break;
         }
@@ -93,7 +93,7 @@ void LoadDialog::openFileButtonTriggered() {
             filter = "All files (*)";
             break;
         }
-        case SourceType::Executable: {
+        case SourceType::ExternalELF: {
             title = "Open executable (ELF) file";
             filter = "All files (*)";
             break;
@@ -202,7 +202,7 @@ bool LoadDialog::fileTypeValidate(const QFile& file) {
             return validateAssemblyFile(file);
         case SourceType::FlatBinary:
             return validateBinaryFile(file);
-        case SourceType::Executable:
+        case SourceType::ExternalELF:
             return validateELFFile(file);
     }
     Q_UNREACHABLE();
