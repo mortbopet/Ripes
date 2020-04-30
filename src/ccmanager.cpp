@@ -21,7 +21,7 @@ const static QString s_testprogram = "int main() { return 0; }";
  * - %4: input source file
  * - %5: output executable
  */
-const static QString s_baseCC = "%1 -march=%2 -mabi=%3 -x c -s %4 -o %5";
+const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c -s %5 -o %6";
 
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
@@ -94,6 +94,9 @@ bool CCManager::verifyCC(const QString& CCPath) {
 
     // Substitute machine ABI
     s_cc = s_cc.arg(currentISA->CCmabi());
+
+    // Substitute additional CC arguments
+    s_cc = s_cc.arg(RipesSettings::value(RIPES_SETTING_CCARGS).toString());
 
     // Substitute in and out files
     s_cc = s_cc.arg(testSrcFile.fileName()).arg(testSrcFileOut);

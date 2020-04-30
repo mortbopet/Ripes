@@ -111,8 +111,17 @@ QWidget* SettingsDialog::createEditorPage() {
 
     // Trigger initial rehighlighting
     CCManager::get().trySetCC(CCManager::get().currentCC());
-
     CCHLayout->addWidget(pathBrowseButton);
+
+    // Add compiler argument widget
+    auto [ccArgLabel, ccArgs] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_CCARGS, "Compiler arguments:");
+    auto* CCArgHLayout = new QHBoxLayout();
+    CCArgHLayout->addWidget(ccArgLabel);
+    CCArgHLayout->addWidget(ccArgs);
+    CCLayout->addLayout(CCArgHLayout);
+    // Make changes in argument reemit ccpath text changed. By doing so, we revalidate the compiler once new arguments
+    // have been added, implicitely validating the arguments along with it.
+    connect(ccArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
     pageLayout->addWidget(CCGroupBox);
 
