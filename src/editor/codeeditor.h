@@ -8,6 +8,7 @@
 #include "assembler.h"
 #include "syntaxhighlighter.h"
 
+#include <memory>
 #include <set>
 
 // Extended version of Qt's CodeEditor example
