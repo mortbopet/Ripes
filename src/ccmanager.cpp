@@ -1,5 +1,6 @@
 #include "ccmanager.h"
 
+#include "loaddialog.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
 
@@ -106,7 +107,7 @@ CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
     m_process.start(ccc);
     m_process.waitForFinished();
 
-    const bool success = QFile::exists(outname);
+    const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
 
     return res;
