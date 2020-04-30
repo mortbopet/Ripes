@@ -23,7 +23,8 @@
 
 namespace Ripes {
 
-ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::ProcessorTab) {
+ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar, QWidget* parent)
+    : RipesTab(additionalToolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
@@ -43,7 +44,7 @@ ProcessorTab::ProcessorTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolba
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateStatistics);
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateInstructionLabels);
 
-    setupSimulatorActions();
+    setupSimulatorActions(controlToolbar);
 
     // Setup statistics update timer
     m_statUpdateTimer = new QTimer(this);
@@ -107,33 +108,33 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     }
 }
 
-void ProcessorTab::setupSimulatorActions() {
+void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     const QIcon processorIcon = QIcon(":/icons/cpu.svg");
     m_selectProcessorAction = new QAction(processorIcon, "Select processor", this);
     connect(m_selectProcessorAction, &QAction::triggered, this, &ProcessorTab::processorSelection);
-    m_toolbar->addAction(m_selectProcessorAction);
-    m_toolbar->addSeparator();
+    controlToolbar->addAction(m_selectProcessorAction);
+    controlToolbar->addSeparator();
 
     const QIcon resetIcon = QIcon(":/icons/reset.svg");
     m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
     connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
     m_resetAction->setShortcut(QKeySequence("F3"));
     m_resetAction->setToolTip("Reset the simulator (F3)");
-    m_toolbar->addAction(m_resetAction);
+    controlToolbar->addAction(m_resetAction);
 
     const QIcon reverseIcon = QIcon(":/icons/reverse.svg");
     m_reverseAction = new QAction(reverseIcon, "Reverse (F4)", this);
     connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::reverse);
     m_reverseAction->setShortcut(QKeySequence("F4"));
     m_reverseAction->setToolTip("Undo a clock cycle (F4)");
-    m_toolbar->addAction(m_reverseAction);
+    controlToolbar->addAction(m_reverseAction);
 
     const QIcon clockIcon = QIcon(":/icons/step.svg");
     m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
     connect(m_clockAction, &QAction::triggered, this, &ProcessorTab::clock);
     m_clockAction->setShortcut(QKeySequence("F5"));
     m_clockAction->setToolTip("Clock the circuit (F5)");
-    m_toolbar->addAction(m_clockAction);
+    controlToolbar->addAction(m_clockAction);
 
     QTimer* timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &ProcessorTab::clock);
@@ -154,7 +155,7 @@ void ProcessorTab::setupSimulatorActions() {
         }
     });
     m_autoClockAction->setChecked(false);
-    m_toolbar->addAction(m_autoClockAction);
+    controlToolbar->addAction(m_autoClockAction);
 
     m_autoClockInterval = new QSpinBox(this);
     m_autoClockInterval->setRange(1, 10000);
@@ -163,7 +164,7 @@ void ProcessorTab::setupSimulatorActions() {
     connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged),
             [timer](int msec) { timer->setInterval(msec); });
     m_autoClockInterval->setValue(100);
-    m_toolbar->addWidget(m_autoClockInterval);
+    controlToolbar->addWidget(m_autoClockInterval);
 
     const QIcon runIcon = QIcon(":/icons/run.svg");
     m_runAction = new QAction(runIcon, "Run (F8)", this);
@@ -174,9 +175,9 @@ void ProcessorTab::setupSimulatorActions() {
         "Execute simulator without updating UI (fast execution) (F8).\n Running will stop once the program exits or a "
         "breakpoint is hit.");
     connect(m_runAction, &QAction::toggled, this, &ProcessorTab::run);
-    m_toolbar->addAction(m_runAction);
-    m_toolbar->addSeparator();
+    controlToolbar->addAction(m_runAction);
 
+    // Setup processor-tab only actions
     const QIcon tagIcon = QIcon(":/icons/tag.svg");
     m_displayValuesAction = new QAction(tagIcon, "Display signal values", this);
     m_displayValuesAction->setCheckable(true);

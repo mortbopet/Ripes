@@ -46,29 +46,31 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_stackedTabs = new QStackedWidget(this);
     m_ui->centrallayout->addWidget(m_stackedTabs);
 
-    auto* tb = addToolBar("Edit");
-    tb->setVisible(false);
-    m_editTab = new EditTab(tb, this);
+    m_controlToolbar = addToolBar("Simulator control");
+    m_controlToolbar->setVisible(true);  // Always visible
+
+    m_editToolbar = addToolBar("Edit");
+    m_editToolbar->setVisible(false);
+    m_editTab = new EditTab(m_editToolbar, this);
     m_stackedTabs->insertWidget(0, m_editTab);
 
-    tb = addToolBar("Processor");
-    tb->setVisible(true);
-    m_processorTab = new ProcessorTab(tb, this);
+    m_processorToolbar = addToolBar("Processor");
+    m_processorToolbar->setVisible(false);
+    m_processorTab = new ProcessorTab(m_controlToolbar, m_processorToolbar, this);
     m_stackedTabs->insertWidget(1, m_processorTab);
 
-    tb = addToolBar("Processor");
-    tb->setVisible(false);
-    m_memoryTab = new MemoryTab(tb, this);
+    m_memoryToolbar = addToolBar("Memory");
+    m_memoryToolbar->setVisible(false);
+    m_memoryTab = new MemoryTab(m_memoryToolbar, this);
     m_stackedTabs->insertWidget(2, m_memoryTab);
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
+    connect(m_stackedTabs, &QStackedWidget::currentChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_editTab, &EditTab::updateProgramViewerHighlighting);
-
-    m_ui->tabbar->setActiveIndex(1);
 
     setupMenus();
 
@@ -93,6 +95,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
+
+    m_ui->tabbar->setActiveIndex(1);
+    m_processorToolbar->setVisible(true);
+}
+
+void MainWindow::tabChanged() {
+    m_editToolbar->setVisible(m_editTab->isVisible());
+    m_memoryToolbar->setVisible(m_memoryTab->isVisible());
+    m_processorToolbar->setVisible(m_processorTab->isVisible());
 }
 
 void MainWindow::fitToView() {
