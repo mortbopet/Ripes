@@ -32,6 +32,12 @@ public:
     void accept() override;
     const LoadFileParams& getParams() const { return m_params; }
 
+    /**
+     * @brief validateELFFile
+     * Validates the given elf file @p file based on the currently loaded processor
+     */
+    static ELFInfo validateELFFile(const QFile& file);
+
 private slots:
     void validateCurrentFile();
     void openFileButtonTriggered();
@@ -52,7 +58,6 @@ private:
     bool fileTypeValidate(const QFile& file);
     bool validateAssemblyFile(const QFile& file);
     bool validateBinaryFile(const QFile& file);
-    bool validateELFFile(const QFile& file);
 
     void paletteValidate(QWidget* w, bool valid);
 

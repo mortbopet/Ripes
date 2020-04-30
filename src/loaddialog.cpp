@@ -137,7 +137,7 @@ void LoadDialog::setElfInfo(const ELFInfo& info) {
     }
 }
 
-bool LoadDialog::validateELFFile(const QFile& file) {
+ELFInfo LoadDialog::validateELFFile(const QFile& file) {
     ELFIO::elfio reader;
     ELFInfo info;
     QString flagErr;
@@ -192,8 +192,8 @@ bool LoadDialog::validateELFFile(const QFile& file) {
     // All checks successfull - ELF file is valid.
 
 finish:
-    setElfInfo(info);
-    return info.valid;
+
+    return info;
 }
 
 bool LoadDialog::fileTypeValidate(const QFile& file) {
@@ -203,7 +203,9 @@ bool LoadDialog::fileTypeValidate(const QFile& file) {
         case SourceType::FlatBinary:
             return validateBinaryFile(file);
         case SourceType::ExternalELF:
-            return validateELFFile(file);
+            auto info = validateELFFile(file);
+            setElfInfo(info);
+            return info.valid;
     }
     Q_UNREACHABLE();
 }
