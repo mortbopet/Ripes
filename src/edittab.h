@@ -26,7 +26,7 @@ public:
     EditTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~EditTab() override;
 
-    void setAssemblyText(const QString& text);
+    void setSourceText(const QString& text);
     QString getAssemblyText();
     void newProgram();
     void clearAssemblyEditor();
@@ -73,7 +73,7 @@ private:
 
     void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
-    bool loadAssemblyFile(Program& program, QFile& file);
+    bool loadSourceFile(Program& program, QFile& file);
     bool loadElfFile(Program& program, QFile& file);
 
     void setupActions();

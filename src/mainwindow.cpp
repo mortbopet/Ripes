@@ -161,9 +161,10 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setupExamplesMenu(QMenu* parent) {
     const auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
+    auto* assemblyMenu = parent->addMenu("Assembly");
     if (!assemblyExamples.isEmpty()) {
         for (const auto& fileName : assemblyExamples) {
-            parent->addAction(fileName, [=] {
+            assemblyMenu->addAction(fileName, [=] {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = SourceType::Assembly;
@@ -174,9 +175,10 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     }
 
     const auto cExamples = QDir(":/examples/C/").entryList(QDir::Files);
+    auto* cMenu = parent->addMenu("C");
     if (!cExamples.isEmpty()) {
         for (const auto& fileName : cExamples) {
-            parent->addAction(fileName, [=] {
+            cMenu->addAction(fileName, [=] {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/C/") + fileName;
                 parms.type = SourceType::C;
@@ -187,9 +189,10 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     }
 
     const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
+    auto* elfMenu = parent->addMenu("ELF (precompiled C)");
     if (!ELFExamples.isEmpty()) {
         for (const auto& fileName : ELFExamples) {
-            parent->addAction(fileName, [=] {
+            elfMenu->addAction(fileName, [=] {
                 // ELFIO Cannot read directly from the bundled resource file, so copy the ELF file to a temporary file
                 // before loading the program.
                 QTemporaryFile* tmpELFFile = QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);

@@ -152,6 +152,8 @@ void CodeEditor::setSourceType(SourceType type) {
         default:
             break;
     }
+
+    m_highlighter->clearAndRehighlight();
 }
 
 void CodeEditor::highlightCurrentLine() {

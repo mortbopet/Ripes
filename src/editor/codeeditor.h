@@ -26,10 +26,6 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     int lineNumberAreaWidth();
     void setupChangedTimer();
-    void reset() {
-        m_highlighter->reset();
-        clear();
-    }
     bool syntaxAccepted() const { return m_highlighter->acceptsSyntax(); }
 
 signals:

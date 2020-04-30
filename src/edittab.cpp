@@ -23,9 +23,9 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     m_buildAction = new QAction(this);
     m_buildAction->setIcon(QIcon(":/icons/build.svg"));
-    m_buildAction->setText("Compile C program");
     m_buildAction->setEnabled(false);
     m_buildAction->setShortcut(QKeySequence("Ctrl+B"));
+    m_buildAction->setText("Compile C program (" + m_buildAction->shortcut().toString() + ")");
     connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
     m_toolbar->addAction(m_buildAction);
 
@@ -51,8 +51,21 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 }
 
 void EditTab::loadExternalFile(const LoadFileParams& params) {
-    m_currentSourceType = params.type;
-    loadFile(params);
+    if (params.type == SourceType::C) {
+        // Try to enable C input and verify that source type was changed successfully. This allows us to trigger the
+        // message box associated with C input, if no compiler is set. If so, load the file.
+        enableEditor();
+        m_ui->setCInput->setChecked(true);
+        if (m_currentSourceType == SourceType::C) {
+            loadFile(params);
+        }
+    } else if (params.type == SourceType::Assembly) {
+        m_ui->setAssemblyInput->setChecked(true);
+        loadFile(params);
+    } else {
+        m_currentSourceType = params.type;
+        loadFile(params);
+    }
 }
 
 void EditTab::loadFile(const LoadFileParams& fileParams) {
@@ -67,7 +80,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     switch (fileParams.type) {
         case SourceType::C:
         case SourceType::Assembly:
-            success &= loadAssemblyFile(loadedProgram, file);
+            success &= loadSourceFile(loadedProgram, file);
             break;
         case SourceType::FlatBinary:
             success &= loadFlatBinaryFile(loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
@@ -100,7 +113,7 @@ const QByteArray& EditTab::getBinaryData() {
 }
 
 void EditTab::clearAssemblyEditor() {
-    m_ui->codeEditor->reset();
+    m_ui->codeEditor->clear();
     m_assembler->clear();
 }
 
@@ -197,13 +210,12 @@ EditTab::~EditTab() {
 }
 
 void EditTab::newProgram() {
-    m_ui->codeEditor->reset();
     m_ui->codeEditor->clear();
     enableAssemblyInput();
 }
 
-void EditTab::setAssemblyText(const QString& text) {
-    m_ui->codeEditor->reset();
+void EditTab::setSourceText(const QString& text) {
+    m_ui->codeEditor->clear();
     m_ui->codeEditor->setPlainText(text);
 }
 
@@ -251,9 +263,9 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long en
     return true;
 }
 
-bool EditTab::loadAssemblyFile(Program&, QFile& file) {
+bool EditTab::loadSourceFile(Program&, QFile& file) {
     enableEditor();
-    setAssemblyText(file.readAll());
+    setSourceText(file.readAll());
     return true;
 }
 
