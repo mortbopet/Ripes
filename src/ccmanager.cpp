@@ -20,8 +20,10 @@ const static QString s_testprogram = "int main() { return 0; }";
  * - -x c: Enforce compilation as C language (allows us to use C++ compilers)
  * - %4: input source file
  * - %5: output executable
+ * - -static-libgcc: Ensure that we link to a static stdlib
+ * - -lm: link with the math library
  */
-const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6";
+const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6 -static-libgcc -lm";
 
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
