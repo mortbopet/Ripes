@@ -81,6 +81,7 @@ private:
     void disableEditor();
 
     QAction* m_buildAction = nullptr;
+    QAction* m_followAction = nullptr;
 
     Ui::EditTab* m_ui = nullptr;
     std::unique_ptr<Assembler> m_assembler;

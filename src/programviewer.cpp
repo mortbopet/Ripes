@@ -70,6 +70,21 @@ void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
 }
 
+void ProgramViewer::updateCenterAddress() {
+    const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(0);
+    auto block = blockForAddress(stageInfo.pc);
+    setTextCursor(QTextCursor(block));
+    ensureCursorVisible();
+}
+
+void ProgramViewer::setFollowEnabled(bool enabled) {
+    m_following = enabled;
+
+    if (enabled) {
+        updateCenterAddress();
+    }
+}
+
 void ProgramViewer::updateHighlightedAddresses() {
     const unsigned stages = ProcessorHandler::get()->getProcessor()->stageCount();
     QColor bg = QColor(Qt::red).lighter(120);
@@ -110,6 +125,10 @@ void ProgramViewer::updateHighlightedAddresses() {
         bg = bg.lighter(decRatio);
     }
     setExtraSelections(highlights);
+
+    if (m_following) {
+        updateCenterAddress();
+    }
 }
 
 void ProgramViewer::paintEvent(QPaintEvent* event) {

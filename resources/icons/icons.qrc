@@ -33,5 +33,6 @@
         <file>analytics.svg</file>
         <file>crosshair.svg</file>
         <file>build.svg</file>
+        <file>trace.svg</file>
     </qresource>
 </RCC>

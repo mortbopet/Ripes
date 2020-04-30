@@ -21,6 +21,16 @@ namespace Ripes {
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
+    m_followAction = new QAction(this);
+    m_followAction->setIcon(QIcon(":/icons/trace.svg"));
+    m_followAction->setCheckable(true);
+    m_followAction->setToolTip(
+        "Follow program execution.\nEnsures that the instruction present in the\nfirst stage of the processor is "
+        "always visible\nin the disassembled view.");
+    m_toolbar->addAction(m_followAction);
+    connect(m_followAction, &QAction::triggered, m_ui->programViewer, &ProgramViewer::setFollowEnabled);
+    m_followAction->setChecked(true);
+
     m_buildAction = new QAction(this);
     m_buildAction->setIcon(QIcon(":/icons/build.svg"));
     m_buildAction->setEnabled(false);

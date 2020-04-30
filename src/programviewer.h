@@ -24,6 +24,7 @@ public:
     void breakpointClick(const QPoint& pos);
     bool hasBreakpoint(const QPoint& pos) const;
     void clearBreakpoints();
+    void setFollowEnabled(bool enabled);
 
     long addressForPos(const QPoint& pos) const;
     long addressForBlock(QTextBlock block) const;
@@ -47,10 +48,19 @@ private slots:
     void updateSidebarWidth(int newBlockCount);
 
 private:
+    /**
+     * @brief updateCenterAddress
+     * If program following is enabled, this function will ensure that the current instruction in the first stage of the
+     * processor is always visible within the program viewer.
+     */
+    void updateCenterAddress();
+
     // A timer is needed for only catching one of the multiple wheel events that
     // occur on a regular mouse scroll
     QTimer m_fontTimer;
     QTimer m_changeTimer;
+
+    bool m_following = true;
 
     QFont m_font;
     int m_sidebarWidth;
