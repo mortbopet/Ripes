@@ -37,11 +37,12 @@ Initially, the following dependencies must be made available:
 - A recent (5.10+) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
 - [CMake](https://cmake.org/)
 
-Then, Ripes may be built as a standard CMake project:
+Then, Ripes can be checked out and built as a standard CMake project:
 ```
+git clone --recursive https://github.com/mortbopet/Ripes.git
+cd Ripes/
+cmake .
 Unix:               Windows:
-cd Ripes/           cd Ripes/
-cmake .             cmake .
 make                jom.exe / nmake.exe / ...
 ```
 Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
