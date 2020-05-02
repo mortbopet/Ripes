@@ -66,6 +66,7 @@ public slots:
 private slots:
     void sourceCodeChanged();
     void on_disassembledViewButton_toggled();
+    void runStateChanged(bool running);
 
 private:
     void assemble();

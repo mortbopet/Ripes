@@ -32,7 +32,7 @@
             <bool>false</bool>
            </property>
            <widget class="QWidget" name="verticalLayoutWidget">
-            <layout class="QVBoxLayout" name="verticalLayout">
+            <layout class="QVBoxLayout" name="editorLayout">
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
                <item>

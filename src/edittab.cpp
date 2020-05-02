@@ -56,8 +56,29 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
         }
     });
 
+    // During processor running, it should not be possible to modify the program
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { runStateChanged(true); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] { runStateChanged(false); });
+
     enableEditor();
     sourceTypeChanged();
+}
+
+void EditTab::runStateChanged(bool running) {
+    // Disable all widgets related to the code editor if we are currently running
+    for (int i = 0; i < m_ui->editorLayout->count(); i++) {
+        if (auto* w = m_ui->editorLayout->itemAt(i)->widget()) {
+            w->setEnabled(!running);
+        }
+    }
+
+    // Ensure that the build action is always disabled while running
+    if (running) {
+        m_buildAction->setEnabled(false);
+    } else {
+        // call sourceTypeChanged() to update the state of the build action, reflecting the current source type
+        sourceTypeChanged();
+    }
 }
 
 void EditTab::loadExternalFile(const LoadFileParams& params) {
