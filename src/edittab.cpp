@@ -86,26 +86,27 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     }
 
     bool success = true;
-    Program loadedProgram;
+    auto loadedProgram = std::make_shared<Program>();
     switch (fileParams.type) {
         case SourceType::C:
         case SourceType::Assembly:
-            success &= loadSourceFile(loadedProgram, file);
+            success &= loadSourceFile(*loadedProgram, file);
             break;
         case SourceType::FlatBinary:
-            success &= loadFlatBinaryFile(loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
+            success &= loadFlatBinaryFile(*loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
             break;
         case SourceType::InternalELF:
-            success &= loadElfFile(loadedProgram, file);
+            success &= loadElfFile(*loadedProgram, file);
             break;
         case SourceType::ExternalELF:
             // Since there is no related source code for an externally compiled ELF, the editor is disabled
             disableEditor();
-            success &= loadElfFile(loadedProgram, file);
+            success &= loadElfFile(*loadedProgram, file);
             break;
     }
 
     if (success) {
+        // Move the shared pointer to be the current active program
         m_activeProgram = loadedProgram;
         emitProgramChanged();
     } else {
@@ -166,7 +167,7 @@ void EditTab::sourceTypeChanged() {
 }
 
 void EditTab::emitProgramChanged() {
-    emit programChanged(&m_activeProgram);
+    emit programChanged(m_activeProgram);
     updateProgramViewer();
 }
 
@@ -186,7 +187,7 @@ void EditTab::assemble() {
     if (m_ui->codeEditor->syntaxAccepted()) {
         m_assembler->assemble(*m_ui->codeEditor->document());
         if (!m_assembler->hasError()) {
-            m_activeProgram = m_assembler->getProgram();
+            m_activeProgram = std::make_shared<Program>(m_assembler->getProgram());
             emitProgramChanged();
         } else {
             QMessageBox err;
@@ -231,13 +232,13 @@ void EditTab::setSourceText(const QString& text) {
 
 void EditTab::enableAssemblyInput() {
     // Clear currently loaded binary/ELF program
-    m_activeProgram = Program();
+    m_activeProgram.reset();
     m_ui->programViewer->clear();
     enableEditor();
 }
 
 void EditTab::updateProgramViewer() {
-    m_ui->programViewer->updateProgram(m_activeProgram, !m_ui->disassembledViewButton->isChecked());
+    m_ui->programViewer->updateProgram(*m_activeProgram, !m_ui->disassembledViewButton->isChecked());
 }
 
 void EditTab::enableEditor() {

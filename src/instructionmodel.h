@@ -14,15 +14,17 @@ class Parser;
 class Pipeline;
 
 static inline uint32_t indexToAddress(const QModelIndex& index) {
-    if (ProcessorHandler::get()->getProgram()) {
-        return (index.row() * 4) + ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
+    if (auto prog_spt = ProcessorHandler::get()->getProgram().lock()) {
+        return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }
 
 static inline int addressToIndex(uint32_t addr) {
-    if (ProcessorHandler::get()->getProgram() && ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME) != nullptr) {
-        return (addr - ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address) / 4;
+    if (auto prog_spt = ProcessorHandler::get()->getProgram().lock()) {
+        if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
+            return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
+        }
     }
     return 0;
 }

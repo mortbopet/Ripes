@@ -21,7 +21,7 @@ ProcessorHandler::ProcessorHandler() {
     m_currentProcessor->setReverseStackSize(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
 }
 
-void ProcessorHandler::loadProgram(const Program* p) {
+void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
     // Stop any currently executing simulation
     stop();
 

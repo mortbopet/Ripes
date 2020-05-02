@@ -28,7 +28,7 @@ public:
     vsrtl::core::RipesProcessor* getProcessorNonConst() { return m_currentProcessor.get(); }
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorID& getID() const { return m_currentID; }
-    const Program* getProgram() const { return m_program; }
+    std::weak_ptr<Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
 
     /**
@@ -155,7 +155,7 @@ signals:
     void runFinished();
 
 public slots:
-    void loadProgram(const Program* p);
+    void loadProgram(std::shared_ptr<Program> p);
 
 private slots:
     void handleSysCall();
@@ -173,7 +173,7 @@ private:
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
 
     std::set<uint32_t> m_breakpoints;
-    const Program* m_program = nullptr;
+    std::shared_ptr<Program> m_program;
 
     QFutureWatcher<void> m_runWatcher;
     bool m_stopRunningFlag = false;

@@ -77,7 +77,7 @@ private:
     void handleSysCall();
 
     bool m_stop = false;
-    Program m_program;
+    std::shared_ptr<Program> m_program;
     QString m_err;
 
 private slots:
@@ -122,9 +122,9 @@ void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
     }
     QByteArray programByteArray = testFile.readAll();
 
-    m_program = Program();
-    m_program.sections.push_back({TEXT_SECTION_NAME, 0, programByteArray});
-    ProcessorHandler::get()->loadProgram(&m_program);
+    m_program = std::make_shared<Program>();
+    m_program->sections.push_back({TEXT_SECTION_NAME, 0, programByteArray});
+    ProcessorHandler::get()->loadProgram(m_program);
 }
 
 void tst_RISCV::handleSysCall() {

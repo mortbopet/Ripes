@@ -43,7 +43,7 @@ public:
     void loadExternalFile(const LoadFileParams& params);
 
 signals:
-    void programChanged(const Program* program);
+    void programChanged(std::shared_ptr<Program> program);
     void editorStateChanged(bool enabled);
 
 public slots:
@@ -86,7 +86,7 @@ private:
     Ui::EditTab* m_ui = nullptr;
     std::unique_ptr<Assembler> m_assembler;
 
-    Program m_activeProgram;
+    std::shared_ptr<Program> m_activeProgram;
 
     SourceType m_currentSourceType;
 
