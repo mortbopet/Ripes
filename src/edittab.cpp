@@ -48,6 +48,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
+    connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
 
     // Ensure that changes to the current compiler path will disable C input, if the compiler is invalid
     connect(&CCManager::get(), &CCManager::ccChanged, [=](bool valid) {
@@ -56,29 +57,13 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
         }
     });
 
-    // During processor running, it should not be possible to modify the program
-    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { runStateChanged(true); });
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] { runStateChanged(false); });
+    // During processor running, it should not be possible to build the program
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { m_buildAction->setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
+            [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
 
     enableEditor();
     sourceTypeChanged();
-}
-
-void EditTab::runStateChanged(bool running) {
-    // Disable all widgets related to the code editor if we are currently running
-    for (int i = 0; i < m_ui->editorLayout->count(); i++) {
-        if (auto* w = m_ui->editorLayout->itemAt(i)->widget()) {
-            w->setEnabled(!running);
-        }
-    }
-
-    // Ensure that the build action is always disabled while running
-    if (running) {
-        m_buildAction->setEnabled(false);
-    } else {
-        // call sourceTypeChanged() to update the state of the build action, reflecting the current source type
-        sourceTypeChanged();
-    }
 }
 
 void EditTab::loadExternalFile(const LoadFileParams& params) {
@@ -156,9 +141,6 @@ void EditTab::updateProgramViewerHighlighting() {
 }
 
 void EditTab::sourceTypeChanged() {
-    // Convervatively always disable build action
-    m_buildAction->setEnabled(false);
-
     if (!m_editorEnabled) {
         // Do nothing; editor is currently disabled so we should not care about updating our source type being the code
         // editor. sourceTypeChanged() will be re-executed once the editor is reenabled.
@@ -179,7 +161,6 @@ void EditTab::sourceTypeChanged() {
             return;
         } else {
             m_currentSourceType = SourceType::C;
-            m_buildAction->setEnabled(true);
         }
     }
 
@@ -208,7 +189,7 @@ void EditTab::assemble() {
     if (m_ui->codeEditor->syntaxAccepted()) {
         m_assembler->assemble(*m_ui->codeEditor->document());
         if (!m_assembler->hasError()) {
-            m_activeProgram = std::make_shared<Program>(m_assembler->getProgram());
+            m_activeProgram = m_assembler->getProgram();
             emitProgramChanged();
         } else {
             QMessageBox err;
