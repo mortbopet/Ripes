@@ -43,25 +43,25 @@ private slots:
     void openFileButtonTriggered();
     void inputTypeChanged();
 
-    void updateAssemblyPageState();
+    void updateSourcePageState();
     void updateBinaryPageState();
     void updateELFPageState();
 
     void loadFileError(const QString& filename);
 
 private:
-    enum TypeButtonID { Assembly, FlatBinary, ELF };
+    enum TypeButtonID { Source, FlatBinary, ELF };
     static TypeButtonID s_typeIndex;
     static QString s_filePath;
 
     void setElfInfo(const ELFInfo& info);
     bool fileTypeValidate(const QFile& file);
-    bool validateAssemblyFile(const QFile& file);
+    bool validateSourceFile(const QFile& file);
     bool validateBinaryFile(const QFile& file);
 
     void paletteValidate(QWidget* w, bool valid);
 
-    SourceType m_fileType = SourceType::Assembly;
+    TypeButtonID m_currentType = ELF;
     LoadFileParams m_params;
 
     Ui::LoadDialog* m_ui = nullptr;

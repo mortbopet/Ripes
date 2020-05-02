@@ -26,7 +26,7 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     setWindowTitle("Load program...");
 
     m_fileTypeButtons = new QButtonGroup(this);
-    m_fileTypeButtons->addButton(m_ui->assemblyRadioButton, TypeButtonID::Assembly);
+    m_fileTypeButtons->addButton(m_ui->sourceRadioButton, TypeButtonID::Source);
     m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::FlatBinary);
     m_fileTypeButtons->addButton(m_ui->elfRadioButton, TypeButtonID::ELF);
 
@@ -37,7 +37,8 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
 
     // ===================== Page setups =====================
 
-    // Assembly page
+    // Source page
+    // -- nothing to do/verify
 
     // Binary page
     QRegExpValidator* validator = new QRegExpValidator(this);
@@ -60,18 +61,18 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
 void LoadDialog::inputTypeChanged() {
     s_typeIndex = static_cast<LoadDialog::TypeButtonID>(m_fileTypeButtons->checkedId());
     switch (m_fileTypeButtons->checkedId()) {
-        case LoadDialog::TypeButtonID::Assembly: {
-            m_fileType = SourceType::Assembly;
-            updateAssemblyPageState();
+        case TypeButtonID::Source: {
+            m_currentType = TypeButtonID::Source;
+            updateSourcePageState();
             break;
         }
-        case LoadDialog::TypeButtonID::FlatBinary: {
-            m_fileType = SourceType::FlatBinary;
+        case TypeButtonID::FlatBinary: {
+            m_currentType = TypeButtonID::FlatBinary;
             updateBinaryPageState();
             break;
         }
-        case LoadDialog::TypeButtonID::ELF: {
-            m_fileType = SourceType::ExternalELF;
+        case TypeButtonID::ELF: {
+            m_currentType = TypeButtonID::ELF;
             updateELFPageState();
             break;
         }
@@ -82,18 +83,18 @@ void LoadDialog::inputTypeChanged() {
 void LoadDialog::openFileButtonTriggered() {
     QString title;
     QString filter;
-    switch (m_fileType) {
-        case SourceType::Assembly: {
-            title = "Open assembly file";
-            filter = "Assembly files [*.s, *.as, *.asm] (*.s *.as *.asm);; All files (*.*)";
+    switch (m_currentType) {
+        case TypeButtonID::Source: {
+            title = "Open source file";
+            filter = "Source files [*.s, *.as, *.asm, *.c] (*.s *.as *.asm *.c);; All files (*.*)";
             break;
         }
-        case SourceType::FlatBinary: {
+        case TypeButtonID::FlatBinary: {
             title = "Open binary file";
             filter = "All files (*)";
             break;
         }
-        case SourceType::ExternalELF: {
+        case TypeButtonID::ELF: {
             title = "Open executable (ELF) file";
             filter = "All files (*)";
             break;
@@ -114,7 +115,7 @@ void LoadDialog::paletteValidate(QWidget* w, bool valid) {
     w->setPalette(palette);
 }
 
-bool LoadDialog::validateAssemblyFile(const QFile&) {
+bool LoadDialog::validateSourceFile(const QFile&) {
     return true;
 }
 
@@ -197,12 +198,12 @@ finish:
 }
 
 bool LoadDialog::fileTypeValidate(const QFile& file) {
-    switch (m_fileType) {
-        case SourceType::Assembly:
-            return validateAssemblyFile(file);
-        case SourceType::FlatBinary:
+    switch (m_currentType) {
+        case TypeButtonID::Source:
+            return validateSourceFile(file);
+        case TypeButtonID::FlatBinary:
             return validateBinaryFile(file);
-        case SourceType::ExternalELF:
+        case TypeButtonID::ELF:
             auto info = validateELFFile(file);
             setElfInfo(info);
             return info.valid;
@@ -233,14 +234,26 @@ void LoadDialog::accept() {
     // It is assumed that the currently selected file will always be valid for the currently selected type, if the
     // accept button is enabled. No further validation is performed.
     m_params.filepath = m_ui->filePath->text();
-    m_params.type = m_fileType;
+    switch (m_currentType) {
+        case TypeButtonID::Source:
+            // Set source type based on file extension
+            m_params.type = m_params.filepath.endsWith(".c") ? SourceType::C : SourceType::Assembly;
+            break;
+        case TypeButtonID::FlatBinary:
+            m_params.type = SourceType::FlatBinary;
+            break;
+        case TypeButtonID::ELF:
+            m_params.type = SourceType::ExternalELF;
+            break;
+    }
+
     m_params.binaryLoadAt = m_ui->binaryLoadAt->text().toUInt(nullptr, 16);
     m_params.binaryEntryPoint = m_ui->binaryEntryPoint->text().toUInt(nullptr, 16);
 
     QDialog::accept();
 }
 
-void LoadDialog::updateAssemblyPageState() {
+void LoadDialog::updateSourcePageState() {
     m_ui->fileTypePages->setCurrentIndex(0);
 }
 
