@@ -17,7 +17,7 @@ public:
     const QByteArray& getDataSegment() { return m_dataSegment; }
     void clear() { m_textSegment.clear(); }
 
-    const Program getProgram();
+    std::shared_ptr<Program> getProgram();
 
 private:
     uint32_t getRegisterNumber(const QString& reg);
@@ -30,11 +30,11 @@ private:
     int getImmediate(QString string, bool& canConvert);
     QByteArray uintToByteArr(uint32_t);
 
-    QMap<QString, int> m_labelPosMap;  // Map storing unpacked label
+    std::map<QString, int> m_labelPosMap;  // Map storing unpacked label
 
-    QMap<int, QString>
+    std::map<int, QString>
         m_lineLabelUsageMap;  // Lines that need to be updated with label values (offsets) after unpacking is finished
-    QMap<int, QStringList> m_instructionsMap;  // Map containing unpacked and offset-modified instruction
+    std::map<int, QStringList> m_instructionsMap;  // Map containing unpacked and offset-modified instruction
 
     QByteArray m_textSegment;
     QByteArray m_dataSegment;
