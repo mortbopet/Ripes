@@ -5,6 +5,7 @@
 #include "ripessettings.h"
 
 #include <QProcess>
+#include <QProgressDialog>
 
 namespace Ripes {
 
@@ -103,12 +104,29 @@ CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
     const QString ccc = createCompileCommand(filename, outname);
 
     // Run compiler
+
+    /**
+     * 1. m_process will itself spawn its own thread to execute the compiler.
+     * 2. QProcess should not be started in a separate QThread, so it is started in the gui thread
+     * 3. We want to execute a progress dialog which may abort the QProcess.
+     * 4. To facilitate all of this, we have to spin on the process state in a separate thread, to
+     *    not block the execution of the progress dialog.
+     */
+    bool aborted = false;
     m_process.close();
+    QProgressDialog progressDiag = QProgressDialog("Executing compiler...", "Abort", 0, 0, nullptr);
+    connect(&progressDiag, &QProgressDialog::canceled, &m_process, &QProcess::terminate);
+    connect(&progressDiag, &QProgressDialog::canceled, &m_process, [&aborted] { aborted = true; });
+    connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), &progressDiag,
+            &QProgressDialog::reset);
+    connect(&m_process, &QProcess::errorOccurred, &progressDiag, &QProgressDialog::reset);
+
     m_process.start(ccc);
-    m_process.waitForFinished();
+    progressDiag.exec();
 
     const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
+    res.aborted = aborted;
 
     return res;
 }

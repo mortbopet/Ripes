@@ -19,7 +19,8 @@ public:
     struct CCRes {
         QString inFile;
         QString outFile;
-        bool success;
+        bool success = false;
+        bool aborted = false;
 
         void clean() {
             QFile::remove(inFile);

@@ -209,7 +209,7 @@ void EditTab::compile() {
         params.type = SourceType::InternalELF;
         loadFile(params);
         // Clean up temporary source and output files
-    } else {
+    } else if (!res.aborted) {
         CompilerErrorDialog errDiag(this);
         errDiag.setText("Compilation failed. Error output was:");
         errDiag.setErrorText(CCManager::getError());
