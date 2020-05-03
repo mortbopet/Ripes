@@ -17,7 +17,7 @@ class EditTab;
 }
 
 class Assembler;
-class LoadFileParams;
+struct LoadFileParams;
 
 class EditTab : public RipesTab {
     Q_OBJECT
