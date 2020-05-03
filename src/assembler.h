@@ -3,6 +3,8 @@
 #include <QByteArray>
 #include <QTextDocument>
 
+#include <memory>
+
 #include "program.h"
 
 namespace Ripes {
