@@ -76,7 +76,7 @@ private:
 
 public slots:
     void invalidateLabels(const QTextCursor&);
-    void clearAndRehighlight();
+    void clearAndRehighlight() override;
 };
 
 }  // namespace Ripes
