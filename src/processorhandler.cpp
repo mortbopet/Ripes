@@ -5,6 +5,8 @@
 #include "program.h"
 #include "ripessettings.h"
 
+#include "syscall/riscv_syscall.h"
+
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrent>
 
@@ -19,6 +21,8 @@ ProcessorHandler::ProcessorHandler() {
             [=](const auto& size) { m_currentProcessor->setReverseStackSize(size.toUInt()); });
     // Update VSRTL reverse stack size to reflect current settings
     m_currentProcessor->setReverseStackSize(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
+
+    m_syscallManager = std::make_unique<RISCVSyscallManager>();
 }
 
 void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
@@ -185,64 +189,8 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 }
 
 void ProcessorHandler::handleSysCall() {
-    const int argumentRegister = 17;  // a7
-    const int valueRegister = 10;     // a0
-    const unsigned int arg = m_currentProcessor->getRegister(argumentRegister);
-    const auto val = m_currentProcessor->getRegister(valueRegister);
-    switch (arg) {
-        case SysCall::None:
-            return;
-        case SysCall::PrintInt: {
-            emit print(QString::number(static_cast<int>(val)));
-            return;
-        }
-        case SysCall::PrintFloat: {
-            auto* v_f = reinterpret_cast<const float*>(&val);
-            emit print(QString::number(static_cast<double>(*v_f)));
-            return;
-        }
-        case SysCall::PrintStr: {
-            QByteArray string;
-            char byte;
-            unsigned int address = val;
-            do {
-                byte = static_cast<char>(m_currentProcessor->getMemory().readMem(address++) & 0xFF);
-                string.append(byte);
-            } while (byte != '\0');
-            emit print(QString::fromUtf8(string));
-            return;
-        }
-        case SysCall::Exit2:
-        case SysCall::Exit: {
-            FinalizeReason fr;
-            fr.exitSyscall = true;
-            m_currentProcessor->finalize(fr);
-            return;
-        }
-        case SysCall::PrintChar: {
-            QString ch = QChar(val);
-            emit print(ch);
-            break;
-        }
-        case SysCall::PrintIntHex: {
-            emit print("0x" + QString::number(val, 16).rightJustified(currentISA()->bytes(), '0'));
-            return;
-        }
-        case SysCall::PrintIntBinary: {
-            emit print("0b" + QString::number(val, 2).rightJustified(currentISA()->bits(), '0'));
-            return;
-        }
-        case SysCall::PrintIntUnsigned: {
-            emit print(QString::number(static_cast<unsigned>(val)));
-            return;
-        }
-        default: {
-            QMessageBox::warning(nullptr, "Error",
-                                 "Unknown system call argument in register " +
-                                     currentISA()->regAlias(argumentRegister) + ": " + QString::number(arg));
-            return;
-        }
-    }
+    const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
+    m_syscallManager->execute(function);
 }
 
 void ProcessorHandler::checkProcessorFinished() {

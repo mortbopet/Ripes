@@ -6,6 +6,7 @@
 
 #include "processorregistry.h"
 #include "program.h"
+#include "syscall/ripes_syscall.h"
 
 #include "vsrtl_widget.h"
 
@@ -135,12 +136,6 @@ signals:
     void reqReloadProgram();
 
     /**
-     * @brief print
-     * Print string to log
-     */
-    void print(const QString&);
-
-    /**
      * @brief exit
      * end the current simulation, disallowing further clocking of the processor unless the processor is reset.
      */
@@ -165,6 +160,7 @@ private:
 
     ProcessorID m_currentID = ProcessorID::RV5S;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
+    std::unique_ptr<SyscallManager> m_syscallManager;
 
     /**
      * @brief m_vsrtlWidget

@@ -9,18 +9,6 @@
 #include "../isainfo.h"
 
 namespace Ripes {
-enum SysCall {
-    None = 0,
-    PrintInt = 1,
-    PrintFloat = 2,
-    PrintStr = 4,
-    Exit = 10,
-    PrintChar = 11,
-    PrintIntHex = 34,
-    PrintIntBinary = 35,
-    PrintIntUnsigned = 36,
-    Exit2 = 93
-};
 
 /**
  * @brief The StageInfo struct

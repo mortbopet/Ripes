@@ -12,6 +12,7 @@
 #include "ripessettings.h"
 #include "savedialog.h"
 #include "settingsdialog.h"
+#include "syscall/systemio.h"
 #include "version/version.h"
 
 #include "fancytabbar/fancytabbar.h"
@@ -83,9 +84,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
     connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
+
+    connect(&SystemIO::get(), &SystemIO::doPrint, m_processorTab, &ProcessorTab::printToLog);
 
     // Reset and program reload signals
     connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);

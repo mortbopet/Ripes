@@ -6,15 +6,18 @@ file(GLOB LIB_SOURCES
     *.cpp
     cachesim/*.cpp
     editor/*.cpp
+    syscall/*.cpp
     version/version.cpp)
 file(GLOB LIB_HEADERS
     *.h
     cachesim/*.h
     editor/*.h
+    syscall/*.h
     graphics/*.h)
 file(GLOB LIB_UIS
     *.ui
     cachesim/*.ui
+    syscall/*.ui
 )
 
 set(RIPES_LIB ripes_lib)
