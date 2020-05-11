@@ -23,8 +23,9 @@ public:
     virtual bool regIsReadOnly(unsigned i) const = 0;
     virtual unsigned bits() const = 0;
     unsigned bytes() const { return bits() / CHAR_BIT; }
-    virtual int spReg() const { return -1; }  // Stack pointer
-    virtual int gpReg() const { return -1; }  // Global pointer
+    virtual int spReg() const { return -1; }       // Stack pointer
+    virtual int gpReg() const { return -1; }       // Global pointer
+    virtual int syscallReg() const { return -1; }  // Syscall function register
 
     // GCC Compile command architecture and ABI specification strings
     virtual QString CCmarch() const = 0;
@@ -135,6 +136,7 @@ public:
     unsigned int bits() const override { return 32; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
+    int syscallReg() const override { return 17; }
     unsigned elfMachineId() const override { return EM_RISCV; }
 
     QString CCmarch() const override { return "rv32im"; }
