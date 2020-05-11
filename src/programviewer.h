@@ -32,10 +32,10 @@ public:
 
     ///
     /// \brief updateProgram
-    /// Refreshes the programViewer view with @p program, using the parser to either disassemble or (if @p binary is
+    /// Refreshes the programViewer view, using the parser to either disassemble or (if @p binary is
     /// true) show the raw binary version of the loaded program.
     ///
-    void updateProgram(const Program& program, bool binary = false);
+    void updateProgram(bool binary = false);
 
 public slots:
     void updateHighlightedAddresses();

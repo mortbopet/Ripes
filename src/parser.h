@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -28,7 +29,7 @@ public:
         return &parser;
     }
 
-    QString disassemble(const Program& program, uint32_t instr, uint32_t address) const;
+    QString disassemble(std::weak_ptr<const Program> program, uint32_t instr, uint32_t address) const;
 
     // Const interfaces to intstruction decode lamdas
     std::vector<uint32_t> decodeUInstr(uint32_t instr) const { return m_decodeUInstr(instr); }
@@ -38,11 +39,11 @@ public:
     std::vector<uint32_t> decodeRInstr(uint32_t instr) const { return m_decodeRInstr(instr); }
     std::vector<uint32_t> decodeBInstr(uint32_t instr) const { return m_decodeBInstr(instr); }
 
-    QString disassemble(const Program& program, AddrOffsetMap& addrOffsetMap) const;
-    QString binarize(const Program& program, AddrOffsetMap& addrOffsetMap) const;
+    QString disassemble(std::weak_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) const;
+    QString binarize(std::weak_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) const;
 
 private:
-    QString stringifyProgram(const Program& program, unsigned stride,
+    QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
                              std::function<QString(const std::vector<char>& buffer, uint32_t index)> stringifier,
                              AddrOffsetMap& addrOffsetMap) const;
 

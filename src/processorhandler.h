@@ -28,7 +28,7 @@ public:
     vsrtl::core::RipesProcessor* getProcessorNonConst() { return m_currentProcessor.get(); }
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorID& getID() const { return m_currentID; }
-    std::weak_ptr<Program> getProgram() const { return m_program; }
+    std::weak_ptr<const Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
 
     /**

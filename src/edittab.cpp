@@ -240,7 +240,7 @@ void EditTab::enableAssemblyInput() {
 }
 
 void EditTab::updateProgramViewer() {
-    m_ui->programViewer->updateProgram(*m_activeProgram, !m_ui->disassembledViewButton->isChecked());
+    m_ui->programViewer->updateProgram(!m_ui->disassembledViewButton->isChecked());
 }
 
 void EditTab::enableEditor() {

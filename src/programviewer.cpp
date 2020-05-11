@@ -44,13 +44,15 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
     updateHighlightedAddresses();
 }
 
-void ProgramViewer::updateProgram(const Program& program, bool binary) {
+void ProgramViewer::updateProgram(bool binary) {
     m_labelAddrOffsetMap.clear();
-    const QString text = binary ? Parser::getParser()->binarize(program, m_labelAddrOffsetMap)
-                                : Parser::getParser()->disassemble(program, m_labelAddrOffsetMap);
+    const QString text =
+        binary ? Parser::getParser()->binarize(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap)
+               : Parser::getParser()->disassemble(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap);
 
-    // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug, but
-    // seems to be fixed if we manually clear the selections before we clear (and add new text) to the text edit.
+    // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug,
+    // but seems to be fixed if we manually clear the selections before we clear (and add new text) to the text
+    // edit.
     setExtraSelections({});
 
     setPlainText(text);

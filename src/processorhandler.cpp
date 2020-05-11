@@ -178,7 +178,7 @@ unsigned long ProcessorHandler::getTextStart() const {
 
 QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
     if (m_program) {
-        return Parser::getParser()->disassemble(*m_program, m_currentProcessor->getMemory().readMem(addr), addr);
+        return Parser::getParser()->disassemble(m_program, m_currentProcessor->getMemory().readMem(addr), addr);
     } else {
         return QString();
     }
