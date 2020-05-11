@@ -12,6 +12,7 @@
 #include "ripessettings.h"
 #include "savedialog.h"
 #include "settingsdialog.h"
+#include "syscall/syscallviewer.h"
 #include "syscall/systemio.h"
 #include "version/version.h"
 
@@ -94,6 +95,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
 
+    connect(m_ui->actionSystem_calls, &QAction::triggered, [=] {
+        SyscallViewer v;
+        v.exec();
+    });
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);

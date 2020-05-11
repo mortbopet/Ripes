@@ -31,7 +31,7 @@ public:
     const ProcessorID& getID() const { return m_currentID; }
     std::weak_ptr<const Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
-
+    const SyscallManager& getSyscallManager() const { return *m_syscallManager; }
     /**
      * @brief loadProcessorToWidget
      * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns

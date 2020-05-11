@@ -21,6 +21,7 @@ public:
     virtual ~Syscall() {}
     const QString& name() const { return m_name; }
     const QString& description() const { return m_description; }
+    const std::map<unsigned, QString>& argumentDescriptions() const { return m_argumentDescriptions; }
 
     virtual void execute() = 0;
 
@@ -40,11 +41,15 @@ public:
      */
     void execute(int id) {
         if (m_syscalls.count(id) == 0) {
-            QMessageBox::warning(nullptr, "Error", "Unknown system call: " + QString::number(id));
+            QMessageBox::warning(nullptr, "Error",
+                                 "Unknown system call: " + QString::number(id) +
+                                     "\nRefer to \"Help->System calls\" for a list of support system calls.");
         } else {
             m_syscalls.at(id)->execute();
         }
     }
+
+    const std::map<int, std::unique_ptr<Syscall>>& getSyscalls() const { return m_syscalls; }
 
 protected:
     SyscallManager() {}
