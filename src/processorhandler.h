@@ -153,7 +153,20 @@ public slots:
     void loadProgram(std::shared_ptr<Program> p);
 
 private slots:
-    void handleSysCall();
+    /**
+     * @brief asyncTrap
+     * Connects to the processors system call request interface. Will emit a queued requestHandleTrap() request to
+     * execute handleTrap(). This queued request facilitates control flow crossing from the simulator thread to the GUI
+     * thread.
+     */
+    void asyncTrap();
+
+    /**
+     * @brief handleTrap
+     * Will handle a queued request initialized from asyncTrap to perform whatever is required of the supporting
+     * execution environment
+     */
+    void handleTrap();
 
 private:
     ProcessorHandler();
@@ -173,5 +186,11 @@ private:
 
     QFutureWatcher<void> m_runWatcher;
     bool m_stopRunningFlag = false;
+
+    /**
+     * @brief m_sem
+     * Semaphore handling locking simulator thread execution whilst trapping to the execution environment.
+     */
+    QSemaphore m_sem;
 };
 }  // namespace Ripes

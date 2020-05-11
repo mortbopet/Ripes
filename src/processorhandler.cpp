@@ -135,8 +135,10 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
 
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);
-    m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::handleSysCall);
     m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return isExecutableAddress(address); };
+
+    // Syscall handling initialization
+    m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::asyncTrap);
 
     // Register initializations
     auto& regs = m_currentProcessor->getArchRegisters();
@@ -188,9 +190,19 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
     }
 }
 
-void ProcessorHandler::handleSysCall() {
+void ProcessorHandler::asyncTrap() {
+    QMetaObject::invokeMethod(this, "handleTrap", Qt::AutoConnection);
+    m_sem.acquire();
+}
+
+void ProcessorHandler::handleTrap() {
+    // Trapping to the execution environment must be done in the GUI thread. If this is not the case, something has gone
+    // horribly wrong!
+    Q_ASSERT(QThread::currentThread() == this->thread());
+
     const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
     m_syscallManager->execute(function);
+    m_sem.release();
 }
 
 void ProcessorHandler::checkProcessorFinished() {
