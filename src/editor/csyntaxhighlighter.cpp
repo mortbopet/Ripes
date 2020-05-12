@@ -46,7 +46,7 @@ CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument* parent) : SyntaxHighlighte
 
     multiLineCommentFormat.setForeground(QColor(Colors::Medalist));
 
-    preprocessorFormat.setForeground(Qt::magenta);
+    preprocessorFormat.setForeground(QColor(Qt::magenta).darker());
     rule.pattern = QRegularExpression(QStringLiteral("^\\ *#[^ ]*"));
     rule.format = preprocessorFormat;
     highlightingRules.append(rule);
