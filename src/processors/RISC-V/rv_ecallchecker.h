@@ -13,8 +13,10 @@ class EcallChecker : public Component {
 public:
     EcallChecker(std::string name, SimComponent* parent) : Component(name, parent) {
         dummy << [=] {
-            if (opcode.uValue() == RVInstr::ECALL && !stallEcallHandling.uValue()) {
+            if (opcode.uValue() == RVInstr::ECALL && !stallEcallHandling.uValue() && !handlingEcall) {
+                handlingEcall = true;
                 m_signal->Emit();
+                handlingEcall = false;
             }
             return 0;
         };
@@ -49,6 +51,13 @@ public:
 
 private:
     bool m_syscallExit = false;
+
+    // While an ECALL is being handled, the handling of the ECALL may result in the register file being written
+    // (ie. return arguments being inserted into the register file). When this occurs, the circuit is
+    // repropagated. This repropagation will inherently retrigger execution of the ecall which caused the trap. To avoid
+    // this loop, we ensure that the ecall handling signal can never be emitted whilst the emit call hasn't returned
+    // (wherein returning from the signal emission indicates finished ecall handling from the execution environment).
+    bool handlingEcall = false;
 };
 
 }  // namespace core
