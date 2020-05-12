@@ -20,7 +20,7 @@ public:
 private:
     void handleItemChanged(QTableWidgetItem* current, QTableWidgetItem* previous);
     void addSyscall(unsigned id, const Syscall* syscall);
-    void addArgument(unsigned idx, const QString& description);
+    void addItemToTable(QTableWidget* table, unsigned idx, const QString& description);
     void setCurrentSyscall(const Syscall* syscall);
 
     Ui::SyscallViewer* m_ui;

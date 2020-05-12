@@ -28,7 +28,6 @@ SyscallViewer::SyscallViewer(QWidget* parent) : QDialog(parent), m_ui(new Ui::Sy
     for (const auto& iter : syscallManager.getSyscalls()) {
         addSyscall(iter.first, iter.second.get());
     }
-    m_ui->syscallList->setSortingEnabled(true);
     m_ui->syscallList->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->syscallList->verticalHeader()->hide();
     m_ui->syscallList->setHorizontalHeaderLabels({"Call number", "Name"});
@@ -41,6 +40,13 @@ SyscallViewer::SyscallViewer(QWidget* parent) : QDialog(parent), m_ui(new Ui::Sy
     m_ui->syscallArguments->horizontalHeader()->setStretchLastSection(true);
     m_ui->syscallArguments->setHorizontalHeaderLabels({"Arg. #", "Description"});
     m_ui->syscallArguments->verticalHeader()->hide();
+
+    // Setup syscall returns styling
+    m_ui->syscallReturns->setColumnCount(2);
+    m_ui->syscallReturns->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_ui->syscallReturns->horizontalHeader()->setStretchLastSection(true);
+    m_ui->syscallReturns->setHorizontalHeaderLabels({"Ret. #", "Description"});
+    m_ui->syscallReturns->verticalHeader()->hide();
 
     // Select first row to set the initial state
     m_ui->syscallList->selectRow(0);
@@ -59,15 +65,21 @@ void SyscallViewer::setCurrentSyscall(const Syscall* syscall) {
 
     m_ui->syscallArguments->clearContents();
     m_ui->syscallArguments->setRowCount(0);
+    m_ui->syscallReturns->clearContents();
+    m_ui->syscallReturns->setRowCount(0);
+
     m_ui->syscallTitle->setText(syscall->name());
     m_ui->syscallDescription->setText(syscall->description());
     for (const auto& iter : syscall->argumentDescriptions()) {
-        addArgument(iter.first, iter.second);
+        addItemToTable(m_ui->syscallArguments, iter.first, iter.second);
+    }
+    for (const auto& iter : syscall->returnDescriptions()) {
+        addItemToTable(m_ui->syscallReturns, iter.first, iter.second);
     }
 }
 
-void SyscallViewer::addArgument(unsigned int idx, const QString& description) {
-    m_ui->syscallArguments->setRowCount(m_ui->syscallArguments->rowCount() + 1);
+void SyscallViewer::addItemToTable(QTableWidget* table, unsigned int idx, const QString& description) {
+    table->setRowCount(table->rowCount() + 1);
     QTableWidgetItem* idxItem = new QTableWidgetItem();
     QTableWidgetItem* textItem = new QTableWidgetItem();
 
@@ -77,9 +89,9 @@ void SyscallViewer::addArgument(unsigned int idx, const QString& description) {
     idxItem->setFlags(idxItem->flags() ^ Qt::ItemIsEditable);
     textItem->setFlags(textItem->flags() ^ Qt::ItemIsEditable);
 
-    const int row = m_ui->syscallArguments->rowCount() - 1;
-    m_ui->syscallArguments->setItem(row, 0, idxItem);
-    m_ui->syscallArguments->setItem(row, 1, textItem);
+    const int row = table->rowCount() - 1;
+    table->setItem(row, 0, idxItem);
+    table->setItem(row, 1, textItem);
 }
 
 void SyscallViewer::addSyscall(unsigned id, const Syscall* syscall) {
