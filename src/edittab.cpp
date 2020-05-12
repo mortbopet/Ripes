@@ -292,11 +292,14 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
     }
 
     for (const auto& elfSection : reader.sections) {
-        ProgramSection& section = program.sections.emplace_back();
-        section.name = QString::fromStdString(elfSection->get_name());
-        section.address = elfSection->get_address();
-        // QByteArray performs a deep copy of the data when the data array is initialized at construction
-        section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
+        // Do not load .debug sections
+        if (!QString::fromStdString(elfSection->get_name()).startsWith(".debug")) {
+            ProgramSection& section = program.sections.emplace_back();
+            section.name = QString::fromStdString(elfSection->get_name());
+            section.address = elfSection->get_address();
+            // QByteArray performs a deep copy of the data when the data array is initialized at construction
+            section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
+        }
 
         if (elfSection->get_type() == SHT_SYMTAB) {
             // Collect function symbols
