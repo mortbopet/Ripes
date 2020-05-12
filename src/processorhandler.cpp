@@ -61,6 +61,10 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
     emit reqProcessorReset();
 }
 
+void ProcessorHandler::writeMem(uint32_t address, uint32_t value, int size) {
+    m_currentProcessor->getMemory().writeMem(address, value, size);
+}
+
 const vsrtl::core::SparseArray& ProcessorHandler::getMemory() const {
     return m_currentProcessor->getMemory();
 }

@@ -94,6 +94,13 @@ public:
     void setRegisterValue(const unsigned idx, uint32_t value);
 
     /**
+     * @brief writeMem
+     * writes @p value from the given @p address start, and up to @p size bytes of @p value into the
+     * memory of the simulator
+     */
+    void writeMem(uint32_t address, uint32_t value, int size = sizeof(uint32_t));
+
+    /**
      * @brief getRegisterValue
      * @returns value of register @param idx
      */
