@@ -51,8 +51,9 @@ QString Parser::binarize(std::weak_ptr<const Program> program, AddrOffsetMap& ad
 }
 
 namespace {
-void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets) {
-    map[text.count('\n')] = offsets++;
+void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets,
+                               const QString& symbol = QString()) {
+    map[text.count('\n')] = {offsets++, symbol};
 }
 }  // namespace
 
@@ -75,14 +76,15 @@ QString Parser::stringifyProgram(std::weak_ptr<const Program> program, unsigned 
              addr += stride) {
             dataStream.readRawData(buffer.data(), stride);
 
-            // Function label
+            // symbol label
             if (sp->symbols.count(addr)) {
+                const auto& symbol = sp->symbols.at(addr);
                 // We are adding non-instruction lines to the output string. Record the line number as well as the sum
                 // of invalid lines up to the given point.
                 incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
                 out += "\n";
-                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
-                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + sp->symbols.at(addr) + ">:\n";
+                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol);
+                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol + ">:\n";
             }
 
             // Instruction address

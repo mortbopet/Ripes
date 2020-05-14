@@ -72,18 +72,22 @@ void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
 }
 
-void ProgramViewer::updateCenterAddress() {
-    const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(0);
-    auto block = blockForAddress(stageInfo.pc);
+void ProgramViewer::setCenterAddress(const long address) {
+    auto block = blockForAddress(address);
     setTextCursor(QTextCursor(block));
     ensureCursorVisible();
+}
+
+void ProgramViewer::updateCenterAddressFromProcessor() {
+    const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(0);
+    setCenterAddress(stageInfo.pc);
 }
 
 void ProgramViewer::setFollowEnabled(bool enabled) {
     m_following = enabled;
 
     if (enabled) {
-        updateCenterAddress();
+        updateCenterAddressFromProcessor();
     }
 }
 
@@ -129,7 +133,7 @@ void ProgramViewer::updateHighlightedAddresses() {
     setExtraSelections(highlights);
 
     if (m_following) {
-        updateCenterAddress();
+        updateCenterAddressFromProcessor();
     }
 }
 
@@ -213,9 +217,9 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
             return false;
 
         bool valid = true;
-        valid &= (low->first - low->second) <= adjustedLineNumber;
+        valid &= (low->first - low->second.first) <= adjustedLineNumber;
         if (high != m_labelAddrOffsetMap.end()) {
-            valid &= adjustedLineNumber < (high->first - high->second);
+            valid &= adjustedLineNumber < (high->first - high->second.first);
         }
         return valid;
     };
@@ -227,7 +231,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
         lineNumber = low->first + 1;
     }
 
-    const int offsetSum = high == m_labelAddrOffsetMap.end() ? low->second + 1 : high->second;
+    const int offsetSum = high == m_labelAddrOffsetMap.end() ? low->second.first + 1 : high->second.first;
     lineNumber = offsetSum + adjustedLineNumber;
 
     return document()->findBlockByNumber(lineNumber);
@@ -264,7 +268,7 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
         low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
     }
 
-    adjustedLineNumber -= (low->second + 1);
+    adjustedLineNumber -= (low->second.first + 1);
     return calcAddressFunc(adjustedLineNumber);
 }
 

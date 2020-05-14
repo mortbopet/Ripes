@@ -64,6 +64,7 @@ public slots:
     void enableAssemblyInput();
 
 private slots:
+    void showSymbolNavigator();
     void sourceCodeChanged();
     void on_disassembledViewButton_toggled();
 
@@ -82,6 +83,7 @@ private:
 
     QAction* m_buildAction = nullptr;
     QAction* m_followAction = nullptr;
+    QAction* m_symbolNavigatorAction = nullptr;
 
     Ui::EditTab* m_ui = nullptr;
     std::unique_ptr<Assembler> m_assembler;

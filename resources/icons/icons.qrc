@@ -34,5 +34,6 @@
         <file>crosshair.svg</file>
         <file>build.svg</file>
         <file>trace.svg</file>
+        <file>compass.svg</file>
     </qresource>
 </RCC>

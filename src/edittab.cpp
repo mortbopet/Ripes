@@ -15,11 +15,18 @@
 #include "parser.h"
 #include "processorhandler.h"
 #include "program.h"
+#include "symbolnavigator.h"
 
 namespace Ripes {
 
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
+
+    m_symbolNavigatorAction = new QAction(this);
+    m_symbolNavigatorAction->setIcon(QIcon(":/icons/compass.svg"));
+    m_symbolNavigatorAction->setText("Navigate symbols");
+    connect(m_symbolNavigatorAction, &QAction::triggered, this, &EditTab::showSymbolNavigator);
+    m_toolbar->addAction(m_symbolNavigatorAction);
 
     m_followAction = new QAction(this);
     m_followAction->setIcon(QIcon(":/icons/trace.svg"));
@@ -64,6 +71,13 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     enableEditor();
     sourceTypeChanged();
+}
+
+void EditTab::showSymbolNavigator() {
+    SymbolNavigator nav(m_ui->programViewer->addressOffsetMap(), this);
+    if (nav.exec()) {
+        m_ui->programViewer->setCenterAddress(nav.getSelectedSymbolAddress());
+    }
 }
 
 void EditTab::loadExternalFile(const LoadFileParams& params) {

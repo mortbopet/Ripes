@@ -29,6 +29,9 @@ public:
     long addressForPos(const QPoint& pos) const;
     long addressForBlock(QTextBlock block) const;
     QTextBlock blockForAddress(unsigned long) const;
+    void setCenterAddress(const long address);
+
+    const AddrOffsetMap& addressOffsetMap() const { return m_labelAddrOffsetMap; }
 
     ///
     /// \brief updateProgram
@@ -53,7 +56,7 @@ private:
      * If program following is enabled, this function will ensure that the current instruction in the first stage of the
      * processor is always visible within the program viewer.
      */
-    void updateCenterAddress();
+    void updateCenterAddressFromProcessor();
 
     // A timer is needed for only catching one of the multiple wheel events that
     // occur on a regular mouse scroll
