@@ -4,7 +4,7 @@
 
 Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
 
-You can support [this project on Patreon](https://www.patreon.com/mbpetersen).
+You can support [this project on Patreon](https://www.patreon.com/mbpetersen).  
 Got questions or comments? Head over to the Ripes [Gitter chat](https://gitter.im/Ripes-VSRTL/).  
 Report bugs, issues or feature requests at https://github.com/mortbopet/Ripes/issues.
 
