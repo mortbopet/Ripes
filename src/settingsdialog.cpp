@@ -4,6 +4,8 @@
 #include "ccmanager.h"
 #include "ripessettings.h"
 
+#include <QCheckBox>
+#include <QColorDialog>
 #include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
@@ -28,23 +30,53 @@ std::pair<QWidget*, QGridLayout*> constructPage() {
     return {pageWidget, itemLayout};
 }
 
-template <typename T_Widget>
-std::pair<QLabel*, T_Widget*> createSettingsWidgets(const QString& settingName, const QString& labelText) {
+template <typename T_TriggerWidget, typename T_EditWidget = T_TriggerWidget>
+std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settingName, const QString& labelText) {
     auto* label = new QLabel(labelText);
-    T_Widget* widget = new T_Widget();
 
-    const auto* settingObserver = RipesSettings::getObserver(settingName);
+    T_TriggerWidget* widget = new T_TriggerWidget();
 
-    if constexpr (std::is_same<T_Widget, QSpinBox>()) {
+    auto* settingObserver = RipesSettings::getObserver(settingName);
+
+    if constexpr (std::is_same<T_EditWidget, QSpinBox>()) {
         // Ensure that the current value can be represented in the spinbox. It is expected that the spinbox range will
         // be specified after being created in this function.
         widget->setRange(INT_MIN, INT_MAX);
         widget->setValue(settingObserver->value().toUInt());
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
-    } else if constexpr (std::is_same<T_Widget, QLineEdit>()) {
+    } else if constexpr (std::is_same<T_EditWidget, QLineEdit>()) {
         widget->connect(widget, &QLineEdit::textChanged, settingObserver, &SettingObserver::setValue);
         widget->setText(settingObserver->value().toString());
+    } else if constexpr (std::is_same<T_EditWidget, QCheckBox>()) {
+        widget->connect(widget, &QCheckBox::toggled, settingObserver, &SettingObserver::setValue);
+        widget->setChecked(settingObserver->value().toBool());
+    } else if constexpr (std::is_same<T_EditWidget, QColorDialog>()) {
+        // Create a QPushButton which will trigger a QColorWidget when clicked. Changes in the color settings will
+        // trigger a change in the pushbutton color
+        auto colorSetterFunctor = [=] {
+            QPalette pal = widget->palette();
+            pal.setColor(QPalette::Button, settingObserver->value().value<QColor>());
+            widget->setAutoFillBackground(true);
+            widget->setPalette(pal);
+        };
+
+        // We want changes in the set color to propagate to the button, while in the dialog. But this connection must be
+        // deleted once the dialog is closed, to avoid a dangling connection between the settings object and the trigger
+        // widget.
+        auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, colorSetterFunctor);
+        widget->connect(widget, &QObject::destroyed, [=] { settingObserver->disconnect(conn); });
+
+        widget->connect(widget, &QPushButton::clicked, [=](bool) {
+            QColorDialog diag;
+            diag.setCurrentColor(settingObserver->value().value<QColor>());
+            if (diag.exec()) {
+                settingObserver->setValue(diag.selectedColor());
+            }
+        });
+
+        // Apply color of current setting
+        colorSetterFunctor();
     }
 
     return {label, widget};
@@ -59,6 +91,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::
     // Create settings pages
     addPage("Editor", createEditorPage());
     addPage("Simulator", createSimulatorPage());
+    addPage("Environment", createEnvironmentPage());
 
     m_ui->settingsList->setCurrentRow(0);
 }
@@ -148,6 +181,35 @@ QWidget* SettingsDialog::createSimulatorPage() {
 
     pageLayout->addWidget(rewindLabel, 0, 0);
     pageLayout->addWidget(rewindSpinbox, 0, 1);
+
+    return pageWidget;
+}
+
+QWidget* SettingsDialog::createEnvironmentPage() {
+    auto* consoleGroupBox = new QGroupBox("Console");
+    auto* consoleLayout = new QGridLayout();
+    consoleGroupBox->setLayout(consoleLayout);
+
+    auto [pageWidget, pageLayout] = constructPage();
+
+    // Setting: RIPES_SETTING_CONSOLEECHO
+    auto [echoLabel, echoCheckbox] = createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:");
+    consoleLayout->addWidget(echoLabel, 0, 0);
+    consoleLayout->addWidget(echoCheckbox, 0, 1);
+
+    // Setting: RIPES_SETTING_CONSOLEFONT
+    auto [fontColorLabel, fontColorButton] =
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONT, "Console font color:");
+    consoleLayout->addWidget(fontColorLabel, 1, 0);
+    consoleLayout->addWidget(fontColorButton, 1, 1);
+
+    // Setting: RIPES_SETTING_CONSOLEBG
+    auto [bgColorLabel, bgColorButton] =
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:");
+    consoleLayout->addWidget(bgColorLabel, 2, 0);
+    consoleLayout->addWidget(bgColorButton, 2, 1);
+
+    pageLayout->addWidget(consoleGroupBox);
 
     return pageWidget;
 }

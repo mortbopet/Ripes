@@ -29,6 +29,7 @@ private:
 
     QWidget* createEditorPage();
     QWidget* createSimulatorPage();
+    QWidget* createEnvironmentPage();
 
     Ui::SettingsDialog* m_ui;
 

@@ -40,7 +40,7 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
            <item row="0" column="0">
-            <widget class="QPlainTextEdit" name="console">
+            <widget class="Console" name="console">
              <property name="sizePolicy">
               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                <horstretch>0</horstretch>
@@ -318,6 +318,11 @@
    <extends>QWidget</extends>
    <header>VSRTL/graphics/vsrtl_widget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Console</class>
+   <extends>QPlainTextEdit</extends>
+   <header>console.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QColor>
 #include <QSettings>
 
 namespace Ripes {
@@ -8,16 +9,25 @@ namespace Ripes {
 #define RIPES_SETTING_REWINDSTACKSIZE ("simulator_rewindstacksize")
 #define RIPES_SETTING_CCPATH ("compiler_path")
 #define RIPES_SETTING_CCARGS ("compiler_args")
+#define RIPES_SETTING_CONSOLEECHO ("console_echo")
+#define RIPES_SETTING_CONSOLEBG ("console_bg_color")
+#define RIPES_SETTING_CONSOLEFONT ("console_font_color")
 
 // Definitions of all default settings within Ripes
-const static std::map<QString, QVariant> s_defaultSettings = {{RIPES_SETTING_REWINDSTACKSIZE, 100},
-                                                              {RIPES_SETTING_CCPATH, ""},
-                                                              {RIPES_SETTING_CCARGS, "-O0"}};
+const static std::map<QString, QVariant> s_defaultSettings = {
+    {RIPES_SETTING_REWINDSTACKSIZE, 100},
+    {RIPES_SETTING_CCPATH, ""},
+    {RIPES_SETTING_CCARGS, "-O0"},
+    {RIPES_SETTING_CONSOLEECHO, "true"},
+    {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
+    {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
+};
 
 /**
  * @brief The SettingObserver class
  * A wrapper class around a single Ripes setting.
- * Provides a slot for setting the setting and a signal for broadcasting that the setting was modified.
+ * Provides a slot for setting the setting and a signal for broadcasting that the setting was modified. Useful for
+ * propagating settings changes to all over the codebase.
  */
 class SettingObserver : public QObject {
     Q_OBJECT
@@ -46,7 +56,7 @@ public:
      * @brief getObserver
      * returns the observer for the given setting key @p key
      */
-    static const SettingObserver* getObserver(const QString& key);
+    static SettingObserver* getObserver(const QString& key);
 
 private:
     static RipesSettings& get() {

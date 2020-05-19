@@ -41,7 +41,7 @@ RipesSettings::RipesSettings() {
     }
 }
 
-const SettingObserver* RipesSettings::getObserver(const QString& key) {
+SettingObserver* RipesSettings::getObserver(const QString& key) {
     return &get().m_observers.at(key);
 }
 
