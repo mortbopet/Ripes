@@ -13,9 +13,11 @@
 #include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
+Q_NAMESPACE
 
 // =============================== Processors =================================
-enum class ProcessorID { RVSS, RV5S, RV5S_NO_HZ, RV5S_NO_FW_HZ };
+enum ProcessorID { RVSS, RV5S, RV5S_NO_HZ, RV5S_NO_FW_HZ, NUM_PROCESSORS };
+Q_ENUM_NS(Ripes::ProcessorID);  // Register with the metaobject system
 // ============================================================================
 
 using RegisterInitialization = std::map<unsigned, uint32_t>;
@@ -30,6 +32,7 @@ struct Layout {
      * Must contain an entry for each stage in the processor model.
      */
     std::vector<double> stageLabelPositions;
+    bool operator==(const Layout& rhs) const { return this->name == rhs.name; }
 };
 
 struct ProcessorDescription {
@@ -56,6 +59,8 @@ public:
                 return std::make_unique<vsrtl::core::RVSS>();
             case ProcessorID::RV5S_NO_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_HZ>();
+            case ProcessorID::NUM_PROCESSORS:
+                Q_UNREACHABLE();
         }
         Q_UNREACHABLE();
     }
@@ -122,5 +127,3 @@ private:
     ProcessorMap m_descriptions;
 };
 }  // namespace Ripes
-
-Q_DECLARE_METATYPE(Ripes::ProcessorID);

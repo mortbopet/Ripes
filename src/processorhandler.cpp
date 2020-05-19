@@ -15,6 +15,14 @@ namespace Ripes {
 
 ProcessorHandler::ProcessorHandler() {
     // Contruct the default processor
+    if (RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).isNull()) {
+        m_currentID = ProcessorID::RV5S;
+    } else {
+        m_currentID = RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).value<ProcessorID>();
+
+        // Some sanity checking
+        m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV5S : m_currentID;
+    }
     selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // Connect relevant settings changes to VSRTL
@@ -140,6 +148,7 @@ void ProcessorHandler::clearBreakpoints() {
 void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitialization setup) {
     m_program = nullptr;
     m_currentID = id;
+    RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
 
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);

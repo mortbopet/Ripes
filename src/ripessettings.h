@@ -6,7 +6,8 @@
 
 namespace Ripes {
 
-// Definitions of the name of all settings within Ripes
+// =========== Definitions of the name of all settings within Ripes ============
+// User-modifyable settings
 #define RIPES_SETTING_REWINDSTACKSIZE ("simulator_rewindstacksize")
 #define RIPES_SETTING_CCPATH ("compiler_path")
 #define RIPES_SETTING_CCARGS ("compiler_args")
@@ -15,8 +16,17 @@ namespace Ripes {
 #define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
 #define RIPES_SETTING_CONSOLEFONT ("console_font")
 
-// Definitions of all default settings within Ripes
+// Program state preserving settings
+#define RIPES_SETTING_APP_TAB ("app_tab")
+#define RIPES_SETTING_SETTING_TAB ("settings_tab")
+#define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
+#define RIPES_SETTING_PROCESSOR_ID ("processor_id")
+#define RIPES_SETTING_PROCESSOR_LAYOUT_ID ("processor_layout_id")
+#define RIPES_SETTING_FOLLOW_EXEC ("follow_execution")
+
+// ============= Definitions of all default settings within Ripes ==============
 const static std::map<QString, QVariant> s_defaultSettings = {
+    // User-modifyable settings
     {RIPES_SETTING_REWINDSTACKSIZE, 100},
     {RIPES_SETTING_CCPATH, ""},
     {RIPES_SETTING_CCARGS, "-O0"},
@@ -24,6 +34,15 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
     {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},
     {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */}};
+    {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
+
+    // Program state preserving settings
+    {RIPES_SETTING_APP_TAB, 1 /* Processor */},
+    {RIPES_SETTING_SETTING_TAB, 0},
+    {RIPES_SETTING_VIEW_ZOOM, 250},
+    {RIPES_SETTING_PROCESSOR_ID, QVariant() /* Let processorhandler define default */},
+    {RIPES_SETTING_PROCESSOR_LAYOUT_ID, 0},
+    {RIPES_SETTING_FOLLOW_EXEC, "true"}};
 
 /**
  * @brief The SettingObserver class

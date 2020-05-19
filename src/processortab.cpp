@@ -71,8 +71,13 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
-    // Load the default constructed processor to the VSRTL widget
-    loadProcessorToWidget(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(0));
+    // Load the default constructed processor to the VSRTL widget. Do a bit of sanity checking to ensure that the layout
+    // stored in the settings is valid for the given processor
+    int layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
+    if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.size()) {
+        layoutID = 0;
+    }
+    loadProcessorToWidget(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(layoutID));
 
     // By default, lock the VSRTL widget
     m_vsrtlWidget->setLocked(true);
@@ -311,6 +316,14 @@ void ProcessorTab::processorSelection() {
         m_vsrtlWidget->clearDesign();
         m_stageInstructionLabels.clear();
         ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
+
+        // Store selected layout index
+        const auto& layouts = ProcessorRegistry::getDescription(diag.getSelectedId()).layouts;
+        auto layoutIter = std::find(layouts.begin(), layouts.end(), diag.getSelectedLayout());
+        Q_ASSERT(layoutIter != layouts.end());
+        const long layoutIndex = std::distance(layouts.begin(), layoutIter);
+        RipesSettings::setValue(RIPES_SETTING_PROCESSOR_LAYOUT_ID, static_cast<int>(layoutIndex));
+
         loadProcessorToWidget(diag.getSelectedLayout());
         m_vsrtlWidget->reset();
         updateInstructionModel();

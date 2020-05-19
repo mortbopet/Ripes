@@ -172,7 +172,7 @@ private slots:
 private:
     ProcessorHandler();
 
-    ProcessorID m_currentID = ProcessorID::RV5S;
+    ProcessorID m_currentID;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
     std::unique_ptr<SyscallManager> m_syscallManager;
 

@@ -15,6 +15,7 @@
 #include "parser.h"
 #include "processorhandler.h"
 #include "program.h"
+#include "ripessettings.h"
 #include "symbolnavigator.h"
 
 namespace Ripes {
@@ -36,7 +37,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
         "always visible\nin the disassembled view.");
     m_toolbar->addAction(m_followAction);
     connect(m_followAction, &QAction::triggered, m_ui->programViewer, &ProgramViewer::setFollowEnabled);
-    m_followAction->setChecked(true);
+    m_followAction->setChecked(RipesSettings::value(RIPES_SETTING_FOLLOW_EXEC).toBool());
 
     m_buildAction = new QAction(this);
     m_buildAction->setIcon(QIcon(":/icons/build.svg"));

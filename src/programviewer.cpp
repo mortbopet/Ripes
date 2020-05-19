@@ -1,6 +1,7 @@
 #include "programviewer.h"
 
 #include "defines.h"
+#include "ripessettings.h"
 
 #include <QAction>
 #include <QApplication>
@@ -84,6 +85,7 @@ void ProgramViewer::updateCenterAddressFromProcessor() {
 }
 
 void ProgramViewer::setFollowEnabled(bool enabled) {
+    RipesSettings::setValue(RIPES_SETTING_FOLLOW_EXEC, enabled);
     m_following = enabled;
 
     if (enabled) {

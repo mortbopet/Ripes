@@ -5,6 +5,7 @@
 
 #include "processorhandler.h"
 #include "radix.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 
@@ -45,7 +46,13 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     if (selectedItem != nullptr) {
+        // Select the processor and layout which is currently active
         m_ui->processors->setCurrentItem(selectedItem);
+        int layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
+        if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.size()) {
+            layoutID = 0;
+        }
+        m_ui->layout->setCurrentIndex(layoutID);
     }
 }
 

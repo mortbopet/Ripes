@@ -120,7 +120,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::
     addPage("Simulator", createSimulatorPage());
     addPage("Environment", createEnvironmentPage());
 
-    m_ui->settingsList->setCurrentRow(0);
+    m_ui->settingsList->setCurrentRow(RipesSettings::value(RIPES_SETTING_SETTING_TAB).toInt());
 }
 
 SettingsDialog::~SettingsDialog() {
@@ -258,7 +258,9 @@ void SettingsDialog::addPage(const QString& name, QWidget* page) {
         const QString name = current->text();
         Q_ASSERT(m_pageIndex.count(name));
 
-        m_ui->settingsPages->setCurrentIndex(m_pageIndex.at(name));
+        const int index = m_pageIndex.at(name);
+        m_ui->settingsPages->setCurrentIndex(index);
+        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, index);
     });
 }
 
