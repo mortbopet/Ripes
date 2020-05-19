@@ -397,6 +397,7 @@ void ProcessorTab::reset() {
     m_vsrtlWidget->reset();
     m_stageModel->reset();
     emit update();
+    emit processorWasReset();
 
     enableSimulatorControls();
     emit appendToLog("\n");

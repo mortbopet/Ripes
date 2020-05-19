@@ -127,10 +127,17 @@ public:
         PrintStr = 4,
         Exit = 10,
         PrintChar = 11,
+        GetCWD = 17,
         PrintIntHex = 34,
         PrintIntBinary = 35,
         PrintIntUnsigned = 36,
-        Exit2 = 93
+        Close = 57,
+        LSeek = 62,
+        Read = 63,
+        Write = 64,
+        FStat = 80,
+        Exit2 = 93,
+        Open = 1024
     };
     static const ISAInfo<ISA::RV32IM>* instance() {
         static ISAInfo<ISA::RV32IM> pr;

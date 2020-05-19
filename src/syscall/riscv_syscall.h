@@ -55,6 +55,8 @@ public:
         emplace<ReadSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Read);
         emplace<OpenSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Open);
         emplace<WriteSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Write);
+        emplace<GetCWDSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::GetCWD);
+        emplace<FStatSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::FStat);
     }
 };
 
