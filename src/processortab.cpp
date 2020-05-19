@@ -23,6 +23,46 @@
 
 namespace Ripes {
 
+namespace {
+//
+inline QString convertToSIUnits(const double l_value, int precision = 2) {
+    QString unit;
+    double value;
+
+    if (l_value < 0) {
+        value = l_value * -1;
+    } else {
+        value = l_value;
+    }
+
+    if (value >= 1000000 && value < 1000000000) {
+        value = value / 1000000;
+        unit = "M";
+    } else if (value >= 1000 && value < 1000000) {
+        value = value / 1000;
+        unit = "K";
+    } else if (value >= 1 && value < 1000) {
+        value = value * 1;
+    } else if ((value * 1000) >= 1 && value < 1000) {
+        value = value * 1000;
+        unit = "m";
+    } else if ((value * 1000000) >= 1 && value < 1000000) {
+        value = value * 1000000;
+        unit = QChar(0x00B5);
+    } else if ((value * 1000000000) >= 1 && value < 1000000000) {
+        value = value * 1000000000;
+        unit = "n";
+    }
+
+    if (l_value > 0) {
+        return (QString::number(value, 10, precision) + " " + unit);
+    } else if (l_value < 0) {
+        return (QString::number(value * -1, 10, precision) + " " + unit);
+    }
+    return QString::number(0) + " ";
+}
+}  // namespace
+
 ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar, QWidget* parent)
     : RipesTab(additionalToolbar, parent), m_ui(new Ui::ProcessorTab) {
     m_ui->setupUi(this);
@@ -192,19 +232,38 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
 }
 
 void ProcessorTab::updateStatistics() {
-    const auto cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    static auto lastUpdateTime = std::chrono::system_clock::now();
+    static long long lastCycleCount = ProcessorHandler::get()->getProcessor()->getCycleCount();
+
+    const auto timeNow = std::chrono::system_clock::now();
+    const auto cycleCount = ProcessorHandler::get()->getProcessor()->getCycleCount();
     const auto instrsRetired = ProcessorHandler::get()->getProcessor()->getInstructionsRetired();
-    m_ui->cycleCount->setText(QString::number(cycles));
+    const auto timeDiff =
+        std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - lastUpdateTime).count() / 1000.0;  // in seconds
+    const auto cycleDiff = cycleCount - lastCycleCount;
+
+    // Cycle count
+    m_ui->cycleCount->setText(QString::number(cycleCount));
+    // Instructions retired
     m_ui->instructionsRetired->setText(QString::number(instrsRetired));
     QString cpiText, ipcText;
-    if (cycles != 0 && instrsRetired != 0) {
-        const double cpi = static_cast<double>(cycles) / static_cast<double>(instrsRetired);
+    if (cycleCount != 0 && instrsRetired != 0) {
+        const double cpi = static_cast<double>(cycleCount) / static_cast<double>(instrsRetired);
         const double ipc = 1 / cpi;
         cpiText = QString::number(cpi, 'g', 3);
         ipcText = QString::number(ipc, 'g', 3);
     }
+    // CPI & IPC
     m_ui->cpi->setText(cpiText);
     m_ui->ipc->setText(ipcText);
+
+    // Clock rate
+    const double clockRate = static_cast<double>(cycleDiff) / timeDiff;
+    m_ui->clockRate->setText(convertToSIUnits(clockRate) + "Hz");
+
+    // Record timestamp values
+    lastUpdateTime = timeNow;
+    lastCycleCount = cycleCount;
 }
 
 void ProcessorTab::pause() {
