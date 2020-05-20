@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QTemporaryFile>
@@ -97,6 +98,10 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
         m_ui->console->insertPlainText(string);
         m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
     });
+
+    connect(m_ui->clearConsoleButton, &QPushButton::clicked, m_ui->console, &QPlainTextEdit::clear);
+    m_ui->clearConsoleButton->setIcon(QIcon(":/icons/clear.svg"));
+    m_ui->clearConsoleButton->setToolTip("Clear console");
 
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,

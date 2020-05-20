@@ -13,7 +13,6 @@ signals:
 
 public:
     Console(QWidget* parent = nullptr);
-
     void putData(const QByteArray& data);
 
 protected:
