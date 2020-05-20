@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFont>
 #include <QPlainTextEdit>
 
 namespace Ripes {
@@ -20,6 +21,7 @@ protected:
 
 private:
     bool m_localEchoEnabled = false;
+    QFont m_font;
 };
 
 }  // namespace Ripes

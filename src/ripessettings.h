@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QColor>
+#include <QFont>
 #include <QSettings>
 
 namespace Ripes {
@@ -11,7 +12,8 @@ namespace Ripes {
 #define RIPES_SETTING_CCARGS ("compiler_args")
 #define RIPES_SETTING_CONSOLEECHO ("console_echo")
 #define RIPES_SETTING_CONSOLEBG ("console_bg_color")
-#define RIPES_SETTING_CONSOLEFONT ("console_font_color")
+#define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
+#define RIPES_SETTING_CONSOLEFONT ("console_font")
 
 // Definitions of all default settings within Ripes
 const static std::map<QString, QVariant> s_defaultSettings = {
@@ -20,8 +22,8 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CCARGS, "-O0"},
     {RIPES_SETTING_CONSOLEECHO, "true"},
     {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
-    {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
-};
+    {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},
+    {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */}};
 
 /**
  * @brief The SettingObserver class

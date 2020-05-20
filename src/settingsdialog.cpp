@@ -7,6 +7,7 @@
 #include <QCheckBox>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QFontDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLayout>
@@ -77,6 +78,32 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
 
         // Apply color of current setting
         colorSetterFunctor();
+    } else if constexpr (std::is_same<T_EditWidget, QFontDialog>()) {
+        // Create a QPushButton which will trigger a QFontDialog when clicked. Changes in the font settings will
+        // trigger a change in the pushbutton text
+        auto fontSetterFunctor = [=] {
+            const auto& font = settingObserver->value().value<QFont>();
+            const QString text = font.family() + " | " + QString::number(font.pointSize());
+            widget->setText(text);
+        };
+
+        // We want changes in the set font to propagate to the button, while in the dialog. But this connection must be
+        // deleted once the dialog is closed, to avoid a dangling connection between the settings object and the trigger
+        // widget.
+        auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, fontSetterFunctor);
+        widget->connect(widget, &QObject::destroyed, [=] { settingObserver->disconnect(conn); });
+
+        widget->connect(widget, &QPushButton::clicked, [=](bool) {
+            QFontDialog diag;
+            diag.setCurrentFont(settingObserver->value().value<QFont>());
+            diag.setOption(QFontDialog::MonospacedFonts, true);
+            if (diag.exec()) {
+                settingObserver->setValue(diag.selectedFont());
+            }
+        });
+
+        // Apply font of current setting
+        fontSetterFunctor();
     }
 
     return {label, widget};
@@ -198,16 +225,22 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     consoleLayout->addWidget(echoCheckbox, 0, 1);
 
     // Setting: RIPES_SETTING_CONSOLEFONT
+    auto [fontLabel, fontButton] =
+        createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:");
+    consoleLayout->addWidget(fontLabel, 1, 0);
+    consoleLayout->addWidget(fontButton, 1, 1);
+
+    // Setting: RIPES_SETTING_CONSOLEFONTCOLOR
     auto [fontColorLabel, fontColorButton] =
-        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONT, "Console font color:");
-    consoleLayout->addWidget(fontColorLabel, 1, 0);
-    consoleLayout->addWidget(fontColorButton, 1, 1);
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:");
+    consoleLayout->addWidget(fontColorLabel, 2, 0);
+    consoleLayout->addWidget(fontColorButton, 2, 1);
 
     // Setting: RIPES_SETTING_CONSOLEBG
     auto [bgColorLabel, bgColorButton] =
         createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:");
-    consoleLayout->addWidget(bgColorLabel, 2, 0);
-    consoleLayout->addWidget(bgColorButton, 2, 1);
+    consoleLayout->addWidget(bgColorLabel, 3, 0);
+    consoleLayout->addWidget(bgColorButton, 3, 1);
 
     pageLayout->addWidget(consoleGroupBox);
 
