@@ -33,7 +33,7 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CONSOLEECHO, "true"},
     {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
     {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},
-    {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */}};
+    {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */},
     {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
 
     // Program state preserving settings

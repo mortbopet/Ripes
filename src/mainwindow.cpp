@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
-    connect(m_stackedTabs, &QStackedWidget::currentChanged, this, &MainWindow::tabChanged);
+    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_editTab, &EditTab::updateProgramViewerHighlighting);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged,
@@ -112,7 +112,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
 
     m_ui->tabbar->setActiveIndex(RipesSettings::value(RIPES_SETTING_APP_TAB).toInt());
-    m_processorToolbar->setVisible(true);
 }
 
 #define setupStatusWidget(name)                                                                                       \
@@ -134,10 +133,10 @@ void MainWindow::setupStatusBar() {
     setupStatusWidget(SystemIO);
 }
 
-void MainWindow::tabChanged() {
-    m_editToolbar->setVisible(m_editTab->isVisible());
-    m_memoryToolbar->setVisible(m_memoryTab->isVisible());
-    m_processorToolbar->setVisible(m_processorTab->isVisible());
+void MainWindow::tabChanged(int index) {
+    m_editToolbar->setVisible(index == 0);
+    m_processorToolbar->setVisible(index == 1);
+    m_memoryToolbar->setVisible(index == 2);
 }
 
 void MainWindow::fitToView() {
