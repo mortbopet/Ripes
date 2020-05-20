@@ -1,9 +1,14 @@
 #pragma once
 
+#include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QInputDialog>
+#include <QMutex>
 #include <QObject>
+#include <QTemporaryFile>
 #include <QTextStream>
+#include <QWaitCondition>
 
 #include <sys/stat.h>
 
@@ -84,6 +89,16 @@ private:
         static std::map<int, QTextStream> streams;
         // The file pointers in use
         static std::map<int, QFile> files;
+        // QByteArray to use as a stdin buffer
+        static QByteArray s_stdinBuffer;
+
+        /**
+         * @brief s_stdioMutex
+         * Used for implementing the waitCondition between the producer/consumer scenario where ecall handling is
+         * blocking while waiting for the stdinBuffer to be non-empty.
+         */
+        static QMutex s_stdioMutex;
+        static QWaitCondition s_stdinBufferEmpty;
 
         // Reset all file information. Closes any open files and resets the arrays
         static void resetFiles() {
@@ -100,9 +115,20 @@ private:
             fileFlags[STDIN] = SystemIO::O_RDONLY;
             fileFlags[STDOUT] = SystemIO::O_WRONLY;
             fileFlags[STDERR] = SystemIO::O_WRONLY;
-            streams.emplace(STDIN, stdin);
-            streams.emplace(STDOUT, stdout);
-            streams.emplace(STDERR, stderr);
+
+            if (streams.count(STDIN) == 0) {
+                // stdin stream has not yet been created
+                streams.emplace(STDIN, &s_stdinBuffer);
+            } else {
+                // Clear stdin stream and reset stream
+                s_stdinBuffer.clear();
+                auto success = streams[STDIN].seek(0);
+                Q_ASSERT(success);
+            }
+
+            // stdout/stderr will be handled via. signal/slots internally in the application
+            // streams.emplace(STDOUT, stdout);
+            // streams.emplace(STDERR, stderr);
         }
 
         // Open a file stream assigned to the given file descriptor
@@ -157,7 +183,7 @@ private:
                 return false;
             } else if (fileNames[fd].isEmpty()) {
                 return false;
-            } else if (fileFlags[fd] & flag) {
+            } else if ((fileFlags[fd] & flag) == static_cast<unsigned>(flag) /* also compares ie. O_RDONLY (0x0) */) {
                 return true;
             }
             return false;
@@ -204,22 +230,6 @@ private:
             return i;
         }
     };
-
-    /**
-     * @brief readStringInternal
-     * @param init: Initial value shown in the textbox
-     * @param prompt: Prompt written in textbox
-     * @param maxlength: Maximum length of the input string. String will be truncated to maxLength.
-     * @return newline-terminated user input string (Mainly to facilitate use of gets() which required a \n terminated
-     * string from a user, to finish reading stdin)
-     */
-    static QString readStringInternal(QString title, QString init, QString prompt, int maxlength) {
-        auto read = QInputDialog::getText(nullptr, title, prompt, QLineEdit::Normal, init);
-
-        read.truncate(maxlength - 1);
-        read.append('\n');
-        return read;
-    }
 
 public:
     /**
@@ -303,13 +313,7 @@ public:
         int retValue = -1;
         /////////////// DPS 8-Jan-2013  //////////////////////////////////////////////////
         /// Read from STDIN file descriptor while using IDE - get input from Messages pane.
-        if (fd == STDIN) {
-            myBuffer =
-                readStringInternal("stdin", "", "Enter string", SYSCALL_BUFSIZE - 1 /* '\0' character*/).toUtf8();
-            return std::min(lengthRequested, myBuffer.size() + 1 /* \0 character is not counted in QString size */);
-        }
-
-        if (!FileIOData::fdInUse(fd, 0))  // Check the existence of the "read" fd
+        if (!FileIOData::fdInUse(fd, O_RDONLY))  // Check the existence of the "read" fd
         {
             s_fileErrorString = "File descriptor " + QString::number(fd) + " is not open for reading";
             return -1;
@@ -317,12 +321,29 @@ public:
         // retrieve FileInputStream from storage
         auto& InputStream = FileIOData::getStreamInUse(fd);
 
-        // Reads up to lengthRequested bytes of data from this Input stream into an array of bytes.
-        myBuffer = InputStream.read(lengthRequested).toUtf8();
+        if (fd == STDIN) {
+            while (myBuffer.size() == 0) {
+                // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
+                FileIOData::s_stdioMutex.lock();
+                myBuffer = InputStream.read(lengthRequested).toUtf8();
+                if (myBuffer.size() == 0) {
+                    FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex);
+                }
+                myBuffer = InputStream.read(lengthRequested).toUtf8();
+                FileIOData::s_stdioMutex.unlock();
+            }
+        } else {
+            // Reads up to lengthRequested bytes of data from this Input stream into an array of bytes.
+            myBuffer = InputStream.read(lengthRequested).toUtf8();
+        }
 
         if (myBuffer.size() == 0) {
-            // End of file - write EOF file character into buffer
-            myBuffer.append(sizeof(int), EOF);
+            if (fd == STDIN) {
+                Q_ASSERT(false);  // EOF should never be possible for STDIN
+            } else {
+                // End of file - write EOF file character into buffer
+                myBuffer.append(sizeof(int), EOF);
+            }
         }
 
         return myBuffer.size();
@@ -371,6 +392,18 @@ public:
 
 signals:
     void doPrint(const QString&);
+
+public slots:
+    /**
+     * @brief putStdInData
+     * Pushes @p data onto the stdin buffer object
+     */
+    void putStdInData(const QByteArray& data) {
+        FileIOData::s_stdioMutex.lock();
+        FileIOData::s_stdinBuffer.append(data);
+        FileIOData::s_stdioMutex.unlock();
+        FileIOData::s_stdinBufferEmpty.wakeAll();
+    }
 
 private:
     SystemIO() { reset(); }

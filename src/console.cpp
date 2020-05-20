@@ -59,10 +59,19 @@ void Console::keyPressEvent(QKeyEvent* e) {
         case Qt::Key_Down:
             break;
         default:
-            if (m_localEchoEnabled) {
-                putData(e->text().toUtf8());
+            if (!e->text().isEmpty()) {
+                QString text = e->text();
+
+                if (e->key() == Qt::Key_Return) {
+                    // Return is interpreted as \r\n instead of the default \r
+                    text = "\r\n";
+                }
+
+                if (m_localEchoEnabled) {
+                    putData(text.toUtf8());
+                }
+                emit sendData(text.toLocal8Bit());
             }
-            emit sendData(e->text().toLocal8Bit());
     }
 }
 

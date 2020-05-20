@@ -16,6 +16,7 @@
 #include "ripessettings.h"
 #include "stagetablemodel.h"
 #include "stagetablewidget.h"
+#include "syscall/systemio.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
@@ -100,6 +101,9 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto& size) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
+
+    // Send input data from the console to the SystemIO stdin stream
+    connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
 
     // Make processor view stretch wrt. consoles
     m_ui->pipelinesplitter->setStretchFactor(0, 1);
