@@ -162,18 +162,10 @@ public slots:
 private slots:
     /**
      * @brief asyncTrap
-     * Connects to the processors system call request interface. Will emit a queued requestHandleTrap() request to
-     * execute handleTrap(). This queued request facilitates control flow crossing from the simulator thread to the GUI
-     * thread.
+     * Connects to the processors system call request interface. Will concurrently run the systemcall manager to handle
+     * the requested functionality, and return once the system call was handled.
      */
     void asyncTrap();
-
-    /**
-     * @brief handleTrap
-     * Will handle a queued request initialized from asyncTrap to perform whatever is required of the supporting
-     * execution environment
-     */
-    void handleTrap();
 
 private:
     ProcessorHandler();

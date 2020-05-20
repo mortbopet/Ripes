@@ -195,18 +195,12 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 }
 
 void ProcessorHandler::asyncTrap() {
-    QMetaObject::invokeMethod(this, "handleTrap", Qt::AutoConnection);
+    QtConcurrent::run([=] {
+        const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
+        m_syscallManager->execute(function);
+        m_sem.release();
+    });
     m_sem.acquire();
-}
-
-void ProcessorHandler::handleTrap() {
-    // Trapping to the execution environment must be done in the GUI thread. If this is not the case, something has gone
-    // horribly wrong!
-    Q_ASSERT(QThread::currentThread() == this->thread());
-
-    const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
-    m_syscallManager->execute(function);
-    m_sem.release();
 }
 
 void ProcessorHandler::checkProcessorFinished() {

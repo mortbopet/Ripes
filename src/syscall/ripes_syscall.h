@@ -1,7 +1,11 @@
 #pragma once
 
+#include <QAbstractEventDispatcher>
+#include <QApplication>
 #include <QMessageBox>
 #include <QString>
+#include <QThread>
+
 #include <functional>
 #include <map>
 #include <memory>
@@ -51,6 +55,12 @@ protected:
     const std::map<unsigned, QString> m_returnDescriptions;
 };
 
+/**
+ * @brief The SyscallManager class
+ *
+ * It is expected that the syscallManager can be called outside of the main GUI thread. As such, all syscalls who
+ * require GUI interaction must handle this explicitely.
+ */
 class SyscallManager {
 public:
     /**
@@ -59,9 +69,11 @@ public:
      */
     void execute(int id) {
         if (m_syscalls.count(id) == 0) {
-            QMessageBox::warning(nullptr, "Error",
-                                 "Unknown system call: " + QString::number(id) +
-                                     "\nRefer to \"Help->System calls\" for a list of support system calls.");
+            postToGUIThread([=] {
+                QMessageBox::warning(nullptr, "Error",
+                                     "Unknown system call: " + QString::number(id) +
+                                         "\nRefer to \"Help->System calls\" for a list of support system calls.");
+            });
         } else {
             m_syscalls.at(id)->execute();
         }
@@ -70,6 +82,18 @@ public:
     const std::map<int, std::unique_ptr<Syscall>>& getSyscalls() const { return m_syscalls; }
 
 protected:
+    /**
+     * @brief postToGUIThread
+     * Schedules the execution of @param fun in the GUI thread.
+     * @param connection type.
+     */
+    template <typename F>
+    static void postToGUIThread(F&& fun, Qt::ConnectionType type = Qt::BlockingQueuedConnection) {
+        auto* obj = QAbstractEventDispatcher::instance(qApp->thread());
+        Q_ASSERT(obj);
+        QMetaObject::invokeMethod(obj, std::forward<F>(fun), type);
+    }
+
     SyscallManager() {}
     std::map<int, std::unique_ptr<Syscall>> m_syscalls;
 };
