@@ -450,8 +450,10 @@ void ProcessorTab::run(bool state) {
     m_displayValuesAction->setEnabled(!state);
     m_stageTableAction->setEnabled(false);
 
-    // Disable the entire processortab, disallowing interactions with widgets
-    setEnabled(!state);
+    // Disable widgets which are not updated when running the processor
+    m_vsrtlWidget->setEnabled(!state);
+    m_ui->registerWidget->setEnabled(!state);
+    m_ui->instructionView->setEnabled(!state);
 }
 
 void ProcessorTab::reverse() {
