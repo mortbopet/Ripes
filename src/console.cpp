@@ -24,9 +24,14 @@ Console::Console(QWidget* parent) : QPlainTextEdit(parent) {
 
     connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO), &SettingObserver::modified,
             [=](const QVariant& value) { m_localEchoEnabled = value.toBool(); });
+    m_localEchoEnabled = RipesSettings::value(RIPES_SETTING_CONSOLEECHO).toBool();
 }
 
 void Console::putData(const QByteArray& data) {
+    // Text can always only be inserted at the end of the console
+    auto cursorAtEnd = QTextCursor(document());
+    cursorAtEnd.movePosition(QTextCursor::End);
+    setTextCursor(cursorAtEnd);
     insertPlainText(data);
 
     QScrollBar* bar = verticalScrollBar();
@@ -42,8 +47,9 @@ void Console::keyPressEvent(QKeyEvent* e) {
         case Qt::Key_Down:
             break;
         default:
-            if (m_localEchoEnabled)
-                QPlainTextEdit::keyPressEvent(e);
+            if (m_localEchoEnabled) {
+                putData(e->text().toUtf8());
+            }
             emit sendData(e->text().toLocal8Bit());
     }
 }
