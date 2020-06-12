@@ -51,6 +51,7 @@ signals:
 private:
     void loadFile(const QString& filename, SourceType type);
 
+    void setupStatusBar();
     void setupMenus();
     void setupExamplesMenu(QMenu* parent);
 

@@ -12,7 +12,11 @@
 
 #include <sys/stat.h>
 
+#include "statusmanager.h"
+
 namespace Ripes {
+
+StatusManager(SystemIO);
 
 /*
 Copyright (c) 2003-2013,  Pete Sanderson and Kenneth Vollmar
@@ -325,6 +329,7 @@ public:
         auto& InputStream = FileIOData::getStreamInUse(fd);
 
         if (fd == STDIN) {
+            SystemIOStatusManager::setStatus("Waiting for user input...");
             while (myBuffer.size() == 0) {
                 // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
                 FileIOData::s_stdioMutex.lock();
@@ -335,6 +340,7 @@ public:
                     if (s_abortSyscall) {
                         FileIOData::s_stdioMutex.unlock();
                         s_abortSyscall = false;
+                        SystemIOStatusManager::clearStatus();
                         return -1;
                     }
                     if (dataInStdinStrm) {
@@ -357,6 +363,7 @@ public:
             }
         }
 
+        SystemIOStatusManager::clearStatus();
         return myBuffer.size();
 
     }  // end readFromFile

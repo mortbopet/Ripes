@@ -2,6 +2,7 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
+#include <QLabel>
 #include <QMessageBox>
 #include <QString>
 #include <QThread>
@@ -9,6 +10,8 @@
 #include <functional>
 #include <map>
 #include <memory>
+
+#include "statusmanager.h"
 
 namespace Ripes {
 
@@ -56,6 +59,13 @@ protected:
 };
 
 /**
+ * @brief SyscallStatusManager
+ * Any syscall status messages may be posted to the following class. This class is connected to a status bar widget
+ * in the mainwindow and subsequently displays all messages to the user.
+ */
+StatusManager(Syscall);
+
+/**
  * @brief The SyscallManager class
  *
  * It is expected that the syscallManager can be called outside of the main GUI thread. As such, all syscalls who
@@ -75,7 +85,11 @@ public:
                                          "\nRefer to \"Help->System calls\" for a list of support system calls.");
             });
         } else {
-            m_syscalls.at(id)->execute();
+            const auto& syscall = m_syscalls.at(id);
+            SyscallStatusManager::setStatus("Handling system call: " + syscall->name() + " (" + QString::number(id) +
+                                            ")");
+            syscall->execute();
+            SyscallStatusManager::clearStatus();
         }
     }
 

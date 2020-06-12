@@ -23,9 +23,11 @@
 #include <QFileDialog>
 #include <QFontDatabase>
 #include <QIcon>
+#include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QStatusBar>
 #include <QTemporaryFile>
 #include <QTextStream>
 
@@ -90,6 +92,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     connect(&SystemIO::get(), &SystemIO::doPrint, m_processorTab, &ProcessorTab::printToLog);
 
+    // Setup status bar
+    setupStatusBar();
+
     // Reset and program reload signals
     connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
@@ -106,6 +111,22 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     m_ui->tabbar->setActiveIndex(1);
     m_processorToolbar->setVisible(true);
+}
+
+#define setupStatusWidget(name)                                                                                       \
+    auto* name##StatusLabel = new QLabel(this);                                                                       \
+    statusBar()->addWidget(name##StatusLabel);                                                                        \
+    connect(&name##StatusManager::get().emitter, &StatusEmitter::statusChanged, name##StatusLabel, &QLabel::setText); \
+    connect(&name##StatusManager::get().emitter, &StatusEmitter::clear, name##StatusLabel, &QLabel::clear);
+
+void MainWindow::setupStatusBar() {
+    statusBar()->showMessage("");
+
+    // Setup syscall status widget
+    setupStatusWidget(Syscall);
+
+    // Setup systemIO status widget
+    setupStatusWidget(SystemIO);
 }
 
 void MainWindow::tabChanged() {
