@@ -209,10 +209,14 @@ void ProcessorHandler::checkProcessorFinished() {
 }
 
 void ProcessorHandler::stop() {
-    if (m_runWatcher.isRunning())
+    if (m_runWatcher.isRunning()) {
         m_stopRunningFlag = true;
+        // We might be currently trapping for user I/O. Signal to abort the trap, in this avoiding a deadlock.
+        SystemIO::abortSyscall(true);
+    }
     m_runWatcher.waitForFinished();
     m_stopRunningFlag = false;
+    SystemIO::abortSyscall(false);
 }
 
 bool ProcessorHandler::isExecutableAddress(uint32_t address) const {

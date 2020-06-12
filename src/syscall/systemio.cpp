@@ -10,4 +10,5 @@ std::map<int, QFile> SystemIO::FileIOData::files;
 QByteArray SystemIO::FileIOData::s_stdinBuffer;
 QMutex SystemIO::FileIOData::s_stdioMutex;
 QWaitCondition SystemIO::FileIOData::s_stdinBufferEmpty;
+bool SystemIO::s_abortSyscall = false;
 }  // namespace Ripes

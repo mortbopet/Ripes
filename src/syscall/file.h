@@ -83,11 +83,13 @@ public:
         int retLength = SystemIO::readFromFile(fd, buffer, length);
         BaseSyscall::setRet(0, retLength);
 
-        // copy bytes from returned buffer into memory
-        const char* dataptr = buffer.constData();  // QString::data contains a possible null termination '\0' character
-                                                   // (present if reading from stdin and not from a file)
-        while (retLength-- > 0) {
-            ProcessorHandler::get()->writeMem(byteAddress++, *dataptr++, sizeof(char));
+        if (retLength != -1) {
+            // copy bytes from returned buffer into memory
+            const char* dataptr = buffer.constData();  // QString::data contains a possible null termination '\0'
+                                                       // character (present if reading from stdin and not from a file)
+            while (retLength-- > 0) {
+                ProcessorHandler::get()->writeMem(byteAddress++, *dataptr++, sizeof(char));
+            }
         }
     }
 };

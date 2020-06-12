@@ -61,6 +61,9 @@ private:
     // String used for description of file error
     static QString s_fileErrorString;  // = ("File operation OK");
 
+    // Flag used for aborting waiting for I/O
+    static bool s_abortSyscall;
+
     // Standard I/O Channels
     enum STDIO { STDIN = 0, STDOUT = 1, STDERR = 2, STDIO_END };
 
@@ -325,11 +328,19 @@ public:
             while (myBuffer.size() == 0) {
                 // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
                 FileIOData::s_stdioMutex.lock();
-                myBuffer = InputStream.read(lengthRequested).toUtf8();
-                if (myBuffer.size() == 0) {
-                    FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex);
+                while (myBuffer.size() == 0) {
+                    /** We spin on a wait condition with a timeout. The timeout is required to ensure that we may
+                     * observe any abort flags (ie. if execution is stopped while waiting for IO */
+                    const bool dataInStdinStrm = FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex, 100);
+                    if (s_abortSyscall) {
+                        FileIOData::s_stdioMutex.unlock();
+                        s_abortSyscall = false;
+                        return -1;
+                    }
+                    if (dataInStdinStrm) {
+                        myBuffer = InputStream.read(lengthRequested).toUtf8();
+                    }
                 }
-                myBuffer = InputStream.read(lengthRequested).toUtf8();
                 FileIOData::s_stdioMutex.unlock();
             }
         } else {
@@ -389,6 +400,7 @@ public:
 
     static void printString(const QString& string) { emit get().doPrint(string); }
     static void reset() { FileIOData::resetFiles(); }
+    static void abortSyscall(bool state) { s_abortSyscall = state; }
 
 signals:
     void doPrint(const QString&);
