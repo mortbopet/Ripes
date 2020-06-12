@@ -122,6 +122,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 void MainWindow::setupStatusBar() {
     statusBar()->showMessage("");
 
+    // Setup processorhandler status widget
+    setupStatusWidget(Processor);
+
     // Setup syscall status widget
     setupStatusWidget(Syscall);
 

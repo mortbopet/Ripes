@@ -4,6 +4,7 @@
 #include "processorregistry.h"
 #include "program.h"
 #include "ripessettings.h"
+#include "statusmanager.h"
 
 #include "syscall/riscv_syscall.h"
 
@@ -81,6 +82,7 @@ const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
 }
 
 void ProcessorHandler::run() {
+    ProcessorStatusManager::setStatus("Running...");
     emit runStarted();
     /** We create a cycleFunctor for running the design which will stop further running of the design when:
      * - The user has stopped running the processor (m_stopRunningFlag)
@@ -100,6 +102,8 @@ void ProcessorHandler::run() {
 
     // Start running through the VSRTL Widget interface
     connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, &ProcessorHandler::runFinished);
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] { ProcessorStatusManager::clearStatus(); });
+
     m_runWatcher.setFuture(m_vsrtlWidget->run(cycleFunctor));
 }
 
