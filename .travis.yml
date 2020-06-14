@@ -17,26 +17,27 @@ matrix:
       env:
         - RIPES_PLATFORM: 'windows'
 
-    # Trusty continuous release build
+    # Xenial continuous release build
     - env: RIPES_PLATFORM='linux'
       os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
       language: c++
       compiler: gcc
       addons:
         apt:
           sources:
-            - sourceline: 'ppa:beineri/opt-qt-5.10.1-trusty'
+            - sourceline: 'ppa:beineri/opt-qt-5.11.0-xenial'
               key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x10C56D0DE9977759'
             - ubuntu-toolchain-r-test
           packages:
-            - qt510-meta-minimal
-            - qt510svg
-            - qt510charts-no-lgpl
+            - qt511-meta-minimal
+            - qt511svg
+            - qt511charts-no-lgpl
             - libc6-dev
             - g++-8
             - tree
+            - mesa-common-dev
 
      # Bionic unit test build
     - env: RIPES_PLATFORM='linux_test'
