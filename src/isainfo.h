@@ -137,6 +137,7 @@ public:
         Write = 64,
         FStat = 80,
         Exit2 = 93,
+        brk = 214,
         Open = 1024
     };
     static const ISAInfo<ISA::RV32IM>* instance() {

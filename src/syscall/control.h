@@ -36,4 +36,23 @@ public:
     }
 };
 
+template <typename BaseSyscall>
+class BrkSyscall : public BaseSyscall {
+    static_assert(std::is_base_of<Syscall, BaseSyscall>::value);
+
+public:
+    BrkSyscall()
+        : BaseSyscall(
+              "brk",
+              "Change the location of the program break, which defines the end of the process's data segment (i.e., "
+              "the program break is the first location after the end of the uninitialized data segment).",
+              {{0, "sets the end of the data segment to the specified address"}},
+              {{0, "On success, brk() returns zero.  On error, -1 is returned, and errno is set to ENOMEM"}}) {}
+
+    void execute() {
+        // Nothing to do
+        return;
+    }
+};
+
 }  // namespace Ripes

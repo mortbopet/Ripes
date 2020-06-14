@@ -48,6 +48,7 @@ public:
         // Control syscalls
         emplace<ExitSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Exit);
         emplace<Exit2Syscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Exit2);
+        emplace<BrkSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::brk);
 
         // File syscalls
         emplace<CloseSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Close);
