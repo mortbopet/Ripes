@@ -13,14 +13,17 @@ signals:
 
 public:
     Console(QWidget* parent = nullptr);
-    void putData(const QByteArray& data);
 
 protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
+    void putData(const QByteArray& data);
+    void backspace();
+
     bool m_localEchoEnabled = false;
     QFont m_font;
+    QString m_buffer;
 };
 
 }  // namespace Ripes

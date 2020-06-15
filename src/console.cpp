@@ -50,9 +50,17 @@ void Console::putData(const QByteArray& data) {
     bar->setValue(bar->maximum());
 }
 
+void Console::backspace() {
+    // Deletes the last character in the console
+    auto cursorAtEnd = QTextCursor(document());
+    cursorAtEnd.movePosition(QTextCursor::End);
+    setTextCursor(cursorAtEnd);
+    textCursor().deletePreviousChar();
+}
+
 void Console::keyPressEvent(QKeyEvent* e) {
+    bool backspacedBuffer = false;
     switch (e->key()) {
-        case Qt::Key_Backspace:
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:
@@ -60,17 +68,34 @@ void Console::keyPressEvent(QKeyEvent* e) {
             break;
         default:
             if (!e->text().isEmpty()) {
-                QString text = e->text();
-
+                const QString text = e->text();
+                // Buffer managing
                 if (e->key() == Qt::Key_Return) {
                     // Return is interpreted as \r\n instead of the default \r
-                    text = "\r\n";
+                    m_buffer += "\r\n";
+
+                    // Flush buffer to output
+                    emit sendData(m_buffer.toLocal8Bit());
+                    m_buffer.clear();
+                } else if (e->key() == Qt::Key_Backspace) {
+                    if (!m_buffer.isEmpty()) {
+                        m_buffer.chop(1);
+                        backspacedBuffer = true;
+                    }
+                } else {
+                    m_buffer += text;
                 }
 
+                // Console echoing
                 if (m_localEchoEnabled) {
-                    putData(text.toUtf8());
+                    if (e->key() == Qt::Key_Backspace) {
+                        if (backspacedBuffer) {
+                            backspace();
+                        }
+                    } else {
+                        putData(text.toUtf8());
+                    }
                 }
-                emit sendData(text.toLocal8Bit());
             }
     }
 }
