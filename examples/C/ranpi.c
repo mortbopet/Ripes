@@ -8,53 +8,6 @@
  *  Translated to C from FORTRAN 20 Nov 1993
  */
 
-/** Modified for Ripes:
- * - No printing
- * - Moves computation result to register x27 
- */
-
-void printFloat(float value) {
-    asm("mv a0, %[v]\n"
-        "li a7, 2\n"
-        "ecall"
-        :
-        : [v]"r"(value)
-        :
-    );
-}
-
-void printInt(int value) {
-    asm("mv a0, %[v]\n"
-        "li a7, 1\n"
-        "ecall"
-        :
-        : [v]"r"(value)
-        :
-    );
-}
-
-void printString(void* str) {
-    asm("mv a0, %[v]\n"
-        "li a7, 4\n"
-        "ecall"
-        :
-        : [v]"r"(str)
-        :
-    );
-}
-
-void printStringFloat(void* str, float f){
-    printString(str);
-    printFloat(f);
-    printString("\n");
-}
-
-void printStringInt(void* str, int i){
-    printString(str);
-    printInt(i);
-    printString("\n");
-}
-
 void myadd(float* sum, float* addend) {
     /*
     c   Simple adding subroutine thrown in to allow subroutine
@@ -67,7 +20,7 @@ int main(int argc, char* argv[]) {
     float ztot, yran, ymult, ymod, x, y, z, pi, prod;
     long int low, ixran, itot, j, iprod;
 
-    printString("Running RanPI...\n");
+    printf("Running RanPI...\n");
 
     ztot = 0.0;
     low = 1;
@@ -75,7 +28,7 @@ int main(int argc, char* argv[]) {
     yran = 5813.0;
     ymult = 1307.0;
     ymod = 5471.0;
-    itot = 100;  // 1200000;
+    itot = 100;
 
     for (j = 1; j <= itot; j++) {
         /*
@@ -86,9 +39,7 @@ int main(int argc, char* argv[]) {
         c   integer overflow and to allow full precision even with a 23-bit
         c   mantissa.
         */
-        printString("\tIteration: ");
-        printInt(j);
-        printString("\n");
+        printf("\tIteration: %d\n", j);
         iprod = 27611 * ixran;
         ixran = iprod - 74383 * (long int)(iprod / 74383);
         x = (float)ixran / 74383.0;
@@ -105,14 +56,13 @@ int main(int argc, char* argv[]) {
     pi = 4.0 * (float)low / (float)itot;
 
     // Print result
-    printString("Result: ");
-    printFloat(pi);
+    printf("Result: %f\n", pi);
 
     // Move result to some pre-determined register
     asm("mv x27, %[v]"
-        :                  /* Output registers */
-        : [v] "r"(pi)      /* Input registers */
-        :                  /* Clobber registers */
+        :               /* Output registers */
+        : [ v ] "r"(pi) /* Input registers */
+        :               /* Clobber registers */
     );
 
     return 0;
