@@ -75,8 +75,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_editTab, &EditTab::updateProgramViewerHighlighting);
-    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged,
-            [=](int index) { RipesSettings::setValue(RIPES_SETTING_APP_TAB, index); });
 
     setupMenus();
 
@@ -113,7 +111,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
 
-    m_ui->tabbar->setActiveIndex(RipesSettings::value(RIPES_SETTING_APP_TAB).toInt());
+    m_ui->tabbar->setActiveIndex(1);
 }
 
 #define setupStatusWidget(name)                                                                                       \

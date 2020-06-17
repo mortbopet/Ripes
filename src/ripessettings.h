@@ -17,7 +17,6 @@ namespace Ripes {
 #define RIPES_SETTING_CONSOLEFONT ("console_font")
 
 // Program state preserving settings
-#define RIPES_SETTING_APP_TAB ("app_tab")
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
 #define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
 #define RIPES_SETTING_PROCESSOR_ID ("processor_id")
@@ -37,7 +36,6 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
 
     // Program state preserving settings
-    {RIPES_SETTING_APP_TAB, 1 /* Processor */},
     {RIPES_SETTING_SETTING_TAB, 0},
     {RIPES_SETTING_VIEW_ZOOM, 250},
     {RIPES_SETTING_PROCESSOR_ID, QVariant() /* Let processorhandler define default */},
