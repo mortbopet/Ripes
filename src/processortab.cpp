@@ -459,7 +459,7 @@ void ProcessorTab::run(bool state) {
         ProcessorHandler::get()->run();
         m_statUpdateTimer->start();
     } else {
-        ProcessorHandler::get()->stop();
+        ProcessorHandler::get()->stopRun();
         m_statUpdateTimer->stop();
     }
 

@@ -101,6 +101,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
+    connect(ProcessorHandler::get(), &ProcessorHandler::stopping, m_processorTab, &ProcessorTab::pause);
+
     connect(m_processorTab, &ProcessorTab::processorWasReset, [=] { SystemIO::reset(); });
 
     connect(m_ui->actionSystem_calls, &QAction::triggered, [=] {

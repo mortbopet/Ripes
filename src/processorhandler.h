@@ -124,10 +124,10 @@ public:
     void run();
 
     /**
-     * @brief stop
+     * @brief stopRun
      * Sets the m_stopRunningFlag, and waits for any currently running asynchronous run execution to finish.
      */
-    void stop();
+    void stopRun();
 
 signals:
     /**
@@ -151,6 +151,12 @@ signals:
     void exit();
 
     /**
+     * @brief stopping
+     * Processor has been requested to stop
+     */
+    void stopping();
+
+    /**
      * @brief runStarted/runFinished
      * Signals indiacting whether the processor is being started/stopped in asynchronously running without any GUI
      * updates.
@@ -170,6 +176,8 @@ private slots:
     void asyncTrap();
 
 private:
+    void setStopRunFlag();
+
     ProcessorHandler();
 
     ProcessorID m_currentID;

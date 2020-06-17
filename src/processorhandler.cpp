@@ -36,7 +36,7 @@ ProcessorHandler::ProcessorHandler() {
 
 void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
     // Stop any currently executing simulation
-    stop();
+    stopRun();
 
     auto* textSection = p->getSection(TEXT_SECTION_NAME);
     if (!textSection)
@@ -208,12 +208,17 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 }
 
 void ProcessorHandler::asyncTrap() {
-    QtConcurrent::run([=] {
+    auto futureWatcher = QFutureWatcher<bool>();
+    futureWatcher.setFuture(QtConcurrent::run([=] {
         const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
-        m_syscallManager->execute(function);
-        m_sem.release();
-    });
-    m_sem.acquire();
+        return m_syscallManager->execute(function);
+    }));
+
+    futureWatcher.waitForFinished();
+    if (!futureWatcher.result()) {
+        // Syscall handling failed, stop running processor
+        setStopRunFlag();
+    }
 }
 
 void ProcessorHandler::checkProcessorFinished() {
@@ -221,12 +226,17 @@ void ProcessorHandler::checkProcessorFinished() {
         emit exit();
 }
 
-void ProcessorHandler::stop() {
+void ProcessorHandler::setStopRunFlag() {
+    emit stopping();
     if (m_runWatcher.isRunning()) {
         m_stopRunningFlag = true;
         // We might be currently trapping for user I/O. Signal to abort the trap, in this avoiding a deadlock.
         SystemIO::abortSyscall(true);
     }
+}
+
+void ProcessorHandler::stopRun() {
+    setStopRunFlag();
     m_runWatcher.waitForFinished();
     m_stopRunningFlag = false;
     SystemIO::abortSyscall(false);

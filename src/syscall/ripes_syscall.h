@@ -77,19 +77,21 @@ public:
      * @brief execute
      * Executes the syscall identified by id. Throws out of range exception if syscall @p id is unknown.
      */
-    void execute(int id) {
+    bool execute(int id) {
         if (m_syscalls.count(id) == 0) {
             postToGUIThread([=] {
                 QMessageBox::warning(nullptr, "Error",
                                      "Unknown system call: " + QString::number(id) +
                                          "\nRefer to \"Help->System calls\" for a list of support system calls.");
             });
+            return false;
         } else {
             const auto& syscall = m_syscalls.at(id);
             SyscallStatusManager::setStatus("Handling system call: " + syscall->name() + " (" + QString::number(id) +
                                             ")");
             syscall->execute();
             SyscallStatusManager::clearStatus();
+            return true;
         }
     }
 
@@ -102,7 +104,7 @@ protected:
      * @param connection type.
      */
     template <typename F>
-    static void postToGUIThread(F&& fun, Qt::ConnectionType type = Qt::BlockingQueuedConnection) {
+    static void postToGUIThread(F&& fun, Qt::ConnectionType type = Qt::QueuedConnection) {
         auto* obj = QAbstractEventDispatcher::instance(qApp->thread());
         Q_ASSERT(obj);
         QMetaObject::invokeMethod(obj, std::forward<F>(fun), type);
