@@ -7,6 +7,7 @@
 #include "control.h"
 #include "file.h"
 #include "print.h"
+#include "syscall_time.h"
 
 namespace Ripes {
 
@@ -58,6 +59,10 @@ public:
         emplace<WriteSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Write);
         emplace<GetCWDSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::GetCWD);
         emplace<FStatSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::FStat);
+
+        // Time syscalls
+        emplace<CyclesSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::Cycles);
+        emplace<TimeMsSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32IM>::TimeMs);
     }
 };
 

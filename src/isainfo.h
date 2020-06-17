@@ -128,6 +128,8 @@ public:
         Exit = 10,
         PrintChar = 11,
         GetCWD = 17,
+        TimeMs = 30,
+        Cycles = 31,
         PrintIntHex = 34,
         PrintIntBinary = 35,
         PrintIntUnsigned = 36,
