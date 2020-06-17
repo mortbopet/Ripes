@@ -5,5 +5,6 @@
         <file>assembly/Console printing</file>
         <file>ELF/RanPi</file>
         <file>C/ranpi.c</file>
+        <file>C/io.c</file>
     </qresource>
 </RCC>
