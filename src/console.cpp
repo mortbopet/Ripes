@@ -50,6 +50,11 @@ void Console::putData(const QByteArray& data) {
     bar->setValue(bar->maximum());
 }
 
+void Console::clearConsole() {
+    clear();
+    m_buffer.clear();
+}
+
 void Console::backspace() {
     // Deletes the last character in the console
     auto cursorAtEnd = QTextCursor(document());
@@ -65,6 +70,7 @@ void Console::keyPressEvent(QKeyEvent* e) {
         case Qt::Key_Right:
         case Qt::Key_Up:
         case Qt::Key_Down:
+            QPlainTextEdit::keyPressEvent(e);
             break;
         default:
             if (!e->text().isEmpty()) {

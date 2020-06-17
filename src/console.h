@@ -13,12 +13,13 @@ signals:
 
 public:
     Console(QWidget* parent = nullptr);
+    void putData(const QByteArray& data);
+    void clearConsole();
 
 protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
-    void putData(const QByteArray& data);
     void backspace();
 
     bool m_localEchoEnabled = false;

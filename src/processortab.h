@@ -38,7 +38,6 @@ public:
 signals:
     void update();
     void processorWasReset();
-    void appendToLog(QString string);
 
 public slots:
     void pause();

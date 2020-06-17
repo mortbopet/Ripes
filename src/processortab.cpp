@@ -98,13 +98,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     m_statUpdateTimer->setInterval(100);
     connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
 
-    // Connect ECALL functionality to application output log and scroll to bottom
-    connect(this, &ProcessorTab::appendToLog, [this](QString string) {
-        m_ui->console->insertPlainText(string);
-        m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
-    });
-
-    connect(m_ui->clearConsoleButton, &QPushButton::clicked, m_ui->console, &QPlainTextEdit::clear);
+    connect(m_ui->clearConsoleButton, &QPushButton::clicked, m_ui->console, &Console::clearConsole);
     m_ui->clearConsoleButton->setIcon(QIcon(":/icons/clear.svg"));
     m_ui->clearConsoleButton->setToolTip("Clear console");
 
@@ -128,9 +122,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 }
 
 void ProcessorTab::printToLog(const QString& text) {
-    m_ui->console->moveCursor(QTextCursor::End);
-    m_ui->console->insertPlainText(text);
-    m_ui->console->verticalScrollBar()->setValue(m_ui->console->verticalScrollBar()->maximum());
+    m_ui->console->putData(text.toUtf8());
 }
 
 void ProcessorTab::loadLayout(const Layout& layout) {
@@ -422,7 +414,7 @@ void ProcessorTab::reset() {
     emit processorWasReset();
 
     enableSimulatorControls();
-    emit appendToLog("\n");
+    printToLog("\n");
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
