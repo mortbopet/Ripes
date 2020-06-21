@@ -260,7 +260,7 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
 
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
-    if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
+    if ((low == m_labelAddrOffsetMap.begin()) && lineNumber < low->first) {
         // The line number is less that the position of the first offset block; address is directly inferred from
         // linenumber.
         return calcAddressFunc(adjustedLineNumber);
