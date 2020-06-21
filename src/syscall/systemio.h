@@ -11,6 +11,7 @@
 #include <QWaitCondition>
 
 #include <sys/stat.h>
+#include <stdexcept>
 
 #include "statusmanager.h"
 
