@@ -44,9 +44,9 @@ public:
      * compiled file, such as source file, output file and compilation status. If no @p outname has been provided, the
      * output file will be placed in a temporary directory.
      */
-    CCRes compile(const QString& filename, QString outname = QString());
-    CCRes compile(const QTextDocument* source, QString outname = QString());
-    CCRes compileRaw(const QString& rawsource, QString outname = QString());
+    CCRes compile(const QString& filename, QString outname = QString(), bool showProgressdiag = true);
+    CCRes compile(const QTextDocument* source, QString outname = QString(), bool showProgressdiag = true);
+    CCRes compileRaw(const QString& rawsource, QString outname = QString(), bool showProgressdiag = true);
 
 signals:
     /**
@@ -64,7 +64,7 @@ public slots:
     bool trySetCC(const QString& CC);
 
 private:
-    QString createCompileCommand(const QString& filename, const QString& outname) const;
+    std::pair<QString, QStringList> createCompileCommand(const QString& filename, const QString& outname) const;
 
     /**
      * @brief tryAutodetectCC

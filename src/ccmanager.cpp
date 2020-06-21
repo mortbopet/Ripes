@@ -73,7 +73,7 @@ bool CCManager::trySetCC(const QString& CC) {
     return success;
 }
 
-CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname) {
+CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname, bool showProgressdiag) {
     // Write program to temporary file with a .c extension
     const auto tempFileTemplate =
         QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
@@ -84,14 +84,14 @@ CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname
         stream << rawsource;
     }
     Q_ASSERT(!tmpSrcFile.fileName().isEmpty());
-    return compile(tmpSrcFile.fileName(), outname);
+    return compile(tmpSrcFile.fileName(), outname, showProgressdiag);
 }
 
-CCManager::CCRes CCManager::compile(const QTextDocument* source, QString outname) {
-    return compileRaw(source->toPlainText(), outname);
+CCManager::CCRes CCManager::compile(const QTextDocument* source, QString outname, bool showProgressdiag) {
+    return compileRaw(source->toPlainText(), outname, showProgressdiag);
 }
 
-CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
+CCManager::CCRes CCManager::compile(const QString& filename, QString outname, bool showProgressdiag) {
     CCRes res;
     if (outname.isEmpty()) {
         outname = QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".temp.out";
@@ -101,7 +101,7 @@ CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
     res.inFile = filename;
     res.outFile = outname;
 
-    const QString ccc = createCompileCommand(filename, outname);
+    const auto [cc, args] = createCompileCommand(filename, outname);
 
     // Run compiler
 
@@ -113,16 +113,25 @@ CCManager::CCRes CCManager::compile(const QString& filename, QString outname) {
      *    not block the execution of the progress dialog.
      */
     bool aborted = false;
+    bool errored = false;
     m_process.close();
     QProgressDialog progressDiag = QProgressDialog("Executing compiler...", "Abort", 0, 0, nullptr);
-    connect(&progressDiag, &QProgressDialog::canceled, &m_process, &QProcess::terminate);
+    connect(&progressDiag, &QProgressDialog::canceled, &m_process, &QProcess::kill);
     connect(&progressDiag, &QProgressDialog::canceled, &m_process, [&aborted] { aborted = true; });
     connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), &progressDiag,
             &QProgressDialog::reset);
     connect(&m_process, &QProcess::errorOccurred, &progressDiag, &QProgressDialog::reset);
+    connect(&m_process, &QProcess::errorOccurred, [&]() { errored = true; });
 
-    m_process.start(ccc);
-    progressDiag.exec();
+    m_process.start(cc, args);
+    /** @todo: It is seen that if the process fails upon startup, errorOccurred executes QProgressDialog::reset.
+     * However, this call does not prevent the exec() loop from running. Below we check for this case, however this does
+     * not remove the race condition. Such race condition seems inherintly tied to how QDialog::exec works and no proper
+     * fix has been able to be found (yet).*/
+    if (!errored && showProgressdiag) {
+        progressDiag.exec();
+    }
+    m_process.waitForFinished();
 
     const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
@@ -135,7 +144,7 @@ QString CCManager::getError() {
     return get().m_process.readAllStandardError();
 }
 
-QString CCManager::createCompileCommand(const QString& filename, const QString& outname) const {
+std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& filename, const QString& outname) const {
     const auto& currentISA = ProcessorHandler::get()->currentISA();
 
     // Generate compile command
@@ -156,13 +165,15 @@ QString CCManager::createCompileCommand(const QString& filename, const QString& 
     // Substitute in and out files
     s_cc = s_cc.arg(filename).arg(outname);
 
-    return s_cc;
+    const auto arglist = s_cc.split(" ");
+
+    return {arglist[0], arglist.mid(1)};
 }
 
 bool CCManager::verifyCC(const QString& CCPath) {
     // Try to set CCPath as current compiler, and compile test program
     m_currentCC = CCPath;
-    auto res = compileRaw(s_testprogram);
+    auto res = compileRaw(s_testprogram, QString(), false);
 
 #ifdef QT_DEBUG
     if (!res.success) {
