@@ -24,7 +24,7 @@ public:
         char byte;
         unsigned int address = arg0;
         do {
-            byte = static_cast<char>(ProcessorHandler::get()->getMemory().readMemConst(address++, 1) & 0xFF);
+            byte = static_cast<char>(ProcessorHandler::get()->getMemory().readByte(address++));
             string.append(byte);
         } while (byte != '\0');
 
@@ -114,8 +114,7 @@ public:
         QString myBuffer;
 
         do {
-            myBuffer.append(
-                static_cast<char>(ProcessorHandler::get()->getMemory().readMemConst(byteAddress + index++, 1) & 0xFF));
+            myBuffer.append(static_cast<char>(ProcessorHandler::get()->getMemory().readByte(byteAddress + index++)));
         } while (index < reqLength);
 
         const int retValue = SystemIO::writeToFile(BaseSyscall::getArg(0), myBuffer, reqLength);

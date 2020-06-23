@@ -46,9 +46,10 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
 
     m_program = p;
     // Memory initializations
-    mem.clearInitializationMemories();
+    mem.clear();
     for (const auto& seg : p->sections) {
-        mem.addInitializationMemory(seg.address, seg.data.data(), seg.data.length());
+        static_assert(sizeof(char) == sizeof(uint8_t));
+        mem.getInitSas().insertSegment(seg.address, reinterpret_cast<const uint8_t*>(seg.data.data()), seg.data.size());
     }
 
     m_currentProcessor->setPCInitialValue(p->entryPoint);
@@ -71,10 +72,10 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
 }
 
 void ProcessorHandler::writeMem(uint32_t address, uint32_t value, int size) {
-    m_currentProcessor->getMemory().writeMem(address, value, size);
+    m_currentProcessor->getMemory().writeValue(address, value, size);
 }
 
-const vsrtl::core::SparseArray& ProcessorHandler::getMemory() const {
+const vsrtl::core::AddressSpace& ProcessorHandler::getMemory() const {
     return m_currentProcessor->getMemory();
 }
 
@@ -85,7 +86,7 @@ const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* ProcessorHandler::getInstr
     return dynamic_cast<const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>*>(m_currentProcessor->getInstrMemory());
 }
 
-const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
+const vsrtl::core::AddressSpace& ProcessorHandler::getRegisters() const {
     return m_currentProcessor->getArchRegisters();
 }
 
@@ -159,18 +160,11 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
 
     // Register initializations
     auto& regs = m_currentProcessor->getArchRegisters();
-    regs.clearInitializationMemories();
+    regs.clear();
     for (const auto& kv : setup) {
-        // Memories are initialized through pointers to byte arrays, so we have to transform the intitial pointer
-        // address to the compatible format.
-        QByteArray ptrValueBytes;
-        auto ptrValue = kv.second;
-        for (unsigned i = 0; i < m_currentProcessor->implementsISA()->bytes(); i++) {
-            ptrValueBytes.push_back(static_cast<char>(ptrValue & 0xFF));
-            ptrValue >>= CHAR_BIT;
-        }
-        regs.addInitializationMemory(kv.first << ceillog2(m_currentProcessor->implementsISA()->bytes()),
-                                     ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
+        const uint32_t regAddr = kv.first << ceillog2(m_currentProcessor->implementsISA()->bytes());
+        const uint32_t regValue = kv.second;
+        regs.getInitSas().writeValue(regAddr, regValue);
     }
 
     m_currentProcessor->verifyAndInitialize();
@@ -201,7 +195,8 @@ unsigned long ProcessorHandler::getTextStart() const {
 
 QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
     if (m_program) {
-        return Parser::getParser()->disassemble(m_program, m_currentProcessor->getMemory().readMem(addr), addr);
+        return Parser::getParser()->disassemble(m_program, m_currentProcessor->getMemory().readValue<uint32_t>(addr),
+                                                addr);
     } else {
         return QString();
     }

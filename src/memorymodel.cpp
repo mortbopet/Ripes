@@ -137,7 +137,7 @@ QVariant MemoryModel::byteData(long long address, unsigned byteOffset) const {
         // the memory model, containing X's.
         return "X";
     } else {
-        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(static_cast<unsigned>(address));
+        uint32_t value = ProcessorHandler::get()->getMemory().readValue<uint32_t>(static_cast<uint32_t>(address));
         value = value >> (byteOffset * 8);
         return encodeRadixValue(value & 0xFF, m_radix, 8);
     }
@@ -151,7 +151,7 @@ QVariant MemoryModel::wordData(long long address) const {
         // the memory model, containing X's.
         return "X";
     } else {
-        uint32_t value = ProcessorHandler::get()->getMemory().readMemConst(static_cast<unsigned>(address));
+        uint32_t value = ProcessorHandler::get()->getMemory().readValue<uint32_t>(static_cast<uint32_t>(address));
         return encodeRadixValue(value, m_radix, ProcessorHandler::get()->currentISA()->bits());
     }
 }

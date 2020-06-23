@@ -84,7 +84,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
 
             // Update block text
             const uint32_t addressForBlock = m_cache.buildAddress(simWay.tag, lineIdx, i);
-            const auto data = ProcessorHandler::get()->getMemory().readMemConst(addressForBlock);
+            const auto data = ProcessorHandler::get()->getMemory().readValue<uint32_t>(addressForBlock);
             const QString text = encodeRadixValue(data, Radix::Hex);
             blockTextItem->setText(text);
             blockTextItem->setToolTip("Address: " + encodeRadixValue(addressForBlock, Radix::Hex));

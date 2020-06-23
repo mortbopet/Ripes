@@ -45,7 +45,7 @@ public:
         char byte;
         unsigned int address = arg0;
         do {
-            byte = static_cast<char>(ProcessorHandler::get()->getMemory().readMemConst(address++) & 0xFF);
+            byte = static_cast<char>(ProcessorHandler::get()->getMemory().readByte(address++));
             string.append(byte);
         } while (byte != '\0');
         SystemIO::printString(QString::fromUtf8(string));

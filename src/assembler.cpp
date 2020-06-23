@@ -782,7 +782,7 @@ const QByteArray& Assembler::assemble(const QTextDocument& doc) {
                 const static auto commentRegEx = QRegularExpression("[#](.*)");
                 int commentIndex = fields.indexOf(commentRegEx);
                 if (commentIndex != -1) {
-                    int index = fields.length();
+                    int index = fields.length() - 1;
                     while (index >= commentIndex) {
                         fields.removeAt(index);
                         index--;
