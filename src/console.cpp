@@ -76,7 +76,7 @@ void Console::keyPressEvent(QKeyEvent* e) {
             if (!e->text().isEmpty()) {
                 const QString text = e->text();
                 // Buffer managing
-                if (e->key() == Qt::Key_Return) {
+                if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
                     // Return is interpreted as \r\n instead of the default \r
                     m_buffer += "\r\n";
 
