@@ -49,6 +49,17 @@ make                jom.exe / nmake.exe / ...
 Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
 
 ---
+In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen. Ripes. https://github.com/mortbopet/Ripes', e.g. using the following BibTeX code:
+```
+@MISC{Ripes,
+	author = {Morten Borup Petersen},
+	title = {Ripes},
+	howpublished = "\url{https://github.com/mortbopet/Ripes}"
+}
+```
+
+
+
 Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
 
 <a href="https://www.qt.io/">
