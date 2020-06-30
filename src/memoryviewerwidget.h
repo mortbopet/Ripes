@@ -6,6 +6,9 @@
 
 namespace Ripes {
 
+class RadixSelectorWidget;
+class GoToComboBox;
+
 namespace Ui {
 class MemoryViewerWidget;
 }
@@ -26,6 +29,12 @@ public slots:
     void setCentralAddress(uint32_t address);
 
 private:
+    void setupNavigationWidgets();
+
     Ui::MemoryViewerWidget* m_ui = nullptr;
+
+    RadixSelectorWidget* m_radixSelector = nullptr;
+    GoToComboBox* m_goToSection = nullptr;
+    GoToComboBox* m_goToRegister = nullptr;
 };
 }  // namespace Ripes
