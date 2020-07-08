@@ -39,8 +39,8 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     m_ui->blocks->setValue(m_cache->getBlockBits());
 
     m_ui->indexingKey->setText(
-        "Tag = <font color=\"gray\">█</font> &nbsp; Index = <font color=\"red\">█</font> &nbsp; Block = <font "
-        "color=\"green\">█</font> &nbsp; Byte = <font color=\"black\">█</font>");
+        "<font color=\"gray\">█</font> = Tag &nbsp; <font color=\"red\">█</font> = Index &nbsp; <font "
+        "color=\"green\">█</font> = Block &nbsp; <font color=\"black\">█</font> = Byte");
 
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setBlocks);
@@ -151,22 +151,22 @@ CacheConfigWidget::~CacheConfigWidget() {
 }
 
 void CacheConfigWidget::updateIndexingText() {
-    QString indexingText = "0";
+    QString indexingText = " 0";
 
     // Byte offset bits
-    indexingText = "<font color=\"black\">┃┃</font>" + indexingText;
+    indexingText = "<font color=\"black\">▊▊</font>" + indexingText;
 
     // Block offset bits
     QString blocks = "";
     for (int i = 0; i < m_cache->getBlockBits(); i++) {
-        blocks += "┃";
+        blocks += "▊";
     }
     indexingText = "<font color=\"green\">" + blocks + "</font>" + indexingText;
 
     // Line index bits
     QString index = "";
     for (int i = 0; i < m_cache->getLineBits(); i++) {
-        index += "┃";
+        index += "▊";
     }
 
     indexingText = "<font color=\"red\">" + index + "</font>" + indexingText;
@@ -174,12 +174,12 @@ void CacheConfigWidget::updateIndexingText() {
     // Tag index bits
     QString tag = "";
     for (int i = 0; i < m_cache->getTagBits(); i++) {
-        tag += "┃";
+        tag += "▊";
     }
 
     indexingText = "<font color=\"gray\">" + tag + "</font>" + indexingText;
 
-    indexingText = "31" + indexingText;
+    indexingText = "31 " + indexingText;
 
     m_ui->indexingText->setText(indexingText);
 }
