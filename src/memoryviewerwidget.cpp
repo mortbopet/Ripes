@@ -41,7 +41,7 @@ void MemoryViewerWidget::setupNavigationWidgets() {
     flowLayout->addItem(layout);
 
     layout = new QHBoxLayout();
-    layout->addWidget(new QLabel("Go to section:", this));
+    layout->addWidget(new QLabel("Go to section: ", this));
     layout->addWidget(m_goToSection);
     flowLayout->addItem(layout);
 
