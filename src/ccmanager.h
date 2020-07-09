@@ -82,6 +82,8 @@ private:
     CCManager();
     QString m_currentCC;
     QProcess m_process;
+    bool m_errored = false;
+    bool m_aborted = false;
 };
 
 }  // namespace Ripes

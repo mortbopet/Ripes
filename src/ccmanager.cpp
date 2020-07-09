@@ -112,30 +112,30 @@ CCManager::CCRes CCManager::compile(const QString& filename, QString outname, bo
      * 4. To facilitate all of this, we have to spin on the process state in a separate thread, to
      *    not block the execution of the progress dialog.
      */
-    bool aborted = false;
-    bool errored = false;
+    m_aborted = false;
+    m_errored = false;
     m_process.close();
     QProgressDialog progressDiag = QProgressDialog("Executing compiler...", "Abort", 0, 0, nullptr);
     connect(&progressDiag, &QProgressDialog::canceled, &m_process, &QProcess::kill);
-    connect(&progressDiag, &QProgressDialog::canceled, &m_process, [&aborted] { aborted = true; });
+    connect(&progressDiag, &QProgressDialog::canceled, &m_process, [this] { m_aborted = true; });
     connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), &progressDiag,
             &QProgressDialog::reset);
     connect(&m_process, &QProcess::errorOccurred, &progressDiag, &QProgressDialog::reset);
-    connect(&m_process, &QProcess::errorOccurred, [&]() { errored = true; });
+    connect(&m_process, &QProcess::errorOccurred, [this]() { m_errored = true; });
 
     m_process.start(cc, args);
     /** @todo: It is seen that if the process fails upon startup, errorOccurred executes QProgressDialog::reset.
      * However, this call does not prevent the exec() loop from running. Below we check for this case, however this does
      * not remove the race condition. Such race condition seems inherintly tied to how QDialog::exec works and no proper
      * fix has been able to be found (yet).*/
-    if (!errored && showProgressdiag) {
+    if (!m_errored && showProgressdiag) {
         progressDiag.exec();
     }
     m_process.waitForFinished();
 
     const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
-    res.aborted = aborted;
+    res.aborted = m_aborted;
 
     return res;
 }
