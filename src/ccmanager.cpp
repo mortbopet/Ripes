@@ -19,13 +19,13 @@ const static QString s_testprogram = "int main() { return 0; }";
  * - %1: path to compiler executable
  * - %2: machine architecture
  * - %3: machine ABI
+ * - %4: user compiler arguments
  * - -x c: Enforce compilation as C language (allows us to use C++ compilers)
- * - %4: input source file
- * - %5: output executable
- * - -static-libgcc: Ensure that we link to a static stdlib
- * - -lm: link with the math library
+ * - %5: input source file
+ * - %6: output executable
+ * - %7: user linker arguments
  */
-const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6 -static-libgcc -lm";
+const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6 %7";
 
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
@@ -164,6 +164,9 @@ std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& f
 
     // Substitute in and out files
     s_cc = s_cc.arg(filename).arg(outname);
+
+    // Substitute additional linker arguments
+    s_cc = s_cc.arg(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
 
     const auto arglist = s_cc.split(" ");
 

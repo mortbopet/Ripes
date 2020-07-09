@@ -171,7 +171,7 @@ QWidget* SettingsDialog::createEditorPage() {
 
     CCHLayout->addWidget(pathBrowseButton);
 
-    // Add compiler argument widget
+    // Add compiler arguments widget
     auto [ccArgLabel, ccArgs] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_CCARGS, "Compiler arguments:");
     auto* CCArgHLayout = new QHBoxLayout();
     CCArgHLayout->addWidget(ccArgLabel);
@@ -181,17 +181,25 @@ QWidget* SettingsDialog::createEditorPage() {
     // have been added, implicitely validating the arguments along with it.
     connect(ccArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
-    pageLayout->addWidget(CCGroupBox);
+    // Add linker arguments widget
+    auto [ldArgLabel, ldArgs] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_LDARGS, "Linker arguments:");
+    auto* LDArgHLayout = new QHBoxLayout();
+    LDArgHLayout->addWidget(ldArgLabel);
+    LDArgHLayout->addWidget(ldArgs);
+    CCLayout->addLayout(LDArgHLayout);
+    connect(ldArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
     // Add effective compile command line view
     auto* CCCLineHLayout = new QHBoxLayout();
     CCCLineHLayout->addWidget(new QLabel("Compile command:"));
-    m_compileCommand = new QLineEdit();
-    m_compileCommand->setReadOnly(true);
+    m_compileCommand = new QLabel();
+    m_compileCommand->setWordWrap(true);
+    m_compileCommand->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_compileCommand->setTextInteractionFlags(Qt::TextSelectableByMouse);
     CCCLineHLayout->addWidget(m_compileCommand);
-    CCCLineHLayout->setEnabled(false);
-
     CCLayout->addLayout(CCCLineHLayout);
+
+    pageLayout->addWidget(CCGroupBox);
 
     // Trigger initial rehighlighting
     CCManager::get().trySetCC(CCManager::get().currentCC());

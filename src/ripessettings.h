@@ -11,6 +11,7 @@ namespace Ripes {
 #define RIPES_SETTING_REWINDSTACKSIZE ("simulator_rewindstacksize")
 #define RIPES_SETTING_CCPATH ("compiler_path")
 #define RIPES_SETTING_CCARGS ("compiler_args")
+#define RIPES_SETTING_LDARGS ("linker_args")
 #define RIPES_SETTING_CONSOLEECHO ("console_echo")
 #define RIPES_SETTING_CONSOLEBG ("console_bg_color")
 #define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
@@ -29,6 +30,7 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_REWINDSTACKSIZE, 100},
     {RIPES_SETTING_CCPATH, ""},
     {RIPES_SETTING_CCARGS, "-O0"},
+    {RIPES_SETTING_LDARGS, "-static-libgcc -lm"},  // Ensure statically linked executable + link with math library
     {RIPES_SETTING_CONSOLEECHO, "true"},
     {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
     {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},

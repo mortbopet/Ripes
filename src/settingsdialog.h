@@ -3,6 +3,7 @@
 #include <QDialog>
 
 QT_FORWARD_DECLARE_CLASS(QLineEdit);
+QT_FORWARD_DECLARE_CLASS(QLabel);
 
 namespace Ripes {
 
@@ -26,7 +27,7 @@ private:
      */
     void CCPathChanged(bool valid);
     QLineEdit* m_ccpath = nullptr;
-    QLineEdit* m_compileCommand = nullptr;
+    QLabel* m_compileCommand = nullptr;
 
     QWidget* createEditorPage();
     QWidget* createSimulatorPage();
