@@ -48,6 +48,8 @@ public:
     CCRes compile(const QTextDocument* source, QString outname = QString(), bool showProgressdiag = true);
     CCRes compileRaw(const QString& rawsource, QString outname = QString(), bool showProgressdiag = true);
 
+    std::pair<QString, QStringList> createCompileCommand(const QString& filename, const QString& outname) const;
+
 signals:
     /**
      * @brief ccChanged
@@ -64,8 +66,6 @@ public slots:
     bool trySetCC(const QString& CC);
 
 private:
-    std::pair<QString, QStringList> createCompileCommand(const QString& filename, const QString& outname) const;
-
     /**
      * @brief tryAutodetectCC
      * Will attempt to scan the current PATH to locate a valid compiler

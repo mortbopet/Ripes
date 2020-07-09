@@ -26,6 +26,7 @@ private:
      */
     void CCPathChanged(bool valid);
     QLineEdit* m_ccpath = nullptr;
+    QLineEdit* m_compileCommand = nullptr;
 
     QWidget* createEditorPage();
     QWidget* createSimulatorPage();

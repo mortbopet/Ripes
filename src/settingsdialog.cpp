@@ -169,8 +169,6 @@ QWidget* SettingsDialog::createEditorPage() {
     // to be valid
     connect(&CCManager::get(), &CCManager::ccChanged, this, &SettingsDialog::CCPathChanged);
 
-    // Trigger initial rehighlighting
-    CCManager::get().trySetCC(CCManager::get().currentCC());
     CCHLayout->addWidget(pathBrowseButton);
 
     // Add compiler argument widget
@@ -185,6 +183,19 @@ QWidget* SettingsDialog::createEditorPage() {
 
     pageLayout->addWidget(CCGroupBox);
 
+    // Add effective compile command line view
+    auto* CCCLineHLayout = new QHBoxLayout();
+    CCCLineHLayout->addWidget(new QLabel("Compile command:"));
+    m_compileCommand = new QLineEdit();
+    m_compileCommand->setReadOnly(true);
+    CCCLineHLayout->addWidget(m_compileCommand);
+    CCCLineHLayout->setEnabled(false);
+
+    CCLayout->addLayout(CCCLineHLayout);
+
+    // Trigger initial rehighlighting
+    CCManager::get().trySetCC(CCManager::get().currentCC());
+
     return pageWidget;
 }
 
@@ -196,6 +207,17 @@ void SettingsDialog::CCPathChanged(bool valid) {
         palette.setColor(QPalette::Base, QColor(Qt::green).lighter());
     }
     m_ccpath->setPalette(palette);
+
+    // Update compile command preview
+    auto [cstring, cargs] = CCManager::get().createCompileCommand("${input}", "${output}");
+    if (m_compileCommand) {
+        m_compileCommand->setEnabled(valid);
+        if (valid) {
+            m_compileCommand->setText(cstring + " " + cargs.join(" "));
+        } else {
+            m_compileCommand->clear();
+        }
+    }
 }
 
 QWidget* SettingsDialog::createSimulatorPage() {
