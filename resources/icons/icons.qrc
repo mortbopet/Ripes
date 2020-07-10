@@ -32,5 +32,9 @@
         <file>delete.svg</file>
         <file>analytics.svg</file>
         <file>crosshair.svg</file>
+        <file>build.svg</file>
+        <file>trace.svg</file>
+        <file>compass.svg</file>
+        <file>clear.svg</file>
     </qresource>
 </RCC>

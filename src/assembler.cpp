@@ -165,7 +165,7 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
             // An immediate value as been provided
         } else {
             // An offset value has been provided ( unfolded pseudo-op)
-            m_error |= !m_labelPosMap.contains(fields[3]);
+            m_error |= !m_labelPosMap.count(fields[3]);
             // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
             imm = m_labelPosMap[fields[3]] - (row - 1) * 4;
         }
@@ -191,7 +191,7 @@ QByteArray Assembler::assembleOpImmInstruction(const QStringList& fields, int ro
     } else {
         m_error = true;
         Q_ASSERT(false);
-    };
+    }
 
     if (hasFunct7) {
         return uintToByteArr(instrType::OP_IMM | funct3 << 12 | getRegisterNumber(fields[1]) << 7 |
@@ -255,7 +255,7 @@ QByteArray Assembler::assembleOpInstruction(const QStringList& fields, int row) 
     } else {
         m_error = true;
         Q_ASSERT(false);
-    };
+    }
     return uintToByteArr(instrType::OP | funct3 << 12 | funct7 << 25 | getRegisterNumber(fields[1]) << 7 |
                          getRegisterNumber(fields[2]) << 15 | getRegisterNumber(fields[3]) << 20);
 }
@@ -272,14 +272,14 @@ QByteArray Assembler::assembleStoreInstruction(const QStringList& fields, int ro
     } else {
         m_error = true;
         Q_ASSERT(false);
-    };
+    }
     bool canConvert;
     int imm = getImmediate(fields[2], canConvert);
     if (canConvert) {
         // An offset value has been provided ( unfolded pseudo-op)
     } else {
         // A label was provided
-        m_error |= !m_labelPosMap.contains(fields[2]);
+        m_error |= !m_labelPosMap.count(fields[2]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
         imm = m_labelPosMap[fields[2]] - (row - 1) * 4;
     }
@@ -303,13 +303,13 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
     } else {
         m_error = true;
         Q_ASSERT(false);
-    };
+    }
     bool canConvert;
     int imm = getImmediate(fields[2], canConvert);
     if (canConvert) {
         // An offset value has been provided ( unfolded pseudo-op)
     } else {
-        m_error |= !m_labelPosMap.contains(fields[2]);
+        m_error |= !m_labelPosMap.count(fields[2]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
         imm = (m_labelPosMap[fields[2]] & 0xfff) - (row - 1) * 4;
     }
@@ -320,7 +320,7 @@ QByteArray Assembler::assembleLoadInstruction(const QStringList& fields, int row
 
 QByteArray Assembler::assembleBranchInstruction(const QStringList& fields, int row) {
     // calculate offset
-    Q_ASSERT(m_labelPosMap.contains(fields[3]));
+    Q_ASSERT(m_labelPosMap.count(fields[3]));
     int offset = m_labelPosMap[fields[3]];
     offset = offset - row * 4;  // byte-wize addressing
     uint32_t funct3 = 0;
@@ -339,7 +339,7 @@ QByteArray Assembler::assembleBranchInstruction(const QStringList& fields, int r
     } else {
         m_error = true;
         Q_ASSERT(false);
-    };
+    }
 
     return uintToByteArr(instrType::BRANCH | getRegisterNumber(fields[1]) << 15 | getRegisterNumber(fields[2]) << 20 |
                          (offset & 0b11110) << 7 | (offset & 0x800) >> 4 | (offset & 0x7E0) << 20 |
@@ -353,7 +353,7 @@ QByteArray Assembler::assembleAuipcInstruction(const QStringList& fields, int) {
         // An immediate value as been provided
     } else {
         // An offset value has been provided
-        m_error |= !m_labelPosMap.contains(fields[2]);
+        m_error |= !m_labelPosMap.count(fields[2]);
         // calculate offset 31:12 bits - we add +1 to offset the sign if the offset is negative
         imm = m_labelPosMap[fields[2]];
         if (imm < 0) {
@@ -373,7 +373,7 @@ QByteArray Assembler::assembleJalrInstruction(const QStringList& fields, int row
         // An immediate value as been provided
     } else {
         // An offset value has been provided ( unfolded pseudo-op)
-        m_error |= !m_labelPosMap.contains(fields[3]);
+        m_error |= !m_labelPosMap.count(fields[3]);
         // calculate offset 31:12 bits - we -1 to get the row of the previois auipc op
         imm = m_labelPosMap[fields[3]] - (row - 1) * 4;
     }
@@ -405,7 +405,7 @@ void Assembler::assembleInstruction(const QStringList& fields, int row) {
     } else if (instruction == "auipc") {
         m_textSegment.append(assembleAuipcInstruction(fields, row));
     } else if (instruction == "jal") {
-        Q_ASSERT(m_labelPosMap.contains(fields[2]));
+        Q_ASSERT(m_labelPosMap.count(fields[2]));
         int32_t imm = m_labelPosMap[fields[2]];
         imm = imm - row * 4;
         imm = (imm & 0x7fe) << 20 | (imm & 0x800) << 9 | (imm & 0xff000) | (imm & 0x100000) << 11;
@@ -805,20 +805,21 @@ const QByteArray& Assembler::assemble(const QTextDocument& doc) {
     // Assemble instruction(s)
     // Since the keys (line numbers) are sorted, we iterate straight over the map when inserting into the output
     // bytearray
-    for (auto item : m_instructionsMap.toStdMap()) {
+    for (auto item : m_instructionsMap) {
         assembleInstruction(item.second, item.first);
     }
 
     return m_textSegment;
 }
 
-const Program Assembler::getProgram() {
-    Program p;
-    p.sections.push_back({TEXT_SECTION_NAME, 0, m_textSegment});
-    p.sections.push_back({".data", DATA_START, m_dataSegment});
+std::shared_ptr<Program> Assembler::getProgram() {
+    auto p = std::make_shared<Program>();
+    // QByteArray performs a deep copy of the data when the data array is initialized at construction
+    p->sections.push_back({TEXT_SECTION_NAME, 0, QByteArray(m_textSegment)});
+    p->sections.push_back({".data", DATA_START, QByteArray(m_dataSegment)});
 
-    for (const auto& kv : m_labelPosMap.toStdMap()) {
-        p.symbols[kv.second] = kv.first;
+    for (const auto& kv : m_labelPosMap) {
+        p->symbols[kv.second] = kv.first;
     }
 
     return p;

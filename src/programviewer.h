@@ -24,17 +24,21 @@ public:
     void breakpointClick(const QPoint& pos);
     bool hasBreakpoint(const QPoint& pos) const;
     void clearBreakpoints();
+    void setFollowEnabled(bool enabled);
 
     long addressForPos(const QPoint& pos) const;
     long addressForBlock(QTextBlock block) const;
     QTextBlock blockForAddress(unsigned long) const;
+    void setCenterAddress(const long address);
+
+    const AddrOffsetMap& addressOffsetMap() const { return m_labelAddrOffsetMap; }
 
     ///
     /// \brief updateProgram
-    /// Refreshes the programViewer view with @p program, using the parser to either disassemble or (if @p binary is
+    /// Refreshes the programViewer view, using the parser to either disassemble or (if @p binary is
     /// true) show the raw binary version of the loaded program.
     ///
-    void updateProgram(const Program& program, bool binary = false);
+    void updateProgram(bool binary = false);
 
 public slots:
     void updateHighlightedAddresses();
@@ -47,10 +51,19 @@ private slots:
     void updateSidebarWidth(int newBlockCount);
 
 private:
+    /**
+     * @brief updateCenterAddress
+     * If program following is enabled, this function will ensure that the current instruction in the first stage of the
+     * processor is always visible within the program viewer.
+     */
+    void updateCenterAddressFromProcessor();
+
     // A timer is needed for only catching one of the multiple wheel events that
     // occur on a regular mouse scroll
     QTimer m_fontTimer;
     QTimer m_changeTimer;
+
+    bool m_following = true;
 
     QFont m_font;
     int m_sidebarWidth;

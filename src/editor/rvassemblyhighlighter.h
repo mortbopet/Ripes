@@ -1,7 +1,8 @@
 #pragma once
 
 #include <QRegularExpression>
-#include <QSyntaxHighlighter>
+
+#include "syntaxhighlighter.h"
 
 namespace Ripes {
 
@@ -12,37 +13,33 @@ namespace Ripes {
  Matches immediate values by regex*/
 enum class Type { Immediate, Register, Offset, String };
 
-class SyntaxHighlighter;
+class RVAssemblyHighlighter;
 class FieldType {
     // Class for defining field-specific rules, such as immediate range checking,
     // and whether a register is recognized
 public:
-    explicit FieldType(Type type, int lowerBound = 0, int upperBound = 0, SyntaxHighlighter* highlighter = nullptr);
+    explicit FieldType(Type type, int lowerBound = 0, int upperBound = 0, RVAssemblyHighlighter* highlighter = nullptr);
     QString validateField(const QString& field) const;
     Type m_type;
     int m_lowerBound;
     int m_upperBound;
 
-    SyntaxHighlighter* m_highlighter;
+    RVAssemblyHighlighter* m_highlighter;
 };
 
-class SyntaxHighlighter : public QSyntaxHighlighter {
+class RVAssemblyHighlighter : public SyntaxHighlighter {
     Q_OBJECT
     friend class FieldType;
 
 public:
-    explicit SyntaxHighlighter(QTextDocument* parent = nullptr);
+    RVAssemblyHighlighter(QTextDocument* parent = nullptr);
 
     void highlightBlock(const QString& text) override;
-    void reset();
-
-    QString checkSyntax(const QString& line);
-
-signals:
-    void setTooltip(int, QString);
-    void rehighlightInvalidBlock(const QTextBlock&);
+    void reset() override;
+    bool acceptsSyntax() const override;
 
 private:
+    QString checkSyntax(const QString& line);
     struct HighlightingRule {
         QRegularExpression pattern;
         QTextCharFormat format;
@@ -79,6 +76,7 @@ private:
 
 public slots:
     void invalidateLabels(const QTextCursor&);
-    void clearAndRehighlight();
+    void clearAndRehighlight() override;
 };
+
 }  // namespace Ripes

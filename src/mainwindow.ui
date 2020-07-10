@@ -61,9 +61,17 @@
      <string>Help</string>
     </property>
     <addaction name="actionOpen_wiki"/>
+    <addaction name="actionSystem_calls"/>
     <addaction name="actionVersion"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionSettings"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen_wiki">
@@ -74,6 +82,16 @@
   <action name="actionVersion">
    <property name="text">
     <string>Version</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionSystem_calls">
+   <property name="text">
+    <string>System calls</string>
    </property>
   </action>
  </widget>

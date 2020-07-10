@@ -9,28 +9,94 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "ccmanager.h"
+#include "compilererrordialog.h"
+#include "editor/codeeditor.h"
 #include "parser.h"
 #include "processorhandler.h"
 #include "program.h"
+#include "ripessettings.h"
+#include "symbolnavigator.h"
 
 namespace Ripes {
 
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
-    connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
+    m_symbolNavigatorAction = new QAction(this);
+    m_symbolNavigatorAction->setIcon(QIcon(":/icons/compass.svg"));
+    m_symbolNavigatorAction->setText("Navigate symbols");
+    connect(m_symbolNavigatorAction, &QAction::triggered, this, &EditTab::showSymbolNavigator);
+    m_toolbar->addAction(m_symbolNavigatorAction);
 
-    // Only add syntax highlighter for code edit view - not for translated code. This is assumed to be correct after a
-    // translation is complete
-    m_ui->assemblyedit->setupSyntaxHighlighter();
-    m_ui->assemblyedit->setupChangedTimer();
+    m_followAction = new QAction(this);
+    m_followAction->setIcon(QIcon(":/icons/trace.svg"));
+    m_followAction->setCheckable(true);
+    m_followAction->setToolTip(
+        "Follow program execution.\nEnsures that the instruction present in the\nfirst stage of the processor is "
+        "always visible\nin the disassembled view.");
+    m_toolbar->addAction(m_followAction);
+    connect(m_followAction, &QAction::triggered, m_ui->programViewer, &ProgramViewer::setFollowEnabled);
+    m_followAction->setChecked(RipesSettings::value(RIPES_SETTING_FOLLOW_EXEC).toBool());
+
+    m_buildAction = new QAction(this);
+    m_buildAction->setIcon(QIcon(":/icons/build.svg"));
+    m_buildAction->setEnabled(false);
+    m_buildAction->setShortcut(QKeySequence("Ctrl+B"));
+    m_buildAction->setText("Compile C program (" + m_buildAction->shortcut().toString() + ")");
+    connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
+    m_toolbar->addAction(m_buildAction);
+
+    connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
+    connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
+
     m_ui->programViewer->setReadOnly(true);
 
     m_assembler = std::make_unique<Assembler>();
 
-    connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+    connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
+    connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
+    connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
+
+    // Ensure that changes to the current compiler path will disable C input, if the compiler is invalid
+    connect(&CCManager::get(), &CCManager::ccChanged, [=](bool valid) {
+        if (!valid) {
+            m_ui->setAssemblyInput->setChecked(true);
+        }
+    });
+
+    // During processor running, it should not be possible to build the program
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { m_buildAction->setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
+            [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
 
     enableEditor();
+    sourceTypeChanged();
+}
+
+void EditTab::showSymbolNavigator() {
+    SymbolNavigator nav(m_ui->programViewer->addressOffsetMap(), this);
+    if (nav.exec()) {
+        m_ui->programViewer->setCenterAddress(nav.getSelectedSymbolAddress());
+    }
+}
+
+void EditTab::loadExternalFile(const LoadFileParams& params) {
+    if (params.type == SourceType::C) {
+        // Try to enable C input and verify that source type was changed successfully. This allows us to trigger the
+        // message box associated with C input, if no compiler is set. If so, load the file.
+        enableEditor();
+        m_ui->setCInput->setChecked(true);
+        if (m_currentSourceType == SourceType::C) {
+            loadFile(params);
+        }
+    } else if (params.type == SourceType::Assembly) {
+        m_ui->setAssemblyInput->setChecked(true);
+        loadFile(params);
+    } else {
+        m_currentSourceType = params.type;
+        loadFile(params);
+    }
 }
 
 void EditTab::loadFile(const LoadFileParams& fileParams) {
@@ -41,21 +107,27 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
     }
 
     bool success = true;
-    Program loadedProgram;
+    auto loadedProgram = std::make_shared<Program>();
     switch (fileParams.type) {
-        case FileType::Assembly:
-            success &= loadAssemblyFile(loadedProgram, file);
+        case SourceType::C:
+        case SourceType::Assembly:
+            success &= loadSourceFile(*loadedProgram, file);
             break;
-        case FileType::FlatBinary:
-            success &= loadFlatBinaryFile(loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
+        case SourceType::FlatBinary:
+            success &= loadFlatBinaryFile(*loadedProgram, file, fileParams.binaryEntryPoint, fileParams.binaryLoadAt);
             break;
-        case FileType::Executable:
-            success &= loadElfFile(loadedProgram, file);
+        case SourceType::InternalELF:
+            success &= loadElfFile(*loadedProgram, file);
+            break;
+        case SourceType::ExternalELF:
+            // Since there is no related source code for an externally compiled ELF, the editor is disabled
+            disableEditor();
+            success &= loadElfFile(*loadedProgram, file);
             break;
     }
 
     if (success) {
-        m_loadedFile = fileParams;
+        // Move the shared pointer to be the current active program
         m_activeProgram = loadedProgram;
         emitProgramChanged();
     } else {
@@ -65,7 +137,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
 }
 
 QString EditTab::getAssemblyText() {
-    return m_ui->assemblyedit->toPlainText();
+    return m_ui->codeEditor->toPlainText();
 }
 
 const QByteArray& EditTab::getBinaryData() {
@@ -73,7 +145,7 @@ const QByteArray& EditTab::getBinaryData() {
 }
 
 void EditTab::clearAssemblyEditor() {
-    m_ui->assemblyedit->reset();
+    m_ui->codeEditor->clear();
     m_assembler->clear();
 }
 
@@ -83,14 +155,54 @@ void EditTab::updateProgramViewerHighlighting() {
     }
 }
 
+void EditTab::sourceTypeChanged() {
+    if (!m_editorEnabled) {
+        // Do nothing; editor is currently disabled so we should not care about updating our source type being the code
+        // editor. sourceTypeChanged() will be re-executed once the editor is reenabled.
+        return;
+    }
+
+    // Validate source type selection
+    if (m_ui->setAssemblyInput->isChecked()) {
+        m_currentSourceType = SourceType::Assembly;
+    } else if (m_ui->setCInput->isChecked()) {
+        // Ensure that we have a validated C compiler available
+        if (!CCManager::get().hasValidCC()) {
+            QMessageBox::warning(
+                this, "Error",
+                "No C compiler set.\n\nProvide a path to a valid C compiler under:\n Edit->Settings->Editor");
+            // Re-enable assembly input
+            m_ui->setAssemblyInput->setChecked(true);
+            return;
+        } else {
+            m_currentSourceType = SourceType::C;
+        }
+    }
+
+    // Notify the source type change to the code editor
+    m_ui->codeEditor->setSourceType(m_currentSourceType);
+}
+
 void EditTab::emitProgramChanged() {
-    emit programChanged(&m_activeProgram);
+    emit programChanged(m_activeProgram);
     updateProgramViewer();
 }
 
+void EditTab::sourceCodeChanged() {
+    switch (m_currentSourceType) {
+        case SourceType::Assembly:
+            assemble();
+            break;
+        default:
+            // Do nothing, either some external program is loaded or, if compiling from C, the user shall manually
+            // select to build
+            break;
+    }
+}
+
 void EditTab::assemble() {
-    if (m_ui->assemblyedit->syntaxAccepted()) {
-        m_assembler->assemble(*m_ui->assemblyedit->document());
+    if (m_ui->codeEditor->syntaxAccepted()) {
+        m_assembler->assemble(*m_ui->codeEditor->document());
         if (!m_assembler->hasError()) {
             m_activeProgram = m_assembler->getProgram();
             emitProgramChanged();
@@ -102,41 +214,58 @@ void EditTab::assemble() {
     }
 }
 
+void EditTab::compile() {
+    // We don't care about asking our editor for syntax accepted, since there is no C-syntax checking in Ripes.
+    auto res = CCManager::get().compile(m_ui->codeEditor->document());
+    if (res.success) {
+        // Compilation successful; load file through standard file loading functions
+        LoadFileParams params;
+        params.filepath = res.outFile;
+        params.type = SourceType::InternalELF;
+        loadFile(params);
+        // Clean up temporary source and output files
+    } else if (!res.aborted) {
+        CompilerErrorDialog errDiag(this);
+        errDiag.setText("Compilation failed. Error output was:");
+        errDiag.setErrorText(CCManager::getError());
+        errDiag.exec();
+    }
+    res.clean();
+}
+
 EditTab::~EditTab() {
     delete m_ui;
 }
 
 void EditTab::newProgram() {
-    m_ui->assemblyedit->reset();
-    m_ui->assemblyedit->clear();
+    m_ui->codeEditor->clear();
     enableAssemblyInput();
 }
 
-void EditTab::setAssemblyText(const QString& text) {
-    m_ui->assemblyedit->reset();
-    m_ui->assemblyedit->setPlainText(text);
+void EditTab::setSourceText(const QString& text) {
+    m_ui->codeEditor->clear();
+    m_ui->codeEditor->setPlainText(text);
 }
 
 void EditTab::enableAssemblyInput() {
     // Clear currently loaded binary/ELF program
-    m_activeProgram = Program();
+    m_activeProgram.reset();
     m_ui->programViewer->clear();
     enableEditor();
-    m_editorEnabled = true;
-    emit editorStateChanged(m_editorEnabled);
 }
 
 void EditTab::updateProgramViewer() {
-    m_ui->programViewer->updateProgram(m_activeProgram, !m_ui->disassembledViewButton->isChecked());
+    m_ui->programViewer->updateProgram(!m_ui->disassembledViewButton->isChecked());
 }
 
 void EditTab::enableEditor() {
-    connect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
+    m_editorEnabled = true;
     m_ui->editorStackedWidget->setCurrentIndex(0);
+    sourceTypeChanged();
+    emit editorStateChanged(m_editorEnabled);
 }
 
 void EditTab::disableEditor() {
-    disconnect(m_ui->assemblyedit, &CodeEditor::textChanged, this, &EditTab::assemble);
     m_ui->editorStackedWidget->setCurrentIndex(1);
     clearAssemblyEditor();
     m_editorEnabled = false;
@@ -162,9 +291,9 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long en
     return true;
 }
 
-bool EditTab::loadAssemblyFile(Program&, QFile& file) {
+bool EditTab::loadSourceFile(Program&, QFile& file) {
     enableEditor();
-    setAssemblyText(file.readAll());
+    setSourceText(file.readAll());
     return true;
 }
 
@@ -178,11 +307,14 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
     }
 
     for (const auto& elfSection : reader.sections) {
-        ProgramSection& section = program.sections.emplace_back();
-        section.name = QString::fromStdString(elfSection->get_name());
-        section.address = elfSection->get_address();
-        // QByteArray performs a deep copy of the data when the data array is initialized at construction
-        section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
+        // Do not load .debug sections
+        if (!QString::fromStdString(elfSection->get_name()).startsWith(".debug")) {
+            ProgramSection& section = program.sections.emplace_back();
+            section.name = QString::fromStdString(elfSection->get_name());
+            section.address = elfSection->get_address();
+            // QByteArray performs a deep copy of the data when the data array is initialized at construction
+            section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
+        }
 
         if (elfSection->get_type() == SHT_SYMTAB) {
             // Collect function symbols
@@ -209,7 +341,6 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
     m_ui->curInputSrcLabel->setText("Executable (ELF)");
     m_ui->inputSrcPath->setText(file.fileName());
 
-    disableEditor();
     return true;
 }
 

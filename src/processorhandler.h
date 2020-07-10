@@ -6,10 +6,13 @@
 
 #include "processorregistry.h"
 #include "program.h"
+#include "syscall/ripes_syscall.h"
 
 #include "vsrtl_widget.h"
 
 namespace Ripes {
+
+StatusManager(Processor);
 
 /**
  * @brief The ProcessorHandler class
@@ -28,9 +31,9 @@ public:
     vsrtl::core::RipesProcessor* getProcessorNonConst() { return m_currentProcessor.get(); }
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
     const ProcessorID& getID() const { return m_currentID; }
-    const Program* getProgram() const { return m_program; }
+    std::weak_ptr<const Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
-
+    const SyscallManager& getSyscallManager() const { return *m_syscallManager; }
     /**
      * @brief loadProcessorToWidget
      * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns
@@ -93,6 +96,13 @@ public:
     void setRegisterValue(const unsigned idx, uint32_t value);
 
     /**
+     * @brief writeMem
+     * writes @p value from the given @p address start, and up to @p size bytes of @p value into the
+     * memory of the simulator
+     */
+    void writeMem(uint32_t address, uint32_t value, int size = sizeof(uint32_t));
+
+    /**
      * @brief getRegisterValue
      * @returns value of register @param idx
      */
@@ -114,10 +124,10 @@ public:
     void run();
 
     /**
-     * @brief stop
+     * @brief stopRun
      * Sets the m_stopRunningFlag, and waits for any currently running asynchronous run execution to finish.
      */
-    void stop();
+    void stopRun();
 
 signals:
     /**
@@ -135,16 +145,16 @@ signals:
     void reqReloadProgram();
 
     /**
-     * @brief print
-     * Print string to log
-     */
-    void print(const QString&);
-
-    /**
      * @brief exit
      * end the current simulation, disallowing further clocking of the processor unless the processor is reset.
      */
     void exit();
+
+    /**
+     * @brief stopping
+     * Processor has been requested to stop
+     */
+    void stopping();
 
     /**
      * @brief runStarted/runFinished
@@ -155,16 +165,24 @@ signals:
     void runFinished();
 
 public slots:
-    void loadProgram(const Program* p);
+    void loadProgram(std::shared_ptr<Program> p);
 
 private slots:
-    void handleSysCall();
+    /**
+     * @brief asyncTrap
+     * Connects to the processors system call request interface. Will concurrently run the systemcall manager to handle
+     * the requested functionality, and return once the system call was handled.
+     */
+    void asyncTrap();
 
 private:
+    void setStopRunFlag();
+
     ProcessorHandler();
 
-    ProcessorID m_currentID = ProcessorID::RV5S;
+    ProcessorID m_currentID;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
+    std::unique_ptr<SyscallManager> m_syscallManager;
 
     /**
      * @brief m_vsrtlWidget
@@ -173,9 +191,15 @@ private:
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
 
     std::set<uint32_t> m_breakpoints;
-    const Program* m_program = nullptr;
+    std::shared_ptr<Program> m_program;
 
     QFutureWatcher<void> m_runWatcher;
     bool m_stopRunningFlag = false;
+
+    /**
+     * @brief m_sem
+     * Semaphore handling locking simulator thread execution whilst trapping to the execution environment.
+     */
+    QSemaphore m_sem;
 };
 }  // namespace Ripes

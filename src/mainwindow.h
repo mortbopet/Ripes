@@ -39,6 +39,8 @@ private slots:
     void saveFilesTriggered();
     void saveFilesAsTriggered();
     void newProgramTriggered();
+    void settingsTriggered();
+    void tabChanged(int index);
 
     void processorUpdated() { emit updateMemoryTab(); }
 
@@ -47,8 +49,9 @@ signals:
     void updateMemoryTab();
 
 private:
-    void loadFile(const QString& filename, FileType type);
+    void loadFile(const QString& filename, SourceType type);
 
+    void setupStatusBar();
     void setupMenus();
     void setupExamplesMenu(QMenu* parent);
 
@@ -60,8 +63,14 @@ private:
 
     // Tabs
     QStackedWidget* m_stackedTabs = nullptr;
+
     ProcessorTab* m_processorTab = nullptr;
     EditTab* m_editTab = nullptr;
     MemoryTab* m_memoryTab = nullptr;
+
+    QToolBar* m_controlToolbar = nullptr;
+    QToolBar* m_processorToolbar = nullptr;
+    QToolBar* m_editToolbar = nullptr;
+    QToolBar* m_memoryToolbar = nullptr;
 };
 }  // namespace Ripes

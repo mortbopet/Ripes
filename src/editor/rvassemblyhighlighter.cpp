@@ -1,4 +1,4 @@
-#include "syntaxhighlighter.h"
+#include "rvassemblyhighlighter.h"
 
 #include <QList>
 #include <QRegularExpressionMatchIterator>
@@ -9,7 +9,7 @@
 
 namespace Ripes {
 
-FieldType::FieldType(Type type, int lowerBound, int upperBound, SyntaxHighlighter* highlighter) {
+FieldType::FieldType(Type type, int lowerBound, int upperBound, RVAssemblyHighlighter* highlighter) {
     m_type = type;
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
@@ -84,11 +84,13 @@ QString FieldType::validateField(const QString& field) const {
     return QString("Validation error");
 }
 
-SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
-    connect(this, &SyntaxHighlighter::rehighlightInvalidBlock, this, &SyntaxHighlighter::rehighlightBlock);
+RVAssemblyHighlighter::RVAssemblyHighlighter(QTextDocument* parent) : SyntaxHighlighter(parent) {
     createSyntaxRules();
     errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
     errorFormat.setUnderlineColor(Qt::red);
+
+    // The highlighting is reset upon line count changes, to detect label invalidation
+    connect(parent, &QTextDocument::cursorPositionChanged, this, &RVAssemblyHighlighter::invalidateLabels);
 
     HighlightingRule rule;
 
@@ -242,14 +244,14 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter
     m_highlightingRules.append(rule);
 }
 
-void SyntaxHighlighter::highlightBlock(const QString& text) {
+void RVAssemblyHighlighter::highlightBlock(const QString& text) {
     QString tooltip = checkSyntax(text);
     int row = currentBlock().firstLineNumber();
     if (tooltip != QString()) {
         setFormat(0, text.length(), errorFormat);
-        emit setTooltip(row, tooltip);
+        setTooltip(row, tooltip);
     } else {
-        emit setTooltip(row, QString());
+        clearTooltip(row);
         for (const HighlightingRule& rule : m_highlightingRules) {
             QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
             while (matchIterator.hasNext()) {
@@ -260,7 +262,7 @@ void SyntaxHighlighter::highlightBlock(const QString& text) {
     }
 }
 
-void SyntaxHighlighter::createSyntaxRules() {
+void RVAssemblyHighlighter::createSyntaxRules() {
     // Create syntax rules for all base- and pseudoinstructions
     auto rule = SyntaxRule();
     QList<FieldType> types = QList<FieldType>();
@@ -602,7 +604,7 @@ namespace {
     return QString("Unknown operation");
 }  // namespace
 
-QString SyntaxHighlighter::checkSyntax(const QString& input) {
+QString RVAssemblyHighlighter::checkSyntax(const QString& input) {
     QStringList fields = input.split(splitter);
     fields.removeAll("");
     fields = splitQuotes(fields);
@@ -732,13 +734,18 @@ QString SyntaxHighlighter::checkSyntax(const QString& input) {
     return QString();
 }
 
-void SyntaxHighlighter::reset() {
+bool RVAssemblyHighlighter::acceptsSyntax() const {
+    return m_tooltipForLine.empty();
+}
+
+void RVAssemblyHighlighter::reset() {
     m_labelPosMap.clear();
     m_posLabelMap.clear();
     m_rowsUsingLabels.clear();
+    SyntaxHighlighter::reset();
 }
 
-void SyntaxHighlighter::clearAndRehighlight() {
+void RVAssemblyHighlighter::clearAndRehighlight() {
     reset();
     rehighlight();
     for (const auto& row : m_rowsUsingLabels) {
@@ -747,7 +754,7 @@ void SyntaxHighlighter::clearAndRehighlight() {
     }
 }
 
-void SyntaxHighlighter::invalidateLabels(const QTextCursor& cursor) {
+void RVAssemblyHighlighter::invalidateLabels(const QTextCursor& cursor) {
     if (m_posLabelMap.contains(cursor.block().firstLineNumber())) {
         // a current label exists at the cursor position - if current action was a newline event, we need to reset
         // resets label mapping and rehighlights required lines

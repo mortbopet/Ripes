@@ -23,8 +23,13 @@ public:
     virtual bool regIsReadOnly(unsigned i) const = 0;
     virtual unsigned bits() const = 0;
     unsigned bytes() const { return bits() / CHAR_BIT; }
-    virtual int spReg() const { return -1; }  // Stack pointer
-    virtual int gpReg() const { return -1; }  // Global pointer
+    virtual int spReg() const { return -1; }       // Stack pointer
+    virtual int gpReg() const { return -1; }       // Global pointer
+    virtual int syscallReg() const { return -1; }  // Syscall function register
+
+    // GCC Compile command architecture and ABI specification strings
+    virtual QString CCmarch() const = 0;
+    virtual QString CCmabi() const = 0;
 
     virtual unsigned elfMachineId() const = 0;
 
@@ -115,6 +120,28 @@ const static std::map<RVElfFlags, QString> RVELFFlagStrings {{RVC, "RVC"}, {Floa
 template <>
 class ISAInfo<ISA::RV32IM> : public ISAInfoBase {
 public:
+    enum SysCall {
+        None = 0,
+        PrintInt = 1,
+        PrintFloat = 2,
+        PrintStr = 4,
+        Exit = 10,
+        PrintChar = 11,
+        GetCWD = 17,
+        TimeMs = 30,
+        Cycles = 31,
+        PrintIntHex = 34,
+        PrintIntBinary = 35,
+        PrintIntUnsigned = 36,
+        Close = 57,
+        LSeek = 62,
+        Read = 63,
+        Write = 64,
+        FStat = 80,
+        Exit2 = 93,
+        brk = 214,
+        Open = 1024
+    };
     static const ISAInfo<ISA::RV32IM>* instance() {
         static ISAInfo<ISA::RV32IM> pr;
         return &pr;
@@ -131,7 +158,11 @@ public:
     unsigned int bits() const override { return 32; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
+    int syscallReg() const override { return 17; }
     unsigned elfMachineId() const override { return EM_RISCV; }
+
+    QString CCmarch() const override { return "rv32im"; }
+    QString CCmabi() const override { return "ilp32"; }
 
     QString elfSupportsFlags(unsigned flags) const override {
         /** We expect no flags for RV32IM compiled RISC-V executables.

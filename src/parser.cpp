@@ -24,7 +24,7 @@ Parser::Parser() {
 
 Parser::~Parser() {}
 
-QString Parser::disassemble(const Program& program, AddrOffsetMap& addrOffsetMap) const {
+QString Parser::disassemble(std::weak_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) const {
     return stringifyProgram(program, 4,
                             [this, &program](const std::vector<char>& buffer, uint32_t index) {
                                 // Hardcoded for RV32 for now
@@ -37,7 +37,7 @@ QString Parser::disassemble(const Program& program, AddrOffsetMap& addrOffsetMap
                             addrOffsetMap);
 }
 
-QString Parser::binarize(const Program& program, AddrOffsetMap& addrOffsetMap) const {
+QString Parser::binarize(std::weak_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) const {
     return stringifyProgram(
         program, 4,
         [](const std::vector<char>& buffer, uint32_t) {
@@ -51,53 +51,58 @@ QString Parser::binarize(const Program& program, AddrOffsetMap& addrOffsetMap) c
 }
 
 namespace {
-void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets) {
-    map[text.count('\n')] = offsets++;
+void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets,
+                               const QString& symbol = QString()) {
+    map[text.count('\n')] = {offsets++, symbol};
 }
 }  // namespace
 
-QString Parser::stringifyProgram(const Program& program, unsigned stride,
+QString Parser::stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
                                  std::function<QString(const std::vector<char>&, uint32_t index)> stringifier,
                                  AddrOffsetMap& addrOffsetMap) const {
-    const auto* textSection = program.getSection(TEXT_SECTION_NAME);
-    if (!textSection)
-        return QString();
+    if (auto sp = program.lock()) {
+        const auto* textSection = sp->getSection(TEXT_SECTION_NAME);
+        if (!textSection)
+            return QString();
 
-    QString out;
-    auto dataStream = QDataStream(textSection->data);
-    std::vector<char> buffer;
-    buffer.resize(stride);
+        QString out;
+        auto dataStream = QDataStream(textSection->data);
+        std::vector<char> buffer;
+        buffer.resize(stride);
 
-    int infoOffsets = 0;
+        int infoOffsets = 0;
 
-    for (unsigned long addr = textSection->address; addr < textSection->address + textSection->data.length();
-         addr += stride) {
-        dataStream.readRawData(buffer.data(), stride);
+        for (unsigned long addr = textSection->address; addr < textSection->address + textSection->data.length();
+             addr += stride) {
+            dataStream.readRawData(buffer.data(), stride);
 
-        // Function label
-        if (program.symbols.count(addr)) {
-            // We are adding non-instruction lines to the output string. Record the line number as well as the sum of
-            // invalid lines up to the given point.
-            incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
-            out += "\n";
-            incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
-            out += QString::number(addr, 16).rightJustified(8, '0') + " <" + program.symbols.at(addr) + ">:\n";
+            // symbol label
+            if (sp->symbols.count(addr)) {
+                const auto& symbol = sp->symbols.at(addr);
+                // We are adding non-instruction lines to the output string. Record the line number as well as the sum
+                // of invalid lines up to the given point.
+                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
+                out += "\n";
+                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol);
+                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol + ">:\n";
+            }
+
+            // Instruction address
+            out += "\t" + QString::number(addr, 16) + ":\t\t";
+
+            // Instruction word
+            QString wordString;
+            for (auto byte : buffer) {
+                wordString.prepend(QString().setNum(static_cast<uint8_t>(byte), 16).rightJustified(2, '0'));
+            }
+            out += wordString + "\t\t";
+
+            // Stringified instruction
+            out += stringifier(buffer, addr) + "\n";
         }
-
-        // Instruction address
-        out += "\t" + QString::number(addr, 16) + ":\t\t";
-
-        // Instruction word
-        QString wordString;
-        for (auto byte : buffer) {
-            wordString.prepend(QString().setNum(static_cast<uint8_t>(byte), 16).rightJustified(2, '0'));
-        }
-        out += wordString + "\t\t";
-
-        // Stringified instruction
-        out += stringifier(buffer, addr) + "\n";
+        return out;
     }
-    return out;
+    return QString();
 }
 
 decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
@@ -133,30 +138,32 @@ decode_functor Parser::generateWordParser(std::vector<int> bitFields) {
     return wordParser;
 }
 
-QString Parser::disassemble(const Program& program, uint32_t instr, uint32_t address) const {
-    switch (instr & 0x7f) {
-        case instrType::LUI:
-            return generateLuiString(instr);
-        case instrType::AUIPC:
-            return generateAuipcString(instr);
-        case instrType::JAL:
-            return generateJalString(instr, address, program);
-        case instrType::JALR:
-            return generateJalrString(instr);
-        case instrType::BRANCH:
-            return generateBranchString(instr, address, program);
-        case instrType::LOAD:
-            return generateLoadString(instr);
-        case instrType::STORE:
-            return generateStoreString(instr);
-        case instrType::OP_IMM:
-            return generateOpImmString(instr);
-        case instrType::OP:
-            return generateOpInstrString(instr);
-        case instrType::ECALL:
-            return generateEcallString(instr);
-        default:
-            return QString("Invalid instruction");
+QString Parser::disassemble(std::weak_ptr<const Program> program, uint32_t instr, uint32_t address) const {
+    if (auto sp = program.lock()) {
+        switch (instr & 0x7f) {
+            case instrType::LUI:
+                return generateLuiString(instr);
+            case instrType::AUIPC:
+                return generateAuipcString(instr);
+            case instrType::JAL:
+                return generateJalString(instr, address, *sp);
+            case instrType::JALR:
+                return generateJalrString(instr);
+            case instrType::BRANCH:
+                return generateBranchString(instr, address, *sp);
+            case instrType::LOAD:
+                return generateLoadString(instr);
+            case instrType::STORE:
+                return generateStoreString(instr);
+            case instrType::OP_IMM:
+                return generateOpImmString(instr);
+            case instrType::OP:
+                return generateOpInstrString(instr);
+            case instrType::ECALL:
+                return generateEcallString(instr);
+            default:
+                return QString("Invalid instruction");
+        }
     }
 }
 QString Parser::generateEcallString(uint32_t) const {

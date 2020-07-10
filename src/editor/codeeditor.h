@@ -8,6 +8,7 @@
 #include "assembler.h"
 #include "syntaxhighlighter.h"
 
+#include <memory>
 #include <set>
 
 // Extended version of Qt's CodeEditor example
@@ -22,19 +23,21 @@ class CodeEditor : public QPlainTextEdit {
 public:
     CodeEditor(QWidget* parent = nullptr);
 
+    void setSourceType(SourceType type);
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     int lineNumberAreaWidth();
-    void setupSyntaxHighlighter();
     void setupChangedTimer();
-    void reset() {
-        m_highlighter->reset();
-        m_tooltipForLine.clear();
-        clear();
-    }
-    bool syntaxAccepted() const { return m_tooltipForLine.isEmpty(); }
+    bool syntaxAccepted() const { return m_highlighter->acceptsSyntax(); }
 
 signals:
-    void textChanged();
+    /**
+     * @brief timedTextChanged
+     * Using m_changeTimer, timedTextChanged will be emitted whenever the user has stopped editing the text document for
+     * some time.
+     * The signal may be used as an alternative to QPlainTextEdit::textChanged(), to reduce the amount of updates
+     * performed wrt. text changes.
+     */
+    void timedTextChanged();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -44,24 +47,24 @@ private slots:
     void updateSidebarWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateSidebar(const QRect&, int);
-    void updateTooltip(int line, QString tip);
 
 private:
-    SyntaxHighlighter* m_highlighter;
+    std::unique_ptr<SyntaxHighlighter> m_highlighter;
+
     LineNumberArea* m_lineNumberArea;
     int m_sidebarWidth;
 
     bool m_syntaxChecking = false;
     bool m_breakpointAreaEnabled = false;
 
-    QMap<int, QString> m_tooltipForLine;
+    SourceType m_sourceType = SourceType::Assembly;
 
     QFont m_font;
 
     // A timer is needed for only catching one of the multiple wheel events that
     // occur on a regular mouse scroll
     QTimer m_fontTimer;
-    QTimer m_changeTimer;
+    QTimer* m_changeTimer;
 
     bool eventFilter(QObject* observed, QEvent* event) override;
 };

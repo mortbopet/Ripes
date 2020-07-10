@@ -73,7 +73,7 @@
               <item row="6" column="0">
                <widget class="QLabel" name="label_3">
                 <property name="text">
-                 <string>Blocks:</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;2&lt;span style=&quot; vertical-align:super;&quot;&gt;N&lt;/span&gt; Blocks:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -93,14 +93,14 @@
               <item row="4" column="0">
                <widget class="QLabel" name="label_4">
                 <property name="text">
-                 <string>Lines:</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;2&lt;span style=&quot; vertical-align:super;&quot;&gt;N&lt;/span&gt; Lines:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="label_2">
                 <property name="text">
-                 <string>Ways:</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;2&lt;span style=&quot; vertical-align:super;&quot;&gt;N&lt;/span&gt; Ways:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>

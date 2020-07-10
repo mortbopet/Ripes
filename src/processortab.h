@@ -30,14 +30,14 @@ class ProcessorTab : public RipesTab {
     Q_OBJECT
 
 public:
-    ProcessorTab(QToolBar* toolbar, QWidget* parent = nullptr);
+    ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar, QWidget* parent = nullptr);
     ~ProcessorTab() override;
 
     void initRegWidget();
 
 signals:
     void update();
-    void appendToLog(QString string);
+    void processorWasReset();
 
 public slots:
     void pause();
@@ -60,7 +60,7 @@ private slots:
     void showStageTable();
 
 private:
-    void setupSimulatorActions();
+    void setupSimulatorActions(QToolBar* controlToolbar);
     void enableSimulatorControls();
     void updateInstructionModel();
     void updateRegisterModel();

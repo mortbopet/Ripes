@@ -61,9 +61,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="assemblyRadioButton">
+        <widget class="QRadioButton" name="sourceRadioButton">
          <property name="text">
-          <string>Assembly</string>
+          <string>Source file</string>
          </property>
         </widget>
        </item>

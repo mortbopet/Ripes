@@ -1,6 +1,7 @@
 #include "programviewer.h"
 
 #include "defines.h"
+#include "ripessettings.h"
 
 #include <QAction>
 #include <QApplication>
@@ -44,13 +45,15 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
     updateHighlightedAddresses();
 }
 
-void ProgramViewer::updateProgram(const Program& program, bool binary) {
+void ProgramViewer::updateProgram(bool binary) {
     m_labelAddrOffsetMap.clear();
-    const QString text = binary ? Parser::getParser()->binarize(program, m_labelAddrOffsetMap)
-                                : Parser::getParser()->disassemble(program, m_labelAddrOffsetMap);
+    const QString text =
+        binary ? Parser::getParser()->binarize(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap)
+               : Parser::getParser()->disassemble(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap);
 
-    // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug, but
-    // seems to be fixed if we manually clear the selections before we clear (and add new text) to the text edit.
+    // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug,
+    // but seems to be fixed if we manually clear the selections before we clear (and add new text) to the text
+    // edit.
     setExtraSelections({});
 
     setPlainText(text);
@@ -68,6 +71,26 @@ void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
     // Set margins of the text edit area
     m_sidebarWidth = m_breakpointArea->width();
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
+}
+
+void ProgramViewer::setCenterAddress(const long address) {
+    auto block = blockForAddress(address);
+    setTextCursor(QTextCursor(block));
+    ensureCursorVisible();
+}
+
+void ProgramViewer::updateCenterAddressFromProcessor() {
+    const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(0);
+    setCenterAddress(stageInfo.pc);
+}
+
+void ProgramViewer::setFollowEnabled(bool enabled) {
+    RipesSettings::setValue(RIPES_SETTING_FOLLOW_EXEC, enabled);
+    m_following = enabled;
+
+    if (enabled) {
+        updateCenterAddressFromProcessor();
+    }
 }
 
 void ProgramViewer::updateHighlightedAddresses() {
@@ -110,6 +133,10 @@ void ProgramViewer::updateHighlightedAddresses() {
         bg = bg.lighter(decRatio);
     }
     setExtraSelections(highlights);
+
+    if (m_following) {
+        updateCenterAddressFromProcessor();
+    }
 }
 
 void ProgramViewer::paintEvent(QPaintEvent* event) {
@@ -192,9 +219,9 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
             return false;
 
         bool valid = true;
-        valid &= (low->first - low->second) <= adjustedLineNumber;
+        valid &= (low->first - low->second.first) <= adjustedLineNumber;
         if (high != m_labelAddrOffsetMap.end()) {
-            valid &= adjustedLineNumber < (high->first - high->second);
+            valid &= adjustedLineNumber < (high->first - high->second.first);
         }
         return valid;
     };
@@ -206,7 +233,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
         lineNumber = low->first + 1;
     }
 
-    const int offsetSum = high == m_labelAddrOffsetMap.end() ? low->second + 1 : high->second;
+    const int offsetSum = high == m_labelAddrOffsetMap.end() ? low->second.first + 1 : high->second.first;
     lineNumber = offsetSum + adjustedLineNumber;
 
     return document()->findBlockByNumber(lineNumber);
@@ -233,7 +260,7 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
 
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
-    if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
+    if ((low == m_labelAddrOffsetMap.begin()) && lineNumber < low->first) {
         // The line number is less that the position of the first offset block; address is directly inferred from
         // linenumber.
         return calcAddressFunc(adjustedLineNumber);
@@ -243,7 +270,7 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
         low = std::prev(m_labelAddrOffsetMap.lower_bound(lineNumber));
     }
 
-    adjustedLineNumber -= (low->second + 1);
+    adjustedLineNumber -= (low->second.first + 1);
     return calcAddressFunc(adjustedLineNumber);
 }
 

@@ -7,9 +7,8 @@
 namespace Ripes {
 
 static inline uint32_t indexToAddress(unsigned index) {
-    if (ProcessorHandler::get()->getProgram()) {
-        return (index * ProcessorHandler::get()->currentISA()->bytes()) +
-               ProcessorHandler::get()->getProgram()->getSection(TEXT_SECTION_NAME)->address;
+    if (auto spt = ProcessorHandler::get()->getProgram().lock()) {
+        return (index * ProcessorHandler::get()->currentISA()->bytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }

@@ -9,7 +9,11 @@
 #include "processorhandler.h"
 #include "processortab.h"
 #include "registerwidget.h"
+#include "ripessettings.h"
 #include "savedialog.h"
+#include "settingsdialog.h"
+#include "syscall/syscallviewer.h"
+#include "syscall/systemio.h"
 #include "version/version.h"
 
 #include "fancytabbar/fancytabbar.h"
@@ -19,9 +23,11 @@
 #include <QFileDialog>
 #include <QFontDatabase>
 #include <QIcon>
+#include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QStatusBar>
 #include <QTemporaryFile>
 #include <QTextStream>
 
@@ -44,29 +50,31 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_stackedTabs = new QStackedWidget(this);
     m_ui->centrallayout->addWidget(m_stackedTabs);
 
-    auto* tb = addToolBar("Edit");
-    tb->setVisible(false);
-    m_editTab = new EditTab(tb, this);
+    m_controlToolbar = addToolBar("Simulator control");
+    m_controlToolbar->setVisible(true);  // Always visible
+
+    m_editToolbar = addToolBar("Edit");
+    m_editToolbar->setVisible(false);
+    m_editTab = new EditTab(m_editToolbar, this);
     m_stackedTabs->insertWidget(0, m_editTab);
 
-    tb = addToolBar("Processor");
-    tb->setVisible(true);
-    m_processorTab = new ProcessorTab(tb, this);
+    m_processorToolbar = addToolBar("Processor");
+    m_processorToolbar->setVisible(false);
+    m_processorTab = new ProcessorTab(m_controlToolbar, m_processorToolbar, this);
     m_stackedTabs->insertWidget(1, m_processorTab);
 
-    tb = addToolBar("Processor");
-    tb->setVisible(false);
-    m_memoryTab = new MemoryTab(tb, this);
+    m_memoryToolbar = addToolBar("Memory");
+    m_memoryToolbar->setVisible(false);
+    m_memoryTab = new MemoryTab(m_memoryToolbar, this);
     m_stackedTabs->insertWidget(2, m_memoryTab);
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
+    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_editTab, &EditTab::updateProgramViewerHighlighting);
-
-    m_ui->tabbar->setActiveIndex(1);
 
     setupMenus();
 
@@ -79,17 +87,56 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
     connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::print, m_processorTab, &ProcessorTab::printToLog);
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
+
+    connect(&SystemIO::get(), &SystemIO::doPrint, m_processorTab, &ProcessorTab::printToLog);
+
+    // Setup status bar
+    setupStatusBar();
 
     // Reset and program reload signals
     connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
+    connect(ProcessorHandler::get(), &ProcessorHandler::stopping, m_processorTab, &ProcessorTab::pause);
 
+    connect(m_processorTab, &ProcessorTab::processorWasReset, [=] { SystemIO::reset(); });
+
+    connect(m_ui->actionSystem_calls, &QAction::triggered, [=] {
+        SyscallViewer v;
+        v.exec();
+    });
     connect(m_ui->actionOpen_wiki, &QAction::triggered, this, &MainWindow::wiki);
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
+    connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
+
+    m_ui->tabbar->setActiveIndex(1);
+}
+
+#define setupStatusWidget(name)                                                                                       \
+    auto* name##StatusLabel = new QLabel(this);                                                                       \
+    statusBar()->addWidget(name##StatusLabel);                                                                        \
+    connect(&name##StatusManager::get().emitter, &StatusEmitter::statusChanged, name##StatusLabel, &QLabel::setText); \
+    connect(&name##StatusManager::get().emitter, &StatusEmitter::clear, name##StatusLabel, &QLabel::clear);
+
+void MainWindow::setupStatusBar() {
+    statusBar()->showMessage("");
+
+    // Setup processorhandler status widget
+    setupStatusWidget(Processor);
+
+    // Setup syscall status widget
+    setupStatusWidget(Syscall);
+
+    // Setup systemIO status widget
+    setupStatusWidget(SystemIO);
+}
+
+void MainWindow::tabChanged(int index) {
+    m_editToolbar->setVisible(index == 0);
+    m_processorToolbar->setVisible(index == 1);
+    m_memoryToolbar->setVisible(index == 2);
 }
 
 void MainWindow::fitToView() {
@@ -147,22 +194,38 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setupExamplesMenu(QMenu* parent) {
     const auto assemblyExamples = QDir(":/examples/assembly/").entryList(QDir::Files);
+    auto* assemblyMenu = parent->addMenu("Assembly");
     if (!assemblyExamples.isEmpty()) {
         for (const auto& fileName : assemblyExamples) {
-            parent->addAction(fileName, [=] {
+            assemblyMenu->addAction(fileName, [=] {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/assembly/") + fileName;
-                parms.type = FileType::Assembly;
-                m_editTab->loadFile(parms);
+                parms.type = SourceType::Assembly;
+                m_editTab->loadExternalFile(parms);
+                m_hasSavedFile = false;
+            });
+        }
+    }
+
+    const auto cExamples = QDir(":/examples/C/").entryList(QDir::Files);
+    auto* cMenu = parent->addMenu("C");
+    if (!cExamples.isEmpty()) {
+        for (const auto& fileName : cExamples) {
+            cMenu->addAction(fileName, [=] {
+                LoadFileParams parms;
+                parms.filepath = QString(":/examples/C/") + fileName;
+                parms.type = SourceType::C;
+                m_editTab->loadExternalFile(parms);
                 m_hasSavedFile = false;
             });
         }
     }
 
     const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
+    auto* elfMenu = parent->addMenu("ELF (precompiled C)");
     if (!ELFExamples.isEmpty()) {
         for (const auto& fileName : ELFExamples) {
-            parent->addAction(fileName, [=] {
+            elfMenu->addAction(fileName, [=] {
                 // ELFIO Cannot read directly from the bundled resource file, so copy the ELF file to a temporary file
                 // before loading the program.
                 QTemporaryFile* tmpELFFile = QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);
@@ -173,8 +236,8 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 
                 LoadFileParams parms;
                 parms.filepath = tmpELFFile->fileName();
-                parms.type = FileType::Executable;
-                m_editTab->loadFile(parms);
+                parms.type = SourceType::ExternalELF;
+                m_editTab->loadExternalFile(parms);
                 m_hasSavedFile = false;
                 tmpELFFile->remove();
             });
@@ -207,7 +270,7 @@ void MainWindow::loadFileTriggered() {
     if (!diag.exec())
         return;
 
-    m_editTab->loadFile(diag.getParams());
+    m_editTab->loadExternalFile(diag.getParams());
     m_hasSavedFile = false;
 }
 
@@ -269,6 +332,11 @@ void MainWindow::saveFilesAsTriggered() {
         return;
     m_hasSavedFile = true;
     saveFilesTriggered();
+}
+
+void MainWindow::settingsTriggered() {
+    SettingsDialog diag;
+    diag.exec();
 }
 
 void MainWindow::newProgramTriggered() {

@@ -32,7 +32,7 @@
             <bool>false</bool>
            </property>
            <widget class="QWidget" name="verticalLayoutWidget">
-            <layout class="QVBoxLayout" name="verticalLayout">
+            <layout class="QVBoxLayout" name="editorLayout">
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
                <item>
@@ -55,12 +55,39 @@
                  </property>
                 </spacer>
                </item>
+               <item>
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>Input type:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="setAssemblyInput">
+                 <property name="text">
+                  <string>Assembly</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="setCInput">
+                 <property name="text">
+                  <string>C</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="sourceTypeLayout"/>
+               </item>
               </layout>
              </item>
              <item>
               <widget class="QStackedWidget" name="editorStackedWidget">
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="editorPage">
                 <layout class="QGridLayout" name="gridLayout_3">
@@ -77,7 +104,7 @@
                   <number>0</number>
                  </property>
                  <item row="0" column="0">
-                  <widget class="CodeEditor" name="assemblyedit"/>
+                  <widget class="CodeEditor" name="codeEditor"/>
                  </item>
                 </layout>
                </widget>
@@ -310,7 +337,7 @@
   <customwidget>
    <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>codeeditor.h</header>
+   <header>editor/codeeditor.h</header>
   </customwidget>
   <customwidget>
    <class>ProgramViewer</class>
