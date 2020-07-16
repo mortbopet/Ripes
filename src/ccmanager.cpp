@@ -168,7 +168,12 @@ std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& f
     // Substitute additional linker arguments
     s_cc = s_cc.arg(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
 
-    const auto arglist = s_cc.split(" ");
+    auto arglist = s_cc.split(" ");
+
+    // Sanitize the arguments
+    for (const auto invArg : {"", " ", "-"}) {
+        arglist.removeAll(invArg);
+    }
 
     return {arglist[0], arglist.mid(1)};
 }
