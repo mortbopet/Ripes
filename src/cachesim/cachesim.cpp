@@ -372,8 +372,8 @@ void CacheSim::undo() {
     else if (!trace.transaction.isHit) {
         way = oldWay;
     }
-    // Case 3: Else, it was a cache hit, and only the replacement fields needs to be updated
-
+    // Case 3: Else, it was a cache hit; Revert replacement fields and dirty blocks
+    way.dirtyBlocks = oldWay.dirtyBlocks;
     revertCacheLineReplFields(line, oldWay, wayIdx);
 
     // Notify that changes to the way has been performed
