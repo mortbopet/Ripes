@@ -27,25 +27,23 @@ MemoryViewerWidget::~MemoryViewerWidget() {
 void MemoryViewerWidget::setupNavigationWidgets() {
     // Navigation widgets are placed in a flow layout to allow minimzation of the memory widget
 
-    auto* flowLayout = new FlowLayout(this);
+    auto* flowLayout = new FlowLayout(m_ui->flowParentLayout);
 
-    m_radixSelector = new RadixSelectorWidget(this);
-    m_goToSection = new GoToSectionComboBox(this);
-    m_goToRegister = new GoToRegisterComboBox(this);
+    m_radixSelector = new RadixSelectorWidget(m_ui->flowParentLayout);
+    m_goToSection = new GoToSectionComboBox(m_ui->flowParentLayout);
+    m_goToRegister = new GoToRegisterComboBox(m_ui->flowParentLayout);
 
     flowLayout->addWidget(m_radixSelector);
 
     QHBoxLayout* layout = new QHBoxLayout();
-    layout->addWidget(new QLabel("Go to register: ", this));
+    layout->addWidget(new QLabel("Go to register: ", m_ui->flowParentLayout));
     layout->addWidget(m_goToRegister);
     flowLayout->addItem(layout);
 
     layout = new QHBoxLayout();
-    layout->addWidget(new QLabel("Go to section: ", this));
+    layout->addWidget(new QLabel("Go to section: ", m_ui->flowParentLayout));
     layout->addWidget(m_goToSection);
     flowLayout->addItem(layout);
-
-    m_ui->flowParentLayout->addItem(flowLayout);
 }
 
 void MemoryViewerWidget::setCentralAddress(uint32_t address) {
