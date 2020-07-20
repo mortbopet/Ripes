@@ -149,7 +149,7 @@ public:
     unsigned int stageCount() const override { return 1; }
     unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
-    QString stageName(unsigned int) const override { return ""; }
+    QString stageName(unsigned int) const override { return "•"; }
     StageInfo stageInfo(unsigned int) const override {
         return StageInfo({pc_reg->out.uValue(), isExecutableAddress(pc_reg->out.uValue()), StageInfo::State::None});
     }
