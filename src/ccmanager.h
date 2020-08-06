@@ -19,6 +19,7 @@ public:
     struct CCRes {
         QString inFile;
         QString outFile;
+        QString errorMessage;
         bool success = false;
         bool aborted = false;
 
@@ -53,9 +54,9 @@ public:
 signals:
     /**
      * @brief ccChanged
-     * Emitted whenever the current CC path changed. @param valid indicates whether the CC was successfully validated.
+     * Emitted whenever the current CC path changed. @param res contains information regarding the compiler validation.
      */
-    void ccChanged(bool valid);
+    void ccChanged(CCRes res);
 
 public slots:
     /**
@@ -77,7 +78,7 @@ private:
      * Attempts to compile a simple test program using the provided compiler path @param CC.
      * @returns true if successful.
      */
-    bool verifyCC(const QString& CC);
+    CCRes verifyCC(const QString& CC);
 
     CCManager();
     QString m_currentCC;

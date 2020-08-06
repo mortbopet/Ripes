@@ -191,39 +191,41 @@ QWidget* SettingsDialog::createEditorPage() {
 
     // Add effective compile command line view
     auto* CCCLineHLayout = new QHBoxLayout();
-    CCCLineHLayout->addWidget(new QLabel("Compile command:"));
-    m_compileCommand = new QLabel();
-    m_compileCommand->setWordWrap(true);
-    m_compileCommand->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    m_compileCommand->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    CCCLineHLayout->addWidget(m_compileCommand);
+    m_compileInfoHeader = new QLabel();
+    CCCLineHLayout->addWidget(m_compileInfoHeader);
+    m_compileInfo = new QLabel();
+    m_compileInfo->setWordWrap(true);
+    m_compileInfo->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_compileInfo->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    CCCLineHLayout->addWidget(m_compileInfo);
     CCLayout->addLayout(CCCLineHLayout);
 
     pageLayout->addWidget(CCGroupBox);
 
     // Trigger initial rehighlighting
-    CCManager::get().trySetCC(CCManager::get().currentCC());
+    CCManager::get().trySetCC(m_ccpath->text());
 
     return pageWidget;
 }
 
-void SettingsDialog::CCPathChanged(bool valid) {
+void SettingsDialog::CCPathChanged(CCManager::CCRes res) {
     QPalette palette = this->palette();
-    if (!valid) {
-        palette.setColor(QPalette::Base, QColor(Qt::red).lighter());
-    } else {
+    if (res.success) {
         palette.setColor(QPalette::Base, QColor(Qt::green).lighter());
+        m_compileInfoHeader->setText("Compile command:");
+    } else {
+        palette.setColor(QPalette::Base, QColor(Qt::red).lighter());
+        m_compileInfoHeader->setText("Error:");
     }
     m_ccpath->setPalette(palette);
 
     // Update compile command preview
     auto [cstring, cargs] = CCManager::get().createCompileCommand("${input}", "${output}");
-    if (m_compileCommand) {
-        m_compileCommand->setEnabled(valid);
-        if (valid) {
-            m_compileCommand->setText(cstring + " " + cargs.join(" "));
+    if (m_compileInfo) {
+        if (res.success) {
+            m_compileInfo->setText(cstring + " " + cargs.join(" "));
         } else {
-            m_compileCommand->clear();
+            m_compileInfo->setText(res.errorMessage);
         }
     }
 }

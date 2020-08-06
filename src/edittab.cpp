@@ -59,8 +59,8 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
 
     // Ensure that changes to the current compiler path will disable C input, if the compiler is invalid
-    connect(&CCManager::get(), &CCManager::ccChanged, [=](bool valid) {
-        if (!valid) {
+    connect(&CCManager::get(), &CCManager::ccChanged, [=](auto res) {
+        if (!res.success) {
             m_ui->setAssemblyInput->setChecked(true);
         }
     });

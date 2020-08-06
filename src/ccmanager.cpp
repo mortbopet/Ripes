@@ -13,20 +13,6 @@ const static std::vector<QString> s_validAutodetectedCCs = {"riscv64-unknown-elf
                                                             "riscv64-unknown-elf-c++"};
 const static QString s_testprogram = "int main() { return 0; }";
 
-/**
- * @brief s_baseCC
- * Base compiler command.
- * - %1: path to compiler executable
- * - %2: machine architecture
- * - %3: machine ABI
- * - %4: user compiler arguments
- * - -x c: Enforce compilation as C language (allows us to use C++ compilers)
- * - %5: input source file
- * - %6: output executable
- * - %7: user linker arguments
- */
-const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6 %7";
-
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
         // No previous compiler path has been set. Try to autodetect a valid compiler within the current path
@@ -63,14 +49,14 @@ QString CCManager::tryAutodetectCC() {
 }
 
 bool CCManager::trySetCC(const QString& CC) {
-    const bool success = verifyCC(CC);
-    if (success) {
+    const auto res = verifyCC(CC);
+    if (res.success) {
         m_currentCC = CC;
     } else {
         m_currentCC = QString();
     }
-    emit ccChanged(success);
-    return success;
+    emit ccChanged(res);
+    return res.success;
 }
 
 CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname, bool showProgressdiag) {
@@ -144,58 +130,96 @@ QString CCManager::getError() {
     return get().m_process.readAllStandardError();
 }
 
-std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& filename, const QString& outname) const {
-    const auto& currentISA = ProcessorHandler::get()->currentISA();
+namespace {
 
-    // Generate compile command
-    QString s_cc = s_baseCC;
-
-    // Substitute compiler path
-    s_cc = s_cc.arg(m_currentCC);
-
-    // Substitute machine architecture
-    s_cc = s_cc.arg(currentISA->CCmarch());
-
-    // Substitute machine ABI
-    s_cc = s_cc.arg(currentISA->CCmabi());
-
-    // Substitute additional CC arguments
-    s_cc = s_cc.arg(RipesSettings::value(RIPES_SETTING_CCARGS).toString());
-
-    // Substitute in and out files
-    s_cc = s_cc.arg(filename).arg(outname);
-
-    // Substitute additional linker arguments
-    s_cc = s_cc.arg(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
-
-    auto arglist = s_cc.split(" ");
-
-    // Sanitize the arguments
+QStringList sanitizedArguments(const QString& args) {
+    QStringList arglist = args.split(" ");
     for (const auto invArg : {"", " ", "-"}) {
         arglist.removeAll(invArg);
     }
-
-    return {arglist[0], arglist.mid(1)};
+    return arglist;
 }
 
-bool CCManager::verifyCC(const QString& CCPath) {
+}  // namespace
+
+std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& filename, const QString& outname) const {
+    const auto& currentISA = ProcessorHandler::get()->currentISA();
+
+    /**
+     * @brief s_baseCC
+     * Base compiler command.
+     * - %1: path to compiler executable
+     * - %2: machine architecture
+     * - %3: machine ABI
+     * - %4: user compiler arguments
+     * - -x c: Enforce compilation as C language (allows us to use C++ compilers)
+     * - %5: input source file
+     * - %6: output executable
+     * - %7: user linker arguments
+     */
+    const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6 %7";
+
+    QStringList compileCommand;
+
+    // Compiler path
+    compileCommand << m_currentCC;
+
+    // Substitute machine architecture
+    compileCommand << (QString("-march=") + currentISA->CCmarch());
+
+    // Substitute machine ABI
+    compileCommand << (QString("-mabi=") + currentISA->CCmabi());
+
+    // Substitute additional CC arguments
+    compileCommand << sanitizedArguments(RipesSettings::value(RIPES_SETTING_CCARGS).toString());
+
+    // Enforce compilation as C language (allows us to use C++ compilers)
+    compileCommand << "-x"
+                   << "c";
+
+    // Substitute in and out files
+    compileCommand << filename << "-o" << outname;
+
+    // Substitute additional linker arguments
+    compileCommand << sanitizedArguments(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
+
+    return {compileCommand[0], compileCommand.mid(1)};
+}
+
+CCManager::CCRes CCManager::verifyCC(const QString& CCPath) {
     // Try to set CCPath as current compiler, and compile test program
     m_currentCC = CCPath;
-    auto res = compileRaw(s_testprogram, QString(), false);
 
-#ifdef QT_DEBUG
-    if (!res.success) {
-        qDebug() << "Failed to compile test program";
-        qDebug() << "CC output: ";
-        qDebug() << "Standard output: " << m_process.readAllStandardOutput();
-        qDebug() << "Standard error: " << m_process.readAllStandardError();
+    CCRes res;
+    const auto compilerExecInfo = QFileInfo(m_currentCC);
+    auto abs = compilerExecInfo.absolutePath();
+
+    if (m_currentCC.isEmpty()) {
+        res.errorMessage = "No path specified";
+        res.success = false;
+        goto verifyCC_end;
     }
-#endif
+
+    if (!compilerExecInfo.isExecutable()) {
+        res.errorMessage = "'" + m_currentCC + "' is not an executable file.";
+        res.success = false;
+        goto verifyCC_end;
+    }
+
+    res = compileRaw(s_testprogram, QString(), false);
+
+    if (!res.success) {
+        res.errorMessage += "Failed to compile test program.\n";
+        res.errorMessage += "Compiler output:\n";
+        res.errorMessage += "\tstdout: " + QString(m_process.readAllStandardOutput()) + "\n";
+        res.errorMessage += "\tstderr: " + QString(m_process.readAllStandardError()) + "\n";
+    }
 
     // Cleanup
     res.clean();
 
-    return res.success;
+verifyCC_end:
+    return res;
 }
 
 }  // namespace Ripes

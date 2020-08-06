@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include "ccmanager.h"
 
 QT_FORWARD_DECLARE_CLASS(QLineEdit);
 QT_FORWARD_DECLARE_CLASS(QLabel);
@@ -25,9 +26,10 @@ private:
      * @brief CCPathChanged
      * Rehighlightss the current CCPath if the CC is @param valid
      */
-    void CCPathChanged(bool valid);
+    void CCPathChanged(CCManager::CCRes res);
     QLineEdit* m_ccpath = nullptr;
-    QLabel* m_compileCommand = nullptr;
+    QLabel* m_compileInfo = nullptr;
+    QLabel* m_compileInfoHeader = nullptr;
 
     QWidget* createEditorPage();
     QWidget* createSimulatorPage();
