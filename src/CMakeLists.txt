@@ -7,13 +7,15 @@ file(GLOB LIB_SOURCES
     cachesim/*.cpp
     editor/*.cpp
     syscall/*.cpp
-    version/version.cpp)
+    version/version.cpp
+    assembler/*.cpp)
 file(GLOB LIB_HEADERS
     *.h
     cachesim/*.h
     editor/*.h
     syscall/*.h
-    graphics/*.h)
+    graphics/*.h
+    assembler/*.h)
 file(GLOB LIB_UIS
     *.ui
     cachesim/*.ui
