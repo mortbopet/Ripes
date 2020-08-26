@@ -18,6 +18,7 @@ public:
 
     virtual unsigned regCnt() const = 0;
     virtual QString regName(unsigned i) const = 0;
+    virtual unsigned regNumber(const QString& regName, bool& success) const = 0;
     virtual QString regAlias(unsigned i) const = 0;
     virtual QString regInfo(unsigned i) const = 0;
     virtual bool regIsReadOnly(unsigned i) const = 0;
@@ -151,15 +152,27 @@ public:
     ISA isaID() const override { return ISA::RV32IM; }
 
     unsigned int regCnt() const override { return 32; }
-    QString regName(unsigned i) const override { return RVRegNames.at(i); }
-    QString regAlias(unsigned i) const override { return RVRegAliases.at(i); }
-    QString regInfo(unsigned i) const override { return RVRegDescs.at(i); }
+    QString regName(unsigned i) const override { return RVRegNames.size() < i ? RVRegNames.at(i) : QString(); }
+    QString regAlias(unsigned i) const override { return RVRegAliases.size() < i ? RVRegAliases.at(i) : QString(); }
+    QString regInfo(unsigned i) const override { return RVRegDescs.size() < i ? RVRegDescs.at(i) : QString(); }
     bool regIsReadOnly(unsigned i) const override { return i == 0; }
     unsigned int bits() const override { return 32; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
     int syscallReg() const override { return 17; }
     unsigned elfMachineId() const override { return EM_RISCV; }
+    unsigned int regNumber(const QString& reg, bool& success) const override {
+        QString regRes = reg;
+        success = true;
+        if (reg[0] == 'x') {
+            regRes.remove('x');
+            return regRes.toInt(&success, 10);
+        } else if (RVRegAliases.contains(reg)) {
+            return RVRegAliases.indexOf(reg);
+        }
+        success = false;
+        return 0;
+    }
 
     QString CCmarch() const override { return "rv32im"; }
     QString CCmabi() const override { return "ilp32"; }
