@@ -22,6 +22,14 @@ constexpr inline bool isInt(int64_t x) {
     return N >= 64 || (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
 }
 
+/// Checks if an unsigned integer fits into the given bit width.
+/// from LLVM MathExtras.h
+template <unsigned N>
+constexpr inline std::enable_if_t<(N < 64), bool> isUInt(uint64_t X) {
+    static_assert(N > 0, "isUInt<0> doesn't make sense");
+    return X < (UINT64_C(1) << (N));
+}
+
 constexpr uint32_t generateBitmask(int n) {
     return static_cast<uint32_t>((1 << n) - 1);
 }
@@ -33,6 +41,10 @@ constexpr uint32_t bitcount(unsigned n) {
         n = n & (n - 1);
     }
     return count;
+}
+
+constexpr bool isPowerOf2(unsigned v) {
+    return v && ((v & (v - 1)) == 0);
 }
 
 uint32_t accBVec(const std::vector<bool>& v);
