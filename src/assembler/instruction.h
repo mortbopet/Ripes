@@ -1,19 +1,22 @@
 #pragma once
 
 #include "../binutils.h"
-#include "assembler.h"
+#include "assembler_defines.h"
 
 #include <QString>
 #include <map>
+#include <memory>
 #include <type_traits>
 #include <vector>
 #include "math.h"
 
 namespace Ripes {
 
+namespace AssemblerTmp {
+
 namespace {
-using AssembleRes = std::variant<Assembler::Error, uint32_t>;
-using DisassembleRes = std::variant<Assembler::Error, Assembler::LineTokens>;
+using AssembleRes = std::variant<AssemblerTmp::Error, uint32_t>;
+using DisassembleRes = std::variant<AssemblerTmp::Error, AssemblerTmp::LineTokens>;
 }  // namespace
 
 struct BitRange {
@@ -27,127 +30,165 @@ struct BitRange {
 
     uint32_t apply(uint32_t value) const { return (value & mask) << start; }
     uint32_t decode(uint32_t instruction) const { return (instruction >> start) & mask; };
+
+    bool operator==(const BitRange& other) const { return this->start == other.start && this->stop == other.stop; }
+    bool operator<(const BitRange& other) const { return this->start < other.start; }
 };
 
-class Field {
-public:
-    Field(const std::vector<unsigned>& _tokenIndexes, const std::vector<BitRange>& _ranges)
-        : ranges(_ranges), tokenIndexes(_tokenIndexes) {
-        assertRangesMutuallyExclusive();
-    }
+struct Field {
+    Field() = default;
     virtual ~Field() = default;
-    virtual std::optional<Assembler::Error> apply(const Assembler::SourceLine& line, uint32_t& instruction) const = 0;
-    virtual std::optional<Assembler::Error> decode(const uint32_t instruction, Assembler::LineTokens& line) const = 0;
+    virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
+                                                     uint32_t& instruction) const = 0;
+    virtual std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+                                                      AssemblerTmp::LineTokens& line) const = 0;
+};
 
-protected:
-    const std::vector<BitRange> ranges;
-    const std::vector<unsigned> tokenIndexes;
+/** @brief OpPart
+ * A segment of an operation-identifying field of an instruction.
+ */
+struct OpPart {
+    OpPart(unsigned _value, BitRange _range) : value(_value), range(_range) {}
+    OpPart(unsigned _value, unsigned _start, unsigned _stop) : value(_value), range({_start, _stop}) {}
+    constexpr bool matches(uint32_t instruction) const { return range.decode(instruction) == value; }
+    const unsigned value;
+    const BitRange range;
 
-private:
-    /**
-     * @brief assertRangesMutuallyExclusive
-     * Simple sanity check to ensure that no bitranges overlap.
-     */
-    void assertRangesMutuallyExclusive() {
-        std::map<unsigned, bool> rangeMap;
-        for (const auto& range : ranges) {
-            for (size_t i = range.start; i < range.stop; i++) {
-                assert(!rangeMap[i] && "Overlapping bitrange detected");
-                rangeMap[i] = true;
-            }
-        }
-    }
+    bool operator==(const OpPart& other) const { return this->value == other.value && this->range == other.range; }
+    bool operator<(const OpPart& other) const { return this->range < other.range || this->value < other.value; }
 };
 
 template <typename ISA>
 struct Opcode : public Field {
-    Opcode(const QString& _name, uint32_t _opcode, unsigned _tokenIndex, BitRange range)
-        : name(_name), opcode(_opcode), Field({_tokenIndex}, {range}) {}
+    /**
+     * @brief Opcode
+     * @param name: Name of operation
+     * @param fields: list of OpParts corresponding to the identifying elements of the opcode.
+     */
+    Opcode(const QString& name, std::vector<OpPart> fields) : m_name(name), m_opParts(fields) {}
 
-    const QString name;
-    const uint32_t opcode;
-    std::optional<Assembler::Error> apply(const Assembler::SourceLine&, uint32_t& instruction) const override {
-        instruction |= ranges[0].apply(opcode);
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine&, uint32_t& instruction) const override {
+        for (const auto& opPart : m_opParts) {
+            instruction |= opPart.range.apply(opPart.value);
+        }
     }
-    std::optional<Assembler::Error> decode(const uint32_t instruction, Assembler::LineTokens& line) const override {
-        line.push_back(name);
+    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+                                              AssemblerTmp::LineTokens& line) const override {
+        line.push_back(m_name);
+        return {};
     }
 
     bool operator==(uint32_t instruction) const {}
+
+    const QString m_name;
+    const std::vector<OpPart> m_opParts;
 };
 
 template <typename ISA>
 struct Reg : public Field {
-    Reg(unsigned _tokenIndex, BitRange range) : Field({_tokenIndex}, {range}) {}
-    std::optional<Assembler::Error> apply(const Assembler::SourceLine& line, uint32_t& instruction) const override {
+    /**
+     * @brief Reg
+     * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
+     * @param range: range in instruction field containing register index value
+     */
+    Reg(unsigned tokenIndex, BitRange range) : m_tokenIndex(tokenIndex), m_range(range) {}
+    Reg(unsigned tokenIndex, unsigned _start, unsigned _stop) : m_tokenIndex(tokenIndex), m_range({_start, _stop}) {}
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
+                                             uint32_t& instruction) const override {
         bool success;
-        const QString& regToken = line.tokens[tokenIndexes[0]];
-        const uint32_t reg = ISA::instance()->getRegisterNumber(regToken, success);
+        const QString& regToken = line.tokens[m_tokenIndex];
+        const uint32_t reg = ISA::instance()->regNumber(regToken, success);
         if (!success) {
-            return Assembler::Error(line.source_line, "Unknown register '" + regToken + "'");
+            return AssemblerTmp::Error(line.source_line, "Unknown register '" + regToken + "'");
         }
-        instruction |= ranges[0].apply(reg);
+        instruction |= m_range.apply(reg);
     }
-    std::optional<Assembler::Error> decode(const uint32_t instruction, Assembler::LineTokens& line) const override {
-        const unsigned regNumber = ranges[0].decode(instruction);
-        const QString registerName = ISA::instance()->getRegisterName(regNumber);
+    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+                                              AssemblerTmp::LineTokens& line) const override {
+        const unsigned regNumber = m_range.decode(instruction);
+        const QString registerName = ISA::instance()->regName(regNumber);
         if (registerName.isEmpty()) {
-            return Assembler::Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
+            return AssemblerTmp::Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
         }
         line.append(registerName);
+        return {};
     }
+
+    const unsigned m_tokenIndex;
+    const BitRange m_range;
 };
 
 template <typename ISA>
 struct Imm : public Field {
-    Imm(const std::vector<unsigned> _tokenIndexes, const std::vector<BitRange>& _ranges)
-        : Field(_tokenIndexes, _ranges) {}
+    /**
+     * @brief Imm
+     * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
+     * @param ranges: (ordered) list of ranges corresponding to fields of the immediate
+     */
+    Imm(unsigned tokenIndex, unsigned width, const std::vector<BitRange>& ranges)
+        : m_tokenIndex(tokenIndex), m_ranges(ranges), m_width(width) {}
 
     unsigned toUint() {}
     int toInt() {}
 
-    std::optional<Assembler::Error> apply(const Assembler::SourceLine& line, uint32_t& instruction) const override {}
-    std::optional<Assembler::Error> decode(const uint32_t instruction, Assembler::LineTokens& line) const override {}
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
+                                             uint32_t& instruction) const override {}
+    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+                                              AssemblerTmp::LineTokens& line) const override {}
+
+    const unsigned m_tokenIndex;
+    const std::vector<BitRange> m_ranges;
+    const unsigned m_width;
 };
 
 template <typename ISA>
 class Instruction {
 public:
-    Instruction(Opcode<ISA> opcode, std::vector<Field> fields)
-        : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()) {
-        m_assembler = [=](const Assembler::SourceLine& line) {
+    Instruction(Opcode<ISA> opcode, const std::vector<std::shared_ptr<Field>>& fields)
+        : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
+        m_assembler = [this](const AssemblerTmp::SourceLine& line) {
             uint32_t instruction = 0;
             m_opcode.apply(line, instruction);
-            for (const auto& field : fields)
-                field.apply(line, instruction);
+            for (const auto& field : m_fields)
+                field->apply(line, instruction);
             return instruction;
         };
-        m_disassembler = [=](uint32_t instruction) {
-            Assembler::LineTokens line;
+        m_disassembler = [this](uint32_t instruction) {
+            AssemblerTmp::LineTokens line;
             m_opcode.decode(instruction, line);
-            for (const auto& field : fields)
-                field.decode(instruction, line);
-            return line;
+            for (const auto& field : m_fields) {
+                if (auto error = field->decode(instruction, line)) {
+                    return DisassembleRes(*error);
+                }
+            }
+            return DisassembleRes(line);
         };
     }
 
-    AssembleRes assemble(const Assembler::SourceLine& line) {
+    AssembleRes assemble(const AssemblerTmp::SourceLine& line) {
         if (line.tokens.length() != m_expectedTokens) {
-            return Assembler::Error(line.source_line, "Instruction '" + m_opcode.name + "' expects " +
-                                                          QString::number(m_expectedTokens - 1) + " tokens, but got " +
-                                                          QString::number(line.tokens.length() - 1));
+            return AssemblerTmp::Error(line.source_line, "Instruction '" + m_opcode.name + "' expects " +
+                                                             QString::number(m_expectedTokens - 1) +
+                                                             " tokens, but got " +
+                                                             QString::number(line.tokens.length() - 1));
         }
 
         return m_assembler(line);
     }
-    DisassembleRes disassemble(uint32_t instruction) { return m_disassembler(instruction); }
+    DisassembleRes disassemble(uint32_t instruction) const { return m_disassembler(instruction); }
+
+    const Opcode<ISA>& getOpcode() const { return m_opcode; }
+    const QString& name() const { return m_opcode.m_name; }
 
 private:
-    std::function<AssembleRes(const Assembler::SourceLine&)> m_assembler;
+    std::function<AssembleRes(const AssemblerTmp::SourceLine&)> m_assembler;
     std::function<DisassembleRes(uint32_t)> m_disassembler;
 
-    Opcode<ISA> m_opcode;
+    const Opcode<ISA> m_opcode;
     const int m_expectedTokens;
+    const std::vector<std::shared_ptr<Field>> m_fields;
 };
+
+}  // namespace AssemblerTmp
 
 }  // namespace Ripes
