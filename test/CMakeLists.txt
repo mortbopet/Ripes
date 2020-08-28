@@ -39,3 +39,5 @@ if(RIPES_ENABLE_RISCV_TESTS)
     create_qtest(tst_riscv)
     message(STATUS "RISC-V tests configured successfully")
 endif()
+
+create_qtest(tst_assembler)
