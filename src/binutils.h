@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include "limits.h"
 
 namespace Ripes {
 
@@ -13,6 +14,13 @@ inline T signextend(const T x) {
         T x : B;
     } s;
     return s.x = x;
+}
+
+// Runtime signextension
+template <typename T>
+inline T signextend(const T x, unsigned B) {
+    int const m = CHAR_BIT * sizeof(T) - B;
+    return (x << m) >> m;
 }
 
 /// Checks if an integer fits into the given bit width.
