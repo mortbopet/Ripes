@@ -1,39 +1,16 @@
 #pragma once
 
+#include "assembler_defines.h"
 #include "isainfo.h"
 
 #include <set>
 #include <variant>
 
 namespace Ripes {
+namespace AssemblerTmp {
 
-class Assembler {
+class AssemblerBase {
 public:
-    using Symbol = QString;
-    using Symbols = std::set<Symbol>;
-    using SymbolMap = std::map<Symbol, unsigned>;
-    using LineTokens = QStringList;
-    struct SourceLine {
-        LineTokens tokens;
-        unsigned source_line = 0;
-        QString symbol;
-    };
-    using SymbolLinePair = std::pair<Symbol, LineTokens>;
-    using Program = std::vector<SourceLine>;
-    using NoPassResult = std::monostate;
-
-    // An error is defined as a reference to a source line index + an error string
-    using Error = std::pair<unsigned, QString>;
-    using Errors = std::vector<Error>;
-    /**
-     * @brief The Result struct
-     * An assembly result is determined to be valid iff errors is empty.
-     */
-    struct Result {
-        Errors errors;
-        QByteArray program;
-    };
-
     Result assemble(const QString& program) const;
 
 private:
@@ -71,5 +48,7 @@ protected:
      */
     virtual std::variant<Error, SymbolLinePair> splitSymbolFromLine(const SourceLine& line) const = 0;
 };
+
+}  // namespace AssemblerTmp
 
 }  // namespace Ripes

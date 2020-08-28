@@ -4,6 +4,7 @@
 #include <algorithm>
 
 namespace Ripes {
+namespace AssemblerTmp {
 
 namespace {
 inline QByteArray uint32ToByteArr(uint32_t in) {
@@ -53,9 +54,9 @@ uint32_t getRegisterNumber(const QString& reg, bool& success) {
  */
 template <int N, typename T_funct, typename T_ret, typename... Args>
 T_funct expectNTokens(const T_funct& functor) {
-    return [=](const Assembler::SourceLine& line, Args... others) {
+    return [=](const AssemblerTmp::SourceLine& line, Args... others) {
         if (line.tokens.size() != N) {
-            return std::variant<Assembler::Error, T_ret>({Assembler::Error(
+            return std::variant<AssemblerTmp::Error, T_ret>({AssemblerTmp::Error(
                 line.source_line, "Expected " + QString::number(N) + " tokens but got " + line.tokens.size())});
         } else {
             return functor(line, others...);
@@ -63,18 +64,29 @@ T_funct expectNTokens(const T_funct& functor) {
     };
 }
 
-template <uint32_t funct3, uint32_t funct7>
-std::variant<Assembler::Error, QByteArray> assembleOpInstruction(const Assembler::SourceLine& line) {
+std::variant<AssemblerTmp::Error, std::vector<uint32_t>> getRegisters(const AssemblerTmp::SourceLine& line,
+                                                                      const std::vector<int>& indicies) {
     bool success;
-    std::vector<uint32_t> regs(3);
-    for (size_t token_idx = 1; token_idx <= regs.size(); token_idx++) {
-        const auto& regToken = line.tokens[token_idx];
+    std::vector<uint32_t> regs(indicies.size());
+    for (const int& index : indicies) {
+        const auto& regToken = line.tokens[index];
         const uint32_t reg = getRegisterNumber(regToken, success);
         if (!success) {
-            return {Assembler::Error(line.source_line, "Unknown register '" + regToken + "'")};
+            return {AssemblerTmp::Error(line.source_line, "Unknown register '" + regToken + "'")};
         }
         regs.push_back(reg);
     }
+    return regs;
+}
+
+template <uint32_t funct3, uint32_t funct7>
+std::variant<AssemblerTmp::Error, QByteArray> assembleOpInstruction(const AssemblerTmp::SourceLine& line) {
+    auto regsVariant = getRegisters(line, {1, 2, 3});
+    try {
+        return std::get<AssemblerTmp::Error>(regsVariant);
+    } catch (std::bad_variant_access&) {
+    }
+    auto& regs = std::get<std::vector<uint32_t>>(regsVariant);
     return uint32ToByteArr(instrType::OP | funct3 << 12 | funct7 << 25 | regs[0] << 7 | regs[1] << 15 | regs[2] << 20);
 }
 
@@ -96,7 +108,7 @@ RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) {
     }
 }
 
-std::variant<Assembler::Error, std::optional<std::vector<Assembler::LineTokens>>>
+std::variant<AssemblerTmp::Error, std::optional<std::vector<AssemblerTmp::LineTokens>>>
 RV32I_Assembler::expandPseudoOp(const SourceLine& line) const {
     if (line.tokens.empty()) {
         return {};
@@ -108,8 +120,8 @@ RV32I_Assembler::expandPseudoOp(const SourceLine& line) const {
     return m_pseudoOpExpanders.at(opcode)(line);
 }
 
-std::variant<Assembler::Error, QByteArray>
-RV32I_Assembler::assembleInstruction(const SourceLine& line, const Assembler::SymbolMap& symbols) const {
+std::variant<AssemblerTmp::Error, QByteArray>
+RV32I_Assembler::assembleInstruction(const SourceLine& line, const AssemblerTmp::SymbolMap& symbols) const {
     if (line.tokens.empty()) {
         return {QByteArray()};
     }
@@ -137,7 +149,7 @@ void RV32I_Assembler::addAssemblerFunctor(const QString& opcode, AssemblerFuncto
 void RV32I_Assembler::enableExtI() {
     // Pseudo-op functors
     addPseudoOpExpanderFunctor("nop", expectNTokens<1, PseudoOpFunctor, PseudoOpFunctorRetT>([](const SourceLine&) {
-                                   return std::vector<Assembler::LineTokens>{QString("addi x0 x0 0").split(' ')};
+                                   return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
                                }));
 
     // Assembler functors
@@ -148,19 +160,21 @@ void RV32I_Assembler::enableExtM() {
 
     // Assembler functors
 
-    addAssemblerFunctor("mul", expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const Assembler::SymbolMap&>(
-                                   [](const SourceLine& line, const Assembler::SymbolMap&) {
+    addAssemblerFunctor("mul", expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const AssemblerTmp::SymbolMap&>(
+                                   [](const SourceLine& line, const AssemblerTmp::SymbolMap&) {
                                        return assembleOpInstruction<0b000, 0b0000001>(line);
                                    }));
 
-    addAssemblerFunctor("mulh", expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const Assembler::SymbolMap&>(
-                                    [](const SourceLine& line, const Assembler::SymbolMap&) {
-                                        return assembleOpInstruction<0b001, 0b0000001>(line);
-                                    }));
-    addAssemblerFunctor("mulhsu", expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const Assembler::SymbolMap&>(
-                                      [](const SourceLine& line, const Assembler::SymbolMap&) {
-                                          return assembleOpInstruction<0b011, 0b0000001>(line);
-                                      }));
+    addAssemblerFunctor("mulh",
+                        expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const AssemblerTmp::SymbolMap&>(
+                            [](const SourceLine& line, const AssemblerTmp::SymbolMap&) {
+                                return assembleOpInstruction<0b001, 0b0000001>(line);
+                            }));
+    addAssemblerFunctor("mulhsu",
+                        expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const AssemblerTmp::SymbolMap&>(
+                            [](const SourceLine& line, const AssemblerTmp::SymbolMap&) {
+                                return assembleOpInstruction<0b011, 0b0000001>(line);
+                            }));
 }
 void RV32I_Assembler::enableExtF() {
     // Pseudo-op functors
@@ -168,4 +182,5 @@ void RV32I_Assembler::enableExtF() {
     // Assembler functors
 }
 
+}  // namespace AssemblerTmp
 }  // namespace Ripes

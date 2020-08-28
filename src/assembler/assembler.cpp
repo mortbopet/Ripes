@@ -35,8 +35,9 @@ namespace {
 }  // namespace
 
 namespace Ripes {
+namespace AssemblerTmp {
 
-Assembler::Result Assembler::assemble(const QString& program) const {
+Result AssemblerBase::assemble(const QString& program) const {
     const auto programLines = program.split(QRegExp("[\r\n]"));
     Result result;
 
@@ -53,7 +54,7 @@ Assembler::Result Assembler::assemble(const QString& program) const {
     // runPass(unused3, QByteArray, pass3, tokenizedLines, symbols);
 }
 
-std::variant<Assembler::Errors, Assembler::Program> Assembler::pass0(const QStringList& program) const {
+std::variant<Errors, Program> AssemblerBase::pass0(const QStringList& program) const {
     Errors errors;
     Program tokenizedLines;
     tokenizedLines.reserve(program.size());
@@ -71,7 +72,7 @@ std::variant<Assembler::Errors, Assembler::Program> Assembler::pass0(const QStri
     }
 }
 
-std::variant<Assembler::Errors, Assembler::Program> Assembler::pass1(const Program& tokenizedLines) const {
+std::variant<Errors, Program> AssemblerBase::pass1(const Program& tokenizedLines) const {
     Errors errors;
     Program expandedLines;
     expandedLines.reserve(tokenizedLines.size());
@@ -96,8 +97,8 @@ std::variant<Assembler::Errors, Assembler::Program> Assembler::pass1(const Progr
     }
 }
 
-std::variant<Assembler::Errors, Assembler::NoPassResult> Assembler::pass2(std::vector<SourceLine>& tokenizedLines,
-                                                                          Symbols& symbols) const {
+std::variant<Errors, NoPassResult> AssemblerBase::pass2(std::vector<SourceLine>& tokenizedLines,
+                                                        Symbols& symbols) const {
     Errors errors;
     for (auto& line : tokenizedLines) {
         runOperation(splitLine, SymbolLinePair, splitSymbolFromLine, line);
@@ -117,8 +118,7 @@ std::variant<Assembler::Errors, Assembler::NoPassResult> Assembler::pass2(std::v
     }
 }
 
-std::variant<Assembler::Errors, QByteArray> Assembler::pass3(const Program& tokenizedLines,
-                                                             const SymbolMap& symbolMap) const {
+std::variant<Errors, QByteArray> AssemblerBase::pass3(const Program& tokenizedLines, const SymbolMap& symbolMap) const {
     QByteArray program;
     Errors errors;
     for (const auto& line : tokenizedLines) {
@@ -132,17 +132,16 @@ std::variant<Assembler::Errors, QByteArray> Assembler::pass3(const Program& toke
     }
 }
 
-std::variant<Assembler::Error, Assembler::LineTokens> Assembler::tokenize(const QString& line) const {
+std::variant<Error, LineTokens> AssemblerBase::tokenize(const QString& line) const {
     const static auto splitter = QRegularExpression(
         R"(\t|\((?=x(?:[1-2]\d|3[0-1]|\d)|t[0-6]|a[0-7]|s(?:1[0-1]|\d)|[sgt]p|zero)|(?:x(?:[1-2]\d|3[0-1]|\d)|t[0-6]|a[0-7]|s(?:1[0-1]|\d)|[sgt]p|zero)\K\))");
 
     return line.split(splitter);
 }
 
-std::variant<Assembler::Error, std::pair<QString, Assembler::LineTokens>>
-Assembler::splitSymbolFromLine(const SourceLine& line) const {
+std::variant<Error, std::pair<QString, LineTokens>> AssemblerBase::splitSymbolFromLine(const SourceLine& line) const {
     if (line.tokens.size() == 0) {
-        return std::pair<QString, Assembler::LineTokens>(QString(), line.tokens);
+        return std::pair<QString, LineTokens>(QString(), line.tokens);
     }
 
     const bool hasSymbol =
@@ -162,7 +161,8 @@ Assembler::splitSymbolFromLine(const SourceLine& line) const {
     remainingTokens.removeFirst();
     auto symbol = firstToken;
     symbol.remove(':');
-    return std::pair<QString, Assembler::LineTokens>(symbol, remainingTokens);
+    return std::pair<QString, LineTokens>(symbol, remainingTokens);
 }
 
+}  // namespace AssemblerTmp
 }  // namespace Ripes
