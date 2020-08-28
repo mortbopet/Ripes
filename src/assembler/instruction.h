@@ -118,6 +118,15 @@ struct Reg : public Field {
     const BitRange m_range;
 };
 
+struct ImmPart {
+    ImmPart(unsigned _offset, BitRange _range) : offset(_offset), range(_range) {}
+    ImmPart(unsigned _offset, unsigned _start, unsigned _stop) : offset(_offset), range({_start, _stop}) {}
+    void apply(const uint32_t& value, uint32_t& instruction) const { instruction |= range.apply(value >> offset); }
+    void decode(uint32_t& value, const uint32_t& instruction) const { value |= range.decode(instruction) << offset; };
+    const unsigned offset;
+    const BitRange range;
+};
+
 template <typename ISA>
 struct Imm : public Field {
     /**
@@ -125,20 +134,27 @@ struct Imm : public Field {
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
      * @param ranges: (ordered) list of ranges corresponding to fields of the immediate
      */
-    Imm(unsigned tokenIndex, unsigned width, const std::vector<BitRange>& ranges)
-        : m_tokenIndex(tokenIndex), m_ranges(ranges), m_width(width) {}
-
-    unsigned toUint() {}
-    int toInt() {}
+    Imm(unsigned _tokenIndex, unsigned _width, const std::vector<ImmPart>& _parts)
+        : tokenIndex(_tokenIndex), parts(_parts), width(_width) {}
 
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
-                                             uint32_t& instruction) const override {}
+                                             uint32_t& instruction) const override {
+        // @Todo: decode immediate from token (appropriate bit width!), apply each ImmPart with immediate to instruction
+    }
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
-                                              AssemblerTmp::LineTokens& line) const override {}
+                                              AssemblerTmp::LineTokens& line) const override {
+        uint32_t reconstructed = 0;
+        for (const auto& part : parts) {
+            part.decode(reconstructed, instruction);
+        }
+        reconstructed = signextend(reconstructed, width);
+        line.push_back("0x" + QString::number(reconstructed, 16));
+        return {};
+    }
 
-    const unsigned m_tokenIndex;
-    const std::vector<BitRange> m_ranges;
-    const unsigned m_width;
+    const unsigned tokenIndex;
+    const std::vector<ImmPart> parts;
+    const unsigned width;
 };
 
 template <typename ISA>
