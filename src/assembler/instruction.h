@@ -127,15 +127,15 @@ struct ImmPart {
     const BitRange range;
 };
 
-template <typename ISA>
 struct Imm : public Field {
+    enum class Repr { Unsigned, Signed, Hex };
     /**
      * @brief Imm
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
      * @param ranges: (ordered) list of ranges corresponding to fields of the immediate
      */
-    Imm(unsigned _tokenIndex, unsigned _width, const std::vector<ImmPart>& _parts)
-        : tokenIndex(_tokenIndex), parts(_parts), width(_width) {}
+    Imm(unsigned _tokenIndex, unsigned _width, Repr _repr, const std::vector<ImmPart>& _parts)
+        : tokenIndex(_tokenIndex), parts(_parts), width(_width), repr(_repr) {}
 
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
                                              uint32_t& instruction) const override {
@@ -147,14 +147,21 @@ struct Imm : public Field {
         for (const auto& part : parts) {
             part.decode(reconstructed, instruction);
         }
-        reconstructed = signextend(reconstructed, width);
-        line.push_back("0x" + QString::number(reconstructed, 16));
+        if (repr == Repr::Signed) {
+            reconstructed = signextend<int32_t>(reconstructed, width);
+            line.push_back(QString::number(static_cast<int32_t>(reconstructed)));
+        } else if (repr == Repr::Unsigned) {
+            line.push_back(QString::number(reconstructed));
+        } else {
+            line.push_back("0x" + QString::number(reconstructed, 16));
+        }
         return {};
     }
 
     const unsigned tokenIndex;
     const std::vector<ImmPart> parts;
     const unsigned width;
+    const Repr repr;
 };
 
 template <typename ISA>
