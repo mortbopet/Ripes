@@ -41,7 +41,7 @@ void tst_Assembler::tst_matcher() {
             QFAIL(error.toStdString().c_str());
         }
 
-        auto disRes = matchInstr->disassemble(iter.second);
+        auto disRes = matchInstr->disassemble(iter.second, 0, nullptr);
         try {
             auto& error = std::get<Error>(disRes);
             QFAIL(error.second.toStdString().c_str());
@@ -53,62 +53,64 @@ void tst_Assembler::tst_matcher() {
     }
 }
 
-#define BType(name, funct3)                                                                \
-    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                            \
-        Opcode<RVISA>(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),            \
-        {std::make_shared<Reg<RVISA>>(1, 15, 19), std::make_shared<Reg<RVISA>>(2, 20, 24), \
-         std::make_shared<Imm>(                                                            \
-             3, 13, Imm::Repr::Signed,                                                     \
-             std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7), ImmPart(5, 25, 30), ImmPart(1, 8, 11)})}))
+#define BType(name, funct3)                                                                              \
+    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                          \
+        Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),                                 \
+        {std::make_shared<Reg<RVISA>>(1, 15, 19), std::make_shared<Reg<RVISA>>(2, 20, 24),               \
+         std::make_shared<Imm>(                                                                          \
+             3, 13, Imm::Repr::Signed,                                                                   \
+             std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7), ImmPart(5, 25, 30), ImmPart(1, 8, 11)}, \
+             Imm::SymbolType::Relative)}))
 
 #define IType(name, funct3)                                                                                      \
     std::shared_ptr<Instruction<RVISA>>(                                                                         \
-        new Instruction<RVISA>(Opcode<RVISA>(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),           \
+        new Instruction<RVISA>(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),                  \
                                {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(2, 15, 19), \
                                 std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
 #define LoadType(name, funct3)                                                                                   \
     std::shared_ptr<Instruction<RVISA>>(                                                                         \
-        new Instruction<RVISA>(Opcode<RVISA>(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),           \
+        new Instruction<RVISA>(Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),                  \
                                {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(3, 15, 19), \
                                 std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define IShiftType(name, funct3, funct7)                                                                \
-    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                         \
-        Opcode<RVISA>(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-        {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(2, 15, 19),               \
+#define IShiftType(name, funct3, funct7)                                                         \
+    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                  \
+        Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
+        {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(2, 15, 19),        \
          std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 24)})}))
 
-#define RType(name, funct3, funct7)                                                                     \
-    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                         \
-        Opcode<RVISA>(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-        {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(2, 15, 19),               \
+#define RType(name, funct3, funct7)                                                              \
+    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                  \
+        Opcode(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
+        {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(2, 15, 19),        \
          std::make_shared<Reg<RVISA>>(3, 20, 24)}))
 
 #define SType(name, funct3)                                                                                   \
     std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                               \
-        Opcode<RVISA>(name, {OpPart(0b0100011, 0, 6), OpPart(funct3, 12, 14)}),                               \
+        Opcode(name, {OpPart(0b0100011, 0, 6), OpPart(funct3, 12, 14)}),                                      \
         {std::make_shared<Reg<RVISA>>(3, 15, 19),                                                             \
          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}), \
          std::make_shared<Reg<RVISA>>(1, 20, 24)}))
 
-#define UType(name, opcode)                                                 \
-    std::shared_ptr<Instruction<RVISA>>(                                    \
-        new Instruction<RVISA>(Opcode<RVISA>(name, {OpPart(opcode, 0, 6)}), \
-                               {std::make_shared<Reg<RVISA>>(1, 7, 11),     \
+#define UType(name, opcode)                                             \
+    std::shared_ptr<Instruction<RVISA>>(                                \
+        new Instruction<RVISA>(Opcode(name, {OpPart(opcode, 0, 6)}),    \
+                               {std::make_shared<Reg<RVISA>>(1, 7, 11), \
                                 std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(12, 12, 31)})}))
 
-#define JType(name, opcode)                                     \
-    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>( \
-        Opcode<RVISA>(name, {OpPart(opcode, 0, 6)}),            \
-        {std::make_shared<Reg<RVISA>>(1, 7, 11),                \
-         std::make_shared<Imm>(                                 \
-             2, 21, Imm::Repr::Hex,                             \
-             std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), ImmPart(11, 20, 20), ImmPart(1, 21, 30)})}))
+#define JType(name, opcode)                                                                                  \
+    std::shared_ptr<Instruction<RVISA>>(new Instruction<RVISA>(                                              \
+        Opcode(name, {OpPart(opcode, 0, 6)}),                                                                \
+        {std::make_shared<Reg<RVISA>>(1, 7, 11),                                                             \
+         std::make_shared<Imm>(                                                                              \
+             2, 21, Imm::Repr::Hex,                                                                          \
+             std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), ImmPart(11, 20, 20), ImmPart(1, 21, 30)}, \
+             Imm::SymbolType::Relative)}))
 
 #define JALRType(name)                                                                                           \
     std::shared_ptr<Instruction<RVISA>>(                                                                         \
-        new Instruction<RVISA>(Opcode<RVISA>(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),            \
+        new Instruction<RVISA>(Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),                   \
                                {std::make_shared<Reg<RVISA>>(1, 7, 11), std::make_shared<Reg<RVISA>>(2, 15, 19), \
                                 std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 

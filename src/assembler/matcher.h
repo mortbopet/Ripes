@@ -75,13 +75,13 @@ private:
 
         for (const auto& instr : instructions) {
             if (auto instrRef = instr.get()) {
-                const int nOpParts = instrRef->getOpcode().m_opParts.size();
+                const int nOpParts = instrRef->getOpcode().opParts.size();
                 if (nOpParts < fieldDepth) {
                     assert(
                         false &&
                         "Instruction cannot be decoded; aliases with other instruction (Needs more discernable parts)");
                 }
-                const OpPart opPart = instrRef->getOpcode().m_opParts[fieldDepth - 1];
+                const OpPart opPart = instrRef->getOpcode().opParts[fieldDepth - 1];
                 if (nOpParts == fieldDepth && instrsWithEqualOpPart.count(opPart) != 0) {
                     assert(false &&
                            "Instruction cannot be decoded; aliases with other instruction (Identical to other "

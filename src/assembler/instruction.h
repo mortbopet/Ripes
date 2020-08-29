@@ -40,7 +40,8 @@ struct Field {
     virtual ~Field() = default;
     virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
                                                      uint32_t& instruction) const = 0;
-    virtual std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+    virtual std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
+                                                      const ReverseSymbolMap* symbolMap,
                                                       AssemblerTmp::LineTokens& line) const = 0;
 };
 
@@ -58,30 +59,29 @@ struct OpPart {
     bool operator<(const OpPart& other) const { return this->range < other.range || this->value < other.value; }
 };
 
-template <typename ISA>
 struct Opcode : public Field {
     /**
      * @brief Opcode
      * @param name: Name of operation
      * @param fields: list of OpParts corresponding to the identifying elements of the opcode.
      */
-    Opcode(const QString& name, std::vector<OpPart> fields) : m_name(name), m_opParts(fields) {}
+    Opcode(const QString& _name, std::vector<OpPart> _opParts) : name(_name), opParts(_opParts) {}
 
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine&, uint32_t& instruction) const override {
-        for (const auto& opPart : m_opParts) {
+        for (const auto& opPart : opParts) {
             instruction |= opPart.range.apply(opPart.value);
         }
     }
-    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+    std::optional<AssemblerTmp::Error> decode(const uint32_t, const uint32_t, const ReverseSymbolMap*,
                                               AssemblerTmp::LineTokens& line) const override {
-        line.push_back(m_name);
+        line.push_back(name);
         return {};
     }
 
     bool operator==(uint32_t instruction) const {}
 
-    const QString m_name;
-    const std::vector<OpPart> m_opParts;
+    const QString name;
+    const std::vector<OpPart> opParts;
 };
 
 template <typename ISA>
@@ -103,7 +103,8 @@ struct Reg : public Field {
         }
         instruction |= m_range.apply(reg);
     }
-    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
+                                              const ReverseSymbolMap* symbolMap,
                                               AssemblerTmp::LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
         const QString registerName = ISA::instance()->regName(regNumber);
@@ -129,32 +130,44 @@ struct ImmPart {
 
 struct Imm : public Field {
     enum class Repr { Unsigned, Signed, Hex };
+    enum class SymbolType { None, Relative, Absolute };
     /**
      * @brief Imm
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
      * @param ranges: (ordered) list of ranges corresponding to fields of the immediate
+     * @param symbolType: Set if this immediate refers to a relative or absolute symbol.
      */
-    Imm(unsigned _tokenIndex, unsigned _width, Repr _repr, const std::vector<ImmPart>& _parts)
-        : tokenIndex(_tokenIndex), parts(_parts), width(_width), repr(_repr) {}
+    Imm(unsigned _tokenIndex, unsigned _width, Repr _repr, const std::vector<ImmPart>& _parts,
+        SymbolType _symbolType = SymbolType::None)
+        : tokenIndex(_tokenIndex), parts(_parts), width(_width), repr(_repr), symbolType(_symbolType) {}
 
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
                                              uint32_t& instruction) const override {
         // @Todo: decode immediate from token (appropriate bit width!), apply each ImmPart with immediate to instruction
     }
-    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction,
+    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
+                                              const ReverseSymbolMap* symbolMap,
                                               AssemblerTmp::LineTokens& line) const override {
         uint32_t reconstructed = 0;
         for (const auto& part : parts) {
             part.decode(reconstructed, instruction);
         }
         if (repr == Repr::Signed) {
-            reconstructed = signextend<int32_t>(reconstructed, width);
-            line.push_back(QString::number(static_cast<int32_t>(reconstructed)));
+            line.push_back(QString::number(static_cast<int32_t>(signextend<int32_t>(reconstructed, width))));
         } else if (repr == Repr::Unsigned) {
             line.push_back(QString::number(reconstructed));
         } else {
             line.push_back("0x" + QString::number(reconstructed, 16));
         }
+
+        if (symbolType != SymbolType::None && symbolMap != nullptr) {
+            const int value = signextend<int32_t>(reconstructed, width);
+            const uint32_t symbolAddress = value + (symbolType == SymbolType::Absolute ? 0 : address);
+            if (symbolMap->count(symbolAddress)) {
+                line.push_back("<" + symbolMap->at(symbolAddress) + ">");
+            }
+        }
+
         return {};
     }
 
@@ -162,12 +175,13 @@ struct Imm : public Field {
     const std::vector<ImmPart> parts;
     const unsigned width;
     const Repr repr;
+    const SymbolType symbolType;
 };
 
 template <typename ISA>
 class Instruction {
 public:
-    Instruction(Opcode<ISA> opcode, const std::vector<std::shared_ptr<Field>>& fields)
+    Instruction(Opcode opcode, const std::vector<std::shared_ptr<Field>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
         m_assembler = [this](const AssemblerTmp::SourceLine& line) {
             uint32_t instruction = 0;
@@ -176,11 +190,11 @@ public:
                 field->apply(line, instruction);
             return instruction;
         };
-        m_disassembler = [this](uint32_t instruction) {
+        m_disassembler = [this](const uint32_t instruction, const uint32_t address, const ReverseSymbolMap* symbolMap) {
             AssemblerTmp::LineTokens line;
-            m_opcode.decode(instruction, line);
+            m_opcode.decode(instruction, address, symbolMap, line);
             for (const auto& field : m_fields) {
-                if (auto error = field->decode(instruction, line)) {
+                if (auto error = field->decode(instruction, address, symbolMap, line)) {
                     return DisassembleRes(*error);
                 }
             }
@@ -198,16 +212,19 @@ public:
 
         return m_assembler(line);
     }
-    DisassembleRes disassemble(uint32_t instruction) const { return m_disassembler(instruction); }
+    DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,
+                               const ReverseSymbolMap* symbolMap) const {
+        return m_disassembler(instruction, address, symbolMap);
+    }
 
-    const Opcode<ISA>& getOpcode() const { return m_opcode; }
-    const QString& name() const { return m_opcode.m_name; }
+    const Opcode& getOpcode() const { return m_opcode; }
+    const QString& name() const { return m_opcode.name; }
 
 private:
     std::function<AssembleRes(const AssemblerTmp::SourceLine&)> m_assembler;
-    std::function<DisassembleRes(uint32_t)> m_disassembler;
+    std::function<DisassembleRes(const uint32_t, const uint32_t, const ReverseSymbolMap*)> m_disassembler;
 
-    const Opcode<ISA> m_opcode;
+    const Opcode m_opcode;
     const int m_expectedTokens;
     const std::vector<std::shared_ptr<Field>> m_fields;
 };

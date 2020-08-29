@@ -14,6 +14,7 @@ namespace AssemblerTmp {
 using Symbol = QString;
 using Symbols = std::set<Symbol>;
 using SymbolMap = std::map<Symbol, unsigned>;
+using ReverseSymbolMap = std::map<uint32_t, Symbol>;
 using LineTokens = QStringList;
 struct SourceLine {
     LineTokens tokens;
