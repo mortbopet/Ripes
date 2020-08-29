@@ -1,7 +1,7 @@
 #pragma once
 
+#include <iostream>
 #include <memory>
-
 #include "instruction.h"
 
 namespace Ripes {
@@ -10,11 +10,34 @@ namespace AssemblerTmp {
 template <typename ISA>
 class Matcher {
     struct MatchNode {
-        using MatchNodes = std::vector<MatchNode>;
         MatchNode(OpPart _matcher) : matcher(_matcher) {}
         OpPart matcher;
         std::vector<MatchNode> children;
         std::shared_ptr<Instruction<ISA>> instruction;
+
+        void print(unsigned depth = 0) const {
+            if (depth == 0) {
+                std::cout << "root";
+            } else {
+                for (int i = 0; i < depth; i++) {
+                    std::cout << "-";
+                }
+                QString matchField =
+                    QString::number(matcher.range.stop) + "[" +
+                    QStringLiteral("%1").arg(matcher.value, matcher.range.width(), 2, QLatin1Char('0')) + "]" +
+                    QString::number(matcher.range.start);
+                std::cout << matchField.toStdString() << " -> ";
+            }
+
+            if (instruction) {
+                std::cout << instruction.get()->name().toStdString() << std::endl;
+            } else {
+                std::cout << std::endl;
+                for (const auto& child : children) {
+                    child.print(depth + 1);
+                }
+            }
+        }
     };
 
 public:
