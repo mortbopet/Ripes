@@ -6,106 +6,28 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-namespace {
-inline QByteArray uint32ToByteArr(uint32_t in) {
-    const char bytes[] = {static_cast<char>(in & 0xff), static_cast<char>((in >> 8) & 0xff),
-                          static_cast<char>((in >> 16) & 0xff), static_cast<char>((in >> 24) & 0xff)};
-    return QByteArray::fromRawData(bytes, 4);
-}
+RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions)
+    : AssemblerBase<ISAInfo<ISA::RV32IM>>(initInstructions(extensions)) {}
 
-namespace instrType {
-enum {
-    LUI = 0b0110111,
-    JAL = 0b1101111,
-    JALR = 0b1100111,
-    BRANCH = 0b1100011,
-    LOAD = 0b0000011,
-    STORE = 0b0100011,
-    OP_IMM = 0b0010011,
-    OP = 0b0110011,
-    ECALL = 0b1110011,
-    AUIPC = 0b0010111,
-    INVALID = 0b0
-};
-}
+std::pair<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec>
+RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const {
+    RVInstrVec instructions;
+    RVPseudoInstrVec pseudoInstructions;
 
-const static QMap<QString, uint32_t> ABInames{
-    {"zero", 0}, {"ra", 1},  {"sp", 2},   {"gp", 3},   {"tp", 4},  {"t0", 5},  {"t1", 6},  {"t2", 7},
-    {"s0", 8},   {"a0", 10}, {"a1", 11},  {"a2", 12},  {"a3", 13}, {"a4", 14}, {"a5", 15}, {"a6", 16},
-    {"a7", 17},  {"s1", 9},  {"s2", 18},  {"s3", 19},  {"s4", 20}, {"s5", 21}, {"s6", 22}, {"s7", 23},
-    {"s8", 24},  {"s9", 25}, {"s10", 26}, {"s11", 27}, {"t3", 28}, {"t4", 29}, {"t5", 30}, {"t6", 31}};
-
-uint32_t getRegisterNumber(const QString& reg, bool& success) {
-    // Converts a textual representation of a register to its numeric value
-    QString regRes = reg;
-    success = true;
-    if (reg[0] == 'x') {
-        regRes.remove('x');
-        return regRes.toInt(&success, 10);
-    } else if (ABInames.contains(reg)) {
-        return ABInames[reg];
-    }
-    success = false;
-    return 0;
-}
-
-/** @brief
- * Wraps a functor with the expectancy of a line containing @p N tokens.
- */
-template <int N, typename T_funct, typename T_ret, typename... Args>
-T_funct expectNTokens(const T_funct& functor) {
-    return [=](const AssemblerTmp::SourceLine& line, Args... others) {
-        if (line.tokens.size() != N) {
-            return std::variant<AssemblerTmp::Error, T_ret>({AssemblerTmp::Error(
-                line.source_line, "Expected " + QString::number(N) + " tokens but got " + line.tokens.size())});
-        } else {
-            return functor(line, others...);
-        }
-    };
-}
-
-std::variant<AssemblerTmp::Error, std::vector<uint32_t>> getRegisters(const AssemblerTmp::SourceLine& line,
-                                                                      const std::vector<int>& indicies) {
-    bool success;
-    std::vector<uint32_t> regs(indicies.size());
-    for (const int& index : indicies) {
-        const auto& regToken = line.tokens[index];
-        const uint32_t reg = getRegisterNumber(regToken, success);
-        if (!success) {
-            return {AssemblerTmp::Error(line.source_line, "Unknown register '" + regToken + "'")};
-        }
-        regs.push_back(reg);
-    }
-    return regs;
-}
-
-template <uint32_t funct3, uint32_t funct7>
-std::variant<AssemblerTmp::Error, QByteArray> assembleOpInstruction(const AssemblerTmp::SourceLine& line) {
-    auto regsVariant = getRegisters(line, {1, 2, 3});
-    try {
-        return std::get<AssemblerTmp::Error>(regsVariant);
-    } catch (std::bad_variant_access&) {
-    }
-    auto& regs = std::get<std::vector<uint32_t>>(regsVariant);
-    return uint32ToByteArr(instrType::OP | funct3 << 12 | funct7 << 25 | regs[0] << 7 | regs[1] << 15 | regs[2] << 20);
-}
-
-}  // namespace
-
-RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) {
-    enableExtI();
+    enableExtI(instructions, pseudoInstructions);
     for (const auto& extension : extensions) {
         switch (extension) {
             case Extensions::M:
-                enableExtM();
+                enableExtM(instructions, pseudoInstructions);
                 break;
             case Extensions::F:
-                enableExtF();
+                enableExtF(instructions, pseudoInstructions);
                 break;
             default:
                 assert(false && "Unhandled ISA extension");
         }
     }
+    return {instructions, pseudoInstructions};
 }
 
 std::variant<AssemblerTmp::Error, std::optional<std::vector<AssemblerTmp::LineTokens>>>
@@ -145,38 +67,147 @@ void RV32I_Assembler::addAssemblerFunctor(const QString& opcode, AssemblerFuncto
     }
     m_assemblers[opcode] = functor;
 }
+#define BType(name, funct3)                                                                              \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(            \
+        Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),                                 \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 15, 19),                                         \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(2, 20, 24),                                         \
+         std::make_shared<Imm>(                                                                          \
+             3, 13, Imm::Repr::Signed,                                                                   \
+             std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7), ImmPart(5, 25, 30), ImmPart(1, 8, 11)}, \
+             Imm::SymbolType::Relative)}))
 
-void RV32I_Assembler::enableExtI() {
+#define IType(name, funct3)                                                                   \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>( \
+        Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),                      \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                               \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(2, 15, 19),                              \
+         std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
+
+#define LoadType(name, funct3)                                                                \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>( \
+        Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),                      \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                               \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(3, 15, 19),                              \
+         std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
+
+#define IShiftType(name, funct3, funct7)                                                         \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(    \
+        Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                                  \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(2, 15, 19),                                 \
+         std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 24)})}))
+
+#define RType(name, funct3, funct7)                                                              \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(    \
+        Opcode(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                                  \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(2, 15, 19),                                 \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(3, 20, 24)}))
+
+#define SType(name, funct3)                                                                                   \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(                 \
+        Opcode(name, {OpPart(0b0100011, 0, 6), OpPart(funct3, 12, 14)}),                                      \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(3, 15, 19),                                              \
+         std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}), \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 20, 24)}))
+
+#define UType(name, opcode)                                                                   \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>( \
+        Opcode(name, {OpPart(opcode, 0, 6)}),                                                 \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                               \
+         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(12, 12, 31)})}))
+
+#define JType(name, opcode)                                                                                  \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(                \
+        Opcode(name, {OpPart(opcode, 0, 6)}),                                                                \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                                              \
+         std::make_shared<Imm>(                                                                              \
+             2, 21, Imm::Repr::Hex,                                                                          \
+             std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), ImmPart(11, 20, 20), ImmPart(1, 21, 30)}, \
+             Imm::SymbolType::Relative)}))
+
+#define JALRType(name)                                                                        \
+    std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>( \
+        Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),                       \
+        {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                               \
+         std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(2, 15, 19),                              \
+         std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
+
+void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
-    addPseudoOpExpanderFunctor("nop", expectNTokens<1, PseudoOpFunctor, PseudoOpFunctorRetT>([](const SourceLine&) {
-                                   return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
-                               }));
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
+        new RVPseudoInstr("nop", {}, [](const RVPseudoInstr& _this, const AssemblerTmp::SourceLine& line) {
+            return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
+        new RVPseudoInstr("mv", {}, [](const RVPseudoInstr& _this, const AssemblerTmp::SourceLine& line) {
+            return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
+        })));
+
+    /*        m_expander = [this](const PseudoInstruction& _this, const AssemblerTmp::SourceLine& line) {
+            uint32_t instruction = 0;
+            m_opcode.apply(line, instruction);
+            for (const auto& field : m_fields)
+                field->apply(line, instruction);
+            return instruction;
+        };*/
+
+    // Assembler functors
+    instructions.push_back(UType("lui", 0b0110111));
+    instructions.push_back(UType("auipc", 0b0010111));
+
+    instructions.push_back(JType("jal", 0b1101111));
+
+    instructions.push_back(JALRType("jalr"));
+
+    instructions.push_back(LoadType("lb", 0b000));
+    instructions.push_back(LoadType("lh", 0b001));
+    instructions.push_back(LoadType("lw", 0b010));
+    instructions.push_back(LoadType("lbu", 0b100));
+    instructions.push_back(LoadType("lhu", 0b101));
+
+    instructions.push_back(SType("sb", 0b000));
+    instructions.push_back(SType("sh", 0b001));
+    instructions.push_back(SType("sw", 0b010));
+
+    instructions.push_back(IType("addi", 0b000));
+    instructions.push_back(IType("slti", 0b010));
+    instructions.push_back(IType("sltiu", 0b011));
+    instructions.push_back(IType("xori", 0b100));
+    instructions.push_back(IType("ori", 0b110));
+    instructions.push_back(IType("andi", 0b111));
+
+    instructions.push_back(IShiftType("slli", 0b001, 0b0000000));
+    instructions.push_back(IShiftType("srli", 0b101, 0b0000000));
+    instructions.push_back(IShiftType("srai", 0b101, 0b0100000));
+
+    instructions.push_back(RType("add", 0b000, 0b0000000));
+    instructions.push_back(RType("sub", 0b000, 0b0100000));
+    instructions.push_back(RType("sll", 0b001, 0b0000000));
+    instructions.push_back(RType("slt", 0b010, 0b0000000));
+    instructions.push_back(RType("sltu", 0b011, 0b0000000));
+    instructions.push_back(RType("xor", 0b100, 0b0000000));
+    instructions.push_back(RType("srl", 0b101, 0b0000000));
+    instructions.push_back(RType("sra", 0b101, 0b0100000));
+    instructions.push_back(RType("or", 0b110, 0b0000000));
+    instructions.push_back(RType("and", 0b111, 0b0000000));
+
+    instructions.push_back(BType("beq", 0b000));
+    instructions.push_back(BType("bne", 0b001));
+    instructions.push_back(BType("blt", 0b100));
+    instructions.push_back(BType("bge", 0b101));
+    instructions.push_back(BType("bltu", 0b110));
+    instructions.push_back(BType("bgeu", 0b111));
+}
+
+void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
+    // Pseudo-op functors
 
     // Assembler functors
 }
-
-void RV32I_Assembler::enableExtM() {
-    // Pseudo-op functors
-
-    // Assembler functors
-
-    addAssemblerFunctor("mul", expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const AssemblerTmp::SymbolMap&>(
-                                   [](const SourceLine& line, const AssemblerTmp::SymbolMap&) {
-                                       return assembleOpInstruction<0b000, 0b0000001>(line);
-                                   }));
-
-    addAssemblerFunctor("mulh",
-                        expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const AssemblerTmp::SymbolMap&>(
-                            [](const SourceLine& line, const AssemblerTmp::SymbolMap&) {
-                                return assembleOpInstruction<0b001, 0b0000001>(line);
-                            }));
-    addAssemblerFunctor("mulhsu",
-                        expectNTokens<3, AssemblerFunctor, AssemblerFunctorRetT, const AssemblerTmp::SymbolMap&>(
-                            [](const SourceLine& line, const AssemblerTmp::SymbolMap&) {
-                                return assembleOpInstruction<0b011, 0b0000001>(line);
-                            }));
-}
-void RV32I_Assembler::enableExtF() {
+void RV32I_Assembler::enableExtF(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
 
     // Assembler functors

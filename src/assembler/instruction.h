@@ -16,6 +16,7 @@ namespace AssemblerTmp {
 
 namespace {
 using AssembleRes = std::variant<AssemblerTmp::Error, uint32_t>;
+using PseudoExpandRes = std::variant<AssemblerTmp::Error, std::vector<AssemblerTmp::LineTokens>>;
 using DisassembleRes = std::variant<AssemblerTmp::Error, AssemblerTmp::LineTokens>;
 }  // namespace
 
@@ -217,14 +218,41 @@ public:
         return m_disassembler(instruction, address, symbolMap);
     }
 
-    const Opcode& getOpcode() const { return m_opcode; }
-    const QString& name() const { return m_opcode.name; }
+    const QString& name() const { return m_opcode; }
 
 private:
     std::function<AssembleRes(const AssemblerTmp::SourceLine&)> m_assembler;
     std::function<DisassembleRes(const uint32_t, const uint32_t, const ReverseSymbolMap*)> m_disassembler;
 
     const Opcode m_opcode;
+    const int m_expectedTokens;
+    const std::vector<std::shared_ptr<Field>> m_fields;
+};
+
+template <typename ISA>
+class PseudoInstruction {
+public:
+    PseudoInstruction(
+        const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
+        const std::function<PseudoExpandRes(const PseudoInstruction&, const AssemblerTmp::SourceLine&)>& expander)
+        : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields), m_expander(expander) {}
+
+    PseudoExpandRes expand(const AssemblerTmp::SourceLine& line) {
+        if (line.tokens.length() != m_expectedTokens) {
+            return AssemblerTmp::Error(
+                line.source_line, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
+                                      " tokens, but got " + QString::number(line.tokens.length() - 1));
+        }
+
+        return m_expander(line);
+    }
+
+    const QString& name() const { return m_opcode; }
+
+private:
+    std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const AssemblerTmp::SourceLine&)> m_expander;
+
+    const QString m_opcode;
     const int m_expectedTokens;
     const std::vector<std::shared_ptr<Field>> m_fields;
 };
