@@ -218,7 +218,8 @@ public:
         return m_disassembler(instruction, address, symbolMap);
     }
 
-    const QString& name() const { return m_opcode; }
+    const Opcode& getOpcode() const { return m_opcode; }
+    const QString& name() const { return m_opcode.name; }
 
 private:
     std::function<AssembleRes(const AssemblerTmp::SourceLine&)> m_assembler;
@@ -248,6 +249,9 @@ public:
     }
 
     const QString& name() const { return m_opcode; }
+
+    static std::shared_ptr<Reg<ISA>> reg() { return std::make_shared<Reg<ISA>>(); }
+    static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(); }
 
 private:
     std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const AssemblerTmp::SourceLine&)> m_expander;
