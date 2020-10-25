@@ -6,5 +6,6 @@
         <file>ELF/RanPi</file>
         <file>C/ranpi.c</file>
         <file>C/io.c</file>
+        <file>C/matrixmul.c</file>
     </qresource>
 </RCC>
