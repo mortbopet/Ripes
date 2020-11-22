@@ -63,6 +63,8 @@ public:
     }
     QString disassemble(const QByteArray& program) const;
 
+    const Matcher<ISA>& getMatcher() {return m_matcher;}
+
 private:
     /**
      * @brief pass0
