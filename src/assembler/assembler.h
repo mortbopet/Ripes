@@ -171,7 +171,7 @@ protected:
         return line.split(splitter);
     }
     virtual std::variant<Error, QByteArray> assembleInstruction(const SourceLine& instruction,
-                                                                const SymbolMap& symbols) const;
+                                                                const SymbolMap& symbols) const = 0;
     /**
      * @brief splitSymbol
      * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
