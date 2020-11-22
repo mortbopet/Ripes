@@ -52,7 +52,7 @@ struct Field {
 struct OpPart {
     OpPart(unsigned _value, BitRange _range) : value(_value), range(_range) {}
     OpPart(unsigned _value, unsigned _start, unsigned _stop) : value(_value), range({_start, _stop}) {}
-    constexpr bool matches(uint32_t instruction) const { return range.decode(instruction) == value; }
+    const bool matches(uint32_t instruction) const { return range.decode(instruction) == value; }
     const unsigned value;
     const BitRange range;
 
@@ -250,8 +250,14 @@ public:
 
     const QString& name() const { return m_opcode; }
 
-    static std::shared_ptr<Reg<ISA>> reg() { return std::make_shared<Reg<ISA>>(); }
-    static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(); }
+
+    /**
+     * @brief reg() and imm() return dummy register and immediate expected tokens for a pseudo instruction.
+     * Does not relate to actual regs/imms in an instruction word, but solely used for a pseudoinstruction to
+     * be used within the instruction token checking system.
+     */
+    static std::shared_ptr<Reg<ISA>> reg() { return std::make_shared<Reg<ISA>>(0, 0, 0); }
+    static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(0, 0, Imm::Repr::Hex, std::vector<ImmPart>{});}
 
 private:
     std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const AssemblerTmp::SourceLine&)> m_expander;
