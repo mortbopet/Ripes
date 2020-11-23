@@ -19,6 +19,7 @@ private slots:
     void tst_matcher();
     void tst_label();
     void tst_labelWithPseudo();
+    void tst_weirdImmediates();
 
 private:
     std::vector<std::shared_ptr<Instruction<RVISA>>> createInstructions();
@@ -26,12 +27,29 @@ private:
 
 void tst_Assembler::tst_simpleprogram() {
     auto assembler = RV32I_Assembler({});
-    QStringList program = QStringList() << "addi a0 a0 2"
+    QStringList program = QStringList() << "addi a0 a0 123"
                                         << "nop";
     auto res = assembler.assemble(program);
     if (res.errors.size() != 0) {
         res.errors.print();
+        QFAIL("Errors during assembly");
     }
+
+    return;
+}
+
+void tst_Assembler::tst_weirdImmediates() {
+    auto assembler = RV32I_Assembler({});
+    QStringList program = QStringList() << "addi a0 a0 0q1234"
+                                        << "addi a0 a0 -abcd"
+                                        << "addi a0 a0 100000000"
+                                        << "addi a0 a0 4096"
+                                        << "addi a0 a0 0xabcdabcdabcd";
+    auto res = assembler.assemble(program);
+    if (res.errors.size() != 0) {
+        res.errors.print();
+    }
+
     return;
 }
 

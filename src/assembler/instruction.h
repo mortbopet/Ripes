@@ -8,6 +8,7 @@
 #include <memory>
 #include <type_traits>
 #include <vector>
+#include "binutils.h"
 #include "math.h"
 
 namespace Ripes {
@@ -145,7 +146,32 @@ struct Imm : public Field {
 
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
                                              uint32_t& instruction) const override {
-        // @Todo: decode immediate from token (appropriate bit width!), apply each ImmPart with immediate to instruction
+        bool success;
+        const QString& immToken = line.tokens[tokenIndex];
+
+        // Accept base 10, 16 and 2
+        uint32_t value;
+        value = immToken.toUInt(&success, 10);
+        if (!success && immToken.toUpper().startsWith(QStringLiteral("0X"))) {
+            value = immToken.toUInt(&success, 16);
+        }
+        if (!success && immToken.toUpper().startsWith(QStringLiteral("0B"))) {
+            value = immToken.toUInt(&success, 2);
+        }
+
+        if (!success) {
+            return AssemblerTmp::Error(line.sourceLine, "Malformed immediate value '" + immToken + "'");
+        }
+
+        if (!valueFitsInBitWidth(width, static_cast<int32_t>(value))) {
+            return AssemblerTmp::Error(line.sourceLine, "Immediate value '" + immToken + "' does not fit in " +
+                                                            QString::number(width) + " bits");
+        }
+
+        for (const auto& part : parts) {
+            part.apply(value, instruction);
+        }
+        return {};
     }
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
                                               const ReverseSymbolMap* symbolMap,
@@ -188,9 +214,13 @@ public:
         m_assembler = [](const Instruction& _this, const AssemblerTmp::TokenizedSrcLine& line) {
             uint32_t instruction = 0;
             _this.m_opcode.apply(line, instruction);
-            for (const auto& field : _this.m_fields)
-                field->apply(line, instruction);
-            return instruction;
+            for (const auto& field : _this.m_fields) {
+                auto err = field->apply(line, instruction);
+                if (err) {
+                    return AssembleRes(err.value());
+                }
+            }
+            return AssembleRes(instruction);
         };
         m_disassembler = [](const Instruction& _this, const uint32_t instruction, const uint32_t address,
                             const ReverseSymbolMap* symbolMap) {

@@ -200,7 +200,7 @@ private:
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line);
             if (!directiveBytes) {
                 runOperation(machineCode, uint32_t, assembleInstruction, line);
-                program.append(QByteArray::number(machineCode));
+                program.append(QByteArray(reinterpret_cast<char*>(&machineCode), sizeof(machineCode)));
             } else {
                 program.append(directiveBytes.value());
             }
