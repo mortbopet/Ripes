@@ -57,4 +57,19 @@ constexpr bool isPowerOf2(unsigned v) {
 
 uint32_t accBVec(const std::vector<bool>& v);
 void buildVec(std::vector<bool>& v, uint32_t n);
+
+constexpr inline unsigned floorlog2(unsigned x) {
+    return x == 1 ? 0 : 1 + floorlog2(x >> 1);
+}
+
+constexpr inline unsigned ceillog2(unsigned x) {
+    return x == 1 || x == 0 ? 1 : floorlog2(x - 1) + 1;
+}
+
+constexpr bool valueFitsInBitWidth(unsigned int width, int32_t value) {
+    const int v = value < 0 ? -value : value;
+    unsigned v_width = ceillog2(v) + ((bitcount(value) == 1) && (value != 0) && (value != 1) ? 1 : 0);
+    return v_width <= width;
+}
+
 }  // namespace Ripes
