@@ -15,9 +15,9 @@ namespace Ripes {
 namespace AssemblerTmp {
 
 namespace {
-using AssembleRes = std::variant<AssemblerTmp::Error, uint32_t>;
-using PseudoExpandRes = std::variant<AssemblerTmp::Error, std::vector<AssemblerTmp::LineTokens>>;
-using DisassembleRes = std::variant<AssemblerTmp::Error, AssemblerTmp::LineTokens>;
+using AssembleRes = std::variant<Error, uint32_t>;
+using PseudoExpandRes = std::variant<Error, std::optional<std::vector<AssemblerTmp::LineTokens>>>;
+using DisassembleRes = std::variant<Error, AssemblerTmp::LineTokens>;
 }  // namespace
 
 struct BitRange {
@@ -39,7 +39,7 @@ struct BitRange {
 struct Field {
     Field() = default;
     virtual ~Field() = default;
-    virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
+    virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
                                                      uint32_t& instruction) const = 0;
     virtual std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
                                                       const ReverseSymbolMap* symbolMap,
@@ -68,7 +68,8 @@ struct Opcode : public Field {
      */
     Opcode(const QString& _name, std::vector<OpPart> _opParts) : name(_name), opParts(_opParts) {}
 
-    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine&, uint32_t& instruction) const override {
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine&,
+                                             uint32_t& instruction) const override {
         for (const auto& opPart : opParts) {
             instruction |= opPart.range.apply(opPart.value);
         }
@@ -94,13 +95,13 @@ struct Reg : public Field {
      */
     Reg(unsigned tokenIndex, BitRange range) : m_tokenIndex(tokenIndex), m_range(range) {}
     Reg(unsigned tokenIndex, unsigned _start, unsigned _stop) : m_tokenIndex(tokenIndex), m_range({_start, _stop}) {}
-    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
                                              uint32_t& instruction) const override {
         bool success;
         const QString& regToken = line.tokens[m_tokenIndex];
         const uint32_t reg = ISA::instance()->regNumber(regToken, success);
         if (!success) {
-            return AssemblerTmp::Error(line.source_line, "Unknown register '" + regToken + "'");
+            return AssemblerTmp::Error(line.sourceLine, "Unknown register '" + regToken + "'");
         }
         instruction |= m_range.apply(reg);
     }
@@ -142,7 +143,7 @@ struct Imm : public Field {
         SymbolType _symbolType = SymbolType::None)
         : tokenIndex(_tokenIndex), parts(_parts), width(_width), repr(_repr), symbolType(_symbolType) {}
 
-    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::SourceLine& line,
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
                                              uint32_t& instruction) const override {
         // @Todo: decode immediate from token (appropriate bit width!), apply each ImmPart with immediate to instruction
     }
@@ -184,17 +185,18 @@ class Instruction {
 public:
     Instruction(Opcode opcode, const std::vector<std::shared_ptr<Field>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
-        m_assembler = [this](const AssemblerTmp::SourceLine& line) {
+        m_assembler = [](const Instruction& _this, const AssemblerTmp::TokenizedSrcLine& line) {
             uint32_t instruction = 0;
-            m_opcode.apply(line, instruction);
-            for (const auto& field : m_fields)
+            _this.m_opcode.apply(line, instruction);
+            for (const auto& field : _this.m_fields)
                 field->apply(line, instruction);
             return instruction;
         };
-        m_disassembler = [this](const uint32_t instruction, const uint32_t address, const ReverseSymbolMap* symbolMap) {
+        m_disassembler = [](const Instruction& _this, const uint32_t instruction, const uint32_t address,
+                            const ReverseSymbolMap* symbolMap) {
             AssemblerTmp::LineTokens line;
-            m_opcode.decode(instruction, address, symbolMap, line);
-            for (const auto& field : m_fields) {
+            _this.m_opcode.decode(instruction, address, symbolMap, line);
+            for (const auto& field : _this.m_fields) {
                 if (auto error = field->decode(instruction, address, symbolMap, line)) {
                     return DisassembleRes(*error);
                 }
@@ -203,27 +205,33 @@ public:
         };
     }
 
-    AssembleRes assemble(const AssemblerTmp::SourceLine& line) {
+    AssembleRes assemble(const AssemblerTmp::TokenizedSrcLine& line) const {
         if (line.tokens.length() != m_expectedTokens) {
-            return AssemblerTmp::Error(line.source_line, "Instruction '" + m_opcode.name + "' expects " +
-                                                             QString::number(m_expectedTokens - 1) +
-                                                             " tokens, but got " +
-                                                             QString::number(line.tokens.length() - 1));
+            return AssemblerTmp::Error(line.sourceLine, "Instruction '" + m_opcode.name + "' expects " +
+                                                            QString::number(m_expectedTokens - 1) +
+                                                            " tokens, but got " +
+                                                            QString::number(line.tokens.length() - 1));
         }
 
-        return m_assembler(line);
+        return m_assembler(*this, line);
     }
     DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,
                                const ReverseSymbolMap* symbolMap) const {
-        return m_disassembler(instruction, address, symbolMap);
+        return m_disassembler(*this, instruction, address, symbolMap);
     }
 
     const Opcode& getOpcode() const { return m_opcode; }
     const QString& name() const { return m_opcode.name; }
+    /**
+     * @brief size
+     * @return size of assembled instruction, in byte
+     */
+    const unsigned& size() const { return 4; }
 
 private:
-    std::function<AssembleRes(const AssemblerTmp::SourceLine&)> m_assembler;
-    std::function<DisassembleRes(const uint32_t, const uint32_t, const ReverseSymbolMap*)> m_disassembler;
+    std::function<AssembleRes(const Instruction&, const AssemblerTmp::TokenizedSrcLine&)> m_assembler;
+    std::function<DisassembleRes(const Instruction&, const uint32_t, const uint32_t, const ReverseSymbolMap*)>
+        m_disassembler;
 
     const Opcode m_opcode;
     const int m_expectedTokens;
@@ -235,21 +243,20 @@ class PseudoInstruction {
 public:
     PseudoInstruction(
         const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
-        const std::function<PseudoExpandRes(const PseudoInstruction&, const AssemblerTmp::SourceLine&)>& expander)
+        const std::function<PseudoExpandRes(const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine&)>& expander)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields), m_expander(expander) {}
 
-    PseudoExpandRes expand(const AssemblerTmp::SourceLine& line) {
+    PseudoExpandRes expand(const AssemblerTmp::TokenizedSrcLine& line) {
         if (line.tokens.length() != m_expectedTokens) {
             return AssemblerTmp::Error(
-                line.source_line, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
-                                      " tokens, but got " + QString::number(line.tokens.length() - 1));
+                line.sourceLine, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
+                                     " tokens, but got " + QString::number(line.tokens.length() - 1));
         }
 
-        return m_expander(line);
+        return m_expander(*this, line);
     }
 
     const QString& name() const { return m_opcode; }
-
 
     /**
      * @brief reg() and imm() return dummy register and immediate expected tokens for a pseudo instruction.
@@ -257,10 +264,10 @@ public:
      * be used within the instruction token checking system.
      */
     static std::shared_ptr<Reg<ISA>> reg() { return std::make_shared<Reg<ISA>>(0, 0, 0); }
-    static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(0, 0, Imm::Repr::Hex, std::vector<ImmPart>{});}
+    static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(0, 0, Imm::Repr::Hex, std::vector<ImmPart>{}); }
 
 private:
-    std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const AssemblerTmp::SourceLine&)> m_expander;
+    std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const AssemblerTmp::TokenizedSrcLine&)> m_expander;
 
     const QString m_opcode;
     const int m_expectedTokens;

@@ -7,27 +7,32 @@
 #include <set>
 #include <variant>
 
-namespace Ripes {
+#include "assemblererror.h"
 
+namespace Ripes {
 namespace AssemblerTmp {
 
+using LineTokens = QStringList;
 using Symbol = QString;
 using Symbols = std::set<Symbol>;
-using SymbolMap = std::map<Symbol, unsigned>;
+using Directive = QString;
+using Directives = std::set<Directive>;
+using DirectivesLinePair = std::pair<Directives, LineTokens>;
+using SymbolMap = std::map<Symbol, uint32_t>;
 using ReverseSymbolMap = std::map<uint32_t, Symbol>;
-using LineTokens = QStringList;
-struct SourceLine {
+using AssembleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
+struct TokenizedSrcLine {
+    Symbols symbols;
+    LineTokens comments;
     LineTokens tokens;
-    unsigned source_line = 0;
-    QString symbol;
+    Directives directives;
+    unsigned sourceLine = 0;
+    uint32_t programAddress = -1;
 };
-using SymbolLinePair = std::pair<Symbol, LineTokens>;
-using Program = std::vector<SourceLine>;
+using SymbolLinePair = std::pair<Symbols, LineTokens>;
+using Program = std::vector<TokenizedSrcLine>;
 using NoPassResult = std::monostate;
 
-// An error is defined as a reference to a source line index + an error string
-using Error = std::pair<unsigned, QString>;
-using Errors = std::vector<Error>;
 /**
  * @brief The Result struct
  * An assembly result is determined to be valid iff errors is empty.
