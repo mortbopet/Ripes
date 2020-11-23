@@ -302,7 +302,7 @@ protected:
     }
 
     void setDirectives(DirectiveVec& directives) {
-        if (directives.size() != 0) {
+        if (m_directives.size() != 0) {
             throw std::runtime_error("Directives already set");
         }
         m_directives = directives;

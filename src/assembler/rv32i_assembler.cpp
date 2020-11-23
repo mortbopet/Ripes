@@ -1,4 +1,5 @@
 #include "rv32i_assembler.h"
+#include "gnudirectives.h"
 
 #include <QByteArray>
 #include <algorithm>
@@ -33,7 +34,7 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
                 assert(false && "Unhandled ISA extension");
         }
     }
-    return {instructions, pseudoInstructions, {}};
+    return {instructions, pseudoInstructions, gnuDirectives()};
 }
 
 #define BType(name, funct3)                                                                              \
