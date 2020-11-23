@@ -1,7 +1,7 @@
 #include "assembler.h"
+#include "assembler/lexerutilities.h"
 #include "binutils.h"
 #include "defines.h"
-#include "lexerutilities.h"
 #include "processorhandler.h"
 
 #include <QRegularExpression>

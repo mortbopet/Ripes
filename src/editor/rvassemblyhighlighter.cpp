@@ -4,8 +4,8 @@
 #include <QRegularExpressionMatchIterator>
 #include <QTextDocument>
 
+#include "assembler/lexerutilities.h"
 #include "defines.h"
-#include "lexerutilities.h"
 
 namespace Ripes {
 
