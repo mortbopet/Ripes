@@ -7,7 +7,11 @@ namespace Ripes {
 namespace AssemblerTmp {
 
 RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions)
-    : AssemblerBase<ISAInfo<ISA::RV32IM>>(initInstructions(extensions)) {}
+    : AssemblerBase<ISAInfo<ISA::RV32IM>>(initInstructions(extensions)) {
+    // Initialize segment pointers
+    m_segmentPointers[instrSegment()] = 0x0;
+    m_segmentPointers[dataSegment()] = 0x10000000;
+}
 
 std::pair<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec>
 RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const {
@@ -30,43 +34,6 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
     return {instructions, pseudoInstructions};
 }
 
-std::variant<AssemblerTmp::Error, std::optional<std::vector<AssemblerTmp::LineTokens>>>
-RV32I_Assembler::expandPseudoOp(const SourceLine& line) const {
-    if (line.tokens.empty()) {
-        return {};
-    }
-    const auto& opcode = line.tokens.at(0);
-    if (m_pseudoOpExpanders.count(opcode) == 0) {
-        return {};
-    }
-    return m_pseudoOpExpanders.at(opcode)(line);
-}
-
-std::variant<AssemblerTmp::Error, QByteArray>
-RV32I_Assembler::assembleInstruction(const SourceLine& line, const AssemblerTmp::SymbolMap& symbols) const {
-    if (line.tokens.empty()) {
-        return {QByteArray()};
-    }
-    const auto& opcode = line.tokens.at(0);
-    if (m_assemblers.count(opcode)) {
-        return {Error(line.source_line, "Unknown opcode '" + opcode + "'")};
-    }
-    return {m_assemblers.at(opcode)(line, symbols)};
-}
-
-void RV32I_Assembler::addPseudoOpExpanderFunctor(const QString& opcode, PseudoOpFunctor functor) {
-    if (m_pseudoOpExpanders.count(opcode)) {
-        assert(false && "Pseudo-op expander already registerred for opcode");
-    }
-    m_pseudoOpExpanders[opcode] = functor;
-}
-
-void RV32I_Assembler::addAssemblerFunctor(const QString& opcode, AssemblerFunctor functor) {
-    if (m_assemblers.count(opcode)) {
-        assert(false && "Assembler already registerred for opcode");
-    }
-    m_assemblers[opcode] = functor;
-}
 #define BType(name, funct3)                                                                              \
     std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(            \
         Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),                                 \
@@ -136,126 +103,135 @@ void RV32I_Assembler::addAssemblerFunctor(const QString& opcode, AssemblerFuncto
 
 void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "la", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
+        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));
+            v.push_back(QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << line.tokens.at(2));
+            return v;
+        })));
+
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("nop", {}, [](const RVPseudoInstr&, const AssemblerTmp::SourceLine&) {
+        new RVPseudoInstr("nop", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
             return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("mv", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"addi", line.tokens.at(1), line.tokens.at(2), "0"}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("not", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"xori", line.tokens.at(1), line.tokens.at(2), "-1"}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("neg", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"sub", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("seqz", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"sltiu", line.tokens.at(1), line.tokens.at(2), "1"}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("snez", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"sltu", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("sltz", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"slt", line.tokens.at(1), line.tokens.at(2), "x0"}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("sgtz", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"slt", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("beqz", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"beq", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bnez", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"bne", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("blez", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"bge", "x0", line.tokens.at(1), line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bgez", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"bge", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bltz", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"blt", line.tokens.at(1), "x0", line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bgtz", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"blt", "x0", line.tokens.at(1), line.tokens.at(2)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bgt", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"blt", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("ble", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"bge", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bgtu", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"bltu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
                           })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("bleu", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::SourceLine& line) {
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
                               return std::vector<AssemblerTmp::LineTokens>{
                                   QStringList{"bgeu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
                           })));
