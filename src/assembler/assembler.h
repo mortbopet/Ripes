@@ -4,9 +4,11 @@
 
 #include "assembler_defines.h"
 #include "directive.h"
+#include "instruction.h"
 #include "isainfo.h"
 #include "lexerutilities.h"
 #include "matcher.h"
+#include "pseudoinstruction.h"
 
 #include <set>
 #include <variant>
