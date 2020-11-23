@@ -16,12 +16,6 @@ namespace Ripes {
 
 namespace AssemblerTmp {
 
-namespace {
-using AssembleRes = std::variant<Error, uint32_t>;
-using PseudoExpandRes = std::variant<Error, std::optional<std::vector<AssemblerTmp::LineTokens>>>;
-using DisassembleRes = std::variant<Error, AssemblerTmp::LineTokens>;
-}  // namespace
-
 struct BitRange {
     constexpr BitRange(unsigned _start, unsigned _stop, unsigned _N = 32) : start(_start), stop(_stop), N(_N) {
         assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
@@ -38,15 +32,34 @@ struct BitRange {
     bool operator<(const BitRange& other) const { return this->start < other.start; }
 };
 
+struct Field;
+struct FieldLinkRequest {
+    Field const* field = nullptr;
+    QString symbol = QString();
+};
+
 struct Field {
     Field() = default;
     virtual ~Field() = default;
-    virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
-                                                     uint32_t& instruction) const = 0;
+    virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line, uint32_t& instruction,
+                                                     FieldLinkRequest& linksWithSymbol) const = 0;
     virtual std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
                                                       const ReverseSymbolMap& symbolMap,
                                                       AssemblerTmp::LineTokens& line) const = 0;
 };
+
+/**
+ * @brief The InstrRes struct is returned by any assembler. Contains the assembled instruction alongside a flag noting
+ * whether the instruction needs additional linkage (ie. for symbol resolution).
+ */
+struct InstrRes {
+    uint32_t instruction = 0;
+    FieldLinkRequest linksWithSymbol;
+};
+
+using AssembleRes = std::variant<Error, InstrRes>;
+using PseudoExpandRes = std::variant<Error, std::optional<std::vector<AssemblerTmp::LineTokens>>>;
+using DisassembleRes = std::variant<Error, AssemblerTmp::LineTokens>;
 
 /** @brief OpPart
  * A segment of an operation-identifying field of an instruction.
@@ -70,8 +83,8 @@ struct Opcode : public Field {
      */
     Opcode(const QString& _name, std::vector<OpPart> _opParts) : name(_name), opParts(_opParts) {}
 
-    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine&,
-                                             uint32_t& instruction) const override {
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine&, uint32_t& instruction,
+                                             FieldLinkRequest&) const override {
         for (const auto& opPart : opParts) {
             instruction |= opPart.range.apply(opPart.value);
         }
@@ -98,8 +111,8 @@ struct Reg : public Field {
      */
     Reg(unsigned tokenIndex, BitRange range) : m_tokenIndex(tokenIndex), m_range(range) {}
     Reg(unsigned tokenIndex, unsigned _start, unsigned _stop) : m_tokenIndex(tokenIndex), m_range({_start, _stop}) {}
-    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
-                                             uint32_t& instruction) const override {
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line, uint32_t& instruction,
+                                             FieldLinkRequest&) const override {
         bool success;
         const QString& regToken = line.tokens[m_tokenIndex];
         const uint32_t reg = ISA::instance()->regNumber(regToken, success);
@@ -146,8 +159,8 @@ struct Imm : public Field {
         SymbolType _symbolType = SymbolType::None)
         : tokenIndex(_tokenIndex), parts(_parts), width(_width), repr(_repr), symbolType(_symbolType) {}
 
-    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
-                                             uint32_t& instruction) const override {
+    std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line, uint32_t& instruction,
+                                             FieldLinkRequest& linksWithSymbol) const override {
         bool success;
         const QString& immToken = line.tokens[tokenIndex];
 
@@ -167,7 +180,10 @@ struct Imm : public Field {
         }
 
         if (!success) {
-            return AssemblerTmp::Error(line.sourceLine, "Malformed immediate value '" + immToken + "'");
+            // Could not directly resolve immediate. Register it as a symbol to link to.
+            linksWithSymbol.field = this;
+            linksWithSymbol.symbol = immToken;
+            return {};
         }
 
         if (!((repr == Repr::Signed && isInt(width, svalue)) || (isUInt(width, uvalue)))) {
@@ -180,6 +196,20 @@ struct Imm : public Field {
         }
         return {};
     }
+
+    std::optional<AssemblerTmp::Error> applySymbolResolution(uint32_t symbolValue, uint32_t& instruction,
+                                                             const uint32_t address) const {
+        long adjustedValue = symbolValue;
+        if (symbolType == SymbolType::Relative) {
+            adjustedValue -= address;
+        }
+
+        for (const auto& part : parts) {
+            part.apply(adjustedValue, instruction);
+        }
+        return {};
+    }
+
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
                                               const ReverseSymbolMap& symbolMap,
                                               AssemblerTmp::LineTokens& line) const override {
@@ -221,15 +251,15 @@ public:
     Instruction(Opcode opcode, const std::vector<std::shared_ptr<Field>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
         m_assembler = [](const Instruction& _this, const AssemblerTmp::TokenizedSrcLine& line) {
-            uint32_t instruction = 0;
-            _this.m_opcode.apply(line, instruction);
+            InstrRes res;
+            _this.m_opcode.apply(line, res.instruction, res.linksWithSymbol);
             for (const auto& field : _this.m_fields) {
-                auto err = field->apply(line, instruction);
+                auto err = field->apply(line, res.instruction, res.linksWithSymbol);
                 if (err) {
                     return AssembleRes(err.value());
                 }
             }
-            return AssembleRes(instruction);
+            return AssembleRes(res);
         };
         m_disassembler = [](const Instruction& _this, const uint32_t instruction, const uint32_t address,
                             const ReverseSymbolMap& symbolMap) {
@@ -251,7 +281,6 @@ public:
                                                             " tokens, but got " +
                                                             QString::number(line.tokens.length() - 1));
         }
-
         return m_assembler(*this, line);
     }
     DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,

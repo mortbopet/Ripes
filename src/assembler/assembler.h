@@ -48,6 +48,15 @@ class AssemblerBase {
     using PseudoInstrMap = std::map<QString, std::shared_ptr<PseudoInstr>>;
     using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstr>>;
 
+    struct LinkRequest {
+        unsigned sourceLine;  // Source location of code which resulted in the link request
+        uint32_t offset;      // Offset of instruction which needs link resolution
+
+        // Reference to the immediate field which resolves the symbol and the requested symbol
+        FieldLinkRequest fieldRequest;
+    };
+    using LinkRequests = std::vector<LinkRequest>;
+
 public:
     AssembleResult assemble(const QString& program) const {
         const auto programLines = program.split(QRegExp("[\r\n]"));
@@ -63,12 +72,17 @@ public:
         // Pseudo instruction expansion
         runPass(expandedLines, Program, pass1, tokenizedLines);
 
-        // Assemble & generate symbol map
+        /** Assemble. During assembly, we generate:
+         * - symbolMap: Recoding the offset locations in the program of lines adorned with symbols
+         * - linkageMap: Recording offsets of instructions which require linkage with symbols
+         */
         SymbolMap symbolMap;
-        runPass(program, QByteArray, pass2, expandedLines, symbolMap);
+        LinkRequests needsLinkage;
+        runPass(program, QByteArray, pass2, expandedLines, symbolMap, needsLinkage);
 
         // Symbol linkage
-        runPass(unused, NoPassResult, pass3, program, symbolMap);
+        runPass(unused, NoPassResult, pass3, program, symbolMap, needsLinkage);
+
         result.program = program;
         return result;
     }
@@ -195,43 +209,39 @@ private:
 
     /**
      * @brief pass2
-     * Record output address and symbol positions in expanded program. If @return errors is empty, pass succeeded.
-     */
-    std::variant<Errors, SymbolMap> pass2(Program& tokenizedLines) const {
-        Errors errors;
-        SymbolMap sm;
-
-        // Unless otherwise specified, start at instruction segment
-        uint32_t address;
-        try {
-            address = m_segmentPointers.at(dataSegment());
-        } catch (std::out_of_range const&) {
-            errors.push_back(Error(-1, "No base address specified for segment: " + instrSegment()));
-            return {errors};
-        }
-
-        for (auto& line : tokenizedLines) {
-        }
-
-        if (errors.size() != 0) {
-            return {errors};
-        } else {
-            return {sm};
-        }
-    }
-
-    /**
-     * @brief pass2
      * Machine code translation. If @return errors is empty, pass succeeded.
+     * In the following, current size of the program is used as an analog for the offset of the to-be-assembled
+     * instruction in the program. This is then used for symbol resolution.
      */
-    std::variant<Errors, QByteArray> pass2(const Program& tokenizedLines, SymbolMap& symbolMap) const {
+    std::variant<Errors, QByteArray> pass2(const Program& tokenizedLines, SymbolMap& symbolMap,
+                                           LinkRequests& needsLinkage) const {
         QByteArray program;
         Errors errors;
         for (const auto& line : tokenizedLines) {
+            const uint32_t instr_offset = program.size();
+            for (const auto& s : line.symbols) {
+                if (symbolMap.count(s) != 0) {
+                    errors.push_back(Error(line.sourceLine, "Multiple definitions of symbol '" + s + "'"));
+                } else {
+                    symbolMap[s] = instr_offset;
+                }
+            }
+
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line);
             if (!directiveBytes) {
-                runOperation(machineCode, uint32_t, assembleInstruction, line);
-                program.append(QByteArray(reinterpret_cast<char*>(&machineCode), sizeof(machineCode)));
+                std::weak_ptr<Instr> assembledWith;
+                runOperation(machineCode, InstrRes, assembleInstruction, line, assembledWith);
+
+                if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
+                    LinkRequest req;
+                    req.sourceLine = line.sourceLine;
+                    req.offset = instr_offset;
+                    req.fieldRequest = machineCode.linksWithSymbol;
+                    needsLinkage.push_back(req);
+                }
+                program.append(
+                    QByteArray(reinterpret_cast<char*>(&machineCode.instruction), sizeof(machineCode.instruction)));
+
             } else {
                 program.append(directiveBytes.value());
             }
@@ -243,8 +253,36 @@ private:
         }
     }
 
-    std::variant<Errors, NoPassResult> pass3(QByteArray& program, const SymbolMap& symbolMap) const {
-        return NoPassResult();
+    std::variant<Errors, NoPassResult> pass3(QByteArray& program, const SymbolMap& symbolMap,
+                                             const LinkRequests& needsLinkage) const {
+        Errors errors;
+        for (const auto& linkRequest : needsLinkage) {
+            const auto& symbol = linkRequest.fieldRequest.symbol;
+            if (symbolMap.count(symbol) == 0) {
+                errors.push_back(Error(linkRequest.sourceLine, "Unknown symbol '" + symbol + "'"));
+                continue;
+            }
+
+            // Decode instruction at link-request position
+            assert(program.size() <= (linkRequest.offset + 4) &&
+                   "Error: position of link request is not within program");
+            uint32_t instr = *reinterpret_cast<uint32_t*>(program.data() + linkRequest.offset);
+
+            // Re-apply immediate resolution using the value acquired from the symbol map
+            if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
+                immField->applySymbolResolution(symbolMap.at(symbol), instr, linkRequest.offset);
+            } else {
+                assert(false && "Something other than an immediate field has requested linkage?");
+            }
+
+            // Finally, overwrite the instruction in the program
+            *reinterpret_cast<uint32_t*>(program.data() + linkRequest.offset) = instr;
+        }
+        if (errors.size() != 0) {
+            return {errors};
+        } else {
+            return {NoPassResult()};
+        }
     }
 
 protected:
@@ -286,7 +324,7 @@ protected:
         return splitQuotes(line.split(splitter));
     }
 
-    virtual AssembleRes assembleInstruction(const TokenizedSrcLine& line) const {
+    virtual AssembleRes assembleInstruction(const TokenizedSrcLine& line, std::weak_ptr<Instr>& assembledWith) const {
         if (line.tokens.empty()) {
             return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
         }
@@ -294,6 +332,7 @@ protected:
         if (m_instructionMap.count(opcode) == 0) {
             return {Error(line.sourceLine, "Unknown opcode '" + opcode + "'")};
         }
+        assembledWith = m_instructionMap.at(opcode);
         return m_instructionMap.at(opcode)->assemble(line);
     };
 
@@ -317,7 +356,12 @@ protected:
         for (const auto& token : tokens) {
             if (token.contains(':')) {
                 if (symbolStillAllowed) {
-                    symbols.insert(QString(token).remove(':'));
+                    const QString cleanedSymbol = QString(token).remove(':');
+                    if (symbols.count(cleanedSymbol) != 0) {
+                        return Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'");
+                    } else {
+                        symbols.insert(cleanedSymbol);
+                    }
                 } else {
                     return Error(sourceLine, "Stray ':' in line");
                 }

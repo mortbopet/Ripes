@@ -47,6 +47,7 @@ void tst_Assembler::tst_simpleWithBranch() {
                                         << "B:"
                                         << "addi a0 a0 -1"
                                         << "beqz a0 B";
+
     auto res = assembler.assemble(program);
     if (res.errors.size() != 0) {
         res.errors.print();
