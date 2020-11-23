@@ -38,6 +38,14 @@ constexpr inline std::enable_if_t<(N < 64), bool> isUInt(uint64_t X) {
     return X < (UINT64_C(1) << (N));
 }
 
+// Runtime versions of the above
+constexpr inline bool isUInt(unsigned N, uint64_t X) {
+    return X < (UINT64_C(1) << (N));
+}
+constexpr inline bool isInt(unsigned N, int64_t x) {
+    return N >= 64 || (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
+}
+
 constexpr uint32_t generateBitmask(int n) {
     return static_cast<uint32_t>((1 << n) - 1);
 }
@@ -64,12 +72,6 @@ constexpr inline unsigned floorlog2(unsigned x) {
 
 constexpr inline unsigned ceillog2(unsigned x) {
     return x == 1 || x == 0 ? 1 : floorlog2(x - 1) + 1;
-}
-
-constexpr bool valueFitsInBitWidth(unsigned int width, int32_t value) {
-    const int v = value < 0 ? -value : value;
-    unsigned v_width = ceillog2(v) + ((bitcount(value) == 1) && (value != 0) && (value != 1) ? 1 : 0);
-    return v_width <= width;
 }
 
 }  // namespace Ripes

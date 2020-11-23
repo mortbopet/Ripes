@@ -127,8 +127,8 @@ struct Reg : public Field {
 struct ImmPart {
     ImmPart(unsigned _offset, BitRange _range) : offset(_offset), range(_range) {}
     ImmPart(unsigned _offset, unsigned _start, unsigned _stop) : offset(_offset), range({_start, _stop}) {}
-    void apply(const uint32_t& value, uint32_t& instruction) const { instruction |= range.apply(value >> offset); }
-    void decode(uint32_t& value, const uint32_t& instruction) const { value |= range.decode(instruction) << offset; };
+    void apply(const uint32_t value, uint32_t& instruction) const { instruction |= range.apply(value >> offset); }
+    void decode(uint32_t& value, const uint32_t instruction) const { value |= range.decode(instruction) << offset; };
     const unsigned offset;
     const BitRange range;
 };
@@ -152,26 +152,31 @@ struct Imm : public Field {
         const QString& immToken = line.tokens[tokenIndex];
 
         // Accept base 10, 16 and 2
-        uint32_t value;
-        value = immToken.toUInt(&success, 10);
+        uint32_t uvalue;
+        int32_t svalue;
+        if (repr == Repr::Signed) {
+            svalue = immToken.toInt(&success, 10);
+        } else {
+            uvalue = immToken.toUInt(&success, 10);
+        }
         if (!success && immToken.toUpper().startsWith(QStringLiteral("0X"))) {
-            value = immToken.toUInt(&success, 16);
+            uvalue = immToken.toUInt(&success, 16);
         }
         if (!success && immToken.toUpper().startsWith(QStringLiteral("0B"))) {
-            value = immToken.toUInt(&success, 2);
+            uvalue = immToken.toUInt(&success, 2);
         }
 
         if (!success) {
             return AssemblerTmp::Error(line.sourceLine, "Malformed immediate value '" + immToken + "'");
         }
 
-        if (!valueFitsInBitWidth(width, static_cast<int32_t>(value))) {
+        if (!((repr == Repr::Signed && isInt(width, svalue)) || (isUInt(width, uvalue)))) {
             return AssemblerTmp::Error(line.sourceLine, "Immediate value '" + immToken + "' does not fit in " +
                                                             QString::number(width) + " bits");
         }
 
         for (const auto& part : parts) {
-            part.apply(value, instruction);
+            part.apply(repr == Repr::Signed ? static_cast<uint32_t>(svalue) : uvalue, instruction);
         }
         return {};
     }

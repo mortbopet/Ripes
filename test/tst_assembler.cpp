@@ -15,11 +15,13 @@ class tst_Assembler : public QObject {
 
 private slots:
     void tst_simpleprogram();
+    void tst_simpleWithBranch();
     void tst_segment();
     void tst_matcher();
     void tst_label();
     void tst_labelWithPseudo();
     void tst_weirdImmediates();
+    void tst_edgeImmediates();
 
 private:
     std::vector<std::shared_ptr<Instruction<RVISA>>> createInstructions();
@@ -39,16 +41,46 @@ void tst_Assembler::tst_simpleprogram() {
     return;
 }
 
+void tst_Assembler::tst_simpleWithBranch() {
+    auto assembler = RV32I_Assembler({});
+    QStringList program = QStringList() << "addi a0 a0 10"
+                                        << "B:"
+                                        << "addi a0 a0 -1"
+                                        << "beqz a0 B";
+    auto res = assembler.assemble(program);
+    if (res.errors.size() != 0) {
+        res.errors.print();
+    }
+    auto disres = assembler.disassemble(res.program);
+
+    return;
+}
+
 void tst_Assembler::tst_weirdImmediates() {
     auto assembler = RV32I_Assembler({});
     QStringList program = QStringList() << "addi a0 a0 0q1234"
                                         << "addi a0 a0 -abcd"
                                         << "addi a0 a0 100000000"
-                                        << "addi a0 a0 4096"
+                                        << "addi a0 a0 4096"   // too large
+                                        << "addi a0 a0 2048"   // too large
+                                        << "addi a0 a0 -2049"  // too large
                                         << "addi a0 a0 0xabcdabcdabcd";
     auto res = assembler.assemble(program);
     if (res.errors.size() != 0) {
         res.errors.print();
+    }
+
+    return;
+}
+
+void tst_Assembler::tst_edgeImmediates() {
+    auto assembler = RV32I_Assembler({});
+    QStringList program = QStringList() << "addi a0 a0 2047"
+                                        << "addi a0 a0 -2048";
+    auto res = assembler.assemble(program);
+    if (res.errors.size() != 0) {
+        res.errors.print();
+        QFAIL("Expected no errors");
     }
 
     return;
