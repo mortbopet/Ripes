@@ -43,6 +43,7 @@ class Matcher {
 public:
     Matcher(const std::vector<std::shared_ptr<Instruction<ISA>>>& instructions)
         : m_matchRoot(buildMatchTree(instructions, 1)) {}
+    void print() const { m_matchRoot.print(); }
 
     std::variant<Error, const Instruction<ISA>*> matchInstruction(uint32_t instruction) const {
         auto match = matchInstructionRec(instruction, m_matchRoot, true);
