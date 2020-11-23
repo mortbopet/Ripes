@@ -37,9 +37,14 @@ using NoPassResult = std::monostate;
  * @brief The Result struct
  * An assembly result is determined to be valid iff errors is empty.
  */
-struct Result {
+struct AssembleResult {
     Errors errors;
     QByteArray program;
+};
+
+struct DisassembleResult {
+    Errors errors;
+    QStringList program;
 };
 
 }  // namespace AssemblerTmp

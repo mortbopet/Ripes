@@ -48,12 +48,12 @@ class AssemblerBase {
     using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstr>>;
 
 public:
-    Result assemble(const QString& program) const {
+    AssembleResult assemble(const QString& program) const {
         const auto programLines = program.split(QRegExp("[\r\n]"));
         return assemble(programLines);
     }
-    Result assemble(const QStringList& programLines) const {
-        Result result;
+    AssembleResult assemble(const QStringList& programLines) const {
+        AssembleResult result;
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, Program, pass0, programLines);
@@ -70,7 +70,35 @@ public:
         result.program = program;
         return result;
     }
-    QString disassemble(const QByteArray& program) const;
+    DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const {
+        size_t i = 0;
+        if (program.size() % sizeof(uint32_t) != 0) {
+            throw std::runtime_error("Program instructions unaligned with instruction size");
+        }
+        DisassembleResult res;
+        while (i < program.size()) {
+            const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(program.data() + i);
+            auto match = m_matcher.matchInstruction(instructionWord);
+            try {
+                auto& error = std::get<Error>(match);
+                // Unknown instruction
+                res.errors.push_back(error);
+            } catch (const std::bad_variant_access&) {
+                // Got match, disassemble
+                auto tokens = std::get<const Instruction<ISA>*>(match)->disassemble(instructionWord, baseAddress + i,
+                                                                                    ReverseSymbolMap());
+                try {
+                    auto& error = std::get<Error>(match);
+                    // Error during disassembling
+                    res.errors.push_back(error);
+                } catch (const std::bad_variant_access&) {
+                    res.program << std::get<LineTokens>(tokens).join(' ');
+                }
+            }
+            i += sizeof(uint32_t);
+        }
+        return res;
+    }
 
     const Matcher<ISA>& getMatcher() { return m_matcher; }
 

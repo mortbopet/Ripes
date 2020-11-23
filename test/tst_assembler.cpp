@@ -34,6 +34,7 @@ void tst_Assembler::tst_simpleprogram() {
         res.errors.print();
         QFAIL("Errors during assembly");
     }
+    auto disres = assembler.disassemble(res.program);
 
     return;
 }
@@ -104,7 +105,7 @@ void tst_Assembler::tst_matcher() {
             QFAIL(error.toStdString().c_str());
         }
 
-        auto disRes = matchInstr->disassemble(iter.second, 0, nullptr);
+        auto disRes = matchInstr->disassemble(iter.second, 0, {});
         try {
             auto& error = std::get<Error>(disRes);
             QFAIL(error.second.toStdString().c_str());

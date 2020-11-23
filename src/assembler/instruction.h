@@ -43,7 +43,7 @@ struct Field {
     virtual std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line,
                                                      uint32_t& instruction) const = 0;
     virtual std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
-                                                      const ReverseSymbolMap* symbolMap,
+                                                      const ReverseSymbolMap& symbolMap,
                                                       AssemblerTmp::LineTokens& line) const = 0;
 };
 
@@ -75,7 +75,7 @@ struct Opcode : public Field {
             instruction |= opPart.range.apply(opPart.value);
         }
     }
-    std::optional<AssemblerTmp::Error> decode(const uint32_t, const uint32_t, const ReverseSymbolMap*,
+    std::optional<AssemblerTmp::Error> decode(const uint32_t, const uint32_t, const ReverseSymbolMap&,
                                               AssemblerTmp::LineTokens& line) const override {
         line.push_back(name);
         return {};
@@ -107,7 +107,7 @@ struct Reg : public Field {
         instruction |= m_range.apply(reg);
     }
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
-                                              const ReverseSymbolMap* symbolMap,
+                                              const ReverseSymbolMap& symbolMap,
                                               AssemblerTmp::LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
         const QString registerName = ISA::instance()->regName(regNumber);
@@ -174,7 +174,7 @@ struct Imm : public Field {
         return {};
     }
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
-                                              const ReverseSymbolMap* symbolMap,
+                                              const ReverseSymbolMap& symbolMap,
                                               AssemblerTmp::LineTokens& line) const override {
         uint32_t reconstructed = 0;
         for (const auto& part : parts) {
@@ -188,11 +188,11 @@ struct Imm : public Field {
             line.push_back("0x" + QString::number(reconstructed, 16));
         }
 
-        if (symbolType != SymbolType::None && symbolMap != nullptr) {
+        if (symbolType != SymbolType::None) {
             const int value = signextend<int32_t>(reconstructed, width);
             const uint32_t symbolAddress = value + (symbolType == SymbolType::Absolute ? 0 : address);
-            if (symbolMap->count(symbolAddress)) {
-                line.push_back("<" + symbolMap->at(symbolAddress) + ">");
+            if (symbolMap.count(symbolAddress)) {
+                line.push_back("<" + symbolMap.at(symbolAddress) + ">");
             }
         }
 
@@ -223,7 +223,7 @@ public:
             return AssembleRes(instruction);
         };
         m_disassembler = [](const Instruction& _this, const uint32_t instruction, const uint32_t address,
-                            const ReverseSymbolMap* symbolMap) {
+                            const ReverseSymbolMap& symbolMap) {
             AssemblerTmp::LineTokens line;
             _this.m_opcode.decode(instruction, address, symbolMap, line);
             for (const auto& field : _this.m_fields) {
@@ -246,7 +246,7 @@ public:
         return m_assembler(*this, line);
     }
     DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,
-                               const ReverseSymbolMap* symbolMap) const {
+                               const ReverseSymbolMap& symbolMap) const {
         return m_disassembler(*this, instruction, address, symbolMap);
     }
 
@@ -260,7 +260,7 @@ public:
 
 private:
     std::function<AssembleRes(const Instruction&, const AssemblerTmp::TokenizedSrcLine&)> m_assembler;
-    std::function<DisassembleRes(const Instruction&, const uint32_t, const uint32_t, const ReverseSymbolMap*)>
+    std::function<DisassembleRes(const Instruction&, const uint32_t, const uint32_t, const ReverseSymbolMap&)>
         m_disassembler;
 
     const Opcode m_opcode;
