@@ -3,6 +3,7 @@
 #include <QRegularExpression>
 
 #include "assembler_defines.h"
+#include "directive.h"
 #include "isainfo.h"
 #include "lexerutilities.h"
 #include "matcher.h"
@@ -41,6 +42,8 @@ namespace AssemblerTmp {
 template <typename ISA>
 class AssemblerBase {
     static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
+
+public:
     using Instr = Instruction<ISA>;
     using InstrMap = std::map<QString, std::shared_ptr<Instr>>;
     using InstrVec = std::vector<std::shared_ptr<Instr>>;
@@ -48,6 +51,7 @@ class AssemblerBase {
     using PseudoInstrMap = std::map<QString, std::shared_ptr<PseudoInstr>>;
     using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstr>>;
 
+private:
     struct LinkRequest {
         unsigned sourceLine;  // Source location of code which resulted in the link request
         uint32_t offset;      // Offset of instruction which needs link resolution
@@ -95,7 +99,7 @@ public:
         DisassembleResult res;
         while (i < program.size()) {
             const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(program.data() + i);
-            auto match = m_matcher.matchInstruction(instructionWord);
+            auto match = m_matcher->matchInstruction(instructionWord);
             try {
                 auto& error = std::get<Error>(match);
                 // Unknown instruction
@@ -117,7 +121,7 @@ public:
         return res;
     }
 
-    const Matcher<ISA>& getMatcher() { return m_matcher; }
+    const Matcher<ISA>& getMatcher() { return *m_matcher; }
 
 private:
     /**
@@ -288,16 +292,36 @@ private:
     }
 
 protected:
-    AssemblerBase<ISA>(std::pair<InstrVec, PseudoInstrVec> instructions)
-        : m_instructions(instructions.first), m_pseudoInstructions(instructions.second), m_matcher(m_instructions) {
-        for (const auto& iter : m_instructions) {
-            const auto instr_name = iter.get()->name();
-            if (m_instructionMap.count(instr_name) != 0) {
-                throw std::runtime_error("Error: instruction with opcode " + instr_name.toStdString() +
+    AssemblerBase<ISA>() {}
+
+    void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives) {
+        setInstructions(instructions);
+        setPseudoInstructions(pseudoinstructions);
+        setDirectives(directives);
+        m_matcher = std::make_unique<Matcher<ISA>>(m_instructions);
+    }
+
+    void setDirectives(DirectiveVec& directives) {
+        if (directives.size() != 0) {
+            throw std::runtime_error("Directives already set");
+        }
+        m_directives = directives;
+        for (const auto& iter : m_directives) {
+            const auto directive = iter.get()->name();
+            if (m_directivesMap.count(directive) != 0) {
+                throw std::runtime_error("Error: directive " + directive.toStdString() +
                                          " has already been registerred.");
             }
-            m_instructionMap[instr_name] = iter;
+            m_directivesMap[directive] = iter;
         }
+    }
+
+    void setPseudoInstructions(PseudoInstrVec& pseudoInstructions) {
+        if (m_pseudoInstructions.size() != 0) {
+            throw std::runtime_error("Pseudoinstructions already set");
+        }
+        m_pseudoInstructions = pseudoInstructions;
+
         for (const auto& iter : m_pseudoInstructions) {
             const auto instr_name = iter.get()->name();
             if (m_pseudoInstructionMap.count(instr_name) != 0) {
@@ -305,6 +329,21 @@ protected:
                                          " has already been registerred.");
             }
             m_pseudoInstructionMap[instr_name] = iter;
+        }
+    }
+
+    void setInstructions(InstrVec& instructions) {
+        if (m_instructions.size() != 0) {
+            throw std::runtime_error("Instructions already set");
+        }
+        m_instructions = instructions;
+        for (const auto& iter : m_instructions) {
+            const auto instr_name = iter.get()->name();
+            if (m_instructionMap.count(instr_name) != 0) {
+                throw std::runtime_error("Error: instruction with opcode " + instr_name.toStdString() +
+                                         " has already been registerred.");
+            }
+            m_instructionMap[instr_name] = iter;
         }
     }
 
@@ -338,9 +377,17 @@ protected:
         return m_instructionMap.at(opcode)->assemble(line);
     };
 
-    virtual AssembleDirectiveRes assembleDirective(const TokenizedSrcLine& line) const {
-        // @todo: add assembler directive assembling
-        return std::optional<QByteArray>();
+    virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line) const {
+        if (line.tokens.empty()) {
+            return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
+        }
+
+        const auto& directive = line.tokens.at(0);
+        if (m_directivesMap.count(directive) == 0) {
+            // Not a directive
+            return std::optional<QByteArray>();
+        }
+        return m_directivesMap.at(directive)->handle(line);
     };
     /**
      * @brief splitSymbolsFromLine
@@ -425,15 +472,21 @@ protected:
      * @brief m_instructions is the set of instructions which can be matched from an instruction string as well as be
      * disassembled from a program.
      */
-    const InstrVec& m_instructions;
+    InstrVec m_instructions;
     InstrMap m_instructionMap;
 
     /**
      * @brief m_pseudoInstructions is the set of instructions which can be matched from an instruction string but cannot
      * be disassembled from a program. Typically, pseudoinstructions will expand to one or more non-pseudo instructions.
      */
-    const PseudoInstrVec& m_pseudoInstructions;
+    PseudoInstrVec m_pseudoInstructions;
     PseudoInstrMap m_pseudoInstructionMap;
+
+    /**
+     * @brief m_assemblerDirectives is the set of supported assembler directives.
+     */
+    DirectiveVec m_directives;
+    DirectiveMap m_directivesMap;
 
     /**
      * @brief m_segmentPointers maintains the current end-of-segment pointers for the segments annotated by the program
@@ -445,7 +498,7 @@ protected:
      */
     QString m_currentSegment;
 
-    const Matcher<ISA> m_matcher;
+    std::unique_ptr<Matcher<ISA>> m_matcher;
 };
 
 }  // namespace AssemblerTmp

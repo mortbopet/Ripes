@@ -19,7 +19,8 @@ public:
     RV32I_Assembler(const std::set<Extensions>& extensions);
 
 public:
-    std::pair<RVInstrVec, RVPseudoInstrVec> initInstructions(const std::set<Extensions>& extensions) const;
+    std::tuple<RVInstrVec, RVPseudoInstrVec, DirectiveVec>
+    initInstructions(const std::set<Extensions>& extensions) const;
 
     /**
      * Extension enablers

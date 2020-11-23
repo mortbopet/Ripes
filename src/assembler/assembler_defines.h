@@ -15,12 +15,11 @@ namespace AssemblerTmp {
 using LineTokens = QStringList;
 using Symbol = QString;
 using Symbols = std::set<Symbol>;
-using Directive = QString;
-using Directives = std::set<Directive>;
+using Directives = std::set<QString>;
 using DirectivesLinePair = std::pair<Directives, LineTokens>;
 using SymbolMap = std::map<Symbol, uint32_t>;
 using ReverseSymbolMap = std::map<uint32_t, Symbol>;
-using AssembleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
+using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
 struct TokenizedSrcLine {
     Symbols symbols;
     LineTokens tokens;

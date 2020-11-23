@@ -6,14 +6,16 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions)
-    : AssemblerBase<ISAInfo<ISA::RV32IM>>(initInstructions(extensions)) {
+RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) : AssemblerBase<ISAInfo<ISA::RV32IM>>() {
+    auto [instrs, pseudos, directives] = initInstructions(extensions);
+    initialize(instrs, pseudos, directives);
+
     // Initialize segment pointers
     m_segmentPointers[instrSegment()] = 0x0;
     m_segmentPointers[dataSegment()] = 0x10000000;
 }
 
-std::pair<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec>
+std::tuple<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec, DirectiveVec>
 RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const {
     RVInstrVec instructions;
     RVPseudoInstrVec pseudoInstructions;
@@ -31,7 +33,7 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
                 assert(false && "Unhandled ISA extension");
         }
     }
-    return {instructions, pseudoInstructions};
+    return {instructions, pseudoInstructions, {}};
 }
 
 #define BType(name, funct3)                                                                              \
