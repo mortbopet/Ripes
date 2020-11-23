@@ -9,6 +9,8 @@ namespace AssemblerTmp {
 
 template <typename ISA>
 class Matcher {
+    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
+
     struct MatchNode {
         MatchNode(OpPart _matcher) : matcher(_matcher) {}
         OpPart matcher;

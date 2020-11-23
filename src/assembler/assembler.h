@@ -40,6 +40,7 @@ namespace AssemblerTmp {
 
 template <typename ISA>
 class AssemblerBase {
+    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
     using Instr = Instruction<ISA>;
     using InstrMap = std::map<QString, std::shared_ptr<Instr>>;
     using InstrVec = std::vector<std::shared_ptr<Instr>>;
@@ -52,6 +53,7 @@ public:
         const auto programLines = program.split(QRegExp("[\r\n]"));
         return assemble(programLines);
     }
+
     AssembleResult assemble(const QStringList& programLines) const {
         AssembleResult result;
 
@@ -70,6 +72,7 @@ public:
         result.program = program;
         return result;
     }
+
     DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const {
         size_t i = 0;
         if (program.size() % sizeof(uint32_t) != 0) {

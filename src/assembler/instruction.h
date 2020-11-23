@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <vector>
 #include "binutils.h"
+#include "isainfo.h"
 #include "math.h"
 
 namespace Ripes {
@@ -89,6 +90,7 @@ struct Opcode : public Field {
 
 template <typename ISA>
 struct Reg : public Field {
+    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
     /**
      * @brief Reg
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
@@ -208,6 +210,8 @@ struct Imm : public Field {
 
 template <typename ISA>
 class Instruction {
+    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
+
 public:
     Instruction(Opcode opcode, const std::vector<std::shared_ptr<Field>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
@@ -270,6 +274,8 @@ private:
 
 template <typename ISA>
 class PseudoInstruction {
+    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
+
 public:
     PseudoInstruction(
         const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
