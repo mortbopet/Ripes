@@ -29,7 +29,7 @@ private:
 
 void tst_Assembler::tst_simpleprogram() {
     auto assembler = RV32I_Assembler({});
-    QStringList program = QStringList() << "addi a0 a0 123"
+    QStringList program = QStringList() << "addi a0 a0 123 # Hello world"
                                         << "nop";
     auto res = assembler.assemble(program);
     if (res.errors.size() != 0) {

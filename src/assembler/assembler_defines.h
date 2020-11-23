@@ -23,7 +23,6 @@ using ReverseSymbolMap = std::map<uint32_t, Symbol>;
 using AssembleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
 struct TokenizedSrcLine {
     Symbols symbols;
-    LineTokens comments;
     LineTokens tokens;
     Directives directives;
     unsigned sourceLine = 0;

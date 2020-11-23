@@ -29,6 +29,9 @@ public:
     void enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const;
     void enableExtM(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const;
     void enableExtF(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const;
+
+protected:
+    QChar commentDelimiter() const override { return '#'; }
 };
 
 }  // namespace AssemblerTmp

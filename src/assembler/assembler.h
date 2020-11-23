@@ -139,15 +139,18 @@ private:
             if (line.isEmpty())
                 continue;
             TokenizedSrcLine tsl;
+            tsl.sourceLine = i;
             runOperation(tokens, LineTokens, tokenize, program[i]);
 
-            runOperation(directivesAndRest, DirectivesLinePair, splitDirectivesFromLine, tokens, i);
+            // Symbols precede directives
+            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, tokens, i);
+            tsl.symbols = symbolsAndRest.first;
+
+            runOperation(directivesAndRest, DirectivesLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
             tsl.directives = directivesAndRest.first;
 
-            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, directivesAndRest.second, i);
-            tsl.sourceLine = i;
-            tsl.symbols = symbolsAndRest.first;
-            tsl.tokens = symbolsAndRest.second;
+            runOperation(remainingTokens, LineTokens, splitCommentFromLine, symbolsAndRest.second, i);
+            tsl.tokens = remainingTokens;
 
             if (!tsl.symbols.empty() && tsl.tokens.empty()) {
                 carry.insert(tsl.symbols.begin(), tsl.symbols.end());
@@ -180,7 +183,7 @@ private:
             runOperation(expandedOps, std::optional<std::vector<LineTokens>>, expandPseudoOp, tokenizedLine);
             if (expandedOps) {
                 /** @note: Original source line is kept for all resulting lines after pseudo-op expantion.
-                 * Labels, directives and comments are only kept for the first expanded op.
+                 * Labels and directives are only kept for the first expanded op.
                  */
                 const auto& eops = expandedOps.value();
                 for (int j = 0; j < eops.size(); j++) {
@@ -188,7 +191,6 @@ private:
                     tsl.tokens = eops.at(j);
                     tsl.sourceLine = tokenizedLine.sourceLine;
                     if (j == 0) {
-                        tsl.comments = tokenizedLine.comments;
                         tsl.directives = tokenizedLine.directives;
                         tsl.symbols = tokenizedLine.symbols;
                     }
@@ -398,8 +400,26 @@ protected:
         return std::pair<Directives, LineTokens>(directives, remainingTokens);
     }
 
+    virtual std::variant<Error, LineTokens> splitCommentFromLine(const LineTokens& tokens, int sourceLine) const {
+        if (tokens.size() == 0) {
+            return {tokens};
+        }
+
+        LineTokens preCommentTokens;
+        preCommentTokens.reserve(tokens.size());
+        for (const auto& token : tokens) {
+            if (token.contains(commentDelimiter())) {
+                break;
+            } else {
+                preCommentTokens.append(token);
+            }
+        }
+        return {preCommentTokens};
+    }
+
     virtual QString instrSegment() const { return QStringLiteral(".text"); }
     virtual QString dataSegment() const { return QStringLiteral(".data"); }
+    virtual QChar commentDelimiter() const = 0;
 
     /**
      * @brief m_instructions is the set of instructions which can be matched from an instruction string as well as be
