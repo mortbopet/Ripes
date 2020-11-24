@@ -1,10 +1,13 @@
 #include <QtTest/QTest>
 
+#include "assembler.h"
 #include "assembler/instruction.h"
 #include "assembler/matcher.h"
 #include "isainfo.h"
 
 #include "assembler/rv32i_assembler.h"
+
+const QString s_testdir = VSRTL_RISCV_TEST_DIR;
 
 using namespace Ripes;
 using namespace AssemblerTmp;
@@ -14,6 +17,7 @@ class tst_Assembler : public QObject {
     Q_OBJECT
 
 private slots:
+    void tst_riscv();
     void tst_simpleprogram();
     void tst_simpleWithBranch();
     void tst_segment();
@@ -22,10 +26,64 @@ private slots:
     void tst_labelWithPseudo();
     void tst_weirdImmediates();
     void tst_edgeImmediates();
+    void tst_benchmarkOld();
+    void tst_benchmarkNew();
 
 private:
     std::vector<std::shared_ptr<Instruction<RVISA>>> createInstructions();
+
+    QString createProgram(int entries) {
+        QString out;
+        out += ".data\n";
+        for (int i = 0; i < entries; i++) {
+            out += "L" + QString::number(i) + ": .word 1 2 3 4\n";
+        }
+        out += ".text\n";
+        for (int i = 0; i < entries; i++) {
+            out += "LA" + QString::number(i) + ": addi a0 a0 1\n";
+            out += "nop\n";
+            out += "beqz a0 LA" + QString::number(i) + "\n";
+        }
+        return out;
+    }
 };
+
+void tst_Assembler::tst_riscv() {
+    // Tests all of the available RISC-V assembly programs
+    const auto dir = QDir(s_testdir);
+    const auto testFiles = dir.entryList({"*.s"});
+
+    auto testFunct = [](const QString& filename) {
+        auto assembler = RV32I_Assembler({});
+        auto f = QFile(filename);
+        f.open(QIODevice::ReadOnly | QIODevice::Text);
+        auto program = QString(f.readAll());
+        auto res = assembler.assemble(program);
+        if (res.errors.size() != 0) {
+            res.errors.print();
+            auto errmsg = filename + ": error during assembling!";
+            QFAIL(errmsg.toStdString().c_str());
+        }
+    };
+
+    for (const auto& test : testFiles) {
+        testFunct(s_testdir + QDir::separator() + test);
+    }
+}
+
+void tst_Assembler::tst_benchmarkOld() {
+    auto oldassembler = Ripes::Assembler();
+    auto program = createProgram(1000);
+    QTextDocument doc;
+    doc.setPlainText(program);
+    QBENCHMARK { oldassembler.assemble(doc); }
+}
+
+void tst_Assembler::tst_benchmarkNew() {
+    auto newassembler = RV32I_Assembler({});
+    auto program = createProgram(1000);
+    QBENCHMARK { newassembler.assemble(program); }
+}
 
 void tst_Assembler::tst_simpleprogram() {
     auto assembler = RV32I_Assembler({});
