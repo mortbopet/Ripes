@@ -87,11 +87,12 @@ struct Opcode : public Field {
         for (const auto& opPart : opParts) {
             instruction |= opPart.range.apply(opPart.value);
         }
+        return std::nullopt;
     }
     std::optional<AssemblerTmp::Error> decode(const uint32_t, const uint32_t, const ReverseSymbolMap&,
                                               AssemblerTmp::LineTokens& line) const override {
         line.push_back(name);
-        return {};
+        return std::nullopt;
     }
 
     bool operator==(uint32_t instruction) const {}
