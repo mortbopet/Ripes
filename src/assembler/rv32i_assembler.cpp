@@ -116,6 +116,32 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
             return v;
         })));
 
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "li", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
+        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            // Determine whether an ADDI or LUI instruction is sufficient, or if both LUI and ADDI is needed, by
+            // analysing the immediate size
+            bool canConvert;
+            int immediate = getImmediate(line.tokens.at(2), canConvert);
+
+            // Generate offset required for discerning between positive and negative immediates
+            if (isInt<12>(immediate)) {
+                // immediate can be represented by 12 bits, ADDI is sufficient
+                v.push_back(QStringList() << "addi" << line.tokens.at(1) << "x0" << QString::number(immediate));
+            } else {
+                const int lower12Signed = signextend<int32_t, 12>(immediate & 0xFFF);
+                int signOffset = lower12Signed < 0 ? 1 : 0;
+                v.push_back(QStringList() << "lui" << line.tokens.at(1)
+                                          << QString::number((static_cast<uint32_t>(immediate) >> 12) + signOffset));
+                if ((immediate & 0xFFF) != 0) {
+                    v.push_back(QStringList()
+                                << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString::number(lower12Signed));
+                }
+            }
+            return v;
+        })));
+
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("nop", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
             return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
