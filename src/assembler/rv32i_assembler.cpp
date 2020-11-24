@@ -12,9 +12,9 @@ RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) : Assem
     initialize(instrs, pseudos, directives);
 
     // Initialize segment pointers
-    setSegmentBase(Segment::text, 0x0);
-    setSegmentBase(Segment::data, 0x10000000);
-    setSegmentBase(Segment::bss, 0x11000000);
+    setSegmentBase(".text", 0x0);
+    setSegmentBase(".data", 0x10000000);
+    setSegmentBase(".bss", 0x11000000);
 }
 
 std::tuple<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec, DirectiveVec>

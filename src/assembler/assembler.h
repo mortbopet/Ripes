@@ -45,7 +45,7 @@ class AssemblerBase {
 public:
     std::optional<Error> setCurrentSegment(Segment seg) const {
         if (m_segmentPointers.count(seg) == 0) {
-            return Error(0, "No base address set for segment '" + s_segmentName.at(seg) + +"'");
+            return Error(0, "No base address set for segment '" + seg + +"'");
         }
         m_currentSegment = seg;
         return {};
@@ -53,8 +53,7 @@ public:
 
     void setSegmentBase(Segment seg, uint32_t base) {
         if (m_segmentPointers.count(seg) != 0) {
-            throw std::runtime_error("Base address already set for segment '" + s_segmentName.at(seg).toStdString() +
-                                     +"'");
+            throw std::runtime_error("Base address already set for segment '" + seg.toStdString() + +"'");
         }
         m_segmentPointers[seg] = {base, base};
     }
@@ -213,7 +212,7 @@ public:
         AssembleResult result;
 
         // Per default, emit to .text until otherwise specified
-        setCurrentSegment(Segment::text);
+        setCurrentSegment(".text");
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);

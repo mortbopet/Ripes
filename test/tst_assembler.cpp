@@ -97,7 +97,7 @@ void tst_Assembler::tst_simpleprogram() {
         res.errors.print();
         QFAIL("Errors during assembly");
     }
-    auto disres = assembler.disassemble(res.program.segments[Segment::text]);
+    auto disres = assembler.disassemble(res.program.segments[".text"]);
 
     return;
 }
@@ -113,7 +113,7 @@ void tst_Assembler::tst_simpleWithBranch() {
     if (res.errors.size() != 0) {
         res.errors.print();
     }
-    auto disres = assembler.disassemble(res.program.segments[Segment::text]);
+    auto disres = assembler.disassemble(res.program.segments[".text"]);
 
     return;
 }

@@ -31,10 +31,7 @@ using SymbolLinePair = std::pair<Symbols, LineTokens>;
 using SourceProgram = std::vector<TokenizedSrcLine>;
 using NoPassResult = std::monostate;
 
-enum class Segment { bss, data, text };
-const static std::map<Segment, QString> s_segmentName = {{Segment::bss, ".bss"},
-                                                         {Segment::data, ".data"},
-                                                         {Segment::text, ".text"}};
+using Segment = QString;
 struct Program {
     std::map<Segment, QByteArray> segments;
 };
