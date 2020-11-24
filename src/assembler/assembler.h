@@ -443,7 +443,7 @@ protected:
             QByteArray& segment = program.segments.at(linkRequest.segment);
 
             // Decode instruction at link-request position
-            assert(segment.size() <= (linkRequest.offset + 4) &&
+            assert(segment.size() >= (linkRequest.offset + 4) &&
                    "Error: position of link request is not within program");
             uint32_t instr = *reinterpret_cast<uint32_t*>(segment.data() + linkRequest.offset);
 
