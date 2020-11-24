@@ -250,10 +250,10 @@ class Instruction {
 public:
     Instruction(Opcode opcode, const std::vector<std::shared_ptr<Field>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
-        m_assembler = [](const Instruction& _this, const AssemblerTmp::TokenizedSrcLine& line) {
+        m_assembler = [](const Instruction<ISA>* _this, const AssemblerTmp::TokenizedSrcLine& line) {
             InstrRes res;
-            _this.m_opcode.apply(line, res.instruction, res.linksWithSymbol);
-            for (const auto& field : _this.m_fields) {
+            _this->m_opcode.apply(line, res.instruction, res.linksWithSymbol);
+            for (const auto& field : _this->m_fields) {
                 auto err = field->apply(line, res.instruction, res.linksWithSymbol);
                 if (err) {
                     return AssembleRes(err.value());
@@ -261,11 +261,11 @@ public:
             }
             return AssembleRes(res);
         };
-        m_disassembler = [](const Instruction& _this, const uint32_t instruction, const uint32_t address,
+        m_disassembler = [](const Instruction<ISA>* _this, const uint32_t instruction, const uint32_t address,
                             const ReverseSymbolMap& symbolMap) {
             AssemblerTmp::LineTokens line;
-            _this.m_opcode.decode(instruction, address, symbolMap, line);
-            for (const auto& field : _this.m_fields) {
+            _this->m_opcode.decode(instruction, address, symbolMap, line);
+            for (const auto& field : _this->m_fields) {
                 if (auto error = field->decode(instruction, address, symbolMap, line)) {
                     return DisassembleRes(*error);
                 }
@@ -281,11 +281,11 @@ public:
                                                             " tokens, but got " +
                                                             QString::number(line.tokens.length() - 1));
         }
-        return m_assembler(*this, line);
+        return m_assembler(this, line);
     }
     DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,
                                const ReverseSymbolMap& symbolMap) const {
-        return m_disassembler(*this, instruction, address, symbolMap);
+        return m_disassembler(this, instruction, address, symbolMap);
     }
 
     const Opcode& getOpcode() const { return m_opcode; }
@@ -297,8 +297,8 @@ public:
     const unsigned& size() const { return 4; }
 
 private:
-    std::function<AssembleRes(const Instruction&, const AssemblerTmp::TokenizedSrcLine&)> m_assembler;
-    std::function<DisassembleRes(const Instruction&, const uint32_t, const uint32_t, const ReverseSymbolMap&)>
+    std::function<AssembleRes(const Instruction<ISA>*, const AssemblerTmp::TokenizedSrcLine&)> m_assembler;
+    std::function<DisassembleRes(const Instruction<ISA>*, const uint32_t, const uint32_t, const ReverseSymbolMap&)>
         m_disassembler;
 
     const Opcode m_opcode;
