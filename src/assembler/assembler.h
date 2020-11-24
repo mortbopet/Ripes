@@ -238,11 +238,8 @@ public:
 
     DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const {
         size_t i = 0;
-        if (program.size() % sizeof(uint32_t) != 0) {
-            throw std::runtime_error("Program instructions unaligned with instruction size");
-        }
         DisassembleResult res;
-        while (i < program.size()) {
+        while ((i + sizeof(uint32_t)) <= program.size()) {
             const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(program.data() + i);
             auto match = m_matcher->matchInstruction(instructionWord);
             try {
