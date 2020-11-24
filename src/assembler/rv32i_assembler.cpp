@@ -87,7 +87,7 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
     std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>( \
         Opcode(name, {OpPart(opcode, 0, 6)}),                                                 \
         {std::make_shared<Reg<ISAInfo<ISA::RV32IM>>>(1, 7, 11),                               \
-         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(12, 12, 31)})}))
+         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)})}))
 
 #define JType(name, opcode)                                                                                  \
     std::shared_ptr<Instruction<ISAInfo<ISA::RV32IM>>>(new Instruction<ISAInfo<ISA::RV32IM>>(                \
