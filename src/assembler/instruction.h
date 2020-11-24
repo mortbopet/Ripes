@@ -119,6 +119,7 @@ struct Reg : public Field {
             return AssemblerTmp::Error(line.sourceLine, "Unknown register '" + regToken + "'");
         }
         instruction |= m_range.apply(reg);
+        return std::nullopt;
     }
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
                                               const ReverseSymbolMap& symbolMap,
@@ -129,7 +130,7 @@ struct Reg : public Field {
             return AssemblerTmp::Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
         }
         line.append(registerName);
-        return {};
+        return std::nullopt;
     }
 
     const unsigned m_tokenIndex;
@@ -193,7 +194,7 @@ struct Imm : public Field {
         for (const auto& part : parts) {
             part.apply(repr == Repr::Signed ? static_cast<uint32_t>(svalue) : uvalue, instruction);
         }
-        return {};
+        return std::nullopt;
     }
 
     std::optional<AssemblerTmp::Error> applySymbolResolution(uint32_t symbolValue, uint32_t& instruction,
@@ -206,7 +207,7 @@ struct Imm : public Field {
         for (const auto& part : parts) {
             part.apply(adjustedValue, instruction);
         }
-        return {};
+        return std::nullopt;
     }
 
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
@@ -232,7 +233,7 @@ struct Imm : public Field {
             }
         }
 
-        return {};
+        return std::nullopt;
     }
 
     const unsigned tokenIndex;
