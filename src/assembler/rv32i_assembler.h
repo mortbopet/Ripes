@@ -7,7 +7,7 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-class RV32I_Assembler : public AssemblerBase<ISAInfo<ISA::RV32IM>> {
+class RV32I_Assembler : public Assembler<ISAInfo<ISA::RV32IM>> {
 private:
     using RVInstr = Instruction<ISAInfo<ISA::RV32IM>>;
     using RVInstrVec = std::vector<std::shared_ptr<RVInstr>>;

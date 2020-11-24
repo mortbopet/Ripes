@@ -29,7 +29,9 @@ private:
 
 void tst_Assembler::tst_simpleprogram() {
     auto assembler = RV32I_Assembler({});
-    QStringList program = QStringList() << ".word 1, 2, 3"
+    QStringList program = QStringList() << ".data"
+                                        << "B: .word 1, 2, 2"
+                                        << ".text"
                                         << "addi a0 a0 123 # Hello world"
                                         << "nop";
     auto res = assembler.assemble(program);
@@ -37,7 +39,7 @@ void tst_Assembler::tst_simpleprogram() {
         res.errors.print();
         QFAIL("Errors during assembly");
     }
-    auto disres = assembler.disassemble(res.program);
+    auto disres = assembler.disassemble(res.program.segments[Segment::text]);
 
     return;
 }
@@ -53,7 +55,7 @@ void tst_Assembler::tst_simpleWithBranch() {
     if (res.errors.size() != 0) {
         res.errors.print();
     }
-    auto disres = assembler.disassemble(res.program);
+    auto disres = assembler.disassemble(res.program.segments[Segment::text]);
 
     return;
 }

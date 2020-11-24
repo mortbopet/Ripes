@@ -1,4 +1,5 @@
 #include "gnudirectives.h"
+#include "assembler.h"
 
 namespace Ripes {
 namespace AssemblerTmp {
@@ -43,6 +44,10 @@ DirectiveVec gnuDirectives() {
     add_directive(directives, fourByteDirective());
     add_directive(directives, longDirective());
 
+    add_directive(directives, dataDirective());
+    add_directive(directives, textDirective());
+    add_directive(directives, bssDirective());
+
     return directives;
 }
 
@@ -61,7 +66,7 @@ std::optional<Error> assembleData(const QStringList& tokens, QByteArray& byteArr
 }
 
 template <size_t width>
-HandleDirectiveRes dataFunctor(const Directive&, const TokenizedSrcLine& line) {
+HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
     if (line.tokens.length() < 2) {
         return {Error(line.sourceLine, "Invalid number of arguments")};
     }
@@ -74,7 +79,7 @@ HandleDirectiveRes dataFunctor(const Directive&, const TokenizedSrcLine& line) {
     }
 };
 
-HandleDirectiveRes stringFunctor(const Directive&, const TokenizedSrcLine& line) {
+HandleDirectiveRes stringFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
     if (line.tokens.length() != 2) {
         return {Error(line.sourceLine, "Invalid number of arguments")};
     }
@@ -128,8 +133,31 @@ Directive stringDirective() {
     return Directive(".string", &stringFunctor);
 }
 
+template <Segment seg>
+HandleDirectiveRes segmentChangeFunctor(const AssemblerBase* assembler, const TokenizedSrcLine& line) {
+    auto err = assembler->setCurrentSegment(seg);
+    if (err) {
+        // Embed source line into error message
+        err.value().first = line.sourceLine;
+        return {err.value()};
+    }
+    return std::nullopt;
+};
+
+Directive textDirective() {
+    return Directive(".text", &segmentChangeFunctor<Segment::text>);
+}
+
+Directive bssDirective() {
+    return Directive(".bss", &segmentChangeFunctor<Segment::bss>);
+}
+
+Directive dataDirective() {
+    return Directive(".data", &segmentChangeFunctor<Segment::data>);
+}
+
 Directive zeroDirective() {
-    auto zeroFunctor = [](const Directive&, const TokenizedSrcLine& line) -> HandleDirectiveRes {
+    auto zeroFunctor = [](const AssemblerBase*, const TokenizedSrcLine& line) -> HandleDirectiveRes {
         if (line.tokens.length() != 2) {
             return {Error(line.sourceLine, "Invalid number of arguments")};
         }

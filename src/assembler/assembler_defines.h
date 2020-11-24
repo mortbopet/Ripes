@@ -28,8 +28,16 @@ struct TokenizedSrcLine {
     uint32_t programAddress = -1;
 };
 using SymbolLinePair = std::pair<Symbols, LineTokens>;
-using Program = std::vector<TokenizedSrcLine>;
+using SourceProgram = std::vector<TokenizedSrcLine>;
 using NoPassResult = std::monostate;
+
+enum class Segment { bss, data, text };
+const static std::map<Segment, QString> s_segmentName = {{Segment::bss, ".bss"},
+                                                         {Segment::data, ".data"},
+                                                         {Segment::text, ".text"}};
+struct Program {
+    std::map<Segment, QByteArray> segments;
+};
 
 /**
  * @brief The Result struct
@@ -37,7 +45,7 @@ using NoPassResult = std::monostate;
  */
 struct AssembleResult {
     Errors errors;
-    QByteArray program;
+    Program program;
 };
 
 struct DisassembleResult {

@@ -12,12 +12,16 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
+class AssemblerBase;
+
 class Directive {
 public:
-    using DirectiveHandler = std::function<HandleDirectiveRes(const Directive&, const TokenizedSrcLine&)>;
+    using DirectiveHandler = std::function<HandleDirectiveRes(const AssemblerBase*, const TokenizedSrcLine&)>;
     Directive(const QString& directive, const DirectiveHandler& handler) : m_directive(directive), m_handler(handler) {}
 
-    HandleDirectiveRes handle(const TokenizedSrcLine& line) { return m_handler(*this, line); }
+    HandleDirectiveRes handle(const AssemblerBase* assembler, const TokenizedSrcLine& line) {
+        return m_handler(assembler, line);
+    }
     const QString& name() const { return m_directive; }
 
 private:

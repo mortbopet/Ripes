@@ -7,13 +7,14 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) : AssemblerBase<ISAInfo<ISA::RV32IM>>() {
+RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) : Assembler<ISAInfo<ISA::RV32IM>>() {
     auto [instrs, pseudos, directives] = initInstructions(extensions);
     initialize(instrs, pseudos, directives);
 
     // Initialize segment pointers
-    m_segmentPointers[instrSegment()] = 0x0;
-    m_segmentPointers[dataSegment()] = 0x10000000;
+    setSegmentBase(Segment::text, 0x0);
+    setSegmentBase(Segment::data, 0x10000000);
+    setSegmentBase(Segment::bss, 0x11000000);
 }
 
 std::tuple<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec, DirectiveVec>

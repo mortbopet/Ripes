@@ -26,5 +26,9 @@ Directive twoByteDirective();
 Directive fourByteDirective();
 Directive longDirective();
 
+Directive textDirective();
+Directive dataDirective();
+Directive bssDirective();
+
 }  // namespace AssemblerTmp
 }  // namespace Ripes
