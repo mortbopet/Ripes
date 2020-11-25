@@ -307,8 +307,9 @@ protected:
 
             runOperation(remainingTokens, LineTokens, splitCommentFromLine, symbolsAndRest.second, i);
             tsl.tokens = remainingTokens;
-
-            if (!tsl.symbols.empty() && tsl.tokens.empty()) {
+            if (tsl.symbols.empty() && tsl.tokens.empty()) {
+                continue;
+            } else if (!tsl.symbols.empty() && tsl.tokens.empty()) {
                 carry.insert(tsl.symbols.begin(), tsl.symbols.end());
             } else {
                 if (!tsl.tokens.empty()) {
