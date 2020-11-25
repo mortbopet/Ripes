@@ -13,6 +13,7 @@ private:
     using RVInstrVec = std::vector<std::shared_ptr<RVInstr>>;
     using RVPseudoInstr = PseudoInstruction<ISAInfo<ISA::RV32IM>>;
     using RVPseudoInstrVec = std::vector<std::shared_ptr<RVPseudoInstr>>;
+    using RVReg = Reg<ISAInfo<ISA::RV32IM>>;
 
 public:
     enum class Extensions { M, F };
