@@ -87,6 +87,9 @@ protected:
 
         const auto& directive = line.tokens.at(0);
         if (m_directivesMap.count(directive) == 0) {
+            if (directive.startsWith(".")) {
+                return {Error(line.sourceLine, "Unknown directive '" + directive + "'")};
+            }
             ok = false;
             // Not a directive
             return std::nullopt;
