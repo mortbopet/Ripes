@@ -307,9 +307,19 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
 
 void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
+    // --
 
     // Assembler functors
+    instructions.push_back(RType("mul", 0b000, 0b0000001));
+    instructions.push_back(RType("mulh", 0b001, 0b0000001));
+    instructions.push_back(RType("mulhsu", 0b010, 0b0000001));
+    instructions.push_back(RType("mulhu", 0b011, 0b0000001));
+    instructions.push_back(RType("div", 0b100, 0b0000001));
+    instructions.push_back(RType("divu", 0b101, 0b0000001));
+    instructions.push_back(RType("rem", 0b110, 0b0000001));
+    instructions.push_back(RType("remu", 0b111, 0b0000001));
 }
+
 void RV32I_Assembler::enableExtF(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
 
