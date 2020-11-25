@@ -81,21 +81,16 @@ protected:
     }
 
     virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok) const {
-        if (line.tokens.empty()) {
-            return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
-        }
-
-        const auto& directive = line.tokens.at(0);
-        if (m_directivesMap.count(directive) == 0) {
-            if (directive.startsWith(".")) {
-                return {Error(line.sourceLine, "Unknown directive '" + directive + "'")};
-            }
-            ok = false;
-            // Not a directive
+        ok = false;
+        if (line.directive.isEmpty()) {
             return std::nullopt;
         }
         ok = true;
-        return m_directivesMap.at(directive)->handle(this, line);
+        try {
+            return m_directivesMap.at(line.directive)->handle(this, line);
+        } catch (const std::out_of_range&) {
+            return {Error(line.sourceLine, "Unknown directive '" + line.directive + "'")};
+        }
     };
     /**
      * @brief splitSymbolsFromLine
@@ -130,20 +125,20 @@ protected:
         return std::pair<Symbols, LineTokens>(symbols, remainingTokens);
     }
 
-    virtual std::variant<Error, DirectivesLinePair> splitDirectivesFromLine(const LineTokens& tokens,
-                                                                            int sourceLine) const {
+    virtual std::variant<Error, DirectiveLinePair> splitDirectivesFromLine(const LineTokens& tokens,
+                                                                           int sourceLine) const {
         if (tokens.size() == 0) {
-            return std::pair<Directives, LineTokens>({}, tokens);
+            return DirectiveLinePair(QString(), tokens);
         }
 
         LineTokens remainingTokens;
         remainingTokens.reserve(tokens.size());
-        Directives directives;
+        std::vector<QString> directives;
         bool directivesStillAllowed = true;
         for (const auto& token : tokens) {
             if (token.startsWith('.')) {
                 if (directivesStillAllowed) {
-                    directives.insert(token);
+                    directives.push_back(token);
                 } else {
                     return Error(sourceLine, "Stray '.' in line");
                 }
@@ -152,7 +147,11 @@ protected:
                 directivesStillAllowed = false;
             }
         }
-        return std::pair<Directives, LineTokens>(directives, remainingTokens);
+        if (directives.size() > 1) {
+            return Error(sourceLine, "Illegal multiple directives");
+        } else {
+            return DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(), remainingTokens);
+        }
     }
 
     virtual std::variant<Error, LineTokens> splitCommentFromLine(const LineTokens& tokens, int sourceLine) const {
@@ -287,10 +286,13 @@ protected:
         Errors errors;
         SourceProgram tokenizedLines;
         tokenizedLines.reserve(program.size());
+        Symbols symbols;
 
         /** @brief carry
          * A symbol should refer to the next following assembler line; whether an instruction or directive.
          * The carry is used to carry over symbol definitions from empty lines onto the next valid line.
+         * Multiple symbol definitions is checked in this step given that a symbol may loose its source line information
+         * if it is a blank symbol (no other information on line).
          */
         Symbols carry;
         for (unsigned i = 0; i < program.size(); i++) {
@@ -305,20 +307,31 @@ protected:
             runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, tokens, i);
             tsl.symbols = symbolsAndRest.first;
 
-            runOperation(directivesAndRest, DirectivesLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
-            tsl.directives = directivesAndRest.first;
-
-            runOperation(remainingTokens, LineTokens, splitCommentFromLine, symbolsAndRest.second, i);
-            tsl.tokens = remainingTokens;
-            if (tsl.symbols.empty() && tsl.tokens.empty()) {
-                continue;
-            } else if (!tsl.symbols.empty() && tsl.tokens.empty()) {
-                carry.insert(tsl.symbols.begin(), tsl.symbols.end());
-            } else {
-                if (!tsl.tokens.empty()) {
-                    tsl.symbols.insert(carry.begin(), carry.end());
-                    carry.clear();
+            bool uniqueSymbols = true;
+            for (const auto& s : symbolsAndRest.first) {
+                if (symbols.count(s) != 0) {
+                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s + "'"));
+                    uniqueSymbols = false;
+                    break;
                 }
+            }
+            if (!uniqueSymbols) {
+                continue;
+            }
+            symbols.insert(symbolsAndRest.first.begin(), symbolsAndRest.first.end());
+
+            runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
+            tsl.directive = directiveAndRest.first;
+
+            runOperation(remainingTokens, LineTokens, splitCommentFromLine, directiveAndRest.second, i);
+            tsl.tokens = remainingTokens;
+            if (tsl.tokens.empty() && tsl.directive.isEmpty()) {
+                if (!tsl.symbols.empty()) {
+                    carry.insert(tsl.symbols.begin(), tsl.symbols.end());
+                }
+            } else {
+                tsl.symbols.insert(carry.begin(), carry.end());
+                carry.clear();
                 tokenizedLines.push_back(tsl);
             }
         }
@@ -351,7 +364,7 @@ protected:
                     tsl.tokens = eops.at(j);
                     tsl.sourceLine = tokenizedLine.sourceLine;
                     if (j == 0) {
-                        tsl.directives = tokenizedLine.directives;
+                        tsl.directive = tokenizedLine.directive;
                         tsl.symbols = tokenizedLine.symbols;
                     }
                     expandedLines.push_back(tsl);
@@ -390,11 +403,7 @@ protected:
         bool wasDirective;
         for (const auto& line : tokenizedLines) {
             for (const auto& s : line.symbols) {
-                if (symbolMap.count(s) != 0) {
-                    errors.push_back(Error(line.sourceLine, "Multiple definitions of symbol '" + s + "'"));
-                } else {
-                    symbolMap[s] = addr_offset;
-                }
+                symbolMap[s] = addr_offset;  // No check on duplicate symbols, done in pass 1
             }
 
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line, wasDirective);
