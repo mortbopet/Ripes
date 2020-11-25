@@ -43,7 +43,7 @@ std::optional<Error> assembleData(const QStringList& tokens, QByteArray& byteArr
 
 template <size_t width>
 HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
-    if (line.tokens.length() < 2) {
+    if (line.tokens.length() < 1) {
         return {Error(line.sourceLine, "Invalid number of arguments")};
     }
     QByteArray bytes;
@@ -56,18 +56,10 @@ HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& lin
 };
 
 HandleDirectiveRes stringFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
-    if (line.tokens.length() != 2) {
+    if (line.tokens.length() != 1) {
         return {Error(line.sourceLine, "Invalid number of arguments")};
     }
-
-    QByteArray byteArray;
-    QString string;
-    // Merge input fields
-    for (int i = 1; i < line.tokens.size(); i++) {
-        QString strarg = line.tokens[i];
-        strarg.replace("\\n", "\n");
-        string += strarg;
-    }
+    QString string = line.tokens.at(0);
     string.remove('\"');
     string.append('\0');
     return {string.toUtf8()};
