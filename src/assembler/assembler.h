@@ -502,8 +502,8 @@ protected:
         for (const auto& iter : m_pseudoInstructions) {
             const auto instr_name = iter.get()->name();
             if (m_pseudoInstructionMap.count(instr_name) != 0) {
-                throw std::runtime_error("Error: pseudo-instruction with opcode " + instr_name.toStdString() +
-                                         " has already been registerred.");
+                throw std::runtime_error("Error: pseudo-instruction with opcode '" + instr_name.toStdString() +
+                                         "' has already been registerred.");
             }
             m_pseudoInstructionMap[instr_name] = iter;
         }
@@ -517,8 +517,8 @@ protected:
         for (const auto& iter : m_instructions) {
             const auto instr_name = iter.get()->name();
             if (m_instructionMap.count(instr_name) != 0) {
-                throw std::runtime_error("Error: instruction with opcode " + instr_name.toStdString() +
-                                         " has already been registerred.");
+                throw std::runtime_error("Error: instruction with opcode '" + instr_name.toStdString() +
+                                         "' has already been registerred.");
             }
             m_instructionMap[instr_name] = iter;
         }

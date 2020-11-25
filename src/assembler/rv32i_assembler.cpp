@@ -107,6 +107,72 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
             return v;
         })));
 
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
+        new RVPseudoInstr("call", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+                              std::vector<AssemblerTmp::LineTokens> v;
+                              v.push_back(QStringList() << "auipc"
+                                                        << "x6" << line.tokens.at(1));
+                              v.push_back(QStringList() << "jalr"
+                                                        << "x1"
+                                                        << "x6" << line.tokens.at(1));
+                              return v;
+                          })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
+        new RVPseudoInstr("tail", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
+                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+                              std::vector<AssemblerTmp::LineTokens> v;
+                              v.push_back(QStringList() << "auipc"
+                                                        << "x6" << line.tokens.at(1));
+                              v.push_back(QStringList() << "jalr"
+                                                        << "x0"
+                                                        << "x6" << line.tokens.at(1));
+                              return v;
+                          })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "j", {RVPseudoInstr::imm()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            v.push_back(QStringList() << "jal"
+                                      << "x0" << line.tokens.at(1));
+            return v;
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "jr", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            v.push_back(QStringList() << "jalr"
+                                      << "x0" << line.tokens.at(1) << "0");
+            return v;
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "jalr", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            v.push_back(QStringList() << "jalr"
+                                      << "x1" << line.tokens.at(1) << "0");
+            return v;
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "ret", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            v.push_back(QStringList() << "jalr"
+                                      << "x0"
+                                      << "x1"
+                                      << "0");
+            return v;
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "jal", {RVPseudoInstr::imm()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+            std::vector<AssemblerTmp::LineTokens> v;
+            v.push_back(QStringList() << "jal"
+                                      << "x1" << line.tokens.at(1));
+            return v;
+        })));
+
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
         "li", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
         [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
@@ -258,6 +324,10 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
                           })));
 
     // Assembler functors
+
+    instructions.push_back(
+        std::shared_ptr<RVInstr>(new RVInstr(Opcode("ecall", {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
+
     instructions.push_back(UType("lui", 0b0110111));
     instructions.push_back(UType("auipc", 0b0010111));
 
@@ -305,7 +375,7 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
     instructions.push_back(BType("bgeu", 0b111));
 }
 
-void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
+void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec&) const {
     // Pseudo-op functors
     // --
 
