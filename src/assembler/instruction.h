@@ -155,10 +155,17 @@ struct Imm : public Field {
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
      * @param ranges: (ordered) list of ranges corresponding to fields of the immediate
      * @param symbolType: Set if this immediate refers to a relative or absolute symbol.
+     * @param _symbolTransformer: Optional function used to process the immediate provided by a symbol value, before the
+     * immediate value is applied.
      */
     Imm(unsigned _tokenIndex, unsigned _width, Repr _repr, const std::vector<ImmPart>& _parts,
-        SymbolType _symbolType = SymbolType::None)
-        : tokenIndex(_tokenIndex), parts(_parts), width(_width), repr(_repr), symbolType(_symbolType) {}
+        SymbolType _symbolType = SymbolType::None, const std::function<uint32_t(uint32_t)>& _symbolTransformer = {})
+        : tokenIndex(_tokenIndex),
+          parts(_parts),
+          width(_width),
+          repr(_repr),
+          symbolType(_symbolType),
+          symbolTransformer(_symbolTransformer) {}
 
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line, uint32_t& instruction,
                                              FieldLinkRequest& linksWithSymbol) const override {
@@ -205,6 +212,10 @@ struct Imm : public Field {
             adjustedValue -= address;
         }
 
+        if (symbolTransformer) {
+            adjustedValue = symbolTransformer(adjustedValue);
+        }
+
         for (const auto& part : parts) {
             part.apply(adjustedValue, instruction);
         }
@@ -242,6 +253,7 @@ struct Imm : public Field {
     const unsigned width;
     const Repr repr;
     const SymbolType symbolType;
+    const std::function<uint32_t(uint32_t)> symbolTransformer;
 };
 
 template <typename ISA>

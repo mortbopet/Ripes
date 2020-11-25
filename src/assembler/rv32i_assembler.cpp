@@ -329,7 +329,20 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
         std::shared_ptr<RVInstr>(new RVInstr(Opcode("ecall", {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
 
     instructions.push_back(UType("lui", 0b0110111));
-    instructions.push_back(UType("auipc", 0b0010111));
+
+    /** @brief AUIPC requires special handling during symbol resolution as compared to if no symbol is provided to
+     * instruction.
+     * - If no symbol; the provided immediate will be placed in the upper 20 bits of the instruction
+     * - if symbol; the upper 20 bits of the provided resolved symbol will be placed in the upper 20 bits of the
+     * instruction. To facilitate these two capabilities, we provide a symbol modifier functor to adjust any provided
+     * symbol.
+     */
+    auto auipcSymbolModifier = [](uint32_t bareSymbol) { return bareSymbol >> 12; };
+    instructions.push_back(std::shared_ptr<RVInstr>(
+        new RVInstr(Opcode("auipc", {OpPart(0b0010111, 0, 6)}),
+                    {std::make_shared<RVReg>(1, 7, 11),
+                     std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)},
+                                           Imm::SymbolType::Absolute, auipcSymbolModifier)})));
 
     instructions.push_back(JType("jal", 0b1101111));
 
