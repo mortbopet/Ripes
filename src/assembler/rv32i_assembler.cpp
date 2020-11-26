@@ -156,7 +156,7 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "ret", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
+        "ret", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
             std::vector<AssemblerTmp::LineTokens> v;
             v.push_back(QStringList() << "jalr"
                                       << "x0"
@@ -403,7 +403,7 @@ void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec&) co
     instructions.push_back(RType("remu", 0b111, 0b0000001));
 }
 
-void RV32I_Assembler::enableExtF(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
+void RV32I_Assembler::enableExtF(RVInstrVec&, RVPseudoInstrVec&) const {
     // Pseudo-op functors
 
     // Assembler functors

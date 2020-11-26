@@ -66,7 +66,7 @@ using DisassembleRes = std::variant<Error, AssemblerTmp::LineTokens>;
 struct OpPart {
     OpPart(unsigned _value, BitRange _range) : value(_value), range(_range) {}
     OpPart(unsigned _value, unsigned _start, unsigned _stop) : value(_value), range({_start, _stop}) {}
-    const bool matches(uint32_t instruction) const { return range.decode(instruction) == value; }
+    bool matches(uint32_t instruction) const { return range.decode(instruction) == value; }
     const unsigned value;
     const BitRange range;
 
@@ -95,8 +95,6 @@ struct Opcode : public Field {
         return std::nullopt;
     }
 
-    bool operator==(uint32_t instruction) const {}
-
     const QString name;
     const std::vector<OpPart> opParts;
 };
@@ -122,8 +120,7 @@ struct Reg : public Field {
         instruction |= m_range.apply(reg);
         return std::nullopt;
     }
-    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t address,
-                                              const ReverseSymbolMap& symbolMap,
+    std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t, const ReverseSymbolMap&,
                                               AssemblerTmp::LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
         const QString registerName = ISA::instance()->regName(regNumber);
@@ -173,8 +170,8 @@ struct Imm : public Field {
         const QString& immToken = line.tokens[tokenIndex];
 
         // Accept base 10, 16 and 2
-        uint32_t uvalue;
-        int32_t svalue;
+        uint32_t uvalue = 0;
+        int32_t svalue = 0;
         if (repr == Repr::Signed) {
             svalue = immToken.toInt(&success, 10);
         } else {

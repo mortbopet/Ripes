@@ -78,7 +78,7 @@ private:
 
         for (const auto& instr : instructions) {
             if (auto instrRef = instr.get()) {
-                const int nOpParts = instrRef->getOpcode().opParts.size();
+                const size_t nOpParts = instrRef->getOpcode().opParts.size();
                 if (nOpParts < fieldDepth) {
                     assert(
                         false &&

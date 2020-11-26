@@ -154,7 +154,7 @@ protected:
         }
     }
 
-    virtual std::variant<Error, LineTokens> splitCommentFromLine(const LineTokens& tokens, int sourceLine) const {
+    virtual std::variant<Error, LineTokens> splitCommentFromLine(const LineTokens& tokens) const {
         if (tokens.size() == 0) {
             return {tokens};
         }
@@ -295,7 +295,7 @@ protected:
          * if it is a blank symbol (no other information on line).
          */
         Symbols carry;
-        for (unsigned i = 0; i < program.size(); i++) {
+        for (int i = 0; i < program.size(); i++) {
             const auto& line = program.at(i);
             if (line.isEmpty())
                 continue;
@@ -323,7 +323,7 @@ protected:
             runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
             tsl.directive = directiveAndRest.first;
 
-            runOperation(remainingTokens, LineTokens, splitCommentFromLine, directiveAndRest.second, i);
+            runOperation(remainingTokens, LineTokens, splitCommentFromLine, directiveAndRest.second);
             tsl.tokens = remainingTokens;
             if (tsl.tokens.empty() && tsl.directive.isEmpty()) {
                 if (!tsl.symbols.empty()) {
@@ -359,7 +359,7 @@ protected:
                  * Labels and directives are only kept for the first expanded op.
                  */
                 const auto& eops = expandedOps.value();
-                for (int j = 0; j < eops.size(); j++) {
+                for (size_t j = 0; j < eops.size(); j++) {
                     TokenizedSrcLine tsl;
                     tsl.tokens = eops.at(j);
                     tsl.sourceLine = tokenizedLine.sourceLine;

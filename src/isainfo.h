@@ -152,9 +152,15 @@ public:
     ISA isaID() const override { return ISA::RV32IM; }
 
     unsigned int regCnt() const override { return 32; }
-    QString regName(unsigned i) const override { return RVRegNames.size() > i ? RVRegNames.at(i) : QString(); }
-    QString regAlias(unsigned i) const override { return RVRegAliases.size() > i ? RVRegAliases.at(i) : QString(); }
-    QString regInfo(unsigned i) const override { return RVRegDescs.size() > i ? RVRegDescs.at(i) : QString(); }
+    QString regName(unsigned i) const override {
+        return RVRegNames.size() > static_cast<int>(i) ? RVRegNames.at(static_cast<int>(i)) : QString();
+    }
+    QString regAlias(unsigned i) const override {
+        return RVRegAliases.size() > static_cast<int>(i) ? RVRegAliases.at(static_cast<int>(i)) : QString();
+    }
+    QString regInfo(unsigned i) const override {
+        return RVRegDescs.size() > static_cast<int>(i) ? RVRegDescs.at(static_cast<int>(i)) : QString();
+    }
     bool regIsReadOnly(unsigned i) const override { return i == 0; }
     unsigned int bits() const override { return 32; }
     int spReg() const override { return 2; }
