@@ -288,7 +288,7 @@ public:
         if (line.tokens.length() != m_expectedTokens) {
             return AssemblerTmp::Error(line.sourceLine, "Instruction '" + m_opcode.name + "' expects " +
                                                             QString::number(m_expectedTokens - 1) +
-                                                            " tokens, but got " +
+                                                            " arguments, but got " +
                                                             QString::number(line.tokens.length() - 1));
         }
         return m_assembler(this, line);
