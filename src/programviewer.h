@@ -8,7 +8,7 @@
 
 #include "parser.h"
 #include "processorhandler.h"
-#include "program.h"
+#include "assembler/program.h"
 
 namespace Ripes {
 

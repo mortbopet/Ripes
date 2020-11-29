@@ -4,8 +4,12 @@
 
 namespace Ripes {
 
-CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument* parent) : SyntaxHighlighter(parent) {
+CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<AssemblerTmp::Errors> errors)
+    : SyntaxHighlighter(parent, errors) {
     HighlightingRule rule;
+
+    errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+    errorFormat.setUnderlineColor(Qt::red);
 
     keywordFormat.setForeground(Qt::darkBlue);
     keywordFormat.setFontWeight(QFont::Bold);
@@ -65,18 +69,7 @@ CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument* parent) : SyntaxHighlighte
     commentEndExpression = QRegularExpression(QStringLiteral("\\*/"));
 }  // namespace Ripes
 
-void CSyntaxHighlighter::reset() {
-    SyntaxHighlighter::reset();
-}
-bool CSyntaxHighlighter::acceptsSyntax() const {
-    return true;
-}
-
-void CSyntaxHighlighter::clearAndRehighlight() {
-    rehighlight();
-}
-
-void CSyntaxHighlighter::highlightBlock(const QString& text) {
+void CSyntaxHighlighter::syntaxHighlightBlock(const QString& text) {
     for (const HighlightingRule& rule : qAsConst(highlightingRules)) {
         QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
         while (matchIterator.hasNext()) {

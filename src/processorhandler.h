@@ -5,7 +5,7 @@
 #include <QObject>
 
 #include "processorregistry.h"
-#include "program.h"
+#include "assembler/program.h"
 #include "syscall/ripes_syscall.h"
 
 #include "vsrtl_widget.h"

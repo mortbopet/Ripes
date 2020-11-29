@@ -7,7 +7,7 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-RV32I_Assembler::RV32I_Assembler(const std::set<Extensions>& extensions) : Assembler<ISAInfo<ISA::RV32IM>>() {
+RV32I_Assembler::RV32I_Assembler(const std::set<Extensions> extensions) : Assembler<ISAInfo<ISA::RV32IM>>() {
     auto [instrs, pseudos, directives] = initInstructions(extensions);
     initialize(instrs, pseudos, directives);
 

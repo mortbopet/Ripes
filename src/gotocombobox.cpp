@@ -53,7 +53,7 @@ void GoToSectionComboBox::addTargets() {
     addItem("Address...", QVariant::fromValue<GoToUserData>({GoToFunction::Address, 0}));
     if (auto prog_spt = ProcessorHandler::get()->getProgram().lock()) {
         for (const auto& section : prog_spt->sections) {
-            addItem(section.name, QVariant::fromValue<GoToUserData>({GoToFunction::Custom, 0}));
+            addItem(section.first, QVariant::fromValue<GoToUserData>({GoToFunction::Custom, 0}));
         }
     }
 }

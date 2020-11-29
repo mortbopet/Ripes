@@ -4,7 +4,7 @@
 QT_FORWARD_DECLARE_CLASS(QButtonGroup);
 QT_FORWARD_DECLARE_CLASS(QFile);
 
-#include "program.h"
+#include "assembler/program.h"
 
 namespace ELFIO {
 class elfio;

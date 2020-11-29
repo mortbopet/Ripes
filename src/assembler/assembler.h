@@ -43,20 +43,28 @@ namespace AssemblerTmp {
 
 class AssemblerBase {
 public:
-    std::optional<Error> setCurrentSegment(Segment seg) const {
+    std::optional<Error> setCurrentSegment(Section seg) const {
         if (m_segmentPointers.count(seg) == 0) {
             return Error(0, "No base address set for segment '" + seg + +"'");
         }
-        m_currentSegment = seg;
+        m_currentSection = seg;
         return {};
     }
 
-    void setSegmentBase(Segment seg, uint32_t base) {
+    void setSegmentBase(Section seg, uint32_t base) {
         if (m_segmentPointers.count(seg) != 0) {
             throw std::runtime_error("Base address already set for segment '" + seg.toStdString() + +"'");
         }
         m_segmentPointers[seg] = {base, base};
     }
+
+    virtual AssembleResult assemble(const QStringList& programLines) const = 0;
+    AssembleResult assembleRaw(const QString& program) const {
+        const auto programLines = program.split(QRegExp("[\r\n]"));
+        return assemble(programLines);
+    }
+
+    virtual DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const = 0;
 
 protected:
     void setDirectives(DirectiveVec& directives) {
@@ -184,12 +192,12 @@ protected:
      * class. The value is a pair containing <segment base, segment end>.
      * Marked mutable to allow for modifying segment end pointer during assembling.
      */
-    mutable std::map<Segment, std::pair<uint32_t, uint32_t>> m_segmentPointers;
+    mutable std::map<Section, std::pair<uint32_t, uint32_t>> m_segmentPointers;
     /**
      * @brief m_currentSegment maintains the current segment where the assembler emits information.
      * Marked mutable to allow for switching currently selected segment during assembling.
      */
-    mutable Segment m_currentSegment;
+    mutable Section m_currentSection;
 };
 
 template <typename ISA>
@@ -205,12 +213,7 @@ public:
     using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstr>>;
 
 public:
-    AssembleResult assemble(const QString& program) const {
-        const auto programLines = program.split(QRegExp("[\r\n]"));
-        return assemble(programLines);
-    }
-
-    AssembleResult assemble(const QStringList& programLines) const {
+    AssembleResult assemble(const QStringList& programLines) const override {
         AssembleResult result;
 
         // Per default, emit to .text until otherwise specified
@@ -237,7 +240,7 @@ public:
         return result;
     }
 
-    DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const {
+    DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const override {
         size_t i = 0;
         DisassembleResult res;
         while ((i + sizeof(uint32_t)) <= program.size()) {
@@ -271,7 +274,7 @@ protected:
     struct LinkRequest {
         unsigned sourceLine;  // Source location of code which resulted in the link request
         uint32_t offset;      // Offset of instruction in segment which needs link resolution
-        Segment segment;      // Segment which instruction was emitted in
+        Section section;      // Section which instruction was emitted in
 
         // Reference to the immediate field which resolves the symbol and the requested symbol
         FieldLinkRequest fieldRequest;
@@ -393,12 +396,16 @@ protected:
         // Initialize program with initialized segments:
         Program program;
         for (const auto& iter : m_segmentPointers) {
-            program.segments[iter.first] = QByteArray();
+            ProgramSection sec;
+            sec.name = iter.first;
+            sec.address = iter.second.first;
+            sec.data = QByteArray();
+            program.sections[iter.first] = sec;
         }
 
         Errors errors;
-        QByteArray* currentSegment = &program.segments.at(m_currentSegment);
-        uint32_t addr_offset = currentSegment->size();
+        QByteArray* currentSection = &program.sections.at(m_currentSection).data;
+        uint32_t addr_offset = currentSection->size();
 
         bool wasDirective;
         for (const auto& line : tokenizedLines) {
@@ -409,8 +416,8 @@ protected:
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line, wasDirective);
 
             // Currently emitting segment may have changed during the assembler directive; refresh state
-            currentSegment = &program.segments.at(m_currentSegment);
-            addr_offset = currentSegment->size();
+            currentSection = &program.sections.at(m_currentSection).data;
+            addr_offset = currentSection->size();
             if (!wasDirective) {
                 std::weak_ptr<Instr> assembledWith;
                 runOperation(machineCode, InstrRes, assembleInstruction, line, assembledWith);
@@ -420,16 +427,16 @@ protected:
                     req.sourceLine = line.sourceLine;
                     req.offset = addr_offset;
                     req.fieldRequest = machineCode.linksWithSymbol;
-                    req.segment = m_currentSegment;
+                    req.section = m_currentSection;
                     needsLinkage.push_back(req);
                 }
-                currentSegment->append(
+                currentSection->append(
                     QByteArray(reinterpret_cast<char*>(&machineCode.instruction), sizeof(machineCode.instruction)));
 
             }
             // This was a directive; check if any bytes needs to be appended to the segment
             else if (directiveBytes) {
-                currentSegment->append(directiveBytes.value());
+                currentSection->append(directiveBytes.value());
             }
         }
         if (errors.size() != 0) {
@@ -449,12 +456,12 @@ protected:
                 continue;
             }
 
-            QByteArray& segment = program.segments.at(linkRequest.segment);
+            QByteArray& section = program.sections.at(linkRequest.section).data;
 
             // Decode instruction at link-request position
-            assert(segment.size() >= (linkRequest.offset + 4) &&
+            assert(section.size() >= (linkRequest.offset + 4) &&
                    "Error: position of link request is not within program");
-            uint32_t instr = *reinterpret_cast<uint32_t*>(segment.data() + linkRequest.offset);
+            uint32_t instr = *reinterpret_cast<uint32_t*>(section.data() + linkRequest.offset);
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
@@ -463,8 +470,8 @@ protected:
                 assert(false && "Something other than an immediate field has requested linkage?");
             }
 
-            // Finally, overwrite the instruction in the segment
-            *reinterpret_cast<uint32_t*>(segment.data() + linkRequest.offset) = instr;
+            // Finally, overwrite the instruction in the section
+            *reinterpret_cast<uint32_t*>(section.data() + linkRequest.offset) = instr;
         }
         if (errors.size() != 0) {
             return {errors};

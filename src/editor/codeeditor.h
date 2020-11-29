@@ -5,7 +5,9 @@
 #include <QScrollBar>
 #include <QTimer>
 
-#include "assembler.h"
+#include "assembler/assembler.h"
+#include "assembler/program.h"
+
 #include "syntaxhighlighter.h"
 
 #include <memory>
@@ -27,7 +29,9 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     int lineNumberAreaWidth();
     void setupChangedTimer();
-    bool syntaxAccepted() const { return m_highlighter->acceptsSyntax(); }
+    void rehighlight();
+
+    void setErrors(std::shared_ptr<AssemblerTmp::Errors> errors) { m_errors = errors; }
 
 signals:
     /**
@@ -54,10 +58,9 @@ private:
     LineNumberArea* m_lineNumberArea;
     int m_sidebarWidth;
 
-    bool m_syntaxChecking = false;
     bool m_breakpointAreaEnabled = false;
-
     SourceType m_sourceType = SourceType::Assembly;
+    std::shared_ptr<AssemblerTmp::Errors> m_errors;
 
     QFont m_font;
 

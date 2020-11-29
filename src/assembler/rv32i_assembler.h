@@ -17,7 +17,7 @@ private:
 
 public:
     enum class Extensions { M, F };
-    RV32I_Assembler(const std::set<Extensions>& extensions);
+    RV32I_Assembler(const std::set<Extensions> extensions = std::set<Extensions>());
 
 public:
     std::tuple<RVInstrVec, RVPseudoInstrVec, DirectiveVec>

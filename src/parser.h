@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "defines.h"
-#include "program.h"
+#include "assembler/program.h"
 
 namespace Ripes {
 

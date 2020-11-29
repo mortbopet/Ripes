@@ -321,7 +321,9 @@ void MainWindow::saveFilesTriggered() {
 
     if (!diag.binaryPath().isEmpty()) {
         QFile file(diag.binaryPath());
-        writeBinaryFile(file, m_editTab->getBinaryData());
+        if (auto* program = m_editTab->getBinaryData()) {
+            writeBinaryFile(file, *program);
+        }
     }
 }
 

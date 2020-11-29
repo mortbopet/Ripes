@@ -7,7 +7,6 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
-#include <QSyntaxHighlighter>
 #include <QTextBlock>
 #include <QTimer>
 #include <QToolTip>
@@ -15,9 +14,11 @@
 
 #include <iterator>
 
+#include "syntaxhighlighter.h"
+
 #include "csyntaxhighlighter.h"
 #include "processorhandler.h"
-#include "rvassemblyhighlighter.h"
+#include "rvsyntaxhighlighter.h"
 
 namespace Ripes {
 
@@ -101,6 +102,10 @@ bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
     return false;
 }
 
+void CodeEditor::rehighlight() {
+    m_highlighter->rehighlight();
+}
+
 bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
@@ -108,13 +113,14 @@ bool CodeEditor::event(QEvent* event) {
         auto* helpEvent = static_cast<QHelpEvent*>(event);
         QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
         const int row = textAtCursor.block().firstLineNumber();
-        const QString tooltip = m_highlighter->getTooltipForLine(row);
-        if (tooltip != QString()) {
-            QToolTip::showText(helpEvent->globalPos(), tooltip);
+
+        if (m_errors && m_errors->toMap().count(row) != 0) {
+            QToolTip::showText(helpEvent->globalPos(), m_errors->toMap().at(row));
         } else {
             QToolTip::hideText();
             event->ignore();
         }
+
         return true;
     }
     return QPlainTextEdit::event(event);
@@ -144,16 +150,16 @@ void CodeEditor::setSourceType(SourceType type) {
     // Creates AsmHighlighter object and connects it to the current document
     switch (m_sourceType) {
         case SourceType::Assembly:
-            m_highlighter = std::make_unique<RVAssemblyHighlighter>(document());
+            m_highlighter = std::make_unique<RVSyntaxHighlighter>(document(), m_errors);
             break;
         case SourceType::C:
-            m_highlighter = std::make_unique<CSyntaxHighlighter>(document());
+            m_highlighter = std::make_unique<CSyntaxHighlighter>(document(), m_errors);
             break;
         default:
             break;
     }
 
-    m_highlighter->clearAndRehighlight();
+    m_highlighter->rehighlight();
 }
 
 void CodeEditor::highlightCurrentLine() {

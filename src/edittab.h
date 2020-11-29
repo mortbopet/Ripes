@@ -6,8 +6,8 @@
 #include <map>
 #include <memory>
 
-#include "assembler.h"
-#include "program.h"
+#include "assembler/assembler.h"
+#include "assembler/program.h"
 #include "ripestab.h"
 
 namespace Ripes {
@@ -33,7 +33,7 @@ public:
 
     bool isEditorEnabled() const { return m_editorEnabled; }
 
-    const QByteArray& getBinaryData();
+    const QByteArray* getBinaryData();
 
     void loadFile(const LoadFileParams&);
     /**
@@ -86,9 +86,10 @@ private:
     QAction* m_symbolNavigatorAction = nullptr;
 
     Ui::EditTab* m_ui = nullptr;
-    std::unique_ptr<Assembler> m_assembler;
+    std::unique_ptr<AssemblerTmp::AssemblerBase> m_assembler;
 
     std::shared_ptr<Program> m_activeProgram;
+    std::shared_ptr<AssemblerTmp::Errors> m_sourceErrors;
 
     SourceType m_currentSourceType;
 

@@ -1,8 +1,8 @@
 #include "processorhandler.h"
 
+#include "assembler/program.h"
 #include "parser.h"
 #include "processorregistry.h"
-#include "program.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
 
@@ -48,7 +48,7 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
     // Memory initializations
     mem.clearInitializationMemories();
     for (const auto& seg : p->sections) {
-        mem.addInitializationMemory(seg.address, seg.data.data(), seg.data.length());
+        mem.addInitializationMemory(seg.second.address, seg.second.data.data(), seg.second.data.length());
     }
 
     m_currentProcessor->setPCInitialValue(p->entryPoint);

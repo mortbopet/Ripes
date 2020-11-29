@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "assemblererror.h"
+#include "program.h"
 
 namespace Ripes {
 namespace AssemblerTmp {
@@ -30,10 +31,7 @@ using SymbolLinePair = std::pair<Symbols, LineTokens>;
 using SourceProgram = std::vector<TokenizedSrcLine>;
 using NoPassResult = std::monostate;
 
-using Segment = QString;
-struct Program {
-    std::map<Segment, QByteArray> segments;
-};
+using Section = QString;
 
 /**
  * @brief The Result struct
