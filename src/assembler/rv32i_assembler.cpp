@@ -189,8 +189,8 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
             return v;
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "ret", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
+        new RVPseudoInstr("ret", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
             std::vector<AssemblerTmp::LineTokens> v;
             v.push_back(QStringList() << "jalr"
                                       << "x0"
