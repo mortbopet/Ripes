@@ -140,6 +140,9 @@ protected:
                     if (symbols.count(cleanedSymbol) != 0) {
                         return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
                     } else {
+                        if (cleanedSymbol.isEmpty()) {
+                            return {Error(sourceLine, "Invalid symbol")};
+                        }
                         symbols.insert(cleanedSymbol);
                     }
                 } else {
