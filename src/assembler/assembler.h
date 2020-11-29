@@ -83,9 +83,11 @@ protected:
     }
 
     virtual std::variant<Error, LineTokens> tokenize(const QString& line) const {
-        const static auto splitter = QRegularExpression(
-            R"(\t|\((?=x(?:[1-2]\d|3[0-1]|\d)|t[0-6]|a[0-7]|s(?:1[0-1]|\d)|[sgt]p|zero)|(?:x(?:[1-2]\d|3[0-1]|\d)|t[0-6]|a[0-7]|s(?:1[0-1]|\d)|[sgt]p|zero)\K\))");
-        return splitQuotes(line.split(splitter));
+        // Regex: match all empty strings (\s+) except for quote-delimitered substrings.
+        const static auto splitter = QRegularExpression(R"(\s+(?=(?:[^"]*"[^"]*")*[^"]*$))");
+        auto tokens = line.split(splitter);
+        tokens.removeAll(QStringLiteral(""));
+        return tokens;
     }
 
     virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok) const {
@@ -106,7 +108,7 @@ protected:
      */
     virtual std::variant<Error, SymbolLinePair> splitSymbolsFromLine(const LineTokens& tokens, int sourceLine) const {
         if (tokens.size() == 0) {
-            return std::pair<Symbols, LineTokens>({}, tokens);
+            return {SymbolLinePair({}, tokens)};
         }
 
         LineTokens remainingTokens;
@@ -118,25 +120,25 @@ protected:
                 if (symbolStillAllowed) {
                     const QString cleanedSymbol = QString(token).remove(':');
                     if (symbols.count(cleanedSymbol) != 0) {
-                        return Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'");
+                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
                     } else {
                         symbols.insert(cleanedSymbol);
                     }
                 } else {
-                    return Error(sourceLine, "Stray ':' in line");
+                    return {Error(sourceLine, "Stray ':' in line")};
                 }
             } else {
                 remainingTokens.append(token);
                 symbolStillAllowed = false;
             }
         }
-        return std::pair<Symbols, LineTokens>(symbols, remainingTokens);
+        return {SymbolLinePair(symbols, remainingTokens)};
     }
 
     virtual std::variant<Error, DirectiveLinePair> splitDirectivesFromLine(const LineTokens& tokens,
                                                                            int sourceLine) const {
         if (tokens.size() == 0) {
-            return DirectiveLinePair(QString(), tokens);
+            return {DirectiveLinePair(QString(), tokens)};
         }
 
         LineTokens remainingTokens;
@@ -148,7 +150,7 @@ protected:
                 if (directivesStillAllowed) {
                     directives.push_back(token);
                 } else {
-                    return Error(sourceLine, "Stray '.' in line");
+                    return {Error(sourceLine, "Stray '.' in line")};
                 }
             } else {
                 remainingTokens.append(token);
@@ -156,9 +158,9 @@ protected:
             }
         }
         if (directives.size() > 1) {
-            return Error(sourceLine, "Illegal multiple directives");
+            return {Error(sourceLine, "Illegal multiple directives")};
         } else {
-            return DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(), remainingTokens);
+            return {DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(), remainingTokens)};
         }
     }
 
