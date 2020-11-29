@@ -486,14 +486,26 @@ protected:
 
     virtual PseudoExpandRes expandPseudoOp(const TokenizedSrcLine& line) const {
         if (line.tokens.empty()) {
-            return std::nullopt;
+            return PseudoExpandRes(std::nullopt);
         }
         const auto& opcode = line.tokens.at(0);
         if (m_pseudoInstructionMap.count(opcode) == 0) {
             // Not a pseudo instruction
-            return std::nullopt;
+            return PseudoExpandRes(std::nullopt);
         }
-        return m_pseudoInstructionMap.at(opcode)->expand(line);
+        auto res = m_pseudoInstructionMap.at(opcode)->expand(line);
+        try {
+            auto& error = std::get<Error>(res);
+            if (m_instructionMap.count(opcode) != 0) {
+                // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.
+                // arguments provided were intended for the normal instruction and not the pseudoinstruction), then
+                // return as if not a pseudo-instruction, falling to normal instruction handling
+                return PseudoExpandRes(std::nullopt);
+            }
+        } catch (const std::bad_variant_access&) {
+        }
+        // Return result (containing either a valid pseudo-instruction expand error or the expanded pseudo instruction
+        return {res};
     }
 
     virtual AssembleRes assembleInstruction(const TokenizedSrcLine& line, std::weak_ptr<Instr>& assembledWith) const {
