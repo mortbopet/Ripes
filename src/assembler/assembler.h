@@ -83,8 +83,9 @@ protected:
     }
 
     virtual std::variant<Error, LineTokens> tokenize(const QString& line) const {
-        // Regex: match all empty strings (\s+) except for quote-delimitered substrings.
-        const static auto splitter = QRegularExpression(R"(\s+(?=(?:[^"]*"[^"]*")*[^"]*$))");
+        // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
+        // substrings.
+        const static auto splitter = QRegularExpression(R"((\s+|\,|\(|\)|\[|\])(?=(?:[^"]*"[^"]*")*[^"]*$))");
         auto tokens = line.split(splitter);
         tokens.removeAll(QStringLiteral(""));
         return tokens;
