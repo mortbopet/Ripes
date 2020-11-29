@@ -306,8 +306,10 @@ protected:
             tsl.sourceLine = i;
             runOperation(tokens, LineTokens, tokenize, program[i]);
 
+            runOperation(remainingTokens, LineTokens, splitCommentFromLine, tokens);
+
             // Symbols precede directives
-            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, tokens, i);
+            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, remainingTokens, i);
             tsl.symbols = symbolsAndRest.first;
 
             bool uniqueSymbols = true;
@@ -326,8 +328,7 @@ protected:
             runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
             tsl.directive = directiveAndRest.first;
 
-            runOperation(remainingTokens, LineTokens, splitCommentFromLine, directiveAndRest.second);
-            tsl.tokens = remainingTokens;
+            tsl.tokens = directiveAndRest.second;
             if (tsl.tokens.empty() && tsl.directive.isEmpty()) {
                 if (!tsl.symbols.empty()) {
                     carry.insert(tsl.symbols.begin(), tsl.symbols.end());
