@@ -96,8 +96,42 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
                     {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(2, 15, 19), \
                      std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
+#define PseudoLoad(name)                                                                                       \
+    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                          \
+        name, {RVPseudoInstr::reg(), RVPseudoInstr::imm()},                                                    \
+        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {                                 \
+            std::vector<AssemblerTmp::LineTokens> v;                                                           \
+            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));                   \
+            v.push_back(QStringList() << name << line.tokens.at(1) << line.tokens.at(2) << line.tokens.at(1)); \
+            return v;                                                                                          \
+        }))
+
+// The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if we detect that
+// a number has been provided, then abort the pseudo-op handling.
+#define PseudoStore(name)                                                                                      \
+    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                          \
+        name, {RVPseudoInstr::reg(), RVPseudoInstr::imm(), RVPseudoInstr::reg()},                              \
+        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {                                 \
+            bool canConvert;                                                                                   \
+            getImmediate(line.tokens.at(2), canConvert);                                                       \
+            if (canConvert) {                                                                                  \
+                return PseudoExpandRes(Error(0, "Unused; will fallback to non-pseudo op sw"));                 \
+            }                                                                                                  \
+            std::vector<AssemblerTmp::LineTokens> v;                                                           \
+            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));                   \
+            v.push_back(QStringList() << name << line.tokens.at(1) << line.tokens.at(2) << line.tokens.at(3)); \
+            return PseudoExpandRes(v);                                                                         \
+        }))
+
 void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
+    pseudoInstructions.push_back(PseudoLoad("lb"));
+    pseudoInstructions.push_back(PseudoLoad("lh"));
+    pseudoInstructions.push_back(PseudoLoad("lw"));
+    pseudoInstructions.push_back(PseudoStore("sb"));
+    pseudoInstructions.push_back(PseudoStore("sh"));
+    pseudoInstructions.push_back(PseudoStore("sw"));
+
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
         "la", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
         [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
