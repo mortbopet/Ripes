@@ -112,14 +112,31 @@ protected:
             return {SymbolLinePair({}, tokens)};
         }
 
+        // Handle the case where a token has been joined together with another token, ie "B:nop"
+        QStringList splitTokens;
+        splitTokens.reserve(tokens.size());
+        for (const auto& token : tokens) {
+            QString buffer;
+            for (const auto& ch : token) {
+                buffer.append(ch);
+                if (ch == ':') {
+                    splitTokens << buffer;
+                    buffer.clear();
+                }
+            }
+            if (!buffer.isEmpty()) {
+                splitTokens << buffer;
+            }
+        }
+
         LineTokens remainingTokens;
-        remainingTokens.reserve(tokens.size());
+        remainingTokens.reserve(splitTokens.size());
         Symbols symbols;
         bool symbolStillAllowed = true;
-        for (const auto& token : tokens) {
-            if (token.contains(':')) {
+        for (const auto& token : splitTokens) {
+            if (token.endsWith(':')) {
                 if (symbolStillAllowed) {
-                    const QString cleanedSymbol = QString(token).remove(':');
+                    const QString cleanedSymbol = token.left(token.length() - 1);
                     if (symbols.count(cleanedSymbol) != 0) {
                         return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
                     } else {
