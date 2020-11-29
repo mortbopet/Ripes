@@ -42,18 +42,18 @@ struct ProgramSection {
  */
 struct Program {
     unsigned long entryPoint = 0;
-    std::vector<ProgramSection> sections;
+    std::map<QString, ProgramSection> sections;
     std::map<unsigned long, QString> symbols;
 
     const ProgramSection* getSection(const QString& name) const {
         const auto secIter =
-            std::find_if(sections.begin(), sections.end(), [=](const auto& section) { return section.name == name; });
+            std::find_if(sections.begin(), sections.end(), [=](const auto& section) { return section.first == name; });
 
         if (secIter == sections.end()) {
             return nullptr;
         }
 
-        return &*secIter;
+        return &secIter->second;
     }
 };
 }  // namespace Ripes
