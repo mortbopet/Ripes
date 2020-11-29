@@ -101,30 +101,28 @@ Directive stringDirective() {
     return Directive(".string", &stringFunctor);
 }
 
-template <char const* str>
-HandleDirectiveRes segmentChangeFunctor(const AssemblerBase* assembler, const TokenizedSrcLine& line) {
-    auto err = assembler->setCurrentSegment(str);
-    if (err) {
-        // Embed source line into error message
-        err.value().first = line.sourceLine;
-        return {err.value()};
-    }
-    return std::nullopt;
-};
+Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
+    return [segment](const AssemblerBase* assembler, const TokenizedSrcLine& line) {
+        auto err = assembler->setCurrentSegment(segment);
+        if (err) {
+            // Embed source line into error message
+            err.value().first = line.sourceLine;
+            return HandleDirectiveRes{err.value()};
+        }
+        return HandleDirectiveRes(std::nullopt);
+    };
+}
 
-constexpr char s_text[] = ".text";
 Directive textDirective() {
-    return Directive(".text", &segmentChangeFunctor<s_text>);
+    return Directive(".text", genSegmentChangeFunctor(".text"));
 }
 
-constexpr char s_bss[] = ".bss";
 Directive bssDirective() {
-    return Directive(".bss", &segmentChangeFunctor<s_bss>);
+    return Directive(".bss", genSegmentChangeFunctor(".bss"));
 }
 
-constexpr char s_data[] = ".data";
 Directive dataDirective() {
-    return Directive(".data", &segmentChangeFunctor<s_data>);
+    return Directive(".data", genSegmentChangeFunctor(".data"));
 }
 
 Directive zeroDirective() {
