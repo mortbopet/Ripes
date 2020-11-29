@@ -141,12 +141,12 @@ protected:
                         return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
                     } else {
                         if (cleanedSymbol.isEmpty()) {
-                            return {Error(sourceLine, "Invalid symbol")};
+                            return {Error(sourceLine, QStringLiteral("Invalid symbol"))};
                         }
                         symbols.insert(cleanedSymbol);
                     }
                 } else {
-                    return {Error(sourceLine, "Stray ':' in line")};
+                    return {Error(sourceLine, QStringLiteral("Stray ':' in line"))};
                 }
             } else {
                 remainingTokens.append(token);
@@ -171,7 +171,7 @@ protected:
                 if (directivesStillAllowed) {
                     directives.push_back(token);
                 } else {
-                    return {Error(sourceLine, "Stray '.' in line")};
+                    return {Error(sourceLine, QStringLiteral("Stray '.' in line"))};
                 }
             } else {
                 remainingTokens.append(token);
@@ -179,7 +179,7 @@ protected:
             }
         }
         if (directives.size() > 1) {
-            return {Error(sourceLine, "Illegal multiple directives")};
+            return {Error(sourceLine, QStringLiteral("Illegal multiple directives"))};
         } else {
             return {DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(), remainingTokens)};
         }
