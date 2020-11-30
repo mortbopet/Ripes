@@ -66,6 +66,8 @@ public:
 
     virtual DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const = 0;
 
+    virtual std::set<QString> getOpcodes() const = 0;
+
 protected:
     void setDirectives(DirectiveVec& directives) {
         if (m_directives.size() != 0) {
@@ -292,6 +294,17 @@ public:
     }
 
     const Matcher<ISA>& getMatcher() { return *m_matcher; }
+
+    std::set<QString> getOpcodes() const override {
+        std::set<QString> opcodes;
+        for (const auto& iter : m_instructionMap) {
+            opcodes.insert(iter.first);
+        }
+        for (const auto& iter : m_pseudoInstructionMap) {
+            opcodes.insert(iter.first);
+        }
+        return opcodes;
+    }
 
 protected:
     struct LinkRequest {
