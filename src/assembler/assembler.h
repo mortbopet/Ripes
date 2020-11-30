@@ -442,12 +442,15 @@ protected:
 
         Errors errors;
         QByteArray* currentSection = &program.sections.at(m_currentSection).data;
-        uint32_t addr_offset = currentSection->size();
 
         bool wasDirective;
         for (const auto& line : tokenizedLines) {
+            // Get offset of currently emitting position in memory relative to section position
+            uint32_t addr_offset = currentSection->size();
             for (const auto& s : line.symbols) {
-                symbolMap[s] = addr_offset;  // No check on duplicate symbols, done in pass 1
+                // Record symbol position as its absolute address in memory
+                // No check on duplicate symbols, done in pass 1
+                symbolMap[s] = addr_offset + program.sections.at(m_currentSection).address;
             }
 
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line, wasDirective);
