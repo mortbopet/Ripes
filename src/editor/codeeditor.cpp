@@ -144,14 +144,20 @@ void CodeEditor::resizeEvent(QResizeEvent* e) {
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void CodeEditor::setSourceType(SourceType type) {
+void CodeEditor::setSourceType(SourceType type, const std::set<QString>& supportedOpcodes) {
     m_sourceType = type;
 
     // Creates AsmHighlighter object and connects it to the current document
     switch (m_sourceType) {
-        case SourceType::Assembly:
-            m_highlighter = std::make_unique<RVSyntaxHighlighter>(document(), m_errors);
+        case SourceType::Assembly: {
+            auto* isa = ProcessorHandler::get()->currentISA();
+            if (isa->isaID() == ISA::RV32IM) {
+                m_highlighter = std::make_unique<RVSyntaxHighlighter>(document(), m_errors, supportedOpcodes);
+            } else {
+                Q_ASSERT(false && "Unknown ISA selected");
+            }
             break;
+        }
         case SourceType::C:
             m_highlighter = std::make_unique<CSyntaxHighlighter>(document(), m_errors);
             break;

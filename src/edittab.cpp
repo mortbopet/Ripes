@@ -187,7 +187,7 @@ void EditTab::sourceTypeChanged() {
     }
 
     // Notify the source type change to the code editor
-    m_ui->codeEditor->setSourceType(m_currentSourceType);
+    m_ui->codeEditor->setSourceType(m_currentSourceType, m_assembler->getOpcodes());
 }
 
 void EditTab::emitProgramChanged() {

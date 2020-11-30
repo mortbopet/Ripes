@@ -25,7 +25,7 @@ class CodeEditor : public QPlainTextEdit {
 public:
     CodeEditor(QWidget* parent = nullptr);
 
-    void setSourceType(SourceType type);
+    void setSourceType(SourceType type, const std::set<QString>& supportedOpcodes);
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     int lineNumberAreaWidth();
     void setupChangedTimer();
