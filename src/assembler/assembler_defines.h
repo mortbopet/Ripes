@@ -15,6 +15,7 @@ namespace Ripes {
 namespace AssemblerTmp {
 
 using LineTokens = QStringList;
+using LineTokensVec = std::vector<LineTokens>;
 using Symbol = QString;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;

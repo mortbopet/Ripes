@@ -96,11 +96,15 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
                     {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(2, 15, 19), \
                      std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
+#define RegTok RVPseudoInstr::reg()
+#define ImmTok RVPseudoInstr::imm()
+#define CreatePseudoInstruction
+#define PseudoExpandFunc(line) [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line)
+
 #define PseudoLoad(name)                                                                                       \
     std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                          \
-        name, {RVPseudoInstr::reg(), RVPseudoInstr::imm()},                                                    \
-        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {                                 \
-            std::vector<AssemblerTmp::LineTokens> v;                                                           \
+        name, {RegTok, ImmTok}, PseudoExpandFunc(line) {                                                       \
+            LineTokensVec v;                                                                                   \
             v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));                   \
             v.push_back(QStringList() << name << line.tokens.at(1) << line.tokens.at(2) << line.tokens.at(1)); \
             return v;                                                                                          \
@@ -110,14 +114,13 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
 // a number has been provided, then abort the pseudo-op handling.
 #define PseudoStore(name)                                                                                      \
     std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                          \
-        name, {RVPseudoInstr::reg(), RVPseudoInstr::imm(), RVPseudoInstr::reg()},                              \
-        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {                                 \
+        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line) {                                               \
             bool canConvert;                                                                                   \
             getImmediate(line.tokens.at(2), canConvert);                                                       \
             if (canConvert) {                                                                                  \
                 return PseudoExpandRes(Error(0, "Unused; will fallback to non-pseudo op sw"));                 \
             }                                                                                                  \
-            std::vector<AssemblerTmp::LineTokens> v;                                                           \
+            LineTokensVec v;                                                                                   \
             v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));                   \
             v.push_back(QStringList() << name << line.tokens.at(1) << line.tokens.at(2) << line.tokens.at(3)); \
             return PseudoExpandRes(v);                                                                         \
@@ -132,85 +135,54 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
     pseudoInstructions.push_back(PseudoStore("sh"));
     pseudoInstructions.push_back(PseudoStore("sw"));
 
+    // clang-format off
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "la", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-            std::vector<AssemblerTmp::LineTokens> v;
-            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));
-            v.push_back(QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << line.tokens.at(2));
-            return v;
-        })));
-
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("call", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              std::vector<AssemblerTmp::LineTokens> v;
-                              v.push_back(QStringList() << "auipc"
-                                                        << "x6" << line.tokens.at(1));
-                              v.push_back(QStringList() << "jalr"
-                                                        << "x1"
-                                                        << "x6" << line.tokens.at(1));
-                              return v;
-                          })));
-
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("tail", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              std::vector<AssemblerTmp::LineTokens> v;
-                              v.push_back(QStringList() << "auipc"
-                                                        << "x6" << line.tokens.at(1));
-                              v.push_back(QStringList() << "jalr"
-                                                        << "x0"
-                                                        << "x6" << line.tokens.at(1));
-                              return v;
-                          })));
-
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "j", {RVPseudoInstr::imm()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-            std::vector<AssemblerTmp::LineTokens> v;
-            v.push_back(QStringList() << "jal"
-                                      << "x0" << line.tokens.at(1));
-            return v;
+        "la", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2),
+                                 QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << line.tokens.at(2)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "jr", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-            std::vector<AssemblerTmp::LineTokens> v;
-            v.push_back(QStringList() << "jalr"
-                                      << "x0" << line.tokens.at(1) << "0");
-            return v;
+        "call", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{LineTokens() << "auipc" << "x6" << line.tokens.at(1),
+                                 LineTokens() << "jalr" << "x1" << "x6" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "jalr", {RVPseudoInstr::reg()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-            std::vector<AssemblerTmp::LineTokens> v;
-            v.push_back(QStringList() << "jalr"
-                                      << "x1" << line.tokens.at(1) << "0");
-            return v;
-        })));
-
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("ret", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
-            std::vector<AssemblerTmp::LineTokens> v;
-            v.push_back(QStringList() << "jalr"
-                                      << "x0"
-                                      << "x1"
-                                      << "0");
-            return v;
+        "tail", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList() << "auipc" << "x6" << line.tokens.at(1),
+                                 QStringList() << "jalr" << "x0" << "x6" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "jal", {RVPseudoInstr::imm()}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-            std::vector<AssemblerTmp::LineTokens> v;
-            v.push_back(QStringList() << "jal"
-                                      << "x1" << line.tokens.at(1));
-            return v;
+        "j", {ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList() << "jal" << "x0" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "li", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-        [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-            std::vector<AssemblerTmp::LineTokens> v;
+        "jr", {RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList() << "jalr" << "x0" << line.tokens.at(1) << "0"};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "jalr", {RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList() << "jalr" << "x1" << line.tokens.at(1) << "0"};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "ret", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
+            return LineTokensVec{QStringList() << "jalr" << "x0" << "x1" << "0"};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "jal", {ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList() << "jal" << "x1" << line.tokens.at(1)};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "li", {RegTok, ImmTok},
+        PseudoExpandFunc(line) {
+            LineTokensVec v;
             // Determine whether an ADDI or LUI instruction is sufficient, or if both LUI and ADDI is needed, by
             // analysing the immediate size
             bool canConvert;
@@ -235,127 +207,94 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
         new RVPseudoInstr("nop", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
-            return std::vector<AssemblerTmp::LineTokens>{QString("addi x0 x0 0").split(' ')};
+            return LineTokensVec{QString("addi x0 x0 0").split(' ')};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+        "mv", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"addi", line.tokens.at(1), line.tokens.at(2), "0"}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("mv", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"addi", line.tokens.at(1), line.tokens.at(2), "0"}};
-                          })));
+        new RVPseudoInstr("not", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"xori", line.tokens.at(1), line.tokens.at(2), "-1"}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("not", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"xori", line.tokens.at(1), line.tokens.at(2), "-1"}};
-                          })));
+        new RVPseudoInstr("neg", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"sub", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("neg", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"sub", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("seqz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"sltiu", line.tokens.at(1), line.tokens.at(2), "1"}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("seqz", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"sltiu", line.tokens.at(1), line.tokens.at(2), "1"}};
-                          })));
+        new RVPseudoInstr("snez", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{ QStringList{"sltu", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("snez", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"sltu", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("sltz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"slt", line.tokens.at(1), line.tokens.at(2), "x0"}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("sltz", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"slt", line.tokens.at(1), line.tokens.at(2), "x0"}};
-                          })));
+        new RVPseudoInstr("sgtz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"slt", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("sgtz", {RVPseudoInstr::reg(), RVPseudoInstr::reg()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"slt", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("beqz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"beq", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("beqz", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"beq", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("bnez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"bne", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bnez", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"bne", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("blez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"bge", "x0", line.tokens.at(1), line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("blez", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"bge", "x0", line.tokens.at(1), line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("bgez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"bge", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgez", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"bge", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("bltz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"blt", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bltz", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"blt", line.tokens.at(1), "x0", line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("bgtz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"blt", "x0", line.tokens.at(1), line.tokens.at(2)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgtz", {RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"blt", "x0", line.tokens.at(1), line.tokens.at(2)}};
-                          })));
+        new RVPseudoInstr("bgt", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"blt", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgt", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"blt", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
-                          })));
+        new RVPseudoInstr("ble", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"bge", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("ble", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"bge", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
-                          })));
+        new RVPseudoInstr("bgtu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"bltu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
+        })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgtu", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"bltu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
-                          })));
-
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bleu", {RVPseudoInstr::reg(), RVPseudoInstr::reg(), RVPseudoInstr::imm()},
-                          [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line) {
-                              return std::vector<AssemblerTmp::LineTokens>{
-                                  QStringList{"bgeu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
-                          })));
+        new RVPseudoInstr("bleu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+            return LineTokensVec{QStringList{"bgeu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
+        })));
+    // clang-format on
 
     // Assembler functors
 
@@ -368,8 +307,8 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
      * instruction.
      * - If no symbol; the provided immediate will be placed in the upper 20 bits of the instruction
      * - if symbol; the upper 20 bits of the provided resolved symbol will be placed in the upper 20 bits of the
-     * instruction. To facilitate these two capabilities, we provide a symbol modifier functor to adjust any provided
-     * symbol.
+     * instruction. To facilitate these two capabilities, we provide a symbol modifier functor to adjust any
+     * provided symbol.
      */
     auto auipcSymbolModifier = [](uint32_t bareSymbol) { return bareSymbol >> 12; };
     instructions.push_back(std::shared_ptr<RVInstr>(
