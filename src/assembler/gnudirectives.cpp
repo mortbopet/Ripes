@@ -27,11 +27,14 @@ DirectiveVec gnuDirectives() {
     return directives;
 }
 
-std::optional<Error> assembleData(const QStringList& tokens, QByteArray& byteArray, size_t size) {
+std::optional<Error> assembleData(const TokenizedSrcLine& line, QByteArray& byteArray, size_t size) {
     Q_ASSERT(size >= 1 && size <= 4);
     bool ok;
-    for (int i = 1; i < tokens.size(); i++) {
-        qlonglong val = getImmediate(tokens[i], ok);
+    for (const auto& token : line.tokens) {
+        qlonglong val = getImmediate(token, ok);
+        if (!ok) {
+            return {Error(line.sourceLine, "Invalid immediate value")};
+        }
 
         for (size_t i = 0; i < size; i++) {
             byteArray.append(val & 0xff);
@@ -47,7 +50,7 @@ HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& lin
         return {Error(line.sourceLine, "Invalid number of arguments")};
     }
     QByteArray bytes;
-    auto err = assembleData(line.tokens, bytes, width);
+    auto err = assembleData(line, bytes, width);
     if (err) {
         return {err.value()};
     } else {
