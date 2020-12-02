@@ -6,8 +6,8 @@
 #include "directive.h"
 #include "instruction.h"
 #include "isainfo.h"
-#include "lexerutilities.h"
 #include "matcher.h"
+#include "parserutilities.h"
 #include "pseudoinstruction.h"
 
 #include <set>
@@ -87,10 +87,15 @@ protected:
     virtual std::variant<Error, LineTokens> tokenize(const QString& line) const {
         // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
         // substrings.
-        const static auto splitter = QRegularExpression(R"((\s+|\,|\(|\)|\[|\])(?=(?:[^"]*"[^"]*")*[^"]*$))");
+        const static auto splitter = QRegularExpression(R"((\s+|\,)(?=(?:[^"]*"[^"]*")*[^"]*$))");
         auto tokens = line.split(splitter);
         tokens.removeAll(QStringLiteral(""));
-        return tokens;
+        auto joinedtokens = joinParentheses(tokens);
+        try {
+            return std::get<Error>(joinedtokens);
+        } catch (const std::bad_variant_access&) {
+        }
+        return std::get<LineTokens>(joinedtokens);
     }
 
     virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok) const {
