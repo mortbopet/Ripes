@@ -1,0 +1,219 @@
+#include "expreval.h"
+
+#include <iostream>
+#include <memory>
+
+#include "parserutilities.h"
+
+namespace Ripes {
+namespace AssemblerTmp {
+
+#define IfExpr(TExpr, boundVar) \
+    try {                       \
+        auto boundVar = std::get<TExpr>(*expr);
+#define FiExpr                               \
+    }                                        \
+    catch (const std::bad_variant_access&) { \
+    }
+
+struct Expr;
+
+struct Printable {
+    virtual void print(std::ostream& str) const = 0;
+};
+
+struct Literal : Printable {
+    Literal(QString _v) : v(_v) {}
+    QString v;
+    void print(std::ostream& str) const override;
+};
+
+struct Add : Printable {
+    Add(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Sub : Printable {
+    Sub(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Mul : Printable {
+    Mul(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Div : Printable {
+    Div(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Expr : std::variant<Literal, Add, Mul, Div, Sub> {
+    using variant::variant;
+
+    /**
+     * @brief operator <<
+     * This also seem quite dumb, but there seems to be no typesafe way of casting an underlying variant to a shared
+     * base type. So, manually try all variants...
+     */
+    friend std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Expr>& expr) {
+        IfExpr(Add, v) {
+            v.print(os);
+            return os;
+        }
+        FiExpr;
+        IfExpr(Div, v) {
+            v.print(os);
+            return os;
+        }
+        FiExpr;
+        IfExpr(Mul, v) {
+            v.print(os);
+            return os;
+        }
+        FiExpr;
+        IfExpr(Sub, v) {
+            v.print(os);
+            return os;
+        }
+        FiExpr;
+        IfExpr(Literal, v) {
+            v.print(os);
+            return os;
+        }
+        FiExpr;
+        return os;
+    }
+};
+
+// clang-format off
+void Add::print(std::ostream& os) const {
+    os << "(" << lhs << " + " << rhs << ")";
+}
+void Sub::print(std::ostream& os) const {
+    os << "(" << lhs << " - " << rhs << ")";
+}
+void Mul::print(std::ostream& os) const {
+    os << "(" << lhs << " * " << rhs << ")";
+}
+void Div::print(std::ostream& os) const {
+    os << "(" << lhs << " / " << rhs << ")";
+}
+void Literal::print(std::ostream& os) const {
+    os << v.toStdString();
+}
+// clang-format on
+
+using ExprRes = std::variant<Error, std::shared_ptr<Expr>>;
+ExprRes parseRight(const QString& s, int& pos, int& depth);
+
+template <typename BinOp>
+ExprRes rightRec(std::shared_ptr<Expr> lhs, const QString& s, int& pos, int& depth) {
+    auto rhs = parseRight(s, pos, depth);
+    try {
+        return {std::get<Error>(rhs)};
+    } catch (std::bad_variant_access&) {
+    }
+    return {std::make_shared<Expr>(BinOp{lhs, std::get<std::shared_ptr<Expr>>(rhs)})};
+}
+
+#define Token(lhs) std::make_shared<Expr>(Literal{lhs})
+
+// 2*(3+4)+4
+ExprRes parseLeft(const QString& s, int& pos, int& depth);
+ExprRes parseRight(const QString& s, int& pos, int& depth) {
+    QString lhs;
+    while (pos < s.length()) {
+        // clang-format off
+        auto& ch = s.at(pos);
+        pos++;
+        switch (ch.unicode()) {
+            case '(': { depth++; return parseLeft(s, pos, depth);}
+            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(-1, "Unmatched parenthesis"));};
+            case '+': { return rightRec<Add>(Token(lhs), s, pos, depth);}
+            case '/': { return rightRec<Div>(Token(lhs), s, pos, depth);}
+            case '*': { return rightRec<Mul>(Token(lhs), s, pos, depth);}
+            case '-': { return rightRec<Sub>(Token(lhs), s, pos, depth);}
+            default:  {lhs.append(ch);}
+        }
+        // clang-format on
+    }
+    return Token(lhs);
+}
+
+ExprRes parseLeft(const QString& s, int& pos, int& depth) {
+    auto left = parseRight(s, pos, depth);
+    try {
+        return {std::get<Error>(left)};
+    } catch (std::bad_variant_access&) {
+    }
+    auto& res = std::get<std::shared_ptr<Expr>>(left);
+    if (pos < s.length()) {
+        auto& ch = s.at(pos);
+        pos++;
+        // clang-format off
+        switch (ch.unicode()) {
+            case '+': { return rightRec<Add>(res, s, pos, depth);}
+            case '/': { return rightRec<Div>(res, s, pos, depth);}
+            case '*': { return rightRec<Mul>(res, s, pos, depth);}
+            case '-': { return rightRec<Sub>(res, s, pos, depth);}
+            case ')': { return depth-- != 0 ? res : ExprRes(Error(-1, "Unmatched parenthesis"));};
+            default:  { return ExprRes(Error(-1, "Invalid binop"));}
+        }
+        // clang-format on
+    } else {
+        return left;
+    }
+}
+
+long evaluate(const std::shared_ptr<Expr>& expr, const std::map<QString, uint32_t>* variables) {
+    // There is a bug in GCC for variant visitors on incomplete variant types (recursive), So instead we'll macro our
+    // way towards something that looks like a pattern match for the variant type.
+    IfExpr(Add, v) { return evaluate(v.lhs, variables) + evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(Div, v) { return evaluate(v.lhs, variables) / evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(Mul, v) { return evaluate(v.lhs, variables) * evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(Sub, v) { return evaluate(v.lhs, variables) - evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(Literal, v) {
+        bool canConvert;
+        auto value = getImmediate(v.v, canConvert);
+        if (!canConvert) {
+            if (variables != nullptr && variables->count(v.v) != 0) {
+                value = variables->at(v.v);
+            } else {
+                throw std::runtime_error("Unevaluateable literal");
+            }
+        }
+        return value;
+    }
+    FiExpr;
+
+    Q_UNREACHABLE();
+}
+
+std::variant<Error, long> evaluate(const QString& s, const std::map<QString, uint32_t>* variables) {
+    QString sNoWhitespace = s;
+    sNoWhitespace.replace(" ", "");
+    int pos = 0;
+    int depth = 0;
+    auto exprTree = parseLeft(sNoWhitespace, pos, depth);
+    try {
+        return std::get<Error>(exprTree);
+    } catch (std::bad_variant_access&) {
+    }
+    const auto exprTreeRes = std::get<std::shared_ptr<Expr>>(exprTree);
+    try {
+        return {evaluate(exprTreeRes, variables)};
+    } catch (...) {
+        return {Error(-1, "Could not evaluate expression")};
+    }
+}
+}  // namespace AssemblerTmp
+}  // namespace Ripes

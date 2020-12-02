@@ -42,3 +42,4 @@ if(RIPES_ENABLE_RISCV_TESTS)
 endif()
 
 create_qtest(tst_assembler)
+create_qtest(tst_expreval)
