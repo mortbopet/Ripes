@@ -48,6 +48,20 @@ private:
         }
         return out;
     }
+
+    enum class Expect { Fail, Success };
+    void testAssemble(const QStringList& program, Expect expect) {
+        auto assembler = RV32I_Assembler();
+        auto res = assembler.assemble(program);
+        if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
+            res.errors.print();
+            QString err;
+            QString failExpectString = (expect == Expect::Fail ? "fail" : "success");
+            err += "Expected " + failExpectString + " on program: \n";
+            err += program.join('\n');
+            QFAIL(err.toStdString().c_str());
+        }
+    }
 };
 
 void tst_Assembler::tst_riscv() {
@@ -76,29 +90,25 @@ void tst_Assembler::tst_riscv() {
 }
 
 void tst_Assembler::tst_expression() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << ".data"
-                                        << "B: .word 123"
-                                        << ".text"
-                                        << "lw x10 (B + (4* 3))(x10)";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-        QFAIL("Errors during assembly");
-    }
+    testAssemble(QStringList() << ".data"
+                               << "B: .word 123"
+                               << ".text"
+                               << "lw x10 (B + (4* 3))(x10)",
+                 Expect::Success);
+    testAssemble(QStringList() << ".data"
+                               << "A: .word 1"
+                               << ".text"
+                               << "lw a0 A(+1) a0",
+                 Expect::Fail);
 
     return;
 }
 
 void tst_Assembler::tst_invalidLabel() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << ".text"
-                                        << "ABC+: lw x10 ABC+ x10";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() == 0) {
-        QFAIL("Expected errors");
-    }
-    return;
+    testAssemble(QStringList() << ".text"
+                               << "ABC+: lw x10 ABC+ x10",
+                 Expect::Fail);
+    testAssemble(QStringList() << "a: lw a0 a+ a0", Expect::Fail);
 }
 
 void tst_Assembler::tst_benchmarkNew() {
@@ -108,130 +118,78 @@ void tst_Assembler::tst_benchmarkNew() {
 }
 
 void tst_Assembler::tst_simpleprogram() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << ".data"
-                                        << "B: .word 1, 2, 2"
-                                        << "C: .string \"hello world!\""
-                                        << ".text"
-                                        << "addi a0 a0 123 # Hello world"
-                                        << "nop";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-        QFAIL("Errors during assembly");
-    }
-    auto disres = assembler.disassemble(res.program.sections[".text"].data);
-
-    return;
+    testAssemble(QStringList() << ".data"
+                               << "B: .word 1, 2, 2"
+                               << "C: .string \"hello world!\""
+                               << ".text"
+                               << "addi a0 a0 123 # Hello world"
+                               << "nop",
+                 Expect::Success);
 }
 
 void tst_Assembler::tst_simpleWithBranch() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << "B:nop"
-                                        << "sw x0, 24(sp) # tmp. res 2"
-                                        << "addi a0 a0 10"
-                                        << "addi a0 a0 -1"
-                                        << "beqz a0 B";
-
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-    }
-    auto disres = assembler.disassemble(res.program.sections[".text"].data);
-
-    return;
+    testAssemble(QStringList() << "B:nop"
+                               << "sw x0, 24(sp) # tmp. res 2"
+                               << "addi a0 a0 10"
+                               << "addi a0 a0 -1"
+                               << "beqz a0 B",
+                 Expect::Success);
 }
 
 void tst_Assembler::tst_weirdImmediates() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << "addi a0 a0 0q1234"
-                                        << "addi a0 a0 -abcd"
-                                        << "addi a0 a0 100000000"
-                                        << "addi a0 a0 4096"   // too large
-                                        << "addi a0 a0 2048"   // too large
-                                        << "addi a0 a0 -2049"  // too large
-                                        << "addi a0 a0 0xabcdabcdabcd";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-    }
-
-    return;
+    testAssemble(QStringList() << "addi a0 a0 0q1234"
+                               << "addi a0 a0 -abcd"
+                               << "addi a0 a0 100000000"
+                               << "addi a0 a0 4096"   // too large
+                               << "addi a0 a0 2048"   // too large
+                               << "addi a0 a0 -2049"  // too large
+                               << "addi a0 a0 0xabcdabcdabcd",
+                 Expect::Fail);
 }
 
 void tst_Assembler::tst_weirdDirectives() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << ".text"
-                                        << "B: .a"
-                                        << ""
-                                        << ".c"
-                                        << "nop";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-    }
-
-    return;
+    testAssemble(QStringList() << ".text"
+                               << "B: .a"
+                               << ""
+                               << ".c"
+                               << "nop",
+                 Expect::Fail);
+    // Test that a directive which requires no arguments throws error
+    testAssemble(QStringList{".data foo"}, Expect::Fail);
 }
 
 void tst_Assembler::tst_invalidreg() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << "addi x36 x46 1";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() == 0) {
-        QFAIL("Expected errors");
-    }
-
-    return;
+    testAssemble(QStringList() << "addi x36 x46 1", Expect::Fail);
 }
 
 void tst_Assembler::tst_edgeImmediates() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << "addi a0 a0 2047"
-                                        << "addi a0 a0 -2048";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-        QFAIL("Expected no errors");
-    }
-
-    return;
+    testAssemble(QStringList() << "addi a0 a0 2047"
+                               << "addi a0 a0 -2048",
+                 Expect::Success);
 }
 
 void tst_Assembler::tst_label() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << "A:"
-                                        << ""
-                                        << "B: C:"
-                                        << "D: E: addi a0 a0 -1";
-    auto res = assembler.assemble(program);
-    return;
+    testAssemble(QStringList() << "A:"
+                               << ""
+                               << "B: C:"
+                               << "D: E: addi a0 a0 -1",
+                 Expect::Success);
 }
 
 void tst_Assembler::tst_segment() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << ".data nop"
-                                        << "nop"
-                                        << ".text .word"
-                                        << "nop"
-                                        << ".data"
-                                        << "nop";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-    }
-    return;
+    testAssemble(QStringList() << ".data nop"
+                               << "nop"
+                               << ".text .word"
+                               << "nop"
+                               << ".data"
+                               << "nop",
+                 Expect::Success);
 }
 
 void tst_Assembler::tst_labelWithPseudo() {
-    auto assembler = RV32I_Assembler();
-    QStringList program = QStringList() << "j end"
-                                        << "end:nop";
-    auto res = assembler.assemble(program);
-    if (res.errors.size() != 0) {
-        res.errors.print();
-    }
-    return;
+    testAssemble(QStringList() << "j end"
+                               << "end:nop",
+                 Expect::Success);
 }
 
 void tst_Assembler::tst_matcher() {
