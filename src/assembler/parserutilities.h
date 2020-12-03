@@ -50,6 +50,13 @@ inline std::variant<Error, QStringList> joinParentheses(QStringList& tokens) {
     std::vector<QChar> parensStack;
 
     QString tokenBuffer;
+    auto commitBuffer = [&]() {
+        if (!tokenBuffer.isEmpty()) {
+            outtokens << tokenBuffer;
+            tokenBuffer.clear();
+        }
+    };
+
     for (const auto& token : tokens) {
         for (const auto& ch : token) {
             switch (ch.unicode()) {
@@ -57,6 +64,8 @@ inline std::variant<Error, QStringList> joinParentheses(QStringList& tokens) {
                 case '[':
                     if (!parensStack.empty()) {
                         tokenBuffer.append(ch);
+                    } else {
+                        commitBuffer();
                     }
                     parensStack.push_back(ch);
                     break;
@@ -64,8 +73,7 @@ inline std::variant<Error, QStringList> joinParentheses(QStringList& tokens) {
                 case ')': {
                     if (matchedParens(parensStack, ch)) {
                         if (parensStack.empty()) {
-                            outtokens << tokenBuffer;
-                            tokenBuffer.clear();
+                            commitBuffer();
                         } else {
                             tokenBuffer.append(ch);
                         }
@@ -79,9 +87,8 @@ inline std::variant<Error, QStringList> joinParentheses(QStringList& tokens) {
                     break;
             }
         }
-        if (parensStack.empty() && !tokenBuffer.isEmpty()) {
-            outtokens << tokenBuffer;
-            tokenBuffer.clear();
+        if (parensStack.empty()) {
+            commitBuffer();
         }
     }
 
