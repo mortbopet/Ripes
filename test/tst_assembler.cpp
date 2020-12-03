@@ -109,6 +109,7 @@ void tst_Assembler::tst_invalidLabel() {
                                << "ABC+: lw x10 ABC+ x10",
                  Expect::Fail);
     testAssemble(QStringList() << "a: lw a0 a+ a0", Expect::Fail);
+    testAssemble(QStringList() << "addi a0 a0 (a", Expect::Fail);
 }
 
 void tst_Assembler::tst_benchmarkNew() {

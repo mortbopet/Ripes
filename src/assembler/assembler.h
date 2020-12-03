@@ -87,7 +87,7 @@ protected:
         }
     }
 
-    virtual std::variant<Error, LineTokens> tokenize(const QString& line) const {
+    virtual std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const {
         // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
         // substrings.
         const static auto splitter = QRegularExpression(R"((\s+|\,)(?=(?:[^"]*"[^"]*")*[^"]*$))");
@@ -95,7 +95,9 @@ protected:
         tokens.removeAll(QStringLiteral(""));
         auto joinedtokens = joinParentheses(tokens);
         try {
-            return std::get<Error>(joinedtokens);
+            auto err = std::get<Error>(joinedtokens);
+            err.first = sourceLine;
+            return err;
         } catch (const std::bad_variant_access&) {
         }
         return std::get<LineTokens>(joinedtokens);
@@ -354,7 +356,7 @@ protected:
                 continue;
             TokenizedSrcLine tsl;
             tsl.sourceLine = i;
-            runOperation(tokens, LineTokens, tokenize, program[i]);
+            runOperation(tokens, LineTokens, tokenize, program[i], i);
 
             runOperation(remainingTokens, LineTokens, splitCommentFromLine, tokens);
 
