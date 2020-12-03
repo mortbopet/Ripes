@@ -47,7 +47,7 @@ std::optional<Error> assembleData(const TokenizedSrcLine& line, QByteArray& byte
 template <size_t width>
 HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
     if (line.tokens.length() < 1) {
-        return {Error(line.sourceLine, "Invalid number of arguments")};
+        return {Error(line.sourceLine, "Invalid number of arguments (expected >1)")};
     }
     QByteArray bytes;
     auto err = assembleData(line, bytes, width);
@@ -60,7 +60,7 @@ HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& lin
 
 HandleDirectiveRes stringFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
     if (line.tokens.length() != 1) {
-        return {Error(line.sourceLine, "Invalid number of arguments")};
+        return {Error(line.sourceLine, "Invalid number of arguments (expected 1)")};
     }
     QString string = line.tokens.at(0);
     string.remove('\"');
@@ -106,6 +106,9 @@ Directive stringDirective() {
 
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
     return [segment](const AssemblerBase* assembler, const TokenizedSrcLine& line) {
+        if (line.tokens.length() != 0) {
+            return HandleDirectiveRes{Error(line.sourceLine, "Invalid number of arguments (expected 0)")};
+        }
         auto err = assembler->setCurrentSegment(segment);
         if (err) {
             // Embed source line into error message
@@ -130,8 +133,8 @@ Directive dataDirective() {
 
 Directive zeroDirective() {
     auto zeroFunctor = [](const AssemblerBase*, const TokenizedSrcLine& line) -> HandleDirectiveRes {
-        if (line.tokens.length() != 2) {
-            return {Error(line.sourceLine, "Invalid number of arguments")};
+        if (line.tokens.length() != 1) {
+            return {Error(line.sourceLine, "Invalid number of arguments (expected 1)")};
         }
         bool ok;
         int value = getImmediate(line.tokens[1], ok);
