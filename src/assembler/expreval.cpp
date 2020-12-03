@@ -68,8 +68,7 @@ struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod> {
 
     /**
      * @brief operator <<
-     * This also seem quite dumb, but there seems to be no typesafe way of casting an underlying variant to a shared
-     * base type. So, manually try all variants...
+     * This also seem quite dumb, same issue as with evaluate (see comment)
      */
     friend std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Expr>& expr) {
         IfExpr(Add, v) {
