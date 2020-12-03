@@ -136,6 +136,7 @@ protected:
             }
         }
 
+        const static auto illegalSymbolCharacters = QRegularExpression(R"((\+|\-|\/|\*))");
         LineTokens remainingTokens;
         remainingTokens.reserve(splitTokens.size());
         Symbols symbols;
@@ -147,9 +148,10 @@ protected:
                     if (symbols.count(cleanedSymbol) != 0) {
                         return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
                     } else {
-                        if (cleanedSymbol.isEmpty()) {
-                            return {Error(sourceLine, QStringLiteral("Invalid symbol"))};
+                        if (cleanedSymbol.isEmpty() || cleanedSymbol.contains(illegalSymbolCharacters)) {
+                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol + "'")};
                         }
+
                         symbols.insert(cleanedSymbol);
                     }
                 } else {
