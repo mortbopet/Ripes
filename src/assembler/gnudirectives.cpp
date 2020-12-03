@@ -137,7 +137,7 @@ Directive zeroDirective() {
             return {Error(line.sourceLine, "Invalid number of arguments (expected 1)")};
         }
         bool ok;
-        int value = getImmediate(line.tokens[1], ok);
+        int value = getImmediate(line.tokens.at(0), ok);
         if (!ok) {
             return {Error(line.sourceLine, "Invalid argument")};
         }
