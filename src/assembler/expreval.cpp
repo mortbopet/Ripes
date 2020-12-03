@@ -9,7 +9,9 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-const static QString s_exprTokens QStringLiteral("()+-*/");
+const QRegularExpression s_exprOperatorsRegex = QRegularExpression(R"((\+|\-|\/|\*|\%))");
+const QString s_exprOperators QStringLiteral("+-*/%");
+const QString s_exprTokens QStringLiteral("()+-*/%");
 
 #define IfExpr(TExpr, boundVar) \
     try {                       \
@@ -55,7 +57,13 @@ struct Div : Printable {
     void print(std::ostream& str) const override;
 };
 
-struct Expr : std::variant<Literal, Add, Mul, Div, Sub> {
+struct Mod : Printable {
+    Mod(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod> {
     using variant::variant;
 
     /**
@@ -89,6 +97,11 @@ struct Expr : std::variant<Literal, Add, Mul, Div, Sub> {
             return os;
         }
         FiExpr;
+        IfExpr(Mod, v) {
+            v.print(os);
+            return os;
+        }
+        FiExpr;
         return os;
     }
 };
@@ -105,6 +118,9 @@ void Mul::print(std::ostream& os) const {
 }
 void Div::print(std::ostream& os) const {
     os << "(" << lhs << " / " << rhs << ")";
+}
+void Mod::print(std::ostream& os) const {
+    os << "(" << lhs << " % " << rhs << ")";
 }
 void Literal::print(std::ostream& os) const {
     os << v.toStdString();
@@ -141,6 +157,7 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
             case '/': { return rightRec<Div>(Token(lhs), s, pos, depth);}
             case '*': { return rightRec<Mul>(Token(lhs), s, pos, depth);}
             case '-': { return rightRec<Sub>(Token(lhs), s, pos, depth);}
+            case '%': { return rightRec<Mod>(Token(lhs), s, pos, depth);}
             default:  {lhs.append(ch);}
         }
         // clang-format on
@@ -164,6 +181,7 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
             case '/': { return rightRec<Div>(res, s, pos, depth);}
             case '*': { return rightRec<Mul>(res, s, pos, depth);}
             case '-': { return rightRec<Sub>(res, s, pos, depth);}
+            case '%': { return rightRec<Mod>(res, s, pos, depth);}
             case ')': { return depth-- != 0 ? res : ExprRes(Error(-1, "Unmatched parenthesis"));};
             default:  { return ExprRes(Error(-1, "Invalid binop"));}
         }
@@ -183,6 +201,8 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     IfExpr(Mul, v) { return evaluate(v.lhs, variables) * evaluate(v.rhs, variables); }
     FiExpr;
     IfExpr(Sub, v) { return evaluate(v.lhs, variables) - evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(Mod, v) { return evaluate(v.lhs, variables) % evaluate(v.rhs, variables); }
     FiExpr;
     IfExpr(Literal, v) {
         bool canConvert;

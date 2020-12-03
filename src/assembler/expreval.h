@@ -7,6 +7,10 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
+extern const QRegularExpression s_exprOperatorsRegex;
+extern const QString s_exprOperators;
+extern const QString s_exprTokens;
+
 /**
  * @brief evaluate
  * Very simple expression parser for evaluating a right-associative binary (2-operand) mathematical expressions.
