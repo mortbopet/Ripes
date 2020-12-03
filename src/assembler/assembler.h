@@ -324,6 +324,11 @@ protected:
         // Reference to the immediate field which resolves the symbol and the requested symbol
         FieldLinkRequest fieldRequest;
     };
+
+    uint32_t linkReqAddress(const LinkRequest& req) const {
+        return req.offset + m_segmentPointers.at(m_currentSection).first;
+    }
+
     using LinkRequests = std::vector<LinkRequest>;
 
     /**
@@ -495,12 +500,16 @@ protected:
         }
     }
 
-    std::variant<Errors, NoPassResult> pass3(Program& program, const SymbolMap& symbolMap,
+    std::variant<Errors, NoPassResult> pass3(Program& program, SymbolMap& symbolMap,
                                              const LinkRequests& needsLinkage) const {
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
             const auto& symbol = linkRequest.fieldRequest.symbol;
             uint32_t symbolValue;
+
+            // Add the special __address__ symbol indicating the address of the instruction itself
+            symbolMap["__address__"] = linkReqAddress(linkRequest);
+
             if (symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
                     // No recorded symbol for the token; our last option is to try and evaluate a possible expression.
@@ -531,7 +540,7 @@ protected:
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
-                immField->applySymbolResolution(symbolValue, instr, linkRequest.offset);
+                immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest));
             } else {
                 assert(false && "Something other than an immediate field has requested linkage?");
             }
