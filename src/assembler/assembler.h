@@ -504,9 +504,16 @@ protected:
             if (symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
                     // No recorded symbol for the token; our last option is to try and evaluate a possible expression.
-                    runOperation(evalRes, long, evaluate, symbol, &symbolMap);
+                    auto evaluate_res = evaluate(symbol, &symbolMap);
+                    try {
+                        auto err = std::get<Error>(evaluate_res);
+                        err.first = linkRequest.sourceLine;
+                        errors.push_back(err);
+                        continue;
+                    } catch (const std::bad_variant_access&) {
+                    }
                     // Expression evaluated successfully
-                    symbolValue = evalRes;
+                    symbolValue = std::get<long>(evaluate_res);
                 } else {
                     errors.push_back(Error(linkRequest.sourceLine, "Unknown symbol '" + symbol + "'"));
                     continue;
