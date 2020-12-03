@@ -152,7 +152,7 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
         pos++;
         switch (ch.unicode()) {
             case '(': { depth++; return parseLeft(s, pos, depth);}
-            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(-1, "Unmatched parenthesis"));};
+            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(-1, "Unmatched parenthesis in expression '" + s + '"'));};
             case '+': { return rightRec<Add>(Token(lhs), s, pos, depth);}
             case '/': { return rightRec<Div>(Token(lhs), s, pos, depth);}
             case '*': { return rightRec<Mul>(Token(lhs), s, pos, depth);}
@@ -182,8 +182,8 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
             case '*': { return rightRec<Mul>(res, s, pos, depth);}
             case '-': { return rightRec<Sub>(res, s, pos, depth);}
             case '%': { return rightRec<Mod>(res, s, pos, depth);}
-            case ')': { return depth-- != 0 ? res : ExprRes(Error(-1, "Unmatched parenthesis"));};
-            default:  { return ExprRes(Error(-1, "Invalid binop"));}
+            case ')': { return depth-- != 0 ? res : ExprRes(Error(-1, "Unmatched parenthesis in expression '" + s + '"'));};
+            default:  { return ExprRes(Error(-1, "Invalid operator '" + QString(ch) + "' in expression '" + s + "'"));}
         }
         // clang-format on
     } else {
@@ -235,7 +235,7 @@ std::variant<Error, long> evaluate(const QString& s, const SymbolMap* variables)
     try {
         return {evaluate(exprTreeRes, variables)};
     } catch (...) {
-        return {Error(-1, "Could not evaluate expression")};
+        return {Error(-1, "Could not evaluate expression '" + s + "'")};
     }
 }
 
