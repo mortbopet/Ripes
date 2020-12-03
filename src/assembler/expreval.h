@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QRegularExpression>
 #include <variant>
 #include "assemblererror.h"
 
@@ -15,5 +16,10 @@ namespace AssemblerTmp {
  */
 std::variant<Error, long> evaluate(const QString&, const std::map<QString, uint32_t>* variables = nullptr);
 
+/**
+ * @brief couldBeExpression
+ * @returns true if we have probably cause that the string is an expression and not 'just' a single variable.
+ */
+bool couldBeExpression(const QString& s);
 }  // namespace AssemblerTmp
 }  // namespace Ripes

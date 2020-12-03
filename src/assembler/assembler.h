@@ -4,6 +4,7 @@
 
 #include "assembler_defines.h"
 #include "directive.h"
+#include "expreval.h"
 #include "instruction.h"
 #include "isainfo.h"
 #include "matcher.h"
@@ -30,7 +31,9 @@ namespace AssemblerTmp {
     auto resName = std::get<resType>(passFunction##_res);
 
 /**
- * A macro for running an ISA-specific assembler instruction with error handling
+ * A macro for running an assembler operation which may throw an error or return a value (expressed through a variant
+ * type) which runs inside a loop. In case of the operation throwing an error, the error is recorded and the next
+ * iteration of the loop is executed. If not, the result value is provided through variable 'resName'.
  */
 #define runOperation(resName, resType, operationFunction, ...)      \
     auto operationFunction##_res = operationFunction(__VA_ARGS__);  \
@@ -498,9 +501,19 @@ protected:
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
             const auto& symbol = linkRequest.fieldRequest.symbol;
+            uint32_t symbolValue;
             if (symbolMap.count(symbol) == 0) {
-                errors.push_back(Error(linkRequest.sourceLine, "Unknown symbol '" + symbol + "'"));
-                continue;
+                if (couldBeExpression(symbol)) {
+                    // No recorded symbol for the token; our last option is to try and evaluate a possible expression.
+                    runOperation(evalRes, long, evaluate, symbol, &symbolMap);
+                    // Expression evaluated successfully
+                    symbolValue = evalRes;
+                } else {
+                    errors.push_back(Error(linkRequest.sourceLine, "Unknown symbol '" + symbol + "'"));
+                    continue;
+                }
+            } else {
+                symbolValue = symbolMap.at(symbol);
             }
 
             QByteArray& section = program.sections.at(linkRequest.section).data;
@@ -512,7 +525,7 @@ protected:
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
-                immField->applySymbolResolution(symbolMap.at(symbol), instr, linkRequest.offset);
+                immField->applySymbolResolution(symbolValue, instr, linkRequest.offset);
             } else {
                 assert(false && "Something other than an immediate field has requested linkage?");
             }

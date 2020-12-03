@@ -3,10 +3,13 @@
 #include <iostream>
 #include <memory>
 
+#include "assembler_defines.h"
 #include "parserutilities.h"
 
 namespace Ripes {
 namespace AssemblerTmp {
+
+const static QString s_exprTokens QStringLiteral("()+-*/");
 
 #define IfExpr(TExpr, boundVar) \
     try {                       \
@@ -170,7 +173,7 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
     }
 }
 
-long evaluate(const std::shared_ptr<Expr>& expr, const std::map<QString, uint32_t>* variables) {
+long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     // There is a bug in GCC for variant visitors on incomplete variant types (recursive), So instead we'll macro our
     // way towards something that looks like a pattern match for the variant type.
     IfExpr(Add, v) { return evaluate(v.lhs, variables) + evaluate(v.rhs, variables); }
@@ -198,7 +201,7 @@ long evaluate(const std::shared_ptr<Expr>& expr, const std::map<QString, uint32_
     Q_UNREACHABLE();
 }
 
-std::variant<Error, long> evaluate(const QString& s, const std::map<QString, uint32_t>* variables) {
+std::variant<Error, long> evaluate(const QString& s, const SymbolMap* variables) {
     QString sNoWhitespace = s;
     sNoWhitespace.replace(" ", "");
     int pos = 0;
@@ -215,5 +218,10 @@ std::variant<Error, long> evaluate(const QString& s, const std::map<QString, uin
         return {Error(-1, "Could not evaluate expression")};
     }
 }
+
+bool couldBeExpression(const QString& s) {
+    return std::any_of(s_exprTokens.begin(), s_exprTokens.end(), [&s](const auto& ch) { return s.contains(ch); });
+}
+
 }  // namespace AssemblerTmp
 }  // namespace Ripes
