@@ -101,29 +101,33 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
 #define CreatePseudoInstruction
 #define PseudoExpandFunc(line) [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line)
 
-#define PseudoLoad(name)                                                                                       \
-    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                          \
-        name, {RegTok, ImmTok}, PseudoExpandFunc(line) {                                                       \
-            LineTokensVec v;                                                                                   \
-            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));                   \
-            v.push_back(QStringList() << name << line.tokens.at(1) << line.tokens.at(2) << line.tokens.at(1)); \
-            return v;                                                                                          \
+#define PseudoLoad(name)                                                                                \
+    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                   \
+        name, {RegTok, ImmTok}, PseudoExpandFunc(line) {                                                \
+            LineTokensVec v;                                                                            \
+            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));            \
+            v.push_back(QStringList() << name << line.tokens.at(1)                                      \
+                                      << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2)) \
+                                      << line.tokens.at(1));                                            \
+            return v;                                                                                   \
         }))
 
 // The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if we detect that
 // a number has been provided, then abort the pseudo-op handling.
-#define PseudoStore(name)                                                                                      \
-    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                          \
-        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line) {                                               \
-            bool canConvert;                                                                                   \
-            getImmediate(line.tokens.at(2), canConvert);                                                       \
-            if (canConvert) {                                                                                  \
-                return PseudoExpandRes(Error(0, "Unused; will fallback to non-pseudo op sw"));                 \
-            }                                                                                                  \
-            LineTokensVec v;                                                                                   \
-            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));                   \
-            v.push_back(QStringList() << name << line.tokens.at(1) << line.tokens.at(2) << line.tokens.at(3)); \
-            return PseudoExpandRes(v);                                                                         \
+#define PseudoStore(name)                                                                               \
+    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                   \
+        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line) {                                        \
+            bool canConvert;                                                                            \
+            getImmediate(line.tokens.at(2), canConvert);                                                \
+            if (canConvert) {                                                                           \
+                return PseudoExpandRes(Error(0, "Unused; will fallback to non-pseudo op sw"));          \
+            }                                                                                           \
+            LineTokensVec v;                                                                            \
+            v.push_back(QStringList() << "auipc" << line.tokens.at(3) << line.tokens.at(2));            \
+            v.push_back(QStringList() << name << line.tokens.at(1)                                      \
+                                      << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2)) \
+                                      << line.tokens.at(3));                                            \
+            return PseudoExpandRes(v);                                                                  \
         }))
 
 void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
