@@ -63,7 +63,19 @@ struct Mod : Printable {
     void print(std::ostream& str) const override;
 };
 
-struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod> {
+struct And : Printable {
+    And(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Or : Printable {
+    Or(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or> {
     using variant::variant;
 
     /**
@@ -71,38 +83,22 @@ struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod> {
      * This also seem quite dumb, same issue as with evaluate (see comment)
      */
     friend std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Expr>& expr) {
-        IfExpr(Add, v) {
-            v.print(os);
-            return os;
-        }
-        FiExpr;
-        IfExpr(Div, v) {
-            v.print(os);
-            return os;
-        }
-        FiExpr;
-        IfExpr(Mul, v) {
-            v.print(os);
-            return os;
-        }
-        FiExpr;
-        IfExpr(Sub, v) {
-            v.print(os);
-            return os;
-        }
-        FiExpr;
-        IfExpr(Literal, v) {
-            v.print(os);
-            return os;
-        }
-        FiExpr;
-        IfExpr(Mod, v) {
-            v.print(os);
-            return os;
-        }
-        FiExpr;
+#define tryPrint(type) \
+    IfExpr(type, v) {  \
+        v.print(os);   \
+        return os;     \
+    }                  \
+    FiExpr;
+
+        tryPrint(Add);
+        tryPrint(Div);
+        tryPrint(Mul);
+        tryPrint(Sub);
+        tryPrint(Literal);
+        tryPrint(Mod);
+
         return os;
-    }
+    };
 };
 
 // clang-format off
@@ -124,6 +120,12 @@ void Mod::print(std::ostream& os) const {
 void Literal::print(std::ostream& os) const {
     os << v.toStdString();
 }
+void And::print(std::ostream& os) const {
+    os << "(" << lhs << " & " << rhs << ")";
+}
+void Or::print(std::ostream& os) const {
+    os << "(" << lhs << " | " << rhs << ")";
+}
 // clang-format on
 
 using ExprRes = std::variant<Error, std::shared_ptr<Expr>>;
@@ -141,7 +143,6 @@ ExprRes rightRec(std::shared_ptr<Expr> lhs, const QString& s, int& pos, int& dep
 
 #define Token(lhs) std::make_shared<Expr>(Literal{lhs})
 
-// 2*(3+4)+4
 ExprRes parseLeft(const QString& s, int& pos, int& depth);
 ExprRes parseRight(const QString& s, int& pos, int& depth) {
     QString lhs;
@@ -157,6 +158,8 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
             case '*': { return rightRec<Mul>(Token(lhs), s, pos, depth);}
             case '-': { return rightRec<Sub>(Token(lhs), s, pos, depth);}
             case '%': { return rightRec<Mod>(Token(lhs), s, pos, depth);}
+            case '|': { return rightRec<Or>(Token(lhs), s, pos, depth);}
+            case '&': { return rightRec<And>(Token(lhs), s, pos, depth);}
             default:  {lhs.append(ch);}
         }
         // clang-format on
@@ -178,6 +181,8 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
         switch (ch.unicode()) {
             case '+': { return rightRec<Add>(res, s, pos, depth);}
             case '/': { return rightRec<Div>(res, s, pos, depth);}
+            case '|': { return rightRec<Or>(res, s, pos, depth);}
+            case '&': { return rightRec<And>(res, s, pos, depth);}
             case '*': { return rightRec<Mul>(res, s, pos, depth);}
             case '-': { return rightRec<Sub>(res, s, pos, depth);}
             case '%': { return rightRec<Mod>(res, s, pos, depth);}
@@ -191,8 +196,8 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
 }
 
 long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
-    // There is a bug in GCC for variant visitors on incomplete variant types (recursive), So instead we'll macro our
-    // way towards something that looks like a pattern match for the variant type.
+    // There is a bug in GCC for variant visitors on incomplete variant types (recursive), So instead we'll macro
+    // our way towards something that looks like a pattern match for the variant type.
     IfExpr(Add, v) { return evaluate(v.lhs, variables) + evaluate(v.rhs, variables); }
     FiExpr;
     IfExpr(Div, v) { return evaluate(v.lhs, variables) / evaluate(v.rhs, variables); }
@@ -202,6 +207,10 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     IfExpr(Sub, v) { return evaluate(v.lhs, variables) - evaluate(v.rhs, variables); }
     FiExpr;
     IfExpr(Mod, v) { return evaluate(v.lhs, variables) % evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(And, v) { return evaluate(v.lhs, variables) & evaluate(v.rhs, variables); }
+    FiExpr;
+    IfExpr(Or, v) { return evaluate(v.lhs, variables) | evaluate(v.rhs, variables); }
     FiExpr;
     IfExpr(Literal, v) {
         bool canConvert;
