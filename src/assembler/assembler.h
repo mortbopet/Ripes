@@ -47,7 +47,7 @@ namespace AssemblerTmp {
 class AssemblerBase {
 public:
     std::optional<Error> setCurrentSegment(Section seg) const {
-        if (m_segmentPointers.count(seg) == 0) {
+        if (m_sectionBasePointers.count(seg) == 0) {
             return Error(0, "No base address set for segment '" + seg + +"'");
         }
         m_currentSection = seg;
@@ -55,10 +55,10 @@ public:
     }
 
     void setSegmentBase(Section seg, uint32_t base) {
-        if (m_segmentPointers.count(seg) != 0) {
+        if (m_sectionBasePointers.count(seg) != 0) {
             throw std::runtime_error("Base address already set for segment '" + seg.toStdString() + +"'");
         }
-        m_segmentPointers[seg] = {base, base};
+        m_sectionBasePointers[seg] = base;
     }
 
     virtual AssembleResult assemble(const QStringList& programLines) const = 0;
@@ -224,11 +224,10 @@ protected:
     DirectiveMap m_directivesMap;
 
     /**
-     * @brief m_segmentPointers maintains the current segment pointers for the segments annoted by the Segment enum
-     * class. The value is a pair containing <segment base, segment end>.
-     * Marked mutable to allow for modifying segment end pointer during assembling.
+     * @brief m_sectionBasePointers maintains the base position for the segments
+     * annoted by the Segment enum class.
      */
-    mutable std::map<Section, std::pair<uint32_t, uint32_t>> m_segmentPointers;
+    std::map<Section, uint32_t> m_sectionBasePointers;
     /**
      * @brief m_currentSegment maintains the current segment where the assembler emits information.
      * Marked mutable to allow for switching currently selected segment during assembling.
@@ -327,9 +326,7 @@ protected:
         FieldLinkRequest fieldRequest;
     };
 
-    uint32_t linkReqAddress(const LinkRequest& req) const {
-        return req.offset + m_segmentPointers.at(m_currentSection).first;
-    }
+    uint32_t linkReqAddress(const LinkRequest& req) const { return req.offset + m_sectionBasePointers.at(req.section); }
 
     using LinkRequests = std::vector<LinkRequest>;
 
@@ -448,10 +445,10 @@ protected:
                                         LinkRequests& needsLinkage) const {
         // Initialize program with initialized segments:
         Program program;
-        for (const auto& iter : m_segmentPointers) {
+        for (const auto& iter : m_sectionBasePointers) {
             ProgramSection sec;
             sec.name = iter.first;
-            sec.address = iter.second.first;
+            sec.address = iter.second;
             sec.data = QByteArray();
             program.sections[iter.first] = sec;
         }
