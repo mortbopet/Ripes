@@ -192,6 +192,10 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
             bool canConvert;
             int immediate = getImmediate(line.tokens.at(2), canConvert);
 
+            if(!canConvert) {
+                return PseudoExpandRes{Error(line.sourceLine, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
+            }
+
             // Generate offset required for discerning between positive and negative immediates
             if (isInt<12>(immediate)) {
                 // immediate can be represented by 12 bits, ADDI is sufficient
@@ -206,7 +210,7 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
                                 << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString::number(lower12Signed));
                 }
             }
-            return v;
+            return PseudoExpandRes{v};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
