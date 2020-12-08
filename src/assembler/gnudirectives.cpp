@@ -63,6 +63,7 @@ HandleDirectiveRes stringFunctor(const AssemblerBase*, const TokenizedSrcLine& l
         return {Error(line.sourceLine, "Invalid number of arguments (expected 1)")};
     }
     QString string = line.tokens.at(0);
+    string.replace("\\n", "\n");
     string.remove('\"');
     string.append('\0');
     return {string.toUtf8()};
