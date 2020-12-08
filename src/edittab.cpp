@@ -214,9 +214,9 @@ void EditTab::assemble() {
         m_activeProgram = std::make_shared<Program>(res.program);
         emitProgramChanged();
     } else {
-        // Errors occured; rehighlight to reflect current m_sourceErrors in the editor
-        m_ui->codeEditor->rehighlight();
+        // Errors occured; rehighlight will reflect current m_sourceErrors in the editor
     }
+    m_ui->codeEditor->rehighlight();
 }
 
 void EditTab::compile() {
