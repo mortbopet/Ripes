@@ -219,7 +219,7 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
             if (variables != nullptr && variables->count(v.v) != 0) {
                 value = variables->at(v.v);
             } else {
-                throw std::runtime_error("Unevaluateable literal");
+                throw std::runtime_error(QString("Unknown symbol '%1'").arg(v.v).toStdString());
             }
         }
         return value;
@@ -242,8 +242,8 @@ std::variant<Error, long> evaluate(const QString& s, const SymbolMap* variables)
     const auto exprTreeRes = std::get<std::shared_ptr<Expr>>(exprTree);
     try {
         return {evaluate(exprTreeRes, variables)};
-    } catch (...) {
-        return {Error(-1, "Could not evaluate expression '" + s + "'")};
+    } catch (const std::runtime_error& e) {
+        return {Error(-1, e.what())};
     }
 }
 
