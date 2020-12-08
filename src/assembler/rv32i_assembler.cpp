@@ -143,7 +143,7 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
         "la", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2),
-                                 QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << line.tokens.at(2)};
+                                 QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2))};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
