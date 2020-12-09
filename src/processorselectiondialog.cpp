@@ -17,7 +17,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     // Initialize top level ISA items
     m_ui->processors->setHeaderHidden(true);
     std::map<ISA, QTreeWidgetItem*> isaItems;
-    for (const auto& isa : ISANames) {
+    for (const auto& isa : ISAFamilyNames) {
         auto* isaItem = new QTreeWidgetItem({isa.second});
         isaItems[isa.first] = isaItem;
         isaItem->setFlags(isaItem->flags() & ~(Qt::ItemIsSelectable));

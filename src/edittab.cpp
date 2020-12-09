@@ -57,8 +57,6 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     m_ui->programViewer->setReadOnly(true);
 
-    m_assembler = std::make_unique<AssemblerTmp::RV32I_Assembler>();
-
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
@@ -75,8 +73,9 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
 
-    enableEditor();
+    onProcessorChanged();
     sourceTypeChanged();
+    enableEditor();
 }
 
 void EditTab::showSymbolNavigator() {
@@ -188,6 +187,21 @@ void EditTab::sourceTypeChanged() {
 
     // Notify the source type change to the code editor
     m_ui->codeEditor->setSourceType(m_currentSourceType, m_assembler->getOpcodes());
+}
+
+void EditTab::createAssemblerForCurrentISA() {
+    const auto& ISA = ProcessorHandler::get()->currentISA();
+
+    if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
+        m_assembler = std::make_unique<AssemblerTmp::RV32I_Assembler>(rvisa);
+    } else {
+        Q_UNREACHABLE();
+    }
+}
+
+void EditTab::onProcessorChanged() {
+    createAssemblerForCurrentISA();
+    assemble();
 }
 
 void EditTab::emitProgramChanged() {

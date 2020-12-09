@@ -2,14 +2,15 @@
 
 #include <QMap>
 #include <QString>
+#include <set>
 
 #include "elfio/elf_types.hpp"
 
 namespace Ripes {
 
 /// Currently supported ISAs
-enum class ISA { RV32IM };
-const static std::map<ISA, QString> ISANames = {{ISA::RV32IM, "RISC-V"}};
+enum class ISA { RV32I };
+const static std::map<ISA, QString> ISAFamilyNames = {{ISA::RV32I, "RISC-V"}};
 
 class ISAInfoBase {
 public:
@@ -42,18 +43,15 @@ public:
      */
     virtual QString elfSupportsFlags(unsigned flags) const = 0;
 
+    virtual const QStringList& supportedExtensions() const = 0;
+    virtual const QStringList& enabledExtensions() const = 0;
+
 protected:
     ISAInfoBase() {}
 };
 
 template <ISA isa>
-class ISAInfo : public ISAInfoBase {
-public:
-    static const ISAInfo<isa>* instance();
-
-private:
-    ISAInfo<isa>() {}
-};
+class ISAInfo : public ISAInfoBase {};
 
 // ==================================== RISCV ====================================
 namespace {
@@ -119,8 +117,19 @@ const static std::map<RVElfFlags, QString> RVELFFlagStrings {{RVC, "RVC"}, {Floa
 }  // namespace
 
 template <>
-class ISAInfo<ISA::RV32IM> : public ISAInfoBase {
+class ISAInfo<ISA::RV32I> : public ISAInfoBase {
 public:
+    ISAInfo<ISA::RV32I>(const QStringList extensions) {
+        // Validate extensions
+        for (const auto& ext : extensions) {
+            if (m_supportedExtensions.contains(ext)) {
+                m_enabledExtensions << ext;
+            } else {
+                assert(false && "Invalid extension specified for ISA");
+            }
+        }
+    }
+
     enum SysCall {
         None = 0,
         PrintInt = 1,
@@ -143,13 +152,9 @@ public:
         brk = 214,
         Open = 1024
     };
-    static const ISAInfo<ISA::RV32IM>* instance() {
-        static ISAInfo<ISA::RV32IM> pr;
-        return &pr;
-    }
 
-    QString name() const override { return "RV32IM"; }
-    ISA isaID() const override { return ISA::RV32IM; }
+    QString name() const override { return "RV32I" + enabledExtensions().join(""); }
+    ISA isaID() const override { return ISA::RV32I; }
 
     unsigned int regCnt() const override { return 32; }
     QString regName(unsigned i) const override {
@@ -197,6 +202,13 @@ public:
         }
         return err;
     }
+
+    const QStringList& supportedExtensions() const override { return m_supportedExtensions; }
+    const QStringList& enabledExtensions() const override { return m_enabledExtensions; }
+
+private:
+    QStringList m_enabledExtensions;
+    QStringList m_supportedExtensions = {"M"};
 };
 
 }  // namespace Ripes

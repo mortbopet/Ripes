@@ -72,7 +72,7 @@ private:
         // RISC-V single cycle
         ProcessorDescription desc;
         desc.id = ProcessorID::RVSS;
-        desc.isa = ISAInfo<ISA::RV32IM>::instance();
+        desc.isa = vsrtl::core::RVSS::ISA();
         desc.name = "Single Cycle Processor";
         desc.description = "A single cycle processor";
         desc.layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", {0.5}},
@@ -83,7 +83,7 @@ private:
         // RISC-V 5-Stage
         desc = ProcessorDescription();
         desc.id = ProcessorID::RV5S;
-        desc.isa = ISAInfo<ISA::RV32IM>::instance();
+        desc.isa = vsrtl::core::RV5S::ISA();
         desc.name = "5-Stage Processor";
         desc.description = "A 5-Stage in-order processor with hazard detection/elimination and forwarding.";
         desc.layouts = {{"Standard", ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json", {0.08, 0.29, 0.55, 0.75, 0.87}},
@@ -94,7 +94,7 @@ private:
         // RISC-V 5-stage without hazard detection
         desc = ProcessorDescription();
         desc.id = ProcessorID::RV5S_NO_HZ;
-        desc.isa = ISAInfo<ISA::RV32IM>::instance();
+        desc.isa = vsrtl::core::RV5S_NO_HZ::ISA();
         desc.name = "5-Stage Processor w/o hazard detection";
         desc.description = "A 5-Stage in-order processor with forwarding but no hazard detection/elimination.";
         desc.layouts = {
@@ -106,7 +106,7 @@ private:
         // RISC-V 5-stage without forwarding or hazard detection
         desc = ProcessorDescription();
         desc.id = ProcessorID::RV5S_NO_FW_HZ;
-        desc.isa = ISAInfo<ISA::RV32IM>::instance();
+        desc.isa = vsrtl::core::RV5S_NO_FW_HZ::ISA();
         desc.name = "5-Stage Processor w/o forwarding or hazard detection";
         desc.description = "A 5-Stage in-order processor with no forwarding or hazard detection/elimination.";
         desc.layouts = {{"Standard",

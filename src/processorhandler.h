@@ -4,8 +4,8 @@
 #include <QFutureWatcher>
 #include <QObject>
 
-#include "processorregistry.h"
 #include "assembler/program.h"
+#include "processorregistry.h"
 #include "syscall/ripes_syscall.h"
 
 #include "vsrtl_widget.h"
@@ -34,6 +34,7 @@ public:
     std::weak_ptr<const Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
     const SyscallManager& getSyscallManager() const { return *m_syscallManager; }
+
     /**
      * @brief loadProcessorToWidget
      * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns
@@ -130,19 +131,19 @@ public:
     void stopRun();
 
 signals:
+
+    /**
+     * @brief processorChanged
+     * Emitted when a new processor has been chosen.
+     */
+    void processorChanged();
+
     /**
      * @brief reqProcessorReset
      *  Emitted whenever changes to the internal state of the processor has been made, and a reset of any depending
      * widgets is required
      */
     void reqProcessorReset();
-
-    /**
-     * @brief reqReloadProgram
-     * Emitted whenever the processor has been changed, and we require the currently assembled program to be inserted
-     * into the newly loaded processors memory
-     */
-    void reqReloadProgram();
 
     /**
      * @brief exit

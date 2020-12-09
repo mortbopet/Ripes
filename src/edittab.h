@@ -47,8 +47,8 @@ signals:
     void editorStateChanged(bool enabled);
 
 public slots:
+    void onProcessorChanged();
     void updateProgramViewerHighlighting();
-
     void emitProgramChanged();
 
     /**
@@ -72,6 +72,7 @@ private:
     void assemble();
     void compile();
 
+    void createAssemblerForCurrentISA();
     void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
     bool loadSourceFile(Program& program, QFile& file);

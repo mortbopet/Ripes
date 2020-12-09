@@ -175,8 +175,7 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
 
     m_currentProcessor->verifyAndInitialize();
 
-    // Processor loaded. Request for the currently assembled program to be loaded into the processor
-    emit reqReloadProgram();
+    emit processorChanged();
 }
 
 int ProcessorHandler::getCurrentProgramSize() const {
