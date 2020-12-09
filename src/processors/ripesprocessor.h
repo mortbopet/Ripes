@@ -170,6 +170,8 @@ public:
 protected:
     // Statistics
     long long m_instructionsRetired = 0;
+
+    std::shared_ptr<ISAInfoBase> m_isa;
 };
 
 }  // namespace core

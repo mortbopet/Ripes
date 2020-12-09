@@ -241,7 +241,6 @@ public:
     SUBCOMPONENT(ecallChecker, EcallChecker);
 
     // Ripes interface compliance
-    virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
     unsigned int stageCount() const override { return STAGECOUNT; }
     unsigned int getPcForStage(unsigned int idx) const override {
         // clang-format off
@@ -393,6 +392,13 @@ public:
         ecallChecker->setSysCallExiting(false);
         m_syscallExitCycle = -1;
     }
+
+    static const ISAInfoBase* ISA() {
+        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M"});
+        return &s_isa;
+    }
+
+    const ISAInfoBase* implementsISA() const override { return ISA(); };
 
 private:
     /**
