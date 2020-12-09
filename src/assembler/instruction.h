@@ -99,21 +99,21 @@ struct Opcode : public Field {
     const std::vector<OpPart> opParts;
 };
 
-template <typename ISA>
 struct Reg : public Field {
-    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
     /**
      * @brief Reg
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
      * @param range: range in instruction field containing register index value
      */
-    Reg(unsigned tokenIndex, BitRange range) : m_tokenIndex(tokenIndex), m_range(range) {}
-    Reg(unsigned tokenIndex, unsigned _start, unsigned _stop) : m_tokenIndex(tokenIndex), m_range({_start, _stop}) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range)
+        : m_tokenIndex(tokenIndex), m_range(range), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
+        : m_tokenIndex(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
     std::optional<AssemblerTmp::Error> apply(const AssemblerTmp::TokenizedSrcLine& line, uint32_t& instruction,
                                              FieldLinkRequest&) const override {
         bool success;
         const QString& regToken = line.tokens[m_tokenIndex];
-        const uint32_t reg = ISA::instance()->regNumber(regToken, success);
+        const uint32_t reg = m_isa->regNumber(regToken, success);
         if (!success) {
             return AssemblerTmp::Error(line.sourceLine, "Unknown register '" + regToken + "'");
         }
@@ -123,7 +123,7 @@ struct Reg : public Field {
     std::optional<AssemblerTmp::Error> decode(const uint32_t instruction, const uint32_t, const ReverseSymbolMap&,
                                               AssemblerTmp::LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
-        const QString registerName = ISA::instance()->regName(regNumber);
+        const QString registerName = m_isa->regName(regNumber);
         if (registerName.isEmpty()) {
             return AssemblerTmp::Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
         }
@@ -133,6 +133,7 @@ struct Reg : public Field {
 
     const unsigned m_tokenIndex;
     const BitRange m_range;
+    const ISAInfoBase* m_isa;
 };
 
 struct ImmPart {
@@ -253,14 +254,11 @@ struct Imm : public Field {
     const std::function<uint32_t(uint32_t)> symbolTransformer;
 };
 
-template <typename ISA>
 class Instruction {
-    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
-
 public:
     Instruction(Opcode opcode, const std::vector<std::shared_ptr<Field>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
-        m_assembler = [](const Instruction<ISA>* _this, const AssemblerTmp::TokenizedSrcLine& line) {
+        m_assembler = [](const Instruction* _this, const AssemblerTmp::TokenizedSrcLine& line) {
             InstrRes res;
             _this->m_opcode.apply(line, res.instruction, res.linksWithSymbol);
             for (const auto& field : _this->m_fields) {
@@ -271,7 +269,7 @@ public:
             }
             return AssembleRes(res);
         };
-        m_disassembler = [](const Instruction<ISA>* _this, const uint32_t instruction, const uint32_t address,
+        m_disassembler = [](const Instruction* _this, const uint32_t instruction, const uint32_t address,
                             const ReverseSymbolMap& symbolMap) {
             AssemblerTmp::LineTokens line;
             _this->m_opcode.decode(instruction, address, symbolMap, line);
@@ -307,14 +305,17 @@ public:
     const unsigned& size() const { return 4; }
 
 private:
-    std::function<AssembleRes(const Instruction<ISA>*, const AssemblerTmp::TokenizedSrcLine&)> m_assembler;
-    std::function<DisassembleRes(const Instruction<ISA>*, const uint32_t, const uint32_t, const ReverseSymbolMap&)>
+    std::function<AssembleRes(const Instruction*, const AssemblerTmp::TokenizedSrcLine&)> m_assembler;
+    std::function<DisassembleRes(const Instruction*, const uint32_t, const uint32_t, const ReverseSymbolMap&)>
         m_disassembler;
 
     const Opcode m_opcode;
     const int m_expectedTokens;
     const std::vector<std::shared_ptr<Field>> m_fields;
 };
+
+using InstrMap = std::map<QString, std::shared_ptr<Instruction>>;
+using InstrVec = std::vector<std::shared_ptr<Instruction>>;
 
 }  // namespace AssemblerTmp
 

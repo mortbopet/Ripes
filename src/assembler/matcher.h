@@ -7,15 +7,12 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-template <typename ISA>
 class Matcher {
-    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
-
     struct MatchNode {
         MatchNode(OpPart _matcher) : matcher(_matcher) {}
         OpPart matcher;
         std::vector<MatchNode> children;
-        std::shared_ptr<Instruction<ISA>> instruction;
+        std::shared_ptr<Instruction> instruction;
 
         void print(unsigned depth = 0) const {
             if (depth == 0) {
@@ -43,11 +40,11 @@ class Matcher {
     };
 
 public:
-    Matcher(const std::vector<std::shared_ptr<Instruction<ISA>>>& instructions)
+    Matcher(const std::vector<std::shared_ptr<Instruction>>& instructions)
         : m_matchRoot(buildMatchTree(instructions, 1)) {}
     void print() const { m_matchRoot.print(); }
 
-    std::variant<Error, const Instruction<ISA>*> matchInstruction(uint32_t instruction) const {
+    std::variant<Error, const Instruction*> matchInstruction(uint32_t instruction) const {
         auto match = matchInstructionRec(instruction, m_matchRoot, true);
         if (match == nullptr) {
             return Error(0, "Unknown instruction");
@@ -56,7 +53,7 @@ public:
     }
 
 private:
-    const Instruction<ISA>* matchInstructionRec(uint32_t instruction, const MatchNode& node, bool isRoot) const {
+    const Instruction* matchInstructionRec(uint32_t instruction, const MatchNode& node, bool isRoot) const {
         if (isRoot || node.matcher.matches(instruction)) {
             if (node.children.size() > 0) {
                 for (const auto& child : node.children) {
@@ -71,9 +68,9 @@ private:
         return nullptr;
     }
 
-    MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction<ISA>>>& instructions,
+    MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction>>& instructions,
                              const unsigned fieldDepth = 1, OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-        using InstrVec = std::vector<std::shared_ptr<Instruction<ISA>>>;
+        using InstrVec = std::vector<std::shared_ptr<Instruction>>;
         std::map<OpPart, InstrVec> instrsWithEqualOpPart;
 
         for (const auto& instr : instructions) {

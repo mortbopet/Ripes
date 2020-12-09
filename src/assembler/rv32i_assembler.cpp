@@ -7,8 +7,8 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-RV32I_Assembler::RV32I_Assembler(const std::set<Extensions> extensions) : Assembler<ISAInfo<ISA::RV32IM>>() {
-    auto [instrs, pseudos, directives] = initInstructions(extensions);
+RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler(isa) {
+    auto [instrs, pseudos, directives] = initInstructions(isa);
     initialize(instrs, pseudos, directives);
 
     // Initialize segment pointers
@@ -17,19 +17,19 @@ RV32I_Assembler::RV32I_Assembler(const std::set<Extensions> extensions) : Assemb
     setSegmentBase(".bss", 0x11000000);
 }
 
-std::tuple<RV32I_Assembler::RVInstrVec, RV32I_Assembler::RVPseudoInstrVec, DirectiveVec>
-RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const {
-    RVInstrVec instructions;
-    RVPseudoInstrVec pseudoInstructions;
+std::tuple<InstrVec, PseudoInstrVec, DirectiveVec>
+RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
+    InstrVec instructions;
+    PseudoInstrVec pseudoInstructions;
 
-    enableExtI(instructions, pseudoInstructions);
-    for (const auto& extension : extensions) {
-        switch (extension) {
-            case Extensions::M:
-                enableExtM(instructions, pseudoInstructions);
+    enableExtI(isa, instructions, pseudoInstructions);
+    for (auto extension : isa->enabledExtensions()) {
+        switch (extension.unicode()->toLatin1()) {
+            case 'M':
+                enableExtM(isa, instructions, pseudoInstructions);
                 break;
-            case Extensions::F:
-                enableExtF(instructions, pseudoInstructions);
+            case 'F':
+                enableExtF(isa, instructions, pseudoInstructions);
                 break;
             default:
                 assert(false && "Unhandled ISA extension");
@@ -38,71 +38,74 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
     return {instructions, pseudoInstructions, gnuDirectives()};
 }
 
-#define BType(name, funct3)                                                                                         \
-    std::shared_ptr<RVInstr>(new RVInstr(Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),           \
-                                         {std::make_shared<RVReg>(1, 15, 19), std::make_shared<RVReg>(2, 20, 24),   \
-                                          std::make_shared<Imm>(3, 13, Imm::Repr::Signed,                           \
-                                                                std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7), \
-                                                                            ImmPart(5, 25, 30), ImmPart(1, 8, 11)}, \
-                                                                Imm::SymbolType::Relative)}))
+#define BType(name, funct3)                                                                              \
+    std::shared_ptr<Instruction>(new Instruction(                                                        \
+        Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),                                 \
+        {std::make_shared<Reg>(isa, 1, 15, 19), std::make_shared<Reg>(isa, 2, 20, 24),                   \
+         std::make_shared<Imm>(                                                                          \
+             3, 13, Imm::Repr::Signed,                                                                   \
+             std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7), ImmPart(5, 25, 30), ImmPart(1, 8, 11)}, \
+             Imm::SymbolType::Relative)}))
 
-#define IType(name, funct3)                                                                 \
-    std::shared_ptr<RVInstr>(                                                               \
-        new RVInstr(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),        \
-                    {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(2, 15, 19), \
-                     std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
+#define IType(name, funct3)                                                                           \
+    std::shared_ptr<Instruction>(                                                                     \
+        new Instruction(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),              \
+                        {std::make_shared<Reg>(isa, 1, 7, 11), std::make_shared<Reg>(isa, 2, 15, 19), \
+                         std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define LoadType(name, funct3)                                                              \
-    std::shared_ptr<RVInstr>(                                                               \
-        new RVInstr(Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),        \
-                    {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(3, 15, 19), \
-                     std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
+#define LoadType(name, funct3)                                                                        \
+    std::shared_ptr<Instruction>(                                                                     \
+        new Instruction(Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),              \
+                        {std::make_shared<Reg>(isa, 1, 7, 11), std::make_shared<Reg>(isa, 3, 15, 19), \
+                         std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define IShiftType(name, funct3, funct7)                                                                     \
-    std::shared_ptr<RVInstr>(                                                                                \
-        new RVInstr(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-                    {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(2, 15, 19),                  \
-                     std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 24)})}))
+#define IShiftType(name, funct3, funct7)                                                                         \
+    std::shared_ptr<Instruction>(                                                                                \
+        new Instruction(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
+                        {std::make_shared<Reg>(isa, 1, 7, 11), std::make_shared<Reg>(isa, 2, 15, 19),            \
+                         std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 24)})}))
 
-#define RType(name, funct3, funct7)                                                              \
-    std::shared_ptr<RVInstr>(new RVInstr(                                                        \
-        Opcode(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-        {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(2, 15, 19), std::make_shared<RVReg>(3, 20, 24)}))
+#define RType(name, funct3, funct7)                                                                              \
+    std::shared_ptr<Instruction>(                                                                                \
+        new Instruction(Opcode(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
+                        {std::make_shared<Reg>(isa, 1, 7, 11), std::make_shared<Reg>(isa, 2, 15, 19),            \
+                         std::make_shared<Reg>(isa, 3, 20, 24)}))
 
 #define SType(name, funct3)                                                                                   \
-    std::shared_ptr<RVInstr>(new RVInstr(                                                                     \
+    std::shared_ptr<Instruction>(new Instruction(                                                             \
         Opcode(name, {OpPart(0b0100011, 0, 6), OpPart(funct3, 12, 14)}),                                      \
-        {std::make_shared<RVReg>(3, 15, 19),                                                                  \
+        {std::make_shared<Reg>(isa, 3, 15, 19),                                                               \
          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}), \
-         std::make_shared<RVReg>(1, 20, 24)}))
+         std::make_shared<Reg>(isa, 1, 20, 24)}))
 
-#define UType(name, opcode)                               \
-    std::shared_ptr<RVInstr>(                             \
-        new RVInstr(Opcode(name, {OpPart(opcode, 0, 6)}), \
-                    {std::make_shared<RVReg>(1, 7, 11),   \
-                     std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)})}))
+#define UType(name, opcode)                                    \
+    std::shared_ptr<Instruction>(                              \
+        new Instruction(Opcode(name, {OpPart(opcode, 0, 6)}),  \
+                        {std::make_shared<Reg>(isa, 1, 7, 11), \
+                         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)})}))
 
-#define JType(name, opcode)                                                                                           \
-    std::shared_ptr<RVInstr>(new RVInstr(Opcode(name, {OpPart(opcode, 0, 6)}),                                        \
-                                         {std::make_shared<RVReg>(1, 7, 11),                                          \
-                                          std::make_shared<Imm>(2, 21, Imm::Repr::Hex,                                \
-                                                                std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), \
-                                                                            ImmPart(11, 20, 20), ImmPart(1, 21, 30)}, \
-                                                                Imm::SymbolType::Relative)}))
+#define JType(name, opcode)                                                                                  \
+    std::shared_ptr<Instruction>(new Instruction(                                                            \
+        Opcode(name, {OpPart(opcode, 0, 6)}),                                                                \
+        {std::make_shared<Reg>(isa, 1, 7, 11),                                                               \
+         std::make_shared<Imm>(                                                                              \
+             2, 21, Imm::Repr::Hex,                                                                          \
+             std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), ImmPart(11, 20, 20), ImmPart(1, 21, 30)}, \
+             Imm::SymbolType::Relative)}))
 
-#define JALRType(name)                                                                      \
-    std::shared_ptr<RVInstr>(                                                               \
-        new RVInstr(Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),         \
-                    {std::make_shared<RVReg>(1, 7, 11), std::make_shared<RVReg>(2, 15, 19), \
-                     std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
+#define JALRType(name)                                                                                \
+    std::shared_ptr<Instruction>(                                                                     \
+        new Instruction(Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),               \
+                        {std::make_shared<Reg>(isa, 1, 7, 11), std::make_shared<Reg>(isa, 2, 15, 19), \
+                         std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define RegTok RVPseudoInstr::reg()
-#define ImmTok RVPseudoInstr::imm()
+#define RegTok PseudoInstruction::reg()
+#define ImmTok PseudoInstruction::imm()
 #define CreatePseudoInstruction
-#define PseudoExpandFunc(line) [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine& line)
+#define PseudoExpandFunc(line) [](const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine& line)
 
 #define PseudoLoad(name)                                                                                \
-    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                   \
+    std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
         name, {RegTok, ImmTok}, PseudoExpandFunc(line) {                                                \
             LineTokensVec v;                                                                            \
             v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));            \
@@ -115,7 +118,7 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
 // The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if we detect that
 // a number has been provided, then abort the pseudo-op handling.
 #define PseudoStore(name)                                                                               \
-    std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(                                                   \
+    std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
         name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line) {                                        \
             bool canConvert;                                                                            \
             getImmediate(line.tokens.at(2), canConvert);                                                \
@@ -130,7 +133,8 @@ RV32I_Assembler::initInstructions(const std::set<Extensions>& extensions) const 
             return PseudoExpandRes(v);                                                                  \
         }))
 
-void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pseudoInstructions) const {
+void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions,
+                                 PseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
     pseudoInstructions.push_back(PseudoLoad("lb"));
     pseudoInstructions.push_back(PseudoLoad("lh"));
@@ -140,50 +144,50 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
     pseudoInstructions.push_back(PseudoStore("sw"));
 
     // clang-format off
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "la", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2),
                                  QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2))};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "call", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{LineTokens() << "auipc" << "x6" << line.tokens.at(1),
                                  LineTokens() << "jalr" << "x1" << "x6" << line.tokens.at(1)};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "tail", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "auipc" << "x6" << line.tokens.at(1),
                                  QStringList() << "jalr" << "x0" << "x6" << line.tokens.at(1)};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "j", {ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "jal" << "x0" << line.tokens.at(1)};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "jr", {RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "jalr" << "x0" << line.tokens.at(1) << "0"};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "jalr", {RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "jalr" << "x1" << line.tokens.at(1) << "0"};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
-        "ret", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
+        "ret", {}, [](const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine&) {
             return LineTokensVec{QStringList() << "jalr" << "x0" << "x1" << "0"};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "jal", {ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList() << "jal" << "x1" << line.tokens.at(1)};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "li", {RegTok, ImmTok},
         PseudoExpandFunc(line) {
             LineTokensVec v;
@@ -213,101 +217,101 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
             return PseudoExpandRes{v};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("nop", {}, [](const RVPseudoInstr&, const AssemblerTmp::TokenizedSrcLine&) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("nop", {}, [](const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine&) {
             return LineTokensVec{QString("addi x0 x0 0").split(' ')};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(new RVPseudoInstr(
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "mv", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"addi", line.tokens.at(1), line.tokens.at(2), "0"}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("not", {RegTok, RegTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("not", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"xori", line.tokens.at(1), line.tokens.at(2), "-1"}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("neg", {RegTok, RegTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("neg", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"sub", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("seqz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("seqz", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"sltiu", line.tokens.at(1), line.tokens.at(2), "1"}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("snez", {RegTok, RegTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("snez", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{ QStringList{"sltu", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("sltz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("sltz", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"slt", line.tokens.at(1), line.tokens.at(2), "x0"}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("sgtz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("sgtz", {RegTok, RegTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"slt", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("beqz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("beqz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"beq", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bnez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bnez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"bne", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("blez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("blez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"bge", "x0", line.tokens.at(1), line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bgez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"bge", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bltz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bltz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"blt", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgtz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bgtz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"blt", "x0", line.tokens.at(1), line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgt", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bgt", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"blt", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("ble", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("ble", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"bge", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bgtu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bgtu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"bltu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<RVPseudoInstr>(
-        new RVPseudoInstr("bleu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
+        new PseudoInstruction("bleu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
             return LineTokensVec{QStringList{"bgeu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
         })));
     // clang-format on
 
     // Assembler functors
 
-    instructions.push_back(
-        std::shared_ptr<RVInstr>(new RVInstr(Opcode("ecall", {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new Instruction(Opcode("ecall", {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
 
     instructions.push_back(UType("lui", 0b0110111));
 
@@ -319,11 +323,11 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
      * provided symbol.
      */
     auto auipcSymbolModifier = [](uint32_t bareSymbol) { return bareSymbol >> 12; };
-    instructions.push_back(std::shared_ptr<RVInstr>(
-        new RVInstr(Opcode("auipc", {OpPart(0b0010111, 0, 6)}),
-                    {std::make_shared<RVReg>(1, 7, 11),
-                     std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)},
-                                           Imm::SymbolType::Absolute, auipcSymbolModifier)})));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new Instruction(Opcode("auipc", {OpPart(0b0010111, 0, 6)}),
+                        {std::make_shared<Reg>(isa, 1, 7, 11),
+                         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)},
+                                               Imm::SymbolType::Absolute, auipcSymbolModifier)})));
 
     instructions.push_back(JType("jal", 0b1101111));
 
@@ -369,7 +373,7 @@ void RV32I_Assembler::enableExtI(RVInstrVec& instructions, RVPseudoInstrVec& pse
     instructions.push_back(BType("bgeu", 0b111));
 }
 
-void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec&) const {
+void RV32I_Assembler::enableExtM(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions, PseudoInstrVec&) const {
     // Pseudo-op functors
     // --
 
@@ -384,7 +388,7 @@ void RV32I_Assembler::enableExtM(RVInstrVec& instructions, RVPseudoInstrVec&) co
     instructions.push_back(RType("remu", 0b111, 0b0000001));
 }
 
-void RV32I_Assembler::enableExtF(RVInstrVec&, RVPseudoInstrVec&) const {
+void RV32I_Assembler::enableExtF(const ISAInfo<ISA::RV32I>* isa, InstrVec&, PseudoInstrVec&) const {
     // Pseudo-op functors
 
     // Assembler functors

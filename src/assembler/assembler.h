@@ -235,19 +235,10 @@ protected:
     mutable Section m_currentSection;
 };
 
-template <typename ISA>
 class Assembler : public AssemblerBase {
-    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
-
 public:
-    using Instr = Instruction<ISA>;
-    using InstrMap = std::map<QString, std::shared_ptr<Instr>>;
-    using InstrVec = std::vector<std::shared_ptr<Instr>>;
-    using PseudoInstr = PseudoInstruction<ISA>;
-    using PseudoInstrMap = std::map<QString, std::shared_ptr<PseudoInstr>>;
-    using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstr>>;
+    Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
-public:
     AssembleResult assemble(const QStringList& programLines) const override {
         AssembleResult result;
 
@@ -288,8 +279,8 @@ public:
                 res.program << "unknown instruction";
             } catch (const std::bad_variant_access&) {
                 // Got match, disassemble
-                auto tokens = std::get<const Instruction<ISA>*>(match)->disassemble(instructionWord, baseAddress + i,
-                                                                                    ReverseSymbolMap());
+                auto tokens = std::get<const Instruction*>(match)->disassemble(instructionWord, baseAddress + i,
+                                                                               ReverseSymbolMap());
                 try {
                     auto& error = std::get<Error>(match);
                     // Error during disassembling
@@ -303,7 +294,7 @@ public:
         return res;
     }
 
-    const Matcher<ISA>& getMatcher() { return *m_matcher; }
+    const Matcher& getMatcher() { return *m_matcher; }
 
     std::set<QString> getOpcodes() const override {
         std::set<QString> opcodes;
@@ -472,7 +463,7 @@ protected:
             currentSection = &program.sections.at(m_currentSection).data;
             addr_offset = currentSection->size();
             if (!wasDirective) {
-                std::weak_ptr<Instr> assembledWith;
+                std::weak_ptr<Instruction> assembledWith;
                 runOperation(machineCode, InstrRes, assembleInstruction, line, assembledWith);
 
                 if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
@@ -578,7 +569,8 @@ protected:
         return {res};
     }
 
-    virtual AssembleRes assembleInstruction(const TokenizedSrcLine& line, std::weak_ptr<Instr>& assembledWith) const {
+    virtual AssembleRes assembleInstruction(const TokenizedSrcLine& line,
+                                            std::weak_ptr<Instruction>& assembledWith) const {
         if (line.tokens.empty()) {
             return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
         }
@@ -590,13 +582,11 @@ protected:
         return m_instructionMap.at(opcode)->assemble(line);
     };
 
-    Assembler<ISA>() {}
-
     void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives) {
         setInstructions(instructions);
         setPseudoInstructions(pseudoinstructions);
         setDirectives(directives);
-        m_matcher = std::make_unique<Matcher<ISA>>(m_instructions);
+        m_matcher = std::make_unique<Matcher>(m_instructions);
     }
 
     void setPseudoInstructions(PseudoInstrVec& pseudoInstructions) {
@@ -645,7 +635,9 @@ protected:
     PseudoInstrVec m_pseudoInstructions;
     PseudoInstrMap m_pseudoInstructionMap;
 
-    std::unique_ptr<Matcher<ISA>> m_matcher;
+    std::unique_ptr<Matcher> m_matcher;
+
+    const ISAInfoBase* m_isa;
 };
 
 }  // namespace AssemblerTmp

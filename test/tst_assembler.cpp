@@ -10,7 +10,7 @@ const QString s_testdir = VSRTL_RISCV_TEST_DIR;
 
 using namespace Ripes;
 using namespace AssemblerTmp;
-using RVISA = ISAInfo<ISA::RV32IM>;
+using RVISA = ISAInfo<ISA::RV32I>;
 
 class tst_Assembler : public QObject {
     Q_OBJECT
@@ -32,7 +32,7 @@ private slots:
     void tst_invalidLabel();
 
 private:
-    std::vector<std::shared_ptr<Instruction<RVISA>>> createInstructions();
+    std::vector<std::shared_ptr<Instruction>> createInstructions();
 
     QString createProgram(int entries) {
         QString out;
@@ -51,7 +51,8 @@ private:
 
     enum class Expect { Fail, Success };
     void testAssemble(const QStringList& program, Expect expect) {
-        auto assembler = RV32I_Assembler();
+        auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+        auto assembler = RV32I_Assembler(isa.get());
         auto res = assembler.assemble(program);
         if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
             res.errors.print();
@@ -70,7 +71,8 @@ void tst_Assembler::tst_riscv() {
     const auto testFiles = dir.entryList({"*.s"});
 
     auto testFunct = [](const QString& filename) {
-        auto assembler = RV32I_Assembler({RV32I_Assembler::Extensions::M});
+        auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+        auto assembler = RV32I_Assembler(isa.get());
         auto f = QFile(filename);
         f.open(QIODevice::ReadOnly | QIODevice::Text);
         auto program = QString(f.readAll());
@@ -113,9 +115,10 @@ void tst_Assembler::tst_invalidLabel() {
 }
 
 void tst_Assembler::tst_benchmarkNew() {
-    auto newassembler = RV32I_Assembler();
+    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+    auto assembler = RV32I_Assembler(isa.get());
     auto program = createProgram(1000);
-    QBENCHMARK { newassembler.assembleRaw(program); }
+    QBENCHMARK { assembler.assembleRaw(program); }
 }
 
 void tst_Assembler::tst_simpleprogram() {
@@ -194,7 +197,8 @@ void tst_Assembler::tst_labelWithPseudo() {
 }
 
 void tst_Assembler::tst_matcher() {
-    auto assembler = RV32I_Assembler();
+    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+    auto assembler = RV32I_Assembler(isa.get());
     assembler.getMatcher().print();
 
     std::vector<std::pair<QString, unsigned>> toMatch = {
@@ -210,7 +214,7 @@ void tst_Assembler::tst_matcher() {
             QFAIL(error.second.toStdString().c_str());
         } catch (const std::bad_variant_access&) {
         }
-        auto matchInstr = std::get<const Instruction<RVISA>*>(match);
+        auto matchInstr = std::get<const Instruction*>(match);
         if (matchInstr->name() != iter.first) {
             QString error =
                 "Incorrect instruction decoded; got '" + matchInstr->name() + "' but expected '" + iter.first + "'";

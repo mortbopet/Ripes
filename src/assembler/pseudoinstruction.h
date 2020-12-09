@@ -6,10 +6,7 @@
 namespace Ripes {
 namespace AssemblerTmp {
 
-template <typename ISA>
 class PseudoInstruction {
-    static_assert(std::is_base_of<ISAInfoBase, ISA>::value, "Provided ISA type must derive from ISAInfoBase");
-
 public:
     PseudoInstruction(
         const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
@@ -33,7 +30,7 @@ public:
      * Does not relate to actual regs/imms in an instruction word, but solely used for a pseudoinstruction to
      * be used within the instruction token checking system.
      */
-    static std::shared_ptr<Reg<ISA>> reg() { return std::make_shared<Reg<ISA>>(0, 0, 0); }
+    static std::shared_ptr<Reg> reg() { return std::make_shared<Reg>(nullptr, 0, 0, 0); }
     static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(0, 0, Imm::Repr::Hex, std::vector<ImmPart>{}); }
 
 private:
@@ -43,6 +40,9 @@ private:
     const int m_expectedTokens;
     const std::vector<std::shared_ptr<Field>> m_fields;
 };
+
+using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstruction>>;
+using PseudoInstrMap = std::map<QString, std::shared_ptr<PseudoInstruction>>;
 
 }  // namespace AssemblerTmp
 }  // namespace Ripes
