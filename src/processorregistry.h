@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 
-#include "isainfo.h"
+#include "isa/isainfo.h"
 #include "processors/ripesprocessor.h"
 
 #include "processors/RISC-V/rv5s/rv5s.h"

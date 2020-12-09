@@ -2,7 +2,8 @@
 
 #include "assembler/instruction.h"
 #include "assembler/matcher.h"
-#include "isainfo.h"
+#include "isa/isainfo.h"
+#include "isa/rv32isainfo.h"
 
 #include "assembler/rv32i_assembler.h"
 

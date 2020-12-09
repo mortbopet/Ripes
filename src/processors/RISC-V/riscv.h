@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include "../../isa/rv32isainfo.h"
 #include "VSRTL/core/vsrtl_enum.h"
 #include "VSRTL/interface/vsrtl.h"
 #include "VSRTL/interface/vsrtl_binutils.h"

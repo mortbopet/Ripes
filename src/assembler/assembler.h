@@ -6,7 +6,7 @@
 #include "directive.h"
 #include "expreval.h"
 #include "instruction.h"
-#include "isainfo.h"
+#include "isa/isainfo.h"
 #include "matcher.h"
 #include "parserutilities.h"
 #include "pseudoinstruction.h"

@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB LIB_SOURCES
     *.cpp
+    isa/*.cpp
     cachesim/*.cpp
     editor/*.cpp
     syscall/*.cpp
@@ -11,6 +12,7 @@ file(GLOB LIB_SOURCES
     assembler/*.cpp)
 file(GLOB LIB_HEADERS
     *.h
+    isa/*.h
     cachesim/*.h
     editor/*.h
     syscall/*.h

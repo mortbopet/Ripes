@@ -6,7 +6,7 @@
 #include "Signals/Signal.h"
 #include "VSRTL/core/vsrtl_design.h"
 
-#include "../isainfo.h"
+#include "../isa/isainfo.h"
 
 namespace Ripes {
 

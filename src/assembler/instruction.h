@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <vector>
 #include "binutils.h"
-#include "isainfo.h"
+#include "isa/isainfo.h"
 #include "math.h"
 
 namespace Ripes {
