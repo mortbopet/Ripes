@@ -24,7 +24,10 @@ using namespace Ripes;
 
 class RVSS : public RipesProcessor {
 public:
-    RVSS() : RipesProcessor("Single Cycle RISC-V Processor") {
+    RVSS(const QStringList& extensions) : RipesProcessor("Single Cycle RISC-V Processor") {
+        m_enabledISA = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
+        decode->setISA(m_enabledISA);
+
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -205,11 +208,13 @@ public:
         return &s_isa;
     }
 
-    const ISAInfoBase* implementsISA() const override { return ISA(); };
+    const ISAInfoBase* supportsISA() const override { return ISA(); };
+    const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
 
 private:
     bool m_finishInNextCycle = false;
     bool m_finished = false;
+    std::shared_ptr<ISAInfo<ISA::RV32I>> m_enabledISA;
 };
 
 }  // namespace core

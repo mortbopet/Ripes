@@ -43,8 +43,14 @@ public:
     RipesProcessor(std::string name) : Design(name) {}
 
     /**
+     * @brief supportsISA
+     * @return ISA alongside all of the supported extensions which this processor implements.
+     */
+    virtual const ISAInfoBase* supportsISA() const = 0;
+
+    /**
      * @brief implementsISA
-     * @return ISA which this processor implements
+     * @return ISA (+extensions) which the _instantiated_ processor implements.
      */
     virtual const ISAInfoBase* implementsISA() const = 0;
 

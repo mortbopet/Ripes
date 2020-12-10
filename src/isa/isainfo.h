@@ -51,6 +51,8 @@ public:
      */
     virtual const QStringList& supportedExtensions() const = 0;
     virtual const QStringList& enabledExtensions() const = 0;
+    bool extensionEnabled(const QString& ext) const { return enabledExtensions().contains(ext); }
+    bool supportsExtension(const QString& ext) const { return supportedExtensions().contains(ext); }
 
 protected:
     ISAInfoBase() {}

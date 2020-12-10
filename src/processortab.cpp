@@ -307,7 +307,8 @@ void ProcessorTab::processorSelection() {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
         m_stageInstructionLabels.clear();
-        ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
+        ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getEnabledExtensions(),
+                                                 diag.getRegisterInitialization());
 
         // Store selected layout index
         const auto& layouts = ProcessorRegistry::getDescription(diag.getSelectedId()).layouts;

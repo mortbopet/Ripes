@@ -49,16 +49,17 @@ public:
     using ProcessorMap = std::map<ProcessorID, ProcessorDescription>;
     static const ProcessorMap& getAvailableProcessors() { return instance().m_descriptions; }
     static const ProcessorDescription& getDescription(ProcessorID id) { return instance().m_descriptions[id]; }
-    static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id) {
+    static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id,
+                                                                           const QStringList& extensions) {
         switch (id) {
             case ProcessorID::RV5S_NO_FW_HZ:
-                return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ>();
+                return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ>(extensions);
             case ProcessorID::RV5S:
-                return std::make_unique<vsrtl::core::RV5S>();
+                return std::make_unique<vsrtl::core::RV5S>(extensions);
             case ProcessorID::RVSS:
-                return std::make_unique<vsrtl::core::RVSS>();
+                return std::make_unique<vsrtl::core::RVSS>(extensions);
             case ProcessorID::RV5S_NO_HZ:
-                return std::make_unique<vsrtl::core::RV5S_NO_HZ>();
+                return std::make_unique<vsrtl::core::RV5S_NO_HZ>(extensions);
             case ProcessorID::NUM_PROCESSORS:
                 Q_UNREACHABLE();
         }

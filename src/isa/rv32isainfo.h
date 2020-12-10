@@ -72,7 +72,7 @@ public:
     ISAInfo<ISA::RV32I>(const QStringList extensions) {
         // Validate extensions
         for (const auto& ext : extensions) {
-            if (m_supportedExtensions.contains(ext)) {
+            if (supportsExtension(ext)) {
                 m_enabledExtensions << ext;
             } else {
                 assert(false && "Invalid extension specified for ISA");
@@ -103,7 +103,7 @@ public:
         Open = 1024
     };
 
-    QString name() const override { return "RV32I" + enabledExtensions().join(""); }
+    QString name() const override { return "RV32I"; }
     ISA isaID() const override { return ISA::RV32I; }
 
     unsigned int regCnt() const override { return 32; }

@@ -9,6 +9,8 @@ using namespace Ripes;
 
 class Decode : public Component {
 public:
+    void setISA(const std::shared_ptr<ISAInfo<ISA::RV32I>>& isa) { m_isa = isa; }
+
     Decode(std::string name, SimComponent* parent) : Component(name, parent) {
         opcode << [=] {
             const unsigned l7 = instr.uValue() & 0b1111111;
@@ -47,17 +49,19 @@ public:
                 // R-Type
                 const auto fields = RVInstrParser::getParser()->decodeRInstr(instr.uValue());
                 if (fields[0] == 0b1) {
-                    // RV32M Standard extension
-                    switch (fields[3]) {
-                        case 0b000: return RVInstr::MUL;
-                        case 0b001: return RVInstr::MULH;
-                        case 0b010: return RVInstr::MULHSU;
-                        case 0b011: return RVInstr::MULHU;
-                        case 0b100: return RVInstr::DIV;
-                        case 0b101: return RVInstr::DIVU;
-                        case 0b110: return RVInstr::REM;
-                        case 0b111: return RVInstr::REMU;
-                        default: break;
+                    if(m_isa && m_isa->extensionEnabled("M")) {
+                        // RV32M Standard extension
+                        switch (fields[3]) {
+                            case 0b000: return RVInstr::MUL;
+                            case 0b001: return RVInstr::MULH;
+                            case 0b010: return RVInstr::MULHSU;
+                            case 0b011: return RVInstr::MULHU;
+                            case 0b100: return RVInstr::DIV;
+                            case 0b101: return RVInstr::DIVU;
+                            case 0b110: return RVInstr::REM;
+                            case 0b111: return RVInstr::REMU;
+                            default: break;
+                        }
                     }
                 } else {
                     switch (fields[3]) {
@@ -160,6 +164,7 @@ public:
 
 private:
     void unknownInstruction() {}
+    std::shared_ptr<ISAInfo<ISA::RV32I>> m_isa;
 };
 
 }  // namespace core

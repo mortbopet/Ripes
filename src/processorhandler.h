@@ -47,7 +47,8 @@ public:
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
      * RipesProcessor interface.
      */
-    void selectProcessor(const ProcessorID& id, RegisterInitialization setup = RegisterInitialization());
+    void selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
+                         RegisterInitialization setup = RegisterInitialization());
 
     /**
      * @brief checkValidExecutionRange

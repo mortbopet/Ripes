@@ -32,7 +32,11 @@ using namespace Ripes;
 class RV5S_NO_FW_HZ : public RipesProcessor {
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-    RV5S_NO_FW_HZ() : RipesProcessor("5-Stage RISC-V Processor without forwarding or hazard detection") {
+    RV5S_NO_FW_HZ(const QStringList& extensions)
+        : RipesProcessor("5-Stage RISC-V Processor without forwarding or hazard detection") {
+        m_enabledISA = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
+        decode->setISA(m_enabledISA);
+
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -398,7 +402,8 @@ public:
         return &s_isa;
     }
 
-    const ISAInfoBase* implementsISA() const override { return ISA(); };
+    const ISAInfoBase* supportsISA() const override { return ISA(); };
+    const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
 
 private:
     /**
@@ -407,6 +412,7 @@ private:
      * we roll back an exit system call during rewinding.
      */
     long long m_syscallExitCycle = -1;
+    std::shared_ptr<ISAInfo<ISA::RV32I>> m_enabledISA;
 };
 
 }  // namespace core

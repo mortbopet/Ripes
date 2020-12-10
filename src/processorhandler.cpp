@@ -23,7 +23,8 @@ ProcessorHandler::ProcessorHandler() {
         // Some sanity checking
         m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV5S : m_currentID;
     }
-    selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+    selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
+                    ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
@@ -145,13 +146,14 @@ void ProcessorHandler::clearBreakpoints() {
     m_breakpoints.clear();
 }
 
-void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitialization setup) {
+void ProcessorHandler::selectProcessor(const ProcessorID& id, const QStringList& extensions,
+                                       RegisterInitialization setup) {
     m_program = nullptr;
     m_currentID = id;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
 
     // Processor initializations
-    m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);
+    m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);
     m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return isExecutableAddress(address); };
 
     // Syscall handling initialization
