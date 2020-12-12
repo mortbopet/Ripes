@@ -197,6 +197,10 @@ void EditTab::createAssemblerForCurrentISA() {
     } else {
         Q_UNREACHABLE();
     }
+
+    // Notify the assembler change to the code editor - opcodes might have been added or removed which must be reflected
+    // in the syntax highlighter
+    m_ui->codeEditor->setSourceType(m_currentSourceType, m_assembler->getOpcodes());
 }
 
 void EditTab::onProcessorChanged() {

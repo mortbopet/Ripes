@@ -92,7 +92,7 @@ private:
     std::shared_ptr<Program> m_activeProgram;
     std::shared_ptr<AssemblerTmp::Errors> m_sourceErrors;
 
-    SourceType m_currentSourceType;
+    SourceType m_currentSourceType = SourceType::Assembly;
 
     bool m_editorEnabled = true;
 };
