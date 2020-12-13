@@ -485,9 +485,14 @@ protected:
         }
         if (errors.size() != 0) {
             return {errors};
-        } else {
-            return {program};
         }
+
+        // Register symbols in program struct
+        for (const auto& iter : symbolMap) {
+            program.symbols[iter.second] = iter.first;
+        }
+
+        return {program};
     }
 
     std::variant<Errors, NoPassResult> pass3(Program& program, SymbolMap& symbolMap,
