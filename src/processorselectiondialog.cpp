@@ -110,6 +110,10 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
 
     for (const auto& ext : desc.isa->supportedExtensions()) {
         auto chkbox = new QCheckBox(ext);
+        m_ui->extensions->addWidget(chkbox);
+        if (m_selectedExtensionsForID[desc.id].contains(ext)) {
+            chkbox->setChecked(true);
+        }
         connect(chkbox, &QCheckBox::toggled, [=](bool toggled) {
             if (toggled) {
                 m_selectedExtensionsForID[id] << ext;
@@ -117,10 +121,6 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
                 m_selectedExtensionsForID[id].removeAll(ext);
             }
         });
-        m_ui->extensions->addWidget(chkbox);
-        if (m_selectedExtensionsForID[desc.id].contains(ext)) {
-            chkbox->setChecked(true);
-        }
     }
 }
 
