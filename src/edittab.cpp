@@ -10,7 +10,6 @@
 #include <QPushButton>
 
 #include "assembler/program.h"
-#include "assembler/rv32i_assembler.h"
 
 #include "ccmanager.h"
 #include "compilererrordialog.h"
@@ -186,25 +185,13 @@ void EditTab::sourceTypeChanged() {
     }
 
     // Notify the source type change to the code editor
-    m_ui->codeEditor->setSourceType(m_currentSourceType, m_assembler->getOpcodes());
-}
-
-void EditTab::createAssemblerForCurrentISA() {
-    const auto& ISA = ProcessorHandler::get()->currentISA();
-
-    if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
-        m_assembler = std::make_unique<AssemblerTmp::RV32I_Assembler>(rvisa);
-    } else {
-        Q_UNREACHABLE();
-    }
-
-    // Notify the assembler change to the code editor - opcodes might have been added or removed which must be reflected
-    // in the syntax highlighter
-    m_ui->codeEditor->setSourceType(m_currentSourceType, m_assembler->getOpcodes());
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
 }
 
 void EditTab::onProcessorChanged() {
-    createAssemblerForCurrentISA();
+    // Notify a possible assembler change to the code editor - opcodes might have been added or removed which must be
+    // reflected in the syntax highlighter
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
     assemble();
 }
 
@@ -226,7 +213,7 @@ void EditTab::sourceCodeChanged() {
 }
 
 void EditTab::assemble() {
-    auto res = m_assembler->assembleRaw(m_ui->codeEditor->document()->toPlainText());
+    auto res = ProcessorHandler::get()->getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText());
     *m_sourceErrors = res.errors;
     if (m_sourceErrors->size() == 0) {
         m_activeProgram = std::make_shared<Program>(res.program);

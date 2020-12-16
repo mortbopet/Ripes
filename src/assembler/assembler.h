@@ -67,7 +67,9 @@ public:
         return assemble(programLines);
     }
 
-    virtual DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const = 0;
+    virtual DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const = 0;
+    virtual std::pair<QString, std::optional<Error>> disassemble(const uint32_t word, const ReverseSymbolMap& symbols,
+                                                                 const uint32_t baseAddress = 0) const = 0;
 
     virtual std::set<QString> getOpcodes() const = 0;
 
@@ -266,32 +268,39 @@ public:
         return result;
     }
 
-    DisassembleResult disassemble(const QByteArray& program, const uint32_t baseAddress = 0) const override {
+    DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const override {
         size_t i = 0;
         DisassembleResult res;
-        while ((i + sizeof(uint32_t)) <= program.size()) {
-            const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(program.data() + i);
-            auto match = m_matcher->matchInstruction(instructionWord);
-            try {
-                auto& error = std::get<Error>(match);
-                // Unknown instruction
-                res.errors.push_back(error);
-                res.program << "unknown instruction";
-            } catch (const std::bad_variant_access&) {
-                // Got match, disassemble
-                auto tokens = std::get<const Instruction*>(match)->disassemble(instructionWord, baseAddress + i,
-                                                                               ReverseSymbolMap());
-                try {
-                    auto& error = std::get<Error>(match);
-                    // Error during disassembling
-                    res.errors.push_back(error);
-                } catch (const std::bad_variant_access&) {
-                    res.program << std::get<LineTokens>(tokens).join(' ');
-                }
+        auto& programBits = program.getSection(".text")->data;
+        while ((i + sizeof(uint32_t)) <= programBits.size()) {
+            const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(programBits.data() + i);
+            auto disres = disassemble(instructionWord, program.symbols, baseAddress + i);
+            if (disres.second) {
+                res.errors.push_back(disres.second.value());
             }
+            res.program << disres.first;
             i += sizeof(uint32_t);
         }
         return res;
+    }
+
+    std::pair<QString, std::optional<Error>> disassemble(const uint32_t word, const ReverseSymbolMap& symbols,
+                                                         const uint32_t baseAddress = 0) const override {
+        auto match = m_matcher->matchInstruction(word);
+        try {
+            auto& error = std::get<Error>(match);
+            return {"unknown instruction", error};
+        } catch (const std::bad_variant_access&) {
+            // Got match, disassemble
+            auto tokens = std::get<const Instruction*>(match)->disassemble(word, baseAddress, symbols);
+            try {
+                auto& error = std::get<Error>(match);
+                // Error during disassembling
+                return {"invalid instruction", error};
+            } catch (const std::bad_variant_access&) {
+                return {std::get<LineTokens>(tokens).join(' '), {}};
+            }
+        }
     }
 
     const Matcher& getMatcher() { return *m_matcher; }
@@ -334,8 +343,8 @@ protected:
         /** @brief carry
          * A symbol should refer to the next following assembler line; whether an instruction or directive.
          * The carry is used to carry over symbol definitions from empty lines onto the next valid line.
-         * Multiple symbol definitions is checked in this step given that a symbol may loose its source line information
-         * if it is a blank symbol (no other information on line).
+         * Multiple symbol definitions is checked in this step given that a symbol may loose its source line
+         * information if it is a blank symbol (no other information on line).
          */
         Symbols carry;
         for (int i = 0; i < program.size(); i++) {
@@ -507,7 +516,8 @@ protected:
 
             if (symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
-                    // No recorded symbol for the token; our last option is to try and evaluate a possible expression.
+                    // No recorded symbol for the token; our last option is to try and evaluate a possible
+                    // expression.
                     auto evaluate_res = evaluate(symbol, &symbolMap);
                     try {
                         auto err = std::get<Error>(evaluate_res);
@@ -570,7 +580,8 @@ protected:
             }
         } catch (const std::bad_variant_access&) {
         }
-        // Return result (containing either a valid pseudo-instruction expand error or the expanded pseudo instruction
+        // Return result (containing either a valid pseudo-instruction expand error or the expanded pseudo
+        // instruction
         return {res};
     }
 

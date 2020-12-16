@@ -6,9 +6,10 @@
 #include <QScrollBar>
 #include <QTimer>
 
+#include "assembler/objdump.h"
+#include "assembler/program.h"
 #include "parser.h"
 #include "processorhandler.h"
-#include "assembler/program.h"
 
 namespace Ripes {
 
@@ -31,7 +32,7 @@ public:
     QTextBlock blockForAddress(unsigned long) const;
     void setCenterAddress(const long address);
 
-    const AddrOffsetMap& addressOffsetMap() const { return m_labelAddrOffsetMap; }
+    const AssemblerTmp::AddrOffsetMap& addressOffsetMap() const { return m_labelAddrOffsetMap; }
 
     ///
     /// \brief updateProgram
@@ -77,7 +78,7 @@ private:
      * from 0) which does >not< correspond with an address. The value of the key corresponds to the total sum of
      * non-address lines encountered up to and including the given label.
      */
-    AddrOffsetMap m_labelAddrOffsetMap;
+    AssemblerTmp::AddrOffsetMap m_labelAddrOffsetMap;
     std::map<QTextBlock, QStringList> m_highlightedBlocksText;
 };
 

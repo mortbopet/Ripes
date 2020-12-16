@@ -72,7 +72,6 @@ private:
     void assemble();
     void compile();
 
-    void createAssemblerForCurrentISA();
     void updateProgramViewer();
     bool loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt);
     bool loadSourceFile(Program& program, QFile& file);
@@ -87,7 +86,6 @@ private:
     QAction* m_symbolNavigatorAction = nullptr;
 
     Ui::EditTab* m_ui = nullptr;
-    std::unique_ptr<AssemblerTmp::AssemblerBase> m_assembler;
 
     std::shared_ptr<Program> m_activeProgram;
     std::shared_ptr<AssemblerTmp::Errors> m_sourceErrors;

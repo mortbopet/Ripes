@@ -51,7 +51,7 @@ void GoToComboBox::signalFilter(int index) {
 
 void GoToSectionComboBox::addTargets() {
     addItem("Address...", QVariant::fromValue<GoToUserData>({GoToFunction::Address, 0}));
-    if (auto prog_spt = ProcessorHandler::get()->getProgram().lock()) {
+    if (auto prog_spt = ProcessorHandler::get()->getProgram()) {
         for (const auto& section : prog_spt->sections) {
             addItem(section.first, QVariant::fromValue<GoToUserData>({GoToFunction::Custom, 0}));
         }
@@ -60,7 +60,7 @@ void GoToSectionComboBox::addTargets() {
 
 uint32_t GoToSectionComboBox::addrForIndex(int i) {
     const QString& sectionName = itemText(i);
-    if (auto prog_spt = ProcessorHandler::get()->getProgram().lock()) {
+    if (auto prog_spt = ProcessorHandler::get()->getProgram()) {
         return prog_spt->getSection(sectionName)->address;
     } else {
         return -1;

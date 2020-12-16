@@ -1,10 +1,12 @@
 #include "processorhandler.h"
 
-#include "assembler/program.h"
 #include "parser.h"
 #include "processorregistry.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
+
+#include "assembler/program.h"
+#include "assembler/rv32i_assembler.h"
 
 #include "syscall/riscv_syscall.h"
 
@@ -146,6 +148,16 @@ void ProcessorHandler::clearBreakpoints() {
     m_breakpoints.clear();
 }
 
+void ProcessorHandler::createAssemblerForCurrentISA() {
+    const auto& ISA = currentISA();
+
+    if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
+        m_currentAssembler = std::make_shared<AssemblerTmp::RV32I_Assembler>(rvisa);
+    } else {
+        Q_UNREACHABLE();
+    }
+}
+
 void ProcessorHandler::selectProcessor(const ProcessorID& id, const QStringList& extensions,
                                        RegisterInitialization setup) {
     m_program = nullptr;
@@ -176,6 +188,7 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, const QStringList&
     }
 
     m_currentProcessor->verifyAndInitialize();
+    createAssemblerForCurrentISA();
 
     emit processorChanged();
 }
