@@ -398,7 +398,7 @@ void ProcessorTab::updateInstructionLabels() {
             instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
             instrLabel->setDefaultTextColor(Qt::red);
         } else if (stageInfo.stage_valid) {
-            instrString = ProcessorHandler::get()->parseInstrAt(stageInfo.pc);
+            instrString = ProcessorHandler::get()->disassembleInstr(stageInfo.pc);
             instrLabel->setDefaultTextColor(QColor());
         }
         instrLabel->setText(instrString);

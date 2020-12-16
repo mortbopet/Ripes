@@ -79,10 +79,10 @@ public:
     unsigned long getTextStart() const;
 
     /**
-     * @brief parseInstrAt
-     * @return string representation of the instruction at @param addr
+     * @brief disassembleInstr
+     * @return disassembled representation of the instruction at @param addr in the current program
      */
-    QString parseInstrAt(const uint32_t address) const;
+    QString disassembleInstr(const uint32_t address) const;
 
     /**
      * @brief getMemory & getRegisters

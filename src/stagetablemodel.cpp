@@ -21,7 +21,7 @@ QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, i
         return QString::number(section);
     } else {
         const auto addr = indexToAddress(section);
-        return ProcessorHandler::get()->parseInstrAt(addr);
+        return ProcessorHandler::get()->disassembleInstr(addr);
     }
 }
 

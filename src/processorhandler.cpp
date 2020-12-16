@@ -212,7 +212,7 @@ unsigned long ProcessorHandler::getTextStart() const {
     return 0;
 }
 
-QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
+QString ProcessorHandler::disassembleInstr(const uint32_t addr) const {
     if (m_program) {
         return m_currentAssembler
             ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
