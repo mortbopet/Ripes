@@ -38,13 +38,15 @@ struct FieldLinkRequest {
 };
 
 struct Field {
-    Field() = default;
+    Field(unsigned _tokenIndex) : tokenIndex(_tokenIndex) {}
     virtual ~Field() = default;
     virtual std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                                   FieldLinkRequest& linksWithSymbol) const = 0;
     virtual std::optional<Assembler::Error> decode(const uint32_t instruction, const uint32_t address,
                                                    const ReverseSymbolMap& symbolMap,
                                                    Assembler::LineTokens& line) const = 0;
+
+    const unsigned tokenIndex;
 };
 
 /**
@@ -77,10 +79,11 @@ struct OpPart {
 struct Opcode : public Field {
     /**
      * @brief Opcode
+     * The opcode is assumed to always be the first token within an assembly instruction
      * @param name: Name of operation
      * @param fields: list of OpParts corresponding to the identifying elements of the opcode.
      */
-    Opcode(const QString& _name, std::vector<OpPart> _opParts) : name(_name), opParts(_opParts) {}
+    Opcode(const QString& _name, std::vector<OpPart> _opParts) : Field(0), name(_name), opParts(_opParts) {}
 
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine&, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
@@ -105,14 +108,13 @@ struct Reg : public Field {
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
      * @param range: range in instruction field containing register index value
      */
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range)
-        : m_tokenIndex(tokenIndex), m_range(range), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range) : Field(tokenIndex), m_range(range), m_isa(isa) {}
     Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
-        : m_tokenIndex(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
         bool success;
-        const QString& regToken = line.tokens[m_tokenIndex];
+        const QString& regToken = line.tokens[tokenIndex];
         const uint32_t reg = m_isa->regNumber(regToken, success);
         if (!success) {
             return Assembler::Error(line.sourceLine, "Unknown register '" + regToken + "'");
@@ -131,7 +133,6 @@ struct Reg : public Field {
         return std::nullopt;
     }
 
-    const unsigned m_tokenIndex;
     const BitRange m_range;
     const ISAInfoBase* m_isa;
 };
@@ -158,7 +159,7 @@ struct Imm : public Field {
      */
     Imm(unsigned _tokenIndex, unsigned _width, Repr _repr, const std::vector<ImmPart>& _parts,
         SymbolType _symbolType = SymbolType::None, const std::function<uint32_t(uint32_t)>& _symbolTransformer = {})
-        : tokenIndex(_tokenIndex),
+        : Field(_tokenIndex),
           parts(_parts),
           width(_width),
           repr(_repr),
@@ -246,7 +247,6 @@ struct Imm : public Field {
         return std::nullopt;
     }
 
-    const unsigned tokenIndex;
     const std::vector<ImmPart> parts;
     const unsigned width;
     const Repr repr;
@@ -280,6 +280,12 @@ public:
             }
             return DisassembleRes(line);
         };
+
+        // Sort fields by token index. This lets the disassembler naively write each parsed field in the order of
+        // m_fields, ensuring that the disassembled tokens appear in correct order, without having to manually check
+        // this on each disassemble call.
+        std::sort(m_fields.begin(), m_fields.end(),
+                  [](const auto& field1, const auto& field2) { return field1->tokenIndex < field2->tokenIndex; });
     }
 
     AssembleRes assemble(const Assembler::TokenizedSrcLine& line) const {
@@ -311,7 +317,7 @@ private:
 
     const Opcode m_opcode;
     const int m_expectedTokens;
-    const std::vector<std::shared_ptr<Field>> m_fields;
+    std::vector<std::shared_ptr<Field>> m_fields;
 };
 
 using InstrMap = std::map<QString, std::shared_ptr<Instruction>>;
