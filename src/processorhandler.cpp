@@ -1,6 +1,5 @@
 #include "processorhandler.h"
 
-#include "parser.h"
 #include "processorregistry.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
@@ -215,7 +214,9 @@ unsigned long ProcessorHandler::getTextStart() const {
 
 QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
     if (m_program) {
-        return Parser::getParser()->disassemble(m_program, m_currentProcessor->getMemory().readMem(addr), addr);
+        return m_currentAssembler
+            ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
+            .first;
     } else {
         return QString();
     }

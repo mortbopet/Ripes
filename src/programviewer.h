@@ -8,7 +8,6 @@
 
 #include "assembler/objdump.h"
 #include "assembler/program.h"
-#include "parser.h"
 #include "processorhandler.h"
 
 namespace Ripes {

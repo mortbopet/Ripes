@@ -3,7 +3,6 @@
 #include <QDialog>
 
 #include "assembler/objdump.h"
-#include "parser.h"
 
 namespace Ripes {
 

@@ -1,7 +1,5 @@
 #include "stagetablemodel.h"
 
-#include "parser.h"
-
 #include <vector>
 
 namespace Ripes {

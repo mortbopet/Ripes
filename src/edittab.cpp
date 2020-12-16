@@ -14,7 +14,6 @@
 #include "ccmanager.h"
 #include "compilererrordialog.h"
 #include "editor/codeeditor.h"
-#include "parser.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "symbolnavigator.h"

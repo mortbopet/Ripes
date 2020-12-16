@@ -5,7 +5,6 @@
 #include "edittab.h"
 #include "loaddialog.h"
 #include "memorytab.h"
-#include "parser.h"
 #include "processorhandler.h"
 #include "processortab.h"
 #include "registerwidget.h"

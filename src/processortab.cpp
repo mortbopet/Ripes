@@ -9,7 +9,6 @@
 #include <QTemporaryFile>
 
 #include "instructionmodel.h"
-#include "parser.h"
 #include "processorhandler.h"
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
