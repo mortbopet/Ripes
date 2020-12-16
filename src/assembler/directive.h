@@ -10,7 +10,7 @@
 #include "assemblererror.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 class AssemblerBase;
 
@@ -32,5 +32,5 @@ private:
 using DirectiveMap = std::map<QString, std::shared_ptr<Directive>>;
 using DirectiveVec = std::vector<std::shared_ptr<Directive>>;
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

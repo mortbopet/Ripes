@@ -5,7 +5,7 @@
 #include <functional>
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 class RV32I_Assembler : public Assembler {
 public:
@@ -27,5 +27,5 @@ protected:
     QChar commentDelimiter() const override { return '#'; }
 };
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

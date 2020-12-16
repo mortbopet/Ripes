@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 // An error is defined as a reference to a source line index + an error string
 using Error = std::pair<unsigned, QString>;
@@ -42,5 +42,5 @@ private:
     mutable std::map<unsigned, QString> _mapcache;
 };
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

@@ -4,7 +4,7 @@
 #include "../processorhandler.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 namespace {
 void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets,
@@ -90,5 +90,5 @@ QString binobjdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOf
         addrOffsetMap);
 }
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

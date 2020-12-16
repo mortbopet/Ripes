@@ -2,7 +2,7 @@
 #include "assembler.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 #define add_directive(container, directive) container.push_back(std::make_shared<Directive>(directive));
 
@@ -151,5 +151,5 @@ Directive zeroDirective() {
     return Directive(".zero", zeroFunctor);
 }
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

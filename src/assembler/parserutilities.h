@@ -6,7 +6,7 @@
 #include "assemblererror.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 inline int getImmediate(const QString& string, bool& canConvert) {
     QString upperString = string.toUpper();
@@ -99,5 +99,5 @@ inline std::variant<Error, QStringList> joinParentheses(QStringList& tokens) {
     }
 }
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

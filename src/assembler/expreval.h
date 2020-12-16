@@ -5,7 +5,7 @@
 #include "assemblererror.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 extern const QRegularExpression s_exprOperatorsRegex;
 extern const QString s_exprOperators;
@@ -25,5 +25,5 @@ std::variant<Error, long> evaluate(const QString&, const std::map<QString, uint3
  * @returns true if we have probably cause that the string is an expression and not 'just' a single variable.
  */
 bool couldBeExpression(const QString& s);
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

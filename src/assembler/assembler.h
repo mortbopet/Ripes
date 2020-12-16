@@ -15,7 +15,7 @@
 #include <variant>
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 /**
  * A macro for running an assembler pass with error handling
@@ -656,6 +656,6 @@ protected:
     const ISAInfoBase* m_isa;
 };
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 
 }  // namespace Ripes

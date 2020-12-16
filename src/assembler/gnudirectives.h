@@ -3,7 +3,7 @@
 #include "directive.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 /** @brief
  * A collection of standard GNU assembler directives
@@ -30,5 +30,5 @@ Directive textDirective();
 Directive dataDirective();
 Directive bssDirective();
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

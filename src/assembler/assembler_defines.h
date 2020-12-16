@@ -12,7 +12,7 @@
 #include "program.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 using LineTokens = QStringList;
 using LineTokensVec = std::vector<LineTokens>;
@@ -49,6 +49,6 @@ struct DisassembleResult {
     QStringList program;
 };
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 
 }  // namespace Ripes

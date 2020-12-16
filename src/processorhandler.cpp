@@ -151,7 +151,7 @@ void ProcessorHandler::createAssemblerForCurrentISA() {
     const auto& ISA = currentISA();
 
     if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
-        m_currentAssembler = std::make_shared<AssemblerTmp::RV32I_Assembler>(rvisa);
+        m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rvisa);
     } else {
         Q_UNREACHABLE();
     }

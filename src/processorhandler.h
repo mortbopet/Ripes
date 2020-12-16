@@ -31,7 +31,7 @@ public:
 
     vsrtl::core::RipesProcessor* getProcessorNonConst() { return m_currentProcessor.get(); }
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
-    const std::shared_ptr<AssemblerTmp::AssemblerBase> getAssembler() { return m_currentAssembler; }
+    const std::shared_ptr<Assembler::AssemblerBase> getAssembler() { return m_currentAssembler; }
     const ProcessorID& getID() const { return m_currentID; }
     std::shared_ptr<const Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
@@ -188,7 +188,7 @@ private:
     ProcessorID m_currentID;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
     std::unique_ptr<SyscallManager> m_syscallManager;
-    std::shared_ptr<AssemblerTmp::AssemblerBase> m_currentAssembler;
+    std::shared_ptr<Assembler::AssemblerBase> m_currentAssembler;
 
     /**
      * @brief m_vsrtlWidget

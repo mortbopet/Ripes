@@ -5,7 +5,7 @@
 #include <algorithm>
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler(isa) {
     auto [instrs, pseudos, directives] = initInstructions(isa);
@@ -102,7 +102,7 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
 #define RegTok PseudoInstruction::reg()
 #define ImmTok PseudoInstruction::imm()
 #define CreatePseudoInstruction
-#define PseudoExpandFunc(line) [](const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine& line)
+#define PseudoExpandFunc(line) [](const PseudoInstruction&, const TokenizedSrcLine& line)
 
 #define PseudoLoad(name)                                                                                \
     std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
@@ -178,7 +178,7 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "ret", {}, [](const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine&) {
+        "ret", {}, [](const PseudoInstruction&, const TokenizedSrcLine&) {
             return LineTokensVec{QStringList() << "jalr" << "x0" << "x1" << "0"};
         })));
 
@@ -218,7 +218,7 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("nop", {}, [](const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine&) {
+        new PseudoInstruction("nop", {}, [](const PseudoInstruction&, const TokenizedSrcLine&) {
             return LineTokensVec{QString("addi x0 x0 0").split(' ')};
         })));
 
@@ -394,5 +394,5 @@ void RV32I_Assembler::enableExtF(const ISAInfo<ISA::RV32I>* isa, InstrVec&, Pseu
     // Assembler functors
 }
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

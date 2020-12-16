@@ -16,7 +16,6 @@ namespace Ui {
 class EditTab;
 }
 
-class Assembler;
 struct LoadFileParams;
 
 class EditTab : public RipesTab {
@@ -88,7 +87,7 @@ private:
     Ui::EditTab* m_ui = nullptr;
 
     std::shared_ptr<Program> m_activeProgram;
-    std::shared_ptr<AssemblerTmp::Errors> m_sourceErrors;
+    std::shared_ptr<Assembler::Errors> m_sourceErrors;
 
     SourceType m_currentSourceType = SourceType::Assembly;
 

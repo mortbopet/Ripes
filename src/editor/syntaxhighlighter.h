@@ -11,7 +11,7 @@ class SyntaxHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
 
 public:
-    SyntaxHighlighter(QTextDocument* parent = nullptr, std::shared_ptr<AssemblerTmp::Errors> errors = {});
+    SyntaxHighlighter(QTextDocument* parent = nullptr, std::shared_ptr<Assembler::Errors> errors = {});
 
     /**
      * @brief highlightBlock
@@ -30,7 +30,7 @@ protected:
      * The syntax highlighter may provide a tooltip error for each line in the current text document. These tooltips
      * will be displayed by the codeeditor when a relevant tooltip event occurs.
      */
-    std::shared_ptr<AssemblerTmp::Errors> m_errors;
+    std::shared_ptr<Assembler::Errors> m_errors;
     QTextCharFormat errorFormat;
 };
 }  // namespace Ripes

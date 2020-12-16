@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 /**
  * AddrOffsetMap
@@ -26,5 +26,5 @@ using AddrOffsetMap = std::map<unsigned long, std::pair<int, QString>>;
 QString objdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap);
 QString binobjdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap);
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

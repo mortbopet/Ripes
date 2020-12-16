@@ -7,7 +7,7 @@
 #include "parserutilities.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 const QRegularExpression s_exprOperatorsRegex = QRegularExpression(R"((\+|\-|\/|\*|\%))");
 const QString s_exprOperators QStringLiteral("+-*/%");
@@ -251,5 +251,5 @@ bool couldBeExpression(const QString& s) {
     return std::any_of(s_exprTokens.begin(), s_exprTokens.end(), [&s](const auto& ch) { return s.contains(ch); });
 }
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

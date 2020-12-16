@@ -23,7 +23,7 @@ namespace Ripes {
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
 
-    m_sourceErrors = std::make_shared<AssemblerTmp::Errors>();
+    m_sourceErrors = std::make_shared<Assembler::Errors>();
     m_ui->codeEditor->setErrors(m_sourceErrors);
 
     m_symbolNavigatorAction = new QAction(this);

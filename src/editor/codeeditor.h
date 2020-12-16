@@ -31,7 +31,7 @@ public:
     void setupChangedTimer();
     void rehighlight();
 
-    void setErrors(std::shared_ptr<AssemblerTmp::Errors> errors) { m_errors = errors; }
+    void setErrors(std::shared_ptr<Assembler::Errors> errors) { m_errors = errors; }
 
 signals:
     /**
@@ -60,7 +60,7 @@ private:
 
     bool m_breakpointAreaEnabled = false;
     SourceType m_sourceType = SourceType::Assembly;
-    std::shared_ptr<AssemblerTmp::Errors> m_errors;
+    std::shared_ptr<Assembler::Errors> m_errors;
 
     QFont m_font;
 

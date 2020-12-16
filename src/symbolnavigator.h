@@ -14,7 +14,7 @@ class SymbolNavigator : public QDialog {
     Q_OBJECT
 
 public:
-    SymbolNavigator(const AssemblerTmp::AddrOffsetMap& symbolmap, QWidget* parent = nullptr);
+    SymbolNavigator(const Assembler::AddrOffsetMap& symbolmap, QWidget* parent = nullptr);
     ~SymbolNavigator();
 
     long getSelectedSymbolAddress() const;

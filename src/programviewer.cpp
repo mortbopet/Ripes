@@ -47,8 +47,8 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
 
 void ProgramViewer::updateProgram(bool binary) {
     m_labelAddrOffsetMap.clear();
-    const QString text = binary ? AssemblerTmp::binobjdump(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap)
-                                : AssemblerTmp::objdump(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap);
+    const QString text = binary ? Assembler::binobjdump(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap)
+                                : Assembler::objdump(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap);
 
     // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug,
     // but seems to be fixed if we manually clear the selections before we clear (and add new text) to the text

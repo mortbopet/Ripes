@@ -10,7 +10,7 @@
 const QString s_testdir = VSRTL_RISCV_TEST_DIR;
 
 using namespace Ripes;
-using namespace AssemblerTmp;
+using namespace Assembler;
 using RVISA = ISAInfo<ISA::RV32I>;
 
 class tst_Assembler : public QObject {

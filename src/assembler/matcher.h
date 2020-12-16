@@ -5,7 +5,7 @@
 #include "instruction.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 class Matcher {
     struct MatchNode {
@@ -110,5 +110,5 @@ private:
     MatchNode m_matchRoot;
 };
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

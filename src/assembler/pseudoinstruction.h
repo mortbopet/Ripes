@@ -4,18 +4,18 @@
 #include "instruction.h"
 
 namespace Ripes {
-namespace AssemblerTmp {
+namespace Assembler {
 
 class PseudoInstruction {
 public:
     PseudoInstruction(
         const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
-        const std::function<PseudoExpandRes(const PseudoInstruction&, const AssemblerTmp::TokenizedSrcLine&)>& expander)
+        const std::function<PseudoExpandRes(const PseudoInstruction&, const Assembler::TokenizedSrcLine&)>& expander)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields), m_expander(expander) {}
 
-    PseudoExpandRes expand(const AssemblerTmp::TokenizedSrcLine& line) {
+    PseudoExpandRes expand(const Assembler::TokenizedSrcLine& line) {
         if (line.tokens.length() != m_expectedTokens) {
-            return AssemblerTmp::Error(
+            return Assembler::Error(
                 line.sourceLine, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
                                      " arguments, but got " + QString::number(line.tokens.length() - 1));
         }
@@ -34,7 +34,7 @@ public:
     static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(0, 0, Imm::Repr::Hex, std::vector<ImmPart>{}); }
 
 private:
-    std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const AssemblerTmp::TokenizedSrcLine&)> m_expander;
+    std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const Assembler::TokenizedSrcLine&)> m_expander;
 
     const QString m_opcode;
     const int m_expectedTokens;
@@ -44,5 +44,5 @@ private:
 using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstruction>>;
 using PseudoInstrMap = std::map<QString, std::shared_ptr<PseudoInstruction>>;
 
-}  // namespace AssemblerTmp
+}  // namespace Assembler
 }  // namespace Ripes

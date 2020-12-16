@@ -9,7 +9,7 @@ namespace Ripes {
 
 class RVSyntaxHighlighter : public SyntaxHighlighter {
 public:
-    RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<AssemblerTmp::Errors> errors,
+    RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<Assembler::Errors> errors,
                         const std::set<QString>& supportedOpcodes);
     void syntaxHighlightBlock(const QString& text) override;
 
