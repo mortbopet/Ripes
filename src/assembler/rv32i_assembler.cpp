@@ -89,7 +89,7 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
         Opcode(name, {OpPart(opcode, 0, 6)}),                                                                \
         {std::make_shared<Reg>(isa, 1, 7, 11),                                                               \
          std::make_shared<Imm>(                                                                              \
-             2, 21, Imm::Repr::Hex,                                                                          \
+             2, 21, Imm::Repr::Signed,                                                                       \
              std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), ImmPart(11, 20, 20), ImmPart(1, 21, 30)}, \
              Imm::SymbolType::Relative)}))
 
