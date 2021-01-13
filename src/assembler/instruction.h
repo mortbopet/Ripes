@@ -151,9 +151,11 @@ struct Imm : public Field {
     enum class SymbolType { None, Relative, Absolute };
     /**
      * @brief Imm
-     * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
-     * @param ranges: (ordered) list of ranges corresponding to fields of the immediate
-     * @param symbolType: Set if this immediate refers to a relative or absolute symbol.
+     * @param _tokenIndex: Index within a list of decoded instruction tokens that corresponds to the immediate
+     * @param _width: bit-width of the immediate
+     * @param _repr: Representation of the immediate
+     * @param _parts: (ordered) list of ranges corresponding to fields of the immediate
+     * @param _symbolType: Set if this immediate refers to a relative or absolute symbol.
      * @param _symbolTransformer: Optional function used to process the immediate provided by a symbol value, before the
      * immediate value is applied.
      */
