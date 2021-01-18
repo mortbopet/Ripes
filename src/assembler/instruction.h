@@ -103,14 +103,16 @@ struct Opcode : public Field {
 };
 
 struct Reg : public Field {
-    enum class Regsd { rd, rs1, rs2 };
     /**
      * @brief Reg
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
      * @param range: range in instruction field containing register index value
      */
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, Regsd _regsd) : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop, Regsd _regsd)
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range) : Field(tokenIndex), m_range(range), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
+        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, QString _regsd) : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
         : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
@@ -136,7 +138,7 @@ struct Reg : public Field {
 
     const BitRange m_range;
     const ISAInfoBase* m_isa;
-    const Regsd regsd;
+    const QString regsd = "reg";
 };
 
 struct ImmPart {
@@ -292,39 +294,14 @@ public:
 
     AssembleRes assemble(const Assembler::TokenizedSrcLine& line) const {
         QString Hint = "";
-        // if(dynamic_cast<Imm*>(m_fields[1].get()))
-        //     std::cout << "Its Imm" << std::endl;
-        // else if(dynamic_cast<Reg*>(m_fields[1].get()))
-        //     std::cout << "Its Reg" << std::endl;
-        // else
-        //     std::cout << "Nothing" << std::endl;
 
-        for(int i = 0; i < (m_expectedTokens-1); i++){
-            //Imm
-            if(dynamic_cast<Imm*>(m_fields[i].get()))
-                Hint = Hint + " [Imm]";
-            //Reg
-            else
-            {
-                Reg* regField = dynamic_cast<Reg*>(m_fields[i].get());
-                
-                if(regField->regsd == Reg::Regsd::rs1)
-                    Hint = Hint + " [rs1]";
-                else if(regField->regsd == Reg::Regsd::rs2)
-                    Hint = Hint + " [rs2]";
-                else
-                    Hint = Hint + " [rd]";
+        for(const auto& field : m_fields) {
+            if(auto* immField = dynamic_cast<Imm*>(field.get()))
+                Hint = Hint + " [Imm(" + QString::number(immField->width) + ")]";
+            else if (auto* regField = dynamic_cast<Reg*>(field.get())) {
+                Hint = Hint + " [" + regField->regsd +"]";
             }    
         }
-
-        // Reg* regField = dynamic_cast<Reg*>(m_fields[0].get());
-        // if(regField->regsd == Reg::Regsd::rs1)
-        //     std::cout << "rs1" << std::endl;
-        // else if(regField->regsd == Reg::Regsd::rs2)
-        //     std::cout << "rs2" << std::endl;
-        // else
-        //     std::cout << "rd" << std::endl;
-
         if (line.tokens.length() != m_expectedTokens) {
             return Assembler::Error(line.sourceLine, "Instruction " + m_opcode.name + Hint + " expects " +
                                                          QString::number(m_expectedTokens - 1) +
