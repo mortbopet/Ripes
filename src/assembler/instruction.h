@@ -111,6 +111,9 @@ struct Reg : public Field {
     Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range) : Field(tokenIndex), m_range(range), m_isa(isa) {}
     Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
         : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, QString _regsd) : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
+        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
         bool success;
@@ -135,6 +138,7 @@ struct Reg : public Field {
 
     const BitRange m_range;
     const ISAInfoBase* m_isa;
+    const QString regsd = "reg";
 };
 
 struct ImmPart {
@@ -293,14 +297,26 @@ public:
     }
 
     AssembleRes assemble(const Assembler::TokenizedSrcLine& line) const {
+        QString Hint = "";
+
+        for(const auto& field : m_fields) {
+            if(auto* immField = dynamic_cast<Imm*>(field.get()))
+                Hint = Hint + " [Imm(" + QString::number(immField->width) + ")]";
+            else if (auto* regField = dynamic_cast<Reg*>(field.get())) {
+                Hint = Hint + " [" + regField->regsd +"]";
+            }    
+        }
         if (line.tokens.length() != m_expectedTokens) {
-            return Assembler::Error(line.sourceLine, "Instruction '" + m_opcode.name + "' expects " +
+            return Assembler::Error(line.sourceLine, "Instruction " + m_opcode.name + Hint + " expects " +
                                                          QString::number(m_expectedTokens - 1) +
                                                          " arguments, but got " +
                                                          QString::number(line.tokens.length() - 1));
         }
         return m_assembler(this, line);
     }
+
+
+
     DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,
                                const ReverseSymbolMap& symbolMap) const {
         return m_disassembler(this, instruction, address, symbolMap);
