@@ -182,9 +182,10 @@ void tst_Assembler::tst_label() {
 }
 
 void tst_Assembler::tst_segment() {
-    testAssemble(QStringList() << ".data nop"
+    testAssemble(QStringList() << ".data"
                                << "nop"
-                               << ".text .word"
+                               << ".text "
+                               << "L: .word 1, 2, 3 ,4"
                                << "nop"
                                << ".data"
                                << "nop",

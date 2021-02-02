@@ -6,6 +6,8 @@
 #include "processorhandler.h"
 #include "processorregistry.h"
 
+#include "assembler/rv32i_assembler.h"
+
 #ifndef VSRTL_RISCV_TEST_DIR
 static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
 #endif
@@ -20,6 +22,8 @@ static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
 
 using namespace Ripes;
 using namespace vsrtl::core;
+using namespace Assembler;
+using RVISA = ISAInfo<ISA::RV32I>;
 
 // Compilation tools & directories
 const QString s_testdir = VSRTL_RISCV_TEST_DIR;
@@ -108,7 +112,7 @@ QString tst_RISCV::dumpRegs() {
     for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt(); i++) {
         str += "\t" + ProcessorHandler::get()->currentISA()->regName(i) + ":" +
                ProcessorHandler::get()->currentISA()->regAlias(i) + ":\t" +
-               QString::number(ProcessorHandler::get()->getProcessor()->getRegister(i)) + "\n";
+               QString::number(ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, i)) + "\n";
     }
     return str;
 }
@@ -123,19 +127,19 @@ void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
     QByteArray programByteArray = testFile.readAll();
 
     m_program = std::make_shared<Program>();
-    m_program->sections.push_back({TEXT_SECTION_NAME, 0, programByteArray});
+    m_program->sections[TEXT_SECTION_NAME] = ProgramSection{TEXT_SECTION_NAME, 0, programByteArray};
     ProcessorHandler::get()->loadProgram(m_program);
 }
 
 void tst_RISCV::handleSysCall() {
-    unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(s_ecallreg);
-    if (status == s_success) {
-        m_stop |= true;
-    } else if (status == s_fail) {
-        m_err = "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
-                QString::number(ProcessorHandler::get()->getProcessor()->getRegister(s_statusreg));
+    unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, s_ecallreg);
+    if (status != s_success) {
+        m_err =
+            "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
+            QString::number(ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, s_statusreg));
         m_err += dumpRegs();
     }
+    m_stop |= true;
 }
 
 QString tst_RISCV::executeSimulator() {
@@ -153,8 +157,9 @@ QString tst_RISCV::executeSimulator() {
     } while (!m_stop);
 
     if (maxCyclesReached) {
-        m_err = "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
-                QString::number(ProcessorHandler::get()->getProcessor()->getRegister(s_statusreg));
+        m_err =
+            "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
+            QString::number(ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, s_statusreg));
         m_err += dumpRegs();
     }
 
@@ -165,6 +170,10 @@ QString tst_RISCV::executeSimulator() {
 void tst_RISCV::runTests(const ProcessorID& id) {
     const auto dir = QDir(s_testdir);
     const auto testFiles = dir.entryList({"*.s"});
+    const auto extensions = QStringList("M");
+
+    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(extensions);
+    auto assembler = RV32I_Assembler(isa.get());
 
     for (const auto& test : testFiles) {
         m_currentTest = test;
@@ -174,20 +183,28 @@ void tst_RISCV::runTests(const ProcessorID& id) {
 
         qInfo() << "Running test: " << m_currentTest;
 
-        // Compile test file
-        const auto binFile = compileTestFile(test);
-        if (binFile.isNull()) {
-            QString err = "Test: '" + test + "' failed: Could not compile test file.";
+        // Assemble test file
+        auto f = QFile(s_testdir + QString(QDir::separator()) + test);
+        if (!f.open(QIODevice::ReadOnly)) {
+            QFAIL("Could not open test file");
+        }
+        const auto program = assembler.assemble(QString(f.readAll()).split("\n"));
+        if (program.errors.size() != 0) {
+            QString err = "Could not assemble program";
+            err += "\n errors were:";
+            err += program.errors.toString();
             QFAIL(err.toStdString().c_str());
         }
+        auto spProgram = std::make_shared<Program>(program.program);
 
-        connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, [=] { loadBinaryToSimulator(binFile); });
         connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset,
                 [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
 
-        ProcessorHandler::get()->selectProcessor(id);
-        // Override the ProcessorHandler's ECALL handling
+        ProcessorHandler::get()->selectProcessor(id, extensions);
+        // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
+        // reached.
         ProcessorHandler::get()->getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
+        ProcessorHandler::get()->loadProgram(spProgram);
 
         const QString err = executeSimulator();
         if (!err.isNull()) {
