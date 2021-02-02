@@ -5,7 +5,7 @@
 #include "elfio/elfio.hpp"
 
 #include "processorhandler.h"
-#include "program.h"
+#include "assembler/program.h"
 #include "radix.h"
 
 #include <QButtonGroup>

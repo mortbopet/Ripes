@@ -9,12 +9,12 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "assembler/program.h"
+
 #include "ccmanager.h"
 #include "compilererrordialog.h"
 #include "editor/codeeditor.h"
-#include "parser.h"
 #include "processorhandler.h"
-#include "program.h"
 #include "ripessettings.h"
 #include "symbolnavigator.h"
 
@@ -22,6 +22,9 @@ namespace Ripes {
 
 EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
     m_ui->setupUi(this);
+
+    m_sourceErrors = std::make_shared<Assembler::Errors>();
+    m_ui->codeEditor->setErrors(m_sourceErrors);
 
     m_symbolNavigatorAction = new QAction(this);
     m_symbolNavigatorAction->setIcon(QIcon(":/icons/compass.svg"));
@@ -52,8 +55,6 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     m_ui->programViewer->setReadOnly(true);
 
-    m_assembler = std::make_unique<Assembler>();
-
     connect(m_ui->setAssemblyInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, this, &EditTab::sourceTypeChanged);
     connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
@@ -70,8 +71,9 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
 
-    enableEditor();
+    onProcessorChanged();
     sourceTypeChanged();
+    enableEditor();
 }
 
 void EditTab::showSymbolNavigator() {
@@ -140,13 +142,15 @@ QString EditTab::getAssemblyText() {
     return m_ui->codeEditor->toPlainText();
 }
 
-const QByteArray& EditTab::getBinaryData() {
-    return m_assembler->getTextSegment();
+const QByteArray* EditTab::getBinaryData() {
+    if (m_activeProgram && (m_activeProgram.get()->sections.count(".text") != 0)) {
+        return &m_activeProgram.get()->sections.at(".text").data;
+    }
+    return nullptr;
 }
 
 void EditTab::clearAssemblyEditor() {
     m_ui->codeEditor->clear();
-    m_assembler->clear();
 }
 
 void EditTab::updateProgramViewerHighlighting() {
@@ -161,6 +165,9 @@ void EditTab::sourceTypeChanged() {
         // editor. sourceTypeChanged() will be re-executed once the editor is reenabled.
         return;
     }
+
+    // Clear any errors (ie. when assembler had errors, and now switching to C)
+    *m_sourceErrors = {};
 
     // Validate source type selection
     if (m_ui->setAssemblyInput->isChecked()) {
@@ -180,7 +187,14 @@ void EditTab::sourceTypeChanged() {
     }
 
     // Notify the source type change to the code editor
-    m_ui->codeEditor->setSourceType(m_currentSourceType);
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
+}
+
+void EditTab::onProcessorChanged() {
+    // Notify a possible assembler change to the code editor - opcodes might have been added or removed which must be
+    // reflected in the syntax highlighter
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
+    assemble();
 }
 
 void EditTab::emitProgramChanged() {
@@ -201,17 +215,15 @@ void EditTab::sourceCodeChanged() {
 }
 
 void EditTab::assemble() {
-    if (m_ui->codeEditor->syntaxAccepted()) {
-        m_assembler->assemble(*m_ui->codeEditor->document());
-        if (!m_assembler->hasError()) {
-            m_activeProgram = m_assembler->getProgram();
-            emitProgramChanged();
-        } else {
-            QMessageBox err;
-            err.setText("Error during assembling of program");
-            err.exec();
-        }
+    auto res = ProcessorHandler::get()->getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText());
+    *m_sourceErrors = res.errors;
+    if (m_sourceErrors->size() == 0) {
+        m_activeProgram = std::make_shared<Program>(res.program);
+        emitProgramChanged();
+    } else {
+        // Errors occured; rehighlight will reflect current m_sourceErrors in the editor
     }
+    m_ui->codeEditor->rehighlight();
 }
 
 void EditTab::compile() {
@@ -282,7 +294,7 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long en
     section.address = loadAt;
     section.data = file.readAll();
 
-    program.sections.push_back(section);
+    program.sections[TEXT_SECTION_NAME] = section;
     program.entryPoint = entryPoint;
 
     m_ui->curInputSrcLabel->setText("Flat binary");
@@ -309,11 +321,12 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
     for (const auto& elfSection : reader.sections) {
         // Do not load .debug sections
         if (!QString::fromStdString(elfSection->get_name()).startsWith(".debug")) {
-            ProgramSection& section = program.sections.emplace_back();
+            ProgramSection section;
             section.name = QString::fromStdString(elfSection->get_name());
             section.address = elfSection->get_address();
             // QByteArray performs a deep copy of the data when the data array is initialized at construction
             section.data = QByteArray(elfSection->get_data(), static_cast<int>(elfSection->get_size()));
+            program.sections[section.name] = section;
         }
 
         if (elfSection->get_type() == SHT_SYMTAB) {

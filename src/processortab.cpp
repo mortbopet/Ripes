@@ -9,10 +9,10 @@
 #include <QTemporaryFile>
 
 #include "instructionmodel.h"
-#include "parser.h"
 #include "processorhandler.h"
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
+#include "registercontainerwidget.h"
 #include "registermodel.h"
 #include "ripessettings.h"
 #include "stagetablemodel.h"
@@ -86,8 +86,8 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
 
     updateInstructionModel();
-    m_ui->registerWidget->updateModel();
-    connect(this, &ProcessorTab::update, m_ui->registerWidget, &RegisterWidget::updateView);
+    m_ui->registerContainerWidget->initialize();
+    connect(this, &ProcessorTab::update, m_ui->registerContainerWidget, &RegisterContainerWidget::updateView);
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateStatistics);
     connect(this, &ProcessorTab::update, this, &ProcessorTab::updateInstructionLabels);
 
@@ -116,6 +116,10 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     // Make processor view stretch wrt. right side tabs
     m_ui->viewSplitter->setStretchFactor(0, 1);
     m_ui->viewSplitter->setStretchFactor(1, 0);
+
+    // Adjust sizing between register view and instruction view
+    m_ui->rightBarSplitter->setStretchFactor(0, 6);
+    m_ui->rightBarSplitter->setStretchFactor(1, 1);
 
     // Initially, no file is loaded, disable toolbuttons
     enableSimulatorControls();
@@ -307,7 +311,8 @@ void ProcessorTab::processorSelection() {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
         m_stageInstructionLabels.clear();
-        ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getRegisterInitialization());
+        ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getEnabledExtensions(),
+                                                 diag.getRegisterInitialization());
 
         // Store selected layout index
         const auto& layouts = ProcessorRegistry::getDescription(diag.getSelectedId()).layouts;
@@ -319,7 +324,7 @@ void ProcessorTab::processorSelection() {
         loadProcessorToWidget(diag.getSelectedLayout());
         m_vsrtlWidget->reset();
         updateInstructionModel();
-        m_ui->registerWidget->updateModel();
+        m_ui->registerContainerWidget->initialize();
 
         // Retrigger value display action if enabled
         if (m_displayValuesAction->isChecked()) {
@@ -398,7 +403,7 @@ void ProcessorTab::updateInstructionLabels() {
             instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
             instrLabel->setDefaultTextColor(Qt::red);
         } else if (stageInfo.stage_valid) {
-            instrString = ProcessorHandler::get()->parseInstrAt(stageInfo.pc);
+            instrString = ProcessorHandler::get()->disassembleInstr(stageInfo.pc);
             instrLabel->setDefaultTextColor(QColor());
         }
         instrLabel->setText(instrString);
@@ -466,7 +471,7 @@ void ProcessorTab::run(bool state) {
 
     // Disable widgets which are not updated when running the processor
     m_vsrtlWidget->setEnabled(!state);
-    m_ui->registerWidget->setEnabled(!state);
+    m_ui->registerContainerWidget->setEnabled(!state);
     m_ui->instructionView->setEnabled(!state);
 }
 

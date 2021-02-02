@@ -1,5 +1,4 @@
 #include "instructionmodel.h"
-#include "parser.h"
 
 #include <QHeaderView>
 
@@ -93,7 +92,7 @@ QVariant InstructionModel::stageData(uint32_t addr) const {
 }
 
 QVariant InstructionModel::instructionData(uint32_t addr) const {
-    return ProcessorHandler::get()->parseInstrAt(addr);
+    return ProcessorHandler::get()->disassembleInstr(addr);
 }
 
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {

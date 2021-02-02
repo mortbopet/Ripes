@@ -8,12 +8,12 @@ namespace Ripes {
 
 using namespace vsrtl;
 
-RegisterModel::RegisterModel(QObject* parent) : QAbstractTableModel(parent) {}
+RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : m_rft(rft), QAbstractTableModel(parent) {}
 
 std::vector<uint32_t> RegisterModel::gatherRegisterValues() {
     std::vector<uint32_t> vals;
     for (int i = 0; i < rowCount(); i++) {
-        vals.push_back(ProcessorHandler::get()->getRegisterValue(i));
+        vals.push_back(ProcessorHandler::get()->getRegisterValue(m_rft, i));
     }
     return vals;
 }
@@ -49,7 +49,7 @@ bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int
         bool ok;
         uint32_t v = decodeRadixValue(value.toString(), m_radix, &ok);
         if (ok) {
-            ProcessorHandler::get()->setRegisterValue(i, v);
+            ProcessorHandler::get()->setRegisterValue(m_rft, i, v);
             emit dataChanged(index, index);
             return true;
         }
@@ -134,7 +134,7 @@ QVariant RegisterModel::tooltipData(unsigned idx) const {
 }
 
 QVariant RegisterModel::valueData(unsigned idx) const {
-    return encodeRadixValue(ProcessorHandler::get()->getRegisterValue(idx), m_radix);
+    return encodeRadixValue(ProcessorHandler::get()->getRegisterValue(m_rft, idx), m_radix);
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {

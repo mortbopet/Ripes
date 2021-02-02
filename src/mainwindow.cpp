@@ -5,7 +5,6 @@
 #include "edittab.h"
 #include "loaddialog.h"
 #include "memorytab.h"
-#include "parser.h"
 #include "processorhandler.h"
 #include "processortab.h"
 #include "registerwidget.h"
@@ -98,7 +97,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     // Reset and program reload signals
     connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqReloadProgram, m_editTab, &EditTab::emitProgramChanged);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, m_editTab, &EditTab::onProcessorChanged);
     connect(ProcessorHandler::get(), &ProcessorHandler::stopping, m_processorTab, &ProcessorTab::pause);
 
     connect(m_processorTab, &ProcessorTab::processorWasReset, [=] { SystemIO::reset(); });
@@ -321,7 +320,9 @@ void MainWindow::saveFilesTriggered() {
 
     if (!diag.binaryPath().isEmpty()) {
         QFile file(diag.binaryPath());
-        writeBinaryFile(file, m_editTab->getBinaryData());
+        if (auto* program = m_editTab->getBinaryData()) {
+            writeBinaryFile(file, *program);
+        }
     }
 }
 

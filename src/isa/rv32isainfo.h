@@ -1,60 +1,9 @@
 #pragma once
 
-#include <QMap>
-#include <QString>
-
-#include "elfio/elf_types.hpp"
+#include "isainfo.h"
 
 namespace Ripes {
 
-/// Currently supported ISAs
-enum class ISA { RV32IM };
-const static std::map<ISA, QString> ISANames = {{ISA::RV32IM, "RISC-V"}};
-
-class ISAInfoBase {
-public:
-    virtual QString name() const = 0;
-    virtual ISA isaID() const = 0;
-
-    virtual unsigned regCnt() const = 0;
-    virtual QString regName(unsigned i) const = 0;
-    virtual QString regAlias(unsigned i) const = 0;
-    virtual QString regInfo(unsigned i) const = 0;
-    virtual bool regIsReadOnly(unsigned i) const = 0;
-    virtual unsigned bits() const = 0;
-    unsigned bytes() const { return bits() / CHAR_BIT; }
-    virtual int spReg() const { return -1; }       // Stack pointer
-    virtual int gpReg() const { return -1; }       // Global pointer
-    virtual int syscallReg() const { return -1; }  // Syscall function register
-
-    // GCC Compile command architecture and ABI specification strings
-    virtual QString CCmarch() const = 0;
-    virtual QString CCmabi() const = 0;
-
-    virtual unsigned elfMachineId() const = 0;
-
-    /**
-     * @brief elfSupportsFlags
-     * The instructcion set should determine whether the provided @p flags, as retrieved from an ELF file, are valid
-     * flags for the instruction set. If a mismatch is found, an error message describing the
-     * mismatch is returned. Else, returns an empty QString(), validating the flags.
-     */
-    virtual QString elfSupportsFlags(unsigned flags) const = 0;
-
-protected:
-    ISAInfoBase() {}
-};
-
-template <ISA isa>
-class ISAInfo : public ISAInfoBase {
-public:
-    static const ISAInfo<isa>* instance();
-
-private:
-    ISAInfo<isa>() {}
-};
-
-// ==================================== RISCV ====================================
 namespace {
 // clang-format off
 const static QStringList RVRegAliases = QStringList() << "zero"
@@ -118,8 +67,19 @@ const static std::map<RVElfFlags, QString> RVELFFlagStrings {{RVC, "RVC"}, {Floa
 }  // namespace
 
 template <>
-class ISAInfo<ISA::RV32IM> : public ISAInfoBase {
+class ISAInfo<ISA::RV32I> : public ISAInfoBase {
 public:
+    ISAInfo<ISA::RV32I>(const QStringList extensions) {
+        // Validate extensions
+        for (const auto& ext : extensions) {
+            if (supportsExtension(ext)) {
+                m_enabledExtensions << ext;
+            } else {
+                assert(false && "Invalid extension specified for ISA");
+            }
+        }
+    }
+
     enum SysCall {
         None = 0,
         PrintInt = 1,
@@ -142,26 +102,51 @@ public:
         brk = 214,
         Open = 1024
     };
-    static const ISAInfo<ISA::RV32IM>* instance() {
-        static ISAInfo<ISA::RV32IM> pr;
-        return &pr;
-    }
 
-    QString name() const override { return "RV32IM"; }
-    ISA isaID() const override { return ISA::RV32IM; }
+    QString name() const override { return "RV32I"; }
+    ISA isaID() const override { return ISA::RV32I; }
 
     unsigned int regCnt() const override { return 32; }
-    QString regName(unsigned i) const override { return RVRegNames.at(i); }
-    QString regAlias(unsigned i) const override { return RVRegAliases.at(i); }
-    QString regInfo(unsigned i) const override { return RVRegDescs.at(i); }
+    QString regName(unsigned i) const override {
+        return RVRegNames.size() > static_cast<int>(i) ? RVRegNames.at(static_cast<int>(i)) : QString();
+    }
+    QString regAlias(unsigned i) const override {
+        return RVRegAliases.size() > static_cast<int>(i) ? RVRegAliases.at(static_cast<int>(i)) : QString();
+    }
+    QString regInfo(unsigned i) const override {
+        return RVRegDescs.size() > static_cast<int>(i) ? RVRegDescs.at(static_cast<int>(i)) : QString();
+    }
     bool regIsReadOnly(unsigned i) const override { return i == 0; }
     unsigned int bits() const override { return 32; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
     int syscallReg() const override { return 17; }
     unsigned elfMachineId() const override { return EM_RISCV; }
+    unsigned int regNumber(const QString& reg, bool& success) const override {
+        QString regRes = reg;
+        success = true;
+        if (reg[0] == 'x' && (RVRegNames.count(reg) != 0)) {
+            regRes.remove('x');
+            return regRes.toInt(&success, 10);
+        } else if (RVRegAliases.contains(reg)) {
+            return RVRegAliases.indexOf(reg);
+        }
+        success = false;
+        return 0;
+    }
 
-    QString CCmarch() const override { return "rv32im"; }
+    QString CCmarch() const override {
+        QString march = "rv32i";
+
+        // Proceed in canonical order
+        for (const auto& ext : {"M", "A", "F", "D"}) {
+            if (m_enabledExtensions.contains(ext)) {
+                march += QString(ext).toLower();
+            }
+        }
+
+        return march;
+    }
     QString CCmabi() const override { return "ilp32"; }
 
     QString elfSupportsFlags(unsigned flags) const override {
@@ -178,6 +163,13 @@ public:
         }
         return err;
     }
+
+    const QStringList& supportedExtensions() const override { return m_supportedExtensions; }
+    const QStringList& enabledExtensions() const override { return m_enabledExtensions; }
+
+private:
+    QStringList m_enabledExtensions;
+    QStringList m_supportedExtensions = {"M"};
 };
 
 }  // namespace Ripes

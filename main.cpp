@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "src/mainwindow.h"
-#include "src/parser.h"
 
 using namespace std;
 

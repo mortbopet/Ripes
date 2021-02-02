@@ -36,7 +36,10 @@ using namespace Ripes;
 class RV5S : public RipesProcessor {
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-    RV5S() : RipesProcessor("5-Stage RISC-V Processor") {
+    RV5S(const QStringList& extensions) : RipesProcessor("5-Stage RISC-V Processor") {
+        m_enabledISA = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
+        decode->setISA(m_enabledISA);
+
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -309,7 +312,6 @@ public:
     SUBCOMPONENT(ecallChecker, EcallChecker);
 
     // Ripes interface compliance
-    virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
     unsigned int stageCount() const override { return STAGECOUNT; }
     unsigned int getPcForStage(unsigned int idx) const override {
         // clang-format off
@@ -413,7 +415,7 @@ public:
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
-    unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
+    unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
@@ -438,7 +440,9 @@ public:
         return allStagesInvalid;
     }
 
-    void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
+    void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) override {
+        setSynchronousValue(registerFile->_wr_mem, i, v);
+    }
 
     void clock() override {
         // An instruction has been retired if the instruction in the WB stage is valid and the PC is within the
@@ -469,6 +473,24 @@ public:
         m_syscallExitCycle = -1;
     }
 
+    static const ISAInfoBase* ISA() {
+        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M"});
+        return &s_isa;
+    }
+
+    const ISAInfoBase* supportsISA() const override { return ISA(); };
+    const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
+
+    const std::set<RegisterFileType> registerFiles() const override {
+        std::set<RegisterFileType> rfs;
+        rfs.insert(RegisterFileType::GPR);
+
+        if (implementsISA()->extensionEnabled("F")) {
+            rfs.insert(RegisterFileType::FPR);
+        }
+        return rfs;
+    }
+
 private:
     /**
      * @brief m_syscallExitCycle
@@ -476,6 +498,7 @@ private:
      * when we roll back an exit system call during rewinding.
      */
     long long m_syscallExitCycle = -1;
+    std::shared_ptr<ISAInfo<ISA::RV32I>> m_enabledISA;
 };
 
 }  // namespace core

@@ -12,14 +12,8 @@ namespace Ripes {
 
 class CSyntaxHighlighter : public SyntaxHighlighter {
 public:
-    CSyntaxHighlighter(QTextDocument* parent = nullptr);
-
-    void reset() override;
-    bool acceptsSyntax() const override;
-    void highlightBlock(const QString& text) override;
-
-public slots:
-    void clearAndRehighlight() override;
+    CSyntaxHighlighter(QTextDocument* parent = nullptr, std::shared_ptr<Assembler::Errors> errors = {});
+    void syntaxHighlightBlock(const QString& text) override;
 
 private:
     struct HighlightingRule {

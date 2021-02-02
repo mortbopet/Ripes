@@ -4,8 +4,9 @@
 #include <QFutureWatcher>
 #include <QObject>
 
+#include "assembler/assembler.h"
+#include "assembler/program.h"
 #include "processorregistry.h"
-#include "program.h"
 #include "syscall/ripes_syscall.h"
 
 #include "vsrtl_widget.h"
@@ -30,10 +31,12 @@ public:
 
     vsrtl::core::RipesProcessor* getProcessorNonConst() { return m_currentProcessor.get(); }
     const vsrtl::core::RipesProcessor* getProcessor() { return m_currentProcessor.get(); }
+    const std::shared_ptr<Assembler::AssemblerBase> getAssembler() { return m_currentAssembler; }
     const ProcessorID& getID() const { return m_currentID; }
-    std::weak_ptr<const Program> getProgram() const { return m_program; }
+    std::shared_ptr<const Program> getProgram() const { return m_program; }
     const ISAInfoBase* currentISA() const { return m_currentProcessor->implementsISA(); }
     const SyscallManager& getSyscallManager() const { return *m_syscallManager; }
+
     /**
      * @brief loadProcessorToWidget
      * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns
@@ -46,7 +49,8 @@ public:
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
      * RipesProcessor interface.
      */
-    void selectProcessor(const ProcessorID& id, RegisterInitialization setup = RegisterInitialization());
+    void selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
+                         RegisterInitialization setup = RegisterInitialization());
 
     /**
      * @brief checkValidExecutionRange
@@ -75,10 +79,10 @@ public:
     unsigned long getTextStart() const;
 
     /**
-     * @brief parseInstrAt
-     * @return string representation of the instruction at @param addr
+     * @brief disassembleInstr
+     * @return disassembled representation of the instruction at @param addr in the current program
      */
-    QString parseInstrAt(const uint32_t address) const;
+    QString disassembleInstr(const uint32_t address) const;
 
     /**
      * @brief getMemory & getRegisters
@@ -93,7 +97,7 @@ public:
      * @brief setRegisterValue
      * Set the value of register @param idx to @param value.
      */
-    void setRegisterValue(const unsigned idx, uint32_t value);
+    void setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value);
 
     /**
      * @brief writeMem
@@ -106,7 +110,7 @@ public:
      * @brief getRegisterValue
      * @returns value of register @param idx
      */
-    uint32_t getRegisterValue(const unsigned idx) const;
+    uint32_t getRegisterValue(RegisterFileType rfid, const unsigned idx) const;
 
     bool checkBreakpoint();
     void setBreakpoint(const uint32_t address, bool enabled);
@@ -130,19 +134,19 @@ public:
     void stopRun();
 
 signals:
+
+    /**
+     * @brief processorChanged
+     * Emitted when a new processor has been chosen.
+     */
+    void processorChanged();
+
     /**
      * @brief reqProcessorReset
      *  Emitted whenever changes to the internal state of the processor has been made, and a reset of any depending
      * widgets is required
      */
     void reqProcessorReset();
-
-    /**
-     * @brief reqReloadProgram
-     * Emitted whenever the processor has been changed, and we require the currently assembled program to be inserted
-     * into the newly loaded processors memory
-     */
-    void reqReloadProgram();
 
     /**
      * @brief exit
@@ -176,6 +180,7 @@ private slots:
     void asyncTrap();
 
 private:
+    void createAssemblerForCurrentISA();
     void setStopRunFlag();
 
     ProcessorHandler();
@@ -183,6 +188,7 @@ private:
     ProcessorID m_currentID;
     std::unique_ptr<vsrtl::core::RipesProcessor> m_currentProcessor;
     std::unique_ptr<SyscallManager> m_syscallManager;
+    std::shared_ptr<Assembler::AssemblerBase> m_currentAssembler;
 
     /**
      * @brief m_vsrtlWidget

@@ -6,8 +6,8 @@
 #include <map>
 #include <memory>
 
-#include "assembler.h"
-#include "program.h"
+#include "assembler/assembler.h"
+#include "assembler/program.h"
 #include "ripestab.h"
 
 namespace Ripes {
@@ -16,7 +16,6 @@ namespace Ui {
 class EditTab;
 }
 
-class Assembler;
 struct LoadFileParams;
 
 class EditTab : public RipesTab {
@@ -33,7 +32,7 @@ public:
 
     bool isEditorEnabled() const { return m_editorEnabled; }
 
-    const QByteArray& getBinaryData();
+    const QByteArray* getBinaryData();
 
     void loadFile(const LoadFileParams&);
     /**
@@ -47,8 +46,8 @@ signals:
     void editorStateChanged(bool enabled);
 
 public slots:
+    void onProcessorChanged();
     void updateProgramViewerHighlighting();
-
     void emitProgramChanged();
 
     /**
@@ -86,11 +85,11 @@ private:
     QAction* m_symbolNavigatorAction = nullptr;
 
     Ui::EditTab* m_ui = nullptr;
-    std::unique_ptr<Assembler> m_assembler;
 
     std::shared_ptr<Program> m_activeProgram;
+    std::shared_ptr<Assembler::Errors> m_sourceErrors;
 
-    SourceType m_currentSourceType;
+    SourceType m_currentSourceType = SourceType::Assembly;
 
     bool m_editorEnabled = true;
 };

@@ -8,7 +8,7 @@
 
 namespace Ripes {
 
-SymbolNavigator::SymbolNavigator(const AddrOffsetMap& symbolmap, QWidget* parent)
+SymbolNavigator::SymbolNavigator(const Assembler::AddrOffsetMap& symbolmap, QWidget* parent)
     : QDialog(parent), m_ui(new Ui::SymbolNavigator) {
     m_ui->setupUi(this);
 

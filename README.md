@@ -1,5 +1,5 @@
 # Ripes
-[![Build Status](https://travis-ci.org/mortbopet/Ripes.svg?branch=master)](https://travis-ci.org/mortbopet/Ripes/)
+[![Build Status](https://travis-ci.com/mortbopet/Ripes.svg?branch=master)](https://travis-ci.com/mortbopet/Ripes/)
 [![Gitter](https://badges.gitter.im/Ripes-VSRTL/Ripes.svg)](https://gitter.im/Ripes-VSRTL/)
 
 Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).

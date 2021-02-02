@@ -24,7 +24,10 @@ using namespace Ripes;
 
 class RVSS : public RipesProcessor {
 public:
-    RVSS() : RipesProcessor("Single Cycle RISC-V Processor") {
+    RVSS(const QStringList& extensions) : RipesProcessor("Single Cycle RISC-V Processor") {
+        m_enabledISA = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
+        decode->setISA(m_enabledISA);
+
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -145,7 +148,6 @@ public:
     SUBCOMPONENT(ecallChecker, EcallChecker);
 
     // Ripes interface compliance
-    virtual const ISAInfoBase* implementsISA() const override { return ISAInfo<ISA::RV32IM>::instance(); }
     unsigned int stageCount() const override { return 1; }
     unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
     unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
@@ -159,7 +161,7 @@ public:
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
-    unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
+    unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.any()) {
@@ -172,7 +174,9 @@ public:
     const Component* getDataMemory() const override { return data_mem; }
     const Component* getInstrMemory() const override { return instr_mem; }
 
-    void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
+    void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) override {
+        setSynchronousValue(registerFile->_wr_mem, i, v);
+    }
 
     void clock() override {
         // Single cycle processor; 1 instruction retired per cycle!
@@ -201,9 +205,28 @@ public:
         m_finished = false;
     }
 
+    static const ISAInfoBase* ISA() {
+        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M" /*, "F" */});
+        return &s_isa;
+    }
+
+    const ISAInfoBase* supportsISA() const override { return ISA(); };
+    const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
+    const std::set<RegisterFileType> registerFiles() const override {
+        std::set<RegisterFileType> rfs;
+        rfs.insert(RegisterFileType::GPR);
+
+        // @TODO: uncomment when enabling floating-point support
+        // if (implementsISA()->extensionEnabled("F")) {
+        //     rfs.insert(RegisterFileType::Float);
+        // }
+        return rfs;
+    }
+
 private:
     bool m_finishInNextCycle = false;
     bool m_finished = false;
+    std::shared_ptr<ISAInfo<ISA::RV32I>> m_enabledISA;
 };
 
 }  // namespace core

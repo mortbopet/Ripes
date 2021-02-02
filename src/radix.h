@@ -7,12 +7,10 @@
 
 namespace Ripes {
 
-enum class Radix { Hex, Binary, Unsigned, Signed, ASCII };
-const static std::map<Radix, QString> s_radixName = {{Radix::Hex, "Hex"},
-                                                     {Radix::Binary, "Binary"},
-                                                     {Radix::Unsigned, "Unsigned"},
-                                                     {Radix::Signed, "Signed"},
-                                                     {Radix::ASCII, "ASCII"}};
+enum class Radix { Hex, Binary, Unsigned, Signed, ASCII, Float };
+const static std::map<Radix, QString> s_radixName = {{Radix::Hex, "Hex"},           {Radix::Binary, "Binary"},
+                                                     {Radix::Unsigned, "Unsigned"}, {Radix::Signed, "Signed"},
+                                                     {Radix::ASCII, "ASCII"},       {Radix::Float, "Float"}};
 
 static const auto hexRegex = QRegExp("0[xX][0-9a-fA-F]+");
 static const auto hexRegex32 = QRegExp("0[xX][0-9a-fA-F]{0,8}");
@@ -24,6 +22,9 @@ static QString encodeRadixValue(unsigned long value, const Radix type, unsigned 
     switch (type) {
         case Radix::Hex: {
             return "0x" + QString::number(value, 16).rightJustified(width / 4, '0');
+        }
+        case Radix::Float: {
+            return QString::number(*reinterpret_cast<float*>(&value));
         }
         case Radix::Binary: {
             return "0b" + QString::number(value, 2).rightJustified(width, '0');
@@ -63,6 +64,9 @@ static uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nul
         }
         case Radix::Signed: {
             return value.toInt(ok, 10);
+        }
+        case Radix::Float: {
+            return value.toFloat(ok);
         }
         case Radix::ASCII: {
             QString valueRev;

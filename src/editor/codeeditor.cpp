@@ -7,7 +7,6 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
-#include <QSyntaxHighlighter>
 #include <QTextBlock>
 #include <QTimer>
 #include <QToolTip>
@@ -15,9 +14,11 @@
 
 #include <iterator>
 
+#include "syntaxhighlighter.h"
+
 #include "csyntaxhighlighter.h"
 #include "processorhandler.h"
-#include "rvassemblyhighlighter.h"
+#include "rvsyntaxhighlighter.h"
 
 namespace Ripes {
 
@@ -53,8 +54,13 @@ void CodeEditor::setupChangedTimer() {
 
     // A change in the document will start the timer - when the timer elapses, the contents will be assembled if there
     // is no syntax error. By doing this, the timer is restartet each time a change occurs (ie. a user is continuously
-    // typing)
-    connect(this, &QPlainTextEdit::textChanged, m_changeTimer, QOverload<>::of(&QTimer::start));
+    // typing).
+    // Note, QTextDocument::contentsChange seems to be the only signal in the stack of QPlainTextEdit etc. which
+    // (contrary to documentation) does not emit a change signal when formatting is applied. This is required to avoid a
+    // signal loop in the case of:
+    // (content change -> assemble -> assembling fails -> rehighlight to reflect assembler error -> content change)
+    connect(this->document(), &QTextDocument::contentsChange, [this](int, int, int) { m_changeTimer->start(); });
+
     connect(m_changeTimer, &QTimer::timeout, this, &CodeEditor::timedTextChanged);
 }
 
@@ -101,6 +107,12 @@ bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
     return false;
 }
 
+void CodeEditor::rehighlight() {
+    if (m_highlighter) {
+        m_highlighter->rehighlight();
+    }
+}
+
 bool CodeEditor::event(QEvent* event) {
     // Override event handler for receiving tool tips
     if (event->type() == QEvent::ToolTip) {
@@ -108,13 +120,14 @@ bool CodeEditor::event(QEvent* event) {
         auto* helpEvent = static_cast<QHelpEvent*>(event);
         QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
         const int row = textAtCursor.block().firstLineNumber();
-        const QString tooltip = m_highlighter->getTooltipForLine(row);
-        if (tooltip != QString()) {
-            QToolTip::showText(helpEvent->globalPos(), tooltip);
+
+        if (m_errors && m_errors->toMap().count(row) != 0) {
+            QToolTip::showText(helpEvent->globalPos(), m_errors->toMap().at(row));
         } else {
             QToolTip::hideText();
             event->ignore();
         }
+
         return true;
     }
     return QPlainTextEdit::event(event);
@@ -138,22 +151,28 @@ void CodeEditor::resizeEvent(QResizeEvent* e) {
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void CodeEditor::setSourceType(SourceType type) {
+void CodeEditor::setSourceType(SourceType type, const std::set<QString>& supportedOpcodes) {
     m_sourceType = type;
 
     // Creates AsmHighlighter object and connects it to the current document
     switch (m_sourceType) {
-        case SourceType::Assembly:
-            m_highlighter = std::make_unique<RVAssemblyHighlighter>(document());
+        case SourceType::Assembly: {
+            auto* isa = ProcessorHandler::get()->currentISA();
+            if (isa->isaID() == ISA::RV32I) {
+                m_highlighter = std::make_unique<RVSyntaxHighlighter>(document(), m_errors, supportedOpcodes);
+            } else {
+                Q_ASSERT(false && "Unknown ISA selected");
+            }
             break;
+        }
         case SourceType::C:
-            m_highlighter = std::make_unique<CSyntaxHighlighter>(document());
+            m_highlighter = std::make_unique<CSyntaxHighlighter>(document(), m_errors);
             break;
         default:
             break;
     }
 
-    m_highlighter->clearAndRehighlight();
+    m_highlighter->rehighlight();
 }
 
 void CodeEditor::highlightCurrentLine() {

@@ -3,38 +3,19 @@
 #include <QTextDocument>
 
 namespace Ripes {
-SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {
-    connect(this->document(), &QTextDocument::blockCountChanged, this, &SyntaxHighlighter::handleBlockCountChanged);
+SyntaxHighlighter::SyntaxHighlighter(QTextDocument* parent, std::shared_ptr<Assembler::Errors> errors)
+    : QSyntaxHighlighter(parent), m_errors(errors) {
+    errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+    errorFormat.setUnderlineColor(Qt::red);
 }
 
-void SyntaxHighlighter::handleBlockCountChanged() {
-    clearAndRehighlight();
-    const auto tooltipsCopy = m_tooltipForLine;  // deep copy
-    // Remove any  tooltip for lines which have been deleted
-    for (const auto& tooltip : tooltipsCopy) {
-        if (tooltip.first >= this->document()->blockCount()) {
-            m_tooltipForLine.erase(tooltip.first);
-        }
-    }
-}
-
-QString SyntaxHighlighter::getTooltipForLine(int index) const {
-    if (m_tooltipForLine.count(index)) {
-        return m_tooltipForLine.at(index);
+void SyntaxHighlighter::highlightBlock(const QString& text) {
+    int row = currentBlock().firstLineNumber();
+    if (m_errors && m_errors->toMap().count(row) != 0) {
+        setFormat(0, text.length(), errorFormat);
     } else {
-        return QString();
+        syntaxHighlightBlock(text);
     }
-}
-
-void SyntaxHighlighter::setTooltip(int line, QString tooltip) {
-    m_tooltipForLine[line] = tooltip;
-}
-void SyntaxHighlighter::clearTooltip(int line) {
-    m_tooltipForLine.erase(line);
-}
-
-void SyntaxHighlighter::reset() {
-    m_tooltipForLine.clear();
 }
 
 }  // namespace Ripes

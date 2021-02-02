@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.9)
 
 find_package(Qt5Test REQUIRED)
 
+# Point to bundled tests within source directory
+set(VSRTL_RISCV_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests)
+add_definitions(-DVSRTL_RISCV_TEST_DIR="${VSRTL_RISCV_TEST_DIR}")
+
 macro(create_qtest name)
     add_executable(${name} ${name}.cpp)
     add_test(${name} ${name})
@@ -33,9 +37,9 @@ if(RIPES_ENABLE_RISCV_TESTS)
         message(STATUS "Found tool '${RV_TOOL}'")
     endforeach()
 
-    # Point to bundled tests within source directory
-    set(VSRTL_RISCV_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests)
-    add_definitions(-DVSRTL_RISCV_TEST_DIR="${VSRTL_RISCV_TEST_DIR}")
     create_qtest(tst_riscv)
     message(STATUS "RISC-V tests configured successfully")
 endif()
+
+create_qtest(tst_assembler)
+create_qtest(tst_expreval)

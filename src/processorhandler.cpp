@@ -1,10 +1,11 @@
 #include "processorhandler.h"
 
-#include "parser.h"
 #include "processorregistry.h"
-#include "program.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
+
+#include "assembler/program.h"
+#include "assembler/rv32i_assembler.h"
 
 #include "syscall/riscv_syscall.h"
 
@@ -23,7 +24,8 @@ ProcessorHandler::ProcessorHandler() {
         // Some sanity checking
         m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV5S : m_currentID;
     }
-    selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+    selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
+                    ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
@@ -48,7 +50,7 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
     // Memory initializations
     mem.clearInitializationMemories();
     for (const auto& seg : p->sections) {
-        mem.addInitializationMemory(seg.address, seg.data.data(), seg.data.length());
+        mem.addInitializationMemory(seg.second.address, seg.second.data.data(), seg.second.data.length());
     }
 
     m_currentProcessor->setPCInitialValue(p->entryPoint);
@@ -145,13 +147,24 @@ void ProcessorHandler::clearBreakpoints() {
     m_breakpoints.clear();
 }
 
-void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitialization setup) {
+void ProcessorHandler::createAssemblerForCurrentISA() {
+    const auto& ISA = currentISA();
+
+    if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
+        m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rvisa);
+    } else {
+        Q_UNREACHABLE();
+    }
+}
+
+void ProcessorHandler::selectProcessor(const ProcessorID& id, const QStringList& extensions,
+                                       RegisterInitialization setup) {
     m_program = nullptr;
     m_currentID = id;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
 
     // Processor initializations
-    m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID);
+    m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);
     m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return isExecutableAddress(address); };
 
     // Syscall handling initialization
@@ -174,9 +187,9 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, RegisterInitializa
     }
 
     m_currentProcessor->verifyAndInitialize();
+    createAssemblerForCurrentISA();
 
-    // Processor loaded. Request for the currently assembled program to be loaded into the processor
-    emit reqReloadProgram();
+    emit processorChanged();
 }
 
 int ProcessorHandler::getCurrentProgramSize() const {
@@ -199,9 +212,11 @@ unsigned long ProcessorHandler::getTextStart() const {
     return 0;
 }
 
-QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
+QString ProcessorHandler::disassembleInstr(const uint32_t addr) const {
     if (m_program) {
-        return Parser::getParser()->disassemble(m_program, m_currentProcessor->getMemory().readMem(addr), addr);
+        return m_currentAssembler
+            ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
+            .first;
     } else {
         return QString();
     }
@@ -210,7 +225,8 @@ QString ProcessorHandler::parseInstrAt(const uint32_t addr) const {
 void ProcessorHandler::asyncTrap() {
     auto futureWatcher = QFutureWatcher<bool>();
     futureWatcher.setFuture(QtConcurrent::run([=] {
-        const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
+        const unsigned int function =
+            m_currentProcessor->getRegister(RegisterFileType::GPR, currentISA()->syscallReg());
         return m_syscallManager->execute(function);
     }));
 
@@ -260,11 +276,11 @@ void ProcessorHandler::checkValidExecutionRange() const {
     m_currentProcessor->finalize(fr);
 }
 
-void ProcessorHandler::setRegisterValue(const unsigned idx, uint32_t value) {
-    m_currentProcessor->setRegister(idx, value);
+void ProcessorHandler::setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value) {
+    m_currentProcessor->setRegister(rfid, idx, value);
 }
 
-uint32_t ProcessorHandler::getRegisterValue(const unsigned idx) const {
-    return m_currentProcessor->getRegister(idx);
+uint32_t ProcessorHandler::getRegisterValue(RegisterFileType rfid, const unsigned idx) const {
+    return m_currentProcessor->getRegister(rfid, idx);
 }
 }  // namespace Ripes
