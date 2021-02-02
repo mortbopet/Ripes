@@ -26,8 +26,8 @@ void RegisterContainerWidget::initialize() {
 }
 
 void RegisterContainerWidget::updateView() {
-    for (auto* widget : m_ui->tabWidget->children()) {
-        if (auto* regWidget = dynamic_cast<RegisterWidget*>(widget)) {
+    for (int i = 0; i < m_ui->tabWidget->count(); i++) {
+        if (auto* regWidget = dynamic_cast<RegisterWidget*>(m_ui->tabWidget->widget(i))) {
             regWidget->updateView();
         }
     }
