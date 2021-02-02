@@ -225,7 +225,8 @@ QString ProcessorHandler::disassembleInstr(const uint32_t addr) const {
 void ProcessorHandler::asyncTrap() {
     auto futureWatcher = QFutureWatcher<bool>();
     futureWatcher.setFuture(QtConcurrent::run([=] {
-        const unsigned int function = m_currentProcessor->getRegister(currentISA()->syscallReg());
+        const unsigned int function =
+            m_currentProcessor->getRegister(RegisterFileType::GPR, currentISA()->syscallReg());
         return m_syscallManager->execute(function);
     }));
 
@@ -275,11 +276,11 @@ void ProcessorHandler::checkValidExecutionRange() const {
     m_currentProcessor->finalize(fr);
 }
 
-void ProcessorHandler::setRegisterValue(const unsigned idx, uint32_t value) {
-    m_currentProcessor->setRegister(idx, value);
+void ProcessorHandler::setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value) {
+    m_currentProcessor->setRegister(rfid, idx, value);
 }
 
-uint32_t ProcessorHandler::getRegisterValue(const unsigned idx) const {
-    return m_currentProcessor->getRegister(idx);
+uint32_t ProcessorHandler::getRegisterValue(RegisterFileType rfid, const unsigned idx) const {
+    return m_currentProcessor->getRegister(rfid, idx);
 }
 }  // namespace Ripes

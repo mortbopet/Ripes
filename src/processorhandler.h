@@ -97,7 +97,7 @@ public:
      * @brief setRegisterValue
      * Set the value of register @param idx to @param value.
      */
-    void setRegisterValue(const unsigned idx, uint32_t value);
+    void setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value);
 
     /**
      * @brief writeMem
@@ -110,7 +110,7 @@ public:
      * @brief getRegisterValue
      * @returns value of register @param idx
      */
-    uint32_t getRegisterValue(const unsigned idx) const;
+    uint32_t getRegisterValue(RegisterFileType rfid, const unsigned idx) const;
 
     bool checkBreakpoint();
     void setBreakpoint(const uint32_t address, bool enabled);

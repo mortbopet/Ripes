@@ -43,6 +43,13 @@ public:
     RipesProcessor(std::string name) : Design(name) {}
 
     /**
+     * @brief registerFiles
+     * @return the set of unique indentifiers for the register files exposed by this processor, under inclusion of the
+     * ISA which the processor has been instantiated with.
+     */
+    virtual const std::set<RegisterFileType> registerFiles() const = 0;
+
+    /**
      * @brief supportsISA
      * @return ISA alongside all of the supported extensions which this processor implements.
      */
@@ -102,9 +109,11 @@ public:
 
     /**
      * @brief getRegister
+     * @param rfid: register file identifier
+     * @param i: register index
      * @return value currently present in register @p i
      */
-    virtual unsigned int getRegister(unsigned i) const = 0;
+    virtual unsigned int getRegister(RegisterFileType rfid, unsigned i) const = 0;
 
     /**
      * @brief getArchRegisters
@@ -114,9 +123,11 @@ public:
 
     /**
      * @brief setRegister
+     * @param rfid: register file identifier
+     * @param i: register index
      * Set the value of register @param i to @param v.
      */
-    virtual void setRegister(unsigned i, uint32_t v) = 0;
+    virtual void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) = 0;
 
     /**
      * @brief setProgramCounter

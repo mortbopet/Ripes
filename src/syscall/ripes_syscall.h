@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 
+#include "../isa/isainfo.h"
 #include "statusmanager.h"
 
 namespace Ripes {
@@ -43,13 +44,13 @@ public:
      * Argument index @p i is 0-indexed. @returns value of the specified argument register.
      */
 
-    virtual uint32_t getArg(unsigned i) const = 0;
+    virtual uint32_t getArg(RegisterFileType rfid, unsigned i) const = 0;
     /**
      * @brief setRet
      * ABI/ISA specific specialization of setting an argument register return value.
      * Argument index @p i is 0-indexed.
      */
-    virtual void setRet(unsigned i, uint32_t value) const = 0;
+    virtual void setRet(RegisterFileType rfid, unsigned i, uint32_t value) const = 0;
 
 protected:
     const QString m_name;

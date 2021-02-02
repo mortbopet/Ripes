@@ -5,6 +5,7 @@
 #include "defines.h"
 #include "mainmemory.h"
 
+#include "isa/isainfo.h"
 #include "radix.h"
 
 #include <QAbstractTableModel>
@@ -15,7 +16,7 @@ class RegisterModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Name, Alias, Value, NColumns };
-    RegisterModel(QObject* parent = nullptr);
+    RegisterModel(RegisterFileType rft, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -48,6 +49,7 @@ private:
     QVariant tooltipData(unsigned idx) const;
 
     Radix m_radix = Radix::Hex;
+    RegisterFileType m_rft;
 
     int m_mostRecentlyModifiedReg = -1;
     std::vector<uint32_t> m_regValues;

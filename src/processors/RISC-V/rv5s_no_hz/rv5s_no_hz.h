@@ -375,7 +375,7 @@ public:
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
-    unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
+    unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
@@ -399,7 +399,9 @@ public:
         }
         return allStagesInvalid;
     }
-    void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
+    void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) override {
+        setSynchronousValue(registerFile->_wr_mem, i, v);
+    }
 
     void clock() override {
         // An instruction has been retired if the instruction in the WB stage is valid and the PC is within the
@@ -437,6 +439,16 @@ public:
 
     const ISAInfoBase* supportsISA() const override { return ISA(); };
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
+
+    const std::set<RegisterFileType> registerFiles() const override {
+        std::set<RegisterFileType> rfs;
+        rfs.insert(RegisterFileType::GPR);
+
+        if (implementsISA()->extensionEnabled("F")) {
+            rfs.insert(RegisterFileType::FPR);
+        }
+        return rfs;
+    }
 
 private:
     /**

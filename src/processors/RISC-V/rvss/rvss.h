@@ -161,7 +161,7 @@ public:
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
-    unsigned int getRegister(unsigned i) const override { return registerFile->getRegister(i); }
+    unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.any()) {
@@ -174,7 +174,9 @@ public:
     const Component* getDataMemory() const override { return data_mem; }
     const Component* getInstrMemory() const override { return instr_mem; }
 
-    void setRegister(unsigned i, uint32_t v) override { setSynchronousValue(registerFile->_wr_mem, i, v); }
+    void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) override {
+        setSynchronousValue(registerFile->_wr_mem, i, v);
+    }
 
     void clock() override {
         // Single cycle processor; 1 instruction retired per cycle!
@@ -204,12 +206,22 @@ public:
     }
 
     static const ISAInfoBase* ISA() {
-        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M"});
+        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M" /*, "F" */});
         return &s_isa;
     }
 
     const ISAInfoBase* supportsISA() const override { return ISA(); };
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
+    const std::set<RegisterFileType> registerFiles() const override {
+        std::set<RegisterFileType> rfs;
+        rfs.insert(RegisterFileType::GPR);
+
+        // @TODO: uncomment when enabling floating-point support
+        // if (implementsISA()->extensionEnabled("F")) {
+        //     rfs.insert(RegisterFileType::Float);
+        // }
+        return rfs;
+    }
 
 private:
     bool m_finishInNextCycle = false;
