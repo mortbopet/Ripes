@@ -183,9 +183,11 @@ struct Imm : public Field {
         }
         if (!success && immToken.toUpper().startsWith(QStringLiteral("0X"))) {
             uvalue = immToken.toUInt(&success, 16);
+            svalue = uvalue;
         }
         if (!success && immToken.toUpper().startsWith(QStringLiteral("0B"))) {
-            uvalue = immToken.toUInt(&success, 2);
+            uvalue = immToken.right(immToken.length() - 2).toUInt(&success, 2);
+            svalue = uvalue;
         }
 
         if (!success) {
