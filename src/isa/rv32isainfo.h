@@ -135,7 +135,18 @@ public:
         return 0;
     }
 
-    QString CCmarch() const override { return "rv32im"; }
+    QString CCmarch() const override {
+        QString march = "rv32i";
+
+        // Proceed in canonical order
+        for (const auto& ext : {"M", "A", "F", "D"}) {
+            if (m_enabledExtensions.contains(ext)) {
+                march += QString(ext).toLower();
+            }
+        }
+
+        return march;
+    }
     QString CCmabi() const override { return "ilp32"; }
 
     QString elfSupportsFlags(unsigned flags) const override {
