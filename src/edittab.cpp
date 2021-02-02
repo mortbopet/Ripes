@@ -166,6 +166,9 @@ void EditTab::sourceTypeChanged() {
         return;
     }
 
+    // Clear any errors (ie. when assembler had errors, and now switching to C)
+    *m_sourceErrors = {};
+
     // Validate source type selection
     if (m_ui->setAssemblyInput->isChecked()) {
         m_currentSourceType = SourceType::Assembly;
