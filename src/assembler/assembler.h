@@ -20,14 +20,12 @@ namespace Assembler {
 /**
  * A macro for running an assembler pass with error handling
  */
-#define runPass(resName, resType, passFunction, ...)                             \
-    auto passFunction##_res = passFunction(__VA_ARGS__);                         \
-    try {                                                                        \
-        auto& errors = std::get<Errors>(passFunction##_res);                     \
-        result.errors.insert(result.errors.end(), errors.begin(), errors.end()); \
-        return result;                                                           \
-    } catch (const std::bad_variant_access&) {                                   \
-    }                                                                            \
+#define runPass(resName, resType, passFunction, ...)                               \
+    auto passFunction##_res = passFunction(__VA_ARGS__);                           \
+    if (auto* errors = std::get_if<Errors>(&passFunction##_res)) {                 \
+        result.errors.insert(result.errors.end(), errors->begin(), errors->end()); \
+        return result;                                                             \
+    }                                                                              \
     auto resName = std::get<resType>(passFunction##_res);
 
 /**
@@ -35,13 +33,12 @@ namespace Assembler {
  * type) which runs inside a loop. In case of the operation throwing an error, the error is recorded and the next
  * iteration of the loop is executed. If not, the result value is provided through variable 'resName'.
  */
-#define runOperation(resName, resType, operationFunction, ...)      \
-    auto operationFunction##_res = operationFunction(__VA_ARGS__);  \
-    try {                                                           \
-        errors.push_back(std::get<Error>(operationFunction##_res)); \
-        continue;                                                   \
-    } catch (const std::bad_variant_access&) {                      \
-    }                                                               \
+#define runOperation(resName, resType, operationFunction, ...)        \
+    auto operationFunction##_res = operationFunction(__VA_ARGS__);    \
+    if (auto* error = std::get_if<Error>(&operationFunction##_res)) { \
+        errors.push_back(*error);                                     \
+        continue;                                                     \
+    }                                                                 \
     auto resName = std::get<resType>(operationFunction##_res);
 
 class AssemblerBase {
@@ -96,11 +93,9 @@ protected:
         auto tokens = line.split(splitter);
         tokens.removeAll(QStringLiteral(""));
         auto joinedtokens = joinParentheses(tokens);
-        try {
-            auto err = std::get<Error>(joinedtokens);
-            err.first = sourceLine;
-            return err;
-        } catch (const std::bad_variant_access&) {
+        if (auto* err = std::get_if<Error>(&joinedtokens)) {
+            err->first = sourceLine;
+            return *err;
         }
         return std::get<LineTokens>(joinedtokens);
     }
@@ -287,20 +282,18 @@ public:
     std::pair<QString, std::optional<Error>> disassemble(const uint32_t word, const ReverseSymbolMap& symbols,
                                                          const uint32_t baseAddress = 0) const override {
         auto match = m_matcher->matchInstruction(word);
-        try {
-            auto& error = std::get<Error>(match);
-            return {"unknown instruction", error};
-        } catch (const std::bad_variant_access&) {
-            // Got match, disassemble
-            auto tokens = std::get<const Instruction*>(match)->disassemble(word, baseAddress, symbols);
-            try {
-                auto& error = std::get<Error>(match);
-                // Error during disassembling
-                return {"invalid instruction", error};
-            } catch (const std::bad_variant_access&) {
-                return {std::get<LineTokens>(tokens).join(' '), {}};
-            }
+        if (auto* error = std::get_if<Error>(&match)) {
+            return {"unknown instruction", *error};
         }
+
+        // Got match, disassemble
+        auto tokens = std::get<const Instruction*>(match)->disassemble(word, baseAddress, symbols);
+        if (auto* error = std::get_if<Error>(&match)) {
+            // Error during disassembling
+            return {"invalid instruction", *error};
+        }
+
+        return {std::get<LineTokens>(tokens).join(' '), {}};
     }
 
     const Matcher& getMatcher() { return *m_matcher; }
@@ -519,12 +512,10 @@ protected:
                     // No recorded symbol for the token; our last option is to try and evaluate a possible
                     // expression.
                     auto evaluate_res = evaluate(symbol, &symbolMap);
-                    try {
-                        auto err = std::get<Error>(evaluate_res);
-                        err.first = linkRequest.sourceLine;
-                        errors.push_back(err);
+                    if (auto* err = std::get_if<Error>(&evaluate_res)) {
+                        err->first = linkRequest.sourceLine;
+                        errors.push_back(*err);
                         continue;
-                    } catch (const std::bad_variant_access&) {
                     }
                     // Expression evaluated successfully
                     symbolValue = std::get<long>(evaluate_res);
@@ -570,16 +561,15 @@ protected:
             return PseudoExpandRes(std::nullopt);
         }
         auto res = m_pseudoInstructionMap.at(opcode)->expand(line);
-        try {
-            auto& error = std::get<Error>(res);
+        if (auto* error = std::get_if<Error>(&res)) {
             if (m_instructionMap.count(opcode) != 0) {
                 // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.
                 // arguments provided were intended for the normal instruction and not the pseudoinstruction), then
                 // return as if not a pseudo-instruction, falling to normal instruction handling
                 return PseudoExpandRes(std::nullopt);
             }
-        } catch (const std::bad_variant_access&) {
         }
+
         // Return result (containing either a valid pseudo-instruction expand error or the expanded pseudo
         // instruction
         return {res};

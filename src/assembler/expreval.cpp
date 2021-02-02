@@ -13,13 +13,8 @@ const QRegularExpression s_exprOperatorsRegex = QRegularExpression(R"((\+|\-|\/|
 const QString s_exprOperators QStringLiteral("+-*/%");
 const QString s_exprTokens QStringLiteral("()+-*/%");
 
-#define IfExpr(TExpr, boundVar) \
-    try {                       \
-        auto boundVar = std::get<TExpr>(*expr);
-#define FiExpr                               \
-    }                                        \
-    catch (const std::bad_variant_access&) { \
-    }
+#define IfExpr(TExpr, boundVar) if (auto* boundVar = std::get_if<TExpr>(expr.get())) {
+#define FiExpr }
 
 struct Expr;
 
@@ -85,7 +80,7 @@ struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or> {
     friend std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Expr>& expr) {
 #define tryPrint(type) \
     IfExpr(type, v) {  \
-        v.print(os);   \
+        v->print(os);  \
         return os;     \
     }                  \
     FiExpr;
@@ -134,9 +129,8 @@ ExprRes parseRight(const QString& s, int& pos, int& depth);
 template <typename BinOp>
 ExprRes rightRec(std::shared_ptr<Expr> lhs, const QString& s, int& pos, int& depth) {
     auto rhs = parseRight(s, pos, depth);
-    try {
-        return {std::get<Error>(rhs)};
-    } catch (std::bad_variant_access&) {
+    if (auto* err = std::get_if<Error>(&rhs)) {
+        return {*err};
     }
     return {std::make_shared<Expr>(BinOp{lhs, std::get<std::shared_ptr<Expr>>(rhs)})};
 }
@@ -169,10 +163,10 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
 
 ExprRes parseLeft(const QString& s, int& pos, int& depth) {
     auto left = parseRight(s, pos, depth);
-    try {
-        return {std::get<Error>(left)};
-    } catch (std::bad_variant_access&) {
+    if (auto* err = std::get_if<Error>(&left)) {
+        return {*err};
     }
+
     auto& res = std::get<std::shared_ptr<Expr>>(left);
     if (pos < s.length()) {
         auto& ch = s.at(pos);
@@ -198,28 +192,28 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
 long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     // There is a bug in GCC for variant visitors on incomplete variant types (recursive), So instead we'll macro
     // our way towards something that looks like a pattern match for the variant type.
-    IfExpr(Add, v) { return evaluate(v.lhs, variables) + evaluate(v.rhs, variables); }
+    IfExpr(Add, v) { return evaluate(v->lhs, variables) + evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(Div, v) { return evaluate(v.lhs, variables) / evaluate(v.rhs, variables); }
+    IfExpr(Div, v) { return evaluate(v->lhs, variables) / evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(Mul, v) { return evaluate(v.lhs, variables) * evaluate(v.rhs, variables); }
+    IfExpr(Mul, v) { return evaluate(v->lhs, variables) * evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(Sub, v) { return evaluate(v.lhs, variables) - evaluate(v.rhs, variables); }
+    IfExpr(Sub, v) { return evaluate(v->lhs, variables) - evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(Mod, v) { return evaluate(v.lhs, variables) % evaluate(v.rhs, variables); }
+    IfExpr(Mod, v) { return evaluate(v->lhs, variables) % evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(And, v) { return evaluate(v.lhs, variables) & evaluate(v.rhs, variables); }
+    IfExpr(And, v) { return evaluate(v->lhs, variables) & evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(Or, v) { return evaluate(v.lhs, variables) | evaluate(v.rhs, variables); }
+    IfExpr(Or, v) { return evaluate(v->lhs, variables) | evaluate(v->rhs, variables); }
     FiExpr;
     IfExpr(Literal, v) {
         bool canConvert;
-        auto value = getImmediate(v.v, canConvert);
+        auto value = getImmediate(v->v, canConvert);
         if (!canConvert) {
-            if (variables != nullptr && variables->count(v.v) != 0) {
-                value = variables->at(v.v);
+            if (variables != nullptr && variables->count(v->v) != 0) {
+                value = variables->at(v->v);
             } else {
-                throw std::runtime_error(QString("Unknown symbol '%1'").arg(v.v).toStdString());
+                throw std::runtime_error(QString("Unknown symbol '%1'").arg(v->v).toStdString());
             }
         }
         return value;
@@ -235,9 +229,8 @@ std::variant<Error, long> evaluate(const QString& s, const SymbolMap* variables)
     int pos = 0;
     int depth = 0;
     auto exprTree = parseLeft(sNoWhitespace, pos, depth);
-    try {
-        return std::get<Error>(exprTree);
-    } catch (std::bad_variant_access&) {
+    if (auto* err = std::get_if<Error>(&exprTree)) {
+        return *err;
     }
     const auto exprTreeRes = std::get<std::shared_ptr<Expr>>(exprTree);
     try {

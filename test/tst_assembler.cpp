@@ -210,11 +210,10 @@ void tst_Assembler::tst_matcher() {
 
     for (const auto& iter : toMatch) {
         auto match = assembler.getMatcher().matchInstruction(iter.second);
-        try {
-            auto& error = std::get<Error>(match);
-            QFAIL(error.second.toStdString().c_str());
-        } catch (const std::bad_variant_access&) {
+        if (auto* error = std::get_if<Error>(&match)) {
+            QFAIL(error->second.toStdString().c_str());
         }
+
         auto matchInstr = std::get<const Instruction*>(match);
         if (matchInstr->name() != iter.first) {
             QString error =
@@ -223,11 +222,10 @@ void tst_Assembler::tst_matcher() {
         }
 
         auto disRes = matchInstr->disassemble(iter.second, 0, {});
-        try {
-            auto& error = std::get<Error>(disRes);
-            QFAIL(error.second.toStdString().c_str());
-        } catch (const std::bad_variant_access&) {
+        if (auto* error = std::get_if<Error>(&disRes)) {
+            QFAIL(error->second.toStdString().c_str());
         }
+
         auto disassembled = std::get<LineTokens>(disRes);
 
         qDebug() << QString::number(iter.second, 2) << " = " << disassembled;
