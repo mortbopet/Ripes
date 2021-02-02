@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QTextStream>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -13,10 +14,17 @@ using Error = std::pair<unsigned, QString>;
 class Errors : public std::vector<Error> {
 public:
     void print() const {
-        for (const auto& iter : *this) {
-            std::cout << "line " << iter.first << ": " << iter.second.toStdString() << "\n";
-        }
+        std::cout << toString().toStdString();
         std::cout << std::flush;
+    }
+
+    QString toString() const {
+        QString str;
+        auto strStream = QTextStream(&str);
+        for (const auto& iter : *this) {
+            strStream << "line " << iter.first << ": " << iter.second << "\n";
+        }
+        return str;
     }
 
     /**
