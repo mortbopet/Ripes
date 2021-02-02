@@ -125,7 +125,7 @@ public:
     unsigned int regNumber(const QString& reg, bool& success) const override {
         QString regRes = reg;
         success = true;
-        if (reg[0] == 'x') {
+        if (reg[0] == 'x' && (RVRegNames.count(reg) != 0)) {
             regRes.remove('x');
             return regRes.toInt(&success, 10);
         } else if (RVRegAliases.contains(reg)) {
