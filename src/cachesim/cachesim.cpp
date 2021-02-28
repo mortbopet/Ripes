@@ -31,12 +31,13 @@ void CacheSim::setType(CacheSim::CacheType type) {
 void CacheSim::reassociateMemory() {
     if (m_type == CacheType::DataCache) {
         m_memory.rw = ProcessorHandler::get()->getDataMemory();
+        Q_ASSERT(m_memory.rw != nullptr);
     } else if (m_type == CacheType::InstrCache) {
         m_memory.rom = ProcessorHandler::get()->getInstrMemory();
+        Q_ASSERT(m_memory.rom != nullptr);
     } else {
         Q_ASSERT(false);
     }
-    Q_ASSERT(m_memory.rw != nullptr);
 }
 
 void CacheSim::updateCacheLineReplFields(CacheLine& line, unsigned wayIdx) {
