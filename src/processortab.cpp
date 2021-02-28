@@ -73,11 +73,16 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     // Load the default constructed processor to the VSRTL widget. Do a bit of sanity checking to ensure that the layout
     // stored in the settings is valid for the given processor
-    int layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
+    unsigned layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
+    const Layout* layout = nullptr;
     if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.size()) {
         layoutID = 0;
     }
-    loadProcessorToWidget(ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.at(layoutID));
+    const auto& layouts = ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts;
+    if (layouts.size() > layoutID) {
+        layout = &layouts.at(layoutID);
+    }
+    loadProcessorToWidget(layout);
 
     // By default, lock the VSRTL widget
     m_vsrtlWidget->setLocked(true);
@@ -286,7 +291,7 @@ void ProcessorTab::fitToView() {
     m_vsrtlWidget->zoomToFit();
 }
 
-void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
+void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
     ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
 
     // Construct stage instruction labels
@@ -299,7 +304,9 @@ void ProcessorTab::loadProcessorToWidget(const Layout& layout) {
         stagelabel->setPointSize(14);
         m_stageInstructionLabels[i] = stagelabel;
     }
-    loadLayout(layout);
+    if (layout != nullptr) {
+        loadLayout(*layout);
+    }
     updateInstructionLabels();
     fitToView();
 }
@@ -316,10 +323,12 @@ void ProcessorTab::processorSelection() {
 
         // Store selected layout index
         const auto& layouts = ProcessorRegistry::getDescription(diag.getSelectedId()).layouts;
-        auto layoutIter = std::find(layouts.begin(), layouts.end(), diag.getSelectedLayout());
-        Q_ASSERT(layoutIter != layouts.end());
-        const long layoutIndex = std::distance(layouts.begin(), layoutIter);
-        RipesSettings::setValue(RIPES_SETTING_PROCESSOR_LAYOUT_ID, static_cast<int>(layoutIndex));
+        if (auto* layout = diag.getSelectedLayout()) {
+            auto layoutIter = std::find(layouts.begin(), layouts.end(), *layout);
+            Q_ASSERT(layoutIter != layouts.end());
+            const long layoutIndex = std::distance(layouts.begin(), layoutIter);
+            RipesSettings::setValue(RIPES_SETTING_PROCESSOR_LAYOUT_ID, static_cast<int>(layoutIndex));
+        }
 
         loadProcessorToWidget(diag.getSelectedLayout());
         m_vsrtlWidget->reset();

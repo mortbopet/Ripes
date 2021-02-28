@@ -65,7 +65,7 @@ private:
     void updateInstructionModel();
     void updateRegisterModel();
     void loadLayout(const Layout&);
-    void loadProcessorToWidget(const Layout&);
+    void loadProcessorToWidget(const Layout*);
 
     Ui::ProcessorTab* m_ui = nullptr;
     InstructionModel* m_instrModel = nullptr;

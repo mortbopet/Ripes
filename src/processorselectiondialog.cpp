@@ -124,13 +124,14 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
     }
 }
 
-Layout ProcessorSelectionDialog::getSelectedLayout() const {
+const Layout* ProcessorSelectionDialog::getSelectedLayout() const {
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(m_selectedID);
     for (const auto& layout : desc.layouts) {
         if (layout.name == m_ui->layout->currentText()) {
-            return layout;
+            return &layout;
         }
     }
+    return nullptr;
     Q_UNREACHABLE();
 }
 

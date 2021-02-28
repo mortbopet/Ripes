@@ -20,7 +20,7 @@ public:
 
     ProcessorID getSelectedId() const { return m_selectedID; }
     RegisterInitialization getRegisterInitialization() const;
-    Layout getSelectedLayout() const;
+    const Layout* getSelectedLayout() const;
     QStringList getEnabledExtensions() const;
 
 private slots:
