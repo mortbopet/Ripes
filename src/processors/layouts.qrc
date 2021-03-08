@@ -8,5 +8,7 @@
         <file>RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json</file>
         <file>RISC-V/rv5s_no_hz/rv5s_no_hz_standard_layout.json</file>
         <file>RISC-V/rv5s_no_hz/rv5s_no_hz_extended_layout.json</file>
+        <file>RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json</file>
+        <file>RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json</file>
     </qresource>
 </RCC>
