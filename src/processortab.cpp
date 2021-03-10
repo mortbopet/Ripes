@@ -2,6 +2,7 @@
 #include "ui_processortab.h"
 
 #include <QDir>
+#include <QFontMetrics>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
@@ -159,7 +160,9 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
     for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
         auto& label = m_stageInstructionLabels.at(i);
-        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i), 0);
+        QFontMetrics metrics(label->font());
+        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i).x(),
+                      metrics.height() * layout.stageLabelPositions.at(i).y());
     }
 }
 
@@ -419,7 +422,15 @@ void ProcessorTab::updateInstructionLabels() {
         auto* instrLabel = m_stageInstructionLabels.at(i);
         QString instrString;
         if (stageInfo.state != StageInfo::State::None) {
-            instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
+            /* clang-format off */
+            switch (stageInfo.state) {
+                case StageInfo::State::Flushed: instrString = "nop (flush)"; break;
+                case StageInfo::State::Stalled: instrString = "nop (stall)"; break;
+                case StageInfo::State::WayHazard: if(stageInfo.stage_valid) {instrString = "nop (way hazard)";} break;
+                case StageInfo::State::Unused: instrString = "nop (unused)"; break;
+                case StageInfo::State::None: Q_UNREACHABLE();
+            }
+            /* clang-format on */
             instrLabel->forceDefaultTextColor(Qt::red);
         } else if (stageInfo.stage_valid) {
             instrString = ProcessorHandler::get()->disassembleInstr(stageInfo.pc);

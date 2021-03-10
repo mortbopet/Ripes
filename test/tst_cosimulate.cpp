@@ -76,6 +76,7 @@ private slots:
      * PROCESSOR MODELS TO TEST
      * Each of the following functions shall indicate a processor model to co-simulate.
      */
+    void testRV6SDual() { cosimulate(ProcessorID::RV6S_DUAL, {"M"}); }
     void testRV5S() { cosimulate(ProcessorID::RV5S, {"M"}); }
 };
 

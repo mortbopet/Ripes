@@ -93,10 +93,8 @@ void tst_Assembler::tst_riscv() {
 }
 
 void tst_Assembler::tst_expression() {
-    testAssemble(QStringList() << ".data"
-                               << "B: .word 123"
-                               << ".text"
-                               << "lw x10 (B + (4* 3))(x10)",
+    testAssemble(QStringList() << ".text"
+                               << "lw x10 (123 + (4* 3))(x10)",
                  Expect::Success);
     testAssemble(QStringList() << ".data"
                                << "A: .word 1"

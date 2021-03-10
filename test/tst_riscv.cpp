@@ -66,6 +66,7 @@ private slots:
 
     void testRVSingleCycle() { runTests(ProcessorID::RVSS); }
     void testRV5StagePipeline() { runTests(ProcessorID::RV5S); }
+    void testRV6SDual() { runTests(ProcessorID::RV6S_DUAL); }
 
     void cleanupTestCase();
 };
