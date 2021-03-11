@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     m_IOToolbar = addToolBar("I/O");
     m_IOToolbar->setVisible(false);
-    m_IOTab = new IOTab(m_controlToolbar, this);
+    m_IOTab = new IOTab(m_IOToolbar, this);
     m_stackedTabs->insertWidget(3, m_IOTab);
 
     // Setup tab bar
@@ -143,7 +143,7 @@ void MainWindow::tabChanged(int index) {
     m_editToolbar->setVisible(index == 0);
     m_processorToolbar->setVisible(index == 1);
     m_memoryToolbar->setVisible(index == 2);
-    m_IOTab->setVisible(index == 3);
+    m_IOToolbar->setVisible(index == 3);
 }
 
 void MainWindow::fitToView() {

@@ -2,6 +2,7 @@
 
 #include "defines.h"
 
+#include <QAction>
 #include <QWidget>
 
 #include <unordered_map>
@@ -24,6 +25,10 @@ public:
     ~IOTab() override;
 
 private:
+    void tile();
+
     Ui::IOTab* m_ui = nullptr;
+
+    QAction* m_tileAction = nullptr;
 };
 }  // namespace Ripes

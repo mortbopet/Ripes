@@ -55,7 +55,9 @@ void IOLedMatrix::updateLEDRegs() {
             const int g = (0xFF * y) / width;
             const int b = (0xFF * (x + y)) / (width + width);
 
-            m_ledRegs.at(y * width + x) = r << 16 | g << 8 | b;
+            const unsigned idx = y * width + x;
+            m_ledRegs.at(idx) = r << 16 | g << 8 | b;
+            m_ledRegs.at(idx) = (0xFFFFFF / m_ledRegs.size()) * idx;
         }
     }
 }
