@@ -9,7 +9,8 @@ file(GLOB LIB_SOURCES
     editor/*.cpp
     syscall/*.cpp
     version/version.cpp
-    assembler/*.cpp)
+    assembler/*.cpp
+    io/*.cpp)
 file(GLOB LIB_HEADERS
     *.h
     isa/*.h
@@ -17,11 +18,13 @@ file(GLOB LIB_HEADERS
     editor/*.h
     syscall/*.h
     graphics/*.h
-    assembler/*.h)
+    assembler/*.h
+    io/*.h)
 file(GLOB LIB_UIS
     *.ui
     cachesim/*.ui
     syscall/*.ui
+    io/*.ui
 )
 
 set(RIPES_LIB ripes_lib)
