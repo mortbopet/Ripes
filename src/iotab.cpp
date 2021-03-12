@@ -8,6 +8,8 @@
 
 #include "processorhandler.h"
 
+#include "ioperipheraltab.h"
+
 namespace Ripes {
 
 IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::IOTab) {
@@ -68,18 +70,10 @@ uint32_t nextAddress() {
     return 0x10000;
 }
 
-class PeripheralTab : public QWidget {
-public:
-    PeripheralTab(QWidget* parent, IOBase* peripheral) : QWidget(parent), m_peripheral(peripheral) {}
-
-private:
-    IOBase* m_peripheral;
-};
-
 void IOTab::createPeripheral(IOType type) {
     auto* peripheral = IOFactories.at(type)(this, nextAddress());
     // Create tab for peripheral
-    auto* peripheralTab = new PeripheralTab(this, peripheral);
+    auto* peripheralTab = new IOPeripheralTab(this, peripheral);
     m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());
     m_ioTabs[peripheral] = peripheralTab;
 

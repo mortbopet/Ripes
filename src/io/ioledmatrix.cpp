@@ -21,10 +21,10 @@ IOLedMatrix::IOLedMatrix(QWidget* parent, uint32_t startAddr) : IOBase(parent, s
 
 QString IOLedMatrix::description() const {
     QStringList desc;
-    desc << "A word-addressable LED matrix.";
-    desc
-        << "Each LED maps to a 24-bit register storing an RGB color value, with B stored in the least significant byte";
-    desc << "The byte offset of each LED is calculated as '(rowIdx + colIdx*width) * 4'.";
+    desc << "Each LED maps to a 24-bit register storing an RGB color value, with B stored in the least significant "
+            "byte.";
+    desc << "The byte offset of the LED at coordinates (x, y) is:";
+    desc << "    offset = (y + x*N_LEDS_ROW) * 4";
 
     return desc.join('\n');
 }
