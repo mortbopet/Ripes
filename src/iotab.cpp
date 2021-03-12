@@ -16,6 +16,8 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     m_ui->mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_ui->mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
+    m_ui->peripheralsTab->clear();
+
     // Toolbar actions
     m_tileAction = new QAction(this);
     m_tileAction->setIcon(QIcon(":/icons/tile.svg"));
@@ -44,7 +46,7 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     // Setup MDI area
     connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, [this](QMdiSubWindow* w) {
         if (w == nullptr) {
-            setPeripheralActive(nullptr);
+            setPeripheralTabActive(nullptr);
         } else {
             // MDI window -> QMainwindow -> QDockWidget -> IOBase widget... Whew!
             auto* w1 = w->widget();
@@ -52,9 +54,11 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
             auto* w3 = w2->widget();
             auto* peripheral = dynamic_cast<IOBase*>(w3);
             Q_ASSERT(peripheral != nullptr);
-            this->setPeripheralActive(peripheral);
+            this->setPeripheralTabActive(peripheral);
         }
     });
+
+    connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
 }
 
 /**
@@ -64,29 +68,68 @@ uint32_t nextAddress() {
     return 0x10000;
 }
 
+class PeripheralTab : public QWidget {
+public:
+    PeripheralTab(QWidget* parent, IOBase* peripheral) : QWidget(parent), m_peripheral(peripheral) {}
+
+private:
+    IOBase* m_peripheral;
+};
+
 void IOTab::createPeripheral(IOType type) {
+    auto* peripheral = IOFactories.at(type)(this, nextAddress());
+    // Create tab for peripheral
+    auto* peripheralTab = new PeripheralTab(this, peripheral);
+    m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());
+    m_ioTabs[peripheral] = peripheralTab;
+
     // It seems excessive to create a QMainWindow for each peripheral but it seems like the only way to mix MDI
     // behaviour + dockable widgets that are able to pop out to a separate window
     auto* mw = new QMainWindow(this);
     m_ui->dockArea->addWidget(mw);  // Shouldn't be needed, but MDI windows aren't created without this?
     auto* dw = new QDockWidget(IOTypeTitles.at(type));
-    dw->setWidget(IOFactories.at(type)(this, nextAddress()));
+    dw->setWidget(peripheral);
     dw->setAllowedAreas(Qt::AllDockWidgetAreas);
     mw->addDockWidget(Qt::TopDockWidgetArea, dw);
-    auto* sw = m_ui->mdiArea->addSubWindow(mw);
+    auto* mdiw = m_ui->mdiArea->addSubWindow(mw);
 
-    connect(sw, &QObject::destroyed, this, &IOTab::removePeripheral);
+    m_subWindows[peripheralTab] = mdiw;
+
+    // Signals
+
+    // Connect to the destruction of the peripheral to trigger required changes on peripheral deletion. The peripheral
+    // is implicitly destructed when the MDIWindow is closed.
+    connect(peripheral, &IOBase::destroyed, this, &IOTab::removePeripheral);
 }
 
-void IOTab::setPeripheralActive(IOBase* peripheral) {
+void IOTab::setPeripheralTabActive(IOBase* peripheral) {
     if (peripheral == nullptr) {
-        // No more widgets left, figure out what to do with the tab...
-    } else {
-        // ...
+        return;
     }
+    m_ui->peripheralsTab->setCurrentWidget(m_ioTabs.at(peripheral));
 }
 
-void IOTab::removePeripheral(QObject* peripheral) {}
+void IOTab::setPeripheralMDIWindowActive(int tabIndex) {
+    if (tabIndex == -1) {
+        // No more peripherals
+        return;
+    }
+    auto it = m_subWindows.find(m_ui->peripheralsTab->widget(tabIndex));
+    if (it == m_subWindows.end()) {
+        // We are currently creating the peripheral
+        return;
+    }
+
+    m_ui->mdiArea->setActiveSubWindow(it->second);
+}
+
+void IOTab::removePeripheral(QObject* peripheral) {
+    auto* tab = m_ioTabs.at(peripheral);
+    Q_ASSERT(m_subWindows.count(tab) != 0);
+    m_subWindows.erase(tab);
+    m_ioTabs.at(peripheral)->deleteLater();
+    m_ioTabs.erase(peripheral);
+}
 
 void IOTab::tile() {
     Q_ASSERT(false);

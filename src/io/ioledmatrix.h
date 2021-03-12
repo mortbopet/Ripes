@@ -21,6 +21,7 @@ public:
     virtual uint32_t size() const override { return (m_maxSideWidth * m_maxSideWidth) * 4; }
     uint32_t endAddr() const { return startAddr() + size(); }
     virtual QString description() const override;
+    virtual QString name() const override;
 
     virtual const QVariant& setParameter(unsigned ID, const QVariant& value) override;
 

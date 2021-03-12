@@ -32,6 +32,7 @@ public:
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
     virtual QString description() const = 0;
+    virtual QString name() const = 0;
 
     /**
      * @brief setParameter

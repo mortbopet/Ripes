@@ -29,6 +29,10 @@ QString IOLedMatrix::description() const {
     return desc.join('\n');
 }
 
+QString IOLedMatrix::name() const {
+    return "LED Matrix";  // Todo: generate unique name
+}
+
 const QVariant& IOLedMatrix::setParameter(unsigned ID, const QVariant& value) {
     return QVariant();
 }
