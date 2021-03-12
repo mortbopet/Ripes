@@ -23,6 +23,14 @@ struct IOParam {
     QVariant max;
 };
 
+struct RegDesc {
+    enum class RW { R, W, RW };
+    QString name;
+    RW rw;
+    unsigned bitWidth;
+    uint32_t address;
+};
+
 class IOBase : public QWidget {
     Q_OBJECT
 
@@ -33,6 +41,12 @@ public:
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
     virtual QString description() const = 0;
     virtual QString name() const = 0;
+
+    /**
+     * @brief registers
+     * @return a description of the programmable interface of this peripheral
+     */
+    virtual const std::vector<RegDesc>& registers() const = 0;
 
     /**
      * @brief setParameter

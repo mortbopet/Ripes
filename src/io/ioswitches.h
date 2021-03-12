@@ -70,6 +70,7 @@ public:
     virtual QString name() const override;
 
     virtual const QVariant& setParameter(unsigned ID, const QVariant& value) override;
+    virtual const std::vector<RegDesc>& registers() const override { return m_regDescs; };
 
     /**
      * Hardware read/write functions
@@ -88,5 +89,6 @@ private:
     uint32_t m_values;
     std::map<int, std::pair<QLabel*, ToggleButton*>> m_switches;
     QGridLayout* m_switchLayout;
+    std::vector<RegDesc> m_regDescs;
 };
 }  // namespace Ripes

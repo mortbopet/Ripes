@@ -149,10 +149,8 @@ IOSwitches::IOSwitches(QWidget* parent, uint32_t startAddr) : IOBase(parent, sta
 
 QString IOSwitches::description() const {
     QStringList desc;
-    desc << "Each LED maps to a 24-bit register storing an RGB color value, with B stored in the least significant "
-            "byte.";
-    desc << "The byte offset of the LED at coordinates (x, y) is:";
-    desc << "    offset = (y + x*N_LEDS_ROW) * 4";
+    desc << "Each switch maps to a bit in the memory-mapped register of the peripheral.";
+    desc << "switch n = bit n";
 
     return desc.join('\n');
 }
@@ -170,7 +168,7 @@ const QVariant& IOSwitches::setParameter(unsigned ID, const QVariant& value) {
 }
 
 void IOSwitches::updateSwitches() {
-    const int nSwitches = m_parameters.at(SWITCHES).value.toInt();
+    const unsigned nSwitches = m_parameters.at(SWITCHES).value.toInt();
     for (int i = 0; i < nSwitches; i++) {
         if (m_switches.size() <= i) {
             auto* sw = new ToggleButton(10, 8, true, this);
@@ -188,6 +186,8 @@ void IOSwitches::updateSwitches() {
 
         m_switches.erase(i);
     }
+
+    m_regDescs = {RegDesc{"Switches", RegDesc::RW::R, nSwitches, 0}};
 }
 
 uint32_t IOSwitches::ioRead8(uint32_t offset) {

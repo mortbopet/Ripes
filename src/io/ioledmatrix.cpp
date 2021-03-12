@@ -63,6 +63,12 @@ void IOLedMatrix::updateLEDRegs() {
     const int height = m_parameters[HEIGHT].value.toInt();
     m_ledRegs.resize(width * width);
 
+    m_regDescs.clear();
+    m_regDescs.resize(width * height);
+    for (unsigned i = 0; i < m_regDescs.size(); i++) {
+        m_regDescs.at(i) = RegDesc{"LED_" + QString::number(i), RegDesc::RW::RW, 24, i * 4};
+    }
+
     // DEBUG: test pattern
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {

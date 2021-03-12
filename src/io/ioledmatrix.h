@@ -24,6 +24,7 @@ public:
     virtual QString name() const override;
 
     virtual const QVariant& setParameter(unsigned ID, const QVariant& value) override;
+    virtual const std::vector<RegDesc>& registers() const override { return m_regDescs; };
 
     /**
      * Hardware read/write functions
@@ -48,6 +49,7 @@ private:
 
     unsigned m_maxSideWidth = 256;
     std::vector<uint32_t> m_ledRegs;
+    std::vector<RegDesc> m_regDescs;
 
     QPen m_pen;
 };
