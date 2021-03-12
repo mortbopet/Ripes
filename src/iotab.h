@@ -11,6 +11,8 @@
 #include "processorhandler.h"
 #include "ripestab.h"
 
+#include "io/ioregistry.h"
+
 namespace Ripes {
 
 namespace Ui {
@@ -24,11 +26,15 @@ public:
     IOTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~IOTab() override;
 
+private slots:
+    void removePeripheral(QObject* peripheral);
+    void setPeripheralActive(IOBase* peripheral);
+
 private:
+    void createPeripheral(IOType type);
+
     void tile();
-
     Ui::IOTab* m_ui = nullptr;
-
     QAction* m_tileAction = nullptr;
 };
 }  // namespace Ripes

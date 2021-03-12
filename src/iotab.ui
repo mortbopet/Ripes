@@ -35,12 +35,12 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="1">
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
           <item>
-           <widget class="QTreeView" name="treeView"/>
+           <widget class="QTableWidget" name="peripheralsTable"/>
           </item>
           <item>
-           <widget class="QTabWidget" name="tabWidget_2">
+           <widget class="QTabWidget" name="peripheralsTab">
             <widget class="QWidget" name="tab">
              <attribute name="title">
               <string>Tab 1</string>

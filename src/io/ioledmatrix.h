@@ -11,15 +11,16 @@ namespace Ripes {
 class IOLedMatrix : public IOBase {
     Q_OBJECT
 
-    enum Parameters { WIDTH, SIZE };
+    enum Parameters { HEIGHT, WIDTH, SIZE };
 
 public:
-    IOLedMatrix(QWidget* parent, uint32_t startAddr, unsigned maxWidth);
+    IOLedMatrix(QWidget* parent, uint32_t startAddr);
     ~IOLedMatrix(){};
 
     uint32_t startAddr() const { return m_startAddr; }
-    virtual uint32_t size() const override { return (m_maxWidth * m_maxWidth) * 4; }
+    virtual uint32_t size() const override { return (m_maxSideWidth * m_maxSideWidth) * 4; }
     uint32_t endAddr() const { return startAddr() + size(); }
+    virtual QString description() const override;
 
     virtual const QVariant& setParameter(unsigned ID, const QVariant& value) override;
 
@@ -44,7 +45,7 @@ private:
     uint32_t regRead(uint32_t offset) const;
     void updateLEDRegs();
 
-    unsigned m_maxWidth;
+    unsigned m_maxSideWidth = 256;
     std::vector<uint32_t> m_ledRegs;
 
     QPen m_pen;

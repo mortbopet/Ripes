@@ -2,6 +2,8 @@
 
 #include <QVariant>
 #include <QWidget>
+#include <typeindex>
+#include <typeinfo>
 
 namespace Ripes {
 
@@ -25,10 +27,11 @@ class IOBase : public QWidget {
     Q_OBJECT
 
 public:
-    IOBase(QWidget* parent, uint32_t startAddr) : QWidget(parent) {}
-    virtual ~IOBase(){};
+    IOBase(QWidget* parent, uint32_t startAddr) : QWidget(parent) { registerPeripheral(this); }
+    virtual ~IOBase() { deregisterPeripheral(this); };
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
+    virtual QString description() const = 0;
 
     /**
      * @brief setParameter
@@ -55,5 +58,15 @@ public:
 protected:
     ::uint32_t m_startAddr;
     std::map<unsigned, IOParam> m_parameters;
+
+    static std::map<std::type_index, int> s_peripheralCount;
+    static void registerPeripheral(const IOBase* p) {
+        s_peripheralCount[typeid(p)]++;
+        return;
+    }
+    static void deregisterPeripheral(const IOBase* p) {
+        Q_ASSERT(s_peripheralCount.at(typeid(p)) > 0);
+        s_peripheralCount[typeid(p)]--;
+    }
 };
 }  // namespace Ripes

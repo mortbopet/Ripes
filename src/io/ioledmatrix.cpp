@@ -5,18 +5,28 @@
 
 namespace Ripes {
 
-IOLedMatrix::IOLedMatrix(QWidget* parent, uint32_t startAddr, unsigned maxWidth)
-    : IOBase(parent, startAddr), m_maxWidth(maxWidth) {
-    constexpr unsigned defaultWidth = 10;
+IOLedMatrix::IOLedMatrix(QWidget* parent, uint32_t startAddr) : IOBase(parent, startAddr) {
+    constexpr unsigned defaultWidth = 25;
 
     // Parameters
-    m_parameters[WIDTH] = IOParam(WIDTH, "Matrix width", defaultWidth, true, 0, m_maxWidth);
-    m_parameters[SIZE] = IOParam(SIZE, "LED size", 25, true, 1, 100);
+    m_parameters[HEIGHT] = IOParam(WIDTH, "Matrix height", defaultWidth, true, 0, m_maxSideWidth);
+    m_parameters[WIDTH] = IOParam(WIDTH, "Matrix width", defaultWidth + 10, true, 0, m_maxSideWidth);
+    m_parameters[SIZE] = IOParam(SIZE, "LED size", 8, true, 1, 100);
 
     m_pen.setWidth(1);
     m_pen.setColor(Qt::black);
 
     updateLEDRegs();
+}
+
+QString IOLedMatrix::description() const {
+    QStringList desc;
+    desc << "A word-addressable LED matrix.";
+    desc
+        << "Each LED maps to a 24-bit register storing an RGB color value, with B stored in the least significant byte";
+    desc << "The byte offset of each LED is calculated as '(rowIdx + colIdx*width) * 4'.";
+
+    return desc.join('\n');
 }
 
 const QVariant& IOLedMatrix::setParameter(unsigned ID, const QVariant& value) {
@@ -46,27 +56,29 @@ inline QColor regToColor(uint32_t regVal) {
 
 void IOLedMatrix::updateLEDRegs() {
     const int width = m_parameters[WIDTH].value.toInt();
+    const int height = m_parameters[HEIGHT].value.toInt();
     m_ledRegs.resize(width * width);
 
     // DEBUG: test pattern
-    for (int y = 0; y < width; y++) {
+    for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             const int r = (0xFF * x) / width;
-            const int g = (0xFF * y) / width;
-            const int b = (0xFF * (x + y)) / (width + width);
+            const int g = (0xFF * y) / height;
+            const int b = (0xFF * (x + y)) / (width + height);
 
             const unsigned idx = y * width + x;
             m_ledRegs.at(idx) = r << 16 | g << 8 | b;
-            m_ledRegs.at(idx) = (0xFFFFFF / m_ledRegs.size()) * idx;
         }
     }
 }
 
 QSize IOLedMatrix::minimumSizeHint() const {
     const int width = m_parameters.at(WIDTH).value.toInt();
+    const int height = m_parameters.at(HEIGHT).value.toInt();
     const int size = m_parameters.at(SIZE).value.toInt();
-    const int pixelWidth = width * (size + 2);
-    return QSize(pixelWidth, pixelWidth);
+    const int pixelWidth = width * (size + m_pen.width());
+    const int pixelHeight = height * (size + m_pen.width());
+    return QSize(pixelWidth, pixelHeight);
 }
 
 void IOLedMatrix::paintEvent(QPaintEvent* event) {
@@ -75,14 +87,15 @@ void IOLedMatrix::paintEvent(QPaintEvent* event) {
     painter.setPen(m_pen);
 
     const int width = m_parameters[WIDTH].value.toInt();
+    const int height = m_parameters[HEIGHT].value.toInt();
     const int size = m_parameters[SIZE].value.toInt();
-    for (int y = 0; y < width; y++) {
+    for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             QBrush brush(regToColor(m_ledRegs.at(y * width + x)));
             painter.setBrush(brush);
 
-            const unsigned xpos = x * size + size / 2;
-            const unsigned ypos = y * size + size / 2;
+            const unsigned xpos = x * (size + m_pen.width());
+            const unsigned ypos = y * (size + m_pen.width());
 
             painter.drawEllipse(xpos, ypos, size, size);
         }
