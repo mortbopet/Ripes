@@ -50,10 +50,9 @@ public:
 
     /**
      * @brief setParameter
-     * Attempt to set the parameter @p ID to @p value. Returns the value that the parameter was set to (use this to
-     * identify whether value was set successfully).
+     * Attempt to set the parameter @p ID to @p value. Returns true if the value was set successfully.
      */
-    virtual const QVariant& setParameter(unsigned ID, const QVariant& value) = 0;
+    virtual bool setParameter(unsigned ID, const QVariant& value);
 
     void setStartAddr(uint32_t addr) { m_startAddr = addr; }
     uint32_t startAddr() const { return m_startAddr; }
@@ -70,7 +69,16 @@ public:
     virtual uint32_t ioRead32(uint32_t offset) = 0;
     virtual void ioWrite32(uint32_t offset, uint32_t value) = 0;
 
+signals:
+    /**
+     * @brief regMapChanged
+     * Should be emitted every time the register map of this peripheral changes.
+     */
+    void regMapChanged();
+
 protected:
+    virtual void parameterChanged(unsigned ID) = 0;
+
     ::uint32_t m_startAddr;
     std::map<unsigned, IOParam> m_parameters;
 

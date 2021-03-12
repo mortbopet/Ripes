@@ -159,18 +159,10 @@ QString IOSwitches::name() const {
     return "Switches";  // Todo: generate unique name
 }
 
-const QVariant& IOSwitches::setParameter(unsigned ID, const QVariant& value) {
-    switch (ID) {
-        case SWITCHES: {
-        }
-    }
-    return value;
-}
-
 void IOSwitches::updateSwitches() {
     const unsigned nSwitches = m_parameters.at(SWITCHES).value.toInt();
     for (int i = 0; i < nSwitches; i++) {
-        if (m_switches.size() <= i) {
+        if (m_switches.count(i) == 0) {
             auto* sw = new ToggleButton(10, 8, true, this);
             auto* label = new QLabel(QString::number(i), this);
             m_switches[i] = {label, sw};
@@ -180,14 +172,25 @@ void IOSwitches::updateSwitches() {
     }
 
     // Remove extra switches if # of switches was reduced
-    for (int i = nSwitches; i < m_switches.size(); i++) {
-        m_switches.at(i).first->deleteLater();
-        m_switches.at(i).second->deleteLater();
+    std::vector<int> idxToDelete;
+    for (const auto& it : m_switches) {
+        if (it.first >= nSwitches) {
+            idxToDelete.push_back(it.first);
+        }
+    }
 
-        m_switches.erase(i);
+    for (int idx : idxToDelete) {
+        auto it = m_switches.find(idx);
+        Q_ASSERT(it != m_switches.end());
+        it->second.first->deleteLater();
+        it->second.second->deleteLater();
+        m_switches.erase(idx);
     }
 
     m_regDescs = {RegDesc{"Switches", RegDesc::RW::R, nSwitches, 0}};
+    updateGeometry();
+    resize(minimumSize());
+    emit regMapChanged();
 }
 
 uint32_t IOSwitches::ioRead8(uint32_t offset) {

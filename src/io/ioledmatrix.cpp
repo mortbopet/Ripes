@@ -33,10 +33,6 @@ QString IOLedMatrix::name() const {
     return "LED Matrix";  // Todo: generate unique name
 }
 
-const QVariant& IOLedMatrix::setParameter(unsigned ID, const QVariant& value) {
-    return QVariant();
-}
-
 uint32_t IOLedMatrix::ioRead8(uint32_t offset) {
     return regRead(offset) & 0xFF;
 }
@@ -61,10 +57,11 @@ inline QColor regToColor(uint32_t regVal) {
 void IOLedMatrix::updateLEDRegs() {
     const int width = m_parameters[WIDTH].value.toInt();
     const int height = m_parameters[HEIGHT].value.toInt();
-    m_ledRegs.resize(width * width);
+    const int nLEDs = width * height;
+    m_ledRegs.resize(nLEDs);
 
     m_regDescs.clear();
-    m_regDescs.resize(width * height);
+    m_regDescs.resize(nLEDs);
     for (unsigned i = 0; i < m_regDescs.size(); i++) {
         m_regDescs.at(i) = RegDesc{"LED_" + QString::number(i), RegDesc::RW::RW, 24, i * 4};
     }
@@ -80,6 +77,10 @@ void IOLedMatrix::updateLEDRegs() {
             m_ledRegs.at(idx) = r << 16 | g << 8 | b;
         }
     }
+
+    updateGeometry();
+    resize(minimumSize());
+    emit regMapChanged();
 }
 
 QSize IOLedMatrix::minimumSizeHint() const {

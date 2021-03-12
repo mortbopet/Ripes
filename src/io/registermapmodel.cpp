@@ -8,7 +8,15 @@
 namespace Ripes {
 
 RegisterMapModel::RegisterMapModel(IOBase* peripheral, QObject* parent)
-    : QAbstractTableModel(parent), m_peripheral(peripheral) {}
+    : QAbstractTableModel(parent), m_peripheral(peripheral) {
+    connect(m_peripheral, &IOBase::regMapChanged, this, &RegisterMapModel::regMapChanged);
+}
+
+void RegisterMapModel::regMapChanged() {
+    // Let's assume that this is not a hot function, and just update the whole view.
+    emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
+    emit layoutChanged();
+}
 
 int RegisterMapModel::columnCount(const QModelIndex&) const {
     return NColumns;

@@ -69,7 +69,6 @@ public:
     virtual QString description() const override;
     virtual QString name() const override;
 
-    virtual const QVariant& setParameter(unsigned ID, const QVariant& value) override;
     virtual const std::vector<RegDesc>& registers() const override { return m_regDescs; };
 
     /**
@@ -81,6 +80,9 @@ public:
     virtual void ioWrite16(uint32_t offset, uint32_t value) override;
     virtual uint32_t ioRead32(uint32_t offset) override;
     virtual void ioWrite32(uint32_t offset, uint32_t value) override;
+
+protected:
+    virtual void parameterChanged(unsigned) override { updateSwitches(); };
 
 private:
     void updateSwitches();
