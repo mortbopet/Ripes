@@ -82,6 +82,7 @@ void IOTab::createPeripheral(IOType type) {
     auto* mw = new QMainWindow(this);
     m_ui->dockArea->addWidget(mw);  // Shouldn't be needed, but MDI windows aren't created without this?
     auto* dw = new QDockWidget(IOTypeTitles.at(type));
+    dw->setFeatures(dw->features() & ~QDockWidget::DockWidgetClosable);
     dw->setWidget(peripheral);
     dw->setAllowedAreas(Qt::AllDockWidgetAreas);
     mw->addDockWidget(Qt::TopDockWidgetArea, dw);
