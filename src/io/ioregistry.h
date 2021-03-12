@@ -4,6 +4,7 @@
 #include "iobase.h"
 
 #include "ioledmatrix.h"
+#include "ioswitches.h"
 
 /** @brief IORegistry
  *
@@ -16,7 +17,7 @@
 
 namespace Ripes {
 
-enum class IOType { LED_MATRIX };
+enum class IOType { LED_MATRIX, SWITCHES };
 
 template <typename T>
 IOBase* createIO(QWidget* parent, uint32_t startAddr) {
@@ -26,8 +27,10 @@ IOBase* createIO(QWidget* parent, uint32_t startAddr) {
 
 using IOFactory = std::function<IOBase*(QWidget* parent, uint32_t)>;
 
-const static std::map<IOType, QString> IOTypeTitles = {{IOType::LED_MATRIX, "LED Matrix"}};
-const static std::map<IOType, IOFactory> IOFactories = {{IOType::LED_MATRIX, createIO<IOLedMatrix>}};
+const static std::map<IOType, QString> IOTypeTitles = {{IOType::LED_MATRIX, "LED Matrix"},
+                                                       {IOType::SWITCHES, "Switches"}};
+const static std::map<IOType, IOFactory> IOFactories = {{IOType::LED_MATRIX, createIO<IOLedMatrix>},
+                                                        {IOType::SWITCHES, createIO<IOSwitches>}};
 
 }  // namespace Ripes
 

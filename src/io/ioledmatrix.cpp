@@ -87,6 +87,7 @@ QSize IOLedMatrix::minimumSizeHint() const {
 
 void IOLedMatrix::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
 
     painter.setPen(m_pen);
 
