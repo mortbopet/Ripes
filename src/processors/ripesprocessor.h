@@ -103,7 +103,7 @@ public:
      * @brief getMemory
      * @return reference to the address space utilized by the implementing processor
      */
-    virtual SparseArray& getMemory() = 0;
+    virtual SparseArrayMM& getMemory() = 0;
 
     /**
      * @brief getData/InstrMemory

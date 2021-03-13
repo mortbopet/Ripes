@@ -306,7 +306,7 @@ public:
     SUBCOMPONENT(mem_stalled_or, TYPE(Or<1, 2>));
 
     // Address spaces
-    ADDRESSSPACE(m_memory);
+    ADDRESSSPACEMM(m_memory);
     ADDRESSSPACE(m_regMem);
 
     SUBCOMPONENT(ecallChecker, EcallChecker);
@@ -414,7 +414,7 @@ public:
         propagateDesign();
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
-    SparseArray& getMemory() override { return *m_memory; }
+    SparseArrayMM& getMemory() override { return *m_memory; }
     unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
