@@ -264,9 +264,7 @@ QWidget* SettingsDialog::createSimulatorPage() {
     auto [rewindLabel, rewindSpinbox] =
         createSettingsWidgets<QSpinBox>(RIPES_SETTING_REWINDSTACKSIZE, "Max. undo cycles:");
     rewindSpinbox->setRange(0, INT_MAX);
-
-    pageLayout->addWidget(rewindLabel, 0, 0);
-    pageLayout->addWidget(rewindSpinbox, 0, 1);
+    appendToLayout({rewindLabel, rewindSpinbox}, pageLayout);
 
     return pageWidget;
 }
@@ -290,28 +288,15 @@ QWidget* SettingsDialog::createEnvironmentPage() {
 
     auto [pageWidget, pageLayout] = constructPage();
 
-    // Setting: RIPES_SETTING_CONSOLEECHO
-    auto [echoLabel, echoCheckbox] = createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:");
-    consoleLayout->addWidget(echoLabel, 0, 0);
-    consoleLayout->addWidget(echoCheckbox, 0, 1);
-
-    // Setting: RIPES_SETTING_CONSOLEFONT
-    auto [fontLabel, fontButton] =
-        createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:");
-    consoleLayout->addWidget(fontLabel, 1, 0);
-    consoleLayout->addWidget(fontButton, 1, 1);
-
-    // Setting: RIPES_SETTING_CONSOLEFONTCOLOR
-    auto [fontColorLabel, fontColorButton] =
-        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:");
-    consoleLayout->addWidget(fontColorLabel, 2, 0);
-    consoleLayout->addWidget(fontColorButton, 2, 1);
-
-    // Setting: RIPES_SETTING_CONSOLEBG
-    auto [bgColorLabel, bgColorButton] =
-        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:");
-    consoleLayout->addWidget(bgColorLabel, 3, 0);
-    consoleLayout->addWidget(bgColorButton, 3, 1);
+    appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:"), consoleLayout);
+    appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:"),
+                   consoleLayout);
+    appendToLayout(
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:"),
+        consoleLayout);
+    appendToLayout(
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:"),
+        consoleLayout);
 
     pageLayout->addWidget(consoleGroupBox);
 
