@@ -5,6 +5,8 @@
 #include <typeindex>
 #include <typeinfo>
 
+#include "binutils.h"
+
 namespace Ripes {
 
 struct IOParam {
@@ -58,12 +60,8 @@ public:
     /**
      * Hardware read/write functions
      */
-    virtual uint32_t ioRead8(uint32_t offset) = 0;
-    virtual void ioWrite8(uint32_t offset, uint32_t value) = 0;
-    virtual uint32_t ioRead16(uint32_t offset) = 0;
-    virtual void ioWrite16(uint32_t offset, uint32_t value) = 0;
-    virtual uint32_t ioRead32(uint32_t offset) = 0;
-    virtual void ioWrite32(uint32_t offset, uint32_t value) = 0;
+    virtual uint32_t ioRead(uint32_t offset, unsigned size) = 0;
+    virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) = 0;
 
 signals:
     /**

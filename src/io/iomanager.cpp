@@ -27,8 +27,8 @@ IOBase* IOManager::createPeripheral(IOType type) {
     ProcessorHandler::get()->getMemory().addRegion(
         base, peripheral->size(),
         vsrtl::core::IOFunctors{
-            [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite32(offset, value); },
-            [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead32(offset); }});
+            [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
+            [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});
 
     m_memoryMap[base] = {peripheral->size(), peripheral->name()};
 

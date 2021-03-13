@@ -72,12 +72,8 @@ public:
     /**
      * Hardware read/write functions
      */
-    virtual uint32_t ioRead8(uint32_t offset) override;
-    virtual void ioWrite8(uint32_t offset, uint32_t value) override;
-    virtual uint32_t ioRead16(uint32_t offset) override;
-    virtual void ioWrite16(uint32_t offset, uint32_t value) override;
-    virtual uint32_t ioRead32(uint32_t offset) override;
-    virtual void ioWrite32(uint32_t offset, uint32_t value) override;
+    virtual uint32_t ioRead(uint32_t offset, unsigned size) override;
+    virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) override;
 
 protected:
     virtual void parameterChanged(unsigned) override { updateSwitches(); };

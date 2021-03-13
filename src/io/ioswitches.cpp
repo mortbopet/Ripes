@@ -193,28 +193,11 @@ void IOSwitches::updateSwitches() {
     emit regMapChanged();
 }
 
-uint32_t IOSwitches::ioRead8(uint32_t offset) {
-    return regRead(offset) & 0xFF;
-}
-uint32_t IOSwitches::ioRead16(uint32_t offset) {
-    return regRead(offset) & 0xFFFF;
-}
-uint32_t IOSwitches::ioRead32(uint32_t offset) {
-    return regRead(offset);
-}
-uint32_t IOSwitches::regRead(uint32_t offset) const {
-    return m_values >> (offset % 4);
+uint32_t IOSwitches::ioRead(uint32_t offset, unsigned size) {
+    return (m_values >> (offset % 4)) & generateBitmask(size * 8);
 }
 
-void IOSwitches::ioWrite8(uint32_t offset, uint32_t value) {
-    // Read-only
-    return;
-}
-void IOSwitches::ioWrite16(uint32_t offset, uint32_t value) {
-    // Read-only
-    return;
-}
-void IOSwitches::ioWrite32(uint32_t offset, uint32_t value) {
+void IOSwitches::ioWrite(uint32_t, uint32_t, unsigned) {
     // Read-only
     return;
 }

@@ -41,22 +41,11 @@ QString IOLedMatrix::name() const {
     return "LED Matrix";  // Todo: generate unique name
 }
 
-uint32_t IOLedMatrix::ioRead8(uint32_t offset) {
-    return regRead(offset) & 0xFF;
-}
-uint32_t IOLedMatrix::ioRead16(uint32_t offset) {
-    return regRead(offset) & 0xFFFF;
-}
-uint32_t IOLedMatrix::ioRead32(uint32_t offset) {
-    return regRead(offset);
-}
-uint32_t IOLedMatrix::regRead(uint32_t offset) const {
-    return m_ledRegs.at(offset / 4) >> (offset % 4);
+uint32_t IOLedMatrix::ioRead(uint32_t offset, unsigned size) {
+    return (m_ledRegs.at(offset / 4) >> (offset % 4)) & generateBitmask(size * 8);
 }
 
-void IOLedMatrix::ioWrite8(uint32_t offset, uint32_t value) {}
-void IOLedMatrix::ioWrite16(uint32_t offset, uint32_t value) {}
-void IOLedMatrix::ioWrite32(uint32_t offset, uint32_t value) {
+void IOLedMatrix::ioWrite(uint32_t offset, uint32_t value, unsigned size) {
     offset >>= 2;  // word addressable
     if (offset >= m_ledRegs.size()) {
         Q_ASSERT(false);
