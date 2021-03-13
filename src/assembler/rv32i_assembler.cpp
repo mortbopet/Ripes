@@ -1,6 +1,7 @@
 #include "rv32i_assembler.h"
 #include "gnudirectives.h"
 #include "rvrelocations.h"
+#include "ripessettings.h"
 
 #include <QByteArray>
 #include <algorithm>
@@ -16,9 +17,17 @@ RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler(isa
     initialize(instrs, pseudos, directives, relocations);
 
     // Initialize segment pointers
-    setSegmentBase(".text", 0x0);
-    setSegmentBase(".data", 0x10000000);
-    setSegmentBase(".bss", 0x11000000);
+    setSegmentBase(".text", RipesSettings::value(RIPES_SETTING_ASSEMBLER_TEXTSTART).toUInt());
+    setSegmentBase(".data", RipesSettings::value(RIPES_SETTING_ASSEMBLER_DATASTART).toUInt());
+    setSegmentBase(".bss", RipesSettings::value(RIPES_SETTING_ASSEMBLER_BSSSTART).toUInt());
+
+    // Monitor settings changes to segment pointers
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART), &SettingObserver::modified,
+            [this](const QVariant& value) { setSegmentBase(".text", value.toUInt()); });
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART), &SettingObserver::modified,
+            [this](const QVariant& value) { setSegmentBase(".data", value.toUInt()); });
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART), &SettingObserver::modified,
+            [this](const QVariant& value) { setSegmentBase(".bss", value.toUInt()); });
 }
 
 std::tuple<InstrVec, PseudoInstrVec> RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {

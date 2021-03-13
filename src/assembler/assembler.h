@@ -59,12 +59,7 @@ public:
         return {};
     }
 
-    void setSegmentBase(Section seg, uint32_t base) {
-        if (m_sectionBasePointers.count(seg) != 0) {
-            throw std::runtime_error("Base address already set for segment '" + seg.toStdString() + +"'");
-        }
-        m_sectionBasePointers[seg] = base;
-    }
+    void setSegmentBase(Section seg, uint32_t base) { m_sectionBasePointers[seg] = base; }
 
     virtual AssembleResult assemble(const QStringList& programLines) const = 0;
     AssembleResult assembleRaw(const QString& program) const {

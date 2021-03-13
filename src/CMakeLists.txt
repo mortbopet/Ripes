@@ -10,7 +10,8 @@ file(GLOB LIB_SOURCES
     syscall/*.cpp
     version/version.cpp
     assembler/*.cpp
-    io/*.cpp)
+    io/*.cpp
+    utilities/*.cpp)
 file(GLOB LIB_HEADERS
     *.h
     isa/*.h
@@ -19,7 +20,8 @@ file(GLOB LIB_HEADERS
     syscall/*.h
     graphics/*.h
     assembler/*.h
-    io/*.h)
+    io/*.h
+    utilities/*.h)
 file(GLOB LIB_UIS
     *.ui
     cachesim/*.ui

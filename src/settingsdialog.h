@@ -5,6 +5,7 @@
 
 QT_FORWARD_DECLARE_CLASS(QLineEdit);
 QT_FORWARD_DECLARE_CLASS(QLabel);
+QT_FORWARD_DECLARE_CLASS(QGridLayout);
 
 namespace Ripes {
 
@@ -39,6 +40,7 @@ private:
     Ui::SettingsDialog* m_ui;
 
     void addPage(const QString& name, QWidget* page);
+    void appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout);
 
     std::map<QString, int> m_pageIndex;
 };
