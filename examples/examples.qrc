@@ -7,5 +7,6 @@
         <file>assembly/factorial.s</file>
         <file>assembly/complexMul.s</file>
         <file>assembly/consolePrinting.s</file>
+        <file>C/leds.c</file>
     </qresource>
 </RCC>
