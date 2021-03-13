@@ -135,7 +135,7 @@ void ToggleButton::enterEvent(QEvent* event) {
  * IO Switches
  */
 
-IOSwitches::IOSwitches(QWidget* parent, uint32_t startAddr) : IOBase(parent, startAddr) {
+IOSwitches::IOSwitches(QWidget* parent) : IOBase(parent) {
     constexpr unsigned defaultWidth = 25;
 
     // Parameters

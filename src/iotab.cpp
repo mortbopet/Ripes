@@ -71,7 +71,7 @@ uint32_t nextAddress() {
 }
 
 void IOTab::createPeripheral(IOType type) {
-    auto* peripheral = IOFactories.at(type)(this, nextAddress());
+    auto* peripheral = m_iomanager.createPeripheral(type);
     // Create tab for peripheral
     auto* peripheralTab = new IOPeripheralTab(this, peripheral);
     m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());

@@ -12,6 +12,7 @@
 #include "processorhandler.h"
 #include "ripestab.h"
 
+#include "io/iomanager.h"
 #include "io/ioregistry.h"
 
 namespace Ripes {
@@ -53,5 +54,6 @@ private:
      * Pointer from the tab associated with a peripheral to its corresponding MDI subwindow.
      */
     std::unordered_map<QWidget*, QMdiSubWindow*> m_subWindows;
+    IOManager m_iomanager;
 };
 }  // namespace Ripes

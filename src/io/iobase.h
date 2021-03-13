@@ -35,7 +35,7 @@ class IOBase : public QWidget {
     Q_OBJECT
 
 public:
-    IOBase(QWidget* parent, uint32_t startAddr) : QWidget(parent) { registerPeripheral(this); }
+    IOBase(QWidget* parent) : QWidget(parent) { registerPeripheral(this); }
     virtual ~IOBase() { deregisterPeripheral(this); };
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
@@ -53,11 +53,7 @@ public:
      * Attempt to set the parameter @p ID to @p value. Returns true if the value was set successfully.
      */
     virtual bool setParameter(unsigned ID, const QVariant& value);
-
-    void setStartAddr(uint32_t addr) { m_startAddr = addr; }
-    uint32_t startAddr() const { return m_startAddr; }
     virtual uint32_t size() const = 0;
-    uint32_t endAddr() const { return startAddr() + size(); }
 
     /**
      * Hardware read/write functions
@@ -79,7 +75,6 @@ signals:
 protected:
     virtual void parameterChanged(unsigned ID) = 0;
 
-    ::uint32_t m_startAddr;
     std::map<unsigned, IOParam> m_parameters;
 
     static std::map<std::type_index, int> s_peripheralCount;

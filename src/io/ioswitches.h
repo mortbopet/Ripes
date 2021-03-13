@@ -60,12 +60,10 @@ class IOSwitches : public IOBase {
     enum Parameters { SWITCHES };
 
 public:
-    IOSwitches(QWidget* parent, uint32_t startAddr);
+    IOSwitches(QWidget* parent);
     ~IOSwitches(){};
 
-    uint32_t startAddr() const { return m_startAddr; }
     virtual uint32_t size() const override { return 4; }
-    uint32_t endAddr() const { return startAddr() + size(); }
     virtual QString description() const override;
     virtual QString name() const override;
 

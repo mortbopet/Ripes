@@ -20,12 +20,12 @@ namespace Ripes {
 enum class IOType { LED_MATRIX, SWITCHES };
 
 template <typename T>
-IOBase* createIO(QWidget* parent, uint32_t startAddr) {
+IOBase* createIO(QWidget* parent) {
     static_assert(std::is_base_of<IOBase, T>::value);
-    return new T(parent, startAddr);
+    return new T(parent);
 }
 
-using IOFactory = std::function<IOBase*(QWidget* parent, uint32_t)>;
+using IOFactory = std::function<IOBase*(QWidget* parent)>;
 
 const static std::map<IOType, QString> IOTypeTitles = {{IOType::LED_MATRIX, "LED Matrix"},
                                                        {IOType::SWITCHES, "Switches"}};

@@ -14,12 +14,10 @@ class IOLedMatrix : public IOBase {
     enum Parameters { HEIGHT, WIDTH, SIZE };
 
 public:
-    IOLedMatrix(QWidget* parent, uint32_t startAddr);
+    IOLedMatrix(QWidget* parent);
     ~IOLedMatrix(){};
 
-    uint32_t startAddr() const { return m_startAddr; }
     virtual uint32_t size() const override { return (m_maxSideWidth * m_maxSideWidth) * 4; }
-    uint32_t endAddr() const { return startAddr() + size(); }
     virtual QString description() const override;
     virtual QString name() const override;
 
