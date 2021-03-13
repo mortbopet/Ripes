@@ -266,6 +266,9 @@ QWidget* SettingsDialog::createSimulatorPage() {
     rewindSpinbox->setRange(0, INT_MAX);
     appendToLayout({rewindLabel, rewindSpinbox}, pageLayout);
 
+    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_PERIPHERALS_START, "I/O start address:"),
+                   pageLayout);
+
     return pageWidget;
 }
 

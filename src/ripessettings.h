@@ -22,6 +22,8 @@ namespace Ripes {
 #define RIPES_SETTING_ASSEMBLER_DATASTART ("data_start")
 #define RIPES_SETTING_ASSEMBLER_BSSSTART ("bss_start")
 
+#define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
+
 // Program state preserving settings
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
 #define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
@@ -47,6 +49,7 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_ASSEMBLER_TEXTSTART, 0x0},
     {RIPES_SETTING_ASSEMBLER_DATASTART, 0x10000000},
     {RIPES_SETTING_ASSEMBLER_BSSSTART, 0x11000000},
+    {RIPES_SETTING_PERIPHERALS_START, 0xF0000000},
 
     // Program state preserving settings
     {RIPES_SETTING_SETTING_TAB, 0},
