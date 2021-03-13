@@ -17,7 +17,7 @@ public:
     IOLedMatrix(QWidget* parent);
     ~IOLedMatrix(){};
 
-    virtual uint32_t size() const override { return (m_maxSideWidth * m_maxSideWidth) * 4; }
+    virtual uint32_t size() const override;
     virtual QString description() const override;
     virtual QString name() const override;
 

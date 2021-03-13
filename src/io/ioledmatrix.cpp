@@ -19,6 +19,14 @@ IOLedMatrix::IOLedMatrix(QWidget* parent) : IOBase(parent) {
     updateLEDRegs();
 }
 
+uint32_t IOLedMatrix::size() const {
+    const int width = m_parameters.at(WIDTH).value.toInt();
+    const int height = m_parameters.at(HEIGHT).value.toInt();
+    const int nLEDs = width * height;
+
+    return nLEDs * 4;
+}
+
 QString IOLedMatrix::description() const {
     QStringList desc;
     desc << "Each LED maps to a 24-bit register storing an RGB color value, with B stored in the least significant "
@@ -48,7 +56,14 @@ uint32_t IOLedMatrix::regRead(uint32_t offset) const {
 
 void IOLedMatrix::ioWrite8(uint32_t offset, uint32_t value) {}
 void IOLedMatrix::ioWrite16(uint32_t offset, uint32_t value) {}
-void IOLedMatrix::ioWrite32(uint32_t offset, uint32_t value) {}
+void IOLedMatrix::ioWrite32(uint32_t offset, uint32_t value) {
+    offset >>= 2;  // word addressable
+    if (offset >= m_ledRegs.size()) {
+        Q_ASSERT(false);
+    }
+    m_ledRegs.at(offset) = value;
+    emit scheduleUpdate();
+}
 
 inline QColor regToColor(uint32_t regVal) {
     return QColor(regVal >> 16 & 0xFF, regVal >> 8 & 0xFF, regVal & 0xFF);
@@ -64,18 +79,6 @@ void IOLedMatrix::updateLEDRegs() {
     m_regDescs.resize(nLEDs);
     for (unsigned i = 0; i < m_regDescs.size(); i++) {
         m_regDescs.at(i) = RegDesc{"LED_" + QString::number(i), RegDesc::RW::RW, 24, i * 4};
-    }
-
-    // DEBUG: test pattern
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            const int r = (0xFF * x) / width;
-            const int g = (0xFF * y) / height;
-            const int b = (0xFF * (x + y)) / (width + height);
-
-            const unsigned idx = y * width + x;
-            m_ledRegs.at(idx) = r << 16 | g << 8 | b;
-        }
     }
 
     updateGeometry();

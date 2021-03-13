@@ -12,13 +12,16 @@ struct MemoryMapEntry {
 
 using MemoryMap = std::map<uint32_t, MemoryMapEntry>;
 
-class IOManager {
+class IOManager : public QObject {
+    Q_OBJECT
+
 public:
     IOManager();
     IOBase* createPeripheral(IOType type);
     const MemoryMap& memoryMap() const { return m_memoryMap; }
 
 private:
+    void setProcessorPeripherals();
     MemoryMap m_memoryMap;
 };
 

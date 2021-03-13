@@ -35,7 +35,7 @@ class IOBase : public QWidget {
     Q_OBJECT
 
 public:
-    IOBase(QWidget* parent) : QWidget(parent) { registerPeripheral(this); }
+    IOBase(QWidget* parent);
     virtual ~IOBase() { deregisterPeripheral(this); };
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
@@ -71,6 +71,13 @@ signals:
      * Should be emitted every time the register map of this peripheral changes.
      */
     void regMapChanged();
+
+    /**
+     * @brief scheduleUpdate
+     * Should be emitted when a peripheral requests to be repainted. We do this through signal/slot mechanisms to ensure
+     * that the actual update() is only performed on the GUI thread.
+     */
+    void scheduleUpdate();
 
 protected:
     virtual void parameterChanged(unsigned ID) = 0;
