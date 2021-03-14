@@ -600,7 +600,7 @@ protected:
             // Not a pseudo instruction
             return PseudoExpandRes(std::nullopt);
         }
-        auto res = m_pseudoInstructionMap.at(opcode)->expand(line);
+        auto res = m_pseudoInstructionMap.at(opcode)->expand(line, m_symbolMap);
         if (auto* error = std::get_if<Error>(&res)) {
             if (m_instructionMap.count(opcode) != 0) {
                 // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.

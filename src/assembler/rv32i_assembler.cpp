@@ -41,72 +41,73 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
 #define BType(name, funct3)                                                                              \
     std::shared_ptr<Instruction>(new Instruction(                                                        \
         Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),                                 \
-        {std::make_shared<Reg>(isa, 1, 15, 19, "rs1"), std::make_shared<Reg>(isa, 2, 20, 24, "rs2"),                   \
+        {std::make_shared<Reg>(isa, 1, 15, 19, "rs1"), std::make_shared<Reg>(isa, 2, 20, 24, "rs2"),     \
          std::make_shared<Imm>(                                                                          \
              3, 13, Imm::Repr::Signed,                                                                   \
              std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7), ImmPart(5, 25, 30), ImmPart(1, 8, 11)}, \
              Imm::SymbolType::Relative)}))
 
-#define IType(name, funct3)                                                                           \
-    std::shared_ptr<Instruction>(                                                                     \
-        new Instruction(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),              \
+#define IType(name, funct3)                                                                                        \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14)}),                           \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
                          std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define LoadType(name, funct3)                                                                        \
-    std::shared_ptr<Instruction>(                                                                     \
-        new Instruction(Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),              \
+#define LoadType(name, funct3)                                                                                     \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),                           \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 3, 15, 19, "rs1"), \
                          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define IShiftType(name, funct3, funct7)                                                                         \
-    std::shared_ptr<Instruction>(                                                                                \
-        new Instruction(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"),            \
+#define IShiftType(name, funct3, funct7)                                                                           \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(0b0010011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}),   \
+                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
                          std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 24)})}))
 
-#define RType(name, funct3, funct7)                                                                              \
-    std::shared_ptr<Instruction>(                                                                                \
-        new Instruction(Opcode(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"),            \
+#define RType(name, funct3, funct7)                                                                                \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(0b0110011, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}),   \
+                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
                          std::make_shared<Reg>(isa, 3, 20, 24, "rs2")}))
 
 #define SType(name, funct3)                                                                                   \
     std::shared_ptr<Instruction>(new Instruction(                                                             \
         Opcode(name, {OpPart(0b0100011, 0, 6), OpPart(funct3, 12, 14)}),                                      \
-        {std::make_shared<Reg>(isa, 3, 15, 19, "rs1"),                                                               \
+        {std::make_shared<Reg>(isa, 3, 15, 19, "rs1"),                                                        \
          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}), \
          std::make_shared<Reg>(isa, 1, 20, 24, "rs2")}))
 
-#define UType(name, opcode)                                    \
-    std::shared_ptr<Instruction>(                              \
-        new Instruction(Opcode(name, {OpPart(opcode, 0, 6)}),  \
+#define UType(name, opcode)                                          \
+    std::shared_ptr<Instruction>(                                    \
+        new Instruction(Opcode(name, {OpPart(opcode, 0, 6)}),        \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), \
                          std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)})}))
 
 #define JType(name, opcode)                                                                                  \
     std::shared_ptr<Instruction>(new Instruction(                                                            \
         Opcode(name, {OpPart(opcode, 0, 6)}),                                                                \
-        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"),                                                               \
+        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"),                                                         \
          std::make_shared<Imm>(                                                                              \
              2, 21, Imm::Repr::Signed,                                                                       \
              std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19), ImmPart(11, 20, 20), ImmPart(1, 21, 30)}, \
              Imm::SymbolType::Relative)}))
 
-#define JALRType(name)                                                                                \
-    std::shared_ptr<Instruction>(                                                                     \
-        new Instruction(Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),               \
+#define JALRType(name)                                                                                             \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),                            \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
                          std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
 #define RegTok PseudoInstruction::reg()
 #define ImmTok PseudoInstruction::imm()
 #define CreatePseudoInstruction
-#define PseudoExpandFunc(line) [](const PseudoInstruction&, const TokenizedSrcLine& line)
+#define PseudoExpandFunc(line, symbols) \
+    [](const PseudoInstruction&, const TokenizedSrcLine& line, const SymbolMap& symbols)
 
 #define PseudoLoad(name)                                                                                \
     std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
-        name, {RegTok, ImmTok}, PseudoExpandFunc(line) {                                                \
+        name, {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {                                       \
             LineTokensVec v;                                                                            \
             v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));            \
             v.push_back(QStringList() << name << line.tokens.at(1)                                      \
@@ -119,7 +120,7 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
 // a number has been provided, then abort the pseudo-op handling.
 #define PseudoStore(name)                                                                               \
     std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
-        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line) {                                        \
+        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line, symbols) {                               \
             bool canConvert;                                                                            \
             getImmediate(line.tokens.at(2), canConvert);                                                \
             if (canConvert) {                                                                           \
@@ -145,58 +146,58 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
 
     // clang-format off
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "la", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        "la", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2),
                                  QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2))};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "call", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        "call", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{LineTokens() << "auipc" << "x6" << line.tokens.at(1),
                                  LineTokens() << "jalr" << "x1" << "x6" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "tail", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        "tail", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "auipc" << "x6" << line.tokens.at(1),
                                  QStringList() << "jalr" << "x0" << "x6" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "j", {ImmTok}, PseudoExpandFunc(line) {
+        "j", {ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "jal" << "x0" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "jr", {RegTok}, PseudoExpandFunc(line) {
+        "jr", {RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "jalr" << "x0" << line.tokens.at(1) << "0"};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "jalr", {RegTok}, PseudoExpandFunc(line) {
+        "jalr", {RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "jalr" << "x1" << line.tokens.at(1) << "0"};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "ret", {}, [](const PseudoInstruction&, const TokenizedSrcLine&) {
+        "ret", {}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "jalr" << "x0" << "x1" << "0"};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "jal", {ImmTok}, PseudoExpandFunc(line) {
+        "jal", {ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList() << "jal" << "x1" << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
         "li", {RegTok, ImmTok},
-        PseudoExpandFunc(line) {
+        PseudoExpandFunc(line, symbols) {
             LineTokensVec v;
             // Determine whether an ADDI or LUI instruction is sufficient, or if both LUI and ADDI is needed, by
             // analysing the immediate size
             bool canConvert;
             int immediate = getImmediate(line.tokens.at(2), canConvert);
 
-            if(!canConvert) {
+           if(!canConvert) {
                 return PseudoExpandRes{Error(line.sourceLine, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
             }
 
@@ -218,92 +219,92 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("nop", {}, [](const PseudoInstruction&, const TokenizedSrcLine&) {
+        new PseudoInstruction("nop", {}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QString("addi x0 x0 0").split(' ')};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "mv", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        "mv", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"addi", line.tokens.at(1), line.tokens.at(2), "0"}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("not", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("not", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"xori", line.tokens.at(1), line.tokens.at(2), "-1"}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("neg", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("neg", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"sub", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("seqz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("seqz", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"sltiu", line.tokens.at(1), line.tokens.at(2), "1"}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("snez", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("snez", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{ QStringList{"sltu", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("sltz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("sltz", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"slt", line.tokens.at(1), line.tokens.at(2), "x0"}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("sgtz", {RegTok, RegTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("sgtz", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"slt", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("beqz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("beqz", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"beq", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bnez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bnez", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"bne", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("blez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("blez", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"bge", "x0", line.tokens.at(1), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgez", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bgez", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"bge", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bltz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bltz", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"blt", line.tokens.at(1), "x0", line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgtz", {RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bgtz", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"blt", "x0", line.tokens.at(1), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgt", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bgt", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"blt", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("ble", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("ble", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"bge", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgtu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bgtu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"bltu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bleu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line) {
+        new PseudoInstruction("bleu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
             return LineTokensVec{QStringList{"bgeu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
         })));
     // clang-format on
