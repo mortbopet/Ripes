@@ -83,6 +83,9 @@ protected:
                                          " has already been registerred.");
             }
             m_directivesMap[directive] = iter;
+            if (iter->early()) {
+                m_earlyDirectives.insert(iter->name());
+            }
         }
     }
 
@@ -100,14 +103,19 @@ protected:
         return std::get<LineTokens>(joinedtokens);
     }
 
-    virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok) const {
+    virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok,
+                                                 bool skipEarlyDirectives = true) const {
         ok = false;
         if (line.directive.isEmpty()) {
             return std::nullopt;
         }
         ok = true;
         try {
-            return m_directivesMap.at(line.directive)->handle(this, line);
+            const auto& directive = m_directivesMap.at(line.directive);
+            if (directive->early() && skipEarlyDirectives) {
+                return std::nullopt;
+            }
+            return directive->handle(this, line);
         } catch (const std::out_of_range&) {
             return {Error(line.sourceLine, "Unknown directive '" + line.directive + "'")};
         }
@@ -219,6 +227,7 @@ protected:
      */
     DirectiveVec m_directives;
     DirectiveMap m_directivesMap;
+    EarlyDirectives m_earlyDirectives;
 
     /**
      * @brief m_sectionBasePointers maintains the base position for the segments
@@ -379,6 +388,11 @@ protected:
                 tsl.symbols.insert(carry.begin(), carry.end());
                 carry.clear();
                 tokenizedLines.push_back(tsl);
+            }
+
+            if (!tsl.directive.isEmpty() && m_earlyDirectives.count(tsl.directive)) {
+                bool wasDirective;  // unused
+                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, tsl, wasDirective, false);
             }
         }
         if (errors.size() != 0) {
