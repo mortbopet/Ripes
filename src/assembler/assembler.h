@@ -572,7 +572,11 @@ protected:
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
-                immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest));
+                if (auto err = immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest),
+                                                               linkRequest.sourceLine)) {
+                    errors.push_back(err.value());
+                    continue;
+                }
             } else {
                 assert(false && "Something other than an immediate field has requested linkage?");
             }

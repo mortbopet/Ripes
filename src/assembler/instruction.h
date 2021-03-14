@@ -111,7 +111,8 @@ struct Reg : public Field {
     Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range) : Field(tokenIndex), m_range(range), m_isa(isa) {}
     Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
         : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, QString _regsd) : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, QString _regsd)
+        : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
     Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
         : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
@@ -201,9 +202,8 @@ struct Imm : public Field {
             return {};
         }
 
-        if (!((repr == Repr::Signed && isInt(width, svalue)) || (isUInt(width, uvalue)))) {
-            return Assembler::Error(line.sourceLine, "Immediate value '" + immToken + "' does not fit in " +
-                                                         QString::number(width) + " bits");
+        if (auto err = checkFitsInWidth(svalue, uvalue, line.sourceLine)) {
+            return err;
         }
 
         for (const auto& part : parts) {
@@ -212,8 +212,17 @@ struct Imm : public Field {
         return std::nullopt;
     }
 
+    std::optional<Assembler::Error> checkFitsInWidth(int32_t svalue, uint32_t uvalue, unsigned sourceLine) const {
+        if (!(repr == Repr::Signed ? isInt(width, svalue) : (isUInt(width, uvalue)))) {
+            const QString v = repr == Repr::Signed ? QString::number(svalue) : QString::number(uvalue);
+            return Assembler::Error(sourceLine,
+                                    "Immediate value '" + v + "' does not fit in " + QString::number(width) + " bits");
+        }
+        return std::nullopt;
+    }
+
     std::optional<Assembler::Error> applySymbolResolution(uint32_t symbolValue, uint32_t& instruction,
-                                                          const uint32_t address) const {
+                                                          const uint32_t address, unsigned sourceLine) const {
         long adjustedValue = symbolValue;
         if (symbolType == SymbolType::Relative) {
             adjustedValue -= address;
@@ -221,6 +230,10 @@ struct Imm : public Field {
 
         if (symbolTransformer) {
             adjustedValue = symbolTransformer(adjustedValue);
+        }
+
+        if (auto err = checkFitsInWidth(adjustedValue, adjustedValue, sourceLine)) {
+            return err;
         }
 
         for (const auto& part : parts) {
@@ -299,12 +312,12 @@ public:
     AssembleRes assemble(const Assembler::TokenizedSrcLine& line) const {
         QString Hint = "";
 
-        for(const auto& field : m_fields) {
-            if(auto* immField = dynamic_cast<Imm*>(field.get()))
+        for (const auto& field : m_fields) {
+            if (auto* immField = dynamic_cast<Imm*>(field.get()))
                 Hint = Hint + " [Imm(" + QString::number(immField->width) + ")]";
             else if (auto* regField = dynamic_cast<Reg*>(field.get())) {
-                Hint = Hint + " [" + regField->regsd +"]";
-            }    
+                Hint = Hint + " [" + regField->regsd + "]";
+            }
         }
         if (line.tokens.length() != m_expectedTokens) {
             return Assembler::Error(line.sourceLine, "Instruction " + m_opcode.name + Hint + " expects " +
@@ -314,8 +327,6 @@ public:
         }
         return m_assembler(this, line);
     }
-
-
 
     DisassembleRes disassemble(const uint32_t instruction, const uint32_t address,
                                const ReverseSymbolMap& symbolMap) const {
