@@ -275,6 +275,7 @@ public:
 
         // Per default, emit to .text until otherwise specified
         setCurrentSegment(".text");
+        m_symbolMap.clear();
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);
@@ -283,10 +284,8 @@ public:
         runPass(expandedLines, SourceProgram, pass1, tokenizedLines);
 
         /** Assemble. During assembly, we generate:
-         * - symbolMap: Recoding the offset locations in the program of lines adorned with symbols
          * - linkageMap: Recording offsets of instructions which require linkage with symbols
          */
-        m_symbolMap.clear();
         LinkRequests needsLinkage;
         runPass(program, Program, pass2, expandedLines, needsLinkage);
 

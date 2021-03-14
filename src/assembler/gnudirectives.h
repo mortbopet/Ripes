@@ -29,6 +29,7 @@ Directive longDirective();
 Directive textDirective();
 Directive dataDirective();
 Directive bssDirective();
+Directive equDirective();
 
 }  // namespace Assembler
 }  // namespace Ripes

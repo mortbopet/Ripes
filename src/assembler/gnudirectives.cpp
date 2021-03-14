@@ -19,6 +19,7 @@ DirectiveVec gnuDirectives() {
     add_directive(directives, twoByteDirective());
     add_directive(directives, fourByteDirective());
     add_directive(directives, longDirective());
+    add_directive(directives, equDirective());
 
     add_directive(directives, dataDirective());
     add_directive(directives, textDirective());
@@ -149,6 +150,28 @@ Directive zeroDirective() {
         return {bytes};
     };
     return Directive(".zero", zeroFunctor);
+}
+
+Directive equDirective() {
+    auto equFunctor = [](const AssemblerBase* assembler, const TokenizedSrcLine& line) -> HandleDirectiveRes {
+        if (line.tokens.length() != 2) {
+            return {Error(line.sourceLine, "Invalid number of arguments (expected 2)")};
+        }
+        bool ok;
+        int value = getImmediate(line.tokens.at(1), ok);
+        if (!ok) {
+            return {Error(line.sourceLine, "Invalid argument")};
+        }
+
+        auto err = assembler->addSymbol(line, line.tokens.at(0), value);
+        if (err) {
+            return err.value();
+        }
+
+        return HandleDirectiveRes(std::nullopt);
+    };
+    return Directive(".equ", equFunctor,
+                     true /* Constants should be made available during ie. pseudo instruction expansion */);
 }
 
 }  // namespace Assembler
