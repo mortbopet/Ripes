@@ -22,6 +22,11 @@ struct Printable {
     virtual void print(std::ostream& str) const = 0;
 };
 
+struct Nothing : Printable {
+    Nothing() {}
+    void print(std::ostream& str) const override;
+};
+
 struct Literal : Printable {
     Literal(QString _v) : v(_v) {}
     QString v;
@@ -70,7 +75,7 @@ struct Or : Printable {
     void print(std::ostream& str) const override;
 };
 
-struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or> {
+struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing> {
     using variant::variant;
 
     /**
@@ -91,12 +96,14 @@ struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or> {
         tryPrint(Sub);
         tryPrint(Literal);
         tryPrint(Mod);
+        tryPrint(Nothing);
 
         return os;
     };
 };
 
 // clang-format off
+void Nothing::print(std::ostream&) const {}
 void Add::print(std::ostream& os) const {
     os << "(" << lhs << " + " << rhs << ")";
 }
@@ -150,7 +157,9 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
             case '+': { return rightRec<Add>(Token(lhs), s, pos, depth);}
             case '/': { return rightRec<Div>(Token(lhs), s, pos, depth);}
             case '*': { return rightRec<Mul>(Token(lhs), s, pos, depth);}
-            case '-': { return rightRec<Sub>(Token(lhs), s, pos, depth);}
+            case '-': {
+                auto lhsToken = lhs.isEmpty() ? std::make_shared<Expr>(Nothing()) : Token(lhs); // Allow unary '-'
+                return rightRec<Sub>(lhsToken, s, pos, depth);}
             case '%': { return rightRec<Mod>(Token(lhs), s, pos, depth);}
             case '|': { return rightRec<Or>(Token(lhs), s, pos, depth);}
             case '&': { return rightRec<And>(Token(lhs), s, pos, depth);}
@@ -205,6 +214,8 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     IfExpr(And, v) { return evaluate(v->lhs, variables) & evaluate(v->rhs, variables); }
     FiExpr;
     IfExpr(Or, v) { return evaluate(v->lhs, variables) | evaluate(v->rhs, variables); }
+    FiExpr;
+    IfExpr(Nothing, v) { return 0; }
     FiExpr;
     IfExpr(Literal, v) {
         bool canConvert;
