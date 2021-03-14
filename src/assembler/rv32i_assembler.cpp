@@ -198,7 +198,13 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
             int immediate = getImmediate(line.tokens.at(2), canConvert);
 
            if(!canConvert) {
-                return PseudoExpandRes{Error(line.sourceLine, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
+                // Check if the immediate has been made available in the symbol set at this point...
+                auto it = symbols.find(line.tokens.at(2));
+                if(it != symbols.end()){
+                    immediate = it->second;
+                } else {
+                    return PseudoExpandRes{Error(line.sourceLine, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
+                }
             }
 
             // Generate offset required for discerning between positive and negative immediates
