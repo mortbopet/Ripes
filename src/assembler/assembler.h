@@ -41,6 +41,13 @@ namespace Assembler {
     }                                                                 \
     auto resName = std::get<resType>(operationFunction##_res);
 
+#define runOperationNoRes(operationFunction, ...)                  \
+    auto operationFunction##_res = operationFunction(__VA_ARGS__); \
+    if (operationFunction##_res) {                                 \
+        errors.push_back(operationFunction##_res.value());         \
+        continue;                                                  \
+    }
+
 class AssemblerBase {
 public:
     std::optional<Error> setCurrentSegment(Section seg) const {
@@ -69,6 +76,18 @@ public:
                                                                  const uint32_t baseAddress = 0) const = 0;
 
     virtual std::set<QString> getOpcodes() const = 0;
+
+    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, uint32_t v) const {
+        return addSymbol(line.sourceLine, s, v);
+    }
+
+    std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint32_t v) const {
+        if (m_symbolMap.count(s)) {
+            return {Error(line, "Multiple definitions of symbol '" + s + "'")};
+        }
+        m_symbolMap[s] = v;
+        return {};
+    }
 
 protected:
     void setDirectives(DirectiveVec& directives) {
@@ -239,6 +258,12 @@ protected:
      * Marked mutable to allow for switching currently selected segment during assembling.
      */
     mutable Section m_currentSection;
+
+    /**
+     * @brief symbolMap maintains the symbols recorded during assembling. Marked mutable to allow for assembler
+     * directives to add symbols during assembling.
+     */
+    mutable SymbolMap m_symbolMap;
 };
 
 class Assembler : public AssemblerBase {
@@ -261,12 +286,12 @@ public:
          * - symbolMap: Recoding the offset locations in the program of lines adorned with symbols
          * - linkageMap: Recording offsets of instructions which require linkage with symbols
          */
-        SymbolMap symbolMap;
+        m_symbolMap.clear();
         LinkRequests needsLinkage;
-        runPass(program, Program, pass2, expandedLines, symbolMap, needsLinkage);
+        runPass(program, Program, pass2, expandedLines, needsLinkage);
 
         // Symbol linkage
-        runPass(unused, NoPassResult, pass3, program, symbolMap, needsLinkage);
+        runPass(unused, NoPassResult, pass3, program, needsLinkage);
 
         result.program = program;
         return result;
@@ -448,8 +473,7 @@ protected:
      * In the following, current size of the program is used as an analog for the offset of the to-be-assembled
      * instruction in the program. This is then used for symbol resolution.
      */
-    std::variant<Errors, Program> pass2(const SourceProgram& tokenizedLines, SymbolMap& symbolMap,
-                                        LinkRequests& needsLinkage) const {
+    std::variant<Errors, Program> pass2(const SourceProgram& tokenizedLines, LinkRequests& needsLinkage) const {
         // Initialize program with initialized segments:
         Program program;
         for (const auto& iter : m_sectionBasePointers) {
@@ -469,8 +493,7 @@ protected:
             uint32_t addr_offset = currentSection->size();
             for (const auto& s : line.symbols) {
                 // Record symbol position as its absolute address in memory
-                // No check on duplicate symbols, done in pass 1
-                symbolMap[s] = addr_offset + program.sections.at(m_currentSection).address;
+                runOperationNoRes(addSymbol, line, s, addr_offset + program.sections.at(m_currentSection).address);
             }
 
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line, wasDirective);
@@ -504,28 +527,28 @@ protected:
         }
 
         // Register symbols in program struct
-        for (const auto& iter : symbolMap) {
+        for (const auto& iter : m_symbolMap) {
             program.symbols[iter.second] = iter.first;
         }
 
         return {program};
     }
 
-    std::variant<Errors, NoPassResult> pass3(Program& program, SymbolMap& symbolMap,
-                                             const LinkRequests& needsLinkage) const {
+    std::variant<Errors, NoPassResult> pass3(Program& program, const LinkRequests& needsLinkage) const {
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
             const auto& symbol = linkRequest.fieldRequest.symbol;
             uint32_t symbolValue;
 
-            // Add the special __address__ symbol indicating the address of the instruction itself
-            symbolMap["__address__"] = linkReqAddress(linkRequest);
+            // Add the special __address__ symbol indicating the address of the instruction itself. Not done through
+            // addSymbol given that we redefine this symbol on each line.
+            m_symbolMap["__address__"] = linkReqAddress(linkRequest);
 
-            if (symbolMap.count(symbol) == 0) {
+            if (m_symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
                     // No recorded symbol for the token; our last option is to try and evaluate a possible
                     // expression.
-                    auto evaluate_res = evaluate(symbol, &symbolMap);
+                    auto evaluate_res = evaluate(symbol, &m_symbolMap);
                     if (auto* err = std::get_if<Error>(&evaluate_res)) {
                         err->first = linkRequest.sourceLine;
                         errors.push_back(*err);
@@ -538,7 +561,7 @@ protected:
                     continue;
                 }
             } else {
-                symbolValue = symbolMap.at(symbol);
+                symbolValue = m_symbolMap.at(symbol);
             }
 
             QByteArray& section = program.sections.at(linkRequest.section).data;
