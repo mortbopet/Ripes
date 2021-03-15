@@ -223,10 +223,13 @@ public:
 
         idex_reg->mem_do_read_out >> hzunit->ex_do_mem_read_en;
         idex_reg->wr_reg_idx_out >> hzunit->ex_reg_wr_idx;
+        idex_reg->reg_do_write_out >> hzunit->ex_do_reg_write;
 
         exmem_reg->reg_do_write_out >> hzunit->mem_do_reg_write;
+        exmem_reg->wr_reg_idx_out >> hzunit->mem_reg_wr_idx;
 
         memwb_reg->reg_do_write_out >> hzunit->wb_do_reg_write;
+        memwb_reg->wr_reg_idx_out >> hzunit->wb_reg_wr_idx;
 
         idex_reg->opcode_out >> hzunit->opcode;
     }

@@ -23,10 +23,15 @@ public:
 
     INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(ex_do_mem_read_en, 1);
+    INPUTPORT(ex_do_reg_write, 1);
 
+    INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(mem_do_reg_write, 1);
 
+    INPUTPORT(wb_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(wb_do_reg_write, 1);
+
+    
 
     INPUTPORT_ENUM(opcode, RVInstr);
 
