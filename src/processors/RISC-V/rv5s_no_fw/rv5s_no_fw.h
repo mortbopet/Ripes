@@ -26,7 +26,7 @@
 #include "rv5s_no_fw_idex.h"
 
 // Hazard detection unit
-#include "../rv5s/rv5s_hazardunit.h"
+#include "rv5s_no_fw_hazardunit.h"
 
 namespace vsrtl {
 namespace core {
@@ -259,8 +259,8 @@ public:
     SUBCOMPONENT(instr_mem, TYPE(ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>));
 
-    // Forwarding & hazard detection units
-    SUBCOMPONENT(hzunit, HazardUnit);
+    // hazard detection units
+    SUBCOMPONENT(hzunit, HazardUnit_NO_FW);
 
     // Gates
     // True if branch instruction and branch taken
