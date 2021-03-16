@@ -21,7 +21,7 @@
 
 // Stage separating registers
 #include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
-#include "../rv5s/rv5s_exmem.h"
+#include "rv5s_no_fw_exmem.h"
 #include "../rv5s/rv5s_memwb.h"
 #include "rv5s_no_fw_idex.h"
 
@@ -195,6 +195,7 @@ public:
         idex_reg->mem_do_write_out >> exmem_reg->mem_do_write_in;
         idex_reg->mem_do_read_out >> exmem_reg->mem_do_read_in;
         idex_reg->mem_op_out >> exmem_reg->mem_op_in;
+        idex_reg->alu_op2_ctrl_out >> exmem_reg->alu_op2_ctrl_in;
 
         idex_reg->valid_out >> exmem_reg->valid_in;
 
@@ -222,14 +223,15 @@ public:
         decode->r2_reg_idx >> hzunit->id_reg2_idx;
 
         idex_reg->mem_do_read_out >> hzunit->ex_do_mem_read_en;
-        idex_reg->wr_reg_idx_out >> hzunit->ex_reg_wr_idx;
         idex_reg->reg_do_write_out >> hzunit->ex_do_reg_write;
+        idex_reg->wr_reg_idx_out >> hzunit->ex_reg_wr_idx;
+        idex_reg->alu_op2_ctrl_out >> hzunit->ex_alu_op_ctrl_2;
 
         exmem_reg->reg_do_write_out >> hzunit->mem_do_reg_write;
         exmem_reg->wr_reg_idx_out >> hzunit->mem_reg_wr_idx;
+        exmem_reg->alu_op2_ctrl_out >> hzunit->mem_alu_op_ctrl_2;
 
         memwb_reg->reg_do_write_out >> hzunit->wb_do_reg_write;
-        memwb_reg->wr_reg_idx_out >> hzunit->wb_reg_wr_idx;
 
         idex_reg->opcode_out >> hzunit->opcode;
     }
@@ -249,7 +251,7 @@ public:
     // Stage seperating registers
     SUBCOMPONENT(ifid_reg, IFID);
     SUBCOMPONENT(idex_reg, RV5S_NO_FW_IDEX);
-    SUBCOMPONENT(exmem_reg, RV5S_EXMEM);
+    SUBCOMPONENT(exmem_reg, RV5S_NO_FW_EXMEM);
     SUBCOMPONENT(memwb_reg, RV5S_MEMWB);
 
     // Multiplexers

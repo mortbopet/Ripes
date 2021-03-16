@@ -14,7 +14,7 @@ public:
         hazardFEEnable << [=] { return !hasHazard(); };
         hazardIDEXEnable << [=] { return !hasEcallHazard(); };
         hazardEXMEMClear << [=] { return hasEcallHazard(); };
-        hazardIDEXClear << [=] { return hasLoadUseHazard(); };
+        hazardIDEXClear << [=] { return hasDataOrLoadUseHazard(); };
         stallEcallHandling << [=] { return hasEcallHazard(); };
     }
 
@@ -22,17 +22,18 @@ public:
     INPUTPORT(id_reg2_idx, RV_REGS_BITS);
 
     INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
+    
     INPUTPORT(ex_do_mem_read_en, 1);
     INPUTPORT(ex_do_reg_write, 1);
 
     INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
+    
     INPUTPORT(mem_do_reg_write, 1);
 
-    INPUTPORT(wb_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(wb_do_reg_write, 1);
 
-    
-
+    INPUTPORT_ENUM(ex_alu_op_ctrl_2, AluSrc2);
+    INPUTPORT_ENUM(mem_alu_op_ctrl_2, AluSrc2);
     INPUTPORT_ENUM(opcode, RVInstr);
 
     // Hazard Front End enable: Low when stalling the front end (shall be connected to a register 'enable' input port).
@@ -51,7 +52,11 @@ public:
     OUTPUTPORT(stallEcallHandling, 1);
 
 private:
-    bool hasHazard() { return hasLoadUseHazard() || hasEcallHazard(); }
+    bool hasHazard() { return hasDataOrLoadUseHazard() || hasEcallHazard(); }
+
+    bool hasDataOrLoadUseHazard(){ return hasDataHazard() || hasLoadUseHazard(); }
+
+    bool hasDataHazard() { return hasDataHazardEx() || hasDataHazardMem(); }
 
     bool hasLoadUseHazard() const {
         const unsigned exidx = ex_reg_wr_idx.uValue();
@@ -71,11 +76,30 @@ private:
         return isEcall && (mem_do_reg_write.uValue() || wb_do_reg_write.uValue());
     }
 
-    bool hasDataHazard() const {
-        // RAW-Conflict
-        //const bool rawConflict = 
+    bool hasDataHazardEx() const {
+        const unsigned idx1 = id_reg1_idx.uValue();
+        const unsigned idx2 = id_reg2_idx.uValue();
+        const bool idx2isReg = ex_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
         const unsigned exidx = ex_reg_wr_idx.uValue();
-        return true;
+        const bool regw = ex_do_reg_write.uValue();
+        // If destination is x0 ignore hazard
+        if(exidx == 0){
+            return false;
+        }
+        return ((exidx == idx1) || ((exidx == idx2) && idx2isReg)) && regw;
+    }
+
+    bool hasDataHazardMem() const {
+        const unsigned idx1 = id_reg1_idx.uValue();
+        const unsigned idx2 = id_reg2_idx.uValue();
+        const bool idx2isReg = mem_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
+        const unsigned memidx = mem_reg_wr_idx.uValue();
+        const bool regw = mem_do_reg_write.uValue();
+        // If destination is x0 ignore hazard
+        if(memidx == 0){
+            return false;
+        }
+        return ((memidx == idx1) || ((memidx == idx2) && idx2isReg)) && regw;
     }
 };
 }  // namespace core
