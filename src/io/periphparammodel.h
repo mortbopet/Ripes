@@ -9,9 +9,18 @@
 #include "radix.h"
 
 #include <QAbstractTableModel>
+#include <QStyledItemDelegate>
 
 namespace Ripes {
 class IOBase;
+
+class PeriphParamDelegate : public QStyledItemDelegate {
+public:
+    PeriphParamDelegate(QObject* parent);
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+    void setEditorData(QWidget* editor, const QModelIndex& index) const override;
+    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
+};
 
 /**
  * @brief The PeriphParamModel class

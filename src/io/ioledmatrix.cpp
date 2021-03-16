@@ -9,8 +9,8 @@ IOLedMatrix::IOLedMatrix(QWidget* parent) : IOBase(parent) {
     constexpr unsigned defaultWidth = 25;
 
     // Parameters
-    m_parameters[HEIGHT] = IOParam(WIDTH, "Height", defaultWidth, true, 0, m_maxSideWidth);
-    m_parameters[WIDTH] = IOParam(WIDTH, "Width", defaultWidth + 10, true, 0, m_maxSideWidth);
+    m_parameters[HEIGHT] = IOParam(WIDTH, "Height", defaultWidth, true, 1, m_maxSideWidth);
+    m_parameters[WIDTH] = IOParam(WIDTH, "Width", defaultWidth + 10, true, 1, m_maxSideWidth);
     m_parameters[SIZE] = IOParam(SIZE, "LED size", 8, true, 1, 100);
 
     m_pen.setWidth(1);

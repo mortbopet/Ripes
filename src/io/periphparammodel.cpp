@@ -1,11 +1,39 @@
 #include "periphparammodel.h"
 
 #include <QHeaderView>
+#include <QSpinBox>
 
 #include "iobase.h"
 #include "processorhandler.h"
 
 namespace Ripes {
+
+PeriphParamDelegate::PeriphParamDelegate(QObject* parent) : QStyledItemDelegate(parent) {}
+
+QWidget* PeriphParamDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&,
+                                           const QModelIndex& index) const {
+    const IOParam param = index.data(Qt::UserRole).value<IOParam>();
+    QSpinBox* editor = new QSpinBox(parent);
+    if (param.hasRange) {
+        editor->setRange(param.min.toUInt(), param.max.toUInt());
+    }
+    return editor;
+}
+
+void PeriphParamDelegate::setEditorData(QWidget* e, const QModelIndex& index) const {
+    QSpinBox* editor = dynamic_cast<QSpinBox*>(e);
+    if (editor) {
+        const IOParam param = index.data(Qt::UserRole).value<IOParam>();
+        editor->setValue(param.value.toUInt());
+    }
+}
+
+void PeriphParamDelegate::setModelData(QWidget* e, QAbstractItemModel* model, const QModelIndex& index) const {
+    QSpinBox* editor = dynamic_cast<QSpinBox*>(e);
+    if (editor) {
+        model->setData(index, editor->text(), Qt::EditRole);
+    }
+}
 
 PeriphParamModel::PeriphParamModel(IOBase* peripheral, QObject* parent)
     : QAbstractTableModel(parent), m_peripheral(peripheral) {}
@@ -53,10 +81,13 @@ QVariant PeriphParamModel::data(const QModelIndex& index, int role) const {
         }
         case Column::Value: {
             switch (role) {
+                case Qt::EditRole:
                 case Qt::DisplayRole:
                     return m_peripheral->parameters().at(idx).value;
                 case Qt::TextAlignmentRole:
                     return Qt::AlignCenter;
+                case Qt::UserRole:
+                    return QVariant::fromValue(m_peripheral->parameters().at(idx));
             }
             break;
         }

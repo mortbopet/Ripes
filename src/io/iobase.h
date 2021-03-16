@@ -93,3 +93,5 @@ protected:
     }
 };
 }  // namespace Ripes
+
+Q_DECLARE_METATYPE(Ripes::IOParam);

@@ -19,6 +19,7 @@ IOPeripheralTab::IOPeripheralTab(QWidget* parent, IOBase* peripheral)
     m_ui->parameterView->setModel(new PeriphParamModel(peripheral, this));
     m_ui->parameterView->horizontalHeader()->setStretchLastSection(true);
     m_ui->parameterView->resizeColumnsToContents();
+    m_ui->parameterView->setItemDelegateForColumn(PeriphParamModel::Value, new PeriphParamDelegate(this));
 }
 
 IOPeripheralTab::~IOPeripheralTab() {
