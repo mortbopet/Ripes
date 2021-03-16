@@ -13,6 +13,11 @@
 namespace Ripes {
 class IOBase;
 
+/**
+ * @brief The RegisterMapModel class
+ * A model for Qt's MVC framework, responsible for representing the register map exposed by a memory mapped peripheral.
+ * The model is read-only.
+ */
 class RegisterMapModel : public QAbstractTableModel {
     Q_OBJECT
 public:

@@ -13,6 +13,11 @@
 namespace Ripes {
 class IOBase;
 
+/**
+ * @brief The PeriphParamModel class
+ * A model for Qt's MVC framework, responsible for representing and editing the parameters which are exposed by a memory
+ * mapped peripheral.
+ */
 class PeriphParamModel : public QAbstractTableModel {
     Q_OBJECT
 public:
