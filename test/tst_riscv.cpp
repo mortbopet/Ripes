@@ -28,9 +28,6 @@ using RVISA = ISAInfo<ISA::RV32I>;
 // Compilation tools & directories
 const QString s_testdir = VSRTL_RISCV_TEST_DIR;
 const QString s_outdir = s_testdir + QDir::separator() + "build";
-const QString s_assembler = "riscv64-unknown-elf-as";
-const QString s_objcopy = "riscv64-unknown-elf-objcopy";
-const QString s_linkerScript = "rvtest.ld";
 
 // Ecall status codes
 static constexpr unsigned s_success = 42;
@@ -45,25 +42,6 @@ static constexpr unsigned s_maxCycles = 10000;
 
 // Tests which contains instructions or assembler directives not yet supported
 const auto s_excludedTests = {"f", "ldst", "move", "recoding", /* fails on CI, unknown as of know */ "memory"};
-
-QString compileTestFile(const QString& testfile) {
-    QProcess exec;
-
-    const QString outElf = s_outdir + QDir::separator() + testfile + ".out";
-    const QString outBin = s_outdir + QDir::separator() + testfile + ".bin";
-
-    if (!QDir(s_outdir).exists()) {
-        QDir().mkdir(s_outdir);
-    }
-
-    // Build
-    bool error = exec.execute(s_assembler, {"-march=rv32im", s_testdir + QDir::separator() + testfile, "-o", outElf});
-
-    // Extract .text segment
-    error = exec.execute(s_objcopy, {"-O", "binary", "--only-section=.text", outElf, outBin});
-
-    return error ? QString() : outBin;
-}
 
 class tst_RISCV : public QObject {
     Q_OBJECT
