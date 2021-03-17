@@ -82,7 +82,6 @@ private:
     void updateSwitches();
 
     uint32_t regRead(uint32_t offset) const;
-    uint32_t m_values;
     std::map<int, std::pair<QLabel*, ToggleButton*>> m_switches;
     QGridLayout* m_switchLayout;
     std::vector<RegDesc> m_regDescs;

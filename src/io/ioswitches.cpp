@@ -193,8 +193,12 @@ void IOSwitches::updateSwitches() {
     emit regMapChanged();
 }
 
-uint32_t IOSwitches::ioRead(uint32_t offset, unsigned size) {
-    return (m_values >> (offset % 4)) & generateBitmask(size * 8);
+uint32_t IOSwitches::ioRead(uint32_t, unsigned) {
+    uint32_t value = 0;
+    for (const auto& sw : m_switches) {
+        value |= (sw.second.second->isChecked()) << sw.first;
+    }
+    return value;
 }
 
 void IOSwitches::ioWrite(uint32_t, uint32_t, unsigned) {
