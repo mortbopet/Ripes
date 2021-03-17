@@ -11,8 +11,15 @@ IOBase::IOBase(QWidget* parent) : QWidget(parent) {
 }
 
 bool IOBase::setParameter(unsigned ID, const QVariant& value) {
+    const auto preSize = size();
     m_parameters.at(ID).value = value;
     parameterChanged(ID);
+    const auto postSize = size();
+
+    if (preSize != postSize) {
+        emit sizeChanged();
+    }
+
     return true;
 }
 

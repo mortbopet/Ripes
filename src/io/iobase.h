@@ -71,6 +71,12 @@ signals:
     void regMapChanged();
 
     /**
+     * @brief sizeChanged
+     * Should be emitted every time the size of this peripheral changes.
+     */
+    void sizeChanged();
+
+    /**
      * @brief scheduleUpdate
      * Should be emitted when a peripheral requests to be repainted. We do this through signal/slot mechanisms to ensure
      * that the actual update() is only performed on the GUI thread.

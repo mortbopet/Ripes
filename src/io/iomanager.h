@@ -28,13 +28,15 @@ signals:
 
 private:
     void refreshMemoryMap();
+    void peripheralSizeChanged(IOBase* peripheral);
 
     /**
-     * @brief registerPeripheralToProcessor
+     * @brief registerPeripheralWithProcessor
      * Registers @param peripheral with the processor. Specifically, the peripheral hooks into the memory of the
      * processor, and creates the link between the peripheral memory read/write functionality, and the processor memory.
      */
-    void registerPeripheralToProcessor(IOBase* peripheral);
+    void registerPeripheralWithProcessor(IOBase* peripheral);
+    void unregisterPeripheralWithProcessor(IOBase* peripheral);
 
     /**
      * @brief refreshAllPeriphsToProcessor

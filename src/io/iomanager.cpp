@@ -29,7 +29,17 @@ uint32_t IOManager::nextPeripheralAddress() const {
     return base;
 }
 
-void IOManager::registerPeripheralToProcessor(IOBase* peripheral) {
+void IOManager::peripheralSizeChanged(IOBase* peripheral) {
+    /** @todo
+     * - Check new peripheral size compared to old. If change detected, we must re-create the memory map to not have any
+     * overlap.
+     * - if not the above, re-register the peripheral with the processor; peripheral size may have decreased aswell.
+     * - update size of peripheral in internal map
+     */
+    Q_ASSERT(false);
+}
+
+void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
     ProcessorHandler::get()->getMemory().addRegion(
         m_peripherals.at(peripheral).startAddr, peripheral->size(),
         vsrtl::core::IOFunctors{
@@ -37,13 +47,20 @@ void IOManager::registerPeripheralToProcessor(IOBase* peripheral) {
             [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});
 }
 
+void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
+    const auto& mmEntry = m_peripherals.at(peripheral);
+    ProcessorHandler::get()->getMemory().removeRegion(mmEntry.startAddr, mmEntry.size);
+}
+
 IOBase* IOManager::createPeripheral(IOType type) {
     auto* peripheral = IOFactories.at(type)(nullptr);
+
+    connect(peripheral, &IOBase::sizeChanged, [=] { this->peripheralSizeChanged(peripheral); });
 
     // Assign base address to peripheral
     const uint32_t base = nextPeripheralAddress();
     m_peripherals[peripheral] = {base, peripheral->size(), peripheral->name()};
-    registerPeripheralToProcessor(peripheral);
+    registerPeripheralWithProcessor(peripheral);
     refreshMemoryMap();
 
     return peripheral;
@@ -52,15 +69,14 @@ IOBase* IOManager::createPeripheral(IOType type) {
 void IOManager::removePeripheral(IOBase* peripheral) {
     auto periphit = m_peripherals.find(peripheral);
     Q_ASSERT(periphit != m_peripherals.end());
-    const auto& mmEntry = m_peripherals.at(peripheral);
-    ProcessorHandler::get()->getMemory().removeRegion(mmEntry.startAddr, mmEntry.size);
+    unregisterPeripheralWithProcessor(peripheral);
     m_peripherals.erase(periphit);
     refreshMemoryMap();
 }
 
 void IOManager::refreshAllPeriphsToProcessor() {
     for (const auto& periph : m_peripherals) {
-        registerPeripheralToProcessor(periph.first);
+        registerPeripheralWithProcessor(periph.first);
     }
 }
 
