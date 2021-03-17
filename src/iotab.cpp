@@ -69,13 +69,6 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Size, QHeaderView::ResizeToContents);
 }
 
-/**
- * Dummy function, should be moved to a separate memory map manager
- */
-uint32_t nextAddress() {
-    return 0x10000;
-}
-
 void IOTab::createPeripheral(IOType type) {
     auto* peripheral = m_iomanager.createPeripheral(type);
     // Create tab for peripheral
@@ -87,12 +80,13 @@ void IOTab::createPeripheral(IOType type) {
     // behaviour + dockable widgets that are able to pop out to a separate window
     auto* mw = new QMainWindow(this);
     m_ui->dockArea->addWidget(mw);  // Shouldn't be needed, but MDI windows aren't created without this?
-    auto* dw = new QDockWidget(IOTypeTitles.at(type));
+    auto* dw = new QDockWidget();
     dw->setFeatures(dw->features() & ~QDockWidget::DockWidgetClosable);
     dw->setWidget(peripheral);
     dw->setAllowedAreas(Qt::AllDockWidgetAreas);
     mw->addDockWidget(Qt::TopDockWidgetArea, dw);
     auto* mdiw = m_ui->mdiArea->addSubWindow(mw);
+    mdiw->setWindowTitle(IOTypeTitles.at(type));
 
     m_subWindows[peripheralTab] = mdiw;
 
@@ -125,6 +119,11 @@ void IOTab::setPeripheralMDIWindowActive(int tabIndex) {
 }
 
 void IOTab::removePeripheral(QObject* peripheral) {
+    // This might be a little ugly. We have to static cast to an IOBase, given that, when QObject::destroyed is emitted,
+    // the entire inheriting class hierarchy has already been destroyed (thus we cannot dynamic_cast to an IOBase).
+    // However, the base pointer stays the same...
+    m_iomanager.removePeripheral(static_cast<IOBase*>(peripheral));
+
     auto* tab = m_ioTabs.at(peripheral);
     Q_ASSERT(m_subWindows.count(tab) != 0);
     m_subWindows.erase(tab);

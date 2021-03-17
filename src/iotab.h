@@ -49,6 +49,7 @@ private:
      * IOBase* subclass has already been destroyed.
      */
     std::unordered_map<QObject*, QWidget*> m_ioTabs;
+
     /**
      * @brief m_ioTabs
      * Pointer from the tab associated with a peripheral to its corresponding MDI subwindow.
