@@ -381,7 +381,7 @@ public:
     }
 
     void reverse() override {
-        if (m_syscallExitCycle != -1 && (m_cycleCount - 1) == m_syscallExitCycle) {
+        if (m_syscallExitCycle != -1 && m_cycleCount == m_syscallExitCycle) {
             // We are about to undo an exit syscall instruction. In this case, the syscall exiting sequence should be
             // terminate
             ecallChecker->setSysCallExiting(false);

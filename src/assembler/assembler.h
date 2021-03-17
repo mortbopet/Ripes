@@ -41,6 +41,13 @@ namespace Assembler {
     }                                                                 \
     auto resName = std::get<resType>(operationFunction##_res);
 
+#define runOperationNoRes(operationFunction, ...)                  \
+    auto operationFunction##_res = operationFunction(__VA_ARGS__); \
+    if (operationFunction##_res) {                                 \
+        errors.push_back(operationFunction##_res.value());         \
+        continue;                                                  \
+    }
+
 class AssemblerBase {
 public:
     std::optional<Error> setCurrentSegment(Section seg) const {
@@ -70,6 +77,18 @@ public:
 
     virtual std::set<QString> getOpcodes() const = 0;
 
+    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, uint32_t v) const {
+        return addSymbol(line.sourceLine, s, v);
+    }
+
+    std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint32_t v) const {
+        if (m_symbolMap.count(s)) {
+            return {Error(line, "Multiple definitions of symbol '" + s + "'")};
+        }
+        m_symbolMap[s] = v;
+        return {};
+    }
+
 protected:
     void setDirectives(DirectiveVec& directives) {
         if (m_directives.size() != 0) {
@@ -83,6 +102,9 @@ protected:
                                          " has already been registerred.");
             }
             m_directivesMap[directive] = iter;
+            if (iter->early()) {
+                m_earlyDirectives.insert(iter->name());
+            }
         }
     }
 
@@ -100,14 +122,19 @@ protected:
         return std::get<LineTokens>(joinedtokens);
     }
 
-    virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok) const {
+    virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok,
+                                                 bool skipEarlyDirectives = true) const {
         ok = false;
         if (line.directive.isEmpty()) {
             return std::nullopt;
         }
         ok = true;
         try {
-            return m_directivesMap.at(line.directive)->handle(this, line);
+            const auto& directive = m_directivesMap.at(line.directive);
+            if (directive->early() && skipEarlyDirectives) {
+                return std::nullopt;
+            }
+            return directive->handle(this, line);
         } catch (const std::out_of_range&) {
             return {Error(line.sourceLine, "Unknown directive '" + line.directive + "'")};
         }
@@ -219,6 +246,7 @@ protected:
      */
     DirectiveVec m_directives;
     DirectiveMap m_directivesMap;
+    EarlyDirectives m_earlyDirectives;
 
     /**
      * @brief m_sectionBasePointers maintains the base position for the segments
@@ -230,6 +258,12 @@ protected:
      * Marked mutable to allow for switching currently selected segment during assembling.
      */
     mutable Section m_currentSection;
+
+    /**
+     * @brief symbolMap maintains the symbols recorded during assembling. Marked mutable to allow for assembler
+     * directives to add symbols during assembling.
+     */
+    mutable SymbolMap m_symbolMap;
 };
 
 class Assembler : public AssemblerBase {
@@ -241,6 +275,7 @@ public:
 
         // Per default, emit to .text until otherwise specified
         setCurrentSegment(".text");
+        m_symbolMap.clear();
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);
@@ -249,15 +284,13 @@ public:
         runPass(expandedLines, SourceProgram, pass1, tokenizedLines);
 
         /** Assemble. During assembly, we generate:
-         * - symbolMap: Recoding the offset locations in the program of lines adorned with symbols
          * - linkageMap: Recording offsets of instructions which require linkage with symbols
          */
-        SymbolMap symbolMap;
         LinkRequests needsLinkage;
-        runPass(program, Program, pass2, expandedLines, symbolMap, needsLinkage);
+        runPass(program, Program, pass2, expandedLines, needsLinkage);
 
         // Symbol linkage
-        runPass(unused, NoPassResult, pass3, program, symbolMap, needsLinkage);
+        runPass(unused, NoPassResult, pass3, program, needsLinkage);
 
         result.program = program;
         return result;
@@ -380,6 +413,11 @@ protected:
                 carry.clear();
                 tokenizedLines.push_back(tsl);
             }
+
+            if (!tsl.directive.isEmpty() && m_earlyDirectives.count(tsl.directive)) {
+                bool wasDirective;  // unused
+                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, tsl, wasDirective, false);
+            }
         }
         if (errors.size() != 0) {
             return {errors};
@@ -434,8 +472,7 @@ protected:
      * In the following, current size of the program is used as an analog for the offset of the to-be-assembled
      * instruction in the program. This is then used for symbol resolution.
      */
-    std::variant<Errors, Program> pass2(const SourceProgram& tokenizedLines, SymbolMap& symbolMap,
-                                        LinkRequests& needsLinkage) const {
+    std::variant<Errors, Program> pass2(const SourceProgram& tokenizedLines, LinkRequests& needsLinkage) const {
         // Initialize program with initialized segments:
         Program program;
         for (const auto& iter : m_sectionBasePointers) {
@@ -455,8 +492,7 @@ protected:
             uint32_t addr_offset = currentSection->size();
             for (const auto& s : line.symbols) {
                 // Record symbol position as its absolute address in memory
-                // No check on duplicate symbols, done in pass 1
-                symbolMap[s] = addr_offset + program.sections.at(m_currentSection).address;
+                runOperationNoRes(addSymbol, line, s, addr_offset + program.sections.at(m_currentSection).address);
             }
 
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line, wasDirective);
@@ -490,28 +526,28 @@ protected:
         }
 
         // Register symbols in program struct
-        for (const auto& iter : symbolMap) {
+        for (const auto& iter : m_symbolMap) {
             program.symbols[iter.second] = iter.first;
         }
 
         return {program};
     }
 
-    std::variant<Errors, NoPassResult> pass3(Program& program, SymbolMap& symbolMap,
-                                             const LinkRequests& needsLinkage) const {
+    std::variant<Errors, NoPassResult> pass3(Program& program, const LinkRequests& needsLinkage) const {
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
             const auto& symbol = linkRequest.fieldRequest.symbol;
             uint32_t symbolValue;
 
-            // Add the special __address__ symbol indicating the address of the instruction itself
-            symbolMap["__address__"] = linkReqAddress(linkRequest);
+            // Add the special __address__ symbol indicating the address of the instruction itself. Not done through
+            // addSymbol given that we redefine this symbol on each line.
+            m_symbolMap["__address__"] = linkReqAddress(linkRequest);
 
-            if (symbolMap.count(symbol) == 0) {
+            if (m_symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
                     // No recorded symbol for the token; our last option is to try and evaluate a possible
                     // expression.
-                    auto evaluate_res = evaluate(symbol, &symbolMap);
+                    auto evaluate_res = evaluate(symbol, &m_symbolMap);
                     if (auto* err = std::get_if<Error>(&evaluate_res)) {
                         err->first = linkRequest.sourceLine;
                         errors.push_back(*err);
@@ -524,7 +560,7 @@ protected:
                     continue;
                 }
             } else {
-                symbolValue = symbolMap.at(symbol);
+                symbolValue = m_symbolMap.at(symbol);
             }
 
             QByteArray& section = program.sections.at(linkRequest.section).data;
@@ -536,7 +572,11 @@ protected:
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
-                immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest));
+                if (auto err = immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest),
+                                                               linkRequest.sourceLine)) {
+                    errors.push_back(err.value());
+                    continue;
+                }
             } else {
                 assert(false && "Something other than an immediate field has requested linkage?");
             }
@@ -560,7 +600,7 @@ protected:
             // Not a pseudo instruction
             return PseudoExpandRes(std::nullopt);
         }
-        auto res = m_pseudoInstructionMap.at(opcode)->expand(line);
+        auto res = m_pseudoInstructionMap.at(opcode)->expand(line, m_symbolMap);
         if (auto* error = std::get_if<Error>(&res)) {
             if (m_instructionMap.count(opcode) != 0) {
                 // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.

@@ -6,21 +6,25 @@
 namespace Ripes {
 namespace Assembler {
 
+class PseudoInstruction;
+
+using PseudoExpandFunc = std::function<PseudoExpandRes(const PseudoInstruction& /*this*/,
+                                                       const Assembler::TokenizedSrcLine&, const SymbolMap&)>;
+
 class PseudoInstruction {
 public:
-    PseudoInstruction(
-        const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
-        const std::function<PseudoExpandRes(const PseudoInstruction&, const Assembler::TokenizedSrcLine&)>& expander)
+    PseudoInstruction(const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
+                      const PseudoExpandFunc& expander)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields), m_expander(expander) {}
 
-    PseudoExpandRes expand(const Assembler::TokenizedSrcLine& line) {
+    PseudoExpandRes expand(const Assembler::TokenizedSrcLine& line, const SymbolMap& symbols) {
         if (line.tokens.length() != m_expectedTokens) {
-            return Assembler::Error(
-                line.sourceLine, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
-                                     " arguments, but got " + QString::number(line.tokens.length() - 1));
+            return Assembler::Error(line.sourceLine,
+                                    "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
+                                        " arguments, but got " + QString::number(line.tokens.length() - 1));
         }
 
-        return m_expander(*this, line);
+        return m_expander(*this, line, symbols);
     }
 
     const QString& name() const { return m_opcode; }
@@ -34,12 +38,15 @@ public:
     static std::shared_ptr<Imm> imm() { return std::make_shared<Imm>(0, 0, Imm::Repr::Hex, std::vector<ImmPart>{}); }
 
 private:
-    std::function<PseudoExpandRes(const PseudoInstruction& /*this*/, const Assembler::TokenizedSrcLine&)> m_expander;
+    PseudoExpandFunc m_expander;
 
     const QString m_opcode;
     const int m_expectedTokens;
     const std::vector<std::shared_ptr<Field>> m_fields;
 };
+
+#define PseudoExpandFunc(line, symbols) \
+    [](const PseudoInstruction&, const TokenizedSrcLine& line, const SymbolMap& symbols)
 
 using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstruction>>;
 using PseudoInstrMap = std::map<QString, std::shared_ptr<PseudoInstruction>>;
