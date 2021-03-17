@@ -8,5 +8,6 @@
         <file>assembly/complexMul.s</file>
         <file>assembly/consolePrinting.s</file>
         <file>C/leds.c</file>
+        <file>C/switchesAndLeds.c</file>
     </qresource>
 </RCC>
