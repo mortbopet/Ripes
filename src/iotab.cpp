@@ -6,6 +6,7 @@
 #include <QMdiSubWindow>
 #include <QToolBar>
 
+#include "io/memorymapmodel.h"
 #include "processorhandler.h"
 
 #include "ioperipheraltab.h"
@@ -61,6 +62,11 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     });
 
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
+    m_ui->memoryMapView->setModel(new MemoryMapModel(&m_iomanager, this));
+    m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Name, QHeaderView::ResizeToContents);
+    m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::AddressRange,
+                                                                  QHeaderView::ResizeToContents);
+    m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Size, QHeaderView::ResizeToContents);
 }
 
 /**

@@ -20,9 +20,14 @@ public:
     IOBase* createPeripheral(IOType type);
     const MemoryMap& memoryMap() const { return m_memoryMap; }
 
+signals:
+    void memoryMapChanged();
+
 private:
+    void refreshMemoryMap();
     void setProcessorPeripherals();
     MemoryMap m_memoryMap;
+    MemoryMap m_peripherals;
 };
 
 }  // namespace Ripes

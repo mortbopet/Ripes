@@ -45,7 +45,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="peripherals">
        <attribute name="title">
@@ -101,14 +101,11 @@
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>TODO: Config</string>
-            </property>
+           <widget class="QTableView" name="memoryMapView">
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
            </widget>
-          </item>
-          <item>
-           <widget class="QTableView" name="tableView"/>
           </item>
          </layout>
         </item>
