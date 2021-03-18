@@ -20,7 +20,7 @@ class RV5S_NO_FW_IDEX : public IDEX {
 public:
     RV5S_NO_FW_IDEX(std::string name, SimComponent* parent) : IDEX(name, parent) {
         CONNECT_REGISTERED_CLEN_INPUT(opcode, clear, enable);
-
+        
         // We want stalling info to persist through clearing of the register, so stalled register is always enabled and
         // never cleared.
         CONNECT_REGISTERED_CLEN_INPUT(stalled, 0, 1);

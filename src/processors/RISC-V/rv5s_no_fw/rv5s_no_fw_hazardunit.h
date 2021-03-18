@@ -20,19 +20,17 @@ public:
 
     INPUTPORT(id_reg1_idx, RV_REGS_BITS);
     INPUTPORT(id_reg2_idx, RV_REGS_BITS);
+    INPUTPORT_ENUM(id_alu_op_ctrl_2, AluSrc2);
 
     INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(ex_do_mem_read_en, 1);
     INPUTPORT(ex_do_reg_write, 1);
+    INPUTPORT_ENUM(ex_opcode, RVInstr);
 
     INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(mem_do_reg_write, 1);
 
     INPUTPORT(wb_do_reg_write, 1);
-
-    INPUTPORT_ENUM(ex_alu_op_ctrl_2, AluSrc2);
-    INPUTPORT_ENUM(mem_alu_op_ctrl_2, AluSrc2);
-    INPUTPORT_ENUM(opcode, RVInstr);
 
     // Hazard Front End enable: Low when stalling the front end (shall be connected to a register 'enable' input port).
     OUTPUTPORT(hazardFEEnable, 1);
@@ -70,14 +68,15 @@ private:
         // such, all outstanding writes to the register file must be performed before handling the ecall. Hence, the
         // front-end of the pipeline shall be stalled until the remainder of the pipeline has been cleared and there are
         // no more outstanding writes.
-        const bool isEcall = opcode.uValue() == RVInstr::ECALL;
+        const bool isEcall = ex_opcode.uValue() == RVInstr::ECALL;
         return isEcall && (mem_do_reg_write.uValue() || wb_do_reg_write.uValue());
     }
 
+    // Check if data Hazard between instruction i+1 and i
     bool hasDataHazardEx() const {
         const unsigned idx1 = id_reg1_idx.uValue();
         const unsigned idx2 = id_reg2_idx.uValue();
-        const bool idx2isReg = ex_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
+        const bool idx2isReg = id_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
         const unsigned exidx = ex_reg_wr_idx.uValue();
         const bool regw = ex_do_reg_write.uValue();
         // If destination is x0 ignore hazard
@@ -87,10 +86,11 @@ private:
         return ((exidx == idx1) || ((exidx == idx2) && idx2isReg)) && regw;
     }
 
+    // Check if data Hazard between instruction i+2 and i
     bool hasDataHazardMem() const {
         const unsigned idx1 = id_reg1_idx.uValue();
         const unsigned idx2 = id_reg2_idx.uValue();
-        const bool idx2isReg = mem_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
+        const bool idx2isReg = id_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
         const unsigned memidx = mem_reg_wr_idx.uValue();
         const bool regw = mem_do_reg_write.uValue();
         // If destination is x0 ignore hazard

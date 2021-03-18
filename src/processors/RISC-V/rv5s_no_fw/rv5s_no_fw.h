@@ -221,19 +221,17 @@ public:
         // Hazard detection unit
         decode->r1_reg_idx >> hzunit->id_reg1_idx;
         decode->r2_reg_idx >> hzunit->id_reg2_idx;
+        control->alu_op2_ctrl >> hzunit->id_alu_op_ctrl_2;
 
         idex_reg->mem_do_read_out >> hzunit->ex_do_mem_read_en;
         idex_reg->reg_do_write_out >> hzunit->ex_do_reg_write;
         idex_reg->wr_reg_idx_out >> hzunit->ex_reg_wr_idx;
-        idex_reg->alu_op2_ctrl_out >> hzunit->ex_alu_op_ctrl_2;
+        idex_reg->opcode_out >> hzunit->ex_opcode;
 
         exmem_reg->reg_do_write_out >> hzunit->mem_do_reg_write;
         exmem_reg->wr_reg_idx_out >> hzunit->mem_reg_wr_idx;
-        exmem_reg->alu_op2_ctrl_out >> hzunit->mem_alu_op_ctrl_2;
 
         memwb_reg->reg_do_write_out >> hzunit->wb_do_reg_write;
-
-        idex_reg->opcode_out >> hzunit->opcode;
     }
 
     // Design subcomponents
