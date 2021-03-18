@@ -20,6 +20,7 @@ public:
 
     INPUTPORT(id_reg1_idx, RV_REGS_BITS);
     INPUTPORT(id_reg2_idx, RV_REGS_BITS);
+    INPUTPORT(id_do_branch, 1);
     INPUTPORT_ENUM(id_alu_op_ctrl_2, AluSrc2);
 
     INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
@@ -74,30 +75,30 @@ private:
 
     // Check if data Hazard between instruction i+1 and i
     bool hasDataHazardEx() const {
-        const unsigned idx1 = id_reg1_idx.uValue();
-        const unsigned idx2 = id_reg2_idx.uValue();
-        const bool idx2isReg = id_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
-        const unsigned exidx = ex_reg_wr_idx.uValue();
-        const bool regw = ex_do_reg_write.uValue();
-        // If destination is x0 ignore hazard
-        if(exidx == 0){
-            return false;
-        }
-        return ((exidx == idx1) || ((exidx == idx2) && idx2isReg)) && regw;
+        const unsigned exWriteIdx = ex_reg_wr_idx.uValue();
+        const bool exRegWrite = ex_do_reg_write.uValue();
+        return hasDataHazard(exWriteIdx, exRegWrite);
     }
 
     // Check if data Hazard between instruction i+2 and i
     bool hasDataHazardMem() const {
+        const unsigned memWriteIdx = mem_reg_wr_idx.uValue();
+        const bool memRegWrite = mem_do_reg_write.uValue();
+        return hasDataHazard(memWriteIdx, memRegWrite);
+    }
+
+    bool hasDataHazard(unsigned writeIdx, bool regWrite) const {
         const unsigned idx1 = id_reg1_idx.uValue();
         const unsigned idx2 = id_reg2_idx.uValue();
         const bool idx2isReg = id_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
-        const unsigned memidx = mem_reg_wr_idx.uValue();
-        const bool regw = mem_do_reg_write.uValue();
+
+        // Get branch information (when branch, idx2isReg must be ignored, because it is IMM)
+        const bool isBranch = id_do_branch.uValue();
         // If destination is x0 ignore hazard
-        if(memidx == 0){
+        if(writeIdx == 0){
             return false;
         }
-        return ((memidx == idx1) || ((memidx == idx2) && idx2isReg)) && regw;
+        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch))) && regWrite;
     }
 };
 }  // namespace core
