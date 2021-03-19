@@ -226,6 +226,7 @@ public:
         idex_reg->mem_do_read_out >> hzunit->ex_do_mem_read_en;
         idex_reg->reg_do_write_out >> hzunit->ex_do_reg_write;
         idex_reg->wr_reg_idx_out >> hzunit->ex_reg_wr_idx;
+        idex_reg->do_jmp_out >> hzunit->ex_do_jump;
         idex_reg->opcode_out >> hzunit->ex_opcode;
 
         exmem_reg->reg_do_write_out >> hzunit->mem_do_reg_write;

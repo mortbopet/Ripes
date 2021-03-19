@@ -26,6 +26,7 @@ public:
     INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
     INPUTPORT(ex_do_mem_read_en, 1);
     INPUTPORT(ex_do_reg_write, 1);
+    INPUTPORT(ex_do_jump, 1);
     INPUTPORT_ENUM(ex_opcode, RVInstr);
 
     INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
@@ -94,8 +95,12 @@ private:
 
         // Get branch information (when branch, idx2isReg must be ignored, because it is IMM)
         const bool isBranch = id_do_branch.uValue();
-        // If destination is x0 ignore hazard
-        if(writeIdx == 0){
+
+        // Get jump information (when jump, no stall needed because instruction will flushed)
+        const bool doJump = ex_do_jump.uValue();
+
+        // If destination is x0 or jump is taken ignore hazard
+        if((writeIdx == 0) || (doJump)){
             return false;
         }
         return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch))) && regWrite;
