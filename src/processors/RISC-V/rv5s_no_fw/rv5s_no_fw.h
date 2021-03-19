@@ -222,6 +222,7 @@ public:
         decode->r2_reg_idx >> hzunit->id_reg2_idx;
         control->alu_op2_ctrl >> hzunit->id_alu_op_ctrl_2;
         control->do_branch >> hzunit->id_do_branch;
+        control->mem_do_write_ctrl >> hzunit->id_mem_do_write;
 
         idex_reg->mem_do_read_out >> hzunit->ex_do_mem_read_en;
         idex_reg->reg_do_write_out >> hzunit->ex_do_reg_write;

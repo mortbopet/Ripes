@@ -21,6 +21,7 @@ public:
     INPUTPORT(id_reg1_idx, RV_REGS_BITS);
     INPUTPORT(id_reg2_idx, RV_REGS_BITS);
     INPUTPORT(id_do_branch, 1);
+    INPUTPORT(id_mem_do_write, 1);
     INPUTPORT_ENUM(id_alu_op_ctrl_2, AluSrc2);
 
     INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
@@ -96,6 +97,9 @@ private:
         // Get branch information (when branch, idx2isReg must be ignored, because it is IMM)
         const bool isBranch = id_do_branch.uValue();
 
+        // Get mem write information (when write to memory, idx2isReg must be ignored, because it is IMM)
+        const bool isMemWrite = id_mem_do_write.uValue();
+
         // Get jump information (when jump, no stall needed because instruction will flushed)
         const bool doJump = ex_do_jump.uValue();
 
@@ -103,8 +107,22 @@ private:
         if((writeIdx == 0) || (doJump)){
             return false;
         }
-        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch))) && regWrite;
+        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch || isMemWrite))) && regWrite;
     }
 };
 }  // namespace core
 }  // namespace vsrtl
+
+/*
+idx1 = 0x02
+idx2 = 0x07
+idx2isReg = false (IMM)
+isBranch = false
+doJump = false
+exReg = 1
+exWriteReg = 0x07
+memReg = 0
+memWriteReg = 0
+
+
+*/
