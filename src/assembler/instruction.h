@@ -35,6 +35,7 @@ struct Field;
 struct FieldLinkRequest {
     Field const* field = nullptr;
     QString symbol = QString();
+    QString relocation = QString();
 };
 
 struct Field {
@@ -83,7 +84,7 @@ struct Opcode : public Field {
      * @param name: Name of operation
      * @param fields: list of OpParts corresponding to the identifying elements of the opcode.
      */
-    Opcode(const QString& _name, std::vector<OpPart> _opParts) : Field(0), name(_name), opParts(_opParts) {}
+    Opcode(const Token& _name, std::vector<OpPart> _opParts) : Field(0), name(_name), opParts(_opParts) {}
 
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine&, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
@@ -98,7 +99,7 @@ struct Opcode : public Field {
         return std::nullopt;
     }
 
-    const QString name;
+    const Token name;
     const std::vector<OpPart> opParts;
 };
 
@@ -129,11 +130,11 @@ struct Reg : public Field {
     std::optional<Assembler::Error> decode(const uint32_t instruction, const uint32_t, const ReverseSymbolMap&,
                                            Assembler::LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
-        const QString registerName = m_isa->regName(regNumber);
+        const Token registerName = m_isa->regName(regNumber);
         if (registerName.isEmpty()) {
             return Assembler::Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
         }
-        line.append(registerName);
+        line.push_back(registerName);
         return std::nullopt;
     }
 
@@ -176,7 +177,7 @@ struct Imm : public Field {
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest& linksWithSymbol) const override {
         bool success;
-        const QString& immToken = line.tokens[tokenIndex];
+        const Token& immToken = line.tokens[tokenIndex];
 
         // Accept base 10, 16 and 2
         uint32_t uvalue = 0;
@@ -199,6 +200,7 @@ struct Imm : public Field {
             // Could not directly resolve immediate. Register it as a symbol to link to.
             linksWithSymbol.field = this;
             linksWithSymbol.symbol = immToken;
+            linksWithSymbol.relocation = immToken.relocation();
             return {};
         }
 
@@ -319,11 +321,11 @@ public:
                 Hint = Hint + " [" + regField->regsd + "]";
             }
         }
-        if (line.tokens.length() != m_expectedTokens) {
+        if (line.tokens.size() != m_expectedTokens) {
             return Assembler::Error(line.sourceLine, "Instruction " + m_opcode.name + Hint + " expects " +
                                                          QString::number(m_expectedTokens - 1) +
                                                          " arguments, but got " +
-                                                         QString::number(line.tokens.length() - 1));
+                                                         QString::number(line.tokens.size() - 1));
         }
         return m_assembler(this, line);
     }

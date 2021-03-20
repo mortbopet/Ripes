@@ -10,6 +10,7 @@
 #include "matcher.h"
 #include "parserutilities.h"
 #include "pseudoinstruction.h"
+#include "relocation.h"
 
 #include <set>
 #include <variant>
@@ -108,6 +109,21 @@ protected:
         }
     }
 
+    void setRelocations(RelocationsVec& relocations) {
+        if (m_relocations.size() != 0) {
+            throw std::runtime_error("Directives already set");
+        }
+        m_relocations = relocations;
+        for (const auto& iter : m_relocations) {
+            const auto relocations = iter.get()->name();
+            if (m_relocationsMap.count(relocations) != 0) {
+                throw std::runtime_error("Error: relocation " + relocations.toStdString() +
+                                         " has already been registerred.");
+            }
+            m_relocationsMap[relocations] = iter;
+        }
+    }
+
     virtual std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const {
         // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
         // substrings.
@@ -149,19 +165,19 @@ protected:
         }
 
         // Handle the case where a token has been joined together with another token, ie "B:nop"
-        QStringList splitTokens;
+        LineTokens splitTokens;
         splitTokens.reserve(tokens.size());
         for (const auto& token : tokens) {
-            QString buffer;
+            Token buffer;
             for (const auto& ch : token) {
                 buffer.append(ch);
                 if (ch == ':') {
-                    splitTokens << buffer;
+                    splitTokens.push_back(buffer);
                     buffer.clear();
                 }
             }
             if (!buffer.isEmpty()) {
-                splitTokens << buffer;
+                splitTokens.push_back(buffer);
             }
         }
 
@@ -186,7 +202,7 @@ protected:
                     return {Error(sourceLine, QStringLiteral("Stray ':' in line"))};
                 }
             } else {
-                remainingTokens.append(token);
+                remainingTokens.push_back(token);
                 symbolStillAllowed = false;
             }
         }
@@ -211,7 +227,7 @@ protected:
                     return {Error(sourceLine, QStringLiteral("Stray '.' in line"))};
                 }
             } else {
-                remainingTokens.append(token);
+                remainingTokens.push_back(token);
                 directivesStillAllowed = false;
             }
         }
@@ -233,10 +249,39 @@ protected:
             if (token.contains(commentDelimiter())) {
                 break;
             } else {
-                preCommentTokens.append(token);
+                preCommentTokens.push_back(token);
             }
         }
         return {preCommentTokens};
+    }
+
+    /**
+     * @brief splitRelocationsFromLine
+     * Identify relocations in tokens; when found, add the relocation to the _following_ token. Relocations are _not_
+     * added to the set of remaining tokens.
+     */
+    virtual std::variant<Error, LineTokens> splitRelocationsFromLine(LineTokens& tokens) const {
+        if (tokens.size() == 0) {
+            return {tokens};
+        }
+
+        LineTokens remainingTokens;
+        remainingTokens.reserve(tokens.size());
+
+        Token relocationForNextToken;
+        for (auto& token : tokens) {
+            if (m_relocationsMap.count(token)) {
+                relocationForNextToken = token;
+            } else {
+                if (!relocationForNextToken.isEmpty()) {
+                    token.setRelocation(relocationForNextToken);
+                    relocationForNextToken.clear();
+                }
+                remainingTokens.push_back(token);
+            }
+        }
+
+        return {remainingTokens};
     }
 
     virtual QChar commentDelimiter() const = 0;
@@ -247,6 +292,12 @@ protected:
     DirectiveVec m_directives;
     DirectiveMap m_directivesMap;
     EarlyDirectives m_earlyDirectives;
+
+    /**
+     * @brief m_relocations is the set of supported assembler relocation hints
+     */
+    RelocationsVec m_relocations;
+    RelocationsMap m_relocationsMap;
 
     /**
      * @brief m_sectionBasePointers maintains the base position for the segments
@@ -326,7 +377,14 @@ public:
             return {"invalid instruction", *error};
         }
 
-        return {std::get<LineTokens>(tokens).join(' '), {}};
+        // Join tokens
+        QString joinedLine;
+        for (const auto& token : std::get<LineTokens>(tokens)) {
+            joinedLine += token + " ";
+        }
+        joinedLine.chop(1);  // remove trailing ' '
+
+        return {joinedLine, {}};
     }
 
     const Matcher& getMatcher() { return *m_matcher; }
@@ -385,6 +443,7 @@ protected:
 
             // Symbols precede directives
             runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, remainingTokens, i);
+
             tsl.symbols = symbolsAndRest.first;
 
             bool uniqueSymbols = true;
@@ -403,7 +462,10 @@ protected:
             runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
             tsl.directive = directiveAndRest.first;
 
-            tsl.tokens = directiveAndRest.second;
+            // Parse (and remove) relocation hints from the tokens.
+            runOperation(finalTokens, LineTokens, splitRelocationsFromLine, directiveAndRest.second);
+
+            tsl.tokens = finalTokens;
             if (tsl.tokens.empty() && tsl.directive.isEmpty()) {
                 if (!tsl.symbols.empty()) {
                     carry.insert(tsl.symbols.begin(), tsl.symbols.end());
@@ -541,7 +603,8 @@ protected:
 
             // Add the special __address__ symbol indicating the address of the instruction itself. Not done through
             // addSymbol given that we redefine this symbol on each line.
-            m_symbolMap["__address__"] = linkReqAddress(linkRequest);
+            const uint32_t linkRequestAddress = linkReqAddress(linkRequest);
+            m_symbolMap["__address__"] = linkRequestAddress;
 
             if (m_symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
@@ -561,6 +624,17 @@ protected:
                 }
             } else {
                 symbolValue = m_symbolMap.at(symbol);
+            }
+
+            if (!linkRequest.fieldRequest.relocation.isEmpty()) {
+                auto relocRes = m_relocationsMap.at(linkRequest.fieldRequest.relocation)
+                                    .get()
+                                    ->handle(symbolValue, linkRequestAddress);
+                if (auto* error = std::get_if<Error>(&relocRes)) {
+                    errors.push_back(*error);
+                    continue;
+                }
+                symbolValue = std::get<uint32_t>(relocRes);
             }
 
             QByteArray& section = program.sections.at(linkRequest.section).data;
@@ -628,10 +702,12 @@ protected:
         return m_instructionMap.at(opcode)->assemble(line);
     };
 
-    void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives) {
+    void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives,
+                    RelocationsVec& relocations) {
         setInstructions(instructions);
         setPseudoInstructions(pseudoinstructions);
         setDirectives(directives);
+        setRelocations(relocations);
         m_matcher = std::make_unique<Matcher>(m_instructions);
     }
 
