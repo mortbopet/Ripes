@@ -4,14 +4,15 @@
 #include <memory>
 
 #include "assembler_defines.h"
+#include "binutils.h"
 #include "parserutilities.h"
 
 namespace Ripes {
 namespace Assembler {
 
-const QRegularExpression s_exprOperatorsRegex = QRegularExpression(R"((\+|\-|\/|\*|\%))");
-const QString s_exprOperators QStringLiteral("+-*/%");
-const QString s_exprTokens QStringLiteral("()+-*/%");
+const QRegularExpression s_exprOperatorsRegex = QRegularExpression(R"((\+|\-|\/|\*|\%|\@))");
+const QString s_exprOperators QStringLiteral("+-*/%@");
+const QString s_exprTokens QStringLiteral("()+-*/%@");
 
 #define IfExpr(TExpr, boundVar) if (auto* boundVar = std::get_if<TExpr>(expr.get())) {
 #define FiExpr }
@@ -75,7 +76,13 @@ struct Or : Printable {
     void print(std::ostream& str) const override;
 };
 
-struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing> {
+struct SignExtend : Printable {
+    SignExtend(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    std::shared_ptr<Expr> lhs, rhs;
+    void print(std::ostream& str) const override;
+};
+
+struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing, SignExtend> {
     using variant::variant;
 
     /**
@@ -97,6 +104,7 @@ struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing> {
         tryPrint(Literal);
         tryPrint(Mod);
         tryPrint(Nothing);
+        tryPrint(SignExtend);
 
         return os;
     };
@@ -128,6 +136,11 @@ void And::print(std::ostream& os) const {
 void Or::print(std::ostream& os) const {
     os << "(" << lhs << " | " << rhs << ")";
 }
+
+void SignExtend::print(std::ostream& os) const {
+    os << "(" << lhs << " @ " << rhs << ")";
+}
+
 // clang-format on
 
 using ExprRes = std::variant<Error, std::shared_ptr<Expr>>;
@@ -163,6 +176,7 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
             case '%': { return rightRec<Mod>(Token(lhs), s, pos, depth);}
             case '|': { return rightRec<Or>(Token(lhs), s, pos, depth);}
             case '&': { return rightRec<And>(Token(lhs), s, pos, depth);}
+            case '@': { return rightRec<SignExtend>(Token(lhs), s, pos, depth);}
             default:  {lhs.append(ch);}
         }
         // clang-format on
@@ -189,6 +203,7 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
             case '*': { return rightRec<Mul>(res, s, pos, depth);}
             case '-': { return rightRec<Sub>(res, s, pos, depth);}
             case '%': { return rightRec<Mod>(res, s, pos, depth);}
+            case '@': { return rightRec<SignExtend>(res, s, pos, depth);}
             case ')': { return depth-- != 0 ? res : ExprRes(Error(-1, "Unmatched parenthesis in expression '" + s + '"'));};
             default:  { return ExprRes(Error(-1, "Invalid operator '" + QString(ch) + "' in expression '" + s + "'"));}
         }
@@ -214,6 +229,8 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     IfExpr(And, v) { return evaluate(v->lhs, variables) & evaluate(v->rhs, variables); }
     FiExpr;
     IfExpr(Or, v) { return evaluate(v->lhs, variables) | evaluate(v->rhs, variables); }
+    FiExpr;
+    IfExpr(SignExtend, v) { return signextend<int>(evaluate(v->lhs, variables), evaluate(v->rhs, variables)); }
     FiExpr;
     IfExpr(Nothing, v) { return 0; }
     FiExpr;
