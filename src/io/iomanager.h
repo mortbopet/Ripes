@@ -41,6 +41,7 @@ public:
      * @returns as cSymbols, but as a map which can be directly loaded into the assembler.
      */
     std::map<QString, uint32_t> assemblerSymbols() const { return m_assemblerSymbols; }
+    std::vector<std::pair<QString, uint32_t>> assemblerSymbolsForPeriph(IOBase* peripheral) const;
 
 signals:
     void memoryMapChanged();
@@ -48,7 +49,6 @@ signals:
 
 private:
     IOManager();
-    std::map<QString, uint32_t> assemblerSymbolsForPeriph(IOBase* peripheral) const;
 
     /**
      * @brief updateSymbols

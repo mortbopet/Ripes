@@ -16,6 +16,8 @@ public:
     ~IOPeripheralTab();
 
 private:
+    void updateExportsInfo();
+
     Ui::IOPeripheralTab* m_ui;
 
     IOBase* m_peripheral = nullptr;

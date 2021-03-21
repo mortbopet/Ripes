@@ -64,7 +64,7 @@ void IOLedMatrix::updateLEDRegs() {
 
     m_extraSymbols.clear();
     m_extraSymbols.push_back(IOSymbol{"WIDTH", width});
-    m_extraSymbols.push_back(IOSymbol{"HEIGHT", width});
+    m_extraSymbols.push_back(IOSymbol{"HEIGHT", height});
 
     m_regDescs.clear();
     m_regDescs.resize(nLEDs);

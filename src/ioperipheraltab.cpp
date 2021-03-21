@@ -1,7 +1,9 @@
 #include "ioperipheraltab.h"
 #include "ui_ioperipheraltab.h"
 
+#include "editor/csyntaxhighlighter.h"
 #include "io/iobase.h"
+#include "io/iomanager.h"
 #include "io/periphparammodel.h"
 #include "io/registermapmodel.h"
 
@@ -20,6 +22,17 @@ IOPeripheralTab::IOPeripheralTab(QWidget* parent, IOBase* peripheral)
     m_ui->parameterView->horizontalHeader()->setStretchLastSection(true);
     m_ui->parameterView->resizeColumnsToContents();
     m_ui->parameterView->setItemDelegateForColumn(PeriphParamModel::Value, new PeriphParamDelegate(this));
+
+    updateExportsInfo();
+}
+
+void IOPeripheralTab::updateExportsInfo() {
+    auto symbols = IOManager::get().assemblerSymbolsForPeriph(m_peripheral);
+    for (const auto& symbol : symbols) {
+        m_ui->exports->appendPlainText("#define " + symbol.first + " " + "(0x" + QString::number(symbol.second, 16) +
+                                       ")");
+    }
+    CSyntaxHighlighter(m_ui->exports->document()).rehighlight();
 }
 
 IOPeripheralTab::~IOPeripheralTab() {

@@ -77,7 +77,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_3">
        <property name="title">
-        <string>Code example</string>
+        <string>Exports</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <property name="leftMargin">
@@ -93,7 +93,7 @@
          <number>0</number>
         </property>
         <item row="0" column="0">
-         <widget class="QPlainTextEdit" name="codeExample">
+         <widget class="QPlainTextEdit" name="exports">
           <property name="readOnly">
            <bool>true</bool>
           </property>
