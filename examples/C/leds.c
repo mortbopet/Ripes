@@ -1,7 +1,15 @@
-#define W 35
-#define H 25
+#include "ripes_system.h"
 
-unsigned* led_base = 0xF0000000;
+/* LEDs
+ * This program draws an animation on an LED matrix peripheral.
+ *
+ * To run this program, make sure that you have instantiated an "LED Matrix"
+ * peripheral in the "I/O" tab.
+ */
+
+#define W LED_MATRIX_0_WIDTH
+#define H LED_MATRIX_0_HEIGHT
+unsigned* led_base = LED_MATRIX_0_BASE;
 
 void main() {
     unsigned v = 0;
