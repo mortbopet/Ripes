@@ -18,7 +18,7 @@ public:
         : BaseSyscall("Cycles", "Get number of cycles elapsed since program start", {},
                       {{0, "low 32 bits of cycles elapsed"}, {1, "high 32 bits of cycles elapsed"}}) {}
     void execute() {
-        static long long cycleCount = ProcessorHandler::get()->getProcessor()->getCycleCount();
+        long long cycleCount = ProcessorHandler::get()->getProcessor()->getCycleCount();
         BaseSyscall::setRet(RegisterFileType::GPR, 0, cycleCount & 0xFFFFFFFF);
         BaseSyscall::setRet(RegisterFileType::GPR, 1, (cycleCount >> 32) & 0xFFFFFFFF);
     }
@@ -34,7 +34,7 @@ public:
               "Time_msec", "Get the current time since epoch (milliseconds since 1 January 1970)", {},
               {{0, "low 32 bits of milliseconds since epoch"}, {1, "high 32 bits of milliseconds since epoch"}}) {}
     void execute() {
-        static long long ms = QDateTime::currentMSecsSinceEpoch();
+        long long ms = QDateTime::currentMSecsSinceEpoch();
         BaseSyscall::setRet(RegisterFileType::GPR, 0, ms & 0xFFFFFFFF);
         BaseSyscall::setRet(RegisterFileType::GPR, 1, (ms >> 32) & 0xFFFFFFFF);
     }
