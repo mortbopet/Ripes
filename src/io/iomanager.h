@@ -20,7 +20,11 @@ class IOManager : public QObject {
     Q_OBJECT
 
 public:
-    IOManager();
+    static IOManager& get() {
+        static IOManager manager;
+        return manager;
+    }
+
     IOBase* createPeripheral(IOType type);
     void removePeripheral(IOBase* peripheral, std::atomic<bool>& ok);
     const MemoryMap& memoryMap() const { return m_memoryMap; }
@@ -43,6 +47,7 @@ signals:
     void peripheralRemoved(QObject* peripheral);
 
 private:
+    IOManager();
     std::map<QString, uint32_t> assemblerSymbolsForPeriph(IOBase* peripheral) const;
 
     /**

@@ -61,10 +61,10 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
         }
     });
 
-    connect(&m_iomanager, &IOManager::peripheralRemoved, this, &IOTab::removePeripheral);
+    connect(&IOManager::get(), &IOManager::peripheralRemoved, this, &IOTab::removePeripheral);
 
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
-    m_ui->memoryMapView->setModel(new MemoryMapModel(&m_iomanager, this));
+    m_ui->memoryMapView->setModel(new MemoryMapModel(&IOManager::get(), this));
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Name, QHeaderView::ResizeToContents);
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::AddressRange,
                                                                   QHeaderView::ResizeToContents);
@@ -72,7 +72,7 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
 }
 
 void IOTab::createPeripheral(IOType type) {
-    auto* peripheral = m_iomanager.createPeripheral(type);
+    auto* peripheral = IOManager::get().createPeripheral(type);
     // Create tab for peripheral
     auto* peripheralTab = new IOPeripheralTab(this, peripheral);
     m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());

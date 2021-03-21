@@ -55,6 +55,5 @@ private:
      * Pointer from the tab associated with a peripheral to its corresponding MDI subwindow.
      */
     std::unordered_map<QWidget*, QMdiSubWindow*> m_subWindows;
-    IOManager m_iomanager;
 };
 }  // namespace Ripes
