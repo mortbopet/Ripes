@@ -4,7 +4,7 @@
  * This program will toggle an LED in an LED matrix when the corresponding
  * switch is toggled.
  *
- * To run this program, make sure that you have instantiated one of the
+ * To run this program, make sure that you have instantiated one of each of the
  * following peripherals in the I/O tab:
  * - "LED Matrix"
  * - "Switches"
