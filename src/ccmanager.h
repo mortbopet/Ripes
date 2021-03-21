@@ -17,16 +17,13 @@ class CCManager : public QObject {
     Q_OBJECT
 public:
     struct CCRes {
-        QString inFile;
+        QStringList inFiles;
         QString outFile;
         QString errorMessage;
         bool success = false;
         bool aborted = false;
 
-        void clean() {
-            QFile::remove(inFile);
-            QFile::remove(outFile);
-        }
+        void clean() { QFile::remove(outFile); }
     };
 
     static CCManager& get() {
@@ -45,11 +42,11 @@ public:
      * compiled file, such as source file, output file and compilation status. If no @p outname has been provided, the
      * output file will be placed in a temporary directory.
      */
-    CCRes compile(const QString& filename, QString outname = QString(), bool showProgressdiag = true);
+    CCRes compile(const QStringList& files, QString outname = QString(), bool showProgressdiag = true);
     CCRes compile(const QTextDocument* source, QString outname = QString(), bool showProgressdiag = true);
     CCRes compileRaw(const QString& rawsource, QString outname = QString(), bool showProgressdiag = true);
 
-    std::pair<QString, QStringList> createCompileCommand(const QString& filename, const QString& outname) const;
+    std::pair<QString, QStringList> createCompileCommand(const QStringList& files, const QString& outname) const;
 
 signals:
     /**
@@ -85,6 +82,7 @@ private:
     QProcess m_process;
     bool m_errored = false;
     bool m_aborted = false;
+    std::unique_ptr<QFile> m_tmpSrcFile;
 };
 
 }  // namespace Ripes

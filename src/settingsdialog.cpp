@@ -247,7 +247,7 @@ void SettingsDialog::CCPathChanged(CCManager::CCRes res) {
     m_ccpath->setPalette(palette);
 
     // Update compile command preview
-    auto [cstring, cargs] = CCManager::get().createCompileCommand("${input}", "${output}");
+    auto [cstring, cargs] = CCManager::get().createCompileCommand({"${input}"}, "${output}");
     if (m_compileInfo) {
         if (res.success) {
             m_compileInfo->setText(cstring + " " + cargs.join(" "));

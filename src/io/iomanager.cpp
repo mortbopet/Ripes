@@ -136,6 +136,7 @@ void IOManager::updateSymbols() {
 
     // Generate symbol mapping + header file
     QStringList headerfile;
+    headerfile << "#pragma once";
     for (const auto& p : m_peripherals) {
         const QString& periphName = cName(p.first->name());
         headerfile << "// *****************************************************************************";
@@ -154,13 +155,7 @@ void IOManager::updateSymbols() {
 
     // Store header file at a temporary location
     if (!(m_symbolsHeaderFile && (QFile::exists(m_symbolsHeaderFile->fileName())))) {
-        const auto tempFileTemplate =
-            QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.h");
-        QTemporaryFile tmpHdrFile = QTemporaryFile(tempFileTemplate);
-        tmpHdrFile.setAutoRemove(false);
-        if (tmpHdrFile.open()) {
-            m_symbolsHeaderFile = std::make_unique<QFile>(tmpHdrFile.fileName());
-        }
+        m_symbolsHeaderFile = std::make_unique<QFile>(QDir::tempPath() + QDir::separator() + "ripes_system.h");
     }
 
     if (m_symbolsHeaderFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
