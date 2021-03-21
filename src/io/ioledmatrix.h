@@ -15,7 +15,7 @@ class IOLedMatrix : public IOBase {
 
 public:
     IOLedMatrix(QWidget* parent);
-    ~IOLedMatrix(){};
+    ~IOLedMatrix() { unregister(); };
 
     virtual uint32_t size() const override;
     virtual QString description() const override;

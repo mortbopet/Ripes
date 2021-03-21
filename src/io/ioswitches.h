@@ -61,7 +61,7 @@ class IOSwitches : public IOBase {
 
 public:
     IOSwitches(QWidget* parent);
-    ~IOSwitches(){};
+    ~IOSwitches() { unregister(); };
 
     virtual uint32_t size() const override { return 4; }
     virtual QString description() const override;

@@ -20,11 +20,12 @@ class IOManager : public QObject {
 public:
     IOManager();
     IOBase* createPeripheral(IOType type);
-    void removePeripheral(IOBase* peripheral);
+    void removePeripheral(IOBase* peripheral, std::atomic<bool>& ok);
     const MemoryMap& memoryMap() const { return m_memoryMap; }
 
 signals:
     void memoryMapChanged();
+    void peripheralRemoved(QObject* peripheral);
 
 private:
     void refreshMemoryMap();

@@ -38,7 +38,10 @@ class IOBase : public QWidget {
 
 public:
     IOBase(QWidget* parent);
-    virtual ~IOBase() { deregisterPeripheral(this); };
+    virtual ~IOBase() {
+        assert(m_didUnregister && "IO peripherals must call unregister() in their destructor!");
+        decrementPeriphCounter(this);
+    };
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
     virtual QString description() const = 0;
@@ -83,20 +86,43 @@ signals:
      */
     void scheduleUpdate();
 
+    /**
+     * @brief aboutToDelete
+     * Signal emitted when this IO peripheral is about to be destroyed. @param ok should be set to 'true' once the
+     * surrounding environment acknowledges (ie. after peripheral-dependees have been notified).
+     */
+    void aboutToDelete(std::atomic<bool>& ok);
+
 protected:
+    /**
+     * @brief unregister
+     * Unregisters the IO peripheral with the remaining compute system in a thread-safe manner. This function is key in
+     * avoiding race conditions from a processor model executing on another thread, trying to access this peripherals
+     * i/o functions while it is being deleted. This function !must! be called from an inheriting IO peripherals'
+     * constructor.
+     */
+    void unregister();
+
     virtual void parameterChanged(unsigned ID) = 0;
 
     std::map<unsigned, IOParam> m_parameters;
 
     static std::map<std::type_index, int> s_peripheralCount;
-    static void registerPeripheral(const IOBase* p) {
+    static void incrementPeriphCounter(const IOBase* p) {
         s_peripheralCount[typeid(p)]++;
         return;
     }
-    static void deregisterPeripheral(const IOBase* p) {
+    static void decrementPeriphCounter(const IOBase* p) {
         Q_ASSERT(s_peripheralCount.at(typeid(p)) > 0);
         s_peripheralCount[typeid(p)]--;
     }
+
+private:
+    /**
+     * @brief m_didUnregister
+     * Debug variable to ensure that inheriting class called unregister() on delete.
+     */
+    bool m_didUnregister = false;
 };
 }  // namespace Ripes
 

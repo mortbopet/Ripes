@@ -27,9 +27,9 @@ class IOTab : public RipesTab {
 public:
     IOTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~IOTab() override;
+    void removePeripheral(QObject* peripheral);
 
 private slots:
-    void removePeripheral(QObject* peripheral);
 
     /** The following to slots ensures synchronization between the current MDI window and peripheral tab */
     void setPeripheralTabActive(IOBase* peripheral);

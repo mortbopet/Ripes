@@ -61,6 +61,8 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
         }
     });
 
+    connect(&m_iomanager, &IOManager::peripheralRemoved, this, &IOTab::removePeripheral);
+
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
     m_ui->memoryMapView->setModel(new MemoryMapModel(&m_iomanager, this));
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Name, QHeaderView::ResizeToContents);
@@ -87,14 +89,9 @@ void IOTab::createPeripheral(IOType type) {
     mw->addDockWidget(Qt::TopDockWidgetArea, dw);
     auto* mdiw = m_ui->mdiArea->addSubWindow(mw);
     mdiw->setWindowTitle(IOTypeTitles.at(type));
+    peripheral->setFocus();
 
     m_subWindows[peripheralTab] = mdiw;
-
-    // Signals
-
-    // Connect to the destruction of the peripheral to trigger required changes on peripheral deletion. The peripheral
-    // is implicitly destructed when the MDIWindow is closed.
-    connect(peripheral, &IOBase::destroyed, this, &IOTab::removePeripheral);
 }
 
 void IOTab::setPeripheralTabActive(IOBase* peripheral) {
@@ -119,11 +116,6 @@ void IOTab::setPeripheralMDIWindowActive(int tabIndex) {
 }
 
 void IOTab::removePeripheral(QObject* peripheral) {
-    // This might be a little ugly. We have to static cast to an IOBase, given that, when QObject::destroyed is emitted,
-    // the entire inheriting class hierarchy has already been destroyed (thus we cannot dynamic_cast to an IOBase).
-    // However, the base pointer stays the same...
-    m_iomanager.removePeripheral(static_cast<IOBase*>(peripheral));
-
     auto* tab = m_ioTabs.at(peripheral);
     Q_ASSERT(m_subWindows.count(tab) != 0);
     m_subWindows.erase(tab);

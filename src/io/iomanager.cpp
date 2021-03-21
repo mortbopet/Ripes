@@ -56,6 +56,7 @@ IOBase* IOManager::createPeripheral(IOType type) {
     auto* peripheral = IOFactories.at(type)(nullptr);
 
     connect(peripheral, &IOBase::sizeChanged, [=] { this->peripheralSizeChanged(peripheral); });
+    connect(peripheral, &IOBase::aboutToDelete, [=](std::atomic<bool>& ok) { this->removePeripheral(peripheral, ok); });
 
     // Assign base address to peripheral
     const uint32_t base = nextPeripheralAddress();
@@ -66,12 +67,16 @@ IOBase* IOManager::createPeripheral(IOType type) {
     return peripheral;
 }
 
-void IOManager::removePeripheral(IOBase* peripheral) {
+void IOManager::removePeripheral(IOBase* peripheral, std::atomic<bool>& ok) {
     auto periphit = m_peripherals.find(peripheral);
     Q_ASSERT(periphit != m_peripherals.end());
     unregisterPeripheralWithProcessor(peripheral);
     m_peripherals.erase(periphit);
     refreshMemoryMap();
+
+    emit peripheralRemoved(peripheral);
+
+    ok = true;
 }
 
 void IOManager::refreshAllPeriphsToProcessor() {
