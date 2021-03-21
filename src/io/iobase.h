@@ -2,8 +2,7 @@
 
 #include <QVariant>
 #include <QWidget>
-#include <typeindex>
-#include <typeinfo>
+#include <set>
 
 #include "binutils.h"
 
@@ -37,15 +36,32 @@ class IOBase : public QWidget {
     Q_OBJECT
 
 public:
-    IOBase(QWidget* parent);
+    IOBase(unsigned IOType /*ioregistry.h::IOType*/, QWidget* parent);
     virtual ~IOBase() {
         assert(m_didUnregister && "IO peripherals must call unregister() in their destructor!");
-        decrementPeriphCounter(this);
+        unclaimPeripheralId(m_type, m_id);
     };
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
     virtual QString description() const = 0;
-    virtual QString name() const = 0;
+
+    /**
+     * @brief cName
+     * @returns unique name for this component, escaped to be suitable as a source constant definition
+     */
+    QString cName() const;
+
+    /**
+     * @brief name
+     * @returns unique name for this specific component
+     */
+    virtual QString name() const;
+
+    /**
+     * @brief baseName
+     * @return generic name for this IO type
+     */
+    virtual QString baseName() const = 0;
 
     /**
      * @brief registers
@@ -106,15 +122,24 @@ protected:
     virtual void parameterChanged(unsigned ID) = 0;
 
     std::map<unsigned, IOParam> m_parameters;
+    unsigned m_id;
 
-    static std::map<std::type_index, int> s_peripheralCount;
-    static void incrementPeriphCounter(const IOBase* p) {
-        s_peripheralCount[typeid(p)]++;
-        return;
+    static std::map<unsigned, std::set<unsigned>> s_peripheralIDs;
+    static unsigned claimPeripheralId(const unsigned& ioType) {
+        auto& currentIDs = s_peripheralIDs[ioType];
+
+        // Just scan linearly from 0 and up until a free ID is found. Not optimal, but # of peripherals is small so no
+        // reason to overengineer.
+        unsigned id = 0;
+        while (currentIDs.count(id) != 0) {
+            id++;
+        }
+        currentIDs.insert(id);
+        return id;
     }
-    static void decrementPeriphCounter(const IOBase* p) {
-        Q_ASSERT(s_peripheralCount.at(typeid(p)) > 0);
-        s_peripheralCount[typeid(p)]--;
+    static void unclaimPeripheralId(const unsigned& ioType, unsigned id) {
+        Q_ASSERT(s_peripheralIDs[ioType].count(id) > 0);
+        s_peripheralIDs[ioType].erase(id);
     }
 
 private:
@@ -123,6 +148,7 @@ private:
      * Debug variable to ensure that inheriting class called unregister() on delete.
      */
     bool m_didUnregister = false;
+    unsigned m_type;
 };
 }  // namespace Ripes
 

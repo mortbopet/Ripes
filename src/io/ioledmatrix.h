@@ -19,7 +19,7 @@ public:
 
     virtual uint32_t size() const override;
     virtual QString description() const override;
-    virtual QString name() const override;
+    virtual QString baseName() const override { return "LED Matrix"; }
 
     virtual const std::vector<RegDesc>& registers() const override { return m_regDescs; };
 

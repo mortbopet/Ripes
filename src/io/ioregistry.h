@@ -18,7 +18,7 @@
 
 namespace Ripes {
 
-enum class IOType { LED_MATRIX, SWITCHES, DPAD };
+enum IOType { LED_MATRIX, SWITCHES, DPAD };
 
 template <typename T>
 IOBase* createIO(QWidget* parent) {

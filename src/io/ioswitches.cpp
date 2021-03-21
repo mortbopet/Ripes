@@ -1,4 +1,5 @@
 #include "ioswitches.h"
+#include "ioregistry.h"
 
 #include <QAbstractButton>
 #include <QPainter>
@@ -135,7 +136,7 @@ void ToggleButton::enterEvent(QEvent* event) {
  * IO Switches
  */
 
-IOSwitches::IOSwitches(QWidget* parent) : IOBase(parent) {
+IOSwitches::IOSwitches(QWidget* parent) : IOBase(IOType::SWITCHES, parent) {
     constexpr unsigned defaultWidth = 25;
 
     // Parameters
@@ -153,10 +154,6 @@ QString IOSwitches::description() const {
     desc << "switch n = bit n";
 
     return desc.join('\n');
-}
-
-QString IOSwitches::name() const {
-    return "Switches";  // Todo: generate unique name
 }
 
 void IOSwitches::updateSwitches() {

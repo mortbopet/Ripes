@@ -88,7 +88,7 @@ void IOTab::createPeripheral(IOType type) {
     dw->setAllowedAreas(Qt::AllDockWidgetAreas);
     mw->addDockWidget(Qt::TopDockWidgetArea, dw);
     auto* mdiw = m_ui->mdiArea->addSubWindow(mw);
-    mdiw->setWindowTitle(IOTypeTitles.at(type));
+    mdiw->setWindowTitle(peripheral->name());
     peripheral->setFocus();
 
     m_subWindows[peripheralTab] = mdiw;

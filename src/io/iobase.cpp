@@ -4,11 +4,23 @@
 
 namespace Ripes {
 
-std::map<std::type_index, int> IOBase::s_peripheralCount;
+std::map<unsigned, std::set<unsigned>> IOBase::s_peripheralIDs;
 
-IOBase::IOBase(QWidget* parent) : QWidget(parent) {
-    incrementPeriphCounter(this);
+IOBase::IOBase(unsigned IOType, QWidget* parent) : QWidget(parent), m_type(IOType) {
+    m_id = claimPeripheralId(m_type);
     connect(this, &IOBase::scheduleUpdate, this, QOverload<>::of(&QWidget::update));
+}
+
+QString IOBase::cName() const {
+    QString cname = name();
+    for (const auto& ch : {' ', '-'}) {
+        cname.replace(ch, "_");
+    }
+    return cname.toUpper();
+}
+
+QString IOBase::name() const {
+    return baseName() + " " + QString::number(m_id);
 }
 
 bool IOBase::setParameter(unsigned ID, const QVariant& value) {

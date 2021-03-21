@@ -1,11 +1,13 @@
 #include "ioledmatrix.h"
 
+#include "ioregistry.h"
+
 #include <QPainter>
 #include <QPen>
 
 namespace Ripes {
 
-IOLedMatrix::IOLedMatrix(QWidget* parent) : IOBase(parent) {
+IOLedMatrix::IOLedMatrix(QWidget* parent) : IOBase(IOType::LED_MATRIX, parent) {
     constexpr unsigned defaultWidth = 25;
 
     // Parameters
@@ -35,10 +37,6 @@ QString IOLedMatrix::description() const {
     desc << "    offset = (y + x*N_LEDS_ROW) * 4";
 
     return desc.join('\n');
-}
-
-QString IOLedMatrix::name() const {
-    return "LED Matrix";  // Todo: generate unique name
 }
 
 uint32_t IOLedMatrix::ioRead(uint32_t offset, unsigned size) {
