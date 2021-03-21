@@ -1,5 +1,6 @@
 #include "rv32i_assembler.h"
 #include "gnudirectives.h"
+#include "rvrelocations.h"
 
 #include <QByteArray>
 #include <algorithm>
@@ -8,8 +9,11 @@ namespace Ripes {
 namespace Assembler {
 
 RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler(isa) {
-    auto [instrs, pseudos, directives] = initInstructions(isa);
-    initialize(instrs, pseudos, directives);
+    auto [instrs, pseudos] = initInstructions(isa);
+
+    auto directives = gnuDirectives();
+    auto relocations = rvRelocations();
+    initialize(instrs, pseudos, directives, relocations);
 
     // Initialize segment pointers
     setSegmentBase(".text", 0x0);
@@ -17,8 +21,7 @@ RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler(isa
     setSegmentBase(".bss", 0x11000000);
 }
 
-std::tuple<InstrVec, PseudoInstrVec, DirectiveVec>
-RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
+std::tuple<InstrVec, PseudoInstrVec> RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
     InstrVec instructions;
     PseudoInstrVec pseudoInstructions;
 
@@ -35,7 +38,7 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
                 assert(false && "Unhandled ISA extension");
         }
     }
-    return {instructions, pseudoInstructions, gnuDirectives()};
+    return {instructions, pseudoInstructions};
 }
 
 #define BType(name, funct3)                                                                              \
@@ -105,91 +108,91 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
 #define PseudoExpandFunc(line, symbols) \
     [](const PseudoInstruction&, const TokenizedSrcLine& line, const SymbolMap& symbols)
 
-#define PseudoLoad(name)                                                                                \
-    std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
-        name, {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {                                       \
-            LineTokensVec v;                                                                            \
-            v.push_back(QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2));            \
-            v.push_back(QStringList() << name << line.tokens.at(1)                                      \
-                                      << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2)) \
-                                      << line.tokens.at(1));                                            \
-            return v;                                                                                   \
+#define PseudoLoad(name)                                                                                               \
+    std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                                          \
+        name, {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {                                                      \
+            LineTokensVec v;                                                                                           \
+            v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1) << Token(line.tokens.at(2), "%pcrel_hi")); \
+            v.push_back(LineTokens() << name << line.tokens.at(1)                                                      \
+                                     << Token(QString("(%1 + 4)").arg(line.tokens.at(2)), "%pcrel_lo")                 \
+                                     << line.tokens.at(1));                                                            \
+            return v;                                                                                                  \
         }))
 
 // The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if we detect that
 // a number has been provided, then abort the pseudo-op handling.
-#define PseudoStore(name)                                                                               \
-    std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                           \
-        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line, symbols) {                               \
-            bool canConvert;                                                                            \
-            getImmediate(line.tokens.at(2), canConvert);                                                \
-            if (canConvert) {                                                                           \
-                return PseudoExpandRes(Error(0, "Unused; will fallback to non-pseudo op sw"));          \
-            }                                                                                           \
-            LineTokensVec v;                                                                            \
-            v.push_back(QStringList() << "auipc" << line.tokens.at(3) << line.tokens.at(2));            \
-            v.push_back(QStringList() << name << line.tokens.at(1)                                      \
-                                      << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2)) \
-                                      << line.tokens.at(3));                                            \
-            return PseudoExpandRes(v);                                                                  \
+#define PseudoStore(name)                                                                                              \
+    std::shared_ptr<PseudoInstruction>(new PseudoInstruction(                                                          \
+        name, {RegTok, ImmTok, RegTok}, PseudoExpandFunc(line, symbols) {                                              \
+            bool canConvert;                                                                                           \
+            getImmediate(line.tokens.at(2), canConvert);                                                               \
+            if (canConvert) {                                                                                          \
+                return PseudoExpandRes(Error(0, "Unused; will fallback to non-pseudo op sw"));                         \
+            }                                                                                                          \
+            LineTokensVec v;                                                                                           \
+            v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3) << Token(line.tokens.at(2), "%pcrel_hi")); \
+            v.push_back(LineTokens() << name << line.tokens.at(1)                                                      \
+                                     << Token(QString("(%1 + 4)").arg(line.tokens.at(2)), "%pcrel_lo")                 \
+                                     << line.tokens.at(3));                                                            \
+            return PseudoExpandRes(v);                                                                                 \
         }))
 
 void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions,
                                  PseudoInstrVec& pseudoInstructions) const {
     // Pseudo-op functors
-    pseudoInstructions.push_back(PseudoLoad("lb"));
-    pseudoInstructions.push_back(PseudoLoad("lh"));
-    pseudoInstructions.push_back(PseudoLoad("lw"));
-    pseudoInstructions.push_back(PseudoStore("sb"));
-    pseudoInstructions.push_back(PseudoStore("sh"));
-    pseudoInstructions.push_back(PseudoStore("sw"));
+    pseudoInstructions.push_back(PseudoLoad(Token("lb")));
+    pseudoInstructions.push_back(PseudoLoad(Token("lh")));
+    pseudoInstructions.push_back(PseudoLoad(Token("lw")));
+    pseudoInstructions.push_back(PseudoStore(Token("sb")));
+    pseudoInstructions.push_back(PseudoStore(Token("sh")));
+    pseudoInstructions.push_back(PseudoStore(Token("sw")));
 
     // clang-format off
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "la", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "auipc" << line.tokens.at(1) << line.tokens.at(2),
-                                 QStringList() << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString("((%1&0xfff)-(__address__-4))").arg(line.tokens.at(2))};
+        Token("la"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("auipc") << line.tokens.at(1) << Token(line.tokens.at(2), "%pcrel_hi"),
+                                 LineTokens() << Token("addi") << line.tokens.at(1) << line.tokens.at(1) << Token(QString("(%1 + 4)").arg(line.tokens.at(2)), "%pcrel_lo")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "call", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{LineTokens() << "auipc" << "x6" << line.tokens.at(1),
-                                 LineTokens() << "jalr" << "x1" << "x6" << line.tokens.at(1)};
+        Token("call"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("auipc") << Token("x6") << line.tokens.at(1),
+                                 LineTokens() << Token("jalr") << Token("x1") << Token("x6") << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "tail", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "auipc" << "x6" << line.tokens.at(1),
-                                 QStringList() << "jalr" << "x0" << "x6" << line.tokens.at(1)};
+        Token("tail"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("auipc") << Token("x6") << line.tokens.at(1),
+                                 LineTokens() << Token("jalr") << Token("x0") << Token("x6") << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "j", {ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "jal" << "x0" << line.tokens.at(1)};
+        Token("j"), {ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("jal") << Token("x0") << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "jr", {RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "jalr" << "x0" << line.tokens.at(1) << "0"};
+        Token("jr"), {RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("jalr") << Token("x0") << line.tokens.at(1) << Token("0")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "jalr", {RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "jalr" << "x1" << line.tokens.at(1) << "0"};
+        Token("jalr"), {RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("jalr") << Token("x1") << line.tokens.at(1) << Token("0")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "ret", {}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "jalr" << "x0" << "x1" << "0"};
+        Token("ret"), {}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("jalr") << Token("x0") << Token("x1") << Token("0")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "jal", {ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList() << "jal" << "x1" << line.tokens.at(1)};
+        Token("jal"), {ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("jal") << Token("x1") << line.tokens.at(1)};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "li", {RegTok, ImmTok},
+        Token("li"), {RegTok, ImmTok},
         PseudoExpandFunc(line, symbols) {
             LineTokensVec v;
             // Determine whether an ADDI or LUI instruction is sufficient, or if both LUI and ADDI is needed, by
@@ -210,174 +213,165 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
             // Generate offset required for discerning between positive and negative immediates
             if (isInt<12>(immediate)) {
                 // immediate can be represented by 12 bits, ADDI is sufficient
-                v.push_back(QStringList() << "addi" << line.tokens.at(1) << "x0" << QString::number(immediate));
+                v.push_back(LineTokens() << Token("addi") << line.tokens.at(1) << Token("x0") << QString::number(immediate));
             } else {
                 const int lower12Signed = signextend<int32_t, 12>(immediate & 0xFFF);
                 int signOffset = lower12Signed < 0 ? 1 : 0;
-                v.push_back(QStringList() << "lui" << line.tokens.at(1)
+                v.push_back(LineTokens() << Token("lui") << line.tokens.at(1)
                                           << QString::number((static_cast<uint32_t>(immediate) >> 12) + signOffset));
                 if ((immediate & 0xFFF) != 0) {
-                    v.push_back(QStringList()
-                                << "addi" << line.tokens.at(1) << line.tokens.at(1) << QString::number(lower12Signed));
+                    v.push_back(LineTokens()
+                                << Token("addi") << line.tokens.at(1) << line.tokens.at(1) << QString::number(lower12Signed));
                 }
             }
             return PseudoExpandRes{v};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("nop", {}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QString("addi x0 x0 0").split(' ')};
+        new PseudoInstruction(Token(Token("nop")), {}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens() << Token("addi") << Token("x0") << Token("x0") << Token("0")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
-        "mv", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"addi", line.tokens.at(1), line.tokens.at(2), "0"}};
+        Token("mv"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("addi"), line.tokens.at(1), line.tokens.at(2), Token("0")}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("not", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"xori", line.tokens.at(1), line.tokens.at(2), "-1"}};
+        new PseudoInstruction(Token("not"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("xori"), line.tokens.at(1), line.tokens.at(2), Token("-1")}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("neg", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"sub", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("neg"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("sub"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("seqz", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"sltiu", line.tokens.at(1), line.tokens.at(2), "1"}};
+        new PseudoInstruction(Token("seqz"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("sltiu"), line.tokens.at(1), line.tokens.at(2), Token("1")}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("snez", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{ QStringList{"sltu", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("snez"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{ LineTokens{Token("sltu"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("sltz", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"slt", line.tokens.at(1), line.tokens.at(2), "x0"}};
+        new PseudoInstruction(Token("sltz"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("slt"), line.tokens.at(1), line.tokens.at(2), Token("x0")}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("sgtz", {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"slt", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("sgtz"), {RegTok, RegTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("slt"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("beqz", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"beq", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("beqz"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("beq"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bnez", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"bne", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("bnez"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("bne"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("blez", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"bge", "x0", line.tokens.at(1), line.tokens.at(2)}};
+        new PseudoInstruction(Token("blez"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("bge"), Token("x0"), line.tokens.at(1), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgez", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"bge", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("bgez"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("bge"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bltz", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"blt", line.tokens.at(1), "x0", line.tokens.at(2)}};
+        new PseudoInstruction(Token("bltz"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("blt"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgtz", {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"blt", "x0", line.tokens.at(1), line.tokens.at(2)}};
+        new PseudoInstruction(Token("bgtz"), {RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("blt"), Token("x0"), line.tokens.at(1), line.tokens.at(2)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgt", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"blt", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
+        new PseudoInstruction(Token("bgt"), {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("blt"), line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("ble", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"bge", line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
+        new PseudoInstruction(Token("ble"), {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("bge"), line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bgtu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"bltu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
+        new PseudoInstruction(Token("bgtu"), {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("bltu"), line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(
-        new PseudoInstruction("bleu", {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
-            return LineTokensVec{QStringList{"bgeu", line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
+        new PseudoInstruction(Token("bleu"), {RegTok, RegTok, ImmTok}, PseudoExpandFunc(line, symbols) {
+            return LineTokensVec{LineTokens{Token("bgeu"), line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
         })));
     // clang-format on
 
     // Assembler functors
 
     instructions.push_back(std::shared_ptr<Instruction>(
-        new Instruction(Opcode("ecall", {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
+        new Instruction(Opcode(Token("ecall"), {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
 
-    instructions.push_back(UType("lui", 0b0110111));
+    instructions.push_back(UType(Token("lui"), 0b0110111));
 
-    /** @brief AUIPC requires special handling during symbol resolution as compared to if no symbol is provided to
-     * instruction.
-     * - If no symbol; the provided immediate will be placed in the upper 20 bits of the instruction
-     * - if symbol; the upper 20 bits of the provided resolved symbol will be placed in the upper 20 bits of the
-     * instruction. To facilitate these two capabilities, we provide a symbol modifier functor to adjust any
-     * provided symbol.
-     */
-    auto auipcSymbolModifier = [](uint32_t bareSymbol) { return bareSymbol >> 12; };
-    instructions.push_back(std::shared_ptr<Instruction>(
-        new Instruction(Opcode("auipc", {OpPart(0b0010111, 0, 6)}),
-                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"),
-                         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)},
-                                               Imm::SymbolType::Absolute, auipcSymbolModifier)})));
+    instructions.push_back(std::shared_ptr<Instruction>(new Instruction(
+        Opcode(Token("auipc"), {OpPart(0b0010111, 0, 6)}),
+        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"),
+         std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)}, Imm::SymbolType::Absolute)})));
 
-    instructions.push_back(JType("jal", 0b1101111));
+    instructions.push_back(JType(Token("jal"), 0b1101111));
 
-    instructions.push_back(JALRType("jalr"));
+    instructions.push_back(JALRType(Token("jalr")));
 
-    instructions.push_back(LoadType("lb", 0b000));
-    instructions.push_back(LoadType("lh", 0b001));
-    instructions.push_back(LoadType("lw", 0b010));
-    instructions.push_back(LoadType("lbu", 0b100));
-    instructions.push_back(LoadType("lhu", 0b101));
+    instructions.push_back(LoadType(Token("lb"), 0b000));
+    instructions.push_back(LoadType(Token("lh"), 0b001));
+    instructions.push_back(LoadType(Token("lw"), 0b010));
+    instructions.push_back(LoadType(Token("lbu"), 0b100));
+    instructions.push_back(LoadType(Token("lhu"), 0b101));
 
-    instructions.push_back(SType("sb", 0b000));
-    instructions.push_back(SType("sh", 0b001));
-    instructions.push_back(SType("sw", 0b010));
+    instructions.push_back(SType(Token("sb"), 0b000));
+    instructions.push_back(SType(Token("sh"), 0b001));
+    instructions.push_back(SType(Token("sw"), 0b010));
 
-    instructions.push_back(IType("addi", 0b000));
-    instructions.push_back(IType("slti", 0b010));
-    instructions.push_back(IType("sltiu", 0b011));
-    instructions.push_back(IType("xori", 0b100));
-    instructions.push_back(IType("ori", 0b110));
-    instructions.push_back(IType("andi", 0b111));
+    instructions.push_back(IType(Token("addi"), 0b000));
+    instructions.push_back(IType(Token("slti"), 0b010));
+    instructions.push_back(IType(Token("sltiu"), 0b011));
+    instructions.push_back(IType(Token("xori"), 0b100));
+    instructions.push_back(IType(Token("ori"), 0b110));
+    instructions.push_back(IType(Token("andi"), 0b111));
 
-    instructions.push_back(IShiftType("slli", 0b001, 0b0000000));
-    instructions.push_back(IShiftType("srli", 0b101, 0b0000000));
-    instructions.push_back(IShiftType("srai", 0b101, 0b0100000));
+    instructions.push_back(IShiftType(Token("slli"), 0b001, 0b0000000));
+    instructions.push_back(IShiftType(Token("srli"), 0b101, 0b0000000));
+    instructions.push_back(IShiftType(Token("srai"), 0b101, 0b0100000));
 
-    instructions.push_back(RType("add", 0b000, 0b0000000));
-    instructions.push_back(RType("sub", 0b000, 0b0100000));
-    instructions.push_back(RType("sll", 0b001, 0b0000000));
-    instructions.push_back(RType("slt", 0b010, 0b0000000));
-    instructions.push_back(RType("sltu", 0b011, 0b0000000));
-    instructions.push_back(RType("xor", 0b100, 0b0000000));
-    instructions.push_back(RType("srl", 0b101, 0b0000000));
-    instructions.push_back(RType("sra", 0b101, 0b0100000));
-    instructions.push_back(RType("or", 0b110, 0b0000000));
-    instructions.push_back(RType("and", 0b111, 0b0000000));
+    instructions.push_back(RType(Token("add"), 0b000, 0b0000000));
+    instructions.push_back(RType(Token("sub"), 0b000, 0b0100000));
+    instructions.push_back(RType(Token("sll"), 0b001, 0b0000000));
+    instructions.push_back(RType(Token("slt"), 0b010, 0b0000000));
+    instructions.push_back(RType(Token("sltu"), 0b011, 0b0000000));
+    instructions.push_back(RType(Token("xor"), 0b100, 0b0000000));
+    instructions.push_back(RType(Token("srl"), 0b101, 0b0000000));
+    instructions.push_back(RType(Token("sra"), 0b101, 0b0100000));
+    instructions.push_back(RType(Token("or"), 0b110, 0b0000000));
+    instructions.push_back(RType(Token("and"), 0b111, 0b0000000));
 
-    instructions.push_back(BType("beq", 0b000));
-    instructions.push_back(BType("bne", 0b001));
-    instructions.push_back(BType("blt", 0b100));
-    instructions.push_back(BType("bge", 0b101));
-    instructions.push_back(BType("bltu", 0b110));
-    instructions.push_back(BType("bgeu", 0b111));
+    instructions.push_back(BType(Token("beq"), 0b000));
+    instructions.push_back(BType(Token("bne"), 0b001));
+    instructions.push_back(BType(Token("blt"), 0b100));
+    instructions.push_back(BType(Token("bge"), 0b101));
+    instructions.push_back(BType(Token("bltu"), 0b110));
+    instructions.push_back(BType(Token("bgeu"), 0b111));
 }
 
 void RV32I_Assembler::enableExtM(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions, PseudoInstrVec&) const {
@@ -385,14 +379,14 @@ void RV32I_Assembler::enableExtM(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
     // --
 
     // Assembler functors
-    instructions.push_back(RType("mul", 0b000, 0b0000001));
-    instructions.push_back(RType("mulh", 0b001, 0b0000001));
-    instructions.push_back(RType("mulhsu", 0b010, 0b0000001));
-    instructions.push_back(RType("mulhu", 0b011, 0b0000001));
-    instructions.push_back(RType("div", 0b100, 0b0000001));
-    instructions.push_back(RType("divu", 0b101, 0b0000001));
-    instructions.push_back(RType("rem", 0b110, 0b0000001));
-    instructions.push_back(RType("remu", 0b111, 0b0000001));
+    instructions.push_back(RType(Token("mul"), 0b000, 0b0000001));
+    instructions.push_back(RType(Token("mulh"), 0b001, 0b0000001));
+    instructions.push_back(RType(Token("mulhsu"), 0b010, 0b0000001));
+    instructions.push_back(RType(Token("mulhu"), 0b011, 0b0000001));
+    instructions.push_back(RType(Token("div"), 0b100, 0b0000001));
+    instructions.push_back(RType(Token("divu"), 0b101, 0b0000001));
+    instructions.push_back(RType(Token("rem"), 0b110, 0b0000001));
+    instructions.push_back(RType(Token("remu"), 0b111, 0b0000001));
 }
 
 void RV32I_Assembler::enableExtF(const ISAInfo<ISA::RV32I>* isa, InstrVec&, PseudoInstrVec&) const {
