@@ -65,7 +65,13 @@ void IOLedMatrix::updateLEDRegs() {
     m_regDescs.clear();
     m_regDescs.resize(nLEDs);
     for (unsigned i = 0; i < m_regDescs.size(); i++) {
-        m_regDescs.at(i) = RegDesc{"LED_" + QString::number(i), RegDesc::RW::RW, 24, i * 4};
+        RegDesc regdesc;
+        regdesc.name = "LED_" + QString::number(i);
+        regdesc.rw = RegDesc::RW::RW;
+        regdesc.bitWidth = 24;
+        regdesc.address = i * 4;
+        regdesc.exported = false;
+        m_regDescs.at(i) = regdesc;
     }
 
     updateGeometry();

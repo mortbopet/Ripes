@@ -35,7 +35,7 @@ IODPad::IODPad(QWidget* parent) : IOBase(IOType::DPAD, parent) {
         m_buttons[static_cast<IdxToDir>(i)] = button;
         button->setArrowType(arrow);
 
-        m_regDescs.push_back(RegDesc{name, RegDesc::RW::R, 1, i * 4});
+        m_regDescs.push_back(RegDesc{name, RegDesc::RW::R, 1, i * 4, true});
     }
 
     auto* gridLayout = new QGridLayout();

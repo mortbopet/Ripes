@@ -184,7 +184,9 @@ void IOSwitches::updateSwitches() {
         m_switches.erase(idx);
     }
 
-    m_regDescs = {RegDesc{"Switches", RegDesc::RW::R, nSwitches, 0}};
+    // No reason to export the register, since the base pointer already points to it, and it is the only register of
+    // this component.
+    m_regDescs = {RegDesc{"Switches", RegDesc::RW::R, nSwitches, 0, false}};
     updateGeometry();
     resize(minimumSize());
     emit regMapChanged();

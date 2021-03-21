@@ -3,6 +3,8 @@
 #include "processorhandler.h"
 #include "ripessettings.h"
 
+#include <memory>
+
 #include "VSRTL/core/vsrtl_sparsearray.h"
 
 namespace Ripes {
@@ -13,6 +15,14 @@ IOManager::IOManager() : QObject(nullptr) {
             &IOManager::refreshAllPeriphsToProcessor);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &IOManager::refreshMemoryMap);
     refreshMemoryMap();
+}
+
+QString IOManager::cSymbolsHeaderpath() const {
+    if (m_symbolsHeaderFile) {
+        return m_symbolsHeaderFile->fileName();
+    } else {
+        return QString();
+    }
 }
 
 uint32_t IOManager::nextPeripheralAddress() const {
@@ -102,6 +112,61 @@ void IOManager::refreshMemoryMap() {
     }
 
     emit memoryMapChanged();
+    updateSymbols();
+}
+
+std::map<QString, uint32_t> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
+    const QString& periphName = cName(peripheral->name());
+    std::map<QString, uint32_t> symbols;
+    const auto& periphInfo = m_peripherals.at(peripheral);
+    symbols[periphName + "_BASE"] = periphInfo.startAddr;
+    symbols[periphName + "_SIZE"] = periphInfo.size;
+
+    for (const auto& reg : peripheral->registers()) {
+        if (reg.exported) {
+            symbols[periphName + "_" + cName(reg.name)] = reg.address + periphInfo.startAddr;
+        }
+    }
+
+    return symbols;
+}
+
+void IOManager::updateSymbols() {
+    m_assemblerSymbols.clear();
+
+    // Generate symbol mapping + header file
+    QStringList headerfile;
+    for (const auto& p : m_peripherals) {
+        const QString& periphName = cName(p.first->name());
+        headerfile << "// *****************************************************************************";
+        headerfile << "// * " + periphName;
+        headerfile << "// *****************************************************************************";
+
+        auto symbols = assemblerSymbolsForPeriph(p.first);
+        m_assemblerSymbols.insert(symbols.begin(), symbols.end());
+
+        for (const auto& symbol : assemblerSymbolsForPeriph(p.first)) {
+            headerfile << "#define " + symbol.first + "\t" + "(0x" + QString::number(symbol.second, 16) + ")";
+        }
+
+        headerfile << "\n";
+    }
+
+    // Store header file at a temporary location
+    if (!(m_symbolsHeaderFile && (QFile::exists(m_symbolsHeaderFile->fileName())))) {
+        const auto tempFileTemplate =
+            QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.h");
+        QTemporaryFile tmpHdrFile = QTemporaryFile(tempFileTemplate);
+        tmpHdrFile.setAutoRemove(false);
+        if (tmpHdrFile.open()) {
+            m_symbolsHeaderFile = std::make_unique<QFile>(tmpHdrFile.fileName());
+        }
+    }
+
+    if (m_symbolsHeaderFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
+        m_symbolsHeaderFile->write(headerfile.join('\n').toUtf8());
+        m_symbolsHeaderFile->close();
+    }
 }
 
 }  // namespace Ripes

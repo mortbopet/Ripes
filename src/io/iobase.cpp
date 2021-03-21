@@ -11,8 +11,8 @@ IOBase::IOBase(unsigned IOType, QWidget* parent) : QWidget(parent), m_type(IOTyp
     connect(this, &IOBase::scheduleUpdate, this, QOverload<>::of(&QWidget::update));
 }
 
-QString IOBase::cName() const {
-    QString cname = name();
+QString cName(const QString& name) {
+    QString cname = name;
     for (const auto& ch : {' ', '-'}) {
         cname.replace(ch, "_");
     }

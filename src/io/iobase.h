@@ -8,6 +8,12 @@
 
 namespace Ripes {
 
+/**
+ * @brief cName
+ * @returns a string escaped to be suitable as a source constant definition
+ */
+QString cName(const QString& name);
+
 struct IOParam {
     IOParam(unsigned _id, QString _name, QVariant _defValue, bool _hasRange, QVariant _min = QVariant(),
             QVariant _max = QVariant())
@@ -30,6 +36,11 @@ struct RegDesc {
     RW rw;
     unsigned bitWidth;
     uint32_t address;
+    /**
+     * @brief exported
+     * if true, a constant symbol is generated that may be referenced in the assembler, which targets this register.
+     */
+    bool exported = false;
 };
 
 class IOBase : public QWidget {
@@ -44,12 +55,6 @@ public:
 
     const std::map<unsigned, IOParam>& parameters() const { return m_parameters; }
     virtual QString description() const = 0;
-
-    /**
-     * @brief cName
-     * @returns unique name for this component, escaped to be suitable as a source constant definition
-     */
-    QString cName() const;
 
     /**
      * @brief name
