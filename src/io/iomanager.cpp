@@ -128,6 +128,12 @@ std::map<QString, uint32_t> IOManager::assemblerSymbolsForPeriph(IOBase* periphe
         }
     }
 
+    if (auto* extraSymbols = peripheral->extraSymbols()) {
+        for (const auto& extraSymbol : *extraSymbols) {
+            symbols[periphName + "_" + cName(extraSymbol.name)] = extraSymbol.value;
+        }
+    }
+
     return symbols;
 }
 

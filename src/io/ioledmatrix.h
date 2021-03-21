@@ -22,6 +22,7 @@ public:
     virtual QString baseName() const override { return "LED Matrix"; }
 
     virtual const std::vector<RegDesc>& registers() const override { return m_regDescs; };
+    virtual const std::vector<IOSymbol>* extraSymbols() const override { return &m_extraSymbols; }
 
     /**
      * Hardware read/write functions
@@ -45,6 +46,7 @@ private:
     unsigned m_maxSideWidth = 256;
     std::vector<uint32_t> m_ledRegs;
     std::vector<RegDesc> m_regDescs;
+    std::vector<IOSymbol> m_extraSymbols;
 
     QPen m_pen;
 };

@@ -57,10 +57,14 @@ inline QColor regToColor(uint32_t regVal) {
 }
 
 void IOLedMatrix::updateLEDRegs() {
-    const int width = m_parameters[WIDTH].value.toInt();
-    const int height = m_parameters[HEIGHT].value.toInt();
+    const unsigned width = m_parameters[WIDTH].value.toInt();
+    const unsigned height = m_parameters[HEIGHT].value.toInt();
     const int nLEDs = width * height;
     m_ledRegs.resize(nLEDs);
+
+    m_extraSymbols.clear();
+    m_extraSymbols.push_back(IOSymbol{"WIDTH", width});
+    m_extraSymbols.push_back(IOSymbol{"HEIGHT", width});
 
     m_regDescs.clear();
     m_regDescs.resize(nLEDs);

@@ -30,6 +30,11 @@ struct IOParam {
     QVariant max;
 };
 
+struct IOSymbol {
+    QString name;
+    uint32_t value;
+};
+
 struct RegDesc {
     enum class RW { R, W, RW };
     QString name;
@@ -73,6 +78,13 @@ public:
      * @return a description of the programmable interface of this peripheral
      */
     virtual const std::vector<RegDesc>& registers() const = 0;
+
+    /**
+     * @brief extraSymbols
+     * @returns the set of extra symbols defined by this peripheral. Useful if some symbols aren't directly translated
+     * from the register descriptions of this peripheral.
+     */
+    virtual const std::vector<IOSymbol>* extraSymbols() const { return nullptr; };
 
     /**
      * @brief setParameter
