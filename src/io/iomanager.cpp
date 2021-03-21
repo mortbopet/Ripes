@@ -124,7 +124,10 @@ std::vector<std::pair<QString, uint32_t>> IOManager::assemblerSymbolsForPeriph(I
 
     for (const auto& reg : peripheral->registers()) {
         if (reg.exported) {
-            symbols.push_back({periphName + "_" + cName(reg.name), reg.address + periphInfo.startAddr});
+            const QString base = periphName + "_" + cName(reg.name);
+            const QString offset = base + "_OFFSET";
+            symbols.push_back({offset, reg.address});
+            symbols.push_back({base, reg.address + periphInfo.startAddr});
         }
     }
 

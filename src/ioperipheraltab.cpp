@@ -18,10 +18,14 @@ IOPeripheralTab::IOPeripheralTab(QWidget* parent, IOBase* peripheral)
     m_ui->registerMapView->horizontalHeader()->setStretchLastSection(true);
     m_ui->registerMapView->resizeColumnsToContents();
 
-    m_ui->parameterView->setModel(new PeriphParamModel(peripheral, this));
-    m_ui->parameterView->horizontalHeader()->setStretchLastSection(true);
-    m_ui->parameterView->resizeColumnsToContents();
-    m_ui->parameterView->setItemDelegateForColumn(PeriphParamModel::Value, new PeriphParamDelegate(this));
+    if (peripheral->parameters().size() == 0) {
+        m_ui->parameterGroupBox->hide();
+    } else {
+        m_ui->parameterView->setModel(new PeriphParamModel(peripheral, this));
+        m_ui->parameterView->horizontalHeader()->setStretchLastSection(true);
+        m_ui->parameterView->resizeColumnsToContents();
+        m_ui->parameterView->setItemDelegateForColumn(PeriphParamModel::Value, new PeriphParamDelegate(this));
+    }
 
     updateExportsInfo();
 }
