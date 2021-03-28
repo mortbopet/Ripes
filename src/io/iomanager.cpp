@@ -55,6 +55,13 @@ void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
         vsrtl::core::IOFunctors{
             [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
             [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});
+
+    peripheral->memWrite = [](uint32_t address, uint32_t value, uint32_t size) {
+        ProcessorHandler::get()->getMemory().writeMem(address, value, size);
+    };
+    peripheral->memRead = [](uint32_t address, uint32_t size) {
+        return ProcessorHandler::get()->getMemory().readMem(address, size);
+    };
 }
 
 void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {

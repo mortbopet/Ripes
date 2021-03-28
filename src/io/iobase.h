@@ -94,10 +94,16 @@ public:
     virtual uint32_t size() const = 0;
 
     /**
-     * Hardware read/write functions
+     * Read/write functions from processor
      */
     virtual uint32_t ioRead(uint32_t offset, unsigned size) = 0;
     virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) = 0;
+
+    /**
+     * Read/write functions from peripheral to bus (memory/other periphs)
+     */
+    std::function<void(uint32_t, uint32_t, uint32_t)> memWrite;
+    std::function<uint32_t(uint32_t, uint32_t)> memRead;
 
 signals:
     /**
