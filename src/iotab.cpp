@@ -8,8 +8,13 @@
 
 #include "io/memorymapmodel.h"
 #include "processorhandler.h"
+#include "ripessettings.h"
 
 #include "ioperipheraltab.h"
+
+#include "VSRTL/external/cereal/include/cereal/archives/json.hpp"
+#include "VSRTL/external/cereal/include/cereal/types/map.hpp"
+#include "VSRTL/external/cereal/include/cereal/types/vector.hpp"
 
 namespace Ripes {
 
@@ -64,14 +69,24 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     connect(&IOManager::get(), &IOManager::peripheralRemoved, this, &IOTab::removePeripheral);
 
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
+
+    // Store peripheral state before exiting the program
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, this,
+            &IOTab::storePeripheralState);
+
+    // Reload peripheral state from the last graceful exit of the program
+    loadPeripheralState();
 }
 
-void IOTab::createPeripheral(IOType type) {
+IOBase* IOTab::createPeripheral(IOType type, int forcedID) {
     auto* peripheral = IOManager::get().createPeripheral(type);
+    if (forcedID != -1) {
+        peripheral->setID(forcedID);
+    }
     // Create tab for peripheral
     auto* peripheralTab = new IOPeripheralTab(this, peripheral);
     m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());
-    m_ioTabs[peripheral] = peripheralTab;
+    m_periphToTab[peripheral] = peripheralTab;
 
     // It seems excessive to create a QMainWindow for each peripheral but it seems like the only way to mix MDI
     // behaviour + dockable widgets that are able to pop out to a separate window
@@ -87,13 +102,74 @@ void IOTab::createPeripheral(IOType type) {
     peripheral->setFocus();
 
     m_subWindows[peripheralTab] = mdiw;
+    return peripheral;
+}
+
+void IOTab::loadPeripheralState() {
+    auto settings = RipesSettings::value(RIPES_SETTING_PERIPHERAL_SETTINGS).toString().toStdString();
+    if (settings.empty()) {
+        return;
+    }
+
+    std::istringstream in(settings);
+    try {
+        cereal::JSONInputArchive archive(in);
+
+        // Following the serialization order of storePeripheralState(), we first load the peripheral types and unique
+        // IDs, instantiate peripherals, and then load the peripheral settings.
+        PeriphIDs ids;
+        try {
+            archive(cereal::make_nvp("periphIDs", ids));
+            for (const auto& id : ids) {
+                if (id.typeId < NPERIPHERALS) {
+                    auto* periph = createPeripheral(static_cast<IOType>(id.typeId), id.uniqueId);
+                }
+            }
+
+            for (const auto& periph : m_periphToTab) {
+                IOBase* periphPtr = dynamic_cast<IOBase*>(periph.first);
+                archive(cereal::make_nvp(periphPtr->serializedUniqueID(), *periphPtr));
+            }
+        } catch (cereal::Exception e) {
+            /// @todo: build an error report
+        }
+    } catch (...) {
+        // Could not load peripherals from settings...
+        return;
+    }
+}
+
+void IOTab::storePeripheralState() {
+    std::ostringstream out;
+    {
+        cereal::JSONOutputArchive archive(out);
+
+        // First, serialize the type of each peripheral, and then the peripheral itself
+        PeriphIDs ids;
+        for (const auto& periph : m_periphToTab) {
+            IOBase* periphPtr = dynamic_cast<IOBase*>(periph.first);
+            assert(periphPtr);
+            ids.push_back({periphPtr->iotype(), periphPtr->id()});
+        }
+
+        try {
+            archive(cereal::make_nvp("periphIDs", ids));
+            for (const auto& periph : m_periphToTab) {
+                IOBase* periphPtr = dynamic_cast<IOBase*>(periph.first);
+                archive(cereal::make_nvp(periphPtr->serializedUniqueID(), *periphPtr));
+            }
+        } catch (cereal::Exception e) {
+            /// @todo: build an error report
+        }
+    }
+    RipesSettings::setValue(RIPES_SETTING_PERIPHERAL_SETTINGS, QString::fromStdString(out.str()));
 }
 
 void IOTab::setPeripheralTabActive(IOBase* peripheral) {
     if (peripheral == nullptr) {
         return;
     }
-    m_ui->peripheralsTab->setCurrentWidget(m_ioTabs.at(peripheral));
+    m_ui->peripheralsTab->setCurrentWidget(m_periphToTab.at(peripheral));
 }
 
 void IOTab::setPeripheralMDIWindowActive(int tabIndex) {
@@ -111,11 +187,11 @@ void IOTab::setPeripheralMDIWindowActive(int tabIndex) {
 }
 
 void IOTab::removePeripheral(QObject* peripheral) {
-    auto* tab = m_ioTabs.at(peripheral);
+    auto* tab = m_periphToTab.at(peripheral);
     Q_ASSERT(m_subWindows.count(tab) != 0);
     m_subWindows.erase(tab);
-    m_ioTabs.at(peripheral)->deleteLater();
-    m_ioTabs.erase(peripheral);
+    m_periphToTab.at(peripheral)->deleteLater();
+    m_periphToTab.erase(peripheral);
 }
 
 void IOTab::tile() {

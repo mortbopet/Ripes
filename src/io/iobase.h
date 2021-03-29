@@ -5,6 +5,9 @@
 #include <set>
 
 #include "binutils.h"
+#include "serializers.h"
+
+#include "VSRTL/external/cereal/include/cereal/cereal.hpp"
 
 namespace Ripes {
 
@@ -28,6 +31,11 @@ struct IOParam {
     bool hasRange = false;
     QVariant min;
     QVariant max;
+
+    template <class Archive>
+    void serialize(Archive& archive) {
+        archive(value);
+    }
 };
 
 struct IOSymbol {
@@ -105,6 +113,39 @@ public:
     std::function<void(uint32_t, uint32_t, uint32_t)> memWrite;
     std::function<uint32_t(uint32_t, uint32_t)> memRead;
 
+    unsigned iotype() const { return m_type; }
+    unsigned id() const { return m_id; }
+    void setID(unsigned id) {
+        unclaimPeripheralId(m_type, m_id);
+        m_id = claimPeripheralId(m_type, id);
+    }
+
+    /**
+     * @brief serializedUniqueID
+     * @returns a unique string identifying the type and ID of this peripheral, used during serialization of peripheral
+     * state.
+     */
+    std::string serializedUniqueID() const { return std::to_string(iotype()) + "_" + std::to_string(id()); }
+
+    template <class Archive>
+    void serialize(Archive& archive) {
+        int parameters = m_parameters.size();
+        archive(cereal::make_nvp("nparameters", parameters));
+
+        // Serialize a copy of m_parameters to avoid the real instance being overridden (we want to keep parameter name,
+        // bounds, etc.).
+        auto paramCopy = m_parameters;
+        archive(cereal::make_nvp("parameters", paramCopy));
+        for (const auto& p : paramCopy) {
+            m_parameters[p.first].value = p.second.value;
+        }
+
+        // Invalidate all parameters
+        for (int i = 0; i < parameters; i++) {
+            parameterChanged(i);
+        }
+    }
+
 signals:
     /**
      * @brief regMapChanged
@@ -132,6 +173,12 @@ signals:
      */
     void aboutToDelete(std::atomic<bool>& ok);
 
+    /**
+     * @brief paramsChanged
+     * Emitted after a parameter has been changed _and_ recognized by the IOBase component.
+     */
+    void paramsChanged();
+
 protected:
     /**
      * @brief unregister
@@ -148,21 +195,38 @@ protected:
     unsigned m_id;
 
     static std::map<unsigned, std::set<unsigned>> s_peripheralIDs;
-    static unsigned claimPeripheralId(const unsigned& ioType) {
-        auto& currentIDs = s_peripheralIDs[ioType];
-
-        // Just scan linearly from 0 and up until a free ID is found. Not optimal, but # of peripherals is small so no
-        // reason to overengineer.
+    static unsigned claimPeripheralId(const unsigned& ioType, int forcedID = -1) {
         unsigned id = 0;
-        while (currentIDs.count(id) != 0) {
-            id++;
+        auto& currentIDs = s_peripheralIDs[ioType];
+        if (forcedID != -1) {
+            id = forcedID;
+        } else {
+            // Just scan linearly from 0 and up until a free ID is found. Not optimal, but # of peripherals is small so
+            // no reason to overengineer.
+            while (currentIDs.count(id) != 0) {
+                id++;
+            }
         }
+
+        if (currentIDs.count(forcedID) != 0) {
+            throw std::runtime_error("Trying to claim a peripheral ID already claimed");
+        }
+
         currentIDs.insert(id);
+
         return id;
     }
+
     static void unclaimPeripheralId(const unsigned& ioType, unsigned id) {
-        Q_ASSERT(s_peripheralIDs[ioType].count(id) > 0);
-        s_peripheralIDs[ioType].erase(id);
+        auto& currentIDs = s_peripheralIDs[ioType];
+        auto it = currentIDs.find(id);
+        Q_ASSERT(it != currentIDs.end());
+
+        if (it == currentIDs.end()) {
+            throw std::runtime_error("Trying to remove a non-claimed peripheral ID");
+        }
+
+        currentIDs.erase(it);
     }
 
 private:

@@ -7,6 +7,17 @@
 
 namespace Ripes {
 
+struct PeripheralID {
+    unsigned typeId;
+    unsigned uniqueId;
+    template <class Archive>
+    void serialize(Archive& archive) {
+        archive(typeId);
+        archive(uniqueId);
+    }
+};
+using PeriphIDs = std::vector<PeripheralID>;
+
 struct MemoryMapEntry {
     uint32_t startAddr;
     unsigned size;

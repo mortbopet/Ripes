@@ -36,7 +36,17 @@ private slots:
     void setPeripheralMDIWindowActive(int tabIndex);
 
 private:
-    void createPeripheral(IOType type);
+    IOBase* createPeripheral(IOType type, int forcedID = -1);
+
+    /**
+     * @brief Peripheral serialization
+     * To make peripherals persist between invocations of the program, we serialize the state of all instantiated
+     * peripherals into a settings variable.
+     * Each peripheral is uniquely identified by a key (see IOBase::serializedID()). For each peripheral, we then store
+     * the values of its parameters (see IOParam).
+     */
+    void loadPeripheralState();
+    void storePeripheralState();
 
     void tile();
     Ui::IOTab* m_ui = nullptr;
@@ -48,7 +58,7 @@ private:
      * IOBase* given that the association is used during emission of the QObject::destroyed signal. In this case, the
      * IOBase* subclass has already been destroyed.
      */
-    std::unordered_map<QObject*, QWidget*> m_ioTabs;
+    std::unordered_map<QObject*, QWidget*> m_periphToTab;
 
     /**
      * @brief m_ioTabs

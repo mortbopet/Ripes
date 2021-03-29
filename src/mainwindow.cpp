@@ -268,6 +268,9 @@ void MainWindow::closeEvent(QCloseEvent* event) {
             saveFilesTriggered();
         }
     }
+
+    // Emit an observable signal to indicate that the application is about to close
+    RipesSettings::setValue(RIPES_GLOBALSIGNAL_QUIT, 0);
     QMainWindow::closeEvent(event);
 }
 

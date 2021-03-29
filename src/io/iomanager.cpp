@@ -4,6 +4,7 @@
 #include "ripessettings.h"
 
 #include <memory>
+#include <ostream>
 
 #include "VSRTL/core/vsrtl_sparsearray.h"
 
@@ -14,6 +15,7 @@ IOManager::IOManager() : QObject(nullptr) {
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
             &IOManager::refreshAllPeriphsToProcessor);
     connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &IOManager::refreshMemoryMap);
+
     refreshMemoryMap();
 }
 

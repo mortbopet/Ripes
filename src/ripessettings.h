@@ -24,6 +24,12 @@ namespace Ripes {
 
 #define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
 
+#define RIPES_SETTING_PERIPHERAL_SETTINGS ("peripheral_settings")
+
+// This is not really a setting, but instead a method to leverage the static observer objects that are generated for a
+// setting. Used for other objects to hook into a signal emitted just before the application closes.
+#define RIPES_GLOBALSIGNAL_QUIT ("sig_quit")
+
 // Program state preserving settings
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
 #define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
@@ -52,8 +58,10 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_PERIPHERALS_START, static_cast<unsigned>(0xF0000000)},
 
     // Program state preserving settings
+    {RIPES_GLOBALSIGNAL_QUIT, 0},
     {RIPES_SETTING_SETTING_TAB, 0},
     {RIPES_SETTING_VIEW_ZOOM, 250},
+    {RIPES_SETTING_PERIPHERAL_SETTINGS, ""},
     {RIPES_SETTING_PROCESSOR_ID, QVariant() /* Let processorhandler define default */},
     {RIPES_SETTING_PROCESSOR_LAYOUT_ID, 0},
     {RIPES_SETTING_FOLLOW_EXEC, "true"},
