@@ -14,6 +14,7 @@
 #include "ccmanager.h"
 #include "compilererrordialog.h"
 #include "editor/codeeditor.h"
+#include "io/iomanager.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "symbolnavigator.h"
@@ -215,7 +216,8 @@ void EditTab::sourceCodeChanged() {
 }
 
 void EditTab::assemble() {
-    auto res = ProcessorHandler::get()->getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText());
+    auto res = ProcessorHandler::get()->getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText(),
+                                                                    &IOManager::get().assemblerSymbols());
     *m_sourceErrors = res.errors;
     if (m_sourceErrors->size() == 0) {
         m_activeProgram = std::make_shared<Program>(res.program);

@@ -61,10 +61,10 @@ public:
 
     void setSegmentBase(Section seg, uint32_t base) { m_sectionBasePointers[seg] = base; }
 
-    virtual AssembleResult assemble(const QStringList& programLines) const = 0;
-    AssembleResult assembleRaw(const QString& program) const {
+    virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
+    AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
         const auto programLines = program.split(QRegExp("[\r\n]"));
-        return assemble(programLines);
+        return assemble(programLines, symbols);
     }
 
     virtual DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const = 0;
@@ -316,12 +316,15 @@ class Assembler : public AssemblerBase {
 public:
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
-    AssembleResult assemble(const QStringList& programLines) const override {
+    AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const override {
         AssembleResult result;
 
         // Per default, emit to .text until otherwise specified
         setCurrentSegment(".text");
         m_symbolMap.clear();
+        if (symbols) {
+            m_symbolMap = *symbols;
+        }
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);

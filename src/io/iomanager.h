@@ -51,7 +51,7 @@ public:
      * @brief assemblerSymbols
      * @returns as cSymbols, but as a map which can be directly loaded into the assembler.
      */
-    std::map<QString, uint32_t> assemblerSymbols() const { return m_assemblerSymbols; }
+    const std::map<QString, uint32_t>& assemblerSymbols() const { return m_assemblerSymbols; }
     std::vector<std::pair<QString, uint32_t>> assemblerSymbolsForPeriph(IOBase* peripheral) const;
 
 signals:
