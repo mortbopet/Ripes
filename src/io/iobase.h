@@ -137,12 +137,7 @@ public:
         auto paramCopy = m_parameters;
         archive(cereal::make_nvp("parameters", paramCopy));
         for (const auto& p : paramCopy) {
-            m_parameters[p.first].value = p.second.value;
-        }
-
-        // Invalidate all parameters
-        for (int i = 0; i < parameters; i++) {
-            parameterChanged(i);
+            setParameter(p.first, p.second.value);
         }
     }
 

@@ -28,9 +28,12 @@ IOPeripheralTab::IOPeripheralTab(QWidget* parent, IOBase* peripheral)
     }
 
     updateExportsInfo();
+
+    connect(peripheral, &IOBase::paramsChanged, this, &IOPeripheralTab::updateExportsInfo);
 }
 
 void IOPeripheralTab::updateExportsInfo() {
+    m_ui->exports->clear();
     auto symbols = IOManager::get().assemblerSymbolsForPeriph(m_peripheral);
     for (const auto& symbol : symbols) {
         m_ui->exports->appendPlainText("#define " + symbol.first + " " + "(0x" + QString::number(symbol.second, 16) +

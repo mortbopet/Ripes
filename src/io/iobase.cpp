@@ -28,12 +28,11 @@ bool IOBase::setParameter(unsigned ID, const QVariant& value) {
     m_parameters.at(ID).value = value;
     parameterChanged(ID);
     const auto postSize = size();
-    emit paramsChanged();
-
     if (preSize != postSize) {
         emit sizeChanged();
     }
 
+    emit paramsChanged();
     return true;
 }
 
