@@ -3,6 +3,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QKeyEvent>
 #include <QLinearGradient>
 #include <QMenu>
 #include <QMessageBox>
@@ -80,6 +81,42 @@ void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
     // Set margins of the text edit area
     m_sidebarWidth = lineNumberAreaWidth();
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
+}
+
+inline int indentationOf(const QString& text) {
+    int indent = 0;
+    for (const auto& ch : text) {
+        if (ch == " ") {
+            indent++;
+        } else {
+            break;
+        }
+    }
+    return indent;
+}
+
+void CodeEditor::keyPressEvent(QKeyEvent* e) {
+    constexpr int indentAmt = 4;
+    if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
+        const auto lineText = textCursor().block().text();
+        unsigned indent = 0;
+        // QoL 1: maintain level of indentation
+        indent = indentationOf(lineText);
+
+        // QoL 2: Further indent if last character was an indent start character
+        const auto trimmedLineText = lineText.trimmed();
+        if (!trimmedLineText.isEmpty()) {
+            if (QStringList{":", "(", "{", "["}.contains(QString(trimmedLineText.back()))) {
+                indent += indentAmt;
+            }
+        }
+        QPlainTextEdit::keyPressEvent(e);
+        insertPlainText(QString(" ").repeated(indent));
+    } else if (e->key() == Qt::Key_Tab) {
+        insertPlainText(QString(" ").repeated(indentAmt));
+    } else {
+        QPlainTextEdit::keyPressEvent(e);
+    }
 }
 
 bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
