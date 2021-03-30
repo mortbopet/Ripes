@@ -92,8 +92,12 @@ private:
      */
     uint32_t nextPeripheralAddress() const;
 
+    uint32_t assignBaseAddress(IOBase* peripheral);
+    void assignBaseAddresses();
+
     MemoryMap m_memoryMap;
-    std::map<IOBase*, MemoryMapEntry> m_peripherals;
+    std::map<IOBase*, MemoryMapEntry> m_periphMMappings;
+    std::set<IOBase*> m_peripherals;
     std::map<QString, uint32_t> m_assemblerSymbols;
     std::unique_ptr<QFile> m_symbolsHeaderFile;
 };

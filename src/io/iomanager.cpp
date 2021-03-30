@@ -29,10 +29,10 @@ QString IOManager::cSymbolsHeaderpath() const {
 
 uint32_t IOManager::nextPeripheralAddress() const {
     uint32_t base = 0;
-    if (m_peripherals.empty()) {
+    if (m_periphMMappings.empty()) {
         base = RipesSettings::value(RIPES_SETTING_PERIPHERALS_START).toUInt();
     } else {
-        for (const auto& periph : m_peripherals) {
+        for (const auto& periph : m_periphMMappings) {
             if (periph.second.end() > base) {
                 base = periph.second.end();
             }
@@ -41,19 +41,33 @@ uint32_t IOManager::nextPeripheralAddress() const {
     return base;
 }
 
+uint32_t IOManager::assignBaseAddress(IOBase* peripheral) {
+    unregisterPeripheralWithProcessor(peripheral);
+    const uint32_t base = nextPeripheralAddress();
+    m_periphMMappings[peripheral] = {base, peripheral->size(), peripheral->name()};
+    registerPeripheralWithProcessor(peripheral);
+    return base;
+}
+
+void IOManager::assignBaseAddresses() {
+    // First unassign all base addresses to start with a clean address map
+    for (const auto& periph : m_peripherals) {
+        unregisterPeripheralWithProcessor(periph);
+    }
+    for (const auto& periph : m_peripherals) {
+        assignBaseAddress(periph);
+    }
+    refreshMemoryMap();
+}
+
 void IOManager::peripheralSizeChanged(IOBase* peripheral) {
-    /** @todo
-     * - Check new peripheral size compared to old. If change detected, we must re-create the memory map to not have any
-     * overlap.
-     * - if not the above, re-register the peripheral with the processor; peripheral size may have decreased aswell.
-     * - update size of peripheral in internal map
-     */
-    Q_ASSERT(false);
+    assignBaseAddresses();
+    refreshMemoryMap();
 }
 
 void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
     ProcessorHandler::get()->getMemory().addRegion(
-        m_peripherals.at(peripheral).startAddr, peripheral->size(),
+        m_periphMMappings.at(peripheral).startAddr, peripheral->size(),
         vsrtl::core::IOFunctors{
             [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
             [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});
@@ -67,8 +81,11 @@ void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
 }
 
 void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
-    const auto& mmEntry = m_peripherals.at(peripheral);
-    ProcessorHandler::get()->getMemory().removeRegion(mmEntry.startAddr, mmEntry.size);
+    const auto& mmEntry = m_periphMMappings.find(peripheral);
+    if (mmEntry != m_periphMMappings.end()) {
+        ProcessorHandler::get()->getMemory().removeRegion(mmEntry->second.startAddr, mmEntry->second.size);
+        m_periphMMappings.erase(mmEntry);
+    }
 }
 
 IOBase* IOManager::createPeripheral(IOType type) {
@@ -77,10 +94,8 @@ IOBase* IOManager::createPeripheral(IOType type) {
     connect(peripheral, &IOBase::sizeChanged, [=] { this->peripheralSizeChanged(peripheral); });
     connect(peripheral, &IOBase::aboutToDelete, [=](std::atomic<bool>& ok) { this->removePeripheral(peripheral, ok); });
 
-    // Assign base address to peripheral
-    const uint32_t base = nextPeripheralAddress();
-    m_peripherals[peripheral] = {base, peripheral->size(), peripheral->name()};
-    registerPeripheralWithProcessor(peripheral);
+    m_peripherals.insert(peripheral);
+    assignBaseAddress(peripheral);
     refreshMemoryMap();
 
     return peripheral;
@@ -91,15 +106,15 @@ void IOManager::removePeripheral(IOBase* peripheral, std::atomic<bool>& ok) {
     Q_ASSERT(periphit != m_peripherals.end());
     unregisterPeripheralWithProcessor(peripheral);
     m_peripherals.erase(periphit);
-    refreshMemoryMap();
 
     emit peripheralRemoved(peripheral);
+    refreshMemoryMap();
 
     ok = true;
 }
 
 void IOManager::refreshAllPeriphsToProcessor() {
-    for (const auto& periph : m_peripherals) {
+    for (const auto& periph : m_periphMMappings) {
         registerPeripheralWithProcessor(periph.first);
     }
 }
@@ -107,7 +122,7 @@ void IOManager::refreshAllPeriphsToProcessor() {
 void IOManager::refreshMemoryMap() {
     m_memoryMap.clear();
 
-    for (const auto& periph : m_peripherals) {
+    for (const auto& periph : m_periphMMappings) {
         m_memoryMap[periph.second.startAddr] = periph.second;
     }
 
@@ -127,7 +142,7 @@ void IOManager::refreshMemoryMap() {
 std::vector<std::pair<QString, uint32_t>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
     const QString& periphName = cName(peripheral->name());
     std::vector<std::pair<QString, uint32_t>> symbols;
-    const auto& periphInfo = m_peripherals.at(peripheral);
+    const auto& periphInfo = m_periphMMappings.at(peripheral);
     symbols.push_back({periphName + "_BASE", periphInfo.startAddr});
     symbols.push_back({periphName + "_SIZE", periphInfo.size});
 
@@ -155,7 +170,7 @@ void IOManager::updateSymbols() {
     // Generate symbol mapping + header file
     QStringList headerfile;
     headerfile << "#pragma once";
-    for (const auto& p : m_peripherals) {
+    for (const auto& p : m_periphMMappings) {
         const QString& periphName = cName(p.first->name());
         headerfile << "// *****************************************************************************";
         headerfile << "// * " + periphName;
