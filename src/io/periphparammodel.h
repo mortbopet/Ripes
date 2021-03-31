@@ -9,6 +9,7 @@
 #include "radix.h"
 
 #include <QAbstractTableModel>
+#include <QPointer>
 #include <QStyledItemDelegate>
 
 namespace Ripes {
@@ -31,7 +32,7 @@ class PeriphParamModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Name, Value, NColumns };
-    PeriphParamModel(IOBase* peripheral, QObject* parent = nullptr);
+    PeriphParamModel(QPointer<IOBase> peripheral, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -43,6 +44,6 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
 private:
-    IOBase* m_peripheral = nullptr;
+    QPointer<IOBase> m_peripheral = nullptr;
 };
 }  // namespace Ripes

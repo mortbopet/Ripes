@@ -66,7 +66,7 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
         }
     });
 
-    connect(&IOManager::get(), &IOManager::peripheralRemoved, this, &IOTab::removePeripheral);
+    connect(&IOManager::get(), &IOManager::peripheralRemoved, QPointer(this), &IOTab::removePeripheral);
 
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
 
@@ -199,6 +199,18 @@ void IOTab::tile() {
 }
 
 IOTab::~IOTab() {
+    /* Because of the way that IOBase objects signal to the IOTab that they have been removed, we need to delete all
+     * IOBase objects before deleting the IOTab itself. The default deletion mechanism is incorrect for this, given that
+     * IOTab is first deleted, and then the underlying QObject is deleted (which deletes its children, being the IOBase
+     * objects). We delete from the subwindows because they are the top-level parent of the IOBase objects.
+     */
+
+    // Copy subwindows collection, so we can safely iterate through it (m_subWindows is modified when deleting a
+    // subwindow).
+    auto subWindowsCopy = m_subWindows;
+    for (const auto& subwindow : subWindowsCopy) {
+        delete subwindow.second;
+    }
     delete m_ui;
 }
 }  // namespace Ripes

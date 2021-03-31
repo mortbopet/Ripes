@@ -7,7 +7,7 @@
 
 namespace Ripes {
 
-RegisterMapModel::RegisterMapModel(IOBase* peripheral, QObject* parent)
+RegisterMapModel::RegisterMapModel(QPointer<IOBase> peripheral, QObject* parent)
     : QAbstractTableModel(parent), m_peripheral(peripheral) {
     connect(m_peripheral, &IOBase::regMapChanged, this, &RegisterMapModel::regMapChanged);
 }
@@ -23,7 +23,11 @@ int RegisterMapModel::columnCount(const QModelIndex&) const {
 }
 
 int RegisterMapModel::rowCount(const QModelIndex&) const {
-    return m_peripheral->registers().size();
+    if (!m_peripheral.isNull()) {
+        return m_peripheral->registers().size();
+    } else {
+        return 0;
+    }
 }
 
 QVariant RegisterMapModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -45,6 +49,10 @@ QVariant RegisterMapModel::headerData(int section, Qt::Orientation orientation, 
 }
 
 QVariant RegisterMapModel::data(const QModelIndex& index, int role) const {
+    if (m_peripheral.isNull()) {
+        return QVariant();
+    }
+
     if (!index.isValid()) {
         return QVariant();
     }

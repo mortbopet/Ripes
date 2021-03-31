@@ -35,7 +35,7 @@ void PeriphParamDelegate::setModelData(QWidget* e, QAbstractItemModel* model, co
     }
 }
 
-PeriphParamModel::PeriphParamModel(IOBase* peripheral, QObject* parent)
+PeriphParamModel::PeriphParamModel(QPointer<IOBase> peripheral, QObject* parent)
     : QAbstractTableModel(parent), m_peripheral(peripheral) {}
 
 int PeriphParamModel::columnCount(const QModelIndex&) const {
@@ -43,7 +43,11 @@ int PeriphParamModel::columnCount(const QModelIndex&) const {
 }
 
 int PeriphParamModel::rowCount(const QModelIndex&) const {
-    return m_peripheral->parameters().size();
+    if (!m_peripheral.isNull()) {
+        return m_peripheral->parameters().size();
+    } else {
+        return 0;
+    }
 }
 
 QVariant PeriphParamModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -61,12 +65,20 @@ QVariant PeriphParamModel::headerData(int section, Qt::Orientation orientation, 
 }
 
 bool PeriphParamModel::setData(const QModelIndex& index, const QVariant& value, int) {
-    const unsigned idx = index.row();
-    auto ret = m_peripheral->setParameter(idx, value);
-    return ret == value;
+    if (!m_peripheral.isNull()) {
+        const unsigned idx = index.row();
+        auto ret = m_peripheral->setParameter(idx, value);
+        return ret == value;
+    } else {
+        return false;
+    }
 }
 
 QVariant PeriphParamModel::data(const QModelIndex& index, int role) const {
+    if (m_peripheral.isNull()) {
+        return QVariant();
+    }
+
     if (!index.isValid()) {
         return QVariant();
     }

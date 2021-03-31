@@ -9,6 +9,7 @@
 #include "radix.h"
 
 #include <QAbstractTableModel>
+#include <QPointer>
 
 namespace Ripes {
 class IOBase;
@@ -22,7 +23,7 @@ class RegisterMapModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Name, Address, RW, BitWidth, NColumns };
-    RegisterMapModel(IOBase* peripheral, QObject* parent = nullptr);
+    RegisterMapModel(QPointer<IOBase> peripheral, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -36,6 +37,6 @@ public slots:
     void regMapChanged();
 
 private:
-    IOBase* m_peripheral = nullptr;
+    QPointer<IOBase> m_peripheral = nullptr;
 };
 }  // namespace Ripes
