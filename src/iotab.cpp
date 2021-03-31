@@ -26,13 +26,6 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
 
     m_ui->peripheralsTab->clear();
 
-    // Toolbar actions
-    m_tileAction = new QAction(this);
-    m_tileAction->setIcon(QIcon(":/icons/tile.svg"));
-    m_tileAction->setText("Tile I/O windows");
-    connect(m_tileAction, &QAction::triggered, this, &IOTab::tile);
-    m_toolbar->addAction(m_tileAction);
-
     // Setup peripheral selection window
     m_ui->peripheralsTable->setRowCount(IOTypeTitles.size());
     m_ui->peripheralsTable->setColumnCount(1);
@@ -192,10 +185,6 @@ void IOTab::removePeripheral(QObject* peripheral) {
     m_subWindows.erase(tab);
     m_periphToTab.at(peripheral)->deleteLater();
     m_periphToTab.erase(peripheral);
-}
-
-void IOTab::tile() {
-    Q_ASSERT(false);
 }
 
 IOTab::~IOTab() {

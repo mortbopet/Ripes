@@ -50,7 +50,6 @@ private:
 
     void tile();
     Ui::IOTab* m_ui = nullptr;
-    QAction* m_tileAction = nullptr;
 
     /**
      * @brief m_ioTabs
