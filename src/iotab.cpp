@@ -94,6 +94,18 @@ IOBase* IOTab::createPeripheral(IOType type, int forcedID) {
     mdiw->setWindowTitle(peripheral->name());
     peripheral->setFocus();
 
+    /* The following ensures that the MDI window which a peripheral is contained within is resized when the widget
+     * itself is resized. It seems a bit cumbersome, but this was the only way i wound to trigger both the QMainWindow
+     * and the outer MDIWindow to register that its child widget has changed in size, and adjust itself accordingly.
+     */
+    connect(peripheral, &IOBase::paramsChanged, [=] {
+        // Ensure that a peripheral resize event, as a result of a parameter being changed, as been processed, so that
+        // its new size has taken effect.
+        QApplication::processEvents();
+        mw->resize(mw->minimumSizeHint());
+        mdiw->resize(mdiw->minimumSizeHint());
+    });
+
     m_subWindows[peripheralTab] = mdiw;
     return peripheral;
 }

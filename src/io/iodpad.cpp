@@ -47,7 +47,7 @@ IODPad::IODPad(QWidget* parent) : IOBase(IOType::DPAD, parent) {
     setLayout(gridLayout);
 }
 
-uint32_t IODPad::size() const {
+uint32_t IODPad::byteSize() const {
     return 4 * 4;
 }
 

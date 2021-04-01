@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <QVariant>
 #include <QWidget>
@@ -100,7 +100,7 @@ public:
      * Attempt to set the parameter @p ID to @p value. Returns true if the value was set successfully.
      */
     virtual bool setParameter(unsigned ID, const QVariant& value);
-    virtual uint32_t size() const = 0;
+    virtual uint32_t byteSize() const = 0;
 
     /**
      * Read/write functions from processor
@@ -151,7 +151,7 @@ signals:
 
     /**
      * @brief sizeChanged
-     * Should be emitted every time the size of this peripheral changes.
+     * Should be emitted every time the memory size of this peripheral changes.
      */
     void sizeChanged();
 

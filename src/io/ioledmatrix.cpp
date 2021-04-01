@@ -21,7 +21,7 @@ IOLedMatrix::IOLedMatrix(QWidget* parent) : IOBase(IOType::LED_MATRIX, parent) {
     updateLEDRegs();
 }
 
-uint32_t IOLedMatrix::size() const {
+uint32_t IOLedMatrix::byteSize() const {
     const int width = m_parameters.at(WIDTH).value.toInt();
     const int height = m_parameters.at(HEIGHT).value.toInt();
     const int nLEDs = width * height;
@@ -79,7 +79,6 @@ void IOLedMatrix::updateLEDRegs() {
     }
 
     updateGeometry();
-    resize(minimumSize());
     emit regMapChanged();
 }
 

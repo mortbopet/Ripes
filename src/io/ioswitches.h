@@ -63,7 +63,7 @@ public:
     IOSwitches(QWidget* parent);
     ~IOSwitches() { unregister(); };
 
-    virtual uint32_t size() const override { return 4; }
+    virtual uint32_t byteSize() const override { return 4; }
     virtual QString description() const override;
     virtual QString baseName() const override { return "Switches"; };
 

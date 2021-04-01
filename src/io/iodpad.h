@@ -19,7 +19,7 @@ public:
     IODPad(QWidget* parent);
     ~IODPad() { unregister(); };
 
-    virtual uint32_t size() const override;
+    virtual uint32_t byteSize() const override;
     virtual QString description() const override;
     virtual QString baseName() const override { return "D-Pad"; };
 

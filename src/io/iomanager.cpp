@@ -44,7 +44,7 @@ uint32_t IOManager::nextPeripheralAddress() const {
 uint32_t IOManager::assignBaseAddress(IOBase* peripheral) {
     unregisterPeripheralWithProcessor(peripheral);
     const uint32_t base = nextPeripheralAddress();
-    m_periphMMappings[peripheral] = {base, peripheral->size(), peripheral->name()};
+    m_periphMMappings[peripheral] = {base, peripheral->byteSize(), peripheral->name()};
     registerPeripheralWithProcessor(peripheral);
     return base;
 }
@@ -67,7 +67,7 @@ void IOManager::peripheralSizeChanged(IOBase* peripheral) {
 
 void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
     ProcessorHandler::get()->getMemory().addRegion(
-        m_periphMMappings.at(peripheral).startAddr, peripheral->size(),
+        m_periphMMappings.at(peripheral).startAddr, peripheral->byteSize(),
         vsrtl::core::IOFunctors{
             [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
             [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});

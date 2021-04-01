@@ -17,7 +17,7 @@ public:
     IOLedMatrix(QWidget* parent);
     ~IOLedMatrix() { unregister(); };
 
-    virtual uint32_t size() const override;
+    virtual uint32_t byteSize() const override;
     virtual QString description() const override;
     virtual QString baseName() const override { return "LED Matrix"; }
 

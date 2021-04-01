@@ -24,10 +24,10 @@ QString IOBase::name() const {
 }
 
 bool IOBase::setParameter(unsigned ID, const QVariant& value) {
-    const auto preSize = size();
+    const auto preSize = byteSize();
     m_parameters.at(ID).value = value;
     parameterChanged(ID);
-    const auto postSize = size();
+    const auto postSize = byteSize();
     if (preSize != postSize) {
         emit sizeChanged();
     }

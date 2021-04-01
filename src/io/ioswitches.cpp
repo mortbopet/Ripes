@@ -188,7 +188,7 @@ void IOSwitches::updateSwitches() {
     // this component.
     m_regDescs = {RegDesc{"Switches", RegDesc::RW::R, nSwitches, 0, false}};
     updateGeometry();
-    resize(minimumSize());
+
     emit regMapChanged();
 }
 
