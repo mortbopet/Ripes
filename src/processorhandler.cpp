@@ -242,6 +242,10 @@ void ProcessorHandler::asyncTrap() {
     }
 }
 
+bool ProcessorHandler::isRunning() {
+    return !get()->m_runWatcher.isFinished();
+}
+
 void ProcessorHandler::checkProcessorFinished() {
     if (m_currentProcessor->finished())
         emit exit();

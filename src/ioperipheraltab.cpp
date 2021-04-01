@@ -6,6 +6,7 @@
 #include "io/iomanager.h"
 #include "io/periphparammodel.h"
 #include "io/registermapmodel.h"
+#include "processorhandler.h"
 
 namespace Ripes {
 
@@ -27,6 +28,12 @@ IOPeripheralTab::IOPeripheralTab(QWidget* parent, IOBase* peripheral)
         m_ui->parameterView->setItemDelegateForColumn(PeriphParamModel::Value, new PeriphParamDelegate(this));
     }
 
+    // Disable parameter modification during processor running
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
+            [=] { m_ui->parameterView->setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
+            [=] { m_ui->parameterView->setEnabled(true); });
+
     updateExportsInfo();
 
     connect(peripheral, &IOBase::paramsChanged, this, &IOPeripheralTab::updateExportsInfo);
@@ -36,7 +43,7 @@ void IOPeripheralTab::updateExportsInfo() {
     m_ui->exports->clear();
     auto symbols = IOManager::get().assemblerSymbolsForPeriph(m_peripheral);
     for (const auto& symbol : symbols) {
-        m_ui->exports->appendPlainText("#define " + symbol.first + " " + "(0x" + QString::number(symbol.second, 16) +
+        m_ui->exports->appendPlainText("#define " + symbol.first.v + " " + "(0x" + QString::number(symbol.second, 16) +
                                        ")");
     }
     CSyntaxHighlighter(m_ui->exports->document()).rehighlight();

@@ -118,6 +118,7 @@ public:
     bool hasBreakpoint(const uint32_t address) const;
     void clearBreakpoints();
     void checkProcessorFinished();
+    static bool isRunning();
 
     /**
      * @brief run

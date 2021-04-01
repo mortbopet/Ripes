@@ -60,8 +60,13 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     });
 
     connect(&IOManager::get(), &IOManager::peripheralRemoved, QPointer(this), &IOTab::removePeripheral);
-
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
+
+    // Disable instantiating new peripherals during processor running
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
+            [=] { m_ui->peripheralsTable->setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
+            [=] { m_ui->peripheralsTable->setEnabled(true); });
 
     // Store peripheral state before exiting the program
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, this,
@@ -105,6 +110,14 @@ IOBase* IOTab::createPeripheral(IOType type, int forcedID) {
         mw->resize(mw->minimumSizeHint());
         mdiw->resize(mdiw->minimumSizeHint());
     });
+
+    mdiw->setWindowFlags(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+
+    // Disable MDI subwindow close button when running the processor
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, mdiw,
+            [=] { mdiw->setWindowFlags(Qt::WindowTitleHint); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, mdiw,
+            [=] { mdiw->setWindowFlags(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint); });
 
     m_subWindows[peripheralTab] = mdiw;
     return peripheral;
