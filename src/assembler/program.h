@@ -22,6 +22,28 @@ enum class SourceType {
 
 #define TEXT_SECTION_NAME ".text"
 
+struct Symbol {
+public:
+    enum Type { Address = 1 << 0, Constant = 1 << 1 };
+    Symbol(){};
+    Symbol(const char* str) : v(str) {}
+    Symbol(const QString& str) : v(str) {}
+    Symbol(const QString& str, const Type _type) : v(str), type(_type) {}
+
+    bool operator==(const Symbol& rhs) const { return this->v == rhs.v; }
+    bool operator<(const Symbol& rhs) const { return this->v < rhs.v; }
+
+    bool is(const Type t) const { return type & t; }
+    bool is(const unsigned t) const { return type & t; }
+
+    operator const QString&() const { return v; }
+
+    QString v;
+    unsigned type = 0;
+};
+
+using ReverseSymbolMap = std::map<uint32_t, Symbol>;
+
 struct LoadFileParams {
     QString filepath;
     SourceType type;
@@ -43,7 +65,7 @@ struct ProgramSection {
 struct Program {
     unsigned long entryPoint = 0;
     std::map<QString, ProgramSection> sections;
-    std::map<uint32_t, QString> symbols;
+    ReverseSymbolMap symbols;
 
     const ProgramSection* getSection(const QString& name) const {
         const auto secIter =

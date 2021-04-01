@@ -139,11 +139,11 @@ void IOManager::refreshMemoryMap() {
     updateSymbols();
 }
 
-std::vector<std::pair<QString, uint32_t>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
+std::vector<std::pair<Symbol, uint32_t>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
     const QString& periphName = cName(peripheral->name());
-    std::vector<std::pair<QString, uint32_t>> symbols;
+    std::vector<std::pair<Symbol, uint32_t>> symbols;
     const auto& periphInfo = m_periphMMappings.at(peripheral);
-    symbols.push_back({periphName + "_BASE", periphInfo.startAddr});
+    symbols.push_back({{periphName + "_BASE", Symbol::Type::Address}, periphInfo.startAddr});
     symbols.push_back({periphName + "_SIZE", periphInfo.size});
 
     for (const auto& reg : peripheral->registers()) {
@@ -180,7 +180,7 @@ void IOManager::updateSymbols() {
         m_assemblerSymbols.insert(symbols.begin(), symbols.end());
 
         for (const auto& symbol : assemblerSymbolsForPeriph(p.first)) {
-            headerfile << "#define " + symbol.first + "\t" + "(0x" + QString::number(symbol.second, 16) + ")";
+            headerfile << "#define " + symbol.first.v + "\t" + "(0x" + QString::number(symbol.second, 16) + ")";
         }
 
         headerfile << "\n";

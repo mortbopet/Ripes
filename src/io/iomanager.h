@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assembler/assembler_defines.h"
 #include "iobase.h"
 #include "ioregistry.h"
 
@@ -51,8 +52,8 @@ public:
      * @brief assemblerSymbols
      * @returns as cSymbols, but as a map which can be directly loaded into the assembler.
      */
-    const std::map<QString, uint32_t>& assemblerSymbols() const { return m_assemblerSymbols; }
-    std::vector<std::pair<QString, uint32_t>> assemblerSymbolsForPeriph(IOBase* peripheral) const;
+    const Assembler::SymbolMap& assemblerSymbols() const { return m_assemblerSymbols; }
+    std::vector<std::pair<Symbol, uint32_t>> assemblerSymbolsForPeriph(IOBase* peripheral) const;
 
 signals:
     void memoryMapChanged();
@@ -98,7 +99,7 @@ private:
     MemoryMap m_memoryMap;
     std::map<IOBase*, MemoryMapEntry> m_periphMMappings;
     std::set<IOBase*> m_peripherals;
-    std::map<QString, uint32_t> m_assemblerSymbols;
+    Assembler::SymbolMap m_assemblerSymbols;
     std::unique_ptr<QFile> m_symbolsHeaderFile;
 };
 

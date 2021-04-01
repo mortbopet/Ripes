@@ -79,7 +79,7 @@ public:
 
     std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint32_t v) const {
         if (m_symbolMap.count(s)) {
-            return {Error(line, "Multiple definitions of symbol '" + s + "'")};
+            return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
         }
         m_symbolMap[s] = v;
         return {};
@@ -183,12 +183,12 @@ protected:
         for (const auto& token : splitTokens) {
             if (token.endsWith(':')) {
                 if (symbolStillAllowed) {
-                    const QString cleanedSymbol = token.left(token.length() - 1);
-                    if (symbols.count(cleanedSymbol) != 0) {
-                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
+                    const Symbol cleanedSymbol = Symbol(token.left(token.length() - 1), Symbol::Type::Address);
+                    if (symbols.count(cleanedSymbol.v) != 0) {
+                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol.v + "'")};
                     } else {
-                        if (cleanedSymbol.isEmpty() || cleanedSymbol.contains(s_exprOperatorsRegex)) {
-                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol + "'")};
+                        if (cleanedSymbol.v.isEmpty() || cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
+                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol.v + "'")};
                         }
 
                         symbols.insert(cleanedSymbol);
@@ -448,7 +448,7 @@ protected:
             bool uniqueSymbols = true;
             for (const auto& s : symbolsAndRest.first) {
                 if (symbols.count(s) != 0) {
-                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s + "'"));
+                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s.v + "'"));
                     uniqueSymbols = false;
                     break;
                 }
@@ -586,9 +586,11 @@ protected:
             return {errors};
         }
 
-        // Register symbols in program struct
+        // Register address symbols in program struct
         for (const auto& iter : m_symbolMap) {
-            program.symbols[iter.second] = iter.first;
+            if (iter.first.is(Symbol::Type::Address)) {
+                program.symbols[iter.second] = iter.first;
+            }
         }
 
         return {program};

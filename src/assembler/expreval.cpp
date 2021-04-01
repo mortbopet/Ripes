@@ -235,15 +235,22 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     IfExpr(Nothing, v) { return 0; }
     FiExpr;
     IfExpr(Literal, v) {
-        bool canConvert;
-        auto value = getImmediate(v->v, canConvert);
-        if (!canConvert) {
-            if (variables != nullptr && variables->count(v->v) != 0) {
-                value = variables->at(v->v);
-            } else {
-                throw std::runtime_error(QString("Unknown symbol '%1'").arg(v->v).toStdString());
+        bool ok = false;
+        auto value = getImmediate(v->v, ok);
+        if (!ok) {
+            if (variables != nullptr) {
+                auto it = variables->find(v->v);
+                if (it != variables->end()) {
+                    value = it->second;
+                    ok = true;
+                }
             }
         }
+
+        if (!ok) {
+            throw std::runtime_error(QString("Unknown symbol '%1'").arg(v->v).toStdString());
+        }
+
         return value;
     }
     FiExpr;

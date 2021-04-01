@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <set>
 
+#include "../assembler/program.h"
 #include "binutils.h"
 #include "serializers.h"
 
@@ -39,7 +40,7 @@ struct IOParam {
 };
 
 struct IOSymbol {
-    QString name;
+    Symbol name;
     uint32_t value;
 };
 

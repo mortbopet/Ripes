@@ -2,6 +2,7 @@
 
 #include <QRegularExpression>
 #include <variant>
+#include "assembler_defines.h"
 #include "assemblererror.h"
 
 namespace Ripes {
@@ -18,7 +19,7 @@ extern const QString s_exprTokens;
  * functionality is mainly intended to be used by the assembler to expand complex pseudoinstructions and as such not by
  * the user.
  */
-std::variant<Error, long> evaluate(const QString&, const std::map<QString, uint32_t>* variables = nullptr);
+std::variant<Error, long> evaluate(const QString&, const SymbolMap* variables = nullptr);
 
 /**
  * @brief couldBeExpression

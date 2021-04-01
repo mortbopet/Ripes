@@ -39,8 +39,8 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
                 // of invalid lines up to the given point.
                 incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
                 out += "\n";
-                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol);
-                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol + ">:\n";
+                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol.v);
+                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol.v + ">:\n";
             }
 
             // Instruction address
