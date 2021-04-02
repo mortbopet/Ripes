@@ -161,7 +161,7 @@ QStringList sanitizedArguments(const QString& args) {
 
 std::pair<QString, QStringList> CCManager::createCompileCommand(const QStringList& files,
                                                                 const QString& outname) const {
-    const auto& currentISA = ProcessorHandler::get()->currentISA();
+    const auto& currentISA = ProcessorHandler::currentISA();
 
     /**
      * @brief s_baseCC

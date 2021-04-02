@@ -31,7 +31,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         QTreeWidgetItem* processorItem = new QTreeWidgetItem({desc.second.name});
         processorItem->setData(ProcessorColumn, Qt::UserRole, QVariant::fromValue(desc.second.id));
-        if (desc.second.id == ProcessorHandler::get()->getID()) {
+        if (desc.second.id == ProcessorHandler::getID()) {
             auto font = processorItem->font(ProcessorColumn);
             font.setBold(true);
             processorItem->setFont(ProcessorColumn, font);
@@ -51,14 +51,14 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     for (const auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         m_selectedExtensionsForID[desc.second.id] = desc.second.isa->supportedExtensions();
     }
-    m_selectedExtensionsForID[ProcessorHandler::get()->getID()] =
-        ProcessorHandler::get()->currentISA()->enabledExtensions();
+    m_selectedExtensionsForID[ProcessorHandler::getID()] =
+        ProcessorHandler::currentISA()->enabledExtensions();
 
     if (selectedItem != nullptr) {
         // Select the processor and layout which is currently active
         m_ui->processors->setCurrentItem(selectedItem);
         int layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
-        if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.size()) {
+        if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts.size()) {
             layoutID = 0;
         }
         m_ui->layout->setCurrentIndex(layoutID);

@@ -66,24 +66,24 @@ void IOManager::peripheralSizeChanged(IOBase* peripheral) {
 }
 
 void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
-    ProcessorHandler::get()->getMemory().addRegion(
+    ProcessorHandler::getMemory().addRegion(
         m_periphMMappings.at(peripheral).startAddr, peripheral->byteSize(),
         vsrtl::core::IOFunctors{
             [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
             [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});
 
     peripheral->memWrite = [](uint32_t address, uint32_t value, uint32_t size) {
-        ProcessorHandler::get()->getMemory().writeMem(address, value, size);
+        ProcessorHandler::getMemory().writeMem(address, value, size);
     };
     peripheral->memRead = [](uint32_t address, uint32_t size) {
-        return ProcessorHandler::get()->getMemory().readMem(address, size);
+        return ProcessorHandler::getMemory().readMem(address, size);
     };
 }
 
 void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
     const auto& mmEntry = m_periphMMappings.find(peripheral);
     if (mmEntry != m_periphMMappings.end()) {
-        ProcessorHandler::get()->getMemory().removeRegion(mmEntry->second.startAddr, mmEntry->second.size);
+        ProcessorHandler::getMemory().removeRegion(mmEntry->second.startAddr, mmEntry->second.size);
         m_periphMMappings.erase(mmEntry);
     }
 }
@@ -126,7 +126,7 @@ void IOManager::refreshMemoryMap() {
         m_memoryMap[periph.second.startAddr] = periph.second;
     }
 
-    const auto& program = ProcessorHandler::get()->getProgram();
+    const auto& program = ProcessorHandler::getProgram();
     if (program) {
         for (const auto& section : program.get()->sections) {
             m_memoryMap[section.second.address] =

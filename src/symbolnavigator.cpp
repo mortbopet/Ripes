@@ -24,8 +24,8 @@ SymbolNavigator::SymbolNavigator(const Assembler::AddrOffsetMap& symbolmap, QWid
 
     for (const auto& iter : symbolmap) {
         if (!iter.second.second.isEmpty()) {
-            const long address = (iter.first - iter.second.first) * ProcessorHandler::get()->currentISA()->bytes() +
-                                 ProcessorHandler::get()->getTextStart();
+            const long address = (iter.first - iter.second.first) * ProcessorHandler::currentISA()->bytes() +
+                                 ProcessorHandler::getTextStart();
             addSymbol(address, iter.second.second);
         }
     }

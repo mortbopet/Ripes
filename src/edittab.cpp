@@ -188,13 +188,13 @@ void EditTab::sourceTypeChanged() {
     }
 
     // Notify the source type change to the code editor
-    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
 }
 
 void EditTab::onProcessorChanged() {
     // Notify a possible assembler change to the code editor - opcodes might have been added or removed which must be
     // reflected in the syntax highlighter
-    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
     assemble();
 }
 
@@ -216,7 +216,7 @@ void EditTab::sourceCodeChanged() {
 }
 
 void EditTab::assemble() {
-    auto res = ProcessorHandler::get()->getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText(),
+    auto res = ProcessorHandler::getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText(),
                                                                     &IOManager::get().assemblerSymbols());
     *m_sourceErrors = res.errors;
     if (m_sourceErrors->size() == 0) {
