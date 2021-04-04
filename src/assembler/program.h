@@ -2,12 +2,13 @@
 
 #include <QByteArray>
 #include <QMap>
+#include <QMetaType>
 #include <QString>
 #include <vector>
 
 namespace Ripes {
 
-enum class SourceType {
+enum SourceType {
     /** Assembly text */
     Assembly,
     /** C text */
@@ -80,3 +81,5 @@ struct Program {
 };
 
 }  // namespace Ripes
+
+Q_DECLARE_METATYPE(Ripes::SourceType);

@@ -75,6 +75,27 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     onProcessorChanged();
     sourceTypeChanged();
     enableEditor();
+
+    // State preservation
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, [=] {
+        RipesSettings::setValue(RIPES_SETTING_SOURCECODE, m_ui->codeEditor->document()->toPlainText());
+        RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
+    });
+
+    switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toUInt()) {
+        case SourceType::Assembly: {
+            m_ui->setAssemblyInput->toggle();
+            break;
+        }
+        case SourceType::C: {
+            m_ui->setCInput->toggle();
+            break;
+        }
+        default:
+            break;
+    }
+
+    m_ui->codeEditor->document()->setPlainText(RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
 }
 
 void EditTab::showSymbolNavigator() {
@@ -217,7 +238,7 @@ void EditTab::sourceCodeChanged() {
 
 void EditTab::assemble() {
     auto res = ProcessorHandler::getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText(),
-                                                                    &IOManager::get().assemblerSymbols());
+                                                             &IOManager::get().assemblerSymbols());
     *m_sourceErrors = res.errors;
     if (m_sourceErrors->size() == 0) {
         m_activeProgram = std::make_shared<Program>(res.program);

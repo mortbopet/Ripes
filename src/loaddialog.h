@@ -50,7 +50,7 @@ private slots:
     void loadFileError(const QString& filename);
 
 private:
-    enum TypeButtonID { Source, FlatBinary, ELF };
+    enum TypeButtonID { Source, Flatbinary, ELF };
     static TypeButtonID s_typeIndex;
     static QString s_filePath;
 

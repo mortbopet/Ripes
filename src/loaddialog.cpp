@@ -4,8 +4,8 @@
 #include "elfinfostrings.h"
 #include "elfio/elfio.hpp"
 
-#include "processorhandler.h"
 #include "assembler/program.h"
+#include "processorhandler.h"
 #include "radix.h"
 
 #include <QButtonGroup>
@@ -27,7 +27,7 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
 
     m_fileTypeButtons = new QButtonGroup(this);
     m_fileTypeButtons->addButton(m_ui->sourceRadioButton, TypeButtonID::Source);
-    m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::FlatBinary);
+    m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::Flatbinary);
     m_fileTypeButtons->addButton(m_ui->elfRadioButton, TypeButtonID::ELF);
 
     connect(m_fileTypeButtons, QOverload<int, bool>::of(&QButtonGroup::buttonToggled), this,
@@ -66,8 +66,8 @@ void LoadDialog::inputTypeChanged() {
             updateSourcePageState();
             break;
         }
-        case TypeButtonID::FlatBinary: {
-            m_currentType = TypeButtonID::FlatBinary;
+        case TypeButtonID::Flatbinary: {
+            m_currentType = TypeButtonID::Flatbinary;
             updateBinaryPageState();
             break;
         }
@@ -89,7 +89,7 @@ void LoadDialog::openFileButtonTriggered() {
             filter = "Source files [*.s, *.as, *.asm, *.c] (*.s *.as *.asm *.c);; All files (*.*)";
             break;
         }
-        case TypeButtonID::FlatBinary: {
+        case TypeButtonID::Flatbinary: {
             title = "Open binary file";
             filter = "All files (*)";
             break;
@@ -201,7 +201,7 @@ bool LoadDialog::fileTypeValidate(const QFile& file) {
     switch (m_currentType) {
         case TypeButtonID::Source:
             return validateSourceFile(file);
-        case TypeButtonID::FlatBinary:
+        case TypeButtonID::Flatbinary:
             return validateBinaryFile(file);
         case TypeButtonID::ELF:
             auto info = validateELFFile(file);
@@ -239,7 +239,7 @@ void LoadDialog::accept() {
             // Set source type based on file extension
             m_params.type = m_params.filepath.endsWith(".c") ? SourceType::C : SourceType::Assembly;
             break;
-        case TypeButtonID::FlatBinary:
+        case TypeButtonID::Flatbinary:
             m_params.type = SourceType::FlatBinary;
             break;
         case TypeButtonID::ELF:
