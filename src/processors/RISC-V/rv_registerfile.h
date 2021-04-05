@@ -81,7 +81,7 @@ public:
     OUTPUTPORT(r1_out, RV_REG_WIDTH);
     OUTPUTPORT(r2_out, RV_REG_WIDTH);
 
-    VSRTL_VT_U getRegister(unsigned i) { return m_memory->readMem<false>(i); }
+    VSRTL_VT_U getRegister(unsigned i) { return m_memory->readMem(i << 2); }
 
     std::vector<VSRTL_VT_U> getRegisters() {
         std::vector<VSRTL_VT_U> regs;
