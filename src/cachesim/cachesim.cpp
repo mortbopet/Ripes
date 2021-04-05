@@ -83,7 +83,7 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
 
     if (m_wrPolicy == WritePolicy::WriteBack) {
         // Dirty bits
-        unsigned componentBits = entries;  // 1 bit per entry
+        componentBits = entries;  // 1 bit per entry
         size.components.push_back("Dirty bits: " + QString::number(componentBits));
         size.bits += componentBits;
     }

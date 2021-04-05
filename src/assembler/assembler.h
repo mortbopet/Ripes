@@ -115,12 +115,12 @@ protected:
         }
         m_relocations = relocations;
         for (const auto& iter : m_relocations) {
-            const auto relocations = iter.get()->name();
-            if (m_relocationsMap.count(relocations) != 0) {
-                throw std::runtime_error("Error: relocation " + relocations.toStdString() +
+            const auto relocation = iter.get()->name();
+            if (m_relocationsMap.count(relocation) != 0) {
+                throw std::runtime_error("Error: relocation " + relocation.toStdString() +
                                          " has already been registerred.");
             }
-            m_relocationsMap[relocations] = iter;
+            m_relocationsMap[relocation] = iter;
         }
     }
 

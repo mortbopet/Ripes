@@ -70,7 +70,6 @@ private:
 
     MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction>>& instructions,
                              const unsigned fieldDepth = 1, OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-        using InstrVec = std::vector<std::shared_ptr<Instruction>>;
         std::map<OpPart, InstrVec> instrsWithEqualOpPart;
 
         for (const auto& instr : instructions) {

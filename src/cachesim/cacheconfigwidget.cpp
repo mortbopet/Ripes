@@ -93,8 +93,8 @@ void CacheConfigWidget::setupPresets() {
     preset.ways = 1;
     presets.push_back({"32-entry 4-word 2-way set associative", preset});
 
-    for (const auto& preset : presets) {
-        m_ui->presets->addItem(preset.first, QVariant::fromValue<CacheSim::CachePreset>(preset.second));
+    for (const auto& it : presets) {
+        m_ui->presets->addItem(it.first, QVariant::fromValue<CacheSim::CachePreset>(it.second));
     }
 
     connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {

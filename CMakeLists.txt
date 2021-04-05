@@ -12,7 +12,10 @@ endif()
 project(Ripes CXX)
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS "-Wextra -Wall -Wno-unused-local-typedefs -Wno-unused-function")
+    set(CMAKE_CXX_FLAGS "-Wextra -Wall \
+        -Werror=switch -Werror=return-type -Werror=shadow \
+        -Werror=unreachable-code -Werror=Wno-bad-function-cast \
+        -Werror=no-unused-function -Werror=no-unused-local-typedefs")
 endif()
 
 ######################################################################
