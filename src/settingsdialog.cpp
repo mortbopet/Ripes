@@ -117,6 +117,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::
 
     // Create settings pages
     addPage("Editor", createEditorPage());
+    addPage("Compiler", createCompilerPage());
     addPage("Simulator", createSimulatorPage());
     addPage("Environment", createEnvironmentPage());
 
@@ -131,7 +132,7 @@ void SettingsDialog::accept() {
     QDialog::accept();
 }
 
-QWidget* SettingsDialog::createEditorPage() {
+QWidget* SettingsDialog::createCompilerPage() {
     auto [pageWidget, pageLayout] = constructPage();
 
     // Setting: RIPES_SETTING_CCPATH
@@ -240,6 +241,18 @@ QWidget* SettingsDialog::createSimulatorPage() {
 
     pageLayout->addWidget(rewindLabel, 0, 0);
     pageLayout->addWidget(rewindSpinbox, 0, 1);
+
+    return pageWidget;
+}
+
+QWidget* SettingsDialog::createEditorPage() {
+    auto [pageWidget, pageLayout] = constructPage();
+
+    auto [indentLabel, indentSpinbox] = createSettingsWidgets<QSpinBox>(RIPES_SETTING_INDENTAMT, "Indent size:");
+    indentSpinbox->setRange(0, 100);
+
+    pageLayout->addWidget(indentLabel, 0, 0);
+    pageLayout->addWidget(indentSpinbox, 0, 1);
 
     return pageWidget;
 }

@@ -31,9 +31,10 @@ private:
     QLabel* m_compileInfo = nullptr;
     QLabel* m_compileInfoHeader = nullptr;
 
-    QWidget* createEditorPage();
+    QWidget* createCompilerPage();
     QWidget* createSimulatorPage();
     QWidget* createEnvironmentPage();
+    QWidget* createEditorPage();
 
     Ui::SettingsDialog* m_ui;
 

@@ -16,6 +16,7 @@ namespace Ripes {
 #define RIPES_SETTING_CONSOLEBG ("console_bg_color")
 #define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
 #define RIPES_SETTING_CONSOLEFONT ("console_font")
+#define RIPES_SETTING_INDENTAMT ("editor_indent")
 
 // Program state preserving settings
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
@@ -37,6 +38,7 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},
     {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */},
     {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
+    {RIPES_SETTING_INDENTAMT, 4},
 
     // Program state preserving settings
     {RIPES_SETTING_SETTING_TAB, 0},
