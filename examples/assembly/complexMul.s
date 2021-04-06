@@ -34,7 +34,9 @@ main:
     li a7, 1
     ecall
 
-    j end       # Jump to end of program
+    # Exit program
+    li a7, 10
+    ecall
 
 myMult:
     li t0, 32   # Iteration variable
@@ -102,5 +104,3 @@ complexMul:
     lw   ra, 16(sp) # Reload return address from stack
     addi sp, sp, 28 # Restore stack pointer
     jr x1
-
-end:nop

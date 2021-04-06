@@ -71,5 +71,6 @@ loop:
     jr x1
 
 exit:
+    # Exit program
     li a7, 10
     ecall
