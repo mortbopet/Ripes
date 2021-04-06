@@ -62,7 +62,6 @@ public slots:
      */
     void enableAssemblyInput();
 
-private slots:
     void showSymbolNavigator();
     void sourceCodeChanged();
     void on_disassembledViewButton_toggled();
