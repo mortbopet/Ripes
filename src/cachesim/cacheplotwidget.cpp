@@ -243,7 +243,7 @@ std::map<CachePlotWidget::Variable, QList<QPoint>>
 CachePlotWidget::gatherData(const std::vector<Variable>& types) const {
     const auto& trace = m_cache.getAccessTrace();
 
-    std::map<Variable, QList<QPoint>> data;
+    std::map<Variable, QList<QPoint>> cacheData;
 
     // Transform variable vector to set (avoid duplicates)
     std::set<Variable> varSet;
@@ -253,39 +253,39 @@ CachePlotWidget::gatherData(const std::vector<Variable>& types) const {
 
     for (const auto& type : types) {
         // Initialize all data types
-        data[type];
+        cacheData[type];
     }
 
     // Gather data
     for (const auto& entry : trace) {
         if (varSet.count(Variable::Writes)) {
-            data[Variable::Writes].append(QPoint(entry.first, entry.second.writes));
+            cacheData[Variable::Writes].append(QPoint(entry.first, entry.second.writes));
         }
         if (varSet.count(Variable::Reads)) {
-            data[Variable::Reads].append(QPoint(entry.first, entry.second.reads));
+            cacheData[Variable::Reads].append(QPoint(entry.first, entry.second.reads));
         }
         if (varSet.count(Variable::Hits)) {
-            data[Variable::Hits].append(QPoint(entry.first, entry.second.hits));
+            cacheData[Variable::Hits].append(QPoint(entry.first, entry.second.hits));
         }
         if (varSet.count(Variable::Misses)) {
-            data[Variable::Misses].append(QPoint(entry.first, entry.second.misses));
+            cacheData[Variable::Misses].append(QPoint(entry.first, entry.second.misses));
         }
         if (varSet.count(Variable::Writebacks)) {
-            data[Variable::Writebacks].append(QPoint(entry.first, entry.second.writebacks));
+            cacheData[Variable::Writebacks].append(QPoint(entry.first, entry.second.writebacks));
         }
         if (varSet.count(Variable::Accesses)) {
-            data[Variable::Accesses].append(QPoint(entry.first, entry.second.hits + entry.second.misses));
+            cacheData[Variable::Accesses].append(QPoint(entry.first, entry.second.hits + entry.second.misses));
         }
     }
 
-    return data;
+    return cacheData;
 }
 
 QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den) const {
-    const auto data = gatherData({num, den});
+    const auto cacheData = gatherData({num, den});
 
-    const QList<QPoint>& numerator = data.at(num);
-    const QList<QPoint>& denominator = data.at(den);
+    const QList<QPoint>& numerator = cacheData.at(num);
+    const QList<QPoint>& denominator = cacheData.at(den);
 
     Q_ASSERT(numerator.size() == denominator.size());
 
@@ -344,9 +344,9 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
         return nullptr;
     }
 
-    const auto data = gatherData(variables);
-    const unsigned len = data.at(*variables.begin()).size();
-    for (const auto& iter : data) {
+    const auto cacheData = gatherData(variables);
+    const unsigned len = cacheData.at(*variables.begin()).size();
+    for (const auto& iter : cacheData) {
         Q_ASSERT(len == iter.second.size());
     }
 
@@ -365,7 +365,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
     QLineSeries* upperSeries = nullptr;
     const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
     unsigned maxY = 0;
-    for (const auto& variableData : data) {
+    for (const auto& variableData : cacheData) {
         upperSeries = new QLineSeries(chart);
         for (unsigned i = 0; i < len; i++) {
             const auto& dataPoint = variableData.second.at(i);

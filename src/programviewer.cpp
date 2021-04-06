@@ -213,7 +213,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
     }
     high = std::next(low);
 
-    auto validBlockRange = [this, adjustedLineNumber](auto& low, auto& high, long lineNumber) {
+    auto validBlockRange = [&] {
         if (m_labelAddrOffsetMap.count(lineNumber))
             return false;
 
@@ -226,7 +226,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
     };
 
     // Adjust low and high iterators to locate the range bounds of the address
-    while (!validBlockRange(low, high, lineNumber)) {
+    while (!validBlockRange()) {
         low = m_labelAddrOffsetMap.lower_bound(lineNumber);
         high = std::next(low);
         lineNumber = low->first + 1;

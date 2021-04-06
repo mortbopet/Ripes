@@ -20,9 +20,9 @@ void CacheView::mousePressEvent(QMouseEvent* event) {
     // address was selected through the cache
     for (const auto& item : items(event->pos())) {
         if (auto* textItem = dynamic_cast<QGraphicsSimpleTextItem*>(item)) {
-            const QVariant data = textItem->data(Qt::UserRole);
-            if (data.isValid()) {
-                emit cacheAddressSelected(data.toUInt());
+            const QVariant userData = textItem->data(Qt::UserRole);
+            if (userData.isValid()) {
+                emit cacheAddressSelected(userData.toUInt());
                 break;
             }
         }

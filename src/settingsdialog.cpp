@@ -287,12 +287,12 @@ void SettingsDialog::addPage(const QString& name, QWidget* page) {
     m_ui->settingsList->addItem(item);
 
     connect(m_ui->settingsList, &QListWidget::currentItemChanged, [=](QListWidgetItem* current, QListWidgetItem*) {
-        const QString name = current->text();
-        Q_ASSERT(m_pageIndex.count(name));
+        const QString _name = current->text();
+        Q_ASSERT(m_pageIndex.count(_name));
 
-        const int index = m_pageIndex.at(name);
-        m_ui->settingsPages->setCurrentIndex(index);
-        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, index);
+        const int idx = m_pageIndex.at(_name);
+        m_ui->settingsPages->setCurrentIndex(idx);
+        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, idx);
     });
 }
 

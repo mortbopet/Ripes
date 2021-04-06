@@ -98,9 +98,9 @@ void CacheConfigWidget::setupPresets() {
     }
 
     connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        const CacheSim::CachePreset preset = qvariant_cast<CacheSim::CachePreset>(m_ui->presets->itemData(index));
+        const CacheSim::CachePreset _preset = qvariant_cast<CacheSim::CachePreset>(m_ui->presets->itemData(index));
         m_justSetPreset = true;
-        m_cache->setPreset(preset);
+        m_cache->setPreset(_preset);
     });
 }
 

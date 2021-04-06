@@ -39,12 +39,12 @@ Console::Console(QWidget* parent) : QPlainTextEdit(parent) {
     m_localEchoEnabled = RipesSettings::value(RIPES_SETTING_CONSOLEECHO).toBool();
 }
 
-void Console::putData(const QByteArray& data) {
+void Console::putData(const QByteArray& bytes) {
     // Text can always only be inserted at the end of the console
     auto cursorAtEnd = QTextCursor(document());
     cursorAtEnd.movePosition(QTextCursor::End);
     setTextCursor(cursorAtEnd);
-    insertPlainText(data);
+    insertPlainText(bytes);
 
     QScrollBar* bar = verticalScrollBar();
     bar->setValue(bar->maximum());

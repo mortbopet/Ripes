@@ -109,13 +109,14 @@ struct Reg : public Field {
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
      * @param range: range in instruction field containing register index value
      */
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range) : Field(tokenIndex), m_range(range), m_isa(isa) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
-        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, QString _regsd)
-        : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
-        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, BitRange range)
+        : Field(_tokenIndex), m_range(range), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop)
+        : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, BitRange range, QString _regsd)
+        : Field(_tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
+        : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
         bool success;

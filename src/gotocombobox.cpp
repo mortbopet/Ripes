@@ -76,8 +76,8 @@ void GoToRegisterComboBox::addTargets() {
 }
 
 uint32_t GoToRegisterComboBox::addrForIndex(int i) {
-    const auto& data = qvariant_cast<GoToUserData>(itemData(i));
-    return ProcessorHandler::get()->getRegisterValue(RegisterFileType::GPR, data.arg);
+    const auto& regIdx = qvariant_cast<GoToUserData>(itemData(i));
+    return ProcessorHandler::get()->getRegisterValue(RegisterFileType::GPR, regIdx.arg);
 }
 
 }  // namespace Ripes
