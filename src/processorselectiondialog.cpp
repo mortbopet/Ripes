@@ -42,6 +42,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     }
 
     connect(m_ui->processors, &QTreeWidget::currentItemChanged, this, &ProcessorSelectionDialog::selectionChanged);
+    connect(m_ui->processors, &QTreeWidget::itemDoubleClicked, this, &QDialog::accept);
 
     connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
