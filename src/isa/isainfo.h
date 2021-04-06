@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMap>
+#include <QSet>
 #include <QString>
 #include <set>
 
@@ -57,6 +58,17 @@ public:
     virtual const QStringList& enabledExtensions() const = 0;
     bool extensionEnabled(const QString& ext) const { return enabledExtensions().contains(ext); }
     bool supportsExtension(const QString& ext) const { return supportedExtensions().contains(ext); }
+
+    /**
+     * ISA equality is defined as a separate function rather than the == operator, given that we might need to check for
+     * ISA equivalence, without having instantiated the other ISA. As such, it being uninstantiated does not allow
+     * compoarison of extensions.
+     */
+    bool eq(const ISAInfoBase* other, const QStringList& otherExts) const {
+        const auto ext1 = QSet(this->enabledExtensions().begin(), this->enabledExtensions().end());
+        const auto ext2 = QSet(otherExts.begin(), otherExts.end());
+        return this->name() == other->name() && ext1 == ext2;
+    }
 
 protected:
     ISAInfoBase() {}

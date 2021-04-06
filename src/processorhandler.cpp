@@ -163,9 +163,12 @@ void ProcessorHandler::createAssemblerForCurrentISA() {
 
 void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList& extensions,
                                         RegisterInitialization setup) {
-    m_program = nullptr;
     m_currentID = id;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
+
+    // Keep current program if the ISA between the two processors are identical
+    const bool keepProgram = m_currentProcessor && (m_currentProcessor->implementsISA()->eq(
+                                                       ProcessorRegistry::getDescription(id).isa, extensions));
 
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);
@@ -192,6 +195,12 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
 
     m_currentProcessor->verifyAndInitialize();
     createAssemblerForCurrentISA();
+
+    if (keepProgram && m_program) {
+        loadProgram(m_program);
+    } else {
+        m_program = nullptr;
+    }
 
     emit processorChanged();
 }
