@@ -23,6 +23,7 @@ namespace Ripes {
 #define RIPES_SETTING_PROCESSOR_ID ("processor_id")
 #define RIPES_SETTING_PROCESSOR_LAYOUT_ID ("processor_layout_id")
 #define RIPES_SETTING_FOLLOW_EXEC ("follow_execution")
+#define RIPES_SETTING_DARKMODE ("darkmode")
 
 // ============= Definitions of all default settings within Ripes ==============
 const static std::map<QString, QVariant> s_defaultSettings = {
@@ -42,7 +43,8 @@ const static std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_VIEW_ZOOM, 250},
     {RIPES_SETTING_PROCESSOR_ID, QVariant() /* Let processorhandler define default */},
     {RIPES_SETTING_PROCESSOR_LAYOUT_ID, 0},
-    {RIPES_SETTING_FOLLOW_EXEC, "true"}};
+    {RIPES_SETTING_FOLLOW_EXEC, "true"},
+    {RIPES_SETTING_DARKMODE, false}};
 
 /**
  * @brief The SettingObserver class

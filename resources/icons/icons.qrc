@@ -36,5 +36,6 @@
         <file>trace.svg</file>
         <file>compass.svg</file>
         <file>clear.svg</file>
+        <file>moon.svg</file>
     </qresource>
 </RCC>

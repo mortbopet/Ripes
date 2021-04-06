@@ -244,6 +244,16 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
     connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
     m_toolbar->addAction(m_stageTableAction);
+
+    const QIcon moonIcon = QIcon(":/icons/moon.svg");
+    m_darkmodeAction = new QAction(moonIcon, "Toggle darkmode", this);
+    m_darkmodeAction->setCheckable(true);
+    connect(m_darkmodeAction, &QAction::toggled, m_vsrtlWidget, [=](bool checked) {
+        RipesSettings::setValue(RIPES_SETTING_DARKMODE, QVariant::fromValue(checked));
+        m_vsrtlWidget->setDarkmode(checked);
+    });
+    m_toolbar->addAction(m_darkmodeAction);
+    m_darkmodeAction->setChecked(RipesSettings::value(RIPES_SETTING_DARKMODE).toBool());
 }
 
 void ProcessorTab::updateStatistics() {
@@ -410,10 +420,10 @@ void ProcessorTab::updateInstructionLabels() {
         QString instrString;
         if (stageInfo.state != StageInfo::State::None) {
             instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
-            instrLabel->setDefaultTextColor(Qt::red);
+            instrLabel->forceDefaultTextColor(Qt::red);
         } else if (stageInfo.stage_valid) {
             instrString = ProcessorHandler::get()->disassembleInstr(stageInfo.pc);
-            instrLabel->setDefaultTextColor(QColor());
+            instrLabel->clearForcedDefaultTextColor();
         }
         instrLabel->setText(instrString);
     }
