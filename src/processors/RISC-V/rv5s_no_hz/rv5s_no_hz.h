@@ -385,6 +385,7 @@ public:
         }
         ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
     }
+    const std::vector<unsigned> breakpointTriggeringStages() const override { return {IF}; };
 
     const Component* getDataMemory() const override { return data_mem; }
     const Component* getInstrMemory() const override { return instr_mem; }

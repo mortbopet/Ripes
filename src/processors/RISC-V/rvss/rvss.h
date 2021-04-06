@@ -170,6 +170,7 @@ public:
         }
     }
     bool finished() const override { return m_finished; }
+    const std::vector<unsigned> breakpointTriggeringStages() const override { return {0}; };
 
     const Component* getDataMemory() const override { return data_mem; }
     const Component* getInstrMemory() const override { return instr_mem; }

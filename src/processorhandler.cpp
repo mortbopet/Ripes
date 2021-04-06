@@ -135,8 +135,13 @@ bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {
 }
 
 bool ProcessorHandler::checkBreakpoint() {
-    const auto pc = m_currentProcessor->getPcForStage(0);
-    return m_breakpoints.count(pc);
+    for (const auto& stage : m_currentProcessor->breakpointTriggeringStages()) {
+        const auto it = m_breakpoints.find(m_currentProcessor->getPcForStage(stage));
+        if (it != m_breakpoints.end()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void ProcessorHandler::toggleBreakpoint(const uint32_t address) {

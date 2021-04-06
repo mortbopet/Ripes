@@ -94,6 +94,12 @@ public:
     virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
 
     /**
+     * @brief breakpointTriggeringStages
+     * @returns the stage indicies for which a breakpoint is triggered when the breakpoint PC address enters the stage.
+     */
+    virtual const std::vector<unsigned> breakpointTriggeringStages() const = 0;
+
+    /**
      * @brief getMemory
      * @return reference to the address space utilized by the implementing processor
      */
