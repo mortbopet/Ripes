@@ -18,7 +18,9 @@ namespace Ripes {
 Q_NAMESPACE
 
 // =============================== Processors =================================
-enum ProcessorID { RVSS, RV5S, RV6S_DUAL, RV5S_NO_HZ, RV5S_NO_FW_HZ, NUM_PROCESSORS };
+// The order of the ProcessorID enum defines the order of which the processors will appear in the processor selection
+// dialog.
+enum ProcessorID { RVSS, RV5S_NO_FW_HZ, RV5S_NO_HZ, RV5S, RV6S_DUAL, NUM_PROCESSORS };
 Q_ENUM_NS(Ripes::ProcessorID);  // Register with the metaobject system
 // ============================================================================
 
@@ -86,34 +88,20 @@ private:
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
-        // RISC-V 5-Stage
+        // RISC-V 5-stage without forwarding or hazard detection
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV5S;
-        desc.isa = vsrtl::core::RV5S::ISA();
-        desc.name = "5-stage processor";
-        desc.description = "A 5-stage in-order processor with hazard detection/elimination and forwarding.";
-        desc.layouts = {{"Standard",
-                         ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json",
-                         {QPointF{0.08, 0}, QPointF{0.29, 0}, QPointF{0.55, 0}, QPointF{0.75, 0}, QPointF{0.87, 0}}},
-                        {"Extended",
-                         ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json",
-                         {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.54, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
-        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-        m_descriptions[desc.id] = desc;
+        desc.id = ProcessorID::RV5S_NO_FW_HZ;
+        desc.isa = vsrtl::core::RV5S_NO_FW_HZ::ISA();
+        desc.name = "5-stage processor w/o forwarding or hazard detection";
+        desc.description = "A 5-stage in-order processor with no forwarding or hazard detection/elimination.";
+        desc.layouts = {
+            {"Standard",
+             ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
+             {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.54, 0}, QPointF{0.73, 0}, QPointF{0.88, 0}}},
+            {"Extended",
+             ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json",
+             {QPointF{0.08, 0.0}, QPointF{0.31, 0.0}, QPointF{0.56, 0.0}, QPointF{0.76, 0.0}, QPointF{0.9, 0.0}}}};
 
-        desc = ProcessorDescription();
-        desc.id = ProcessorID::RV6S_DUAL;
-        desc.isa = vsrtl::core::RV6S_DUAL::ISA();
-        desc.name = "6-stage dual-issue processor";
-        QPolygonF abc = {{QPointF{0.08, 0.0}}};
-        desc.description =
-            "A 6-stage dual-issue in-order processor. Each way may execute arithmetic instructions, whereas way 1 is "
-            "reserved for controlflow and ecall instructions, and way 2 for memory accessing instructions.";
-        desc.layouts = {{"Extended",
-                         ":/layouts/RISC-V/rv6s_dual/rv6s_dual_extended_layout.json",
-                         {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0}, QPointF{0.22, 1}, QPointF{0.35, 0},
-                           QPointF{0.35, 1}, QPointF{0.54, 0}, QPointF{0.54, 1}, QPointF{0.78, 0}, QPointF{0.78, 1},
-                           QPointF{0.87, 0}, QPointF{0.87, 1}}}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
@@ -132,20 +120,34 @@ private:
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
-        // RISC-V 5-stage without forwarding or hazard detection
+        // RISC-V 5-Stage
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV5S_NO_FW_HZ;
-        desc.isa = vsrtl::core::RV5S_NO_FW_HZ::ISA();
-        desc.name = "5-stage processor w/o forwarding or hazard detection";
-        desc.description = "A 5-stage in-order processor with no forwarding or hazard detection/elimination.";
-        desc.layouts = {
-            {"Standard",
-             ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
-             {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.54, 0}, QPointF{0.73, 0}, QPointF{0.88, 0}}},
-            {"Extended",
-             ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json",
-             {QPointF{0.08, 0.0}, QPointF{0.31, 0.0}, QPointF{0.56, 0.0}, QPointF{0.76, 0.0}, QPointF{0.9, 0.0}}}};
+        desc.id = ProcessorID::RV5S;
+        desc.isa = vsrtl::core::RV5S::ISA();
+        desc.name = "5-stage processor";
+        desc.description = "A 5-stage in-order processor with hazard detection/elimination and forwarding.";
+        desc.layouts = {{"Standard",
+                         ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json",
+                         {QPointF{0.08, 0}, QPointF{0.29, 0}, QPointF{0.55, 0}, QPointF{0.75, 0}, QPointF{0.87, 0}}},
+                        {"Extended",
+                         ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json",
+                         {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.54, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        m_descriptions[desc.id] = desc;
 
+        // RISC-V 6-stage dual issue
+        desc = ProcessorDescription();
+        desc.id = ProcessorID::RV6S_DUAL;
+        desc.isa = vsrtl::core::RV6S_DUAL::ISA();
+        desc.name = "6-stage dual-issue processor";
+        desc.description =
+            "A 6-stage dual-issue in-order processor. Each way may execute arithmetic instructions, whereas way 1 is "
+            "reserved for controlflow and ecall instructions, and way 2 for memory accessing instructions.";
+        desc.layouts = {{"Extended",
+                         ":/layouts/RISC-V/rv6s_dual/rv6s_dual_extended_layout.json",
+                         {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0}, QPointF{0.22, 1}, QPointF{0.35, 0},
+                           QPointF{0.35, 1}, QPointF{0.54, 0}, QPointF{0.54, 1}, QPointF{0.78, 0}, QPointF{0.78, 1},
+                           QPointF{0.87, 0}, QPointF{0.87, 1}}}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
     }
