@@ -16,15 +16,16 @@ jobs:
     steps:
     - name: get container ready for build
       run: |
-        echo "--------------------------------------------------------------"
-        echo "update distro and install dependencies"
-        
         apt-get update
         apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
-        automake cmake g++ git wget libfuse2 desktop-file-utils \
-        libgit2-dev libqt5svg5-dev libtool make \
-        pkg-config qt5-default libqt5charts5-dev
+        automake cmake g++ git wget libfuse2 desktop-file-utils
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.15.2'
+        modules: 'qtcharts qtsvg'
 
     - name: checkout sources
       uses: actions/checkout@v2
