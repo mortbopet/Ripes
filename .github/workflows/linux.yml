@@ -46,18 +46,13 @@ jobs:
 
     - name: Package artifacts
       run: |
-        # Move bin to appdir
         mkdir -p appdir/usr/bin/
-        mv Ripes appdir/usr/bin/
-        
-        tree appdir
-        
+        mv Ripes appdir/usr/bin/        
         wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
         chmod a+x linuxdeployqt-continuous-x86_64.AppImage
-        unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
         export VERSION=continuous-linux # linuxdeployqt uses this for naming the package
         ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract-and-run appdir/usr/share/applications/*.desktop \
-          -appimage -verbose 2 -extra-plugins=iconengines
+          -appimage -verbose=2 -extra-plugins=iconengines
 
         echo "Post bundle folder contents:"
         ls -lh
