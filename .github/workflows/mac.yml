@@ -13,7 +13,9 @@ jobs:
     steps:
     - name: checkout sources
       uses: actions/checkout@v2
-      run: git submodule sync --recursive
+      with:
+        submodules: 'recursive'
+        
     - name: setup Homebrew
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
     - name: set our Qt build
@@ -32,13 +34,3 @@ jobs:
         DIR=$(pwd)
         cmake -DCMAKE_BUILD_TYPE=Release .
         make
-
-    - name: test desktop build
-      run: |
-        echo "------------------------------------"
-        echo "run tests for desktop build"
-        export QT_ROOT=${GITHUB_WORKSPACE}/Qt/5.13.0/clang_64
-        export QT_QPA_PLATFORM_PLUGIN_PATH=$QT_ROOT/plugins
-        cd ${GITHUB_WORKSPACE}/build/tests
-        # ./TestGitStorage -v2
-        make check
