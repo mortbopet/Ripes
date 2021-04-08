@@ -32,7 +32,7 @@ void CacheView::mousePressEvent(QMouseEvent* event) {
 
 void CacheView::wheelEvent(QWheelEvent* e) {
     if (e->modifiers() & Qt::ControlModifier) {
-        if (e->delta() > 0)
+        if (e->angleDelta().y() > 0)
             zoomIn(6);
         else
             zoomOut(6);
@@ -55,10 +55,10 @@ void CacheView::zoomOut(int level) {
 void CacheView::setupMatrix() {
     qreal scale = qPow(qreal(2), (m_zoom - 250) / qreal(50));
 
-    QMatrix matrix;
+    QTransform matrix;
     matrix.scale(scale, scale);
 
-    setMatrix(matrix);
+    setTransform(matrix);
 }
 
 }  // namespace Ripes

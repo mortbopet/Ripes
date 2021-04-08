@@ -53,7 +53,8 @@ qt5_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 # Header-only libraries used in the project must be included from top CMakeLists.txt file
 include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external/cereal/include)
 include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
-include_directories(external/ELFIO)
+include_directories(SYSTEM external/ELFIO)
+include_directories(SYSTEM external/Signals)
 include_directories(external)
 
 # Platform specific pre-target setup(s)

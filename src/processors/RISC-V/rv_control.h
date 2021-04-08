@@ -10,7 +10,7 @@ using namespace Ripes;
 class Control : public Component {
 public:
     /* clang-format off */
-    static VSRTL_VT_U do_comp_ctrl(const VSRTL_VT_U& opc) {
+    static CompOp do_comp_ctrl(const VSRTL_VT_U& opc) {
         switch(opc){
             case RVInstr::BEQ: return CompOp::EQ;
             case RVInstr::BNE: return CompOp::NE;
@@ -41,7 +41,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_mem_ctrl(const VSRTL_VT_U& opc) {
+    static MemOp do_mem_ctrl(const VSRTL_VT_U& opc) {
         switch(opc){
             case RVInstr::SB: return MemOp::SB;
             case RVInstr::SH: return MemOp::SH;
@@ -84,7 +84,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_reg_wr_src_ctrl(const VSRTL_VT_U& opc) {
+    static RegWrSrc do_reg_wr_src_ctrl(const VSRTL_VT_U& opc) {
         switch(opc){
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
@@ -100,7 +100,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_alu_op1_ctrl(const VSRTL_VT_U& opc) {
+    static AluSrc1 do_alu_op1_ctrl(const VSRTL_VT_U& opc) {
         switch(opc) {
             case RVInstr::AUIPC: case RVInstr::JAL:
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
@@ -111,7 +111,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_alu_op2_ctrl(const VSRTL_VT_U& opc) {
+    static AluSrc2 do_alu_op2_ctrl(const VSRTL_VT_U& opc) {
         switch(opc) {
         case RVInstr::LUI:
         case RVInstr::AUIPC:
@@ -151,7 +151,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_alu_ctrl(const VSRTL_VT_U& opc) {
+    static ALUOp do_alu_ctrl(const VSRTL_VT_U& opc) {
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
             case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:

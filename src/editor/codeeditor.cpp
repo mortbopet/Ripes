@@ -74,7 +74,7 @@ int CodeEditor::lineNumberAreaWidth() {
         max /= 10;
         ++digits;
     }
-    int space = rightPadding + fontMetrics().width(QString("1")) * digits;
+    int space = rightPadding + fontMetrics().horizontalAdvance(QString("1")) * digits;
     return space;
 }
 

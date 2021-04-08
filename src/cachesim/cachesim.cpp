@@ -142,7 +142,7 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
             if (ew.second == nullptr) {
                 // Else, Find LRU way
                 for (auto& way : cacheLine) {
-                    if (way.second.lru == getWays() - 1) {
+                    if (static_cast<long>(way.second.lru) == getWays() - 1) {
                         ew.first = way.first;
                         ew.second = &way.second;
                         break;
@@ -355,9 +355,7 @@ void CacheSim::undo() {
     popAccessTrace();
 
     const auto& oldWay = trace.oldWay;
-    const auto& transaction = trace.transaction;
     const unsigned& lineIdx = trace.transaction.index.line;
-    const unsigned& blockIdx = trace.transaction.index.block;
     const unsigned& wayIdx = trace.transaction.index.way;
     auto& line = m_cacheLines.at(lineIdx);
     auto& way = line.at(wayIdx);

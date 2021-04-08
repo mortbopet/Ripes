@@ -31,7 +31,6 @@ const QString s_outdir = s_testdir + QDir::separator() + "build";
 
 // Ecall status codes
 static constexpr unsigned s_success = 42;
-static constexpr unsigned s_fail = 0;
 
 // Test status register
 static constexpr unsigned s_statusreg = 3;  // Current test stored in the gp(3) register

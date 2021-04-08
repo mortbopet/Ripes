@@ -18,7 +18,7 @@ class Matcher {
             if (depth == 0) {
                 std::cout << "root";
             } else {
-                for (int i = 0; i < depth; i++) {
+                for (unsigned i = 0; i < depth; i++) {
                     std::cout << "-";
                 }
                 QString matchField =

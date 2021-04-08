@@ -18,6 +18,7 @@ const static std::map<RegisterFileType, QString> s_RegsterFileName = {{RegisterF
 
 class ISAInfoBase {
 public:
+    virtual ~ISAInfoBase(){};
     virtual QString name() const = 0;
     virtual ISA isaID() const = 0;
 

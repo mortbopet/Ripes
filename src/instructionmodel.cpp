@@ -34,7 +34,7 @@ void InstructionModel::gatherStageInfo() {
                 firstStageChanged = true;
             }
         }
-        if (m_stageNames.size() > i) {
+        if (static_cast<unsigned>(m_stageNames.size()) > i) {
             m_stageInfos[i] = ProcessorHandler::get()->getProcessor()->stageInfo(i);
             if (firstStageChanged) {
                 emit firstStageInstrChanged(m_stageInfos.at(0).pc);

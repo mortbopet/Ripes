@@ -8,7 +8,7 @@ namespace Ripes {
 
 using namespace vsrtl;
 
-RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : m_rft(rft), QAbstractTableModel(parent) {}
+RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : QAbstractTableModel(parent), m_rft(rft) {}
 
 std::vector<uint32_t> RegisterModel::gatherRegisterValues() {
     std::vector<uint32_t> vals;

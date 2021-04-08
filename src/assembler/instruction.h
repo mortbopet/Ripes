@@ -18,7 +18,7 @@ namespace Assembler {
 struct BitRange {
     constexpr BitRange(unsigned _start, unsigned _stop, unsigned _N = 32) : start(_start), stop(_stop), N(_N) {
         assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
-        assert(0 <= _start && _start <= _stop && _stop < _N && "invalid range");
+        assert(_start <= _stop && _stop < _N && "invalid range");
     }
     constexpr unsigned width() const { return stop - start + 1; }
     const unsigned start, stop, N;
@@ -342,7 +342,7 @@ public:
      * @brief size
      * @return size of assembled instruction, in byte
      */
-    const unsigned& size() const { return 4; }
+    unsigned size() const { return 4; }
 
 private:
     std::function<AssembleRes(const Instruction*, const Assembler::TokenizedSrcLine&)> m_assembler;

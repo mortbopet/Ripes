@@ -52,7 +52,7 @@ void finishSeries(QLineSeries& series, const unsigned max) {
     }
 
     const QPointF lastPoint = series.at(series.count() - 1);
-    if (lastPoint.toPoint().x() != max) {
+    if (lastPoint.toPoint().x() != static_cast<long>(max)) {
         series.append(max, lastPoint.y());
     }
 }
@@ -84,7 +84,6 @@ CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
     connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->stackedVariables, &QListWidget::itemChanged, this, &CachePlotWidget::variablesChanged);
 
-    const auto& accessTrace = m_cache.getAccessTrace();
     m_ui->rangeMin->setValue(0);
     m_ui->rangeMax->setValue(ProcessorHandler::get()->getProcessor()->getCycleCount());
 
@@ -200,7 +199,6 @@ void CachePlotWidget::rangeChanged() {
     }
 
     // Update allowed ranges
-    const auto& accessTrace = m_cache.getAccessTrace();
     const unsigned cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
     m_ui->rangeMin->setMinimum(0);
     m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
@@ -299,7 +297,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
 
     QLineSeries* series = new QLineSeries(chart);
     double maxY = 0;
-    for (int i = 0; i < points; i++) {
+    for (unsigned i = 0; i < points; i++) {
         const auto& p1 = numerator[i];
         const auto& p2 = denominator[i];
         Q_ASSERT(p1.x() == p2.x() && "Data inconsistency");
@@ -347,7 +345,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
     const auto cacheData = gatherData(variables);
     const unsigned len = cacheData.at(*variables.begin()).size();
     for (const auto& iter : cacheData) {
-        Q_ASSERT(len == iter.second.size());
+        Q_ASSERT(static_cast<long>(len) == iter.second.size());
     }
 
     QChart* chart = new QChart();
@@ -396,7 +394,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
 
     // Create area series
     lowerSeries = nullptr;
-    for (int i = 0; i < lineSeries.size(); i++) {
+    for (unsigned i = 0; i < lineSeries.size(); i++) {
         upperSeries = lineSeries[i].second;
         QAreaSeries* area = new QAreaSeries(upperSeries, lowerSeries);
         area->setName(s_cacheVariableStrings.at(lineSeries[i].first));

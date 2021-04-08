@@ -36,8 +36,8 @@ public:
     QPixmap getPlotPixmap();
 
 protected:
-    void resizeEvent(QResizeEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
+    void resizeEvent(QResizeEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
     void enterEvent(QEvent* event) override;
     void leaveEvent(QEvent* event) override;
 

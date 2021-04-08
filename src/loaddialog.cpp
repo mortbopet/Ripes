@@ -4,8 +4,8 @@
 #include "elfinfostrings.h"
 #include "elfio/elfio.hpp"
 
-#include "processorhandler.h"
 #include "assembler/program.h"
+#include "processorhandler.h"
 #include "radix.h"
 
 #include <QButtonGroup>
@@ -30,8 +30,7 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::FlatBinary);
     m_fileTypeButtons->addButton(m_ui->elfRadioButton, TypeButtonID::ELF);
 
-    connect(m_fileTypeButtons, QOverload<int, bool>::of(&QButtonGroup::buttonToggled), this,
-            &LoadDialog::inputTypeChanged);
+    connect(m_fileTypeButtons, &QButtonGroup::idToggled, this, &LoadDialog::inputTypeChanged);
     connect(m_ui->openFile, &QPushButton::clicked, this, &LoadDialog::openFileButtonTriggered);
     connect(m_ui->filePath, &QLineEdit::textChanged, this, &LoadDialog::validateCurrentFile);
 

@@ -141,7 +141,7 @@ private:
 
         // Open a file stream assigned to the given file descriptor
         static void openFilestream(int fd, const QString& filename) {
-            auto file = files.emplace(fd, filename);
+            files.emplace(fd, filename);
 
             const auto flags = fileFlags[fd];
             const auto qtOpenFlags =  // Translate from stdlib file flags to Qt flags
@@ -318,7 +318,6 @@ public:
      */
     static int readFromFile(int fd, QByteArray& myBuffer, int lengthRequested) {
         SystemIO::get();  // Ensure that SystemIO is constructed
-        int retValue = -1;
         /////////////// DPS 8-Jan-2013  //////////////////////////////////////////////////
         /// Read from STDIN file descriptor while using IDE - get input from Messages pane.
         if (!FileIOData::fdInUse(fd, O_RDONLY))  // Check the existence of the "read" fd

@@ -51,6 +51,7 @@ namespace Assembler {
 
 class AssemblerBase {
 public:
+    virtual ~AssemblerBase() {}
     std::optional<Error> setCurrentSegment(Section seg) const {
         if (m_sectionBasePointers.count(seg) == 0) {
             return Error(0, "No base address set for segment '" + seg + +"'");
@@ -342,6 +343,7 @@ public:
 
         // Symbol linkage
         runPass(unused, NoPassResult, pass3, program, needsLinkage);
+        Q_UNUSED(unused);
 
         result.program = program;
         return result;
@@ -351,7 +353,7 @@ public:
         size_t i = 0;
         DisassembleResult res;
         auto& programBits = program.getSection(".text")->data;
-        while ((i + sizeof(uint32_t)) <= programBits.size()) {
+        while ((i + sizeof(uint32_t)) <= static_cast<unsigned>(programBits.size())) {
             const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(programBits.data() + i);
             auto disres = disassemble(instructionWord, program.symbols, baseAddress + i);
             if (disres.second) {
@@ -640,7 +642,7 @@ protected:
             QByteArray& section = program.sections.at(linkRequest.section).data;
 
             // Decode instruction at link-request position
-            assert(section.size() >= (linkRequest.offset + 4) &&
+            assert(static_cast<unsigned>(section.size()) >= (linkRequest.offset + 4) &&
                    "Error: position of link request is not within program");
             uint32_t instr = *reinterpret_cast<uint32_t*>(section.data() + linkRequest.offset);
 
@@ -676,6 +678,7 @@ protected:
         }
         auto res = m_pseudoInstructionMap.at(opcode)->expand(line, m_symbolMap);
         if (auto* error = std::get_if<Error>(&res)) {
+            Q_UNUSED(error);
             if (m_instructionMap.count(opcode) != 0) {
                 // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.
                 // arguments provided were intended for the normal instruction and not the pseudoinstruction), then

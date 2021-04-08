@@ -110,7 +110,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
-            [=](const auto& size) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
+            [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);

@@ -284,10 +284,6 @@ void MainWindow::version() {
 }
 
 namespace {
-inline QString removeFileExt(const QString& file) {
-    int lastPoint = file.lastIndexOf(".");
-    return file.left(lastPoint);
-}
 void writeTextFile(QFile& file, const QString& data) {
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);

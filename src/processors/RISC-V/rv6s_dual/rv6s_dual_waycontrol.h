@@ -16,7 +16,7 @@ private:
         return Control::do_jump_ctrl(opcode) || Control::do_branch_ctrl(opcode);
     }
 
-    static bool isLoadStore(const VSRTL_VT_U& opcode) { return Control::do_mem_ctrl(opcode) != MemOp::NOP; }
+    static bool isLoadStore(const VSRTL_VT_U& opcode) { return Control::do_mem_ctrl(opcode) != +MemOp::NOP; }
 
     // clang-format off
     static bool isWriteRegInstr(const VSRTL_VT_U& opcode) {
@@ -134,8 +134,6 @@ private:
             // Can issue both
             m_dataWayValid = true;
             m_execWayValid = true;
-
-            const bool way1IsData = way1Type == WayClass::Data;
 
             if (way1Type == WayClass::Data || way2Type == WayClass::Data) {
                 m_dataWaySrc = way1Type == WayClass::Data ? WaySrc::WAY1 : WaySrc::WAY2;

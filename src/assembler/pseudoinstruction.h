@@ -15,7 +15,7 @@ class PseudoInstruction {
 public:
     PseudoInstruction(const QString& opcode, const std::vector<std::shared_ptr<Field>>& fields,
                       const PseudoExpandFunc& expander)
-        : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields), m_expander(expander) {}
+        : m_expander(expander), m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {}
 
     PseudoExpandRes expand(const Assembler::TokenizedSrcLine& line, const SymbolMap& symbols) {
         if (line.tokens.length() != m_expectedTokens) {

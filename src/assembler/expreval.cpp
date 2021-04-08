@@ -20,6 +20,7 @@ const QString s_exprTokens QStringLiteral("()+-*/%@");
 struct Expr;
 
 struct Printable {
+    virtual ~Printable(){};
     virtual void print(std::ostream& str) const = 0;
 };
 
@@ -232,7 +233,10 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     FiExpr;
     IfExpr(SignExtend, v) { return signextend<int>(evaluate(v->lhs, variables), evaluate(v->rhs, variables)); }
     FiExpr;
-    IfExpr(Nothing, v) { return 0; }
+    IfExpr(Nothing, v) {
+        Q_UNUSED(v);
+        return 0;
+    }
     FiExpr;
     IfExpr(Literal, v) {
         bool canConvert;

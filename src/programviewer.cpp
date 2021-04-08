@@ -59,7 +59,7 @@ void ProgramViewer::updateProgram(bool binary) {
     updateHighlightedAddresses();
 }
 
-void ProgramViewer::updateSidebar(const QRect& rect, int dy) {
+void ProgramViewer::updateSidebar(const QRect& rect, int /*dy*/) {
     m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
 
     if (rect.contains(viewport()->rect()))
@@ -191,14 +191,14 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
 namespace {}
 
 QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
-    const long adjustedLineNumber =
+    const unsigned long adjustedLineNumber =
         (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::get()->currentISA()->bytes();
 
     if (m_labelAddrOffsetMap.empty()) {
         return document()->findBlockByNumber(adjustedLineNumber);
     }
 
-    long lineNumber = adjustedLineNumber;
+    unsigned long lineNumber = adjustedLineNumber;
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
     if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
@@ -259,7 +259,7 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
 
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
-    if ((low == m_labelAddrOffsetMap.begin()) && lineNumber < low->first) {
+    if ((low == m_labelAddrOffsetMap.begin()) && static_cast<unsigned>(lineNumber) < low->first) {
         // The line number is less that the position of the first offset block; address is directly inferred from
         // linenumber.
         return calcAddressFunc(adjustedLineNumber);

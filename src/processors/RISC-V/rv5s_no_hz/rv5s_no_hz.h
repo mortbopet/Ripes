@@ -375,7 +375,7 @@ public:
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
     SparseArray& getMemory() override { return *m_memory; }
-    unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
+    unsigned int getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
     SparseArray& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
@@ -400,7 +400,7 @@ public:
         }
         return allStagesInvalid;
     }
-    void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) override {
+    void setRegister(RegisterFileType, unsigned i, uint32_t v) override {
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 

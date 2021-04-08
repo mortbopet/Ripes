@@ -36,7 +36,7 @@ QString CCManager::tryAutodetectCC() {
     for (const auto& path : s_validAutodetectedCCs) {
         QProcess process;
 
-        process.start(path);
+        process.start(path, QStringList());
         process.waitForFinished();
 
         if (process.error() != QProcess::FailedToStart) {

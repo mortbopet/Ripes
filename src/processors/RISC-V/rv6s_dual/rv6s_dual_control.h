@@ -22,7 +22,7 @@ class Control_DUAL : public Component {
     }
 
     static VSRTL_VT_U do_reg_wr_src_ctrl_data(const VSRTL_VT_U& opc) {
-        if (Control::do_mem_ctrl(opc) != MemOp::NOP) {
+        if (Control::do_mem_ctrl(opc) != +MemOp::NOP) {
             return RegWrSrcDataDual::MEM;
         } else {
             return RegWrSrcDataDual::ALURES;
@@ -31,10 +31,10 @@ class Control_DUAL : public Component {
 
 public:
     Control_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
-        comp_ctrl << [=] { return exec_valid.uValue() ? Control::do_comp_ctrl(opcode_exec.uValue()) : CompOp::NOP; };
+        comp_ctrl << [=] { return exec_valid.uValue() ? Control::do_comp_ctrl(opcode_exec.uValue()) : +CompOp::NOP; };
         do_branch << [=] { return exec_valid.uValue() ? Control::do_branch_ctrl(opcode_exec.uValue()) : 0; };
         do_jump << [=] { return exec_valid.uValue() ? Control::do_jump_ctrl(opcode_exec.uValue()) : 0; };
-        mem_ctrl << [=] { return data_valid.uValue() ? Control::do_mem_ctrl(opcode_data.uValue()) : MemOp::NOP; };
+        mem_ctrl << [=] { return data_valid.uValue() ? Control::do_mem_ctrl(opcode_data.uValue()) : +MemOp::NOP; };
 
         reg_do_write_ctrl_exec <<
             [=] { return exec_valid.uValue() && Control::do_reg_do_write_ctrl(opcode_exec.uValue()); };
@@ -45,14 +45,14 @@ public:
         reg_wr_src_data_ctrl << [=] { return do_reg_wr_src_ctrl_data(opcode_data.uValue()); };
 
         alu_op1_ctrl_exec <<
-            [=] { return exec_valid.uValue() ? Control::do_alu_op1_ctrl(opcode_exec.uValue()) : AluSrc1::REG1; };
+            [=] { return exec_valid.uValue() ? Control::do_alu_op1_ctrl(opcode_exec.uValue()) : +AluSrc1::REG1; };
         alu_op2_ctrl_exec <<
-            [=] { return exec_valid.uValue() ? Control::do_alu_op2_ctrl(opcode_exec.uValue()) : AluSrc2::REG2; };
-        alu_ctrl_exec << [=] { return exec_valid.uValue() ? Control::do_alu_ctrl(opcode_exec.uValue()) : ALUOp::NOP; };
+            [=] { return exec_valid.uValue() ? Control::do_alu_op2_ctrl(opcode_exec.uValue()) : +AluSrc2::REG2; };
+        alu_ctrl_exec << [=] { return exec_valid.uValue() ? Control::do_alu_ctrl(opcode_exec.uValue()) : +ALUOp::NOP; };
 
         alu_op2_ctrl_data <<
-            [=] { return data_valid.uValue() ? Control::do_alu_op2_ctrl(opcode_data.uValue()) : AluSrc2::REG2; };
-        alu_ctrl_data << [=] { return data_valid.uValue() ? Control::do_alu_ctrl(opcode_data.uValue()) : ALUOp::NOP; };
+            [=] { return data_valid.uValue() ? Control::do_alu_op2_ctrl(opcode_data.uValue()) : +AluSrc2::REG2; };
+        alu_ctrl_data << [=] { return data_valid.uValue() ? Control::do_alu_ctrl(opcode_data.uValue()) : +ALUOp::NOP; };
 
         mem_do_write_ctrl << [=] { return Control::do_do_mem_write_ctrl(opcode_data.uValue()); };
         mem_do_read_ctrl << [=] { return Control::do_do_read_ctrl(opcode_data.uValue()); };
