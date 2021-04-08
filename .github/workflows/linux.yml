@@ -1,4 +1,4 @@
-name: Ubuntu 20.04 / Qt 5.12--
+name: Ubuntu 16.04 / Qt 5.15
 on:
   push:
     branches:
@@ -21,7 +21,8 @@ jobs:
         sudo apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
         automake cmake git wget libfuse2 desktop-file-utils tree \
-        build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
+        build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev \
+        libxcb-iccm4
 
     - name: install Qt
       uses: jurplel/install-qt-action@v2
@@ -42,8 +43,6 @@ jobs:
         # now build for the desktop version
         cmake -DCMAKE_BUILD_TYPE=Release .
         make -j $(nproc)
-        echo "Post build folder contents:"
-        ls -lh
 
     - name: package artifacts
       run: |
@@ -53,11 +52,9 @@ jobs:
         chmod a+x linuxdeployqt-continuous-x86_64.AppImage
         source .github/scripts/set_version.sh
         export VERSION=${RIPES_VERSION}-linux # linuxdeployqt uses this for naming the package
+        echo "Version is: ${VERSION}"
         ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract-and-run appdir/usr/share/applications/*.desktop \
           -appimage -verbose=2 -extra-plugins=iconengines
-
-        echo "Post bundle folder contents:"
-        ls -lh
 
     - name: continuous release
       uses: softprops/action-gh-release@v1
