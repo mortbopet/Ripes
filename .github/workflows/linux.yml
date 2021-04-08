@@ -56,7 +56,7 @@ jobs:
         chmod a+x linuxdeployqt-continuous-x86_64.AppImage
         unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
         export VERSION=continuous-linux # linuxdeployqt uses this for naming the package
-        ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop \
+        ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract-and-run appdir/usr/share/applications/*.desktop \
           -appimage -verbose 2 -extra-plugins=iconengines
 
         echo "Post bundle folder contents:"
