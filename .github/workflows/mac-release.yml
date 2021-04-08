@@ -23,7 +23,7 @@ jobs:
         modules: 'qtcharts qtsvg'
         install-deps: false
 
-    - name: build Ripes
+    - name: build Ripes 
       run: |
         export QT_ROOT=${GITHUB_WORKSPACE}/Qt/5.13.0/clang_64
         export QT_QPA_PLATFORM_PLUGIN_PATH=$QT_ROOT/plugins
