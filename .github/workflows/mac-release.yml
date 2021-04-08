@@ -3,9 +3,6 @@ on:
   push:
     branches:
     - master
-  pull_request:
-    branches:
-    - master
 
 jobs:
   buildMac:
@@ -18,11 +15,13 @@ jobs:
         
     - name: setup Homebrew
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
-    - name: set our Qt build
-      run: |
-        mkdir -p Qt/5.13.0
-        curl --output Qt-5.13.0-mac.tar.xz https://f002.backblazeb2.com/file/Subsurface-Travis/Qt-5.13.0-mac.tar.xz
-        tar -xJ -C Qt/5.13.0 -f Qt-5.13.0-mac.tar.xz
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.15.2'
+        modules: 'qtcharts qtsvg'
+        install-deps: false
 
     - name: build Ripes
       run: |
