@@ -1,9 +1,6 @@
-name: Ubuntu 16.04 / Qt 5.15
+name: Ubuntu release 16.04 / Qt 5.15
 on:
   push:
-    branches:
-    - master
-  pull_request:
     branches:
     - master
 
@@ -47,7 +44,6 @@ jobs:
       run: |
         echo "--------------------------------------------------------------"
         echo "building desktop"
-        # now build for the desktop version
         cmake -DCMAKE_BUILD_TYPE=Release .
         make -j $(nproc)
 
