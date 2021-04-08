@@ -26,7 +26,6 @@ jobs:
 
     - name: build Ripes
       run: |
-        cd ${GITHUB_WORKSPACE}/..
         export QT_ROOT=${GITHUB_WORKSPACE}/Qt/5.13.0/clang_64
         export QT_QPA_PLATFORM_PLUGIN_PATH=$QT_ROOT/plugins
         export PATH=$QT_ROOT/bin:$PATH
