@@ -11,8 +11,8 @@ jobs:
   buildUbuntuXenial:
     runs-on: ubuntu-16.04
     env:
-      CC: gcc-8
-      CXX: g++-8
+      CC: gcc-9
+      CXX: g++-9
 
     steps:
     - name: get container ready for build
@@ -20,7 +20,7 @@ jobs:
         sudo apt-get update
         sudo apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
-        automake cmake g++ git wget libfuse2 desktop-file-utils tree \
+        automake cmake git wget libfuse2 desktop-file-utils tree \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
 
     - name: install Qt
