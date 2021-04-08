@@ -26,6 +26,7 @@ jobs:
       with:
         version: '5.15.2'
         modules: 'qtcharts qtsvg'
+        install-deps: false
 
     - name: checkout sources
       uses: actions/checkout@v2
