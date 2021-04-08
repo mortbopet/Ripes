@@ -15,7 +15,9 @@ jobs:
 
     steps:
     - name: checkout sources
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
     - name: get container ready for build
       run: |
@@ -29,6 +31,7 @@ jobs:
         libgit2-dev libqt5svg5-dev libtool make \
         pkg-config qt5-default qt5-qmake qtchooser qttools5-dev qttools5-dev-tools \
         libqt5charts5-dev
+
     - name: build Ripes
       run: |
         echo "--------------------------------------------------------------"
