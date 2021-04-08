@@ -1,11 +1,8 @@
-name: Mac
+name: Mac / Qt 5.15
 on:
-  push:
-    branches:
-    - master
-  pull_request:
-    branches:
-    - master
+  workflow_run:
+    workflows: ["Release setup"]
+    types: [completed]
 
 jobs:
   buildMac:
@@ -35,27 +32,21 @@ jobs:
         DIR=$(pwd)
         cmake -DCMAKE_BUILD_TYPE=Release .
         make
-        echo "Post build folder contents:"
-        ls -lh
   
     - name: package artifacts
       run: |
         macdeployqt Ripes.app
-        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
         source .github/scripts/set_version.sh
         export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
-        sudo mv Ripes.app $APPNAME.app
+        echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
+        sudo mv Ripes.app ${APPNAME}.app
         sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
-        echo "Post bundle folder contents:"
-        ls -lh
     
     - name: continuous release
       uses: softprops/action-gh-release@v1
-      if: github.ref == 'refs/heads/master' && !(startsWith(github.ref, 'refs/tags/'))
       with:
-        prerelease: true
-        name: Continuous
         files: ${{ env.APPNAME }}.zip
+        tag_name: continuous
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
