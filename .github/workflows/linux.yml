@@ -22,7 +22,7 @@ jobs:
         apt-get update
         apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
-        automake cmake g++ git wget \
+        automake cmake g++ git wget libfuse2 \
         libgit2-dev libqt5svg5-dev libtool make \
         pkg-config qt5-default libqt5charts5-dev
 
