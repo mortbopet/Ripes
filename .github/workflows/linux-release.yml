@@ -28,12 +28,20 @@ jobs:
         libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
         libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1
 
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+        path: ../Qt
+        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
+
     - name: install Qt
       uses: jurplel/install-qt-action@v2
       with:
         version: '5.15.2'
         modules: 'qtcharts qtsvg'
         install-deps: false
+        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: checkout sources
       uses: actions/checkout@v2

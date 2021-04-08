@@ -1,4 +1,5 @@
 # Ripes
+[![Windows / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml)
 [![Mac release / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml)
 [![Ubuntu release 16.04 / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml)
 [![Ripes CI tests](https://github.com/mortbopet/Ripes/actions/workflows/test.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/test.yml)

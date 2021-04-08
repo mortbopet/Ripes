@@ -1,20 +1,17 @@
-name: Mac / Qt 5.15
+name: Windows / Qt 5.15
 on:
   workflow_run:
     workflows: ["Release setup"]
     types: [completed]
 
 jobs:
-  buildMac:
-    runs-on: macOS-latest
+  buildWindows:
+    runs-on: windows-latest
+
     steps:
-    - name: checkout sources
-      uses: actions/checkout@v2
-      with:
-        submodules: 'recursive'
-        
-    - name: setup Homebrew
-      run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
+    - name: get container ready for build
+      uses: ilammy/msvc-dev-cmd@v1
+    - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Cache Qt
       id: cache-qt
@@ -29,31 +26,36 @@ jobs:
         version: '5.15.2'
         modules: 'qtcharts qtsvg'
         install-deps: false
+        arch: win64_msvc2019_64
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-    - name: build Ripes 
+    - name: checkout sources
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: build Ripes
+      shell: bash
       run: |
-        export QT_ROOT=${GITHUB_WORKSPACE}/Qt/5.13.0/clang_64
-        export QT_QPA_PLATFORM_PLUGIN_PATH=$QT_ROOT/plugins
-        export PATH=$QT_ROOT/bin:$PATH
-        export CMAKE_PREFIX_PATH=$QT_ROOT/lib/cmake
-        DIR=$(pwd)
-        cmake -DCMAKE_BUILD_TYPE=Release .
-        make
-  
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        cmake --build .
+
     - name: package artifacts
+      shell: bash
       run: |
-        macdeployqt Ripes.app
         source .github/scripts/set_version.sh
-        export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
+        APPNAME=Ripes-${RIPES_VERSION}-win-x86_64.zip
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
-        sudo mv Ripes.app ${APPNAME}.app
-        sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
-    
+        mkdir packageDir
+        pushd packageDir
+        mv ../Ripes.exe .
+        windeployqt.exe -svg --release --no-compiler-runtime --no-opengl-sw --no-translations Ripes.exe
+        7z a -r ../${APPNAME} *
+
     - name: continuous release
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ env.APPNAME }}.zip
+        files: ${{ env.APPNAME }}
         tag_name: continuous
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,7 +64,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ${{ env.APPNAME }}.zip
+        files: ${{ env.APPNAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
