@@ -14,9 +14,9 @@ jobs:
     steps:
     - name: get container ready for build
       run: |
-        apt-get update
-        apt-get upgrade -y
-        DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
+        sudo apt-get update
+        sudo apt-get upgrade -y
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
         automake cmake g++ git wget libfuse2 desktop-file-utils tree \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
 
