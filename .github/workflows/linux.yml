@@ -19,7 +19,7 @@ jobs:
         apt-get update
         apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
-        automake cmake g++ git wget libfuse2 desktop-file-utils \
+        automake cmake g++ git wget libfuse2 desktop-file-utils tree \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
 
     - name: Install Qt
@@ -49,6 +49,9 @@ jobs:
         # Move bin to appdir
         mkdir -p appdir/usr/bin/
         mv Ripes appdir/usr/bin/
+        
+        tree appdir
+        
         wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
         chmod a+x linuxdeployqt-continuous-x86_64.AppImage
         unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
