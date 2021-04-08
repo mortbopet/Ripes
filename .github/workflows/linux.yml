@@ -29,12 +29,11 @@ jobs:
         libgit2-dev libqt5svg5-dev libtool make \
         pkg-config qt5-default qt5-qmake qtchooser qttools5-dev qttools5-dev-tools \
         libqt5charts5-dev
-    - name: build Subsurface
+    - name: build Ripes
       run: |
         echo "--------------------------------------------------------------"
         echo "building desktop"
         # now build for the desktop version
-        source /opt/qt*/bin/qt*-env.sh
         cmake -DCMAKE_BUILD_TYPE=Release .
         make -j $(nproc)
         echo "Post build folder contents:"
