@@ -1,0 +1,41 @@
+name: Ubuntu 20.04 / Qt 5.12--
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  buildUbuntuFocal:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+
+    steps:
+    - name: checkout sources
+      uses: actions/checkout@v1
+
+    - name: get container ready for build
+      run: |
+        echo "--------------------------------------------------------------"
+        echo "update distro and install dependencies"
+        
+        apt-get update
+        apt-get upgrade -y
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
+        autoconf automake cmake g++ git \
+        libgit2-dev libqt5svg5-dev libtool make \
+        pkg-config qt5-default qt5-qmake qtchooser qttools5-dev qttools5-dev-tools \
+        libqt5charts5-dev
+    - name: build Subsurface
+      run: |
+        echo "--------------------------------------------------------------"
+        echo "building desktop"
+        # now build for the desktop version
+        source /opt/qt*/bin/qt*-env.sh
+        cmake -DCMAKE_BUILD_TYPE=Release .
+        make -j $(nproc)
+        echo "Post build folder contents:"
+        ls -lh
