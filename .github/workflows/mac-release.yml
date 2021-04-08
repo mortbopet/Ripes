@@ -1,0 +1,69 @@
+name: Mac
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  buildMac:
+    runs-on: macOS-latest
+    steps:
+    - name: checkout sources
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+        
+    - name: setup Homebrew
+      run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
+
+    - name: install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.15.2'
+        modules: 'qtcharts qtsvg'
+        install-deps: false
+
+    - name: build Ripes 
+      run: |
+        export QT_ROOT=${GITHUB_WORKSPACE}/Qt/5.13.0/clang_64
+        export QT_QPA_PLATFORM_PLUGIN_PATH=$QT_ROOT/plugins
+        export PATH=$QT_ROOT/bin:$PATH
+        export CMAKE_PREFIX_PATH=$QT_ROOT/lib/cmake
+        DIR=$(pwd)
+        cmake -DCMAKE_BUILD_TYPE=Release .
+        make
+        echo "Post build folder contents:"
+        ls -lh
+  
+    - name: package artifacts
+      run: |
+        macdeployqt Ripes.app
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        source .github/scripts/set_version.sh
+        export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
+        sudo mv Ripes.app $APPNAME.app
+        sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
+        echo "Post bundle folder contents:"
+        ls -lh
+    
+    - name: continuous release
+      uses: softprops/action-gh-release@v1
+      if: github.ref == 'refs/heads/master' && !(startsWith(github.ref, 'refs/tags/'))
+      with:
+        prerelease: true
+        name: Continuous
+        files: ${{ env.APPNAME }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: tagged release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: ${{ env.APPNAME }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
