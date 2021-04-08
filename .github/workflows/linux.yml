@@ -10,6 +10,9 @@ on:
 jobs:
   buildUbuntuXenial:
     runs-on: ubuntu-16.04
+    env:
+      CC: gcc-8
+      CXX: g++-8
 
     steps:
     - name: get container ready for build
