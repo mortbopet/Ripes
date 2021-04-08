@@ -22,10 +22,9 @@ jobs:
         apt-get update
         apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
-        autoconf automake cmake g++ git \
+        automake cmake g++ git \
         libgit2-dev libqt5svg5-dev libtool make \
-        pkg-config qt5-default qt5-qmake qtchooser qttools5-dev qttools5-dev-tools \
-        libqt5charts5-dev
+        pkg-config qt5-default libqt5charts5-dev
 
     - name: checkout sources
       uses: actions/checkout@v2
@@ -41,3 +40,36 @@ jobs:
         make -j $(nproc)
         echo "Post build folder contents:"
         ls -lh
+
+    - name: Package artifacts
+      run: |
+        # Move bin to appdir
+        mkdir -p appdir/usr/bin/
+        mv Ripes appdir/usr/bin/
+        wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+        chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+        unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+        export VERSION=continuous-linux # linuxdeployqt uses this for naming the package
+        ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop \
+          -appimage -extra-plugins=iconengines
+
+        echo "Post bundle folder contents:"
+        ls -lh
+
+    - name: Continuous release
+      uses: softprops/action-gh-release@v1
+      if: github.ref == 'refs/heads/master'
+      with:
+        prerelease: true
+        name: Continuous
+        files: Ripes*.AppImage*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Tagged release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: Ripes*.AppImage*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
