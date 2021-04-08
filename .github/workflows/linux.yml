@@ -22,7 +22,7 @@ jobs:
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
         automake cmake git wget libfuse2 desktop-file-utils tree \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev \
-        libxcb-iccm4
+        libxcb-icccm4
 
     - name: install Qt
       uses: jurplel/install-qt-action@v2
