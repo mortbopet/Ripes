@@ -20,7 +20,7 @@ jobs:
         automake cmake g++ git wget libfuse2 desktop-file-utils tree \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
 
-    - name: Install Qt
+    - name: install Qt
       uses: jurplel/install-qt-action@v2
       with:
         version: '5.15.2'
@@ -42,7 +42,7 @@ jobs:
         echo "Post build folder contents:"
         ls -lh
 
-    - name: Package artifacts
+    - name: package artifacts
       run: |
         mkdir -p appdir/usr/bin/
         mv Ripes appdir/usr/bin/        
@@ -55,7 +55,7 @@ jobs:
         echo "Post bundle folder contents:"
         ls -lh
 
-    - name: Continuous release
+    - name: continuous release
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'
       with:
@@ -65,7 +65,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Tagged release
+    - name: tagged release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
