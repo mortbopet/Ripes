@@ -22,7 +22,7 @@ jobs:
         apt-get update
         apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive apt-get install -y -q --force-yes \
-        automake cmake g++ git wget libfuse2 \
+        automake cmake g++ git wget libfuse2 desktop-file-utils \
         libgit2-dev libqt5svg5-dev libtool make \
         pkg-config qt5-default libqt5charts5-dev
 
@@ -51,7 +51,7 @@ jobs:
         unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
         export VERSION=continuous-linux # linuxdeployqt uses this for naming the package
         ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop \
-          -appimage -extra-plugins=iconengines
+          -appimage -verbose 2 -extra-plugins=iconengines
 
         echo "Post bundle folder contents:"
         ls -lh
