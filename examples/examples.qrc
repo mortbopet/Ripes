@@ -9,6 +9,6 @@
         <file>assembly/consolePrinting.s</file>
         <file>C/leds.c</file>
         <file>C/switchesAndLeds.c</file>
-        <file>assembly/LEDs</file>
+        <file>assembly/leds.s</file>
     </qresource>
 </RCC>
