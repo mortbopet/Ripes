@@ -52,6 +52,7 @@ jobs:
     
     - name: continuous release
       uses: softprops/action-gh-release@v1
+      if: github.ref == 'refs/heads/master'
       with:
         files: ${{ env.APPNAME }}.zip
         tag_name: continuous
@@ -60,7 +61,7 @@ jobs:
 
     - name: tagged release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+      if: (github.ref == 'refs/heads/master') && (startsWith(github.ref, 'refs/tags/'))
       with:
         files: ${{ env.APPNAME }}.zip
       env:

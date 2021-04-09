@@ -3,13 +3,14 @@ name: Release setup
 on:
   push:
     branches:
-      - master
+      - '*'
 
 jobs:
   release-setup:
     runs-on: ubuntu-latest
     steps:
-    - uses: "marvinpinto/action-automatic-releases@latest"  
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      if: github.ref == 'refs/heads/master'
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "continuous"
