@@ -44,7 +44,7 @@ jobs:
     - name: package artifacts
       run: |
         macdeployqt Ripes.app
-        source .github/scripts/set_version.sh
+        source .github/workflows/scripts/set_version.sh
         export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
         sudo mv Ripes.app ${APPNAME}.app

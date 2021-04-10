@@ -43,7 +43,7 @@ jobs:
     - name: package artifacts
       shell: bash
       run: |
-        source .github/scripts/set_version.sh
+        source .github/workflows/scripts/set_version.sh
         APPNAME=Ripes-${RIPES_VERSION}-win-x86_64.zip
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
         mkdir packageDir
