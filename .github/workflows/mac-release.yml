@@ -54,6 +54,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'
       with:
+        prerelease: true
         files: ${{ env.APPNAME }}.zip
         tag_name: continuous
       env:
