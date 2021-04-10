@@ -81,7 +81,6 @@ void ToggleButton::paintEvent(QPaintEvent*) {
     p.setPen(Qt::NoPen);
     bool check = isChecked();
     qreal trackOpacity = mOpacity;
-    qreal textOpacity = 1.0;
     qreal thumbOpacity = 1.0;
     QBrush trackBrush;
     QBrush thumbBrush;
@@ -137,8 +136,6 @@ void ToggleButton::enterEvent(QEvent* event) {
  */
 
 IOSwitches::IOSwitches(QWidget* parent) : IOBase(IOType::SWITCHES, parent) {
-    constexpr unsigned defaultWidth = 25;
-
     // Parameters
     m_parameters[SWITCHES] = IOParam(SWITCHES, "# Switches", 8, true, 1, 32);
 
@@ -158,7 +155,7 @@ QString IOSwitches::description() const {
 
 void IOSwitches::updateSwitches() {
     const unsigned nSwitches = m_parameters.at(SWITCHES).value.toInt();
-    for (int i = 0; i < nSwitches; i++) {
+    for (unsigned i = 0; i < nSwitches; i++) {
         if (m_switches.count(i) == 0) {
             auto* sw = new ToggleButton(10, 8, true, this);
             auto* label = new QLabel(QString::number(i), this);
@@ -169,14 +166,14 @@ void IOSwitches::updateSwitches() {
     }
 
     // Remove extra switches if # of switches was reduced
-    std::vector<int> idxToDelete;
+    std::vector<unsigned> idxToDelete;
     for (const auto& it : m_switches) {
         if (it.first >= nSwitches) {
             idxToDelete.push_back(it.first);
         }
     }
 
-    for (int idx : idxToDelete) {
+    for (unsigned idx : idxToDelete) {
         auto it = m_switches.find(idx);
         Q_ASSERT(it != m_switches.end());
         it->second.first->deleteLater();

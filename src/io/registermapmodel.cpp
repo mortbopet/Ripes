@@ -86,6 +86,8 @@ QVariant RegisterMapModel::data(const QModelIndex& index, int role) const {
                             return "W";
                         case RegDesc::RW::RW:
                             return "R/W";
+                        default:
+                            Q_UNREACHABLE();
                     }
                 }
                 case Qt::TextAlignmentRole:

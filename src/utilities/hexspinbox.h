@@ -20,7 +20,7 @@ protected:
         int v = sanitize(text).toUInt(nullptr, 16);
         return v;
     }
-    QValidator::State validate(QString& input, int&) const {
+    QValidator::State validate(QString& input, int&) const override {
         bool okay;
         sanitize(input).toUInt(&okay, 16);
         if (!okay)

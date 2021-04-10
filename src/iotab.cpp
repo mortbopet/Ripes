@@ -12,9 +12,9 @@
 
 #include "ioperipheraltab.h"
 
-#include "VSRTL/external/cereal/include/cereal/archives/json.hpp"
-#include "VSRTL/external/cereal/include/cereal/types/map.hpp"
-#include "VSRTL/external/cereal/include/cereal/types/vector.hpp"
+#include "cereal/archives/json.hpp"
+#include "cereal/types/map.hpp"
+#include "cereal/types/vector.hpp"
 
 namespace Ripes {
 
@@ -140,7 +140,7 @@ void IOTab::loadPeripheralState() {
             archive(cereal::make_nvp("periphIDs", ids));
             for (const auto& id : ids) {
                 if (id.typeId < NPERIPHERALS) {
-                    auto* periph = createPeripheral(static_cast<IOType>(id.typeId), id.uniqueId);
+                    createPeripheral(static_cast<IOType>(id.typeId), id.uniqueId);
                 }
             }
 
@@ -148,7 +148,7 @@ void IOTab::loadPeripheralState() {
                 IOBase* periphPtr = dynamic_cast<IOBase*>(periph.first);
                 archive(cereal::make_nvp(periphPtr->serializedUniqueID(), *periphPtr));
             }
-        } catch (cereal::Exception e) {
+        } catch (const cereal::Exception& e) {
             /// @todo: build an error report
         }
     } catch (...) {
@@ -176,7 +176,7 @@ void IOTab::storePeripheralState() {
                 IOBase* periphPtr = dynamic_cast<IOBase*>(periph.first);
                 archive(cereal::make_nvp(periphPtr->serializedUniqueID(), *periphPtr));
             }
-        } catch (cereal::Exception e) {
+        } catch (const cereal::Exception& e) {
             /// @todo: build an error report
         }
     }

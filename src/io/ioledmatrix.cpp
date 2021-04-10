@@ -43,7 +43,7 @@ uint32_t IOLedMatrix::ioRead(uint32_t offset, unsigned size) {
     return (m_ledRegs.at(offset / 4) >> (offset % 4)) & generateBitmask(size * 8);
 }
 
-void IOLedMatrix::ioWrite(uint32_t offset, uint32_t value, unsigned size) {
+void IOLedMatrix::ioWrite(uint32_t offset, uint32_t value, unsigned) {
     offset >>= 2;  // word addressable
     if (offset >= m_ledRegs.size()) {
         Q_ASSERT(false);
@@ -91,7 +91,7 @@ QSize IOLedMatrix::minimumSizeHint() const {
     return QSize(pixelWidth, pixelHeight);
 }
 
-void IOLedMatrix::paintEvent(QPaintEvent* event) {
+void IOLedMatrix::paintEvent(QPaintEvent*) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 

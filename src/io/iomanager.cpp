@@ -60,7 +60,7 @@ void IOManager::assignBaseAddresses() {
     refreshMemoryMap();
 }
 
-void IOManager::peripheralSizeChanged(IOBase* peripheral) {
+void IOManager::peripheralSizeChanged(IOBase*) {
     assignBaseAddresses();
     refreshMemoryMap();
 }
