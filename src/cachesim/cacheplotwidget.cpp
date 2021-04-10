@@ -297,6 +297,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
 
     QLineSeries* series = new QLineSeries(chart);
     double maxY = 0;
+    double minY = 9999;
     for (unsigned i = 0; i < points; i++) {
         const auto& p1 = numerator[i];
         const auto& p2 = denominator[i];
@@ -308,6 +309,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
         }
         series->append(p1.x(), ratio);
         maxY = ratio > maxY ? ratio : maxY;
+        minY = ratio < minY ? ratio : minY;
     }
     const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
 
@@ -317,9 +319,6 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     chart->addSeries(series);
 
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(0, maxX);
-    chart->axes(Qt::Vertical).first()->setRange(0, maxY * 1.1);
-
     chart->legend()->hide();
 
     // Add space to label to add space between labels and axis
@@ -328,11 +327,23 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     Q_ASSERT(axisY);
     axisY->setLabelFormat("%.1f  ");
     axisY->setTitleText("%");
+    int tickInterval = (maxY - minY) / axisY->tickCount();
+    tickInterval = ((tickInterval + 5 - 1) / 5) * 5;  // Round to nearest multiple of 5
+    if (tickInterval >= 5) {
+        axisY->setTickInterval(tickInterval);
+        axisY->setTickType(QValueAxis::TicksDynamic);
+        axisY->setLabelFormat("%d  ");
+    }
+    int axisMaxY = maxY * 1.1;
+    if (maxY <= 100 && maxY >= 90) {
+        axisMaxY = 100;
+    }
+
+    axisY->setRange(minY, axisMaxY);
 
     axisX->setLabelFormat("%d  ");
     axisX->setTitleText("Cycle");
-
-    //![4]
+    axisX->setRange(0, maxX);
 
     return chart;
 }
