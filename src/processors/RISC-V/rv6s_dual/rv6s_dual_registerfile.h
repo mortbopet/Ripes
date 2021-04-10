@@ -35,7 +35,7 @@ public:
         wr_2_en >> rf_2->wr_en;
     }
 
-    void setMemory(SparseArray* mem) {
+    void setMemory(AddressSpace* mem) {
         m_memory = mem;
         // All memory components must point to the same memory
         rf_1->setMemory(mem);
@@ -85,7 +85,7 @@ private:
         }
     }
 
-    SparseArray* m_memory = nullptr;
+    AddressSpace* m_memory = nullptr;
 };
 
 }  // namespace core

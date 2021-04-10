@@ -28,11 +28,9 @@ private:
 };
 using LineTokens = QList<Token>;
 using LineTokensVec = std::vector<LineTokens>;
-using Symbol = QString;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
 using SymbolMap = std::map<Symbol, uint32_t>;
-using ReverseSymbolMap = std::map<uint32_t, Symbol>;
 using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
 struct TokenizedSrcLine {
     Symbols symbols;

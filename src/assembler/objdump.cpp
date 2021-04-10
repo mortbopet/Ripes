@@ -39,8 +39,8 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
                 // of invalid lines up to the given point.
                 incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
                 out += "\n";
-                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol);
-                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol + ">:\n";
+                incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol.v);
+                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol.v + ">:\n";
             }
 
             // Instruction address
@@ -62,7 +62,7 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
 }
 
 QString objdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) {
-    auto assembler = ProcessorHandler::get()->getAssembler();
+    auto assembler = ProcessorHandler::getAssembler();
     return stringifyProgram(
         program, 4,
         [&program, &assembler](const std::vector<char>& buffer, uint32_t address) {

@@ -21,7 +21,7 @@ void expect(std::variant<Error, long> res, long expected) {
 void tst_ExprEval::tst_binops() {
     expect(evaluate("(0x2*(3+4))+4"), 18);
     expect(evaluate("2+3*7*5"), 107);
-    std::map<QString, uint32_t> symbols;
+    SymbolMap symbols;
     symbols["B"] = 2;
     expect(evaluate("(B *(3+ 4))+4", &symbols), 18);
 }

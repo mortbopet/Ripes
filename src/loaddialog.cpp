@@ -27,7 +27,7 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
 
     m_fileTypeButtons = new QButtonGroup(this);
     m_fileTypeButtons->addButton(m_ui->sourceRadioButton, TypeButtonID::Source);
-    m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::FlatBinary);
+    m_fileTypeButtons->addButton(m_ui->binaryRadioButton, TypeButtonID::Flatbinary);
     m_fileTypeButtons->addButton(m_ui->elfRadioButton, TypeButtonID::ELF);
 
     connect(m_fileTypeButtons, &QButtonGroup::idToggled, this, &LoadDialog::inputTypeChanged);
@@ -50,7 +50,7 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     connect(m_ui->binaryEntryPoint, &QLineEdit::textChanged, [=] { this->validateCurrentFile(); });
 
     // ELF page
-    m_ui->currentISA->setText(ProcessorHandler::get()->currentISA()->name());
+    m_ui->currentISA->setText(ProcessorHandler::currentISA()->name());
 
     // default selection
     m_fileTypeButtons->button(s_typeIndex)->toggle();
@@ -65,8 +65,8 @@ void LoadDialog::inputTypeChanged() {
             updateSourcePageState();
             break;
         }
-        case TypeButtonID::FlatBinary: {
-            m_currentType = TypeButtonID::FlatBinary;
+        case TypeButtonID::Flatbinary: {
+            m_currentType = TypeButtonID::Flatbinary;
             updateBinaryPageState();
             break;
         }
@@ -88,7 +88,7 @@ void LoadDialog::openFileButtonTriggered() {
             filter = "Source files [*.s, *.as, *.asm, *.c] (*.s *.as *.asm *.c);; All files (*.*)";
             break;
         }
-        case TypeButtonID::FlatBinary: {
+        case TypeButtonID::Flatbinary: {
             title = "Open binary file";
             filter = "All files (*)";
             break;
@@ -152,10 +152,10 @@ ELFInfo LoadDialog::validateELFFile(const QFile& file) {
     }
 
     // Is it a compatible machine format?
-    if (reader.get_machine() != ProcessorHandler::get()->currentISA()->elfMachineId()) {
+    if (reader.get_machine() != ProcessorHandler::currentISA()->elfMachineId()) {
         info.errorMessage = "Incompatible ELF machine type (ISA).<br/><br/>Expected machine type:<br/>'" +
-                            QString::number(ProcessorHandler::get()->currentISA()->elfMachineId()) + "' (" +
-                            getNameForElfMachine(ProcessorHandler::get()->currentISA()->elfMachineId()) +
+                            QString::number(ProcessorHandler::currentISA()->elfMachineId()) + "' (" +
+                            getNameForElfMachine(ProcessorHandler::currentISA()->elfMachineId()) +
                             ")<br/>but file has machine type:<br/>    '" + QString::number(reader.get_machine()) +
                             "' (" + getNameForElfMachine(reader.get_machine()) + ")";
         info.valid = false;
@@ -164,9 +164,9 @@ ELFInfo LoadDialog::validateELFFile(const QFile& file) {
 
     // Is it a compatible file class?
     elfbits = reader.get_class() == ELFCLASS32 ? 32 : 64;
-    if (elfbits != ProcessorHandler::get()->currentISA()->bits()) {
+    if (elfbits != ProcessorHandler::currentISA()->bits()) {
         const QString bitSize = elfbits == 32 ? "32" : "64";
-        info.errorMessage = "Expected " + QString::number(ProcessorHandler::get()->currentISA()->bits()) +
+        info.errorMessage = "Expected " + QString::number(ProcessorHandler::currentISA()->bits()) +
                             " bit executable, but input file is a " + bitSize + " bit executable.";
         info.valid = false;
         goto finish;
@@ -182,7 +182,7 @@ ELFInfo LoadDialog::validateELFFile(const QFile& file) {
     }
 
     // Supported flags?
-    flagErr = ProcessorHandler::get()->currentISA()->elfSupportsFlags(reader.get_flags());
+    flagErr = ProcessorHandler::currentISA()->elfSupportsFlags(reader.get_flags());
     if (!flagErr.isEmpty()) {
         info.errorMessage = flagErr;
         info.valid = false;
@@ -200,7 +200,7 @@ bool LoadDialog::fileTypeValidate(const QFile& file) {
     switch (m_currentType) {
         case TypeButtonID::Source:
             return validateSourceFile(file);
-        case TypeButtonID::FlatBinary:
+        case TypeButtonID::Flatbinary:
             return validateBinaryFile(file);
         case TypeButtonID::ELF:
             auto info = validateELFFile(file);
@@ -238,7 +238,7 @@ void LoadDialog::accept() {
             // Set source type based on file extension
             m_params.type = m_params.filepath.endsWith(".c") ? SourceType::C : SourceType::Assembly;
             break;
-        case TypeButtonID::FlatBinary:
+        case TypeButtonID::Flatbinary:
             m_params.type = SourceType::FlatBinary;
             break;
         case TypeButtonID::ELF:

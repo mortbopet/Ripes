@@ -60,17 +60,12 @@ public:
         return {};
     }
 
-    void setSegmentBase(Section seg, uint32_t base) {
-        if (m_sectionBasePointers.count(seg) != 0) {
-            throw std::runtime_error("Base address already set for segment '" + seg.toStdString() + +"'");
-        }
-        m_sectionBasePointers[seg] = base;
-    }
+    void setSegmentBase(Section seg, uint32_t base) { m_sectionBasePointers[seg] = base; }
 
-    virtual AssembleResult assemble(const QStringList& programLines) const = 0;
-    AssembleResult assembleRaw(const QString& program) const {
+    virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
+    AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
         const auto programLines = program.split(QRegExp("[\r\n]"));
-        return assemble(programLines);
+        return assemble(programLines, symbols);
     }
 
     virtual DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const = 0;
@@ -85,7 +80,7 @@ public:
 
     std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint32_t v) const {
         if (m_symbolMap.count(s)) {
-            return {Error(line, "Multiple definitions of symbol '" + s + "'")};
+            return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
         }
         m_symbolMap[s] = v;
         return {};
@@ -189,12 +184,12 @@ protected:
         for (const auto& token : splitTokens) {
             if (token.endsWith(':')) {
                 if (symbolStillAllowed) {
-                    const QString cleanedSymbol = token.left(token.length() - 1);
-                    if (symbols.count(cleanedSymbol) != 0) {
-                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
+                    const Symbol cleanedSymbol = Symbol(token.left(token.length() - 1), Symbol::Type::Address);
+                    if (symbols.count(cleanedSymbol.v) != 0) {
+                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol.v + "'")};
                     } else {
-                        if (cleanedSymbol.isEmpty() || cleanedSymbol.contains(s_exprOperatorsRegex)) {
-                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol + "'")};
+                        if (cleanedSymbol.v.isEmpty() || cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
+                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol.v + "'")};
                         }
 
                         symbols.insert(cleanedSymbol);
@@ -322,12 +317,15 @@ class Assembler : public AssemblerBase {
 public:
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
-    AssembleResult assemble(const QStringList& programLines) const override {
+    AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const override {
         AssembleResult result;
 
         // Per default, emit to .text until otherwise specified
         setCurrentSegment(".text");
         m_symbolMap.clear();
+        if (symbols) {
+            m_symbolMap = *symbols;
+        }
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);
@@ -346,6 +344,7 @@ public:
         Q_UNUSED(unused);
 
         result.program = program;
+        result.program.entryPoint = m_sectionBasePointers.at(".text");
         return result;
     }
 
@@ -451,7 +450,7 @@ protected:
             bool uniqueSymbols = true;
             for (const auto& s : symbolsAndRest.first) {
                 if (symbols.count(s) != 0) {
-                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s + "'"));
+                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s.v + "'"));
                     uniqueSymbols = false;
                     break;
                 }
@@ -589,9 +588,11 @@ protected:
             return {errors};
         }
 
-        // Register symbols in program struct
+        // Register address symbols in program struct
         for (const auto& iter : m_symbolMap) {
-            program.symbols[iter.second] = iter.first;
+            if (iter.first.is(Symbol::Type::Address)) {
+                program.symbols[iter.second] = iter.first;
+            }
         }
 
         return {program};

@@ -18,7 +18,7 @@ RegisterContainerWidget::~RegisterContainerWidget() {
 void RegisterContainerWidget::initialize() {
     m_ui->tabWidget->clear();
 
-    for (const auto& rfid : ProcessorHandler::get()->getProcessor()->registerFiles()) {
+    for (const auto& rfid : ProcessorHandler::getProcessor()->registerFiles()) {
         auto registerWidget = new RegisterWidget(rfid, this);
         m_ui->tabWidget->insertTab(m_ui->tabWidget->count(), registerWidget, s_RegsterFileName.at(rfid));
         registerWidget->initialize();

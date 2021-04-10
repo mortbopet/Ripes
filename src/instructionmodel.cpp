@@ -5,8 +5,8 @@
 namespace Ripes {
 
 InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
-    for (unsigned i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
-        m_stageNames << ProcessorHandler::get()->getProcessor()->stageName(i);
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+        m_stageNames << ProcessorHandler::getProcessor()->stageName(i);
         m_stageInfos[i];
     }
 }
@@ -16,7 +16,7 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 int InstructionModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::get()->getCurrentProgramSize() / ProcessorHandler::get()->currentISA()->bytes();
+    return ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
 }
 
 void InstructionModel::processorWasClocked() {
@@ -28,14 +28,14 @@ void InstructionModel::processorWasClocked() {
 
 void InstructionModel::gatherStageInfo() {
     bool firstStageChanged = false;
-    for (unsigned i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
         if (i == 0) {
-            if (m_stageInfos[i].pc != ProcessorHandler::get()->getProcessor()->stageInfo(i).pc) {
+            if (m_stageInfos[i].pc != ProcessorHandler::getProcessor()->stageInfo(i).pc) {
                 firstStageChanged = true;
             }
         }
         if (static_cast<unsigned>(m_stageNames.size()) > i) {
-            m_stageInfos[i] = ProcessorHandler::get()->getProcessor()->stageInfo(i);
+            m_stageInfos[i] = ProcessorHandler::getProcessor()->stageInfo(i);
             if (firstStageChanged) {
                 emit firstStageInstrChanged(m_stageInfos.at(0).pc);
                 firstStageChanged = false;
@@ -48,7 +48,7 @@ bool InstructionModel::setData(const QModelIndex& index, const QVariant& value, 
     const uint32_t addr = indexToAddress(index);
     if ((index.column() == Column::Breakpoint) && role == Qt::CheckStateRole) {
         if (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked) {
-            ProcessorHandler::get()->setBreakpoint(addr, !ProcessorHandler::get()->hasBreakpoint(addr));
+            ProcessorHandler::setBreakpoint(addr, !ProcessorHandler::hasBreakpoint(addr));
             return true;
         }
     }
@@ -74,7 +74,7 @@ QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, 
 }
 
 QVariant InstructionModel::BPData(uint32_t addr) const {
-    return ProcessorHandler::get()->hasBreakpoint(addr);
+    return ProcessorHandler::hasBreakpoint(addr);
 }
 QVariant InstructionModel::PCData(uint32_t addr) const {
     return "0x" + QString::number(addr, 16);
@@ -94,7 +94,7 @@ QVariant InstructionModel::stageData(uint32_t addr) const {
 }
 
 QVariant InstructionModel::instructionData(uint32_t addr) const {
-    return ProcessorHandler::get()->disassembleInstr(addr);
+    return ProcessorHandler::disassembleInstr(addr);
 }
 
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {

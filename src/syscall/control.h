@@ -18,7 +18,7 @@ public:
         SystemIO::printString("\nProgram exited with code: 0");
         FinalizeReason fr;
         fr.exitSyscall = true;
-        ProcessorHandler::get()->getProcessorNonConst()->finalize(fr);
+        ProcessorHandler::getProcessorNonConst()->finalize(fr);
     }
 };
 
@@ -32,7 +32,7 @@ public:
         SystemIO::printString("\nProgram exited with code: " + QString::number(BaseSyscall::getArg(RegisterFileType::GPR,0)));
         FinalizeReason fr;
         fr.exitSyscall = true;
-        ProcessorHandler::get()->getProcessorNonConst()->finalize(fr);
+        ProcessorHandler::getProcessorNonConst()->finalize(fr);
     }
 };
 

@@ -4,7 +4,7 @@
 namespace Ripes {
 
 // RVAccess struct - used for keeping track of read and write access to memory, for displaying in GUI
-enum class RW { Read, Write };
+enum class RW { Read, Write, ReadWrite };
 typedef struct {
     uint32_t pc;  // GUI converts pc value to an instruction
     RW rw;

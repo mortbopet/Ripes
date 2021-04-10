@@ -24,8 +24,8 @@ ProcessorHandler::ProcessorHandler() {
         // Some sanity checking
         m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV5S : m_currentID;
     }
-    selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
-                    ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+    _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
+                     ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
@@ -72,26 +72,26 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
     emit reqProcessorReset();
 }
 
-void ProcessorHandler::writeMem(uint32_t address, uint32_t value, int size) {
+void ProcessorHandler::_writeMem(uint32_t address, uint32_t value, int size) {
     m_currentProcessor->getMemory().writeMem(address, value, size);
 }
 
-const vsrtl::core::SparseArray& ProcessorHandler::getMemory() const {
+vsrtl::core::AddressSpaceMM& ProcessorHandler::_getMemory() {
     return m_currentProcessor->getMemory();
 }
 
-const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* ProcessorHandler::getDataMemory() const {
+const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* ProcessorHandler::_getDataMemory() const {
     return dynamic_cast<const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>*>(m_currentProcessor->getDataMemory());
 }
-const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* ProcessorHandler::getInstrMemory() const {
+const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* ProcessorHandler::_getInstrMemory() const {
     return dynamic_cast<const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>*>(m_currentProcessor->getInstrMemory());
 }
 
-const vsrtl::core::SparseArray& ProcessorHandler::getRegisters() const {
+const vsrtl::core::AddressSpace& ProcessorHandler::_getRegisters() const {
     return m_currentProcessor->getArchRegisters();
 }
 
-void ProcessorHandler::run() {
+void ProcessorHandler::_run() {
     ProcessorStatusManager::setStatus("Running...");
     emit runStarted();
     /** We create a cycleFunctor for running the design which will stop further running of the design when:
@@ -101,9 +101,8 @@ void ProcessorHandler::run() {
      */
     const auto& cycleFunctor = [=] {
         bool stopRunning = m_stopRunningFlag;
-        ProcessorHandler::get()->checkValidExecutionRange();
-        stopRunning |=
-            ProcessorHandler::get()->checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
+        _checkValidExecutionRange();
+        stopRunning |= _checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
 
         if (stopRunning) {
             m_vsrtlWidget->stop();
@@ -117,24 +116,24 @@ void ProcessorHandler::run() {
     m_runWatcher.setFuture(m_vsrtlWidget->run(cycleFunctor));
 }
 
-void ProcessorHandler::setBreakpoint(const uint32_t address, bool enabled) {
-    if (enabled && isExecutableAddress(address)) {
+void ProcessorHandler::_setBreakpoint(const uint32_t address, bool enabled) {
+    if (enabled && _isExecutableAddress(address)) {
         m_breakpoints.insert(address);
     } else {
         m_breakpoints.erase(address);
     }
 }
 
-void ProcessorHandler::loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
+void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
     m_vsrtlWidget = widget;
     widget->setDesign(m_currentProcessor.get());
 }
 
-bool ProcessorHandler::hasBreakpoint(const uint32_t address) const {
+bool ProcessorHandler::_hasBreakpoint(const uint32_t address) const {
     return m_breakpoints.count(address);
 }
 
-bool ProcessorHandler::checkBreakpoint() {
+bool ProcessorHandler::_checkBreakpoint() {
     for (const auto& stage : m_currentProcessor->breakpointTriggeringStages()) {
         const auto it = m_breakpoints.find(m_currentProcessor->getPcForStage(stage));
         if (it != m_breakpoints.end()) {
@@ -144,16 +143,16 @@ bool ProcessorHandler::checkBreakpoint() {
     return false;
 }
 
-void ProcessorHandler::toggleBreakpoint(const uint32_t address) {
-    setBreakpoint(address, !hasBreakpoint(address));
+void ProcessorHandler::_toggleBreakpoint(const uint32_t address) {
+    _setBreakpoint(address, !hasBreakpoint(address));
 }
 
-void ProcessorHandler::clearBreakpoints() {
+void ProcessorHandler::_clearBreakpoints() {
     m_breakpoints.clear();
 }
 
 void ProcessorHandler::createAssemblerForCurrentISA() {
-    const auto& ISA = currentISA();
+    const auto& ISA = _currentISA();
 
     if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
         m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rvisa);
@@ -162,15 +161,18 @@ void ProcessorHandler::createAssemblerForCurrentISA() {
     }
 }
 
-void ProcessorHandler::selectProcessor(const ProcessorID& id, const QStringList& extensions,
-                                       RegisterInitialization setup) {
-    m_program = nullptr;
+void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList& extensions,
+                                        RegisterInitialization setup) {
     m_currentID = id;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
 
+    // Keep current program if the ISA between the two processors are identical
+    const bool keepProgram = m_currentProcessor && (m_currentProcessor->implementsISA()->eq(
+                                                       ProcessorRegistry::getDescription(id).isa, extensions));
+
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);
-    m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return isExecutableAddress(address); };
+    m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return _isExecutableAddress(address); };
 
     // Syscall handling initialization
     m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::asyncTrap);
@@ -194,10 +196,16 @@ void ProcessorHandler::selectProcessor(const ProcessorID& id, const QStringList&
     m_currentProcessor->verifyAndInitialize();
     createAssemblerForCurrentISA();
 
+    if (keepProgram && m_program) {
+        loadProgram(m_program);
+    } else {
+        m_program = nullptr;
+    }
+
     emit processorChanged();
 }
 
-int ProcessorHandler::getCurrentProgramSize() const {
+int ProcessorHandler::_getCurrentProgramSize() const {
     if (m_program) {
         const auto* textSection = m_program->getSection(TEXT_SECTION_NAME);
         if (textSection)
@@ -207,7 +215,7 @@ int ProcessorHandler::getCurrentProgramSize() const {
     return 0;
 }
 
-unsigned long ProcessorHandler::getTextStart() const {
+unsigned long ProcessorHandler::_getTextStart() const {
     if (m_program) {
         const auto* textSection = m_program->getSection(TEXT_SECTION_NAME);
         if (textSection)
@@ -217,7 +225,7 @@ unsigned long ProcessorHandler::getTextStart() const {
     return 0;
 }
 
-QString ProcessorHandler::disassembleInstr(const uint32_t addr) const {
+QString ProcessorHandler::_disassembleInstr(const uint32_t addr) const {
     if (m_program) {
         return m_currentAssembler
             ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
@@ -231,7 +239,7 @@ void ProcessorHandler::asyncTrap() {
     auto futureWatcher = QFutureWatcher<bool>();
     futureWatcher.setFuture(QtConcurrent::run([=] {
         const unsigned int function =
-            m_currentProcessor->getRegister(RegisterFileType::GPR, currentISA()->syscallReg());
+            m_currentProcessor->getRegister(RegisterFileType::GPR, _currentISA()->syscallReg());
         return m_syscallManager->execute(function);
     }));
 
@@ -242,7 +250,11 @@ void ProcessorHandler::asyncTrap() {
     }
 }
 
-void ProcessorHandler::checkProcessorFinished() {
+bool ProcessorHandler::_isRunning() {
+    return !m_runWatcher.isFinished();
+}
+
+void ProcessorHandler::_checkProcessorFinished() {
     if (m_currentProcessor->finished())
         emit exit();
 }
@@ -256,14 +268,14 @@ void ProcessorHandler::setStopRunFlag() {
     }
 }
 
-void ProcessorHandler::stopRun() {
+void ProcessorHandler::_stopRun() {
     setStopRunFlag();
     m_runWatcher.waitForFinished();
     m_stopRunningFlag = false;
     SystemIO::abortSyscall(false);
 }
 
-bool ProcessorHandler::isExecutableAddress(uint32_t address) const {
+bool ProcessorHandler::_isExecutableAddress(uint32_t address) const {
     if (m_program) {
         if (auto* textSection = m_program->getSection(TEXT_SECTION_NAME)) {
             const auto textStart = textSection->address;
@@ -274,18 +286,18 @@ bool ProcessorHandler::isExecutableAddress(uint32_t address) const {
     return false;
 }
 
-void ProcessorHandler::checkValidExecutionRange() const {
+void ProcessorHandler::_checkValidExecutionRange() const {
     const auto pc = m_currentProcessor->nextFetchedAddress();
     FinalizeReason fr;
-    fr.exitedExecutableRegion = !isExecutableAddress(pc);
+    fr.exitedExecutableRegion = !_isExecutableAddress(pc);
     m_currentProcessor->finalize(fr);
 }
 
-void ProcessorHandler::setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value) {
+void ProcessorHandler::_setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value) {
     m_currentProcessor->setRegister(rfid, idx, value);
 }
 
-uint32_t ProcessorHandler::getRegisterValue(RegisterFileType rfid, const unsigned idx) const {
+uint32_t ProcessorHandler::_getRegisterValue(RegisterFileType rfid, const unsigned idx) const {
     return m_currentProcessor->getRegister(rfid, idx);
 }
 }  // namespace Ripes

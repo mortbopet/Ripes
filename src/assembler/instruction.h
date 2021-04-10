@@ -264,7 +264,7 @@ struct Imm : public Field {
             const int value = signextend<int32_t>(reconstructed, width);
             const uint32_t symbolAddress = value + (symbolType == SymbolType::Absolute ? 0 : address);
             if (symbolMap.count(symbolAddress)) {
-                line.push_back("<" + symbolMap.at(symbolAddress) + ">");
+                line.push_back("<" + symbolMap.at(symbolAddress).v + ">");
             }
         }
 

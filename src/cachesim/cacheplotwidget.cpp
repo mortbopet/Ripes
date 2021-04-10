@@ -85,7 +85,7 @@ CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
     connect(m_ui->stackedVariables, &QListWidget::itemChanged, this, &CachePlotWidget::variablesChanged);
 
     m_ui->rangeMin->setValue(0);
-    m_ui->rangeMax->setValue(ProcessorHandler::get()->getProcessor()->getCycleCount());
+    m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
 
     connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
     connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
@@ -199,7 +199,7 @@ void CachePlotWidget::rangeChanged() {
     }
 
     // Update allowed ranges
-    const unsigned cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
     m_ui->rangeMin->setMinimum(0);
     m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
     m_ui->rangeMax->setMinimum(m_ui->rangeMin->value());
@@ -309,7 +309,7 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
         series->append(p1.x(), ratio);
         maxY = ratio > maxY ? ratio : maxY;
     }
-    const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
 
     stepifySeries(*series);
     finishSeries(*series, maxX);
@@ -361,7 +361,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
     std::vector<std::pair<Variable, QLineSeries*>> lineSeries;
     QLineSeries* lowerSeries = nullptr;
     QLineSeries* upperSeries = nullptr;
-    const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
     unsigned maxY = 0;
     for (const auto& variableData : cacheData) {
         upperSeries = new QLineSeries(chart);

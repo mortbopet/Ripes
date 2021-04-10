@@ -14,6 +14,7 @@
 #include "ccmanager.h"
 #include "compilererrordialog.h"
 #include "editor/codeeditor.h"
+#include "io/iomanager.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "symbolnavigator.h"
@@ -74,6 +75,27 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     onProcessorChanged();
     sourceTypeChanged();
     enableEditor();
+
+    // State preservation
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, [=] {
+        RipesSettings::setValue(RIPES_SETTING_SOURCECODE, m_ui->codeEditor->document()->toPlainText());
+        RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
+    });
+
+    switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toUInt()) {
+        case SourceType::Assembly: {
+            m_ui->setAssemblyInput->toggle();
+            break;
+        }
+        case SourceType::C: {
+            m_ui->setCInput->toggle();
+            break;
+        }
+        default:
+            break;
+    }
+
+    m_ui->codeEditor->document()->setPlainText(RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
 }
 
 void EditTab::showSymbolNavigator() {
@@ -187,14 +209,13 @@ void EditTab::sourceTypeChanged() {
     }
 
     // Notify the source type change to the code editor
-    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
 }
 
 void EditTab::onProcessorChanged() {
     // Notify a possible assembler change to the code editor - opcodes might have been added or removed which must be
     // reflected in the syntax highlighter
-    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::get()->getAssembler()->getOpcodes());
-    assemble();
+    m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
 }
 
 void EditTab::emitProgramChanged() {
@@ -215,7 +236,8 @@ void EditTab::sourceCodeChanged() {
 }
 
 void EditTab::assemble() {
-    auto res = ProcessorHandler::get()->getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText());
+    auto res = ProcessorHandler::getAssembler()->assembleRaw(m_ui->codeEditor->document()->toPlainText(),
+                                                             &IOManager::get().assemblerSymbols());
     *m_sourceErrors = res.errors;
     if (m_sourceErrors->size() == 0) {
         m_activeProgram = std::make_shared<Program>(res.program);
@@ -334,10 +356,10 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
             const ELFIO::symbol_section_accessor symbols(reader, elfSection);
             for (unsigned int j = 0; j < symbols.get_symbols_num(); ++j) {
                 std::string name;
-                ELFIO::Elf64_Addr value;
+                ELFIO::Elf64_Addr value = 0;
                 ELFIO::Elf_Xword size;
                 unsigned char bind;
-                unsigned char type;
+                unsigned char type = STT_NOTYPE;
                 ELFIO::Elf_Half section_index;
                 unsigned char other;
                 symbols.get_symbol(j, name, value, size, bind, type, section_index, other);

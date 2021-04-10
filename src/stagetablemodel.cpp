@@ -5,8 +5,8 @@
 namespace Ripes {
 
 static inline uint32_t indexToAddress(unsigned index) {
-    if (auto spt = ProcessorHandler::get()->getProgram()) {
-        return (index * ProcessorHandler::get()->currentISA()->bytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
+    if (auto spt = ProcessorHandler::getProgram()) {
+        return (index * ProcessorHandler::currentISA()->bytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }
@@ -21,12 +21,12 @@ QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, i
         return QString::number(section);
     } else {
         const auto addr = indexToAddress(section);
-        return ProcessorHandler::get()->disassembleInstr(addr);
+        return ProcessorHandler::disassembleInstr(addr);
     }
 }
 
 int StageTableModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::get()->getCurrentProgramSize() / ProcessorHandler::get()->currentISA()->bytes();
+    return ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
 }
 
 int StageTableModel::columnCount(const QModelIndex&) const {
@@ -44,9 +44,9 @@ void StageTableModel::reset() {
 }
 
 void StageTableModel::gatherStageInfo() {
-    for (unsigned i = 0; i < ProcessorHandler::get()->getProcessor()->stageCount(); i++) {
-        m_cycleStageInfos[ProcessorHandler::get()->getProcessor()->getCycleCount()][i] =
-            ProcessorHandler::get()->getProcessor()->stageInfo(i);
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+        m_cycleStageInfos[ProcessorHandler::getProcessor()->getCycleCount()][i] =
+            ProcessorHandler::getProcessor()->stageInfo(i);
     }
 }
 
@@ -77,7 +77,7 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
                     continue;
                 }
             }
-            stagesForAddr << ProcessorHandler::get()->getProcessor()->stageName(si.first);
+            stagesForAddr << ProcessorHandler::getProcessor()->stageName(si.first);
         }
     }
 

@@ -1,5 +1,6 @@
 #include "ccmanager.h"
 
+#include "io/iomanager.h"
 #include "loaddialog.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
@@ -61,33 +62,49 @@ bool CCManager::trySetCC(const QString& CC) {
 
 CCManager::CCRes CCManager::compileRaw(const QString& rawsource, QString outname, bool showProgressdiag) {
     // Write program to temporary file with a .c extension
-    const auto tempFileTemplate =
-        QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
-    QTemporaryFile tmpSrcFile = QTemporaryFile(tempFileTemplate);
-    tmpSrcFile.setAutoRemove(false);
-    if (tmpSrcFile.open()) {
-        QTextStream stream(&tmpSrcFile);
-        stream << rawsource;
+    if (!(m_tmpSrcFile && (QFile::exists(m_tmpSrcFile->fileName())))) {
+        const auto tempFileTemplate =
+            QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
+        QTemporaryFile tmpSrcFile = QTemporaryFile(tempFileTemplate);
+        tmpSrcFile.setAutoRemove(false);
+        if (tmpSrcFile.open()) {
+            m_tmpSrcFile = std::make_unique<QFile>(tmpSrcFile.fileName());
+        }
     }
-    Q_ASSERT(!tmpSrcFile.fileName().isEmpty());
-    return compile(tmpSrcFile.fileName(), outname, showProgressdiag);
+
+    Q_ASSERT(m_tmpSrcFile);
+    if (m_tmpSrcFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
+        m_tmpSrcFile->write(rawsource.toUtf8());
+        m_tmpSrcFile->close();
+    }
+
+    QStringList sourceFiles;
+    sourceFiles << m_tmpSrcFile->fileName();
+
+    // Include peripheral header file, if available
+    const QString peripheralSymbolsHeader = IOManager::get().cSymbolsHeaderpath();
+    if (!peripheralSymbolsHeader.isEmpty()) {
+        sourceFiles << peripheralSymbolsHeader;
+    }
+
+    return compile(sourceFiles, outname, showProgressdiag);
 }
 
 CCManager::CCRes CCManager::compile(const QTextDocument* source, QString outname, bool showProgressdiag) {
     return compileRaw(source->toPlainText(), outname, showProgressdiag);
 }
 
-CCManager::CCRes CCManager::compile(const QString& filename, QString outname, bool showProgressdiag) {
+CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, bool showProgressdiag) {
     CCRes res;
     if (outname.isEmpty()) {
         outname = QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".temp.out";
         QFile::remove(outname);  // Remove any previously compiled file
     }
 
-    res.inFile = filename;
+    res.inFiles = files;
     res.outFile = outname;
 
-    const auto [cc, args] = createCompileCommand(filename, outname);
+    const auto [cc, args] = createCompileCommand(files, outname);
 
     // Run compiler
 
@@ -142,8 +159,9 @@ QStringList sanitizedArguments(const QString& args) {
 
 }  // namespace
 
-std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& filename, const QString& outname) const {
-    const auto& currentISA = ProcessorHandler::get()->currentISA();
+std::pair<QString, QStringList> CCManager::createCompileCommand(const QStringList& files,
+                                                                const QString& outname) const {
+    const auto& currentISA = ProcessorHandler::currentISA();
 
     /**
      * @brief s_baseCC
@@ -178,7 +196,7 @@ std::pair<QString, QStringList> CCManager::createCompileCommand(const QString& f
                    << "c";
 
     // Substitute in and out files
-    compileCommand << filename << "-o" << outname;
+    compileCommand << files << "-o" << outname;
 
     // Substitute additional linker arguments
     compileCommand << sanitizedArguments(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
