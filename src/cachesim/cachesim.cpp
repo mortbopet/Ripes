@@ -465,6 +465,11 @@ void CacheSim::processorWasClocked() {
                 return;
         }
 
+        if (m_memory.rw->mem->accessRegion() == vsrtl::core::AddressSpace::RegionType::IO) {
+            // Skip accesses to IO (write-through)
+            return;
+        }
+
         access(m_memory.rw->addr.uValue(), type);
     } else {
         // ROM; read in every cycle
