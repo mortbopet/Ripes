@@ -76,7 +76,7 @@ void ProcessorHandler::_writeMem(uint32_t address, uint32_t value, int size) {
     m_currentProcessor->getMemory().writeMem(address, value, size);
 }
 
-vsrtl::core::SparseArrayMM& ProcessorHandler::_getMemory() {
+vsrtl::core::AddressSpaceMM& ProcessorHandler::_getMemory() {
     return m_currentProcessor->getMemory();
 }
 
@@ -87,7 +87,7 @@ const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* ProcessorHandler::_getInst
     return dynamic_cast<const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>*>(m_currentProcessor->getInstrMemory());
 }
 
-const vsrtl::core::SparseArray& ProcessorHandler::_getRegisters() const {
+const vsrtl::core::AddressSpace& ProcessorHandler::_getRegisters() const {
     return m_currentProcessor->getArchRegisters();
 }
 

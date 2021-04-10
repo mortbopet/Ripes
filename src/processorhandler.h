@@ -90,8 +90,8 @@ public:
      * @brief getMemory & getRegisters
      * returns const-wrapped references to the current process memory elements
      */
-    static vsrtl::core::SparseArrayMM& getMemory() { return get()->_getMemory(); }
-    static const vsrtl::core::SparseArray& getRegisters() { return get()->_getRegisters(); }
+    static vsrtl::core::AddressSpaceMM& getMemory() { return get()->_getMemory(); }
+    static const vsrtl::core::AddressSpace& getRegisters() { return get()->_getRegisters(); }
     static const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* getDataMemory() { return get()->_getDataMemory(); }
     static const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* getInstrMemory() { return get()->_getInstrMemory(); }
 
@@ -203,8 +203,8 @@ private:
     int _getCurrentProgramSize() const;
     unsigned long _getTextStart() const;
     QString _disassembleInstr(const uint32_t address) const;
-    vsrtl::core::SparseArrayMM& _getMemory();
-    const vsrtl::core::SparseArray& _getRegisters() const;
+    vsrtl::core::AddressSpaceMM& _getMemory();
+    const vsrtl::core::AddressSpace& _getRegisters() const;
     const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* _getDataMemory() const;
     const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* _getInstrMemory() const;
     void _setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value);

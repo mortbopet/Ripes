@@ -103,7 +103,7 @@ public:
      * @brief getMemory
      * @return reference to the address space utilized by the implementing processor
      */
-    virtual SparseArrayMM& getMemory() = 0;
+    virtual AddressSpaceMM& getMemory() = 0;
 
     /**
      * @brief getData/InstrMemory
@@ -125,7 +125,7 @@ public:
      * @brief getArchRegisters
      * @return reference to the register address space utilized by the implementing processor
      */
-    virtual SparseArray& getArchRegisters() = 0;
+    virtual AddressSpace& getArchRegisters() = 0;
 
     /**
      * @brief setRegister

@@ -90,7 +90,7 @@ public:
         return regs;
     }
 
-    void setMemory(SparseArray* mem) {
+    void setMemory(AddressSpace* mem) {
         m_memory = mem;
         // All memory components must point to the same memory
         _wr_mem->setMemory(m_memory);
@@ -99,7 +99,7 @@ public:
     }
 
 private:
-    SparseArray* m_memory = nullptr;
+    AddressSpace* m_memory = nullptr;
 };
 
 }  // namespace core

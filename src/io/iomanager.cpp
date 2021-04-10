@@ -6,7 +6,7 @@
 #include <memory>
 #include <ostream>
 
-#include "VSRTL/core/vsrtl_sparsearray.h"
+#include "VSRTL/core/vsrtl_addressspace.h"
 
 namespace Ripes {
 
@@ -66,7 +66,7 @@ void IOManager::peripheralSizeChanged(IOBase* peripheral) {
 }
 
 void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
-    ProcessorHandler::getMemory().addRegion(
+    ProcessorHandler::getMemory().addIORegion(
         m_periphMMappings.at(peripheral).startAddr, peripheral->byteSize(),
         vsrtl::core::IOFunctors{
             [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
@@ -83,7 +83,7 @@ void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
 void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
     const auto& mmEntry = m_periphMMappings.find(peripheral);
     if (mmEntry != m_periphMMappings.end()) {
-        ProcessorHandler::getMemory().removeRegion(mmEntry->second.startAddr, mmEntry->second.size);
+        ProcessorHandler::getMemory().removeIORegion(mmEntry->second.startAddr, mmEntry->second.size);
         m_periphMMappings.erase(mmEntry);
     }
 }

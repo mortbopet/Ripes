@@ -341,9 +341,9 @@ public:
         propagateDesign();
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
-    SparseArrayMM& getMemory() override { return *m_memory; }
+    AddressSpaceMM& getMemory() override { return *m_memory; }
     unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
-    SparseArray& getArchRegisters() override { return *m_regMem; }
+    AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
             // An exit system call was executed. Record the cycle of the execution, and enable the ecallChecker's system

@@ -160,9 +160,9 @@ public:
         propagateDesign();
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
-    SparseArrayMM& getMemory() override { return *m_memory; }
+    AddressSpaceMM& getMemory() override { return *m_memory; }
     unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
-    SparseArray& getArchRegisters() override { return *m_regMem; }
+    AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.any()) {
             // Allow one additional clock cycle to clear the current instruction
