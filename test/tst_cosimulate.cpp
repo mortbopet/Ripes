@@ -168,7 +168,7 @@ void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
     unsigned cycles = 0;
     trace.push_back(TraceEntry{dumpRegs(), cycles, ProcessorHandler::get()->getProcessor()->getPcForStage(0)});
 
-    typeof(refTrace->begin()) cmpRegState;
+    decltype(refTrace->begin()) cmpRegState;
     if (refTrace) {
         cmpRegState = refTrace->begin();
         cmpRegState++;  // skip initial state

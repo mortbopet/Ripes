@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, ubuntu-16.04, ubuntu-18.04]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-16.04, ubuntu-18.04]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,10 +27,20 @@ jobs:
         sudo apt-get update
         sudo apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
-        automake cmake git wget libfuse2 desktop-file-utils tree \
-        build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
+        automake cmake git wget libfuse2 desktop-file-utils tree xvfb \
+        build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev \
+        libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 \
+        libxcb-xinerama0 libxcb-composite0 libxcb-cursor0 libxcb-damage0 \
+        libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
+        libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
+        libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 \
+        
         echo "CC=gcc-9" >> $GITHUB_ENV
         echo "CXX=g++-9" >> $GITHUB_ENV
+
+        # Dummy display server for CI tests
+        Xvfb :99 &
+        echo "DISPLAY=:99" >> $GITHUB_ENV
 
       # MacOS
     - if: contains( matrix.os, 'macos')
@@ -66,12 +76,18 @@ jobs:
     - if: "!contains(matrix.os, 'windows')"
       name: build Ripes
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Release .
+        cmake -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .
         make -j $(nproc)
 
     - if: contains(matrix.os, 'windows')
       name: build Ripes (Windows)
       shell: bash
       run: |
-        cmake -GNinja-DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        cmake -GNinja -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
         cmake --build .
+
+    # Go test
+    - name: Execute tests
+      shell: bash
+      run: |
+        bash .github/workflows/scripts/run_tests.sh

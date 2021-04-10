@@ -19,9 +19,6 @@ jobs:
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
         automake cmake git wget libfuse2 desktop-file-utils tree \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev
-
-        # Packaging requirements
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
         libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 \
         libxcb-xinerama0 libxcb-composite0 libxcb-cursor0 libxcb-damage0 \
         libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
