@@ -64,6 +64,11 @@ jobs:
         ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract-and-run appdir/usr/share/applications/*.desktop \
           -appimage -verbose=2 -extra-plugins=iconengines
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Executable
+        path: Ripes*.AppImage*
+
     - name: continuous release
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'

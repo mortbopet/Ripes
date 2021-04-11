@@ -52,6 +52,11 @@ jobs:
         windeployqt.exe -svg --release --no-compiler-runtime --no-opengl-sw --no-translations Ripes.exe
         7z a -r ../${APPNAME} *
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Executable
+        path: ${{ env.APPNAME }}
+
     - name: continuous release
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'

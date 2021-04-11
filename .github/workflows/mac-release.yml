@@ -50,6 +50,12 @@ jobs:
         sudo mv Ripes.app ${APPNAME}.app
         sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
     
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Executable
+        path: ${{ env.APPNAME }}.zip
+
     - name: continuous release
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'
