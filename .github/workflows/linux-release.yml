@@ -11,7 +11,17 @@ jobs:
       CC: gcc-9
       CXX: g++-9
 
+    strategy:
+      matrix:
+        build-type: [Release, Debug]
+
     steps:
+
+    - name: Job info
+      run: |
+        echo "GitHub Ref: ${{ github.ref }}"
+        echo "Event: ${{ github.event }}"
+
     - name: get container ready for build
       run: |
         sudo apt-get update
@@ -49,7 +59,7 @@ jobs:
       run: |
         echo "--------------------------------------------------------------"
         echo "building desktop"
-        cmake -DCMAKE_BUILD_TYPE=Release .
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} .
         make -j $(nproc)
 
     - name: package artifacts
@@ -66,12 +76,12 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: Executable
+        name: ${{ matrix.build-type }}_executable
         path: Ripes*.AppImage*
 
     - name: continuous release
       uses: softprops/action-gh-release@v1
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release'
       with:
         prerelease: true
         files: Ripes*.AppImage*
@@ -79,9 +89,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: tagged release
+    - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release')
+      name: tagged release
       uses: softprops/action-gh-release@v1
-      if: (github.ref == 'refs/heads/master') && (startsWith(github.ref, 'refs/tags/'))
       with:
         files: Ripes*.AppImage*
       env:

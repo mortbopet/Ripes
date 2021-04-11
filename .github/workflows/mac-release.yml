@@ -7,6 +7,11 @@ on:
 jobs:
   buildMac:
     runs-on: macOS-latest
+
+    strategy:
+      matrix:
+        build-type: [Release, Debug]
+
     steps:
     - name: checkout sources
       uses: actions/checkout@v2
@@ -38,27 +43,26 @@ jobs:
         export PATH=$QT_ROOT/bin:$PATH
         export CMAKE_PREFIX_PATH=$QT_ROOT/lib/cmake
         DIR=$(pwd)
-        cmake -DCMAKE_BUILD_TYPE=Release .
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} .
         make
   
     - name: package artifacts
       run: |
-        macdeployqt Ripes.app
+        macdeployqt $(if [ ${{ matrix.build-type }} -eq Debug ]; then echo "-use-debug-libs"; fi) Ripes.app
         source .github/workflows/scripts/set_version.sh
         export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
         sudo mv Ripes.app ${APPNAME}.app
         sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
-    
 
     - uses: actions/upload-artifact@v2
       with:
-        name: Executable
+        name: ${{ matrix.build-type }}_executable
         path: ${{ env.APPNAME }}.zip
 
     - name: continuous release
       uses: softprops/action-gh-release@v1
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release'
       with:
         prerelease: true
         files: ${{ env.APPNAME }}.zip
@@ -66,9 +70,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: tagged release
+    - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release')
+      name: tagged release
       uses: softprops/action-gh-release@v1
-      if: (github.ref == 'refs/heads/master') && (startsWith(github.ref, 'refs/tags/'))
       with:
         files: ${{ env.APPNAME }}.zip
       env:
