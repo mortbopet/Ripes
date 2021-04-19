@@ -16,7 +16,7 @@ public:
     CacheConfigWidget(QWidget* parent);
     ~CacheConfigWidget() override;
 
-    void setCache(CacheSim* cache);
+    void setCache(std::shared_ptr<CacheSim>& cache);
 
 signals:
     void configurationChanged();
@@ -31,7 +31,7 @@ private:
     void updateIndexingText();
     void setupPresets();
     void showSizeBreakdown();
-    CacheSim* m_cache;
+    std::shared_ptr<CacheSim> m_cache;
     Ui::CacheConfigWidget* m_ui = nullptr;
     std::vector<QObject*> m_configItems;
 

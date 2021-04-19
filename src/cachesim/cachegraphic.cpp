@@ -25,12 +25,11 @@ std::set<TK> keys(std::map<TK, TV> const& input_map) {
 namespace Ripes {
 
 CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(cache), m_fm(m_font) {
-    connect(&cache, &CacheSim::configurationChanged, this, &CacheGraphic::cacheParametersChanged);
     connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged);
     connect(&cache, &CacheSim::wayInvalidated, this, &CacheGraphic::wayInvalidated);
     connect(&cache, &CacheSim::cacheInvalidated, this, &CacheGraphic::cacheInvalidated);
 
-    cacheParametersChanged();
+    cacheInvalidated();
 }
 
 void CacheGraphic::updateLineReplFields(unsigned lineIdx) {
@@ -170,6 +169,108 @@ std::unique_ptr<QGraphicsSimpleTextItem> CacheGraphic::createGraphicsTextItemSP(
 }
 
 void CacheGraphic::cacheInvalidated() {
+    // Remove all items
+    m_highlightingItems.clear();
+    m_cacheTextItems.clear();
+    for (const auto& item : childItems())
+        delete item;
+
+    // Determine cell dimensions
+    m_setHeight = m_fm.height();
+    m_lineHeight = m_setHeight * m_cache.getWays();
+    m_blockWidth = m_fm.width(" 0x00000000 ");
+    m_bitWidth = m_fm.width("00");
+    m_lruWidth = m_fm.width(QString::number(m_cache.getWays()) + " ");
+    m_cacheHeight = m_lineHeight * m_cache.getLines();
+    m_tagWidth = m_blockWidth;
+
+    // Draw cache:
+    new QGraphicsLineItem(0, 0, 0, m_cacheHeight, this);
+
+    qreal width = 0;
+    // Draw valid bit column
+    new QGraphicsLineItem(m_bitWidth, 0, m_bitWidth, m_cacheHeight, this);
+    const QString validBitText = "V";
+    auto* validItem = drawText(validBitText, 0, -m_fm.height());
+    validItem->setToolTip("Valid bit");
+    width += m_bitWidth;
+
+    if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
+        m_widthBeforeDirty = width;
+
+        // Draw dirty bit column
+        new QGraphicsLineItem(width + m_bitWidth, 0, width + m_bitWidth, m_cacheHeight, this);
+        const QString dirtyBitText = "D";
+        auto* dirtyItem = drawText(dirtyBitText, m_widthBeforeDirty, -m_fm.height());
+        dirtyItem->setToolTip("Dirty bit");
+        width += m_bitWidth;
+    }
+
+    m_widthBeforeLRU = width;
+
+    if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
+        // Draw LRU bit column
+        new QGraphicsLineItem(width + m_lruWidth, 0, width + m_lruWidth, m_cacheHeight, this);
+        const QString LRUBitText = "LRU";
+        auto* textItem = drawText(LRUBitText, width + m_lruWidth / 2 - m_fm.width(LRUBitText) / 2, -m_fm.height());
+        textItem->setToolTip("Least Recently Used bits");
+        width += m_lruWidth;
+    }
+
+    m_widthBeforeTag = width;
+
+    // Draw tag column
+    new QGraphicsLineItem(m_tagWidth + width, 0, m_tagWidth + width, m_cacheHeight, this);
+    const QString tagText = "Tag";
+    drawText(tagText, width + m_tagWidth / 2 - m_fm.width(tagText) / 2, -m_fm.height());
+    width += m_tagWidth;
+
+    m_widthBeforeBlocks = width;
+
+    // Draw horizontal lines between cache blocks
+    for (int i = 0; i < m_cache.getBlocks(); i++) {
+        const QString blockText = "Block " + QString::number(i);
+        drawText(blockText, width + m_tagWidth / 2 - m_fm.width(blockText) / 2, -m_fm.height());
+        width += m_blockWidth;
+        new QGraphicsLineItem(width, 0, width, m_cacheHeight, this);
+    }
+
+    m_cacheWidth = width;
+
+    // Draw cache line rows
+    for (int i = 0; i <= m_cache.getLines(); i++) {
+        qreal verticalAdvance = i * m_lineHeight;
+        new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
+
+        if (i < m_cache.getLines()) {
+            // Draw cache set rows
+            for (int j = 1; j < m_cache.getWays(); j++) {
+                verticalAdvance += m_setHeight;
+                auto* setLine = new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
+                auto pen = setLine->pen();
+                pen.setStyle(Qt::DashLine);
+                setLine->setPen(pen);
+            }
+        }
+    }
+
+    // Draw line index numbers
+    for (int i = 0; i < m_cache.getLines(); i++) {
+        const QString text = QString::number(i);
+
+        const qreal y = i * m_lineHeight + m_lineHeight / 2 - m_setHeight / 2;
+        const qreal x = -m_fm.width(text) * 1.2;
+        drawText(text, x, y);
+    }
+
+    // Draw index column text
+    const QString indexText = "Index";
+    const qreal x = -m_fm.width(indexText) * 1.2;
+    drawText(indexText, x, -m_fm.height());
+
+    initializeControlBits();
+
+    // Update all entries in the cache
     for (int lineIdx = 0; lineIdx < m_cache.getLines(); lineIdx++) {
         if (const auto* line = m_cache.getLine(lineIdx)) {
             for (const auto& way : *line) {
@@ -274,111 +375,6 @@ QRectF CacheGraphic::boundingRect() const {
     // We do not paint anything in Cachegraphic; only instantiate other QGraphicsItem-derived objects. So just return
     // the bounding rect of child items
     return childrenBoundingRect();
-}
-
-void CacheGraphic::cacheParametersChanged() {
-    // Remove all items
-    m_highlightingItems.clear();
-    m_cacheTextItems.clear();
-    const auto children = childItems();
-    for (const auto& item : qAsConst(children)) {
-        delete item;
-    }
-
-    // Determine cell dimensions
-    m_setHeight = m_fm.height();
-    m_lineHeight = m_setHeight * m_cache.getWays();
-    m_blockWidth = m_fm.width(" 0x00000000 ");
-    m_bitWidth = m_fm.width("00");
-    m_lruWidth = m_fm.width(QString::number(m_cache.getWays()) + " ");
-    m_cacheHeight = m_lineHeight * m_cache.getLines();
-    m_tagWidth = m_blockWidth;
-
-    // Draw cache:
-    new QGraphicsLineItem(0, 0, 0, m_cacheHeight, this);
-
-    qreal width = 0;
-    // Draw valid bit column
-    new QGraphicsLineItem(m_bitWidth, 0, m_bitWidth, m_cacheHeight, this);
-    const QString validBitText = "V";
-    auto* validItem = drawText(validBitText, 0, -m_fm.height());
-    validItem->setToolTip("Valid bit");
-    width += m_bitWidth;
-
-    if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
-        m_widthBeforeDirty = width;
-
-        // Draw dirty bit column
-        new QGraphicsLineItem(width + m_bitWidth, 0, width + m_bitWidth, m_cacheHeight, this);
-        const QString dirtyBitText = "D";
-        auto* dirtyItem = drawText(dirtyBitText, m_widthBeforeDirty, -m_fm.height());
-        dirtyItem->setToolTip("Dirty bit");
-        width += m_bitWidth;
-    }
-
-    m_widthBeforeLRU = width;
-
-    if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
-        // Draw LRU bit column
-        new QGraphicsLineItem(width + m_lruWidth, 0, width + m_lruWidth, m_cacheHeight, this);
-        const QString LRUBitText = "LRU";
-        auto* textItem = drawText(LRUBitText, width + m_lruWidth / 2 - m_fm.width(LRUBitText) / 2, -m_fm.height());
-        textItem->setToolTip("Least Recently Used bits");
-        width += m_lruWidth;
-    }
-
-    m_widthBeforeTag = width;
-
-    // Draw tag column
-    new QGraphicsLineItem(m_tagWidth + width, 0, m_tagWidth + width, m_cacheHeight, this);
-    const QString tagText = "Tag";
-    drawText(tagText, width + m_tagWidth / 2 - m_fm.width(tagText) / 2, -m_fm.height());
-    width += m_tagWidth;
-
-    m_widthBeforeBlocks = width;
-
-    // Draw horizontal lines between cache blocks
-    for (int i = 0; i < m_cache.getBlocks(); i++) {
-        const QString blockText = "Block " + QString::number(i);
-        drawText(blockText, width + m_tagWidth / 2 - m_fm.width(blockText) / 2, -m_fm.height());
-        width += m_blockWidth;
-        new QGraphicsLineItem(width, 0, width, m_cacheHeight, this);
-    }
-
-    m_cacheWidth = width;
-
-    // Draw cache line rows
-    for (int i = 0; i <= m_cache.getLines(); i++) {
-        qreal verticalAdvance = i * m_lineHeight;
-        new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
-
-        if (i < m_cache.getLines()) {
-            // Draw cache set rows
-            for (int j = 1; j < m_cache.getWays(); j++) {
-                verticalAdvance += m_setHeight;
-                auto* setLine = new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
-                auto pen = setLine->pen();
-                pen.setStyle(Qt::DashLine);
-                setLine->setPen(pen);
-            }
-        }
-    }
-
-    // Draw line index numbers
-    for (int i = 0; i < m_cache.getLines(); i++) {
-        const QString text = QString::number(i);
-
-        const qreal y = i * m_lineHeight + m_lineHeight / 2 - m_setHeight / 2;
-        const qreal x = -m_fm.width(text) * 1.2;
-        drawText(text, x, y);
-    }
-
-    // Draw index column text
-    const QString indexText = "Index";
-    const qreal x = -m_fm.width(indexText) * 1.2;
-    drawText(indexText, x, -m_fm.height());
-
-    initializeControlBits();
 }
 
 }  // namespace Ripes

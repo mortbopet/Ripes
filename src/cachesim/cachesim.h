@@ -13,8 +13,41 @@ using RWMemory = vsrtl::core::RVMemory<32, 32>;
 using ROMMemory = vsrtl::core::ROM<32, 32>;
 
 namespace Ripes {
+class CacheSim;
 
-class CacheSim : public QObject {
+class CacheInterface : public QObject {
+    Q_OBJECT
+public:
+    CacheInterface(QObject* parent) : QObject(parent) {}
+    enum class AccessType { Read, Write };
+
+    /**
+     * @brief access
+     * A function called by the logical "child" of this cache, indicating that it desires to access this cache
+     */
+    virtual void access(uint32_t address, AccessType type) = 0;
+
+    void setNextLevelCache(std::shared_ptr<CacheSim>& cache) {
+        Q_ASSERT(!m_nextLevelCache.lock());
+        m_nextLevelCache = cache;
+    }
+
+    /**
+     * @brief reset
+     * Called by the logical child of this cache to  propagating cache resetting or reversing up the cache hierarchy.
+     */
+    virtual void reset();
+    virtual void reverse();
+
+protected:
+    /**
+     * @brief m_nextLevelCache
+     * Pointer to the next level (logical parent) cache.
+     */
+    std::weak_ptr<CacheSim> m_nextLevelCache;
+};
+
+class CacheSim : public CacheInterface {
     Q_OBJECT
 public:
     static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
@@ -22,8 +55,6 @@ public:
     enum class WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
     enum class WritePolicy { WriteThrough, WriteBack };
     enum class ReplPolicy { Random, LRU };
-    enum class AccessType { Read, Write };
-    enum class CacheType { DataCache, InstrCache };
 
     struct CacheSize {
         unsigned bits = 0;
@@ -93,14 +124,13 @@ public:
     using CacheLine = std::map<unsigned, CacheWay>;
 
     CacheSim(QObject* parent);
-    void setType(CacheType type);
     void setWritePolicy(WritePolicy policy);
     void setWriteAllocatePolicy(WriteAllocPolicy policy);
     void setReplacementPolicy(ReplPolicy policy);
 
-    void access(uint32_t address, AccessType type);
+    void access(uint32_t address, AccessType type) override;
     void undo();
-    void processorReset();
+    void reset() override;
 
     WriteAllocPolicy getWriteAllocPolicy() const { return m_wrAllocPolicy; }
     ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
@@ -141,11 +171,10 @@ public slots:
     void setPreset(const CacheSim::CachePreset& preset);
 
     /**
-     * @brief processorWasClocked/processorWasReversed
-     * Slot functions for clocked/Reversed signals emitted by the currently attached processor.
+     * @brief reverse
+     * Slot functions for Reversed signals emitted by the currently attached processor.
      */
-    void processorWasClocked();
-    void processorWasReversed();
+    void reverse() override;
 
 signals:
     void configurationChanged();
@@ -175,7 +204,6 @@ private:
     std::pair<unsigned, CacheSim::CacheWay*> locateEvictionWay(const CacheTransaction& transaction);
     CacheWay evictAndUpdate(CacheTransaction& transaction);
     void analyzeCacheAccess(CacheTransaction& transaction) const;
-    void updateConfiguration();
     void pushAccessTrace(const CacheTransaction& transaction);
     void popAccessTrace();
     /**
@@ -204,18 +232,6 @@ private:
     int m_blocks = 2;  // Some power of 2
     int m_lines = 5;   // Some power of 2
     int m_ways = 0;    // Some power of 2
-
-    /**
-     * @brief m_memory
-     * The cache simulator may be attached to either a ROM or a Read/Write memory element. Accessing the underlying
-     * VSRTL component signals are dependent on the given type of the memory.
-     */
-    CacheType m_type;
-    union {
-        RWMemory const* rw = nullptr;
-        ROMMemory const* rom;
-
-    } m_memory;
 
     /**
      * @brief m_cacheLines

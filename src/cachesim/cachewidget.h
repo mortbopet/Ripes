@@ -21,7 +21,9 @@ public:
     explicit CacheWidget(QWidget* parent = nullptr);
     ~CacheWidget();
 
-    void setType(CacheSim::CacheType type);
+    void setNextLevelCache(std::shared_ptr<CacheSim>& cache);
+
+    std::shared_ptr<CacheSim>& getCacheSim() { return m_cacheSim; }
 
 signals:
     void cacheAddressSelected(uint32_t);
@@ -29,7 +31,7 @@ signals:
 
 private:
     Ui::CacheWidget* m_ui;
-    CacheSim* m_cacheSim = nullptr;
+    std::shared_ptr<CacheSim> m_cacheSim;
 };
 
 }  // namespace Ripes

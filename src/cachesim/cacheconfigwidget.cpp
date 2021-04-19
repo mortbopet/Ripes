@@ -20,7 +20,7 @@ CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(ne
                      m_ui->replacementPolicy, m_ui->wrMiss, m_ui->wrHit};
 }
 
-void CacheConfigWidget::setCache(CacheSim* cache) {
+void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
     m_cache = cache;
 
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
@@ -42,9 +42,9 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
         "<font color=\"gray\">█</font> = Tag &nbsp; <font color=\"red\">█</font> = Index &nbsp; <font "
         "color=\"green\">█</font> = Block &nbsp; <font color=\"black\">█</font> = Byte");
 
-    connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);
-    connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setBlocks);
-    connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setLines);
+    connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setWays);
+    connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setBlocks);
+    connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setLines);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CacheConfigWidget::showSizeBreakdown);
 
     connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
@@ -57,9 +57,9 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
         m_cache->setWriteAllocatePolicy(qvariant_cast<CacheSim::WriteAllocPolicy>(m_ui->wrMiss->itemData(index)));
     });
 
-    connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
-    connect(m_cache, &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
-    connect(m_cache, &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
+    connect(m_cache.get(), &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
+    connect(m_cache.get(), &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
+    connect(m_cache.get(), &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
 
     setupPresets();
     handleConfigurationChanged();
