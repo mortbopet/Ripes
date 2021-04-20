@@ -10,7 +10,7 @@ CacheView::CacheView(QWidget* parent) : QGraphicsView(parent) {
     m_zoom = 250;
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-    setRenderHint(QPainter::Antialiasing, false);
+    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     setInteractive(true);
     setupMatrix();
 }
