@@ -32,7 +32,7 @@ CacheSim::CacheSim(QObject* parent) : CacheInterface(parent) {
         emit cacheInvalidated();
     });
 
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::updateCacheLineReplFields(CacheLine& line, unsigned wayIdx) {
@@ -460,7 +460,6 @@ void CacheSim::reset() {
     m_accessTrace.clear();
     m_traceStack.clear();
 
-    // Recalculate masks
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
     m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
     bitoffset += getBlockBits();
@@ -475,34 +474,45 @@ void CacheSim::reset() {
     CacheInterface::reset();
 }
 
+void CacheSim::updateConfiguration() {
+    // Recalculate masks
+    int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
+    m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
+    bitoffset += getBlockBits();
+    m_lineMask = generateBitmask(getLineBits()) << bitoffset;
+    bitoffset += getLineBits();
+    m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
+    emit configurationChanged();
+}
+
 void CacheSim::setBlocks(unsigned blocks) {
     m_blocks = blocks;
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::setLines(unsigned lines) {
     m_lines = lines;
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::setWays(unsigned ways) {
     m_ways = ways;
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::setWritePolicy(WritePolicy policy) {
     m_wrPolicy = policy;
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::setWriteAllocatePolicy(WriteAllocPolicy policy) {
     m_wrAllocPolicy = policy;
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::setReplacementPolicy(ReplPolicy policy) {
     m_replPolicy = policy;
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 void CacheSim::setPreset(const CachePreset& preset) {
@@ -513,7 +523,7 @@ void CacheSim::setPreset(const CachePreset& preset) {
     m_wrAllocPolicy = preset.wrAllocPolicy;
     m_replPolicy = preset.replPolicy;
 
-    emit configurationChanged();
+    updateConfiguration();
 }
 
 }  // namespace Ripes

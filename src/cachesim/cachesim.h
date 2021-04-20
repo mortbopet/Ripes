@@ -206,6 +206,13 @@ private:
     void analyzeCacheAccess(CacheTransaction& transaction) const;
     void pushAccessTrace(const CacheTransaction& transaction);
     void popAccessTrace();
+
+    /**
+     * @brief updateConfiguration
+     * Called whenever one of the cache parameters changes. Emits signal configurationChanged after updating.
+     */
+    void updateConfiguration();
+
     /**
      * @brief isAsynchronouslyAccessed
      * If the processor is in its 'running' state, it is currently being executed in a separate thread. In this case,
