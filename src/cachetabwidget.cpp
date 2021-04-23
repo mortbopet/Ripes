@@ -52,18 +52,15 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     m_ui->tabWidget->tabBar()->installEventFilter(new ScrollEventFilter(this));
 }
 
-void CacheTabWidget::connectCacheWidget(CacheWidget* w) {
-    connect(w, &CacheWidget::cacheAddressSelected, this, &CacheTabWidget::focusAddressChanged);
-}
-
 void CacheTabWidget::handleTabCloseRequest(int index) {
     // Only the last-level cache should be closeable
     Q_ASSERT(index == m_addTabIdx - 1 && index > InstrCache);
-    m_ui->tabWidget->setCurrentIndex(index - 1);
+    const int newIndex = index - 1;
+    m_ui->tabWidget->setCurrentIndex(newIndex);
     m_ui->tabWidget->removeTab(index);
     m_addTabIdx = m_ui->tabWidget->count() - 1;
-    if (index - 1 > InstrCache) {
-        m_ui->tabWidget->tabBar()->tabButton(index - 1, QTabBar::RightSide)->resize(m_defaultTabButtonSize);
+    if (newIndex > InstrCache) {
+        m_ui->tabWidget->tabBar()->tabButton(newIndex, QTabBar::RightSide)->resize(m_defaultTabButtonSize);
     }
     m_nextCacheLevel--;
     m_ui->tabWidget->setTabText(m_addTabIdx, QString("L%1 Cache").arg(m_nextCacheLevel));
@@ -73,7 +70,6 @@ void CacheTabWidget::handleTabIndexChanged(int index) {
     if (index == m_addTabIdx) {
         // Add new level of cache
         auto* cw = new CacheWidget(this);
-        connectCacheWidget(cw);
         m_ui->tabWidget->insertTab(m_addTabIdx, cw, QString("L%1 Cache").arg(m_nextCacheLevel));
         m_nextCacheLevel++;
 
@@ -83,6 +79,15 @@ void CacheTabWidget::handleTabIndexChanged(int index) {
         m_addTabIdx = m_ui->tabWidget->count() - 1;
         m_ui->tabWidget->setCurrentIndex(index);
         m_ui->tabWidget->setTabText(m_addTabIdx, QString("L%1 Cache").arg(m_nextCacheLevel));
+    }
+
+    // Locate cacheWidget for the current index
+    for (const auto& ch : m_ui->tabWidget->widget(index)->children()) {
+        auto* cw = dynamic_cast<CacheWidget*>(ch);
+        if (cw) {
+            emit cacheFocusChanged(cw);
+            break;
+        }
     }
 }
 

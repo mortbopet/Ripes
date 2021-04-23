@@ -19,6 +19,7 @@ public:
 
 signals:
     void focusAddressChanged(unsigned address);
+    void cacheFocusChanged(CacheWidget* cacheInFocus);
 
 private:
     enum FixedCacheIdx { DataCache, InstrCache };

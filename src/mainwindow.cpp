@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "cachetab.h"
 #include "defines.h"
 #include "edittab.h"
 #include "iotab.h"
@@ -56,26 +57,32 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_editToolbar = addToolBar("Edit");
     m_editToolbar->setVisible(false);
     m_editTab = new EditTab(m_editToolbar, this);
-    m_stackedTabs->insertWidget(0, m_editTab);
+    m_stackedTabs->insertWidget(EditTabID, m_editTab);
 
     m_processorToolbar = addToolBar("Processor");
     m_processorToolbar->setVisible(false);
     m_processorTab = new ProcessorTab(m_controlToolbar, m_processorToolbar, this);
-    m_stackedTabs->insertWidget(1, m_processorTab);
+    m_stackedTabs->insertWidget(ProcessorTabID, m_processorTab);
+
+    m_cacheToolbar = addToolBar("Cache");
+    m_cacheToolbar->setVisible(false);
+    m_cacheTab = new CacheTab(m_memoryToolbar, this);
+    m_stackedTabs->insertWidget(CacheTabID, m_cacheTab);
 
     m_memoryToolbar = addToolBar("Memory");
     m_memoryToolbar->setVisible(false);
     m_memoryTab = new MemoryTab(m_memoryToolbar, this);
-    m_stackedTabs->insertWidget(2, m_memoryTab);
+    m_stackedTabs->insertWidget(MemoryTabID, m_memoryTab);
 
     m_IOToolbar = addToolBar("I/O");
     m_IOToolbar->setVisible(false);
     m_IOTab = new IOTab(m_IOToolbar, this);
-    m_stackedTabs->insertWidget(3, m_IOTab);
+    m_stackedTabs->insertWidget(IOTabID, m_IOTab);
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
@@ -137,10 +144,11 @@ void MainWindow::setupStatusBar() {
 }
 
 void MainWindow::tabChanged(int index) {
-    m_editToolbar->setVisible(index == 0);
-    m_processorToolbar->setVisible(index == 1);
-    m_memoryToolbar->setVisible(index == 2);
-    m_IOToolbar->setVisible(index == 3);
+    m_editToolbar->setVisible(index == EditTabID);
+    m_processorToolbar->setVisible(index == ProcessorTabID);
+    m_memoryToolbar->setVisible(index == MemoryTabID);
+    m_cacheToolbar->setVisible(index == CacheTabID);
+    m_IOToolbar->setVisible(index == IOTabID);
 }
 
 void MainWindow::fitToView() {

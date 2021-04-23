@@ -8,6 +8,7 @@ class CacheView : public QGraphicsView {
     Q_OBJECT
 public:
     CacheView(QWidget* parent);
+    void fitScene();
 
 protected:
     void wheelEvent(QWheelEvent*) override;

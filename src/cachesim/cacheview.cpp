@@ -31,6 +31,10 @@ void CacheView::mousePressEvent(QMouseEvent* event) {
     QGraphicsView::mousePressEvent(event);
 }
 
+void CacheView::fitScene() {
+    fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
+}
+
 void CacheView::wheelEvent(QWheelEvent* e) {
     if (e->modifiers() & Qt::ControlModifier) {
         if (e->angleDelta().y() > 0)

@@ -17,12 +17,15 @@ class MainWindow;
 class EditTab;
 class MemoryTab;
 class ProcessorTab;
+class CacheTab;
 class IOTab;
 class ProcessorHandler;
 struct LoadFileParams;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
+
+    enum TabIndex { EditTabID, ProcessorTabID, CacheTabID, MemoryTabID, IOTabID, NTabsID };
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
@@ -66,12 +69,14 @@ private:
 
     ProcessorTab* m_processorTab = nullptr;
     EditTab* m_editTab = nullptr;
+    CacheTab* m_cacheTab = nullptr;
     MemoryTab* m_memoryTab = nullptr;
     IOTab* m_IOTab = nullptr;
 
     QToolBar* m_controlToolbar = nullptr;
     QToolBar* m_processorToolbar = nullptr;
     QToolBar* m_editToolbar = nullptr;
+    QToolBar* m_cacheToolbar = nullptr;
     QToolBar* m_memoryToolbar = nullptr;
     QToolBar* m_IOToolbar = nullptr;
 };
