@@ -34,10 +34,6 @@ void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
     m_ui->lines->setValue(m_cache->getLineBits());
     m_ui->blocks->setValue(m_cache->getBlockBits());
 
-    m_ui->indexingKey->setText(
-        "<font color=\"gray\">█</font> = Tag &nbsp; <font color=\"red\">█</font> = Index &nbsp; <font "
-        "color=\"green\">█</font> = Block &nbsp; <font color=\"black\">█</font> = Byte");
-
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setLines);
@@ -114,7 +110,6 @@ void CacheConfigWidget::handleConfigurationChanged() {
 
     std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(false); });
 
-    updateIndexingText();
     m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
     updateHitrate();
 }
@@ -142,40 +137,6 @@ void CacheConfigWidget::showSizeBreakdown() {
 
 CacheConfigWidget::~CacheConfigWidget() {
     delete m_ui;
-}
-
-void CacheConfigWidget::updateIndexingText() {
-    QString indexingText = " 0";
-
-    // Byte offset bits
-    indexingText = "<font color=\"black\">▊▊</font>" + indexingText;
-
-    // Block offset bits
-    QString blocks = "";
-    for (int i = 0; i < m_cache->getBlockBits(); i++) {
-        blocks += "▊";
-    }
-    indexingText = "<font color=\"green\">" + blocks + "</font>" + indexingText;
-
-    // Line index bits
-    QString index = "";
-    for (int i = 0; i < m_cache->getLineBits(); i++) {
-        index += "▊";
-    }
-
-    indexingText = "<font color=\"red\">" + index + "</font>" + indexingText;
-
-    // Tag index bits
-    QString tag = "";
-    for (int i = 0; i < m_cache->getTagBits(); i++) {
-        tag += "▊";
-    }
-
-    indexingText = "<font color=\"gray\">" + tag + "</font>" + indexingText;
-
-    indexingText = "31 " + indexingText;
-
-    m_ui->indexingText->setText(indexingText);
 }
 
 }  // namespace Ripes

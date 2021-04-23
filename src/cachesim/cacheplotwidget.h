@@ -12,6 +12,7 @@ QT_FORWARD_DECLARE_CLASS(QAction);
 QT_CHARTS_BEGIN_NAMESPACE
 class QChartView;
 class QChart;
+class QLineSeries;
 QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
@@ -42,17 +43,19 @@ private slots:
 private:
     /**
      * @brief gatherData
-     * @returns a list of QPoints containing plotable data gathered from the cache simulator, as per the specified
+     * @returns a list of QPoints containing plotable data gathered from the cache simulator, starting from the
+     * specified cycle
      */
-    std::map<Variable, QList<QPoint>> gatherData(const std::vector<Variable>& variables) const;
+    std::map<Variable, QList<QPoint>> gatherData(unsigned fromCycle = 0) const;
     void setupToolbar();
     void setupStackedVariablesList();
     void setPlot(QChart* plot);
     void copyPlotDataToClipboard() const;
     void savePlot();
     std::vector<CachePlotWidget::Variable> gatherVariables() const;
+    void updateRatioPlot(QLineSeries* series, const Variable num, const Variable den);
 
-    QChart* createRatioPlot(const Variable num, const Variable den) const;
+    QChart* createRatioPlot(const Variable num, const Variable den);
     QChart* createStackedPlot(const std::vector<Variable>& variables) const;
 
     PlotType m_plotType = PlotType::Ratio;

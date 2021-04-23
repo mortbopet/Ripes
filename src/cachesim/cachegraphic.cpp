@@ -371,10 +371,4 @@ void CacheGraphic::initializeControlBits() {
     }
 }
 
-QRectF CacheGraphic::boundingRect() const {
-    // We do not paint anything in Cachegraphic; only instantiate other QGraphicsItem-derived objects. So just return
-    // the bounding rect of child items
-    return childrenBoundingRect();
-}
-
 }  // namespace Ripes
