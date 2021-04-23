@@ -1,6 +1,8 @@
 #pragma once
 #include <QWidget>
 
+#include "cachesim/l1cacheshim.h"
+
 namespace Ripes {
 class MemoryTab;
 class CacheWidget;
@@ -31,6 +33,9 @@ private:
     int m_addTabIdx = -1;
     int m_nextCacheLevel = 2;
     QSize m_defaultTabButtonSize;
+
+    std::unique_ptr<L1CacheShim> m_l1dShim;
+    std::unique_ptr<L1CacheShim> m_l1iShim;
 };
 
 }  // namespace Ripes

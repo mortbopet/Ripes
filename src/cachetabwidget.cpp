@@ -36,8 +36,11 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
 
     m_ui->setupUi(this);
 
-    m_ui->dataCacheWidget->setType(CacheSim::CacheType::DataCache);
-    m_ui->instructionCacheWidget->setType(CacheSim::CacheType::InstrCache);
+    m_l1dShim = std::make_unique<L1CacheShim>(L1CacheShim::CacheType::DataCache, this);
+    m_l1iShim = std::make_unique<L1CacheShim>(L1CacheShim::CacheType::InstrCache, this);
+
+    m_l1dShim->setNextLevelCache(m_ui->dataCacheWidget->getCacheSim());
+    m_l1iShim->setNextLevelCache(m_ui->instructionCacheWidget->getCacheSim());
 
     // Make selection changes in the cache trigger the memory viewer to set its central address to the selected address
     connectCacheWidget(m_ui->dataCacheWidget);
