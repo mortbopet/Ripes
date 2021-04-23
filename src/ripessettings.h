@@ -29,6 +29,7 @@ namespace Ripes {
 // This is not really a setting, but instead a method to leverage the static observer objects that are generated for a
 // setting. Used for other objects to hook into a signal emitted just before the application closes.
 #define RIPES_GLOBALSIGNAL_QUIT ("sig_quit")
+#define RIPES_GLOBALSIGNAL_REQRESET ("req_reset")
 
 // Program state preserving settings
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
@@ -62,6 +63,7 @@ signals:
 
 public slots:
     void setValue(const QVariant& value);
+    void trigger();
 
 private:
     QString m_key;

@@ -69,7 +69,7 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
         m_breakpoints.erase(bp);
     }
 
-    emit reqProcessorReset();
+    RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 }
 
 void ProcessorHandler::_writeMem(uint32_t address, uint32_t value, int size) {

@@ -27,6 +27,8 @@ const std::map<QString, QVariant> s_defaultSettings = {
 
     // Program state preserving settings
     {RIPES_GLOBALSIGNAL_QUIT, 0},
+    {RIPES_GLOBALSIGNAL_REQRESET, 0},
+
     {RIPES_SETTING_SETTING_TAB, 0},
     {RIPES_SETTING_VIEW_ZOOM, 250},
     {RIPES_SETTING_PERIPHERAL_SETTINGS, ""},
@@ -43,6 +45,10 @@ void SettingObserver::setValue(const QVariant& v) {
     settings.setValue(m_key, v);
 
     emit modified(value());
+}
+
+void SettingObserver::trigger() {
+    setValue(0);
 }
 
 QVariant SettingObserver::value() const {

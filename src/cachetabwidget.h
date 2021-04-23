@@ -4,7 +4,6 @@
 #include "cachesim/l1cacheshim.h"
 
 namespace Ripes {
-class MemoryTab;
 class CacheWidget;
 
 namespace Ui {
@@ -28,7 +27,6 @@ private:
     void handleTabCloseRequest(int index);
 
     Ui::CacheTabWidget* m_ui;
-    MemoryTab* m_parent = nullptr;
 
     int m_addTabIdx = -1;
     int m_nextCacheLevel = 2;

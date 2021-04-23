@@ -101,8 +101,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setupStatusBar();
 
     // Reset and program reload signals
-    connect(m_memoryTab, &MemoryTab::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, m_processorTab, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, m_editTab, &EditTab::onProcessorChanged);
     connect(ProcessorHandler::get(), &ProcessorHandler::stopping, m_processorTab, &ProcessorTab::pause);
 

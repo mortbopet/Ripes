@@ -27,9 +27,6 @@ public:
 public slots:
     void update();
 
-signals:
-    void reqProcessorReset();
-
 private:
     Ui::MemoryTab* m_ui = nullptr;
 };

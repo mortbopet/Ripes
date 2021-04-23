@@ -3,6 +3,7 @@
 
 #include "memorytab.h"
 #include "memoryviewerwidget.h"
+#include "ripessettings.h"
 
 #include <QTabBar>
 #include <QWheelEvent>
@@ -23,17 +24,6 @@ public:
 };
 
 CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheTabWidget) {
-    while (parent != nullptr) {
-        auto* mt = dynamic_cast<MemoryTab*>(parent);
-        if (mt) {
-            m_parent = mt;
-            break;
-        } else {
-            parent = parent->parentWidget();
-        }
-    }
-    Q_ASSERT(m_parent);
-
     m_ui->setupUi(this);
 
     m_l1dShim = std::make_unique<L1CacheShim>(L1CacheShim::CacheType::DataCache, this);
@@ -41,15 +31,6 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
 
     m_l1dShim->setNextLevelCache(m_ui->dataCacheWidget->getCacheSim());
     m_l1iShim->setNextLevelCache(m_ui->instructionCacheWidget->getCacheSim());
-
-    // Make selection changes in the cache trigger the memory viewer to set its central address to the selected address
-    connectCacheWidget(m_ui->dataCacheWidget);
-    connectCacheWidget(m_ui->instructionCacheWidget);
-
-    // Make cache configuration changes emit processor reset requests
-    connect(m_ui->dataCacheWidget, &CacheWidget::configurationChanged, [=] { emit m_parent->reqProcessorReset(); });
-    connect(m_ui->instructionCacheWidget, &CacheWidget::configurationChanged,
-            [=] { emit m_parent->reqProcessorReset(); });
 
     m_addTabIdx = m_ui->tabWidget->addTab(new QLabel("Placeholder"), QIcon((":/icons/plus.svg")),
                                           QString("L%1 Cache").arg(m_nextCacheLevel));

@@ -113,6 +113,10 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
+    // Connect the global reset request signal to reset()
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified, this,
+            &ProcessorTab::reset);
+
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
 
@@ -176,7 +180,8 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
 
     const QIcon resetIcon = QIcon(":/icons/reset.svg");
     m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
-    connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
+    connect(m_resetAction, &QAction::triggered, this,
+            [=] { RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger(); });
     m_resetAction->setShortcut(QKeySequence("F3"));
     m_resetAction->setToolTip("Reset the simulator (F3)");
     controlToolbar->addAction(m_resetAction);
