@@ -247,7 +247,8 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
     std::map<Variable, QList<QPoint>> cacheData;
     const auto& trace = m_cache->getAccessTrace();
     // Sanity check to ensure that the trace is keyed with a sequence of [0:N-1] cycles
-    Q_ASSERT(trace.size() == 0 || (trace.size() - 1) == trace.rbegin()->first && "Non-sequential access access trace?");
+    Q_ASSERT(((trace.size() == 0) || (trace.size() - 1) == trace.rbegin()->first) &&
+             "Non-sequential access access trace?");
 
     for (int i = 0; i < N_Variables; i++) {
         cacheData[static_cast<Variable>(i)].reserve(trace.size());

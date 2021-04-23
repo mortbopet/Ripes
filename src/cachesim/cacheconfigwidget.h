@@ -26,7 +26,6 @@ public slots:
     void handleConfigurationChanged();
 
 private:
-    void updateCacheSize();
     void setupPresets();
     void showSizeBreakdown();
     std::shared_ptr<CacheSim> m_cache;

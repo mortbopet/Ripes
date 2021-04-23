@@ -202,7 +202,22 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         m_program = nullptr;
     }
 
+    // Reconnect the wrappers for processor signal emission
+    m_currentProcessor->designWasClocked.Connect(this, &ProcessorHandler::processorWasClockedWrapper);
+    m_currentProcessor->designWasReset.Connect(this, &ProcessorHandler::processorResetWrapper);
+    m_currentProcessor->designWasReversed.Connect(this, &ProcessorHandler::processorReversedWrapper);
+
     emit processorChanged();
+}
+
+void ProcessorHandler::processorWasClockedWrapper() {
+    emit processorClocked();
+}
+void ProcessorHandler::processorResetWrapper() {
+    emit processorReset();
+}
+void ProcessorHandler::processorReversedWrapper() {
+    emit processorReversed();
 }
 
 int ProcessorHandler::_getCurrentProgramSize() const {

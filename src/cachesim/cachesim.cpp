@@ -11,16 +11,14 @@
 namespace Ripes {
 
 void CacheInterface::reset() {
-    auto nlc = m_nextLevelCache.lock();
-    if (nlc) {
-        static_cast<CacheInterface*>(nlc.get())->reset();
+    if (m_nextLevelCache) {
+        static_cast<CacheInterface*>(m_nextLevelCache.get())->reset();
     }
 }
 
 void CacheInterface::reverse() {
-    auto nlc = m_nextLevelCache.lock();
-    if (nlc) {
-        static_cast<CacheInterface*>(nlc.get())->reverse();
+    if (m_nextLevelCache) {
+        static_cast<CacheInterface*>(m_nextLevelCache.get())->reverse();
     }
 }
 
@@ -245,7 +243,7 @@ void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
 
     m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
-    if (!isAsynchronouslyAccessed()) {
+    if (!ProcessorHandler::isRunning()) {
         emit hitrateChanged();
     }
 }
@@ -331,15 +329,9 @@ void CacheSim::access(uint32_t address, AccessType type) {
         return;
     }
 
-    if (isAsynchronouslyAccessed()) {
-        return;
+    if (!ProcessorHandler::isRunning()) {
+        emit dataChanged(&transaction);
     }
-
-    emit dataChanged(&transaction);
-}
-
-bool CacheSim::isAsynchronouslyAccessed() const {
-    return QThread::currentThread() != QApplication::instance()->thread();
 }
 
 void CacheSim::undo() {

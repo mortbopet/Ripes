@@ -176,6 +176,14 @@ signals:
     void runStarted();
     void runFinished();
 
+    /**
+     * @brief Various signals wrapping around the direct VSRTL model emission signals. This is done to avoid relying
+     * component to having to reconnect to the VSRTL model whenever the processor changes.
+     */
+    void processorReset();
+    void processorClocked();
+    void processorReversed();
+
 public slots:
     void loadProgram(std::shared_ptr<Program> p);
 
@@ -219,6 +227,14 @@ private:
     bool _isRunning();
     void _run();
     void _stopRun();
+
+    /**
+     * @brief Wrapper functions for processor signal emissions. VSRTL's signal/slot library does not accept lambdas,
+     * which is why we have to make these explicit member functions.
+     */
+    void processorWasClockedWrapper();
+    void processorResetWrapper();
+    void processorReversedWrapper();
 
     void createAssemblerForCurrentISA();
     void setStopRunFlag();

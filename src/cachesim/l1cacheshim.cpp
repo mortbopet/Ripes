@@ -6,7 +6,11 @@ namespace Ripes {
 
 L1CacheShim::L1CacheShim(CacheType type, QObject* parent) : CacheInterface(parent), m_type(type) {
     reassociateMemory();
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &L1CacheShim::processorReset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this, &L1CacheShim::reassociateMemory);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &L1CacheShim::processorReset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorClocked, this, &L1CacheShim::processorWasClocked);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReversed, this, &L1CacheShim::processorReversed);
+
     processorReset();
 }
 
@@ -16,16 +20,10 @@ void L1CacheShim::access(uint32_t, AccessType) {
 }
 
 void L1CacheShim::processorReset() {
-    auto* proc = ProcessorHandler::getProcessorNonConst();
-    reassociateMemory();
-    proc->designWasClocked.Connect(this, &L1CacheShim::processorWasClocked);
-    proc->designWasReset.Connect(this, &L1CacheShim::processorReset);
-    proc->designWasReversed.Connect(this, &L1CacheShim::processorReversed);
-
     // Propagate a reset through the cache hierarchy
     CacheInterface::reset();
 
-    if ((m_memory.rw || m_memory.rom) && m_nextLevelCache.lock()) {
+    if ((m_memory.rw || m_memory.rom) && m_nextLevelCache) {
         // Reload the initial (cycle 0) state of the processor. This is necessary to reflect ie. the instruction which
         // is loaded from the instruction memory in cycle 0.
         processorWasClocked();
@@ -45,7 +43,7 @@ void L1CacheShim::processorWasClocked() {
             case MemOp::SH:
             case MemOp::SW:
                 if (m_memory.rw->wr_en.uValue() == 1) {
-                    m_nextLevelCache.lock()->access(m_memory.rw->addr.uValue(), AccessType::Write);
+                    m_nextLevelCache->access(m_memory.rw->addr.uValue(), AccessType::Write);
                 }
                 break;
             case MemOp::LB:
@@ -53,14 +51,14 @@ void L1CacheShim::processorWasClocked() {
             case MemOp::LH:
             case MemOp::LHU:
             case MemOp::LW:
-                m_nextLevelCache.lock()->access(m_memory.rw->addr.uValue(), AccessType::Read);
+                m_nextLevelCache->access(m_memory.rw->addr.uValue(), AccessType::Read);
                 break;
             case MemOp::NOP:
             default:
                 break;
         }
     } else {
-        m_nextLevelCache.lock()->access(m_memory.rom->addr.uValue(), AccessType::Read);
+        m_nextLevelCache->access(m_memory.rom->addr.uValue(), AccessType::Read);
     }
 }
 

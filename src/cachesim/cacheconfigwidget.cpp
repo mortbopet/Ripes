@@ -91,8 +91,6 @@ void CacheConfigWidget::setupPresets() {
     });
 }
 
-void CacheConfigWidget::updateCacheSize() {}
-
 void CacheConfigWidget::handleConfigurationChanged() {
     std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(true); });
 

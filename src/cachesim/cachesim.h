@@ -26,11 +26,7 @@ public:
      * A function called by the logical "child" of this cache, indicating that it desires to access this cache
      */
     virtual void access(uint32_t address, AccessType type) = 0;
-
-    void setNextLevelCache(std::shared_ptr<CacheSim>& cache) {
-        Q_ASSERT(!m_nextLevelCache.lock());
-        m_nextLevelCache = cache;
-    }
+    void setNextLevelCache(std::shared_ptr<CacheSim>& cache) { m_nextLevelCache = cache; }
 
     /**
      * @brief reset
@@ -44,7 +40,7 @@ protected:
      * @brief m_nextLevelCache
      * Pointer to the next level (logical parent) cache.
      */
-    std::weak_ptr<CacheSim> m_nextLevelCache;
+    std::shared_ptr<CacheSim> m_nextLevelCache;
 };
 
 class CacheSim : public CacheInterface {
@@ -212,15 +208,6 @@ private:
      * Called whenever one of the cache parameters changes. Emits signal configurationChanged after updating.
      */
     void updateConfiguration();
-
-    /**
-     * @brief isAsynchronouslyAccessed
-     * If the processor is in its 'running' state, it is currently being executed in a separate thread. In this case,
-     * cache accessing is also performed asynchronously, and we do not want to perform any signalling to the GUI (the
-     * entirety of the graphical representation of the cache is invalidated and redrawn upon asynchronous running
-     * finishing).
-     */
-    bool isAsynchronouslyAccessed() const;
 
     /**
      * @brief reassociateMemory
