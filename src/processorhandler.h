@@ -181,8 +181,10 @@ signals:
      * component to having to reconnect to the VSRTL model whenever the processor changes.
      */
     void processorReset();
-    void processorClocked();
     void processorReversed();
+    void processorClocked();  // Only connect to this if not updating gui!´ i.e., for logging statistics per cycle
+    void processorClockedNonRun();  // Only emitted when _not_ running; i.e., for GUI updating
+    void procStateChangedNonRun();  // processorReset | processorReversed | processorClockedNonRun
 
 public slots:
     void loadProgram(std::shared_ptr<Program> p);

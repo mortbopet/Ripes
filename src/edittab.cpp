@@ -71,6 +71,8 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { m_buildAction->setEnabled(false); });
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &EditTab::updateProgramViewerHighlighting);
 
     onProcessorChanged();
     sourceTypeChanged();

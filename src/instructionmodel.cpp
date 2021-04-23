@@ -9,6 +9,8 @@ InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent
         m_stageNames << ProcessorHandler::getProcessor()->stageName(i);
         m_stageInfos[i];
     }
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &InstructionModel::processorWasClocked);
 }
 
 int InstructionModel::columnCount(const QModelIndex&) const {

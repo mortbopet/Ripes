@@ -4,10 +4,16 @@
 #include "cachesim/cacheview.h"
 #include "cachesim/cachewidget.h"
 
+#include "processorhandler.h"
+
 namespace Ripes {
 
 CacheTab::CacheTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_ui(new Ui::CacheTab) {
     m_ui->setupUi(this);
+
+    // During processor running, it should not be possible to interact with the cache tab
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] { setEnabled(true); });
 
     connect(m_ui->cacheView, &CacheView::cacheAddressSelected, this, &CacheTab::focusAddressChanged);
 

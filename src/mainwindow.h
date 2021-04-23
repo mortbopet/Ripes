@@ -46,11 +46,6 @@ private slots:
     void settingsTriggered();
     void tabChanged(int index);
 
-    void processorUpdated() { emit updateMemoryTab(); }
-
-signals:
-    void updateMemoryTab();
-
 private:
     void loadFile(const QString& filename, SourceType type);
 

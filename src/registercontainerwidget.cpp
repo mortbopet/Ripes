@@ -9,6 +9,8 @@ namespace Ripes {
 RegisterContainerWidget::RegisterContainerWidget(QWidget* parent)
     : QWidget(parent), m_ui(new Ui::RegisterContainerWidget) {
     m_ui->setupUi(this);
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &RegisterContainerWidget::updateView);
 }
 
 RegisterContainerWidget::~RegisterContainerWidget() {
@@ -23,6 +25,7 @@ void RegisterContainerWidget::initialize() {
         m_ui->tabWidget->insertTab(m_ui->tabWidget->count(), registerWidget, s_RegsterFileName.at(rfid));
         registerWidget->initialize();
     }
+    updateView();
 }
 
 void RegisterContainerWidget::updateView() {

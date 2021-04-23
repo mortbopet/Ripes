@@ -89,14 +89,12 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     m_vsrtlWidget->setLocked(true);
 
     m_stageModel = new StageTableModel(this);
-    connect(this, &ProcessorTab::updateProcessorTab, m_stageModel, &StageTableModel::processorWasClocked);
 
     updateInstructionModel();
     m_ui->registerContainerWidget->initialize();
-    connect(this, &ProcessorTab::updateProcessorTab, m_ui->registerContainerWidget,
-            &RegisterContainerWidget::updateView);
-    connect(this, &ProcessorTab::updateProcessorTab, this, &ProcessorTab::updateStatistics);
-    connect(this, &ProcessorTab::updateProcessorTab, this, &ProcessorTab::updateInstructionLabels);
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this, &ProcessorTab::updateStatistics);
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &ProcessorTab::updateInstructionLabels);
 
     setupSimulatorActions(controlToolbar);
 
@@ -358,7 +356,6 @@ void ProcessorTab::processorSelection() {
         if (m_displayValuesAction->isChecked()) {
             m_vsrtlWidget->setOutputPortValuesVisible(true);
         }
-        emit updateProcessorTab();
     }
 }
 
@@ -381,8 +378,6 @@ void ProcessorTab::updateInstructionModel() {
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
                                                                     QHeaderView::Stretch);
 
-    connect(this, &ProcessorTab::updateProcessorTab, m_instrModel, &InstructionModel::processorWasClocked);
-
     // Make the instruction view follow the instruction which is currently present in the first stage of the processor
     connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
 
@@ -393,7 +388,6 @@ void ProcessorTab::updateInstructionModel() {
 
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
-    emit updateProcessorTab();
     enableSimulatorControls();
 }
 
@@ -451,8 +445,6 @@ void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
     m_stageModel->reset();
-    emit updateProcessorTab();
-    emit processorWasReset();
 
     enableSimulatorControls();
     printToLog("\n");
@@ -479,7 +471,6 @@ void ProcessorTab::runFinished() {
     pause();
     ProcessorHandler::checkProcessorFinished();
     m_statUpdateTimer->stop();
-    emit updateProcessorTab();
 }
 
 void ProcessorTab::run(bool state) {
@@ -514,7 +505,6 @@ void ProcessorTab::run(bool state) {
 void ProcessorTab::reverse() {
     m_vsrtlWidget->reverse();
     enableSimulatorControls();
-    emit updateProcessorTab();
 }
 
 void ProcessorTab::clock() {
@@ -525,8 +515,6 @@ void ProcessorTab::clock() {
     }
     ProcessorHandler::checkProcessorFinished();
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
-
-    emit updateProcessorTab();
 }
 
 void ProcessorTab::showStageTable() {

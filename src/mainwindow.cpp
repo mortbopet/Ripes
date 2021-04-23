@@ -92,10 +92,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setupMenus();
 
     // setup and connect widgets
-    connect(m_processorTab, &ProcessorTab::updateProcessorTab, this, &MainWindow::updateMemoryTab);
-    connect(m_processorTab, &ProcessorTab::updateProcessorTab, m_editTab, &EditTab::updateProgramViewerHighlighting);
-    connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
-    connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
     connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
     connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
@@ -111,7 +107,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, m_editTab, &EditTab::onProcessorChanged);
     connect(ProcessorHandler::get(), &ProcessorHandler::stopping, m_processorTab, &ProcessorTab::pause);
 
-    connect(m_processorTab, &ProcessorTab::processorWasReset, [=] { SystemIO::reset(); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, [=] { SystemIO::reset(); });
 
     connect(m_ui->actionSystem_calls, &QAction::triggered, [=] {
         SyscallViewer v;

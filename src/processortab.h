@@ -35,10 +35,6 @@ public:
 
     void initRegWidget();
 
-signals:
-    void updateProcessorTab();
-    void processorWasReset();
-
 public slots:
     void pause();
     void restart();
