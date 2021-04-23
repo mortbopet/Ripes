@@ -61,8 +61,7 @@ void finishSeries(QLineSeries& series, const unsigned max) {
 
 namespace Ripes {
 
-CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
-    : QDialog(parent), m_ui(new Ui::CachePlotWidget), m_cache(sim) {
+CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CachePlotWidget) {
     m_ui->setupUi(this);
     setWindowTitle("Cache Access Statistics");
 
@@ -92,6 +91,10 @@ CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
 
     connect(m_ui->plotType, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &CachePlotWidget::plotTypeChanged);
+}
+
+void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
+    m_cache = cache;
 
     // Synchronize widget state
     plotTypeChanged();
@@ -239,7 +242,7 @@ void CachePlotWidget::variablesChanged() {
 
 std::map<CachePlotWidget::Variable, QList<QPoint>>
 CachePlotWidget::gatherData(const std::vector<Variable>& types) const {
-    const auto& trace = m_cache.getAccessTrace();
+    const auto& trace = m_cache->getAccessTrace();
 
     std::map<Variable, QList<QPoint>> cacheData;
 

@@ -16,6 +16,7 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
     m_scene = std::make_unique<QGraphicsScene>(this);
     m_cacheSim = std::make_shared<CacheSim>(this);
     m_ui->cacheConfig->setCache(m_cacheSim);
+    m_ui->cachePlot->setCache(m_cacheSim);
 
     auto* cacheGraphic = new CacheGraphic(*m_cacheSim);
     m_scene->addItem(cacheGraphic);

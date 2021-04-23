@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
      <item>
       <widget class="CacheConfigWidget" name="cacheConfig" native="true">
        <property name="sizePolicy">
@@ -26,6 +26,9 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="CachePlotWidget" name="cachePlot" native="true"/>
+     </item>
     </layout>
    </item>
   </layout>
@@ -35,6 +38,12 @@
    <class>CacheConfigWidget</class>
    <extends>QWidget</extends>
    <header>cachesim/cacheconfigwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CachePlotWidget</class>
+   <extends>QWidget</extends>
+   <header>cachesim/cacheplotwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

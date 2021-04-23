@@ -26,10 +26,6 @@ void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
 
-    const QIcon plotIcon = QIcon(":/icons/analytics.svg");
-    m_ui->cachePlot->setIcon(plotIcon);
-    connect(m_ui->cachePlot, &QPushButton::clicked, this, &CacheConfigWidget::showCachePlot);
-
     setupEnumCombobox(m_ui->replacementPolicy, s_cacheReplPolicyStrings);
     setupEnumCombobox(m_ui->wrHit, s_cacheWritePolicyStrings);
     setupEnumCombobox(m_ui->wrMiss, s_cacheWriteAllocateStrings);
@@ -63,11 +59,6 @@ void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
 
     setupPresets();
     handleConfigurationChanged();
-}
-
-void CacheConfigWidget::showCachePlot() {
-    CachePlotWidget plotWidget(*m_cache);
-    plotWidget.exec();
 }
 
 void CacheConfigWidget::setupPresets() {

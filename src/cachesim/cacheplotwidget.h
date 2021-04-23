@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QDialog>
 #include <QMetaType>
+#include <QWidget>
 #include <QtCharts/QChartGlobal>
 
 #include "cachesim.h"
@@ -22,13 +22,14 @@ namespace Ui {
 class CachePlotWidget;
 }
 
-class CachePlotWidget : public QDialog {
+class CachePlotWidget : public QWidget {
     Q_OBJECT
 
 public:
     enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_Variables };
     enum class PlotType { Ratio, Stacked };
-    explicit CachePlotWidget(const CacheSim& sim, QWidget* parent = nullptr);
+    explicit CachePlotWidget(QWidget* parent = nullptr);
+    void setCache(std::shared_ptr<CacheSim> cache);
     ~CachePlotWidget();
 
 public slots:
@@ -58,7 +59,7 @@ private:
     QChart* m_currentPlot = nullptr;
 
     Ui::CachePlotWidget* m_ui;
-    const CacheSim& m_cache;
+    std::shared_ptr<CacheSim> m_cache;
 
     QToolBar* m_toolbar = nullptr;
     QAction* m_copyDataAction = nullptr;

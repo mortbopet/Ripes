@@ -24,7 +24,6 @@ signals:
 public slots:
     void updateHitrate();
     void handleConfigurationChanged();
-    void showCachePlot();
 
 private:
     void updateCacheSize();
