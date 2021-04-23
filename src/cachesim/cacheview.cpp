@@ -11,6 +11,7 @@ CacheView::CacheView(QWidget* parent) : QGraphicsView(parent) {
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    setBackgroundBrush(Qt::white);
     setInteractive(true);
     setupMatrix();
 }

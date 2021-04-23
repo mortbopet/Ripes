@@ -24,6 +24,54 @@ std::set<TK> keys(std::map<TK, TV> const& input_map) {
 
 namespace Ripes {
 
+/**
+ * @brief The FancyPolyLine class
+ * A polygon line with an optional starting dot and ending arrow. The size of these two additions are controlled by the
+ * "scale" parameter.
+ */
+class FancyPolyLine : public QGraphicsItem {
+public:
+    FancyPolyLine(qreal scale, QGraphicsItem* parent) : QGraphicsItem(parent) {
+        QPainterPath pp;
+        m_line = new QGraphicsPathItem(pp, this);
+
+        m_startDot = new QGraphicsEllipseItem(-scale / 2, -scale / 2, scale, scale, this);
+        m_startDot->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+
+        QPolygonF arrow;
+        arrow << QPointF{-scale, -scale / 2} << QPointF{0, 0} << QPointF{-scale, scale / 2};
+        m_arrow = new QGraphicsPolygonItem(arrow, this);
+        m_arrow->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+
+        m_startDot->setVisible(false);
+        m_arrow->setVisible(false);
+    }
+
+    QRectF boundingRect() const override { return childrenBoundingRect(); }
+    void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget* = nullptr) override {}
+
+    void setPolygon(const QPolygonF& poly) {
+        QPainterPath pp;
+        pp.addPolygon(poly);
+        m_line->setPath(pp);
+
+        m_startDot->setPos(poly.first());
+        m_arrow->setPos(poly.last());
+        const auto& p1 = poly.at(poly.size() - 2);
+        const auto& p2 = poly.last();
+        const qreal ang = std::atan2(p2.y() - p1.y(), p2.x() - p1.x());
+        m_arrow->setRotation(ang * (180.0 / M_PI));
+    }
+    void showStartDot(bool visible) { m_startDot->setVisible(visible); }
+    void showEndArrow(bool visible) { m_arrow->setVisible(visible); }
+    void setPen(const QPen& pen) { m_line->setPen(pen); }
+
+private:
+    QGraphicsEllipseItem* m_startDot = nullptr;
+    QGraphicsPathItem* m_line = nullptr;
+    QGraphicsPolygonItem* m_arrow = nullptr;
+};
+
 CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(cache), m_fm(m_font) {
     connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged);
     connect(&cache, &CacheSim::wayInvalidated, this, &CacheGraphic::wayInvalidated);
@@ -172,12 +220,117 @@ std::unique_ptr<QGraphicsSimpleTextItem> CacheGraphic::createGraphicsTextItemSP(
     return ptr;
 }
 
+void CacheGraphic::drawIndexingItems() {
+    QPen wirePen;
+    wirePen.setColor(Qt::darkGray);
+
+    const auto drawBundleDropWires = [=](const qreal sourceD, const QVector<QPointF>& dropoffs, bool horizontal) {
+        const qreal maxD = std::max_element(dropoffs.begin(), dropoffs.end(), [=](const auto& p1, const auto& p2) {
+                               return horizontal ? p1.x() > p2.x() : p1.y() > p2.y();
+                           })->y();
+        const qreal dPos = maxD - m_setHeight;
+        const QPointF pSource = QPointF(horizontal ? dPos : sourceD, horizontal ? sourceD : dPos);
+        std::vector<FancyPolyLine*> lines;
+        int i = 1;
+        for (const auto& pDrop : dropoffs) {
+            QPolygonF poly;
+            poly << pSource;
+            poly << QPointF(horizontal ? pSource.x() : pDrop.x(), horizontal ? pDrop.y() : pSource.y());
+            poly << pDrop;
+            auto* polyLine = new FancyPolyLine(m_setHeight / 3, this);
+            polyLine->showStartDot(false);
+            polyLine->showEndArrow(true);
+            polyLine->setPolygon(poly);
+            polyLine->setPen(wirePen);
+            lines.push_back(polyLine);
+            polyLine->setZValue(-i);
+            i++;
+        }
+        return lines;
+    };
+
+    // Draw address box
+    const QString addressText = QString("-").repeated(32);
+    m_addressTextItem = drawText(addressText, 0, 0 - m_setHeight * 3.5);
+    auto addressTextRect = m_addressTextItem->boundingRect();
+    addressTextRect.moveTo(m_addressTextItem->pos());
+    auto* addressRectItem = new QGraphicsRectItem(addressTextRect, this);
+    addressRectItem->setBrush(Qt::white);
+    addressRectItem->setZValue(z_wires);
+
+    // Draw address box compartments, starting from the righthand side
+    const QString botBits = "0";
+    QPointF nextBitsPos = {m_addressTextItem->pos().x() + addressTextRect.width(), m_addressTextItem->pos().y()};
+    auto smallerFont = m_font;
+    auto smallerFontMetric = QFontMetricsF(smallerFont);
+    smallerFont.setPointSize(m_font.pointSize() * 0.8);
+    drawText(botBits, nextBitsPos.x(), nextBitsPos.y() - m_setHeight, &smallerFont);
+    const QString topBits = "31";
+    drawText(topBits, m_addressTextItem->pos().x() - smallerFontMetric.width(topBits),
+             m_addressTextItem->pos().y() - m_setHeight, &smallerFont);
+
+    unsigned bitIdx = 0;
+    auto drawNextBitPos = [&](unsigned additionalOffset) {
+        nextBitsPos -= {m_fm.width(QString("-").repeated(additionalOffset)), 0};
+        bitIdx += additionalOffset;
+        auto line = new QGraphicsLineItem(QLineF{nextBitsPos, nextBitsPos + QPointF{0, m_setHeight}}, this);
+        auto pen = line->pen();
+        pen.setWidthF(pen.widthF() * 0.8);
+        line->setPen(pen);
+        const QString thisBitText = QString::number(bitIdx - 1);
+        const QString nextBitText = QString::number(bitIdx);
+        drawText(thisBitText, nextBitsPos - QPointF{0, smallerFontMetric.height()}, &smallerFont);
+        drawText(nextBitText, nextBitsPos - QPointF{m_fm.width(nextBitText), smallerFontMetric.height()}, &smallerFont);
+    };
+
+    drawNextBitPos(2);  // Always start 2 bits in due to word-indexing
+    if (m_cache.getBlockBits() > 0) {
+        m_blockIndexStartPoint = nextBitsPos;
+        drawNextBitPos(m_cache.getBlockBits());
+        m_blockIndexStartPoint.rx() -= (m_blockIndexStartPoint - nextBitsPos).x() / 2;
+        m_blockIndexStartPoint.ry() += m_setHeight;
+    }
+    if (m_cache.getLineBits() > 0) {
+        m_lineIndexStartPoint = nextBitsPos;
+        drawNextBitPos(m_cache.getLineBits());
+        m_lineIndexStartPoint.rx() -= (m_lineIndexStartPoint - nextBitsPos).x() / 2;
+        m_lineIndexStartPoint.ry() += m_setHeight;
+    }
+
+    m_tagAddressStartPoint = m_addressTextItem->pos();
+    m_tagAddressStartPoint.ry() += m_setHeight;
+    m_tagAddressStartPoint.rx() += (nextBitsPos - m_tagAddressStartPoint).x() / 2;
+
+    m_lineIndexingLine = new FancyPolyLine(m_setHeight / 3, this);
+    m_lineIndexingLine->setZValue(z_wires);
+    m_lineIndexingLine->showStartDot(false);
+    m_lineIndexingLine->showEndArrow(true);
+    m_lineIndexingLine->setVisible(false);
+
+    m_blockIndexingLine = new FancyPolyLine(m_setHeight / 3, this);
+    m_blockIndexingLine->setZValue(z_wires);
+    m_blockIndexingLine->showStartDot(false);
+    m_blockIndexingLine->showEndArrow(true);
+    m_blockIndexingLine->setVisible(false);
+
+    // Draw top header
+    const QString addrStr = "Access address";
+    QPointF addrStrPos = m_addressTextItem->pos();
+    addrStrPos.rx() -= m_fm.width(addrStr) * 1.1;
+    //  addrStrPos.ry() += m_setHeight;
+    drawText(addrStr, addrStrPos);
+}
+
 void CacheGraphic::cacheInvalidated() {
     // Remove all items
     m_highlightingItems.clear();
     m_cacheTextItems.clear();
-    for (const auto& item : childItems())
+    m_addressTextItem = nullptr;
+    m_blockIndexingLine = nullptr;
+    m_lineIndexingLine = nullptr;
+    for (const auto& item : childItems()) {
         delete item;
+    }
 
     // Determine cell dimensions
     m_setHeight = m_fm.height();
@@ -190,7 +343,6 @@ void CacheGraphic::cacheInvalidated() {
 
     // Draw cache:
     new QGraphicsLineItem(0, 0, 0, m_cacheHeight, this);
-
     qreal width = 0;
     // Draw valid bit column
     new QGraphicsLineItem(m_bitWidth, 0, m_bitWidth, m_cacheHeight, this);
@@ -227,8 +379,8 @@ void CacheGraphic::cacheInvalidated() {
     new QGraphicsLineItem(m_tagWidth + width, 0, m_tagWidth + width, m_cacheHeight, this);
     const QString tagText = "Tag";
     drawText(tagText, width + m_tagWidth / 2 - m_fm.width(tagText) / 2, -m_fm.height());
-    width += m_tagWidth;
 
+    width += m_tagWidth;
     m_widthBeforeBlocks = width;
 
     // Draw horizontal lines between cache blocks
@@ -272,6 +424,11 @@ void CacheGraphic::cacheInvalidated() {
     const qreal x = -m_fm.width(indexText) * 1.2;
     drawText(indexText, x, -m_fm.height());
 
+    // Draw indexing - this does not change the 'width' advancement, and is purely based on the tag column positioning.
+    if (m_indexingVisible) {
+        drawIndexingItems();
+    }
+
     initializeControlBits();
 
     // Update all entries in the cache
@@ -285,6 +442,43 @@ void CacheGraphic::cacheInvalidated() {
     }
 }
 
+void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction* transaction) {
+    if (m_indexingVisible) {
+        if (valid) {
+            const CacheWay& way = m_cacheTextItems.at(transaction->index.line).at(transaction->index.way);
+            m_addressTextItem->setText(QString::number(transaction->address, 2).rightJustified(32, '0'));
+
+            if (way.tag) {
+                QPolygonF lineIndexingPoly;
+                m_lineIndexingLine->setVisible(true);
+                lineIndexingPoly << m_lineIndexStartPoint;
+                lineIndexingPoly << m_lineIndexStartPoint + QPointF(0, (m_setHeight / 2));
+                lineIndexingPoly << QPointF(-m_tagWidth * 0.75, lineIndexingPoly.last().y());
+                lineIndexingPoly << QPointF{lineIndexingPoly.last().x(),
+                                            (transaction->index.line + 0.5) * m_lineHeight};
+                lineIndexingPoly << QPointF{-m_fm.width(QString::number(m_cache.getLines())) * 1.25,
+                                            lineIndexingPoly.last().y()};
+                m_lineIndexingLine->setPolygon(lineIndexingPoly);
+
+                QPolygonF blockIndexingPoly;
+                blockIndexingPoly << m_blockIndexStartPoint;
+                blockIndexingPoly << m_blockIndexStartPoint + QPointF(0, (m_setHeight / 2) * 1.5);
+                blockIndexingPoly << QPointF(m_widthBeforeBlocks + m_blockWidth * (transaction->index.block + 0.5),
+                                             blockIndexingPoly.last().y());
+                blockIndexingPoly << QPointF(blockIndexingPoly.last().x(),
+                                             -m_addressTextItem->boundingRect().size().height());
+                m_blockIndexingLine->setPolygon(blockIndexingPoly);
+                m_blockIndexingLine->showStartDot(false);
+                m_blockIndexingLine->showEndArrow(true);
+                m_blockIndexingLine->setVisible(true);
+            }
+
+        } else {
+            m_addressTextItem->setText(QString("-").repeated(32));
+        }
+    }
+}
+
 void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {
     updateWay(lineIdx, wayIdx);
     updateLineReplFields(lineIdx);
@@ -293,15 +487,25 @@ void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {
 void CacheGraphic::dataChanged(const CacheSim::CacheTransaction* transaction) {
     if (transaction != nullptr) {
         wayInvalidated(transaction->index.line, transaction->index.way);
+        updateAddressing(true, transaction);
         updateHighlighting(true, transaction);
     } else {
         updateHighlighting(false, nullptr);
+        updateAddressing(false);
     }
 }
 
-QGraphicsSimpleTextItem* CacheGraphic::drawText(const QString& text, qreal x, qreal y) {
+QGraphicsSimpleTextItem* CacheGraphic::drawText(const QString& text, const QPointF& pos, const QFont* otherFont) {
+    return drawText(text, pos.x(), pos.y(), otherFont);
+}
+
+QGraphicsSimpleTextItem* CacheGraphic::drawText(const QString& text, qreal x, qreal y, const QFont* otherFont) {
     auto* textItem = new QGraphicsSimpleTextItem(text, this);
-    textItem->setFont(m_font);
+    if (otherFont) {
+        textItem->setFont(*otherFont);
+    } else {
+        textItem->setFont(m_font);
+    }
     textItem->setPos(x, y);
     return textItem;
 }

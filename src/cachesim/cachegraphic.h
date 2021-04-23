@@ -8,6 +8,7 @@
 #include "cachesim.h"
 
 namespace Ripes {
+class FancyPolyLine;
 
 class CacheGraphic : public QGraphicsObject {
 public:
@@ -46,6 +47,9 @@ public slots:
 
     void reset();
 
+    void setIndexingVisible(bool visible);
+    bool indexingVisible() const { return m_indexingVisible; }
+
 private:
     // Data structure modelling the cache; keeping graphics text items for each entry
     // All text items which are not always present are stored as unqiue_ptr's to facilitate easy deletion when undoing
@@ -67,13 +71,16 @@ private:
      */
     void initializeControlBits();
     void updateHighlighting(bool active, const CacheSim::CacheTransaction* transaction);
-    QGraphicsSimpleTextItem* drawText(const QString& text, qreal x, qreal y);
+    QGraphicsSimpleTextItem* drawText(const QString& text, const QPointF& pos, const QFont* otherFont = nullptr);
+    QGraphicsSimpleTextItem* drawText(const QString& text, qreal x, qreal y, const QFont* otherFont = nullptr);
     QGraphicsSimpleTextItem* tryCreateGraphicsTextItem(QGraphicsSimpleTextItem** item, qreal x, qreal y);
     std::unique_ptr<QGraphicsSimpleTextItem> createGraphicsTextItemSP(qreal x, qreal y);
 
     // Graphical update functions
     void updateLineReplFields(unsigned lineIdx);
     void updateWay(unsigned lineIdx, unsigned wayIdx);
+    void updateAddressing(bool valid, const CacheSim::CacheTransaction* transaction = nullptr);
+    void drawIndexingItems();
 
     QFont m_font = QFont("Inconsolata", 12);
     CacheSim& m_cache;
@@ -81,6 +88,8 @@ private:
     std::vector<std::unique_ptr<QGraphicsRectItem>> m_highlightingItems;
 
     QFontMetricsF m_fm;
+
+    bool m_indexingVisible = true;
 
     // Drawing dimensions
     qreal m_setHeight = 0;
@@ -96,6 +105,9 @@ private:
     qreal m_widthBeforeDirty = 0;
     qreal m_lruWidth = 0;
 
+    static constexpr qreal z_grid = 0;
+    static constexpr qreal z_wires = -1;
+
     /**
      * @brief m_cacheTextItems
      * All text items in the cache are managed in @var m_cacheTextItems.
@@ -106,6 +118,14 @@ private:
      * has created a very large cache.
      */
     std::map<unsigned, CacheLine> m_cacheTextItems;
+
+    // Addressing related items which are moved around when addressing changes
+    QGraphicsSimpleTextItem* m_addressTextItem = nullptr;
+    FancyPolyLine* m_lineIndexingLine = nullptr;
+    FancyPolyLine* m_blockIndexingLine = nullptr;
+    QPointF m_lineIndexStartPoint;
+    QPointF m_blockIndexStartPoint;
+    QPointF m_tagAddressStartPoint;
 };
 
 }  // namespace Ripes
