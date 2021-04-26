@@ -5,6 +5,7 @@
 #include <QtCharts/QChartGlobal>
 
 #include "cachesim.h"
+#include "float.h"
 
 QT_FORWARD_DECLARE_CLASS(QToolBar);
 QT_FORWARD_DECLARE_CLASS(QAction);
@@ -48,17 +49,30 @@ private:
     std::map<Variable, QList<QPoint>> gatherData(unsigned fromCycle = 0) const;
     void setupToolbar();
     void showSizeBreakdown();
-    void setPlot(QChart* plot);
     void copyPlotDataToClipboard() const;
     void savePlot();
-    std::vector<CachePlotWidget::Variable> gatherVariables() const;
-    void updateRatioPlot(QLineSeries* series, const Variable num, const Variable den);
+    void updateRatioPlot();
 
-    QChart* createRatioPlot(const Variable num, const Variable den);
-    QChart* m_currentPlot = nullptr;
+    /**
+     * @brief resampleToScreen
+     * Resamples @param series to only contain as many points as would be visible on the associated plot view
+     */
+    void resampleToScreen(QLineSeries* series);
+
+    void resetRatioPlot();
+    QChart* m_plot = nullptr;
+    QLineSeries* m_series = nullptr;
+    double m_maxY = -DBL_MAX;
+    double m_minY = DBL_MAX;
+    unsigned m_lastCyclePlotted = 0;
+    double m_xStep = 1.0;
+    static constexpr int s_resamplingRatio = 2;
 
     Ui::CachePlotWidget* m_ui;
     std::shared_ptr<CacheSim> m_cache;
+
+    CachePlotWidget::Variable m_numerator;
+    CachePlotWidget::Variable m_denominator;
 
     QToolBar* m_toolbar = nullptr;
     QAction* m_copyDataAction = nullptr;
