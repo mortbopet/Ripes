@@ -28,7 +28,6 @@ class CachePlotWidget : public QWidget {
 
 public:
     enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_Variables };
-    enum class PlotType { Ratio, Stacked };
     explicit CachePlotWidget(QWidget* parent = nullptr);
     void setCache(std::shared_ptr<CacheSim> cache);
     ~CachePlotWidget();
@@ -38,7 +37,6 @@ public slots:
 private slots:
     void variablesChanged();
     void rangeChanged();
-    void plotTypeChanged();
     void updateHitrate();
 
 private:
@@ -49,7 +47,6 @@ private:
      */
     std::map<Variable, QList<QPoint>> gatherData(unsigned fromCycle = 0) const;
     void setupToolbar();
-    void setupStackedVariablesList();
     void showSizeBreakdown();
     void setPlot(QChart* plot);
     void copyPlotDataToClipboard() const;
@@ -58,9 +55,6 @@ private:
     void updateRatioPlot(QLineSeries* series, const Variable num, const Variable den);
 
     QChart* createRatioPlot(const Variable num, const Variable den);
-    QChart* createStackedPlot(const std::vector<Variable>& variables) const;
-
-    PlotType m_plotType = PlotType::Ratio;
     QChart* m_currentPlot = nullptr;
 
     Ui::CachePlotWidget* m_ui;
@@ -80,11 +74,6 @@ const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings
     {CachePlotWidget::Variable::Writebacks, "Writebacks"},
     {CachePlotWidget::Variable::Accesses, "Total accesses"}};
 
-const static std::map<CachePlotWidget::PlotType, QString> s_cachePlotTypeStrings{
-    {CachePlotWidget::PlotType::Ratio, "Ratio"},
-    {CachePlotWidget::PlotType::Stacked, "Stacked"}};
-
 }  // namespace Ripes
 
 Q_DECLARE_METATYPE(Ripes::CachePlotWidget::Variable);
-Q_DECLARE_METATYPE(Ripes::CachePlotWidget::PlotType);

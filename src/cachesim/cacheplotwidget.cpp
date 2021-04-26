@@ -16,49 +16,9 @@
 #include "limits.h"
 
 namespace {
-/**
- * @brief stepifySeries
- * Adds additional points to a QLineSeries, effectively transforming it into a step plot to avoid the default point
- * interpolation of a QLineSeries.
- * We create a new pointsVector, preallocate the known final size and finally exchange the points. This is a lot faster
- * than individually inseting points into the series, which each will trigger events within the QLineSeries.
- */
-void stepifySeries(QLineSeries& series) {
-    if (series.count() == 0)
-        return;
-
-    QVector<QPointF> points;
-    points.reserve(series.count() * 2);
-
-    points << series.at(0);  // No stepping is done for the first point
-    for (int i = 1; i < series.count(); i++) {
-        const QPointF& stepFrom = series.at(i - 1);
-        const QPointF& stepTo = series.at(i);
-        QPointF interPoint = stepFrom;
-        interPoint.setX(stepTo.x());
-        points << interPoint << stepTo;
-    }
-
-    series.replace(points);
-}
 
 inline QPointF stepPoint(const QPointF& p1, const QPointF& p2) {
     return QPointF(p2.x(), p1.y());
-}
-
-/**
- * @brief finishSeries
- * Adds an additional point at x value @p max with an equal value of the last value in the series.
- */
-void finishSeries(QLineSeries& series, const unsigned max) {
-    if (series.count() == 0) {
-        return;
-    }
-
-    const QPointF lastPoint = series.at(series.count() - 1);
-    if (lastPoint.toPoint().x() != static_cast<long>(max)) {
-        series.append(max, lastPoint.y());
-    }
 }
 
 }  // namespace
@@ -75,9 +35,6 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
 
     setupEnumCombobox(m_ui->num, s_cacheVariableStrings);
     setupEnumCombobox(m_ui->den, s_cacheVariableStrings);
-    setupEnumCombobox(m_ui->plotType, s_cachePlotTypeStrings);
-
-    setupStackedVariablesList();
 
     // Set default ratio plot to be hit rate
     setEnumIndex(m_ui->num, Variable::Hits);
@@ -85,16 +42,12 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
 
     connect(m_ui->num, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
-    connect(m_ui->stackedVariables, &QListWidget::itemChanged, this, &CachePlotWidget::variablesChanged);
 
     m_ui->rangeMin->setValue(0);
     m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
 
     connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
     connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
-
-    connect(m_ui->plotType, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &CachePlotWidget::plotTypeChanged);
 
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
@@ -123,7 +76,6 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
             [=] { m_ui->size->setText(QString::number(m_cache->getCacheSize().bits)); });
 
     // Synchronize widget state
-    plotTypeChanged();
     variablesChanged();
     rangeChanged();
     updateHitrate();
@@ -131,15 +83,6 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
 
 CachePlotWidget::~CachePlotWidget() {
     delete m_ui;
-}
-
-void CachePlotWidget::setupStackedVariablesList() {
-    for (const auto& iter : s_cacheVariableStrings) {
-        auto* stackedVariableItem = new QListWidgetItem(iter.second);
-        stackedVariableItem->setData(Qt::UserRole, QVariant::fromValue<Variable>(iter.first));
-        stackedVariableItem->setCheckState(Qt::Unchecked);
-        m_ui->stackedVariables->addItem(stackedVariableItem);
-    }
 }
 
 void CachePlotWidget::setupToolbar() {
@@ -164,20 +107,6 @@ void CachePlotWidget::setupToolbar() {
     m_savePlotAction->setIcon(saveIcon);
     m_toolbar->addAction(m_savePlotAction);
     connect(m_savePlotAction, &QAction::triggered, this, &CachePlotWidget::savePlot);
-}
-
-void CachePlotWidget::plotTypeChanged() {
-    m_plotType = getEnumValue<PlotType>(m_ui->plotType);
-
-    if (m_plotType == PlotType::Ratio) {
-        m_ui->configWidget->setCurrentWidget(m_ui->ratioConfigPage);
-    } else if (m_plotType == PlotType::Stacked) {
-        m_ui->configWidget->setCurrentWidget(m_ui->stackedConfigPage);
-    } else {
-        Q_ASSERT(false);
-    }
-
-    variablesChanged();
 }
 
 void CachePlotWidget::savePlot() {
@@ -238,33 +167,16 @@ void CachePlotWidget::rangeChanged() {
 
 std::vector<CachePlotWidget::Variable> CachePlotWidget::gatherVariables() const {
     std::vector<Variable> variables;
-    if (m_plotType == PlotType::Ratio) {
-        const Variable numerator = getEnumValue<Variable>(m_ui->num);
-        const Variable denominator = getEnumValue<Variable>(m_ui->den);
-        variables = {numerator, denominator};
-    } else if (m_plotType == PlotType::Stacked) {
-        for (int i = 0; i < m_ui->stackedVariables->count(); ++i) {
-            QListWidgetItem* item = m_ui->stackedVariables->item(i);
-            if (item->checkState() == Qt::Checked) {
-                variables.push_back(qvariant_cast<Variable>(item->data(Qt::UserRole)));
-            }
-        }
-    } else {
-        Q_ASSERT(false);
-    }
+    const Variable numerator = getEnumValue<Variable>(m_ui->num);
+    const Variable denominator = getEnumValue<Variable>(m_ui->den);
+    variables = {numerator, denominator};
     return variables;
 }
 
 void CachePlotWidget::variablesChanged() {
     const auto vars = gatherVariables();
-    if (m_plotType == PlotType::Ratio) {
-        Q_ASSERT(vars.size() == 2);
-        setPlot(createRatioPlot(vars.at(0), vars.at(1)));
-    } else if (m_plotType == PlotType::Stacked) {
-        setPlot(createStackedPlot(vars));
-    } else {
-        Q_ASSERT(false);
-    }
+    Q_ASSERT(vars.size() == 2);
+    setPlot(createRatioPlot(vars.at(0), vars.at(1)));
 }
 
 std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(unsigned fromCycle) const {
@@ -360,87 +272,6 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     chart->createDefaultAxes();
     chart->legend()->hide();
     updateRatioPlot(series, num, den);
-
-    return chart;
-}
-
-QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variables) const {
-    if (variables.size() == 0) {
-        return nullptr;
-    }
-
-    const auto cacheData = gatherData();
-    const unsigned len = cacheData.at(*variables.begin()).size();
-    for (const auto& iter : cacheData) {
-        Q_ASSERT(static_cast<long>(len) == iter.second.size());
-    }
-
-    QChart* chart = new QChart();
-    chart->setTitle("Access type count");
-    QFont font;
-    font.setPointSize(16);
-    chart->setTitleFont(font);
-
-    // The lower series initialized to zero values
-
-    // We create a stacked chart by repeatedly creating line series with y values equal to the variable set's y
-    // value + the preceding linesets envelope values.
-    std::vector<std::pair<Variable, QLineSeries*>> lineSeries;
-    QLineSeries* lowerSeries = nullptr;
-    QLineSeries* upperSeries = nullptr;
-    const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
-    unsigned maxY = 0;
-    for (const auto& variableData : cacheData) {
-        upperSeries = new QLineSeries(chart);
-        for (unsigned i = 0; i < len; i++) {
-            const auto& dataPoint = variableData.second.at(i);
-            unsigned x = dataPoint.x();
-            unsigned y = dataPoint.y();
-            if (lowerSeries) {
-                // Stack on top of the preceding line
-                const auto& lowerPoints = lowerSeries->pointsVector();
-                y = lowerPoints[i].y() + dataPoint.y();
-            }
-            maxY = y > maxY ? y : maxY;
-            upperSeries->append(QPoint(x, y));
-        }
-        lineSeries.push_back({variableData.first, upperSeries});
-        lowerSeries = upperSeries;
-    }
-
-    // Stepify created lineseries
-    std::map<Variable, QVector<QPointF>> debug;
-    for (const auto& line : lineSeries) {
-        debug[line.first] = line.second->pointsVector();
-    }
-    for (const auto& line : lineSeries) {
-        stepifySeries(*line.second);
-        finishSeries(*line.second, maxX);
-        debug[line.first] = line.second->pointsVector();
-    }
-
-    // Create area series
-    lowerSeries = nullptr;
-    for (unsigned i = 0; i < lineSeries.size(); i++) {
-        upperSeries = lineSeries[i].second;
-        QAreaSeries* area = new QAreaSeries(upperSeries, lowerSeries);
-        area->setName(s_cacheVariableStrings.at(lineSeries[i].first));
-        chart->addSeries(area);
-        lowerSeries = upperSeries;
-    }
-
-    chart->createDefaultAxes();
-
-    // Add space to label to add space between labels and axis
-    QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
-    QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-    axisX->setRange(0, maxX);
-    axisY->setRange(0, axisY->max());
-
-    Q_ASSERT(axisY);
-    axisY->setTitleText("#");
-    axisX->setTitleText("Cycle");
-    axisX->setLabelFormat("%d  ");
 
     return chart;
 }
