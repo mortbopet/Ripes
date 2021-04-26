@@ -23,9 +23,6 @@ CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(ne
 void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
     m_cache = cache;
 
-    const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
-    m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
-
     setupEnumCombobox(m_ui->replacementPolicy, s_cacheReplPolicyStrings);
     setupEnumCombobox(m_ui->wrHit, s_cacheWritePolicyStrings);
     setupEnumCombobox(m_ui->wrMiss, s_cacheWriteAllocateStrings);
@@ -37,7 +34,6 @@ void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
     connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setWays);
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setLines);
-    connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CacheConfigWidget::showSizeBreakdown);
 
     connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         m_cache->setReplacementPolicy(qvariant_cast<CacheSim::ReplPolicy>(m_ui->replacementPolicy->itemData(index)));
@@ -51,7 +47,6 @@ void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
 
     connect(m_cache.get(), &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
     connect(m_cache.get(), &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
-    connect(m_cache.get(), &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
 
     setupPresets();
     handleConfigurationChanged();
@@ -107,30 +102,6 @@ void CacheConfigWidget::handleConfigurationChanged() {
     m_justSetPreset = false;
 
     std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(false); });
-
-    m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
-    updateHitrate();
-}
-
-void CacheConfigWidget::updateHitrate() {
-    m_ui->hitrate->setText(QString::number(m_cache->getHitRate(), 'G', 4));
-    m_ui->hits->setText(QString::number(m_cache->getHits()));
-    m_ui->misses->setText(QString::number(m_cache->getMisses()));
-    m_ui->writebacks->setText(QString::number(m_cache->getWritebacks()));
-}
-
-void CacheConfigWidget::showSizeBreakdown() {
-    QString sizeText;
-
-    const auto cacheSize = m_cache->getCacheSize();
-
-    for (const auto& component : cacheSize.components) {
-        sizeText += component + "\n";
-    }
-
-    sizeText += "\nTotal: " + QString::number(cacheSize.bits) + " Bits";
-
-    QMessageBox::information(this, "Cache Size Breakdown", sizeText);
 }
 
 CacheConfigWidget::~CacheConfigWidget() {

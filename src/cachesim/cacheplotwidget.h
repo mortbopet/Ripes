@@ -39,6 +39,7 @@ private slots:
     void variablesChanged();
     void rangeChanged();
     void plotTypeChanged();
+    void updateHitrate();
 
 private:
     /**
@@ -49,6 +50,7 @@ private:
     std::map<Variable, QList<QPoint>> gatherData(unsigned fromCycle = 0) const;
     void setupToolbar();
     void setupStackedVariablesList();
+    void showSizeBreakdown();
     void setPlot(QChart* plot);
     void copyPlotDataToClipboard() const;
     void savePlot();

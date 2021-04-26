@@ -22,7 +22,6 @@ signals:
     void configurationChanged();
 
 public slots:
-    void updateHitrate();
     void handleConfigurationChanged();
 
 private:

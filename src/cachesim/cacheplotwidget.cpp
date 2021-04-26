@@ -3,6 +3,7 @@
 
 #include <QClipboard>
 #include <QFileDialog>
+#include <QPushButton>
 #include <QToolBar>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QChartView>
@@ -94,15 +95,38 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
 
     connect(m_ui->plotType, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &CachePlotWidget::plotTypeChanged);
+
+    const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
+    m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
+    connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
+}
+
+void CachePlotWidget::showSizeBreakdown() {
+    QString sizeText;
+
+    const auto cacheSize = m_cache->getCacheSize();
+
+    for (const auto& component : cacheSize.components) {
+        sizeText += component + "\n";
+    }
+
+    sizeText += "\nTotal: " + QString::number(cacheSize.bits) + " Bits";
+
+    QMessageBox::information(this, "Cache Size Breakdown", sizeText);
 }
 
 void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     m_cache = cache;
 
+    connect(m_cache.get(), &CacheSim::hitrateChanged, this, &CachePlotWidget::updateHitrate);
+    connect(m_cache.get(), &CacheSim::configurationChanged,
+            [=] { m_ui->size->setText(QString::number(m_cache->getCacheSize().bits)); });
+
     // Synchronize widget state
     plotTypeChanged();
     variablesChanged();
     rangeChanged();
+    updateHitrate();
 }
 
 CachePlotWidget::~CachePlotWidget() {
@@ -428,6 +452,13 @@ void CachePlotWidget::setPlot(QChart* plot) {
     // The plotView takes ownership of @param plot once the plot is set on the view
     m_currentPlot = plot;
     m_ui->plotView->setPlot(m_currentPlot);
+}
+
+void CachePlotWidget::updateHitrate() {
+    m_ui->hitrate->setText(QString::number(m_cache->getHitRate(), 'G', 4));
+    m_ui->hits->setText(QString::number(m_cache->getHits()));
+    m_ui->misses->setText(QString::number(m_cache->getMisses()));
+    m_ui->writebacks->setText(QString::number(m_cache->getWritebacks()));
 }
 
 }  // namespace Ripes
