@@ -117,6 +117,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
 
+    connect(m_cacheTab, &CacheTab::focusAddressChanged, m_memoryTab, &MemoryTab::setCentralAddress);
+
     m_ui->tabbar->setActiveIndex(1);
 }
 

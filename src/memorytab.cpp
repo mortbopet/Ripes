@@ -18,9 +18,6 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     m_ui->memoryViewerWidget->updateModel();
     m_ui->memoryViewerWidget->updateView();
 
-    connect(m_ui->cacheTabWidget, &CacheTabWidget::focusAddressChanged, m_ui->memoryViewerWidget,
-            &MemoryViewerWidget::setCentralAddress);
-
     // During processor running, it should not be possible to interact with the memory viewer or cache widgets
     connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { setEnabled(false); });
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] { setEnabled(true); });
@@ -40,4 +37,9 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
 MemoryTab::~MemoryTab() {
     delete m_ui;
 }
+
+void MemoryTab::setCentralAddress(unsigned int address) {
+    m_ui->memoryViewerWidget->setCentralAddress(address);
+}
+
 }  // namespace Ripes

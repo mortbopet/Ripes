@@ -24,6 +24,8 @@ public:
     MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~MemoryTab() override;
 
+    void setCentralAddress(unsigned address);
+
 private:
     Ui::MemoryTab* m_ui = nullptr;
 };
