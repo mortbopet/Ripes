@@ -40,6 +40,7 @@ namespace Ripes {
 #define RIPES_SETTING_INPUT_TYPE ("input_type")
 #define RIPES_SETTING_SOURCECODE ("sourcecode")
 #define RIPES_SETTING_DARKMODE ("darkmode")
+#define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
 
 // ============= Definitions of all default settings within Ripes ==============
 const extern std::map<QString, QVariant> s_defaultSettings;

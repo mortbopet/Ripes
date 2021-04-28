@@ -223,9 +223,11 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_autoClockInterval->setRange(1, 10000);
     m_autoClockInterval->setSuffix(" ms");
     m_autoClockInterval->setToolTip("Auto clock interval");
-    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged),
-            [timer](int msec) { timer->setInterval(msec); });
-    m_autoClockInterval->setValue(100);
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), [timer](int msec) {
+        RipesSettings::setValue(RIPES_SETTING_AUTOCLOCK_INTERVAL, msec);
+        timer->setInterval(msec);
+    });
+    m_autoClockInterval->setValue(RipesSettings::value(RIPES_SETTING_AUTOCLOCK_INTERVAL).toInt());
     controlToolbar->addWidget(m_autoClockInterval);
 
     const QIcon runIcon = QIcon(":/icons/run.svg");
