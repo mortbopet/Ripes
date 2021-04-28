@@ -12,6 +12,7 @@ QT_END_NAMESPACE
 
 QT_CHARTS_BEGIN_NAMESPACE
 class QChart;
+class QLineSeries;
 QT_CHARTS_END_NAMESPACE
 
 class Callout;
@@ -20,6 +21,20 @@ QT_CHARTS_USE_NAMESPACE
 
 namespace Ripes {
 class ChartLineMarker;
+
+class MarkerObjects : public QObject {
+    Q_OBJECT
+
+public:
+    QGraphicsSimpleTextItem* coordX;
+    QGraphicsSimpleTextItem* coordY;
+    QGraphicsSimpleTextItem* label;
+    ChartLineMarker* marker;
+    const QLineSeries* series;
+    MarkerObjects(QObject* parent, QChart* chart, const QLineSeries* series);
+    void updateCoordinateValues(const QPointF& pos);
+    void clear();
+};
 
 class CachePlotView : public QGraphicsView {
     Q_OBJECT
@@ -45,19 +60,18 @@ public slots:
     void keepCallout();
     void deleteCallout(Callout* callout);
     void tooltip(QPointF point, bool state);
-    void enableCrosshair(bool enabled);
+    void showSeriesMarker(const QLineSeries* series);
+    void hideSeriesMarker(const QLineSeries* series);
 
 private:
-    void updateCoordinateValues(const QPointF& pos);
     void resizeObjects(const QSizeF& size);
 
     QPointF m_hoverPos;
 
-    QGraphicsSimpleTextItem* m_coordX;
-    QGraphicsSimpleTextItem* m_coordY;
+    std::vector<std::unique_ptr<MarkerObjects>> m_markers;
+
     QChart* m_chart = nullptr;
     Callout* m_tooltip = nullptr;
-    ChartLineMarker* m_marker = nullptr;
     QMutex m_tooltipLock;
 
     bool m_crosshairEnabled = true;

@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+#include "defines.h"
 #include "enumcombobox.h"
 #include "processorhandler.h"
 
@@ -31,10 +32,6 @@ namespace Ripes {
 CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CachePlotWidget) {
     m_ui->setupUi(this);
     setWindowTitle("Cache Access Statistics");
-
-    m_toolbar = new QToolBar(this);
-    // m_ui->toolbarLayout->addWidget(m_toolbar);
-    setupToolbar();
 
     setupEnumCombobox(m_ui->num, s_cacheVariableStrings);
     setupEnumCombobox(m_ui->den, s_cacheVariableStrings);
@@ -58,6 +55,7 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
     connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles, &QWidget::setEnabled);
+    connect(m_ui->windowed, &QCheckBox::toggled, m_ui->mavgCursor, &QWidget::setEnabled);
 }
 
 void CachePlotWidget::showSizeBreakdown() {
@@ -87,14 +85,20 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
 
     m_plot = new QChart();
     m_series = new QLineSeries(m_plot);
+    auto defaultPen = m_series->pen();  // Inherit default pen state
+    defaultPen.setColor(QColor(FoundersRock));
     m_series->setName("Total");
+    m_series->setPen(defaultPen);
     m_plot->addSeries(m_series);
-    m_windowSeries = new QLineSeries(m_plot);
-    m_windowSeries->setName("Moving avg.");
-    m_plot->addSeries(m_windowSeries);
+    m_mavgSeries = new QLineSeries(m_plot);
+    m_mavgSeries->setName("Moving avg.");
+    defaultPen.setColor(QColor(Medalist));
+    m_mavgSeries->setPen(defaultPen);
+    m_plot->addSeries(m_mavgSeries);
     m_plot->createDefaultAxes();
     m_plot->legend()->hide();
     m_ui->plotView->setPlot(m_plot);
+    setupPlotActions();
 
     variablesChanged();
     rangeChanged();
@@ -106,27 +110,41 @@ CachePlotWidget::~CachePlotWidget() {
     delete m_plot;
 }
 
-void CachePlotWidget::setupToolbar() {
-    const QIcon crosshairIcon = QIcon(":/icons/crosshair.svg");
-    m_crosshairAction = new QAction("Enable plot crosshair", this);
-    m_crosshairAction->setIcon(crosshairIcon);
-    m_crosshairAction->setCheckable(true);
-    m_crosshairAction->setChecked(true);
-    m_toolbar->addAction(m_crosshairAction);
-    connect(m_crosshairAction, &QAction::triggered, m_ui->plotView, &CachePlotView::enableCrosshair);
+void CachePlotWidget::setupPlotActions() {
+    auto showMarkerFunctor = [=](const QLineSeries* series) {
+        return [=](bool visible) {
+            if (visible) {
+                m_ui->plotView->showSeriesMarker(series);
+            } else {
+                m_ui->plotView->hideSeriesMarker(series);
+            }
+        };
+    };
 
-    m_toolbar->addSeparator();
+    m_totalMarkerAction = new QAction("Enable total crosshair", this);
+    m_totalMarkerAction->setIcon(QIcon(":/icons/crosshair_blue.svg"));
+    m_totalMarkerAction->setCheckable(true);
+    m_ui->ratioCursor->setDefaultAction(m_totalMarkerAction);
+    connect(m_totalMarkerAction, &QAction::toggled, showMarkerFunctor(m_series));
+    m_totalMarkerAction->setChecked(true);
+
+    m_mavgMarkerAction = new QAction("Enable moving average crosshair", this);
+    m_mavgMarkerAction->setIcon(QIcon(":/icons/crosshair_gold.svg"));
+    m_mavgMarkerAction->setCheckable(true);
+    m_ui->mavgCursor->setDefaultAction(m_mavgMarkerAction);
+    connect(m_mavgMarkerAction, &QAction::toggled, showMarkerFunctor(m_mavgSeries));
+    m_mavgMarkerAction->setChecked(true);
 
     const QIcon copyIcon = QIcon(":/icons/documents.svg");
     m_copyDataAction = new QAction("Copy data to clipboard", this);
     m_copyDataAction->setIcon(copyIcon);
-    m_toolbar->addAction(m_copyDataAction);
+    m_ui->copyData->setDefaultAction(m_copyDataAction);
     connect(m_copyDataAction, &QAction::triggered, this, &CachePlotWidget::copyPlotDataToClipboard);
 
     const QIcon saveIcon = QIcon(":/icons/saveas.svg");
     m_savePlotAction = new QAction("Save plot to file", this);
     m_savePlotAction->setIcon(saveIcon);
-    m_toolbar->addAction(m_savePlotAction);
+    m_ui->savePlot->setDefaultAction(m_savePlotAction);
     connect(m_savePlotAction, &QAction::triggered, this, &CachePlotWidget::savePlot);
 }
 
@@ -308,10 +326,10 @@ void CachePlotWidget::updateRatioPlot() {
             m_maxY = wRatio > m_maxY ? wRatio : m_maxY;
             m_minY = wRatio < m_minY ? wRatio : m_minY;
 
-            m_windowData.push(wRatio);
+            m_mavgData.push(wRatio);
 
             // Plot moving average
-            const double wAvg = std::accumulate(m_windowData.begin(), m_windowData.end(), 0.0) / m_windowData.size();
+            const double wAvg = std::accumulate(m_mavgData.begin(), m_mavgData.end(), 0.0) / m_mavgData.size();
             newWindowPoints << QPointF(p1.x(), wAvg);
             m_lastData.first = p1;
             m_lastData.second = p2;
@@ -325,8 +343,8 @@ void CachePlotWidget::updateRatioPlot() {
     plotMover(m_series, false);
     m_series->append(newPoints);
     if (m_ui->windowed->isChecked()) {
-        plotMover(m_windowSeries, false);
-        m_windowSeries->append(newWindowPoints);
+        plotMover(m_mavgSeries, false);
+        m_mavgSeries->append(newWindowPoints);
     }
 
     // Determine whether to resample; *2 the allowed points to account for the addition of step points.
@@ -337,7 +355,7 @@ void CachePlotWidget::updateRatioPlot() {
 
     plotMover(m_series, true);
     if (m_ui->windowed->isChecked()) {
-        plotMover(m_windowSeries, true);
+        plotMover(m_mavgSeries, true);
     }
 
     m_plot->createDefaultAxes();
@@ -373,16 +391,18 @@ void CachePlotWidget::resetRatioPlot() {
     m_maxY = -DBL_MAX;
     m_minY = DBL_MAX;
     m_series->clear();
-    m_windowSeries->clear();
+    m_mavgSeries->clear();
     m_lastCyclePlotted = 0;
     m_xStep = 1;
 
+    m_mavgMarkerAction->setChecked(m_ui->windowed->isChecked() && m_mavgMarkerAction->isChecked());
+
     if (m_ui->windowed->isChecked()) {
-        m_windowData = FixedQueue<double>(m_ui->windowCycles->value());
-        m_windowSeries->setVisible(true);
+        m_mavgData = FixedQueue<double>(m_ui->windowCycles->value());
+        m_mavgSeries->setVisible(true);
         m_plot->legend()->setVisible(true);
     } else {
-        m_windowSeries->setVisible(false);
+        m_mavgSeries->setVisible(false);
         m_plot->legend()->setVisible(false);
     }
 

@@ -39,5 +39,7 @@
         <file>moon.svg</file>
         <file>led.svg</file>
         <file>tile.svg</file>
+        <file>crosshair_blue.svg</file>
+        <file>crosshair_gold.svg</file>
     </qresource>
 </RCC>

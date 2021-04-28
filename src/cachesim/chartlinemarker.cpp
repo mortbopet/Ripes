@@ -5,10 +5,12 @@
 
 namespace Ripes {
 
-ChartLineMarker::ChartLineMarker(QChart* parent, QLineSeries* series)
+ChartLineMarker::ChartLineMarker(QChart* parent, const QLineSeries* series)
     : QGraphicsObject(parent), m_chart(parent), m_series(series) {
     m_hzLine = new QGraphicsLineItem(this);
     m_vtLine = new QGraphicsLineItem(this);
+    m_hzLine->setPen(QPen(series->color()));
+    m_vtLine->setPen(QPen(series->color()));
 
     setFlag(ItemHasNoContents, true);
 }

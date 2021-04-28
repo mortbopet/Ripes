@@ -12,7 +12,7 @@ namespace Ripes {
 class ChartLineMarker : public QGraphicsObject {
     Q_OBJECT
 public:
-    ChartLineMarker(QChart* parent, QLineSeries* series);
+    ChartLineMarker(QChart* parent, const QLineSeries* series);
     QRectF boundingRect() const override;
     void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*) override {}
 
@@ -37,7 +37,7 @@ private:
 
     QPointF m_center;
     QChart* m_chart = nullptr;
-    QLineSeries* m_series = nullptr;
+    QLineSeries const* m_series = nullptr;
     QGraphicsLineItem* m_hzLine = nullptr;
     QGraphicsLineItem* m_vtLine = nullptr;
 };

@@ -63,7 +63,7 @@ private:
      * specified cycle
      */
     std::map<Variable, QList<QPoint>> gatherData(unsigned fromCycle = 0) const;
-    void setupToolbar();
+    void setupPlotActions();
     void showSizeBreakdown();
     void copyPlotDataToClipboard() const;
     void savePlot();
@@ -84,9 +84,9 @@ private:
     double m_xStep = 1.0;
     static constexpr int s_resamplingRatio = 2;
 
-    QLineSeries* m_windowSeries = nullptr;
+    QLineSeries* m_mavgSeries = nullptr;
     // N last computations of the change in ratio value
-    FixedQueue<double> m_windowData;
+    FixedQueue<double> m_mavgData;
     // Last cycle numerator and denominator values
     std::pair<QPoint, QPoint> m_lastData;
 
@@ -96,10 +96,10 @@ private:
     CachePlotWidget::Variable m_numerator;
     CachePlotWidget::Variable m_denominator;
 
-    QToolBar* m_toolbar = nullptr;
     QAction* m_copyDataAction = nullptr;
     QAction* m_savePlotAction = nullptr;
-    QAction* m_crosshairAction = nullptr;
+    QAction* m_totalMarkerAction = nullptr;
+    QAction* m_mavgMarkerAction = nullptr;
 };
 
 const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings{
