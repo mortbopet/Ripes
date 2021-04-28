@@ -182,7 +182,9 @@ signals:
      */
     void processorReset();
     void processorReversed();
-    void processorClocked();  // Only connect to this if not updating gui!´ i.e., for logging statistics per cycle
+    // Only connect to this if not updating gui!´ i.e., for logging statistics per cycle. Remember to use
+    // Qt::DirectConnection for the slot to be executed directly, instead of concurrently in the event loop.
+    void processorClocked();
     void processorClockedNonRun();  // Only emitted when _not_ running; i.e., for GUI updating
     void procStateChangedNonRun();  // processorReset | processorReversed | processorClockedNonRun
 

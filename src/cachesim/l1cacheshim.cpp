@@ -8,7 +8,8 @@ L1CacheShim::L1CacheShim(CacheType type, QObject* parent) : CacheInterface(paren
     reassociateMemory();
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this, &L1CacheShim::reassociateMemory);
     connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &L1CacheShim::processorReset);
-    connect(ProcessorHandler::get(), &ProcessorHandler::processorClocked, this, &L1CacheShim::processorWasClocked);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorClocked, this, &L1CacheShim::processorWasClocked,
+            Qt::DirectConnection);
     connect(ProcessorHandler::get(), &ProcessorHandler::processorReversed, this, &L1CacheShim::processorReversed);
 
     processorReset();
