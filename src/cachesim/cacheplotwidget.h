@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QtCharts/QChartGlobal>
 
+#include <queue>
 #include "cachesim.h"
 #include "float.h"
 
@@ -17,6 +18,21 @@ class QLineSeries;
 QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
+
+template <typename T>
+class FixedQueue : public std::deque<T> {
+public:
+    FixedQueue(const unsigned N = 1) : m_n(N) {}
+    void push(const T& value) {
+        if (this->size() == m_n) {
+            this->pop_front();
+        }
+        std::deque<T>::push_back(value);
+    }
+
+private:
+    unsigned m_n;
+};
 
 namespace Ripes {
 
@@ -67,6 +83,12 @@ private:
     unsigned m_lastCyclePlotted = 0;
     double m_xStep = 1.0;
     static constexpr int s_resamplingRatio = 2;
+
+    QLineSeries* m_windowSeries = nullptr;
+    // N last computations of the change in ratio value
+    FixedQueue<double> m_windowData;
+    // Last cycle numerator and denominator values
+    std::pair<QPoint, QPoint> m_lastData;
 
     Ui::CachePlotWidget* m_ui;
     std::shared_ptr<CacheSim> m_cache;

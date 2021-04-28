@@ -1,6 +1,7 @@
 #include "cacheplotwidget.h"
 #include "ui_cacheplotwidget.h"
 
+#include <QCheckBox>
 #include <QClipboard>
 #include <QFileDialog>
 #include <QPushButton>
@@ -44,6 +45,8 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
 
     connect(m_ui->num, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
+    connect(m_ui->windowed, &QCheckBox::toggled, this, &CachePlotWidget::variablesChanged);
+    connect(m_ui->windowCycles, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::variablesChanged);
 
     m_ui->rangeMin->setValue(0);
     m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
@@ -54,6 +57,7 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
+    connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles, &QWidget::setEnabled);
 }
 
 void CachePlotWidget::showSizeBreakdown() {
@@ -83,7 +87,11 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
 
     m_plot = new QChart();
     m_series = new QLineSeries(m_plot);
+    m_series->setName("Total");
     m_plot->addSeries(m_series);
+    m_windowSeries = new QLineSeries(m_plot);
+    m_windowSeries->setName("Moving avg.");
+    m_plot->addSeries(m_windowSeries);
     m_plot->createDefaultAxes();
     m_plot->legend()->hide();
     m_ui->plotView->setPlot(m_plot);
@@ -239,12 +247,25 @@ void CachePlotWidget::updateRatioPlot() {
         return;
     }
 
+    // convenience function to move a series on/off the chart based on the number of points to be added.
+    // We have to remove series due to append(QList(...)) calling redraw _for each_ point in the list.
+    // Not removing the series for low nNewPoints avoids a flicker in plot labels. Everything is a balance...
+    const auto plotMover = [=](QLineSeries* series, bool visible) {
+        if (nNewPoints > 2) {
+            if (visible) {
+                this->m_plot->addSeries(series);
+            } else {
+                this->m_plot->removeSeries(series);
+            }
+        }
+    };
+
     const auto& numerator = newCacheData.at(m_numerator);
     const auto& denominator = newCacheData.at(m_denominator);
     m_lastCyclePlotted = numerator.last().x();
 
     QList<QPointF> newPoints;
-    newPoints.reserve(2 * nNewPoints);
+    QList<QPointF> newWindowPoints;
     QPointF lastPoint;
     if (m_series->pointsVector().size() > 0) {
         lastPoint = m_series->pointsVector().last();
@@ -252,13 +273,14 @@ void CachePlotWidget::updateRatioPlot() {
         lastPoint = QPointF(-1, 0);
     }
     for (int i = 0; i < nNewPoints; i++) {
+        // Cummulative plot
         const auto& p1 = numerator.at(i);
         const auto& p2 = denominator.at(i);
         Q_ASSERT(p1.x() == p2.x() && "Data inconsistency");
         double ratio = 0;
         if (p2.y() != 0) {
             ratio = static_cast<double>(p1.y()) / p2.y();
-            ratio *= 100;
+            ratio *= 100.0;
         }
         const QPointF newPoint = QPointF(p1.x(), ratio);
         if (lastPoint.x() >= 0) {
@@ -272,14 +294,40 @@ void CachePlotWidget::updateRatioPlot() {
         m_maxY = ratio > m_maxY ? ratio : m_maxY;
         m_minY = ratio < m_minY ? ratio : m_minY;
         lastPoint = newPoint;
+
+        // Windowed plot
+        if (m_ui->windowed->isChecked()) {
+            const QPoint dNum = p1 - m_lastData.first;
+            const QPoint dDen = p2 - m_lastData.second;
+            double wRatio = 0;
+            if (dDen.y() != 0) {
+                wRatio = static_cast<double>(dNum.y()) / dDen.y();
+                wRatio *= 100.0;
+            }
+
+            m_maxY = wRatio > m_maxY ? wRatio : m_maxY;
+            m_minY = wRatio < m_minY ? wRatio : m_minY;
+
+            m_windowData.push(wRatio);
+
+            // Plot moving average
+            const double wAvg = std::accumulate(m_windowData.begin(), m_windowData.end(), 0.0) / m_windowData.size();
+            newWindowPoints << QPointF(p1.x(), wAvg);
+            m_lastData.first = p1;
+            m_lastData.second = p2;
+        }
     }
 
     if (newPoints.size() == 0) {
         return;
     }
-    // Have to remove series due to append(QList(...)) calling redraw _for each_ point in the list
-    m_plot->removeSeries(m_series);
+
+    plotMover(m_series, false);
     m_series->append(newPoints);
+    if (m_ui->windowed->isChecked()) {
+        plotMover(m_windowSeries, false);
+        m_windowSeries->append(newWindowPoints);
+    }
 
     // Determine whether to resample; *2 the allowed points to account for the addition of step points.
     const int maxPoints = m_ui->plotView->width() * 2;
@@ -287,7 +335,11 @@ void CachePlotWidget::updateRatioPlot() {
         resample(m_series, maxPoints / 2, m_xStep);
     }
 
-    m_plot->addSeries(m_series);
+    plotMover(m_series, true);
+    if (m_ui->windowed->isChecked()) {
+        plotMover(m_windowSeries, true);
+    }
+
     m_plot->createDefaultAxes();
 
     const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
@@ -321,8 +373,18 @@ void CachePlotWidget::resetRatioPlot() {
     m_maxY = -DBL_MAX;
     m_minY = DBL_MAX;
     m_series->clear();
+    m_windowSeries->clear();
     m_lastCyclePlotted = 0;
     m_xStep = 1;
+
+    if (m_ui->windowed->isChecked()) {
+        m_windowData = FixedQueue<double>(m_ui->windowCycles->value());
+        m_windowSeries->setVisible(true);
+        m_plot->legend()->setVisible(true);
+    } else {
+        m_windowSeries->setVisible(false);
+        m_plot->legend()->setVisible(false);
+    }
 
     updateRatioPlot();
 }
