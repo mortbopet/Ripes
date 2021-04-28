@@ -32,6 +32,7 @@ void CacheView::mousePressEvent(QMouseEvent* event) {
 }
 
 void CacheView::fitScene() {
+    scene()->setSceneRect(scene()->itemsBoundingRect());
     fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
 }
 
