@@ -216,6 +216,7 @@ void resample(QLineSeries* series, unsigned target, double& step) {
         newPoints << oldPoints.at(i);
     }
 
+#if !defined(QT_NO_DEBUG)
     // sanity check
     QPointF plast = QPointF(0, 0);
     bool first = true;
@@ -226,6 +227,7 @@ void resample(QLineSeries* series, unsigned target, double& step) {
         }
         plast = p;
     }
+#endif
 
     series->replace(newPoints);
 }
