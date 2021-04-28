@@ -10,6 +10,7 @@
 #include "processorregistry.h"
 
 #include "edittab.h"
+#include "ripessettings.h"
 
 /**
  * Ripes co-simulation
@@ -249,14 +250,16 @@ const Trace& tst_Cosimulate::generateReferenceTrace(const QStringList& extension
  * once in Ripes, due to the static nature of the ProcessorHandler.
  */
 void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extensions) {
+    // Connect the global reset request signal to directly resetting the processor
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
+            [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
+
     m_loader = new EditTab(new QToolBar(), nullptr);
     connect(m_loader, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
 
     for (const auto& test : s_testFiles) {
         m_currentTest = test;
 
-        connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset,
-                [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
         ProcessorHandler::get()->getProcessorNonConst()->handleSysCall.Connect(this, &tst_Cosimulate::handleSysCall);
@@ -264,6 +267,7 @@ void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extens
         std::cout << test.filepath.toStdString() << std::endl;
         auto referenceTrace = generateReferenceTrace(extensions);
         ProcessorHandler::get()->selectProcessor(id, extensions);
+        RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 
         Trace trace;
         std::cout << "Cosimulating... " << std::flush;

@@ -5,6 +5,7 @@
 
 #include "processorhandler.h"
 #include "processorregistry.h"
+#include "ripessettings.h"
 
 #include "assembler/rv32i_assembler.h"
 
@@ -143,6 +144,10 @@ QString tst_RISCV::executeSimulator() {
 }
 
 void tst_RISCV::runTests(const ProcessorID& id) {
+    // Connect the global reset request signal to directly resetting the processor
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
+            [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
+
     const auto dir = QDir(s_testdir);
     const auto testFiles = dir.entryList({"*.s"});
     const auto extensions = QStringList("M");
@@ -172,14 +177,12 @@ void tst_RISCV::runTests(const ProcessorID& id) {
         }
         auto spProgram = std::make_shared<Program>(program.program);
 
-        connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset,
-                [=] { ProcessorHandler::getProcessorNonConst()->reset(); });
-
         ProcessorHandler::selectProcessor(id, extensions);
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
         ProcessorHandler::getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
         ProcessorHandler::get()->loadProgram(spProgram);
+        RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 
         const QString err = executeSimulator();
         if (!err.isNull()) {

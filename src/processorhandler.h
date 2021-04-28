@@ -150,13 +150,6 @@ signals:
     void processorChanged();
 
     /**
-     * @brief reqProcessorReset
-     *  Emitted whenever changes to the internal state of the processor has been made, and a reset of any depending
-     * widgets is required
-     */
-    void reqProcessorReset();
-
-    /**
      * @brief exit
      * end the current simulation, disallowing further clocking of the processor unless the processor is reset.
      */

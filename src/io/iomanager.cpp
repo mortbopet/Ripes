@@ -14,7 +14,7 @@ IOManager::IOManager() : QObject(nullptr) {
     // Always re-register the currently active peripherals when the processor changes
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
             &IOManager::refreshAllPeriphsToProcessor);
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &IOManager::refreshMemoryMap);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &IOManager::refreshMemoryMap);
 
     refreshMemoryMap();
 }
