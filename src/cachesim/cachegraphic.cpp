@@ -195,7 +195,7 @@ void CacheGraphic::cacheInvalidated() {
     validItem->setToolTip("Valid bit");
     width += m_bitWidth;
 
-    if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
+    if (m_cache.getWritePolicy() == WritePolicy::WriteBack) {
         m_widthBeforeDirty = width;
 
         // Draw dirty bit column
@@ -208,7 +208,7 @@ void CacheGraphic::cacheInvalidated() {
 
     m_widthBeforeLRU = width;
 
-    if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
+    if (m_cache.getReplacementPolicy() == ReplPolicy::LRU && m_cache.getWays() > 1) {
         // Draw LRU bit column
         new QGraphicsLineItem(width + m_lruWidth, 0, width + m_lruWidth, m_cacheHeight, this);
         const QString LRUBitText = "LRU";
@@ -355,13 +355,13 @@ void CacheGraphic::initializeControlBits() {
             x = m_bitWidth / 2 - m_fm.width("0") / 2;
             line[setIdx].valid = drawText("0", x, y);
 
-            if (m_cache.getWritePolicy() == CacheSim::WritePolicy::WriteBack) {
+            if (m_cache.getWritePolicy() == WritePolicy::WriteBack) {
                 // Create dirty bit field
                 x = m_widthBeforeDirty + m_bitWidth / 2 - m_fm.width("0") / 2;
                 line[setIdx].dirty = drawText("0", x, y);
             }
 
-            if (m_cache.getReplacementPolicy() == CacheSim::ReplPolicy::LRU && m_cache.getWays() > 1) {
+            if (m_cache.getReplacementPolicy() == ReplPolicy::LRU && m_cache.getWays() > 1) {
                 // Create LRU field
                 const QString lruText = QString::number(m_cache.getWays() - 1);
                 x = m_widthBeforeLRU + m_lruWidth / 2 - m_fm.width(lruText) / 2;

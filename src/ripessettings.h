@@ -24,7 +24,7 @@ namespace Ripes {
 
 #define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
 #define RIPES_SETTING_CACHE_MAXPOINTS ("cacheplot_maxpoints")
-
+#define RIPES_SETTING_CACHE_PRESETS ("cache_presets")
 #define RIPES_SETTING_PERIPHERAL_SETTINGS ("peripheral_settings")
 
 // This is not really a setting, but instead a method to leverage the static observer objects that are generated for a

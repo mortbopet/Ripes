@@ -1,5 +1,6 @@
 #include "ripessettings.h"
 #include "assembler/program.h"
+#include "cachesim/cachesim.h"
 
 #include <QCoreApplication>
 #include <map>
@@ -26,6 +27,14 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_PERIPHERALS_START, static_cast<unsigned>(0xF0000000)},
 
     {RIPES_SETTING_CACHE_MAXPOINTS, 1000},
+    {RIPES_SETTING_CACHE_PRESETS,
+     QVariant::fromValue<QList<CachePreset>>(
+         {CachePreset{"32-entry 4-word direct-mapped", 2, 5, 0, WritePolicy::WriteBack, WriteAllocPolicy::WriteAllocate,
+                      ReplPolicy::LRU},
+          CachePreset{"32-entry 4-word fully associative", 2, 0, 5, WritePolicy::WriteBack,
+                      WriteAllocPolicy::WriteAllocate, ReplPolicy::LRU},
+          CachePreset{"32-entry 4-word 2-way set associative", 2, 4, 1, WritePolicy::WriteBack,
+                      WriteAllocPolicy::WriteAllocate, ReplPolicy::LRU}})},
 
     // Program state preserving settings
     {RIPES_GLOBALSIGNAL_QUIT, 0},
@@ -68,6 +77,10 @@ RipesSettings::RipesSettings() {
     QCoreApplication::setOrganizationDomain("https://github.com/mortbopet/Ripes");
     QCoreApplication::setApplicationName("Ripes");
 
+    // Serializer registrations
+    qRegisterMetaTypeStreamOperators<CachePreset>("cachePreset");
+    qRegisterMetaTypeStreamOperators<QList<CachePreset>>("cachePresetList");
+
     // Populate settings with default values if settings value is not found
     QSettings settings;
     for (const auto& setting : s_defaultSettings) {
@@ -95,3 +108,4 @@ QVariant RipesSettings::value(const QString& key) {
 }
 
 }  // namespace Ripes
+Q_DECLARE_METATYPE(QList<Ripes::CachePreset>);

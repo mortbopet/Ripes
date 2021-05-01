@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include <QDataStream>
 #include <QObject>
 
 #include "../external/VSRTL/core/vsrtl_register.h"
@@ -14,6 +15,45 @@ using ROMMemory = vsrtl::core::ROM<32, 32>;
 
 namespace Ripes {
 class CacheSim;
+
+enum WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
+enum WritePolicy { WriteThrough, WriteBack };
+enum ReplPolicy { Random, LRU };
+
+struct CachePreset {
+    QString name;
+    int blocks;
+    int lines;
+    int ways;
+
+    WritePolicy wrPolicy;
+    WriteAllocPolicy wrAllocPolicy;
+    ReplPolicy replPolicy;
+
+    friend QDataStream& operator<<(QDataStream& arch, const CachePreset& object) {
+        arch << object.name;
+        arch << object.blocks;
+        arch << object.lines;
+        arch << object.ways;
+        arch << object.wrPolicy;
+        arch << object.wrAllocPolicy;
+        arch << object.replPolicy;
+        return arch;
+    }
+
+    friend QDataStream& operator>>(QDataStream& arch, CachePreset& object) {
+        arch >> object.name;
+        arch >> object.blocks;
+        arch >> object.lines;
+        arch >> object.ways;
+        arch >> object.wrPolicy;
+        arch >> object.wrAllocPolicy;
+        arch >> object.replPolicy;
+        return arch;
+    }
+
+    bool operator==(const CachePreset& other) const { return this->name == other.name; }
+};
 
 class CacheInterface : public QObject {
     Q_OBJECT
@@ -48,23 +88,9 @@ class CacheSim : public CacheInterface {
 public:
     static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
 
-    enum class WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
-    enum class WritePolicy { WriteThrough, WriteBack };
-    enum class ReplPolicy { Random, LRU };
-
     struct CacheSize {
         unsigned bits = 0;
         std::vector<QString> components;
-    };
-
-    struct CachePreset {
-        int blocks;
-        int lines;
-        int ways;
-
-        WritePolicy wrPolicy;
-        WriteAllocPolicy wrAllocPolicy;
-        ReplPolicy replPolicy;
     };
 
     struct CacheWay {
@@ -269,14 +295,13 @@ private:
     void pushTrace(const CacheTrace& trace);
 };
 
-const static std::map<CacheSim::ReplPolicy, QString> s_cacheReplPolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
-                                                                              {CacheSim::ReplPolicy::LRU, "LRU"}};
-const static std::map<CacheSim::WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
-    {CacheSim::WriteAllocPolicy::WriteAllocate, "Write allocate"},
-    {CacheSim::WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
+const static std::map<ReplPolicy, QString> s_cacheReplPolicyStrings{{ReplPolicy::Random, "Random"},
+                                                                    {ReplPolicy::LRU, "LRU"}};
+const static std::map<WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
+    {WriteAllocPolicy::WriteAllocate, "Write allocate"},
+    {WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
 
-const static std::map<CacheSim::WritePolicy, QString> s_cacheWritePolicyStrings{
-    {CacheSim::WritePolicy::WriteThrough, "Write-through"},
-    {CacheSim::WritePolicy::WriteBack, "Write-back"}};
+const static std::map<WritePolicy, QString> s_cacheWritePolicyStrings{{WritePolicy::WriteThrough, "Write-through"},
+                                                                      {WritePolicy::WriteBack, "Write-back"}};
 
 }  // namespace Ripes
