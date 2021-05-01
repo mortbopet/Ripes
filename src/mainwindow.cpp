@@ -196,6 +196,9 @@ void MainWindow::setupMenus() {
     exitAction->setShortcut(QKeySequence::Quit);
     connect(exitAction, &QAction::triggered, this, &MainWindow::close);
     m_ui->menuFile->addAction(exitAction);
+
+    m_ui->menuView->addAction(m_processorTab->m_darkmodeAction);
+    m_ui->menuView->addAction(m_processorTab->m_displayValuesAction);
 }
 
 MainWindow::~MainWindow() {

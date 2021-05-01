@@ -32,8 +32,7 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     m_l1dShim->setNextLevelCache(m_ui->dataCacheWidget->getCacheSim());
     m_l1iShim->setNextLevelCache(m_ui->instructionCacheWidget->getCacheSim());
 
-    m_addTabIdx = m_ui->tabWidget->addTab(new QLabel("Placeholder"), QIcon((":/icons/plus.svg")),
-                                          QString("L%1 Cache").arg(m_nextCacheLevel));
+    m_addTabIdx = m_ui->tabWidget->addTab(new QLabel("Placeholder"), QIcon((":/icons/plus.svg")), QString());
 
     connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &CacheTabWidget::handleTabIndexChanged);
     connect(m_ui->tabWidget, &QTabWidget::tabCloseRequested, this, &CacheTabWidget::handleTabCloseRequest);
@@ -63,7 +62,7 @@ void CacheTabWidget::handleTabCloseRequest(int index) {
         m_ui->tabWidget->tabBar()->tabButton(newIndex, QTabBar::RightSide)->resize(m_defaultTabButtonSize);
     }
     m_nextCacheLevel--;
-    m_ui->tabWidget->setTabText(m_addTabIdx, QString("L%1 Cache").arg(m_nextCacheLevel));
+    m_ui->tabWidget->setTabText(m_addTabIdx, QString());
 }
 
 void CacheTabWidget::handleTabIndexChanged(int index) {
@@ -78,7 +77,6 @@ void CacheTabWidget::handleTabIndexChanged(int index) {
         m_ui->tabWidget->tabBar()->tabButton(m_addTabIdx - 1, QTabBar::RightSide)->resize(0, 0);
         m_addTabIdx = m_ui->tabWidget->count() - 1;
         m_ui->tabWidget->setCurrentIndex(index);
-        m_ui->tabWidget->setTabText(m_addTabIdx, QString("L%1 Cache").arg(m_nextCacheLevel));
     }
 
     // Locate cacheWidget for the current index

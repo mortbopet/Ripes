@@ -242,26 +242,22 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     controlToolbar->addAction(m_runAction);
 
     // Setup processor-tab only actions
-    const QIcon tagIcon = QIcon(":/icons/tag.svg");
-    m_displayValuesAction = new QAction(tagIcon, "Display signal values", this);
+    m_displayValuesAction = new QAction("Show processor signal values", this);
     m_displayValuesAction->setCheckable(true);
     m_displayValuesAction->setChecked(false);
     connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
-    m_toolbar->addAction(m_displayValuesAction);
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
     connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
     m_toolbar->addAction(m_stageTableAction);
 
-    const QIcon moonIcon = QIcon(":/icons/moon.svg");
-    m_darkmodeAction = new QAction(moonIcon, "Toggle darkmode", this);
+    m_darkmodeAction = new QAction("Processor darkmode", this);
     m_darkmodeAction->setCheckable(true);
     connect(m_darkmodeAction, &QAction::toggled, m_vsrtlWidget, [=](bool checked) {
         RipesSettings::setValue(RIPES_SETTING_DARKMODE, QVariant::fromValue(checked));
         m_vsrtlWidget->setDarkmode(checked);
     });
-    m_toolbar->addAction(m_darkmodeAction);
     m_darkmodeAction->setChecked(RipesSettings::value(RIPES_SETTING_DARKMODE).toBool());
 }
 

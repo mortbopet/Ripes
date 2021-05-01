@@ -27,6 +27,7 @@ struct Layout;
 
 class ProcessorTab : public RipesTab {
     friend class RunDialog;
+    friend class MainWindow;
     Q_OBJECT
 
 public:
