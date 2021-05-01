@@ -40,7 +40,8 @@ private:
     Ui::SettingsDialog* m_ui;
 
     void addPage(const QString& name, QWidget* page);
-    void appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout);
+    void appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
+                        const QString& description = QString());
 
     std::map<QString, int> m_pageIndex;
 };
