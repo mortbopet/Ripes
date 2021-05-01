@@ -78,10 +78,19 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     connect(m_cache.get(), &CacheSim::hitrateChanged, this, &CachePlotWidget::updateHitrate);
     connect(m_cache.get(), &CacheSim::configurationChanged,
             [=] { m_ui->size->setText(QString::number(m_cache->getCacheSize().bits)); });
-    connect(ProcessorHandler::get(), &ProcessorHandler::processorClockedNonRun, this,
-            &CachePlotWidget::updateRatioPlot);
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, &CachePlotWidget::updateRatioPlot);
-    connect(m_cache.get(), &CacheSim::cacheInvalidated, this, &CachePlotWidget::resetRatioPlot);
+
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorClockedNonRun, [=] {
+        updateAllowedRange();
+        updateRatioPlot();
+    });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] {
+        updateAllowedRange();
+        updateRatioPlot();
+    });
+    connect(m_cache.get(), &CacheSim::cacheInvalidated, [=] {
+        updateAllowedRange();
+        resetRatioPlot();
+    });
 
     m_plot = new QChart();
     m_series = new QLineSeries(m_plot);
@@ -103,6 +112,15 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     variablesChanged();
     rangeChanged();
     updateHitrate();
+}
+
+void CachePlotWidget::updateAllowedRange() {
+    // Update allowed ranges
+    const unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
+    m_ui->rangeMax->setMinimum(m_ui->rangeMin->value());
+    m_ui->rangeMax->setMaximum(cycles);
+    m_ui->rangeMin->setMinimum(0);
+    m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
 }
 
 CachePlotWidget::~CachePlotWidget() {
@@ -195,13 +213,7 @@ void CachePlotWidget::rangeChanged() {
     if (m_plot) {
         m_plot->axes(Qt::Horizontal).first()->setRange(m_ui->rangeMin->value(), m_ui->rangeMax->value());
     }
-
-    // Update allowed ranges
-    const unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
-    m_ui->rangeMin->setMinimum(0);
-    m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
-    m_ui->rangeMax->setMinimum(m_ui->rangeMin->value());
-    m_ui->rangeMax->setMaximum(cycles);
+    updateAllowedRange();
 }
 
 void CachePlotWidget::variablesChanged() {

@@ -68,6 +68,7 @@ private:
     void copyPlotDataToClipboard() const;
     void savePlot();
     void updateRatioPlot();
+    void updateAllowedRange();
 
     /**
      * @brief resampleToScreen
