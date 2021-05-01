@@ -16,6 +16,7 @@
 #include "defines.h"
 #include "enumcombobox.h"
 #include "processorhandler.h"
+#include "ripessettings.h"
 
 #include "limits.h"
 
@@ -359,8 +360,10 @@ void CachePlotWidget::updateRatioPlot() {
         m_mavgSeries->append(newWindowPoints);
     }
 
-    // Determine whether to resample; *2 the allowed points to account for the addition of step points.
-    const int maxPoints = m_ui->plotView->width() * 2;
+    // Determine whether to resample;
+    // *2 the allowed points to account for the addition of step points.
+    // *2 to account for the fact that the setting specifies the minimum # of points, and we resample at a 2x ratio
+    const int maxPoints = RipesSettings::value(RIPES_SETTING_CACHE_MAXPOINTS).toInt() * 2 * 2;
     if (m_series->pointsVector().size() >= maxPoints) {
         resample(m_series, maxPoints / 2, m_xStep);
     }

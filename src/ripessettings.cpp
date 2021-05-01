@@ -25,6 +25,8 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_ASSEMBLER_BSSSTART, 0x11000000},
     {RIPES_SETTING_PERIPHERALS_START, static_cast<unsigned>(0xF0000000)},
 
+    {RIPES_SETTING_CACHE_MAXPOINTS, 1000},
+
     // Program state preserving settings
     {RIPES_GLOBALSIGNAL_QUIT, 0},
     {RIPES_GLOBALSIGNAL_REQRESET, 0},

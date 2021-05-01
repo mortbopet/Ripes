@@ -286,12 +286,20 @@ QWidget* SettingsDialog::createEditorPage() {
 }
 
 QWidget* SettingsDialog::createEnvironmentPage() {
+    auto [pageWidget, pageLayout] = constructPage();
+
+    appendToLayout(
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXPOINTS, "Min. cache plot points:"), pageLayout,
+        "Minimum number of points to be kept in the cache plot. Once 2x this amount is reached, the cache "
+        "plot will be resampled to this minimum value, and new points will be added based on the sampling "
+        "rate after the resampling. This resampling allows for real-time plotting regardless of the number of "
+        "simulation cycles.");
+
     // Console settings
     auto* consoleGroupBox = new QGroupBox("Console");
     auto* consoleLayout = new QGridLayout();
     consoleGroupBox->setLayout(consoleLayout);
 
-    auto [pageWidget, pageLayout] = constructPage();
     appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:"), consoleLayout);
     appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:"),
                    consoleLayout);
@@ -301,9 +309,13 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     appendToLayout(
         createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:"),
         consoleLayout);
-    pageLayout->addWidget(consoleGroupBox);
+    appendToLayout(consoleGroupBox, pageLayout);
 
     return pageWidget;
+}
+
+void SettingsDialog::appendToLayout(QGroupBox* groupBox, QGridLayout* pageLayout, int colSpan) {
+    pageLayout->addWidget(groupBox, pageLayout->rowCount(), 0, 1, colSpan);
 }
 
 void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
@@ -316,6 +328,7 @@ void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets
         auto f = desc->font();
         f.setPointSize(f.pointSize() * 0.9);
         desc->setFont(f);
+        desc->setWordWrap(true);
         pageLayout->addWidget(desc, row + 1, 0);
     }
 }
