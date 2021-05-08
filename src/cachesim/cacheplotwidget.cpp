@@ -177,7 +177,7 @@ void CachePlotWidget::savePlot() {
 
 void CachePlotWidget::copyPlotDataToClipboard() const {
     std::vector<Variable> allVariables;
-    for (int i = 0; i < N_Variables; i++) {
+    for (int i = 0; i < N_TraceVars; i++) {
         allVariables.push_back(static_cast<Variable>(i));
     }
     const auto& allData = gatherData();
@@ -227,7 +227,7 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
     std::map<Variable, QList<QPoint>> cacheData;
     const auto& trace = m_cache->getAccessTrace();
 
-    for (int i = 0; i < N_Variables; i++) {
+    for (int i = 0; i < N_TraceVars; i++) {
         cacheData[static_cast<Variable>(i)].reserve(trace.size());
     }
 
@@ -273,7 +273,7 @@ void resample(QLineSeries* series, unsigned target, double& step) {
 
 void CachePlotWidget::updateRatioPlot() {
     const auto newCacheData = gatherData(m_lastCyclePlotted);
-    const int nNewPoints = newCacheData.at(m_numerator).size();
+    const int nNewPoints = newCacheData.at(Accesses).size();
     if (nNewPoints == 0) {
         return;
     }
@@ -291,9 +291,7 @@ void CachePlotWidget::updateRatioPlot() {
         }
     };
 
-    const auto& numerator = newCacheData.at(m_numerator);
-    const auto& denominator = newCacheData.at(m_denominator);
-    m_lastCyclePlotted = numerator.last().x();
+    m_lastCyclePlotted = newCacheData.at(Accesses).last().x();
 
     QList<QPointF> newPoints;
     QList<QPointF> newWindowPoints;
@@ -304,9 +302,12 @@ void CachePlotWidget::updateRatioPlot() {
         lastPoint = QPointF(-1, 0);
     }
     for (int i = 0; i < nNewPoints; i++) {
-        // Cummulative plot
-        const auto& p1 = numerator.at(i);
-        const auto& p2 = denominator.at(i);
+        // Cummulative plot. For the unary variable, "Accesses" is just used to index into the cache data for accessing
+        // the x variable.
+        const auto& p1 =
+            m_numerator == Unary ? QPoint(newCacheData.at(Accesses).at(i).x(), 1) : newCacheData.at(m_numerator).at(i);
+        const auto& p2 = m_denominator == Unary ? QPoint(newCacheData.at(Accesses).at(i).x(), 1)
+                                                : newCacheData.at(m_denominator).at(i);
         Q_ASSERT(p1.x() == p2.x() && "Data inconsistency");
         double ratio = 0;
         if (p2.y() != 0) {

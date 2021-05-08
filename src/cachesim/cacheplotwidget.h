@@ -44,7 +44,7 @@ class CachePlotWidget : public QWidget {
     Q_OBJECT
 
 public:
-    enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_Variables };
+    enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_TraceVars, Unary };
     explicit CachePlotWidget(QWidget* parent = nullptr);
     void setCache(std::shared_ptr<CacheSim> cache);
     ~CachePlotWidget();
@@ -109,7 +109,9 @@ const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings
     {CachePlotWidget::Variable::Hits, "Hits"},
     {CachePlotWidget::Variable::Misses, "Misses"},
     {CachePlotWidget::Variable::Writebacks, "Writebacks"},
-    {CachePlotWidget::Variable::Accesses, "Total accesses"}};
+    {CachePlotWidget::Variable::Accesses, "Total accesses"},
+    {CachePlotWidget::Variable::Unary, "1"},
+};
 
 }  // namespace Ripes
 
