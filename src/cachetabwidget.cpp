@@ -23,6 +23,11 @@ public:
     }
 };
 
+void CacheTabWidget::flipTabs() {
+    m_ui->tabWidget->setCurrentIndex(1);
+    m_ui->tabWidget->setCurrentIndex(0);
+}
+
 CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheTabWidget) {
     m_ui->setupUi(this);
 

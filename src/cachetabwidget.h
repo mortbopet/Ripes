@@ -17,6 +17,13 @@ public:
     explicit CacheTabWidget(QWidget* parent = nullptr);
     ~CacheTabWidget();
 
+    /**
+     * @brief flipTabs
+     * switches the active tabs from 0->1->0. This is a "hack" to resize the cache view to the screen size, when
+     * initially starting the application.
+     */
+    void flipTabs();
+
 signals:
     void focusAddressChanged(unsigned address);
     void cacheFocusChanged(CacheWidget* cacheInFocus);

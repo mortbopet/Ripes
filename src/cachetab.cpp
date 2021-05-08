@@ -28,6 +28,17 @@ CacheTab::CacheTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, paren
     m_ui->splitter->setSizes({1, 10000});
 }
 
+void CacheTab::tabVisibilityChanged(bool visible) {
+    /**
+     * A hack to ensure that the cache view is resized to screen size _after_ Qt has calculated widget sizes when the
+     * cache tab is first shown.
+     */
+    if (!m_initialized && visible) {
+        QTimer::singleShot(100, [&] { m_ui->cacheTabWidget->flipTabs(); });
+        m_initialized = visible;
+    }
+}
+
 CacheTab::~CacheTab() {
     delete m_ui;
 }

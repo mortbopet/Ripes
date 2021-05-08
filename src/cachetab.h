@@ -16,11 +16,14 @@ public:
     explicit CacheTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~CacheTab() override;
 
+    void tabVisibilityChanged(bool visible) override;
+
 signals:
     void focusAddressChanged(uint32_t address);
 
 private:
     Ui::CacheTab* m_ui;
+    bool m_initialized = false;
 };
 
 }  // namespace Ripes

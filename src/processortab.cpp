@@ -302,7 +302,7 @@ void ProcessorTab::pause() {
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
-void ProcessorTab::fitToView() {
+void ProcessorTab::fitToScreen() {
     m_vsrtlWidget->zoomToFit();
 }
 
@@ -323,7 +323,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
         loadLayout(*layout);
     }
     updateInstructionLabels();
-    fitToView();
+    fitToScreen();
 }
 
 void ProcessorTab::processorSelection() {

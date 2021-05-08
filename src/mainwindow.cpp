@@ -156,7 +156,7 @@ void MainWindow::tabChanged(int index) {
 }
 
 void MainWindow::fitToView() {
-    static_cast<ProcessorTab*>(m_tabWidgets.at(ProcessorTabID).tab)->fitToView();
+    static_cast<ProcessorTab*>(m_tabWidgets.at(ProcessorTabID).tab)->fitToScreen();
 }
 
 void MainWindow::setupMenus() {
