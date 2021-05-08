@@ -32,7 +32,14 @@
        </item>
       </layout>
      </widget>
-     <widget class="CacheView" name="cacheView"/>
+     <widget class="CacheView" name="cacheView">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

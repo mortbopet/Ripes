@@ -23,7 +23,9 @@ CacheTab::CacheTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, paren
     });
 
     // CacheTabWidget has a tendency to expand, but we'd like to minimize its size. Stretch the CacheView.
+    m_ui->splitter->setStretchFactor(0, 0);
     m_ui->splitter->setStretchFactor(1, 10);
+    m_ui->splitter->setSizes({1, 10000});
 }
 
 CacheTab::~CacheTab() {
