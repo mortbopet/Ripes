@@ -20,7 +20,13 @@ class ProcessorTab;
 class CacheTab;
 class IOTab;
 class ProcessorHandler;
+class RipesTab;
 struct LoadFileParams;
+
+struct TabWidgets {
+    RipesTab* tab;
+    QToolBar* toolbar;
+};
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -61,18 +67,7 @@ private:
 
     // Tabs
     QStackedWidget* m_stackedTabs = nullptr;
-
-    ProcessorTab* m_processorTab = nullptr;
-    EditTab* m_editTab = nullptr;
-    CacheTab* m_cacheTab = nullptr;
-    MemoryTab* m_memoryTab = nullptr;
-    IOTab* m_IOTab = nullptr;
-
-    QToolBar* m_controlToolbar = nullptr;
-    QToolBar* m_processorToolbar = nullptr;
-    QToolBar* m_editToolbar = nullptr;
-    QToolBar* m_cacheToolbar = nullptr;
-    QToolBar* m_memoryToolbar = nullptr;
-    QToolBar* m_IOToolbar = nullptr;
+    std::map<TabIndex, TabWidgets> m_tabWidgets;
+    TabIndex m_currentTabID = ProcessorTabID;
 };
 }  // namespace Ripes

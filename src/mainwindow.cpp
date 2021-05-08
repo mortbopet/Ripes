@@ -51,33 +51,38 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_stackedTabs = new QStackedWidget(this);
     m_ui->centrallayout->addWidget(m_stackedTabs);
 
-    m_controlToolbar = addToolBar("Simulator control");
-    m_controlToolbar->setVisible(true);  // Always visible
+    auto* controlToolbar = addToolBar("Simulator control");
+    controlToolbar->setVisible(true);  // Always visible
 
-    m_editToolbar = addToolBar("Edit");
-    m_editToolbar->setVisible(false);
-    m_editTab = new EditTab(m_editToolbar, this);
-    m_stackedTabs->insertWidget(EditTabID, m_editTab);
+    auto* editToolbar = addToolBar("Edit");
+    editToolbar->setVisible(false);
+    auto* editTab = new EditTab(editToolbar, this);
+    m_stackedTabs->insertWidget(EditTabID, editTab);
+    m_tabWidgets[EditTabID] = {editTab, editToolbar};
 
-    m_processorToolbar = addToolBar("Processor");
-    m_processorToolbar->setVisible(false);
-    m_processorTab = new ProcessorTab(m_controlToolbar, m_processorToolbar, this);
-    m_stackedTabs->insertWidget(ProcessorTabID, m_processorTab);
+    auto* processorToolbar = addToolBar("Processor");
+    processorToolbar->setVisible(false);
+    auto* processorTab = new ProcessorTab(controlToolbar, processorToolbar, this);
+    m_stackedTabs->insertWidget(ProcessorTabID, processorTab);
+    m_tabWidgets[ProcessorTabID] = {processorTab, processorToolbar};
 
-    m_cacheToolbar = addToolBar("Cache");
-    m_cacheToolbar->setVisible(false);
-    m_cacheTab = new CacheTab(m_memoryToolbar, this);
-    m_stackedTabs->insertWidget(CacheTabID, m_cacheTab);
+    auto* cacheToolbar = addToolBar("Cache");
+    cacheToolbar->setVisible(false);
+    auto* cacheTab = new CacheTab(cacheToolbar, this);
+    m_stackedTabs->insertWidget(CacheTabID, cacheTab);
+    m_tabWidgets[CacheTabID] = {cacheTab, cacheToolbar};
 
-    m_memoryToolbar = addToolBar("Memory");
-    m_memoryToolbar->setVisible(false);
-    m_memoryTab = new MemoryTab(m_memoryToolbar, this);
-    m_stackedTabs->insertWidget(MemoryTabID, m_memoryTab);
+    auto* memoryToolbar = addToolBar("Memory");
+    memoryToolbar->setVisible(false);
+    auto* memoryTab = new MemoryTab(memoryToolbar, this);
+    m_stackedTabs->insertWidget(MemoryTabID, memoryTab);
+    m_tabWidgets[MemoryTabID] = {memoryTab, memoryToolbar};
 
-    m_IOToolbar = addToolBar("I/O");
-    m_IOToolbar->setVisible(false);
-    m_IOTab = new IOTab(m_IOToolbar, this);
-    m_stackedTabs->insertWidget(IOTabID, m_IOTab);
+    auto* IOToolbar = addToolBar("I/O");
+    IOToolbar->setVisible(false);
+    auto* IOTab = new class IOTab(IOToolbar, this);
+    m_stackedTabs->insertWidget(IOTabID, IOTab);
+    m_tabWidgets[IOTabID] = {IOTab, IOToolbar};
 
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
@@ -87,25 +92,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
-    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_editTab, &EditTab::updateProgramViewerHighlighting);
+    connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, editTab, &EditTab::updateProgramViewerHighlighting);
 
     setupMenus();
 
     // setup and connect widgets
-    connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
-    connect(m_editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
+    connect(editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
+    connect(editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::exit, m_processorTab, &ProcessorTab::processorFinished);
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_processorTab, &ProcessorTab::runFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::exit, processorTab, &ProcessorTab::processorFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, processorTab, &ProcessorTab::runFinished);
 
-    connect(&SystemIO::get(), &SystemIO::doPrint, m_processorTab, &ProcessorTab::printToLog);
+    connect(&SystemIO::get(), &SystemIO::doPrint, processorTab, &ProcessorTab::printToLog);
 
     // Setup status bar
     setupStatusBar();
 
     // Reset and program reload signals
-    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, m_editTab, &EditTab::onProcessorChanged);
-    connect(ProcessorHandler::get(), &ProcessorHandler::stopping, m_processorTab, &ProcessorTab::pause);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, editTab, &EditTab::onProcessorChanged);
+    connect(ProcessorHandler::get(), &ProcessorHandler::stopping, processorTab, &ProcessorTab::pause);
 
     connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, [=] { SystemIO::reset(); });
 
@@ -117,9 +122,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->actionVersion, &QAction::triggered, this, &MainWindow::version);
     connect(m_ui->actionSettings, &QAction::triggered, this, &MainWindow::settingsTriggered);
 
-    connect(m_cacheTab, &CacheTab::focusAddressChanged, m_memoryTab, &MemoryTab::setCentralAddress);
+    connect(cacheTab, &CacheTab::focusAddressChanged, memoryTab, &MemoryTab::setCentralAddress);
 
-    m_ui->tabbar->setActiveIndex(1);
+    m_currentTabID = ProcessorTabID;
+    m_ui->tabbar->setActiveIndex(m_currentTabID);
 }
 
 #define setupStatusWidget(name)                                                                                       \
@@ -142,15 +148,15 @@ void MainWindow::setupStatusBar() {
 }
 
 void MainWindow::tabChanged(int index) {
-    m_editToolbar->setVisible(index == EditTabID);
-    m_processorToolbar->setVisible(index == ProcessorTabID);
-    m_memoryToolbar->setVisible(index == MemoryTabID);
-    m_cacheToolbar->setVisible(index == CacheTabID);
-    m_IOToolbar->setVisible(index == IOTabID);
+    m_tabWidgets.at(m_currentTabID).toolbar->setVisible(false);
+    m_tabWidgets.at(m_currentTabID).tab->tabVisibilityChanged(false);
+    m_currentTabID = static_cast<TabIndex>(index);
+    m_tabWidgets.at(m_currentTabID).toolbar->setVisible(true);
+    m_tabWidgets.at(m_currentTabID).tab->tabVisibilityChanged(true);
 }
 
 void MainWindow::fitToView() {
-    m_processorTab->fitToView();
+    static_cast<ProcessorTab*>(m_tabWidgets.at(ProcessorTabID).tab)->fitToView();
 }
 
 void MainWindow::setupMenus() {
@@ -178,14 +184,15 @@ void MainWindow::setupMenus() {
     auto* saveAction = new QAction(saveIcon, "Save File", this);
     saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFilesTriggered);
-    connect(m_editTab, &EditTab::editorStateChanged, [saveAction](bool enabled) { saveAction->setEnabled(enabled); });
+    connect(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab), &EditTab::editorStateChanged,
+            [saveAction](bool enabled) { saveAction->setEnabled(enabled); });
     m_ui->menuFile->addAction(saveAction);
 
     const QIcon saveAsIcon = QIcon(":/icons/saveas.svg");
     auto* saveAsAction = new QAction(saveAsIcon, "Save File As...", this);
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::saveFilesAsTriggered);
-    connect(m_editTab, &EditTab::editorStateChanged,
+    connect(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab), &EditTab::editorStateChanged,
             [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
     m_ui->menuFile->addAction(saveAsAction);
 
@@ -197,8 +204,8 @@ void MainWindow::setupMenus() {
     connect(exitAction, &QAction::triggered, this, &MainWindow::close);
     m_ui->menuFile->addAction(exitAction);
 
-    m_ui->menuView->addAction(m_processorTab->m_darkmodeAction);
-    m_ui->menuView->addAction(m_processorTab->m_displayValuesAction);
+    m_ui->menuView->addAction(static_cast<ProcessorTab*>(m_tabWidgets.at(ProcessorTabID).tab)->m_darkmodeAction);
+    m_ui->menuView->addAction(static_cast<ProcessorTab*>(m_tabWidgets.at(ProcessorTabID).tab)->m_displayValuesAction);
 }
 
 MainWindow::~MainWindow() {
@@ -214,7 +221,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = SourceType::Assembly;
-                m_editTab->loadExternalFile(parms);
+                static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
                 m_hasSavedFile = false;
             });
         }
@@ -228,7 +235,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/C/") + fileName;
                 parms.type = SourceType::C;
-                m_editTab->loadExternalFile(parms);
+                static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
                 m_hasSavedFile = false;
             });
         }
@@ -250,7 +257,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 LoadFileParams parms;
                 parms.filepath = tmpELFFile->fileName();
                 parms.type = SourceType::ExternalELF;
-                m_editTab->loadExternalFile(parms);
+                static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
                 m_hasSavedFile = false;
                 tmpELFFile->remove();
             });
@@ -259,7 +266,8 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-    if (m_editTab->isEditorEnabled() && !m_editTab->getAssemblyText().isEmpty()) {
+    if (static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->isEditorEnabled() &&
+        !static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText().isEmpty()) {
         QMessageBox saveMsgBox(this);
         saveMsgBox.setWindowTitle("Ripes");
         saveMsgBox.setText("Save current program before exiting?");
@@ -281,12 +289,12 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 }
 
 void MainWindow::loadFileTriggered() {
-    m_processorTab->pause();
+    static_cast<ProcessorTab*>(m_tabWidgets.at(ProcessorTabID).tab)->pause();
     LoadDialog diag;
     if (!diag.exec())
         return;
 
-    m_editTab->loadExternalFile(diag.getParams());
+    static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(diag.getParams());
     m_hasSavedFile = false;
 }
 
@@ -328,12 +336,12 @@ void MainWindow::saveFilesTriggered() {
 
     if (!diag.assemblyPath().isEmpty()) {
         QFile file(diag.assemblyPath());
-        writeTextFile(file, m_editTab->getAssemblyText());
+        writeTextFile(file, static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText());
     }
 
     if (!diag.binaryPath().isEmpty()) {
         QFile file(diag.binaryPath());
-        if (auto* program = m_editTab->getBinaryData()) {
+        if (auto* program = static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getBinaryData()) {
             writeBinaryFile(file, *program);
         }
     }
@@ -357,7 +365,7 @@ void MainWindow::newProgramTriggered() {
     QMessageBox mbox;
     mbox.setWindowTitle("New Program...");
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    if (!m_editTab->getAssemblyText().isEmpty() || m_hasSavedFile) {
+    if (!static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText().isEmpty() || m_hasSavedFile) {
         // User wrote a program but did not save it to a file yet
         mbox.setText("Save program before creating new file?");
         auto ret = mbox.exec();
@@ -379,7 +387,7 @@ void MainWindow::newProgramTriggered() {
         }
     }
     m_hasSavedFile = false;
-    m_editTab->newProgram();
+    static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->newProgram();
 }
 
 }  // namespace Ripes
