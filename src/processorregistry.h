@@ -129,9 +129,12 @@ private:
         desc.isa = vsrtl::core::RV5S_NO_FW::ISA();
         desc.name = "5-Stage Processor w/o forwarding unit";
         desc.description = "A 5-Stage in-order processor with hazard detection/elimination but no forwarding unit.";
-        desc.layouts = {
-            {"Standard", ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json", {0.08, 0.3, 0.53, 0.75, 0.88}},
-            {"Extended", ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json", {0.08, 0.28, 0.53, 0.78, 0.9}}};
+        desc.layouts = {{"Standard",
+                         ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json",
+                         {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0}, QPointF{0.75, 0}, QPointF{0.88, 0}}},
+                        {"Extended",
+                         ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json",
+                         {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
 
