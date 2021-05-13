@@ -15,7 +15,6 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(pc4, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(pc, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(instr, clear, enable);
-
         CONNECT_REGISTERED_CLEN_INPUT(valid, clear, enable);
     }
 

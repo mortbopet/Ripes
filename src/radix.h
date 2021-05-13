@@ -18,13 +18,15 @@ static const auto binRegex = QRegExp("0[bB][0-1]+");
 static const auto unsignedRegex = QRegExp("[0-9]+");
 static const auto signedRegex = QRegExp("[-]*[0-9]+");
 
-static QString encodeRadixValue(unsigned long value, const Radix type, unsigned width = 32) {
+static inline QString encodeRadixValue(uint32_t value, const Radix type, unsigned width = 32) {
     switch (type) {
         case Radix::Hex: {
             return "0x" + QString::number(value, 16).rightJustified(width / 4, '0');
         }
         case Radix::Float: {
-            return QString::number(*reinterpret_cast<float*>(&value));
+            float _value;  // Copy raw data instead of reinterpret_cast to avoid type-punned pointer error
+            memcpy(&_value, &value, sizeof(value));
+            return QString::number(_value);
         }
         case Radix::Binary: {
             return "0b" + QString::number(value, 2).rightJustified(width, '0');
@@ -47,7 +49,7 @@ static QString encodeRadixValue(unsigned long value, const Radix type, unsigned 
     Q_UNREACHABLE();
 }
 
-static uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nullptr) {
+static inline uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nullptr) {
     switch (type) {
         case Radix::Hex: {
             return value.toUInt(ok, 16);

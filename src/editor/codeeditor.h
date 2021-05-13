@@ -70,6 +70,12 @@ private:
     QTimer* m_changeTimer;
 
     bool eventFilter(QObject* observed, QEvent* event) override;
+
+    /**
+     * @brief keyPressEvent
+     * We override the key press event to provide any editor quality of life changes that may apply.
+     */
+    void keyPressEvent(QKeyEvent* e) override;
 };
 
 class LineNumberArea : public QWidget {

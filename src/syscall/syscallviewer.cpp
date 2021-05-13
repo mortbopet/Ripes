@@ -20,7 +20,7 @@ SyscallViewer::SyscallViewer(QWidget* parent) : QDialog(parent), m_ui(new Ui::Sy
     font.setPointSize(static_cast<int>(font.pointSize() * 1.2));
     m_ui->syscallTitle->setFont(font);
 
-    const auto& syscallManager = ProcessorHandler::get()->getSyscallManager();
+    const auto& syscallManager = ProcessorHandler::getSyscallManager();
 
     // Setup syscall list
     m_ui->syscallList->setColumnCount(2);
@@ -32,7 +32,7 @@ SyscallViewer::SyscallViewer(QWidget* parent) : QDialog(parent), m_ui(new Ui::Sy
     m_ui->syscallList->verticalHeader()->hide();
     m_ui->syscallList->setHorizontalHeaderLabels(
         {"Func. (" +
-             ProcessorHandler::get()->currentISA()->regAlias(ProcessorHandler::get()->currentISA()->syscallReg()) + ")",
+             ProcessorHandler::currentISA()->regAlias(ProcessorHandler::currentISA()->syscallReg()) + ")",
          "Name"});
     m_ui->syscallList->horizontalHeader()->setStretchLastSection(true);
     connect(m_ui->syscallList, &QTableWidget::currentItemChanged, this, &SyscallViewer::handleItemChanged);

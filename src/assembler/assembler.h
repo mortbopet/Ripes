@@ -10,6 +10,7 @@
 #include "matcher.h"
 #include "parserutilities.h"
 #include "pseudoinstruction.h"
+#include "relocation.h"
 
 #include <set>
 #include <variant>
@@ -50,6 +51,7 @@ namespace Assembler {
 
 class AssemblerBase {
 public:
+    virtual ~AssemblerBase() {}
     std::optional<Error> setCurrentSegment(Section seg) const {
         if (m_sectionBasePointers.count(seg) == 0) {
             return Error(0, "No base address set for segment '" + seg + +"'");
@@ -58,17 +60,12 @@ public:
         return {};
     }
 
-    void setSegmentBase(Section seg, uint32_t base) {
-        if (m_sectionBasePointers.count(seg) != 0) {
-            throw std::runtime_error("Base address already set for segment '" + seg.toStdString() + +"'");
-        }
-        m_sectionBasePointers[seg] = base;
-    }
+    void setSegmentBase(Section seg, uint32_t base) { m_sectionBasePointers[seg] = base; }
 
-    virtual AssembleResult assemble(const QStringList& programLines) const = 0;
-    AssembleResult assembleRaw(const QString& program) const {
+    virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
+    AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
         const auto programLines = program.split(QRegExp("[\r\n]"));
-        return assemble(programLines);
+        return assemble(programLines, symbols);
     }
 
     virtual DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const = 0;
@@ -83,7 +80,7 @@ public:
 
     std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint32_t v) const {
         if (m_symbolMap.count(s)) {
-            return {Error(line, "Multiple definitions of symbol '" + s + "'")};
+            return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
         }
         m_symbolMap[s] = v;
         return {};
@@ -105,6 +102,21 @@ protected:
             if (iter->early()) {
                 m_earlyDirectives.insert(iter->name());
             }
+        }
+    }
+
+    void setRelocations(RelocationsVec& relocations) {
+        if (m_relocations.size() != 0) {
+            throw std::runtime_error("Directives already set");
+        }
+        m_relocations = relocations;
+        for (const auto& iter : m_relocations) {
+            const auto relocation = iter.get()->name();
+            if (m_relocationsMap.count(relocation) != 0) {
+                throw std::runtime_error("Error: relocation " + relocation.toStdString() +
+                                         " has already been registerred.");
+            }
+            m_relocationsMap[relocation] = iter;
         }
     }
 
@@ -149,19 +161,19 @@ protected:
         }
 
         // Handle the case where a token has been joined together with another token, ie "B:nop"
-        QStringList splitTokens;
+        LineTokens splitTokens;
         splitTokens.reserve(tokens.size());
         for (const auto& token : tokens) {
-            QString buffer;
+            Token buffer;
             for (const auto& ch : token) {
                 buffer.append(ch);
                 if (ch == ':') {
-                    splitTokens << buffer;
+                    splitTokens.push_back(buffer);
                     buffer.clear();
                 }
             }
             if (!buffer.isEmpty()) {
-                splitTokens << buffer;
+                splitTokens.push_back(buffer);
             }
         }
 
@@ -172,12 +184,12 @@ protected:
         for (const auto& token : splitTokens) {
             if (token.endsWith(':')) {
                 if (symbolStillAllowed) {
-                    const QString cleanedSymbol = token.left(token.length() - 1);
-                    if (symbols.count(cleanedSymbol) != 0) {
-                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol + "'")};
+                    const Symbol cleanedSymbol = Symbol(token.left(token.length() - 1), Symbol::Type::Address);
+                    if (symbols.count(cleanedSymbol.v) != 0) {
+                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol.v + "'")};
                     } else {
-                        if (cleanedSymbol.isEmpty() || cleanedSymbol.contains(s_exprOperatorsRegex)) {
-                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol + "'")};
+                        if (cleanedSymbol.v.isEmpty() || cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
+                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol.v + "'")};
                         }
 
                         symbols.insert(cleanedSymbol);
@@ -186,7 +198,7 @@ protected:
                     return {Error(sourceLine, QStringLiteral("Stray ':' in line"))};
                 }
             } else {
-                remainingTokens.append(token);
+                remainingTokens.push_back(token);
                 symbolStillAllowed = false;
             }
         }
@@ -211,7 +223,7 @@ protected:
                     return {Error(sourceLine, QStringLiteral("Stray '.' in line"))};
                 }
             } else {
-                remainingTokens.append(token);
+                remainingTokens.push_back(token);
                 directivesStillAllowed = false;
             }
         }
@@ -233,10 +245,39 @@ protected:
             if (token.contains(commentDelimiter())) {
                 break;
             } else {
-                preCommentTokens.append(token);
+                preCommentTokens.push_back(token);
             }
         }
         return {preCommentTokens};
+    }
+
+    /**
+     * @brief splitRelocationsFromLine
+     * Identify relocations in tokens; when found, add the relocation to the _following_ token. Relocations are _not_
+     * added to the set of remaining tokens.
+     */
+    virtual std::variant<Error, LineTokens> splitRelocationsFromLine(LineTokens& tokens) const {
+        if (tokens.size() == 0) {
+            return {tokens};
+        }
+
+        LineTokens remainingTokens;
+        remainingTokens.reserve(tokens.size());
+
+        Token relocationForNextToken;
+        for (auto& token : tokens) {
+            if (m_relocationsMap.count(token)) {
+                relocationForNextToken = token;
+            } else {
+                if (!relocationForNextToken.isEmpty()) {
+                    token.setRelocation(relocationForNextToken);
+                    relocationForNextToken.clear();
+                }
+                remainingTokens.push_back(token);
+            }
+        }
+
+        return {remainingTokens};
     }
 
     virtual QChar commentDelimiter() const = 0;
@@ -247,6 +288,12 @@ protected:
     DirectiveVec m_directives;
     DirectiveMap m_directivesMap;
     EarlyDirectives m_earlyDirectives;
+
+    /**
+     * @brief m_relocations is the set of supported assembler relocation hints
+     */
+    RelocationsVec m_relocations;
+    RelocationsMap m_relocationsMap;
 
     /**
      * @brief m_sectionBasePointers maintains the base position for the segments
@@ -270,12 +317,15 @@ class Assembler : public AssemblerBase {
 public:
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
-    AssembleResult assemble(const QStringList& programLines) const override {
+    AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const override {
         AssembleResult result;
 
         // Per default, emit to .text until otherwise specified
         setCurrentSegment(".text");
         m_symbolMap.clear();
+        if (symbols) {
+            m_symbolMap = *symbols;
+        }
 
         // Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);
@@ -291,8 +341,10 @@ public:
 
         // Symbol linkage
         runPass(unused, NoPassResult, pass3, program, needsLinkage);
+        Q_UNUSED(unused);
 
         result.program = program;
+        result.program.entryPoint = m_sectionBasePointers.at(".text");
         return result;
     }
 
@@ -300,7 +352,7 @@ public:
         size_t i = 0;
         DisassembleResult res;
         auto& programBits = program.getSection(".text")->data;
-        while ((i + sizeof(uint32_t)) <= programBits.size()) {
+        while ((i + sizeof(uint32_t)) <= static_cast<unsigned>(programBits.size())) {
             const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(programBits.data() + i);
             auto disres = disassemble(instructionWord, program.symbols, baseAddress + i);
             if (disres.second) {
@@ -326,7 +378,14 @@ public:
             return {"invalid instruction", *error};
         }
 
-        return {std::get<LineTokens>(tokens).join(' '), {}};
+        // Join tokens
+        QString joinedLine;
+        for (const auto& token : std::get<LineTokens>(tokens)) {
+            joinedLine += token + " ";
+        }
+        joinedLine.chop(1);  // remove trailing ' '
+
+        return {joinedLine, {}};
     }
 
     const Matcher& getMatcher() { return *m_matcher; }
@@ -385,12 +444,13 @@ protected:
 
             // Symbols precede directives
             runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, remainingTokens, i);
+
             tsl.symbols = symbolsAndRest.first;
 
             bool uniqueSymbols = true;
             for (const auto& s : symbolsAndRest.first) {
                 if (symbols.count(s) != 0) {
-                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s + "'"));
+                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s.v + "'"));
                     uniqueSymbols = false;
                     break;
                 }
@@ -403,7 +463,10 @@ protected:
             runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
             tsl.directive = directiveAndRest.first;
 
-            tsl.tokens = directiveAndRest.second;
+            // Parse (and remove) relocation hints from the tokens.
+            runOperation(finalTokens, LineTokens, splitRelocationsFromLine, directiveAndRest.second);
+
+            tsl.tokens = finalTokens;
             if (tsl.tokens.empty() && tsl.directive.isEmpty()) {
                 if (!tsl.symbols.empty()) {
                     carry.insert(tsl.symbols.begin(), tsl.symbols.end());
@@ -525,9 +588,11 @@ protected:
             return {errors};
         }
 
-        // Register symbols in program struct
+        // Register address symbols in program struct
         for (const auto& iter : m_symbolMap) {
-            program.symbols[iter.second] = iter.first;
+            if (iter.first.is(Symbol::Type::Address)) {
+                program.symbols[iter.second] = iter.first;
+            }
         }
 
         return {program};
@@ -541,7 +606,8 @@ protected:
 
             // Add the special __address__ symbol indicating the address of the instruction itself. Not done through
             // addSymbol given that we redefine this symbol on each line.
-            m_symbolMap["__address__"] = linkReqAddress(linkRequest);
+            const uint32_t linkRequestAddress = linkReqAddress(linkRequest);
+            m_symbolMap["__address__"] = linkRequestAddress;
 
             if (m_symbolMap.count(symbol) == 0) {
                 if (couldBeExpression(symbol)) {
@@ -563,10 +629,21 @@ protected:
                 symbolValue = m_symbolMap.at(symbol);
             }
 
+            if (!linkRequest.fieldRequest.relocation.isEmpty()) {
+                auto relocRes = m_relocationsMap.at(linkRequest.fieldRequest.relocation)
+                                    .get()
+                                    ->handle(symbolValue, linkRequestAddress);
+                if (auto* error = std::get_if<Error>(&relocRes)) {
+                    errors.push_back(*error);
+                    continue;
+                }
+                symbolValue = std::get<uint32_t>(relocRes);
+            }
+
             QByteArray& section = program.sections.at(linkRequest.section).data;
 
             // Decode instruction at link-request position
-            assert(section.size() >= (linkRequest.offset + 4) &&
+            assert(static_cast<unsigned>(section.size()) >= (linkRequest.offset + 4) &&
                    "Error: position of link request is not within program");
             uint32_t instr = *reinterpret_cast<uint32_t*>(section.data() + linkRequest.offset);
 
@@ -602,6 +679,7 @@ protected:
         }
         auto res = m_pseudoInstructionMap.at(opcode)->expand(line, m_symbolMap);
         if (auto* error = std::get_if<Error>(&res)) {
+            Q_UNUSED(error);
             if (m_instructionMap.count(opcode) != 0) {
                 // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.
                 // arguments provided were intended for the normal instruction and not the pseudoinstruction), then
@@ -628,10 +706,12 @@ protected:
         return m_instructionMap.at(opcode)->assemble(line);
     };
 
-    void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives) {
+    void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives,
+                    RelocationsVec& relocations) {
         setInstructions(instructions);
         setPseudoInstructions(pseudoinstructions);
         setDirectives(directives);
+        setRelocations(relocations);
         m_matcher = std::make_unique<Matcher>(m_instructions);
     }
 

@@ -40,7 +40,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
 
     // Labels
     labelFormat.setForeground(QColor(Colors::Medalist));
-    rule.pattern = QRegularExpression("(.*?[:])");
+    rule.pattern = QRegularExpression(R"([\S]+:)");
     rule.format = labelFormat;
     m_highlightingRules.append(rule);
 

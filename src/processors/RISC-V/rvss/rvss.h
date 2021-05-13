@@ -142,7 +142,7 @@ public:
     SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
 
     // Address spaces
-    ADDRESSSPACE(m_memory);
+    ADDRESSSPACEMM(m_memory);
     ADDRESSSPACE(m_regMem);
 
     SUBCOMPONENT(ecallChecker, EcallChecker);
@@ -160,9 +160,9 @@ public:
         propagateDesign();
     }
     void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
-    SparseArray& getMemory() override { return *m_memory; }
-    unsigned int getRegister(RegisterFileType rfid, unsigned i) const override { return registerFile->getRegister(i); }
-    SparseArray& getArchRegisters() override { return *m_regMem; }
+    AddressSpaceMM& getMemory() override { return *m_memory; }
+    unsigned int getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
+    AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const FinalizeReason& fr) override {
         if (fr.any()) {
             // Allow one additional clock cycle to clear the current instruction
@@ -170,11 +170,12 @@ public:
         }
     }
     bool finished() const override { return m_finished; }
+    const std::vector<unsigned> breakpointTriggeringStages() const override { return {0}; };
 
     const Component* getDataMemory() const override { return data_mem; }
     const Component* getInstrMemory() const override { return instr_mem; }
 
-    void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) override {
+    void setRegister(RegisterFileType, unsigned i, uint32_t v) override {
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 

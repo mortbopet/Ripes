@@ -23,14 +23,14 @@ public:
         // RISC-V arguments range from a0-a6
         assert(i < 7);
         const int regIdx = 10 + i;  // a0 = x10
-        return ProcessorHandler::get()->getRegisterValue(rfid, regIdx);
+        return ProcessorHandler::getRegisterValue(rfid, regIdx);
     }
 
     void setRet(RegisterFileType rfid, unsigned i, uint32_t value) const override {
         // RISC-V arguments range from a0-a6
         assert(i < 7);
         const int regIdx = 10 + i;  // a0 = x10
-        ProcessorHandler::get()->setRegisterValue(rfid, regIdx, value);
+        ProcessorHandler::setRegisterValue(rfid, regIdx, value);
     }
 };
 

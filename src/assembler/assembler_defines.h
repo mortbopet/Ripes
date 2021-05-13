@@ -14,13 +14,23 @@
 namespace Ripes {
 namespace Assembler {
 
-using LineTokens = QStringList;
+class Token : public QString {
+public:
+    inline Token(const QString& t) : QString(t) {}
+    inline Token(const QString& t, const QString& relocation) : QString(t), m_relocation(relocation) {}
+    inline Token() : QString() {}
+    void setRelocation(const QString& relocation) { m_relocation = relocation; }
+    bool hasRelocation() const { return !m_relocation.isEmpty(); }
+    const QString& relocation() const { return m_relocation; }
+
+private:
+    QString m_relocation;
+};
+using LineTokens = QList<Token>;
 using LineTokensVec = std::vector<LineTokens>;
-using Symbol = QString;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
 using SymbolMap = std::map<Symbol, uint32_t>;
-using ReverseSymbolMap = std::map<uint32_t, Symbol>;
 using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
 struct TokenizedSrcLine {
     Symbols symbols;

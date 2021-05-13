@@ -17,6 +17,7 @@ class MainWindow;
 class EditTab;
 class MemoryTab;
 class ProcessorTab;
+class IOTab;
 class ProcessorHandler;
 struct LoadFileParams;
 
@@ -67,10 +68,12 @@ private:
     ProcessorTab* m_processorTab = nullptr;
     EditTab* m_editTab = nullptr;
     MemoryTab* m_memoryTab = nullptr;
+    IOTab* m_IOTab = nullptr;
 
     QToolBar* m_controlToolbar = nullptr;
     QToolBar* m_processorToolbar = nullptr;
     QToolBar* m_editToolbar = nullptr;
     QToolBar* m_memoryToolbar = nullptr;
+    QToolBar* m_IOToolbar = nullptr;
 };
 }  // namespace Ripes

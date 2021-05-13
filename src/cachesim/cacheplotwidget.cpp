@@ -52,7 +52,7 @@ void finishSeries(QLineSeries& series, const unsigned max) {
     }
 
     const QPointF lastPoint = series.at(series.count() - 1);
-    if (lastPoint.toPoint().x() != max) {
+    if (lastPoint.toPoint().x() != static_cast<long>(max)) {
         series.append(max, lastPoint.y());
     }
 }
@@ -84,9 +84,8 @@ CachePlotWidget::CachePlotWidget(const CacheSim& sim, QWidget* parent)
     connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->stackedVariables, &QListWidget::itemChanged, this, &CachePlotWidget::variablesChanged);
 
-    const auto& accessTrace = m_cache.getAccessTrace();
     m_ui->rangeMin->setValue(0);
-    m_ui->rangeMax->setValue(ProcessorHandler::get()->getProcessor()->getCycleCount());
+    m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
 
     connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
     connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
@@ -200,8 +199,7 @@ void CachePlotWidget::rangeChanged() {
     }
 
     // Update allowed ranges
-    const auto& accessTrace = m_cache.getAccessTrace();
-    const unsigned cycles = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
     m_ui->rangeMin->setMinimum(0);
     m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
     m_ui->rangeMax->setMinimum(m_ui->rangeMin->value());
@@ -243,7 +241,7 @@ std::map<CachePlotWidget::Variable, QList<QPoint>>
 CachePlotWidget::gatherData(const std::vector<Variable>& types) const {
     const auto& trace = m_cache.getAccessTrace();
 
-    std::map<Variable, QList<QPoint>> data;
+    std::map<Variable, QList<QPoint>> cacheData;
 
     // Transform variable vector to set (avoid duplicates)
     std::set<Variable> varSet;
@@ -253,39 +251,39 @@ CachePlotWidget::gatherData(const std::vector<Variable>& types) const {
 
     for (const auto& type : types) {
         // Initialize all data types
-        data[type];
+        cacheData[type];
     }
 
     // Gather data
     for (const auto& entry : trace) {
         if (varSet.count(Variable::Writes)) {
-            data[Variable::Writes].append(QPoint(entry.first, entry.second.writes));
+            cacheData[Variable::Writes].append(QPoint(entry.first, entry.second.writes));
         }
         if (varSet.count(Variable::Reads)) {
-            data[Variable::Reads].append(QPoint(entry.first, entry.second.reads));
+            cacheData[Variable::Reads].append(QPoint(entry.first, entry.second.reads));
         }
         if (varSet.count(Variable::Hits)) {
-            data[Variable::Hits].append(QPoint(entry.first, entry.second.hits));
+            cacheData[Variable::Hits].append(QPoint(entry.first, entry.second.hits));
         }
         if (varSet.count(Variable::Misses)) {
-            data[Variable::Misses].append(QPoint(entry.first, entry.second.misses));
+            cacheData[Variable::Misses].append(QPoint(entry.first, entry.second.misses));
         }
         if (varSet.count(Variable::Writebacks)) {
-            data[Variable::Writebacks].append(QPoint(entry.first, entry.second.writebacks));
+            cacheData[Variable::Writebacks].append(QPoint(entry.first, entry.second.writebacks));
         }
         if (varSet.count(Variable::Accesses)) {
-            data[Variable::Accesses].append(QPoint(entry.first, entry.second.hits + entry.second.misses));
+            cacheData[Variable::Accesses].append(QPoint(entry.first, entry.second.hits + entry.second.misses));
         }
     }
 
-    return data;
+    return cacheData;
 }
 
 QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den) const {
-    const auto data = gatherData({num, den});
+    const auto cacheData = gatherData({num, den});
 
-    const QList<QPoint>& numerator = data.at(num);
-    const QList<QPoint>& denominator = data.at(den);
+    const QList<QPoint>& numerator = cacheData.at(num);
+    const QList<QPoint>& denominator = cacheData.at(den);
 
     Q_ASSERT(numerator.size() == denominator.size());
 
@@ -299,7 +297,8 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
 
     QLineSeries* series = new QLineSeries(chart);
     double maxY = 0;
-    for (int i = 0; i < points; i++) {
+    double minY = 9999;
+    for (unsigned i = 0; i < points; i++) {
         const auto& p1 = numerator[i];
         const auto& p2 = denominator[i];
         Q_ASSERT(p1.x() == p2.x() && "Data inconsistency");
@@ -310,8 +309,9 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
         }
         series->append(p1.x(), ratio);
         maxY = ratio > maxY ? ratio : maxY;
+        minY = ratio < minY ? ratio : minY;
     }
-    const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
 
     stepifySeries(*series);
     finishSeries(*series, maxX);
@@ -319,9 +319,6 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     chart->addSeries(series);
 
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(0, maxX);
-    chart->axes(Qt::Vertical).first()->setRange(0, maxY * 1.1);
-
     chart->legend()->hide();
 
     // Add space to label to add space between labels and axis
@@ -330,11 +327,23 @@ QChart* CachePlotWidget::createRatioPlot(const Variable num, const Variable den)
     Q_ASSERT(axisY);
     axisY->setLabelFormat("%.1f  ");
     axisY->setTitleText("%");
+    int tickInterval = (maxY - minY) / axisY->tickCount();
+    tickInterval = ((tickInterval + 5 - 1) / 5) * 5;  // Round to nearest multiple of 5
+    if (tickInterval >= 5) {
+        axisY->setTickInterval(tickInterval);
+        axisY->setTickType(QValueAxis::TicksDynamic);
+        axisY->setLabelFormat("%d  ");
+    }
+    int axisMaxY = maxY * 1.1;
+    if (maxY <= 100 && maxY >= 90) {
+        axisMaxY = 100;
+    }
+
+    axisY->setRange(minY, axisMaxY);
 
     axisX->setLabelFormat("%d  ");
     axisX->setTitleText("Cycle");
-
-    //![4]
+    axisX->setRange(0, maxX);
 
     return chart;
 }
@@ -344,10 +353,10 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
         return nullptr;
     }
 
-    const auto data = gatherData(variables);
-    const unsigned len = data.at(*variables.begin()).size();
-    for (const auto& iter : data) {
-        Q_ASSERT(len == iter.second.size());
+    const auto cacheData = gatherData(variables);
+    const unsigned len = cacheData.at(*variables.begin()).size();
+    for (const auto& iter : cacheData) {
+        Q_ASSERT(static_cast<long>(len) == iter.second.size());
     }
 
     QChart* chart = new QChart();
@@ -363,9 +372,9 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
     std::vector<std::pair<Variable, QLineSeries*>> lineSeries;
     QLineSeries* lowerSeries = nullptr;
     QLineSeries* upperSeries = nullptr;
-    const unsigned maxX = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
     unsigned maxY = 0;
-    for (const auto& variableData : data) {
+    for (const auto& variableData : cacheData) {
         upperSeries = new QLineSeries(chart);
         for (unsigned i = 0; i < len; i++) {
             const auto& dataPoint = variableData.second.at(i);
@@ -396,7 +405,7 @@ QChart* CachePlotWidget::createStackedPlot(const std::vector<Variable>& variable
 
     // Create area series
     lowerSeries = nullptr;
-    for (int i = 0; i < lineSeries.size(); i++) {
+    for (unsigned i = 0; i < lineSeries.size(); i++) {
         upperSeries = lineSeries[i].second;
         QAreaSeries* area = new QAreaSeries(upperSeries, lowerSeries);
         area->setName(s_cacheVariableStrings.at(lineSeries[i].first));

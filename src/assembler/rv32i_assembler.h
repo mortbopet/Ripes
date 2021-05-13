@@ -2,17 +2,19 @@
 
 #include "assembler.h"
 
+#include <QObject>
 #include <functional>
 
 namespace Ripes {
 namespace Assembler {
 
-class RV32I_Assembler : public Assembler {
+class RV32I_Assembler : public QObject, public Assembler {
+    Q_OBJECT
 public:
     RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa);
 
 private:
-    std::tuple<InstrVec, PseudoInstrVec, DirectiveVec> initInstructions(const ISAInfo<ISA::RV32I>* isa) const;
+    std::tuple<InstrVec, PseudoInstrVec> initInstructions(const ISAInfo<ISA::RV32I>* isa) const;
 
     /**
      * Extension enablers

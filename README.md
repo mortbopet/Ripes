@@ -1,8 +1,13 @@
 # Ripes
-[![Build Status](https://travis-ci.com/mortbopet/Ripes.svg?branch=master)](https://travis-ci.com/mortbopet/Ripes/)
+[![Windows / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml)
+[![Mac release / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml)
+[![Ubuntu release 16.04 / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml)
+[![Ripes CI tests](https://github.com/mortbopet/Ripes/actions/workflows/test.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/test.yml)
 [![Gitter](https://badges.gitter.im/Ripes-VSRTL/Ripes.svg)](https://gitter.im/Ripes-VSRTL/)
 
 Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
+
+If you enjoy using Ripes, or find it useful in teaching, please consider supporting the project through [GitHub Sponsors](https://github.com/sponsors/mortbopet) or donating through [Ko-Fi](https://ko-fi.com/mortbopet).
 
 For questions, comments, feature requests, or new ideas, don't hesitate to share these at the [discussions page](https://github.com/mortbopet/Ripes/discussions).  
 For bugs or issues, please report these at the [issues page](https://github.com/mortbopet/Ripes/issues).

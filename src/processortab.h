@@ -86,6 +86,7 @@ private:
     QAction* m_stageTableAction = nullptr;
     QAction* m_reverseAction = nullptr;
     QAction* m_resetAction = nullptr;
+    QAction* m_darkmodeAction = nullptr;
 
     QSpinBox* m_autoClockInterval = nullptr;
 

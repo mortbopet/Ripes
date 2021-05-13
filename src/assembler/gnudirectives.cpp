@@ -66,8 +66,7 @@ HandleDirectiveRes stringFunctor(const AssemblerBase*, const TokenizedSrcLine& l
     QString string = line.tokens.at(0);
     string.replace("\\n", "\n");
     string.remove('\"');
-    string.append('\0');
-    return {string.toUtf8()};
+    return {string.toUtf8().append('\0')};
 };
 
 Directive ascizDirective() {

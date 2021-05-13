@@ -31,7 +31,7 @@ ProgramViewer::ProgramViewer(QWidget* parent) : QPlainTextEdit(parent) {
 }
 
 void ProgramViewer::clearBreakpoints() {
-    ProcessorHandler::get()->clearBreakpoints();
+    ProcessorHandler::clearBreakpoints();
 }
 
 void ProgramViewer::resizeEvent(QResizeEvent* e) {
@@ -47,8 +47,8 @@ void ProgramViewer::resizeEvent(QResizeEvent* e) {
 
 void ProgramViewer::updateProgram(bool binary) {
     m_labelAddrOffsetMap.clear();
-    const QString text = binary ? Assembler::binobjdump(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap)
-                                : Assembler::objdump(ProcessorHandler::get()->getProgram(), m_labelAddrOffsetMap);
+    const QString text = binary ? Assembler::binobjdump(ProcessorHandler::getProgram(), m_labelAddrOffsetMap)
+                                : Assembler::objdump(ProcessorHandler::getProgram(), m_labelAddrOffsetMap);
 
     // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug,
     // but seems to be fixed if we manually clear the selections before we clear (and add new text) to the text
@@ -59,7 +59,7 @@ void ProgramViewer::updateProgram(bool binary) {
     updateHighlightedAddresses();
 }
 
-void ProgramViewer::updateSidebar(const QRect& rect, int dy) {
+void ProgramViewer::updateSidebar(const QRect& rect, int /*dy*/) {
     m_breakpointArea->update(0, rect.y(), m_breakpointArea->width(), rect.height());
 
     if (rect.contains(viewport()->rect()))
@@ -79,7 +79,7 @@ void ProgramViewer::setCenterAddress(const long address) {
 }
 
 void ProgramViewer::updateCenterAddressFromProcessor() {
-    const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(0);
+    const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(0);
     setCenterAddress(stageInfo.pc);
 }
 
@@ -93,7 +93,7 @@ void ProgramViewer::setFollowEnabled(bool enabled) {
 }
 
 void ProgramViewer::updateHighlightedAddresses() {
-    const unsigned stages = ProcessorHandler::get()->getProcessor()->stageCount();
+    const unsigned stages = ProcessorHandler::getProcessor()->stageCount();
     QColor bg = QColor(Qt::red).lighter(120);
     const int decRatio = 100 + 80 / stages;
     QList<QTextEdit::ExtraSelection> highlights;
@@ -101,14 +101,14 @@ void ProgramViewer::updateHighlightedAddresses() {
     m_highlightedBlocksText.clear();
 
     for (unsigned sid = 0; sid < stages; sid++) {
-        const auto stageInfo = ProcessorHandler::get()->getProcessor()->stageInfo(sid);
+        const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);
         if (stageInfo.stage_valid) {
             auto block = blockForAddress(stageInfo.pc);
             if (!block.isValid())
                 continue;
 
             // Record the stage name for the highlighted block for later painting
-            m_highlightedBlocksText[block] << ProcessorHandler::get()->getProcessor()->stageName(sid);
+            m_highlightedBlocksText[block] << ProcessorHandler::getProcessor()->stageName(sid);
 
             // If a stage has already been highlighted (ie. an instruction exists in more than 1 stage at once), keep
             // the already set highlighting.
@@ -175,7 +175,7 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             const long address = addressForBlock(block);
             if (address >= 0) {
-                if (ProcessorHandler::get()->hasBreakpoint(address)) {
+                if (ProcessorHandler::hasBreakpoint(address)) {
                     painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
                                        m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
                 }
@@ -191,14 +191,14 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
 namespace {}
 
 QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
-    const long adjustedLineNumber =
-        (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::get()->currentISA()->bytes();
+    const unsigned long adjustedLineNumber =
+        (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::currentISA()->bytes();
 
     if (m_labelAddrOffsetMap.empty()) {
         return document()->findBlockByNumber(adjustedLineNumber);
     }
 
-    long lineNumber = adjustedLineNumber;
+    unsigned long lineNumber = adjustedLineNumber;
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
     if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
@@ -213,7 +213,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
     }
     high = std::next(low);
 
-    auto validBlockRange = [this, adjustedLineNumber](auto& low, auto& high, long lineNumber) {
+    auto validBlockRange = [&] {
         if (m_labelAddrOffsetMap.count(lineNumber))
             return false;
 
@@ -226,7 +226,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
     };
 
     // Adjust low and high iterators to locate the range bounds of the address
-    while (!validBlockRange(low, high, lineNumber)) {
+    while (!validBlockRange()) {
         low = m_labelAddrOffsetMap.lower_bound(lineNumber);
         high = std::next(low);
         lineNumber = low->first + 1;
@@ -240,7 +240,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 
 long ProgramViewer::addressForBlock(QTextBlock block) const {
     const static auto calcAddressFunc = [](int lineNumber) {
-        return lineNumber * ProcessorHandler::get()->currentISA()->bytes() + ProcessorHandler::get()->getTextStart();
+        return lineNumber * ProcessorHandler::currentISA()->bytes() + ProcessorHandler::getTextStart();
     };
 
     const int lineNumber = block.blockNumber();
@@ -259,7 +259,7 @@ long ProgramViewer::addressForBlock(QTextBlock block) const {
 
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
-    if ((low == m_labelAddrOffsetMap.begin()) && lineNumber < low->first) {
+    if ((low == m_labelAddrOffsetMap.begin()) && static_cast<unsigned>(lineNumber) < low->first) {
         // The line number is less that the position of the first offset block; address is directly inferred from
         // linenumber.
         return calcAddressFunc(adjustedLineNumber);
@@ -298,13 +298,13 @@ long ProgramViewer::addressForPos(const QPoint& pos) const {
 }
 
 bool ProgramViewer::hasBreakpoint(const QPoint& pos) const {
-    return ProcessorHandler::get()->hasBreakpoint(static_cast<unsigned>(addressForPos(pos)));
+    return ProcessorHandler::hasBreakpoint(static_cast<unsigned>(addressForPos(pos)));
 }
 
 void ProgramViewer::breakpointClick(const QPoint& pos) {
     const auto address = addressForPos(pos);
     if (!(address < 0)) {
-        ProcessorHandler::get()->toggleBreakpoint(static_cast<unsigned>(address));
+        ProcessorHandler::toggleBreakpoint(static_cast<unsigned>(address));
         repaint();
     }
 }

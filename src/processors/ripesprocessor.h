@@ -16,7 +16,7 @@ namespace Ripes {
  * additional information which the processor may communicate to the GUI regarding the given stage.
  */
 struct StageInfo {
-    enum class State { None, Stalled, Flushed };
+    enum class State { None, Stalled, Flushed, WayHazard, Unused };
     unsigned int pc = 0;
     bool stage_valid = false;
     State state;
@@ -94,10 +94,16 @@ public:
     virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
 
     /**
+     * @brief breakpointTriggeringStages
+     * @returns the stage indicies for which a breakpoint is triggered when the breakpoint PC address enters the stage.
+     */
+    virtual const std::vector<unsigned> breakpointTriggeringStages() const = 0;
+
+    /**
      * @brief getMemory
      * @return reference to the address space utilized by the implementing processor
      */
-    virtual SparseArray& getMemory() = 0;
+    virtual AddressSpaceMM& getMemory() = 0;
 
     /**
      * @brief getData/InstrMemory
@@ -119,7 +125,7 @@ public:
      * @brief getArchRegisters
      * @return reference to the register address space utilized by the implementing processor
      */
-    virtual SparseArray& getArchRegisters() = 0;
+    virtual AddressSpace& getArchRegisters() = 0;
 
     /**
      * @brief setRegister

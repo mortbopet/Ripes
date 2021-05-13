@@ -2,6 +2,7 @@
 #include "ui_processortab.h"
 
 #include <QDir>
+#include <QFontMetrics>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
@@ -75,10 +76,10 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     // stored in the settings is valid for the given processor
     unsigned layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
     const Layout* layout = nullptr;
-    if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts.size()) {
+    if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts.size()) {
         layoutID = 0;
     }
-    const auto& layouts = ProcessorRegistry::getDescription(ProcessorHandler::get()->getID()).layouts;
+    const auto& layouts = ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts;
     if (layouts.size() > layoutID) {
         layout = &layouts.at(layoutID);
     }
@@ -109,7 +110,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
-            [=](const auto& size) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
+            [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
@@ -138,7 +139,7 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     if (layout.name.isEmpty() || layout.file.isEmpty())
         return;  // Not a valid layout
 
-    if (layout.stageLabelPositions.size() != ProcessorHandler::get()->getProcessor()->stageCount()) {
+    if (layout.stageLabelPositions.size() != ProcessorHandler::getProcessor()->stageCount()) {
         Q_ASSERT(false && "A stage label position must be specified for each stage");
     }
 
@@ -159,7 +160,9 @@ void ProcessorTab::loadLayout(const Layout& layout) {
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
     for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
         auto& label = m_stageInstructionLabels.at(i);
-        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i), 0);
+        QFontMetrics metrics(label->font());
+        label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i).x(),
+                      metrics.height() * layout.stageLabelPositions.at(i).y());
     }
 }
 
@@ -244,15 +247,25 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
     connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
     m_toolbar->addAction(m_stageTableAction);
+
+    const QIcon moonIcon = QIcon(":/icons/moon.svg");
+    m_darkmodeAction = new QAction(moonIcon, "Toggle darkmode", this);
+    m_darkmodeAction->setCheckable(true);
+    connect(m_darkmodeAction, &QAction::toggled, m_vsrtlWidget, [=](bool checked) {
+        RipesSettings::setValue(RIPES_SETTING_DARKMODE, QVariant::fromValue(checked));
+        m_vsrtlWidget->setDarkmode(checked);
+    });
+    m_toolbar->addAction(m_darkmodeAction);
+    m_darkmodeAction->setChecked(RipesSettings::value(RIPES_SETTING_DARKMODE).toBool());
 }
 
 void ProcessorTab::updateStatistics() {
     static auto lastUpdateTime = std::chrono::system_clock::now();
-    static long long lastCycleCount = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    static long long lastCycleCount = ProcessorHandler::getProcessor()->getCycleCount();
 
     const auto timeNow = std::chrono::system_clock::now();
-    const auto cycleCount = ProcessorHandler::get()->getProcessor()->getCycleCount();
-    const auto instrsRetired = ProcessorHandler::get()->getProcessor()->getInstructionsRetired();
+    const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
+    const auto instrsRetired = ProcessorHandler::getProcessor()->getInstructionsRetired();
     const auto timeDiff =
         std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - lastUpdateTime).count() / 1000.0;  // in seconds
     const auto cycleDiff = cycleCount - lastCycleCount;
@@ -292,13 +305,13 @@ void ProcessorTab::fitToView() {
 }
 
 void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
-    ProcessorHandler::get()->loadProcessorToWidget(m_vsrtlWidget);
+    ProcessorHandler::loadProcessorToWidget(m_vsrtlWidget);
 
     // Construct stage instruction labels
     auto* topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
 
     m_stageInstructionLabels.clear();
-    const auto& proc = ProcessorHandler::get()->getProcessor();
+    const auto& proc = ProcessorHandler::getProcessor();
     for (unsigned i = 0; i < proc->stageCount(); i++) {
         auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
         stagelabel->setPointSize(14);
@@ -318,7 +331,7 @@ void ProcessorTab::processorSelection() {
         // New processor model was selected
         m_vsrtlWidget->clearDesign();
         m_stageInstructionLabels.clear();
-        ProcessorHandler::get()->selectProcessor(diag.getSelectedId(), diag.getEnabledExtensions(),
+        ProcessorHandler::selectProcessor(diag.getSelectedId(), diag.getEnabledExtensions(),
                                                  diag.getRegisterInitialization());
 
         // Store selected layout index
@@ -401,7 +414,7 @@ void ProcessorTab::enableSimulatorControls() {
 }
 
 void ProcessorTab::updateInstructionLabels() {
-    const auto& proc = ProcessorHandler::get()->getProcessor();
+    const auto& proc = ProcessorHandler::getProcessor();
     for (unsigned i = 0; i < proc->stageCount(); i++) {
         if (!m_stageInstructionLabels.count(i))
             continue;
@@ -409,11 +422,19 @@ void ProcessorTab::updateInstructionLabels() {
         auto* instrLabel = m_stageInstructionLabels.at(i);
         QString instrString;
         if (stageInfo.state != StageInfo::State::None) {
-            instrString = stageInfo.state == StageInfo::State::Flushed ? "nop (flush)" : "nop (stall)";
-            instrLabel->setDefaultTextColor(Qt::red);
+            /* clang-format off */
+            switch (stageInfo.state) {
+                case StageInfo::State::Flushed: instrString = "nop (flush)"; break;
+                case StageInfo::State::Stalled: instrString = "nop (stall)"; break;
+                case StageInfo::State::WayHazard: if(stageInfo.stage_valid) {instrString = "nop (way hazard)";} break;
+                case StageInfo::State::Unused: instrString = "nop (unused)"; break;
+                case StageInfo::State::None: Q_UNREACHABLE();
+            }
+            /* clang-format on */
+            instrLabel->forceDefaultTextColor(Qt::red);
         } else if (stageInfo.stage_valid) {
-            instrString = ProcessorHandler::get()->disassembleInstr(stageInfo.pc);
-            instrLabel->setDefaultTextColor(QColor());
+            instrString = ProcessorHandler::disassembleInstr(stageInfo.pc);
+            instrLabel->clearForcedDefaultTextColor();
         }
         instrLabel->setText(instrString);
     }
@@ -450,7 +471,7 @@ void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
 
 void ProcessorTab::runFinished() {
     pause();
-    ProcessorHandler::get()->checkProcessorFinished();
+    ProcessorHandler::checkProcessorFinished();
     m_statUpdateTimer->stop();
     emit update();
 }
@@ -462,10 +483,10 @@ void ProcessorTab::run(bool state) {
         m_autoClockAction->setChecked(false);
     }
     if (state) {
-        ProcessorHandler::get()->run();
+        ProcessorHandler::run();
         m_statUpdateTimer->start();
     } else {
-        ProcessorHandler::get()->stopRun();
+        ProcessorHandler::stopRun();
         m_statUpdateTimer->stop();
     }
 
@@ -492,11 +513,11 @@ void ProcessorTab::reverse() {
 
 void ProcessorTab::clock() {
     m_vsrtlWidget->clock();
-    ProcessorHandler::get()->checkValidExecutionRange();
-    if (ProcessorHandler::get()->checkBreakpoint()) {
+    ProcessorHandler::checkValidExecutionRange();
+    if (ProcessorHandler::checkBreakpoint()) {
         pause();
     }
-    ProcessorHandler::get()->checkProcessorFinished();
+    ProcessorHandler::checkProcessorFinished();
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 
     emit update();

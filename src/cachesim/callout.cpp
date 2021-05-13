@@ -101,7 +101,7 @@ void Callout::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
     painter->restore();
 }
 
-void Callout::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
+void Callout::contextMenuEvent(QGraphicsSceneContextMenuEvent*) {
     m_view->deleteCallout(this);
 }
 

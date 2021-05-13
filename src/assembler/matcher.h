@@ -18,7 +18,7 @@ class Matcher {
             if (depth == 0) {
                 std::cout << "root";
             } else {
-                for (int i = 0; i < depth; i++) {
+                for (unsigned i = 0; i < depth; i++) {
                     std::cout << "-";
                 }
                 QString matchField =
@@ -70,7 +70,6 @@ private:
 
     MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction>>& instructions,
                              const unsigned fieldDepth = 1, OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-        using InstrVec = std::vector<std::shared_ptr<Instruction>>;
         std::map<OpPart, InstrVec> instrsWithEqualOpPart;
 
         for (const auto& instr : instructions) {

@@ -31,6 +31,7 @@ private slots:
     void tst_invalidreg();
     void tst_expression();
     void tst_invalidLabel();
+    void tst_directives();
 
 private:
     std::vector<std::shared_ptr<Instruction>> createInstructions();
@@ -51,17 +52,32 @@ private:
     }
 
     enum class Expect { Fail, Success };
-    void testAssemble(const QStringList& program, Expect expect) {
+    void testAssemble(const QStringList& program, Expect expect, QByteArray expectData = {}) {
+        QString err;
         auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
         auto assembler = RV32I_Assembler(isa.get());
         auto res = assembler.assemble(program);
         if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
             res.errors.print();
-            QString err;
             QString failExpectString = (expect == Expect::Fail ? "fail" : "success");
             err += "Expected " + failExpectString + " on program: \n";
             err += program.join('\n');
             QFAIL(err.toStdString().c_str());
+        }
+        if(expectData.size() > 0 ){
+             const auto* dataProg = res.program.getSection(".data");
+            const auto& dataSegment = res.program.getSection(".data")->data;
+            if(expectData.size() != dataSegment.size()) {
+                err += "Expected data segment of size " + QString::number(expectData.size()) + "B but found " + QString::number(dataSegment.size()) + "B\n";
+                QFAIL(err.toStdString().c_str());
+            }
+            for(int i = 0; i < dataSegment.size(); i++) {
+                if(dataSegment.at(i) != expectData.at(i)) {
+                    err += "Discrepancy in data segment at byte " + QString::number(i) + " (address 0x" + QString::number(dataProg->address + i, 16) + ")\n";
+                    err += "expected 0x" + QString::number(expectData.at(i)) + " but found 0x" + QString::number(dataSegment.at(i)) + "\n";
+                    QFAIL(err.toStdString().c_str());
+                }
+            }
         }
     }
 };
@@ -92,11 +108,37 @@ void tst_Assembler::tst_riscv() {
     }
 }
 
-void tst_Assembler::tst_expression() {
+void tst_Assembler::tst_directives() {
+    QByteArray expectData;
+
+    // String constants
+    expectData += QString("foo").toUtf8().append('\0');
+    expectData += QString("baaar").toUtf8().append('\0');
     testAssemble(QStringList() << ".data"
-                               << "B: .word 123"
-                               << ".text"
-                               << "lw x10 (B + (4* 3))(x10)",
+                               << "foo: .string \"foo\""
+                               << "bar: .string \"baaar\"",
+                 Expect::Success, expectData);
+
+    // word, half and byte constants
+    expectData.clear();
+    expectData.append(42);
+    expectData.append(static_cast<char>(0));
+    expectData.append(static_cast<char>(0));
+    expectData.append(static_cast<char>(0));
+    expectData.append(42);
+    expectData.append(static_cast<char>(0));
+    expectData.append(42);
+
+    testAssemble(QStringList() << ".data"
+                               << "cw: .word 42"
+                               << "ch: .half 42"
+                               << "cb: .byte 42",
+                 Expect::Success, expectData);
+}
+
+void tst_Assembler::tst_expression() {
+    testAssemble(QStringList() << ".text"
+                               << "lw x10 (123 + (4* 3))(x10)",
                  Expect::Success);
     testAssemble(QStringList() << ".data"
                                << "A: .word 1"

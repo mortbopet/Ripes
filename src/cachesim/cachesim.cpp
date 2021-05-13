@@ -30,10 +30,10 @@ void CacheSim::setType(CacheSim::CacheType type) {
 
 void CacheSim::reassociateMemory() {
     if (m_type == CacheType::DataCache) {
-        m_memory.rw = ProcessorHandler::get()->getDataMemory();
+        m_memory.rw = ProcessorHandler::getDataMemory();
         Q_ASSERT(m_memory.rw != nullptr);
     } else if (m_type == CacheType::InstrCache) {
-        m_memory.rom = ProcessorHandler::get()->getInstrMemory();
+        m_memory.rom = ProcessorHandler::getInstrMemory();
         Q_ASSERT(m_memory.rom != nullptr);
     } else {
         Q_ASSERT(false);
@@ -83,7 +83,7 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
 
     if (m_wrPolicy == WritePolicy::WriteBack) {
         // Dirty bits
-        unsigned componentBits = entries;  // 1 bit per entry
+        componentBits = entries;  // 1 bit per entry
         size.components.push_back("Dirty bits: " + QString::number(componentBits));
         size.bits += componentBits;
     }
@@ -142,7 +142,7 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
             if (ew.second == nullptr) {
                 // Else, Find LRU way
                 for (auto& way : cacheLine) {
-                    if (way.second.lru == getWays() - 1) {
+                    if (static_cast<long>(way.second.lru) == getWays() - 1) {
                         ew.first = way.first;
                         ew.second = &way.second;
                         break;
@@ -243,7 +243,7 @@ void CacheSim::analyzeCacheAccess(CacheTransaction& transaction) const {
 void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
     // Access traces are pushed in sorted order into the access trace map; indexed by a key corresponding to the cycle
     // of the acces.
-    const unsigned currentCycle = ProcessorHandler::get()->getProcessor()->getCycleCount();
+    const unsigned currentCycle = ProcessorHandler::getProcessor()->getCycleCount();
 
     const CacheAccessTrace& mostRecentTrace =
         m_accessTrace.size() == 0 ? CacheAccessTrace() : m_accessTrace.rbegin()->second;
@@ -355,9 +355,7 @@ void CacheSim::undo() {
     popAccessTrace();
 
     const auto& oldWay = trace.oldWay;
-    const auto& transaction = trace.transaction;
     const unsigned& lineIdx = trace.transaction.index.line;
-    const unsigned& blockIdx = trace.transaction.index.block;
     const unsigned& wayIdx = trace.transaction.index.way;
     auto& line = m_cacheLines.at(lineIdx);
     auto& way = line.at(wayIdx);
@@ -465,6 +463,11 @@ void CacheSim::processorWasClocked() {
                 return;
         }
 
+        if (m_memory.rw->mem->accessRegion() == vsrtl::core::AddressSpace::RegionType::IO) {
+            // Skip accesses to IO (write-through)
+            return;
+        }
+
         access(m_memory.rw->addr.uValue(), type);
     } else {
         // ROM; read in every cycle
@@ -478,7 +481,7 @@ void CacheSim::processorWasReversed() {
         return;
     }
 
-    const unsigned cycleToUndo = ProcessorHandler::get()->getProcessor()->getCycleCount() + 1;
+    const unsigned cycleToUndo = ProcessorHandler::getProcessor()->getCycleCount() + 1;
     if (m_accessTrace.rbegin()->first != cycleToUndo) {
         // No cache access in this cycle
         return;
@@ -525,7 +528,7 @@ void CacheSim::processorReset() {
     // The processor might have changed. Since our signals/slot library cannot check for existing connection, we do the
     // safe, slightly redundant, thing of disconnecting and reconnecting the VSRTL design update signals.
     reassociateMemory();
-    auto* proc = ProcessorHandler::get()->getProcessorNonConst();
+    auto* proc = ProcessorHandler::getProcessorNonConst();
     proc->designWasClocked.Connect(this, &CacheSim::processorWasClocked);
     proc->designWasReversed.Connect(this, &CacheSim::processorWasReversed);
     proc->designWasReset.Connect(this, &CacheSim::processorReset);

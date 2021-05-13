@@ -14,14 +14,14 @@ class Parser;
 class Pipeline;
 
 static inline uint32_t indexToAddress(const QModelIndex& index) {
-    if (auto prog_spt = ProcessorHandler::get()->getProgram()) {
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
         return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }
 
 static inline int addressToIndex(uint32_t addr) {
-    if (auto prog_spt = ProcessorHandler::get()->getProgram()) {
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
         if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
             return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
         }
@@ -64,6 +64,7 @@ private:
     QVariant instructionData(uint32_t addr) const;
 
     QStringList m_stageNames;
-    std::map<QString, StageInfo> m_stageInfos;
+    using StageID = unsigned;
+    std::map<StageID, StageInfo> m_stageInfos;
 };
 }  // namespace Ripes

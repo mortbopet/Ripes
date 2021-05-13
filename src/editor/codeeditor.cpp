@@ -3,6 +3,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QKeyEvent>
 #include <QLinearGradient>
 #include <QMenu>
 #include <QMessageBox>
@@ -18,6 +19,7 @@
 
 #include "csyntaxhighlighter.h"
 #include "processorhandler.h"
+#include "ripessettings.h"
 #include "rvsyntaxhighlighter.h"
 
 namespace Ripes {
@@ -72,7 +74,7 @@ int CodeEditor::lineNumberAreaWidth() {
         max /= 10;
         ++digits;
     }
-    int space = rightPadding + fontMetrics().width(QString("1")) * digits;
+    int space = rightPadding + fontMetrics().horizontalAdvance(QString("1")) * digits;
     return space;
 }
 
@@ -80,6 +82,56 @@ void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
     // Set margins of the text edit area
     m_sidebarWidth = lineNumberAreaWidth();
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
+}
+
+inline int indentationOf(const QString& text) {
+    int indent = 0;
+    for (const auto& ch : text) {
+        if (ch == " ") {
+            indent++;
+        } else {
+            break;
+        }
+    }
+    return indent;
+}
+
+void CodeEditor::keyPressEvent(QKeyEvent* e) {
+    const unsigned indentAmt = RipesSettings::value(RIPES_SETTING_INDENTAMT).toUInt();
+
+    /**
+     * The following is a collection of quality-of-life changes to the behaviour of the editor, mimmicking features
+     * generally found in IDEs.
+     */
+    if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
+        const auto lineText = textCursor().block().text();
+        unsigned indent = 0;
+        // QoL 1: maintain level of indentation
+        indent = indentationOf(lineText);
+
+        // QoL 2: Further indent if last character was an indent start character
+        const auto trimmedLineText = textCursor().block().text().left(textCursor().positionInBlock()).trimmed();
+        if (!trimmedLineText.isEmpty()) {
+            if (QStringList{":", "(", "{", "["}.contains(QString(trimmedLineText.back()))) {
+                indent += indentAmt;
+            }
+        }
+        QPlainTextEdit::keyPressEvent(e);
+        insertPlainText(QString(" ").repeated(indent));
+    } else if (e->key() == Qt::Key_Tab) {
+        insertPlainText(QString(" ").repeated(indentAmt));
+    } else if (e->key() == Qt::Key_Backspace) {
+        const auto preLineText = textCursor().block().text().left(textCursor().positionInBlock());
+        if (preLineText.endsWith(QString(" ").repeated(indentAmt))) {
+            for (unsigned i = 0; i < indentAmt; i++) {
+                textCursor().deletePreviousChar();
+            }
+        } else {
+            QPlainTextEdit::keyPressEvent(e);
+        }
+    } else {
+        QPlainTextEdit::keyPressEvent(e);
+    }
 }
 
 bool CodeEditor::eventFilter(QObject* /*observed*/, QEvent* event) {
@@ -157,7 +209,7 @@ void CodeEditor::setSourceType(SourceType type, const std::set<QString>& support
     // Creates AsmHighlighter object and connects it to the current document
     switch (m_sourceType) {
         case SourceType::Assembly: {
-            auto* isa = ProcessorHandler::get()->currentISA();
+            auto* isa = ProcessorHandler::currentISA();
             if (isa->isaID() == ISA::RV32I) {
                 m_highlighter = std::make_unique<RVSyntaxHighlighter>(document(), m_errors, supportedOpcodes);
             } else {

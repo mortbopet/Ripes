@@ -3,6 +3,7 @@
 #include <QStringList>
 #include <variant>
 
+#include "assembler_defines.h"
 #include "assemblererror.h"
 
 namespace Ripes {
@@ -45,8 +46,8 @@ inline bool matchedParens(std::vector<QChar>& parensStack, QChar end) {
     return (toMatch == '[' && end == ']') || (toMatch == '(' && end == ')');
 }
 
-inline std::variant<Error, QStringList> joinParentheses(QStringList& tokens) {
-    QStringList outtokens;
+inline std::variant<Error, LineTokens> joinParentheses(QStringList& tokens) {
+    LineTokens outtokens;
     std::vector<QChar> parensStack;
 
     QString tokenBuffer;

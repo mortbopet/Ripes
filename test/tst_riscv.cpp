@@ -31,7 +31,6 @@ const QString s_outdir = s_testdir + QDir::separator() + "build";
 
 // Ecall status codes
 static constexpr unsigned s_success = 42;
-static constexpr unsigned s_fail = 0;
 
 // Test status register
 static constexpr unsigned s_statusreg = 3;  // Current test stored in the gp(3) register
@@ -67,6 +66,7 @@ private slots:
     void testRVSingleCycle() { runTests(ProcessorID::RVSS); }
     void testRV5StagePipeline() { runTests(ProcessorID::RV5S); }
     void testRV5StagePipelineNOFW() { runTests(ProcessorID::RV5S_NO_FW); }
+    void testRV6SDual() { runTests(ProcessorID::RV6S_DUAL); }
 
     void cleanupTestCase();
 };
@@ -87,11 +87,10 @@ bool tst_RISCV::skipTest(const QString& test) {
 
 QString tst_RISCV::dumpRegs() {
     QString str = "\n" + m_currentTest + "\nRegister dump:";
-    str += "\t PC:" + QString::number(ProcessorHandler::get()->getProcessor()->getPcForStage(0), 16) + "\n";
-    for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt(); i++) {
-        str += "\t" + ProcessorHandler::get()->currentISA()->regName(i) + ":" +
-               ProcessorHandler::get()->currentISA()->regAlias(i) + ":\t" +
-               QString::number(ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, i)) + "\n";
+    str += "\t PC:" + QString::number(ProcessorHandler::getProcessor()->getPcForStage(0), 16) + "\n";
+    for (unsigned i = 0; i < ProcessorHandler::currentISA()->regCnt(); i++) {
+        str += "\t" + ProcessorHandler::currentISA()->regName(i) + ":" + ProcessorHandler::currentISA()->regAlias(i) +
+               ":\t" + QString::number(ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, i)) + "\n";
     }
     return str;
 }
@@ -111,11 +110,10 @@ void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
 }
 
 void tst_RISCV::handleSysCall() {
-    unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, s_ecallreg);
+    unsigned status = ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, s_ecallreg);
     if (status != s_success) {
-        m_err =
-            "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
-            QString::number(ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, s_statusreg));
+        m_err = "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
+                QString::number(ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, s_statusreg));
         m_err += dumpRegs();
     }
     m_stop |= true;
@@ -127,7 +125,7 @@ QString tst_RISCV::executeSimulator() {
     bool maxCyclesReached = false;
     unsigned cycles = 0;
     do {
-        ProcessorHandler::get()->getProcessorNonConst()->clock();
+        ProcessorHandler::getProcessorNonConst()->clock();
 
         cycles++;
 
@@ -136,9 +134,8 @@ QString tst_RISCV::executeSimulator() {
     } while (!m_stop);
 
     if (maxCyclesReached) {
-        m_err =
-            "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
-            QString::number(ProcessorHandler::get()->getProcessor()->getRegister(RegisterFileType::GPR, s_statusreg));
+        m_err = "Test: '" + m_currentTest + "' failed: Maximum cycle count reached\n\t test number: " +
+                QString::number(ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, s_statusreg));
         m_err += dumpRegs();
     }
 
@@ -177,12 +174,12 @@ void tst_RISCV::runTests(const ProcessorID& id) {
         auto spProgram = std::make_shared<Program>(program.program);
 
         connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset,
-                [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
+                [=] { ProcessorHandler::getProcessorNonConst()->reset(); });
 
-        ProcessorHandler::get()->selectProcessor(id, extensions);
+        ProcessorHandler::selectProcessor(id, extensions);
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
-        ProcessorHandler::get()->getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
+        ProcessorHandler::getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
         ProcessorHandler::get()->loadProgram(spProgram);
 
         const QString err = executeSimulator();

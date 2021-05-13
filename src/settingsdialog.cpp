@@ -16,6 +16,7 @@
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QStackedWidget>
+#include "utilities/hexspinbox.h"
 
 namespace Ripes {
 
@@ -43,6 +44,10 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         // Ensure that the current value can be represented in the spinbox. It is expected that the spinbox range will
         // be specified after being created in this function.
         widget->setRange(INT_MIN, INT_MAX);
+        widget->setValue(settingObserver->value().toUInt());
+        widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
+                        &SettingObserver::setValue);
+    } else if constexpr (std::is_same<T_EditWidget, HexSpinBox>()) {
         widget->setValue(settingObserver->value().toUInt());
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
@@ -117,6 +122,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::
 
     // Create settings pages
     addPage("Editor", createEditorPage());
+    addPage("Compiler", createCompilerPage());
     addPage("Simulator", createSimulatorPage());
     addPage("Environment", createEnvironmentPage());
 
@@ -131,8 +137,12 @@ void SettingsDialog::accept() {
     QDialog::accept();
 }
 
-QWidget* SettingsDialog::createEditorPage() {
+QWidget* SettingsDialog::createCompilerPage() {
     auto [pageWidget, pageLayout] = constructPage();
+
+    /***********************************************************************
+     * Compiler settings
+     **********************************************************************/
 
     // Setting: RIPES_SETTING_CCPATH
     CCManager::get();
@@ -205,6 +215,23 @@ QWidget* SettingsDialog::createEditorPage() {
     // Trigger initial rehighlighting
     CCManager::get().trySetCC(m_ccpath->text());
 
+    /***********************************************************************
+     * Assembler settings
+     **********************************************************************/
+
+    auto* ASMGroupBox = new QGroupBox("Assembler");
+    auto* ASMLayout = new QGridLayout();
+    ASMGroupBox->setLayout(ASMLayout);
+
+    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_ASSEMBLER_TEXTSTART, ".text section start address:"),
+                   ASMLayout);
+    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_ASSEMBLER_DATASTART, ".data section start address:"),
+                   ASMLayout);
+    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_ASSEMBLER_BSSSTART, ".bss section start address:"),
+                   ASMLayout);
+
+    pageLayout->addWidget(ASMGroupBox);
+
     return pageWidget;
 }
 
@@ -220,7 +247,7 @@ void SettingsDialog::CCPathChanged(CCManager::CCRes res) {
     m_ccpath->setPalette(palette);
 
     // Update compile command preview
-    auto [cstring, cargs] = CCManager::get().createCompileCommand("${input}", "${output}");
+    auto [cstring, cargs] = CCManager::get().createCompileCommand({"${input}"}, "${output}");
     if (m_compileInfo) {
         if (res.success) {
             m_compileInfo->setText(cstring + " " + cargs.join(" "));
@@ -237,9 +264,22 @@ QWidget* SettingsDialog::createSimulatorPage() {
     auto [rewindLabel, rewindSpinbox] =
         createSettingsWidgets<QSpinBox>(RIPES_SETTING_REWINDSTACKSIZE, "Max. undo cycles:");
     rewindSpinbox->setRange(0, INT_MAX);
+    appendToLayout({rewindLabel, rewindSpinbox}, pageLayout);
 
-    pageLayout->addWidget(rewindLabel, 0, 0);
-    pageLayout->addWidget(rewindSpinbox, 0, 1);
+    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_PERIPHERALS_START, "I/O start address:"),
+                   pageLayout);
+
+    return pageWidget;
+}
+
+QWidget* SettingsDialog::createEditorPage() {
+    auto [pageWidget, pageLayout] = constructPage();
+
+    auto [indentLabel, indentSpinbox] = createSettingsWidgets<QSpinBox>(RIPES_SETTING_INDENTAMT, "Indent size:");
+    indentSpinbox->setRange(0, 100);
+
+    pageLayout->addWidget(indentLabel, 0, 0);
+    pageLayout->addWidget(indentSpinbox, 0, 1);
 
     return pageWidget;
 }
@@ -251,32 +291,25 @@ QWidget* SettingsDialog::createEnvironmentPage() {
 
     auto [pageWidget, pageLayout] = constructPage();
 
-    // Setting: RIPES_SETTING_CONSOLEECHO
-    auto [echoLabel, echoCheckbox] = createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:");
-    consoleLayout->addWidget(echoLabel, 0, 0);
-    consoleLayout->addWidget(echoCheckbox, 0, 1);
-
-    // Setting: RIPES_SETTING_CONSOLEFONT
-    auto [fontLabel, fontButton] =
-        createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:");
-    consoleLayout->addWidget(fontLabel, 1, 0);
-    consoleLayout->addWidget(fontButton, 1, 1);
-
-    // Setting: RIPES_SETTING_CONSOLEFONTCOLOR
-    auto [fontColorLabel, fontColorButton] =
-        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:");
-    consoleLayout->addWidget(fontColorLabel, 2, 0);
-    consoleLayout->addWidget(fontColorButton, 2, 1);
-
-    // Setting: RIPES_SETTING_CONSOLEBG
-    auto [bgColorLabel, bgColorButton] =
-        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:");
-    consoleLayout->addWidget(bgColorLabel, 3, 0);
-    consoleLayout->addWidget(bgColorButton, 3, 1);
+    appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:"), consoleLayout);
+    appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:"),
+                   consoleLayout);
+    appendToLayout(
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:"),
+        consoleLayout);
+    appendToLayout(
+        createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:"),
+        consoleLayout);
 
     pageLayout->addWidget(consoleGroupBox);
 
     return pageWidget;
+}
+
+void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout) {
+    const unsigned row = pageLayout->rowCount();
+    pageLayout->addWidget(settingsWidgets.first, row, 0);
+    pageLayout->addWidget(settingsWidgets.second, row, 1);
 }
 
 void SettingsDialog::addPage(const QString& name, QWidget* page) {
@@ -287,12 +320,12 @@ void SettingsDialog::addPage(const QString& name, QWidget* page) {
     m_ui->settingsList->addItem(item);
 
     connect(m_ui->settingsList, &QListWidget::currentItemChanged, [=](QListWidgetItem* current, QListWidgetItem*) {
-        const QString name = current->text();
-        Q_ASSERT(m_pageIndex.count(name));
+        const QString _name = current->text();
+        Q_ASSERT(m_pageIndex.count(_name));
 
-        const int index = m_pageIndex.at(name);
-        m_ui->settingsPages->setCurrentIndex(index);
-        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, index);
+        const int idx = m_pageIndex.at(_name);
+        m_ui->settingsPages->setCurrentIndex(idx);
+        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, idx);
     });
 }
 

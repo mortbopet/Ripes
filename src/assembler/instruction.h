@@ -18,7 +18,7 @@ namespace Assembler {
 struct BitRange {
     constexpr BitRange(unsigned _start, unsigned _stop, unsigned _N = 32) : start(_start), stop(_stop), N(_N) {
         assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
-        assert(0 <= _start && _start <= _stop && _stop < _N && "invalid range");
+        assert(_start <= _stop && _stop < _N && "invalid range");
     }
     constexpr unsigned width() const { return stop - start + 1; }
     const unsigned start, stop, N;
@@ -35,6 +35,7 @@ struct Field;
 struct FieldLinkRequest {
     Field const* field = nullptr;
     QString symbol = QString();
+    QString relocation = QString();
 };
 
 struct Field {
@@ -83,7 +84,7 @@ struct Opcode : public Field {
      * @param name: Name of operation
      * @param fields: list of OpParts corresponding to the identifying elements of the opcode.
      */
-    Opcode(const QString& _name, std::vector<OpPart> _opParts) : Field(0), name(_name), opParts(_opParts) {}
+    Opcode(const Token& _name, std::vector<OpPart> _opParts) : Field(0), name(_name), opParts(_opParts) {}
 
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine&, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
@@ -98,7 +99,7 @@ struct Opcode : public Field {
         return std::nullopt;
     }
 
-    const QString name;
+    const Token name;
     const std::vector<OpPart> opParts;
 };
 
@@ -108,13 +109,14 @@ struct Reg : public Field {
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
      * @param range: range in instruction field containing register index value
      */
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range) : Field(tokenIndex), m_range(range), m_isa(isa) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop)
-        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, BitRange range, QString _regsd)
-        : Field(tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
-    Reg(const ISAInfoBase* isa, unsigned tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
-        : Field(tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, BitRange range)
+        : Field(_tokenIndex), m_range(range), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop)
+        : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, BitRange range, QString _regsd)
+        : Field(_tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
+        : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest&) const override {
         bool success;
@@ -129,11 +131,11 @@ struct Reg : public Field {
     std::optional<Assembler::Error> decode(const uint32_t instruction, const uint32_t, const ReverseSymbolMap&,
                                            Assembler::LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
-        const QString registerName = m_isa->regName(regNumber);
+        const Token registerName = m_isa->regName(regNumber);
         if (registerName.isEmpty()) {
             return Assembler::Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
         }
-        line.append(registerName);
+        line.push_back(registerName);
         return std::nullopt;
     }
 
@@ -176,7 +178,7 @@ struct Imm : public Field {
     std::optional<Assembler::Error> apply(const Assembler::TokenizedSrcLine& line, uint32_t& instruction,
                                           FieldLinkRequest& linksWithSymbol) const override {
         bool success;
-        const QString& immToken = line.tokens[tokenIndex];
+        const Token& immToken = line.tokens[tokenIndex];
 
         // Accept base 10, 16 and 2
         uint32_t uvalue = 0;
@@ -199,6 +201,7 @@ struct Imm : public Field {
             // Could not directly resolve immediate. Register it as a symbol to link to.
             linksWithSymbol.field = this;
             linksWithSymbol.symbol = immToken;
+            linksWithSymbol.relocation = immToken.relocation();
             return {};
         }
 
@@ -261,7 +264,7 @@ struct Imm : public Field {
             const int value = signextend<int32_t>(reconstructed, width);
             const uint32_t symbolAddress = value + (symbolType == SymbolType::Absolute ? 0 : address);
             if (symbolMap.count(symbolAddress)) {
-                line.push_back("<" + symbolMap.at(symbolAddress) + ">");
+                line.push_back("<" + symbolMap.at(symbolAddress).v + ">");
             }
         }
 
@@ -319,11 +322,11 @@ public:
                 Hint = Hint + " [" + regField->regsd + "]";
             }
         }
-        if (line.tokens.length() != m_expectedTokens) {
+        if (line.tokens.size() != m_expectedTokens) {
             return Assembler::Error(line.sourceLine, "Instruction " + m_opcode.name + Hint + " expects " +
                                                          QString::number(m_expectedTokens - 1) +
                                                          " arguments, but got " +
-                                                         QString::number(line.tokens.length() - 1));
+                                                         QString::number(line.tokens.size() - 1));
         }
         return m_assembler(this, line);
     }
@@ -339,7 +342,7 @@ public:
      * @brief size
      * @return size of assembled instruction, in byte
      */
-    const unsigned& size() const { return 4; }
+    unsigned size() const { return 4; }
 
 private:
     std::function<AssembleRes(const Instruction*, const Assembler::TokenizedSrcLine&)> m_assembler;

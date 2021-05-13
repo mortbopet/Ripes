@@ -16,6 +16,19 @@ namespace Ripes {
 #define RIPES_SETTING_CONSOLEBG ("console_bg_color")
 #define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
 #define RIPES_SETTING_CONSOLEFONT ("console_font")
+#define RIPES_SETTING_INDENTAMT ("editor_indent")
+
+#define RIPES_SETTING_ASSEMBLER_TEXTSTART ("text_start")
+#define RIPES_SETTING_ASSEMBLER_DATASTART ("data_start")
+#define RIPES_SETTING_ASSEMBLER_BSSSTART ("bss_start")
+
+#define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
+
+#define RIPES_SETTING_PERIPHERAL_SETTINGS ("peripheral_settings")
+
+// This is not really a setting, but instead a method to leverage the static observer objects that are generated for a
+// setting. Used for other objects to hook into a signal emitted just before the application closes.
+#define RIPES_GLOBALSIGNAL_QUIT ("sig_quit")
 
 // Program state preserving settings
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
@@ -23,26 +36,12 @@ namespace Ripes {
 #define RIPES_SETTING_PROCESSOR_ID ("processor_id")
 #define RIPES_SETTING_PROCESSOR_LAYOUT_ID ("processor_layout_id")
 #define RIPES_SETTING_FOLLOW_EXEC ("follow_execution")
+#define RIPES_SETTING_INPUT_TYPE ("input_type")
+#define RIPES_SETTING_SOURCECODE ("sourcecode")
+#define RIPES_SETTING_DARKMODE ("darkmode")
 
 // ============= Definitions of all default settings within Ripes ==============
-const static std::map<QString, QVariant> s_defaultSettings = {
-    // User-modifyable settings
-    {RIPES_SETTING_REWINDSTACKSIZE, 100},
-    {RIPES_SETTING_CCPATH, ""},
-    {RIPES_SETTING_CCARGS, "-O0"},
-    {RIPES_SETTING_LDARGS, "-static-libgcc -lm"},  // Ensure statically linked executable + link with math library
-    {RIPES_SETTING_CONSOLEECHO, "true"},
-    {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
-    {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},
-    {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */},
-    {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
-
-    // Program state preserving settings
-    {RIPES_SETTING_SETTING_TAB, 0},
-    {RIPES_SETTING_VIEW_ZOOM, 250},
-    {RIPES_SETTING_PROCESSOR_ID, QVariant() /* Let processorhandler define default */},
-    {RIPES_SETTING_PROCESSOR_LAYOUT_ID, 0},
-    {RIPES_SETTING_FOLLOW_EXEC, "true"}};
+const extern std::map<QString, QVariant> s_defaultSettings;
 
 /**
  * @brief The SettingObserver class

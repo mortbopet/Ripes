@@ -51,7 +51,7 @@ void GoToComboBox::signalFilter(int index) {
 
 void GoToSectionComboBox::addTargets() {
     addItem("Address...", QVariant::fromValue<GoToUserData>({GoToFunction::Address, 0}));
-    if (auto prog_spt = ProcessorHandler::get()->getProgram()) {
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
         for (const auto& section : prog_spt->sections) {
             addItem(section.first, QVariant::fromValue<GoToUserData>({GoToFunction::Custom, 0}));
         }
@@ -60,7 +60,7 @@ void GoToSectionComboBox::addTargets() {
 
 uint32_t GoToSectionComboBox::addrForIndex(int i) {
     const QString& sectionName = itemText(i);
-    if (auto prog_spt = ProcessorHandler::get()->getProgram()) {
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
         return prog_spt->getSection(sectionName)->address;
     } else {
         return -1;
@@ -68,7 +68,7 @@ uint32_t GoToSectionComboBox::addrForIndex(int i) {
 }
 
 void GoToRegisterComboBox::addTargets() {
-    const auto& isa = ProcessorHandler::get()->currentISA();
+    const auto& isa = ProcessorHandler::currentISA();
     for (unsigned i = 0; i < isa->regCnt(); i++) {
         addItem(isa->regName(i) + " (" + isa->regAlias(i) + ")",
                 QVariant::fromValue<GoToUserData>({GoToFunction::Custom, i}));
@@ -76,8 +76,8 @@ void GoToRegisterComboBox::addTargets() {
 }
 
 uint32_t GoToRegisterComboBox::addrForIndex(int i) {
-    const auto& data = qvariant_cast<GoToUserData>(itemData(i));
-    return ProcessorHandler::get()->getRegisterValue(RegisterFileType::GPR, data.arg);
+    const auto& regIdx = qvariant_cast<GoToUserData>(itemData(i));
+    return ProcessorHandler::getRegisterValue(RegisterFileType::GPR, regIdx.arg);
 }
 
 }  // namespace Ripes

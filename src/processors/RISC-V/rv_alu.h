@@ -23,16 +23,16 @@ public:
                 case ALUOp::MUL:
                     return static_cast<uint32_t>(op1.sValue() * op2.sValue());
                 case ALUOp::MULH: {
-                    const auto res = static_cast<int64_t>(op1.sValue()) * static_cast<int64_t>(op2.sValue());
-                    return static_cast<uint32_t>(res >> 32);
+                    const auto result = static_cast<int64_t>(op1.sValue()) * static_cast<int64_t>(op2.sValue());
+                    return static_cast<uint32_t>(result >> 32);
                 }
                 case ALUOp::MULHU: {
-                    const auto res = static_cast<uint64_t>(op1.uValue()) * static_cast<uint64_t>(op2.uValue());
-                    return static_cast<uint32_t>(res >> 32);
+                    const auto result = static_cast<uint64_t>(op1.uValue()) * static_cast<uint64_t>(op2.uValue());
+                    return static_cast<uint32_t>(result >> 32);
                 }
                 case ALUOp::MULHSU: {
-                    const int64_t res = static_cast<int64_t>(op1.sValue()) * static_cast<uint64_t>(op2.uValue());
-                    return static_cast<uint32_t>(res >> 32);
+                    const int64_t result = static_cast<int64_t>(op1.sValue()) * static_cast<uint64_t>(op2.uValue());
+                    return static_cast<uint32_t>(result >> 32);
                 }
                 case ALUOp::DIV:
                     if (op2.sValue() == 0) {

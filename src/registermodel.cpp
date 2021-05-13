@@ -8,12 +8,12 @@ namespace Ripes {
 
 using namespace vsrtl;
 
-RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : m_rft(rft), QAbstractTableModel(parent) {}
+RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : QAbstractTableModel(parent), m_rft(rft) {}
 
 std::vector<uint32_t> RegisterModel::gatherRegisterValues() {
     std::vector<uint32_t> vals;
     for (int i = 0; i < rowCount(); i++) {
-        vals.push_back(ProcessorHandler::get()->getRegisterValue(m_rft, i));
+        vals.push_back(ProcessorHandler::getRegisterValue(m_rft, i));
     }
     return vals;
 }
@@ -23,7 +23,7 @@ int RegisterModel::columnCount(const QModelIndex&) const {
 }
 
 int RegisterModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::get()->currentISA()->regCnt();
+    return ProcessorHandler::currentISA()->regCnt();
 }
 
 void RegisterModel::processorWasClocked() {
@@ -49,7 +49,7 @@ bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int
         bool ok;
         uint32_t v = decodeRadixValue(value.toString(), m_radix, &ok);
         if (ok) {
-            ProcessorHandler::get()->setRegisterValue(m_rft, i, v);
+            ProcessorHandler::setRegisterValue(m_rft, i, v);
             emit dataChanged(index, index);
             return true;
         }
@@ -122,24 +122,24 @@ void RegisterModel::setRadix(Ripes::Radix r) {
 }
 
 QVariant RegisterModel::nameData(unsigned idx) const {
-    return ProcessorHandler::get()->currentISA()->regName(idx);
+    return ProcessorHandler::currentISA()->regName(idx);
 }
 
 QVariant RegisterModel::aliasData(unsigned idx) const {
-    return ProcessorHandler::get()->currentISA()->regAlias(idx);
+    return ProcessorHandler::currentISA()->regAlias(idx);
 }
 
 QVariant RegisterModel::tooltipData(unsigned idx) const {
-    return ProcessorHandler::get()->currentISA()->regInfo(idx);
+    return ProcessorHandler::currentISA()->regInfo(idx);
 }
 
 QVariant RegisterModel::valueData(unsigned idx) const {
-    return encodeRadixValue(ProcessorHandler::get()->getRegisterValue(m_rft, idx), m_radix);
+    return encodeRadixValue(ProcessorHandler::getRegisterValue(m_rft, idx), m_radix);
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {
     const auto def =
-        ProcessorHandler::get()->currentISA()->regIsReadOnly(index.row()) ? Qt::NoItemFlags : Qt::ItemIsEnabled;
+        ProcessorHandler::currentISA()->regIsReadOnly(index.row()) ? Qt::NoItemFlags : Qt::ItemIsEnabled;
     if (index.column() == Column::Value)
         return Qt::ItemIsEditable | def;
     return def;

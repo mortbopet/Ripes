@@ -3,6 +3,7 @@
 
 #include "defines.h"
 #include "edittab.h"
+#include "iotab.h"
 #include "loaddialog.h"
 #include "memorytab.h"
 #include "processorhandler.h"
@@ -67,10 +68,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_memoryTab = new MemoryTab(m_memoryToolbar, this);
     m_stackedTabs->insertWidget(2, m_memoryTab);
 
+    m_IOToolbar = addToolBar("I/O");
+    m_IOToolbar->setVisible(false);
+    m_IOTab = new IOTab(m_IOToolbar, this);
+    m_stackedTabs->insertWidget(3, m_IOTab);
+
     // Setup tab bar
     m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
     m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_editTab, &EditTab::updateProgramViewerHighlighting);
@@ -136,6 +143,7 @@ void MainWindow::tabChanged(int index) {
     m_editToolbar->setVisible(index == 0);
     m_processorToolbar->setVisible(index == 1);
     m_memoryToolbar->setVisible(index == 2);
+    m_IOToolbar->setVisible(index == 3);
 }
 
 void MainWindow::fitToView() {
@@ -260,6 +268,9 @@ void MainWindow::closeEvent(QCloseEvent* event) {
             saveFilesTriggered();
         }
     }
+
+    // Emit an observable signal to indicate that the application is about to close
+    RipesSettings::setValue(RIPES_GLOBALSIGNAL_QUIT, 0);
     QMainWindow::closeEvent(event);
 }
 
@@ -284,10 +295,6 @@ void MainWindow::version() {
 }
 
 namespace {
-inline QString removeFileExt(const QString& file) {
-    int lastPoint = file.lastIndexOf(".");
-    return file.left(lastPoint);
-}
 void writeTextFile(QFile& file, const QString& data) {
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);

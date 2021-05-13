@@ -24,7 +24,7 @@ public:
         char byte;
         unsigned int address = arg0;
         do {
-            byte = static_cast<char>(ProcessorHandler::get()->getMemory().readMemConst(address++, 1) & 0xFF);
+            byte = static_cast<char>(ProcessorHandler::getMemory().readMemConst(address++, 1) & 0xFF);
             string.append(byte);
         } while (byte != '\0');
 
@@ -88,7 +88,7 @@ public:
             const char* dataptr = buffer.constData();  // QString::data contains a possible null termination '\0'
                                                        // character (present if reading from stdin and not from a file)
             while (retLength-- > 0) {
-                ProcessorHandler::get()->writeMem(byteAddress++, *dataptr++, sizeof(char));
+                ProcessorHandler::writeMem(byteAddress++, *dataptr++, sizeof(char));
             }
         }
     }
@@ -115,7 +115,7 @@ public:
 
         do {
             myBuffer.append(
-                static_cast<char>(ProcessorHandler::get()->getMemory().readMemConst(byteAddress + index++, 1) & 0xFF));
+                static_cast<char>(ProcessorHandler::getMemory().readMemConst(byteAddress + index++, 1) & 0xFF));
         } while (index < reqLength);
 
         const int retValue = SystemIO::writeToFile(BaseSyscall::getArg(RegisterFileType::GPR,0), myBuffer, reqLength);
@@ -148,7 +148,7 @@ public:
 
         // copy bytes from returned buffer into memory
         while (index < pwd.length()) {
-            ProcessorHandler::get()->writeMem(byteAddress, pwd.at(index++).toLatin1(), sizeof(char));
+            ProcessorHandler::writeMem(byteAddress, pwd.at(index++).toLatin1(), sizeof(char));
         }
     }
 };

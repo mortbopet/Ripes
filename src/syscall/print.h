@@ -45,7 +45,7 @@ public:
         char byte;
         unsigned int address = arg0;
         do {
-            byte = static_cast<char>(ProcessorHandler::get()->getMemory().readMemConst(address++) & 0xFF);
+            byte = static_cast<char>(ProcessorHandler::getMemory().readMemConst(address++) & 0xFF);
             string.append(byte);
         } while (byte != '\0');
         SystemIO::printString(QString::fromUtf8(string));
@@ -77,7 +77,7 @@ public:
     void execute() {
         const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR,0);
         SystemIO::printString(
-            "0x" + QString::number(arg0, 16).rightJustified(ProcessorHandler::get()->currentISA()->bytes(), '0'));
+            "0x" + QString::number(arg0, 16).rightJustified(ProcessorHandler::currentISA()->bytes(), '0'));
     }
 };
 
@@ -92,7 +92,7 @@ public:
     void execute() {
         const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR,0);
         SystemIO::printString(
-            "0b" + QString::number(arg0, 2).rightJustified(ProcessorHandler::get()->currentISA()->bits(), '0'));
+            "0b" + QString::number(arg0, 2).rightJustified(ProcessorHandler::currentISA()->bits(), '0'));
     }
 };
 

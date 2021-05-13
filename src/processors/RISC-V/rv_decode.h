@@ -69,6 +69,7 @@ public:
                             switch (fields[0]) {
                                 case 0b0000000: return RVInstr::ADD;
                                 case 0b0100000: return RVInstr::SUB;
+                                default: return RVInstr::NOP;
                             }
                         }
                         case 0b001: return RVInstr::SLL;
@@ -79,6 +80,7 @@ public:
                             switch (fields[0]) {
                                 case 0b0000000: return RVInstr::SRL;
                                 case 0b0100000: return RVInstr::SRA;
+                                default: return RVInstr::NOP;
                             }
                         }
                         case 0b110: return RVInstr::OR;
