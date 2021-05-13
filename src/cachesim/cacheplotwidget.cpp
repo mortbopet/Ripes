@@ -79,6 +79,7 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     connect(m_cache.get(), &CacheSim::hitrateChanged, this, &CachePlotWidget::updateHitrate);
     connect(m_cache.get(), &CacheSim::configurationChanged,
             [=] { m_ui->size->setText(QString::number(m_cache->getCacheSize().bits)); });
+    m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
 
     connect(ProcessorHandler::get(), &ProcessorHandler::processorClockedNonRun, [=] {
         updateAllowedRange();
