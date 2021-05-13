@@ -74,6 +74,7 @@ private:
     Callout* m_tooltip = nullptr;
     QMutex m_tooltipLock;
 
+    bool m_mouseInView = false;
     bool m_crosshairEnabled = true;
 };
 

@@ -60,6 +60,7 @@ CachePlotView::CachePlotView(QWidget* parent) : QGraphicsView(new QGraphicsScene
 }
 
 void CachePlotView::enterEvent(QEvent* event) {
+    m_mouseInView = true;
     for (const auto& marker : m_markers) {
         marker->marker->show();
     }
@@ -68,6 +69,7 @@ void CachePlotView::enterEvent(QEvent* event) {
 }
 
 void CachePlotView::leaveEvent(QEvent* event) {
+    m_mouseInView = false;
     for (const auto& marker : m_markers) {
         marker->marker->hide();
     }
@@ -109,6 +111,7 @@ void CachePlotView::hideSeriesMarker(const QLineSeries* series) {
 
 void CachePlotView::showSeriesMarker(const QLineSeries* series) {
     m_markers.emplace_back(std::make_unique<MarkerObjects>(this, m_chart, series));
+    m_markers.rbegin()->get()->marker->setVisible(m_mouseInView);
     resizeObjects(scene()->sceneRect().size());
 }
 
