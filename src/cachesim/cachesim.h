@@ -113,6 +113,10 @@ public:
             Q_ASSERT(way != s_invalidIndex && "Cache way index is invalid");
             Q_ASSERT(block != s_invalidIndex && "Cache block index is invalid");
         }
+
+        bool operator==(const CacheIndex& other) const {
+            return this->line == other.line && this->way == other.way && this->block == other.block;
+        }
     };
 
     struct CacheTransaction {
