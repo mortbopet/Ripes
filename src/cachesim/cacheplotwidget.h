@@ -43,6 +43,8 @@ class CachePlotWidget;
 class CachePlotWidget : public QWidget {
     Q_OBJECT
 
+    enum class RangeChangeSource { Slider, Comboboxes, Cycles };
+
 public:
     enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_TraceVars, Unary };
     explicit CachePlotWidget(QWidget* parent = nullptr);
@@ -53,7 +55,7 @@ public slots:
 
 private slots:
     void variablesChanged();
-    void rangeChanged();
+    void rangeChanged(const RangeChangeSource src);
     void updateHitrate();
 
 private:
@@ -68,7 +70,7 @@ private:
     void copyPlotDataToClipboard() const;
     void savePlot();
     void updateRatioPlot();
-    void updateAllowedRange();
+    void updateAllowedRange(const RangeChangeSource src);
 
     /**
      * @brief resampleToScreen
@@ -101,6 +103,8 @@ private:
     QAction* m_savePlotAction = nullptr;
     QAction* m_totalMarkerAction = nullptr;
     QAction* m_mavgMarkerAction = nullptr;
+
+    std::vector<QWidget*> m_rangeWidgets;
 };
 
 const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings{

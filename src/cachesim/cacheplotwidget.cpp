@@ -41,6 +41,8 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     setEnumIndex(m_ui->num, Variable::Hits);
     setEnumIndex(m_ui->den, Variable::Accesses);
 
+    m_rangeWidgets = {m_ui->rangeMax, m_ui->rangeMin, m_ui->rangeSlider};
+
     connect(m_ui->num, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CachePlotWidget::variablesChanged);
     connect(m_ui->windowed, &QCheckBox::toggled, this, &CachePlotWidget::variablesChanged);
@@ -49,8 +51,11 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     m_ui->rangeMin->setValue(0);
     m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
 
-    connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
-    connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this, &CachePlotWidget::rangeChanged);
+    connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged),
+            [=] { rangeChanged(RangeChangeSource::Comboboxes); });
+    connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged),
+            [=] { rangeChanged(RangeChangeSource::Comboboxes); });
+    connect(m_ui->rangeSlider, &ctkRangeSlider::valuesChanged, [=] { rangeChanged(RangeChangeSource::Slider); });
 
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
@@ -82,15 +87,15 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
 
     connect(ProcessorHandler::get(), &ProcessorHandler::processorClockedNonRun, [=] {
-        updateAllowedRange();
+        updateAllowedRange(RangeChangeSource::Cycles);
         updateRatioPlot();
     });
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] {
-        updateAllowedRange();
+        updateAllowedRange(RangeChangeSource::Cycles);
         updateRatioPlot();
     });
     connect(m_cache.get(), &CacheSim::cacheInvalidated, [=] {
-        updateAllowedRange();
+        updateAllowedRange(RangeChangeSource::Cycles);
         resetRatioPlot();
     });
 
@@ -112,17 +117,48 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     setupPlotActions();
 
     variablesChanged();
-    rangeChanged();
+    rangeChanged(RangeChangeSource::Comboboxes);
     updateHitrate();
 }
 
-void CachePlotWidget::updateAllowedRange() {
+void CachePlotWidget::updateAllowedRange(const RangeChangeSource src) {
+    // Block all range signals while changing ranges
+    for (const auto& w : m_rangeWidgets) {
+        w->blockSignals(true);
+    }
+
     // Update allowed ranges
     const unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
-    m_ui->rangeMax->setMinimum(m_ui->rangeMin->value());
-    m_ui->rangeMax->setMaximum(cycles);
+
+    bool atMax = false;
+
+    if (src == RangeChangeSource::Cycles) {
+        atMax = m_ui->rangeSlider->maximumPosition() == m_ui->rangeSlider->maximum();
+    }
+
     m_ui->rangeMin->setMinimum(0);
-    m_ui->rangeMin->setMaximum(m_ui->rangeMax->value());
+    m_ui->rangeSlider->setMinimum(0);
+    m_ui->rangeSlider->setMaximum(cycles);
+    m_ui->rangeMax->setMaximum(cycles);
+
+    if (src == RangeChangeSource::Comboboxes) {
+        m_ui->rangeSlider->setMinimumPosition(m_ui->rangeMin->value());
+        m_ui->rangeSlider->setMaximumPosition(m_ui->rangeMax->value());
+    } else if (src == RangeChangeSource::Slider) {
+        m_ui->rangeMax->setMinimum(m_ui->rangeSlider->minimumValue());
+        m_ui->rangeMin->setMaximum(m_ui->rangeSlider->maximumValue());
+        m_ui->rangeMin->setValue(m_ui->rangeSlider->minimumPosition());
+        m_ui->rangeMax->setValue(m_ui->rangeSlider->maximumPosition());
+    }
+
+    if (atMax) {
+        m_ui->rangeSlider->setMaximumPosition(cycles);
+        m_ui->rangeMax->setValue(cycles);
+    }
+
+    for (const auto& w : m_rangeWidgets) {
+        w->blockSignals(false);
+    }
 }
 
 CachePlotWidget::~CachePlotWidget() {
@@ -211,11 +247,11 @@ void CachePlotWidget::copyPlotDataToClipboard() const {
     QApplication::clipboard()->setText(outString);
 }
 
-void CachePlotWidget::rangeChanged() {
+void CachePlotWidget::rangeChanged(const RangeChangeSource src) {
+    updateAllowedRange(src);
     if (m_plot) {
         m_plot->axes(Qt::Horizontal).first()->setRange(m_ui->rangeMin->value(), m_ui->rangeMax->value());
     }
-    updateAllowedRange();
 }
 
 void CachePlotWidget::variablesChanged() {
@@ -377,12 +413,11 @@ void CachePlotWidget::updateRatioPlot() {
 
     m_plot->createDefaultAxes();
 
-    const unsigned maxX = ProcessorHandler::getProcessor()->getCycleCount();
-
     // Add space to label to add space between labels and axis
     QValueAxis* axisY = qobject_cast<QValueAxis*>(m_series->chart()->axes(Qt::Vertical).first());
     QValueAxis* axisX = qobject_cast<QValueAxis*>(m_series->chart()->axes(Qt::Horizontal).first());
     Q_ASSERT(axisY);
+    Q_ASSERT(axisX);
     axisY->setLabelFormat("%.1f  ");
     axisY->setTitleText("%");
     int tickInterval = (m_maxY - m_minY) / axisY->tickCount();
@@ -397,11 +432,11 @@ void CachePlotWidget::updateRatioPlot() {
         axisMaxY = 100;
     }
 
-    axisY->setRange(m_minY, axisMaxY);
-
     axisX->setLabelFormat("%d  ");
     axisX->setTitleText("Cycle");
-    axisX->setRange(0, maxX);
+
+    axisY->setRange(m_minY, axisMaxY);
+    axisX->setRange(m_ui->rangeSlider->minimumPosition(), m_ui->rangeSlider->maximumPosition());
 }
 
 void CachePlotWidget::resetRatioPlot() {

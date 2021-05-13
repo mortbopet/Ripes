@@ -27,7 +27,7 @@
     <number>0</number>
    </property>
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0,0">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -38,55 +38,10 @@
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="1" column="3">
+            <item row="1" column="2">
              <widget class="QComboBox" name="den"/>
             </item>
-            <item row="0" column="2">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Numerator</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QSpinBox" name="rangeMax">
-              <property name="maximum">
-               <number>999999999</number>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Denominator</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Cycles min.</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Cycles max.</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <widget class="QComboBox" name="num"/>
-            </item>
-            <item row="0" column="1">
-             <widget class="QSpinBox" name="rangeMin">
-              <property name="maximum">
-               <number>999999999</number>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
+            <item row="2" column="1">
              <widget class="QCheckBox" name="windowed">
               <property name="text">
                <string>Moving avg.</string>
@@ -96,10 +51,16 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="0" column="2">
+             <widget class="QComboBox" name="num"/>
+            </item>
+            <item row="2" column="2">
              <widget class="QSpinBox" name="windowCycles">
               <property name="enabled">
                <bool>true</bool>
+              </property>
+              <property name="suffix">
+               <string> cyc.</string>
               </property>
               <property name="minimum">
                <number>1</number>
@@ -109,6 +70,20 @@
               </property>
               <property name="value">
                <number>50</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Denominator</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Numerator</string>
               </property>
              </widget>
             </item>
@@ -285,6 +260,46 @@
       <widget class="CachePlotView" name="plotView"/>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1,0">
+       <item>
+        <widget class="QSpinBox" name="rangeMin">
+         <property name="toolTip">
+          <string>Min. cycle</string>
+         </property>
+         <property name="maximum">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="ctkRangeSlider" name="rangeSlider">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Plot range (cycles)</string>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="rangeMax">
+         <property name="toolTip">
+          <string>Max. cycle</string>
+         </property>
+         <property name="maximum">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QToolButton" name="ratioCursor">
@@ -338,6 +353,11 @@
    <class>CachePlotView</class>
    <extends>QGraphicsView</extends>
    <header>cachesim/cacheplotview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkRangeSlider</class>
+   <extends>QSlider</extends>
+   <header>ctkrangeslider.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

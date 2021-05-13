@@ -160,8 +160,8 @@ void CachePlotView::resizeObjects(const QSizeF& size) {
         }
         const int y = yOffset + m_chart->size().height() - 20;
         marker->label->setPos(m_chart->size().width() / 4 - marker->label->boundingRect().width(), y);
-        marker->coordX->setPos(m_chart->size().width() / 3, y);
-        marker->coordY->setPos(m_chart->size().width() / 2, y);
+        marker->coordX->setPos(m_chart->size().width() * 0.33, y);
+        marker->coordY->setPos(m_chart->size().width() * 0.55, y);
         marker->marker->updateLines();
     }
 }
