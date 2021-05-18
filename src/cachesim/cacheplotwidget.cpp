@@ -366,8 +366,15 @@ void CachePlotWidget::updateRatioPlot() {
 
         // Windowed plot
         if (m_ui->windowed->isChecked()) {
-            const QPoint dNum = p1 - m_lastData.first;
-            const QPoint dDen = p2 - m_lastData.second;
+            QPointF dNum, dDen;
+            if (!m_lastDiffValid) {
+                dNum = p1;
+                dDen = p2;
+                m_lastDiffValid = true;
+            } else {
+                dNum = p1 - m_lastDiffData.first;
+                dDen = p2 - m_lastDiffData.second;
+            }
             double wRatio = 0;
             if (dDen.y() != 0) {
                 wRatio = static_cast<double>(dNum.y()) / dDen.y();
@@ -376,14 +383,13 @@ void CachePlotWidget::updateRatioPlot() {
 
             m_maxY = wRatio > m_maxY ? wRatio : m_maxY;
             m_minY = wRatio < m_minY ? wRatio : m_minY;
-
             m_mavgData.push(wRatio);
 
             // Plot moving average
             const double wAvg = std::accumulate(m_mavgData.begin(), m_mavgData.end(), 0.0) / m_mavgData.size();
             newWindowPoints << QPointF(p1.x(), wAvg);
-            m_lastData.first = p1;
-            m_lastData.second = p2;
+            m_lastDiffData.first = p1;
+            m_lastDiffData.second = p2;
         }
     }
 
@@ -446,6 +452,7 @@ void CachePlotWidget::resetRatioPlot() {
     m_mavgSeries->clear();
     m_lastCyclePlotted = 0;
     m_xStep = 1;
+    m_lastDiffValid = false;
 
     m_mavgMarkerAction->setChecked(m_ui->windowed->isChecked() && m_mavgMarkerAction->isChecked());
 

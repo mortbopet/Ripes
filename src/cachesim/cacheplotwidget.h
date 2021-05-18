@@ -91,7 +91,8 @@ private:
     // N last computations of the change in ratio value
     FixedQueue<double> m_mavgData;
     // Last cycle numerator and denominator values
-    std::pair<QPoint, QPoint> m_lastData;
+    bool m_lastDiffValid = false;
+    std::pair<QPoint, QPoint> m_lastDiffData;
 
     Ui::CachePlotWidget* m_ui;
     std::shared_ptr<CacheSim> m_cache;
