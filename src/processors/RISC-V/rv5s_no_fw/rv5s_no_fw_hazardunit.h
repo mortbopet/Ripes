@@ -28,6 +28,7 @@ public:
     INPUTPORT(ex_do_mem_read_en, 1);
     INPUTPORT(ex_do_reg_write, 1);
     INPUTPORT(ex_do_jump, 1);
+    INPUTPORT(ex_branch_taken, 1);
     INPUTPORT_ENUM(ex_opcode, RVInstr);
 
     INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
@@ -53,9 +54,9 @@ public:
 private:
     bool hasHazard() { return hasDataOrLoadUseHazard() || hasEcallHazard(); }
 
-    bool hasDataOrLoadUseHazard(){ return hasDataHazard() || hasLoadUseHazard(); }
+    bool hasDataOrLoadUseHazard(){ return hasDataHazardExMem() || hasLoadUseHazard(); }
 
-    bool hasDataHazard() { return hasDataHazardEx() || hasDataHazardMem(); }
+    bool hasDataHazardExMem() { return hasDataHazardEx() || hasDataHazardMem(); }
 
     bool hasLoadUseHazard() const {
         const unsigned exidx = ex_reg_wr_idx.uValue();
@@ -103,26 +104,16 @@ private:
         // Get jump information (when jump, no stall needed because instruction will flushed)
         const bool doJump = ex_do_jump.uValue();
 
+        // Check if branch is taken do no stall
+        const bool exBranchTaken = ex_branch_taken.uValue();
+
         // If destination is x0 or jump is taken ignore hazard
         if((writeIdx == 0) || (doJump)){
             return false;
         }
-        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch || isMemWrite))) && regWrite;
+
+        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch || isMemWrite))) && regWrite && !exBranchTaken;
     }
 };
 }  // namespace core
 }  // namespace vsrtl
-
-/*
-idx1 = 0x02
-idx2 = 0x07
-idx2isReg = false (IMM)
-isBranch = false
-doJump = false
-exReg = 1
-exWriteReg = 0x07
-memReg = 0
-memWriteReg = 0
-
-
-*/
