@@ -270,7 +270,7 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
 
     // Gather data
 
-    for (auto it = trace.lower_bound(fromCycle); it != trace.end(); it++) {
+    for (auto it = trace.upper_bound(fromCycle); it != trace.end(); it++) {
         const auto& entry = it->second;
         cacheData[Variable::Writes].append(QPoint(it->first, entry.writes));
         cacheData[Variable::Reads].append(QPoint(it->first, entry.reads));
@@ -351,20 +351,23 @@ void CachePlotWidget::updateRatioPlot() {
             ratio = static_cast<double>(p1.y()) / p2.y();
             ratio *= 100.0;
         }
+        bool skipPoint = false;
         const QPointF newPoint = QPointF(p1.x(), ratio);
         if (lastPoint.x() >= 0) {
             if (newPoint.x() - lastPoint.x() < m_xStep) {
                 // Skip point; irrelevant at the current sampling level
-                continue;
+                skipPoint = true;
             }
-            newPoints << stepPoint(lastPoint, newPoint);
         }
-        newPoints << newPoint;
-        m_maxY = ratio > m_maxY ? ratio : m_maxY;
-        m_minY = ratio < m_minY ? ratio : m_minY;
-        lastPoint = newPoint;
+        if (!skipPoint) {
+            newPoints << stepPoint(lastPoint, newPoint);
+            newPoints << newPoint;
+            m_maxY = ratio > m_maxY ? ratio : m_maxY;
+            m_minY = ratio < m_minY ? ratio : m_minY;
+            lastPoint = newPoint;
+        }
 
-        // Windowed plot
+        // Moving average plot
         if (m_ui->windowed->isChecked()) {
             QPointF dNum, dDen;
             if (!m_lastDiffValid) {
@@ -393,7 +396,7 @@ void CachePlotWidget::updateRatioPlot() {
         }
     }
 
-    if (newPoints.size() == 0) {
+    if (newPoints.size() == 0 && newWindowPoints.size() == 0) {
         return;
     }
 
