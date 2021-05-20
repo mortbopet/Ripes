@@ -10,7 +10,7 @@
 
 /** Modified for Ripes:
  * - No printing
- * - Moves computation result to register x27 
+ * - Moves computation result to register x27
  */
 
 void printFloat(float value) {
@@ -18,9 +18,8 @@ void printFloat(float value) {
         "li a7, 2\n"
         "ecall"
         :
-        : [v]"r"(value)
-        :
-    );
+        : [v] "r"(value)
+        :);
 }
 
 void printInt(int value) {
@@ -28,9 +27,8 @@ void printInt(int value) {
         "li a7, 1\n"
         "ecall"
         :
-        : [v]"r"(value)
-        :
-    );
+        : [v] "r"(value)
+        :);
 }
 
 void printString(void* str) {
@@ -38,18 +36,17 @@ void printString(void* str) {
         "li a7, 4\n"
         "ecall"
         :
-        : [v]"r"(str)
-        :
-    );
+        : [v] "r"(str)
+        :);
 }
 
-void printStringFloat(void* str, float f){
+void printStringFloat(void* str, float f) {
     printString(str);
     printFloat(f);
     printString("\n");
 }
 
-void printStringInt(void* str, int i){
+void printStringInt(void* str, int i) {
     printString(str);
     printInt(i);
     printString("\n");
@@ -110,9 +107,9 @@ int main(int argc, char* argv[]) {
 
     // Move result to some pre-determined register
     asm("mv x27, %[v]"
-        :                  /* Output registers */
-        : [v] "r"(pi)      /* Input registers */
-        :                  /* Clobber registers */
+        :             /* Output registers */
+        : [v] "r"(pi) /* Input registers */
+        :             /* Clobber registers */
     );
 
     return 0;

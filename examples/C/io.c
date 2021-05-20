@@ -2,19 +2,20 @@
 #include <stdio.h>
 
 float getf() {
-	float f;
-	char c;
-	while(!scanf("%f", &f)) {
-		while ((c = getchar()) != '\n' && c != EOF) { } // Clear input buffer
-		printf("Invalid number, please try again.\n");
-	}
-	return f;
+    float f;
+    char c;
+    while (!scanf("%f", &f)) {
+        while ((c = getchar()) != '\n' && c != EOF) {
+        }  // Clear input buffer
+        printf("Invalid number, please try again.\n");
+    }
+    return f;
 }
 
 /**
-  * Program calculating the power of a number based on floating-point base
-  * and exponent values input by the user.
-  */
+ * Program calculating the power of a number based on floating-point base
+ * and exponent values input by the user.
+ */
 int main() {
     float base, exp, result;
     printf("Enter a base number: \n");

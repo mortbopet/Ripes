@@ -332,7 +332,7 @@ void ProcessorTab::processorSelection() {
         m_vsrtlWidget->clearDesign();
         m_stageInstructionLabels.clear();
         ProcessorHandler::selectProcessor(diag.getSelectedId(), diag.getEnabledExtensions(),
-                                                 diag.getRegisterInitialization());
+                                          diag.getRegisterInitialization());
 
         // Store selected layout index
         const auto& layouts = ProcessorRegistry::getDescription(diag.getSelectedId()).layouts;

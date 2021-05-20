@@ -31,8 +31,7 @@ SyscallViewer::SyscallViewer(QWidget* parent) : QDialog(parent), m_ui(new Ui::Sy
     m_ui->syscallList->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->syscallList->verticalHeader()->hide();
     m_ui->syscallList->setHorizontalHeaderLabels(
-        {"Func. (" +
-             ProcessorHandler::currentISA()->regAlias(ProcessorHandler::currentISA()->syscallReg()) + ")",
+        {"Func. (" + ProcessorHandler::currentISA()->regAlias(ProcessorHandler::currentISA()->syscallReg()) + ")",
          "Name"});
     m_ui->syscallList->horizontalHeader()->setStretchLastSection(true);
     connect(m_ui->syscallList, &QTableWidget::currentItemChanged, this, &SyscallViewer::handleItemChanged);

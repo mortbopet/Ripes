@@ -13,8 +13,8 @@ unsigned* led_base = LED_MATRIX_0_BASE;
 
 void main() {
     unsigned v = 0;
-    while(1) {
-        for(int y = 0; y < H; y++) {
+    while (1) {
+        for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) {
                 char r = v + (0xFF * x) / W;
                 char g = v + (0xFF * y) / H;

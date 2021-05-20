@@ -64,17 +64,20 @@ private:
             err += program.join('\n');
             QFAIL(err.toStdString().c_str());
         }
-        if(expectData.size() > 0 ){
-             const auto* dataProg = res.program.getSection(".data");
+        if (expectData.size() > 0) {
+            const auto* dataProg = res.program.getSection(".data");
             const auto& dataSegment = res.program.getSection(".data")->data;
-            if(expectData.size() != dataSegment.size()) {
-                err += "Expected data segment of size " + QString::number(expectData.size()) + "B but found " + QString::number(dataSegment.size()) + "B\n";
+            if (expectData.size() != dataSegment.size()) {
+                err += "Expected data segment of size " + QString::number(expectData.size()) + "B but found " +
+                       QString::number(dataSegment.size()) + "B\n";
                 QFAIL(err.toStdString().c_str());
             }
-            for(int i = 0; i < dataSegment.size(); i++) {
-                if(dataSegment.at(i) != expectData.at(i)) {
-                    err += "Discrepancy in data segment at byte " + QString::number(i) + " (address 0x" + QString::number(dataProg->address + i, 16) + ")\n";
-                    err += "expected 0x" + QString::number(expectData.at(i)) + " but found 0x" + QString::number(dataSegment.at(i)) + "\n";
+            for (int i = 0; i < dataSegment.size(); i++) {
+                if (dataSegment.at(i) != expectData.at(i)) {
+                    err += "Discrepancy in data segment at byte " + QString::number(i) + " (address 0x" +
+                           QString::number(dataProg->address + i, 16) + ")\n";
+                    err += "expected 0x" + QString::number(expectData.at(i)) + " but found 0x" +
+                           QString::number(dataSegment.at(i)) + "\n";
                     QFAIL(err.toStdString().c_str());
                 }
             }

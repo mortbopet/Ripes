@@ -14,8 +14,8 @@ using namespace Ripes;
 
 /**
  * @brief The RV5S_IDEX class
- * A specialization of the default IDEX stage separating register utilized by the rv5s_no_fw_hz processor. Storage of register
- * read indices is added, which are required by the forwarding unit.
+ * A specialization of the default IDEX stage separating register utilized by the rv5s_no_fw_hz processor. Storage of
+ * register read indices is added, which are required by the forwarding unit.
  */
 class RV5S_IDEX : public IDEX {
 public:

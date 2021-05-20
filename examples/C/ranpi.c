@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
 
     // Move result to some pre-determined register
     asm("mv x27, %[v]"
-        :               /* Output registers */
-        : [ v ] "r"(pi) /* Input registers */
-        :               /* Clobber registers */
+        :             /* Output registers */
+        : [v] "r"(pi) /* Input registers */
+        :             /* Clobber registers */
     );
 
     return 0;

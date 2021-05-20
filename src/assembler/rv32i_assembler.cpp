@@ -1,7 +1,7 @@
 #include "rv32i_assembler.h"
 #include "gnudirectives.h"
-#include "rvrelocations.h"
 #include "ripessettings.h"
+#include "rvrelocations.h"
 
 #include <QByteArray>
 #include <algorithm>

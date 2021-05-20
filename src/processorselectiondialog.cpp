@@ -51,8 +51,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     for (const auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         m_selectedExtensionsForID[desc.second.id] = desc.second.isa->supportedExtensions();
     }
-    m_selectedExtensionsForID[ProcessorHandler::getID()] =
-        ProcessorHandler::currentISA()->enabledExtensions();
+    m_selectedExtensionsForID[ProcessorHandler::getID()] = ProcessorHandler::currentISA()->enabledExtensions();
 
     if (selectedItem != nullptr) {
         // Select the processor and layout which is currently active

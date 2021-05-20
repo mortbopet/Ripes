@@ -138,8 +138,7 @@ QVariant RegisterModel::valueData(unsigned idx) const {
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {
-    const auto def =
-        ProcessorHandler::currentISA()->regIsReadOnly(index.row()) ? Qt::NoItemFlags : Qt::ItemIsEnabled;
+    const auto def = ProcessorHandler::currentISA()->regIsReadOnly(index.row()) ? Qt::NoItemFlags : Qt::ItemIsEnabled;
     if (index.column() == Column::Value)
         return Qt::ItemIsEditable | def;
     return def;

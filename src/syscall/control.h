@@ -29,7 +29,8 @@ class Exit2Syscall : public BaseSyscall {
 public:
     Exit2Syscall() : BaseSyscall("Exit2", "Exits the program with a code", {{0, "the number to exit with"}}) {}
     void execute() {
-        SystemIO::printString("\nProgram exited with code: " + QString::number(BaseSyscall::getArg(RegisterFileType::GPR,0)));
+        SystemIO::printString("\nProgram exited with code: " +
+                              QString::number(BaseSyscall::getArg(RegisterFileType::GPR, 0)));
         FinalizeReason fr;
         fr.exitSyscall = true;
         ProcessorHandler::getProcessorNonConst()->finalize(fr);
