@@ -13,6 +13,7 @@ namespace Ripes {
 IOPeripheralTab::IOPeripheralTab(QWidget* parent, IOBase* peripheral)
     : QWidget(parent), m_ui(new Ui::IOPeripheralTab), m_peripheral(peripheral) {
     m_ui->setupUi(this);
+    m_ui->exports->setFont(QFont("Inconsolata", 11));
 
     m_ui->description->setText(m_peripheral->description());
     m_ui->registerMapView->setModel(new RegisterMapModel(peripheral, this));

@@ -138,8 +138,8 @@ void IOManager::refreshMemoryMap() {
         }
     }
 
-    emit memoryMapChanged();
     updateSymbols();
+    emit memoryMapChanged();
 }
 
 std::vector<std::pair<Symbol, uint32_t>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
