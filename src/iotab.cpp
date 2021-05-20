@@ -77,10 +77,8 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
 }
 
 IOBase* IOTab::createPeripheral(IOType type, int forcedID) {
-    auto* peripheral = IOManager::get().createPeripheral(type);
-    if (forcedID != -1) {
-        peripheral->setID(forcedID);
-    }
+    auto* peripheral = IOManager::get().createPeripheral(type, forcedID);
+
     // Create tab for peripheral
     auto* peripheralTab = new IOPeripheralTab(this, peripheral);
     m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());

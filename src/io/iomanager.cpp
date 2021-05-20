@@ -88,12 +88,15 @@ void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
     }
 }
 
-IOBase* IOManager::createPeripheral(IOType type) {
+IOBase* IOManager::createPeripheral(IOType type, unsigned forcedId) {
     auto* peripheral = IOFactories.at(type)(nullptr);
 
     connect(peripheral, &IOBase::sizeChanged, [=] { this->peripheralSizeChanged(peripheral); });
     connect(peripheral, &IOBase::aboutToDelete, [=](std::atomic<bool>& ok) { this->removePeripheral(peripheral, ok); });
 
+    if (forcedId != UINT_MAX) {
+        peripheral->setID(forcedId);
+    }
     m_peripherals.insert(peripheral);
     assignBaseAddress(peripheral);
     refreshMemoryMap();

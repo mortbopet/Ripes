@@ -188,7 +188,7 @@ protected:
     virtual void parameterChanged(unsigned ID) = 0;
 
     std::map<unsigned, IOParam> m_parameters;
-    unsigned m_id;
+    unsigned m_id = UINT_MAX;
 
     static std::map<unsigned, std::set<unsigned>> s_peripheralIDs;
     static unsigned claimPeripheralId(const unsigned& ioType, int forcedID = -1) {
