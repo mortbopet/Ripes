@@ -37,7 +37,9 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     m_l1dShim->setNextLevelCache(m_ui->dataCacheWidget->getCacheSim());
     m_l1iShim->setNextLevelCache(m_ui->instructionCacheWidget->getCacheSim());
 
+#ifdef N_CACHES_ENABLED
     m_addTabIdx = m_ui->tabWidget->addTab(new QLabel("Placeholder"), QIcon((":/icons/plus.svg")), QString());
+#endif
 
     connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &CacheTabWidget::handleTabIndexChanged);
     connect(m_ui->tabWidget, &QTabWidget::tabCloseRequested, this, &CacheTabWidget::handleTabCloseRequest);
@@ -50,7 +52,9 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
     // Disable closing for L1 caches and add tab
     m_ui->tabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
     m_ui->tabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
-    m_ui->tabWidget->tabBar()->tabButton(2, QTabBar::RightSide)->resize(0, 0);
+#ifdef N_CACHES_ENABLED
+    m_ui->tabWidget->tabBar()->tabButton(m_addTabIdx, QTabBar::RightSide)->resize(0, 0);
+#endif
 
     // Filter out scroll events to avoid mouse scrolling creating a bazillion new caches
     m_ui->tabWidget->tabBar()->installEventFilter(new ScrollEventFilter(this));

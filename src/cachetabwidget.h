@@ -3,6 +3,8 @@
 
 #include "cachesim/l1cacheshim.h"
 
+// #define N_CACHES_ENABLED
+
 namespace Ripes {
 class CacheWidget;
 
