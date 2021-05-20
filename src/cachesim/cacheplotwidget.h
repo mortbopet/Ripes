@@ -71,6 +71,7 @@ private:
     void savePlot();
     void updateRatioPlot();
     void updateAllowedRange(const RangeChangeSource src);
+    void updatePlotWarningButton();
 
     /**
      * @brief resampleToScreen

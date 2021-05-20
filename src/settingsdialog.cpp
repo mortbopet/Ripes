@@ -288,8 +288,18 @@ QWidget* SettingsDialog::createEditorPage() {
 QWidget* SettingsDialog::createEnvironmentPage() {
     auto [pageWidget, pageLayout] = constructPage();
 
+    auto [maxcyclesLabel, maxcyclesSb] =
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXCYCLES, "Max. cache plot cycles");
+    maxcyclesSb->setMinimum(0);
+    appendToLayout({maxcyclesLabel, maxcyclesSb}, pageLayout,
+                   "Maximum number of cache cycles to plot. Increasing this may incur substantial slowdown for long "
+                   "time executing programs, given the number of points to be plotted.");
+
+    auto [maxPointsLabel, maxPointsSb] =
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXPOINTS, "Min. cache plot points:");
+    maxPointsSb->setMinimum(2);
     appendToLayout(
-        createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXPOINTS, "Min. cache plot points:"), pageLayout,
+        {maxPointsLabel, maxPointsSb}, pageLayout,
         "Minimum number of points to be kept in the cache plot. Once 2x this amount is reached, the cache "
         "plot will be resampled to this minimum value, and new points will be added based on the sampling "
         "rate after the resampling. This resampling allows for real-time plotting regardless of the number of "

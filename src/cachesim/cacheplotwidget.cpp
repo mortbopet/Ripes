@@ -62,6 +62,15 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
     connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles, &QWidget::setEnabled);
     connect(m_ui->windowed, &QCheckBox::toggled, m_ui->mavgCursor, &QWidget::setEnabled);
+
+    connect(m_ui->maxCyclesButton, &QPushButton::clicked, this, [=] {
+        QMessageBox::information(
+            this, "Maximum plot cycles reached",
+            "The maximum number of plot cycles was reached. Beyond this point, cache statistics is no longer plotted "
+            "for performance reasons.\nIf you wish to increase the # of cycles plotted, please change the setting:\n   "
+            " "
+            "\"Edit->Settings->Environment->Max. cache plot cycles\"");
+    });
 }
 
 void CachePlotWidget::showSizeBreakdown() {
@@ -86,15 +95,24 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
             [=] { m_ui->size->setText(QString::number(m_cache->getCacheSize().bits)); });
     m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::processorClockedNonRun, [=] {
+    const auto plotUpdateFunc = [=]() {
+        if (m_lastCyclePlotted >= RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt()) {
+            return false;
+        }
         updateAllowedRange(RangeChangeSource::Cycles);
-        updateRatioPlot();
+        return true;
+    };
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorClockedNonRun, this, [=] {
+        if (plotUpdateFunc()) {
+            updateRatioPlot();
+        }
     });
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] {
-        updateAllowedRange(RangeChangeSource::Cycles);
-        updateRatioPlot();
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
+        if (plotUpdateFunc()) {
+            updateRatioPlot();
+        }
     });
-    connect(m_cache.get(), &CacheSim::cacheInvalidated, [=] {
+    connect(m_cache.get(), &CacheSim::cacheInvalidated, this, [=] {
         updateAllowedRange(RangeChangeSource::Cycles);
         resetRatioPlot();
     });
@@ -119,6 +137,7 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     variablesChanged();
     rangeChanged(RangeChangeSource::Comboboxes);
     updateHitrate();
+    updatePlotWarningButton();
 }
 
 void CachePlotWidget::updateAllowedRange(const RangeChangeSource src) {
@@ -128,7 +147,9 @@ void CachePlotWidget::updateAllowedRange(const RangeChangeSource src) {
     }
 
     // Update allowed ranges
-    const unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
+    unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
+    const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt();
+    cycles = cycles > maxCycles ? maxCycles : cycles;
 
     bool atMax = false;
 
@@ -268,9 +289,20 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
         cacheData[static_cast<Variable>(i)].reserve(trace.size());
     }
 
-    // Gather data
+    // Gather data up until the end of the trace or the maximum plotted cycles
 
-    for (auto it = trace.upper_bound(fromCycle); it != trace.end(); it++) {
+    unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
+    const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt();
+    cycles = cycles > maxCycles ? maxCycles : cycles;
+
+    decltype(trace.begin()) traceEndIt;
+    if (trace.size() > maxCycles) {
+        traceEndIt = trace.upper_bound(maxCycles);
+    } else {
+        traceEndIt = trace.end();
+    }
+
+    for (auto it = trace.upper_bound(fromCycle); it != traceEndIt; it++) {
         const auto& entry = it->second;
         cacheData[Variable::Writes].append(QPoint(it->first, entry.writes));
         cacheData[Variable::Reads].append(QPoint(it->first, entry.reads));
@@ -339,8 +371,8 @@ void CachePlotWidget::updateRatioPlot() {
         lastPoint = QPointF(-1, 0);
     }
     for (int i = 0; i < nNewPoints; i++) {
-        // Cummulative plot. For the unary variable, "Accesses" is just used to index into the cache data for accessing
-        // the x variable.
+        // Cummulative plot. For the unary variable, "Accesses" is just used to index into the cache data for
+        // accessing the x variable.
         const auto& p1 =
             m_numerator == Unary ? QPoint(newCacheData.at(Accesses).at(i).x(), 1) : newCacheData.at(m_numerator).at(i);
         const auto& p2 = m_denominator == Unary ? QPoint(newCacheData.at(Accesses).at(i).x(), 1)
@@ -446,6 +478,13 @@ void CachePlotWidget::updateRatioPlot() {
 
     axisY->setRange(m_minY, axisMaxY);
     axisX->setRange(m_ui->rangeSlider->minimumPosition(), m_ui->rangeSlider->maximumPosition());
+
+    updatePlotWarningButton();
+}
+
+void CachePlotWidget::updatePlotWarningButton() {
+    m_ui->maxCyclesButton->setVisible(m_lastCyclePlotted >=
+                                      RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt());
 }
 
 void CachePlotWidget::resetRatioPlot() {
@@ -469,6 +508,7 @@ void CachePlotWidget::resetRatioPlot() {
     }
 
     updateRatioPlot();
+    updatePlotWarningButton();
 }
 
 void CachePlotWidget::updateHitrate() {

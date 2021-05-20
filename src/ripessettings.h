@@ -23,6 +23,7 @@ namespace Ripes {
 #define RIPES_SETTING_ASSEMBLER_BSSSTART ("bss_start")
 
 #define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
+#define RIPES_SETTING_CACHE_MAXCYCLES ("cacheplot_maxcycles")
 #define RIPES_SETTING_CACHE_MAXPOINTS ("cacheplot_maxpoints")
 #define RIPES_SETTING_CACHE_PRESETS ("cache_presets")
 #define RIPES_SETTING_PERIPHERAL_SETTINGS ("peripheral_settings")

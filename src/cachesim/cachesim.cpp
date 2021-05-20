@@ -27,7 +27,6 @@ CacheSim::CacheSim(QObject* parent) : CacheInterface(parent) {
         // Given that we are not updating the graphical state of the cache simulator whilst the processor is running,
         // once running is finished, the entirety of the cache view should be reloaded in the graphical view.
         emit hitrateChanged();
-        emit cacheInvalidated();
     });
 
     updateConfiguration();
