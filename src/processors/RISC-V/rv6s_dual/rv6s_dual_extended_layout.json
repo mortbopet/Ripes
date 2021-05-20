@@ -59564,7 +59564,7 @@
             "Italic": false,
             "PtSize": 18,
             "Text": {
-                "str": "5-Stage dual-issue RISC-V processor"
+                "str": "6-Stage dual-issue RISC-V processor"
             },
             "Pos": {
                 "x": 977.4390827081518,
