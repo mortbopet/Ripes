@@ -125,12 +125,11 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
             }
 
             // If there is an invalid cache line, select that
-            for (auto& way : cacheLine) {
-                if (!way.second.valid) {
-                    ew.first = way.first;
-                    ew.second = &way.second;
-                    break;
-                }
+            auto it =
+                std::find_if(cacheLine.begin(), cacheLine.end(), [=](const auto& way) { return !way.second.valid; });
+            if (it != cacheLine.end()) {
+                ew.first = it->first;
+                ew.second = &it->second;
             }
             if (ew.second == nullptr) {
                 // Else, Find LRU way

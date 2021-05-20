@@ -57,7 +57,7 @@ class tst_Cosimulate : public QObject {
     Q_OBJECT
 
 public:
-    explicit tst_Cosimulate(){};
+    explicit tst_Cosimulate() {}
 
 private:
     void cosimulate(const ProcessorID& id, const QStringList& extensions);

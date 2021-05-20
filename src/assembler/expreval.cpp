@@ -30,7 +30,7 @@ struct Nothing : Printable {
 };
 
 struct Literal : Printable {
-    Literal(QString _v) : v(_v) {}
+    explicit Literal(const QString& _v) : v(_v) {}
     QString v;
     void print(std::ostream& str) const override;
 };
@@ -191,7 +191,7 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
         return {*err};
     }
 
-    auto& res = std::get<std::shared_ptr<Expr>>(left);
+    const auto& res = std::get<std::shared_ptr<Expr>>(left);
     if (pos < s.length()) {
         auto& ch = s.at(pos);
         pos++;
