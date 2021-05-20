@@ -372,7 +372,7 @@ public:
         }
 
         // Got match, disassemble
-        auto tokens = std::get<const Instruction*>(match)->disassemble(word, baseAddress, symbols);
+        auto tokensVar = std::get<const Instruction*>(match)->disassemble(word, baseAddress, symbols);
         if (auto* error = std::get_if<Error>(&match)) {
             // Error during disassembling
             return {"invalid instruction", *error};
@@ -380,7 +380,8 @@ public:
 
         // Join tokens
         QString joinedLine;
-        for (const auto& token : std::get<LineTokens>(tokens)) {
+        const auto tokens = std::get<LineTokens>(tokensVar);
+        for (const auto& token : qAsConst(tokens)) {
             joinedLine += token + " ";
         }
         joinedLine.chop(1);  // remove trailing ' '

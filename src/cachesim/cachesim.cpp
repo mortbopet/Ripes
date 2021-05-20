@@ -463,7 +463,7 @@ void CacheSim::processorWasClocked() {
                 return;
         }
 
-        if (m_memory.rw->mem->accessRegion() == vsrtl::core::AddressSpace::RegionType::IO) {
+        if (m_memory.rw && m_memory.rw->mem->accessRegion() == vsrtl::core::AddressSpace::RegionType::IO) {
             // Skip accesses to IO (write-through)
             return;
         }

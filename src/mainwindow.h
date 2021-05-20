@@ -46,7 +46,6 @@ private slots:
     void processorUpdated() { emit updateMemoryTab(); }
 
 signals:
-    void update();
     void updateMemoryTab();
 
 private:

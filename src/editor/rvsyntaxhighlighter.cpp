@@ -23,7 +23,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
                      << "\\bgp\\b"
                      << "\\btp\\b"
                      << "\\bfp\\b";
-    for (const auto& pattern : registerPatterns) {
+    for (const auto& pattern : qAsConst(registerPatterns)) {
         rule.pattern = QRegularExpression(pattern);
         rule.format = registerFormat;
         m_highlightingRules.append(rule);

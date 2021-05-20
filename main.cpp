@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     m.resize(800, 600);
     m.showMaximized();
     m.setWindowState(Qt::WindowMaximized);
-    QTimer::singleShot(100, [&m] { m.fitToView(); });
+    QTimer::singleShot(100, &m, [&m] { m.fitToView(); });
 
     return app.exec();
 }

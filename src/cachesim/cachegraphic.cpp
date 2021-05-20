@@ -280,8 +280,10 @@ void CacheGraphic::cacheParametersChanged() {
     // Remove all items
     m_highlightingItems.clear();
     m_cacheTextItems.clear();
-    for (const auto& item : childItems())
+    const auto children = childItems();
+    for (const auto& item : qAsConst(children)) {
         delete item;
+    }
 
     // Determine cell dimensions
     m_setHeight = m_fm.height();

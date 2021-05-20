@@ -114,7 +114,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
         if (m_selectedExtensionsForID[desc.id].contains(ext)) {
             chkbox->setChecked(true);
         }
-        connect(chkbox, &QCheckBox::toggled, [=](bool toggled) {
+        connect(chkbox, &QCheckBox::toggled, this, [=](bool toggled) {
             if (toggled) {
                 m_selectedExtensionsForID[id] << ext;
             } else {

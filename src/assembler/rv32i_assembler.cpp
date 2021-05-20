@@ -35,7 +35,7 @@ std::tuple<InstrVec, PseudoInstrVec> RV32I_Assembler::initInstructions(const ISA
     PseudoInstrVec pseudoInstructions;
 
     enableExtI(isa, instructions, pseudoInstructions);
-    for (auto extension : isa->enabledExtensions()) {
+    for (const auto &extension : isa->enabledExtensions()) {
         switch (extension.unicode()->toLatin1()) {
             case 'M':
                 enableExtM(isa, instructions, pseudoInstructions);

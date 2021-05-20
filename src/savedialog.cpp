@@ -54,7 +54,7 @@ void SaveDialog::openFileButtonTriggered() {
     QFileDialog dialog(this);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     if (dialog.exec()) {
-        m_ui->filePath->setText(dialog.selectedFiles()[0]);
+        m_ui->filePath->setText(dialog.selectedFiles().at(0));
     }
 }
 

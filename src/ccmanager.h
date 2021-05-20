@@ -53,7 +53,7 @@ signals:
      * @brief ccChanged
      * Emitted whenever the current CC path changed. @param res contains information regarding the compiler validation.
      */
-    void ccChanged(CCRes res);
+    void ccChanged(CCManager::CCRes res);
 
 public slots:
     /**

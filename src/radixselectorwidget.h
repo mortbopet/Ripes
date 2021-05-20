@@ -20,7 +20,7 @@ public:
     void setRadix(Radix r);
 
 signals:
-    void radixChanged(Radix r);
+    void radixChanged(Ripes::Radix r);
 
 private:
     Ui::RadixSelectorWidget* m_ui = nullptr;

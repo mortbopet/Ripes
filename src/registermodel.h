@@ -38,7 +38,7 @@ signals:
      * @brief registerChanged
      * Emitted whenever the value of register @param i changes
      */
-    void registerChanged(unsigned i) const;
+    void registerChanged(unsigned i);
 
 private:
     std::vector<uint32_t> gatherRegisterValues();

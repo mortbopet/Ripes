@@ -89,13 +89,14 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     m_vsrtlWidget->setLocked(true);
 
     m_stageModel = new StageTableModel(this);
-    connect(this, &ProcessorTab::update, m_stageModel, &StageTableModel::processorWasClocked);
+    connect(this, &ProcessorTab::updateProcessorTab, m_stageModel, &StageTableModel::processorWasClocked);
 
     updateInstructionModel();
     m_ui->registerContainerWidget->initialize();
-    connect(this, &ProcessorTab::update, m_ui->registerContainerWidget, &RegisterContainerWidget::updateView);
-    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateStatistics);
-    connect(this, &ProcessorTab::update, this, &ProcessorTab::updateInstructionLabels);
+    connect(this, &ProcessorTab::updateProcessorTab, m_ui->registerContainerWidget,
+            &RegisterContainerWidget::updateView);
+    connect(this, &ProcessorTab::updateProcessorTab, this, &ProcessorTab::updateStatistics);
+    connect(this, &ProcessorTab::updateProcessorTab, this, &ProcessorTab::updateInstructionLabels);
 
     setupSimulatorActions(controlToolbar);
 
@@ -203,7 +204,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_autoClockAction->setShortcut(QKeySequence("F6"));
     m_autoClockAction->setToolTip("Clock the circuit with the selected frequency (F6)");
     m_autoClockAction->setCheckable(true);
-    connect(m_autoClockAction, &QAction::toggled, [=](bool checked) {
+    connect(m_autoClockAction, &QAction::toggled, this, [=](bool checked) {
         if (!checked) {
             timer->stop();
             m_autoClockAction->setIcon(startAutoClockIcon);
@@ -352,7 +353,7 @@ void ProcessorTab::processorSelection() {
         if (m_displayValuesAction->isChecked()) {
             m_vsrtlWidget->setOutputPortValuesVisible(true);
         }
-        update();
+        emit updateProcessorTab();
     }
 }
 
@@ -375,7 +376,7 @@ void ProcessorTab::updateInstructionModel() {
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
                                                                     QHeaderView::Stretch);
 
-    connect(this, &ProcessorTab::update, m_instrModel, &InstructionModel::processorWasClocked);
+    connect(this, &ProcessorTab::updateProcessorTab, m_instrModel, &InstructionModel::processorWasClocked);
 
     // Make the instruction view follow the instruction which is currently present in the first stage of the processor
     connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
@@ -387,7 +388,7 @@ void ProcessorTab::updateInstructionModel() {
 
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
-    emit update();
+    emit updateProcessorTab();
     enableSimulatorControls();
 }
 
@@ -445,7 +446,7 @@ void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
     m_stageModel->reset();
-    emit update();
+    emit updateProcessorTab();
     emit processorWasReset();
 
     enableSimulatorControls();
@@ -473,7 +474,7 @@ void ProcessorTab::runFinished() {
     pause();
     ProcessorHandler::checkProcessorFinished();
     m_statUpdateTimer->stop();
-    emit update();
+    emit updateProcessorTab();
 }
 
 void ProcessorTab::run(bool state) {
@@ -508,7 +509,7 @@ void ProcessorTab::run(bool state) {
 void ProcessorTab::reverse() {
     m_vsrtlWidget->reverse();
     enableSimulatorControls();
-    emit update();
+    emit updateProcessorTab();
 }
 
 void ProcessorTab::clock() {
@@ -520,7 +521,7 @@ void ProcessorTab::clock() {
     ProcessorHandler::checkProcessorFinished();
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 
-    emit update();
+    emit updateProcessorTab();
 }
 
 void ProcessorTab::showStageTable() {

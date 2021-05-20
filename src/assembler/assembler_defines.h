@@ -26,7 +26,7 @@ public:
 private:
     QString m_relocation;
 };
-using LineTokens = QList<Token>;
+using LineTokens = QVector<Token>;
 using LineTokensVec = std::vector<LineTokens>;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;

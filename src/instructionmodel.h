@@ -53,7 +53,7 @@ signals:
      * Emitted whenever the PC of the first stage, changed. Argument is the address of the instruction now present in
      * the first stage.
      */
-    void firstStageInstrChanged(uint32_t) const;
+    void firstStageInstrChanged(uint32_t);
 
 private:
     void gatherStageInfo();

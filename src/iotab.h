@@ -32,7 +32,7 @@ public:
 private slots:
 
     /** The following to slots ensures synchronization between the current MDI window and peripheral tab */
-    void setPeripheralTabActive(IOBase* peripheral);
+    void setPeripheralTabActive(Ripes::IOBase* peripheral);
     void setPeripheralMDIWindowActive(int tabIndex);
 
 private:

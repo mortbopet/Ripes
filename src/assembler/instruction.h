@@ -188,12 +188,12 @@ struct Imm : public Field {
         } else {
             uvalue = immToken.toUInt(&success, 10);
         }
-        if (!success && immToken.toUpper().startsWith(QStringLiteral("0X"))) {
+        if (!success && immToken.startsWith(QLatin1String("0X"), Qt::CaseInsensitive)) {
             uvalue = immToken.toUInt(&success, 16);
             svalue = uvalue;
         }
-        if (!success && immToken.toUpper().startsWith(QStringLiteral("0B"))) {
-            uvalue = immToken.right(immToken.length() - 2).toUInt(&success, 2);
+        if (!success && immToken.startsWith(QLatin1String("0B"), Qt::CaseInsensitive)) {
+            uvalue = immToken.rightRef(immToken.length() - 2).toUInt(&success, 2);
             svalue = uvalue;
         }
 

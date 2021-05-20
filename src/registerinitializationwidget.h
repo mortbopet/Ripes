@@ -39,7 +39,7 @@ public:
     void processorSelectionChanged(ProcessorID id);
 
 private slots:
-    RegInitWidgets* addRegisterInitialization(unsigned regIdx);
+    RegisterInitializationWidget::RegInitWidgets* addRegisterInitialization(unsigned regIdx);
 
 private:
     void updateAddButtonState();

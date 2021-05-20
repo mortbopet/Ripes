@@ -168,7 +168,7 @@ QWidget* SettingsDialog::createCompilerPage() {
         QFileDialog dialog(this);
         dialog.setAcceptMode(QFileDialog::AcceptOpen);
         if (dialog.exec()) {
-            ccpath->setText(dialog.selectedFiles()[0]);
+            ccpath->setText(dialog.selectedFiles().at(0));
         }
     });
 

@@ -175,8 +175,6 @@ std::pair<QString, QStringList> CCManager::createCompileCommand(const QStringLis
      * - %6: output executable
      * - %7: user linker arguments
      */
-    const static QString s_baseCC = "%1 -march=%2 -mabi=%3 %4 -x c %5 -o %6 %7";
-
     QStringList compileCommand;
 
     // Compiler path
@@ -210,7 +208,6 @@ CCManager::CCRes CCManager::verifyCC(const QString& CCPath) {
 
     CCRes res;
     const auto compilerExecInfo = QFileInfo(m_currentCC);
-    auto abs = compilerExecInfo.absolutePath();
 
     if (m_currentCC.isEmpty()) {
         res.errorMessage = "No path specified";

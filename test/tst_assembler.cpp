@@ -99,8 +99,6 @@ void tst_Assembler::tst_riscv() {
         auto res = assembler.assembleRaw(program);
         if (res.errors.size() != 0) {
             res.errors.print();
-            auto errmsg = filename + ": error during assembling!";
-            // QFAIL(errmsg.toStdString().c_str());
         }
     };
 

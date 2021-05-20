@@ -18,7 +18,8 @@ CacheView::CacheView(QWidget* parent) : QGraphicsView(parent) {
 void CacheView::mousePressEvent(QMouseEvent* event) {
     // If we press on a cache data block, get the address stored for that block and emit a signal indicating that the
     // address was selected through the cache
-    for (const auto& item : items(event->pos())) {
+    const auto viewItems = items(event->pos());
+    for (const auto& item : qAsConst(viewItems)) {
         if (auto* textItem = dynamic_cast<QGraphicsSimpleTextItem*>(item)) {
             const QVariant userData = textItem->data(Qt::UserRole);
             if (userData.isValid()) {

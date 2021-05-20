@@ -85,9 +85,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setupMenus();
 
     // setup and connect widgets
-    connect(m_processorTab, &ProcessorTab::update, this, &MainWindow::updateMemoryTab);
-    connect(m_processorTab, &ProcessorTab::update, m_editTab, &EditTab::updateProgramViewerHighlighting);
-    connect(this, &MainWindow::update, m_processorTab, &ProcessorTab::restart);
+    connect(m_processorTab, &ProcessorTab::updateProcessorTab, this, &MainWindow::updateMemoryTab);
+    connect(m_processorTab, &ProcessorTab::updateProcessorTab, m_editTab, &EditTab::updateProgramViewerHighlighting);
     connect(this, &MainWindow::updateMemoryTab, m_memoryTab, &MemoryTab::update);
     connect(m_stackedTabs, &QStackedWidget::currentChanged, m_memoryTab, &MemoryTab::update);
     connect(m_editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
@@ -204,7 +203,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     auto* assemblyMenu = parent->addMenu("Assembly");
     if (!assemblyExamples.isEmpty()) {
         for (const auto& fileName : assemblyExamples) {
-            assemblyMenu->addAction(fileName, [=] {
+            assemblyMenu->addAction(fileName, this, [=] {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = SourceType::Assembly;
@@ -218,7 +217,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     auto* cMenu = parent->addMenu("C");
     if (!cExamples.isEmpty()) {
         for (const auto& fileName : cExamples) {
-            cMenu->addAction(fileName, [=] {
+            cMenu->addAction(fileName, this, [=] {
                 LoadFileParams parms;
                 parms.filepath = QString(":/examples/C/") + fileName;
                 parms.type = SourceType::C;
@@ -232,7 +231,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
     auto* elfMenu = parent->addMenu("ELF (precompiled C)");
     if (!ELFExamples.isEmpty()) {
         for (const auto& fileName : ELFExamples) {
-            elfMenu->addAction(fileName, [=] {
+            elfMenu->addAction(fileName, this, [=] {
                 // ELFIO Cannot read directly from the bundled resource file, so copy the ELF file to a temporary file
                 // before loading the program.
                 QTemporaryFile* tmpELFFile = QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);

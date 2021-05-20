@@ -19,13 +19,16 @@ namespace Ripes {
 
 class ToggleButton : public QAbstractButton {
     Q_OBJECT
-    Q_PROPERTY(int mOffset READ offset WRITE setOffset);
+    Q_PROPERTY(int mOffset READ offset WRITE setOffset NOTIFY mOffsetChanged);
 
 public:
     explicit ToggleButton(int trackRadius, int thumbRadius, bool rotated, QWidget* parent = nullptr);
     ~ToggleButton();
 
     QSize sizeHint() const override;
+
+signals:
+    void mOffsetChanged(int);
 
 protected:
     void paintEvent(QPaintEvent*) override;

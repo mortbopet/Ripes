@@ -36,7 +36,7 @@ public:
     void initRegWidget();
 
 signals:
-    void update();
+    void updateProcessorTab();
     void processorWasReset();
 
 public slots:

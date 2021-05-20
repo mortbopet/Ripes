@@ -138,7 +138,7 @@ public slots:
     void setBlocks(unsigned blocks);
     void setLines(unsigned lines);
     void setWays(unsigned ways);
-    void setPreset(const CachePreset& preset);
+    void setPreset(const CacheSim::CachePreset& preset);
 
     /**
      * @brief processorWasClocked/processorWasReversed
@@ -149,7 +149,7 @@ public slots:
 
 signals:
     void configurationChanged();
-    void dataChanged(const CacheTransaction* transaction);
+    void dataChanged(const CacheSim::CacheTransaction* transaction);
     void hitrateChanged();
 
     // Signals that the entire cache line @p

@@ -55,6 +55,9 @@ const std::vector<LoadFileParams> s_testFiles = {
 class tst_Cosimulate : public QObject {
     Q_OBJECT
 
+public:
+    explicit tst_Cosimulate(){};
+
 private:
     void cosimulate(const ProcessorID& id, const QStringList& extensions);
     const Trace& generateReferenceTrace(const QStringList& extensions);
@@ -67,7 +70,7 @@ private:
     bool m_stop = false;
     QString m_err;
     LoadFileParams m_currentTest;
-    EditTab* m_loader;
+    EditTab* m_loader = nullptr;
 
     std::map<QString, Trace> m_referenceTraces;
 
