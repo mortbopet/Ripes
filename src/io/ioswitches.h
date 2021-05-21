@@ -71,6 +71,7 @@ public:
     virtual QString baseName() const override { return "Switches"; };
 
     virtual const std::vector<RegDesc>& registers() const override { return m_regDescs; };
+    virtual const std::vector<IOSymbol>* extraSymbols() const override { return &m_extraSymbols; }
 
     /**
      * Hardware read/write functions
@@ -88,5 +89,6 @@ private:
     std::map<unsigned, std::pair<QLabel*, ToggleButton*>> m_switches;
     QGridLayout* m_switchLayout;
     std::vector<RegDesc> m_regDescs;
+    std::vector<IOSymbol> m_extraSymbols;
 };
 }  // namespace Ripes

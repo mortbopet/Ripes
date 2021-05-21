@@ -16,9 +16,9 @@ unsigned* switch_base = SWITCHES_0_BASE;
 void main() {
     unsigned v = 0;
     while (1) {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < SWITCHES_0_N; i++) {
             if ((*switch_base >> i) & 0x1) {
-                *(led_base + i) = 0xFFFFFF;
+                *(led_base + i) = 0xFF << ((i % 3) * 8);
             } else {
                 *(led_base + i) = 0x0;
             }

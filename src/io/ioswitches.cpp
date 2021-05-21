@@ -162,6 +162,9 @@ void IOSwitches::updateSwitches() {
         }
     }
 
+    m_extraSymbols.clear();
+    m_extraSymbols.push_back(IOSymbol{"N", nSwitches});
+
     // Remove extra switches if # of switches was reduced
     std::vector<unsigned> idxToDelete;
     for (const auto& it : m_switches) {
