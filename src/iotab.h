@@ -47,6 +47,7 @@ private:
      */
     void loadPeripheralState();
     void storePeripheralState();
+    void updateIOSymbolFilePreview();
 
     void tile();
     Ui::IOTab* m_ui = nullptr;

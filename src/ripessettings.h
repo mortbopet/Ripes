@@ -23,12 +23,15 @@ namespace Ripes {
 #define RIPES_SETTING_ASSEMBLER_BSSSTART ("bss_start")
 
 #define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
-
+#define RIPES_SETTING_CACHE_MAXCYCLES ("cacheplot_maxcycles")
+#define RIPES_SETTING_CACHE_MAXPOINTS ("cacheplot_maxpoints")
+#define RIPES_SETTING_CACHE_PRESETS ("cache_presets")
 #define RIPES_SETTING_PERIPHERAL_SETTINGS ("peripheral_settings")
 
 // This is not really a setting, but instead a method to leverage the static observer objects that are generated for a
 // setting. Used for other objects to hook into a signal emitted just before the application closes.
 #define RIPES_GLOBALSIGNAL_QUIT ("sig_quit")
+#define RIPES_GLOBALSIGNAL_REQRESET ("req_reset")
 
 // Program state preserving settings
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
@@ -39,6 +42,7 @@ namespace Ripes {
 #define RIPES_SETTING_INPUT_TYPE ("input_type")
 #define RIPES_SETTING_SOURCECODE ("sourcecode")
 #define RIPES_SETTING_DARKMODE ("darkmode")
+#define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
 
 // ============= Definitions of all default settings within Ripes ==============
 const extern std::map<QString, QVariant> s_defaultSettings;
@@ -62,6 +66,7 @@ signals:
 
 public slots:
     void setValue(const QVariant& value);
+    void trigger();
 
 private:
     QString m_key;

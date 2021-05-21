@@ -17,17 +17,14 @@ class MemoryTab;
 }
 
 class MemoryTab : public RipesTab {
+    friend class CacheTabWidget;
     Q_OBJECT
 
 public:
     MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
     ~MemoryTab() override;
 
-signals:
-    void reqProcessorReset();
-
-public slots:
-    void update();
+    void setCentralAddress(unsigned address);
 
 private:
     Ui::MemoryTab* m_ui = nullptr;

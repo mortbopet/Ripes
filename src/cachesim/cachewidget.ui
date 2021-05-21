@@ -27,14 +27,7 @@
       </widget>
      </item>
      <item>
-      <widget class="CacheView" name="cacheView">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
+      <widget class="CachePlotWidget" name="cachePlot" native="true"/>
      </item>
     </layout>
    </item>
@@ -48,9 +41,10 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>CacheView</class>
-   <extends>QGraphicsView</extends>
-   <header>cachesim/cacheview.h</header>
+   <class>CachePlotWidget</class>
+   <extends>QWidget</extends>
+   <header>cachesim/cacheplotwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

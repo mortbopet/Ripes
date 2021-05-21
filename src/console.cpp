@@ -64,7 +64,6 @@ void Console::backspace() {
 }
 
 void Console::keyPressEvent(QKeyEvent* e) {
-    bool backspacedBuffer = false;
     switch (e->key()) {
         case Qt::Key_Left:
         case Qt::Key_Right:
@@ -74,6 +73,7 @@ void Console::keyPressEvent(QKeyEvent* e) {
             break;
         default:
             if (!e->text().isEmpty()) {
+                bool backspacedBuffer = false;
                 const QString text = e->text();
                 // Buffer managing
                 if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {

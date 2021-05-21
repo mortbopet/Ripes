@@ -17,12 +17,21 @@ class MainWindow;
 class EditTab;
 class MemoryTab;
 class ProcessorTab;
+class CacheTab;
 class IOTab;
 class ProcessorHandler;
+class RipesTab;
 struct LoadFileParams;
+
+struct TabWidgets {
+    RipesTab* tab;
+    QToolBar* toolbar;
+};
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
+
+    enum TabIndex { EditTabID, ProcessorTabID, CacheTabID, MemoryTabID, IOTabID, NTabsID };
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
@@ -43,11 +52,6 @@ private slots:
     void settingsTriggered();
     void tabChanged(int index);
 
-    void processorUpdated() { emit updateMemoryTab(); }
-
-signals:
-    void updateMemoryTab();
-
 private:
     void loadFile(const QString& filename, SourceType type);
 
@@ -63,16 +67,7 @@ private:
 
     // Tabs
     QStackedWidget* m_stackedTabs = nullptr;
-
-    ProcessorTab* m_processorTab = nullptr;
-    EditTab* m_editTab = nullptr;
-    MemoryTab* m_memoryTab = nullptr;
-    IOTab* m_IOTab = nullptr;
-
-    QToolBar* m_controlToolbar = nullptr;
-    QToolBar* m_processorToolbar = nullptr;
-    QToolBar* m_editToolbar = nullptr;
-    QToolBar* m_memoryToolbar = nullptr;
-    QToolBar* m_IOToolbar = nullptr;
+    std::map<TabIndex, TabWidgets> m_tabWidgets;
+    TabIndex m_currentTabID = ProcessorTabID;
 };
 }  // namespace Ripes

@@ -4,6 +4,8 @@
 #include "cachesim.h"
 #include "processors/RISC-V/rv_memory.h"
 
+QT_FORWARD_DECLARE_CLASS(QGraphicsScene)
+
 using RVMemory = vsrtl::core::RVMemory<32, 32>;
 
 namespace Ripes {
@@ -21,15 +23,15 @@ public:
     explicit CacheWidget(QWidget* parent = nullptr);
     ~CacheWidget();
 
-    void setType(CacheSim::CacheType type);
+    void setNextLevelCache(std::shared_ptr<CacheSim>& cache);
 
-signals:
-    void cacheAddressSelected(uint32_t);
-    void configurationChanged();
+    std::shared_ptr<CacheSim>& getCacheSim() { return m_cacheSim; }
+    QGraphicsScene* getScene() { return m_scene.get(); }
 
 private:
     Ui::CacheWidget* m_ui;
-    CacheSim* m_cacheSim = nullptr;
+    std::shared_ptr<CacheSim> m_cacheSim;
+    std::unique_ptr<QGraphicsScene> m_scene;
 };
 
 }  // namespace Ripes

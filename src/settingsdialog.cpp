@@ -35,6 +35,9 @@ std::pair<QWidget*, QGridLayout*> constructPage() {
 template <typename T_TriggerWidget, typename T_EditWidget = T_TriggerWidget>
 std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settingName, const QString& labelText) {
     auto* label = new QLabel(labelText);
+    auto f = label->font();
+    f.setBold(true);
+    label->setFont(f);
 
     T_TriggerWidget* widget = new T_TriggerWidget();
 
@@ -264,10 +267,10 @@ QWidget* SettingsDialog::createSimulatorPage() {
     auto [rewindLabel, rewindSpinbox] =
         createSettingsWidgets<QSpinBox>(RIPES_SETTING_REWINDSTACKSIZE, "Max. undo cycles:");
     rewindSpinbox->setRange(0, INT_MAX);
-    appendToLayout({rewindLabel, rewindSpinbox}, pageLayout);
+    appendToLayout({rewindLabel, rewindSpinbox}, pageLayout, "Maximum cycles that the simulator is able to undo.");
 
-    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_PERIPHERALS_START, "I/O start address:"),
-                   pageLayout);
+    appendToLayout(createSettingsWidgets<HexSpinBox>(RIPES_SETTING_PERIPHERALS_START, "I/O start address:"), pageLayout,
+                   "Start address in the address space where peripherals will be allocated from, growing upwards");
 
     return pageWidget;
 }
@@ -277,19 +280,35 @@ QWidget* SettingsDialog::createEditorPage() {
 
     auto [indentLabel, indentSpinbox] = createSettingsWidgets<QSpinBox>(RIPES_SETTING_INDENTAMT, "Indent size:");
     indentSpinbox->setRange(0, 100);
-
-    pageLayout->addWidget(indentLabel, 0, 0);
-    pageLayout->addWidget(indentSpinbox, 0, 1);
+    appendToLayout({indentLabel, indentSpinbox}, pageLayout, "Indent size (in spaces) of tab characters.");
 
     return pageWidget;
 }
 
 QWidget* SettingsDialog::createEnvironmentPage() {
+    auto [pageWidget, pageLayout] = constructPage();
+
+    auto [maxcyclesLabel, maxcyclesSb] =
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXCYCLES, "Max. cache plot cycles");
+    maxcyclesSb->setMinimum(0);
+    appendToLayout({maxcyclesLabel, maxcyclesSb}, pageLayout,
+                   "Maximum number of cache cycles to plot. Increasing this may incur substantial slowdown for long "
+                   "time executing programs, given the number of points to be plotted.");
+
+    auto [maxPointsLabel, maxPointsSb] =
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXPOINTS, "Min. cache plot points:");
+    maxPointsSb->setMinimum(2);
+    appendToLayout(
+        {maxPointsLabel, maxPointsSb}, pageLayout,
+        "Minimum number of points to be kept in the cache plot. Once 2x this amount is reached, the cache "
+        "plot will be resampled to this minimum value, and new points will be added based on the sampling "
+        "rate after the resampling. This resampling allows for real-time plotting regardless of the number of "
+        "simulation cycles.");
+
+    // Console settings
     auto* consoleGroupBox = new QGroupBox("Console");
     auto* consoleLayout = new QGridLayout();
     consoleGroupBox->setLayout(consoleLayout);
-
-    auto [pageWidget, pageLayout] = constructPage();
 
     appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO, "Echo console input:"), consoleLayout);
     appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_CONSOLEFONT, "Console font:"),
@@ -300,16 +319,28 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     appendToLayout(
         createSettingsWidgets<QPushButton, QColorDialog>(RIPES_SETTING_CONSOLEBG, "Console background color:"),
         consoleLayout);
-
-    pageLayout->addWidget(consoleGroupBox);
+    appendToLayout(consoleGroupBox, pageLayout);
 
     return pageWidget;
 }
 
-void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout) {
+void SettingsDialog::appendToLayout(QGroupBox* groupBox, QGridLayout* pageLayout, int colSpan) {
+    pageLayout->addWidget(groupBox, pageLayout->rowCount(), 0, 1, colSpan);
+}
+
+void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
+                                    const QString& description) {
     const unsigned row = pageLayout->rowCount();
     pageLayout->addWidget(settingsWidgets.first, row, 0);
     pageLayout->addWidget(settingsWidgets.second, row, 1);
+    if (!description.isEmpty()) {
+        auto* desc = new QLabel(description, this);
+        auto f = desc->font();
+        f.setPointSize(f.pointSize() * 0.9);
+        desc->setFont(f);
+        desc->setWordWrap(true);
+        pageLayout->addWidget(desc, row + 1, 0);
+    }
 }
 
 void SettingsDialog::addPage(const QString& name, QWidget* page) {

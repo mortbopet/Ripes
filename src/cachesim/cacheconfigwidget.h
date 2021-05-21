@@ -16,24 +16,22 @@ public:
     CacheConfigWidget(QWidget* parent);
     ~CacheConfigWidget() override;
 
-    void setCache(CacheSim* cache);
+    void setCache(std::shared_ptr<CacheSim>& cache);
 
 signals:
     void configurationChanged();
 
 public slots:
-    void updateHitrate();
     void handleConfigurationChanged();
-    void showCachePlot();
 
 private:
-    void updateCacheSize();
-    void updateIndexingText();
     void setupPresets();
     void showSizeBreakdown();
-    CacheSim* m_cache;
+    std::shared_ptr<CacheSim> m_cache;
     Ui::CacheConfigWidget* m_ui = nullptr;
     std::vector<QObject*> m_configItems;
+    void storePreset();
+    void removePreset();
 
     /**
      * @brief m_justSetPreset
@@ -47,7 +45,7 @@ private:
 }  // namespace Ripes
 
 // Qt Metatypes for enum combo boxes
-Q_DECLARE_METATYPE(Ripes::CacheSim::WritePolicy);
-Q_DECLARE_METATYPE(Ripes::CacheSim::WriteAllocPolicy);
-Q_DECLARE_METATYPE(Ripes::CacheSim::ReplPolicy);
-Q_DECLARE_METATYPE(Ripes::CacheSim::CachePreset);
+Q_DECLARE_METATYPE(Ripes::WritePolicy);
+Q_DECLARE_METATYPE(Ripes::WriteAllocPolicy);
+Q_DECLARE_METATYPE(Ripes::ReplPolicy);
+Q_DECLARE_METATYPE(Ripes::CachePreset);

@@ -6,6 +6,7 @@
 QT_FORWARD_DECLARE_CLASS(QLineEdit);
 QT_FORWARD_DECLARE_CLASS(QLabel);
 QT_FORWARD_DECLARE_CLASS(QGridLayout);
+QT_FORWARD_DECLARE_CLASS(QGroupBox);
 
 namespace Ripes {
 
@@ -40,7 +41,9 @@ private:
     Ui::SettingsDialog* m_ui;
 
     void addPage(const QString& name, QWidget* page);
-    void appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout);
+    void appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
+                        const QString& description = QString());
+    void appendToLayout(QGroupBox* groupBox, QGridLayout* pageLayout, int colSpan = 2);
 
     std::map<QString, int> m_pageIndex;
 };

@@ -84,17 +84,14 @@ void ToggleButton::paintEvent(QPaintEvent*) {
     qreal thumbOpacity = 1.0;
     QBrush trackBrush;
     QBrush thumbBrush;
-    QColor textColor;
 
     if (this->isEnabled()) {
         trackBrush = mTrackColor[check];
         thumbBrush = mThumbColor[check];
-        textColor = mTextColor[check];
     } else {
         trackOpacity *= 0.8;
         trackBrush = this->palette().shadow();
         thumbBrush = this->palette().mid();
-        textColor = this->palette().shadow().color();
     }
 
     p.setBrush(trackBrush);
@@ -165,6 +162,9 @@ void IOSwitches::updateSwitches() {
         }
     }
 
+    m_extraSymbols.clear();
+    m_extraSymbols.push_back(IOSymbol{"N", nSwitches});
+
     // Remove extra switches if # of switches was reduced
     std::vector<unsigned> idxToDelete;
     for (const auto& it : m_switches) {
@@ -190,11 +190,9 @@ void IOSwitches::updateSwitches() {
 }
 
 uint32_t IOSwitches::ioRead(uint32_t, unsigned) {
-    uint32_t value = 0;
-    for (const auto& sw : m_switches) {
-        value |= (sw.second.second->isChecked()) << sw.first;
-    }
-    return value;
+    return std::accumulate(m_switches.begin(), m_switches.end(), 0, [=](uint32_t acc, const auto& sw) {
+        return acc | (sw.second.second->isChecked()) << sw.first;
+    });
 }
 
 void IOSwitches::ioWrite(uint32_t, uint32_t, unsigned) {

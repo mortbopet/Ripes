@@ -13,8 +13,8 @@ private slots:
 
 void expect(std::variant<Error, long> res, long expected) {
     if (auto* err = std::get_if<Error>(&res)) {
-        Q_UNUSED(err);
-        QFAIL("Got error");
+        QString errstr = "Got error: " + err->second;
+        QFAIL(errstr.toStdString().c_str());
     }
     QCOMPARE(std::get<long>(res), expected);
 }

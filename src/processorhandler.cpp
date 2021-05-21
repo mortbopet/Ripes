@@ -69,7 +69,7 @@ void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
         m_breakpoints.erase(bp);
     }
 
-    emit reqProcessorReset();
+    RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 }
 
 void ProcessorHandler::_writeMem(uint32_t address, uint32_t value, int size) {
@@ -110,7 +110,10 @@ void ProcessorHandler::_run() {
     };
 
     // Start running through the VSRTL Widget interface
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, &ProcessorHandler::runFinished);
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] {
+        emit runFinished();
+        emit procStateChangedNonRun();
+    });
     connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] { ProcessorStatusManager::clearStatus(); });
 
     m_runWatcher.setFuture(m_vsrtlWidget->run(cycleFunctor));
@@ -202,7 +205,28 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         m_program = nullptr;
     }
 
+    // Reconnect the wrappers for processor signal emission
+    m_currentProcessor->designWasClocked.Connect(this, &ProcessorHandler::processorWasClockedWrapper);
+    m_currentProcessor->designWasReset.Connect(this, &ProcessorHandler::processorResetWrapper);
+    m_currentProcessor->designWasReversed.Connect(this, &ProcessorHandler::processorReversedWrapper);
+
     emit processorChanged();
+}
+
+void ProcessorHandler::processorWasClockedWrapper() {
+    emit processorClocked();
+    if (!_isRunning()) {
+        emit processorClockedNonRun();
+        emit procStateChangedNonRun();
+    }
+}
+void ProcessorHandler::processorResetWrapper() {
+    emit processorReset();
+    emit procStateChangedNonRun();
+}
+void ProcessorHandler::processorReversedWrapper() {
+    emit processorReversed();
+    emit procStateChangedNonRun();
 }
 
 int ProcessorHandler::_getCurrentProgramSize() const {

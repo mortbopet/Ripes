@@ -14,7 +14,7 @@ IOManager::IOManager() : QObject(nullptr) {
     // Always re-register the currently active peripherals when the processor changes
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
             &IOManager::refreshAllPeriphsToProcessor);
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &IOManager::refreshMemoryMap);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &IOManager::refreshMemoryMap);
 
     refreshMemoryMap();
 }
@@ -88,12 +88,15 @@ void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
     }
 }
 
-IOBase* IOManager::createPeripheral(IOType type) {
+IOBase* IOManager::createPeripheral(IOType type, unsigned forcedId) {
     auto* peripheral = IOFactories.at(type)(nullptr);
 
     connect(peripheral, &IOBase::sizeChanged, [=] { this->peripheralSizeChanged(peripheral); });
     connect(peripheral, &IOBase::aboutToDelete, [=](std::atomic<bool>& ok) { this->removePeripheral(peripheral, ok); });
 
+    if (forcedId != UINT_MAX) {
+        peripheral->setID(forcedId);
+    }
     m_peripherals.insert(peripheral);
     assignBaseAddress(peripheral);
     refreshMemoryMap();
@@ -135,8 +138,8 @@ void IOManager::refreshMemoryMap() {
         }
     }
 
-    emit memoryMapChanged();
     updateSymbols();
+    emit memoryMapChanged();
 }
 
 std::vector<std::pair<Symbol, uint32_t>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {

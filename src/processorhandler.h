@@ -150,13 +150,6 @@ signals:
     void processorChanged();
 
     /**
-     * @brief reqProcessorReset
-     *  Emitted whenever changes to the internal state of the processor has been made, and a reset of any depending
-     * widgets is required
-     */
-    void reqProcessorReset();
-
-    /**
      * @brief exit
      * end the current simulation, disallowing further clocking of the processor unless the processor is reset.
      */
@@ -175,6 +168,18 @@ signals:
      */
     void runStarted();
     void runFinished();
+
+    /**
+     * @brief Various signals wrapping around the direct VSRTL model emission signals. This is done to avoid relying
+     * component to having to reconnect to the VSRTL model whenever the processor changes.
+     */
+    void processorReset();
+    void processorReversed();
+    // Only connect to this if not updating gui!´ i.e., for logging statistics per cycle. Remember to use
+    // Qt::DirectConnection for the slot to be executed directly, instead of concurrently in the event loop.
+    void processorClocked();
+    void processorClockedNonRun();  // Only emitted when _not_ running; i.e., for GUI updating
+    void procStateChangedNonRun();  // processorReset | processorReversed | processorClockedNonRun
 
 public slots:
     void loadProgram(std::shared_ptr<Program> p);
@@ -219,6 +224,14 @@ private:
     bool _isRunning();
     void _run();
     void _stopRun();
+
+    /**
+     * @brief Wrapper functions for processor signal emissions. VSRTL's signal/slot library does not accept lambdas,
+     * which is why we have to make these explicit member functions.
+     */
+    void processorWasClockedWrapper();
+    void processorResetWrapper();
+    void processorReversedWrapper();
 
     void createAssemblerForCurrentISA();
     void setStopRunFlag();

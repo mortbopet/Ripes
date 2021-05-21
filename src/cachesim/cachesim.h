@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include <QDataStream>
 #include <QObject>
 
 #include "../external/VSRTL/core/vsrtl_register.h"
@@ -13,31 +14,83 @@ using RWMemory = vsrtl::core::RVMemory<32, 32>;
 using ROMMemory = vsrtl::core::ROM<32, 32>;
 
 namespace Ripes {
+class CacheSim;
 
-class CacheSim : public QObject {
+enum WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
+enum WritePolicy { WriteThrough, WriteBack };
+enum ReplPolicy { Random, LRU };
+
+struct CachePreset {
+    QString name;
+    int blocks;
+    int lines;
+    int ways;
+
+    WritePolicy wrPolicy;
+    WriteAllocPolicy wrAllocPolicy;
+    ReplPolicy replPolicy;
+
+    friend QDataStream& operator<<(QDataStream& arch, const CachePreset& object) {
+        arch << object.name;
+        arch << object.blocks;
+        arch << object.lines;
+        arch << object.ways;
+        arch << object.wrPolicy;
+        arch << object.wrAllocPolicy;
+        arch << object.replPolicy;
+        return arch;
+    }
+
+    friend QDataStream& operator>>(QDataStream& arch, CachePreset& object) {
+        arch >> object.name;
+        arch >> object.blocks;
+        arch >> object.lines;
+        arch >> object.ways;
+        arch >> object.wrPolicy;
+        arch >> object.wrAllocPolicy;
+        arch >> object.replPolicy;
+        return arch;
+    }
+
+    bool operator==(const CachePreset& other) const { return this->name == other.name; }
+};
+
+class CacheInterface : public QObject {
+    Q_OBJECT
+public:
+    CacheInterface(QObject* parent) : QObject(parent) {}
+    enum class AccessType { Read, Write };
+
+    /**
+     * @brief access
+     * A function called by the logical "child" of this cache, indicating that it desires to access this cache
+     */
+    virtual void access(uint32_t address, AccessType type) = 0;
+    void setNextLevelCache(std::shared_ptr<CacheSim>& cache) { m_nextLevelCache = cache; }
+
+    /**
+     * @brief reset
+     * Called by the logical child of this cache to  propagating cache resetting or reversing up the cache hierarchy.
+     */
+    virtual void reset();
+    virtual void reverse();
+
+protected:
+    /**
+     * @brief m_nextLevelCache
+     * Pointer to the next level (logical parent) cache.
+     */
+    std::shared_ptr<CacheSim> m_nextLevelCache;
+};
+
+class CacheSim : public CacheInterface {
     Q_OBJECT
 public:
     static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
 
-    enum class WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
-    enum class WritePolicy { WriteThrough, WriteBack };
-    enum class ReplPolicy { Random, LRU };
-    enum class AccessType { Read, Write };
-    enum class CacheType { DataCache, InstrCache };
-
     struct CacheSize {
         unsigned bits = 0;
         std::vector<QString> components;
-    };
-
-    struct CachePreset {
-        int blocks;
-        int lines;
-        int ways;
-
-        WritePolicy wrPolicy;
-        WriteAllocPolicy wrAllocPolicy;
-        ReplPolicy replPolicy;
     };
 
     struct CacheWay {
@@ -59,6 +112,10 @@ public:
             Q_ASSERT(line != s_invalidIndex && "Cache line index is invalid");
             Q_ASSERT(way != s_invalidIndex && "Cache way index is invalid");
             Q_ASSERT(block != s_invalidIndex && "Cache block index is invalid");
+        }
+
+        bool operator==(const CacheIndex& other) const {
+            return this->line == other.line && this->way == other.way && this->block == other.block;
         }
     };
 
@@ -93,14 +150,13 @@ public:
     using CacheLine = std::map<unsigned, CacheWay>;
 
     CacheSim(QObject* parent);
-    void setType(CacheType type);
     void setWritePolicy(WritePolicy policy);
     void setWriteAllocatePolicy(WriteAllocPolicy policy);
     void setReplacementPolicy(ReplPolicy policy);
 
-    void access(uint32_t address, AccessType type);
+    void access(uint32_t address, AccessType type) override;
     void undo();
-    void processorReset();
+    void reset() override;
 
     WriteAllocPolicy getWriteAllocPolicy() const { return m_wrAllocPolicy; }
     ReplPolicy getReplacementPolicy() const { return m_replPolicy; }
@@ -138,14 +194,13 @@ public slots:
     void setBlocks(unsigned blocks);
     void setLines(unsigned lines);
     void setWays(unsigned ways);
-    void setPreset(const CacheSim::CachePreset& preset);
+    void setPreset(const CachePreset& preset);
 
     /**
-     * @brief processorWasClocked/processorWasReversed
-     * Slot functions for clocked/Reversed signals emitted by the currently attached processor.
+     * @brief reverse
+     * Slot functions for Reversed signals emitted by the currently attached processor.
      */
-    void processorWasClocked();
-    void processorWasReversed();
+    void reverse() override;
 
 signals:
     void configurationChanged();
@@ -175,17 +230,14 @@ private:
     std::pair<unsigned, CacheSim::CacheWay*> locateEvictionWay(const CacheTransaction& transaction);
     CacheWay evictAndUpdate(CacheTransaction& transaction);
     void analyzeCacheAccess(CacheTransaction& transaction) const;
-    void updateConfiguration();
     void pushAccessTrace(const CacheTransaction& transaction);
     void popAccessTrace();
+
     /**
-     * @brief isAsynchronouslyAccessed
-     * If the processor is in its 'running' state, it is currently being executed in a separate thread. In this case,
-     * cache accessing is also performed asynchronously, and we do not want to perform any signalling to the GUI (the
-     * entirety of the graphical representation of the cache is invalidated and redrawn upon asynchronous running
-     * finishing).
+     * @brief updateConfiguration
+     * Called whenever one of the cache parameters changes. Emits signal configurationChanged after updating.
      */
-    bool isAsynchronouslyAccessed() const;
+    void updateConfiguration();
 
     /**
      * @brief reassociateMemory
@@ -204,18 +256,6 @@ private:
     int m_blocks = 2;  // Some power of 2
     int m_lines = 5;   // Some power of 2
     int m_ways = 0;    // Some power of 2
-
-    /**
-     * @brief m_memory
-     * The cache simulator may be attached to either a ROM or a Read/Write memory element. Accessing the underlying
-     * VSRTL component signals are dependent on the given type of the memory.
-     */
-    CacheType m_type;
-    union {
-        RWMemory const* rw = nullptr;
-        ROMMemory const* rom;
-
-    } m_memory;
 
     /**
      * @brief m_cacheLines
@@ -259,14 +299,13 @@ private:
     void pushTrace(const CacheTrace& trace);
 };
 
-const static std::map<CacheSim::ReplPolicy, QString> s_cacheReplPolicyStrings{{CacheSim::ReplPolicy::Random, "Random"},
-                                                                              {CacheSim::ReplPolicy::LRU, "LRU"}};
-const static std::map<CacheSim::WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
-    {CacheSim::WriteAllocPolicy::WriteAllocate, "Write allocate"},
-    {CacheSim::WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
+const static std::map<ReplPolicy, QString> s_cacheReplPolicyStrings{{ReplPolicy::Random, "Random"},
+                                                                    {ReplPolicy::LRU, "LRU"}};
+const static std::map<WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
+    {WriteAllocPolicy::WriteAllocate, "Write allocate"},
+    {WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
 
-const static std::map<CacheSim::WritePolicy, QString> s_cacheWritePolicyStrings{
-    {CacheSim::WritePolicy::WriteThrough, "Write-through"},
-    {CacheSim::WritePolicy::WriteBack, "Write-back"}};
+const static std::map<WritePolicy, QString> s_cacheWritePolicyStrings{{WritePolicy::WriteThrough, "Write-through"},
+                                                                      {WritePolicy::WriteBack, "Write-back"}};
 
 }  // namespace Ripes

@@ -37,7 +37,7 @@ public:
         return manager;
     }
 
-    IOBase* createPeripheral(IOType type);
+    IOBase* createPeripheral(IOType type, unsigned forcedId = UINT_MAX);
     void removePeripheral(IOBase* peripheral, std::atomic<bool>& ok);
     const MemoryMap& memoryMap() const { return m_memoryMap; }
 

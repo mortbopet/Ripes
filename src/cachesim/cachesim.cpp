@@ -10,34 +10,26 @@
 
 namespace Ripes {
 
-CacheSim::CacheSim(QObject* parent) : QObject(parent) {
-    connect(ProcessorHandler::get(), &ProcessorHandler::reqProcessorReset, this, &CacheSim::processorReset);
+void CacheInterface::reset() {
+    if (m_nextLevelCache) {
+        static_cast<CacheInterface*>(m_nextLevelCache.get())->reset();
+    }
+}
 
+void CacheInterface::reverse() {
+    if (m_nextLevelCache) {
+        static_cast<CacheInterface*>(m_nextLevelCache.get())->reverse();
+    }
+}
+
+CacheSim::CacheSim(QObject* parent) : CacheInterface(parent) {
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
         // Given that we are not updating the graphical state of the cache simulator whilst the processor is running,
         // once running is finished, the entirety of the cache view should be reloaded in the graphical view.
         emit hitrateChanged();
-        emit cacheInvalidated();
     });
 
     updateConfiguration();
-}
-
-void CacheSim::setType(CacheSim::CacheType type) {
-    m_type = type;
-    reassociateMemory();
-}
-
-void CacheSim::reassociateMemory() {
-    if (m_type == CacheType::DataCache) {
-        m_memory.rw = ProcessorHandler::getDataMemory();
-        Q_ASSERT(m_memory.rw != nullptr);
-    } else if (m_type == CacheType::InstrCache) {
-        m_memory.rom = ProcessorHandler::getInstrMemory();
-        Q_ASSERT(m_memory.rom != nullptr);
-    } else {
-        Q_ASSERT(false);
-    }
 }
 
 void CacheSim::updateCacheLineReplFields(CacheLine& line, unsigned wayIdx) {
@@ -132,12 +124,11 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
             }
 
             // If there is an invalid cache line, select that
-            for (auto& way : cacheLine) {
-                if (!way.second.valid) {
-                    ew.first = way.first;
-                    ew.second = &way.second;
-                    break;
-                }
+            auto it =
+                std::find_if(cacheLine.begin(), cacheLine.end(), [=](const auto& way) { return !way.second.valid; });
+            if (it != cacheLine.end()) {
+                ew.first = it->first;
+                ew.second = &it->second;
             }
             if (ew.second == nullptr) {
                 // Else, Find LRU way
@@ -250,7 +241,7 @@ void CacheSim::pushAccessTrace(const CacheTransaction& transaction) {
 
     m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
-    if (!isAsynchronouslyAccessed()) {
+    if (!ProcessorHandler::isRunning()) {
         emit hitrateChanged();
     }
 }
@@ -336,15 +327,9 @@ void CacheSim::access(uint32_t address, AccessType type) {
         return;
     }
 
-    if (isAsynchronouslyAccessed()) {
-        return;
+    if (!ProcessorHandler::isRunning()) {
+        emit dataChanged(&transaction);
     }
-
-    emit dataChanged(&transaction);
-}
-
-bool CacheSim::isAsynchronouslyAccessed() const {
-    return QThread::currentThread() != QApplication::instance()->thread();
 }
 
 void CacheSim::undo() {
@@ -435,47 +420,7 @@ const CacheSim::CacheLine* CacheSim::getLine(unsigned idx) const {
     }
 }
 
-void CacheSim::processorWasClocked() {
-    if (m_type == CacheType::DataCache) {
-        AccessType type;
-        // Determine whether the memory is being accessed in the current cycle, and if so, the access type.
-        switch (m_memory.rw->op.uValue()) {
-            case MemOp::SB:
-            case MemOp::SH:
-            case MemOp::SW:
-                if (m_memory.rw->wr_en.uValue() == 1) {
-                    type = AccessType::Write;
-                    break;
-                } else {
-                    // Nothing to do
-                    return;
-                }
-            case MemOp::LB:
-            case MemOp::LBU:
-            case MemOp::LH:
-            case MemOp::LHU:
-            case MemOp::LW:
-                type = AccessType::Read;
-                break;
-            case MemOp::NOP:
-            default:
-                // Nothing to do
-                return;
-        }
-
-        if (m_memory.rw && m_memory.rw->mem->accessRegion() == vsrtl::core::AddressSpace::RegionType::IO) {
-            // Skip accesses to IO (write-through)
-            return;
-        }
-
-        access(m_memory.rw->addr.uValue(), type);
-    } else {
-        // ROM; read in every cycle
-        access(m_memory.rom->addr.uValue(), AccessType::Read);
-    }
-}
-
-void CacheSim::processorWasReversed() {
+void CacheSim::reverse() {
     if (m_accessTrace.size() == 0) {
         // Nothing to reverse
         return;
@@ -489,80 +434,75 @@ void CacheSim::processorWasReversed() {
 
     // It is now safe to undo the cycle at the top of our access stack(s).
     undo();
+
+    CacheInterface::reverse();
 }
 
-void CacheSim::updateConfiguration() {
-    // Cache configuration changed. Reset all state
-    m_cacheLines.clear();
-    m_accessTrace.clear();
-    m_traceStack.clear();
-
-    // Recalculate masks
-    int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
-
-    m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
-    bitoffset += getBlockBits();
-
-    m_lineMask = generateBitmask(getLineBits()) << bitoffset;
-    bitoffset += getLineBits();
-
-    m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
-
-    // Reset the graphical view & processor
-    emit configurationChanged();
-
-    if (m_memory.rw || m_memory.rom) {
-        // Reload the initial (cycle 0) state of the processor. This is necessary to reflect ie. the instruction which
-        // is loaded from the instruction memory in cycle 0.
-        processorWasClocked();
-    }
-}
-
-void CacheSim::processorReset() {
+void CacheSim::reset() {
     /** see comment of m_isResetting */
     if (m_isResetting) {
         return;
     }
 
     m_isResetting = true;
-    // The processor might have changed. Since our signals/slot library cannot check for existing connection, we do the
-    // safe, slightly redundant, thing of disconnecting and reconnecting the VSRTL design update signals.
-    reassociateMemory();
-    auto* proc = ProcessorHandler::getProcessorNonConst();
-    proc->designWasClocked.Connect(this, &CacheSim::processorWasClocked);
-    proc->designWasReversed.Connect(this, &CacheSim::processorWasReversed);
-    proc->designWasReset.Connect(this, &CacheSim::processorReset);
 
-    updateConfiguration();
+    m_cacheLines.clear();
+    m_accessTrace.clear();
+    m_traceStack.clear();
+
+    int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
+    m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
+    bitoffset += getBlockBits();
+    m_lineMask = generateBitmask(getLineBits()) << bitoffset;
+    bitoffset += getLineBits();
+    m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
     m_isResetting = false;
+
+    emit hitrateChanged();
+    emit cacheInvalidated();
+
+    CacheInterface::reset();
+}
+
+void CacheSim::updateConfiguration() {
+    // Recalculate masks
+    int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
+    m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
+    bitoffset += getBlockBits();
+    m_lineMask = generateBitmask(getLineBits()) << bitoffset;
+    bitoffset += getLineBits();
+    m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
+    emit configurationChanged();
 }
 
 void CacheSim::setBlocks(unsigned blocks) {
     m_blocks = blocks;
-    processorReset();
+    updateConfiguration();
 }
+
 void CacheSim::setLines(unsigned lines) {
     m_lines = lines;
-    processorReset();
+    updateConfiguration();
 }
+
 void CacheSim::setWays(unsigned ways) {
     m_ways = ways;
-    processorReset();
+    updateConfiguration();
 }
 
 void CacheSim::setWritePolicy(WritePolicy policy) {
     m_wrPolicy = policy;
-    processorReset();
+    updateConfiguration();
 }
 
 void CacheSim::setWriteAllocatePolicy(WriteAllocPolicy policy) {
     m_wrAllocPolicy = policy;
-    processorReset();
+    updateConfiguration();
 }
 
 void CacheSim::setReplacementPolicy(ReplPolicy policy) {
     m_replPolicy = policy;
-    processorReset();
+    updateConfiguration();
 }
 
 void CacheSim::setPreset(const CachePreset& preset) {
@@ -573,7 +513,7 @@ void CacheSim::setPreset(const CachePreset& preset) {
     m_wrAllocPolicy = preset.wrAllocPolicy;
     m_replPolicy = preset.replPolicy;
 
-    processorReset();
+    updateConfiguration();
 }
 
 }  // namespace Ripes

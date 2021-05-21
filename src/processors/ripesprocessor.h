@@ -148,8 +148,8 @@ public:
     virtual void setPCInitialValue(uint32_t address) = 0;
 
     void reset() override {
-        Design::reset();
         m_instructionsRetired = 0;
+        Design::reset();
     }
 
     /**

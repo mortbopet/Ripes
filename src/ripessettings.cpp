@@ -1,5 +1,6 @@
 #include "ripessettings.h"
 #include "assembler/program.h"
+#include "cachesim/cachesim.h"
 
 #include <QCoreApplication>
 #include <map>
@@ -25,8 +26,21 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_ASSEMBLER_BSSSTART, 0x11000000},
     {RIPES_SETTING_PERIPHERALS_START, static_cast<unsigned>(0xF0000000)},
 
+    {RIPES_SETTING_CACHE_MAXCYCLES, 10000},
+    {RIPES_SETTING_CACHE_MAXPOINTS, 1000},
+    {RIPES_SETTING_CACHE_PRESETS,
+     QVariant::fromValue<QList<CachePreset>>(
+         {CachePreset{"32-entry 4-word direct-mapped", 2, 5, 0, WritePolicy::WriteBack, WriteAllocPolicy::WriteAllocate,
+                      ReplPolicy::LRU},
+          CachePreset{"32-entry 4-word fully associative", 2, 0, 5, WritePolicy::WriteBack,
+                      WriteAllocPolicy::WriteAllocate, ReplPolicy::LRU},
+          CachePreset{"32-entry 4-word 2-way set associative", 2, 4, 1, WritePolicy::WriteBack,
+                      WriteAllocPolicy::WriteAllocate, ReplPolicy::LRU}})},
+
     // Program state preserving settings
     {RIPES_GLOBALSIGNAL_QUIT, 0},
+    {RIPES_GLOBALSIGNAL_REQRESET, 0},
+
     {RIPES_SETTING_SETTING_TAB, 0},
     {RIPES_SETTING_VIEW_ZOOM, 250},
     {RIPES_SETTING_PERIPHERAL_SETTINGS, ""},
@@ -35,7 +49,8 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_FOLLOW_EXEC, "true"},
     {RIPES_SETTING_SOURCECODE, ""},
     {RIPES_SETTING_DARKMODE, false},
-    {RIPES_SETTING_INPUT_TYPE, static_cast<unsigned>(SourceType::Assembly)}};
+    {RIPES_SETTING_INPUT_TYPE, static_cast<unsigned>(SourceType::Assembly)},
+    {RIPES_SETTING_AUTOCLOCK_INTERVAL, 100}};
 
 void SettingObserver::setValue(const QVariant& v) {
     QSettings settings;
@@ -43,6 +58,10 @@ void SettingObserver::setValue(const QVariant& v) {
     settings.setValue(m_key, v);
 
     emit modified(value());
+}
+
+void SettingObserver::trigger() {
+    setValue(0);
 }
 
 QVariant SettingObserver::value() const {
@@ -58,6 +77,10 @@ RipesSettings::RipesSettings() {
     QCoreApplication::setOrganizationName("Ripes");
     QCoreApplication::setOrganizationDomain("https://github.com/mortbopet/Ripes");
     QCoreApplication::setApplicationName("Ripes");
+
+    // Serializer registrations
+    qRegisterMetaTypeStreamOperators<CachePreset>("cachePreset");
+    qRegisterMetaTypeStreamOperators<QList<CachePreset>>("cachePresetList");
 
     // Populate settings with default values if settings value is not found
     QSettings settings;
@@ -86,3 +109,4 @@ QVariant RipesSettings::value(const QString& key) {
 }
 
 }  // namespace Ripes
+Q_DECLARE_METATYPE(QList<Ripes::CachePreset>);

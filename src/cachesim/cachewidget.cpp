@@ -5,28 +5,33 @@
 #include <QGraphicsView>
 
 #include "cachegraphic.h"
+#include "cacheview.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 
 CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheWidget) {
     m_ui->setupUi(this);
 
-    auto* scene = new QGraphicsScene(this);
-    m_cacheSim = new CacheSim(this);
+    m_scene = std::make_unique<QGraphicsScene>(this);
+    m_cacheSim = std::make_shared<CacheSim>(this);
     m_ui->cacheConfig->setCache(m_cacheSim);
+    m_ui->cachePlot->setCache(m_cacheSim);
 
     auto* cacheGraphic = new CacheGraphic(*m_cacheSim);
-    m_ui->cacheView->setScene(scene);
-    scene->addItem(cacheGraphic);
+    m_scene->addItem(cacheGraphic);
+    connect(m_cacheSim.get(), &CacheSim::configurationChanged, [=] {
+        RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 
-    connect(m_ui->cacheView, &CacheView::cacheAddressSelected,
-            [=](uint32_t address) { emit cacheAddressSelected(address); });
-
-    connect(m_cacheSim, &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
+        auto cacheViews = m_scene->views();
+        if (cacheViews.size() > 0) {
+            static_cast<CacheView*>(cacheViews.at(0))->fitScene();
+        }
+    });
 }
 
-void CacheWidget::setType(CacheSim::CacheType type) {
-    m_cacheSim->setType(type);
+void CacheWidget::setNextLevelCache(std::shared_ptr<CacheSim>& cache) {
+    m_cacheSim.get()->setNextLevelCache(cache);
 }
 
 CacheWidget::~CacheWidget() {

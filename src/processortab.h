@@ -27,6 +27,7 @@ struct Layout;
 
 class ProcessorTab : public RipesTab {
     friend class RunDialog;
+    friend class MainWindow;
     Q_OBJECT
 
 public:
@@ -34,10 +35,6 @@ public:
     ~ProcessorTab() override;
 
     void initRegWidget();
-
-signals:
-    void updateProcessorTab();
-    void processorWasReset();
 
 public slots:
     void pause();
@@ -49,7 +46,7 @@ public slots:
     void runFinished();
     void updateStatistics();
     void updateInstructionLabels();
-    void fitToView();
+    void fitToScreen();
 
     void processorSelection();
 

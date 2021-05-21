@@ -29,9 +29,9 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 
     m_symbolNavigatorAction = new QAction(this);
     m_symbolNavigatorAction->setIcon(QIcon(":/icons/compass.svg"));
-    m_symbolNavigatorAction->setText("Navigate symbols");
+    m_symbolNavigatorAction->setText("Show symbol navigator");
     connect(m_symbolNavigatorAction, &QAction::triggered, this, &EditTab::showSymbolNavigator);
-    m_toolbar->addAction(m_symbolNavigatorAction);
+    m_ui->navigatorButton->setDefaultAction(m_symbolNavigatorAction);
 
     m_followAction = new QAction(this);
     m_followAction->setIcon(QIcon(":/icons/trace.svg"));
@@ -39,7 +39,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_followAction->setToolTip(
         "Follow program execution.\nEnsures that the instruction present in the\nfirst stage of the processor is "
         "always visible\nin the disassembled view.");
-    m_toolbar->addAction(m_followAction);
+    m_ui->followButton->setDefaultAction(m_followAction);
     connect(m_followAction, &QAction::triggered, m_ui->programViewer, &ProgramViewer::setFollowEnabled);
     m_followAction->setChecked(RipesSettings::value(RIPES_SETTING_FOLLOW_EXEC).toBool());
 
@@ -71,6 +71,8 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { m_buildAction->setEnabled(false); });
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &EditTab::updateProgramViewerHighlighting);
 
     onProcessorChanged();
     sourceTypeChanged();

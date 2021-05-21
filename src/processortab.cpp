@@ -89,14 +89,12 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     m_vsrtlWidget->setLocked(true);
 
     m_stageModel = new StageTableModel(this);
-    connect(this, &ProcessorTab::updateProcessorTab, m_stageModel, &StageTableModel::processorWasClocked);
 
     updateInstructionModel();
     m_ui->registerContainerWidget->initialize();
-    connect(this, &ProcessorTab::updateProcessorTab, m_ui->registerContainerWidget,
-            &RegisterContainerWidget::updateView);
-    connect(this, &ProcessorTab::updateProcessorTab, this, &ProcessorTab::updateStatistics);
-    connect(this, &ProcessorTab::updateProcessorTab, this, &ProcessorTab::updateInstructionLabels);
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this, &ProcessorTab::updateStatistics);
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &ProcessorTab::updateInstructionLabels);
 
     setupSimulatorActions(controlToolbar);
 
@@ -112,6 +110,10 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
+
+    // Connect the global reset request signal to reset()
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified, this,
+            &ProcessorTab::reset);
 
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
@@ -176,7 +178,8 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
 
     const QIcon resetIcon = QIcon(":/icons/reset.svg");
     m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
-    connect(m_resetAction, &QAction::triggered, this, &ProcessorTab::reset);
+    connect(m_resetAction, &QAction::triggered, this,
+            [=] { RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger(); });
     m_resetAction->setShortcut(QKeySequence("F3"));
     m_resetAction->setToolTip("Reset the simulator (F3)");
     controlToolbar->addAction(m_resetAction);
@@ -220,9 +223,11 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_autoClockInterval->setRange(1, 10000);
     m_autoClockInterval->setSuffix(" ms");
     m_autoClockInterval->setToolTip("Auto clock interval");
-    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged),
-            [timer](int msec) { timer->setInterval(msec); });
-    m_autoClockInterval->setValue(100);
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), [timer](int msec) {
+        RipesSettings::setValue(RIPES_SETTING_AUTOCLOCK_INTERVAL, msec);
+        timer->setInterval(msec);
+    });
+    m_autoClockInterval->setValue(RipesSettings::value(RIPES_SETTING_AUTOCLOCK_INTERVAL).toInt());
     controlToolbar->addWidget(m_autoClockInterval);
 
     const QIcon runIcon = QIcon(":/icons/run.svg");
@@ -237,26 +242,22 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     controlToolbar->addAction(m_runAction);
 
     // Setup processor-tab only actions
-    const QIcon tagIcon = QIcon(":/icons/tag.svg");
-    m_displayValuesAction = new QAction(tagIcon, "Display signal values", this);
+    m_displayValuesAction = new QAction("Show processor signal values", this);
     m_displayValuesAction->setCheckable(true);
     m_displayValuesAction->setChecked(false);
     connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
-    m_toolbar->addAction(m_displayValuesAction);
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
     connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
     m_toolbar->addAction(m_stageTableAction);
 
-    const QIcon moonIcon = QIcon(":/icons/moon.svg");
-    m_darkmodeAction = new QAction(moonIcon, "Toggle darkmode", this);
+    m_darkmodeAction = new QAction("Processor darkmode", this);
     m_darkmodeAction->setCheckable(true);
     connect(m_darkmodeAction, &QAction::toggled, m_vsrtlWidget, [=](bool checked) {
         RipesSettings::setValue(RIPES_SETTING_DARKMODE, QVariant::fromValue(checked));
         m_vsrtlWidget->setDarkmode(checked);
     });
-    m_toolbar->addAction(m_darkmodeAction);
     m_darkmodeAction->setChecked(RipesSettings::value(RIPES_SETTING_DARKMODE).toBool());
 }
 
@@ -301,7 +302,7 @@ void ProcessorTab::pause() {
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
-void ProcessorTab::fitToView() {
+void ProcessorTab::fitToScreen() {
     m_vsrtlWidget->zoomToFit();
 }
 
@@ -322,7 +323,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
         loadLayout(*layout);
     }
     updateInstructionLabels();
-    fitToView();
+    fitToScreen();
 }
 
 void ProcessorTab::processorSelection() {
@@ -353,7 +354,6 @@ void ProcessorTab::processorSelection() {
         if (m_displayValuesAction->isChecked()) {
             m_vsrtlWidget->setOutputPortValuesVisible(true);
         }
-        emit updateProcessorTab();
     }
 }
 
@@ -376,8 +376,6 @@ void ProcessorTab::updateInstructionModel() {
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
                                                                     QHeaderView::Stretch);
 
-    connect(this, &ProcessorTab::updateProcessorTab, m_instrModel, &InstructionModel::processorWasClocked);
-
     // Make the instruction view follow the instruction which is currently present in the first stage of the processor
     connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
 
@@ -388,7 +386,6 @@ void ProcessorTab::updateInstructionModel() {
 
 void ProcessorTab::restart() {
     // Invoked when changes to binary simulation file has been made
-    emit updateProcessorTab();
     enableSimulatorControls();
 }
 
@@ -446,8 +443,6 @@ void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
     m_stageModel->reset();
-    emit updateProcessorTab();
-    emit processorWasReset();
 
     enableSimulatorControls();
     printToLog("\n");
@@ -474,7 +469,6 @@ void ProcessorTab::runFinished() {
     pause();
     ProcessorHandler::checkProcessorFinished();
     m_statUpdateTimer->stop();
-    emit updateProcessorTab();
 }
 
 void ProcessorTab::run(bool state) {
@@ -509,7 +503,6 @@ void ProcessorTab::run(bool state) {
 void ProcessorTab::reverse() {
     m_vsrtlWidget->reverse();
     enableSimulatorControls();
-    emit updateProcessorTab();
 }
 
 void ProcessorTab::clock() {
@@ -520,8 +513,6 @@ void ProcessorTab::clock() {
     }
     ProcessorHandler::checkProcessorFinished();
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
-
-    emit updateProcessorTab();
 }
 
 void ProcessorTab::showStageTable() {

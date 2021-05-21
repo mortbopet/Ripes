@@ -10,7 +10,8 @@ CacheView::CacheView(QWidget* parent) : QGraphicsView(parent) {
     m_zoom = 250;
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-    setRenderHint(QPainter::Antialiasing, false);
+    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    setBackgroundBrush(Qt::white);
     setInteractive(true);
     setupMatrix();
 }
@@ -29,6 +30,11 @@ void CacheView::mousePressEvent(QMouseEvent* event) {
         }
     }
     QGraphicsView::mousePressEvent(event);
+}
+
+void CacheView::fitScene() {
+    scene()->setSceneRect(scene()->itemsBoundingRect());
+    fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
 }
 
 void CacheView::wheelEvent(QWheelEvent* e) {

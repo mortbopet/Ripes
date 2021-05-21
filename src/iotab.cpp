@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include <QGraphicsItem>
 #include <QMdiSubWindow>
+#include <QScreen>
 #include <QToolBar>
 
 #include "io/memorymapmodel.h"
@@ -30,7 +31,7 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     m_ui->peripheralsTable->setRowCount(IOTypeTitles.size());
     m_ui->peripheralsTable->setColumnCount(1);
     m_ui->peripheralsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    m_ui->peripheralsTable->setHorizontalHeaderLabels({"Peripherals"});
+    m_ui->peripheralsTable->horizontalHeader()->hide();
     m_ui->peripheralsTable->verticalHeader()->hide();
     int row = 0;
     for (const auto& it : IOTypeTitles) {
@@ -61,6 +62,7 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
 
     connect(&IOManager::get(), &IOManager::peripheralRemoved, QPointer(this), &IOTab::removePeripheral);
     connect(m_ui->peripheralsTab, &QTabWidget::currentChanged, this, &IOTab::setPeripheralMDIWindowActive);
+    connect(&IOManager::get(), &IOManager::memoryMapChanged, this, &IOTab::updateIOSymbolFilePreview);
 
     // Disable instantiating new peripherals during processor running
     connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
@@ -74,13 +76,29 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
 
     // Reload peripheral state from the last graceful exit of the program
     loadPeripheralState();
+
+    m_ui->ioSymbols->setFont(QFont("Inconsolata", 11));
+    m_ui->ioSymbols->setToolTip(
+        "Exported symbols for all I/O devices.\nThese symbols may be referenced in Assembly\nor C-language programs.");
+
+    // The default sizing of the splitter is fairly unuseable due to the MDIArea minimizing the left-hand side layout.
+    // Manually size it to ensure that the left-hand side layout is reasonably sized, and the right hand side is
+    // minimally sized.
+    const int largeWidth = QGuiApplication::primaryScreen()->size().width();
+    m_ui->splitter->setSizes({largeWidth, static_cast<int>(largeWidth * 3), 0});
+}
+
+void IOTab::updateIOSymbolFilePreview() {
+    const auto& headerPath = IOManager::get().cSymbolsHeaderpath();
+    auto headerFile = QFile(headerPath);
+    if (headerFile.open(QIODevice::ReadOnly)) {
+        m_ui->ioSymbols->document()->setPlainText(QString::fromLatin1(headerFile.readAll()));
+    }
 }
 
 IOBase* IOTab::createPeripheral(IOType type, int forcedID) {
-    auto* peripheral = IOManager::get().createPeripheral(type);
-    if (forcedID != -1) {
-        peripheral->setID(forcedID);
-    }
+    auto* peripheral = IOManager::get().createPeripheral(type, forcedID);
+
     // Create tab for peripheral
     auto* peripheralTab = new IOPeripheralTab(this, peripheral);
     m_ui->peripheralsTab->addTab(peripheralTab, peripheral->name());

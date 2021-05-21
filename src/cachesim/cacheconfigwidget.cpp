@@ -1,6 +1,7 @@
 #include "cacheconfigwidget.h"
 #include "ui_cacheconfigwidget.h"
 
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
@@ -9,6 +10,7 @@
 
 #include "cacheplotwidget.h"
 #include "enumcombobox.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 
@@ -20,15 +22,8 @@ CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(ne
                      m_ui->replacementPolicy, m_ui->wrMiss, m_ui->wrHit};
 }
 
-void CacheConfigWidget::setCache(CacheSim* cache) {
+void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
     m_cache = cache;
-
-    const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
-    m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
-
-    const QIcon plotIcon = QIcon(":/icons/analytics.svg");
-    m_ui->cachePlot->setIcon(plotIcon);
-    connect(m_ui->cachePlot, &QPushButton::clicked, this, &CacheConfigWidget::showCachePlot);
 
     setupEnumCombobox(m_ui->replacementPolicy, s_cacheReplPolicyStrings);
     setupEnumCombobox(m_ui->wrHit, s_cacheWritePolicyStrings);
@@ -38,73 +33,90 @@ void CacheConfigWidget::setCache(CacheSim* cache) {
     m_ui->lines->setValue(m_cache->getLineBits());
     m_ui->blocks->setValue(m_cache->getBlockBits());
 
-    m_ui->indexingKey->setText(
-        "<font color=\"gray\">█</font> = Tag &nbsp; <font color=\"red\">█</font> = Index &nbsp; <font "
-        "color=\"green\">█</font> = Block &nbsp; <font color=\"black\">█</font> = Byte");
-
-    connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setWays);
-    connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setBlocks);
-    connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache, &CacheSim::setLines);
-    connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CacheConfigWidget::showSizeBreakdown);
+    connect(m_ui->ways, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setWays);
+    connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setBlocks);
+    connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setLines);
 
     connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        m_cache->setReplacementPolicy(qvariant_cast<CacheSim::ReplPolicy>(m_ui->replacementPolicy->itemData(index)));
+        m_cache->setReplacementPolicy(qvariant_cast<ReplPolicy>(m_ui->replacementPolicy->itemData(index)));
     });
-    connect(m_ui->wrHit, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        m_cache->setWritePolicy(qvariant_cast<CacheSim::WritePolicy>(m_ui->wrHit->itemData(index)));
-    });
+    connect(m_ui->wrHit, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [=](int index) { m_cache->setWritePolicy(qvariant_cast<WritePolicy>(m_ui->wrHit->itemData(index))); });
     connect(m_ui->wrMiss, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        m_cache->setWriteAllocatePolicy(qvariant_cast<CacheSim::WriteAllocPolicy>(m_ui->wrMiss->itemData(index)));
+        m_cache->setWriteAllocatePolicy(qvariant_cast<WriteAllocPolicy>(m_ui->wrMiss->itemData(index)));
     });
+    connect(m_ui->savePresetButton, &QPushButton::clicked, this, &CacheConfigWidget::storePreset);
+    m_ui->savePresetButton->setIcon(QIcon(":/icons/save.svg"));
+    m_ui->savePresetButton->setToolTip("Store cache preset");
+    connect(m_ui->removePresetButton, &QPushButton::clicked, this, &CacheConfigWidget::removePreset);
+    m_ui->removePresetButton->setIcon(QIcon(":/icons/delete.svg"));
+    m_ui->removePresetButton->setToolTip("Delete cache preset");
 
-    connect(m_cache, &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
-    connect(m_cache, &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
-    connect(m_cache, &CacheSim::hitrateChanged, this, &CacheConfigWidget::updateHitrate);
+    connect(m_cache.get(), &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
+    connect(m_cache.get(), &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
 
     setupPresets();
     handleConfigurationChanged();
 }
 
-void CacheConfigWidget::showCachePlot() {
-    CachePlotWidget plotWidget(*m_cache);
-    plotWidget.exec();
+void CacheConfigWidget::storePreset() {
+    bool ok;
+    QString text = QInputDialog::getText(this, "Store cache preset", "Preset name:", QLineEdit::Normal, "", &ok);
+    if (ok && !text.isEmpty()) {
+        CachePreset preset;
+        preset.name = text;
+        preset.ways = m_ui->ways->value();
+        preset.lines = m_ui->lines->value();
+        preset.blocks = m_ui->blocks->value();
+        preset.wrPolicy = getEnumValue<WritePolicy>(m_ui->wrHit);
+        preset.wrAllocPolicy = getEnumValue<WriteAllocPolicy>(m_ui->wrMiss);
+        preset.replPolicy = getEnumValue<ReplPolicy>(m_ui->replacementPolicy);
+
+        auto presets = RipesSettings::value(RIPES_SETTING_CACHE_PRESETS).value<QList<Ripes::CachePreset>>();
+        presets.push_back(preset);
+        RipesSettings::setValue(RIPES_SETTING_CACHE_PRESETS, QVariant::fromValue(presets));
+
+        m_ui->presets->addItem(preset.name, QVariant::fromValue<CachePreset>(preset));
+        m_ui->presets->setCurrentIndex(m_ui->presets->count() - 1);
+    }
+}
+
+void CacheConfigWidget::removePreset() {
+    auto presetData = m_ui->presets->currentData();
+    if (presetData.isNull()) {
+        return;
+    }
+
+    auto preset = presetData.value<CachePreset>();
+    const QString prompt = "Are you sure you want to delete preset '" + preset.name + "'?";
+    auto button = QMessageBox::information(this, "Delete cache preset", prompt, QMessageBox::No | QMessageBox::Yes);
+    if (button != QMessageBox::Yes) {
+        return;
+    }
+
+    auto presets = RipesSettings::value(RIPES_SETTING_CACHE_PRESETS).value<QList<Ripes::CachePreset>>();
+    presets.removeOne(preset);
+    RipesSettings::setValue(RIPES_SETTING_CACHE_PRESETS, QVariant::fromValue(presets));
+    // delete preset, but keep preset data by setting an invalid index (avoids loading the next preset in the combobox)
+    const auto idxToDelete = m_ui->presets->currentIndex();
+    m_ui->presets->setCurrentIndex(-1);
+    m_ui->presets->removeItem(idxToDelete);
 }
 
 void CacheConfigWidget::setupPresets() {
-    std::vector<std::pair<QString, CacheSim::CachePreset>> presets;
-
-    CacheSim::CachePreset preset;
-    preset.wrPolicy = CacheSim::WritePolicy::WriteBack;
-    preset.wrAllocPolicy = CacheSim::WriteAllocPolicy::WriteAllocate;
-    preset.replPolicy = CacheSim::ReplPolicy::LRU;
-
-    preset.blocks = 2;
-    preset.lines = 5;
-    preset.ways = 0;
-    presets.push_back({"32-entry 4-word direct-mapped", preset});
-
-    preset.blocks = 2;
-    preset.lines = 0;
-    preset.ways = 5;
-    presets.push_back({"32-entry 4-word fully associative", preset});
-
-    preset.blocks = 2;
-    preset.lines = 4;
-    preset.ways = 1;
-    presets.push_back({"32-entry 4-word 2-way set associative", preset});
-
-    for (const auto& it : presets) {
-        m_ui->presets->addItem(it.first, QVariant::fromValue<CacheSim::CachePreset>(it.second));
+    for (const auto& preset : RipesSettings::value(RIPES_SETTING_CACHE_PRESETS).value<QList<CachePreset>>()) {
+        m_ui->presets->addItem(preset.name, QVariant::fromValue<CachePreset>(preset));
     }
 
     connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        const CacheSim::CachePreset _preset = qvariant_cast<CacheSim::CachePreset>(m_ui->presets->itemData(index));
+        if (index == -1) {
+            return;
+        }
+        const CachePreset _preset = qvariant_cast<CachePreset>(m_ui->presets->itemData(index));
         m_justSetPreset = true;
         m_cache->setPreset(_preset);
     });
 }
-
-void CacheConfigWidget::updateCacheSize() {}
 
 void CacheConfigWidget::handleConfigurationChanged() {
     std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(true); });
@@ -122,69 +134,10 @@ void CacheConfigWidget::handleConfigurationChanged() {
     m_justSetPreset = false;
 
     std::for_each(m_configItems.begin(), m_configItems.end(), [](QObject* o) { o->blockSignals(false); });
-
-    updateIndexingText();
-    m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
-    updateHitrate();
-}
-
-void CacheConfigWidget::updateHitrate() {
-    m_ui->hitrate->setText(QString::number(m_cache->getHitRate(), 'G', 4));
-    m_ui->hits->setText(QString::number(m_cache->getHits()));
-    m_ui->misses->setText(QString::number(m_cache->getMisses()));
-    m_ui->writebacks->setText(QString::number(m_cache->getWritebacks()));
-}
-
-void CacheConfigWidget::showSizeBreakdown() {
-    QString sizeText;
-
-    const auto cacheSize = m_cache->getCacheSize();
-
-    for (const auto& component : cacheSize.components) {
-        sizeText += component + "\n";
-    }
-
-    sizeText += "\nTotal: " + QString::number(cacheSize.bits) + " Bits";
-
-    QMessageBox::information(this, "Cache Size Breakdown", sizeText);
 }
 
 CacheConfigWidget::~CacheConfigWidget() {
     delete m_ui;
-}
-
-void CacheConfigWidget::updateIndexingText() {
-    QString indexingText = " 0";
-
-    // Byte offset bits
-    indexingText = "<font color=\"black\">▊▊</font>" + indexingText;
-
-    // Block offset bits
-    QString blocks = "";
-    for (int i = 0; i < m_cache->getBlockBits(); i++) {
-        blocks += "▊";
-    }
-    indexingText = "<font color=\"green\">" + blocks + "</font>" + indexingText;
-
-    // Line index bits
-    QString index = "";
-    for (int i = 0; i < m_cache->getLineBits(); i++) {
-        index += "▊";
-    }
-
-    indexingText = "<font color=\"red\">" + index + "</font>" + indexingText;
-
-    // Tag index bits
-    QString tag = "";
-    for (int i = 0; i < m_cache->getTagBits(); i++) {
-        tag += "▊";
-    }
-
-    indexingText = "<font color=\"gray\">" + tag + "</font>" + indexingText;
-
-    indexingText = "31 " + indexingText;
-
-    m_ui->indexingText->setText(indexingText);
 }
 
 }  // namespace Ripes

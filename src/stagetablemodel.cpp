@@ -11,7 +11,10 @@ static inline uint32_t indexToAddress(unsigned index) {
     return 0;
 }
 
-StageTableModel::StageTableModel(QObject* parent) : QAbstractTableModel(parent) {}
+StageTableModel::StageTableModel(QObject* parent) : QAbstractTableModel(parent) {
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            &StageTableModel::processorWasClocked);
+}
 
 QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole)
@@ -41,9 +44,14 @@ void StageTableModel::reset() {
     beginResetModel();
     m_cycleStageInfos.clear();
     endResetModel();
+    gatherStageInfo();
 }
 
 void StageTableModel::gatherStageInfo() {
+    long long cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
+    if (m_cycleStageInfos.count(cycleCount)) {
+        return;
+    }
     for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
         m_cycleStageInfos[ProcessorHandler::getProcessor()->getCycleCount()][i] =
             ProcessorHandler::getProcessor()->stageInfo(i);
@@ -69,7 +77,7 @@ QVariant StageTableModel::data(const QModelIndex& index, int role) const {
 
     QStringList stagesForAddr;
     for (const auto& si : stageInfo) {
-        if (si.second.pc == addr && si.second.stage_valid) {
+        if (si.second.pc == addr && si.second.stage_valid && si.second.state == StageInfo::State::None) {
             if (m_cycleStageInfos.count(index.column() - 1)) {
                 const auto& prevCycleStageInfo = m_cycleStageInfos.at(index.column() - 1);
                 if (prevCycleStageInfo.at(si.first).stage_valid && prevCycleStageInfo.at(si.first).pc == si.second.pc) {
