@@ -115,7 +115,7 @@ const static std::map<CachePlotWidget::Variable, QString> s_cacheVariableStrings
     {CachePlotWidget::Variable::Hits, "Hits"},
     {CachePlotWidget::Variable::Misses, "Misses"},
     {CachePlotWidget::Variable::Writebacks, "Writebacks"},
-    {CachePlotWidget::Variable::Accesses, "Total accesses"},
+    {CachePlotWidget::Variable::Accesses, "Access count"},
     {CachePlotWidget::Variable::Unary, "1"},
 };
 
