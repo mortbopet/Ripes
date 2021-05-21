@@ -20,6 +20,10 @@ struct StageInfo {
     unsigned int pc = 0;
     bool stage_valid = false;
     State state;
+    bool operator==(const StageInfo& other) const {
+        return this->pc == other.pc && this->stage_valid == other.stage_valid && this->state == other.state;
+    }
+    bool operator!=(const StageInfo& other) const { return !(*this == other); }
 };
 
 /**

@@ -20,7 +20,7 @@ static inline uint32_t indexToAddress(const QModelIndex& index) {
     return 0;
 }
 
-static inline int addressToIndex(uint32_t addr) {
+static inline int addressToRow(uint32_t addr) {
     if (auto prog_spt = ProcessorHandler::getProgram()) {
         if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
             return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
@@ -44,9 +44,6 @@ public:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-public slots:
-    void processorWasClocked();
-
 signals:
     /**
      * @brief firstStageInstrChanged
@@ -56,15 +53,18 @@ signals:
     void firstStageInstrChanged(uint32_t);
 
 private:
-    void gatherStageInfo();
+    void updateStageInfo();
 
     QVariant BPData(uint32_t addr) const;
     QVariant PCData(uint32_t addr) const;
     QVariant stageData(uint32_t addr) const;
     QVariant instructionData(uint32_t addr) const;
+    void updateRowCount();
+    void onProcessorReset();
 
     QStringList m_stageNames;
     using StageID = unsigned;
     std::map<StageID, StageInfo> m_stageInfos;
+    int m_rowCount = 0;
 };
 }  // namespace Ripes

@@ -10,34 +10,52 @@ InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent
         m_stageInfos[i];
     }
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
-            &InstructionModel::processorWasClocked);
+            &InstructionModel::updateStageInfo);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &InstructionModel::onProcessorReset);
+    onProcessorReset();
+}
+
+void InstructionModel::onProcessorReset() {
+    updateRowCount();
+    beginResetModel();
+    endResetModel();
+    updateStageInfo();
 }
 
 int InstructionModel::columnCount(const QModelIndex&) const {
     return NColumns;
 }
 
+void InstructionModel::updateRowCount() {
+    m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
+}
+
 int InstructionModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
+    return m_rowCount;
 }
 
-void InstructionModel::processorWasClocked() {
-    // Reload model
-    beginResetModel();
-    gatherStageInfo();
-    endResetModel();
-}
-
-void InstructionModel::gatherStageInfo() {
+void InstructionModel::updateStageInfo() {
     bool firstStageChanged = false;
     for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
-        if (i == 0) {
-            if (m_stageInfos[i].pc != ProcessorHandler::getProcessor()->stageInfo(i).pc) {
-                firstStageChanged = true;
+        if (static_cast<unsigned>(m_stageInfos.size()) > i) {
+            auto& oldStageInfo = m_stageInfos.at(i);
+            if (i == 0) {
+                if (oldStageInfo.pc != ProcessorHandler::getProcessor()->stageInfo(i).pc) {
+                    firstStageChanged = true;
+                }
             }
-        }
-        if (static_cast<unsigned>(m_stageNames.size()) > i) {
-            m_stageInfos[i] = ProcessorHandler::getProcessor()->stageInfo(i);
+            const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(i);
+            const uint32_t oldAddress = oldStageInfo.pc;
+            const bool stageInfoChanged = oldStageInfo != stageInfo;
+            oldStageInfo = stageInfo;
+            if (stageInfoChanged) {
+                const int oldRow = addressToRow(oldAddress);
+                const int newRow = addressToRow(stageInfo.pc);
+                const QModelIndex oldIdx = index(oldRow, Stage);
+                const QModelIndex newIdx = index(newRow, Stage);
+                emit dataChanged(oldIdx, oldIdx, {Qt::DisplayRole});
+                emit dataChanged(newIdx, newIdx, {Qt::DisplayRole});
+            }
             if (firstStageChanged) {
                 emit firstStageInstrChanged(m_stageInfos.at(0).pc);
                 firstStageChanged = false;

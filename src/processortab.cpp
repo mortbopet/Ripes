@@ -371,12 +371,18 @@ void ProcessorTab::updateInstructionModel() {
                                                                     QHeaderView::ResizeToContents);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::PC,
                                                                     QHeaderView::ResizeToContents);
-    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Stage,
-                                                                    QHeaderView::ResizeToContents);
+    // The "stage" section is _NOT_ resized to contents. Resize to contents is very slow if # of items in the model is
+    // large and the contents of the rows change frequently.
+    m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Stage, QHeaderView::Interactive);
+    auto ivfm = QFontMetrics(m_ui->instructionView->font());
+    m_ui->instructionView->horizontalHeader()->resizeSection(
+        InstructionModel::Stage,
+        ivfm.horizontalAdvance(
+            m_instrModel->headerData(InstructionModel::Stage, Qt::Horizontal, Qt::DisplayRole).toString()) *
+            1.25);
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
                                                                     QHeaderView::Stretch);
-
-    // Make the instruction view follow the instruction which is currently present in the first stage of the processor
+    // Make the instruction view follow the instruction which is currently present in the first stage of the
     connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
 
     if (oldModel) {
@@ -449,7 +455,7 @@ void ProcessorTab::reset() {
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(uint32_t address) {
-    const auto index = addressToIndex(address);
+    const auto index = addressToRow(address);
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
     int indexTop = view->indexAt(rect.topLeft()).row();
