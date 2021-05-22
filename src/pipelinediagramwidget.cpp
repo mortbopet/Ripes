@@ -5,6 +5,7 @@
 #include <QHeaderView>
 
 #include "pipelinediagrammodel.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 
@@ -17,6 +18,8 @@ PipelineDiagramWidget::PipelineDiagramWidget(PipelineDiagramModel* model, QWidge
 
     m_ui->pipelineDiagramView->resizeColumnsToContents();
     m_ui->copy->setIcon(QIcon(":/icons/documents.svg"));
+
+    m_stageModel->prepareForView();
 }
 
 PipelineDiagramWidget::~PipelineDiagramWidget() {

@@ -1,5 +1,7 @@
 #include "pipelinediagrammodel.h"
 
+#include "ripessettings.h"
+
 #include <vector>
 
 namespace Ripes {
@@ -12,8 +14,9 @@ static inline uint32_t indexToAddress(unsigned index) {
 }
 
 PipelineDiagramModel::PipelineDiagramModel(QObject* parent) : QAbstractTableModel(parent) {
-    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
-            &PipelineDiagramModel::processorWasClocked);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorClocked, this,
+            &PipelineDiagramModel::processorWasClocked, Qt::DirectConnection);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &PipelineDiagramModel::reset);
 }
 
 QVariant PipelineDiagramModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -37,14 +40,26 @@ int PipelineDiagramModel::columnCount(const QModelIndex&) const {
 }
 
 void PipelineDiagramModel::processorWasClocked() {
+    if (m_atMaxCycles) {
+        return;
+    }
     gatherStageInfo();
+
+    const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
+    if (cycleCount >= RipesSettings::value(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES).toInt()) {
+        m_atMaxCycles = true;
+    }
 }
 
 void PipelineDiagramModel::reset() {
-    beginResetModel();
+    m_atMaxCycles = false;
     m_cycleStageInfos.clear();
-    endResetModel();
     gatherStageInfo();
+}
+
+void PipelineDiagramModel::prepareForView() {
+    beginResetModel();
+    endResetModel();
 }
 
 void PipelineDiagramModel::gatherStageInfo() {

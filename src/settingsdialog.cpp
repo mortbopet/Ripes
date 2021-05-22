@@ -291,6 +291,7 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     auto [maxcyclesLabel, maxcyclesSb] =
         createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXCYCLES, "Max. cache plot cycles");
     maxcyclesSb->setMinimum(0);
+    maxcyclesSb->setMaximum(INT_MAX);
     appendToLayout({maxcyclesLabel, maxcyclesSb}, pageLayout,
                    "Maximum number of cache cycles to plot. Increasing this may incur substantial slowdown for long "
                    "time executing programs, given the number of points to be plotted.");
@@ -298,12 +299,20 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     auto [maxPointsLabel, maxPointsSb] =
         createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXPOINTS, "Min. cache plot points:");
     maxPointsSb->setMinimum(2);
+    maxPointsSb->setMaximum(INT_MAX);
     appendToLayout(
         {maxPointsLabel, maxPointsSb}, pageLayout,
         "Minimum number of points to be kept in the cache plot. Once 2x this amount is reached, the cache "
         "plot will be resampled to this minimum value, and new points will be added based on the sampling "
         "rate after the resampling. This resampling allows for real-time plotting regardless of the number of "
         "simulation cycles.");
+
+    auto [maxPipeDiagCycLabel, maxPipeDiagCycSb] =
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES, "Max. pipeline diagram cycles:");
+    maxPipeDiagCycSb->setMinimum(0);
+    maxPipeDiagCycSb->setMaximum(INT_MAX);
+    appendToLayout({maxPipeDiagCycLabel, maxPipeDiagCycSb}, pageLayout,
+                   "Maximum number of cycles to be recorded in the pipeline diagram.");
 
     // Console settings
     auto* consoleGroupBox = new QGroupBox("Console");

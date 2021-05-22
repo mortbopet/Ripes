@@ -22,6 +22,7 @@ namespace Ripes {
 #define RIPES_SETTING_ASSEMBLER_DATASTART ("data_start")
 #define RIPES_SETTING_ASSEMBLER_BSSSTART ("bss_start")
 
+#define RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES ("pipelinediagram_maxcycles")
 #define RIPES_SETTING_PERIPHERALS_START ("peripheral_start")
 #define RIPES_SETTING_CACHE_MAXCYCLES ("cacheplot_maxcycles")
 #define RIPES_SETTING_CACHE_MAXPOINTS ("cacheplot_maxpoints")

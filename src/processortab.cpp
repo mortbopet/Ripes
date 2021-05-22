@@ -414,7 +414,7 @@ void ProcessorTab::enableSimulatorControls() {
     m_runAction->setEnabled(true);
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
     m_resetAction->setEnabled(true);
-    m_pipelineDiagramAction->setEnabled(!m_hasRun);
+    m_pipelineDiagramAction->setEnabled(true);
 }
 
 void ProcessorTab::updateInstructionLabels() {
@@ -445,10 +445,8 @@ void ProcessorTab::updateInstructionLabels() {
 }
 
 void ProcessorTab::reset() {
-    m_hasRun = false;
     m_autoClockAction->setChecked(false);
     m_vsrtlWidget->reset();
-    m_stageModel->reset();
 
     enableSimulatorControls();
     printToLog("\n");
@@ -478,7 +476,6 @@ void ProcessorTab::runFinished() {
 }
 
 void ProcessorTab::run(bool state) {
-    m_hasRun = true;
     // Stop any currently exeuting auto-clocking
     if (m_autoClockAction->isChecked()) {
         m_autoClockAction->setChecked(false);
@@ -498,7 +495,7 @@ void ProcessorTab::run(bool state) {
     m_reverseAction->setEnabled(!state);
     m_resetAction->setEnabled(!state);
     m_displayValuesAction->setEnabled(!state);
-    m_pipelineDiagramAction->setEnabled(false);
+    m_pipelineDiagramAction->setEnabled(!state);
 
     // Disable widgets which are not updated when running the processor
     m_vsrtlWidget->setEnabled(!state);
