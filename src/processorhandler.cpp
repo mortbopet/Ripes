@@ -27,6 +27,20 @@ ProcessorHandler::ProcessorHandler() {
     _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
                      ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
+    // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
+    constexpr int f_pscSignal = 15;
+    m_procStateChangeTimer.setSingleShot(true);
+    m_procStateChangeTimer.setInterval(1000 / f_pscSignal);
+    connect(&m_procStateChangeTimer, &QTimer::timeout, this, [=] {
+        emit procStateChangedNonRun();
+        m_enqueueStateChangeLock.lock();
+        if (m_enqueueStateChangeSignal) {
+            m_enqueueStateChangeSignal = false;
+            m_procStateChangeTimer.start();
+        }
+        m_enqueueStateChangeLock.unlock();
+    });
+
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto& size) { m_currentProcessor->setReverseStackSize(size.toUInt()); });
@@ -91,6 +105,17 @@ const vsrtl::core::AddressSpace& ProcessorHandler::_getRegisters() const {
     return m_currentProcessor->getArchRegisters();
 }
 
+void ProcessorHandler::_triggerProcStateChangeTimer() {
+    m_enqueueStateChangeLock.lock();
+    if (!m_procStateChangeTimer.isActive()) {
+        m_enqueueStateChangeSignal = false;
+        m_procStateChangeTimer.start();
+    } else {
+        m_enqueueStateChangeSignal = true;
+    }
+    m_enqueueStateChangeLock.unlock();
+}
+
 void ProcessorHandler::_run() {
     ProcessorStatusManager::setStatus("Running...");
     emit runStarted();
@@ -112,7 +137,7 @@ void ProcessorHandler::_run() {
     // Start running through the VSRTL Widget interface
     connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] {
         emit runFinished();
-        emit procStateChangedNonRun();
+        _triggerProcStateChangeTimer();
     });
     connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] { ProcessorStatusManager::clearStatus(); });
 
@@ -217,16 +242,16 @@ void ProcessorHandler::processorWasClockedWrapper() {
     emit processorClocked();
     if (!_isRunning()) {
         emit processorClockedNonRun();
-        emit procStateChangedNonRun();
+        _triggerProcStateChangeTimer();
     }
 }
 void ProcessorHandler::processorResetWrapper() {
     emit processorReset();
-    emit procStateChangedNonRun();
+    _triggerProcStateChangeTimer();
 }
 void ProcessorHandler::processorReversedWrapper() {
     emit processorReversed();
-    emit procStateChangedNonRun();
+    _triggerProcStateChangeTimer();
 }
 
 int ProcessorHandler::_getCurrentProgramSize() const {

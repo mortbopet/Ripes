@@ -224,6 +224,7 @@ private:
     bool _isRunning();
     void _run();
     void _stopRun();
+    void _triggerProcStateChangeTimer();
 
     /**
      * @brief Wrapper functions for processor signal emissions. VSRTL's signal/slot library does not accept lambdas,
@@ -253,6 +254,15 @@ private:
 
     QFutureWatcher<void> m_runWatcher;
     bool m_stopRunningFlag = false;
+
+    /**
+     * @brief To avoid excessive UI updates due to things relying on procStateChangedNonRun, the m_procStateChangeTimer
+     * ensures that the signal is only emitted with some max. frequency.
+     * New state change signals can be enqueued by atomically setting the m_enqueueStateChangeSignal.
+     */
+    QTimer m_procStateChangeTimer;
+    bool m_enqueueStateChangeSignal;
+    std::mutex m_enqueueStateChangeLock;
 
     /**
      * @brief m_sem
