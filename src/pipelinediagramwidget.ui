@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Ripes::StageTableWidget</class>
- <widget class="QDialog" name="Ripes::StageTableWidget">
+ <class>Ripes::PipelineDiagramWidget</class>
+ <widget class="QDialog" name="Ripes::PipelineDiagramWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Stage table</string>
+   <string>Pipeline diagram</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -70,7 +70,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QTableView" name="stageTableView"/>
+      <widget class="QTableView" name="pipelineDiagramView"/>
      </item>
     </layout>
    </item>

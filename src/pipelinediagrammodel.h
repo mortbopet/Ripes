@@ -6,11 +6,11 @@
 
 namespace Ripes {
 
-class StageTableModel : public QAbstractTableModel {
+class PipelineDiagramModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum Column { Breakpoint = 0, PC = 1, Stage = 2, Instruction = 3, NColumns };
-    StageTableModel(QObject* parent = nullptr);
+    PipelineDiagramModel(QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;

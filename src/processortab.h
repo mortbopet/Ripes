@@ -22,7 +22,7 @@ class ProcessorTab;
 
 class InstructionModel;
 class RegisterModel;
-class StageTableModel;
+class PipelineDiagramModel;
 struct Layout;
 
 class ProcessorTab : public RipesTab {
@@ -54,7 +54,7 @@ private slots:
     void run(bool state);
     void clock();
     void setInstructionViewCenterAddr(uint32_t address);
-    void showStageTable();
+    void showPipelineDiagram();
 
 private:
     void setupSimulatorActions(QToolBar* controlToolbar);
@@ -66,7 +66,7 @@ private:
 
     Ui::ProcessorTab* m_ui = nullptr;
     InstructionModel* m_instrModel = nullptr;
-    StageTableModel* m_stageModel = nullptr;
+    PipelineDiagramModel* m_stageModel = nullptr;
 
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
 
@@ -80,7 +80,7 @@ private:
     QAction* m_autoClockAction = nullptr;
     QAction* m_runAction = nullptr;
     QAction* m_displayValuesAction = nullptr;
-    QAction* m_stageTableAction = nullptr;
+    QAction* m_pipelineDiagramAction = nullptr;
     QAction* m_reverseAction = nullptr;
     QAction* m_resetAction = nullptr;
     QAction* m_darkmodeAction = nullptr;

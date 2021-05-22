@@ -1,29 +1,29 @@
-#include "stagetablewidget.h"
-#include "ui_stagetablewidget.h"
+#include "pipelinediagramwidget.h"
+#include "ui_pipelinediagramwidget.h"
 
 #include <QClipboard>
 #include <QHeaderView>
 
-#include "stagetablemodel.h"
+#include "pipelinediagrammodel.h"
 
 namespace Ripes {
 
-StageTableWidget::StageTableWidget(StageTableModel* model, QWidget* parent)
-    : QDialog(parent), m_ui(new Ui::StageTableWidget) {
+PipelineDiagramWidget::PipelineDiagramWidget(PipelineDiagramModel* model, QWidget* parent)
+    : QDialog(parent), m_ui(new Ui::PipelineDiagramWidget) {
     m_ui->setupUi(this);
 
     m_stageModel = model;
-    m_ui->stageTableView->setModel(m_stageModel);
+    m_ui->pipelineDiagramView->setModel(m_stageModel);
 
-    m_ui->stageTableView->resizeColumnsToContents();
+    m_ui->pipelineDiagramView->resizeColumnsToContents();
     m_ui->copy->setIcon(QIcon(":/icons/documents.svg"));
 }
 
-StageTableWidget::~StageTableWidget() {
+PipelineDiagramWidget::~PipelineDiagramWidget() {
     delete m_ui;
 }
 
-void StageTableWidget::on_copy_clicked() {
+void PipelineDiagramWidget::on_copy_clicked() {
     // Copy entire table to clipboard, including headers
     Q_ASSERT(m_stageModel != nullptr);
     QString textualRepr;

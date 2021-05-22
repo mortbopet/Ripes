@@ -10,14 +10,14 @@
 #include <QTemporaryFile>
 
 #include "instructionmodel.h"
+#include "pipelinediagrammodel.h"
+#include "pipelinediagramwidget.h"
 #include "processorhandler.h"
 #include "processorregistry.h"
 #include "processorselectiondialog.h"
 #include "registercontainerwidget.h"
 #include "registermodel.h"
 #include "ripessettings.h"
-#include "stagetablemodel.h"
-#include "stagetablewidget.h"
 #include "syscall/systemio.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
@@ -88,7 +88,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     // By default, lock the VSRTL widget
     m_vsrtlWidget->setLocked(true);
 
-    m_stageModel = new StageTableModel(this);
+    m_stageModel = new PipelineDiagramModel(this);
 
     updateInstructionModel();
     m_ui->registerContainerWidget->initialize();
@@ -248,9 +248,9 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
-    m_stageTableAction = new QAction(tableIcon, "Show stage table", this);
-    connect(m_stageTableAction, &QAction::triggered, this, &ProcessorTab::showStageTable);
-    m_toolbar->addAction(m_stageTableAction);
+    m_pipelineDiagramAction = new QAction(tableIcon, "Show pipeline diagram", this);
+    connect(m_pipelineDiagramAction, &QAction::triggered, this, &ProcessorTab::showPipelineDiagram);
+    m_toolbar->addAction(m_pipelineDiagramAction);
 
     m_darkmodeAction = new QAction("Processor darkmode", this);
     m_darkmodeAction->setCheckable(true);
@@ -414,7 +414,7 @@ void ProcessorTab::enableSimulatorControls() {
     m_runAction->setEnabled(true);
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
     m_resetAction->setEnabled(true);
-    m_stageTableAction->setEnabled(!m_hasRun);
+    m_pipelineDiagramAction->setEnabled(!m_hasRun);
 }
 
 void ProcessorTab::updateInstructionLabels() {
@@ -498,7 +498,7 @@ void ProcessorTab::run(bool state) {
     m_reverseAction->setEnabled(!state);
     m_resetAction->setEnabled(!state);
     m_displayValuesAction->setEnabled(!state);
-    m_stageTableAction->setEnabled(false);
+    m_pipelineDiagramAction->setEnabled(false);
 
     // Disable widgets which are not updated when running the processor
     m_vsrtlWidget->setEnabled(!state);
@@ -521,8 +521,8 @@ void ProcessorTab::clock() {
     m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
-void ProcessorTab::showStageTable() {
-    auto w = StageTableWidget(m_stageModel);
+void ProcessorTab::showPipelineDiagram() {
+    auto w = PipelineDiagramWidget(m_stageModel);
     w.exec();
 }
 }  // namespace Ripes

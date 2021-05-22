@@ -1,4 +1,4 @@
-#include "stagetablemodel.h"
+#include "pipelinediagrammodel.h"
 
 #include <vector>
 
@@ -11,12 +11,12 @@ static inline uint32_t indexToAddress(unsigned index) {
     return 0;
 }
 
-StageTableModel::StageTableModel(QObject* parent) : QAbstractTableModel(parent) {
+PipelineDiagramModel::PipelineDiagramModel(QObject* parent) : QAbstractTableModel(parent) {
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
-            &StageTableModel::processorWasClocked);
+            &PipelineDiagramModel::processorWasClocked);
 }
 
-QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+QVariant PipelineDiagramModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole)
         return QVariant();
     if (orientation == Qt::Horizontal) {
@@ -28,26 +28,26 @@ QVariant StageTableModel::headerData(int section, Qt::Orientation orientation, i
     }
 }
 
-int StageTableModel::rowCount(const QModelIndex&) const {
+int PipelineDiagramModel::rowCount(const QModelIndex&) const {
     return ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
 }
 
-int StageTableModel::columnCount(const QModelIndex&) const {
+int PipelineDiagramModel::columnCount(const QModelIndex&) const {
     return m_cycleStageInfos.size();
 }
 
-void StageTableModel::processorWasClocked() {
+void PipelineDiagramModel::processorWasClocked() {
     gatherStageInfo();
 }
 
-void StageTableModel::reset() {
+void PipelineDiagramModel::reset() {
     beginResetModel();
     m_cycleStageInfos.clear();
     endResetModel();
     gatherStageInfo();
 }
 
-void StageTableModel::gatherStageInfo() {
+void PipelineDiagramModel::gatherStageInfo() {
     long long cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
     if (m_cycleStageInfos.count(cycleCount)) {
         return;
@@ -58,7 +58,7 @@ void StageTableModel::gatherStageInfo() {
     }
 }
 
-QVariant StageTableModel::data(const QModelIndex& index, int role) const {
+QVariant PipelineDiagramModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid())
         return QVariant();
 
