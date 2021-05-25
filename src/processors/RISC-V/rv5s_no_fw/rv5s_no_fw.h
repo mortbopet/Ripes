@@ -20,9 +20,9 @@
 #include "../rv_registerfile.h"
 
 // Stage separating registers
-#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
 #include "../rv5s/rv5s_exmem.h"
 #include "../rv5s/rv5s_memwb.h"
+#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
 #include "rv5s_no_fw_idex.h"
 
 // Hazard detection unit

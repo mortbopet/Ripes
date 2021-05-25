@@ -54,7 +54,7 @@ public:
 private:
     bool hasHazard() { return hasDataOrLoadUseHazard() || hasEcallHazard(); }
 
-    bool hasDataOrLoadUseHazard(){ return hasDataHazardExMem() || hasLoadUseHazard(); }
+    bool hasDataOrLoadUseHazard() { return hasDataHazardExMem() || hasLoadUseHazard(); }
 
     bool hasDataHazardExMem() { return hasDataHazardEx() || hasDataHazardMem(); }
 
@@ -63,7 +63,7 @@ private:
         const unsigned idx1 = id_reg1_idx.uValue();
         const unsigned idx2 = id_reg2_idx.uValue();
         const bool mrd = ex_do_mem_read_en.uValue();
-        
+
         return (exidx == idx1 || exidx == idx2) && mrd;
     }
 
@@ -108,11 +108,12 @@ private:
         const bool exBranchTaken = ex_branch_taken.uValue();
 
         // If destination is x0 or jump is taken ignore hazard
-        if((writeIdx == 0) || (doJump)){
+        if ((writeIdx == 0) || (doJump)) {
             return false;
         }
 
-        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch || isMemWrite))) && regWrite && !exBranchTaken;
+        return ((writeIdx == idx1) || ((writeIdx == idx2) && (idx2isReg || isBranch || isMemWrite))) && regWrite &&
+               !exBranchTaken;
     }
 };
 }  // namespace core

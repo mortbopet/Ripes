@@ -82,6 +82,7 @@ private slots:
      */
     void testRV6SDual() { cosimulate(ProcessorID::RV6S_DUAL, {"M"}); }
     void testRV5S() { cosimulate(ProcessorID::RV5S, {"M"}); }
+    void testRV5SNoFW() { cosimulate(ProcessorID::RV5S_NO_FW, {"M"}); }
 };
 
 void tst_Cosimulate::handleSysCall() {

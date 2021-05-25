@@ -9,9 +9,9 @@
 #include "processors/ripesprocessor.h"
 
 #include "processors/RISC-V/rv5s/rv5s.h"
+#include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
-#include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
@@ -128,7 +128,7 @@ private:
         desc.id = ProcessorID::RV5S_NO_FW;
         desc.isa = vsrtl::core::RV5S_NO_FW::ISA();
         desc.name = "5-Stage Processor w/o forwarding unit";
-        desc.description = "A 5-Stage in-order processor with hazard detection/elimination but no forwarding unit.";
+        desc.description = "A 5-stage in-order processor with hazard detection/elimination but no forwarding unit.";
         desc.layouts = {{"Standard",
                          ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json",
                          {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0}, QPointF{0.75, 0}, QPointF{0.88, 0}}},
