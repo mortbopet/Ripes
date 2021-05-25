@@ -6,7 +6,7 @@ on:
 
 jobs:
   buildMac:
-    runs-on: macOS-latest
+    runs-on: macos-latest
 
     strategy:
       matrix:
@@ -17,7 +17,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: 'recursive'
-        
+        fetch-depth: 0
+
     - name: setup Homebrew
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
 
@@ -36,7 +37,7 @@ jobs:
         install-deps: false
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-    - name: build Ripes 
+    - name: build Ripes
       run: |
         export QT_ROOT=${GITHUB_WORKSPACE}/Qt/5.13.0/clang_64
         export QT_QPA_PLATFORM_PLUGIN_PATH=$QT_ROOT/plugins
@@ -45,7 +46,7 @@ jobs:
         DIR=$(pwd)
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} .
         make
-  
+
     - name: package artifacts
       run: |
         macdeployqt $(if [ ${{ matrix.build-type }} -eq Debug ]; then echo "-use-debug-libs"; fi) Ripes.app
