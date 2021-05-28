@@ -10,7 +10,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
     HighlightingRule rule;
 
     // General registers
-    registerFormat.setForeground(QColor(0x800000));
+    registerFormat.setForeground(QColor{0x80, 0x00, 0x00});
     rule.pattern = QRegularExpression("\\b[(a|s|t|x)][0-9]{1,2}");
     rule.format = registerFormat;
     m_highlightingRules.append(rule);
@@ -30,7 +30,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
     }
 
     // Instructions
-    instructionFormat.setForeground(QColor(Colors::BerkeleyBlue));
+    instructionFormat.setForeground(Colors::BerkeleyBlue);
     for (const auto& pattern : supportedOpcodes) {
         const QString regexPattern = "\\b" + pattern + "\\b";
         rule.pattern = QRegularExpression(regexPattern);
@@ -39,19 +39,19 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
     }
 
     // Labels
-    labelFormat.setForeground(QColor(Colors::Medalist));
+    labelFormat.setForeground(Colors::Medalist);
     rule.pattern = QRegularExpression(R"([\S]+:)");
     rule.format = labelFormat;
     m_highlightingRules.append(rule);
 
     // Strings
-    stringFormat.setForeground(QColor(0x800000));
+    stringFormat.setForeground(QColor{0x80, 0x00, 0x00});
     rule.pattern = QRegularExpression(R"("(?:[^"]|\.)*")");
     rule.format = stringFormat;
     m_highlightingRules.append(rule);
 
     // Immediates
-    immediateFormat.setForeground(QColor(Qt::darkGreen));
+    immediateFormat.setForeground(QColorConstants::DarkGreen);
     rule.pattern = QRegularExpression("\\b(?<![A-Za-z])[-+]?\\d+");
     rule.format = immediateFormat;
     m_highlightingRules.append(rule);
@@ -61,7 +61,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
     m_highlightingRules.append(rule);
 
     // Comments
-    commentFormat.setForeground(QColor(Colors::Medalist));
+    commentFormat.setForeground(Colors::Medalist);
     rule.pattern = QRegularExpression("[#]+.*");
     rule.format = commentFormat;
     m_highlightingRules.append(rule);

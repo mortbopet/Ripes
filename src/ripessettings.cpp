@@ -15,10 +15,10 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CCARGS, "-O0"},
     {RIPES_SETTING_LDARGS, "-static-libgcc -lm"},  // Ensure statically linked executable + link with math library
     {RIPES_SETTING_CONSOLEECHO, "true"},
-    {RIPES_SETTING_CONSOLEBG, QColor(Qt::white)},
-    {RIPES_SETTING_CONSOLEFONTCOLOR, QColor(Qt::black)},
+    {RIPES_SETTING_CONSOLEBG, QColorConstants::White},
+    {RIPES_SETTING_CONSOLEFONTCOLOR, QColorConstants::Black},
     {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */},
-    {RIPES_SETTING_CONSOLEFONT, QColor(Qt::black)},
+    {RIPES_SETTING_CONSOLEFONT, QColorConstants::Black},
     {RIPES_SETTING_INDENTAMT, 4},
 
     {RIPES_SETTING_ASSEMBLER_TEXTSTART, 0x0},

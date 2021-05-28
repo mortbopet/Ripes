@@ -120,13 +120,13 @@ void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
     m_plot = new QChart();
     m_series = new QLineSeries(m_plot);
     auto defaultPen = m_series->pen();  // Inherit default pen state
-    defaultPen.setColor(QColor(FoundersRock));
+    defaultPen.setColor(Colors::FoundersRock);
     m_series->setName("Total");
     m_series->setPen(defaultPen);
     m_plot->addSeries(m_series);
     m_mavgSeries = new QLineSeries(m_plot);
     m_mavgSeries->setName("Moving avg.");
-    defaultPen.setColor(QColor(Medalist));
+    defaultPen.setColor(Colors::Medalist);
     m_mavgSeries->setPen(defaultPen);
     m_plot->addSeries(m_mavgSeries);
     m_plot->createDefaultAxes();

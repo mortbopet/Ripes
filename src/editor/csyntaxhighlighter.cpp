@@ -43,24 +43,24 @@ CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<As
         highlightingRules.append(rule);
     }
 
-    singleLineCommentFormat.setForeground(QColor(Colors::Medalist));
+    singleLineCommentFormat.setForeground(Colors::Medalist);
     rule.pattern = QRegularExpression(QStringLiteral("//[^\n]*"));
     rule.format = singleLineCommentFormat;
     highlightingRules.append(rule);
 
-    multiLineCommentFormat.setForeground(QColor(Colors::Medalist));
+    multiLineCommentFormat.setForeground(Colors::Medalist);
 
-    preprocessorFormat.setForeground(QColor(Qt::magenta).darker());
+    preprocessorFormat.setForeground(QColorConstants::DarkMagenta);
     rule.pattern = QRegularExpression(QStringLiteral("^\\ *#[^ ]*"));
     rule.format = preprocessorFormat;
     highlightingRules.append(rule);
 
-    quotationFormat.setForeground(QColor(0x800000));
+    quotationFormat.setForeground(QColor{0x80, 0x00, 0x00});
     rule.pattern = QRegularExpression(QStringLiteral("\".*\""));
     rule.format = quotationFormat;
     highlightingRules.append(rule);
 
-    functionFormat.setForeground(QColor(Colors::BerkeleyBlue));
+    functionFormat.setForeground(Colors::BerkeleyBlue);
     rule.pattern = QRegularExpression(QStringLiteral("\\b[A-Za-z0-9_]+(?=\\()"));
     rule.format = functionFormat;
     highlightingRules.append(rule);

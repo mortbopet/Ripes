@@ -109,7 +109,7 @@ void LoadDialog::openFileButtonTriggered() {
 void LoadDialog::paletteValidate(QWidget* w, bool valid) {
     QPalette palette = this->palette();
     if (!valid) {
-        palette.setColor(QPalette::Base, QColor(0xEB8383));
+        palette.setColor(QPalette::Base, QColor{0xEB, 0x83, 0x83});
     }
     w->setPalette(palette);
 }

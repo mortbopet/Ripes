@@ -82,7 +82,7 @@ QVariant RegisterModel::data(const QModelIndex& index, int role) const {
     if (role == Qt::ToolTipRole) {
         return tooltipData(idx);
     } else if (role == Qt::BackgroundRole && index.row() == m_mostRecentlyModifiedReg) {
-        return QBrush(QColor(0xFDB515));
+        return QBrush(QColor{0xFD, 0xB5, 0x15});
     }
 
     switch (index.column()) {

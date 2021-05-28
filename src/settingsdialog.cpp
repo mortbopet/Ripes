@@ -241,10 +241,10 @@ QWidget* SettingsDialog::createCompilerPage() {
 void SettingsDialog::CCPathChanged(CCManager::CCRes res) {
     QPalette palette = this->palette();
     if (res.success) {
-        palette.setColor(QPalette::Base, QColor(Qt::green).lighter());
+        palette.setColor(QPalette::Base, QColorConstants::Green.lighter());
         m_compileInfoHeader->setText("Compile command:");
     } else {
-        palette.setColor(QPalette::Base, QColor(Qt::red).lighter());
+        palette.setColor(QPalette::Base, QColorConstants::Red.lighter());
         m_compileInfoHeader->setText("Error:");
     }
     m_ccpath->setPalette(palette);

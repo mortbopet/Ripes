@@ -94,7 +94,7 @@ void ProgramViewer::setFollowEnabled(bool enabled) {
 
 void ProgramViewer::updateHighlightedAddresses() {
     const unsigned stages = ProcessorHandler::getProcessor()->stageCount();
-    QColor bg = QColor(Qt::red).lighter(120);
+    QColor bg = QColorConstants::Red.lighter(120);
     const int decRatio = 100 + 80 / stages;
     QList<QTextEdit::ExtraSelection> highlights;
     std::set<unsigned long> highlightedPCs;
@@ -162,8 +162,8 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
     // redrawing the visible breakpoint area
     auto area = m_breakpointArea->rect();
     QLinearGradient gradient = QLinearGradient(area.topLeft(), area.bottomRight());
-    gradient.setColorAt(0, QColor(Colors::FoundersRock).lighter(120));
-    gradient.setColorAt(1, QColor(Colors::FoundersRock));
+    gradient.setColorAt(0, Colors::FoundersRock.lighter(120));
+    gradient.setColorAt(1, Colors::FoundersRock);
 
     painter.fillRect(area, gradient);
 

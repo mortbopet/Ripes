@@ -1,9 +1,11 @@
 #pragma once
 
+#include <QColor>
 #include <QList>
 #include <QMetaType>
 #include <QPair>
 #include <QString>
+
 #include <cstdint>
 #include <map>
 #include <vector>
@@ -46,14 +48,13 @@ public:
     PC WB;
 };
 
-enum Colors {
-    // Berkeley primary color palette
-    BerkeleyBlue = 0x003262,
-    FoundersRock = 0x3B7EA1,
-    CaliforniaGold = 0xFDB515,
-    Medalist = 0xC4820E,
-    FlatGreen = 0x4cde75
-};
+namespace Colors {
+constexpr QColor BerkeleyBlue = {0x00, 0x32, 0x62};
+constexpr QColor FoundersRock = {0x3B, 0x7E, 0xA1};
+constexpr QColor CaliforniaGold = {0xFD, 0xB5, 0x15};
+constexpr QColor Medalist = {0xC4, 0x82, 0x0E};
+constexpr QColor FlatGreen = {0x4c, 0xde, 0x75};
+};  // namespace Colors
 
 namespace {
 static QMap<QString, displayTypeN> initDisplayTypes() {
