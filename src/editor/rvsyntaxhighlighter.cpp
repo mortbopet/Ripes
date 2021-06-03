@@ -44,12 +44,6 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
     rule.format = labelFormat;
     m_highlightingRules.append(rule);
 
-    // Strings
-    stringFormat.setForeground(QColor{0x80, 0x00, 0x00});
-    rule.pattern = QRegularExpression(R"("(?:[^"]|\.)*")");
-    rule.format = stringFormat;
-    m_highlightingRules.append(rule);
-
     // Immediates
     immediateFormat.setForeground(QColorConstants::DarkGreen);
     rule.pattern = QRegularExpression("\\b(?<![A-Za-z])[-+]?\\d+");
@@ -58,6 +52,12 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(QTextDocument* parent, std::shared_ptr<
 
     // Prefixed immediates (0x, 0b)
     rule.pattern = QRegularExpression("([-+]?0[xX][0-9a-fA-F]+|[-+]?0[bB][0-1]+)");
+    m_highlightingRules.append(rule);
+
+    // Strings
+    stringFormat.setForeground(QColor{0x80, 0x00, 0x00});
+    rule.pattern = QRegularExpression(R"("(?:[^"]|\.)*")");
+    rule.format = stringFormat;
     m_highlightingRules.append(rule);
 
     // Comments
