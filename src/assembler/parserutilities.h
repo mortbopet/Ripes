@@ -59,6 +59,11 @@ inline std::variant<Error, LineTokens> joinParentheses(QStringList& tokens) {
     };
 
     for (const auto& token : tokens) {
+        if (token.startsWith("\"") && token.endsWith("\"")) {
+            // String literal; ignore parentheses inside
+            outtokens << token;
+            continue;
+        }
         for (const auto& ch : token) {
             switch (ch.unicode()) {
                 case '(':

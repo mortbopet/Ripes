@@ -113,12 +113,27 @@ void tst_Assembler::tst_directives() {
     QByteArray expectData;
 
     // String constants
-    expectData += QString("foo").toUtf8().append('\0');
-    expectData += QString("baaar").toUtf8().append('\0');
-    testAssemble(QStringList() << ".data"
-                               << "foo: .string \"foo\""
-                               << "bar: .string \"baaar\"",
-                 Expect::Success, expectData);
+    QStringList assembleStrings;
+    assembleStrings << "\"foo\""
+                    << "\"bar\""
+                    << "\"1*2+(3/foo)\""
+                    << "\"foo(\""
+                    << "\"foo)\""
+                    << "\"foo(.)\""
+                    << "\".text\""
+                    << "\"nop\""
+                    << "\"addi a0 a0 baz\"";
+
+    QStringList directiveStrings;
+    directiveStrings << ".data";
+    int i = 0;
+    for (const auto& s : assembleStrings) {
+        directiveStrings << "s" + QString::number(i++) + ": .string " + s;
+        QString scpy = s;
+        scpy.remove('\"');
+        expectData += scpy.toUtf8().append('\0');
+    }
+    testAssemble(directiveStrings, Expect::Success, expectData);
 
     // word, half and byte constants
     expectData.clear();
