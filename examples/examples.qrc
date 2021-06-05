@@ -2,7 +2,7 @@
     <qresource prefix="/examples">
         <file>ELF/RanPi</file>
         <file>C/ranpi.c</file>
-        <file>C/io.c</file>
+        <file>C/consoleInput.c</file>
         <file>C/matrixmul.c</file>
         <file>assembly/factorial.s</file>
         <file>assembly/complexMul.s</file>
