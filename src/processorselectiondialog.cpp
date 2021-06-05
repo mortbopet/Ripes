@@ -18,8 +18,10 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     // Initialize top level ISA items
     m_ui->processors->setHeaderHidden(true);
     std::map<ISA, QTreeWidgetItem*> isaItems;
+    std::map<ISA, std::map<unsigned, QTreeWidgetItem*>> isaRegWidthItems;
     for (const auto& isa : ISAFamilyNames) {
         auto* isaItem = new QTreeWidgetItem({isa.second});
+        isaRegWidthItems[isa.first];
         isaItems[isa.first] = isaItem;
         isaItem->setFlags(isaItem->flags() & ~(Qt::ItemIsSelectable));
         m_ui->processors->insertTopLevelItem(m_ui->processors->topLevelItemCount(), isaItem);
@@ -32,13 +34,26 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
         QTreeWidgetItem* processorItem = new QTreeWidgetItem({desc.second.name});
         processorItem->setData(ProcessorColumn, Qt::UserRole, QVariant::fromValue(desc.second.id));
         if (desc.second.id == ProcessorHandler::getID()) {
+            // Highlight if currently selected processor
             auto font = processorItem->font(ProcessorColumn);
             font.setBold(true);
             processorItem->setFont(ProcessorColumn, font);
             selectedItem = processorItem;
         }
-        auto* isaItem = isaItems.at(desc.second.isa->isaID());
-        isaItem->insertChild(isaItem->childCount(), processorItem);
+
+        auto& regWidthItemsForISA = isaRegWidthItems.at(desc.second.isa->isaID());
+        auto isaRegWidthItem = regWidthItemsForISA.find(desc.second.isa->bits());
+        if (isaRegWidthItem == regWidthItemsForISA.end()) {
+            // Create reg width item
+            auto* widthItem = new QTreeWidgetItem({QString::number(desc.second.isa->bits()) + "-bit"});
+            widthItem->setFlags(widthItem->flags() & ~(Qt::ItemIsSelectable));
+            regWidthItemsForISA[desc.second.isa->bits()] = widthItem;
+            isaRegWidthItem = regWidthItemsForISA.find(desc.second.isa->bits());
+            isaItems.at(desc.second.isa->isaID())
+                ->insertChild(isaItems.at(desc.second.isa->isaID())->childCount(), widthItem);
+        }
+
+        isaRegWidthItem->second->insertChild(isaRegWidthItem->second->childCount(), processorItem);
     }
 
     connect(m_ui->processors, &QTreeWidget::currentItemChanged, this, &ProcessorSelectionDialog::selectionChanged);
