@@ -2,21 +2,22 @@
 
 #include <assert.h>
 #include <functional>
+#include <numeric>
 #include "../../binutils.h"
 
 namespace Ripes {
 
-typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
-static inline decode_functor generateInstrParser(std::vector<int> bitFields) {
+template <typename T>
+using decode_functor = std::function<std::vector<T>(T)>;
+
+template <typename T>
+decode_functor<T> generateInstrParser(const std::vector<int>& bitFields) {
+    constexpr int size_bits = sizeof(T) * CHAR_BIT;
+    static_assert(is_powerof2(size_bits) && size_bits >= 32, "Invalid word size parameter");
     // Generates functors that can decode a binary number based on the input
     // vector which is supplied upon generation
-
-    // Assert that total bitField size is (32-7)=25-bit. Subtract 7 for op-code
-    int tot = 0;
-    for (const auto& field : bitFields) {
-        tot += field;
-    }
-    assert(tot == 25 && "Requested word parsing format is not 32-bit in length");
+    assert(std::accumulate(bitFields.begin(), bitFields.end(), 0) == size_bits &&
+           "Requested word parsing format is not T-bits in length");
 
     // Generate vector of <fieldsize,bitmask>
     std::vector<std::pair<uint32_t, uint32_t>> parseVector;
@@ -27,9 +28,8 @@ static inline decode_functor generateInstrParser(std::vector<int> bitFields) {
     }
 
     // Create parse functor
-    decode_functor instrParser = [=](uint32_t word) {
-        word = word >> 7;  // remove OpCode
-        std::vector<uint32_t> parsedWord;
+    decode_functor<T> instrParser = [=](T word) {
+        std::vector<T> parsedWord;
         for (const auto& field : parseVector) {
             parsedWord.insert(parsedWord.begin(), word & field.second);
             word = word >> field.first;
