@@ -17,12 +17,12 @@ namespace Ripes {
 ProcessorHandler::ProcessorHandler() {
     // Contruct the default processor
     if (RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).isNull()) {
-        m_currentID = ProcessorID::RV5S;
+        m_currentID = ProcessorID::RV32_5S;
     } else {
         m_currentID = RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).value<ProcessorID>();
 
         // Some sanity checking
-        m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV5S : m_currentID;
+        m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV32_5S : m_currentID;
     }
     _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
                      ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);

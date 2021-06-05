@@ -21,7 +21,7 @@ Q_NAMESPACE
 // =============================== Processors =================================
 // The order of the ProcessorID enum defines the order of which the processors will appear in the processor selection
 // dialog.
-enum ProcessorID { RVSS, RV5S_NO_FW_HZ, RV5S_NO_HZ, RV5S_NO_FW, RV5S, RV6S_DUAL, NUM_PROCESSORS };
+enum ProcessorID { RV32_SS, RV32_5S_NO_FW_HZ, RV32_5S_NO_HZ, RV32_5S_NO_FW, RV32_5S, RV32_6S_DUAL, NUM_PROCESSORS };
 Q_ENUM_NS(Ripes::ProcessorID);  // Register with the metaobject system
 // ============================================================================
 
@@ -58,17 +58,17 @@ public:
     static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id,
                                                                            const QStringList& extensions) {
         switch (id) {
-            case ProcessorID::RV5S_NO_FW_HZ:
+            case ProcessorID::RV32_5S_NO_FW_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ>(extensions);
-            case ProcessorID::RV5S:
+            case ProcessorID::RV32_5S:
                 return std::make_unique<vsrtl::core::RV5S>(extensions);
-            case ProcessorID::RV6S_DUAL:
+            case ProcessorID::RV32_6S_DUAL:
                 return std::make_unique<vsrtl::core::RV6S_DUAL>(extensions);
-            case ProcessorID::RVSS:
+            case ProcessorID::RV32_SS:
                 return std::make_unique<vsrtl::core::RVSS>(extensions);
-            case ProcessorID::RV5S_NO_HZ:
+            case ProcessorID::RV32_5S_NO_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_HZ>(extensions);
-            case ProcessorID::RV5S_NO_FW:
+            case ProcessorID::RV32_5S_NO_FW:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW>(extensions);
             case ProcessorID::NUM_PROCESSORS:
                 Q_UNREACHABLE();
@@ -82,7 +82,7 @@ private:
 
         // RISC-V single cycle
         ProcessorDescription desc;
-        desc.id = ProcessorID::RVSS;
+        desc.id = ProcessorID::RV32_SS;
         desc.isa = vsrtl::core::RVSS::ISA();
         desc.name = "Single-cycle processor";
         desc.description = "A single cycle processor";
@@ -93,7 +93,7 @@ private:
 
         // RISC-V 5-stage without forwarding or hazard detection
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV5S_NO_FW_HZ;
+        desc.id = ProcessorID::RV32_5S_NO_FW_HZ;
         desc.isa = vsrtl::core::RV5S_NO_FW_HZ::ISA();
         desc.name = "5-stage processor w/o forwarding or hazard detection";
         desc.description = "A 5-stage in-order processor with no forwarding or hazard detection/elimination.";
@@ -110,7 +110,7 @@ private:
 
         // RISC-V 5-stage without hazard detection
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV5S_NO_HZ;
+        desc.id = ProcessorID::RV32_5S_NO_HZ;
         desc.isa = vsrtl::core::RV5S_NO_HZ::ISA();
         desc.name = "5-stage processor w/o hazard detection";
         desc.description = "A 5-stage in-order processor with forwarding but no hazard detection/elimination.";
@@ -125,7 +125,7 @@ private:
 
         // RISC-V 5-stage without forwarding unit
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV5S_NO_FW;
+        desc.id = ProcessorID::RV32_5S_NO_FW;
         desc.isa = vsrtl::core::RV5S_NO_FW::ISA();
         desc.name = "5-Stage Processor w/o forwarding unit";
         desc.description = "A 5-stage in-order processor with hazard detection/elimination but no forwarding unit.";
@@ -140,7 +140,7 @@ private:
 
         // RISC-V 5-stage without forwarding or hazard detection
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV5S;
+        desc.id = ProcessorID::RV32_5S;
         desc.isa = vsrtl::core::RV5S::ISA();
         desc.name = "5-stage processor";
         desc.description = "A 5-stage in-order processor with hazard detection/elimination and forwarding.";
@@ -155,7 +155,7 @@ private:
 
         // RISC-V 6-stage dual issue
         desc = ProcessorDescription();
-        desc.id = ProcessorID::RV6S_DUAL;
+        desc.id = ProcessorID::RV32_6S_DUAL;
         desc.isa = vsrtl::core::RV6S_DUAL::ISA();
         desc.name = "6-stage dual-issue processor";
         desc.description =
