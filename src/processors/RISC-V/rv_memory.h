@@ -35,11 +35,11 @@ public:
         data_out << [=] {
             switch (op.uValue()) {
                 case MemOp::LB:
-                    return static_cast<uint32_t>(signextend<int32_t, 8>(mem->data_out.uValue() & 0xFF));
+                    return VT_U(signextend<int32_t, 8>(mem->data_out.uValue() & 0xFF));
                 case MemOp::LBU:
                     return mem->data_out.uValue() & 0xFF;
                 case MemOp::LH:
-                    return static_cast<uint32_t>(signextend<int32_t, 16>(mem->data_out.uValue() & 0xFFFF));
+                    return VT_U(signextend<int32_t, 16>(mem->data_out.uValue() & 0xFFFF));
                 case MemOp::LHU:
                     return mem->data_out.uValue() & 0xFFFF;
                 case MemOp::LW:

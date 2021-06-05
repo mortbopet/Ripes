@@ -3,8 +3,8 @@
 #include <functional>
 #include "../../isa/rv32isainfo.h"
 #include "VSRTL/core/vsrtl_enum.h"
-#include "VSRTL/interface/vsrtl.h"
 #include "VSRTL/interface/vsrtl_binutils.h"
+#include "VSRTL/interface/vsrtl_defines.h"
 #include "rv_instrparser.h"
 
 namespace Ripes {
@@ -45,28 +45,28 @@ public:
         return &parser;
     }
 
-    std::vector<::vsrtl::VSRTL_VT_U> decodeUInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeUInstr(instr); }
-    std::vector<::vsrtl::VSRTL_VT_U> decodeJInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeJInstr(instr); }
-    std::vector<::vsrtl::VSRTL_VT_U> decodeIInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeIInstr(instr); }
-    std::vector<::vsrtl::VSRTL_VT_U> decodeSInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeSInstr(instr); }
-    std::vector<::vsrtl::VSRTL_VT_U> decodeRInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeRInstr(instr); }
-    std::vector<::vsrtl::VSRTL_VT_U> decodeBInstr(::vsrtl::VSRTL_VT_U instr) const { return m_decodeBInstr(instr); }
+    std::vector<uint32_t> decodeU32Instr(const uint32_t& instr) const { return m_decodeU32Instr(instr); }
+    std::vector<uint32_t> decodeJ32Instr(const uint32_t& instr) const { return m_decodeJ32Instr(instr); }
+    std::vector<uint32_t> decodeI32Instr(const uint32_t& instr) const { return m_decodeI32Instr(instr); }
+    std::vector<uint32_t> decodeS32Instr(const uint32_t& instr) const { return m_decodeS32Instr(instr); }
+    std::vector<uint32_t> decodeR32Instr(const uint32_t& instr) const { return m_decodeR32Instr(instr); }
+    std::vector<uint32_t> decodeB32Instr(const uint32_t& instr) const { return m_decodeB32Instr(instr); }
 
 private:
     RVInstrParser() {
-        m_decodeRInstr = generateInstrParser(std::vector<int>{5, 3, 5, 5, 7});  // from LSB to MSB
-        m_decodeIInstr = generateInstrParser(std::vector<int>{5, 3, 5, 12});
-        m_decodeSInstr = generateInstrParser(std::vector<int>{5, 3, 5, 5, 7});
-        m_decodeBInstr = generateInstrParser(std::vector<int>{1, 4, 3, 5, 5, 6, 1});
-        m_decodeUInstr = generateInstrParser(std::vector<int>{5, 20});
-        m_decodeJInstr = generateInstrParser(std::vector<int>{5, 8, 1, 10, 1});
+        m_decodeR32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 7});  // from LSB to MSB
+        m_decodeI32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 12});
+        m_decodeS32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 7});
+        m_decodeB32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 1, 4, 3, 5, 5, 6, 1});
+        m_decodeU32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 20});
+        m_decodeJ32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 8, 1, 10, 1});
     }
-    decode_functor m_decodeUInstr;
-    decode_functor m_decodeJInstr;
-    decode_functor m_decodeIInstr;
-    decode_functor m_decodeSInstr;
-    decode_functor m_decodeRInstr;
-    decode_functor m_decodeBInstr;
+    decode_functor<uint32_t> m_decodeU32Instr;
+    decode_functor<uint32_t> m_decodeJ32Instr;
+    decode_functor<uint32_t> m_decodeI32Instr;
+    decode_functor<uint32_t> m_decodeS32Instr;
+    decode_functor<uint32_t> m_decodeR32Instr;
+    decode_functor<uint32_t> m_decodeB32Instr;
 };
 
 }  // namespace Ripes

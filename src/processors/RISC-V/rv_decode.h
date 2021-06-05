@@ -25,7 +25,7 @@ public:
 
             case 0b0010011: {
                 // I-Type
-                const auto fields = RVInstrParser::getParser()->decodeIInstr(instr.uValue());
+                const auto fields = RVInstrParser::getParser()->decodeI32Instr(instr.uValue());
                 switch(fields[2]) {
                 case 0b000: return RVInstr::ADDI;
                 case 0b010: return RVInstr::SLTI;
@@ -47,7 +47,7 @@ public:
 
             case 0b0110011: {
                 // R-Type
-                const auto fields = RVInstrParser::getParser()->decodeRInstr(instr.uValue());
+                const auto fields = RVInstrParser::getParser()->decodeR32Instr(instr.uValue());
                 if (fields[0] == 0b1) {
                     if(m_isa && m_isa->extensionEnabled("M")) {
                         // RV32M Standard extension
@@ -95,7 +95,7 @@ public:
 
             case 0b0000011: {
                 // Load instruction
-                const auto fields = RVInstrParser::getParser()->decodeIInstr(instr.uValue());
+                const auto fields = RVInstrParser::getParser()->decodeI32Instr(instr.uValue());
                 switch (fields[2]) {
                     case 0b000: return RVInstr::LB;
                     case 0b001: return RVInstr::LH;
@@ -109,7 +109,7 @@ public:
 
             case 0b0100011: {
                 // Store instructions
-                const auto fields = RVInstrParser::getParser()->decodeSInstr(instr.uValue());
+                const auto fields = RVInstrParser::getParser()->decodeS32Instr(instr.uValue());
                 switch (fields[3]) {
                     case 0b000: return RVInstr::SB;
                     case 0b001: return RVInstr::SH;
@@ -121,7 +121,7 @@ public:
 
             case 0b1100011: {
                 // Branch instruction
-                const auto fields = RVInstrParser::getParser()->decodeBInstr(instr.uValue());
+                const auto fields = RVInstrParser::getParser()->decodeB32Instr(instr.uValue());
                 switch (fields[4]) {
                     case 0b000: return RVInstr::BEQ;
                     case 0b001: return RVInstr::BNE;

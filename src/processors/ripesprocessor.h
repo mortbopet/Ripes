@@ -17,7 +17,7 @@ namespace Ripes {
  */
 struct StageInfo {
     enum class State { None, Stalled, Flushed, WayHazard, Unused };
-    unsigned int pc = 0;
+    vsrtl::VSRTL_VT_U pc = 0;
     bool stage_valid = false;
     State state;
     bool operator==(const StageInfo& other) const {

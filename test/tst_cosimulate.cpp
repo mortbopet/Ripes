@@ -167,6 +167,10 @@ void tst_Cosimulate::loadCurrentTest() {
 void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
     loadCurrentTest();
 
+    if (!ProcessorHandler::getProgram()) {
+        QFAIL("No program was loaded!");
+    }
+
     m_stop = false;
     m_err = QString();
     bool maxCyclesReached = false;

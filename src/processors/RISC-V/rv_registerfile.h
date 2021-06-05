@@ -38,8 +38,9 @@ public:
         if constexpr (readBypass) {
             r1_out << [=] {
                 const int rd_idx = r1_addr.uValue();
-                if (rd_idx == 0)
-                    return static_cast<unsigned>(0);
+                if (rd_idx == 0) {
+                    return VT_U(0);
+                }
 
                 const unsigned wr_idx = wr_addr.uValue();
                 if (wr_en.uValue() && wr_idx == r1_addr.uValue()) {
@@ -51,8 +52,9 @@ public:
 
             r2_out << [=] {
                 const unsigned rd_idx = r2_addr.uValue();
-                if (rd_idx == 0)
-                    return static_cast<unsigned>(0);
+                if (rd_idx == 0) {
+                    return VT_U(0);
+                }
 
                 const unsigned wr_idx = wr_addr.uValue();
                 if (wr_en.uValue() && wr_idx == r2_addr.uValue()) {

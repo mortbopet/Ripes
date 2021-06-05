@@ -74,4 +74,8 @@ constexpr inline unsigned ceillog2(unsigned x) {
     return x == 1 || x == 0 ? 1 : floorlog2(x - 1) + 1;
 }
 
+constexpr bool is_powerof2(int v) {
+    return v && ((v & (v - 1)) == 0);
+}
+
 }  // namespace Ripes
