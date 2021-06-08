@@ -205,6 +205,9 @@ QWidget* SettingsDialog::createCompilerPage() {
     // Add effective compile command line view
     auto* CCCLineHLayout = new QHBoxLayout();
     m_compileInfoHeader = new QLabel();
+    auto f = m_compileInfoHeader->font();
+    f.setBold(true);
+    m_compileInfoHeader->setFont(f);
     CCCLineHLayout->addWidget(m_compileInfoHeader);
     m_compileInfo = new QLabel();
     m_compileInfo->setWordWrap(true);

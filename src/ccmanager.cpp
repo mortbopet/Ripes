@@ -139,6 +139,7 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
     res.aborted = m_aborted;
+    res.compileCommand = cc + " " + args.join(" ");
 
     return res;
 }
@@ -225,6 +226,8 @@ CCManager::CCRes CCManager::verifyCC(const QString& CCPath) {
 
     if (!res.success) {
         res.errorMessage += "Failed to compile test program.\n";
+        res.errorMessage += "Compile command was: \n";
+        res.errorMessage += "\t" + res.compileCommand + "\n";
         res.errorMessage += "Compiler output:\n";
         res.errorMessage += "\tstdout: " + QString(m_process.readAllStandardOutput()) + "\n";
         res.errorMessage += "\tstderr: " + QString(m_process.readAllStandardError()) + "\n";

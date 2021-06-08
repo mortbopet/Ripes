@@ -20,6 +20,7 @@ public:
         QStringList inFiles;
         QString outFile;
         QString errorMessage;
+        QString compileCommand;
         bool success = false;
         bool aborted = false;
 
