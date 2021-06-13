@@ -6,10 +6,6 @@
 
 namespace Ripes {
 
-QString SaveDialog::m_path = QString();
-bool SaveDialog::m_saveAssembly = true;
-bool SaveDialog::m_saveBinary = false;
-
 SaveDialog::SaveDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::SaveDialog) {
     m_ui->setupUi(this);
 
@@ -20,16 +16,16 @@ SaveDialog::SaveDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::SaveDial
     connect(m_ui->saveBinary, &QCheckBox::toggled, this, &SaveDialog::pathChanged);
     connect(m_ui->saveAssembly, &QCheckBox::toggled, this, &SaveDialog::pathChanged);
 
-    m_ui->saveAssembly->setChecked(m_saveAssembly);
-    m_ui->saveBinary->setChecked(m_saveBinary);
-    m_ui->filePath->setText(m_path);
+    m_ui->saveAssembly->setChecked(RipesSettings::value(RIPES_SETTING_SAVE_ASSEMBLY).toBool());
+    m_ui->saveBinary->setChecked(RipesSettings::value(RIPES_SETTING_SAVE_BINARY).toBool());
+    m_ui->filePath->setText(RipesSettings::value(RIPES_SETTING_SAVEPATH).toString());
     pathChanged();
 }
 
 void SaveDialog::accept() {
-    m_saveAssembly = m_ui->saveAssembly->isChecked();
-    m_saveBinary = m_ui->saveBinary->isChecked();
-    m_path = m_ui->filePath->text();
+    RipesSettings::setValue(RIPES_SETTING_SAVE_ASSEMBLY, m_ui->saveAssembly->isChecked());
+    RipesSettings::setValue(RIPES_SETTING_SAVE_BINARY, m_ui->saveBinary->isChecked());
+    RipesSettings::setValue(RIPES_SETTING_SAVEPATH, m_ui->filePath->text());
 
     QDialog::accept();
 }

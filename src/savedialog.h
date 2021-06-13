@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include "ripessettings.h"
 
 namespace Ripes {
 
@@ -15,9 +16,13 @@ public:
     explicit SaveDialog(QWidget* parent = nullptr);
     ~SaveDialog();
 
-    static const QString& getPath() { return m_path; }
-    static QString assemblyPath() { return m_saveAssembly ? m_path + ".s" : QString(); }
-    static QString binaryPath() { return m_saveBinary ? m_path + ".bin" : QString(); }
+    static QString getPath() { return RipesSettings::value(RIPES_SETTING_SAVEPATH).toString(); }
+    static QString assemblyPath() {
+        return RipesSettings::value(RIPES_SETTING_SAVE_ASSEMBLY).toBool() ? getPath() + ".s" : QString();
+    }
+    static QString binaryPath() {
+        return RipesSettings::value(RIPES_SETTING_SAVE_BINARY).toBool() ? getPath() + ".bin" : QString();
+    }
 
     void accept() override;
 
@@ -26,10 +31,6 @@ private:
     void pathChanged();
 
     Ui::SaveDialog* m_ui = nullptr;
-
-    static QString m_path;
-    static bool m_saveAssembly;
-    static bool m_saveBinary;
 };
 
 }  // namespace Ripes

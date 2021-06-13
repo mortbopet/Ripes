@@ -45,6 +45,11 @@ namespace Ripes {
 #define RIPES_SETTING_DARKMODE ("darkmode")
 #define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
 
+#define RIPES_SETTING_HAS_SAVEFILE ("has_savefile")
+#define RIPES_SETTING_SAVEPATH ("savepath")
+#define RIPES_SETTING_SAVE_ASSEMBLY ("save_assembly")
+#define RIPES_SETTING_SAVE_BINARY ("save_binary")
+
 // ============= Definitions of all default settings within Ripes ==============
 const extern std::map<QString, QVariant> s_defaultSettings;
 

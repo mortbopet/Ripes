@@ -98,7 +98,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     // setup and connect widgets
     connect(editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
-    connect(editTab, &EditTab::editorStateChanged, [=] { this->m_hasSavedFile = false; });
+    connect(editTab, &EditTab::editorStateChanged, [=] { RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false); });
 
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, processorTab, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, processorTab, &ProcessorTab::runFinished);
@@ -222,7 +222,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = SourceType::Assembly;
                 static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
-                m_hasSavedFile = false;
+                RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
             });
         }
     }
@@ -236,7 +236,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = QString(":/examples/C/") + fileName;
                 parms.type = SourceType::C;
                 static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
-                m_hasSavedFile = false;
+                RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
             });
         }
     }
@@ -258,7 +258,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = tmpELFFile->fileName();
                 parms.type = SourceType::ExternalELF;
                 static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
-                m_hasSavedFile = false;
+                RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
                 tmpELFFile->remove();
             });
         }
@@ -295,7 +295,7 @@ void MainWindow::loadFileTriggered() {
         return;
 
     static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(diag.getParams());
-    m_hasSavedFile = false;
+    RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
 }
 
 void MainWindow::wiki() {
@@ -328,7 +328,7 @@ void writeBinaryFile(QFile& file, const QByteArray& data) {
 
 void MainWindow::saveFilesTriggered() {
     SaveDialog diag;
-    if (!m_hasSavedFile) {
+    if (!RipesSettings::value(RIPES_SETTING_HAS_SAVEFILE).toBool()) {
         saveFilesAsTriggered();
         return;
     }
@@ -352,7 +352,7 @@ void MainWindow::saveFilesAsTriggered() {
     if (ret == QDialog::Rejected) {
         return;
     }
-    m_hasSavedFile = true;
+    RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, true);
     saveFilesTriggered();
 }
 
@@ -365,14 +365,15 @@ void MainWindow::newProgramTriggered() {
     QMessageBox mbox;
     mbox.setWindowTitle("New Program...");
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    if (!static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText().isEmpty() || m_hasSavedFile) {
+    if (!static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText().isEmpty() ||
+        RipesSettings::value(RIPES_SETTING_HAS_SAVEFILE).toBool()) {
         // User wrote a program but did not save it to a file yet
         mbox.setText("Save program before creating new file?");
         auto ret = mbox.exec();
         switch (ret) {
             case QMessageBox::Yes: {
                 saveFilesTriggered();
-                if (!m_hasSavedFile) {
+                if (!RipesSettings::value(RIPES_SETTING_HAS_SAVEFILE).toBool()) {
                     // User must have rejected the save file dialog
                     return;
                 }
@@ -386,7 +387,7 @@ void MainWindow::newProgramTriggered() {
             }
         }
     }
-    m_hasSavedFile = false;
+    RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
     static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->newProgram();
 }
 

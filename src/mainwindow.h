@@ -63,8 +63,6 @@ private:
     QActionGroup* m_binaryStoreAction;
     QToolBar* m_toolbar = nullptr;
 
-    bool m_hasSavedFile = false;
-
     // Tabs
     QStackedWidget* m_stackedTabs = nullptr;
     std::map<TabIndex, TabWidgets> m_tabWidgets;
