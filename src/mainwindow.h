@@ -3,12 +3,15 @@
 #include <QMainWindow>
 
 #include "assembler/program.h"
+#include "statusmanager.h"
 
 QT_FORWARD_DECLARE_CLASS(QToolBar)
 QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
 namespace Ripes {
+
+StatusManager(General);
 
 namespace Ui {
 class MainWindow;

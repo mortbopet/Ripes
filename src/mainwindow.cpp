@@ -145,6 +145,9 @@ void MainWindow::setupStatusBar() {
 
     // Setup systemIO status widget
     setupStatusWidget(SystemIO);
+
+    // Setup general info status widget
+    setupStatusWidget(General);
 }
 
 void MainWindow::tabChanged(int index) {
@@ -333,16 +336,27 @@ void MainWindow::saveFilesTriggered() {
         return;
     }
 
+    bool didSave = false;
+    QStringList savedFiles;
+
     if (!diag.assemblyPath().isEmpty()) {
         QFile file(diag.assemblyPath());
+        savedFiles << diag.assemblyPath();
         writeTextFile(file, static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText());
+        didSave |= true;
     }
 
     if (!diag.binaryPath().isEmpty()) {
         QFile file(diag.binaryPath());
         if (auto* program = static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getBinaryData()) {
+            savedFiles << diag.binaryPath();
             writeBinaryFile(file, *program);
+            didSave |= true;
         }
+    }
+
+    if (didSave) {
+        GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "), 2000);
     }
 }
 
