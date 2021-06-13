@@ -18,7 +18,16 @@ SaveDialog::SaveDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::SaveDial
 
     m_ui->saveAssembly->setChecked(RipesSettings::value(RIPES_SETTING_SAVE_ASSEMBLY).toBool());
     m_ui->saveBinary->setChecked(RipesSettings::value(RIPES_SETTING_SAVE_BINARY).toBool());
-    m_ui->filePath->setText(RipesSettings::value(RIPES_SETTING_SAVEPATH).toString());
+
+    QString path = QFileInfo(RipesSettings::value(RIPES_SETTING_SAVEPATH).toString()).absolutePath();
+    if (path.isEmpty()) {
+        path = QDir::currentPath();
+    }
+    if (!path.endsWith(QDir::separator())) {
+        path += QDir::separator();
+    }
+    m_ui->filePath->setText(path);
+
     pathChanged();
 }
 
@@ -31,7 +40,7 @@ void SaveDialog::accept() {
 }
 
 void SaveDialog::pathChanged() {
-    bool okEnabled = !m_ui->filePath->text().isEmpty();
+    bool okEnabled = !QFileInfo(m_ui->filePath->text()).fileName().isEmpty();
     okEnabled &= m_ui->saveAssembly->isChecked() | m_ui->saveBinary->isChecked();
 
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(okEnabled);
