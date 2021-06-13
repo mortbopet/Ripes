@@ -329,9 +329,8 @@ void writeBinaryFile(QFile& file, const QByteArray& data) {
 void MainWindow::saveFilesTriggered() {
     SaveDialog diag;
     if (!m_hasSavedFile) {
-        if (diag.exec()) {
-            m_hasSavedFile = true;
-        }
+        saveFilesAsTriggered();
+        return;
     }
 
     if (!diag.assemblyPath().isEmpty()) {
@@ -350,8 +349,9 @@ void MainWindow::saveFilesTriggered() {
 void MainWindow::saveFilesAsTriggered() {
     SaveDialog diag;
     auto ret = diag.exec();
-    if (ret == QDialog::Rejected)
+    if (ret == QDialog::Rejected) {
         return;
+    }
     m_hasSavedFile = true;
     saveFilesTriggered();
 }
