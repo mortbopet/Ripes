@@ -17,17 +17,23 @@ namespace Ripes {
 class CCManager : public QObject {
     Q_OBJECT
 public:
-    struct CC {
+    struct CompileCommand {
         QFileInfo bin;
         QStringList args;
 
-        QString toString() const { return bin.absoluteFilePath() + " " + args.join(" "); }
+        QString toString() const { return (QStringList(bin.absoluteFilePath()) + args).join(" "); }
+    };
+    struct CompileError {
+        QString errMsg;
+        QString _stdout;
+        QString _stderr;
+        QString toString(const CompileCommand& cc) const;
     };
     struct CCRes {
         QStringList inFiles;
         QString outFile;
-        QString errorMessage;
-        QString compileCommand;
+        CompileError errorOutput;
+        CompileCommand cc;
         bool success = false;
         bool aborted = false;
 
@@ -54,7 +60,7 @@ public:
     CCRes compile(const QTextDocument* source, QString outname = QString(), bool showProgressdiag = true);
     CCRes compileRaw(const QString& rawsource, QString outname = QString(), bool showProgressdiag = true);
 
-    CC createCompileCommand(const QStringList& files, const QString& outname) const;
+    CompileCommand createCompileCommand(const QStringList& files, const QString& outname) const;
 
 signals:
     /**

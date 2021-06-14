@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QDialog>
+#include <QPlainTextEdit>
+
 #include "ccmanager.h"
 
 QT_FORWARD_DECLARE_CLASS(QLineEdit);
@@ -30,7 +32,7 @@ private:
      */
     void CCPathChanged(CCManager::CCRes res);
     QLineEdit* m_ccpath = nullptr;
-    QLabel* m_compileInfo = nullptr;
+    QPlainTextEdit* m_compileInfo = nullptr;
     QLabel* m_compileInfoHeader = nullptr;
 
     QWidget* createCompilerPage();

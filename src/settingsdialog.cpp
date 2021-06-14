@@ -209,10 +209,9 @@ QWidget* SettingsDialog::createCompilerPage() {
     f.setBold(true);
     m_compileInfoHeader->setFont(f);
     CCCLineHLayout->addWidget(m_compileInfoHeader);
-    m_compileInfo = new QLabel();
-    m_compileInfo->setWordWrap(true);
-    m_compileInfo->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    m_compileInfo->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_compileInfo = new QPlainTextEdit();
+    m_compileInfo->setReadOnly(true);
+    m_compileInfo->setWordWrapMode(QTextOption::WordWrap);
     CCCLineHLayout->addWidget(m_compileInfo);
     CCLayout->addLayout(CCCLineHLayout);
 
@@ -253,12 +252,12 @@ void SettingsDialog::CCPathChanged(CCManager::CCRes res) {
     m_ccpath->setPalette(palette);
 
     // Update compile command preview
-    auto [cstring, cargs] = CCManager::get().createCompileCommand({"${input}"}, "${output}");
+    auto cc = CCManager::get().createCompileCommand({"${input}"}, "${output}");
     if (m_compileInfo) {
         if (res.success) {
-            m_compileInfo->setText(cstring + " " + cargs.join(" "));
+            m_compileInfo->setPlainText(cc.toString());
         } else {
-            m_compileInfo->setText(res.errorMessage);
+            m_compileInfo->setPlainText(res.errorOutput.toString(res.cc));
         }
     }
 }

@@ -14,6 +14,31 @@ const static std::vector<QString> s_validAutodetectedCCs = {"riscv64-unknown-elf
                                                             "riscv64-unknown-elf-c++"};
 const static QString s_testprogram = "int main() { return 0; }";
 
+QString indentString(const QString& string, int indent) {
+    auto subStrings = string.split("\n");
+    auto indentedStrings = QStringList();
+    for (const auto& str : qAsConst(subStrings)) {
+        indentedStrings << QString(" ").repeated(indent) + str;
+    }
+    return indentedStrings.join("\n");
+}
+
+QString CCManager::CompileError::toString(const CompileCommand& cc) const {
+    QStringList out;
+    auto indentAdd = [&](const QString& msg, const QString& indentMsg) {
+        if (!indentMsg.isEmpty()) {
+            out << msg;
+            out << indentString(indentMsg, 4);
+        }
+    };
+
+    indentAdd("Compilation failed", errMsg);
+    indentAdd("Compile command was:", cc.toString());
+    indentAdd("\nstdout output:", _stdout);
+    indentAdd("\nstderr output:", _stderr);
+    return out.join("\n");
+}
+
 CCManager::CCManager() {
     if (RipesSettings::value(RIPES_SETTING_CCPATH) == "") {
         // No previous compiler path has been set. Try to autodetect a valid compiler within the current path
@@ -105,6 +130,7 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     res.outFile = outname;
 
     const auto cc = createCompileCommand(files, outname);
+    res.cc = cc;
 
     // Run compiler
 
@@ -142,7 +168,6 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
     res.aborted = m_aborted;
-    res.compileCommand = cc.toString();
 
     return res;
 }
@@ -163,7 +188,7 @@ QStringList sanitizedArguments(const QString& args) {
 
 }  // namespace
 
-CCManager::CC CCManager::createCompileCommand(const QStringList& files, const QString& outname) const {
+CCManager::CompileCommand CCManager::createCompileCommand(const QStringList& files, const QString& outname) const {
     const auto& currentISA = ProcessorHandler::currentISA();
 
     /**
@@ -179,7 +204,7 @@ CCManager::CC CCManager::createCompileCommand(const QStringList& files, const QS
      * - %7: user linker arguments
      */
     QStringList compileCommand;
-    CC cc;
+    CompileCommand cc;
 
     // Compiler path
     cc.bin = QFileInfo(m_currentCC);
@@ -214,13 +239,13 @@ CCManager::CCRes CCManager::verifyCC(const QString& CCPath) {
     const auto compilerExecInfo = QFileInfo(m_currentCC);
 
     if (m_currentCC.isEmpty()) {
-        res.errorMessage = "No path specified";
+        res.errorOutput.errMsg = "No path specified";
         res.success = false;
         goto verifyCC_end;
     }
 
     if (!compilerExecInfo.isExecutable()) {
-        res.errorMessage = "'" + m_currentCC + "' is not an executable file.";
+        res.errorOutput.errMsg = "'" + m_currentCC + "' is not an executable file.";
         res.success = false;
         goto verifyCC_end;
     }
@@ -228,12 +253,8 @@ CCManager::CCRes CCManager::verifyCC(const QString& CCPath) {
     res = compileRaw(s_testprogram, QString(), false);
 
     if (!res.success) {
-        res.errorMessage += "Failed to compile test program.\n";
-        res.errorMessage += "Compile command was: \n";
-        res.errorMessage += "\t" + res.compileCommand + "\n";
-        res.errorMessage += "Compiler output:\n";
-        res.errorMessage += "\tstdout: " + QString(m_process.readAllStandardOutput()) + "\n";
-        res.errorMessage += "\tstderr: " + QString(m_process.readAllStandardError()) + "\n";
+        res.errorOutput._stdout = QString(m_process.readAllStandardOutput());
+        res.errorOutput._stderr = QString(m_process.readAllStandardError());
     }
 
     // Cleanup
