@@ -74,8 +74,10 @@ void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
 
 void ProgramViewer::setCenterAddress(const long address) {
     auto block = blockForAddress(address);
-    setTextCursor(QTextCursor(block));
-    ensureCursorVisible();
+    if (block.isValid()) {
+        setTextCursor(QTextCursor(block));
+        ensureCursorVisible();
+    }
 }
 
 void ProgramViewer::updateCenterAddressFromProcessor() {
@@ -168,8 +170,11 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
     painter.fillRect(area, gradient);
 
     QTextBlock block = firstVisibleBlock();
-    int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-    int bottom = top + static_cast<int>(blockBoundingRect(block).height());
+    int top, bottom;
+    if (block.isValid()) {
+        top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
+    }
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
@@ -200,6 +205,9 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 
     unsigned long lineNumber = adjustedLineNumber;
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
+    if (low == m_labelAddrOffsetMap.end()) {
+        return QTextBlock();
+    }
 
     if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
         // The line number is less that the position of the first offset block; block is directly inferred from
