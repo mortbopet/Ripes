@@ -13,7 +13,7 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_REWINDSTACKSIZE, 100},
     {RIPES_SETTING_CCPATH, ""},
     {RIPES_SETTING_CCARGS, "-O0"},
-    {RIPES_SETTING_LDARGS, "-static-libgcc -lm"},  // Ensure statically linked executable + link with math library
+    {RIPES_SETTING_LDARGS, "-static -lm"},  // Ensure statically linked executable + link with math library
     {RIPES_SETTING_CONSOLEECHO, "true"},
     {RIPES_SETTING_CONSOLEBG, QColorConstants::White},
     {RIPES_SETTING_CONSOLEFONTCOLOR, QColorConstants::Black},
