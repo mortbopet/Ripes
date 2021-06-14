@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDir>
 #include <QFile>
 #include <QObject>
 #include <QProcess>
@@ -16,6 +17,12 @@ namespace Ripes {
 class CCManager : public QObject {
     Q_OBJECT
 public:
+    struct CC {
+        QFileInfo bin;
+        QStringList args;
+
+        QString toString() const { return bin.absoluteFilePath() + " " + args.join(" "); }
+    };
     struct CCRes {
         QStringList inFiles;
         QString outFile;
@@ -47,7 +54,7 @@ public:
     CCRes compile(const QTextDocument* source, QString outname = QString(), bool showProgressdiag = true);
     CCRes compileRaw(const QString& rawsource, QString outname = QString(), bool showProgressdiag = true);
 
-    std::pair<QString, QStringList> createCompileCommand(const QStringList& files, const QString& outname) const;
+    CC createCompileCommand(const QStringList& files, const QString& outname) const;
 
 signals:
     /**

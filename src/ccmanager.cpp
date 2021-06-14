@@ -104,7 +104,7 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     res.inFiles = files;
     res.outFile = outname;
 
-    const auto [cc, args] = createCompileCommand(files, outname);
+    const auto cc = createCompileCommand(files, outname);
 
     // Run compiler
 
@@ -125,8 +125,11 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
             &QProgressDialog::reset);
     connect(&m_process, &QProcess::errorOccurred, &progressDiag, &QProgressDialog::reset);
     connect(&m_process, &QProcess::errorOccurred, [this]() { m_errored = true; });
+    m_process.setWorkingDirectory(cc.bin.absolutePath());
+    m_process.setProgram(cc.bin.absoluteFilePath());
+    m_process.setArguments(cc.args);
 
-    m_process.start(cc, args);
+    m_process.start();
     /** @todo: It is seen that if the process fails upon startup, errorOccurred executes QProgressDialog::reset.
      * However, this call does not prevent the exec() loop from running. Below we check for this case, however this does
      * not remove the race condition. Such race condition seems inherintly tied to how QDialog::exec works and no proper
@@ -139,7 +142,7 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
     res.success = success;
     res.aborted = m_aborted;
-    res.compileCommand = cc + " " + args.join(" ");
+    res.compileCommand = cc.toString();
 
     return res;
 }
@@ -160,8 +163,7 @@ QStringList sanitizedArguments(const QString& args) {
 
 }  // namespace
 
-std::pair<QString, QStringList> CCManager::createCompileCommand(const QStringList& files,
-                                                                const QString& outname) const {
+CCManager::CC CCManager::createCompileCommand(const QStringList& files, const QString& outname) const {
     const auto& currentISA = ProcessorHandler::currentISA();
 
     /**
@@ -177,30 +179,31 @@ std::pair<QString, QStringList> CCManager::createCompileCommand(const QStringLis
      * - %7: user linker arguments
      */
     QStringList compileCommand;
+    CC cc;
 
     // Compiler path
-    compileCommand << m_currentCC;
+    cc.bin = QFileInfo(m_currentCC);
 
     // Substitute machine architecture
-    compileCommand << (QString("-march=") + currentISA->CCmarch());
+    cc.args << (QString("-march=") + currentISA->CCmarch());
 
     // Substitute machine ABI
-    compileCommand << (QString("-mabi=") + currentISA->CCmabi());
+    cc.args << (QString("-mabi=") + currentISA->CCmabi());
 
     // Substitute additional CC arguments
-    compileCommand << sanitizedArguments(RipesSettings::value(RIPES_SETTING_CCARGS).toString());
+    cc.args << sanitizedArguments(RipesSettings::value(RIPES_SETTING_CCARGS).toString());
 
     // Enforce compilation as C language (allows us to use C++ compilers)
-    compileCommand << "-x"
-                   << "c";
+    cc.args << "-x"
+            << "c";
 
     // Substitute in and out files
-    compileCommand << files << "-o" << outname;
+    cc.args << files << "-o" << outname;
 
     // Substitute additional linker arguments
-    compileCommand << sanitizedArguments(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
+    cc.args << sanitizedArguments(RipesSettings::value(RIPES_SETTING_LDARGS).toString());
 
-    return {compileCommand[0], compileCommand.mid(1)};
+    return cc;
 }
 
 CCManager::CCRes CCManager::verifyCC(const QString& CCPath) {
