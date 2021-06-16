@@ -11,7 +11,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-template <bool readBypass>
+template <unsigned XLEN, bool readBypass>
 class RegisterFile_DUAL : public Component {
 public:
     SetGraphicsType(ClockedComponent);
@@ -42,25 +42,25 @@ public:
         rf_2->setMemory(mem);
     }
 
-    SUBCOMPONENT(rf_1, TYPE(RegisterFile<readBypass>));
-    SUBCOMPONENT(rf_2, TYPE(RegisterFile<readBypass>));
+    SUBCOMPONENT(rf_1, TYPE(RegisterFile<XLEN, readBypass>));
+    SUBCOMPONENT(rf_2, TYPE(RegisterFile<XLEN, readBypass>));
 
     // Way 1
     INPUTPORT(r1_1_addr, RV_REGS_BITS);
     INPUTPORT(r2_1_addr, RV_REGS_BITS);
     INPUTPORT(wr_1_addr, RV_REGS_BITS);
-    OUTPUTPORT(r1_1_out, RV_REG_WIDTH);
-    OUTPUTPORT(r2_1_out, RV_REG_WIDTH);
-    INPUTPORT(data_1_in, RV_REG_WIDTH);
+    OUTPUTPORT(r1_1_out, XLEN);
+    OUTPUTPORT(r2_1_out, XLEN);
+    INPUTPORT(data_1_in, XLEN);
     INPUTPORT(wr_1_en, 1);
 
     // Way 2
     INPUTPORT(r1_2_addr, RV_REGS_BITS);
     INPUTPORT(r2_2_addr, RV_REGS_BITS);
     INPUTPORT(wr_2_addr, RV_REGS_BITS);
-    OUTPUTPORT(r1_2_out, RV_REG_WIDTH);
-    OUTPUTPORT(r2_2_out, RV_REG_WIDTH);
-    INPUTPORT(data_2_in, RV_REG_WIDTH);
+    OUTPUTPORT(r1_2_out, XLEN);
+    OUTPUTPORT(r2_2_out, XLEN);
+    INPUTPORT(data_2_in, XLEN);
     INPUTPORT(wr_2_en, 1);
 
     VSRTL_VT_U getRegister(unsigned i) { return m_memory->readMem(i << 2); }
@@ -70,7 +70,7 @@ private:
      * Extra level of read bypassing to handle the fact that the RegisterFile class only bypasses with its internal
      * signals, and is unaware of the dual-ported register file.
      */
-    VSRTL_VT_U doReadBypass(const VSRTL_VT_U reg_idx, const int portIndex, const RegisterFile<readBypass>* rf) {
+    VSRTL_VT_U doReadBypass(const VSRTL_VT_U reg_idx, const int portIndex, const RegisterFile<XLEN, readBypass>* rf) {
         if (reg_idx == 0)
             return static_cast<unsigned>(0);
 

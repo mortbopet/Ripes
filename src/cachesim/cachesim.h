@@ -10,9 +10,6 @@
 #include "../external/VSRTL/core/vsrtl_register.h"
 #include "processors/RISC-V/rv_memory.h"
 
-using RWMemory = vsrtl::core::RVMemory<32, 32>;
-using ROMMemory = vsrtl::core::ROM<32, 32>;
-
 namespace Ripes {
 class CacheSim;
 

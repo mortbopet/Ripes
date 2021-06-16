@@ -8,6 +8,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class Branch_DUAL : public Component {
     /* clang-format off */
     bool branch_taken() const {
@@ -52,8 +53,8 @@ public:
     }
 
     INPUTPORT_ENUM(comp_op, CompOp);
-    INPUTPORT(op1, RV_REG_WIDTH);
-    INPUTPORT(op2, RV_REG_WIDTH);
+    INPUTPORT(op1, XLEN);
+    INPUTPORT(op2, XLEN);
     INPUTPORT(do_branch, 1);
     INPUTPORT(do_jump, 1);
     OUTPUTPORT_ENUM(pc_src, PcSrc);

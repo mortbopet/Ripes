@@ -9,7 +9,7 @@ namespace core {
 using namespace Ripes;
 
 template <unsigned int addrWidth, unsigned int dataWidth>
-class RVMemory : public Component {
+class RVMemory : public Component, public BaseMemory<true> {
 public:
     SetGraphicsType(ClockedComponent);
     RVMemory(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -50,9 +50,21 @@ public:
         };
     }
 
-    SUBCOMPONENT(mem, TYPE(MemoryAsyncRd<RV_REG_WIDTH, RV_REG_WIDTH>));
+    void setMemory(AddressSpace* addressSpace) {
+        setMemory(addressSpace);
+        mem->setMemory(addressSpace);
+    }
 
-    WIRE(wr_width, ceillog2(RV_REG_WIDTH / 8 + 1));
+    // RVMemory is also a BaseMemory... A bit redundant, but RVMemory has a notion of the memory operation that is
+    // happening, while the underlying MemoryAsyncRd does not.
+    VSRTL_VT_U addressSig() const override { return addr.uValue(); };
+    VSRTL_VT_U wrEnSig() const override { return wr_en.uValue(); };
+    VSRTL_VT_U opSig() const override { return op.uValue(); };
+    AddressSpace::RegionType accessRegion() const override { return mem->accessRegion(); }
+
+    SUBCOMPONENT(mem, TYPE(MemoryAsyncRd<addrWidth, dataWidth>));
+
+    WIRE(wr_width, ceillog2(dataWidth / 8 + 1));  // Write width, in bytes
 
     INPUTPORT(addr, addrWidth);
     INPUTPORT(data_in, dataWidth);

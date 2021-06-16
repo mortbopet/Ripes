@@ -24,7 +24,7 @@ void L1CacheShim::processorReset() {
     // Propagate a reset through the cache hierarchy
     CacheInterface::reset();
 
-    if ((m_memory.rw || m_memory.rom) && m_nextLevelCache) {
+    if (m_memory && m_nextLevelCache) {
         // Reload the initial (cycle 0) state of the processor. This is necessary to reflect ie. the instruction which
         // is loaded from the instruction memory in cycle 0.
         processorWasClocked();
@@ -39,12 +39,12 @@ void L1CacheShim::processorReversed() {
 void L1CacheShim::processorWasClocked() {
     if (m_type == CacheType::DataCache) {
         // Determine whether the memory is being accessed in the current cycle, and if so, the access type.
-        switch (m_memory.rw->op.uValue()) {
+        switch (m_memory->opSig()) {
             case MemOp::SB:
             case MemOp::SH:
             case MemOp::SW:
-                if (m_memory.rw->wr_en.uValue() == 1) {
-                    m_nextLevelCache->access(m_memory.rw->addr.uValue(), AccessType::Write);
+                if (m_memory->wrEnSig() == 1) {
+                    m_nextLevelCache->access(m_memory->addressSig(), AccessType::Write);
                 }
                 break;
             case MemOp::LB:
@@ -52,27 +52,26 @@ void L1CacheShim::processorWasClocked() {
             case MemOp::LH:
             case MemOp::LHU:
             case MemOp::LW:
-                m_nextLevelCache->access(m_memory.rw->addr.uValue(), AccessType::Read);
+                m_nextLevelCache->access(m_memory->addressSig(), AccessType::Read);
                 break;
             case MemOp::NOP:
             default:
                 break;
         }
     } else {
-        m_nextLevelCache->access(m_memory.rom->addr.uValue(), AccessType::Read);
+        m_nextLevelCache->access(m_memory->addressSig(), AccessType::Read);
     }
 }
 
 void L1CacheShim::reassociateMemory() {
     if (m_type == CacheType::DataCache) {
-        m_memory.rw = ProcessorHandler::getDataMemory();
-        Q_ASSERT(m_memory.rw != nullptr);
+        m_memory = ProcessorHandler::getDataMemory();
     } else if (m_type == CacheType::InstrCache) {
-        m_memory.rom = ProcessorHandler::getInstrMemory();
-        Q_ASSERT(m_memory.rom != nullptr);
+        m_memory = ProcessorHandler::getInstrMemory();
     } else {
         Q_ASSERT(false);
     }
+    Q_ASSERT(m_memory != nullptr);
 }
 
 }  // namespace Ripes

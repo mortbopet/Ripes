@@ -94,11 +94,11 @@ vsrtl::core::AddressSpaceMM& ProcessorHandler::_getMemory() {
     return m_currentProcessor->getMemory();
 }
 
-const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* ProcessorHandler::_getDataMemory() const {
-    return dynamic_cast<const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>*>(m_currentProcessor->getDataMemory());
+const vsrtl::core::BaseMemory<true>* ProcessorHandler::_getDataMemory() const {
+    return m_currentProcessor->getDataMemory();
 }
-const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* ProcessorHandler::_getInstrMemory() const {
-    return dynamic_cast<const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>*>(m_currentProcessor->getInstrMemory());
+const vsrtl::core::BaseMemory<true>* ProcessorHandler::_getInstrMemory() const {
+    return m_currentProcessor->getInstrMemory();
 }
 
 const vsrtl::core::AddressSpace& ProcessorHandler::_getRegisters() const {

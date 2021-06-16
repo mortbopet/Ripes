@@ -38,7 +38,10 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class RV6S_DUAL : public RipesProcessor {
+    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+
 public:
     enum Stage {
         IF_1 = 0,
@@ -56,7 +59,7 @@ public:
         STAGECOUNT
     };
     RV6S_DUAL(const QStringList& extensions) : RipesProcessor("6-Stage dual-issue RISC-V Processor") {
-        m_enabledISA = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
+        m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode_way2->setISA(m_enabledISA);
         decode_way1->setISA(m_enabledISA);
 
@@ -480,61 +483,61 @@ public:
     }
 
     // Design subcomponents
-    SUBCOMPONENT(registerFile, RegisterFile_DUAL<true>);
-    SUBCOMPONENT(alu, ALU);
-    SUBCOMPONENT(alu_data, ALU);
+    SUBCOMPONENT(registerFile, TYPE(RegisterFile_DUAL<XLEN, true>));
+    SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
+    SUBCOMPONENT(alu_data, TYPE(ALU<XLEN>));
     SUBCOMPONENT(control, Control_DUAL);
     SUBCOMPONENT(waycontrol, WayControl);
-    SUBCOMPONENT(imm_exec, Immediate);
-    SUBCOMPONENT(imm_data, Immediate);
-    SUBCOMPONENT(decode_way2, Decode);
-    SUBCOMPONENT(decode_way1, Decode);
-    SUBCOMPONENT(branch, Branch_DUAL);
-    SUBCOMPONENT(pc_4, Adder<RV_REG_WIDTH>);
-    SUBCOMPONENT(pc_8, Adder<RV_REG_WIDTH>);
-    SUBCOMPONENT(pc_4_link, Adder<RV_REG_WIDTH>);
+    SUBCOMPONENT(imm_exec, TYPE(Immediate<XLEN>));
+    SUBCOMPONENT(imm_data, TYPE(Immediate<XLEN>));
+    SUBCOMPONENT(decode_way2, TYPE(Decode<XLEN>));
+    SUBCOMPONENT(decode_way1, TYPE(Decode<XLEN>));
+    SUBCOMPONENT(branch, TYPE(Branch_DUAL<XLEN>));
+    SUBCOMPONENT(pc_4, Adder<XLEN>);
+    SUBCOMPONENT(pc_8, Adder<XLEN>);
+    SUBCOMPONENT(pc_4_link, Adder<XLEN>);
 
     // Registers
-    SUBCOMPONENT(pc_reg, RegisterClEn<RV_REG_WIDTH>);
+    SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
 
     // Stage seperating registers
-    SUBCOMPONENT(ifid_reg, IFID_DUAL);
-    SUBCOMPONENT(idii_reg, RV5S_IDII_DUAL);
-    SUBCOMPONENT(iiex_reg, RV5S_IIEX_DUAL);
-    SUBCOMPONENT(exmem_reg, RV5S_EXMEM_DUAL);
-    SUBCOMPONENT(memwb_reg, RV5S_MEMWB_DUAL);
+    SUBCOMPONENT(ifid_reg, TYPE(IFID_DUAL<XLEN>));
+    SUBCOMPONENT(idii_reg, TYPE(RV5S_IDII_DUAL<XLEN>));
+    SUBCOMPONENT(iiex_reg, TYPE(RV5S_IIEX_DUAL<XLEN>));
+    SUBCOMPONENT(exmem_reg, TYPE(RV5S_EXMEM_DUAL<XLEN>));
+    SUBCOMPONENT(memwb_reg, TYPE(RV5S_MEMWB_DUAL<XLEN>));
 
     // Multiplexers
-    SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrcDual, RV_REG_WIDTH>));
-    SUBCOMPONENT(reg_wr_src_data, TYPE(EnumMultiplexer<RegWrSrcDataDual, RV_REG_WIDTH>));
-    SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, RV_REG_WIDTH>));
-    SUBCOMPONENT(alu_op1_exec_src, TYPE(EnumMultiplexer<AluSrc1, RV_REG_WIDTH>));
-    SUBCOMPONENT(alu_op2_exec_src, TYPE(EnumMultiplexer<AluSrc2, RV_REG_WIDTH>));
-    SUBCOMPONENT(alu_op2_data_src, TYPE(EnumMultiplexer<AluSrc2, RV_REG_WIDTH>));
+    SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrcDual, XLEN>));
+    SUBCOMPONENT(reg_wr_src_data, TYPE(EnumMultiplexer<RegWrSrcDataDual, XLEN>));
+    SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
+    SUBCOMPONENT(alu_op1_exec_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
+    SUBCOMPONENT(alu_op2_exec_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
+    SUBCOMPONENT(alu_op2_data_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
 
-    SUBCOMPONENT(exec_reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, RV_REG_WIDTH>));
-    SUBCOMPONENT(exec_reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, RV_REG_WIDTH>));
+    SUBCOMPONENT(exec_reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, XLEN>));
+    SUBCOMPONENT(exec_reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, XLEN>));
 
-    SUBCOMPONENT(data_reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, RV_REG_WIDTH>));
-    SUBCOMPONENT(data_reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, RV_REG_WIDTH>));
+    SUBCOMPONENT(data_reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, XLEN>));
+    SUBCOMPONENT(data_reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrcDual, XLEN>));
 
-    SUBCOMPONENT(data_way_pc, TYPE(EnumMultiplexer<WaySrc, RV_REG_WIDTH>));
+    SUBCOMPONENT(data_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(data_way_opcode, TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
-    SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, RV_REG_WIDTH>));
+    SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(data_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(data_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(data_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
 
-    SUBCOMPONENT(exec_way_pc, TYPE(EnumMultiplexer<WaySrc, RV_REG_WIDTH>));
+    SUBCOMPONENT(exec_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(exec_way_opcode, TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
-    SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, RV_REG_WIDTH>));
+    SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
 
     // Memories
-    SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<RV_REG_WIDTH, RV_INSTR_WIDTH>));
-    SUBCOMPONENT(data_mem, TYPE(RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>));
+    SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<XLEN, RV_INSTR_WIDTH>));
+    SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
 
     // Forwarding & hazard detection units
     SUBCOMPONENT(funit, ForwardingUnit_DUAL);
@@ -733,8 +736,8 @@ public:
     }
     const std::vector<unsigned> breakpointTriggeringStages() const override { return {IF_1, IF_2}; };
 
-    const Component* getDataMemory() const override { return data_mem; }
-    const Component* getInstrMemory() const override { return instr_mem; }
+    const BaseMemory<true>* getDataMemory() const override { return data_mem; }
+    const BaseMemory<true>* getInstrMemory() const override { return instr_mem; }
 
     bool finished() const override {
         // The processor is finished when there are no more valid instructions in the pipeline
@@ -816,7 +819,7 @@ private:
      * when we roll back an exit system call during rewinding.
      */
     long long m_syscallExitCycle = -1;
-    std::shared_ptr<ISAInfo<ISA::RV32I>> m_enabledISA;
+    std::shared_ptr<ISAInfoBase> m_enabledISA;
 };
 
 }  // namespace core

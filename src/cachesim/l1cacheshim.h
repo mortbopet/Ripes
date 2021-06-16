@@ -4,6 +4,8 @@
 
 #include "cachesim.h"
 
+#include "VSRTL/core/vsrtl_memory.h"
+
 namespace Ripes {
 
 /**
@@ -32,11 +34,7 @@ private:
      * VSRTL component signals are dependent on the given type of the memory.
      */
     CacheType m_type;
-    union {
-        RWMemory const* rw = nullptr;
-        ROMMemory const* rom;
-
-    } m_memory;
+    const vsrtl::core::BaseMemory<true>* m_memory = nullptr;
 };
 
 }  // namespace Ripes

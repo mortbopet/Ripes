@@ -9,6 +9,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class IFID : public Component {
 public:
     IFID(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -18,9 +19,9 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(valid, clear, enable);
     }
 
-    REGISTERED_CLEN_INPUT(pc4, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(instr, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(pc, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(pc4, XLEN);
+    REGISTERED_CLEN_INPUT(instr, XLEN);
+    REGISTERED_CLEN_INPUT(pc, XLEN);
 
     // Register controls
     INPUTPORT(enable, 1);

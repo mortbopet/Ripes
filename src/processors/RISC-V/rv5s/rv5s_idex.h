@@ -17,12 +17,13 @@ using namespace Ripes;
  * A specialization of the default IDEX stage separating register utilized by the rv5s_no_fw_hz processor. Storage of
  * register read indices is added, which are required by the forwarding unit.
  */
-class RV5S_IDEX : public IDEX {
+template <unsigned XLEN>
+class RV5S_IDEX : public IDEX<XLEN> {
 public:
-    RV5S_IDEX(std::string name, SimComponent* parent) : IDEX(name, parent) {
-        CONNECT_REGISTERED_CLEN_INPUT(rd_reg1_idx, clear, enable);
-        CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx, clear, enable);
-        CONNECT_REGISTERED_CLEN_INPUT(opcode, clear, enable);
+    RV5S_IDEX(std::string name, SimComponent* parent) : IDEX<XLEN>(name, parent) {
+        CONNECT_REGISTERED_CLEN_INPUT(rd_reg1_idx, this->clear, this->enable);
+        CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx, this->clear, this->enable);
+        CONNECT_REGISTERED_CLEN_INPUT(opcode, this->clear, this->enable);
 
         // We want stalling info to persist through clearing of the register, so stalled register is always enabled and
         // never cleared.

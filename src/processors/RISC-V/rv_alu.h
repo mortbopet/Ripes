@@ -10,6 +10,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class ALU : public Component {
 public:
     SetGraphicsType(ALU);
@@ -105,10 +106,10 @@ public:
     }
 
     INPUTPORT_ENUM(ctrl, ALUOp);
-    INPUTPORT(op1, RV_REG_WIDTH);
-    INPUTPORT(op2, RV_REG_WIDTH);
+    INPUTPORT(op1, XLEN);
+    INPUTPORT(op2, XLEN);
 
-    OUTPUTPORT(res, RV_REG_WIDTH);
+    OUTPUTPORT(res, XLEN);
 };
 
 }  // namespace core

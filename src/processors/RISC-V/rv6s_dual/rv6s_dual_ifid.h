@@ -8,13 +8,14 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-class IFID_DUAL : public IFID {
+template <unsigned XLEN>
+class IFID_DUAL : public IFID<XLEN> {
 public:
-    IFID_DUAL(std::string name, SimComponent* parent) : IFID(name, parent) {
-        CONNECT_REGISTERED_CLEN_INPUT(instr2, clear, enable);
+    IFID_DUAL(std::string name, SimComponent* parent) : IFID<XLEN>(name, parent) {
+        CONNECT_REGISTERED_CLEN_INPUT(instr2, this->clear, this->enable);
     }
 
-    REGISTERED_CLEN_INPUT(instr2, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(instr2, XLEN);
 };
 
 }  // namespace core

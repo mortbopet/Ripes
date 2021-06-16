@@ -92,8 +92,8 @@ public:
      */
     static vsrtl::core::AddressSpaceMM& getMemory() { return get()->_getMemory(); }
     static const vsrtl::core::AddressSpace& getRegisters() { return get()->_getRegisters(); }
-    static const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* getDataMemory() { return get()->_getDataMemory(); }
-    static const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* getInstrMemory() { return get()->_getInstrMemory(); }
+    static const vsrtl::core::BaseMemory<true>* getDataMemory() { return get()->_getDataMemory(); }
+    static const vsrtl::core::BaseMemory<true>* getInstrMemory() { return get()->_getInstrMemory(); }
 
     /**
      * @brief setRegisterValue
@@ -210,8 +210,8 @@ private:
     QString _disassembleInstr(const uint32_t address) const;
     vsrtl::core::AddressSpaceMM& _getMemory();
     const vsrtl::core::AddressSpace& _getRegisters() const;
-    const vsrtl::core::RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>* _getDataMemory() const;
-    const vsrtl::core::ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>* _getInstrMemory() const;
+    const vsrtl::core::BaseMemory<true>* _getDataMemory() const;
+    const vsrtl::core::BaseMemory<true>* _getInstrMemory() const;
     void _setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value);
     void _writeMem(uint32_t address, uint32_t value, int size = sizeof(uint32_t));
     uint32_t _getRegisterValue(RegisterFileType rfid, const unsigned idx) const;

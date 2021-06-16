@@ -8,6 +8,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class Immediate : public Component {
 public:
     Immediate(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -62,8 +63,8 @@ public:
     }
 
     INPUTPORT_ENUM(opcode, RVInstr);
-    INPUTPORT(instr, RV_REG_WIDTH);
-    OUTPUTPORT(imm, RV_REG_WIDTH);
+    INPUTPORT(instr, XLEN);
+    OUTPUTPORT(imm, XLEN);
 };
 
 }  // namespace core

@@ -9,6 +9,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class EXMEM : public Component {
 public:
     EXMEM(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -28,10 +29,10 @@ public:
     }
 
     // Data
-    REGISTERED_CLEN_INPUT(pc, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(pc4, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(alures, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(r2, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(pc, XLEN);
+    REGISTERED_CLEN_INPUT(pc4, XLEN);
+    REGISTERED_CLEN_INPUT(alures, XLEN);
+    REGISTERED_CLEN_INPUT(r2, XLEN);
 
     // Control
     REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, RegWrSrc::width());

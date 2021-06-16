@@ -10,7 +10,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-template <bool readBypass>
+template <unsigned XLEN, bool readBypass>
 class RegisterFile : public Component {
 public:
     SetGraphicsType(ClockedComponent);
@@ -69,19 +69,19 @@ public:
         }
     }
 
-    SUBCOMPONENT(_wr_mem, TYPE(WrMemory<RV_REGS_BITS, RV_REG_WIDTH, false>));
-    SUBCOMPONENT(_rd1_mem, TYPE(RdMemory<RV_REGS_BITS, RV_REG_WIDTH, false>));
-    SUBCOMPONENT(_rd2_mem, TYPE(RdMemory<RV_REGS_BITS, RV_REG_WIDTH, false>));
+    SUBCOMPONENT(_wr_mem, TYPE(WrMemory<RV_REGS_BITS, XLEN, false>));
+    SUBCOMPONENT(_rd1_mem, TYPE(RdMemory<RV_REGS_BITS, XLEN, false>));
+    SUBCOMPONENT(_rd2_mem, TYPE(RdMemory<RV_REGS_BITS, XLEN, false>));
 
     INPUTPORT(r1_addr, RV_REGS_BITS);
     INPUTPORT(r2_addr, RV_REGS_BITS);
     INPUTPORT(wr_addr, RV_REGS_BITS);
 
-    INPUTPORT(data_in, RV_REG_WIDTH);
+    INPUTPORT(data_in, XLEN);
     WIRE(wr_en_0, 1);
     INPUTPORT(wr_en, 1);
-    OUTPUTPORT(r1_out, RV_REG_WIDTH);
-    OUTPUTPORT(r2_out, RV_REG_WIDTH);
+    OUTPUTPORT(r1_out, XLEN);
+    OUTPUTPORT(r2_out, XLEN);
 
     VSRTL_VT_U getRegister(unsigned i) const { return m_memory->readMemConst(i << 2); }
 

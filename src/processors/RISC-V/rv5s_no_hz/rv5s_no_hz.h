@@ -30,11 +30,14 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class RV5S_NO_HZ : public RipesProcessor {
+    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
     RV5S_NO_HZ(const QStringList& extensions) : RipesProcessor("5-Stage RISC-V Processor without forwarding") {
-        m_enabledISA = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
+        m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
 
         // -----------------------------------------------------------------------
@@ -231,34 +234,34 @@ public:
     }
 
     // Design subcomponents
-    SUBCOMPONENT(registerFile, RegisterFile<true>);
-    SUBCOMPONENT(alu, ALU);
+    SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, true>));
+    SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
     SUBCOMPONENT(control, Control);
-    SUBCOMPONENT(immediate, Immediate);
-    SUBCOMPONENT(decode, Decode);
-    SUBCOMPONENT(branch, Branch);
-    SUBCOMPONENT(pc_4, Adder<RV_REG_WIDTH>);
+    SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
+    SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
+    SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
+    SUBCOMPONENT(pc_4, Adder<XLEN>);
 
     // Registers
-    SUBCOMPONENT(pc_reg, Register<RV_REG_WIDTH>);
+    SUBCOMPONENT(pc_reg, Register<XLEN>);
 
     // Stage seperating registers
-    SUBCOMPONENT(ifid_reg, IFID);
-    SUBCOMPONENT(idex_reg, RV5S_IDEX);
-    SUBCOMPONENT(exmem_reg, EXMEM);
-    SUBCOMPONENT(memwb_reg, MEMWB);
+    SUBCOMPONENT(ifid_reg, TYPE(IFID<XLEN>));
+    SUBCOMPONENT(idex_reg, TYPE(RV5S_IDEX<XLEN>));
+    SUBCOMPONENT(exmem_reg, TYPE(EXMEM<XLEN>));
+    SUBCOMPONENT(memwb_reg, TYPE(MEMWB<XLEN>));
 
     // Multiplexers
-    SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, RV_REG_WIDTH>));
-    SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, RV_REG_WIDTH>));
-    SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, RV_REG_WIDTH>));
-    SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, RV_REG_WIDTH>));
-    SUBCOMPONENT(reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrc, RV_REG_WIDTH>));
-    SUBCOMPONENT(reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrc, RV_REG_WIDTH>));
+    SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
+    SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
+    SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
+    SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
+    SUBCOMPONENT(reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrc, XLEN>));
+    SUBCOMPONENT(reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrc, XLEN>));
 
     // Memories
-    SUBCOMPONENT(instr_mem, TYPE(ROM<RV_REG_WIDTH, RV_INSTR_WIDTH>));
-    SUBCOMPONENT(data_mem, TYPE(RVMemory<RV_REG_WIDTH, RV_REG_WIDTH>));
+    SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, RV_INSTR_WIDTH>));
+    SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
 
     // Forwarding unit
     SUBCOMPONENT(funit, ForwardingUnit);
@@ -387,8 +390,8 @@ public:
     }
     const std::vector<unsigned> breakpointTriggeringStages() const override { return {IF}; };
 
-    const Component* getDataMemory() const override { return data_mem; }
-    const Component* getInstrMemory() const override { return instr_mem; }
+    const BaseMemory<true>* getDataMemory() const override { return data_mem; }
+    const BaseMemory<true>* getInstrMemory() const override { return instr_mem; }
 
     bool finished() const override {
         // The processor is finished when there are no more valid instructions in the pipeline
@@ -458,7 +461,7 @@ private:
      * we roll back an exit system call during rewinding.
      */
     long long m_syscallExitCycle = -1;
-    std::shared_ptr<ISAInfo<ISA::RV32I>> m_enabledISA;
+    std::shared_ptr<ISAInfoBase> m_enabledISA;
 };
 
 }  // namespace core

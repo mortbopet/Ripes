@@ -16,10 +16,11 @@ using namespace Ripes;
  * @brief The RV5S_NO_FW_IDEX class
  * A specialization of the default IDEX stage separating register utilized by the rv5s_no_fw processor.
  */
-class RV5S_NO_FW_IDEX : public IDEX {
+template <unsigned XLEN>
+class RV5S_NO_FW_IDEX : public IDEX<XLEN> {
 public:
-    RV5S_NO_FW_IDEX(std::string name, SimComponent* parent) : IDEX(name, parent) {
-        CONNECT_REGISTERED_CLEN_INPUT(opcode, clear, enable);
+    RV5S_NO_FW_IDEX(std::string name, SimComponent* parent) : IDEX<XLEN>(name, parent) {
+        CONNECT_REGISTERED_CLEN_INPUT(opcode, this->clear, this->enable);
 
         // We want stalling info to persist through clearing of the register, so stalled register is always enabled and
         // never cleared.

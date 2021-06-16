@@ -12,6 +12,7 @@ using namespace Ripes;
  * A specialization of the default IDEX stage separating register utilized by the rv5s_no_fw_hz processor. Storage of
  * register read indices is added, which are required by the forwarding unit.
  */
+template <unsigned XLEN>
 class RV5S_IDII_DUAL : public Component {
 public:
     RV5S_IDII_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -41,14 +42,14 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(instr_exec, clear, enable);
     }
 
-    REGISTERED_CLEN_INPUT(instr_data, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(instr_exec, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(instr_data, XLEN);
+    REGISTERED_CLEN_INPUT(instr_exec, XLEN);
 
-    REGISTERED_CLEN_INPUT(pc_data, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(pc_exec, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(pc_data, XLEN);
+    REGISTERED_CLEN_INPUT(pc_exec, XLEN);
 
-    REGISTERED_CLEN_INPUT(pc, RV_REG_WIDTH);
-    REGISTERED_CLEN_INPUT(pc4, RV_REG_WIDTH);
+    REGISTERED_CLEN_INPUT(pc, XLEN);
+    REGISTERED_CLEN_INPUT(pc4, XLEN);
 
     REGISTERED_CLEN_INPUT(rd_reg1_idx_exec, RV_REGS_BITS);
     REGISTERED_CLEN_INPUT(rd_reg2_idx_exec, RV_REGS_BITS);

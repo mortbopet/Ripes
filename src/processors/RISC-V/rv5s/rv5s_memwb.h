@@ -11,9 +11,12 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-class RV5S_MEMWB : public MEMWB {
+template <unsigned XLEN>
+class RV5S_MEMWB : public MEMWB<XLEN> {
 public:
-    RV5S_MEMWB(std::string name, SimComponent* parent) : MEMWB(name, parent) { CONNECT_REGISTERED_INPUT(stalled); }
+    RV5S_MEMWB(std::string name, SimComponent* parent) : MEMWB<XLEN>(name, parent) {
+        CONNECT_REGISTERED_INPUT(stalled);
+    }
 
     REGISTERED_INPUT(stalled, 1);
 };

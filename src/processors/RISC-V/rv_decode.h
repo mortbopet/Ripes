@@ -7,9 +7,10 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class Decode : public Component {
 public:
-    void setISA(const std::shared_ptr<ISAInfo<ISA::RV32I>>& isa) { m_isa = isa; }
+    void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
 
     Decode(std::string name, SimComponent* parent) : Component(name, parent) {
         opcode << [=] {
@@ -166,7 +167,7 @@ public:
 
 private:
     void unknownInstruction() {}
-    std::shared_ptr<ISAInfo<ISA::RV32I>> m_isa;
+    std::shared_ptr<ISAInfoBase> m_isa;
 };
 
 }  // namespace core

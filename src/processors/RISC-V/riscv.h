@@ -1,22 +1,33 @@
 #pragma once
 
 #include <functional>
-#include "../../isa/rvisainfo_common.h"
+
 #include "VSRTL/core/vsrtl_enum.h"
 #include "VSRTL/interface/vsrtl_binutils.h"
 #include "VSRTL/interface/vsrtl_defines.h"
+#include "VSRTL/interface/vsrtl_interface.h"
+
 #include "rv_instrparser.h"
 
 #include "../../isa/rv32isainfo.h"
 #include "../../isa/rv64isainfo.h"
+#include "../../isa/rvisainfo_common.h"
 
 namespace Ripes {
 
-#define RV_INSTR_WIDTH 32
-#define RV_REG_WIDTH 32
+#define RV_INSTR_WIDTH 32  // Width of instructions
+#define RV_REGS 32  // Number of registers
+#define RV_REGS_BITS ceillog2(RV_REGS)  // Width of operand to index into registers
 
-#define RV_REGS 32
-#define RV_REGS_BITS ceillog2(RV_REGS)
+template <unsigned XLEN>
+constexpr Ripes::ISA XLenToRVISA() {
+    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+    if (XLEN == 32) {
+        return ISA::RV32I;
+    } else {
+        return ISA::RV64I;
+    }
+}
 
 /** Instruction set enumerations */
 Enum(RVInstrType, R, I, S, B, U, J);

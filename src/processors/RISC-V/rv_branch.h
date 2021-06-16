@@ -7,6 +7,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class Branch : public Component {
 public:
     Branch(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -27,8 +28,8 @@ public:
     }
 
     INPUTPORT_ENUM(comp_op, CompOp);
-    INPUTPORT(op1, RV_REG_WIDTH);
-    INPUTPORT(op2, RV_REG_WIDTH);
+    INPUTPORT(op1, XLEN);
+    INPUTPORT(op2, XLEN);
     OUTPUTPORT(res, 1);
 };
 

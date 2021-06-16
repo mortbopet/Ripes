@@ -9,6 +9,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+template <unsigned XLEN>
 class MEMWB : public Component {
 public:
     MEMWB(std::string name, SimComponent* parent) : Component(name, parent) {
@@ -25,10 +26,10 @@ public:
     }
 
     // Data
-    REGISTERED_INPUT(pc, RV_REG_WIDTH);
-    REGISTERED_INPUT(pc4, RV_REG_WIDTH);
-    REGISTERED_INPUT(alures, RV_REG_WIDTH);
-    REGISTERED_INPUT(mem_read, RV_REG_WIDTH);
+    REGISTERED_INPUT(pc, XLEN);
+    REGISTERED_INPUT(pc4, XLEN);
+    REGISTERED_INPUT(alures, XLEN);
+    REGISTERED_INPUT(mem_read, XLEN);
 
     // Control
     REGISTERED_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
