@@ -21,9 +21,9 @@ private:
      * Calling an extension enabler will register the appropriate assemblers and pseudo-op expander functors with
      * the assembler.
      */
-    void enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) const;
-    void enableExtM(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) const;
-    void enableExtF(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) const;
+    static void enableExtI(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions);
+    static void enableExtM(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions);
+    static void enableExtF(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions);
 
 protected:
     QChar commentDelimiter() const override { return '#'; }

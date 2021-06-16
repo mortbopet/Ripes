@@ -148,8 +148,7 @@ std::tuple<InstrVec, PseudoInstrVec> RV32I_Assembler::initInstructions(const ISA
             return PseudoExpandRes(v);                                                                                 \
         }))
 
-void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions,
-                                 PseudoInstrVec& pseudoInstructions) const {
+void RV32I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) {
     // Pseudo-op functors
     pseudoInstructions.push_back(PseudoLoad(Token("lb")));
     pseudoInstructions.push_back(PseudoLoad(Token("lh")));
@@ -385,7 +384,7 @@ void RV32I_Assembler::enableExtI(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
     instructions.push_back(BType(Token("bgeu"), 0b111));
 }
 
-void RV32I_Assembler::enableExtM(const ISAInfo<ISA::RV32I>* isa, InstrVec& instructions, PseudoInstrVec&) const {
+void RV32I_Assembler::enableExtM(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec&) {
     // Pseudo-op functors
     // --
 
@@ -400,7 +399,7 @@ void RV32I_Assembler::enableExtM(const ISAInfo<ISA::RV32I>* isa, InstrVec& instr
     instructions.push_back(RType(Token("remu"), 0b111, 0b0000001));
 }
 
-void RV32I_Assembler::enableExtF(const ISAInfo<ISA::RV32I>*, InstrVec&, PseudoInstrVec&) const {
+void RV32I_Assembler::enableExtF(const ISAInfoBase*, InstrVec&, PseudoInstrVec&) {
     // Pseudo-op functors
 
     // Assembler functors
