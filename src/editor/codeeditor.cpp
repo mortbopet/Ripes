@@ -210,7 +210,7 @@ void CodeEditor::setSourceType(SourceType type, const std::set<QString>& support
     switch (m_sourceType) {
         case SourceType::Assembly: {
             auto* isa = ProcessorHandler::currentISA();
-            if (isa->isaID() == ISA::RV32I) {
+            if (isa->isaID() == ISA::RV32I || isa->isaID() == ISA::RV64I) {
                 m_highlighter = std::make_unique<RVSyntaxHighlighter>(document(), m_errors, supportedOpcodes);
             } else {
                 Q_ASSERT(false && "Unknown ISA selected");

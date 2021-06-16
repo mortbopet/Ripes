@@ -6,6 +6,7 @@
 
 #include "assembler/program.h"
 #include "assembler/rv32i_assembler.h"
+#include "assembler/rv64i_assembler.h"
 
 #include "syscall/riscv_syscall.h"
 
@@ -182,8 +183,10 @@ void ProcessorHandler::_clearBreakpoints() {
 void ProcessorHandler::createAssemblerForCurrentISA() {
     const auto& ISA = _currentISA();
 
-    if (auto* rvisa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
-        m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rvisa);
+    if (auto* rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I>*>(ISA)) {
+        m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
+    } else if (auto* rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I>*>(ISA)) {
+        m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
     } else {
         Q_UNREACHABLE();
     }

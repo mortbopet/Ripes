@@ -17,12 +17,14 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
 
     // Initialize top level ISA items
     m_ui->processors->setHeaderHidden(true);
-    std::map<ISA, QTreeWidgetItem*> isaItems;
-    std::map<ISA, std::map<unsigned, QTreeWidgetItem*>> isaRegWidthItems;
+    std::map<QString, QTreeWidgetItem*> isaFamilyItems;
+    std::map<QTreeWidgetItem*, std::map<unsigned, QTreeWidgetItem*>> isaFamilyRegWidthItems;
     for (const auto& isa : ISAFamilyNames) {
-        auto* isaItem = new QTreeWidgetItem({isa.second});
-        isaRegWidthItems[isa.first];
-        isaItems[isa.first] = isaItem;
+        if (isaFamilyItems.count(isa.second) == 0) {
+            isaFamilyItems[isa.second] = new QTreeWidgetItem({isa.second});
+        }
+        auto* isaItem = isaFamilyItems.at(isa.second);
+        isaFamilyRegWidthItems[isaItem] = {};
         isaItem->setFlags(isaItem->flags() & ~(Qt::ItemIsSelectable));
         m_ui->processors->insertTopLevelItem(m_ui->processors->topLevelItemCount(), isaItem);
     }
@@ -40,8 +42,9 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
             processorItem->setFont(ProcessorColumn, font);
             selectedItem = processorItem;
         }
-
-        auto& regWidthItemsForISA = isaRegWidthItems.at(desc.second.isa->isaID());
+        const QString& isaFamily = ISAFamilyNames.at(desc.second.isa->isaID());
+        QTreeWidgetItem* familyItem = isaFamilyItems.at(isaFamily);
+        auto& regWidthItemsForISA = isaFamilyRegWidthItems.at(familyItem);
         auto isaRegWidthItem = regWidthItemsForISA.find(desc.second.isa->bits());
         if (isaRegWidthItem == regWidthItemsForISA.end()) {
             // Create reg width item
@@ -49,10 +52,8 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
             widthItem->setFlags(widthItem->flags() & ~(Qt::ItemIsSelectable));
             regWidthItemsForISA[desc.second.isa->bits()] = widthItem;
             isaRegWidthItem = regWidthItemsForISA.find(desc.second.isa->bits());
-            isaItems.at(desc.second.isa->isaID())
-                ->insertChild(isaItems.at(desc.second.isa->isaID())->childCount(), widthItem);
+            familyItem->insertChild(familyItem->childCount(), widthItem);
         }
-
         isaRegWidthItem->second->insertChild(isaRegWidthItem->second->childCount(), processorItem);
     }
 
@@ -92,6 +93,10 @@ QStringList ProcessorSelectionDialog::getEnabledExtensions() const {
 }
 
 void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeWidgetItem*) {
+    if (current == nullptr) {
+        return;
+    }
+
     QVariant selectedItemData = current->data(ProcessorColumn, Qt::UserRole);
     const bool validSelection = selectedItemData.canConvert<ProcessorID>();
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(validSelection);
