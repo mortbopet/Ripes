@@ -38,31 +38,31 @@ class RISCVSyscallManager : public SyscallManagerT<RISCVSyscall> {
 public:
     RISCVSyscallManager() {
         // Print syscalls
-        emplace<PrintIntSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintInt);
-        emplace<PrintFloatSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintFloat);
-        emplace<PrintStrSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintStr);
-        emplace<PrintCharSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintChar);
-        emplace<PrintHexSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintIntHex);
-        emplace<PrintBinarySyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintIntBinary);
-        emplace<PrintUnsignedSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::PrintIntUnsigned);
+        emplace<PrintIntSyscall<RISCVSyscall>>(RVABI::PrintInt);
+        emplace<PrintFloatSyscall<RISCVSyscall>>(RVABI::PrintFloat);
+        emplace<PrintStrSyscall<RISCVSyscall>>(RVABI::PrintStr);
+        emplace<PrintCharSyscall<RISCVSyscall>>(RVABI::PrintChar);
+        emplace<PrintHexSyscall<RISCVSyscall>>(RVABI::PrintIntHex);
+        emplace<PrintBinarySyscall<RISCVSyscall>>(RVABI::PrintIntBinary);
+        emplace<PrintUnsignedSyscall<RISCVSyscall>>(RVABI::PrintIntUnsigned);
 
         // Control syscalls
-        emplace<ExitSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Exit);
-        emplace<Exit2Syscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Exit2);
-        emplace<BrkSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::brk);
+        emplace<ExitSyscall<RISCVSyscall>>(RVABI::Exit);
+        emplace<Exit2Syscall<RISCVSyscall>>(RVABI::Exit2);
+        emplace<BrkSyscall<RISCVSyscall>>(RVABI::brk);
 
         // File syscalls
-        emplace<CloseSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Close);
-        emplace<LSeekSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::LSeek);
-        emplace<ReadSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Read);
-        emplace<OpenSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Open);
-        emplace<WriteSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Write);
-        emplace<GetCWDSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::GetCWD);
-        emplace<FStatSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::FStat);
+        emplace<CloseSyscall<RISCVSyscall>>(RVABI::Close);
+        emplace<LSeekSyscall<RISCVSyscall>>(RVABI::LSeek);
+        emplace<ReadSyscall<RISCVSyscall>>(RVABI::Read);
+        emplace<OpenSyscall<RISCVSyscall>>(RVABI::Open);
+        emplace<WriteSyscall<RISCVSyscall>>(RVABI::Write);
+        emplace<GetCWDSyscall<RISCVSyscall>>(RVABI::GetCWD);
+        emplace<FStatSyscall<RISCVSyscall>>(RVABI::FStat);
 
         // Time syscalls
-        emplace<CyclesSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::Cycles);
-        emplace<TimeMsSyscall<RISCVSyscall>>(ISAInfo<ISA::RV32I>::TimeMs);
+        emplace<CyclesSyscall<RISCVSyscall>>(RVABI::Cycles);
+        emplace<TimeMsSyscall<RISCVSyscall>>(RVABI::TimeMs);
     }
 };
 

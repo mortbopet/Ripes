@@ -90,7 +90,7 @@ void tst_Cosimulate::handleSysCall() {
         RegisterFileType::GPR, ProcessorHandler::get()->getProcessor()->implementsISA()->syscallReg());
 
     /// @todo: Generalize this by having ISA report exit syscall codes
-    if (status == ISAInfo<ISA::RV32I>::SysCall::Exit || status == ISAInfo<ISA::RV32I>::SysCall::Exit2) {
+    if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
         m_stop = true;
     }
 }
