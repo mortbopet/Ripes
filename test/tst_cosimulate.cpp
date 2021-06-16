@@ -22,7 +22,6 @@
 
 using namespace Ripes;
 using namespace vsrtl::core;
-using RVISA = ISAInfo<ISA::RV32I>;
 struct RegisterChange {
     unsigned index;
     unsigned newValue;
@@ -45,7 +44,7 @@ static constexpr ProcessorID s_referenceModel = ProcessorID::RV32_SS;
 
 // Test selection
 // s_testFiles denotes all of the test files that will be included in the cosimulation run for each processor.
-const QString s_testdir = VSRTL_RISCV_TEST_DIR;
+const QString s_testdir = RISCV32_TEST_DIR;
 const std::vector<LoadFileParams> s_testFiles = {
     LoadFileParams{QString(s_testdir + QDir::separator() + "../../examples/assembly/complexMul.s"),
                    SourceType::Assembly, 0, 0},

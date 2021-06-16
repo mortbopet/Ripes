@@ -9,8 +9,8 @@
 
 #include "assembler/rv32i_assembler.h"
 
-#ifndef VSRTL_RISCV_TEST_DIR
-static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
+#if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR)
+static_assert(false, "RISCV32/64_TEST_DIR must be defined");
 #endif
 
 /** RISC-V test suite
@@ -24,11 +24,6 @@ static_assert(false, "VSRTL_RISCV_TEST_DIR must be defined");
 using namespace Ripes;
 using namespace vsrtl::core;
 using namespace Assembler;
-using RVISA = ISAInfo<ISA::RV32I>;
-
-// Compilation tools & directories
-const QString s_testdir = VSRTL_RISCV_TEST_DIR;
-const QString s_outdir = s_testdir + QDir::separator() + "build";
 
 // Ecall status codes
 static constexpr unsigned s_success = 42;
@@ -54,7 +49,7 @@ private:
 
     QString m_currentTest;
 
-    void runTests(const ProcessorID& id);
+    void runTests(const ProcessorID& id, const QString& testdir);
 
     void handleSysCall();
 
@@ -64,18 +59,11 @@ private:
 
 private slots:
 
-    void testRVSingleCycle() { runTests(ProcessorID::RV32_SS); }
-    void testRV5StagePipeline() { runTests(ProcessorID::RV32_5S); }
-    void testRV5StagePipelineNOFW() { runTests(ProcessorID::RV32_5S_NO_FW); }
-    void testRV6SDual() { runTests(ProcessorID::RV32_6S_DUAL); }
-
-    void cleanupTestCase();
+    void testRV32_SingleCycle() { runTests(ProcessorID::RV32_SS, RISCV32_TEST_DIR); }
+    void testRV32_5StagePipeline() { runTests(ProcessorID::RV32_5S, RISCV32_TEST_DIR); }
+    void testRV32_5StagePipelineNOFW() { runTests(ProcessorID::RV32_5S_NO_FW, RISCV32_TEST_DIR); }
+    void testRV32_6SDual() { runTests(ProcessorID::RV32_6S_DUAL, RISCV32_TEST_DIR); }
 };
-
-void tst_RISCV::cleanupTestCase() {
-    auto buildDir = QDir(s_outdir);
-    buildDir.removeRecursively();
-}
 
 bool tst_RISCV::skipTest(const QString& test) {
     for (const auto& t : s_excludedTests) {
@@ -145,17 +133,15 @@ QString tst_RISCV::executeSimulator() {
     return m_err;
 }
 
-void tst_RISCV::runTests(const ProcessorID& id) {
+void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
     // Connect the global reset request signal to directly resetting the processor
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
             [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
 
-    const auto dir = QDir(s_testdir);
+    const auto dir = QDir(testdir);
     const auto testFiles = dir.entryList({"*.s"});
     const auto extensions = QStringList("M");
-
-    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(extensions);
-    auto assembler = RV32I_Assembler(isa.get());
+    ProcessorHandler::selectProcessor(id, extensions);
 
     for (const auto& test : testFiles) {
         m_currentTest = test;
@@ -166,11 +152,11 @@ void tst_RISCV::runTests(const ProcessorID& id) {
         qInfo() << "Running test: " << m_currentTest;
 
         // Assemble test file
-        auto f = QFile(s_testdir + QString(QDir::separator()) + test);
+        auto f = QFile(RISCV32_TEST_DIR + QString(QDir::separator()) + test);
         if (!f.open(QIODevice::ReadOnly)) {
             QFAIL("Could not open test file");
         }
-        const auto program = assembler.assemble(QString(f.readAll()).split("\n"));
+        const auto program = ProcessorHandler::getAssembler()->assemble(QString(f.readAll()).split("\n"));
         if (program.errors.size() != 0) {
             QString err = "Could not assemble program";
             err += "\n errors were:";
@@ -179,7 +165,6 @@ void tst_RISCV::runTests(const ProcessorID& id) {
         }
         auto spProgram = std::make_shared<Program>(program.program);
 
-        ProcessorHandler::selectProcessor(id, extensions);
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
         ProcessorHandler::getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);

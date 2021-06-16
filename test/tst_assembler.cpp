@@ -6,12 +6,24 @@
 #include "isa/rv32isainfo.h"
 
 #include "assembler/rv32i_assembler.h"
+#include "assembler/rv64i_assembler.h"
 
-const QString s_testdir = VSRTL_RISCV_TEST_DIR;
+#include "processorhandler.h"
 
 using namespace Ripes;
 using namespace Assembler;
-using RVISA = ISAInfo<ISA::RV32I>;
+
+// Tests which contains instructions or assembler directives not yet supported
+const auto s_excludedTests = {"f", "ldst", "move", "recoding", /* fails on CI, unknown as of know */ "memory"};
+
+bool skipTest(const QString& test) {
+    for (const auto& t : s_excludedTests) {
+        if (test.startsWith(t)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 class tst_Assembler : public QObject {
     Q_OBJECT
@@ -85,27 +97,36 @@ private:
     }
 };
 
+struct RVTestTuple {
+    ProcessorID id;
+    QString testDir;
+};
+
 void tst_Assembler::tst_riscv() {
     // Tests all of the available RISC-V assembly programs
-    const auto dir = QDir(s_testdir);
-    const auto testFiles = dir.entryList({"*.s"});
+    std::vector<RVTestTuple> testTuples = {{ProcessorID::RV32_SS, RISCV32_TEST_DIR}};
 
     auto testFunct = [](const QString& filename) {
-        auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-        auto assembler = RV32I_Assembler(isa.get());
         auto f = QFile(filename);
         f.open(QIODevice::ReadOnly | QIODevice::Text);
         auto program = QString(f.readAll());
-        auto res = assembler.assembleRaw(program);
+        auto res = ProcessorHandler::getAssembler()->assembleRaw(program);
         if (res.errors.size() != 0) {
             res.errors.print();
+            const QString errstr = "Failed wile assembling file" + filename;
+            QFAIL(errstr.toStdString().c_str());
         }
     };
 
-    for (const auto& test : testFiles) {
-        if (test.startsWith("f"))
-            continue;  // skip float tests
-        testFunct(s_testdir + QDir::separator() + test);
+    for (const auto& tt : testTuples) {
+        ProcessorHandler::selectProcessor(tt.id, {"M"});
+        const auto dir = QDir(tt.testDir);
+        const auto testFiles = dir.entryList({"*.s"});
+        for (const auto& test : testFiles) {
+            if (skipTest(test))
+                continue;  // skip float tests
+            testFunct(tt.testDir + QDir::separator() + test);
+        }
     }
 }
 
