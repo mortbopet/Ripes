@@ -42,8 +42,8 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(instr_exec, clear, enable);
     }
 
-    REGISTERED_CLEN_INPUT(instr_data, XLEN);
-    REGISTERED_CLEN_INPUT(instr_exec, XLEN);
+    REGISTERED_CLEN_INPUT(instr_data, RV_INSTR_WIDTH);
+    REGISTERED_CLEN_INPUT(instr_exec, RV_INSTR_WIDTH);
 
     REGISTERED_CLEN_INPUT(pc_data, XLEN);
     REGISTERED_CLEN_INPUT(pc_exec, XLEN);

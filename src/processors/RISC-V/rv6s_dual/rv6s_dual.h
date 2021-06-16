@@ -523,14 +523,14 @@ public:
 
     SUBCOMPONENT(data_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(data_way_opcode, TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
-    SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, XLEN>));
+    SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, RV_INSTR_WIDTH>));
     SUBCOMPONENT(data_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(data_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(data_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
 
     SUBCOMPONENT(exec_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(exec_way_opcode, TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
-    SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, XLEN>));
+    SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, RV_INSTR_WIDTH>));
     SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
     SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
@@ -795,7 +795,7 @@ public:
     }
 
     static const ISAInfoBase* ISA() {
-        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M"});
+        static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M"});
         return &s_isa;
     }
 

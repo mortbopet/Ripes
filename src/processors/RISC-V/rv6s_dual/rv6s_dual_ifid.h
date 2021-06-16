@@ -15,7 +15,7 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(instr2, this->clear, this->enable);
     }
 
-    REGISTERED_CLEN_INPUT(instr2, XLEN);
+    REGISTERED_CLEN_INPUT(instr2, RV_INSTR_WIDTH);
 };
 
 }  // namespace core

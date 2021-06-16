@@ -210,7 +210,7 @@ public:
     }
 
     static const ISAInfoBase* ISA() {
-        static auto s_isa = ISAInfo<ISA::RV32I>(QStringList{"M" /*, "F" */});
+        static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M"});
         return &s_isa;
     }
 
