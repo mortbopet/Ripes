@@ -1,5 +1,6 @@
 #include "console.h"
 
+#include "fonts.h"
 #include "ripessettings.h"
 
 #include <QScrollBar>
@@ -8,7 +9,7 @@ namespace Ripes {
 
 Console::Console(QWidget* parent) : QPlainTextEdit(parent) {
     if (RipesSettings::value(RIPES_SETTING_CONSOLEFONT).isNull()) {
-        m_font = QFont("Inconsolata", 12);
+        m_font = QFont(Fonts::monospace, 12);
     } else {
         m_font = RipesSettings::value(RIPES_SETTING_CONSOLEFONT).value<QFont>();
     }

@@ -2,6 +2,7 @@
 
 #include <QHeaderView>
 
+#include "fonts.h"
 #include "iobase.h"
 #include "iomanager.h"
 #include "processorhandler.h"
@@ -64,7 +65,7 @@ QVariant MemoryMapModel::data(const QModelIndex& index, int role) const {
                     return encodeRadixValue(memoryMapEntry->first, Radix::Hex) + " - " +
                            encodeRadixValue(memoryMapEntry->first + memoryMapEntry->second.size, Radix::Hex);
                 case Qt::FontRole:
-                    return QFont("Inconsolata", 11);
+                    return QFont(Fonts::monospace, 11);
                 case Qt::TextAlignmentRole:
                     return Qt::AlignCenter;
             }

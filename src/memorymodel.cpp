@@ -3,6 +3,8 @@
 #include <QBrush>
 #include <QFont>
 
+#include "fonts.h"
+
 namespace Ripes {
 
 MemoryModel::MemoryModel(QObject* parent) : QAbstractTableModel(parent) {}
@@ -66,7 +68,7 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
         return Qt::AlignCenter;
 
     if (role == Qt::FontRole) {
-        return QFont("Inconsolata", 11);
+        return QFont(Fonts::monospace, 11);
     }
 
     const auto bytes = ProcessorHandler::currentISA()->bytes();

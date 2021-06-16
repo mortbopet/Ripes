@@ -2,6 +2,7 @@
 
 #include <QHeaderView>
 
+#include "fonts.h"
 #include "iobase.h"
 #include "processorhandler.h"
 
@@ -70,7 +71,7 @@ QVariant RegisterMapModel::data(const QModelIndex& index, int role) const {
                 case Qt::DisplayRole:
                     return "0x" + QString::number(m_peripheral->registers().at(idx).address, 16);
                 case Qt::FontRole:
-                    return QFont("Inconsolata", 11);
+                    return QFont(Fonts::monospace, 11);
                 case Qt::TextAlignmentRole:
                     return Qt::AlignCenter;
             }

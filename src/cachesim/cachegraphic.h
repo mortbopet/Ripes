@@ -6,6 +6,7 @@
 #include <QObject>
 #include <memory>
 #include "cachesim.h"
+#include "fonts.h"
 
 namespace Ripes {
 class FancyPolyLine;
@@ -82,7 +83,7 @@ private:
     void updateAddressing(bool valid, const CacheSim::CacheTransaction* transaction = nullptr);
     void drawIndexingItems();
 
-    QFont m_font = QFont("Inconsolata", 12);
+    QFont m_font = QFont(Fonts::monospace, 12);
     CacheSim& m_cache;
 
     std::vector<std::unique_ptr<QGraphicsRectItem>> m_highlightingItems;

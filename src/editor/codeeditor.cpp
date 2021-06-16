@@ -16,6 +16,7 @@
 
 #include "colors.h"
 #include "csyntaxhighlighter.h"
+#include "fonts.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "rvsyntaxhighlighter.h"
@@ -32,7 +33,7 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
-    m_font = QFont("Inconsolata", 11);
+    m_font = QFont(Fonts::monospace, 11);
     setFont(m_font);
     m_fontTimer.setSingleShot(true);
     setTabStopDistance(QFontMetricsF(m_font).width(' ') * 4);

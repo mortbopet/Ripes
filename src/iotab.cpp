@@ -7,11 +7,11 @@
 #include <QScreen>
 #include <QToolBar>
 
+#include "fonts.h"
 #include "io/memorymapmodel.h"
+#include "ioperipheraltab.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
-
-#include "ioperipheraltab.h"
 
 #include "cereal/archives/json.hpp"
 #include "cereal/types/map.hpp"
@@ -77,7 +77,7 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
     // Reload peripheral state from the last graceful exit of the program
     loadPeripheralState();
 
-    m_ui->ioSymbols->setFont(QFont("Inconsolata", 11));
+    m_ui->ioSymbols->setFont(QFont(Fonts::monospace, 11));
     m_ui->ioSymbols->setToolTip(
         "Exported symbols for all I/O devices.\nThese symbols may be referenced in Assembly\nor C-language programs.");
 
