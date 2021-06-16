@@ -67,6 +67,18 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions,
     instructions.push_back(LoadType(Token("lwu"), 0b110));
     instructions.push_back(LoadType(Token("ld"), 0b011));
     instructions.push_back(SType(Token("sd"), 0b011));
+
+    pseudoInstructions.push_back(PseudoLoad(Token("ld")));
+    pseudoInstructions.push_back(PseudoStore(Token("sd")));
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
+        Token("negw"), {RegTok, RegTok}, _PseudoExpandFunc(line) {
+            return LineTokensVec{LineTokens{Token("subw"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
+        })));
+
+    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
+        Token("sext.w"), {RegTok, RegTok}, _PseudoExpandFunc(line) {
+            return LineTokensVec{LineTokens{Token("addiw"), line.tokens.at(1), line.tokens.at(2), Token("0x0")}};
+        })));
 }
 
 void RV64I_Assembler::enableExtM(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) {
