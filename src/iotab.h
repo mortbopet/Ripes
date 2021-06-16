@@ -1,7 +1,5 @@
 #pragma once
 
-#include "defines.h"
-
 #include <QAction>
 #include <QMdiSubWindow>
 #include <QWidget>

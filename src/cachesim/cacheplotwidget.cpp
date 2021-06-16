@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-#include "defines.h"
+#include "colors.h"
 #include "enumcombobox.h"
 #include "processorhandler.h"
 #include "ripessettings.h"

@@ -2,8 +2,6 @@
 
 #include <QColor>
 #include <set>
-#include "defines.h"
-#include "mainmemory.h"
 #include "processorhandler.h"
 
 #include <QAbstractTableModel>

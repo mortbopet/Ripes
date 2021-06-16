@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include "cachetab.h"
-#include "defines.h"
 #include "edittab.h"
 #include "iotab.h"
 #include "loaddialog.h"

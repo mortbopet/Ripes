@@ -1,14 +1,14 @@
 #include "programviewer.h"
 
-#include "defines.h"
-#include "ripessettings.h"
-
 #include <QAction>
 #include <QApplication>
 #include <QEvent>
 #include <QFontMetricsF>
 #include <QMenu>
 #include <QTextBlock>
+
+#include "colors.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 

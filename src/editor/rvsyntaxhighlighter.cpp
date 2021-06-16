@@ -1,6 +1,6 @@
 #include "rvsyntaxhighlighter.h"
 
-#include "defines.h"
+#include "colors.h"
 
 namespace Ripes {
 

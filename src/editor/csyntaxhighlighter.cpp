@@ -1,6 +1,6 @@
 #include "csyntaxhighlighter.h"
 
-#include "defines.h"
+#include "colors.h"
 
 namespace Ripes {
 

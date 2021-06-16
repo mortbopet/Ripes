@@ -1,6 +1,5 @@
 #include "gotocombobox.h"
 #include "addressdialog.h"
-#include "defines.h"
 
 #include <QAbstractItemView>
 #include <QEvent>

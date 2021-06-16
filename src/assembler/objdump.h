@@ -1,7 +1,6 @@
 #pragma once
 
 #include "binutils.h"
-#include "defines.h"
 #include "program.h"
 
 #include <QString>

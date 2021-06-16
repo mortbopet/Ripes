@@ -6,7 +6,6 @@
 #include <QToolBar>
 #include <QWidget>
 
-#include "defines.h"
 #include "ripestab.h"
 
 namespace vsrtl {
