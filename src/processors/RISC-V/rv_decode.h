@@ -46,10 +46,27 @@ public:
                 break;
             }
 
+            case RVISA::Opcode::OPIMM32: {
+                // I-Type (32-bit, in 64-bit ISA)
+                const auto fields = RVInstrParser::getParser()->decodeI32Instr(instr.uValue());
+                switch(fields[2]) {
+                case 0b000: return RVInstr::ADDIW;
+                case 0b001: return RVInstr::SLLIW;
+                case 0b101: {
+                    switch (fields[0]) {
+                    case 0b0000000: return RVInstr::SRLIW;
+                    case 0b0100000: return RVInstr::SRAIW;
+                    }
+                }
+                default: break;
+                }
+                break;
+            }
+
             case RVISA::Opcode::OP: {
                 // R-Type
                 const auto fields = RVInstrParser::getParser()->decodeR32Instr(instr.uValue());
-                if (fields[0] == 0b1) {
+                if (fields[0] == 0b0000001) {
                     if(m_isa && m_isa->extensionEnabled("M")) {
                         // RV32M Standard extension
                         switch (fields[3]) {
@@ -91,7 +108,45 @@ public:
                     break;
                 }
                 break;
+            }
 
+            case RVISA::Opcode::OP32: {
+                // R-Type (32-bit, in 64-bit ISA)
+                const auto fields = RVInstrParser::getParser()->decodeR32Instr(instr.uValue());
+                if (fields[0] == 0b0000001) {
+                    if(m_isa && m_isa->extensionEnabled("M")) {
+                        // RV64M Standard extension
+                        switch (fields[3]) {
+                            case 0b000: return RVInstr::MULW;
+                            case 0b100: return RVInstr::DIVW;
+                            case 0b101: return RVInstr::DIVUW;
+                            case 0b110: return RVInstr::REMW;
+                            case 0b111: return RVInstr::REMUW;
+                            default: break;
+                        }
+                    }
+                } else {
+                    switch (fields[3]) {
+                        case 0b000: {
+                            switch (fields[0]) {
+                                case 0b0000000: return RVInstr::ADDW;
+                                case 0b0100000: return RVInstr::SUBW;
+                                default: return RVInstr::NOP;
+                            }
+                        }
+                        case 0b001: return RVInstr::SLLW;
+                        case 0b101: {
+                            switch (fields[0]) {
+                                case 0b0000000: return RVInstr::SRLW;
+                                case 0b0100000: return RVInstr::SRAW;
+                                default: return RVInstr::NOP;
+                            }
+                        }
+                        default: break;
+                    }
+                    break;
+                }
+                break;
             }
 
             case RVISA::Opcode::LOAD: {
@@ -103,6 +158,8 @@ public:
                     case 0b010: return RVInstr::LW;
                     case 0b100: return RVInstr::LBU;
                     case 0b101: return RVInstr::LHU;
+                    case 0b110: return RVInstr::LWU;
+                    case 0b011: return RVInstr::LD;
                     default: break;
                 }
                 break;
@@ -115,6 +172,7 @@ public:
                     case 0b000: return RVInstr::SB;
                     case 0b001: return RVInstr::SH;
                     case 0b010: return RVInstr::SW;
+                    case 0b011: return RVInstr::SD;
                     default: break;
                 }
                 break;

@@ -46,11 +46,14 @@ public:
             case RVInstr::SB: return MemOp::SB;
             case RVInstr::SH: return MemOp::SH;
             case RVInstr::SW: return MemOp::SW;
+            case RVInstr::SD: return MemOp::SD;
             case RVInstr::LB: return MemOp::LB;
             case RVInstr::LH: return MemOp::LH;
             case RVInstr::LW: return MemOp::LW;
+            case RVInstr::LD: return MemOp::LD;
             case RVInstr::LBU: return MemOp::LBU;
             case RVInstr::LHU: return MemOp::LHU;
+            case RVInstr::LWU: return MemOp::LWU;
             default:
                 return MemOp::NOP;
         }
@@ -64,17 +67,21 @@ public:
             // Arithmetic-immediate instructions
             case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::XORI:
             case RVInstr::ORI: case RVInstr::ANDI: case RVInstr::SLLI: case RVInstr::SRLI:
-            case RVInstr::SRAI:
+            case RVInstr::SRAI: case RVInstr::ADDIW: case RVInstr::SLLIW: case RVInstr::SRLIW:
+            case RVInstr::SRAIW:
 
             // Arithmetic instructions
             case RVInstr::MUL: case RVInstr::MULH: case RVInstr:: MULHSU: case RVInstr::MULHU:
             case RVInstr::DIV: case RVInstr::DIVU: case RVInstr::REM: case RVInstr::REMU:
             case RVInstr::ADD: case RVInstr::SUB: case RVInstr::SLL: case RVInstr::SLT:
             case RVInstr::SLTU: case RVInstr::XOR: case RVInstr::SRL: case RVInstr::SRA:
-            case RVInstr::OR: case RVInstr::AND:
+            case RVInstr::OR: case RVInstr::AND: case RVInstr::ADDW: case RVInstr::SUBW:
+            case RVInstr::SLLW: case RVInstr::SRLW: case RVInstr::SRAW: case RVInstr::MULW:
+            case RVInstr::DIVW: case RVInstr::DIVUW: case RVInstr::REMW: case RVInstr::REMUW:
 
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
+            case RVInstr::LWU: case RVInstr::LD:
 
             // Jump instructions
             case RVInstr::JALR:
@@ -87,7 +94,8 @@ public:
     static RegWrSrc do_reg_wr_src_ctrl(const VSRTL_VT_U& opc) {
         switch(opc){
             // Load instructions
-            case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
+            case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:
                 return RegWrSrc::MEMREAD;
 
             // Jump instructions
@@ -120,7 +128,8 @@ public:
         // Arithmetic-immediate instructions
         case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::XORI:
         case RVInstr::ORI: case RVInstr::ANDI: case RVInstr::SLLI: case RVInstr::SRLI:
-        case RVInstr::SRAI:
+        case RVInstr::SRAI: case RVInstr::ADDIW: case RVInstr::SLLIW: case RVInstr::SRLIW:
+        case RVInstr::SRAIW:
             return AluSrc2::IMM;
 
         // Arithmetic instructions
@@ -128,12 +137,15 @@ public:
         case RVInstr::DIV: case RVInstr::DIVU: case RVInstr::REM: case RVInstr::REMU:
         case RVInstr::ADD: case RVInstr::SUB: case RVInstr::SLL: case RVInstr::SLT:
         case RVInstr::SLTU: case RVInstr::XOR: case RVInstr::SRL: case RVInstr::SRA:
-        case RVInstr::OR: case RVInstr::AND:
+        case RVInstr::OR: case RVInstr::AND: case RVInstr::ADDW: case RVInstr::SUBW:
+        case RVInstr::SLLW: case RVInstr::SRLW: case RVInstr::SRAW: case RVInstr::MULW:
+        case RVInstr::DIVW: case RVInstr::DIVUW: case RVInstr::REMW: case RVInstr::REMUW:
             return AluSrc2::REG2;
 
         // Load/Store instructions
         case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
-        case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
+        case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
+        case RVInstr::SD:
             return AluSrc2::IMM;
 
         // Branch instructions
@@ -154,7 +166,8 @@ public:
     static ALUOp do_alu_ctrl(const VSRTL_VT_U& opc) {
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
-            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
+            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
+            case RVInstr::SD:
                 return ALUOp::ADD;
             case RVInstr::LUI:
                 return ALUOp::LUI;
@@ -163,8 +176,7 @@ public:
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
             case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
                 return ALUOp::ADD;
-            case RVInstr::SUB:
-                return ALUOp::SUB;
+            case RVInstr::SUB: return ALUOp::SUB;
             case RVInstr::SLT: case RVInstr::SLTI:
                 return ALUOp::LT;
             case RVInstr::SLTU: case RVInstr::SLTIU:
@@ -181,29 +193,36 @@ public:
                 return ALUOp::SRL;
             case RVInstr::SRA: case RVInstr::SRAI:
                 return ALUOp::SRA;
-            case RVInstr::MUL:
-                return ALUOp::MUL;
-            case RVInstr::MULH:
-                return ALUOp::MULH;
-            case RVInstr::MULHU:
-                return ALUOp::MULHU;
-            case RVInstr::MULHSU:
-                return ALUOp::MULHSU;
-            case RVInstr::DIV:
-                return ALUOp::DIV;
-            case RVInstr::DIVU:
-                return ALUOp::DIVU;
-            case RVInstr::REM:
-                return ALUOp::REM;
-            case RVInstr::REMU:
-                return ALUOp::REMU;
+            case RVInstr::MUL   : return ALUOp::MUL;
+            case RVInstr::MULH  : return ALUOp::MULH;
+            case RVInstr::MULHU : return ALUOp::MULHU;
+            case RVInstr::MULHSU: return ALUOp::MULHSU;
+            case RVInstr::DIV   : return ALUOp::DIV;
+            case RVInstr::DIVU  : return ALUOp::DIVU;
+            case RVInstr::REM   : return ALUOp::REM;
+            case RVInstr::REMU  : return ALUOp::REMU;
+            case RVInstr::ADDIW : return ALUOp::ADDW;
+            case RVInstr::SLLIW : return ALUOp::SLW;
+            case RVInstr::SRLIW : return ALUOp::SRLW;
+            case RVInstr::SRAIW : return ALUOp::SRAW;
+            case RVInstr::ADDW  : return ALUOp::ADDW ;
+            case RVInstr::SUBW  : return ALUOp::SUBW ;
+            case RVInstr::SLLW  : return ALUOp::SLW ;
+            case RVInstr::SRLW  : return ALUOp::SRLW ;
+            case RVInstr::SRAW  : return ALUOp::SRAW ;
+            case RVInstr::MULW  : return ALUOp::MULW ;
+            case RVInstr::DIVW  : return ALUOp::DIVW ;
+            case RVInstr::DIVUW : return ALUOp::DIVUW;
+            case RVInstr::REMW  : return ALUOp::REMW ;
+            case RVInstr::REMUW : return ALUOp::REMUW;
+
             default: return ALUOp::NOP;
         }
     }
 
     static VSRTL_VT_U do_do_mem_write_ctrl(const VSRTL_VT_U& opc) {
         switch(opc) {
-            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
+            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::SD:
                 return 1;
             default: return 0;
         }
@@ -211,7 +230,8 @@ public:
 
     static VSRTL_VT_U do_do_read_ctrl(const VSRTL_VT_U& opc) {
         switch(opc) {
-            case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
+            case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:
                 return 1;
             default: return 0;
         }

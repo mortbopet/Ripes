@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include "limits.h"
 
 #include "riscv.h"
 
@@ -9,6 +10,9 @@
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
+
+#define DIV_OVERFLOW32 (-2147483648)  //-2^(32-1)
+#define DIV_OVERFLOW64 (LLONG_MIN)  //-2^(64-1)
 
 template <unsigned XLEN>
 class ALU : public Component {
@@ -35,39 +39,67 @@ public:
                     const int64_t result = static_cast<int64_t>(op1.sValue()) * static_cast<uint64_t>(op2.uValue());
                     return VT_U(result >> 32);
                 }
-                case ALUOp::DIV:
+
+                case ALUOp::DIVW:
+                case ALUOp::DIV: {
+                    const VSRTL_VT_S overflow =
+                        (ctrl.uValue() == ALUOp::DIVW) || (ctrl.uValue() == ALUOp::DIV && XLEN == 32) ? DIV_OVERFLOW32
+                                                                                                      : DIV_OVERFLOW64;
                     if (op2.sValue() == 0) {
                         return VT_U(-1);
-                    } else if (op1.sValue() == static_cast<int64_t>(-(std::pow(2, 32 - 1))) && op2.sValue() == -1) {
+                    } else if (op1.sValue() == overflow && op2.sValue() == -1) {
                         // Overflow
-                        return VT_U(0x80000000);  // -2^(32-1)
+                        return VT_U(overflow);
                     } else {
                         return VT_U(op1.sValue() / op2.sValue());
                     }
+                }
 
-                case ALUOp::DIVU:
-                    if (op2.sValue() == 0) {
-                        return VT_U(std::pow(2, 32) - 1);
+                case ALUOp::DIVUW:
+                case ALUOp::DIVU: {
+                    if (op2.uValue() == 0) {
+                        return VT_U(-1LL);
                     } else {
                         return op1.uValue() / op2.uValue();
                     }
+                }
 
-                case ALUOp::REM:
+                case ALUOp::REMW:
+                case ALUOp::REM: {
+                    const VSRTL_VT_S overflow =
+                        (ctrl.uValue() == ALUOp::REMW) || (ctrl.uValue() == ALUOp::REM && XLEN == 32) ? DIV_OVERFLOW32
+                                                                                                      : DIV_OVERFLOW64;
                     if (op2.sValue() == 0) {
                         return op1.uValue();
-                    } else if (op1.sValue() == static_cast<int64_t>(-(std::pow(2, 32 - 1))) && op2.sValue() == -1) {
+                    } else if (op1.sValue() == overflow && op2.sValue() == -1) {
                         // Overflow
                         return VT_U(0);
                     } else {
                         return VT_U(op1.sValue() % op2.sValue());
                     }
+                }
 
-                case ALUOp::REMU:
+                case ALUOp::REMUW:
+                case ALUOp::REMU: {
+                    const VSRTL_VT_S overflow =
+                        (ctrl.uValue() == ALUOp::REMUW) || (ctrl.uValue() == ALUOp::REMU && XLEN == 32)
+                            ? DIV_OVERFLOW32
+                            : DIV_OVERFLOW64;
                     if (op2.uValue() == 0) {
                         return op1.uValue();
                     } else {
                         return op1.uValue() % op2.uValue();
                     }
+
+                    if (op2.sValue() == 0) {
+                        return VT_U(-1);
+                    } else if (op1.sValue() == overflow && op2.sValue() == -1) {
+                        // Overflow
+                        return VT_U(overflow);
+                    } else {
+                        return VT_U(op1.sValue() / op2.sValue());
+                    }
+                }
 
                 case ALUOp::AND:
                     return op1.uValue() & op2.uValue();
@@ -98,6 +130,21 @@ public:
 
                 case ALUOp::NOP:
                     return VT_U(0xDEADBEEF);
+
+                case ALUOp::ADDW:
+                    return signextend<VSRTL_VT_U, 32>(op1.uValue() + op2.uValue());
+
+                case ALUOp::SUBW:
+                    return signextend<VSRTL_VT_U, 32>(op1.uValue() - op2.uValue());
+
+                case ALUOp::SLW:
+                    return signextend<VSRTL_VT_U, 32>(op1.uValue() << (op2.uValue() & generateBitmask(5)));
+
+                case ALUOp::SRAW:
+                    return signextend<VSRTL_VT_U, 32>(op1.sValue() >> (op2.uValue() & generateBitmask(5)));
+
+                case ALUOp::SRLW:
+                    return signextend<VSRTL_VT_U, 32>(op1.uValue() >> (op2.uValue() & generateBitmask(5)));
 
                 default:
                     throw std::runtime_error("Invalid ALU opcode");

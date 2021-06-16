@@ -40,6 +40,8 @@ public:
                 case RVInstr::LW:
                 case RVInstr::LBU:
                 case RVInstr::LHU:
+                case RVInstr::LWU:
+                case RVInstr::LD:
                 case RVInstr::ADDI:
                 case RVInstr::SLTI:
                 case RVInstr::SLTIU:
@@ -52,7 +54,8 @@ public:
                     return VT_U(signextend<int32_t, 12>((instr.uValue() >> 20)));
                 case RVInstr::SB:
                 case RVInstr::SH:
-                case RVInstr::SW: {
+                case RVInstr::SW:
+                case RVInstr::SD: {
                     return VT_U(signextend<int32_t, 12>(((instr.uValue() & 0xfe000000)) >> 20) |
                                 ((instr.uValue() & 0xf80) >> 7));
                 }

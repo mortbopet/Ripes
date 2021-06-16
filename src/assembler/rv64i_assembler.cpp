@@ -63,6 +63,10 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions,
     instructions.push_back(RType32(Token("sllw"), 0b001, 0b0000000));
     instructions.push_back(RType32(Token("srlw"), 0b101, 0b0000000));
     instructions.push_back(RType32(Token("sraw"), 0b101, 0b0100000));
+
+    instructions.push_back(LoadType(Token("lwu"), 0b110));
+    instructions.push_back(LoadType(Token("ld"), 0b011));
+    instructions.push_back(LoadType(Token("sd"), 0b011));
 }
 
 void RV64I_Assembler::enableExtM(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) {

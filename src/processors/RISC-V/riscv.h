@@ -4,7 +4,6 @@
 
 #include "VSRTL/core/vsrtl_enum.h"
 #include "VSRTL/interface/vsrtl_binutils.h"
-#include "VSRTL/interface/vsrtl_defines.h"
 #include "VSRTL/interface/vsrtl_interface.h"
 
 #include "rv_instrparser.h"
@@ -22,6 +21,7 @@ namespace Ripes {
 template <unsigned XLEN>
 constexpr Ripes::ISA XLenToRVISA() {
     static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+    static_assert(vsrtl::VSRTL_VT_BITS >= XLEN, "Register size larger than VSRTL base type size");
     if (XLEN == 32) {
         return ISA::RV32I;
     } else {
@@ -38,16 +38,22 @@ Enum(RVInstr, NOP,
      ORI, ANDI, SLLI, SRLI, SRAI, ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND, ECALL,
 
      /* RV32M Standard Extension */
-     MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU);
+     MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU,
+
+     /* RV64I Base Instruction Set */
+     ADDIW, SLLIW, SRLIW, SRAIW, ADDW, SUBW, SLLW, SRLW, SRAW, LWU, LD, SD,
+
+     /* RV64M Standard Extension */
+     MULW, DIVW, DIVUW, REMW, REMUW);
 
 /** Datapath enumerations */
-Enum(ALUOp, NOP, ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT, LTU, EQ, MULH, MULHU, MULHSU, DIVU, REM,
-     REMU);
+Enum(ALUOp, NOP, ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT, LTU, EQ, MULH, MULHU, MULHSU, DIVU, REM, REMU,
+     SLW, SRLW, SRAW, ADDW, SUBW, MULW, DIVW, DIVUW, REMW, REMUW);
 Enum(RegWrSrc, MEMREAD, ALURES, PC4);
 Enum(AluSrc1, REG1, PC);
 Enum(AluSrc2, REG2, IMM);
 Enum(CompOp, NOP, EQ, NE, LT, LTU, GE, GEU);
-Enum(MemOp, NOP, LB, LH, LW, LBU, LHU, SB, SH, SW);
+Enum(MemOp, NOP, LB, LH, LW, LBU, LHU, SB, SH, SW, LWU, LD, SD);
 Enum(ECALL, none, print_int = 1, print_char = 2, print_string = 4, exit = 10);
 Enum(PcSrc, PC4 = 0, ALU = 1);
 
