@@ -30,20 +30,26 @@ namespace Assembler {
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 3, 15, 19, "rs1"), \
                          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
-#define IShiftTypeCommon(name, opcode, funct3, funct7, immEnd)                                                     \
+#define IShiftType32(name, opcode, funct3, funct7)                                                                 \
     std::shared_ptr<Instruction>(                                                                                  \
         new Instruction(Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}),      \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
-                         std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, immEnd)})}))
+                         std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 24)})}))
 
-#define IShiftType32(name, opcode, funct3, funct7) IShiftTypeCommon(name, opcode, funct3, funct7, 24)
-#define IShiftType64(name, opcode, funct3, funct7) IShiftTypeCommon(name, opcode, funct3, funct7, 25)
+#define IShiftType64(name, opcode, funct3, funct6)                                                                 \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14), OpPart(funct6, 26, 31)}),      \
+                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
+                         std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 25)})}))
 
-#define RType(name, funct3, funct7)                                                                                   \
-    std::shared_ptr<Instruction>(                                                                                     \
-        new Instruction(Opcode(name, {OpPart(RVISA::OPIMM32, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}), \
-                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"),    \
+#define RTypeCommon(name, opcode, funct3, funct7)                                                                  \
+    std::shared_ptr<Instruction>(                                                                                  \
+        new Instruction(Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14), OpPart(funct7, 25, 31)}),      \
+                        {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
                          std::make_shared<Reg>(isa, 3, 20, 24, "rs2")}))
+
+#define RType(name, funct3, funct7) RTypeCommon(name, RVISA::OP, funct3, funct7)
+#define RType32(name, funct3, funct7) RTypeCommon(name, RVISA::OP32, funct3, funct7)
 
 #define SType(name, funct3)                                                                                   \
     std::shared_ptr<Instruction>(new Instruction(                                                             \

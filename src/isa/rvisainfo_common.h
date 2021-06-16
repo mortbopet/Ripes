@@ -9,7 +9,21 @@ namespace RVISA {
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
 extern const QStringList RegDescs;
-enum Opcode { OPIMM = 0b0010011, OPIMM32 = 0b0110011 };
+enum Opcode {
+    LUI = 0b0110111,
+    JAL = 0b1101111,
+    JALR = 0b1100111,
+    BRANCH = 0b1100011,
+    LOAD = 0b0000011,
+    STORE = 0b0100011,
+    OPIMM = 0b0010011,
+    OP = 0b0110011,
+    OPIMM32 = 0b0011011,
+    OP32 = 0b0111011,
+    ECALL = 0b1110011,
+    AUIPC = 0b0010111,
+    INVALID = 0b0
+};
 
 }  // namespace RVISA
 
