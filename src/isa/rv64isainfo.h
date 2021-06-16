@@ -8,7 +8,7 @@ namespace Ripes {
 template <>
 class ISAInfo<ISA::RV64I> : public ISAInfoBase {
 public:
-    ISAInfo<ISA::RV32I>(const QStringList extensions) {
+    ISAInfo<ISA::RV64I>(const QStringList extensions) {
         // Validate extensions
         for (const auto& ext : extensions) {
             if (supportsExtension(ext)) {
@@ -19,7 +19,7 @@ public:
         }
     }
 
-    QString name() const override { return "RV32I"; }
+    QString name() const override { return "RV64I"; }
     ISA isaID() const override { return ISA::RV64I; }
 
     unsigned int regCnt() const override { return 32; }
@@ -33,7 +33,7 @@ public:
         return RVISA::RegDescs.size() > static_cast<int>(i) ? RVISA::RegDescs.at(static_cast<int>(i)) : QString();
     }
     bool regIsReadOnly(unsigned i) const override { return i == 0; }
-    unsigned int bits() const override { return 32; }
+    unsigned int bits() const override { return 64; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }
     int syscallReg() const override { return 17; }
@@ -52,7 +52,7 @@ public:
     }
 
     QString CCmarch() const override {
-        QString march = "rv32i";
+        QString march = "rv64i";
 
         // Proceed in canonical order
         for (const auto& ext : {"M", "A", "F", "D"}) {
@@ -63,7 +63,7 @@ public:
 
         return march;
     }
-    QString CCmabi() const override { return "ilp32"; }
+    QString CCmabi() const override { return "lp64"; }
 
     QString elfSupportsFlags(unsigned flags) const override {
         /** We expect no flags for RV32IM compiled RISC-V executables.
@@ -72,9 +72,9 @@ public:
         if (flags == 0)
             return QString();
         QString err;
-        for (const auto& flag : RVISA::ELFFlagStrings) {
+        for (const auto& flag : RVABI::ELFFlagStrings) {
             if (flags & flag.first) {
-                err += "ELF flag '" + RVISA::ELFFlagStrings.at(flag.first) + "' unsupported<br/>";
+                err += "ELF flag '" + RVABI::ELFFlagStrings.at(flag.first) + "' unsupported<br/>";
             }
         }
         return err;

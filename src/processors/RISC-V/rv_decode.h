@@ -17,13 +17,13 @@ public:
 
             // clang-format off
             switch(l7) {
-            case 0b0110111: return RVInstr::LUI;
-            case 0b0010111: return RVInstr::AUIPC;
-            case 0b1101111: return RVInstr::JAL;
-            case 0b1100111: return RVInstr::JALR;
-            case 0b1110011: return RVInstr::ECALL;
+            case RVISA::Opcode::LUI: return RVInstr::LUI;
+            case RVISA::Opcode::AUIPC: return RVInstr::AUIPC;
+            case RVISA::Opcode::JAL: return RVInstr::JAL;
+            case RVISA::Opcode::JALR: return RVInstr::JALR;
+            case RVISA::Opcode::ECALL: return RVInstr::ECALL;
 
-            case 0b0010011: {
+            case RVISA::Opcode::OPIMM: {
                 // I-Type
                 const auto fields = RVInstrParser::getParser()->decodeI32Instr(instr.uValue());
                 switch(fields[2]) {
@@ -45,7 +45,7 @@ public:
                 break;
             }
 
-            case 0b0110011: {
+            case RVISA::Opcode::OP: {
                 // R-Type
                 const auto fields = RVInstrParser::getParser()->decodeR32Instr(instr.uValue());
                 if (fields[0] == 0b1) {
@@ -93,7 +93,7 @@ public:
 
             }
 
-            case 0b0000011: {
+            case RVISA::Opcode::LOAD: {
                 // Load instruction
                 const auto fields = RVInstrParser::getParser()->decodeI32Instr(instr.uValue());
                 switch (fields[2]) {
@@ -107,7 +107,7 @@ public:
                 break;
             }
 
-            case 0b0100011: {
+            case RVISA::Opcode::STORE: {
                 // Store instructions
                 const auto fields = RVInstrParser::getParser()->decodeS32Instr(instr.uValue());
                 switch (fields[3]) {
@@ -119,7 +119,7 @@ public:
                 break;
             }
 
-            case 0b1100011: {
+            case RVISA::Opcode::BRANCH: {
                 // Branch instruction
                 const auto fields = RVInstrParser::getParser()->decodeB32Instr(instr.uValue());
                 switch (fields[4]) {

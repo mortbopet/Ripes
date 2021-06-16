@@ -8,7 +8,7 @@ namespace Assembler {
 
 #define BType(name, funct3)                                                                              \
     std::shared_ptr<Instruction>(new Instruction(                                                        \
-        Opcode(name, {OpPart(0b1100011, 0, 6), OpPart(funct3, 12, 14)}),                                 \
+        Opcode(name, {OpPart(RVISA::Opcode::BRANCH, 0, 6), OpPart(funct3, 12, 14)}),                     \
         {std::make_shared<Reg>(isa, 1, 15, 19, "rs1"), std::make_shared<Reg>(isa, 2, 20, 24, "rs2"),     \
          std::make_shared<Imm>(                                                                          \
              3, 13, Imm::Repr::Signed,                                                                   \
@@ -26,7 +26,7 @@ namespace Assembler {
 
 #define LoadType(name, funct3)                                                                                     \
     std::shared_ptr<Instruction>(                                                                                  \
-        new Instruction(Opcode(name, {OpPart(0b0000011, 0, 6), OpPart(funct3, 12, 14)}),                           \
+        new Instruction(Opcode(name, {OpPart(RVISA::Opcode::LOAD, 0, 6), OpPart(funct3, 12, 14)}),                 \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 3, 15, 19, "rs1"), \
                          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 
@@ -53,7 +53,7 @@ namespace Assembler {
 
 #define SType(name, funct3)                                                                                   \
     std::shared_ptr<Instruction>(new Instruction(                                                             \
-        Opcode(name, {OpPart(0b0100011, 0, 6), OpPart(funct3, 12, 14)}),                                      \
+        Opcode(name, {OpPart(RVISA::Opcode::STORE, 0, 6), OpPart(funct3, 12, 14)}),                           \
         {std::make_shared<Reg>(isa, 3, 15, 19, "rs1"),                                                        \
          std::make_shared<Imm>(2, 12, Imm::Repr::Signed, std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}), \
          std::make_shared<Reg>(isa, 1, 20, 24, "rs2")}))
@@ -75,7 +75,7 @@ namespace Assembler {
 
 #define JALRType(name)                                                                                             \
     std::shared_ptr<Instruction>(                                                                                  \
-        new Instruction(Opcode(name, {OpPart(0b1100111, 0, 6), OpPart(0b000, 12, 14)}),                            \
+        new Instruction(Opcode(name, {OpPart(RVISA::Opcode::JALR, 0, 6), OpPart(0b000, 12, 14)}),                  \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
                          std::make_shared<Imm>(3, 12, Imm::Repr::Signed, std::vector{ImmPart(0, 20, 31)})}))
 

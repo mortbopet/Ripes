@@ -235,16 +235,16 @@ void RV32I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions,
     // Assembler functors
 
     instructions.push_back(std::shared_ptr<Instruction>(
-        new Instruction(Opcode(Token("ecall"), {OpPart(0b1110011, 0, 6), OpPart(0, 7, 31)}), {})));
+        new Instruction(Opcode(Token("ecall"), {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}), {})));
 
-    instructions.push_back(UType(Token("lui"), 0b0110111));
+    instructions.push_back(UType(Token("lui"), RVISA::Opcode::LUI));
 
     instructions.push_back(std::shared_ptr<Instruction>(new Instruction(
-        Opcode(Token("auipc"), {OpPart(0b0010111, 0, 6)}),
+        Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"),
          std::make_shared<Imm>(2, 32, Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)}, Imm::SymbolType::Absolute)})));
 
-    instructions.push_back(JType(Token("jal"), 0b1101111));
+    instructions.push_back(JType(Token("jal"), RVISA::Opcode::JAL));
 
     instructions.push_back(JALRType(Token("jalr")));
 

@@ -1,11 +1,14 @@
 #pragma once
 
 #include <functional>
-#include "../../isa/rv32isainfo.h"
+#include "../../isa/rvisainfo_common.h"
 #include "VSRTL/core/vsrtl_enum.h"
 #include "VSRTL/interface/vsrtl_binutils.h"
 #include "VSRTL/interface/vsrtl_defines.h"
 #include "rv_instrparser.h"
+
+#include "../../isa/rv32isainfo.h"
+#include "../../isa/rv64isainfo.h"
 
 namespace Ripes {
 
