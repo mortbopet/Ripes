@@ -76,15 +76,19 @@ private:
             if (auto instrRef = instr.get()) {
                 const size_t nOpParts = instrRef->getOpcode().opParts.size();
                 if (nOpParts < fieldDepth) {
-                    assert(
-                        false &&
-                        "Instruction cannot be decoded; aliases with other instruction (Needs more discernable parts)");
+                    QString err =
+                        "Instruction '" + instr->name() +
+                        "' cannot be decoded; aliases with other instruction (Needs more discernable parts)\n";
+                    throw std::runtime_error(err.toStdString().c_str());
                 }
                 const OpPart opPart = instrRef->getOpcode().opParts[fieldDepth - 1];
                 if (nOpParts == fieldDepth && instrsWithEqualOpPart.count(opPart) != 0) {
-                    assert(false &&
-                           "Instruction cannot be decoded; aliases with other instruction (Identical to other "
-                           "instruction)");
+                    QString err;
+                    err +=
+                        "Instruction cannot be decoded; aliases with other instruction (Identical to other "
+                        "instruction)\n";
+                    err += instr->name() + " is equal to " + instrsWithEqualOpPart.at(opPart).at(0)->name();
+                    throw std::runtime_error(err.toStdString().c_str());
                 }
                 instrsWithEqualOpPart[opPart].push_back(instr);
             }
