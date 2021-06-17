@@ -9,11 +9,11 @@
 namespace Ripes {
 namespace Assembler {
 
-inline int getImmediate(const QString& string, bool& canConvert) {
+inline int64_t getImmediate(const QString& string, bool& canConvert) {
     QString upperString = string.toUpper();
     canConvert = false;
-    int immediate = upperString.toInt(&canConvert, 10);
-    int sign = 1;
+    int64_t immediate = upperString.toLongLong(&canConvert, 10);
+    int64_t sign = 1;
     if (!canConvert) {
         // Could not convert directly to integer - try hex or bin. Here, extra care is taken to account for a
         // potential sign, and include this is the range validation
@@ -22,9 +22,9 @@ inline int getImmediate(const QString& string, bool& canConvert) {
             upperString.remove(0, 1);
         }
         if (upperString.startsWith(QLatin1String("0X"))) {
-            immediate = upperString.remove("0X").toUInt(&canConvert, 16);
+            immediate = upperString.remove("0X").toULongLong(&canConvert, 16);
         } else if (upperString.startsWith(QLatin1String("0B"))) {
-            immediate = upperString.remove("0B").toUInt(&canConvert, 2);
+            immediate = upperString.remove("0B").toULongLong(&canConvert, 2);
         } else {
             canConvert = false;
         }
