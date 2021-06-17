@@ -58,7 +58,11 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     }
 
     connect(m_ui->processors, &QTreeWidget::currentItemChanged, this, &ProcessorSelectionDialog::selectionChanged);
-    connect(m_ui->processors, &QTreeWidget::itemDoubleClicked, this, &QDialog::accept);
+    connect(m_ui->processors, &QTreeWidget::itemDoubleClicked, this, [=](const QTreeWidgetItem* item) {
+        if (isCPUItem(item)) {
+            accept();
+        }
+    });
 
     connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -92,13 +96,21 @@ QStringList ProcessorSelectionDialog::getEnabledExtensions() const {
     return m_selectedExtensionsForID.at(m_selectedID);
 }
 
+bool ProcessorSelectionDialog::isCPUItem(const QTreeWidgetItem* item) const {
+    if (!item) {
+        return false;
+    }
+    QVariant selectedItemData = item->data(ProcessorColumn, Qt::UserRole);
+    const bool validSelection = selectedItemData.canConvert<ProcessorID>();
+    return validSelection;
+}
+
 void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeWidgetItem*) {
     if (current == nullptr) {
         return;
     }
 
-    QVariant selectedItemData = current->data(ProcessorColumn, Qt::UserRole);
-    const bool validSelection = selectedItemData.canConvert<ProcessorID>();
+    const bool validSelection = isCPUItem(current);
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(validSelection);
     if (!validSelection) {
         // Something which is not a processor was selected (ie. an ISA). Disable OK button

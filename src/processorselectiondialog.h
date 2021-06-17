@@ -27,6 +27,8 @@ private slots:
     void selectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
 private:
+    bool isCPUItem(const QTreeWidgetItem* item) const;
+
     enum ProcessorTreeColums { ProcessorColumn, ColumnCount };
     ProcessorID m_selectedID;
     Ui::ProcessorSelectionDialog* m_ui;
