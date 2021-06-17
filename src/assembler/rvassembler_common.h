@@ -40,7 +40,7 @@ namespace Assembler {
     std::shared_ptr<Instruction>(                                                                                  \
         new Instruction(Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14), OpPart(funct6, 26, 31)}),      \
                         {std::make_shared<Reg>(isa, 1, 7, 11, "rd"), std::make_shared<Reg>(isa, 2, 15, 19, "rs1"), \
-                         std::make_shared<Imm>(3, 5, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 25)})}))
+                         std::make_shared<Imm>(3, 6, Imm::Repr::Unsigned, std::vector{ImmPart(0, 20, 25)})}))
 
 #define RTypeCommon(name, opcode, funct3, funct7)                                                                  \
     std::shared_ptr<Instruction>(                                                                                  \
@@ -83,7 +83,7 @@ namespace Assembler {
 #define ImmTok PseudoInstruction::imm()
 #define CreatePseudoInstruction
 #define _PseudoExpandFuncSyms(line, symbols) \
-    [](const PseudoInstruction&, const TokenizedSrcLine& line, const SymbolMap& symbols)
+    [=](const PseudoInstruction&, const TokenizedSrcLine& line, const SymbolMap& symbols)
 
 #define _PseudoExpandFunc(line) [](const PseudoInstruction&, const TokenizedSrcLine& line, const SymbolMap&)
 
