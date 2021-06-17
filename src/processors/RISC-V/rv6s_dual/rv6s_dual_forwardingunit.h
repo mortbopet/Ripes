@@ -37,22 +37,22 @@ public:
         alu_reg2_fw_ctrl_data << [=] { return calculateForwarding(id_reg2_idx_data.uValue()); };
     }
 
-    INPUTPORT(id_reg1_idx_data, RV_REGS_BITS);
-    INPUTPORT(id_reg2_idx_data, RV_REGS_BITS);
-    INPUTPORT(id_reg1_idx_exec, RV_REGS_BITS);
-    INPUTPORT(id_reg2_idx_exec, RV_REGS_BITS);
+    INPUTPORT(id_reg1_idx_data, c_RVRegsBits);
+    INPUTPORT(id_reg2_idx_data, c_RVRegsBits);
+    INPUTPORT(id_reg1_idx_exec, c_RVRegsBits);
+    INPUTPORT(id_reg2_idx_exec, c_RVRegsBits);
 
-    INPUTPORT(mem_reg_wr_idx_exec, RV_REGS_BITS);
+    INPUTPORT(mem_reg_wr_idx_exec, c_RVRegsBits);
     INPUTPORT(mem_reg_wr_en_exec, 1);
 
-    INPUTPORT(mem_reg_wr_idx_data, RV_REGS_BITS);
+    INPUTPORT(mem_reg_wr_idx_data, c_RVRegsBits);
     INPUTPORT(mem_reg_wr_en_data, 1);
     INPUTPORT_ENUM(mem_reg_mem_op, MemOp);
 
-    INPUTPORT(wb_reg_wr_idx_exec, RV_REGS_BITS);
+    INPUTPORT(wb_reg_wr_idx_exec, c_RVRegsBits);
     INPUTPORT(wb_reg_wr_en_exec, 1);
 
-    INPUTPORT(wb_reg_wr_idx_data, RV_REGS_BITS);
+    INPUTPORT(wb_reg_wr_idx_data, c_RVRegsBits);
     INPUTPORT(wb_reg_wr_en_data, 1);
 
     OUTPUTPORT_ENUM(alu_reg1_fw_ctrl_exec, ForwardingSrcDual);

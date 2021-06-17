@@ -11,8 +11,8 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-#define DIV_OVERFLOW32 (-2147483648)  //-2^(32-1)
-#define DIV_OVERFLOW64 (LLONG_MIN)  //-2^(64-1)
+constexpr int32_t div_overflow32 = (-2147483648);  //-2^(32-1)
+constexpr int64_t div_overflow64 = (LLONG_MIN);    //-2^(64-1)
 
 template <unsigned XLEN>
 class ALU : public Component {
@@ -43,8 +43,8 @@ public:
                 case ALUOp::DIVW:
                 case ALUOp::DIV: {
                     const VSRTL_VT_S overflow =
-                        (ctrl.uValue() == ALUOp::DIVW) || (ctrl.uValue() == ALUOp::DIV && XLEN == 32) ? DIV_OVERFLOW32
-                                                                                                      : DIV_OVERFLOW64;
+                        (ctrl.uValue() == ALUOp::DIVW) || (ctrl.uValue() == ALUOp::DIV && XLEN == 32) ? div_overflow32
+                                                                                                      : div_overflow64;
                     if (op2.sValue() == 0) {
                         return VT_U(-1);
                     } else if (op1.sValue() == overflow && op2.sValue() == -1) {
@@ -67,8 +67,8 @@ public:
                 case ALUOp::REMW:
                 case ALUOp::REM: {
                     const VSRTL_VT_S overflow =
-                        (ctrl.uValue() == ALUOp::REMW) || (ctrl.uValue() == ALUOp::REM && XLEN == 32) ? DIV_OVERFLOW32
-                                                                                                      : DIV_OVERFLOW64;
+                        (ctrl.uValue() == ALUOp::REMW) || (ctrl.uValue() == ALUOp::REM && XLEN == 32) ? div_overflow32
+                                                                                                      : div_overflow64;
                     if (op2.sValue() == 0) {
                         return op1.uValue();
                     } else if (op1.sValue() == overflow && op2.sValue() == -1) {
@@ -83,8 +83,8 @@ public:
                 case ALUOp::REMU: {
                     const VSRTL_VT_S overflow =
                         (ctrl.uValue() == ALUOp::REMUW) || (ctrl.uValue() == ALUOp::REMU && XLEN == 32)
-                            ? DIV_OVERFLOW32
-                            : DIV_OVERFLOW64;
+                            ? div_overflow32
+                            : div_overflow64;
                     if (op2.uValue() == 0) {
                         return op1.uValue();
                     } else {

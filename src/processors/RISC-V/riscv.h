@@ -14,9 +14,9 @@
 
 namespace Ripes {
 
-#define RV_INSTR_WIDTH 32  // Width of instructions
-#define RV_REGS 32  // Number of registers
-#define RV_REGS_BITS ceillog2(RV_REGS)  // Width of operand to index into registers
+constexpr int c_RVInstrWidth = 32;                // Width of instructions
+constexpr int c_RVRegs = 32;                      // Number of registers
+constexpr int c_RVRegsBits = ceillog2(c_RVRegs);  // Width of operand to index into registers
 
 template <unsigned XLEN>
 constexpr Ripes::ISA XLenToRVISA() {

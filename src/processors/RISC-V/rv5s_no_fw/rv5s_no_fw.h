@@ -265,7 +265,7 @@ public:
     SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
 
     // Memories
-    SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, RV_INSTR_WIDTH>));
+    SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
 
     // hazard detection units

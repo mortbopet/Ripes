@@ -20,7 +20,7 @@ public:
     }
 
     REGISTERED_CLEN_INPUT(pc4, XLEN);
-    REGISTERED_CLEN_INPUT(instr, RV_INSTR_WIDTH);
+    REGISTERED_CLEN_INPUT(instr, c_RVInstrWidth);
     REGISTERED_CLEN_INPUT(pc, XLEN);
 
     // Register controls

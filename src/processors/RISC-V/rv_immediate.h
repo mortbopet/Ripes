@@ -66,7 +66,7 @@ public:
     }
 
     INPUTPORT_ENUM(opcode, RVInstr);
-    INPUTPORT(instr, RV_INSTR_WIDTH);
+    INPUTPORT(instr, c_RVInstrWidth);
     OUTPUTPORT(imm, XLEN);
 };
 

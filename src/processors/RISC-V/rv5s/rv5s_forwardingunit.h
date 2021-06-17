@@ -42,13 +42,13 @@ public:
         };
     }
 
-    INPUTPORT(id_reg1_idx, RV_REGS_BITS);
-    INPUTPORT(id_reg2_idx, RV_REGS_BITS);
+    INPUTPORT(id_reg1_idx, c_RVRegsBits);
+    INPUTPORT(id_reg2_idx, c_RVRegsBits);
 
-    INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
+    INPUTPORT(mem_reg_wr_idx, c_RVRegsBits);
     INPUTPORT(mem_reg_wr_en, 1);
 
-    INPUTPORT(wb_reg_wr_idx, RV_REGS_BITS);
+    INPUTPORT(wb_reg_wr_idx, c_RVRegsBits);
     INPUTPORT(wb_reg_wr_en, 1);
 
     OUTPUTPORT_ENUM(alu_reg1_forwarding_ctrl, ForwardingSrc);

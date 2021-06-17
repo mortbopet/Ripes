@@ -18,20 +18,20 @@ public:
         stallEcallHandling << [=] { return hasEcallHazard(); };
     }
 
-    INPUTPORT(id_reg1_idx, RV_REGS_BITS);
-    INPUTPORT(id_reg2_idx, RV_REGS_BITS);
+    INPUTPORT(id_reg1_idx, c_RVRegsBits);
+    INPUTPORT(id_reg2_idx, c_RVRegsBits);
     INPUTPORT(id_do_branch, 1);
     INPUTPORT(id_mem_do_write, 1);
     INPUTPORT_ENUM(id_alu_op_ctrl_2, AluSrc2);
 
-    INPUTPORT(ex_reg_wr_idx, RV_REGS_BITS);
+    INPUTPORT(ex_reg_wr_idx, c_RVRegsBits);
     INPUTPORT(ex_do_mem_read_en, 1);
     INPUTPORT(ex_do_reg_write, 1);
     INPUTPORT(ex_do_jump, 1);
     INPUTPORT(ex_branch_taken, 1);
     INPUTPORT_ENUM(ex_opcode, RVInstr);
 
-    INPUTPORT(mem_reg_wr_idx, RV_REGS_BITS);
+    INPUTPORT(mem_reg_wr_idx, c_RVRegsBits);
     INPUTPORT(mem_do_reg_write, 1);
 
     INPUTPORT(wb_do_reg_write, 1);

@@ -523,20 +523,20 @@ public:
 
     SUBCOMPONENT(data_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(data_way_opcode, TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
-    SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, RV_INSTR_WIDTH>));
-    SUBCOMPONENT(data_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
-    SUBCOMPONENT(data_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
-    SUBCOMPONENT(data_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
+    SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, c_RVInstrWidth>));
+    SUBCOMPONENT(data_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
+    SUBCOMPONENT(data_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
+    SUBCOMPONENT(data_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
 
     SUBCOMPONENT(exec_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
     SUBCOMPONENT(exec_way_opcode, TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
-    SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, RV_INSTR_WIDTH>));
-    SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
-    SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
-    SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, RV_REGS_BITS>));
+    SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, c_RVInstrWidth>));
+    SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
+    SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
+    SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
 
     // Memories
-    SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<XLEN, RV_INSTR_WIDTH>));
+    SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<XLEN, c_RVInstrWidth>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
 
     // Forwarding & hazard detection units

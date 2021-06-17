@@ -33,7 +33,7 @@ public:
 
     // Control
     REGISTERED_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
-    REGISTERED_INPUT(wr_reg_idx, RV_REGS_BITS);
+    REGISTERED_INPUT(wr_reg_idx, c_RVRegsBits);
     REGISTERED_INPUT(reg_do_write, 1);
 
     // Valid signal. False when the register bank has been cleared. May be used by UI to determine whether the NOP in

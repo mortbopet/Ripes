@@ -42,8 +42,8 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(instr_exec, clear, enable);
     }
 
-    REGISTERED_CLEN_INPUT(instr_data, RV_INSTR_WIDTH);
-    REGISTERED_CLEN_INPUT(instr_exec, RV_INSTR_WIDTH);
+    REGISTERED_CLEN_INPUT(instr_data, c_RVInstrWidth);
+    REGISTERED_CLEN_INPUT(instr_exec, c_RVInstrWidth);
 
     REGISTERED_CLEN_INPUT(pc_data, XLEN);
     REGISTERED_CLEN_INPUT(pc_exec, XLEN);
@@ -51,15 +51,15 @@ public:
     REGISTERED_CLEN_INPUT(pc, XLEN);
     REGISTERED_CLEN_INPUT(pc4, XLEN);
 
-    REGISTERED_CLEN_INPUT(rd_reg1_idx_exec, RV_REGS_BITS);
-    REGISTERED_CLEN_INPUT(rd_reg2_idx_exec, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(rd_reg1_idx_exec, c_RVRegsBits);
+    REGISTERED_CLEN_INPUT(rd_reg2_idx_exec, c_RVRegsBits);
     REGISTERED_CLEN_INPUT(opcode_exec, RVInstr::width());
-    REGISTERED_CLEN_INPUT(wr_reg_idx_exec, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(wr_reg_idx_exec, c_RVRegsBits);
 
-    REGISTERED_CLEN_INPUT(rd_reg1_idx_data, RV_REGS_BITS);
-    REGISTERED_CLEN_INPUT(rd_reg2_idx_data, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(rd_reg1_idx_data, c_RVRegsBits);
+    REGISTERED_CLEN_INPUT(rd_reg2_idx_data, c_RVRegsBits);
     REGISTERED_CLEN_INPUT(opcode_data, RVInstr::width());
-    REGISTERED_CLEN_INPUT(wr_reg_idx_data, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);
 
     REGISTERED_CLEN_INPUT(way_stall, 1);
 

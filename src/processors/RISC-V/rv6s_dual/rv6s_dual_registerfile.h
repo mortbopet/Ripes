@@ -46,18 +46,18 @@ public:
     SUBCOMPONENT(rf_2, TYPE(RegisterFile<XLEN, readBypass>));
 
     // Way 1
-    INPUTPORT(r1_1_addr, RV_REGS_BITS);
-    INPUTPORT(r2_1_addr, RV_REGS_BITS);
-    INPUTPORT(wr_1_addr, RV_REGS_BITS);
+    INPUTPORT(r1_1_addr, c_RVRegsBits);
+    INPUTPORT(r2_1_addr, c_RVRegsBits);
+    INPUTPORT(wr_1_addr, c_RVRegsBits);
     OUTPUTPORT(r1_1_out, XLEN);
     OUTPUTPORT(r2_1_out, XLEN);
     INPUTPORT(data_1_in, XLEN);
     INPUTPORT(wr_1_en, 1);
 
     // Way 2
-    INPUTPORT(r1_2_addr, RV_REGS_BITS);
-    INPUTPORT(r2_2_addr, RV_REGS_BITS);
-    INPUTPORT(wr_2_addr, RV_REGS_BITS);
+    INPUTPORT(r1_2_addr, c_RVRegsBits);
+    INPUTPORT(r2_2_addr, c_RVRegsBits);
+    INPUTPORT(wr_2_addr, c_RVRegsBits);
     OUTPUTPORT(r1_2_out, XLEN);
     OUTPUTPORT(r2_2_out, XLEN);
     INPUTPORT(data_2_in, XLEN);

@@ -69,13 +69,13 @@ public:
         }
     }
 
-    SUBCOMPONENT(_wr_mem, TYPE(WrMemory<RV_REGS_BITS, XLEN, false>));
-    SUBCOMPONENT(_rd1_mem, TYPE(RdMemory<RV_REGS_BITS, XLEN, false>));
-    SUBCOMPONENT(_rd2_mem, TYPE(RdMemory<RV_REGS_BITS, XLEN, false>));
+    SUBCOMPONENT(_wr_mem, TYPE(WrMemory<c_RVRegsBits, XLEN, false>));
+    SUBCOMPONENT(_rd1_mem, TYPE(RdMemory<c_RVRegsBits, XLEN, false>));
+    SUBCOMPONENT(_rd2_mem, TYPE(RdMemory<c_RVRegsBits, XLEN, false>));
 
-    INPUTPORT(r1_addr, RV_REGS_BITS);
-    INPUTPORT(r2_addr, RV_REGS_BITS);
-    INPUTPORT(wr_addr, RV_REGS_BITS);
+    INPUTPORT(r1_addr, c_RVRegsBits);
+    INPUTPORT(r2_addr, c_RVRegsBits);
+    INPUTPORT(wr_addr, c_RVRegsBits);
 
     INPUTPORT(data_in, XLEN);
     WIRE(wr_en_0, 1);
@@ -87,7 +87,7 @@ public:
 
     std::vector<VSRTL_VT_U> getRegisters() {
         std::vector<VSRTL_VT_U> regs;
-        for (int i = 0; i < RV_REGS; i++)
+        for (int i = 0; i < c_RVRegs; i++)
             regs.push_back(getRegister(i));
         return regs;
     }

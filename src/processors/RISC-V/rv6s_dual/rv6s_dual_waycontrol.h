@@ -189,13 +189,13 @@ public:
     INPUTPORT_ENUM(opcode_way1, RVInstr);
     INPUTPORT_ENUM(opcode_way2, RVInstr);
 
-    INPUTPORT(r1_reg_idx_way1, RV_REGS_BITS);
-    INPUTPORT(r2_reg_idx_way1, RV_REGS_BITS);
-    INPUTPORT(r1_reg_idx_way2, RV_REGS_BITS);
-    INPUTPORT(r2_reg_idx_way2, RV_REGS_BITS);
+    INPUTPORT(r1_reg_idx_way1, c_RVRegsBits);
+    INPUTPORT(r2_reg_idx_way1, c_RVRegsBits);
+    INPUTPORT(r1_reg_idx_way2, c_RVRegsBits);
+    INPUTPORT(r2_reg_idx_way2, c_RVRegsBits);
 
-    INPUTPORT(wr_reg_idx_way1, RV_REGS_BITS);
-    INPUTPORT(wr_reg_idx_way2, RV_REGS_BITS);
+    INPUTPORT(wr_reg_idx_way1, c_RVRegsBits);
+    INPUTPORT(wr_reg_idx_way2, c_RVRegsBits);
 
     OUTPUTPORT_ENUM(data_way_src, WaySrc);
     OUTPUTPORT_ENUM(exec_way_src, WaySrc);

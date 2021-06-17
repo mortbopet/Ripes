@@ -21,7 +21,7 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(data_valid, this->clear, this->enable);
     }
 
-    REGISTERED_CLEN_INPUT(wr_reg_idx_data, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);
     REGISTERED_CLEN_INPUT(reg_do_write_data, 1);
     REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_dual, RegWrSrcDual::width());
     REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_data, RegWrSrcDataDual::width());

@@ -36,7 +36,7 @@ public:
 
     // Control
     REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
-    REGISTERED_CLEN_INPUT(wr_reg_idx, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(wr_reg_idx, c_RVRegsBits);
     REGISTERED_CLEN_INPUT(reg_do_write, 1);
     REGISTERED_CLEN_INPUT(mem_do_write, 1);
     REGISTERED_CLEN_INPUT(mem_do_read, 1);

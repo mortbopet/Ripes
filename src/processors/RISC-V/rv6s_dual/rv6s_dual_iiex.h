@@ -34,10 +34,10 @@ public:
     REGISTERED_CLEN_INPUT(r1_data, XLEN);
     REGISTERED_CLEN_INPUT(r2_data, XLEN);
 
-    REGISTERED_CLEN_INPUT(rd_reg1_idx_data, RV_REGS_BITS);
-    REGISTERED_CLEN_INPUT(rd_reg2_idx_data, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(rd_reg1_idx_data, c_RVRegsBits);
+    REGISTERED_CLEN_INPUT(rd_reg2_idx_data, c_RVRegsBits);
 
-    REGISTERED_CLEN_INPUT(wr_reg_idx_data, RV_REGS_BITS);
+    REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);
     REGISTERED_CLEN_INPUT(reg_do_write_data, 1);
     REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_dual, RegWrSrcDual::width());
     REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_data, RegWrSrcDataDual::width());

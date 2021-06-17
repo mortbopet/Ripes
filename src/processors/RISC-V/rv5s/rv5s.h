@@ -289,7 +289,7 @@ public:
     SUBCOMPONENT(reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrc, XLEN>));
 
     // Memories
-    SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, RV_INSTR_WIDTH>));
+    SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
 
     // Forwarding & hazard detection units

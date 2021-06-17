@@ -217,11 +217,11 @@ public:
         // clang-format on
     }
 
-    INPUTPORT(instr, RV_INSTR_WIDTH);
+    INPUTPORT(instr, c_RVInstrWidth);
     OUTPUTPORT_ENUM(opcode, RVInstr);
-    OUTPUTPORT(wr_reg_idx, RV_REGS_BITS);
-    OUTPUTPORT(r1_reg_idx, RV_REGS_BITS);
-    OUTPUTPORT(r2_reg_idx, RV_REGS_BITS);
+    OUTPUTPORT(wr_reg_idx, c_RVRegsBits);
+    OUTPUTPORT(r1_reg_idx, c_RVRegsBits);
+    OUTPUTPORT(r2_reg_idx, c_RVRegsBits);
 
 private:
     void unknownInstruction() {}
