@@ -12,7 +12,8 @@ class RV32I_Assembler : public QObject, public Assembler {
     Q_OBJECT
 public:
     enum class Options {
-        shifts64BitVariant  // appends 'w' to 32-bit shift operations, for use in the 64-bit RISC-V ISA
+        shifts64BitVariant,  // appends 'w' to 32-bit shift operations, for use in the 64-bit RISC-V ISA
+        LI64BitVariant       // Modifies LI to be able to emit 64-bit constants
     };
 
     RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa);

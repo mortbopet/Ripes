@@ -50,7 +50,9 @@ std::tuple<InstrVec, PseudoInstrVec> RV64I_Assembler::initInstructions(const ISA
 }
 
 void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) {
-    RV32I_Assembler::enableExtI(isa, instructions, pseudoInstructions, {RV32I_Assembler::Options::shifts64BitVariant});
+    RV32I_Assembler::enableExtI(
+        isa, instructions, pseudoInstructions,
+        {RV32I_Assembler::Options::shifts64BitVariant, RV32I_Assembler::Options::LI64BitVariant});
 
     instructions.push_back(IType32(Token("addiw"), 0b000));
 
