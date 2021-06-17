@@ -78,4 +78,14 @@ constexpr bool is_powerof2(int v) {
     return v && ((v & (v - 1)) == 0);
 }
 
+template <typename T>
+unsigned firstSetBitIdx(const T& val) {
+    for (unsigned i = 0; i < CHAR_BIT * sizeof(T); i++) {
+        if ((val >> i) & 0x1) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 }  // namespace Ripes
