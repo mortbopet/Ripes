@@ -30,12 +30,39 @@ constexpr inline bool isInt(int64_t x) {
     return N >= 64 || (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
 }
 
-/// Checks if an unsigned integer fits into the given bit width.
-/// from LLVM MathExtras.h
+// Template specializations to get better code for common cases.
+template <>
+constexpr inline bool isInt<8>(int64_t x) {
+    return static_cast<int8_t>(x) == x;
+}
+template <>
+constexpr inline bool isInt<16>(int64_t x) {
+    return static_cast<int16_t>(x) == x;
+}
+template <>
+constexpr inline bool isInt<32>(int64_t x) {
+    int32_t x2 = static_cast<int32_t>(x);
+    return x2 == x;
+}
+
 template <unsigned N>
-constexpr inline std::enable_if_t<(N < 64), bool> isUInt(uint64_t X) {
+constexpr inline bool isUInt(uint64_t X) {
     static_assert(N > 0, "isUInt<0> doesn't make sense");
-    return X < (UINT64_C(1) << (N));
+    return N >= 64 || X < (UINT64_C(1) << N);
+}
+
+// Template specializations to get better code for common cases.
+template <>
+constexpr inline bool isUInt<8>(uint64_t x) {
+    return static_cast<uint8_t>(x) == x;
+}
+template <>
+constexpr inline bool isUInt<16>(uint64_t x) {
+    return static_cast<uint16_t>(x) == x;
+}
+template <>
+constexpr inline bool isUInt<32>(uint64_t x) {
+    return static_cast<uint32_t>(x) == x;
 }
 
 // Runtime versions of the above
