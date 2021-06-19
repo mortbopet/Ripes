@@ -29,11 +29,13 @@ public:
     virtual QString regAlias(unsigned i) const = 0;
     virtual QString regInfo(unsigned i) const = 0;
     virtual bool regIsReadOnly(unsigned i) const = 0;
-    virtual unsigned bits() const = 0;
-    unsigned bytes() const { return bits() / CHAR_BIT; }
-    virtual int spReg() const { return -1; }       // Stack pointer
-    virtual int gpReg() const { return -1; }       // Global pointer
-    virtual int syscallReg() const { return -1; }  // Syscall function register
+    virtual unsigned bits() const = 0;                              // Register width, in bits
+    unsigned bytes() const { return bits() / CHAR_BIT; }            // Register width, in bytes
+    virtual unsigned instrBits() const = 0;                         // Instruction width, in bits
+    unsigned instrBytes() const { return instrBits() / CHAR_BIT; }  // Instruction width, in bytes
+    virtual int spReg() const { return -1; }                        // Stack pointer
+    virtual int gpReg() const { return -1; }                        // Global pointer
+    virtual int syscallReg() const { return -1; }                   // Syscall function register
 
     // GCC Compile command architecture and ABI specification strings
     virtual QString CCmarch() const = 0;

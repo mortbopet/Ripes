@@ -45,10 +45,22 @@ constexpr inline bool isInt<32>(int64_t x) {
     return x2 == x;
 }
 
+/// Checks if an unsigned integer fits into the given bit width.
+///
+/// This is written as two functions rather than as simply
+///
+///   return N >= 64 || X < (UINT64_C(1) << N);
+///
+/// to keep MSVC from (incorrectly) warning on isUInt<64> that we're shifting
+/// left too many places.
 template <unsigned N>
-constexpr inline bool isUInt(uint64_t X) {
+constexpr inline std::enable_if_t<(N < 64), bool> isUInt(uint64_t X) {
     static_assert(N > 0, "isUInt<0> doesn't make sense");
-    return N >= 64 || X < (UINT64_C(1) << N);
+    return X < (UINT64_C(1) << (N));
+}
+template <unsigned N>
+constexpr inline std::enable_if_t<N >= 64, bool> isUInt(uint64_t) {
+    return true;
 }
 
 // Template specializations to get better code for common cases.
