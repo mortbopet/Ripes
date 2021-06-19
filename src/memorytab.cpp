@@ -26,8 +26,8 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Name, QHeaderView::ResizeToContents);
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::AddressRange, QHeaderView::Stretch);
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Size, QHeaderView::ResizeToContents);
-    m_ui->splitter->setStretchFactor(0, 1);
-    m_ui->splitter->setStretchFactor(1, 2);
+    m_ui->splitter->setStretchFactor(0, 2);
+    m_ui->splitter->setStretchFactor(1, 1);
 
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
             [=] { m_ui->memoryViewerWidget->updateView(); });
