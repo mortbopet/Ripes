@@ -232,9 +232,11 @@ public:
     /**
      * @brief handleSysCall
      * Signal that the processor can use to pass control to the outside environment whenever a system call must be
-     * handled (RISC-V ecall instruction).
+     * handled.
+     * No arguments are passed - the Ripes environment will look at the syscall register for the ISA of the processor,
+     * alongside the syscall argument registers, and perform a corresponding syscall.
      */
-    Gallant::Signal0<> handleSysCall;
+    std::function<void(void)> handleSysCall;
 
     /** ======================== FEATURE: Reversible ======================== */
     // Enabled by setting m_features.isReversible = true

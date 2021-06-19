@@ -167,7 +167,7 @@ void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
 
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
-        ProcessorHandler::getProcessorNonConst()->handleSysCall.Connect(this, &tst_RISCV::handleSysCall);
+        ProcessorHandler::getProcessorNonConst()->handleSysCall = [=] { handleSysCall(); };
         ProcessorHandler::get()->loadProgram(spProgram);
         RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 

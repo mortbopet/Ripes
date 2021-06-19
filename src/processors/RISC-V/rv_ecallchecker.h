@@ -14,8 +14,9 @@ public:
     EcallChecker(std::string name, SimComponent* parent) : Component(name, parent) {
         dummy << [=] {
             if (opcode.uValue() == RVInstr::ECALL && !stallEcallHandling.uValue() && !handlingEcall) {
+                assert(m_callback != nullptr && "No syscall callback was set!");
                 handlingEcall = true;
-                m_signal->Emit();
+                (*m_callback)();
                 handlingEcall = false;
             }
             return 0;
@@ -28,7 +29,7 @@ public:
         syscallExit << [=] { return m_syscallExit; };
     }
 
-    void setSysCallSignal(Gallant::Signal0<>* sig) { m_signal = sig; }
+    void setSyscallCallback(std::function<void(void)> const* cb) { m_callback = cb; }
 
     /**
      * @brief setSysCallExiting
@@ -37,7 +38,7 @@ public:
     void setSysCallExiting(bool state) { m_syscallExit = state; }
     bool isSysCallExiting() const { return m_syscallExit; }
 
-    Gallant::Signal0<>* m_signal;
+    std::function<void(void)> const* m_callback = nullptr;
 
     INPUTPORT_ENUM(opcode, RVInstr);
 

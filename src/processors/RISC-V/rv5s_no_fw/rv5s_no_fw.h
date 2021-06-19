@@ -38,7 +38,8 @@ class RV5S_NO_FW : public RipesVSRTLProcessor {
 
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-    RV5S_NO_FW(const QStringList& extensions) : RipesVSRTLProcessor("5-Stage RISC-V Processor without forwarding unit") {
+    RV5S_NO_FW(const QStringList& extensions)
+        : RipesVSRTLProcessor("5-Stage RISC-V Processor without forwarding unit") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
 
@@ -135,7 +136,7 @@ public:
         // Ecall checker
 
         idex_reg->opcode_out >> ecallChecker->opcode;
-        ecallChecker->setSysCallSignal(&handleSysCall);
+        ecallChecker->setSyscallCallback(&handleSysCall);
         hzunit->stallEcallHandling >> ecallChecker->stallEcallHandling;
 
         // -----------------------------------------------------------------------

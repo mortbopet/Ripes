@@ -212,7 +212,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return _isExecutableAddress(address); };
 
     // Syscall handling initialization
-    m_currentProcessor->handleSysCall.Connect(this, &ProcessorHandler::asyncTrap);
+    m_currentProcessor->handleSysCall = [=] { syscallTrap(); };
 
     // Register initializations
     auto& regs = m_currentProcessor->getArchRegisters();
@@ -293,7 +293,7 @@ QString ProcessorHandler::_disassembleInstr(const uint32_t addr) const {
     }
 }
 
-void ProcessorHandler::asyncTrap() {
+void ProcessorHandler::syscallTrap() {
     auto futureWatcher = QFutureWatcher<bool>();
     futureWatcher.setFuture(QtConcurrent::run([=] {
         const unsigned int function =

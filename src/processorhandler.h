@@ -186,11 +186,11 @@ public slots:
 
 private slots:
     /**
-     * @brief asyncTrap
+     * @brief syscallTrap
      * Connects to the processors system call request interface. Will concurrently run the systemcall manager to handle
      * the requested functionality, and return once the system call was handled.
      */
-    void asyncTrap();
+    void syscallTrap();
 
 private:
     RipesProcessor* _getProcessorNonConst() { return m_currentProcessor.get(); }

@@ -150,7 +150,7 @@ public:
         // Ecall checker
 
         idex_reg->opcode_out >> ecallChecker->opcode;
-        ecallChecker->setSysCallSignal(&handleSysCall);
+        ecallChecker->setSyscallCallback(&handleSysCall);
         hzunit->stallEcallHandling >> ecallChecker->stallEcallHandling;
 
         // -----------------------------------------------------------------------

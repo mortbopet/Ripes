@@ -266,8 +266,7 @@ void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extens
 
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
-        ProcessorHandler::get()->getProcessorNonConst()->handleSysCall.Connect(this, &tst_Cosimulate::handleSysCall);
-
+        ProcessorHandler::get()->getProcessorNonConst()->handleSysCall = [=] { handleSysCall(); };
         std::cout << test.filepath.toStdString() << std::endl;
         auto referenceTrace = generateReferenceTrace(extensions);
         ProcessorHandler::get()->selectProcessor(id, extensions);
