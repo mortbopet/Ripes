@@ -47,6 +47,7 @@ private:
     QVariant tooltipData(unsigned idx) const;
 
     Radix m_radix = Radix::Hex;
+    unsigned m_regWidth;
     RegisterFileType m_rft;
 
     int m_mostRecentlyModifiedReg = -1;
