@@ -39,7 +39,7 @@ DirectiveVec gnuDirectives() {
         err->first = srcline;                            \
         return {*err};                                   \
     }                                                    \
-    res = std::get<long>(exprRes##res);
+    res = std::get<ExprEvalVT>(exprRes##res);
 
 template <size_t size>
 std::optional<Error> assembleData(const AssemblerBase* assembler, const TokenizedSrcLine& line, QByteArray& byteArray) {

@@ -482,8 +482,8 @@ protected:
 
             if (!tsl.directive.isEmpty() && m_earlyDirectives.count(tsl.directive)) {
                 bool wasDirective;  // unused
-                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective,
-                             DirectiveArg{.line = tsl, .section = nullptr}, wasDirective, false);
+                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, DirectiveArg{tsl, nullptr},
+                             wasDirective, false);
             }
         }
         if (errors.size() != 0) {
@@ -563,7 +563,7 @@ protected:
             }
 
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective,
-                         DirectiveArg{.line = line, .section = currentSection}, wasDirective);
+                         DirectiveArg{line, currentSection}, wasDirective);
 
             // Currently emitting segment may have changed during the assembler directive; refresh state
             currentSection = &program.sections.at(m_currentSection);
@@ -630,7 +630,7 @@ protected:
                 errors.push_back(*err);
                 continue;
             } else {
-                symbolValue = std::get<long>(exprRes);
+                symbolValue = std::get<ExprEvalVT>(exprRes);
             }
 
             if (!linkRequest.fieldRequest.relocation.isEmpty()) {

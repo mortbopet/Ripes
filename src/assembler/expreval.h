@@ -11,7 +11,8 @@ namespace Assembler {
 extern const QRegularExpression s_exprOperatorsRegex;
 extern const QString s_exprOperators;
 extern const QString s_exprTokens;
-using ExprEvalRes = std::variant<Error, int64_t>;
+using ExprEvalVT = int64_t;  // Expression evaluation value type
+using ExprEvalRes = std::variant<Error, ExprEvalVT>;
 
 /**
  * @brief evaluate

@@ -16,7 +16,7 @@ void expect(std::variant<Error, long> res, long expected) {
         QString errstr = "Got error: " + err->second;
         QFAIL(errstr.toStdString().c_str());
     }
-    QCOMPARE(std::get<long>(res), expected);
+    QCOMPARE(std::get<ExprEvalVT>(res), expected);
 }
 
 void tst_ExprEval::tst_binops() {
