@@ -22,7 +22,6 @@ Q_NAMESPACE
 // The order of the ProcessorID enum defines the order of which the processors will appear in the processor selection
 // dialog.
 enum ProcessorID {
-    TEST,
     RV32_SS,
     RV32_5S_NO_FW_HZ,
     RV32_5S_NO_HZ,
@@ -69,7 +68,13 @@ class ProcessorRegistry {
 public:
     using ProcessorMap = std::map<ProcessorID, ProcessorDescription>;
     static const ProcessorMap& getAvailableProcessors() { return instance().m_descriptions; }
-    static const ProcessorDescription& getDescription(ProcessorID id) { return instance().m_descriptions[id]; }
+    static const ProcessorDescription& getDescription(ProcessorID id) {
+        auto desc = instance().m_descriptions.find(id);
+        if (desc == instance().m_descriptions.end()) {
+            return instance().m_descriptions.begin()->second;
+        }
+        return desc->second;
+    }
     static std::unique_ptr<vsrtl::core::RipesProcessor> constructProcessor(ProcessorID id,
                                                                            const QStringList& extensions) {
         switch (id) {
