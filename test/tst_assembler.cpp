@@ -102,9 +102,19 @@ struct RVTestTuple {
     QString testDir;
 };
 
+QByteArray toByteArray(int64_t v, size_t size) {
+    QByteArray arr;
+    for (size_t i = 0; i < size; i++) {
+        arr.append(v & 0xFF);
+        v >>= 8;
+    }
+    return arr;
+}
+
 void tst_Assembler::tst_riscv() {
     // Tests all of the available RISC-V assembly programs
-    std::vector<RVTestTuple> testTuples = {{ProcessorID::RV32_SS, RISCV32_TEST_DIR}};
+    std::vector<RVTestTuple> testTuples = {{ProcessorID::RV32_SS, RISCV32_TEST_DIR},
+                                           {ProcessorID::RV64_SS, RISCV64_TEST_DIR}};
 
     auto testFunct = [](const QString& filename) {
         auto f = QFile(filename);
@@ -159,11 +169,9 @@ void tst_Assembler::tst_directives() {
     // word, half and byte constants
     expectData.clear();
     expectData.append(42);
-    expectData.append(static_cast<char>(0));
-    expectData.append(static_cast<char>(0));
-    expectData.append(static_cast<char>(0));
+    expectData.append(toByteArray(0, 3));
     expectData.append(42);
-    expectData.append(static_cast<char>(0));
+    expectData.append(toByteArray(0, 1));
     expectData.append(42);
 
     testAssemble(QStringList() << ".data"
@@ -171,6 +179,18 @@ void tst_Assembler::tst_directives() {
                                << "ch: .half 42"
                                << "cb: .byte 42",
                  Expect::Success, expectData);
+
+    testAssemble(QStringList() << ".data"
+                               << ".byte 0xfff",
+                 Expect::Fail);
+
+    testAssemble(QStringList() << ".data"
+                               << ".half 0xfffff",
+                 Expect::Fail);
+
+    testAssemble(QStringList() << ".data"
+                               << ".word 0xfffffffff",
+                 Expect::Fail);
 
     // .align directive
     expectData.clear();
