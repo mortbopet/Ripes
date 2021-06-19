@@ -214,7 +214,7 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
     }
 }
 
-long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
+int64_t evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     // There is a bug in GCC for variant visitors on incomplete variant types (recursive), So instead we'll macro
     // our way towards something that looks like a pattern match for the variant type.
     IfExpr(Add, v) { return evaluate(v->lhs, variables) + evaluate(v->rhs, variables); }

@@ -30,7 +30,7 @@ using LineTokens = QVector<Token>;
 using LineTokensVec = std::vector<LineTokens>;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
-using SymbolMap = std::map<Symbol, uint32_t>;
+using SymbolMap = std::map<Symbol, int64_t>;
 using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
 struct TokenizedSrcLine {
     Symbols symbols;
