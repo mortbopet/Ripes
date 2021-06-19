@@ -13,6 +13,7 @@ DirectiveVec gnuDirectives() {
     add_directive(directives, ascizDirective());
     add_directive(directives, zeroDirective());
     add_directive(directives, byteDirective());
+    add_directive(directives, doubleDirective());
     add_directive(directives, wordDirective());
     add_directive(directives, halfDirective());
     add_directive(directives, shortDirective());
@@ -89,6 +90,10 @@ Directive ascizDirective() {
 
 Directive byteDirective() {
     return Directive(".byte", &dataFunctor<1>);
+}
+
+Directive doubleDirective() {
+    return Directive(".dword", &dataFunctor<8>);
 }
 
 Directive wordDirective() {

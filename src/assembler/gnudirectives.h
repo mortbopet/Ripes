@@ -18,6 +18,7 @@ Directive zeroDirective();
 Directive stringDirective();
 Directive ascizDirective();
 
+Directive doubleDirective();
 Directive wordDirective();
 Directive halfDirective();
 Directive shortDirective();
