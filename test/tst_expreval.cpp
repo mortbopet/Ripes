@@ -11,7 +11,7 @@ private slots:
     void tst_binops();
 };
 
-void expect(std::variant<Error, long> res, long expected) {
+void expect(const ExprEvalRes& res, const ExprEvalVT& expected) {
     if (auto* err = std::get_if<Error>(&res)) {
         QString errstr = "Got error: " + err->second;
         QFAIL(errstr.toStdString().c_str());
