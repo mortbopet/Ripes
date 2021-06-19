@@ -27,6 +27,8 @@ Directive fourByteDirective();
 Directive longDirective();
 Directive alignDirective();
 
+Directive dummyDirective(const QString& name);
+
 Directive textDirective();
 Directive dataDirective();
 Directive bssDirective();

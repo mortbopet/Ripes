@@ -26,6 +26,9 @@ DirectiveVec gnuDirectives() {
     add_directive(directives, textDirective());
     add_directive(directives, bssDirective());
 
+    add_directive(directives, dummyDirective(".global"));
+    add_directive(directives, dummyDirective(".globl"));
+
     return directives;
 }
 
@@ -109,6 +112,15 @@ Directive longDirective() {
 
 Directive stringDirective() {
     return Directive(".string", &stringFunctor);
+}
+
+/**
+ * @brief dummyDirective
+ * Generates a directive handler for @p name, which returns nothing. To be used for compatability reasons.
+ */
+Directive dummyDirective(const QString& name) {
+    return Directive(name,
+                     [](const AssemblerBase*, const DirectiveArg&) -> HandleDirectiveRes { return {QByteArray()}; });
 }
 
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
