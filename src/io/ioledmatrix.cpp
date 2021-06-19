@@ -40,7 +40,7 @@ QString IOLedMatrix::description() const {
 }
 
 uint32_t IOLedMatrix::ioRead(uint32_t offset, unsigned size) {
-    return (m_ledRegs.at(offset / 4) >> (offset % 4)) & generateBitmask(size * 8);
+    return (m_ledRegs.at(offset / 4) >> (offset % 4)) & vsrtl::generateBitmask(size * 8);
 }
 
 void IOLedMatrix::ioWrite(uint32_t offset, uint32_t value, unsigned) {

@@ -4,24 +4,9 @@
 #include <vector>
 #include "limits.h"
 
+#include "VSRTL/interface/vsrtl_binutils.h"
+
 namespace Ripes {
-
-// Sign extension of arbitrary bitfield size.
-// Courtesy of http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
-template <typename T, unsigned B>
-inline T signextend(const T x) {
-    struct {
-        T x : B;
-    } s;
-    return s.x = x;
-}
-
-// Runtime signextension
-template <typename T>
-inline T signextend(const T x, unsigned B) {
-    int const m = CHAR_BIT * sizeof(T) - B;
-    return (x << m) >> m;
-}
 
 /// Checks if an integer fits into the given bit width.
 /// from LLVM MathExtras.h
@@ -85,35 +70,7 @@ constexpr inline bool isInt(unsigned N, int64_t x) {
     return N >= 64 || (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
 }
 
-constexpr uint32_t generateBitmask(int n) {
-    return static_cast<uint32_t>((1 << n) - 1);
-}
-
-constexpr uint32_t bitcount(unsigned n) {
-    int count = 0;
-    while (n > 0) {
-        count += 1;
-        n = n & (n - 1);
-    }
-    return count;
-}
-
 constexpr bool isPowerOf2(unsigned v) {
-    return v && ((v & (v - 1)) == 0);
-}
-
-uint32_t accBVec(const std::vector<bool>& v);
-void buildVec(std::vector<bool>& v, uint32_t n);
-
-constexpr inline unsigned floorlog2(unsigned x) {
-    return x == 1 ? 0 : 1 + floorlog2(x >> 1);
-}
-
-constexpr inline unsigned ceillog2(unsigned x) {
-    return x == 1 || x == 0 ? 1 : floorlog2(x - 1) + 1;
-}
-
-constexpr bool is_powerof2(int v) {
     return v && ((v & (v - 1)) == 0);
 }
 

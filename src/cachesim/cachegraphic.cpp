@@ -97,7 +97,7 @@ void CacheGraphic::updateLineReplFields(unsigned lineIdx) {
         // If LRU was just initialized, the actual (software) LRU value may be very large. Mask to the
         // number of actual LRU bits.
         unsigned lruVal = cacheLine->at(way.first).lru;
-        lruVal &= generateBitmask(m_cache.getWaysBits());
+        lruVal &= vsrtl::generateBitmask(m_cache.getWaysBits());
         const QString lruText = QString::number(lruVal);
         way.second.lru->setText(lruText);
 

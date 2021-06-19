@@ -13,7 +13,7 @@ using decode_functor = std::function<std::vector<T>(T)>;
 template <typename T>
 decode_functor<T> generateInstrParser(const std::vector<int>& bitFields) {
     constexpr int size_bits = sizeof(T) * CHAR_BIT;
-    static_assert(is_powerof2(size_bits) && size_bits >= 32, "Invalid word size parameter");
+    static_assert(isPowerOf2(size_bits) && size_bits >= 32, "Invalid word size parameter");
     // Generates functors that can decode a binary number based on the input
     // vector which is supplied upon generation
     assert(std::accumulate(bitFields.begin(), bitFields.end(), 0) == size_bits &&
@@ -24,7 +24,7 @@ decode_functor<T> generateInstrParser(const std::vector<int>& bitFields) {
 
     // Generate bit masks and fill parse vector
     for (const auto& field : bitFields) {
-        parseVector.emplace_back(field, generateBitmask(field));
+        parseVector.emplace_back(field, vsrtl::generateBitmask(field));
     }
 
     // Create parse functor

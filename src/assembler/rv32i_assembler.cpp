@@ -226,7 +226,7 @@ void RV32I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions,
                 // go into the terminal case when @p val is either representable as uint32 or int32.
                 if (isUInt<32>(val) || isInt<32>(val)) {
                     int64_t Hi20 = ((val + 0x800) >> 12) & 0xFFFFF;
-                    int64_t Lo12 = signextend<int64_t, 12>(val);
+                    int64_t Lo12 = vsrtl::signextend<12>(val);
                     if (Hi20) {
                         res.push_back(LineTokens() << Token("lui") << line.tokens.at(1) << QString::number(Hi20));
                         liveDstReg = true;
@@ -245,10 +245,10 @@ void RV32I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions,
                         line.sourceLine, QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
                                              .arg(line.tokens.at(2)))};
                 }
-                int64_t Lo12 = signextend<int64_t, 12>(val);
+                int64_t Lo12 = vsrtl::signextend<12>(val);
                 int64_t Hi52 = ((uint64_t)val + 0x800ull) >> 12;
                 int ShiftAmount = 12 + firstSetBitIdx(Hi52);
-                Hi52 = signextend<int64_t>(Hi52 >> (ShiftAmount - 12), 64 - ShiftAmount);
+                Hi52 = vsrtl::signextend<int64_t>(Hi52 >> (ShiftAmount - 12), 64 - ShiftAmount);
                 genInstrSeq(Hi52, isRV64);
                 res.push_back(LineTokens() << Token("slli") << line.tokens.at(1) << line.tokens.at(1)
                                            << QString::number(ShiftAmount));

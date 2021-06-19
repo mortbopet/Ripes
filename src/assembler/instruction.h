@@ -22,7 +22,7 @@ struct BitRange {
     }
     constexpr unsigned width() const { return stop - start + 1; }
     const unsigned start, stop, N;
-    const uint32_t mask = generateBitmask(width());
+    const uint32_t mask = vsrtl::generateBitmask(width());
 
     uint32_t apply(uint32_t value) const { return (value & mask) << start; }
     uint32_t decode(uint32_t instruction) const { return (instruction >> start) & mask; };
@@ -253,7 +253,7 @@ struct Imm : public Field {
             part.decode(reconstructed, instruction);
         }
         if (repr == Repr::Signed) {
-            line.push_back(QString::number(static_cast<int32_t>(signextend<int32_t>(reconstructed, width))));
+            line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
         } else if (repr == Repr::Unsigned) {
             line.push_back(QString::number(reconstructed));
         } else {
@@ -261,7 +261,7 @@ struct Imm : public Field {
         }
 
         if (symbolType != SymbolType::None) {
-            const int value = signextend<int32_t>(reconstructed, width);
+            const int value = vsrtl::signextend(reconstructed, width);
             const uint32_t symbolAddress = value + (symbolType == SymbolType::Absolute ? 0 : address);
             if (symbolMap.count(symbolAddress)) {
                 line.push_back("<" + symbolMap.at(symbolAddress).v + ">");

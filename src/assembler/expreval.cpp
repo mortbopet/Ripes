@@ -231,7 +231,7 @@ int64_t evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) 
     FiExpr;
     IfExpr(Or, v) { return evaluate(v->lhs, variables) | evaluate(v->rhs, variables); }
     FiExpr;
-    IfExpr(SignExtend, v) { return signextend<int>(evaluate(v->lhs, variables), evaluate(v->rhs, variables)); }
+    IfExpr(SignExtend, v) { return vsrtl::signextend<int>(evaluate(v->lhs, variables), evaluate(v->rhs, variables)); }
     FiExpr;
     IfExpr(Nothing, v) {
         Q_UNUSED(v);

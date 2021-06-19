@@ -88,7 +88,7 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
     }
 
     // Tag bits
-    componentBits = bitcount(m_tagMask) * entries;
+    componentBits = vsrtl::bitcount(m_tagMask) * entries;
     size.components.push_back("Tag bits: " + QString::number(componentBits));
     size.bits += componentBits;
 
@@ -451,11 +451,11 @@ void CacheSim::reset() {
     m_traceStack.clear();
 
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
-    m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
+    m_blockMask = vsrtl::generateBitmask(getBlockBits()) << bitoffset;
     bitoffset += getBlockBits();
-    m_lineMask = generateBitmask(getLineBits()) << bitoffset;
+    m_lineMask = vsrtl::generateBitmask(getLineBits()) << bitoffset;
     bitoffset += getLineBits();
-    m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
+    m_tagMask = vsrtl::generateBitmask(32 - bitoffset) << bitoffset;
     m_isResetting = false;
 
     emit hitrateChanged();
@@ -467,11 +467,11 @@ void CacheSim::reset() {
 void CacheSim::updateConfiguration() {
     // Recalculate masks
     int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
-    m_blockMask = generateBitmask(getBlockBits()) << bitoffset;
+    m_blockMask = vsrtl::generateBitmask(getBlockBits()) << bitoffset;
     bitoffset += getBlockBits();
-    m_lineMask = generateBitmask(getLineBits()) << bitoffset;
+    m_lineMask = vsrtl::generateBitmask(getLineBits()) << bitoffset;
     bitoffset += getLineBits();
-    m_tagMask = generateBitmask(32 - bitoffset) << bitoffset;
+    m_tagMask = vsrtl::generateBitmask(32 - bitoffset) << bitoffset;
     emit configurationChanged();
 }
 
