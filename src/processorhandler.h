@@ -47,7 +47,7 @@ public:
     /**
      * @brief selectProcessor
      * Constructs the processor identified by @param id, and performs all necessary initialization through the
-     * RipesVSRTLProcessor interface.
+     * RipesProcessor interface.
      */
     static void selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
                                 RegisterInitialization setup = RegisterInitialization()) {

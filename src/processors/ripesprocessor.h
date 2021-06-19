@@ -184,43 +184,6 @@ public:
     virtual void clockProcessor() = 0;
 
     /**
-     * @brief clocked, reversed & reset signals
-     * These signals must be emitted whenever the processor has finished the given operation.
-     * Signals should only be emitted if m_emitsSignals is set.
-     */
-    Gallant::Signal0<> processorWasClocked;
-    Gallant::Signal0<> processorWasReversed;
-    Gallant::Signal0<> processorWasReset;
-
-    /** FEATURE: Reversible=============================================*/
-    /**
-     * @brief reverse
-     * Reverses the processor, undoing the latest clock cycle
-     */
-    virtual void reverse(){};
-    /**
-     * @brief setMaxReverseCycles
-     * @p cycles denotes the maximum number of cycles that the processor is expected to be able to reverse.
-     */
-    virtual void setMaxReverseCycles(unsigned cycles) { Q_UNUSED(cycles); };
-
-    /** ================================================================*/
-
-    /**
-     * @brief isExecutableAddress
-     * Callback that the processor can use to query the Ripes environment. Returns whether the @p
-     * address is an address which is valid to be executed.
-     */
-    std::function<bool(uint32_t)> isExecutableAddress;
-
-    /**
-     * @brief handleSysCall
-     * Signal that the processor can use to pass control to the outside environment whenever a system call must be
-     * handled (RISC-V ecall instruction).
-     */
-    Gallant::Signal0<> handleSysCall;
-
-    /**
      * @brief finalize
      * Called from Ripes to indicate that the processor should start or stop its finishing sequence.
      * The finishing sequence is defined as executing all remaining instructions in the pipeline, but not fetching new
@@ -248,6 +211,46 @@ public:
      * @returns the number of cycles which has been executed.
      */
     virtual long long getCycleCount() const = 0;
+
+    /** ======================= Signals and callbacks ======================= */
+    /**
+     * @brief clocked, reversed & reset signals
+     * These signals must be emitted whenever the processor has finished the given operation.
+     * Signals should only be emitted if m_emitsSignals is set.
+     */
+    Gallant::Signal0<> processorWasClocked;
+    Gallant::Signal0<> processorWasReversed;
+    Gallant::Signal0<> processorWasReset;
+
+    /**
+     * @brief isExecutableAddress
+     * Callback that the processor can use to query the Ripes environment. Returns whether the @p
+     * address is an address which is valid to be executed.
+     */
+    std::function<bool(uint32_t)> isExecutableAddress;
+
+    /**
+     * @brief handleSysCall
+     * Signal that the processor can use to pass control to the outside environment whenever a system call must be
+     * handled (RISC-V ecall instruction).
+     */
+    Gallant::Signal0<> handleSysCall;
+
+    /** ======================== FEATURE: Reversible ======================== */
+    // Enabled by setting m_features.isReversible = true
+
+    /**
+     * @brief reverse
+     * Reverses the processor, undoing the latest clock cycle
+     */
+    virtual void reverse(){};
+    /**
+     * @brief setMaxReverseCycles
+     * @p cycles denotes the maximum number of cycles that the processor is expected to be able to reverse.
+     */
+    virtual void setMaxReverseCycles(unsigned cycles) { Q_UNUSED(cycles); };
+
+    /** ======================================================================*/
 
 protected:
     // m_features should be adjusted accordingly during processor construction
