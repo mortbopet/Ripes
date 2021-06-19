@@ -14,14 +14,19 @@ namespace Assembler {
 
 class AssemblerBase;
 
+struct DirectiveArg {
+    const TokenizedSrcLine& line;
+    const ProgramSection* section;
+};
+
 class Directive {
 public:
-    using DirectiveHandler = std::function<HandleDirectiveRes(const AssemblerBase*, const TokenizedSrcLine&)>;
+    using DirectiveHandler = std::function<HandleDirectiveRes(const AssemblerBase*, const DirectiveArg&)>;
     Directive(const QString& directive, const DirectiveHandler& handler, bool isEarly = false)
         : m_directive(directive), m_handler(handler), m_early(isEarly) {}
 
-    HandleDirectiveRes handle(const AssemblerBase* assembler, const TokenizedSrcLine& line) {
-        return m_handler(assembler, line);
+    HandleDirectiveRes handle(const AssemblerBase* assembler, const DirectiveArg& arg) {
+        return m_handler(assembler, arg);
     }
     const QString& name() const { return m_directive; }
     bool early() const { return m_early; }

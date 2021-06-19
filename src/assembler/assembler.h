@@ -134,21 +134,21 @@ protected:
         return std::get<LineTokens>(joinedtokens);
     }
 
-    virtual HandleDirectiveRes assembleDirective(const TokenizedSrcLine& line, bool& ok,
+    virtual HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
                                                  bool skipEarlyDirectives = true) const {
         ok = false;
-        if (line.directive.isEmpty()) {
+        if (arg.line.directive.isEmpty()) {
             return std::nullopt;
         }
         ok = true;
         try {
-            const auto& directive = m_directivesMap.at(line.directive);
+            const auto& directive = m_directivesMap.at(arg.line.directive);
             if (directive->early() && skipEarlyDirectives) {
                 return std::nullopt;
             }
-            return directive->handle(this, line);
+            return directive->handle(this, arg);
         } catch (const std::out_of_range&) {
-            return {Error(line.sourceLine, "Unknown directive '" + line.directive + "'")};
+            return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
         }
     };
     /**
@@ -480,7 +480,8 @@ protected:
 
             if (!tsl.directive.isEmpty() && m_earlyDirectives.count(tsl.directive)) {
                 bool wasDirective;  // unused
-                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, tsl, wasDirective, false);
+                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective,
+                             DirectiveArg{.line = tsl, .section = nullptr}, wasDirective, false);
             }
         }
         if (errors.size() != 0) {
@@ -548,22 +549,23 @@ protected:
         }
 
         Errors errors;
-        QByteArray* currentSection = &program.sections.at(m_currentSection).data;
+        ProgramSection* currentSection = &program.sections.at(m_currentSection);
 
         bool wasDirective;
         for (const auto& line : tokenizedLines) {
             // Get offset of currently emitting position in memory relative to section position
-            uint32_t addr_offset = currentSection->size();
+            uint32_t addr_offset = currentSection->data.size();
             for (const auto& s : line.symbols) {
                 // Record symbol position as its absolute address in memory
                 runOperationNoRes(addSymbol, line, s, addr_offset + program.sections.at(m_currentSection).address);
             }
 
-            runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, line, wasDirective);
+            runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective,
+                         DirectiveArg{.line = line, .section = currentSection}, wasDirective);
 
             // Currently emitting segment may have changed during the assembler directive; refresh state
-            currentSection = &program.sections.at(m_currentSection).data;
-            addr_offset = currentSection->size();
+            currentSection = &program.sections.at(m_currentSection);
+            addr_offset = currentSection->data.size();
             if (!wasDirective) {
                 std::weak_ptr<Instruction> assembledWith;
                 runOperation(machineCode, InstrRes, assembleInstruction, line, assembledWith);
@@ -576,13 +578,13 @@ protected:
                     req.section = m_currentSection;
                     needsLinkage.push_back(req);
                 }
-                currentSection->append(
+                currentSection->data.append(
                     QByteArray(reinterpret_cast<char*>(&machineCode.instruction), sizeof(machineCode.instruction)));
 
             }
             // This was a directive; check if any bytes needs to be appended to the segment
             else if (directiveBytes) {
-                currentSection->append(directiveBytes.value());
+                currentSection->data.append(directiveBytes.value());
             }
         }
         if (errors.size() != 0) {

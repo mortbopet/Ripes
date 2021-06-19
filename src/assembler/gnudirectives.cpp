@@ -46,12 +46,12 @@ std::optional<Error> assembleData(const TokenizedSrcLine& line, QByteArray& byte
 }
 
 template <size_t width>
-HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
-    if (line.tokens.length() < 1) {
-        return {Error(line.sourceLine, "Invalid number of arguments (expected >1)")};
+HandleDirectiveRes dataFunctor(const AssemblerBase*, const DirectiveArg& arg) {
+    if (arg.line.tokens.length() < 1) {
+        return {Error(arg.line.sourceLine, "Invalid number of arguments (expected >1)")};
     }
     QByteArray bytes;
-    auto err = assembleData(line, bytes, width);
+    auto err = assembleData(arg.line, bytes, width);
     if (err) {
         return {err.value()};
     } else {
@@ -59,11 +59,11 @@ HandleDirectiveRes dataFunctor(const AssemblerBase*, const TokenizedSrcLine& lin
     }
 };
 
-HandleDirectiveRes stringFunctor(const AssemblerBase*, const TokenizedSrcLine& line) {
-    if (line.tokens.length() != 1) {
-        return {Error(line.sourceLine, "Invalid number of arguments (expected 1)")};
+HandleDirectiveRes stringFunctor(const AssemblerBase*, const DirectiveArg& arg) {
+    if (arg.line.tokens.length() != 1) {
+        return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 1)")};
     }
-    QString string = line.tokens.at(0);
+    QString string = arg.line.tokens.at(0);
     string.replace("\\n", "\n");
     string.remove('\"');
     return {string.toUtf8().append('\0')};
@@ -106,14 +106,14 @@ Directive stringDirective() {
 }
 
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
-    return [segment](const AssemblerBase* assembler, const TokenizedSrcLine& line) {
-        if (line.tokens.length() != 0) {
-            return HandleDirectiveRes{Error(line.sourceLine, "Invalid number of arguments (expected 0)")};
+    return [segment](const AssemblerBase* assembler, const DirectiveArg& arg) {
+        if (arg.line.tokens.length() != 0) {
+            return HandleDirectiveRes{Error(arg.line.sourceLine, "Invalid number of arguments (expected 0)")};
         }
         auto err = assembler->setCurrentSegment(segment);
         if (err) {
             // Embed source line into error message
-            err.value().first = line.sourceLine;
+            err.value().first = arg.line.sourceLine;
             return HandleDirectiveRes{err.value()};
         }
         return HandleDirectiveRes(std::nullopt);
@@ -133,14 +133,14 @@ Directive dataDirective() {
 }
 
 Directive zeroDirective() {
-    auto zeroFunctor = [](const AssemblerBase*, const TokenizedSrcLine& line) -> HandleDirectiveRes {
-        if (line.tokens.length() != 1) {
-            return {Error(line.sourceLine, "Invalid number of arguments (expected 1)")};
+    auto zeroFunctor = [](const AssemblerBase*, const DirectiveArg& arg) -> HandleDirectiveRes {
+        if (arg.line.tokens.length() != 1) {
+            return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 1)")};
         }
         bool ok;
-        int value = getImmediate(line.tokens.at(0), ok);
+        int value = getImmediate(arg.line.tokens.at(0), ok);
         if (!ok) {
-            return {Error(line.sourceLine, "Invalid argument")};
+            return {Error(arg.line.sourceLine, "Invalid argument")};
         }
         QByteArray bytes;
         for (int i = 0; i < value; i++) {
@@ -152,17 +152,17 @@ Directive zeroDirective() {
 }
 
 Directive equDirective() {
-    auto equFunctor = [](const AssemblerBase* assembler, const TokenizedSrcLine& line) -> HandleDirectiveRes {
-        if (line.tokens.length() != 2) {
-            return {Error(line.sourceLine, "Invalid number of arguments (expected 2)")};
+    auto equFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
+        if (arg.line.tokens.length() != 2) {
+            return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 2)")};
         }
         bool ok;
-        int value = getImmediate(line.tokens.at(1), ok);
+        int value = getImmediate(arg.line.tokens.at(1), ok);
         if (!ok) {
-            return {Error(line.sourceLine, "Invalid argument")};
+            return {Error(arg.line.sourceLine, "Invalid argument")};
         }
 
-        auto err = assembler->addSymbol(line, line.tokens.at(0), value);
+        auto err = assembler->addSymbol(arg.line, arg.line.tokens.at(0), value);
         if (err) {
             return err.value();
         }
