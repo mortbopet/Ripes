@@ -2,6 +2,7 @@
 
 #include "processorregistry.h"
 #include "processors/ripesprocessor.h"
+#include "processors/ripesvsrtlprocessor.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
 
@@ -45,9 +46,9 @@ ProcessorHandler::ProcessorHandler() {
 
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
-            [=](const auto& size) { m_currentProcessor->setReverseStackSize(size.toUInt()); });
+            [=](const auto& size) { m_currentProcessor->setMaxReverseCycles(size.toUInt()); });
     // Update VSRTL reverse stack size to reflect current settings
-    m_currentProcessor->setReverseStackSize(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
+    m_currentProcessor->setMaxReverseCycles(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
 
     m_syscallManager = std::make_unique<RISCVSyscallManager>();
 }
@@ -156,7 +157,11 @@ void ProcessorHandler::_setBreakpoint(const uint32_t address, bool enabled) {
 
 void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
     m_vsrtlWidget = widget;
-    widget->setDesign(m_currentProcessor.get());
+
+    // Currently, only VSRTL processors can be visualized
+    if (auto* vsrtlProcessor = dynamic_cast<RipesVSRTLProcessor*>(m_currentProcessor.get())) {
+        widget->setDesign(vsrtlProcessor);
+    }
 }
 
 bool ProcessorHandler::_hasBreakpoint(const uint32_t address) const {
@@ -225,7 +230,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
                                      ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
     }
 
-    m_currentProcessor->verifyAndInitialize();
+    m_currentProcessor->postConstruct();
     createAssemblerForCurrentISA();
 
     if (keepProgram && m_program) {
@@ -235,9 +240,9 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     }
 
     // Reconnect the wrappers for processor signal emission
-    m_currentProcessor->designWasClocked.Connect(this, &ProcessorHandler::processorWasClockedWrapper);
-    m_currentProcessor->designWasReset.Connect(this, &ProcessorHandler::processorResetWrapper);
-    m_currentProcessor->designWasReversed.Connect(this, &ProcessorHandler::processorReversedWrapper);
+    m_currentProcessor->processorWasClocked.Connect(this, &ProcessorHandler::processorWasClockedWrapper);
+    m_currentProcessor->processorWasReset.Connect(this, &ProcessorHandler::processorResetWrapper);
+    m_currentProcessor->processorWasReversed.Connect(this, &ProcessorHandler::processorReversedWrapper);
 
     emit processorChanged();
 }

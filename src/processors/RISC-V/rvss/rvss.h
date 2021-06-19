@@ -189,7 +189,7 @@ public:
         // m_finishInNextCycle may be set during Design::clock(). Store the value before clocking the processor, and
         // emit finished if this was the final clock cycle.
         const bool finishInThisCycle = m_finishInNextCycle;
-        RipesVSRTLProcessor::clock();
+        Design::clock();
         if (finishInThisCycle) {
             m_finished = true;
         }
@@ -197,14 +197,14 @@ public:
 
     void reverse() override {
         m_instructionsRetired--;
-        RipesVSRTLProcessor::reverse();
+        Design::reverse();
         // Ensure that reverses performed when we expected to finish in the following cycle, clears this expectation.
         m_finishInNextCycle = false;
         m_finished = false;
     }
 
     void reset() override {
-        RipesVSRTLProcessor::reset();
+        Design::reset();
         m_finishInNextCycle = false;
         m_finished = false;
     }

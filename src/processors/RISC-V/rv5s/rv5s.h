@@ -455,7 +455,7 @@ public:
             m_instructionsRetired++;
         }
 
-        RipesVSRTLProcessor::clock();
+        Design::clock();
     }
 
     void reverse() override {
@@ -465,7 +465,7 @@ public:
             ecallChecker->setSysCallExiting(false);
             m_syscallExitCycle = -1;
         }
-        RipesVSRTLProcessor::reverse();
+        Design::reverse();
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
             m_instructionsRetired--;
         }
@@ -473,7 +473,7 @@ public:
 
     void reset() override {
         ecallChecker->setSysCallExiting(false);
-        RipesVSRTLProcessor::reset();
+        Design::reset();
         m_syscallExitCycle = -1;
     }
 

@@ -774,7 +774,7 @@ public:
         // executable range of the program
         m_instructionsRetired += instructionsRetired();
 
-        RipesVSRTLProcessor::clock();
+        Design::clock();
     }
 
     void reverse() override {
@@ -784,13 +784,13 @@ public:
             ecallChecker->setSysCallExiting(false);
             m_syscallExitCycle = -1;
         }
-        RipesVSRTLProcessor::reverse();
+        Design::reverse();
         m_instructionsRetired -= instructionsRetired();
     }
 
     void reset() override {
         ecallChecker->setSysCallExiting(false);
-        RipesVSRTLProcessor::reset();
+        Design::reset();
         m_syscallExitCycle = -1;
     }
 

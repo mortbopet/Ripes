@@ -75,8 +75,7 @@ public:
         }
         return desc->second;
     }
-    static std::unique_ptr<vsrtl::core::RipesVSRTLProcessor> constructProcessor(ProcessorID id,
-                                                                                const QStringList& extensions) {
+    static std::unique_ptr<RipesProcessor> constructProcessor(ProcessorID id, const QStringList& extensions) {
         switch (id) {
             case ProcessorID::RV32_5S_NO_FW_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ<32>>(extensions);

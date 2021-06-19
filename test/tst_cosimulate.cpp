@@ -185,7 +185,7 @@ void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
     Registers preRegs = dumpRegs();
 
     do {
-        ProcessorHandler::get()->getProcessorNonConst()->clock();
+        ProcessorHandler::get()->getProcessorNonConst()->clockProcessor();
         cycles++;
 
         Registers regs = dumpRegs();
@@ -256,7 +256,7 @@ const Trace& tst_Cosimulate::generateReferenceTrace(const QStringList& extension
 void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extensions) {
     // Connect the global reset request signal to directly resetting the processor
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
-            [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
+            [=] { ProcessorHandler::get()->getProcessorNonConst()->resetProcessor(); });
 
     m_loader = new EditTab(new QToolBar(), nullptr);
     connect(m_loader, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);

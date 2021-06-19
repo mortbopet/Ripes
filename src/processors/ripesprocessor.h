@@ -47,6 +47,24 @@ struct FinalizeReason {
 class RipesProcessor {
 public:
     RipesProcessor() {}
+    virtual ~RipesProcessor(){};
+
+    /**
+     * @brief postConstruct
+     * Called after the processor has been constructed. Implementing processors can use this to start any initialization
+     * which must be performed after class construction.
+     */
+    virtual void postConstruct(){};
+
+    /**
+     * @brief The Features struct
+     * The set of optional features implemented by this processor
+     */
+    struct Features {
+        bool isReversible = false;
+    };
+
+    const Features& features() const { return m_features; }
 
     /**
      * @brief registerFiles
@@ -157,7 +175,36 @@ public:
      * @brief reset
      * Resets the processor
      */
-    virtual void reset() = 0;
+    virtual void resetProcessor() = 0;
+
+    /**
+     * @brief clock
+     * Clocks the processor
+     */
+    virtual void clockProcessor() = 0;
+
+    /**
+     * @brief clocked, reversed & reset signals
+     * These signals must be emitted whenever the processor has finished the given operation.
+     * Signals should only be emitted if m_emitsSignals is set.
+     */
+    Gallant::Signal0<> processorWasClocked;
+    Gallant::Signal0<> processorWasReversed;
+    Gallant::Signal0<> processorWasReset;
+
+    /** FEATURE: Reversible=============================================*/
+    /**
+     * @brief reverse
+     * Reverses the processor, undoing the latest clock cycle
+     */
+    virtual void reverse(){};
+    /**
+     * @brief setMaxReverseCycles
+     * @p cycles denotes the maximum number of cycles that the processor is expected to be able to reverse.
+     */
+    virtual void setMaxReverseCycles(unsigned cycles) { Q_UNUSED(cycles); };
+
+    /** ================================================================*/
 
     /**
      * @brief isExecutableAddress
@@ -196,6 +243,16 @@ public:
      * @returns the number of instructions which has retired (ie. executed and no longer in the pipeline).
      */
     virtual long long getInstructionsRetired() const = 0;
+    /**
+     * @brief getCycleCount
+     * @returns the number of cycles which has been executed.
+     */
+    virtual long long getCycleCount() const = 0;
+
+protected:
+    // m_features should be adjusted accordingly during processor construction
+    Features m_features;
+    bool m_emitsSignals = true;
 };
 
 }  // namespace Ripes

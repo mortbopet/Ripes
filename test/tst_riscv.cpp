@@ -115,7 +115,7 @@ QString tst_RISCV::executeSimulator() {
     bool maxCyclesReached = false;
     unsigned cycles = 0;
     do {
-        ProcessorHandler::getProcessorNonConst()->clock();
+        ProcessorHandler::getProcessorNonConst()->clockProcessor();
 
         cycles++;
 
@@ -136,7 +136,7 @@ QString tst_RISCV::executeSimulator() {
 void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
     // Connect the global reset request signal to directly resetting the processor
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
-            [=] { ProcessorHandler::get()->getProcessorNonConst()->reset(); });
+            [=] { ProcessorHandler::get()->getProcessorNonConst()->resetProcessor(); });
 
     const auto dir = QDir(testdir);
     const auto testFiles = dir.entryList({"*.s"});

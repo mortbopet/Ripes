@@ -29,8 +29,8 @@ public:
         return handler;
     }
 
-    static vsrtl::core::RipesVSRTLProcessor* getProcessorNonConst() { return get()->_getProcessorNonConst(); }
-    static const vsrtl::core::RipesVSRTLProcessor* getProcessor() { return get()->_getProcessor(); }
+    static RipesProcessor* getProcessorNonConst() { return get()->_getProcessorNonConst(); }
+    static const RipesProcessor* getProcessor() { return get()->_getProcessor(); }
     static const std::shared_ptr<Assembler::AssemblerBase> getAssembler() { return get()->_getAssembler(); }
     static const ProcessorID& getID() { return get()->_getID(); }
     static std::shared_ptr<const Program> getProgram() { return get()->_getProgram(); }
@@ -193,8 +193,8 @@ private slots:
     void asyncTrap();
 
 private:
-    vsrtl::core::RipesVSRTLProcessor* _getProcessorNonConst() { return m_currentProcessor.get(); }
-    const vsrtl::core::RipesVSRTLProcessor* _getProcessor() { return m_currentProcessor.get(); }
+    RipesProcessor* _getProcessorNonConst() { return m_currentProcessor.get(); }
+    const RipesProcessor* _getProcessor() { return m_currentProcessor.get(); }
     const std::shared_ptr<Assembler::AssemblerBase> _getAssembler() { return m_currentAssembler; }
     const ProcessorID& _getID() const { return m_currentID; }
     std::shared_ptr<const Program> _getProgram() const { return m_program; }
@@ -239,7 +239,7 @@ private:
     ProcessorHandler();
 
     ProcessorID m_currentID;
-    std::unique_ptr<vsrtl::core::RipesVSRTLProcessor> m_currentProcessor;
+    std::unique_ptr<RipesProcessor> m_currentProcessor;
     std::unique_ptr<SyscallManager> m_syscallManager;
     std::shared_ptr<Assembler::AssemblerBase> m_currentAssembler;
 
