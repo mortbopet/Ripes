@@ -40,27 +40,32 @@ DirectiveVec gnuDirectives() {
     }                                                    \
     res = std::get<long>(exprRes##res);
 
-std::optional<Error> assembleData(const AssemblerBase* assembler, const TokenizedSrcLine& line, QByteArray& byteArray,
-                                  size_t size) {
-    Q_ASSERT(size >= 1 && size <= 4);
+template <size_t size>
+std::optional<Error> assembleData(const AssemblerBase* assembler, const TokenizedSrcLine& line, QByteArray& byteArray) {
+    static_assert(size >= 1);
     for (const auto& token : line.tokens) {
         long val;
         getImmediateErroring(token, val, line.sourceLine);
-        for (size_t i = 0; i < size; i++) {
-            byteArray.append(val & 0xff);
-            val >>= 8;
+
+        if (isUInt<size * 8>(val) || isInt<size * 8>(val)) {
+            for (size_t i = 0; i < size; i++) {
+                byteArray.append(val & 0xff);
+                val >>= 8;
+            }
+        } else {
+            return {Error(line.sourceLine, QString("'%1' does not fit in %2 bytes").arg(val).arg(size))};
         }
     }
     return {};
 }
 
-template <size_t width>
+template <size_t size>
 HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveArg& arg) {
     if (arg.line.tokens.length() < 1) {
         return {Error(arg.line.sourceLine, "Invalid number of arguments (expected >1)")};
     }
     QByteArray bytes;
-    auto err = assembleData(assembler, arg.line, bytes, width);
+    auto err = assembleData<size>(assembler, arg.line, bytes);
     if (err) {
         return {err.value()};
     } else {
