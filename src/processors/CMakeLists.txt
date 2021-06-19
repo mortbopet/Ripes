@@ -4,13 +4,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 macro(create_isa_lib isa)
     file(GLOB LIB_SOURCES  ${isa}/*.cpp)
-    file(GLOB LIB_HEADERS ripesprocessor.h ${isa}/*.h)
+    file(GLOB LIB_HEADERS
+        RipesVSRTLProcessor.h
+        ripesvsrtlprocessor.h
+        ${isa}/*.h)
     add_library(${isa}_lib ${LIB_SOURCES} ${LIB_HEADERS})
 endmacro()
 
-macro(create_processor isa name)
+macro(create_vsrtl_processor isa name)
     file(GLOB LIB_SOURCES  ${isa}/${name}/*.cpp)
-    file(GLOB LIB_HEADERS ripesprocessor.h ${isa}/${name}/*.h)
+    file(GLOB LIB_HEADERS RipesVSRTLProcessor.h ${isa}/${name}/*.h)
     add_library(${name} ${LIB_SOURCES} ${LIB_HEADERS})
     target_link_libraries(${name} ${VSRTL_CORE_LIB} ${isa}_lib)
     target_include_directories(${name} PUBLIC ${isa})
@@ -21,9 +24,9 @@ endmacro()
 
 # RISC-V Processors
 create_isa_lib(RISC-V)
-create_processor(RISC-V rvss)
-create_processor(RISC-V rv5s)
-create_processor(RISC-V rv5s_no_fw_hz)
-create_processor(RISC-V rv5s_no_hz)
-create_processor(RISC-V rv5s_no_fw)
-create_processor(RISC-V rv6s_dual)
+create_vsrtl_processor(RISC-V rvss)
+create_vsrtl_processor(RISC-V rv5s)
+create_vsrtl_processor(RISC-V rv5s_no_fw_hz)
+create_vsrtl_processor(RISC-V rv5s_no_hz)
+create_vsrtl_processor(RISC-V rv5s_no_fw)
+create_vsrtl_processor(RISC-V rv6s_dual)

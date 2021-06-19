@@ -36,19 +36,21 @@ struct FinalizeReason {
     bool any() const { return exitedExecutableRegion || exitSyscall; }
 };
 
-}  // namespace Ripes
-
-namespace vsrtl {
-namespace core {
-using namespace Ripes;
-
-class RipesProcessor : public Design {
+/**
+ * @brief The RipesProcessor class
+ * Interface for all Ripes processors. This interface is intended to be simulator-agnostic, and thus provides an opaque
+ * interface for retrieving any relevant information required to display the processor state of execution in Ripes.
+ *
+ * @todo: Various parts are still dependent on VSRTL structures. For these structures, there should ideally be shim
+ * classes to handle the translation from Ripes to the backend.
+ */
+class RipesProcessor {
 public:
-    RipesProcessor(std::string name) : Design(name) {}
+    RipesProcessor() {}
 
     /**
      * @brief registerFiles
-     * @return the set of unique indentifiers for the register files exposed by this processor, under inclusion of the
+     * @return the set of register file types exposed by this processor, under inclusion of the
      * ISA which the processor has been instantiated with.
      */
     virtual const std::set<RegisterFileType> registerFiles() const = 0;
@@ -86,20 +88,20 @@ public:
 
     /**
      * @brief nextFetchedAddress
-     * @return Address will be fetched from instruction memory in the next clock cycle
+     * @return Address which will be fetched from instruction memory in the next clock cycle
      */
     virtual unsigned int nextFetchedAddress() const = 0;
 
     /**
      * @brief stageInfo
      * @param stageIndex
-     * @return Additional info related to the current execution state of stage @param stageIndex
+     * @return Additional info related to the state of stage @param stageIndex in the current cycle
      */
     virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
 
     /**
      * @brief breakpointTriggeringStages
-     * @returns the stage indicies for which a breakpoint is triggered when the breakpoint PC address enters the stage.
+     * @returns the stage indices for which a breakpoint is triggered when the breakpoint PC address enters the stage.
      */
     virtual const std::vector<unsigned> breakpointTriggeringStages() const = 0;
 
@@ -107,15 +109,15 @@ public:
      * @brief getMemory
      * @return reference to the address space utilized by the implementing processor
      */
-    virtual AddressSpaceMM& getMemory() = 0;
+    virtual vsrtl::core::AddressSpaceMM& getMemory() = 0;
 
     /**
      * @brief getData/InstrMemory
      * @returns a pointer to the component which implements the instruction and data memory interfaces. These types may
      * be implementation specific, and as such should be cast to these types at the callers end.
      */
-    virtual const BaseMemory<true>* getDataMemory() const = 0;
-    virtual const BaseMemory<true>* getInstrMemory() const = 0;
+    virtual const vsrtl::core::BaseMemory<true>* getDataMemory() const = 0;
+    virtual const vsrtl::core::BaseMemory<true>* getInstrMemory() const = 0;
 
     /**
      * @brief getRegister
@@ -129,7 +131,7 @@ public:
      * @brief getArchRegisters
      * @return reference to the register address space utilized by the implementing processor
      */
-    virtual AddressSpace& getArchRegisters() = 0;
+    virtual vsrtl::core::AddressSpace& getArchRegisters() = 0;
 
     /**
      * @brief setRegister
@@ -151,28 +153,29 @@ public:
      */
     virtual void setPCInitialValue(uint32_t address) = 0;
 
-    void reset() override {
-        m_instructionsRetired = 0;
-        Design::reset();
-    }
+    /**
+     * @brief reset
+     * Resets the processor
+     */
+    virtual void reset() = 0;
 
     /**
      * @brief isExecutableAddress
-     * Callback registerred by the environment instantiating the processor. The environment shall return whether the @p
+     * Callback that the processor can use to query the Ripes environment. Returns whether the @p
      * address is an address which is valid to be executed.
      */
     std::function<bool(uint32_t)> isExecutableAddress;
 
     /**
      * @brief handleSysCall
-     * Signal for passing control to the outside environment whenever a system call must be handled (RISC-V ecall
-     * instruction).
+     * Signal that the processor can use to pass control to the outside environment whenever a system call must be
+     * handled (RISC-V ecall instruction).
      */
     Gallant::Signal0<> handleSysCall;
 
     /**
      * @brief finalize
-     * Called from the outside environment to indicate that the processor should start or stop its finishing sequence.
+     * Called from Ripes to indicate that the processor should start or stop its finishing sequence.
      * The finishing sequence is defined as executing all remaining instructions in the pipeline, but not fetching new
      * instructions. Typically, finalize would be called once the PC of the processor starts executing outside of the
      * current .text segment, or the processor has executed an exit system call.
@@ -192,12 +195,7 @@ public:
      * @brief getInstructionsRetired
      * @returns the number of instructions which has retired (ie. executed and no longer in the pipeline).
      */
-    long long getInstructionsRetired() const { return m_instructionsRetired; }
-
-protected:
-    // Statistics
-    long long m_instructionsRetired = 0;
+    virtual long long getInstructionsRetired() const = 0;
 };
 
-}  // namespace core
-}  // namespace vsrtl
+}  // namespace Ripes

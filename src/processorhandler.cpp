@@ -1,6 +1,7 @@
 #include "processorhandler.h"
 
 #include "processorregistry.h"
+#include "processors/ripesprocessor.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
 

@@ -6,7 +6,7 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../../ripesprocessor.h"
+#include "../../ripesvsrtlprocessor.h"
 
 #include "../riscv.h"
 #include "../rv_alu.h"
@@ -39,7 +39,7 @@ namespace core {
 using namespace Ripes;
 
 template <unsigned XLEN>
-class RV6S_DUAL : public RipesProcessor {
+class RV6S_DUAL : public RipesVSRTLProcessor {
     static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
 
 public:
@@ -58,7 +58,7 @@ public:
         WB_DATA = 11,
         STAGECOUNT
     };
-    RV6S_DUAL(const QStringList& extensions) : RipesProcessor("6-Stage dual-issue RISC-V Processor") {
+    RV6S_DUAL(const QStringList& extensions) : RipesVSRTLProcessor("6-Stage dual-issue RISC-V Processor") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode_way2->setISA(m_enabledISA);
         decode_way1->setISA(m_enabledISA);
@@ -774,7 +774,7 @@ public:
         // executable range of the program
         m_instructionsRetired += instructionsRetired();
 
-        RipesProcessor::clock();
+        RipesVSRTLProcessor::clock();
     }
 
     void reverse() override {
@@ -784,13 +784,13 @@ public:
             ecallChecker->setSysCallExiting(false);
             m_syscallExitCycle = -1;
         }
-        RipesProcessor::reverse();
+        RipesVSRTLProcessor::reverse();
         m_instructionsRetired -= instructionsRetired();
     }
 
     void reset() override {
         ecallChecker->setSysCallExiting(false);
-        RipesProcessor::reset();
+        RipesVSRTLProcessor::reset();
         m_syscallExitCycle = -1;
     }
 

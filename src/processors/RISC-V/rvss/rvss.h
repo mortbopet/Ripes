@@ -6,7 +6,7 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../../ripesprocessor.h"
+#include "../../ripesvsrtlprocessor.h"
 
 #include "../riscv.h"
 #include "../rv_alu.h"
@@ -23,11 +23,11 @@ namespace core {
 using namespace Ripes;
 
 template <unsigned XLEN>
-class RVSS : public RipesProcessor {
+class RVSS : public RipesVSRTLProcessor {
     static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
 
 public:
-    RVSS(const QStringList& extensions) : RipesProcessor("Single Cycle RISC-V Processor") {
+    RVSS(const QStringList& extensions) : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
 
@@ -189,7 +189,7 @@ public:
         // m_finishInNextCycle may be set during Design::clock(). Store the value before clocking the processor, and
         // emit finished if this was the final clock cycle.
         const bool finishInThisCycle = m_finishInNextCycle;
-        RipesProcessor::clock();
+        RipesVSRTLProcessor::clock();
         if (finishInThisCycle) {
             m_finished = true;
         }
@@ -197,14 +197,14 @@ public:
 
     void reverse() override {
         m_instructionsRetired--;
-        RipesProcessor::reverse();
+        RipesVSRTLProcessor::reverse();
         // Ensure that reverses performed when we expected to finish in the following cycle, clears this expectation.
         m_finishInNextCycle = false;
         m_finished = false;
     }
 
     void reset() override {
-        RipesProcessor::reset();
+        RipesVSRTLProcessor::reset();
         m_finishInNextCycle = false;
         m_finished = false;
     }

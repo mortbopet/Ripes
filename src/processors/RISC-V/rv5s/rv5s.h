@@ -6,7 +6,7 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../../ripesprocessor.h"
+#include "../../ripesvsrtlprocessor.h"
 
 // Functional units
 #include "../riscv.h"
@@ -34,12 +34,12 @@ namespace core {
 using namespace Ripes;
 
 template <unsigned XLEN>
-class RV5S : public RipesProcessor {
+class RV5S : public RipesVSRTLProcessor {
     static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
 
 public:
     enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-    RV5S(const QStringList& extensions) : RipesProcessor("5-Stage RISC-V Processor") {
+    RV5S(const QStringList& extensions) : RipesVSRTLProcessor("5-Stage RISC-V Processor") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
 
@@ -455,7 +455,7 @@ public:
             m_instructionsRetired++;
         }
 
-        RipesProcessor::clock();
+        RipesVSRTLProcessor::clock();
     }
 
     void reverse() override {
@@ -465,7 +465,7 @@ public:
             ecallChecker->setSysCallExiting(false);
             m_syscallExitCycle = -1;
         }
-        RipesProcessor::reverse();
+        RipesVSRTLProcessor::reverse();
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
             m_instructionsRetired--;
         }
@@ -473,7 +473,7 @@ public:
 
     void reset() override {
         ecallChecker->setSysCallExiting(false);
-        RipesProcessor::reset();
+        RipesVSRTLProcessor::reset();
         m_syscallExitCycle = -1;
     }
 

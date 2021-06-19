@@ -27,7 +27,6 @@
 namespace Ripes {
 
 namespace {
-//
 inline QString convertToSIUnits(const double l_value, int precision = 2) {
     QString unit;
     double value;
