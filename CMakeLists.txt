@@ -11,10 +11,16 @@ endif()
 
 project(Ripes CXX)
 
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+# Error flags on everything but MSVC
+if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "-Wextra -Wall \
         -Werror=switch -Werror=return-type -Werror=shadow \
         -Werror=unreachable-code")
+endif()
+
+if(MSVC)
+    # Allow big object
+    add_definitions(/bigobj)
 endif()
 
 ######################################################################
