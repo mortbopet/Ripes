@@ -86,6 +86,8 @@ public:
         return {};
     }
 
+    virtual ExprEvalRes evalExpr(const QString& expr) const = 0;
+
 protected:
     void setDirectives(DirectiveVec& directives) {
         if (m_directives.size() != 0) {
@@ -601,6 +603,15 @@ protected:
         return {program};
     }
 
+    ExprEvalRes evalExpr(const QString& expr) const override {
+        auto symbolValue = m_symbolMap.find(expr);
+        if (symbolValue != m_symbolMap.end()) {
+            return symbolValue->second;
+        } else {
+            return evaluate(expr, &m_symbolMap);
+        }
+    }
+
     std::variant<Errors, NoPassResult> pass3(Program& program, const LinkRequests& needsLinkage) const {
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
@@ -612,24 +623,14 @@ protected:
             const uint32_t linkRequestAddress = linkReqAddress(linkRequest);
             m_symbolMap["__address__"] = linkRequestAddress;
 
-            if (m_symbolMap.count(symbol) == 0) {
-                if (couldBeExpression(symbol)) {
-                    // No recorded symbol for the token; our last option is to try and evaluate a possible
-                    // expression.
-                    auto evaluate_res = evaluate(symbol, &m_symbolMap);
-                    if (auto* err = std::get_if<Error>(&evaluate_res)) {
-                        err->first = linkRequest.sourceLine;
-                        errors.push_back(*err);
-                        continue;
-                    }
-                    // Expression evaluated successfully
-                    symbolValue = std::get<long>(evaluate_res);
-                } else {
-                    errors.push_back(Error(linkRequest.sourceLine, "Unknown symbol '" + symbol + "'"));
-                    continue;
-                }
+            // Expression evaluation also performs symbol evaluation
+            auto exprRes = evalExpr(symbol);
+            if (auto* err = std::get_if<Error>(&exprRes)) {
+                err->first = linkRequest.sourceLine;
+                errors.push_back(*err);
+                continue;
             } else {
-                symbolValue = m_symbolMap.at(symbol);
+                symbolValue = std::get<long>(exprRes);
             }
 
             if (!linkRequest.fieldRequest.relocation.isEmpty()) {

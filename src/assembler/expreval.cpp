@@ -262,7 +262,7 @@ long evaluate(const std::shared_ptr<Expr>& expr, const SymbolMap* variables) {
     Q_UNREACHABLE();
 }
 
-std::variant<Error, long> evaluate(const QString& s, const SymbolMap* variables) {
+ExprEvalRes evaluate(const QString& s, const SymbolMap* variables) {
     QString sNoWhitespace = s;
     sNoWhitespace.replace(" ", "");
     int pos = 0;

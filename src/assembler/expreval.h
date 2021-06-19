@@ -11,15 +11,16 @@ namespace Assembler {
 extern const QRegularExpression s_exprOperatorsRegex;
 extern const QString s_exprOperators;
 extern const QString s_exprTokens;
+using ExprEvalRes = std::variant<Error, long>;
 
 /**
  * @brief evaluate
  * Very simple expression parser for evaluating a right-associative binary (2-operand) mathematical expressions.
  * For now, no operator precedence is implemented - to ensure precedence, parentheses must be implemented. The
- * functionality is mainly intended to be used by the assembler to expand complex pseudoinstructions and as such not by
- * the user.
+ * functionality is mainly intended to be used by the assembler to expand complex pseudoinstructions and as such not
+ * by the user.
  */
-std::variant<Error, long> evaluate(const QString&, const SymbolMap* variables = nullptr);
+ExprEvalRes evaluate(const QString&, const SymbolMap* variables = nullptr);
 
 /**
  * @brief couldBeExpression

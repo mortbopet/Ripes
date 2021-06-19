@@ -29,15 +29,20 @@ DirectiveVec gnuDirectives() {
     return directives;
 }
 
-std::optional<Error> assembleData(const TokenizedSrcLine& line, QByteArray& byteArray, size_t size) {
-    Q_ASSERT(size >= 1 && size <= 4);
-    bool ok;
-    for (const auto& token : line.tokens) {
-        qlonglong val = getImmediate(token, ok);
-        if (!ok) {
-            return {Error(line.sourceLine, "Invalid immediate value")};
-        }
+#define getImmediateErroring(token, res, srcline)        \
+    auto exprRes##res = assembler->evalExpr(token);      \
+    if (auto* err = std::get_if<Error>(&exprRes##res)) { \
+        err->first = srcline;                            \
+        return {*err};                                   \
+    }                                                    \
+    res = std::get<long>(exprRes##res);
 
+std::optional<Error> assembleData(const AssemblerBase* assembler, const TokenizedSrcLine& line, QByteArray& byteArray,
+                                  size_t size) {
+    Q_ASSERT(size >= 1 && size <= 4);
+    for (const auto& token : line.tokens) {
+        long val;
+        getImmediateErroring(token, val, line.sourceLine);
         for (size_t i = 0; i < size; i++) {
             byteArray.append(val & 0xff);
             val >>= 8;
@@ -47,12 +52,12 @@ std::optional<Error> assembleData(const TokenizedSrcLine& line, QByteArray& byte
 }
 
 template <size_t width>
-HandleDirectiveRes dataFunctor(const AssemblerBase*, const DirectiveArg& arg) {
+HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveArg& arg) {
     if (arg.line.tokens.length() < 1) {
         return {Error(arg.line.sourceLine, "Invalid number of arguments (expected >1)")};
     }
     QByteArray bytes;
-    auto err = assembleData(arg.line, bytes, width);
+    auto err = assembleData(assembler, arg.line, bytes, width);
     if (err) {
         return {err.value()};
     } else {
@@ -134,15 +139,12 @@ Directive dataDirective() {
 }
 
 Directive zeroDirective() {
-    auto zeroFunctor = [](const AssemblerBase*, const DirectiveArg& arg) -> HandleDirectiveRes {
+    auto zeroFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() != 1) {
             return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 1)")};
         }
-        bool ok;
-        int value = getImmediate(arg.line.tokens.at(0), ok);
-        if (!ok) {
-            return {Error(arg.line.sourceLine, "Invalid argument")};
-        }
+        long value;
+        getImmediateErroring(arg.line.tokens.at(0), value, arg.line.sourceLine);
         QByteArray bytes;
         for (int i = 0; i < value; i++) {
             bytes.append(static_cast<char>(0x0));
@@ -157,11 +159,8 @@ Directive equDirective() {
         if (arg.line.tokens.length() != 2) {
             return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 2)")};
         }
-        bool ok;
-        int value = getImmediate(arg.line.tokens.at(1), ok);
-        if (!ok) {
-            return {Error(arg.line.sourceLine, "Invalid argument")};
-        }
+        long value;
+        getImmediateErroring(arg.line.tokens.at(1), value, arg.line.sourceLine);
 
         auto err = assembler->addSymbol(arg.line, arg.line.tokens.at(0), value);
         if (err) {
@@ -174,28 +173,21 @@ Directive equDirective() {
                      true /* Constants should be made available during ie. pseudo instruction expansion */);
 }
 
-#define getImmediateErroring(token, res, _ok)                                    \
-    res = getImmediate(token, _ok);                                              \
-    if (!_ok) {                                                                  \
-        return {Error(arg.line.sourceLine, "Invalid argument '" + token + "'")}; \
-    }
-
 Directive alignDirective() {
-    auto alignFunctor = [](const AssemblerBase*, const DirectiveArg& arg) -> HandleDirectiveRes {
+    auto alignFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() == 0 || arg.line.tokens.length() > 3) {
             return {Error(arg.line.sourceLine, "Invalid number of arguments (expected at least 1, at most 3)")};
         }
-        bool ok;
         int boundary, fill, max;
         fill = 0;
         bool hasMax = false;
 
-        getImmediateErroring(arg.line.tokens.at(0), boundary, ok);
+        getImmediateErroring(arg.line.tokens.at(0), boundary, arg.line.sourceLine);
         if (arg.line.tokens.size() > 1) {
-            getImmediateErroring(arg.line.tokens.at(1), fill, ok);
+            getImmediateErroring(arg.line.tokens.at(1), fill, arg.line.sourceLine);
         }
         if (arg.line.tokens.size() > 2) {
-            getImmediateErroring(arg.line.tokens.at(2), max, ok);
+            getImmediateErroring(arg.line.tokens.at(2), max, arg.line.sourceLine);
             hasMax = true;
         }
 
