@@ -19,11 +19,10 @@ public:
                     return instr.uValue() & 0xfffff000;
                 case RVInstr::JAL: {
                     const auto fields = RVInstrParser::getParser()->decodeJ32Instr(instr.uValue());
-                    return VT_U(signextend<VSRTL_VT_S, 21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 |
-                                                           fields[3] << 12));
+                    return VT_U(signextend<21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12));
                 }
                 case RVInstr::JALR: {
-                    return VT_U(signextend<VSRTL_VT_S, 12>((instr.uValue() >> 20)));
+                    return VT_U(signextend<12>((instr.uValue() >> 20)));
                 }
                 case RVInstr::BEQ:
                 case RVInstr::BNE:
@@ -32,8 +31,8 @@ public:
                 case RVInstr::BLTU:
                 case RVInstr::BGEU: {
                     const auto fields = RVInstrParser::getParser()->decodeB32Instr(instr.uValue());
-                    return VT_U(signextend<VSRTL_VT_S, 13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) |
-                                                           (fields[6] << 11)));
+                    return VT_U(
+                        signextend<13>((fields[0] << 12) | (fields[1] << 5) | (fields[5] << 1) | (fields[6] << 11)));
                 }
                 case RVInstr::LB:
                 case RVInstr::LH:
@@ -51,12 +50,12 @@ public:
                 case RVInstr::SLLI:
                 case RVInstr::SRLI:
                 case RVInstr::SRAI:
-                    return VT_U(signextend<VSRTL_VT_S, 12>((instr.uValue() >> 20)));
+                    return VT_U(signextend<12>((instr.uValue() >> 20)));
                 case RVInstr::SB:
                 case RVInstr::SH:
                 case RVInstr::SW:
                 case RVInstr::SD: {
-                    return VT_U(signextend<VSRTL_VT_S, 12>(((instr.uValue() & 0xfe000000)) >> 20) |
+                    return VT_U(signextend<12>(((instr.uValue() & 0xfe000000)) >> 20) |
                                 ((instr.uValue() & 0xf80) >> 7));
                 }
                 default:
