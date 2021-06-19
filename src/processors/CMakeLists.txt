@@ -13,7 +13,7 @@ endmacro()
 
 macro(create_vsrtl_processor isa name)
     file(GLOB LIB_SOURCES  ${isa}/${name}/*.cpp)
-    file(GLOB LIB_HEADERS RipesVSRTLProcessor.h ${isa}/${name}/*.h)
+    file(GLOB LIB_HEADERS interface/* RipesVSRTLProcessor.h ${isa}/${name}/*.h)
     add_library(${name} ${LIB_SOURCES} ${LIB_HEADERS})
     target_link_libraries(${name} ${VSRTL_CORE_LIB} ${isa}_lib)
     target_include_directories(${name} PUBLIC ${isa})

@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "isa/isainfo.h"
-#include "processors/ripesprocessor.h"
+#include "processors/interface/ripesprocessor.h"
 
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"

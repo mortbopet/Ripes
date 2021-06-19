@@ -1,7 +1,7 @@
 #include "processorhandler.h"
 
 #include "processorregistry.h"
-#include "processors/ripesprocessor.h"
+#include "processors/interface/ripesprocessor.h"
 #include "processors/ripesvsrtlprocessor.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
@@ -346,8 +346,10 @@ bool ProcessorHandler::_isExecutableAddress(uint32_t address) const {
 
 void ProcessorHandler::_checkValidExecutionRange() const {
     const auto pc = m_currentProcessor->nextFetchedAddress();
-    FinalizeReason fr;
-    fr.exitedExecutableRegion = !_isExecutableAddress(pc);
+    unsigned fr = 0;
+    if (!_isExecutableAddress(pc)) {
+        fr |= RipesProcessor::FinalizeReason::exitedExecutableRegion;
+    }
     m_currentProcessor->finalize(fr);
 }
 

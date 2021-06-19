@@ -396,13 +396,13 @@ public:
     AddressSpaceMM& getMemory() override { return *m_memory; }
     unsigned int getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
     AddressSpace& getArchRegisters() override { return *m_regMem; }
-    void finalize(const FinalizeReason& fr) override {
-        if (fr.exitSyscall && !ecallChecker->isSysCallExiting()) {
+    void finalize(const unsigned& fr) override {
+        if ((fr & FinalizeReason::exitSyscall) && !ecallChecker->isSysCallExiting()) {
             // An exit system call was executed. Record the cycle of the execution, and enable the ecallChecker's system
             // call exiting signal.
             m_syscallExitCycle = m_cycleCount;
         }
-        ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || fr.exitSyscall);
+        ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() || (fr & FinalizeReason::exitSyscall));
     }
     const std::vector<unsigned> breakpointTriggeringStages() const override { return {IF}; };
 

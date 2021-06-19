@@ -5,7 +5,7 @@
  */
 
 #include "VSRTL/core/vsrtl_design.h"
-#include "ripesprocessor.h"
+#include "interface/ripesprocessor.h"
 
 namespace Ripes {
 
@@ -13,7 +13,7 @@ class RipesVSRTLProcessor : public RipesProcessor, public vsrtl::core::Design {
 public:
     RipesVSRTLProcessor(std::string name) : Design(name) {
         // VSRTL provides reversible simulation
-        m_features.isReversible = true;
+        m_features = {Features::isReversible | Features::hasDCacheInterface | Features::hasICacheInterface};
 
         // Shim signal emissions from VSRTL to RipesProcessor
         designWasClocked.Connect(&processorWasClocked, &Gallant::Signal0<>::Emit);

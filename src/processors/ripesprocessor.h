@@ -31,9 +31,12 @@ struct StageInfo {
  * Transmitted to the processor to indicate the reason for why the finalization sequence has been initialized.
  */
 struct FinalizeReason {
-    bool exitedExecutableRegion = false;
-    bool exitSyscall = false;
-    bool any() const { return exitedExecutableRegion || exitSyscall; }
+    enum Reason { exitedExecutableRegion = 0b1, exitSyscall = 0b10 };
+    FinalizeReason(unsigned _r = 0) : reason(_r) {}
+    unsigned reason;
+    bool any() const { return reason; }
+    bool is(Reason r) const { return reason & r; };
+    void set(Reason r) { reason |= r; }
 };
 
 /**

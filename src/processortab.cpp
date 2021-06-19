@@ -22,7 +22,7 @@
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
-#include "processors/ripesprocessor.h"
+#include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
 
