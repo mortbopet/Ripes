@@ -25,6 +25,7 @@ Directive byteDirective();
 Directive twoByteDirective();
 Directive fourByteDirective();
 Directive longDirective();
+Directive alignDirective();
 
 Directive textDirective();
 Directive dataDirective();

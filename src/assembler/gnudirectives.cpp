@@ -20,6 +20,7 @@ DirectiveVec gnuDirectives() {
     add_directive(directives, fourByteDirective());
     add_directive(directives, longDirective());
     add_directive(directives, equDirective());
+    add_directive(directives, alignDirective());
 
     add_directive(directives, dataDirective());
     add_directive(directives, textDirective());
@@ -171,6 +172,51 @@ Directive equDirective() {
     };
     return Directive(".equ", equFunctor,
                      true /* Constants should be made available during ie. pseudo instruction expansion */);
+}
+
+#define getImmediateErroring(token, res, _ok)                                    \
+    res = getImmediate(token, _ok);                                              \
+    if (!_ok) {                                                                  \
+        return {Error(arg.line.sourceLine, "Invalid argument '" + token + "'")}; \
+    }
+
+Directive alignDirective() {
+    auto alignFunctor = [](const AssemblerBase*, const DirectiveArg& arg) -> HandleDirectiveRes {
+        if (arg.line.tokens.length() == 0 || arg.line.tokens.length() > 3) {
+            return {Error(arg.line.sourceLine, "Invalid number of arguments (expected at least 1, at most 3)")};
+        }
+        bool ok;
+        int boundary, fill, max;
+        fill = 0;
+        bool hasMax = false;
+
+        getImmediateErroring(arg.line.tokens.at(0), boundary, ok);
+        if (arg.line.tokens.size() > 1) {
+            getImmediateErroring(arg.line.tokens.at(1), fill, ok);
+        }
+        if (arg.line.tokens.size() > 2) {
+            getImmediateErroring(arg.line.tokens.at(2), max, ok);
+            hasMax = true;
+        }
+
+        if (boundary < 0 || fill < 0 || (hasMax && max < 0)) {
+            return {Error(arg.line.sourceLine, ".align arguments must be positive")};
+        }
+        if (fill > UINT8_MAX) {
+            return {Error(arg.line.sourceLine, ".align fill value must be in range [0;255]")};
+        }
+        if (boundary == 0) {
+            return {QByteArray()};
+        }
+        int byteOffset = (arg.section->address + arg.section->data.size()) % boundary;
+        int bytesToSkip = byteOffset != 0 ? boundary - byteOffset : 0;
+        if (max > 0 && bytesToSkip > max) {
+            return {QByteArray()};
+        }
+
+        return {QByteArray(1, static_cast<char>(fill)).repeated(bytesToSkip)};
+    };
+    return Directive(".align", alignFunctor);
 }
 
 }  // namespace Assembler

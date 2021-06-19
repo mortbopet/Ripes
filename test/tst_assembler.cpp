@@ -171,6 +171,17 @@ void tst_Assembler::tst_directives() {
                                << "ch: .half 42"
                                << "cb: .byte 42",
                  Expect::Success, expectData);
+
+    // .align directive
+    expectData.clear();
+    expectData.append(42);
+    expectData.append(QByteArray(1, 0xFE).repeated(3));
+    expectData.append(43);
+    testAssemble(QStringList() << ".data"
+                               << ".byte 42"
+                               << ".align (2 + 2) 0xFE"
+                               << ".byte 43",
+                 Expect::Success, expectData);
 }
 
 void tst_Assembler::tst_expression() {
