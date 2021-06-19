@@ -6,7 +6,7 @@
 #include "Signals/Signal.h"
 #include "VSRTL/core/vsrtl_design.h"
 
-#include "../isa/isainfo.h"
+#include "../../isa/isainfo.h"
 
 namespace Ripes {
 
@@ -24,19 +24,6 @@ struct StageInfo {
         return this->pc == other.pc && this->stage_valid == other.stage_valid && this->state == other.state;
     }
     bool operator!=(const StageInfo& other) const { return !(*this == other); }
-};
-
-/**
- * @brief The FinalizeReason struct
- * Transmitted to the processor to indicate the reason for why the finalization sequence has been initialized.
- */
-struct FinalizeReason {
-    enum Reason { exitedExecutableRegion = 0b1, exitSyscall = 0b10 };
-    FinalizeReason(unsigned _r = 0) : reason(_r) {}
-    unsigned reason;
-    bool any() const { return reason; }
-    bool is(Reason r) const { return reason & r; };
-    void set(Reason r) { reason |= r; }
 };
 
 /**
@@ -63,11 +50,9 @@ public:
      * @brief The Features struct
      * The set of optional features implemented by this processor
      */
-    struct Features {
-        bool isReversible = false;
-    };
+    enum Features { isReversible = 0b1, hasICacheInterface = 0b10, hasDCacheInterface = 0b100 };
 
-    const Features& features() const { return m_features; }
+    unsigned features() const { return m_features; }
 
     /**
      * @brief registerFiles
@@ -196,7 +181,8 @@ public:
      * segment to inside the .text segment. This will typically happen when a control-flow instruction is near the end
      * of the .text segment.
      */
-    virtual void finalize(const FinalizeReason&) = 0;
+    enum FinalizeReason { exitedExecutableRegion = 0b1, exitSyscall = 0b10 };
+    virtual void finalize(const unsigned& finalizeReason) = 0;
 
     /**
      * @brief finished
@@ -259,7 +245,7 @@ public:
 
 protected:
     // m_features should be adjusted accordingly during processor construction
-    Features m_features;
+    unsigned m_features;
     bool m_emitsSignals = true;
 };
 
