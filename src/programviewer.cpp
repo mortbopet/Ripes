@@ -198,7 +198,7 @@ namespace {}
 
 QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
     const unsigned long adjustedLineNumber =
-        (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::currentISA()->bytes();
+        (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::currentISA()->instrBytes();
 
     if (m_labelAddrOffsetMap.empty()) {
         return document()->findBlockByNumber(adjustedLineNumber);
@@ -249,7 +249,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 
 long ProgramViewer::addressForBlock(QTextBlock block) const {
     const static auto calcAddressFunc = [](int lineNumber) {
-        return lineNumber * ProcessorHandler::currentISA()->bytes() + ProcessorHandler::getTextStart();
+        return lineNumber * ProcessorHandler::currentISA()->instrBytes() + ProcessorHandler::getTextStart();
     };
 
     const int lineNumber = block.blockNumber();
