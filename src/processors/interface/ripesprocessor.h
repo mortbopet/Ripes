@@ -234,7 +234,7 @@ public:
      * @brief reverse
      * Reverses the processor, undoing the latest clock cycle
      */
-    virtual void reverse(){};
+    virtual void reverseProcessor(){};
     /**
      * @brief setMaxReverseCycles
      * @p cycles denotes the maximum number of cycles that the processor is expected to be able to reverse.

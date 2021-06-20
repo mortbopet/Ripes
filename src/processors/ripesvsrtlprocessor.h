@@ -23,10 +23,11 @@ public:
 
     virtual void resetProcessor() override {
         m_instructionsRetired = 0;
-        Design::reset();
+        reset();
     }
 
-    virtual void clockProcessor() override { Design::clock(); }
+    virtual void clockProcessor() override { clock(); }
+    virtual void reverseProcessor() override { reverse(); }
 
     long long getInstructionsRetired() const override { return m_instructionsRetired; }
     long long getCycleCount() const override { return m_cycleCount; }
