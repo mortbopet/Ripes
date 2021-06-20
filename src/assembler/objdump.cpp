@@ -61,7 +61,7 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
     return QString();
 }
 
-QString objdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) {
+QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap) {
     auto assembler = ProcessorHandler::getAssembler();
     return stringifyProgram(
         program, 4,
@@ -77,7 +77,7 @@ QString objdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffse
         addrOffsetMap);
 }
 
-QString binobjdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap) {
+QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap) {
     return stringifyProgram(
         program, 4,
         [](const std::vector<char>& buffer, uint32_t) {

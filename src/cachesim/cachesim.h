@@ -63,7 +63,7 @@ public:
      * A function called by the logical "child" of this cache, indicating that it desires to access this cache
      */
     virtual void access(uint32_t address, AccessType type) = 0;
-    void setNextLevelCache(std::shared_ptr<CacheSim>& cache) { m_nextLevelCache = cache; }
+    void setNextLevelCache(const std::shared_ptr<CacheSim>& cache) { m_nextLevelCache = cache; }
 
     /**
      * @brief reset

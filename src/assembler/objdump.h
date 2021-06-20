@@ -22,8 +22,8 @@ namespace Assembler {
  */
 using AddrOffsetMap = std::map<unsigned long, std::pair<int, QString>>;
 
-QString objdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap);
-QString binobjdump(std::shared_ptr<const Program> program, AddrOffsetMap& addrOffsetMap);
+QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap);
+QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap);
 
 }  // namespace Assembler
 }  // namespace Ripes

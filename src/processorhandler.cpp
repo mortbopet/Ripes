@@ -53,7 +53,7 @@ ProcessorHandler::ProcessorHandler() {
     m_syscallManager = std::make_unique<RISCVSyscallManager>();
 }
 
-void ProcessorHandler::loadProgram(std::shared_ptr<Program> p) {
+void ProcessorHandler::loadProgram(const std::shared_ptr<Program>& p) {
     // Stop any currently executing simulation
     stopRun();
 

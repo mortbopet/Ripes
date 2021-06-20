@@ -30,7 +30,7 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
     });
 }
 
-void CacheWidget::setNextLevelCache(std::shared_ptr<CacheSim>& cache) {
+void CacheWidget::setNextLevelCache(const std::shared_ptr<CacheSim>& cache) {
     m_cacheSim.get()->setNextLevelCache(cache);
 }
 

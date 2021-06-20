@@ -87,7 +87,7 @@ void CachePlotWidget::showSizeBreakdown() {
     QMessageBox::information(this, "Cache Size Breakdown", sizeText);
 }
 
-void CachePlotWidget::setCache(std::shared_ptr<CacheSim> cache) {
+void CachePlotWidget::setCache(const std::shared_ptr<CacheSim>& cache) {
     m_cache = cache;
 
     connect(m_cache.get(), &CacheSim::hitrateChanged, this, &CachePlotWidget::updateHitrate);

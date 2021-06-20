@@ -42,7 +42,7 @@ public:
     void loadExternalFile(const LoadFileParams& params);
 
 signals:
-    void programChanged(std::shared_ptr<Program> program);
+    void programChanged(const std::shared_ptr<Program>& program);
     void editorStateChanged(bool enabled);
 
 public slots:

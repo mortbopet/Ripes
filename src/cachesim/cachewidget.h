@@ -23,7 +23,7 @@ public:
     explicit CacheWidget(QWidget* parent = nullptr);
     ~CacheWidget();
 
-    void setNextLevelCache(std::shared_ptr<CacheSim>& cache);
+    void setNextLevelCache(const std::shared_ptr<CacheSim>& cache);
 
     std::shared_ptr<CacheSim>& getCacheSim() { return m_cacheSim; }
     QGraphicsScene* getScene() { return m_scene.get(); }

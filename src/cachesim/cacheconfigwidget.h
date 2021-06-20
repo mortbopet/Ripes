@@ -16,7 +16,7 @@ public:
     CacheConfigWidget(QWidget* parent);
     ~CacheConfigWidget() override;
 
-    void setCache(std::shared_ptr<CacheSim>& cache);
+    void setCache(const std::shared_ptr<CacheSim>& cache);
 
 signals:
     void configurationChanged();

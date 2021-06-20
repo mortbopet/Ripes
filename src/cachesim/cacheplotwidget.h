@@ -48,7 +48,7 @@ class CachePlotWidget : public QWidget {
 public:
     enum Variable { Writes = 0, Reads, Hits, Misses, Writebacks, Accesses, N_TraceVars, Unary };
     explicit CachePlotWidget(QWidget* parent = nullptr);
-    void setCache(std::shared_ptr<CacheSim> cache);
+    void setCache(const std::shared_ptr<CacheSim>& cache);
     ~CachePlotWidget();
 
 public slots:

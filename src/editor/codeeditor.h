@@ -31,7 +31,7 @@ public:
     void setupChangedTimer();
     void rehighlight();
 
-    void setErrors(std::shared_ptr<Assembler::Errors> errors) { m_errors = errors; }
+    void setErrors(const std::shared_ptr<Assembler::Errors>& errors) { m_errors = errors; }
 
 signals:
     /**

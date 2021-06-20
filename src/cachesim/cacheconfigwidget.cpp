@@ -22,7 +22,7 @@ CacheConfigWidget::CacheConfigWidget(QWidget* parent) : QWidget(parent), m_ui(ne
                      m_ui->replacementPolicy, m_ui->wrMiss, m_ui->wrHit};
 }
 
-void CacheConfigWidget::setCache(std::shared_ptr<CacheSim>& cache) {
+void CacheConfigWidget::setCache(const std::shared_ptr<CacheSim>& cache) {
     m_cache = cache;
 
     setupEnumCombobox(m_ui->replacementPolicy, s_cacheReplPolicyStrings);

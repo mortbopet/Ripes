@@ -182,7 +182,7 @@ signals:
     void procStateChangedNonRun();  // processorReset | processorReversed | processorClockedNonRun
 
 public slots:
-    void loadProgram(std::shared_ptr<Program> p);
+    void loadProgram(const std::shared_ptr<Program>& p);
 
 private slots:
     /**

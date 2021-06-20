@@ -36,49 +36,49 @@ struct Literal : Printable {
 };
 
 struct Add : Printable {
-    Add(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    Add(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct Sub : Printable {
-    Sub(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    Sub(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct Mul : Printable {
-    Mul(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    Mul(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct Div : Printable {
-    Div(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    Div(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct Mod : Printable {
-    Mod(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    Mod(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct And : Printable {
-    And(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    And(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct Or : Printable {
-    Or(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    Or(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
 
 struct SignExtend : Printable {
-    SignExtend(std::shared_ptr<Expr> _lhs, std::shared_ptr<Expr> _rhs) : lhs(_lhs), rhs(_rhs) {}
+    SignExtend(const std::shared_ptr<Expr>& _lhs, const std::shared_ptr<Expr>& _rhs) : lhs(_lhs), rhs(_rhs) {}
     std::shared_ptr<Expr> lhs, rhs;
     void print(std::ostream& str) const override;
 };
@@ -148,7 +148,7 @@ using ExprRes = std::variant<Error, std::shared_ptr<Expr>>;
 ExprRes parseRight(const QString& s, int& pos, int& depth);
 
 template <typename BinOp>
-ExprRes rightRec(std::shared_ptr<Expr> lhs, const QString& s, int& pos, int& depth) {
+ExprRes rightRec(const std::shared_ptr<Expr>& lhs, const QString& s, int& pos, int& depth) {
     auto rhs = parseRight(s, pos, depth);
     if (auto* err = std::get_if<Error>(&rhs)) {
         return {*err};
