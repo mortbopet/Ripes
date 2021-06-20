@@ -96,36 +96,75 @@ inline int indentationOf(const QString& text) {
     return indent;
 }
 
+static const std::map<QString, QString> c_bracketPair{{"[", "]"}, {"{", "}"}, {"(", ")"}};
+static const QStringList c_closingBrackets = QStringList{")", "}", "]"};
+static const QStringList c_indentStartCharacters = QStringList{":", "(", "{", "["};
+
 void CodeEditor::keyPressEvent(QKeyEvent* e) {
     const unsigned indentAmt = RipesSettings::value(RIPES_SETTING_INDENTAMT).toUInt();
+
+    const auto preCursorText = textCursor().block().text().left(textCursor().positionInBlock());
+    const auto postCursorText =
+        textCursor().block().text().right(textCursor().block().length() - textCursor().positionInBlock() - 1);
+    const QString preCursorChar = preCursorText.isEmpty() ? QString() : *preCursorText.rbegin();
+    const QString postCursorChar = postCursorText.isEmpty() ? QString() : *postCursorText.begin();
 
     /**
      * The following is a collection of quality-of-life changes to the behaviour of the editor, mimmicking features
      * generally found in IDEs.
      */
-    if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
-        const auto lineText = textCursor().block().text();
+    if (c_closingBrackets.count(e->text()) && postCursorChar == e->text()) {
+        // Skip closing bracket insertion if already present after the current character
+        auto cursor = textCursor();
+        cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor);
+        setTextCursor(cursor);
+    } else if (c_bracketPair.count(e->text()) && (postCursorChar == " " || postCursorChar.isEmpty())) {
+        // Add closing bracket on bracket start
+        QPlainTextEdit::keyPressEvent(e);
+        insertPlainText(c_bracketPair.at(e->text()));
+        auto cursor = textCursor();
+        cursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor);
+        setTextCursor(cursor);
+    } else if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
+        QString toInsert;
         unsigned indent = 0;
-        // QoL 1: maintain level of indentation
-        indent = indentationOf(lineText);
+        unsigned postIndent = 0;
+        // Maintain level of indentation on enter key
+        indent = indentationOf(preCursorText);
 
-        // QoL 2: Further indent if last character was an indent start character
-        const auto trimmedLineText = textCursor().block().text().left(textCursor().positionInBlock()).trimmed();
-        if (!trimmedLineText.isEmpty()) {
-            if (QStringList{":", "(", "{", "["}.contains(QString(trimmedLineText.back()))) {
-                indent += indentAmt;
-            }
+        // If this is the start of a bracket, the remainder of the line text is to be moved to the 2nd line following
+        // the current cursor position. At this line we maintain the current indentation level.
+        auto bracketCharIt = c_bracketPair.find(preCursorChar);
+        if (bracketCharIt != c_bracketPair.end() && bracketCharIt->second == postCursorChar) {
+            postIndent = indent;
+        }
+
+        // Add additional indent if last character was an indent start character, e.g., a bracket
+        if (c_indentStartCharacters.contains(preCursorChar)) {
+            indent += indentAmt;
         }
         QPlainTextEdit::keyPressEvent(e);
         insertPlainText(QString(" ").repeated(indent));
+        if (postIndent != 0) {
+            auto prePos = textCursor().position();
+            insertPlainText("\n" + QString(" ").repeated(postIndent));
+            auto cursor = textCursor();
+            cursor.setPosition(prePos, QTextCursor::MoveAnchor);
+            setTextCursor(cursor);
+        }
     } else if (e->key() == Qt::Key_Tab) {
         insertPlainText(QString(" ").repeated(indentAmt));
     } else if (e->key() == Qt::Key_Backspace) {
-        const auto preLineText = textCursor().block().text().left(textCursor().positionInBlock());
-        if (preLineText.endsWith(QString(" ").repeated(indentAmt))) {
+        // Delete indentation, if present
+        if (preCursorText.endsWith(QString(" ").repeated(indentAmt))) {
             for (unsigned i = 0; i < indentAmt; i++) {
                 textCursor().deletePreviousChar();
             }
+        } else if (!preCursorChar.isEmpty() && !postCursorChar.isEmpty() && c_bracketPair.count(preCursorChar) &&
+                   postCursorChar == c_bracketPair.at(preCursorChar)) {
+            // Delete closing bracket if right after opening bracket
+            textCursor().deletePreviousChar();
+            textCursor().deleteChar();
         } else {
             QPlainTextEdit::keyPressEvent(e);
         }
