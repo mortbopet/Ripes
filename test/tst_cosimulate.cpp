@@ -175,6 +175,10 @@ void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
         QFAIL("No program was loaded!");
     }
 
+    // Override the ProcessorHandler's ECALL handling. In doing so, we can hook into when the EXIT syscall was executed,
+    // to verify whether the correct test value was reached.
+    ProcessorHandler::get()->getProcessorNonConst()->handleSysCall = [=] { handleSysCall(); };
+
     m_stop = false;
     m_err = QString();
     bool maxCyclesReached = false;
@@ -268,10 +272,6 @@ void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extens
 
     for (const auto& test : s_testFiles) {
         m_currentTest = test;
-
-        // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
-        // reached.
-        ProcessorHandler::get()->getProcessorNonConst()->handleSysCall = [=] { handleSysCall(); };
         std::cout << test.filepath.toStdString() << std::endl;
         auto referenceTrace = generateReferenceTrace(extensions);
         ProcessorHandler::get()->selectProcessor(id, extensions);
