@@ -164,8 +164,13 @@ void tst_Cosimulate::loadCurrentTest() {
  * discrepancy is detected.
  */
 void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
+    // Load a program through the edittab. This is not really suited for automatic testing, since the edit tab will
+    // trigger assembling after some timeout. To work around this, we allow for a bit of delay when loading the program.
     loadCurrentTest();
-
+    int timeouts = 5;
+    while (timeouts-- > 0 && !ProcessorHandler::getProgram()) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 500);
+    }
     if (!ProcessorHandler::getProgram()) {
         QFAIL("No program was loaded!");
     }
