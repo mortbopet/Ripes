@@ -36,6 +36,7 @@ public:
     static std::shared_ptr<const Program> getProgram() { return get()->_getProgram(); }
     static const ISAInfoBase* currentISA() { return get()->_currentISA(); }
     static const SyscallManager& getSyscallManager() { return get()->_getSyscallManager(); }
+    static void loadProgram(const std::shared_ptr<Program>& p) { get()->_loadProgram(p); }
 
     /**
      * @brief loadProcessorToWidget
@@ -173,6 +174,7 @@ signals:
      * @brief Various signals wrapping around the direct VSRTL model emission signals. This is done to avoid relying
      * component to having to reconnect to the VSRTL model whenever the processor changes.
      */
+    void programChanged();
     void processorReset();
     void processorReversed();
     // Only connect to this if not updating gui!´ i.e., for logging statistics per cycle. Remember to use
@@ -180,9 +182,6 @@ signals:
     void processorClocked();
     void processorClockedNonRun();  // Only emitted when _not_ running; i.e., for GUI updating
     void procStateChangedNonRun();  // processorReset | processorReversed | processorClockedNonRun
-
-public slots:
-    void loadProgram(const std::shared_ptr<Program>& p);
 
 private slots:
     /**
@@ -193,6 +192,7 @@ private slots:
     void syscallTrap();
 
 private:
+    void _loadProgram(const std::shared_ptr<Program>& p);
     RipesProcessor* _getProcessorNonConst() { return m_currentProcessor.get(); }
     const RipesProcessor* _getProcessor() { return m_currentProcessor.get(); }
     const std::shared_ptr<Assembler::AssemblerBase> _getAssembler() { return m_currentAssembler; }

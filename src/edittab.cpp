@@ -73,6 +73,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &EditTab::updateProgramViewerHighlighting);
+    connect(ProcessorHandler::get(), &ProcessorHandler::programChanged, this, &EditTab::updateProgramViewer);
 
     onProcessorChanged();
     sourceTypeChanged();
@@ -154,8 +155,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
 
     if (success) {
         // Move the shared pointer to be the current active program
-        m_activeProgram = loadedProgram;
-        emitProgramChanged();
+        ProcessorHandler::loadProgram(loadedProgram);
     } else {
         QMessageBox::warning(this, "Error", "Error: Could not load file " + fileParams.filepath);
     }
@@ -164,13 +164,6 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
 
 QString EditTab::getAssemblyText() {
     return m_ui->codeEditor->toPlainText();
-}
-
-const QByteArray* EditTab::getBinaryData() {
-    if (m_activeProgram && (m_activeProgram.get()->sections.count(".text") != 0)) {
-        return &m_activeProgram.get()->sections.at(".text").data;
-    }
-    return nullptr;
 }
 
 void EditTab::clearAssemblyEditor() {
@@ -220,11 +213,6 @@ void EditTab::onProcessorChanged() {
     m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
 }
 
-void EditTab::emitProgramChanged() {
-    emit programChanged(m_activeProgram);
-    updateProgramViewer();
-}
-
 void EditTab::sourceCodeChanged() {
     switch (m_currentSourceType) {
         case SourceType::Assembly:
@@ -242,8 +230,7 @@ void EditTab::assemble() {
                                                              &IOManager::get().assemblerSymbols());
     *m_sourceErrors = res.errors;
     if (m_sourceErrors->size() == 0) {
-        m_activeProgram = std::make_shared<Program>(res.program);
-        emitProgramChanged();
+        ProcessorHandler::loadProgram(std::make_shared<Program>(res.program));
     } else {
         // Errors occured; rehighlight will reflect current m_sourceErrors in the editor
     }
@@ -285,8 +272,7 @@ void EditTab::setSourceText(const QString& text) {
 
 void EditTab::enableAssemblyInput() {
     // Clear currently loaded binary/ELF program
-    m_activeProgram.reset();
-    m_ui->programViewer->clear();
+    updateProgramViewer();
     enableEditor();
 }
 

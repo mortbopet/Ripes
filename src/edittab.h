@@ -48,7 +48,6 @@ signals:
 public slots:
     void onProcessorChanged();
     void updateProgramViewerHighlighting();
-    void emitProgramChanged();
 
     /**
      * @brief sourceTypeChanged
@@ -84,8 +83,6 @@ private:
     QAction* m_symbolNavigatorAction = nullptr;
 
     Ui::EditTab* m_ui = nullptr;
-
-    std::shared_ptr<Program> m_activeProgram;
     std::shared_ptr<Assembler::Errors> m_sourceErrors;
 
     SourceType m_currentSourceType = SourceType::Assembly;

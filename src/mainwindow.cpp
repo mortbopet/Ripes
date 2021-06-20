@@ -96,7 +96,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setupMenus();
 
     // setup and connect widgets
-    connect(editTab, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
     connect(editTab, &EditTab::editorStateChanged, [=] { RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false); });
 
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, processorTab, &ProcessorTab::processorFinished);
@@ -347,9 +346,10 @@ void MainWindow::saveFilesTriggered() {
 
     if (!diag.binaryPath().isEmpty()) {
         QFile file(diag.binaryPath());
-        if (auto* program = static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getBinaryData()) {
+        auto program = ProcessorHandler::getProgram();
+        if (program && (program.get()->sections.count(".text") != 0)) {
             savedFiles << diag.binaryPath();
-            writeBinaryFile(file, *program);
+            writeBinaryFile(file, program.get()->sections.at(".text").data);
             didSave |= true;
         }
     }

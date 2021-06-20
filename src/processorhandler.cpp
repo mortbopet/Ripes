@@ -56,7 +56,7 @@ ProcessorHandler::ProcessorHandler() {
     m_syscallManager = std::make_unique<RISCVSyscallManager>();
 }
 
-void ProcessorHandler::loadProgram(const std::shared_ptr<Program>& p) {
+void ProcessorHandler::_loadProgram(const std::shared_ptr<Program>& p) {
     // Stop any currently executing simulation
     stopRun();
 
@@ -90,6 +90,7 @@ void ProcessorHandler::loadProgram(const std::shared_ptr<Program>& p) {
     }
 
     RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
+    emit programChanged();
 }
 
 void ProcessorHandler::_writeMem(uint32_t address, uint32_t value, int size) {
@@ -244,6 +245,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         loadProgram(m_program);
     } else {
         m_program = nullptr;
+        emit programChanged();
     }
 
     // Reconnect the wrappers for processor signal emission
