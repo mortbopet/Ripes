@@ -24,9 +24,15 @@ static inline QString encodeRadixValue(uint64_t value, const Radix type, unsigne
             return "0x" + QString::number(value, 16).rightJustified(width / 4, '0');
         }
         case Radix::Float: {
-            float _value;  // Copy raw data instead of reinterpret_cast to avoid type-punned pointer error
-            memcpy(&_value, &value, sizeof(value));
-            return QString::number(_value);
+            float _fvalue;  // Copy raw data instead of reinterpret_cast to avoid type-punned pointer error
+            double _dvalue;
+            if (width <= 32) {
+                memcpy(&_fvalue, &value, sizeof(_fvalue));
+                return QString::number(_fvalue);
+            } else {
+                memcpy(&_dvalue, &value, sizeof(_dvalue));
+                return QString::number(_dvalue);
+            }
         }
         case Radix::Binary: {
             return "0b" + QString::number(value, 2).rightJustified(width, '0');
