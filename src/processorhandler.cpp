@@ -214,6 +214,10 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     // Syscall handling initialization
     m_currentProcessor->handleSysCall = [=] { syscallTrap(); };
 
+    // Reset request handling
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
+            [=] { ProcessorHandler::get()->getProcessorNonConst()->resetProcessor(); });
+
     // Register initializations
     auto& regs = m_currentProcessor->getArchRegisters();
     regs.clearInitializationMemories();

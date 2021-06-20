@@ -111,8 +111,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
             [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     // Connect the global reset request signal to reset()
-    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified, this,
-            &ProcessorTab::reset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &ProcessorTab::reset);
 
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
@@ -445,8 +444,6 @@ void ProcessorTab::updateInstructionLabels() {
 
 void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
-    m_vsrtlWidget->reset();
-
     enableSimulatorControls();
     printToLog("\n");
 }
