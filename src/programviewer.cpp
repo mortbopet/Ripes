@@ -55,6 +55,7 @@ void ProgramViewer::updateProgram(bool binary) {
     // but seems to be fixed if we manually clear the selections before we clear (and add new text) to the text
     // edit.
     setExtraSelections({});
+    setTextCursor(QTextCursor());
 
     setPlainText(text);
     updateHighlightedAddresses();
@@ -76,8 +77,11 @@ void ProgramViewer::updateSidebarWidth(int /* newBlockCount */) {
 void ProgramViewer::setCenterAddress(const long address) {
     auto block = blockForAddress(address);
     if (block.isValid()) {
-        setTextCursor(QTextCursor(block));
-        ensureCursorVisible();
+        auto newCursor = QTextCursor(block);
+        if (newCursor.blockNumber() != 0) {
+            setTextCursor(newCursor);
+            ensureCursorVisible();
+        }
     }
 }
 
