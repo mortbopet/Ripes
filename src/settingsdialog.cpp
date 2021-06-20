@@ -290,6 +290,13 @@ QWidget* SettingsDialog::createEditorPage() {
 QWidget* SettingsDialog::createEnvironmentPage() {
     auto [pageWidget, pageLayout] = constructPage();
 
+    auto [uiUpdateMsLabel, uiUpdateMsSb] =
+        createSettingsWidgets<QSpinBox>(RIPES_SETTING_UIUPDATEPS, "Max. UI updates per second");
+    uiUpdateMsSb->setMinimum(1);
+    uiUpdateMsSb->setMaximum(100);
+    appendToLayout({uiUpdateMsLabel, uiUpdateMsSb}, pageLayout,
+                   "Maximum updates of UI elements per second. Increasing this may reduce performance.");
+
     auto [maxcyclesLabel, maxcyclesSb] =
         createSettingsWidgets<QSpinBox>(RIPES_SETTING_CACHE_MAXCYCLES, "Max. cache plot cycles");
     maxcyclesSb->setMinimum(0);

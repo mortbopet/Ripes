@@ -20,6 +20,7 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_CONSOLEFONT, QVariant() /* Let Console define its own default font */},
     {RIPES_SETTING_CONSOLEFONT, QColorConstants::Black},
     {RIPES_SETTING_INDENTAMT, 4},
+    {RIPES_SETTING_UIUPDATEPS, 15},
 
     {RIPES_SETTING_ASSEMBLER_TEXTSTART, 0x0},
     {RIPES_SETTING_ASSEMBLER_DATASTART, 0x10000000},

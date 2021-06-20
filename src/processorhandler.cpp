@@ -31,9 +31,12 @@ ProcessorHandler::ProcessorHandler() {
                      ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
-    constexpr int f_pscSignal = 15;
     m_procStateChangeTimer.setSingleShot(true);
-    m_procStateChangeTimer.setInterval(1000 / f_pscSignal);
+    m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, [=] {
+        m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+    });
+
     connect(&m_procStateChangeTimer, &QTimer::timeout, this, [=] {
         emit procStateChangedNonRun();
         m_enqueueStateChangeLock.lock();

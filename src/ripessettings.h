@@ -17,6 +17,7 @@ namespace Ripes {
 #define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
 #define RIPES_SETTING_CONSOLEFONT ("console_font")
 #define RIPES_SETTING_INDENTAMT ("editor_indent")
+#define RIPES_SETTING_UIUPDATEPS ("ui_update_ps")
 
 #define RIPES_SETTING_ASSEMBLER_TEXTSTART ("text_start")
 #define RIPES_SETTING_ASSEMBLER_DATASTART ("data_start")

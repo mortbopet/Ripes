@@ -97,10 +97,13 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     setupSimulatorActions(controlToolbar);
 
-    // Setup statistics update timer
+    // Setup statistics update timer - this timer is distinct from the ProcessorHandler's update timer, given that it
+    // needs to run during 'running' the processor.
     m_statUpdateTimer = new QTimer(this);
-    m_statUpdateTimer->setInterval(100);
+    m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
     connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
+    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified,
+            [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt()); });
 
     connect(m_ui->clearConsoleButton, &QPushButton::clicked, m_ui->console, &Console::clearConsole);
     m_ui->clearConsoleButton->setIcon(QIcon(":/icons/clear.svg"));
