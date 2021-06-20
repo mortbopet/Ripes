@@ -13,9 +13,11 @@
 #include <QLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QStackedWidget>
+
 #include "utilities/hexspinbox.h"
 
 namespace Ripes {
@@ -124,10 +126,10 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::
     setWindowTitle("Settings");
 
     // Create settings pages
-    addPage("Editor", createEditorPage());
-    addPage("Compiler", createCompilerPage());
-    addPage("Simulator", createSimulatorPage());
     addPage("Environment", createEnvironmentPage());
+    addPage("Simulator", createSimulatorPage());
+    addPage("Compiler", createCompilerPage());
+    addPage("Editor", createEditorPage());
 
     m_ui->settingsList->setCurrentRow(RipesSettings::value(RIPES_SETTING_SETTING_TAB).toInt());
 }
@@ -362,7 +364,11 @@ void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets
 }
 
 void SettingsDialog::addPage(const QString& name, QWidget* page) {
-    const int index = m_ui->settingsPages->addWidget(page);
+    auto* scrollArea = new QScrollArea();
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(page);
+    const int index = m_ui->settingsPages->addWidget(scrollArea);
     m_pageIndex[name] = index;
 
     auto* item = new QListWidgetItem(name);
