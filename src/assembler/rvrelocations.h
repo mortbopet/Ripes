@@ -24,9 +24,10 @@ template <typename Reg_T, typename Instr_T>
 Relocation<Reg_T, Instr_T> rv_pcrel_lo() {
     return Relocation<Reg_T, Instr_T>(
         "%pcrel_lo", [](const Reg_T symbol_address, const Reg_T reloc_addr) -> HandleRelocationRes<Reg_T> {
+            using Reg_T_S = typename std::make_signed<Reg_T>::type;
             const uint32_t _hi20 = hi20(symbol_address, reloc_addr);
             const uint32_t lo12 = symbol_address - (reloc_addr % 0xFFFFF000) - (_hi20 << 12);
-            return {vsrtl::signextend<12, Reg_T>(lo12)};
+            return {static_cast<Reg_T>(static_cast<Reg_T_S>(vsrtl::signextend(lo12, 12)))};
         });
 }
 
