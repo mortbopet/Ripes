@@ -27,7 +27,7 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 void InstructionModel::updateRowCount() {
-    m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
+    m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->instrBytes();
 }
 
 int InstructionModel::rowCount(const QModelIndex&) const {
