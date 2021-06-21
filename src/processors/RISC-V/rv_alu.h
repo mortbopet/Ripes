@@ -138,13 +138,13 @@ public:
                     return VT_U(signextend<32>(op1.uValue() - op2.uValue()));
 
                 case ALUOp::SLW:
-                    return VT_U(signextend<32>(op1.uValue() << (op2.uValue() & generateBitmask(5))));
+                    return VT_U(signextend<32>(op1.uValue() << (op2.uValue() & generateBitmask<5>())));
 
                 case ALUOp::SRAW:
-                    return VT_U(signextend<32>(op1.sValue() >> (op2.uValue() & generateBitmask(5))));
+                    return VT_U(signextend<32>(op1.sValue() >> (op2.uValue() & generateBitmask<5>())));
 
                 case ALUOp::SRLW:
-                    return VT_U(signextend<32>(op1.uValue() >> (op2.uValue() & generateBitmask(5))));
+                    return VT_U(signextend<32>(op1.uValue() >> (op2.uValue() & generateBitmask<5>())));
 
                 default:
                     throw std::runtime_error("Invalid ALU opcode");
