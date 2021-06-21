@@ -43,9 +43,10 @@ DirectiveVec gnuDirectives() {
 
 template <size_t size>
 std::optional<Error> assembleData(const AssemblerBase* assembler, const TokenizedSrcLine& line, QByteArray& byteArray) {
-    static_assert(size >= 1);
+    static_assert(size >= 1, "");
     for (const auto& token : line.tokens) {
-        long val;
+        int64_t val;
+        static_assert(sizeof(val) >= size, "Requested data width greater than what is representable");
         getImmediateErroring(token, val, line.sourceLine);
 
         if (isUInt<size * 8>(val) || isInt<size * 8>(val)) {
@@ -201,7 +202,7 @@ Directive alignDirective() {
             return {Error(arg.line.sourceLine, "Invalid number of arguments (expected at least 1, at most 3)")};
         }
         int boundary, fill, max;
-        fill = 0;
+        fill = max = 0;
         bool hasMax = false;
 
         getImmediateErroring(arg.line.tokens.at(0), boundary, arg.line.sourceLine);
