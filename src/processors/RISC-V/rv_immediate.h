@@ -10,13 +10,15 @@ using namespace Ripes;
 
 template <unsigned XLEN>
 class Immediate : public Component {
+    static_assert(XLEN == 32 || XLEN == 64, "Only RV32 and RV64 are supported");
+
 public:
     Immediate(std::string name, SimComponent* parent) : Component(name, parent) {
         imm << [=] {
             Switch(opcode, RVInstr) {
                 case RVInstr::LUI:
                 case RVInstr::AUIPC:
-                    return instr.uValue() & 0xfffff000;
+                    return VT_U(signextend<32>(instr.uValue() & 0xfffff000));
                 case RVInstr::JAL: {
                     const auto fields = RVInstrParser::getParser()->decodeJ32Instr(instr.uValue());
                     return VT_U(signextend<21>(fields[0] << 20 | fields[1] << 1 | fields[2] << 11 | fields[3] << 12));
@@ -47,10 +49,21 @@ public:
                 case RVInstr::XORI:
                 case RVInstr::ORI:
                 case RVInstr::ANDI:
+                case RVInstr::ADDIW:
+                    return VT_U(signextend<12>((instr.uValue() >> 20)));
                 case RVInstr::SLLI:
                 case RVInstr::SRLI:
-                case RVInstr::SRAI:
-                    return VT_U(signextend<12>((instr.uValue() >> 20)));
+                case RVInstr::SRAI: {
+                    if constexpr (XLEN == 32) {
+                        return VT_U((instr.uValue() >> 20) & 0b11111);
+                    } else {
+                        return VT_U((instr.uValue() >> 20) & 0b111111);
+                    }
+                }
+                case RVInstr::SLLIW:
+                case RVInstr::SRLIW:
+                case RVInstr::SRAIW:
+                    return VT_U((instr.uValue() >> 20) & 0b11111);
                 case RVInstr::SB:
                 case RVInstr::SH:
                 case RVInstr::SW:

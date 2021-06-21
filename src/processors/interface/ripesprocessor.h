@@ -37,14 +37,14 @@ struct StageInfo {
 class RipesProcessor {
 public:
     RipesProcessor() {}
-    virtual ~RipesProcessor(){};
+    virtual ~RipesProcessor() {}
 
     /**
      * @brief postConstruct
      * Called after the processor has been constructed. Implementing processors can use this to start any initialization
      * which must be performed after class construction.
      */
-    virtual void postConstruct(){};
+    virtual void postConstruct() {}
 
     /**
      * @brief The Features struct
@@ -84,26 +84,26 @@ public:
      * @param stageIndex
      * @return Program counter currently present in stage @param stageIndex
      */
-    virtual unsigned int getPcForStage(unsigned int stageIndex) const = 0;
+    virtual unsigned int getPcForStage(unsigned stageIndex) const = 0;
 
     /**
      * @brief stageName
      * @return name of stage identified by @param stageIndex
      */
-    virtual QString stageName(unsigned int stageIndex) const = 0;
+    virtual QString stageName(unsigned stageIndex) const = 0;
 
     /**
      * @brief nextFetchedAddress
      * @return Address which will be fetched from instruction memory in the next clock cycle
      */
-    virtual unsigned int nextFetchedAddress() const = 0;
+    virtual uint64_t nextFetchedAddress() const = 0;
 
     /**
      * @brief stageInfo
      * @param stageIndex
      * @return Additional info related to the state of stage @param stageIndex in the current cycle
      */
-    virtual StageInfo stageInfo(unsigned int stageIndex) const = 0;
+    virtual StageInfo stageInfo(unsigned stageIndex) const = 0;
 
     /**
      * @brief breakpointTriggeringStages
@@ -131,7 +131,7 @@ public:
      * @param i: register index
      * @return value currently present in register @p i
      */
-    virtual unsigned int getRegister(RegisterFileType rfid, unsigned i) const = 0;
+    virtual uint64_t getRegister(RegisterFileType rfid, unsigned i) const = 0;
 
     /**
      * @brief getArchRegisters
@@ -145,19 +145,19 @@ public:
      * @param i: register index
      * Set the value of register @param i to @param v.
      */
-    virtual void setRegister(RegisterFileType rfid, unsigned i, uint32_t v) = 0;
+    virtual void setRegister(RegisterFileType rfid, unsigned i, uint64_t v) = 0;
 
     /**
      * @brief setProgramCounter
      * Sets the program counter of the processor to @param address
      */
-    virtual void setProgramCounter(uint32_t address) = 0;
+    virtual void setProgramCounter(uint64_t address) = 0;
 
     /**
      * @brief setPCInitialValue
      * Sets the program counters value upon reset to @param address
      */
-    virtual void setPCInitialValue(uint32_t address) = 0;
+    virtual void setPCInitialValue(uint64_t address) = 0;
 
     /**
      * @brief reset
@@ -216,7 +216,7 @@ public:
      * Callback that the processor can use to query the Ripes environment. Returns whether the @p
      * address is an address which is valid to be executed.
      */
-    std::function<bool(uint32_t)> isExecutableAddress;
+    std::function<bool(uint64_t)> isExecutableAddress;
 
     /**
      * @brief handleSysCall
@@ -234,12 +234,12 @@ public:
      * @brief reverse
      * Reverses the processor, undoing the latest clock cycle
      */
-    virtual void reverseProcessor(){};
+    virtual void reverseProcessor() {}
     /**
      * @brief setMaxReverseCycles
      * @p cycles denotes the maximum number of cycles that the processor is expected to be able to reverse.
      */
-    virtual void setMaxReverseCycles(unsigned cycles) { Q_UNUSED(cycles); };
+    virtual void setMaxReverseCycles(unsigned cycles) { Q_UNUSED(cycles); }
 
     /** ======================================================================*/
 

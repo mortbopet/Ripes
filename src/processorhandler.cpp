@@ -79,7 +79,7 @@ void ProcessorHandler::_loadProgram(const std::shared_ptr<Program>& p) {
     const auto textEnd = textSection->address + textSection->data.length();
 
     // Update breakpoints to stay within the loaded program range
-    std::vector<uint32_t> bpsToRemove;
+    std::vector<uint64_t> bpsToRemove;
     for (const auto& bp : m_breakpoints) {
         if ((bp < textStart) || (bp >= textEnd)) {
             bpsToRemove.push_back(bp);
@@ -93,7 +93,7 @@ void ProcessorHandler::_loadProgram(const std::shared_ptr<Program>& p) {
     emit programChanged();
 }
 
-void ProcessorHandler::_writeMem(uint32_t address, uint32_t value, int size) {
+void ProcessorHandler::_writeMem(uint64_t address, uint64_t value, int size) {
     m_currentProcessor->getMemory().writeMem(address, value, size);
 }
 
@@ -151,7 +151,7 @@ void ProcessorHandler::_run() {
     m_runWatcher.setFuture(m_vsrtlWidget->run(cycleFunctor));
 }
 
-void ProcessorHandler::_setBreakpoint(const uint32_t address, bool enabled) {
+void ProcessorHandler::_setBreakpoint(const uint64_t address, bool enabled) {
     if (enabled && _isExecutableAddress(address)) {
         m_breakpoints.insert(address);
     } else {
@@ -168,7 +168,7 @@ void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
     }
 }
 
-bool ProcessorHandler::_hasBreakpoint(const uint32_t address) const {
+bool ProcessorHandler::_hasBreakpoint(const uint64_t address) const {
     return m_breakpoints.count(address);
 }
 
@@ -182,7 +182,7 @@ bool ProcessorHandler::_checkBreakpoint() {
     return false;
 }
 
-void ProcessorHandler::_toggleBreakpoint(const uint32_t address) {
+void ProcessorHandler::_toggleBreakpoint(const uint64_t address) {
     _setBreakpoint(address, !hasBreakpoint(address));
 }
 
@@ -213,7 +213,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
 
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);
-    m_currentProcessor->isExecutableAddress = [=](uint32_t address) { return _isExecutableAddress(address); };
+    m_currentProcessor->isExecutableAddress = [=](uint64_t address) { return _isExecutableAddress(address); };
 
     // Syscall handling initialization
     m_currentProcessor->handleSysCall = [=] { syscallTrap(); };
@@ -234,8 +234,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
             ptrValueBytes.push_back(static_cast<char>(ptrValue & 0xFF));
             ptrValue >>= CHAR_BIT;
         }
-        regs.addInitializationMemory(kv.first << ceillog2(m_currentProcessor->implementsISA()->bytes()),
-                                     ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
+        regs.addInitializationMemory(kv.first * 4, ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
     }
 
     m_currentProcessor->postConstruct();
@@ -292,7 +291,7 @@ unsigned long ProcessorHandler::_getTextStart() const {
     return 0;
 }
 
-QString ProcessorHandler::_disassembleInstr(const uint32_t addr) const {
+QString ProcessorHandler::_disassembleInstr(const uint64_t addr) const {
     if (m_program) {
         return m_currentAssembler
             ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
@@ -342,7 +341,7 @@ void ProcessorHandler::_stopRun() {
     SystemIO::abortSyscall(false);
 }
 
-bool ProcessorHandler::_isExecutableAddress(uint32_t address) const {
+bool ProcessorHandler::_isExecutableAddress(uint64_t address) const {
     if (m_program) {
         if (auto* textSection = m_program->getSection(TEXT_SECTION_NAME)) {
             const auto textStart = textSection->address;
@@ -362,11 +361,11 @@ void ProcessorHandler::_checkValidExecutionRange() const {
     m_currentProcessor->finalize(fr);
 }
 
-void ProcessorHandler::_setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value) {
+void ProcessorHandler::_setRegisterValue(RegisterFileType rfid, const unsigned idx, uint64_t value) {
     m_currentProcessor->setRegister(rfid, idx, value);
 }
 
-uint32_t ProcessorHandler::_getRegisterValue(RegisterFileType rfid, const unsigned idx) const {
+uint64_t ProcessorHandler::_getRegisterValue(RegisterFileType rfid, const unsigned idx) const {
     return m_currentProcessor->getRegister(rfid, idx);
 }
 }  // namespace Ripes

@@ -41,7 +41,11 @@ static inline QString encodeRadixValue(uint64_t value, const Radix type, unsigne
             return QString::number(value, 10);
         }
         case Radix::Signed: {
-            return QString::number(static_cast<uint64_t>(value), 10);
+            if (width == 32) {
+                return QString::number(static_cast<int32_t>(value), 10);
+            } else {
+                return QString::number(static_cast<int64_t>(value), 10);
+            }
         }
         case Radix::ASCII: {
             QString str;

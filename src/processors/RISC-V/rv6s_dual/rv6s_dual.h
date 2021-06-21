@@ -38,9 +38,11 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-template <unsigned XLEN>
+template <typename XLEN_T>
 class RV6S_DUAL : public RipesVSRTLProcessor {
-    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+    static_assert(std::is_same<uint32_t, XLEN_T>::value || std::is_same<uint64_t, XLEN_T>::value,
+                  "Only supports 32- and 64-bit variants");
+    static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
     enum Stage {
@@ -589,7 +591,7 @@ public:
         Q_UNREACHABLE();
         // clang-format on
     }
-    unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
+    uint64_t nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int idx) const override {
         // clang-format off
         switch (idx) {
@@ -718,13 +720,13 @@ public:
         return StageInfo({getPcForStage(stage), stageValid, state});
     }
 
-    void setProgramCounter(uint32_t address) override {
+    void setProgramCounter(uint64_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
     }
-    void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
+    void setPCInitialValue(uint64_t address) override { pc_reg->setInitValue(address); }
     AddressSpaceMM& getMemory() override { return *m_memory; }
-    unsigned int getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
+    uint64_t getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
     AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const unsigned& fr) override {
         if ((fr & FinalizeReason::exitSyscall) && !ecallChecker->isSysCallExiting()) {
@@ -750,7 +752,7 @@ public:
         return allStagesInvalid;
     }
 
-    void setRegister(RegisterFileType, unsigned i, uint32_t v) override {
+    void setRegister(RegisterFileType, unsigned i, uint64_t v) override {
         setSynchronousValue(registerFile->rf_1->_wr_mem, i, v);
     }
 

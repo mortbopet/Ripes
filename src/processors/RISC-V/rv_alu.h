@@ -120,7 +120,7 @@ public:
                     return op1.uValue() >> op2.uValue();
 
                 case ALUOp::LUI:
-                    return op2.uValue();
+                    return VT_U(signextend<32>(op2.uValue()));
 
                 case ALUOp::LT:
                     return VT_U(op1.sValue() < op2.sValue() ? 1 : 0);

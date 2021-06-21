@@ -67,7 +67,7 @@ public:
      * @brief isExecutableAddress
      * @returns whether @param address is within the executable section of the currently loaded program.
      */
-    static bool isExecutableAddress(uint32_t address) { return get()->_isExecutableAddress(address); }
+    static bool isExecutableAddress(uint64_t address) { return get()->_isExecutableAddress(address); }
 
     /**
      * @brief getCurrentProgramSize
@@ -85,7 +85,7 @@ public:
      * @brief disassembleInstr
      * @return disassembled representation of the instruction at @param addr in the current program
      */
-    static QString disassembleInstr(const uint32_t address) { return get()->_disassembleInstr(address); }
+    static QString disassembleInstr(const uint64_t address) { return get()->_disassembleInstr(address); }
 
     /**
      * @brief getMemory & getRegisters
@@ -100,7 +100,7 @@ public:
      * @brief setRegisterValue
      * Set the value of register @param idx to @param value.
      */
-    static void setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value) {
+    static void setRegisterValue(RegisterFileType rfid, const unsigned idx, uint64_t value) {
         get()->_setRegisterValue(rfid, idx, value);
     }
     /**
@@ -108,7 +108,7 @@ public:
      * writes @p value from the given @p address start, and up to @p size bytes of @p value into the
      * memory of the simulator
      */
-    static void writeMem(uint32_t address, uint32_t value, int size = sizeof(uint32_t)) {
+    static void writeMem(uint64_t address, uint64_t value, int size = sizeof(uint64_t)) {
         get()->_writeMem(address, value, size);
     }
 
@@ -116,14 +116,14 @@ public:
      * @brief getRegisterValue
      * @returns value of register @param idx
      */
-    static uint32_t getRegisterValue(RegisterFileType rfid, const unsigned idx) {
+    static uint64_t getRegisterValue(RegisterFileType rfid, const unsigned idx) {
         return get()->_getRegisterValue(rfid, idx);
     }
 
     static bool checkBreakpoint() { return get()->_checkBreakpoint(); }
-    static void setBreakpoint(const uint32_t address, bool enabled) { get()->_setBreakpoint(address, enabled); }
-    static void toggleBreakpoint(const uint32_t address) { get()->_toggleBreakpoint(address); }
-    static bool hasBreakpoint(const uint32_t address) { return get()->_hasBreakpoint(address); }
+    static void setBreakpoint(const uint64_t address, bool enabled) { get()->_setBreakpoint(address, enabled); }
+    static void toggleBreakpoint(const uint64_t address) { get()->_toggleBreakpoint(address); }
+    static bool hasBreakpoint(const uint64_t address) { return get()->_hasBreakpoint(address); }
     static void clearBreakpoints() { get()->_clearBreakpoints(); }
     static void checkProcessorFinished() { get()->_checkProcessorFinished(); }
     static bool isRunning() { return get()->_isRunning(); }
@@ -204,21 +204,21 @@ private:
     void _selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
                           RegisterInitialization setup = RegisterInitialization());
     void _checkValidExecutionRange() const;
-    bool _isExecutableAddress(uint32_t address) const;
+    bool _isExecutableAddress(uint64_t address) const;
     int _getCurrentProgramSize() const;
     unsigned long _getTextStart() const;
-    QString _disassembleInstr(const uint32_t address) const;
+    QString _disassembleInstr(const uint64_t address) const;
     vsrtl::core::AddressSpaceMM& _getMemory();
     const vsrtl::core::AddressSpace& _getRegisters() const;
     const vsrtl::core::BaseMemory<true>* _getDataMemory() const;
     const vsrtl::core::BaseMemory<true>* _getInstrMemory() const;
-    void _setRegisterValue(RegisterFileType rfid, const unsigned idx, uint32_t value);
-    void _writeMem(uint32_t address, uint32_t value, int size = sizeof(uint32_t));
-    uint32_t _getRegisterValue(RegisterFileType rfid, const unsigned idx) const;
+    void _setRegisterValue(RegisterFileType rfid, const unsigned idx, uint64_t value);
+    void _writeMem(uint64_t address, uint64_t value, int size = sizeof(uint64_t));
+    uint64_t _getRegisterValue(RegisterFileType rfid, const unsigned idx) const;
     bool _checkBreakpoint();
-    void _setBreakpoint(const uint32_t address, bool enabled);
-    void _toggleBreakpoint(const uint32_t address);
-    bool _hasBreakpoint(const uint32_t address) const;
+    void _setBreakpoint(const uint64_t address, bool enabled);
+    void _toggleBreakpoint(const uint64_t address);
+    bool _hasBreakpoint(const uint64_t address) const;
     void _clearBreakpoints();
     void _checkProcessorFinished();
     bool _isRunning();
@@ -249,7 +249,7 @@ private:
      */
     vsrtl::VSRTLWidget* m_vsrtlWidget = nullptr;
 
-    std::set<uint32_t> m_breakpoints;
+    std::set<uint64_t> m_breakpoints;
     std::shared_ptr<Program> m_program;
 
     QFutureWatcher<void> m_runWatcher;

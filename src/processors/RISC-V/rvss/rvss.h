@@ -22,9 +22,11 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-template <unsigned XLEN>
+template <typename XLEN_T>
 class RVSS : public RipesVSRTLProcessor {
-    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+    static_assert(std::is_same<uint32_t, XLEN_T>::value || std::is_same<uint64_t, XLEN_T>::value,
+                  "Only supports 32- and 64-bit variants");
+    static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
     RVSS(const QStringList& extensions) : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
@@ -153,18 +155,18 @@ public:
     // Ripes interface compliance
     unsigned int stageCount() const override { return 1; }
     unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
-    unsigned int nextFetchedAddress() const override { return pc_src->out.uValue(); }
+    uint64_t nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int) const override { return "•"; }
     StageInfo stageInfo(unsigned int) const override {
         return StageInfo({pc_reg->out.uValue(), isExecutableAddress(pc_reg->out.uValue()), StageInfo::State::None});
     }
-    void setProgramCounter(uint32_t address) override {
+    void setProgramCounter(uint64_t address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
     }
-    void setPCInitialValue(uint32_t address) override { pc_reg->setInitValue(address); }
+    void setPCInitialValue(uint64_t address) override { pc_reg->setInitValue(address); }
     AddressSpaceMM& getMemory() override { return *m_memory; }
-    unsigned int getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
+    uint64_t getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
     AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const unsigned& fr) override {
         if (fr) {
@@ -173,12 +175,12 @@ public:
         }
     }
     bool finished() const override { return m_finished; }
-    const std::vector<unsigned> breakpointTriggeringStages() const override { return {0}; };
+    const std::vector<unsigned> breakpointTriggeringStages() const override { return {0}; }
 
     const BaseMemory<true>* getDataMemory() const override { return data_mem; }
     const BaseMemory<true>* getInstrMemory() const override { return instr_mem; }
 
-    void setRegister(RegisterFileType, unsigned i, uint32_t v) override {
+    void setRegister(RegisterFileType, unsigned i, uint64_t v) override {
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 
@@ -214,8 +216,8 @@ public:
         return &s_isa;
     }
 
-    const ISAInfoBase* supportsISA() const override { return ISA(); };
-    const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
+    const ISAInfoBase* supportsISA() const override { return ISA(); }
+    const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); }
     const std::set<RegisterFileType> registerFiles() const override {
         std::set<RegisterFileType> rfs;
         rfs.insert(RegisterFileType::GPR);
