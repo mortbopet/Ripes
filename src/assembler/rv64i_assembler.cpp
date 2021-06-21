@@ -11,11 +11,11 @@
 namespace Ripes {
 namespace Assembler {
 
-RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa) : Assembler(isa) {
+RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa) : Assembler<Reg_T, Instr_T>(isa) {
     auto [instrs, pseudos] = initInstructions(isa);
 
     auto directives = gnuDirectives();
-    auto relocations = rvRelocations();
+    auto relocations = rvRelocations<Reg_T, Instr_T>();
     initialize(instrs, pseudos, directives, relocations);
 
     // Initialize segment pointers
@@ -32,9 +32,10 @@ RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa) : Assembler(isa
             [this](const QVariant& value) { setSegmentBase(".bss", value.toUInt()); });
 }
 
-std::tuple<InstrVec, PseudoInstrVec> RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I>* isa) const {
-    InstrVec instructions;
-    PseudoInstrVec pseudoInstructions;
+std::tuple<RV64I_Assembler::_InstrVec, RV64I_Assembler::_PseudoInstrVec>
+RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I>* isa) const {
+    _InstrVec instructions;
+    _PseudoInstrVec pseudoInstructions;
 
     enableExtI(isa, instructions, pseudoInstructions);
     for (const auto& extension : isa->enabledExtensions()) {
@@ -49,8 +50,8 @@ std::tuple<InstrVec, PseudoInstrVec> RV64I_Assembler::initInstructions(const ISA
     return {instructions, pseudoInstructions};
 }
 
-void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) {
-    RV32I_Assembler::enableExtI(
+void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions) {
+    RV32I_Assembler::extI<Reg_T, Instr_T>::enable(
         isa, instructions, pseudoInstructions,
         {RV32I_Assembler::Options::shifts64BitVariant, RV32I_Assembler::Options::LI64BitVariant});
 
@@ -72,19 +73,19 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, InstrVec& instructions,
 
     pseudoInstructions.push_back(PseudoLoad(Token("ld")));
     pseudoInstructions.push_back(PseudoStore(Token("sd")));
-    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
         Token("negw"), {RegTok, RegTok}, _PseudoExpandFunc(line) {
             return LineTokensVec{LineTokens{Token("subw"), line.tokens.at(1), Token("x0"), line.tokens.at(2)}};
         })));
 
-    pseudoInstructions.push_back(std::shared_ptr<PseudoInstruction>(new PseudoInstruction(
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
         Token("sext.w"), {RegTok, RegTok}, _PseudoExpandFunc(line) {
             return LineTokensVec{LineTokens{Token("addiw"), line.tokens.at(1), line.tokens.at(2), Token("0x0")}};
         })));
 }
 
-void RV64I_Assembler::enableExtM(const ISAInfoBase* isa, InstrVec& instructions, PseudoInstrVec& pseudoInstructions) {
-    RV32I_Assembler::enableExtM(isa, instructions, pseudoInstructions);
+void RV64I_Assembler::enableExtM(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions) {
+    RV32I_Assembler::extM<Reg_T, Instr_T>::enable(isa, instructions, pseudoInstructions);
 }
 
 }  // namespace Assembler

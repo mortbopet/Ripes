@@ -2,17 +2,20 @@
 
 #include <iostream>
 #include <memory>
+#include <numeric>
+
 #include "instruction.h"
 
 namespace Ripes {
 namespace Assembler {
 
+template <typename Reg_T, typename Instr_T>
 class Matcher {
     struct MatchNode {
-        MatchNode(OpPart _matcher) : matcher(_matcher) {}
-        OpPart matcher;
+        MatchNode(OpPart<Instr_T> _matcher) : matcher(_matcher) {}
+        OpPart<Instr_T> matcher;
         std::vector<MatchNode> children;
-        std::shared_ptr<Instruction> instruction;
+        std::shared_ptr<Instruction<Reg_T, Instr_T>> instruction;
 
         void print(unsigned depth = 0) const {
             if (depth == 0) {
@@ -40,11 +43,11 @@ class Matcher {
     };
 
 public:
-    Matcher(const std::vector<std::shared_ptr<Instruction>>& instructions)
+    Matcher(const std::vector<std::shared_ptr<Instruction<Reg_T, Instr_T>>>& instructions)
         : m_matchRoot(buildMatchTree(instructions, 1)) {}
     void print() const { m_matchRoot.print(); }
 
-    std::variant<Error, const Instruction*> matchInstruction(uint32_t instruction) const {
+    std::variant<Error, const Instruction<Reg_T, Instr_T>*> matchInstruction(const Instr_T& instruction) const {
         auto match = matchInstructionRec(instruction, m_matchRoot, true);
         if (match == nullptr) {
             return Error(0, "Unknown instruction");
@@ -53,7 +56,8 @@ public:
     }
 
 private:
-    const Instruction* matchInstructionRec(uint32_t instruction, const MatchNode& node, bool isRoot) const {
+    const Instruction<Reg_T, Instr_T>* matchInstructionRec(const Instr_T& instruction, const MatchNode& node,
+                                                           bool isRoot) const {
         if (isRoot || node.matcher.matches(instruction)) {
             if (node.children.size() > 0) {
                 for (const auto& child : node.children) {
@@ -68,9 +72,10 @@ private:
         return nullptr;
     }
 
-    MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction>>& instructions,
-                             const unsigned fieldDepth = 1, OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-        std::map<OpPart, InstrVec> instrsWithEqualOpPart;
+    MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction<Reg_T, Instr_T>>>& instructions,
+                             const unsigned fieldDepth = 1,
+                             OpPart<Instr_T> matcher = OpPart<Instr_T>(0, BitRange<Instr_T>(0, 0, 2))) {
+        std::map<OpPart<Instr_T>, InstrVec<Reg_T, Instr_T>> instrsWithEqualOpPart;
 
         for (const auto& instr : instructions) {
             if (auto instrRef = instr.get()) {

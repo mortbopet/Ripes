@@ -29,7 +29,6 @@ class tst_Assembler : public QObject {
     Q_OBJECT
 
 private slots:
-    void tst_riscv();
     void tst_simpleprogram();
     void tst_simpleWithBranch();
     void tst_segment();
@@ -44,10 +43,9 @@ private slots:
     void tst_expression();
     void tst_invalidLabel();
     void tst_directives();
+    void tst_riscv();
 
 private:
-    std::vector<std::shared_ptr<Instruction>> createInstructions();
-
     QString createProgram(int entries) {
         QString out;
         out += ".data\n";
@@ -122,8 +120,8 @@ void tst_Assembler::tst_riscv() {
         auto program = QString(f.readAll());
         auto res = ProcessorHandler::getAssembler()->assembleRaw(program);
         if (res.errors.size() != 0) {
-            res.errors.print();
-            const QString errstr = "Failed wile assembling file" + filename;
+            QString errstr = "Failed while assembling file" + filename + "\n";
+            errstr += res.errors.toString();
             QFAIL(errstr.toStdString().c_str());
         }
     };
@@ -180,6 +178,7 @@ void tst_Assembler::tst_directives() {
                                << "cb: .byte 42",
                  Expect::Success, expectData);
 
+    // Too large constants (direct)
     testAssemble(QStringList() << ".data"
                                << ".byte 0xfff",
                  Expect::Fail);
@@ -192,6 +191,30 @@ void tst_Assembler::tst_directives() {
                                << ".word 0xfffffffff",
                  Expect::Fail);
 
+    testAssemble(QStringList() << ".data"
+                               << ".dword 0xfffffffffffffffff",
+                 Expect::Fail);
+
+    // Too large constants (indirect)
+    testAssemble(QStringList() << ".data"
+                               << ".equ abc 0xfff"
+                               << ".byte abc",
+                 Expect::Fail);
+
+    testAssemble(QStringList() << ".data"
+                               << ".equ abc 0xfffff"
+                               << ".half abc",
+                 Expect::Fail);
+
+    testAssemble(QStringList() << ".data"
+                               << ".equ abc 0xfffffffff"
+                               << ".word abc",
+                 Expect::Fail);
+
+    testAssemble(QStringList() << ".data"
+                               << ".equ abc 0xfffffffffffffffff"
+                               << ".dword abc",
+                 Expect::Fail);
     // .align directive
     expectData.clear();
     expectData.append(42);
@@ -325,7 +348,7 @@ void tst_Assembler::tst_matcher() {
             QFAIL(error->second.toStdString().c_str());
         }
 
-        auto matchInstr = std::get<const Instruction*>(match);
+        auto matchInstr = std::get<const RV32I_Assembler::_Instruction*>(match);
         if (matchInstr->name() != iter.first) {
             QString error =
                 "Incorrect instruction decoded; got '" + matchInstr->name() + "' but expected '" + iter.first + "'";

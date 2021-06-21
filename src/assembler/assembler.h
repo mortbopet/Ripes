@@ -12,6 +12,8 @@
 #include "pseudoinstruction.h"
 #include "relocation.h"
 
+#include <cstdint>
+#include <numeric>
 #include <set>
 #include <variant>
 
@@ -49,6 +51,26 @@ namespace Assembler {
         continue;                                                  \
     }
 
+// Macro for defining type aliases for register/instruction width specific types of the assembler types
+#define ASSEMBLER_TYPES(_Reg_T, _Instr_T)                           \
+    using _InstrVec = InstrVec<_Reg_T, _Instr_T>;                   \
+    using _InstrMap = InstrMap<_Reg_T, _Instr_T>;                   \
+    using _PseudoInstrVec = PseudoInstrVec<_Reg_T, _Instr_T>;       \
+    using _PseudoInstrMap = PseudoInstrMap<_Reg_T, _Instr_T>;       \
+    using _Instruction = Instruction<_Reg_T, _Instr_T>;             \
+    using _PseudoInstruction = PseudoInstruction<_Reg_T, _Instr_T>; \
+    using _OpPart = OpPart<_Instr_T>;                               \
+    using _Opcode = Opcode<_Reg_T, _Instr_T>;                       \
+    using _Imm = Imm<_Reg_T, _Instr_T>;                             \
+    using _ImmPart = ImmPart<_Instr_T>;                             \
+    using _Reg = Reg<_Reg_T, _Instr_T>;                             \
+    using _Matcher = Matcher<_Reg_T, _Instr_T>;                     \
+    using _FieldLinkRequest = FieldLinkRequest<_Reg_T, _Instr_T>;   \
+    using _RelocationsVec = RelocationsVec<_Reg_T, _Instr_T>;       \
+    using _RelocationsMap = RelocationsMap<_Reg_T, _Instr_T>;       \
+    using _AssembleRes = AssembleRes<_Reg_T, _Instr_T>;             \
+    using _InstrRes = InstrRes<_Reg_T, Instr_T>;
+
 class AssemblerBase {
 public:
     virtual ~AssemblerBase() {}
@@ -60,7 +82,7 @@ public:
         return {};
     }
 
-    void setSegmentBase(Section seg, uint32_t base) { m_sectionBasePointers[seg] = base; }
+    void setSegmentBase(Section seg, uint64_t base) { m_sectionBasePointers[seg] = base; }
 
     virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
     AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
@@ -68,17 +90,17 @@ public:
         return assemble(programLines, symbols);
     }
 
-    virtual DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const = 0;
-    virtual std::pair<QString, std::optional<Error>> disassemble(const uint32_t word, const ReverseSymbolMap& symbols,
-                                                                 const uint32_t baseAddress = 0) const = 0;
+    virtual DisassembleResult disassemble(const Program& program, const uint64_t baseAddress = 0) const = 0;
+    virtual std::pair<QString, std::optional<Error>> disassemble(const uint64_t word, const ReverseSymbolMap& symbols,
+                                                                 const uint64_t baseAddress = 0) const = 0;
 
     virtual std::set<QString> getOpcodes() const = 0;
 
-    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, uint32_t v) const {
+    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, uint64_t v) const {
         return addSymbol(line.sourceLine, s, v);
     }
 
-    std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint32_t v) const {
+    std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint64_t v) const {
         if (m_symbolMap.count(s)) {
             return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
         }
@@ -89,39 +111,6 @@ public:
     virtual ExprEvalRes evalExpr(const QString& expr) const = 0;
 
 protected:
-    void setDirectives(DirectiveVec& directives) {
-        if (m_directives.size() != 0) {
-            throw std::runtime_error("Directives already set");
-        }
-        m_directives = directives;
-        for (const auto& iter : m_directives) {
-            const auto directive = iter.get()->name();
-            if (m_directivesMap.count(directive) != 0) {
-                throw std::runtime_error("Error: directive " + directive.toStdString() +
-                                         " has already been registerred.");
-            }
-            m_directivesMap[directive] = iter;
-            if (iter->early()) {
-                m_earlyDirectives.insert(iter->name());
-            }
-        }
-    }
-
-    void setRelocations(RelocationsVec& relocations) {
-        if (m_relocations.size() != 0) {
-            throw std::runtime_error("Directives already set");
-        }
-        m_relocations = relocations;
-        for (const auto& iter : m_relocations) {
-            const auto relocation = iter.get()->name();
-            if (m_relocationsMap.count(relocation) != 0) {
-                throw std::runtime_error("Error: relocation " + relocation.toStdString() +
-                                         " has already been registerred.");
-            }
-            m_relocationsMap[relocation] = iter;
-        }
-    }
-
     virtual std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const {
         // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
         // substrings.
@@ -137,22 +126,8 @@ protected:
     }
 
     virtual HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
-                                                 bool skipEarlyDirectives = true) const {
-        ok = false;
-        if (arg.line.directive.isEmpty()) {
-            return std::nullopt;
-        }
-        ok = true;
-        try {
-            const auto& directive = m_directivesMap.at(arg.line.directive);
-            if (directive->early() && skipEarlyDirectives) {
-                return std::nullopt;
-            }
-            return directive->handle(this, arg);
-        } catch (const std::out_of_range&) {
-            return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
-        }
-    };
+                                                 bool skipEarlyDirectives = true) const = 0;
+
     /**
      * @brief splitSymbolsFromLine
      * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
@@ -253,55 +228,13 @@ protected:
         return {preCommentTokens};
     }
 
-    /**
-     * @brief splitRelocationsFromLine
-     * Identify relocations in tokens; when found, add the relocation to the _following_ token. Relocations are _not_
-     * added to the set of remaining tokens.
-     */
-    virtual std::variant<Error, LineTokens> splitRelocationsFromLine(LineTokens& tokens) const {
-        if (tokens.size() == 0) {
-            return {tokens};
-        }
-
-        LineTokens remainingTokens;
-        remainingTokens.reserve(tokens.size());
-
-        Token relocationForNextToken;
-        for (auto& token : tokens) {
-            if (m_relocationsMap.count(token)) {
-                relocationForNextToken = token;
-            } else {
-                if (!relocationForNextToken.isEmpty()) {
-                    token.setRelocation(relocationForNextToken);
-                    relocationForNextToken.clear();
-                }
-                remainingTokens.push_back(token);
-            }
-        }
-
-        return {remainingTokens};
-    }
-
     virtual QChar commentDelimiter() const = 0;
-
-    /**
-     * @brief m_assemblerDirectives is the set of supported assembler directives.
-     */
-    DirectiveVec m_directives;
-    DirectiveMap m_directivesMap;
-    EarlyDirectives m_earlyDirectives;
-
-    /**
-     * @brief m_relocations is the set of supported assembler relocation hints
-     */
-    RelocationsVec m_relocations;
-    RelocationsMap m_relocationsMap;
 
     /**
      * @brief m_sectionBasePointers maintains the base position for the segments
      * annoted by the Segment enum class.
      */
-    std::map<Section, uint32_t> m_sectionBasePointers;
+    std::map<Section, uint64_t> m_sectionBasePointers;
     /**
      * @brief m_currentSegment maintains the current segment where the assembler emits information.
      * Marked mutable to allow for switching currently selected segment during assembling.
@@ -315,7 +248,17 @@ protected:
     mutable SymbolMap m_symbolMap;
 };
 
+/**
+ *  Reg_T: type equal in size to the register width of the target
+ *  Instr_T: type equal in size to the instruction width of the target
+ */
+template <typename Reg_T, typename Instr_T>
 class Assembler : public AssemblerBase {
+    static_assert(std::numeric_limits<Reg_T>::is_integer, "Register type must be integer");
+    static_assert(std::numeric_limits<Instr_T>::is_integer, "Instruction type must be integer");
+
+    ASSEMBLER_TYPES(Reg_T, Instr_T)
+
 public:
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
@@ -350,31 +293,31 @@ public:
         return result;
     }
 
-    DisassembleResult disassemble(const Program& program, const uint32_t baseAddress = 0) const override {
+    DisassembleResult disassemble(const Program& program, const uint64_t baseAddress = 0) const override {
         size_t i = 0;
         DisassembleResult res;
         auto& programBits = program.getSection(".text")->data;
-        while ((i + sizeof(uint32_t)) <= static_cast<unsigned>(programBits.size())) {
-            const uint32_t instructionWord = *reinterpret_cast<const uint32_t*>(programBits.data() + i);
+        while ((i + sizeof(Instr_T)) <= static_cast<uint64_t>(programBits.size())) {
+            const Instr_T instructionWord = *reinterpret_cast<const Instr_T*>(programBits.data() + i);
             auto disres = disassemble(instructionWord, program.symbols, baseAddress + i);
             if (disres.second) {
                 res.errors.push_back(disres.second.value());
             }
             res.program << disres.first;
-            i += sizeof(uint32_t);
+            i += sizeof(Instr_T);
         }
         return res;
     }
 
-    std::pair<QString, std::optional<Error>> disassemble(const uint32_t word, const ReverseSymbolMap& symbols,
-                                                         const uint32_t baseAddress = 0) const override {
+    std::pair<QString, std::optional<Error>> disassemble(const uint64_t word, const ReverseSymbolMap& symbols,
+                                                         const uint64_t baseAddress = 0) const override {
         auto match = m_matcher->matchInstruction(word);
         if (auto* error = std::get_if<Error>(&match)) {
             return {"unknown instruction", *error};
         }
 
         // Got match, disassemble
-        auto tokensVar = std::get<const Instruction*>(match)->disassemble(word, baseAddress, symbols);
+        auto tokensVar = std::get<const _Instruction*>(match)->disassemble(word, baseAddress, symbols);
         if (auto* error = std::get_if<Error>(&match)) {
             // Error during disassembling
             return {"invalid instruction", *error};
@@ -391,7 +334,7 @@ public:
         return {joinedLine, {}};
     }
 
-    const Matcher& getMatcher() { return *m_matcher; }
+    const _Matcher& getMatcher() { return *m_matcher; }
 
     std::set<QString> getOpcodes() const override {
         std::set<QString> opcodes;
@@ -404,17 +347,32 @@ public:
         return opcodes;
     }
 
+    void setRelocations(_RelocationsVec& relocations) {
+        if (m_relocations.size() != 0) {
+            throw std::runtime_error("Directives already set");
+        }
+        m_relocations = relocations;
+        for (const auto& iter : m_relocations) {
+            const auto relocation = iter.get()->name();
+            if (m_relocationsMap.count(relocation) != 0) {
+                throw std::runtime_error("Error: relocation " + relocation.toStdString() +
+                                         " has already been registerred.");
+            }
+            m_relocationsMap[relocation] = iter;
+        }
+    }
+
 protected:
     struct LinkRequest {
         unsigned sourceLine;  // Source location of code which resulted in the link request
-        uint32_t offset;      // Offset of instruction in segment which needs link resolution
+        Reg_T offset;         // Offset of instruction in segment which needs link resolution
         Section section;      // Section which instruction was emitted in
 
         // Reference to the immediate field which resolves the symbol and the requested symbol
-        FieldLinkRequest fieldRequest;
+        _FieldLinkRequest fieldRequest;
     };
 
-    uint32_t linkReqAddress(const LinkRequest& req) const { return req.offset + m_sectionBasePointers.at(req.section); }
+    Reg_T linkReqAddress(const LinkRequest& req) const { return req.offset + m_sectionBasePointers.at(req.section); }
 
     using LinkRequests = std::vector<LinkRequest>;
 
@@ -569,8 +527,8 @@ protected:
             currentSection = &program.sections.at(m_currentSection);
             addr_offset = currentSection->data.size();
             if (!wasDirective) {
-                std::weak_ptr<Instruction> assembledWith;
-                runOperation(machineCode, InstrRes, assembleInstruction, line, assembledWith);
+                std::weak_ptr<_Instruction> assembledWith;
+                runOperation(machineCode, _InstrRes, assembleInstruction, line, assembledWith);
 
                 if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
                     LinkRequest req;
@@ -616,11 +574,11 @@ protected:
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
             const auto& symbol = linkRequest.fieldRequest.symbol;
-            uint32_t symbolValue;
+            Reg_T symbolValue;
 
             // Add the special __address__ symbol indicating the address of the instruction itself. Not done through
             // addSymbol given that we redefine this symbol on each line.
-            const uint32_t linkRequestAddress = linkReqAddress(linkRequest);
+            const Reg_T linkRequestAddress = linkReqAddress(linkRequest);
             m_symbolMap["__address__"] = linkRequestAddress;
 
             // Expression evaluation also performs symbol evaluation
@@ -641,7 +599,7 @@ protected:
                     errors.push_back(*error);
                     continue;
                 }
-                symbolValue = std::get<uint32_t>(relocRes);
+                symbolValue = std::get<Reg_T>(relocRes);
             }
 
             QByteArray& section = program.sections.at(linkRequest.section).data;
@@ -649,10 +607,10 @@ protected:
             // Decode instruction at link-request position
             assert(static_cast<unsigned>(section.size()) >= (linkRequest.offset + 4) &&
                    "Error: position of link request is not within program");
-            uint32_t instr = *reinterpret_cast<uint32_t*>(section.data() + linkRequest.offset);
+            Instr_T instr = *reinterpret_cast<Instr_T*>(section.data() + linkRequest.offset);
 
             // Re-apply immediate resolution using the value acquired from the symbol map
-            if (auto* immField = dynamic_cast<const Imm*>(linkRequest.fieldRequest.field)) {
+            if (auto* immField = dynamic_cast<const _Imm*>(linkRequest.fieldRequest.field)) {
                 if (auto err = immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest),
                                                                linkRequest.sourceLine)) {
                     errors.push_back(err.value());
@@ -663,7 +621,7 @@ protected:
             }
 
             // Finally, overwrite the instruction in the section
-            *reinterpret_cast<uint32_t*>(section.data() + linkRequest.offset) = instr;
+            *reinterpret_cast<Instr_T*>(section.data() + linkRequest.offset) = instr;
         }
         if (errors.size() != 0) {
             return {errors};
@@ -697,8 +655,8 @@ protected:
         return {res};
     }
 
-    virtual AssembleRes assembleInstruction(const TokenizedSrcLine& line,
-                                            std::weak_ptr<Instruction>& assembledWith) const {
+    virtual _AssembleRes assembleInstruction(const TokenizedSrcLine& line,
+                                             std::weak_ptr<_Instruction>& assembledWith) const {
         if (line.tokens.empty()) {
             return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
         }
@@ -708,18 +666,9 @@ protected:
         }
         assembledWith = m_instructionMap.at(opcode);
         return m_instructionMap.at(opcode)->assemble(line);
-    };
-
-    void initialize(InstrVec& instructions, PseudoInstrVec& pseudoinstructions, DirectiveVec& directives,
-                    RelocationsVec& relocations) {
-        setInstructions(instructions);
-        setPseudoInstructions(pseudoinstructions);
-        setDirectives(directives);
-        setRelocations(relocations);
-        m_matcher = std::make_unique<Matcher>(m_instructions);
     }
 
-    void setPseudoInstructions(PseudoInstrVec& pseudoInstructions) {
+    void setPseudoInstructions(_PseudoInstrVec& pseudoInstructions) {
         if (m_pseudoInstructions.size() != 0) {
             throw std::runtime_error("Pseudoinstructions already set");
         }
@@ -735,7 +684,63 @@ protected:
         }
     }
 
-    void setInstructions(InstrVec& instructions) {
+    /**
+     * @brief splitRelocationsFromLine
+     * Identify relocations in tokens; when found, add the relocation to the _following_ token. Relocations are _not_
+     * added to the set of remaining tokens.
+     */
+    virtual std::variant<Error, LineTokens> splitRelocationsFromLine(LineTokens& tokens) const {
+        if (tokens.size() == 0) {
+            return {tokens};
+        }
+
+        LineTokens remainingTokens;
+        remainingTokens.reserve(tokens.size());
+
+        Token relocationForNextToken;
+        for (auto& token : tokens) {
+            if (m_relocationsMap.count(token)) {
+                relocationForNextToken = token;
+            } else {
+                if (!relocationForNextToken.isEmpty()) {
+                    token.setRelocation(relocationForNextToken);
+                    relocationForNextToken.clear();
+                }
+                remainingTokens.push_back(token);
+            }
+        }
+
+        return {remainingTokens};
+    }
+
+    void initialize(_InstrVec& instructions, _PseudoInstrVec& pseudoinstructions, DirectiveVec& directives,
+                    _RelocationsVec& relocations) {
+        setInstructions(instructions);
+        setPseudoInstructions(pseudoinstructions);
+        setDirectives(directives);
+        setRelocations(relocations);
+        m_matcher = std::make_unique<_Matcher>(m_instructions);
+    }
+
+    void setDirectives(DirectiveVec& directives) {
+        if (m_directives.size() != 0) {
+            throw std::runtime_error("Directives already set");
+        }
+        m_directives = directives;
+        for (const auto& iter : m_directives) {
+            const auto directive = iter.get()->name();
+            if (m_directivesMap.count(directive) != 0) {
+                throw std::runtime_error("Error: directive " + directive.toStdString() +
+                                         " has already been registerred.");
+            }
+            m_directivesMap[directive] = iter;
+            if (iter->early()) {
+                m_earlyDirectives.insert(iter->name());
+            }
+        }
+    }
+
+    void setInstructions(_InstrVec& instructions) {
         if (m_instructions.size() != 0) {
             throw std::runtime_error("Instructions already set");
         }
@@ -750,22 +755,53 @@ protected:
         }
     }
 
+    HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
+                                         bool skipEarlyDirectives = true) const override {
+        ok = false;
+        if (arg.line.directive.isEmpty()) {
+            return std::nullopt;
+        }
+        ok = true;
+        try {
+            const auto& directive = m_directivesMap.at(arg.line.directive);
+            if (directive->early() && skipEarlyDirectives) {
+                return std::nullopt;
+            }
+            return directive->handle(this, arg);
+        } catch (const std::out_of_range&) {
+            return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
+        }
+    }
+
     /**
      * @brief m_instructions is the set of instructions which can be matched from an instruction string as well as
      * be disassembled from a program.
      */
-    InstrVec m_instructions;
-    InstrMap m_instructionMap;
+    _InstrVec m_instructions;
+    _InstrMap m_instructionMap;
 
     /**
      * @brief m_pseudoInstructions is the set of instructions which can be matched from an instruction string but
      * cannot be disassembled from a program. Typically, pseudoinstructions will expand to one or more non-pseudo
      * instructions.
      */
-    PseudoInstrVec m_pseudoInstructions;
-    PseudoInstrMap m_pseudoInstructionMap;
+    _PseudoInstrVec m_pseudoInstructions;
+    _PseudoInstrMap m_pseudoInstructionMap;
 
-    std::unique_ptr<Matcher> m_matcher;
+    /**
+     * @brief m_relocations is the set of supported assembler relocation hints
+     */
+    _RelocationsVec m_relocations;
+    _RelocationsMap m_relocationsMap;
+
+    /**
+     * @brief m_assemblerDirectives is the set of supported assembler directives.
+     */
+    DirectiveVec m_directives;
+    DirectiveMap m_directivesMap;
+    EarlyDirectives m_earlyDirectives;
+
+    std::unique_ptr<_Matcher> m_matcher;
 
     const ISAInfoBase* m_isa;
 };

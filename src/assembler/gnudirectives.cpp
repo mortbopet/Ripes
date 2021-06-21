@@ -73,7 +73,7 @@ HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveAr
     } else {
         return {bytes};
     }
-};
+}
 
 HandleDirectiveRes stringFunctor(const AssemblerBase*, const DirectiveArg& arg) {
     if (arg.line.tokens.length() != 1) {
@@ -83,7 +83,7 @@ HandleDirectiveRes stringFunctor(const AssemblerBase*, const DirectiveArg& arg) 
     string.replace("\\n", "\n");
     string.remove('\"');
     return {string.toUtf8().append('\0')};
-};
+}
 
 Directive ascizDirective() {
     return Directive(".asciz", &stringFunctor);
@@ -166,7 +166,7 @@ Directive zeroDirective() {
         if (arg.line.tokens.length() != 1) {
             return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 1)")};
         }
-        long value;
+        int64_t value;
         getImmediateErroring(arg.line.tokens.at(0), value, arg.line.sourceLine);
         QByteArray bytes;
         for (int i = 0; i < value; i++) {
@@ -182,7 +182,7 @@ Directive equDirective() {
         if (arg.line.tokens.length() != 2) {
             return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 2)")};
         }
-        long value;
+        int64_t value;
         getImmediateErroring(arg.line.tokens.at(1), value, arg.line.sourceLine);
 
         auto err = assembler->addSymbol(arg.line, arg.line.tokens.at(0), value);

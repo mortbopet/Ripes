@@ -32,6 +32,7 @@ using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
 using SymbolMap = std::map<Symbol, int64_t>;
 using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
+
 struct TokenizedSrcLine {
     Symbols symbols;
     LineTokens tokens;
@@ -39,6 +40,7 @@ struct TokenizedSrcLine {
     unsigned sourceLine = 0;
     uint32_t programAddress = -1;
 };
+
 using SymbolLinePair = std::pair<Symbols, LineTokens>;
 using SourceProgram = std::vector<TokenizedSrcLine>;
 using NoPassResult = std::monostate;
