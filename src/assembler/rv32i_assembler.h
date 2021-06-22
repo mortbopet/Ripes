@@ -231,7 +231,7 @@ void RV32I_Assembler::extI<Reg__T, Instr__T>::enable(const ISAInfoBase* isa, _In
              * code.
              */
             std::function<PseudoExpandRes(int64_t, bool)> genInstrSeq = [&](int64_t val, bool isRV64) {
-                if (isInt<32>(val)) {
+                if (isInt<32>(val) || (!isRV64 && isUInt<32>(val))) {
                     int64_t Hi20 = ((val + 0x800) >> 12) & 0xFFFFF;
                     int64_t Lo12 = vsrtl::signextend<12>(val);
                     if (Hi20) {
