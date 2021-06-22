@@ -31,6 +31,9 @@ struct StageInfo {
  * Interface for all Ripes processors. This interface is intended to be simulator-agnostic, and thus provides an opaque
  * interface for retrieving any relevant information required to display the processor state of execution in Ripes.
  *
+ * Integer values are communicated in uin64_t variables. If the implementing processor implements a narrower register
+ * width, e.g., 32 bit, then only the lower 32 bits should be considered.
+ *
  * @todo: Various parts are still dependent on VSRTL structures. For these structures, there should ideally be shim
  * classes to handle the translation from Ripes to the backend.
  */
