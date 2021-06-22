@@ -78,7 +78,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &EditTab::updateProgramViewerHighlighting);
     connect(ProcessorHandler::get(), &ProcessorHandler::programChanged, this, &EditTab::updateProgramViewer);
-
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this, &EditTab::onProcessorChanged);
     onProcessorChanged();
     sourceTypeChanged();
     enableEditor();
