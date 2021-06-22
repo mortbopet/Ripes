@@ -63,7 +63,7 @@ public:
     INPUTPORT(data_2_in, XLEN);
     INPUTPORT(wr_2_en, 1);
 
-    VSRTL_VT_U getRegister(unsigned i) { return m_memory->readMem(i << 2); }
+    VSRTL_VT_U getRegister(unsigned i) { return m_memory->readMem(i << ceillog2(XLEN / CHAR_BIT), XLEN / CHAR_BIT); }
 
 private:
     /**

@@ -24,7 +24,7 @@ public:
         wr_addr >> _wr_mem->addr;
         wr_en_0->out >> _wr_mem->wr_en;
         data_in >> _wr_mem->data_in;
-        4 >> _wr_mem->wr_width;
+        (XLEN / CHAR_BIT) >> _wr_mem->wr_width;
 
         // Reads
         r1_addr >> _rd1_mem->addr;
@@ -83,7 +83,9 @@ public:
     OUTPUTPORT(r1_out, XLEN);
     OUTPUTPORT(r2_out, XLEN);
 
-    VSRTL_VT_U getRegister(unsigned i) const { return m_memory->readMemConst(i << 2); }
+    VSRTL_VT_U getRegister(unsigned i) const {
+        return m_memory->readMemConst(i << ceillog2(XLEN / CHAR_BIT), XLEN / CHAR_BIT);
+    }
 
     std::vector<VSRTL_VT_U> getRegisters() {
         std::vector<VSRTL_VT_U> regs;

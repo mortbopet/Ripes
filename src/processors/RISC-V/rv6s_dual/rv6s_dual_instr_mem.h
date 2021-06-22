@@ -14,9 +14,10 @@ class ROM_DUAL : public ROM<addrWidth, dataWidth, byteIndexed> {
 public:
     ROM_DUAL(std::string name, SimComponent* parent) : ROM<addrWidth, dataWidth, byteIndexed>(name, parent) {
         data_out2 << [=] {
-            const auto accessAddress = this->addr.uValue() + 4;
-            const auto v = this->read(accessAddress);
-            return v;
+            auto _addr = this->addr.uValue() + 4;
+            auto val =
+                this->read(_addr, dataWidth / CHAR_BIT, ceillog2((byteIndexed ? addrWidth : dataWidth) / CHAR_BIT));
+            return val;
         };
     }
 
