@@ -68,7 +68,7 @@ void SettingObserver::setValue(const QVariant& v) {
 }
 
 void SettingObserver::trigger() {
-    setValue(0);
+    setValue(value());
 }
 
 QVariant SettingObserver::value() const {
