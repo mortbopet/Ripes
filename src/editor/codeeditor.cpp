@@ -57,11 +57,12 @@ void CodeEditor::setupChangedTimer() {
     // A change in the document will start the timer - when the timer elapses, the contents will be assembled if there
     // is no syntax error. By doing this, the timer is restartet each time a change occurs (ie. a user is continuously
     // typing).
-    // Note, QTextDocument::contentsChange seems to be the only signal in the stack of QPlainTextEdit etc. which
-    // (contrary to documentation) does not emit a change signal when formatting is applied. This is required to avoid a
-    // signal loop in the case of:
-    // (content change -> assemble -> assembling fails -> rehighlight to reflect assembler error -> content change)
-    connect(this->document(), &QTextDocument::contentsChange, [this](int, int, int) { m_changeTimer->start(); });
+    // An issue here is that QPlainTextEdit emits signals on text AND formatting changes. To only get the text changes,
+    // we do as here https://stackoverflow.com/a/22872958
+    connect(this, &CodeEditor::modificationChanged, [this] {
+        this->document()->setModified(false);
+        m_changeTimer->start();
+    });
 
     connect(m_changeTimer, &QTimer::timeout, this, &CodeEditor::timedTextChanged);
 }
