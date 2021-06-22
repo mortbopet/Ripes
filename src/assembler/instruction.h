@@ -194,15 +194,7 @@ struct Imm : public Field<Reg_T, Instr_T> {
           symbolTransformer(_symbolTransformer) {}
 
     int64_t getImm(const QString& immToken, bool& success) const {
-        int64_t value = getImmediate(immToken, success);
-
-        // This seems a tad too specific for RISC-V, but the official RISC-V tests expects the immediate of
-        // i.e., "andi x14, x1, 0xffffff0f" to be accepted as a signed immediate, even in 64-bit.
-        if (success && repr == Repr::Signed && (static_cast<uint32_t>(value >> 32) == 0) &&
-            isInt(width, static_cast<int32_t>(value))) {
-            value = static_cast<int32_t>(value);
-        }
-        return value;
+        return repr == Repr::Signed ? getImmediateSext32(immToken, success) : getImmediate(immToken, success);
     }
 
     std::optional<Error> apply(const TokenizedSrcLine& line, Instr_T& instruction,

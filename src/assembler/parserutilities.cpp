@@ -7,6 +7,7 @@ namespace Assembler {
 
 int64_t getImmediate(const QString& string, bool& canConvert, ImmConvInfo* convInfo) {
     QString upperString = string.toUpper();
+    QString trimmed;
     canConvert = false;
     int64_t immediate = upperString.toLongLong(&canConvert, 10);
     int64_t sign = 1;
@@ -18,21 +19,37 @@ int64_t getImmediate(const QString& string, bool& canConvert, ImmConvInfo* convI
             upperString.remove(0, 1);
         }
         if (upperString.startsWith(QLatin1String("0X"))) {
+            trimmed = upperString.remove("0X");
             if (convInfo) {
                 convInfo->isUnsigned = true;
+                convInfo->is32bit = trimmed.size() <= 8;
             }
-            immediate = upperString.remove("0X").toULongLong(&canConvert, 16);
+            immediate = trimmed.toULongLong(&canConvert, 16);
         } else if (upperString.startsWith(QLatin1String("0B"))) {
+            trimmed = upperString.remove("0B");
             if (convInfo) {
                 convInfo->isUnsigned = true;
+                convInfo->is32bit = trimmed.size() <= 32;
             }
-            immediate = upperString.remove("0B").toULongLong(&canConvert, 2);
+            immediate = trimmed.toULongLong(&canConvert, 2);
         } else {
             canConvert = false;
         }
     }
 
     return sign * immediate;
+}
+
+int64_t getImmediateSext32(const QString& string, bool& success) {
+    ImmConvInfo convInfo;
+    int64_t value = getImmediate(string, success, &convInfo);
+
+    // This seems a tad too specific for RISC-V, but the official RISC-V tests expects the immediate of
+    // i.e., "andi x14, x1, 0xffffff0f" to be accepted as a signed immediate, even in 64-bit.
+    if (success && (static_cast<uint32_t>(value >> 32) == 0) && convInfo.is32bit) {
+        value = static_cast<int32_t>(value);
+    }
+    return value;
 }
 
 /**

@@ -11,9 +11,11 @@ namespace Assembler {
 
 struct ImmConvInfo {
     bool isUnsigned = false;
+    bool is32bit = false;
 };
 
 int64_t getImmediate(const QString& string, bool& canConvert, ImmConvInfo* convInfo = nullptr);
+int64_t getImmediateSext32(const QString& string, bool& canConvert);
 
 /**
  * @brief joinParentheses takes a number of tokens and merges together tokens contained within top-level parentheses.

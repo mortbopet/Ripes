@@ -205,7 +205,7 @@ void RV32I_Assembler::extI<Reg__T, Instr__T>::enable(const ISAInfoBase* isa, _In
             bool canConvert;
             bool liveDstReg = false;
             bool unsignedFitErr = false;
-            int64_t immediate = getImmediate(line.tokens.at(2), canConvert);
+            int64_t immediate = getImmediateSext32(line.tokens.at(2), canConvert);
 
             if (!canConvert) {
                 // Check if the immediate has been made available in the symbol set at this point...
@@ -231,10 +231,7 @@ void RV32I_Assembler::extI<Reg__T, Instr__T>::enable(const ISAInfoBase* isa, _In
              * code.
              */
             std::function<PseudoExpandRes(int64_t, bool)> genInstrSeq = [&](int64_t val, bool isRV64) {
-                // LLVM has preconversion of all immediates into a sign-extended 64-bit version, and only checks
-                // int32. getImmediate, as used above, does not sign-extend unsigned immediates. Therefore we must
-                // go into the terminal case when @p val is either representable as uint32 or int32.
-                if (isUInt<32>(val) || isInt<32>(val)) {
+                if (isInt<32>(val)) {
                     int64_t Hi20 = ((val + 0x800) >> 12) & 0xFFFFF;
                     int64_t Lo12 = vsrtl::signextend<12>(val);
                     if (Hi20) {
