@@ -27,17 +27,21 @@ private:
             // Arithmetic-immediate instructions
             case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::XORI:
             case RVInstr::ORI: case RVInstr::ANDI: case RVInstr::SLLI: case RVInstr::SRLI:
-            case RVInstr::SRAI:
+            case RVInstr::SRAI: case RVInstr::ADDIW: case RVInstr::SLLIW: case RVInstr::SRLIW:
+            case RVInstr::SRAIW:
 
             // Arithmetic instructions
             case RVInstr::MUL: case RVInstr::MULH: case RVInstr:: MULHSU: case RVInstr::MULHU:
             case RVInstr::DIV: case RVInstr::DIVU: case RVInstr::REM: case RVInstr::REMU:
             case RVInstr::ADD: case RVInstr::SUB: case RVInstr::SLL: case RVInstr::SLT:
             case RVInstr::SLTU: case RVInstr::XOR: case RVInstr::SRL: case RVInstr::SRA:
-            case RVInstr::OR: case RVInstr::AND:
+            case RVInstr::OR: case RVInstr::AND: case RVInstr::ADDW: case RVInstr::SUBW:
+            case RVInstr::SLLW: case RVInstr::SRLW: case RVInstr::SRAW: case RVInstr::MULW:
+            case RVInstr::DIVW: case RVInstr::DIVUW: case RVInstr::REMW: case RVInstr::REMUW:
 
             // Load instructions
-            case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
+            case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD: case RVInstr::SD:
 
             // Jump instructions
             case RVInstr::JALR:

@@ -59,6 +59,11 @@ private:
 
 private slots:
 
+    void testRV64_SingleCycle() { runTests(ProcessorID::RV64_SS, RISCV64_TEST_DIR); }
+    void testRV64_5StagePipeline() { runTests(ProcessorID::RV64_5S, RISCV64_TEST_DIR); }
+    void testRV64_5StagePipelineNOFW() { runTests(ProcessorID::RV64_5S_NO_FW, RISCV64_TEST_DIR); }
+    void testRV64_6SDual() { runTests(ProcessorID::RV64_6S_DUAL, RISCV64_TEST_DIR); }
+
     void testRV32_SingleCycle() { runTests(ProcessorID::RV32_SS, RISCV32_TEST_DIR); }
     void testRV32_5StagePipeline() { runTests(ProcessorID::RV32_5S, RISCV32_TEST_DIR); }
     void testRV32_5StagePipelineNOFW() { runTests(ProcessorID::RV32_5S_NO_FW, RISCV32_TEST_DIR); }
@@ -152,7 +157,7 @@ void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
         qInfo() << "Running test: " << m_currentTest;
 
         // Assemble test file
-        auto f = QFile(RISCV32_TEST_DIR + QString(QDir::separator()) + test);
+        auto f = QFile(testdir + QString(QDir::separator()) + test);
         if (!f.open(QIODevice::ReadOnly)) {
             QFAIL("Could not open test file");
         }
