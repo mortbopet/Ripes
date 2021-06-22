@@ -11,6 +11,8 @@ RegisterContainerWidget::RegisterContainerWidget(QWidget* parent)
     m_ui->setupUi(this);
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &RegisterContainerWidget::updateView);
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this, &RegisterContainerWidget::initialize);
+    initialize();
 }
 
 RegisterContainerWidget::~RegisterContainerWidget() {
@@ -22,7 +24,9 @@ void RegisterContainerWidget::initialize() {
 
     for (const auto& rfid : ProcessorHandler::getProcessor()->registerFiles()) {
         auto registerWidget = new RegisterWidget(rfid, this);
-        m_ui->tabWidget->insertTab(m_ui->tabWidget->count(), registerWidget, s_RegsterFileName.at(rfid));
+        const unsigned tabIdx = m_ui->tabWidget->count();
+        m_ui->tabWidget->insertTab(tabIdx, registerWidget, s_RegsterFileName.at(rfid).shortName);
+        m_ui->tabWidget->setTabToolTip(tabIdx, s_RegsterFileName.at(rfid).longName);
         registerWidget->initialize();
     }
     updateView();

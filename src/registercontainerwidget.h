@@ -15,10 +15,9 @@ public:
     explicit RegisterContainerWidget(QWidget* parent = nullptr);
     ~RegisterContainerWidget();
 
+private:
     void initialize();
     void updateView();
-
-private:
     Ui::RegisterContainerWidget* m_ui;
 };
 

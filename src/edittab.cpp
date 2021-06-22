@@ -51,6 +51,10 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
     m_toolbar->addAction(m_buildAction);
 
+    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORREGS), &SettingObserver::modified,
+            [=](const QVariant& val) { m_ui->registers->setVisible(val.toBool()); });
+    RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
+
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
     connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
 
@@ -78,6 +82,10 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     onProcessorChanged();
     sourceTypeChanged();
     enableEditor();
+
+    m_ui->splitter->setStretchFactor(0, 2);
+    m_ui->splitter->setStretchFactor(1, 2);
+    m_ui->splitter->setStretchFactor(2, 0);
 
     // State preservation
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, [=] {

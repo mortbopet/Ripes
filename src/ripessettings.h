@@ -45,6 +45,7 @@ namespace Ripes {
 #define RIPES_SETTING_SOURCECODE ("sourcecode")
 #define RIPES_SETTING_DARKMODE ("darkmode")
 #define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
+#define RIPES_SETTING_EDITORREGS ("editor_regs")
 
 #define RIPES_SETTING_HAS_SAVEFILE ("has_savefile")
 #define RIPES_SETTING_SAVEPATH ("savepath")

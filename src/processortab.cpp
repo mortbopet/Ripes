@@ -90,7 +90,6 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     m_stageModel = new PipelineDiagramModel(this);
 
     updateInstructionModel();
-    m_ui->registerContainerWidget->initialize();
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this, &ProcessorTab::updateStatistics);
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &ProcessorTab::updateInstructionLabels);
@@ -349,7 +348,6 @@ void ProcessorTab::processorSelection() {
         loadProcessorToWidget(diag.getSelectedLayout());
         m_vsrtlWidget->reset();
         updateInstructionModel();
-        m_ui->registerContainerWidget->initialize();
 
         // Retrigger value display action if enabled
         if (m_displayValuesAction->isChecked()) {

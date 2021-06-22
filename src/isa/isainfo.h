@@ -13,9 +13,15 @@ namespace Ripes {
 enum class ISA { RV32I, RV64I };
 const static std::map<ISA, QString> ISAFamilyNames = {{ISA::RV32I, "RISC-V"}, {ISA::RV64I, "RISC-V"}};
 enum class RegisterFileType { GPR, FPR, CSR };
-const static std::map<RegisterFileType, QString> s_RegsterFileName = {{RegisterFileType::GPR, "GPR"},
-                                                                      {RegisterFileType::FPR, "FPR"},
-                                                                      {RegisterFileType::CSR, "CSR"}};
+struct RegisterFileName {
+    QString shortName;
+    QString longName;
+};
+
+const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
+    {RegisterFileType::GPR, {"GPR", "General purpose registers"}},
+    {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
+    {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
 
 class ISAInfoBase {
 public:

@@ -286,6 +286,11 @@ QWidget* SettingsDialog::createEditorPage() {
     indentSpinbox->setRange(0, 100);
     appendToLayout({indentLabel, indentSpinbox}, pageLayout, "Indent size (in spaces) of tab characters.");
 
+    auto [regsLabel, regsCheckbox] =
+        createSettingsWidgets<QCheckBox>(RIPES_SETTING_EDITORREGS, "Show registers in editor tab");
+    appendToLayout({regsLabel, regsCheckbox}, pageLayout,
+                   "Show (or hide) a view of the processor register file(s) in the editor tab.");
+
     return pageWidget;
 }
 
