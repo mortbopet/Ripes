@@ -70,6 +70,7 @@ public:
     QString regInfo(unsigned i) const override {
         return RVISA::RegDescs.size() > static_cast<int>(i) ? RVISA::RegDescs.at(static_cast<int>(i)) : QString();
     }
+    QString name() const override { return CCmarch().toUpper(); }
     bool regIsReadOnly(unsigned i) const override { return i == 0; }
     int spReg() const override { return 2; }
     int gpReg() const override { return 3; }

@@ -19,7 +19,6 @@ public:
         }
     }
 
-    QString name() const override { return "RV32I"; }
     ISA isaID() const override { return ISA::RV32I; }
 
     unsigned int bits() const override { return 32; }

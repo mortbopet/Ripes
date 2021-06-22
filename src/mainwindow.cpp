@@ -126,14 +126,29 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->tabbar->setActiveIndex(m_currentTabID);
 }
 
-#define setupStatusWidget(name)                                                                                       \
+#define _setupStatusWidget(name, _permanent)                                                                          \
     auto* name##StatusLabel = new QLabel(this);                                                                       \
-    statusBar()->addWidget(name##StatusLabel);                                                                        \
+    statusBar()->add##_permanent##Widget(name##StatusLabel);                                                          \
     connect(&name##StatusManager::get().emitter, &StatusEmitter::statusChanged, name##StatusLabel, &QLabel::setText); \
     connect(&name##StatusManager::get().emitter, &StatusEmitter::clear, name##StatusLabel, &QLabel::clear);
 
+#define setupPermanentStatusWidget(name) _setupStatusWidget(name, Permanent)
+
+#define setupStatusWidget(name) _setupStatusWidget(name, )
+
 void MainWindow::setupStatusBar() {
     statusBar()->showMessage("");
+
+    // Setup selected processor & ISA info status widget (right-aligned => permanent)
+    setupPermanentStatusWidget(ProcessorInfo);
+    auto updateProcessorInfo = [=] {
+        const auto& desc = ProcessorRegistry::getDescription(ProcessorHandler::getID());
+        QString status =
+            "Processor: " + desc.name + "    ISA: " + ProcessorHandler::getProcessor()->implementsISA()->name();
+        ProcessorInfoStatusManager::get().setStatus(status);
+    };
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, updateProcessorInfo);
+    updateProcessorInfo();
 
     // Setup processorhandler status widget
     setupStatusWidget(Processor);

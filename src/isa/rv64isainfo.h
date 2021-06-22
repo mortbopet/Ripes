@@ -19,7 +19,6 @@ public:
         }
     }
 
-    QString name() const override { return "RV64I"; }
     ISA isaID() const override { return ISA::RV64I; }
 
     unsigned int bits() const override { return 64; }
