@@ -24,16 +24,16 @@ using namespace Ripes;
 using namespace vsrtl::core;
 struct RegisterChange {
     unsigned index;
-    unsigned newValue;
+    VInt newValue;
 };
 
 // Maximum cycle count
 static constexpr unsigned s_maxCycles = 1000000;
-using Registers = std::map<int, uint32_t>;
+using Registers = std::map<int, VInt>;
 struct TraceEntry {
     Registers regs;
     unsigned long cycle;
-    unsigned long pc;
+    AInt pc;
 };
 
 using Trace = std::vector<TraceEntry>;

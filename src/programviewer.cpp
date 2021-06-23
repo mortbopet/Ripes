@@ -104,7 +104,7 @@ void ProgramViewer::updateHighlightedAddresses() {
     QColor bg = QColorConstants::Red.lighter(120);
     const int decRatio = 100 + 80 / stages;
     QList<QTextEdit::ExtraSelection> highlights;
-    std::set<unsigned long> highlightedPCs;
+    std::set<AInt> highlightedPCs;
     m_highlightedBlocksText.clear();
 
     for (unsigned sid = 0; sid < stages; sid++) {
@@ -143,6 +143,10 @@ void ProgramViewer::updateHighlightedAddresses() {
     if (m_following) {
         updateCenterAddressFromProcessor();
     }
+
+    // The stage text is drawn on the viewport itself, which is not automatically redrawn when the extra selections
+    // change. So, to ensure that the new stage text is written, also update the viewport.
+    viewport()->update();
 }
 
 void ProgramViewer::paintEvent(QPaintEvent* event) {
@@ -155,8 +159,9 @@ void ProgramViewer::paintEvent(QPaintEvent* event) {
         const QString stageString = hb.second.join('/');
         const auto bbr = blockBoundingGeometry(hb.first);
         painter.setFont(font());
-        painter.drawText(bbr.width() - painter.fontMetrics().boundingRect(stageString).width() - /*padding*/ 10,
-                         bbr.top() + bbr.height(), stageString);
+        const QRect stageStringRect = painter.fontMetrics().boundingRect(stageString);
+        painter.drawText(bbr.width() - stageStringRect.width() - /* right-hand side padding*/ 10,
+                         bbr.top() + bbr.height() / 2 + stageStringRect.height() / 2, stageString);
     }
     painter.end();
 }
