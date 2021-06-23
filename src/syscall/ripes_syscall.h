@@ -24,9 +24,10 @@ namespace Ripes {
  */
 class Syscall {
 public:
+    using ArgIdx = unsigned;
     Syscall(const QString& name, const QString& description = QString(),
-            const std::map<unsigned, QString>& argumentDescriptions = std::map<unsigned, QString>(),
-            const std::map<unsigned, QString>& returnDescriptions = std::map<unsigned, QString>())
+            const std::map<ArgIdx, QString>& argumentDescriptions = std::map<ArgIdx, QString>(),
+            const std::map<ArgIdx, QString>& returnDescriptions = std::map<ArgIdx, QString>())
         : m_name(name),
           m_description(description),
           m_argumentDescriptions(argumentDescriptions),
@@ -34,30 +35,31 @@ public:
     virtual ~Syscall() {}
     const QString& name() const { return m_name; }
     const QString& description() const { return m_description; }
-    const std::map<unsigned, QString>& argumentDescriptions() const { return m_argumentDescriptions; }
-    const std::map<unsigned, QString>& returnDescriptions() const { return m_returnDescriptions; }
+    const std::map<ArgIdx, QString>& argumentDescriptions() const { return m_argumentDescriptions; }
+    const std::map<ArgIdx, QString>& returnDescriptions() const { return m_returnDescriptions; }
 
     virtual void execute() = 0;
 
     /**
      * @brief getArg
-     * ABI/ISA specific specialization of returning an argument register value.
-     * Argument index @p i is 0-indexed. @returns value of the specified argument register.
+     * ABI specific specialization of returning an argument register value.
+     * Argument index @p i is in range [0; max arg. registers] for the given ABI.
+     * @returns value of the specified argument register.
      */
 
-    virtual VInt getArg(RegisterFileType rfid, unsigned i) const = 0;
+    virtual VInt getArg(RegisterFileType rfid, ArgIdx i) const = 0;
     /**
      * @brief setRet
-     * ABI/ISA specific specialization of setting an argument register return value.
-     * Argument index @p i is 0-indexed.
+     * ABI specific specialization of setting an argument register return value.
+     * Argument index @p i is in range [0; max arg. registers] for the given ABI.
      */
-    virtual void setRet(RegisterFileType rfid, unsigned i, VInt value) const = 0;
+    virtual void setRet(RegisterFileType rfid, ArgIdx i, VInt value) const = 0;
 
 protected:
     const QString m_name;
     const QString m_description;
-    const std::map<unsigned, QString> m_argumentDescriptions;
-    const std::map<unsigned, QString> m_returnDescriptions;
+    const std::map<ArgIdx, QString> m_argumentDescriptions;
+    const std::map<ArgIdx, QString> m_returnDescriptions;
 };
 
 /**
@@ -75,13 +77,14 @@ StatusManager(Syscall);
  */
 class SyscallManager {
 public:
+    using SyscallID = int;
     /**
      * @brief execute
      * Executes the syscall identified by id. Throws out of range exception if syscall @p id is unknown.
      */
-    bool execute(int id);
+    bool execute(SyscallID id);
 
-    const std::map<int, std::unique_ptr<Syscall>>& getSyscalls() const { return m_syscalls; }
+    const std::map<SyscallID, std::unique_ptr<Syscall>>& getSyscalls() const { return m_syscalls; }
 
 protected:
     /**
@@ -97,7 +100,7 @@ protected:
     }
 
     SyscallManager() {}
-    std::map<int, std::unique_ptr<Syscall>> m_syscalls;
+    std::map<SyscallID, std::unique_ptr<Syscall>> m_syscalls;
 };
 
 template <class T>
@@ -106,7 +109,7 @@ class SyscallManagerT : public SyscallManager {
 
 public:
     template <class T_Syscall>
-    void emplace(int id) {
+    void emplace(SyscallID id) {
         static_assert(std::is_base_of<T, T_Syscall>::value);
         assert(m_syscalls.count(id) == 0);
         m_syscalls.emplace(id, std::make_unique<T_Syscall>());

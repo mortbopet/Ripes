@@ -14,19 +14,19 @@ namespace Ripes {
 class RISCVSyscall : public Syscall {
 public:
     RISCVSyscall(const QString& name, const QString& description = QString(),
-                 const std::map<unsigned, QString>& argumentDescriptions = std::map<unsigned, QString>(),
-                 const std::map<unsigned, QString>& returnDescriptions = std::map<unsigned, QString>())
+                 const std::map<ArgIdx, QString>& argumentDescriptions = std::map<ArgIdx, QString>(),
+                 const std::map<ArgIdx, QString>& returnDescriptions = std::map<ArgIdx, QString>())
         : Syscall(name, description, argumentDescriptions, returnDescriptions) {}
     ~RISCVSyscall() override {}
 
-    VInt getArg(RegisterFileType rfid, unsigned i) const override {
+    VInt getArg(RegisterFileType rfid, ArgIdx i) const override {
         // RISC-V arguments range from a0-a6
         assert(i < 7);
         const int regIdx = 10 + i;  // a0 = x10
         return ProcessorHandler::getRegisterValue(rfid, regIdx);
     }
 
-    void setRet(RegisterFileType rfid, unsigned i, VInt value) const override {
+    void setRet(RegisterFileType rfid, ArgIdx i, VInt value) const override {
         // RISC-V arguments range from a0-a6
         assert(i < 7);
         const int regIdx = 10 + i;  // a0 = x10

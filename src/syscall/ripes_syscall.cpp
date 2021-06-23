@@ -4,7 +4,7 @@
 
 namespace Ripes {
 
-bool SyscallManager::execute(int id) {
+bool SyscallManager::execute(SyscallID id) {
     if (m_syscalls.count(id) == 0) {
         postToGUIThread([=] {
             QMessageBox::warning(
