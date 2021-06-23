@@ -2,6 +2,8 @@
 
 #include <QGraphicsView>
 
+#include "ripes_types.h"
+
 namespace Ripes {
 
 class CacheView : public QGraphicsView {
@@ -15,7 +17,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
 
 signals:
-    void cacheAddressSelected(uint32_t);
+    void cacheAddressSelected(AInt);
 
 private slots:
     void setupMatrix();

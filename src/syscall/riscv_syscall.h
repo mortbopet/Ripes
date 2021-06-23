@@ -19,14 +19,14 @@ public:
         : Syscall(name, description, argumentDescriptions, returnDescriptions) {}
     ~RISCVSyscall() override {}
 
-    uint32_t getArg(RegisterFileType rfid, unsigned i) const override {
+    VInt getArg(RegisterFileType rfid, unsigned i) const override {
         // RISC-V arguments range from a0-a6
         assert(i < 7);
         const int regIdx = 10 + i;  // a0 = x10
         return ProcessorHandler::getRegisterValue(rfid, regIdx);
     }
 
-    void setRet(RegisterFileType rfid, unsigned i, uint32_t value) const override {
+    void setRet(RegisterFileType rfid, unsigned i, VInt value) const override {
         // RISC-V arguments range from a0-a6
         assert(i < 7);
         const int regIdx = 10 + i;  // a0 = x10

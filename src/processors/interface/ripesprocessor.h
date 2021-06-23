@@ -7,6 +7,7 @@
 #include "VSRTL/core/vsrtl_design.h"
 
 #include "../../isa/isainfo.h"
+#include "../../ripes_types.h"
 
 namespace Ripes {
 
@@ -99,7 +100,7 @@ public:
      * @brief nextFetchedAddress
      * @return Address which will be fetched from instruction memory in the next clock cycle
      */
-    virtual uint64_t nextFetchedAddress() const = 0;
+    virtual AInt nextFetchedAddress() const = 0;
 
     /**
      * @brief stageInfo
@@ -134,7 +135,7 @@ public:
      * @param i: register index
      * @return value currently present in register @p i
      */
-    virtual uint64_t getRegister(RegisterFileType rfid, unsigned i) const = 0;
+    virtual VInt getRegister(RegisterFileType rfid, unsigned i) const = 0;
 
     /**
      * @brief getArchRegisters
@@ -148,19 +149,19 @@ public:
      * @param i: register index
      * Set the value of register @param i to @param v.
      */
-    virtual void setRegister(RegisterFileType rfid, unsigned i, uint64_t v) = 0;
+    virtual void setRegister(RegisterFileType rfid, unsigned i, VInt v) = 0;
 
     /**
      * @brief setProgramCounter
      * Sets the program counter of the processor to @param address
      */
-    virtual void setProgramCounter(uint64_t address) = 0;
+    virtual void setProgramCounter(AInt address) = 0;
 
     /**
      * @brief setPCInitialValue
      * Sets the program counters value upon reset to @param address
      */
-    virtual void setPCInitialValue(uint64_t address) = 0;
+    virtual void setPCInitialValue(AInt address) = 0;
 
     /**
      * @brief reset
@@ -219,7 +220,7 @@ public:
      * Callback that the processor can use to query the Ripes environment. Returns whether the @p
      * address is an address which is valid to be executed.
      */
-    std::function<bool(uint64_t)> isExecutableAddress;
+    std::function<bool(AInt)> isExecutableAddress;
 
     /**
      * @brief handleSysCall

@@ -155,18 +155,18 @@ public:
     // Ripes interface compliance
     unsigned int stageCount() const override { return 1; }
     unsigned int getPcForStage(unsigned int) const override { return pc_reg->out.uValue(); }
-    uint64_t nextFetchedAddress() const override { return pc_src->out.uValue(); }
+    AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int) const override { return "•"; }
     StageInfo stageInfo(unsigned int) const override {
         return StageInfo({pc_reg->out.uValue(), isExecutableAddress(pc_reg->out.uValue()), StageInfo::State::None});
     }
-    void setProgramCounter(uint64_t address) override {
+    void setProgramCounter(AInt address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
     }
-    void setPCInitialValue(uint64_t address) override { pc_reg->setInitValue(address); }
+    void setPCInitialValue(AInt address) override { pc_reg->setInitValue(address); }
     AddressSpaceMM& getMemory() override { return *m_memory; }
-    uint64_t getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
+    VInt getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
     AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const unsigned& fr) override {
         if (fr) {
@@ -180,7 +180,7 @@ public:
     const BaseMemory<true>* getDataMemory() const override { return data_mem; }
     const BaseMemory<true>* getInstrMemory() const override { return instr_mem; }
 
-    void setRegister(RegisterFileType, unsigned i, uint64_t v) override {
+    void setRegister(RegisterFileType, unsigned i, VInt v) override {
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 

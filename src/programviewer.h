@@ -26,10 +26,10 @@ public:
     void clearBreakpoints();
     void setFollowEnabled(bool enabled);
 
-    long addressForPos(const QPoint& pos) const;
-    long addressForBlock(QTextBlock block) const;
-    QTextBlock blockForAddress(unsigned long) const;
-    void setCenterAddress(const long address);
+    AInt addressForPos(const QPoint& pos, bool& ok) const;
+    AInt addressForBlock(QTextBlock block, bool& ok) const;
+    QTextBlock blockForAddress(AInt) const;
+    void setCenterAddress(const AInt address);
 
     const Assembler::AddrOffsetMap& addressOffsetMap() const { return m_labelAddrOffsetMap; }
 

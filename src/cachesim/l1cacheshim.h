@@ -5,6 +5,7 @@
 #include "cachesim.h"
 
 #include "VSRTL/core/vsrtl_memory.h"
+#include "ripes_types.h"
 
 namespace Ripes {
 
@@ -18,7 +19,7 @@ class L1CacheShim : public CacheInterface {
 public:
     enum class CacheType { DataCache, InstrCache };
     L1CacheShim(CacheType type, QObject* parent);
-    void access(uint32_t address, AccessType type) override;
+    void access(AInt address, AccessType type) override;
 
     void setType(CacheType type);
     void reassociateMemory();

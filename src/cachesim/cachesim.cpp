@@ -253,7 +253,7 @@ void CacheSim::popAccessTrace() {
     emit hitrateChanged();
 }
 
-void CacheSim::access(uint32_t address, AccessType type) {
+void CacheSim::access(AInt address, AccessType type) {
     address = address & ~0b11;  // Disregard unaligned accesses
     CacheTrace trace;
     CacheWay oldWay;
@@ -386,28 +386,28 @@ void CacheSim::pushTrace(const CacheTrace& eviction) {
     }
 }
 
-uint32_t CacheSim::buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const {
-    uint32_t address = 0;
+AInt CacheSim::buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const {
+    AInt address = 0;
     address |= tag << (2 /*byte offset*/ + getBlockBits() + getLineBits());
     address |= lineIdx << (2 /*byte offset*/ + getBlockBits());
     address |= blockIdx << (2 /*byte offset*/);
     return address;
 }
 
-unsigned CacheSim::getLineIdx(const uint32_t address) const {
-    uint32_t maskedAddress = address & m_lineMask;
+unsigned CacheSim::getLineIdx(const AInt address) const {
+    AInt maskedAddress = address & m_lineMask;
     maskedAddress >>= 2 + getBlockBits();
     return maskedAddress;
 }
 
-unsigned CacheSim::getTag(const uint32_t address) const {
-    uint32_t maskedAddress = address & m_tagMask;
+unsigned CacheSim::getTag(const AInt address) const {
+    AInt maskedAddress = address & m_tagMask;
     maskedAddress >>= 2 + getBlockBits() + getLineBits();
     return maskedAddress;
 }
 
-unsigned CacheSim::getBlockIdx(const uint32_t address) const {
-    uint32_t maskedAddress = address & m_blockMask;
+unsigned CacheSim::getBlockIdx(const AInt address) const {
+    AInt maskedAddress = address & m_blockMask;
     maskedAddress >>= 2;
     return maskedAddress;
 }

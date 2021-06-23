@@ -15,8 +15,9 @@ class PrintIntSyscall : public BaseSyscall {
 public:
     PrintIntSyscall() : BaseSyscall("PrintInt", "Prints an integer", {{0, "integer to print"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
-        SystemIO::printString(QString::number(static_cast<int>(arg0)));
+        const VIntS arg0 = vsrtl::signextend<VInt, VIntS>(BaseSyscall::getArg(RegisterFileType::GPR, 0),
+                                                          ProcessorHandler::currentISA()->bits());
+        SystemIO::printString(QString::number(arg0));
     }
 };
 
@@ -27,7 +28,7 @@ class PrintFloatSyscall : public BaseSyscall {
 public:
     PrintFloatSyscall() : BaseSyscall("PrintFloat", "Prints a floating point number", {{0, "float to print"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
         auto* v_f = reinterpret_cast<const float*>(&arg0);
         SystemIO::printString(QString::number(static_cast<double>(*v_f)));
     }
@@ -40,10 +41,10 @@ class PrintStrSyscall : public BaseSyscall {
 public:
     PrintStrSyscall() : BaseSyscall("PrintString", "Prints a null-terminated string", {{0, "address of the string"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
         QByteArray string;
         char byte;
-        unsigned int address = arg0;
+        AInt address = arg0;
         do {
             byte = static_cast<char>(ProcessorHandler::getMemory().readMemConst(address++) & 0xFF);
             string.append(byte);
@@ -61,8 +62,8 @@ public:
         : BaseSyscall("PrintChar", "Prints an ascii character",
                       {{0, "character to print (only lowest byte is considered)"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
-        SystemIO::printString(QChar(arg0));
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        SystemIO::printString(QChar(static_cast<char>(arg0)));
     }
 };
 
@@ -75,7 +76,7 @@ public:
         : BaseSyscall("PrintIntHex", "Prints an integer (in hexdecimal format left-padded with zeroes)",
                       {{0, "integer to print"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
         SystemIO::printString("0x" +
                               QString::number(arg0, 16).rightJustified(ProcessorHandler::currentISA()->bytes(), '0'));
     }
@@ -90,7 +91,7 @@ public:
         : BaseSyscall("PrintIntBinary", "Prints an integer (in binary format left-padded with zeroes)",
                       {{0, "integer to print"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
         SystemIO::printString("0b" +
                               QString::number(arg0, 2).rightJustified(ProcessorHandler::currentISA()->bits(), '0'));
     }
@@ -104,8 +105,8 @@ public:
     PrintUnsignedSyscall()
         : BaseSyscall("PrintIntUnsigned", "Prints an integer (unsigned)", {{0, "integer to print"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
-        SystemIO::printString(QString::number(static_cast<unsigned>(arg0)));
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        SystemIO::printString(QString::number(arg0));
     }
 };
 

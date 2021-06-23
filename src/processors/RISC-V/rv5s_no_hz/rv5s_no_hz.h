@@ -297,7 +297,7 @@ public:
         Q_UNREACHABLE();
         // clang-format on
     }
-    uint64_t nextFetchedAddress() const override { return pc_src->out.uValue(); }
+    AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
     QString stageName(unsigned int idx) const override {
         // clang-format off
         switch (idx) {
@@ -374,13 +374,13 @@ public:
         return StageInfo({getPcForStage(stage), stageValid, state});
     }
 
-    void setProgramCounter(uint64_t address) override {
+    void setProgramCounter(AInt address) override {
         pc_reg->forceValue(0, address);
         propagateDesign();
     }
-    void setPCInitialValue(uint64_t address) override { pc_reg->setInitValue(address); }
+    void setPCInitialValue(AInt address) override { pc_reg->setInitValue(address); }
     AddressSpaceMM& getMemory() override { return *m_memory; }
-    uint64_t getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
+    VInt getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
     AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const unsigned& fr) override {
         if ((fr & FinalizeReason::exitSyscall) && !ecallChecker->isSysCallExiting()) {
@@ -405,7 +405,7 @@ public:
         }
         return allStagesInvalid;
     }
-    void setRegister(RegisterFileType, unsigned i, uint64_t v) override {
+    void setRegister(RegisterFileType, unsigned i, VInt v) override {
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 

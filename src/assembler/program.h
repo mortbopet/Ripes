@@ -6,6 +6,8 @@
 #include <QString>
 #include <vector>
 
+#include "ripes_types.h"
+
 namespace Ripes {
 
 enum SourceType {
@@ -43,18 +45,18 @@ public:
     unsigned type = 0;
 };
 
-using ReverseSymbolMap = std::map<uint32_t, Symbol>;
+using ReverseSymbolMap = std::map<AInt, Symbol>;
 
 struct LoadFileParams {
     QString filepath;
     SourceType type;
-    unsigned long binaryEntryPoint;
-    unsigned long binaryLoadAt;
+    AInt binaryEntryPoint;
+    AInt binaryLoadAt;
 };
 
 struct ProgramSection {
     QString name;
-    unsigned long address;
+    AInt address;
     QByteArray data;
 };
 
@@ -64,7 +66,7 @@ struct ProgramSection {
  * program. Others section may contain all other program sections (.bss, .data, ...)
  */
 struct Program {
-    unsigned long entryPoint = 0;
+    AInt entryPoint = 0;
     std::map<QString, ProgramSection> sections;
     ReverseSymbolMap symbols;
 

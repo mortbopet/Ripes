@@ -13,8 +13,8 @@ RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : QAbstractT
     m_regWidth = ProcessorHandler::getProcessor()->implementsISA()->bits();
 }
 
-std::vector<uint64_t> RegisterModel::gatherRegisterValues() {
-    std::vector<uint64_t> vals;
+std::vector<VInt> RegisterModel::gatherRegisterValues() {
+    std::vector<VInt> vals;
     for (int i = 0; i < rowCount(); i++) {
         vals.push_back(ProcessorHandler::getRegisterValue(m_rft, i));
     }
@@ -50,7 +50,7 @@ bool RegisterModel::setData(const QModelIndex& index, const QVariant& value, int
     const int i = index.row();
     if (index.column() == Column::Value) {
         bool ok;
-        uint64_t v = decodeRadixValue(value.toString(), m_radix, &ok);
+        VInt v = decodeRadixValue(value.toString(), m_radix, &ok);
         if (ok) {
             ProcessorHandler::setRegisterValue(m_rft, i, v);
             emit dataChanged(index, index);

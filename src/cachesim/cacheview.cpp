@@ -24,7 +24,7 @@ void CacheView::mousePressEvent(QMouseEvent* event) {
         if (auto* textItem = dynamic_cast<QGraphicsSimpleTextItem*>(item)) {
             const QVariant userData = textItem->data(Qt::UserRole);
             if (userData.isValid()) {
-                emit cacheAddressSelected(userData.toUInt());
+                emit cacheAddressSelected(userData.toULongLong());
                 break;
             }
         }

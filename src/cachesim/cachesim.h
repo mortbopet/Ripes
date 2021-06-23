@@ -62,7 +62,7 @@ public:
      * @brief access
      * A function called by the logical "child" of this cache, indicating that it desires to access this cache
      */
-    virtual void access(uint32_t address, AccessType type) = 0;
+    virtual void access(AInt address, AccessType type) = 0;
     void setNextLevelCache(const std::shared_ptr<CacheSim>& cache) { m_nextLevelCache = cache; }
 
     /**
@@ -91,7 +91,7 @@ public:
     };
 
     struct CacheWay {
-        uint32_t tag = -1;
+        VInt tag = -1;
         std::set<unsigned> dirtyBlocks;
         bool dirty = false;
         bool valid = false;
@@ -117,7 +117,7 @@ public:
     };
 
     struct CacheTransaction {
-        uint32_t address;
+        AInt address;
         CacheIndex index;
 
         bool isHit = false;
@@ -151,7 +151,7 @@ public:
     void setWriteAllocatePolicy(WriteAllocPolicy policy);
     void setReplacementPolicy(ReplPolicy policy);
 
-    void access(uint32_t address, AccessType type) override;
+    void access(AInt address, AccessType type) override;
     void undo();
     void reset() override;
 
@@ -167,7 +167,7 @@ public:
     unsigned getWritebacks() const;
     CacheSize getCacheSize() const;
 
-    uint32_t buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const;
+    AInt buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const;
 
     int getBlockBits() const { return m_blocks; }
     int getWaysBits() const { return m_ways; }
@@ -181,9 +181,9 @@ public:
     unsigned getTagMask() const { return m_tagMask; }
     unsigned getLineMask() const { return m_lineMask; }
 
-    unsigned getLineIdx(const uint32_t address) const;
-    unsigned getBlockIdx(const uint32_t address) const;
-    unsigned getTag(const uint32_t address) const;
+    unsigned getLineIdx(const AInt address) const;
+    unsigned getBlockIdx(const AInt address) const;
+    unsigned getTag(const AInt address) const;
 
     const CacheLine* getLine(unsigned idx) const;
 

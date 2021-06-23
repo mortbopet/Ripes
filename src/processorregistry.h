@@ -39,7 +39,7 @@ enum ProcessorID {
 Q_ENUM_NS(Ripes::ProcessorID);  // Register with the metaobject system
 // ============================================================================
 
-using RegisterInitialization = std::map<unsigned, uint64_t>;
+using RegisterInitialization = std::map<unsigned, VInt>;
 struct Layout {
     QString name;
     QString file;

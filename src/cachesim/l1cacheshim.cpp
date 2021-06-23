@@ -15,7 +15,7 @@ L1CacheShim::L1CacheShim(CacheType type, QObject* parent) : CacheInterface(paren
     processorReset();
 }
 
-void L1CacheShim::access(uint32_t, AccessType) {
+void L1CacheShim::access(AInt, AccessType) {
     // Should never occur; the shim determines accesses based on investigating the associated memory.
     Q_ASSERT(false);
 }

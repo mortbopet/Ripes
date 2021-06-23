@@ -11,6 +11,7 @@
 #include "parserutilities.h"
 #include "pseudoinstruction.h"
 #include "relocation.h"
+#include "ripes_types.h"
 
 #include <cstdint>
 #include <numeric>
@@ -82,7 +83,7 @@ public:
         return {};
     }
 
-    void setSegmentBase(Section seg, uint64_t base) { m_sectionBasePointers[seg] = base; }
+    void setSegmentBase(Section seg, AInt base) { m_sectionBasePointers[seg] = base; }
 
     virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
     AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
@@ -90,17 +91,17 @@ public:
         return assemble(programLines, symbols);
     }
 
-    virtual DisassembleResult disassemble(const Program& program, const uint64_t baseAddress = 0) const = 0;
-    virtual std::pair<QString, std::optional<Error>> disassemble(const uint64_t word, const ReverseSymbolMap& symbols,
-                                                                 const uint64_t baseAddress = 0) const = 0;
+    virtual DisassembleResult disassemble(const Program& program, const AInt baseAddress = 0) const = 0;
+    virtual std::pair<QString, std::optional<Error>> disassemble(const VInt word, const ReverseSymbolMap& symbols,
+                                                                 const AInt baseAddress = 0) const = 0;
 
     virtual std::set<QString> getOpcodes() const = 0;
 
-    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, uint64_t v) const {
+    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, VInt v) const {
         return addSymbol(line.sourceLine, s, v);
     }
 
-    std::optional<Error> addSymbol(const unsigned& line, Symbol s, uint64_t v) const {
+    std::optional<Error> addSymbol(const unsigned& line, Symbol s, VInt v) const {
         if (m_symbolMap.count(s)) {
             return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
         }
@@ -234,7 +235,7 @@ protected:
      * @brief m_sectionBasePointers maintains the base position for the segments
      * annoted by the Segment enum class.
      */
-    std::map<Section, uint64_t> m_sectionBasePointers;
+    std::map<Section, AInt> m_sectionBasePointers;
     /**
      * @brief m_currentSegment maintains the current segment where the assembler emits information.
      * Marked mutable to allow for switching currently selected segment during assembling.
@@ -293,11 +294,11 @@ public:
         return result;
     }
 
-    DisassembleResult disassemble(const Program& program, const uint64_t baseAddress = 0) const override {
+    DisassembleResult disassemble(const Program& program, const AInt baseAddress = 0) const override {
         size_t i = 0;
         DisassembleResult res;
         auto& programBits = program.getSection(".text")->data;
-        while ((i + sizeof(Instr_T)) <= static_cast<uint64_t>(programBits.size())) {
+        while ((i + sizeof(Instr_T)) <= static_cast<VInt>(programBits.size())) {
             const Instr_T instructionWord = *reinterpret_cast<const Instr_T*>(programBits.data() + i);
             auto disres = disassemble(instructionWord, program.symbols, baseAddress + i);
             if (disres.second) {
@@ -309,8 +310,8 @@ public:
         return res;
     }
 
-    std::pair<QString, std::optional<Error>> disassemble(const uint64_t word, const ReverseSymbolMap& symbols,
-                                                         const uint64_t baseAddress = 0) const override {
+    std::pair<QString, std::optional<Error>> disassemble(const VInt word, const ReverseSymbolMap& symbols,
+                                                         const AInt baseAddress = 0) const override {
         auto match = m_matcher->matchInstruction(word);
         if (auto* error = std::get_if<Error>(&match)) {
             return {"unknown instruction", *error};
@@ -514,7 +515,7 @@ protected:
         bool wasDirective;
         for (const auto& line : tokenizedLines) {
             // Get offset of currently emitting position in memory relative to section position
-            uint32_t addr_offset = currentSection->data.size();
+            VInt addr_offset = currentSection->data.size();
             for (const auto& s : line.symbols) {
                 // Record symbol position as its absolute address in memory
                 runOperationNoRes(addSymbol, line, s, addr_offset + program.sections.at(m_currentSection).address);

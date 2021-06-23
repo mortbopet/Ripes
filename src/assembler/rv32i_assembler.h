@@ -253,7 +253,7 @@ void RV32I_Assembler::extI<Reg__T, Instr__T>::enable(const ISAInfoBase* isa, _In
                                              .arg(line.tokens.at(2)))};
                 }
                 int64_t Lo12 = vsrtl::signextend<12>(val);
-                int64_t Hi52 = ((uint64_t)val + 0x800ull) >> 12;
+                int64_t Hi52 = ((VInt)val + 0x800ull) >> 12;
                 int ShiftAmount = 12 + firstSetBitIdx(Hi52);
                 Hi52 = vsrtl::signextend<int64_t>(Hi52 >> (ShiftAmount - 12), 64 - ShiftAmount);
                 genInstrSeq(Hi52, isRV64);

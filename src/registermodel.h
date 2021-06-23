@@ -39,7 +39,7 @@ signals:
     void registerChanged(unsigned i);
 
 private:
-    std::vector<uint64_t> gatherRegisterValues();
+    std::vector<VInt> gatherRegisterValues();
 
     QVariant nameData(unsigned idx) const;
     QVariant aliasData(unsigned idx) const;
@@ -51,6 +51,6 @@ private:
     RegisterFileType m_rft;
 
     int m_mostRecentlyModifiedReg = -1;
-    std::vector<uint64_t> m_regValues;
+    std::vector<VInt> m_regValues;
 };
 }  // namespace Ripes
