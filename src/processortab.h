@@ -6,6 +6,7 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include "ripes_types.h"
 #include "ripestab.h"
 
 namespace vsrtl {
@@ -52,7 +53,7 @@ public slots:
 private slots:
     void run(bool state);
     void clock();
-    void setInstructionViewCenterAddr(uint32_t address);
+    void setInstructionViewCenterAddr(AInt address);
     void showPipelineDiagram();
 
 private:

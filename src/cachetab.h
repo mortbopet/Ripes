@@ -3,6 +3,8 @@
 #include <QWidget>
 #include "ripestab.h"
 
+#include "ripes_types.h"
+
 namespace Ripes {
 
 namespace Ui {
@@ -19,7 +21,7 @@ public:
     void tabVisibilityChanged(bool visible) override;
 
 signals:
-    void focusAddressChanged(uint32_t address);
+    void focusAddressChanged(AInt address);
 
 private:
     Ui::CacheTab* m_ui;

@@ -11,14 +11,14 @@ namespace Ripes {
 class Parser;
 class Pipeline;
 
-static inline uint32_t indexToAddress(const QModelIndex& index) {
+static inline AInt indexToAddress(const QModelIndex& index) {
     if (auto prog_spt = ProcessorHandler::getProgram()) {
         return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }
 
-static inline int addressToRow(uint32_t addr) {
+static inline int addressToRow(AInt addr) {
     if (auto prog_spt = ProcessorHandler::getProgram()) {
         if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
             return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
@@ -48,15 +48,15 @@ signals:
      * Emitted whenever the PC of the first stage, changed. Argument is the address of the instruction now present in
      * the first stage.
      */
-    void firstStageInstrChanged(uint32_t);
+    void firstStageInstrChanged(AInt);
 
 private:
     void updateStageInfo();
 
-    QVariant BPData(uint32_t addr) const;
-    QVariant PCData(uint32_t addr) const;
-    QVariant stageData(uint32_t addr) const;
-    QVariant instructionData(uint32_t addr) const;
+    QVariant BPData(AInt addr) const;
+    QVariant PCData(AInt addr) const;
+    QVariant stageData(AInt addr) const;
+    QVariant instructionData(AInt addr) const;
     void updateRowCount();
     void onProcessorReset();
 

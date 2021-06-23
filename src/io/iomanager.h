@@ -20,13 +20,13 @@ struct PeripheralID {
 using PeriphIDs = std::vector<PeripheralID>;
 
 struct MemoryMapEntry {
-    uint32_t startAddr;
+    AInt startAddr;
     unsigned size;
     QString name;
-    uint32_t end() const { return startAddr + size; }
+    AInt end() const { return startAddr + size; }
 };
 
-using MemoryMap = std::map<uint32_t, MemoryMapEntry>;
+using MemoryMap = std::map<AInt, MemoryMapEntry>;
 
 class IOManager : public QObject {
     Q_OBJECT
@@ -53,7 +53,7 @@ public:
      * @returns as cSymbols, but as a map which can be directly loaded into the assembler.
      */
     const Assembler::SymbolMap& assemblerSymbols() const { return m_assemblerSymbols; }
-    std::vector<std::pair<Symbol, uint32_t>> assemblerSymbolsForPeriph(IOBase* peripheral) const;
+    std::vector<std::pair<Symbol, AInt>> assemblerSymbolsForPeriph(IOBase* peripheral) const;
 
 signals:
     void memoryMapChanged();
@@ -91,9 +91,9 @@ private:
      * @brief nextPeripheralAddress
      * @returns a valid base address for a new peripheral
      */
-    uint32_t nextPeripheralAddress() const;
+    AInt nextPeripheralAddress() const;
 
-    uint32_t assignBaseAddress(IOBase* peripheral);
+    AInt assignBaseAddress(IOBase* peripheral);
     void assignBaseAddresses();
 
     MemoryMap m_memoryMap;

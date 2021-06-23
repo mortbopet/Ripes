@@ -18,8 +18,8 @@ public:
                       {{0, "Pointer to null terminated string for the path"}, {1, "flags"}},
                       {{0, "the file decriptor or -1 if an error occurred"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
-        const uint32_t arg1 = BaseSyscall::getArg(RegisterFileType::GPR, 1);
+        const AInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        const AInt arg1 = BaseSyscall::getArg(RegisterFileType::GPR, 1);
         QByteArray string;
         char byte;
         unsigned int address = arg0;
@@ -41,7 +41,7 @@ class CloseSyscall : public BaseSyscall {
 public:
     CloseSyscall() : BaseSyscall("Close", "Close a file", {{0, "the file descriptor to close"}}) {}
     void execute() {
-        const uint32_t arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+        const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
         SystemIO::closeFile(arg0);
     }
 };

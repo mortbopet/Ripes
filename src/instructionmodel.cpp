@@ -45,7 +45,7 @@ void InstructionModel::updateStageInfo() {
                 }
             }
             const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(i);
-            const uint32_t oldAddress = oldStageInfo.pc;
+            const AInt oldAddress = oldStageInfo.pc;
             const bool stageInfoChanged = oldStageInfo != stageInfo;
             oldStageInfo = stageInfo;
             if (stageInfoChanged) {
@@ -65,7 +65,7 @@ void InstructionModel::updateStageInfo() {
 }
 
 bool InstructionModel::setData(const QModelIndex& index, const QVariant& value, int role) {
-    const uint32_t addr = indexToAddress(index);
+    const AInt addr = indexToAddress(index);
     if ((index.column() == Column::Breakpoint) && role == Qt::CheckStateRole) {
         if (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked) {
             ProcessorHandler::setBreakpoint(addr, !ProcessorHandler::hasBreakpoint(addr));
@@ -93,13 +93,13 @@ QVariant InstructionModel::headerData(int section, Qt::Orientation orientation, 
     return QVariant();
 }
 
-QVariant InstructionModel::BPData(uint32_t addr) const {
+QVariant InstructionModel::BPData(AInt addr) const {
     return ProcessorHandler::hasBreakpoint(addr);
 }
-QVariant InstructionModel::PCData(uint32_t addr) const {
+QVariant InstructionModel::PCData(AInt addr) const {
     return "0x" + QString::number(addr, 16);
 }
-QVariant InstructionModel::stageData(uint32_t addr) const {
+QVariant InstructionModel::stageData(AInt addr) const {
     QStringList stagesForAddr;
     for (const auto& si : m_stageInfos) {
         if ((si.second.pc == addr) && si.second.stage_valid) {
@@ -113,7 +113,7 @@ QVariant InstructionModel::stageData(uint32_t addr) const {
     }
 }
 
-QVariant InstructionModel::instructionData(uint32_t addr) const {
+QVariant InstructionModel::instructionData(AInt addr) const {
     return ProcessorHandler::disassembleInstr(addr);
 }
 
@@ -121,7 +121,7 @@ QVariant InstructionModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) {
         return QVariant();
     }
-    const uint32_t addr = indexToAddress(index);
+    const AInt addr = indexToAddress(index);
     switch (index.column()) {
         case Column::Breakpoint: {
             if (role == Qt::CheckStateRole) {

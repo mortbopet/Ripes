@@ -199,9 +199,7 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
     }
 }
 
-namespace {}
-
-QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
+QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
     const uint64_t adjustedLineNumber =
         (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::currentISA()->instrBytes();
 
@@ -209,7 +207,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
         return document()->findBlockByNumber(adjustedLineNumber);
     }
 
-    unsigned long lineNumber = adjustedLineNumber;
+    uint64_t lineNumber = adjustedLineNumber;
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
     if (low == m_labelAddrOffsetMap.begin() && lineNumber < low->first) {
         // The line number is less that the position of the first offset block; block is directly inferred from

@@ -22,6 +22,13 @@ namespace Assembler {
  */
 using AddrOffsetMap = std::map<unsigned, std::pair<unsigned, QString>>;
 
+/**
+ * Stringifer
+ * A stringifier is a function that takes a vector of bytes (representing an instruction word) alongside a base
+ * address, and returns a string representation of the data.
+ */
+using Stringifier = std::function<QString(const std::vector<char>&, AInt)>;
+
 QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap);
 QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap);
 

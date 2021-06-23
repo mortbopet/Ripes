@@ -13,9 +13,7 @@ void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& off
 }
 }  // namespace
 
-QString stringifyProgram(std::weak_ptr<const Program> program,
-                         std::function<QString(const std::vector<char>&, uint32_t index)> stringifier,
-                         AddrOffsetMap& addrOffsetMap) {
+QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier stringifier, AddrOffsetMap& addrOffsetMap) {
     if (auto sp = program.lock()) {
         const auto* textSection = sp->getSection(TEXT_SECTION_NAME);
         if (!textSection)

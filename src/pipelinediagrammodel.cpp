@@ -6,7 +6,7 @@
 
 namespace Ripes {
 
-static inline uint32_t indexToAddress(unsigned index) {
+static inline AInt indexToAddress(unsigned index) {
     if (auto spt = ProcessorHandler::getProgram()) {
         return (index * ProcessorHandler::currentISA()->bytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
     }
@@ -87,7 +87,7 @@ QVariant PipelineDiagramModel::data(const QModelIndex& index, int role) const {
     if (!m_cycleStageInfos.count(index.column()))
         return QVariant();
 
-    const uint32_t addr = indexToAddress(index.row());
+    const AInt addr = indexToAddress(index.row());
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
 
     QStringList stagesForAddr;

@@ -64,7 +64,7 @@ static inline QString encodeRadixValue(VInt value, const Radix type, unsigned by
     Q_UNREACHABLE();
 }
 
-static inline uint32_t decodeRadixValue(QString value, const Radix type, bool* ok = nullptr) {
+static inline VInt decodeRadixValue(QString value, const Radix type, bool* ok = nullptr) {
     switch (type) {
         case Radix::Hex: {
             return value.toUInt(ok, 16);

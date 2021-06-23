@@ -27,8 +27,8 @@ QString IOManager::cSymbolsHeaderpath() const {
     }
 }
 
-uint32_t IOManager::nextPeripheralAddress() const {
-    uint32_t base = 0;
+AInt IOManager::nextPeripheralAddress() const {
+    AInt base = 0;
     if (m_periphMMappings.empty()) {
         base = RipesSettings::value(RIPES_SETTING_PERIPHERALS_START).toUInt();
     } else {
@@ -41,9 +41,9 @@ uint32_t IOManager::nextPeripheralAddress() const {
     return base;
 }
 
-uint32_t IOManager::assignBaseAddress(IOBase* peripheral) {
+AInt IOManager::assignBaseAddress(IOBase* peripheral) {
     unregisterPeripheralWithProcessor(peripheral);
-    const uint32_t base = nextPeripheralAddress();
+    const AInt base = nextPeripheralAddress();
     m_periphMMappings[peripheral] = {base, peripheral->byteSize(), peripheral->name()};
     registerPeripheralWithProcessor(peripheral);
     return base;
@@ -69,13 +69,13 @@ void IOManager::registerPeripheralWithProcessor(IOBase* peripheral) {
     ProcessorHandler::getMemory().addIORegion(
         m_periphMMappings.at(peripheral).startAddr, peripheral->byteSize(),
         vsrtl::core::IOFunctors{
-            [peripheral](uint32_t offset, uint32_t value, uint32_t size) { peripheral->ioWrite(offset, value, size); },
-            [peripheral](uint32_t offset, uint32_t size) { return peripheral->ioRead(offset, size); }});
+            [peripheral](AInt offset, VInt value, unsigned size) { peripheral->ioWrite(offset, value, size); },
+            [peripheral](AInt offset, unsigned size) { return peripheral->ioRead(offset, size); }});
 
-    peripheral->memWrite = [](uint32_t address, uint32_t value, uint32_t size) {
+    peripheral->memWrite = [](AInt address, VInt value, unsigned size) {
         ProcessorHandler::getMemory().writeMem(address, value, size);
     };
-    peripheral->memRead = [](uint32_t address, uint32_t size) {
+    peripheral->memRead = [](AInt address, unsigned size) {
         return ProcessorHandler::getMemory().readMem(address, size);
     };
 }
@@ -132,9 +132,8 @@ void IOManager::refreshMemoryMap() {
     const auto& program = ProcessorHandler::getProgram();
     if (program) {
         for (const auto& section : program.get()->sections) {
-            m_memoryMap[section.second.address] =
-                MemoryMapEntry{static_cast<uint32_t>(section.second.address),
-                               static_cast<unsigned>(section.second.data.size()), section.second.name};
+            m_memoryMap[section.second.address] = MemoryMapEntry{
+                section.second.address, static_cast<unsigned>(section.second.data.size()), section.second.name};
         }
     }
 
@@ -142,9 +141,9 @@ void IOManager::refreshMemoryMap() {
     emit memoryMapChanged();
 }
 
-std::vector<std::pair<Symbol, uint32_t>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
+std::vector<std::pair<Symbol, AInt>> IOManager::assemblerSymbolsForPeriph(IOBase* peripheral) const {
     const QString& periphName = cName(peripheral->name());
-    std::vector<std::pair<Symbol, uint32_t>> symbols;
+    std::vector<std::pair<Symbol, AInt>> symbols;
     const auto& periphInfo = m_periphMMappings.at(peripheral);
     symbols.push_back({{periphName + "_BASE", Symbol::Type::Address}, periphInfo.startAddr});
     symbols.push_back({periphName + "_SIZE", periphInfo.size});
