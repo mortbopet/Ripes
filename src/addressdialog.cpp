@@ -13,17 +13,7 @@ AddressDialog::AddressDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::Ad
     m_ui->setupUi(this);
 
     QRegExpValidator* validator = new QRegExpValidator(this);
-    const auto isaBytes = ProcessorHandler::currentISA()->bytes();
-    if (isaBytes == 2) {
-        validator->setRegExp(hexRegex16);
-    } else if (isaBytes == 4) {
-        validator->setRegExp(hexRegex32);
-    } else if (isaBytes == 8) {
-        validator->setRegExp(hexRegex64);
-    } else {
-        Q_UNREACHABLE();
-    }
-
+    setISADepRegex(validator);
     m_ui->address->setValidator(validator);
     m_ui->address->setText("0x" + QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
     setWindowTitle("Ripes");

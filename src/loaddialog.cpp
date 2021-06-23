@@ -41,11 +41,12 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
 
     // Binary page
     QRegExpValidator* validator = new QRegExpValidator(this);
-    validator->setRegExp(hexRegex32);
+    setISADepRegex(validator);
     m_ui->binaryLoadAt->setValidator(validator);
-    m_ui->binaryLoadAt->setText("0x00000000");
+    m_ui->binaryLoadAt->setText("0x" + QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
     m_ui->binaryEntryPoint->setValidator(validator);
-    m_ui->binaryEntryPoint->setText("0x00000000");
+    m_ui->binaryEntryPoint->setText("0x" + QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
+
     connect(m_ui->binaryLoadAt, &QLineEdit::textChanged, [=] { this->validateCurrentFile(); });
     connect(m_ui->binaryEntryPoint, &QLineEdit::textChanged, [=] { this->validateCurrentFile(); });
 
@@ -167,7 +168,7 @@ ELFInfo LoadDialog::validateELFFile(const QFile& file) {
     if (elfbits != ProcessorHandler::currentISA()->bits()) {
         const QString bitSize = elfbits == 32 ? "32" : "64";
         info.errorMessage = "Expected " + QString::number(ProcessorHandler::currentISA()->bits()) +
-                            " bit executable, but input file is a " + bitSize + " bit executable.";
+                            " bit executable, but input program is " + bitSize + " bit.";
         info.valid = false;
         goto finish;
     }
