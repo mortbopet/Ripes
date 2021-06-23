@@ -14,10 +14,10 @@ class SymbolNavigator : public QDialog {
     Q_OBJECT
 
 public:
-    SymbolNavigator(const Assembler::AddrOffsetMap& symbolmap, QWidget* parent = nullptr);
+    SymbolNavigator(const ReverseSymbolMap& symbolmap, QWidget* parent = nullptr);
     ~SymbolNavigator();
 
-    long getSelectedSymbolAddress() const;
+    AInt getSelectedSymbolAddress() const;
 
 private:
     void addSymbol(const AInt address, const QString& label);

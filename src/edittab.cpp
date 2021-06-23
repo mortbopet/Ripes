@@ -110,9 +110,11 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
 }
 
 void EditTab::showSymbolNavigator() {
-    SymbolNavigator nav(m_ui->programViewer->addressOffsetMap(), this);
-    if (nav.exec()) {
-        m_ui->programViewer->setCenterAddress(nav.getSelectedSymbolAddress());
+    if (auto program = ProcessorHandler::getProgram()) {
+        SymbolNavigator nav(program->symbols, this);
+        if (nav.exec()) {
+            m_ui->programViewer->setCenterAddress(nav.getSelectedSymbolAddress());
+        }
     }
 }
 

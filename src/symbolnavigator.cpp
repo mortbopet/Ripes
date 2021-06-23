@@ -8,7 +8,7 @@
 
 namespace Ripes {
 
-SymbolNavigator::SymbolNavigator(const Assembler::AddrOffsetMap& symbolmap, QWidget* parent)
+SymbolNavigator::SymbolNavigator(const ReverseSymbolMap& symbolmap, QWidget* parent)
     : QDialog(parent), m_ui(new Ui::SymbolNavigator) {
     m_ui->setupUi(this);
 
@@ -20,19 +20,16 @@ SymbolNavigator::SymbolNavigator(const Assembler::AddrOffsetMap& symbolmap, QWid
     m_ui->symbolTable->verticalHeader()->hide();
     m_ui->symbolTable->setHorizontalHeaderLabels({"Address", "Label"});
     m_ui->symbolTable->horizontalHeader()->setStretchLastSection(true);
+    m_ui->symbolTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Go to symbol");
 
     for (const auto& iter : symbolmap) {
-        if (!iter.second.second.isEmpty()) {
-            const long address = (iter.first - iter.second.first) * ProcessorHandler::currentISA()->bytes() +
-                                 ProcessorHandler::getTextStart();
-            addSymbol(address, iter.second.second);
-        }
+        addSymbol(iter.first, iter.second);
     }
     m_ui->symbolTable->selectRow(0);
 }
 
-long SymbolNavigator::getSelectedSymbolAddress() const {
+AInt SymbolNavigator::getSelectedSymbolAddress() const {
     const auto selected = m_ui->symbolTable->selectedItems();
     if (selected.size() > 0) {
         return selected[0]->data(Qt::UserRole).toUInt();
