@@ -3,6 +3,8 @@
 #include <QComboBox>
 #include <QMetaType>
 
+#include "ripes_types.h"
+
 namespace Ripes {
 
 enum class GoToFunction { Select, Address, Custom };
@@ -19,14 +21,14 @@ public:
 
 signals:
     void indexChanged();
-    void jumpToAddress(uint32_t address);
+    void jumpToAddress(AInt address);
 
 public slots:
 
 private:
     void signalFilter(int index);
     virtual void addTargets() = 0;
-    virtual uint32_t addrForIndex(int i) = 0;
+    virtual AInt addrForIndex(int i) = 0;
 };
 
 class GoToSectionComboBox : public GoToComboBox {
@@ -35,7 +37,7 @@ public:
 
 private:
     void addTargets();
-    uint32_t addrForIndex(int i);
+    AInt addrForIndex(int i);
 };
 
 class GoToRegisterComboBox : public GoToComboBox {
@@ -44,7 +46,7 @@ public:
 
 private:
     void addTargets();
-    uint32_t addrForIndex(int i);
+    AInt addrForIndex(int i);
 };
 
 }  // namespace Ripes

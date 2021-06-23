@@ -16,8 +16,9 @@ GoToComboBox::GoToComboBox(QWidget* parent) : QComboBox(parent) {
 }
 
 void GoToComboBox::showPopup() {
-    if (count())
+    if (count()) {
         clear();
+    }
 
     addItem("Select", QVariant::fromValue<GoToUserData>({GoToFunction::Select, 0}));
     addTargets();
@@ -57,12 +58,12 @@ void GoToSectionComboBox::addTargets() {
     }
 }
 
-uint32_t GoToSectionComboBox::addrForIndex(int i) {
+AInt GoToSectionComboBox::addrForIndex(int i) {
     const QString& sectionName = itemText(i);
     if (auto prog_spt = ProcessorHandler::getProgram()) {
         return prog_spt->getSection(sectionName)->address;
     } else {
-        return -1;
+        return 0;
     }
 }
 
@@ -74,7 +75,7 @@ void GoToRegisterComboBox::addTargets() {
     }
 }
 
-uint32_t GoToRegisterComboBox::addrForIndex(int i) {
+AInt GoToRegisterComboBox::addrForIndex(int i) {
     const auto& regIdx = qvariant_cast<GoToUserData>(itemData(i));
     return ProcessorHandler::getRegisterValue(RegisterFileType::GPR, regIdx.arg);
 }

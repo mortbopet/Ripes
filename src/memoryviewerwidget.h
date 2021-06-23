@@ -26,7 +26,7 @@ public:
 
 public slots:
     void updateView();
-    void setCentralAddress(uint32_t address);
+    void setCentralAddress(AInt address);
 
 private:
     void setupNavigationWidgets();

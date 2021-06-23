@@ -3,6 +3,7 @@
 #include <QMetaType>
 #include <QRegExp>
 #include <QString>
+#include <climits>
 #include <map>
 
 #include "ripes_types.h"
@@ -15,20 +16,22 @@ const static std::map<Radix, QString> s_radixName = {{Radix::Hex, "Hex"},       
                                                      {Radix::ASCII, "ASCII"},       {Radix::Float, "Float"}};
 
 static const auto hexRegex = QRegExp("0[xX][0-9a-fA-F]+");
+static const auto hexRegex16 = QRegExp("0[xX][0-9a-fA-F]{0,4}");
 static const auto hexRegex32 = QRegExp("0[xX][0-9a-fA-F]{0,8}");
+static const auto hexRegex64 = QRegExp("0[xX][0-9a-fA-F]{0,16}");
 static const auto binRegex = QRegExp("0[bB][0-1]+");
 static const auto unsignedRegex = QRegExp("[0-9]+");
 static const auto signedRegex = QRegExp("[-]*[0-9]+");
 
-static inline QString encodeRadixValue(VInt value, const Radix type, unsigned width = 32) {
+static inline QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth) {
     switch (type) {
         case Radix::Hex: {
-            return "0x" + QString::number(value, 16).rightJustified(width / 4, '0');
+            return "0x" + QString::number(value, 16).rightJustified(byteWidth * 2, '0');
         }
         case Radix::Float: {
             float _fvalue;  // Copy raw data instead of reinterpret_cast to avoid type-punned pointer error
             double _dvalue;
-            if (width <= 32) {
+            if (byteWidth <= 4) {
                 memcpy(&_fvalue, &value, sizeof(_fvalue));
                 return QString::number(_fvalue);
             } else {
@@ -37,13 +40,13 @@ static inline QString encodeRadixValue(VInt value, const Radix type, unsigned wi
             }
         }
         case Radix::Binary: {
-            return "0b" + QString::number(value, 2).rightJustified(width, '0');
+            return "0b" + QString::number(value, 2).rightJustified(byteWidth * CHAR_BIT, '0');
         }
         case Radix::Unsigned: {
             return QString::number(value, 10);
         }
         case Radix::Signed: {
-            if (width == 32) {
+            if (byteWidth == 4) {
                 return QString::number(static_cast<int32_t>(value), 10);
             } else {
                 return QString::number(static_cast<int64_t>(value), 10);
@@ -51,7 +54,7 @@ static inline QString encodeRadixValue(VInt value, const Radix type, unsigned wi
         }
         case Radix::ASCII: {
             QString str;
-            for (unsigned i = 0; i < width / 8; i++) {
+            for (unsigned i = 0; i < byteWidth; i++) {
                 str.prepend(QChar::fromLatin1(value & 0xFF));
                 value >>= 8;
             }

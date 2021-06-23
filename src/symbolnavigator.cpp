@@ -40,12 +40,12 @@ long SymbolNavigator::getSelectedSymbolAddress() const {
     return 0;
 }
 
-void SymbolNavigator::addSymbol(const long address, const QString& label) {
+void SymbolNavigator::addSymbol(const AInt address, const QString& label) {
     m_ui->symbolTable->setRowCount(m_ui->symbolTable->rowCount() + 1);
     QTableWidgetItem* addrItem = new QTableWidgetItem();
     QTableWidgetItem* labelItem = new QTableWidgetItem();
 
-    addrItem->setData(Qt::DisplayRole, encodeRadixValue(address, Radix::Hex));
+    addrItem->setData(Qt::DisplayRole, encodeRadixValue(address, Radix::Hex, ProcessorHandler::currentISA()->bytes()));
     labelItem->setData(Qt::DisplayRole, label);
 
     addrItem->setFlags(addrItem->flags() ^ Qt::ItemIsEditable);

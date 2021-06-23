@@ -20,7 +20,7 @@ public:
     long getSelectedSymbolAddress() const;
 
 private:
-    void addSymbol(const long address, const QString& label);
+    void addSymbol(const AInt address, const QString& label);
 
     Ui::SymbolNavigator* m_ui;
 };

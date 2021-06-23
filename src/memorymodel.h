@@ -26,20 +26,19 @@ public:
 
 public slots:
     void processorWasClocked();
-    void setRowsVisible(unsigned rows);
+    void setRowsVisible(int rows);
     void offsetCentralAddress(int rowOffset);
-    void setCentralAddress(uint32_t address);
+    void setCentralAddress(AInt address);
 
 private:
-    bool validAddress(long long address) const;
-    QVariant addrData(long long address) const;
-    QVariant byteData(long long address, unsigned byteOffset) const;
-    QVariant wordData(long long address) const;
-    QVariant fgColorData(long long address, unsigned byteOffset) const;
+    QVariant addrData(AInt address, bool validAddress) const;
+    QVariant byteData(AInt address, AInt byteOffset, bool validAddress) const;
+    QVariant wordData(AInt address, bool validAddress) const;
+    QVariant fgColorData(AInt address, AInt byteOffset, bool validAddress) const;
 
     Radix m_radix = Radix::Hex;
 
-    long long m_centralAddress = 4;  // Address at the center of the model
-    unsigned m_rowsVisible = 0;      // Number of rows currently visible in the view associated with the model
+    AInt m_centralAddress = 0;  // Memory address at the center of the model
+    int m_rowsVisible = 0;      // Number of rows currently visible in the view associated with the model
 };
 }  // namespace Ripes

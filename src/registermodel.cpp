@@ -10,7 +10,7 @@ namespace Ripes {
 using namespace vsrtl;
 
 RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : QAbstractTableModel(parent), m_rft(rft) {
-    m_regWidth = ProcessorHandler::getProcessor()->implementsISA()->bits();
+    m_regBytes = ProcessorHandler::getProcessor()->implementsISA()->bytes();
 }
 
 std::vector<VInt> RegisterModel::gatherRegisterValues() {
@@ -137,7 +137,7 @@ QVariant RegisterModel::tooltipData(unsigned idx) const {
 }
 
 QVariant RegisterModel::valueData(unsigned idx) const {
-    return encodeRadixValue(ProcessorHandler::getRegisterValue(m_rft, idx), m_radix, m_regWidth);
+    return encodeRadixValue(ProcessorHandler::getRegisterValue(m_rft, idx), m_radix, m_regBytes);
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex& index) const {

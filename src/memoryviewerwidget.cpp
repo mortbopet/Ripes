@@ -16,7 +16,7 @@ MemoryViewerWidget::MemoryViewerWidget(QWidget* parent) : QWidget(parent), m_ui(
     m_ui->setupUi(this);
 
     setupNavigationWidgets();
-
+    connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this, &MemoryViewerWidget::updateModel);
     updateModel();
 }
 
@@ -46,7 +46,7 @@ void MemoryViewerWidget::setupNavigationWidgets() {
     flowLayout->addItem(layout);
 }
 
-void MemoryViewerWidget::setCentralAddress(uint32_t address) {
+void MemoryViewerWidget::setCentralAddress(AInt address) {
     m_memoryModel->setCentralAddress(address);
 }
 
@@ -57,24 +57,28 @@ void MemoryViewerWidget::updateView() {
 void MemoryViewerWidget::updateModel() {
     auto* oldModel = m_memoryModel;
 
-    m_memoryModel = new MemoryModel(this);
+    auto* newModel = new MemoryModel(this);
+    m_memoryModel = newModel;
     m_ui->memoryView->setModel(m_memoryModel);
     m_radixSelector->setRadix(m_memoryModel->getRadix());
     connect(m_radixSelector, &RadixSelectorWidget::radixChanged, m_memoryModel, &MemoryModel::setRadix);
 
     // Connect scroll events on the view to modify the center address of the model
-    connect(m_ui->memoryView, &MemoryView::scrolled, [=](bool dir) {
+    connect(m_ui->memoryView, &MemoryView::scrolled, newModel, [=](bool dir) {
         if (dir) {
-            m_memoryModel->offsetCentralAddress(1);
+            newModel->offsetCentralAddress(1);
         } else {
-            m_memoryModel->offsetCentralAddress(-1);
+            newModel->offsetCentralAddress(-1);
         }
     });
 
     m_memoryModel->setRowsVisible(1);
-    connect(m_ui->memoryView, &MemoryView::resized, [=] {
-        const auto rows = m_ui->memoryView->height() / m_ui->memoryView->rowHeight(0);
-        m_memoryModel->setRowsVisible(rows);
+    connect(m_ui->memoryView, &MemoryView::resized, newModel, [=] {
+        int rowHeight = m_ui->memoryView->rowHeight(0);
+        if (rowHeight != 0) {
+            const auto rows = m_ui->memoryView->height() / rowHeight;
+            newModel->setRowsVisible(rows);
+        }
     });
     connect(m_goToSection, &GoToComboBox::jumpToAddress, m_memoryModel, &MemoryModel::setCentralAddress);
     connect(m_goToRegister, &GoToComboBox::jumpToAddress, m_memoryModel, &MemoryModel::setCentralAddress);

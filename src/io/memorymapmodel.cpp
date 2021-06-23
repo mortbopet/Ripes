@@ -62,8 +62,11 @@ QVariant MemoryMapModel::data(const QModelIndex& index, int role) const {
         case Column::AddressRange: {
             switch (role) {
                 case Qt::DisplayRole:
-                    return encodeRadixValue(memoryMapEntry->first, Radix::Hex) + " - " +
-                           encodeRadixValue(memoryMapEntry->first + memoryMapEntry->second.size, Radix::Hex);
+                    return encodeRadixValue(memoryMapEntry->first, Radix::Hex,
+                                            ProcessorHandler::currentISA()->bytes()) +
+                           " - " +
+                           encodeRadixValue(memoryMapEntry->first + memoryMapEntry->second.size, Radix::Hex,
+                                            ProcessorHandler::currentISA()->bytes());
                 case Qt::FontRole:
                     return QFont(Fonts::monospace, 11);
                 case Qt::TextAlignmentRole:

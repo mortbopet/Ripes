@@ -9,6 +9,7 @@ namespace Ripes {
 // all ISAs supported by Ripes.
 using AInt = uint64_t;
 using VInt = uint64_t;
+using AIntS = typename std::make_signed<AInt>::type;
 using VIntS = typename std::make_signed<VInt>::type;
 
 }  // namespace Ripes
