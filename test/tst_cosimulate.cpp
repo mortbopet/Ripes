@@ -50,7 +50,8 @@ const std::vector<LoadFileParams> s_testFiles = {
                    SourceType::Assembly, 0, 0},
     LoadFileParams{QString(s_testdir + QDir::separator() + "../../examples/assembly/factorial.s"), SourceType::Assembly,
                    0, 0},
-    LoadFileParams{QString(s_testdir + QDir::separator() + "../../examples/ELF/RanPi"), SourceType::ExternalELF, 0, 0}};
+    LoadFileParams{QString(s_testdir + QDir::separator() + "../../examples/ELF/RanPi-RV32"), SourceType::ExternalELF, 0,
+                   0}};
 
 class tst_Cosimulate : public QObject {
     Q_OBJECT

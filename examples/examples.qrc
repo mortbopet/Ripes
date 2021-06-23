@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/examples">
-        <file>ELF/RanPi</file>
         <file>C/ranpi.c</file>
         <file>C/consoleInput.c</file>
         <file>C/matrixmul.c</file>
@@ -10,5 +9,7 @@
         <file>C/leds.c</file>
         <file>C/switchesAndLeds.c</file>
         <file>assembly/leds.s</file>
+        <file>ELF/RanPi-RV32</file>
+        <file>ELF/RanPi-RV64</file>
     </qresource>
 </RCC>

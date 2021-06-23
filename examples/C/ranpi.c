@@ -8,6 +8,8 @@
  *  Translated to C from FORTRAN 20 Nov 1993
  */
 
+#include <stdio.h>
+
 void myadd(float* sum, float* addend) {
     /*
     c   Simple adding subroutine thrown in to allow subroutine
