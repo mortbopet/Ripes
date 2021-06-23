@@ -82,6 +82,7 @@ private:
     void updateWay(unsigned lineIdx, unsigned wayIdx);
     void updateAddressing(bool valid, const CacheSim::CacheTransaction* transaction = nullptr);
     void drawIndexingItems();
+    QString addressString() const;
 
     QFont m_font = QFont(Fonts::monospace, 12);
     CacheSim& m_cache;

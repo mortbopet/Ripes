@@ -109,6 +109,10 @@ void CacheGraphic::updateLineReplFields(unsigned lineIdx) {
     }
 }
 
+QString CacheGraphic::addressString() const {
+    return "0x" + QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2);
+}
+
 void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     CacheWay& way = m_cacheTextItems.at(lineIdx).at(wayIdx);
     const CacheSim::CacheWay& simWay = m_cache.getLine(lineIdx)->at(wayIdx);
@@ -120,7 +124,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
             if (way.blocks.count(i) == 0) {
                 // Block text item has not yet been created
                 const qreal x =
-                    m_widthBeforeBlocks + i * m_blockWidth + (m_blockWidth / 2 - m_fm.width("0x00000000") / 2);
+                    m_widthBeforeBlocks + i * m_blockWidth + (m_blockWidth / 2 - m_fm.width(addressString()) / 2);
                 const qreal y = lineIdx * m_lineHeight + wayIdx * m_setHeight;
 
                 way.blocks[i] = createGraphicsTextItemSP(x, y);
@@ -130,18 +134,19 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
             }
 
             // Update block text
-            const uint32_t addressForBlock = m_cache.buildAddress(simWay.tag, lineIdx, i);
+            const AInt addressForBlock = m_cache.buildAddress(simWay.tag, lineIdx, i);
             const auto data = ProcessorHandler::getMemory().readMemConst(addressForBlock);
-            const QString text = encodeRadixValue(data, Radix::Hex);
+            const QString text = encodeRadixValue(data, Radix::Hex, ProcessorHandler::currentISA()->bytes());
             blockTextItem->setText(text);
-            QString tooltip = "Address: " + encodeRadixValue(addressForBlock, Radix::Hex);
+            QString tooltip =
+                "Address: " + encodeRadixValue(addressForBlock, Radix::Hex, ProcessorHandler::currentISA()->bytes());
             if (simWay.dirtyBlocks.count(i)) {
                 tooltip += "\n> Dirty";
             }
             blockTextItem->setToolTip(tooltip);
             // Store the address within the userrole of the block text. Doing this, we are able to easily retrieve the
             // address for the block if the block is clicked.
-            blockTextItem->setData(Qt::UserRole, addressForBlock);
+            blockTextItem->setData(Qt::UserRole, QVariant::fromValue(addressForBlock));
         }
     } else {
         // The way is invalid so no block text should be present
@@ -162,12 +167,12 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     if (simWay.valid) {
         QGraphicsSimpleTextItem* tagTextItem = way.tag.get();
         if (tagTextItem == nullptr) {
-            const qreal x = m_widthBeforeTag + (m_tagWidth / 2 - m_fm.width("0x00000000") / 2);
+            const qreal x = m_widthBeforeTag + (m_tagWidth / 2 - m_fm.width(addressString()) / 2);
             const qreal y = lineIdx * m_lineHeight + wayIdx * m_setHeight;
             way.tag = createGraphicsTextItemSP(x, y);
             tagTextItem = way.tag.get();
         }
-        const QString tagText = encodeRadixValue(simWay.tag, Radix::Hex);
+        const QString tagText = encodeRadixValue(simWay.tag, Radix::Hex, ProcessorHandler::currentISA()->bytes());
         tagTextItem->setText(tagText);
     } else {
         // The way is invalid so no tag text should be present
@@ -335,7 +340,7 @@ void CacheGraphic::cacheInvalidated() {
     // Determine cell dimensions
     m_setHeight = m_fm.height();
     m_lineHeight = m_setHeight * m_cache.getWays();
-    m_blockWidth = m_fm.width(" 0x00000000 ");
+    m_blockWidth = m_fm.width(" " + addressString() + " ");
     m_bitWidth = m_fm.width("00");
     m_lruWidth = m_fm.width(QString::number(m_cache.getWays()) + " ");
     m_cacheHeight = m_lineHeight * m_cache.getLines();
