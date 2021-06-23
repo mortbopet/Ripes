@@ -210,11 +210,7 @@ QTextBlock ProgramViewer::blockForAddress(unsigned long addr) const {
 
     unsigned long lineNumber = adjustedLineNumber;
     auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
-    if (low == m_labelAddrOffsetMap.end()) {
-        return QTextBlock();
-    }
-
-    if (lineNumber < low->first && (low == m_labelAddrOffsetMap.begin())) {
+    if (low == m_labelAddrOffsetMap.begin() && lineNumber < low->first) {
         // The line number is less that the position of the first offset block; block is directly inferred from
         // linenumber.
         return document()->findBlockByNumber(adjustedLineNumber);
