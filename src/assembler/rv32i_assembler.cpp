@@ -16,18 +16,16 @@ RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler<Reg
     auto relocations = rvRelocations<Reg_T, Instr_T>();
     initialize(instrs, pseudos, directives, relocations);
 
-    // Initialize segment pointers
-    setSegmentBase(".text", RipesSettings::value(RIPES_SETTING_ASSEMBLER_TEXTSTART).toUInt());
-    setSegmentBase(".data", RipesSettings::value(RIPES_SETTING_ASSEMBLER_DATASTART).toUInt());
-    setSegmentBase(".bss", RipesSettings::value(RIPES_SETTING_ASSEMBLER_BSSSTART).toUInt());
-
-    // Monitor settings changes to segment pointers
-    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART), &SettingObserver::modified,
-            [this](const QVariant& value) { setSegmentBase(".text", value.toUInt()); });
-    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART), &SettingObserver::modified,
-            [this](const QVariant& value) { setSegmentBase(".data", value.toUInt()); });
-    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART), &SettingObserver::modified,
-            [this](const QVariant& value) { setSegmentBase(".bss", value.toUInt()); });
+    // Initialize segment pointers and monitor settings changes to segment pointers
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART), &SettingObserver::modified, this,
+            [this](const QVariant& value) { setSegmentBase(".text", value.toULongLong()); });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART), &SettingObserver::modified, this,
+            [this](const QVariant& value) { setSegmentBase(".data", value.toULongLong()); });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART), &SettingObserver::modified, this,
+            [this](const QVariant& value) { setSegmentBase(".bss", value.toULongLong()); });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
 }
 
 std::tuple<RV32I_Assembler::_InstrVec, RV32I_Assembler::_PseudoInstrVec>
