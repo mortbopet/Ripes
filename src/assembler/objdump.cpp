@@ -13,7 +13,7 @@ void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& off
 }
 }  // namespace
 
-QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
+QString stringifyProgram(std::weak_ptr<const Program> program,
                          std::function<QString(const std::vector<char>&, uint32_t index)> stringifier,
                          AddrOffsetMap& addrOffsetMap) {
     if (auto sp = program.lock()) {
@@ -24,11 +24,13 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
         QString out;
         auto dataStream = QDataStream(textSection->data);
         std::vector<char> buffer;
+        const unsigned stride = ProcessorHandler::currentISA()->instrBytes();
+        const unsigned regBytes = ProcessorHandler::currentISA()->bytes();
         buffer.resize(stride);
 
         int infoOffsets = 0;
 
-        for (unsigned long addr = textSection->address; addr < textSection->address + textSection->data.length();
+        for (AInt addr = textSection->address; addr < textSection->address + textSection->data.length();
              addr += stride) {
             dataStream.readRawData(buffer.data(), stride);
 
@@ -40,7 +42,7 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
                 incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets);
                 out += "\n";
                 incrementAddressOffsetMap(out, addrOffsetMap, infoOffsets, symbol.v);
-                out += QString::number(addr, 16).rightJustified(8, '0') + " <" + symbol.v + ">:\n";
+                out += QString::number(addr, 16).rightJustified(regBytes * 2, '0') + " <" + symbol.v + ">:\n";
             }
 
             // Instruction address
@@ -63,24 +65,23 @@ QString stringifyProgram(std::weak_ptr<const Program> program, unsigned stride,
 
 QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap) {
     auto assembler = ProcessorHandler::getAssembler();
+    const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
     return stringifyProgram(
-        program, 4,
-        [&program, &assembler](const std::vector<char>& buffer, uint32_t address) {
-            // Hardcoded for RV32 for now
-            uint32_t instr = 0;
-            for (int i = 0; i < 4; i++) {
+        program,
+        [&program, &assembler, instrBytes](const std::vector<char>& buffer, AInt address) {
+            VInt instr = 0;
+            for (unsigned i = 0; i < instrBytes; i++) {
                 instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
             }
-            return assembler->disassemble(instr, program->symbols, address)
-                .first;  // disassemble(program, instr, index);
+            return assembler->disassemble(instr, program->symbols, address).first;
         },
         addrOffsetMap);
 }
 
 QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap) {
     return stringifyProgram(
-        program, 4,
-        [](const std::vector<char>& buffer, uint32_t) {
+        program,
+        [](const std::vector<char>& buffer, AInt) {
             QString binaryString;
             for (auto byte : buffer) {
                 binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));

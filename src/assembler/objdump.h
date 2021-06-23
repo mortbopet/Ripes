@@ -20,7 +20,7 @@ namespace Assembler {
  *  first: # of offset lines up to (not including) the given offset
  *  second: An optional QString() referencing the symbol displayed at the offset.
  */
-using AddrOffsetMap = std::map<unsigned long, std::pair<int, QString>>;
+using AddrOffsetMap = std::map<unsigned, std::pair<unsigned, QString>>;
 
 QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap);
 QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap);
