@@ -17,7 +17,7 @@ public:
     IOLedMatrix(QWidget* parent);
     ~IOLedMatrix() { unregister(); };
 
-    virtual uint32_t byteSize() const override;
+    virtual unsigned byteSize() const override;
     virtual QString description() const override;
     virtual QString baseName() const override { return "LED Matrix"; }
 
@@ -27,8 +27,8 @@ public:
     /**
      * Hardware read/write functions
      */
-    virtual uint32_t ioRead(uint32_t offset, unsigned size) override;
-    virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) override;
+    virtual VInt ioRead(AInt offset, unsigned size) override;
+    virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
 
 protected:
     virtual void parameterChanged(unsigned) override { updateLEDRegs(); };
@@ -40,7 +40,7 @@ protected:
     QSize minimumSizeHint() const override;
 
 private:
-    uint32_t regRead(uint32_t offset) const;
+    VInt regRead(AInt offset) const;
     void updateLEDRegs();
 
     unsigned m_maxSideWidth = 256;

@@ -41,7 +41,7 @@ struct IOParam {
 
 struct IOSymbol {
     Symbol name;
-    uint32_t value;
+    VInt value;
 };
 
 struct RegDesc {
@@ -49,7 +49,7 @@ struct RegDesc {
     QString name;
     RW rw;
     unsigned bitWidth;
-    uint32_t address;
+    AInt address;
     /**
      * @brief exported
      * if true, a constant symbol is generated that may be referenced in the assembler, which targets this register.
@@ -100,19 +100,24 @@ public:
      * Attempt to set the parameter @p ID to @p value. Returns true if the value was set successfully.
      */
     virtual bool setParameter(unsigned ID, const QVariant& value);
-    virtual uint32_t byteSize() const = 0;
+
+    /**
+     * @brief byteSize
+     * Size of this peripheral, in bytes
+     */
+    virtual unsigned byteSize() const = 0;
 
     /**
      * Read/write functions from processor
      */
-    virtual uint32_t ioRead(uint32_t offset, unsigned size) = 0;
-    virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) = 0;
+    virtual VInt ioRead(AInt offset, unsigned bytes) = 0;
+    virtual void ioWrite(AInt offset, VInt value, unsigned bytes) = 0;
 
     /**
      * Read/write functions from peripheral to bus (memory/other periphs)
      */
-    std::function<void(uint32_t, uint32_t, uint32_t)> memWrite;
-    std::function<uint32_t(uint32_t, uint32_t)> memRead;
+    std::function<void(AInt, AInt, VInt)> memWrite;
+    std::function<VInt(AInt, AInt)> memRead;
 
     unsigned iotype() const { return m_type; }
     unsigned id() const { return m_id; }

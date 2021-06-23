@@ -47,7 +47,7 @@ IODPad::IODPad(QWidget* parent) : IOBase(IOType::DPAD, parent) {
     setLayout(gridLayout);
 }
 
-uint32_t IODPad::byteSize() const {
+unsigned IODPad::byteSize() const {
     return 4 * 4;
 }
 
@@ -95,7 +95,7 @@ QString IODPad::description() const {
     return desc.join('\n');
 }
 
-uint32_t IODPad::ioRead(uint32_t offset, unsigned) {
+VInt IODPad::ioRead(AInt offset, unsigned) {
     switch (offset) {
         case LEFT * 4: {
             return m_buttons.at(LEFT)->isDown();
@@ -113,7 +113,7 @@ uint32_t IODPad::ioRead(uint32_t offset, unsigned) {
     return 0;
 }
 
-void IODPad::ioWrite(uint32_t, uint32_t, unsigned) {
+void IODPad::ioWrite(AInt, VInt, unsigned) {
     // Write-only
 }
 

@@ -66,7 +66,7 @@ public:
     IOSwitches(QWidget* parent);
     ~IOSwitches() { unregister(); };
 
-    virtual uint32_t byteSize() const override { return 4; }
+    virtual unsigned byteSize() const override { return 4; }
     virtual QString description() const override;
     virtual QString baseName() const override { return "Switches"; };
 
@@ -76,8 +76,8 @@ public:
     /**
      * Hardware read/write functions
      */
-    virtual uint32_t ioRead(uint32_t offset, unsigned size) override;
-    virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) override;
+    virtual VInt ioRead(AInt offset, unsigned size) override;
+    virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
 
 protected:
     virtual void parameterChanged(unsigned) override { updateSwitches(); };
@@ -85,7 +85,7 @@ protected:
 private:
     void updateSwitches();
 
-    uint32_t regRead(uint32_t offset) const;
+    uint32_t regRead(AInt offset) const;
     std::map<unsigned, std::pair<QLabel*, ToggleButton*>> m_switches;
     QGridLayout* m_switchLayout;
     std::vector<RegDesc> m_regDescs;

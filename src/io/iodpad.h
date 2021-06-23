@@ -19,7 +19,7 @@ public:
     IODPad(QWidget* parent);
     ~IODPad() { unregister(); };
 
-    virtual uint32_t byteSize() const override;
+    virtual unsigned byteSize() const override;
     virtual QString description() const override;
     virtual QString baseName() const override { return "D-Pad"; };
 
@@ -28,8 +28,8 @@ public:
     /**
      * Hardware read/write functions
      */
-    virtual uint32_t ioRead(uint32_t offset, unsigned size) override;
-    virtual void ioWrite(uint32_t offset, uint32_t value, unsigned size) override;
+    virtual VInt ioRead(AInt offset, unsigned size) override;
+    virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
 
 protected:
     virtual void parameterChanged(unsigned) override{/* no parameters */};
@@ -37,8 +37,7 @@ protected:
     void keyReleaseEvent(QKeyEvent* e) override;
 
 private:
-    unsigned m_maxSideWidth = 256;
-    std::vector<uint32_t> m_ledRegs;
+    constexpr static unsigned m_maxSideWidth = 256;
     std::vector<RegDesc> m_regDescs;
     std::map<IdxToDir, QAbstractButton*> m_buttons;
 };

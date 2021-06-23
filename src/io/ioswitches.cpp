@@ -189,13 +189,13 @@ void IOSwitches::updateSwitches() {
     emit regMapChanged();
 }
 
-uint32_t IOSwitches::ioRead(uint32_t, unsigned) {
+VInt IOSwitches::ioRead(AInt, unsigned) {
     return std::accumulate(m_switches.begin(), m_switches.end(), 0, [=](uint32_t acc, const auto& sw) {
         return acc | (sw.second.second->isChecked()) << sw.first;
     });
 }
 
-void IOSwitches::ioWrite(uint32_t, uint32_t, unsigned) {
+void IOSwitches::ioWrite(AInt, VInt, unsigned) {
     // Read-only
     return;
 }

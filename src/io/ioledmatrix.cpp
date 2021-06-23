@@ -39,11 +39,11 @@ QString IOLedMatrix::description() const {
     return desc.join('\n');
 }
 
-uint32_t IOLedMatrix::ioRead(uint32_t offset, unsigned size) {
+VInt IOLedMatrix::ioRead(AInt offset, unsigned size) {
     return (m_ledRegs.at(offset / 4) >> (offset % 4)) & vsrtl::generateBitmask(size * 8);
 }
 
-void IOLedMatrix::ioWrite(uint32_t offset, uint32_t value, unsigned) {
+void IOLedMatrix::ioWrite(AInt offset, VInt value, unsigned) {
     offset >>= 2;  // word addressable
     if (offset >= m_ledRegs.size()) {
         Q_ASSERT(false);
