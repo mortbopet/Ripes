@@ -264,10 +264,6 @@ const Trace& tst_Cosimulate::generateReferenceTrace(const QStringList& extension
  * once in Ripes, due to the static nature of the ProcessorHandler.
  */
 void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extensions) {
-    // Connect the global reset request signal to directly resetting the processor
-    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
-            [=] { ProcessorHandler::get()->getProcessorNonConst()->resetProcessor(); });
-
     m_loader = new EditTab(new QToolBar(), nullptr);
     connect(m_loader, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
 

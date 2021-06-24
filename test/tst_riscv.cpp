@@ -139,10 +139,6 @@ QString tst_RISCV::executeSimulator() {
 }
 
 void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
-    // Connect the global reset request signal to directly resetting the processor
-    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
-            [=] { ProcessorHandler::get()->getProcessorNonConst()->resetProcessor(); });
-
     const auto dir = QDir(testdir);
     const auto testFiles = dir.entryList({"*.s"});
     const auto extensions = QStringList("M");
