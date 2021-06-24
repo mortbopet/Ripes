@@ -62,7 +62,7 @@ public:
 private:
     void cosimulate(const ProcessorID& id, const QStringList& extensions);
     const Trace& generateReferenceTrace(const QStringList& extensions);
-    void handleSysCall();
+    void trapHandler();
     void executeSimulator(Trace& outTrace, const Trace* refTrace = nullptr);
     Registers dumpRegs();
     QString generateErrorReport(const RegisterChange& change, const TraceEntry& lhs, const TraceEntry& rhs) const;
@@ -85,7 +85,7 @@ private slots:
     void testRV5SNoFW() { cosimulate(ProcessorID::RV32_5S_NO_FW, {"M"}); }
 };
 
-void tst_Cosimulate::handleSysCall() {
+void tst_Cosimulate::trapHandler() {
     unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
         RegisterFileType::GPR, ProcessorHandler::get()->getProcessor()->implementsISA()->syscallReg());
 
@@ -178,7 +178,7 @@ void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
 
     // Override the ProcessorHandler's ECALL handling. In doing so, we can hook into when the EXIT syscall was executed,
     // to verify whether the correct test value was reached.
-    ProcessorHandler::get()->getProcessorNonConst()->handleSysCall = [=] { handleSysCall(); };
+    ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [=] { trapHandler(); };
 
     m_stop = false;
     m_err = QString();

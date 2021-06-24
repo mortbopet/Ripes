@@ -129,7 +129,7 @@ public:
         // -----------------------------------------------------------------------
         // Ecall checker
         decode->opcode >> ecallChecker->opcode;
-        ecallChecker->setSyscallCallback(&handleSysCall);
+        ecallChecker->setSyscallCallback(&trapHandler);
         0 >> ecallChecker->stallEcallHandling;
 
         // -----------------------------------------------------------------------

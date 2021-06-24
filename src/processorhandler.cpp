@@ -230,7 +230,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     m_currentProcessor->isExecutableAddress = [=](AInt address) { return _isExecutableAddress(address); };
 
     // Syscall handling initialization
-    m_currentProcessor->handleSysCall = [=] { syscallTrap(); };
+    m_currentProcessor->trapHandler = [=] { syscallTrap(); };
 
     m_currentProcessor->postConstruct();
     createAssemblerForCurrentISA();

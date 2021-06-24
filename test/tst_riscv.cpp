@@ -51,7 +51,7 @@ private:
 
     void runTests(const ProcessorID& id, const QString& testdir);
 
-    void handleSysCall();
+    void trapHandler();
 
     bool m_stop = false;
     std::shared_ptr<Program> m_program;
@@ -104,7 +104,7 @@ void tst_RISCV::loadBinaryToSimulator(const QString& binFile) {
     ProcessorHandler::get()->loadProgram(m_program);
 }
 
-void tst_RISCV::handleSysCall() {
+void tst_RISCV::trapHandler() {
     unsigned status = ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, s_ecallreg);
     if (status != s_success) {
         m_err = "Test: '" + m_currentTest + "' failed: Internal test error.\n\t test number: " +
@@ -172,7 +172,7 @@ void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
 
         // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
         // reached.
-        ProcessorHandler::getProcessorNonConst()->handleSysCall = [=] { handleSysCall(); };
+        ProcessorHandler::getProcessorNonConst()->trapHandler = [=] { trapHandler(); };
         ProcessorHandler::get()->loadProgram(spProgram);
         RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 

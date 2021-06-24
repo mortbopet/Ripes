@@ -288,7 +288,7 @@ public:
         // Ecall checker
 
         iiex_reg->opcode_out >> ecallChecker->opcode;
-        ecallChecker->setSyscallCallback(&handleSysCall);
+        ecallChecker->setSyscallCallback(&trapHandler);
         hzunit->stallEcallHandling >> ecallChecker->stallEcallHandling;
 
         // -----------------------------------------------------------------------
