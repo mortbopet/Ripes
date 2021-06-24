@@ -397,7 +397,6 @@ public:
     void setPCInitialValue(AInt address) override { pc_reg->setInitValue(address); }
     AddressSpaceMM& getMemory() override { return *m_memory; }
     VInt getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
-    AddressSpace& getArchRegisters() override { return *m_regMem; }
     void finalize(const unsigned& fr) override {
         if ((fr & FinalizeReason::exitSyscall) && !ecallChecker->isSysCallExiting()) {
             // An exit system call was executed. Record the cycle of the execution, and enable the ecallChecker's system

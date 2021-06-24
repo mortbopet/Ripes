@@ -149,12 +149,6 @@ public:
     virtual VInt getRegister(RegisterFileType rfid, unsigned i) const = 0;
 
     /**
-     * @brief getArchRegisters
-     * @return reference to the register address space utilized by the implementing processor
-     */
-    virtual vsrtl::core::AddressSpace& getArchRegisters() = 0;
-
-    /**
      * @brief setRegister
      * @param rfid: register file identifier
      * @param i: register index

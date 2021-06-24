@@ -90,11 +90,10 @@ public:
     static QString disassembleInstr(const AInt address) { return get()->_disassembleInstr(address); }
 
     /**
-     * @brief getMemory & getRegisters
-     * returns const-wrapped references to the current process memory elements
+     * @brief getMemory
+     * returns const-wrapped references to the current process memory
      */
     static vsrtl::core::AddressSpaceMM& getMemory() { return get()->_getMemory(); }
-    static const vsrtl::core::AddressSpace& getRegisters() { return get()->_getRegisters(); }
 
     /**
      * @brief setRegisterValue
@@ -219,6 +218,7 @@ private:
     void _checkProcessorFinished();
     bool _isRunning();
     void _run();
+    void _reset();
     void _stopRun();
     void _triggerProcStateChangeTimer();
 
@@ -226,7 +226,11 @@ private:
     void setStopRunFlag();
     ProcessorHandler();
 
+    // Flag used during construction to avoid calling ProcessorHandler::get() to retrieve the singleton while it is
+    // being constructed.
+    bool m_constructing = false;
     ProcessorID m_currentID;
+    RegisterInitialization m_currentRegInits;
     std::unique_ptr<RipesProcessor> m_currentProcessor;
     std::unique_ptr<SyscallManager> m_syscallManager;
     std::shared_ptr<Assembler::AssemblerBase> m_currentAssembler;

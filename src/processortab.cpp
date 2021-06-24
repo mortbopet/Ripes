@@ -348,7 +348,6 @@ void ProcessorTab::processorSelection() {
         }
 
         loadProcessorToWidget(diag.getSelectedLayout());
-        m_vsrtlWidget->reset();
         updateInstructionModel();
 
         // Retrigger value display action if enabled

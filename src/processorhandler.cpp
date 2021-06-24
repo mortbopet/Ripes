@@ -18,6 +18,8 @@
 namespace Ripes {
 
 ProcessorHandler::ProcessorHandler() {
+    m_constructing = true;
+
     // Contruct the default processor
     if (RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).isNull()) {
         m_currentID = ProcessorID::RV32_5S;
@@ -50,10 +52,16 @@ ProcessorHandler::ProcessorHandler() {
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto& size) { m_currentProcessor->setMaxReverseCycles(size.toUInt()); });
+
     // Update VSRTL reverse stack size to reflect current settings
     m_currentProcessor->setMaxReverseCycles(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
 
+    // Reset request handling
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified, this,
+            &ProcessorHandler::_reset);
+
     m_syscallManager = std::make_unique<RISCVSyscallManager>();
+    m_constructing = false;
 }
 
 void ProcessorHandler::_loadProgram(const std::shared_ptr<Program>& p) {
@@ -99,10 +107,6 @@ void ProcessorHandler::_writeMem(AInt address, VInt value, int size) {
 
 vsrtl::core::AddressSpaceMM& ProcessorHandler::_getMemory() {
     return m_currentProcessor->getMemory();
-}
-
-const vsrtl::core::AddressSpace& ProcessorHandler::_getRegisters() const {
-    return m_currentProcessor->getArchRegisters();
 }
 
 void ProcessorHandler::_triggerProcStateChangeTimer() {
@@ -195,9 +199,26 @@ void ProcessorHandler::createAssemblerForCurrentISA() {
     }
 }
 
+void ProcessorHandler::_reset() {
+    if (m_constructing) {
+        return;
+    }
+
+    getProcessorNonConst()->resetProcessor();
+
+    // Rewrite register initializations
+    for (const auto& kv : m_currentRegInits) {
+        _setRegisterValue(RegisterFileType::GPR, kv.first, kv.second);
+    }
+    // Forcing memory values doesn't necessarily mean that the processor will notify that its state changed. Manually
+    // trigger a state change signal, to ensure this.
+    emit procStateChangedNonRun();
+}
+
 void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList& extensions,
                                         RegisterInitialization setup) {
     m_currentID = id;
+    m_currentRegInits = setup;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
 
     // Keep current program if the ISA between the two processors are identical
@@ -210,25 +231,6 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
 
     // Syscall handling initialization
     m_currentProcessor->handleSysCall = [=] { syscallTrap(); };
-
-    // Reset request handling
-    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified,
-            [=] { ProcessorHandler::get()->getProcessorNonConst()->resetProcessor(); });
-
-    // Register initializations
-    auto& regs = m_currentProcessor->getArchRegisters();
-    regs.clearInitializationMemories();
-    for (const auto& kv : setup) {
-        // Memories are initialized through pointers to byte arrays, so we have to transform the intitial pointer
-        // address to the compatible format.
-        QByteArray ptrValueBytes;
-        auto ptrValue = kv.second;
-        for (unsigned i = 0; i < m_currentProcessor->implementsISA()->bytes(); i++) {
-            ptrValueBytes.push_back(static_cast<char>(ptrValue & 0xFF));
-            ptrValue >>= CHAR_BIT;
-        }
-        regs.addInitializationMemory(kv.first * 4, ptrValueBytes.data(), m_currentProcessor->implementsISA()->bytes());
-    }
 
     m_currentProcessor->postConstruct();
     createAssemblerForCurrentISA();
@@ -273,6 +275,9 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         m_currentProcessor->processorWasReversed)));
 
     emit processorChanged();
+
+    // Finally, reset the processor
+    RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 }
 
 int ProcessorHandler::_getCurrentProgramSize() const {
