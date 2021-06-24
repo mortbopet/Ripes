@@ -4,6 +4,7 @@
  * Interface for all VSRTL-based Ripes processors
  */
 
+#include "RISC-V/riscv.h"
 #include "VSRTL/core/vsrtl_design.h"
 #include "interface/ripesprocessor.h"
 
@@ -41,8 +42,65 @@ public:
     }
 
 protected:
-    // m_instructionsRetired should be modified by the processor when it retires (or "un-retires", while reversing) an
-    // instruction
+    MemoryAccess memToAccessInfo(const vsrtl::core::BaseMemory<true>* memory) const {
+        MemoryAccess access;
+        switch (memory->opSig()) {
+            case MemOp::SB: {
+                access.bytes = 1;
+                access.type = MemoryAccess::Write;
+                break;
+            }
+            case MemOp::SH: {
+                access.bytes = 2;
+                access.type = MemoryAccess::Write;
+                break;
+            }
+            case MemOp::SW: {
+                access.bytes = 4;
+                access.type = MemoryAccess::Write;
+                break;
+            }
+            case MemOp::SD: {
+                access.bytes = 8;
+                access.type = MemoryAccess::Write;
+                break;
+            }
+            case MemOp::LB:
+            case MemOp::LBU: {
+                access.bytes = 1;
+                access.type = MemoryAccess::Read;
+                break;
+            }
+            case MemOp::LH:
+            case MemOp::LHU: {
+                access.bytes = 2;
+                access.type = MemoryAccess::Read;
+                break;
+            }
+            case MemOp::LW:
+            case MemOp::LWU: {
+                access.bytes = 4;
+                access.type = MemoryAccess::Read;
+                break;
+            }
+            case MemOp::LD: {
+                access.bytes = 8;
+                access.type = MemoryAccess::Read;
+                break;
+            }
+            case MemOp::NOP:
+                access.type = MemoryAccess::None;
+                break;
+            default:
+                Q_ASSERT("Unknown memory operation");
+                break;
+        }
+        access.address = memory->addressSig();
+        return access;
+    }
+
+    // m_instructionsRetired should be modified by the processor when it retires (or "un-retires", while reversing)
+    // an instruction
     long long m_instructionsRetired = 0;
 };
 

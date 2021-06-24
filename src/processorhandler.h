@@ -95,8 +95,6 @@ public:
      */
     static vsrtl::core::AddressSpaceMM& getMemory() { return get()->_getMemory(); }
     static const vsrtl::core::AddressSpace& getRegisters() { return get()->_getRegisters(); }
-    static const vsrtl::core::BaseMemory<true>* getDataMemory() { return get()->_getDataMemory(); }
-    static const vsrtl::core::BaseMemory<true>* getInstrMemory() { return get()->_getInstrMemory(); }
 
     /**
      * @brief setRegisterValue
@@ -210,8 +208,6 @@ private:
     QString _disassembleInstr(const AInt address) const;
     vsrtl::core::AddressSpaceMM& _getMemory();
     const vsrtl::core::AddressSpace& _getRegisters() const;
-    const vsrtl::core::BaseMemory<true>* _getDataMemory() const;
-    const vsrtl::core::BaseMemory<true>* _getInstrMemory() const;
     void _setRegisterValue(RegisterFileType rfid, const unsigned idx, VInt value);
     void _writeMem(AInt address, VInt value, int size = sizeof(VInt));
     VInt _getRegisterValue(RegisterFileType rfid, const unsigned idx) const;

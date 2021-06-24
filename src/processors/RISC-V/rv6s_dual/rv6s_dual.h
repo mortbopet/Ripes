@@ -738,8 +738,12 @@ public:
     }
     const std::vector<unsigned> breakpointTriggeringStages() const override { return {IF_1, IF_2}; };
 
-    const BaseMemory<true>* getDataMemory() const override { return data_mem; }
-    const BaseMemory<true>* getInstrMemory() const override { return instr_mem; }
+    MemoryAccess dataMemAccess() const override { return memToAccessInfo(data_mem); }
+    MemoryAccess instrMemAccess() const override {
+        auto instrAccess = memToAccessInfo(instr_mem);
+        instrAccess.type = MemoryAccess::Read;
+        return instrAccess;
+    }
 
     bool finished() const override {
         // The processor is finished when there are no more valid instructions in the pipeline

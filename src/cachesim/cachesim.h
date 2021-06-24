@@ -9,6 +9,7 @@
 
 #include "../external/VSRTL/core/vsrtl_register.h"
 #include "processors/RISC-V/rv_memory.h"
+#include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
 class CacheSim;
@@ -56,13 +57,12 @@ class CacheInterface : public QObject {
     Q_OBJECT
 public:
     CacheInterface(QObject* parent) : QObject(parent) {}
-    enum class AccessType { Read, Write };
 
     /**
      * @brief access
      * A function called by the logical "child" of this cache, indicating that it desires to access this cache
      */
-    virtual void access(AInt address, AccessType type) = 0;
+    virtual void access(AInt address, MemoryAccess::Type type) = 0;
     void setNextLevelCache(const std::shared_ptr<CacheSim>& cache) { m_nextLevelCache = cache; }
 
     /**
@@ -122,7 +122,7 @@ public:
 
         bool isHit = false;
         bool isWriteback = false;  // True if the transaction resulted in an eviction of a dirty cacheline
-        AccessType type;
+        MemoryAccess::Type type;
         bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
         bool tagChanged = false;    // True if transToValid or the previous entry was evicted
     };
@@ -136,8 +136,8 @@ public:
         CacheAccessTrace() {}
         CacheAccessTrace(const CacheTransaction& transaction) : CacheAccessTrace(CacheAccessTrace(), transaction) {}
         CacheAccessTrace(const CacheAccessTrace& pre, const CacheTransaction& transaction) {
-            reads = pre.reads + (transaction.type == AccessType::Read ? 1 : 0);
-            writes = pre.writes + (transaction.type == AccessType::Write ? 1 : 0);
+            reads = pre.reads + (transaction.type == MemoryAccess::Read ? 1 : 0);
+            writes = pre.writes + (transaction.type == MemoryAccess::Write ? 1 : 0);
             writebacks = pre.writebacks + (transaction.isWriteback ? 1 : 0);
             hits = pre.hits + (transaction.isHit ? 1 : 0);
             misses = pre.misses + (transaction.isHit ? 0 : 1);
@@ -151,7 +151,7 @@ public:
     void setWriteAllocatePolicy(WriteAllocPolicy policy);
     void setReplacementPolicy(ReplPolicy policy);
 
-    void access(AInt address, AccessType type) override;
+    void access(AInt address, MemoryAccess::Type type) override;
     void undo();
     void reset() override;
 

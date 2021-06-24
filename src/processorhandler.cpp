@@ -101,13 +101,6 @@ vsrtl::core::AddressSpaceMM& ProcessorHandler::_getMemory() {
     return m_currentProcessor->getMemory();
 }
 
-const vsrtl::core::BaseMemory<true>* ProcessorHandler::_getDataMemory() const {
-    return m_currentProcessor->getDataMemory();
-}
-const vsrtl::core::BaseMemory<true>* ProcessorHandler::_getInstrMemory() const {
-    return m_currentProcessor->getInstrMemory();
-}
-
 const vsrtl::core::AddressSpace& ProcessorHandler::_getRegisters() const {
     return m_currentProcessor->getArchRegisters();
 }

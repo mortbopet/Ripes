@@ -28,6 +28,17 @@ struct StageInfo {
 };
 
 /**
+ * @brief The MemoryAccess struct
+ * Address is byte-aligned, and the accessed bytes are [address : address + bytes[
+ */
+struct MemoryAccess {
+    enum Type { None, Read, Write };
+    Type type = None;
+    AInt address;
+    unsigned bytes;
+};
+
+/**
  * @brief The RipesProcessor class
  * Interface for all Ripes processors. This interface is intended to be simulator-agnostic, and thus provides an opaque
  * interface for retrieving any relevant information required to display the processor state of execution in Ripes.
@@ -122,12 +133,12 @@ public:
     virtual vsrtl::core::AddressSpaceMM& getMemory() = 0;
 
     /**
-     * @brief getData/InstrMemory
-     * @returns a pointer to the component which implements the instruction and data memory interfaces. These types may
-     * be implementation specific, and as such should be cast to these types at the callers end.
+     * @brief dataMemAccess/instrMemAccess
+     * @returns the state of a current access to the instruction or data memory. If the processor did not access the
+     * respective memory, MemoryAccess::type == None.
      */
-    virtual const vsrtl::core::BaseMemory<true>* getDataMemory() const = 0;
-    virtual const vsrtl::core::BaseMemory<true>* getInstrMemory() const = 0;
+    virtual MemoryAccess dataMemAccess() const = 0;
+    virtual MemoryAccess instrMemAccess() const = 0;
 
     /**
      * @brief getRegister

@@ -19,10 +19,9 @@ class L1CacheShim : public CacheInterface {
 public:
     enum class CacheType { DataCache, InstrCache };
     L1CacheShim(CacheType type, QObject* parent);
-    void access(AInt address, AccessType type) override;
+    void access(AInt address, MemoryAccess::Type type) override;
 
     void setType(CacheType type);
-    void reassociateMemory();
 
 private:
     void processorReset();
@@ -35,7 +34,6 @@ private:
      * VSRTL component signals are dependent on the given type of the memory.
      */
     CacheType m_type;
-    const vsrtl::core::BaseMemory<true>* m_memory = nullptr;
 };
 
 }  // namespace Ripes

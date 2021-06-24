@@ -253,7 +253,7 @@ void CacheSim::popAccessTrace() {
     emit hitrateChanged();
 }
 
-void CacheSim::access(AInt address, AccessType type) {
+void CacheSim::access(AInt address, MemoryAccess::Type type) {
     address = address & ~0b11;  // Disregard unaligned accesses
     CacheTrace trace;
     CacheWay oldWay;
@@ -264,8 +264,8 @@ void CacheSim::access(AInt address, AccessType type) {
     analyzeCacheAccess(transaction);
 
     if (!transaction.isHit) {
-        if (type == AccessType::Read ||
-            (type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate)) {
+        if (type == MemoryAccess::Read ||
+            (type == MemoryAccess::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate)) {
             oldWay = evictAndUpdate(transaction);
         }
     } else {
@@ -277,13 +277,13 @@ void CacheSim::access(AInt address, AccessType type) {
     // Initially, we need a check for the case of "write + miss + noWriteAlloc". In this case, we should not update
     // replacement/dirty fields. In all other cases, this is a valid action.
     const bool writeMissNoAlloc =
-        !transaction.isHit && type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::NoWriteAllocate;
+        !transaction.isHit && type == MemoryAccess::Write && getWriteAllocPolicy() == WriteAllocPolicy::NoWriteAllocate;
 
     if (!writeMissNoAlloc) {
         // Lazily ensure that the located way has been initialized
         m_cacheLines[transaction.index.line][transaction.index.way];
 
-        if (type == AccessType::Write && getWritePolicy() == WritePolicy::WriteBack) {
+        if (type == MemoryAccess::Write && getWritePolicy() == WritePolicy::WriteBack) {
             CacheWay& way = m_cacheLines[transaction.index.line][transaction.index.way];
             way.dirty = true;
             way.dirtyBlocks.insert(transaction.index.block);
@@ -296,7 +296,7 @@ void CacheSim::access(AInt address, AccessType type) {
     }
 
     // If our WritePolicy is WriteThrough and this access is a write, the transaction will always result in a WriteBack
-    if (type == AccessType::Write && getWritePolicy() == WritePolicy::WriteThrough) {
+    if (type == MemoryAccess::Write && getWritePolicy() == WritePolicy::WriteThrough) {
         transaction.isWriteback = true;
     }
 
@@ -311,12 +311,12 @@ void CacheSim::access(AInt address, AccessType type) {
 
     // === Some sanity checking ===
     // It should never be possible that a read returns an invalid way index
-    if (type == AccessType::Read) {
+    if (type == MemoryAccess::Read) {
         transaction.index.assertValid();
     }
 
     // It should never be possible that a write returns an invalid way index if we write-allocate
-    if (type == AccessType::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate) {
+    if (type == MemoryAccess::Write && getWriteAllocPolicy() == WriteAllocPolicy::WriteAllocate) {
         transaction.index.assertValid();
     }
 
