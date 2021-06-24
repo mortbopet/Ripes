@@ -247,28 +247,36 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         emit programChanged();
     }
 
-    // Reconnect the wrappers for processor signal emission
-    m_currentProcessor->processorWasClocked.Connect(this, &ProcessorHandler::processorWasClockedWrapper);
-    m_currentProcessor->processorWasReset.Connect(this, &ProcessorHandler::processorResetWrapper);
-    m_currentProcessor->processorWasReversed.Connect(this, &ProcessorHandler::processorReversedWrapper);
+    // Connect wrappers for making processor signal emissions thread safe.
+    m_signalWrappers.clear();
+    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+        this,
+        [=] {
+            emit processorClocked();
+            if (!_isRunning()) {
+                emit processorClockedNonRun();
+                _triggerProcStateChangeTimer();
+            }
+        },
+        m_currentProcessor->processorWasClocked)));
+
+    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+        this,
+        [=] {
+            emit processorReset();
+            _triggerProcStateChangeTimer();
+        },
+        m_currentProcessor->processorWasReset)));
+
+    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+        this,
+        [=] {
+            emit processorReversed();
+            _triggerProcStateChangeTimer();
+        },
+        m_currentProcessor->processorWasReversed)));
 
     emit processorChanged();
-}
-
-void ProcessorHandler::processorWasClockedWrapper() {
-    emit processorClocked();
-    if (!_isRunning()) {
-        emit processorClockedNonRun();
-        _triggerProcStateChangeTimer();
-    }
-}
-void ProcessorHandler::processorResetWrapper() {
-    emit processorReset();
-    _triggerProcStateChangeTimer();
-}
-void ProcessorHandler::processorReversedWrapper() {
-    emit processorReversed();
-    _triggerProcStateChangeTimer();
 }
 
 int ProcessorHandler::_getCurrentProgramSize() const {

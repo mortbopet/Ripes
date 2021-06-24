@@ -3,9 +3,11 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QObject>
+#include <memory>
 
 #include "assembler/assembler.h"
 #include "assembler/program.h"
+#include "gallantsignalwrapper.h"
 #include "processorregistry.h"
 #include "syscall/ripes_syscall.h"
 
@@ -224,14 +226,6 @@ private:
     void _stopRun();
     void _triggerProcStateChangeTimer();
 
-    /**
-     * @brief Wrapper functions for processor signal emissions. VSRTL's signal/slot library does not accept lambdas,
-     * which is why we have to make these explicit member functions.
-     */
-    void processorWasClockedWrapper();
-    void processorResetWrapper();
-    void processorReversedWrapper();
-
     void createAssemblerForCurrentISA();
     void setStopRunFlag();
     ProcessorHandler();
@@ -267,5 +261,6 @@ private:
      * Semaphore handling locking simulator thread execution whilst trapping to the execution environment.
      */
     QSemaphore m_sem;
+    std::vector<std::unique_ptr<GallantSignalWrapperBase>> m_signalWrappers;
 };
 }  // namespace Ripes

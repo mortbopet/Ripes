@@ -97,10 +97,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     // setup and connect widgets
     connect(editTab, &EditTab::editorStateChanged, [=] { RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false); });
-
-    connect(ProcessorHandler::get(), &ProcessorHandler::exit, processorTab, &ProcessorTab::processorFinished);
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, processorTab, &ProcessorTab::runFinished);
-
     connect(&SystemIO::get(), &SystemIO::doPrint, processorTab, &ProcessorTab::printToLog);
 
     // Setup status bar

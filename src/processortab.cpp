@@ -114,6 +114,8 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     // Connect the global reset request signal to reset()
     connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &ProcessorTab::reset);
+    connect(ProcessorHandler::get(), &ProcessorHandler::exit, this, &ProcessorTab::processorFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, &ProcessorTab::runFinished);
 
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
