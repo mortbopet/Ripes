@@ -4,6 +4,16 @@
 
 namespace Ripes {
 
+template <unsigned XLEN>
+constexpr ISA XLenToRVISA() {
+    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
+    if (XLEN == 32) {
+        return ISA::RV32I;
+    } else {
+        return ISA::RV64I;
+    }
+}
+
 namespace RVISA {
 
 extern const QStringList RegAliases;

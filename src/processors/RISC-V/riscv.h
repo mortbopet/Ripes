@@ -18,17 +18,6 @@ constexpr int c_RVInstrWidth = 32;                // Width of instructions
 constexpr int c_RVRegs = 32;                      // Number of registers
 constexpr int c_RVRegsBits = ceillog2(c_RVRegs);  // Width of operand to index into registers
 
-template <unsigned XLEN>
-constexpr Ripes::ISA XLenToRVISA() {
-    static_assert(XLEN == 32 || XLEN == 64, "Only supports 32- and 64-bit variants");
-    static_assert(vsrtl::VSRTL_VT_BITS >= XLEN, "Register size larger than VSRTL base type size");
-    if (XLEN == 32) {
-        return ISA::RV32I;
-    } else {
-        return ISA::RV64I;
-    }
-}
-
 /** Instruction set enumerations */
 Enum(RVInstrType, R, I, S, B, U, J);
 
