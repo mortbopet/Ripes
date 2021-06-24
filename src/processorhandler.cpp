@@ -252,13 +252,16 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
         this,
         [=] {
-            emit processorClocked();
             if (!_isRunning()) {
                 emit processorClockedNonRun();
                 _triggerProcStateChangeTimer();
             }
         },
         m_currentProcessor->processorWasClocked)));
+    // Connect ProcessorHandler::processorClocked since things connected to this signal _must_ be updated _for each_
+    // processor cycle, in order. Which would not be possible through processorClockedNonRun, which might be
+    // cross-thread and out of order.
+    m_currentProcessor->processorWasClocked.Connect(this, &ProcessorHandler::processorClocked);
 
     m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
         this,
