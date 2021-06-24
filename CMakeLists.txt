@@ -64,6 +64,21 @@ include_directories(SYSTEM external/ELFIO)
 include_directories(SYSTEM external/Signals)
 include_directories(external)
 
+option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
+if(RIPES_BUILD_VERILATOR_PROCESSORS)
+    if(NOT DEFINED ENV{VERILATOR_ROOT})
+        message(FATAL_ERROR "'VERILATOR_ROOT' must be set when building Verilator-based processors!")
+    endif()
+    message(STATUS "Building with Verilator processors")
+    include_directories(SYSTEM $ENV{VERILATOR_ROOT}/include)
+
+    # Create library containing Verilator runtime files, which verilator processors can link against
+    file(GLOB VERILATOR_SOURCES $ENV{VERILATOR_ROOT}/include/verilated.cpp)
+    file(GLOB VERILATOR_HEADERS $ENV{VERILATOR_ROOT}/include/verilated.h)
+    set(VERILATOR_LIB verilator_lib)
+    add_library(${VERILATOR_LIB} ${VERILATOR_SOURCES} ${VERILATOR_HEADERS})
+endif()
+
 # Platform specific pre-target setup(s)
 if(${APPLE})
     set(SYSTEM_FLAGS MACOSX_BUNDLE)
