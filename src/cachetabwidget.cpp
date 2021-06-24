@@ -46,14 +46,21 @@ CacheTabWidget::CacheTabWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::
 
     m_ui->tabWidget->setTabsClosable(true);
 
-    // Store default close button size for future use
-    m_defaultTabButtonSize = m_ui->tabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->size();
+    if (auto* tabButton = m_ui->tabWidget->tabBar()->tabButton(0, QTabBar::RightSide)) {
+        // Store default close button size for future use
+        m_defaultTabButtonSize = tabButton->size();
 
-    // Disable closing for L1 caches and add tab
-    m_ui->tabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->resize(0, 0);
-    m_ui->tabWidget->tabBar()->tabButton(1, QTabBar::RightSide)->resize(0, 0);
+        // Disable closing for L1 caches and add tab
+        tabButton->resize(0, 0);
+        if (auto* tabButton2 = m_ui->tabWidget->tabBar()->tabButton(1, QTabBar::RightSide)) {
+            tabButton2->resize(0, 0);
+        }
+    }
+
 #ifdef N_CACHES_ENABLED
-    m_ui->tabWidget->tabBar()->tabButton(m_addTabIdx, QTabBar::RightSide)->resize(0, 0);
+    if (auto* addTabButton = m_ui->tabWidget->tabBar()->tabButton(m_addTabIdx, QTabBar::RightSide)) {
+        addTabButton->resize(0, 0);
+    }
 #endif
 
     // Filter out scroll events to avoid mouse scrolling creating a bazillion new caches
