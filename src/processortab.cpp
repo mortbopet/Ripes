@@ -71,21 +71,23 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     m_vsrtlWidget = m_ui->vsrtlWidget;
 
-    // Load the default constructed processor to the VSRTL widget. Do a bit of sanity checking to ensure that the layout
-    // stored in the settings is valid for the given processor
-    unsigned layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
-    const Layout* layout = nullptr;
-    if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts.size()) {
-        layoutID = 0;
-    }
-    const auto& layouts = ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts;
-    if (layouts.size() > layoutID) {
-        layout = &layouts.at(layoutID);
-    }
-    loadProcessorToWidget(layout);
+    if (ProcessorHandler::isVSRTLProcessor()) {
+        // Load the default constructed processor to the VSRTL widget. Do a bit of sanity checking to ensure that the
+        // layout stored in the settings is valid for the given processor
+        unsigned layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
+        const Layout* layout = nullptr;
+        if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts.size()) {
+            layoutID = 0;
+        }
+        const auto& layouts = ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts;
+        if (layouts.size() > layoutID) {
+            layout = &layouts.at(layoutID);
+        }
+        loadProcessorToWidget(layout);
 
-    // By default, lock the VSRTL widget
-    m_vsrtlWidget->setLocked(true);
+        // By default, lock the VSRTL widget
+        m_vsrtlWidget->setLocked(true);
+    }
 
     m_stageModel = new PipelineDiagramModel(this);
 
@@ -347,7 +349,9 @@ void ProcessorTab::processorSelection() {
             RipesSettings::setValue(RIPES_SETTING_PROCESSOR_LAYOUT_ID, static_cast<int>(layoutIndex));
         }
 
-        loadProcessorToWidget(diag.getSelectedLayout());
+        if (ProcessorHandler::isVSRTLProcessor()) {
+            loadProcessorToWidget(diag.getSelectedLayout());
+        }
         updateInstructionModel();
 
         // Retrigger value display action if enabled

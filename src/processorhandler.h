@@ -39,6 +39,9 @@ public:
     static const ISAInfoBase* currentISA() { return get()->_currentISA(); }
     static const SyscallManager& getSyscallManager() { return get()->_getSyscallManager(); }
     static void loadProgram(const std::shared_ptr<Program>& p) { get()->_loadProgram(p); }
+    static bool isVSRTLProcessor() {
+        return static_cast<bool>(dynamic_cast<const RipesVSRTLProcessor*>(getProcessor()));
+    }
 
     /**
      * @brief loadProcessorToWidget
