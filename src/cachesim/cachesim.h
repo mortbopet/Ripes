@@ -122,7 +122,7 @@ public:
 
         bool isHit = false;
         bool isWriteback = false;  // True if the transaction resulted in an eviction of a dirty cacheline
-        MemoryAccess::Type type;
+        MemoryAccess::Type type = MemoryAccess::None;
         bool transToValid = false;  // True if the cacheline just transitioned from invalid to valid
         bool tagChanged = false;    // True if transToValid or the previous entry was evicted
     };
@@ -201,7 +201,7 @@ public slots:
 
 signals:
     void configurationChanged();
-    void dataChanged(const CacheSim::CacheTransaction* transaction);
+    void dataChanged(CacheSim::CacheTransaction transaction);
     void hitrateChanged();
 
     // Signals that the entire cache line @p

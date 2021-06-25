@@ -328,7 +328,7 @@ void CacheSim::access(AInt address, MemoryAccess::Type type) {
     }
 
     if (!ProcessorHandler::isRunning()) {
-        emit dataChanged(&transaction);
+        emit dataChanged(transaction);
     }
 }
 
@@ -366,9 +366,9 @@ void CacheSim::undo() {
     // Finally, re-emit the transaction which occurred in the previous cache access to update the cache
     // highlighting state
     if (m_traceStack.size() > 0) {
-        emit dataChanged(&m_traceStack.begin()->transaction);
+        emit dataChanged(m_traceStack.begin()->transaction);
     } else {
-        emit dataChanged(nullptr);
+        emit dataChanged(CacheTransaction());
     }
 }
 

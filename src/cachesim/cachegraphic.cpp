@@ -447,11 +447,11 @@ void CacheGraphic::cacheInvalidated() {
     }
 }
 
-void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction* transaction) {
+void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction& transaction) {
     if (m_indexingVisible) {
         if (valid) {
-            const CacheWay& way = m_cacheTextItems.at(transaction->index.line).at(transaction->index.way);
-            m_addressTextItem->setText(QString::number(transaction->address, 2).rightJustified(32, '0'));
+            const CacheWay& way = m_cacheTextItems.at(transaction.index.line).at(transaction.index.way);
+            m_addressTextItem->setText(QString::number(transaction.address, 2).rightJustified(32, '0'));
 
             if (way.tag) {
                 QPolygonF lineIndexingPoly;
@@ -459,8 +459,7 @@ void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction
                 lineIndexingPoly << m_lineIndexStartPoint;
                 lineIndexingPoly << m_lineIndexStartPoint + QPointF(0, (m_setHeight / 2));
                 lineIndexingPoly << QPointF(-m_tagWidth * 0.75, lineIndexingPoly.last().y());
-                lineIndexingPoly << QPointF{lineIndexingPoly.last().x(),
-                                            (transaction->index.line + 0.5) * m_lineHeight};
+                lineIndexingPoly << QPointF{lineIndexingPoly.last().x(), (transaction.index.line + 0.5) * m_lineHeight};
                 lineIndexingPoly << QPointF{-m_fm.width(QString::number(m_cache.getLines())) * 1.25,
                                             lineIndexingPoly.last().y()};
                 m_lineIndexingLine->setPolygon(lineIndexingPoly);
@@ -468,7 +467,7 @@ void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction
                 QPolygonF blockIndexingPoly;
                 blockIndexingPoly << m_blockIndexStartPoint;
                 blockIndexingPoly << m_blockIndexStartPoint + QPointF(0, (m_setHeight / 2) * 1.5);
-                blockIndexingPoly << QPointF(m_widthBeforeBlocks + m_blockWidth * (transaction->index.block + 0.5),
+                blockIndexingPoly << QPointF(m_widthBeforeBlocks + m_blockWidth * (transaction.index.block + 0.5),
                                              blockIndexingPoly.last().y());
                 blockIndexingPoly << QPointF(blockIndexingPoly.last().x(),
                                              -m_addressTextItem->boundingRect().size().height());
@@ -489,14 +488,14 @@ void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {
     updateLineReplFields(lineIdx);
 }
 
-void CacheGraphic::dataChanged(const CacheSim::CacheTransaction* transaction) {
-    if (transaction != nullptr) {
-        wayInvalidated(transaction->index.line, transaction->index.way);
+void CacheGraphic::dataChanged(CacheSim::CacheTransaction transaction) {
+    if (transaction.type != MemoryAccess::None) {
+        wayInvalidated(transaction.index.line, transaction.index.way);
         updateAddressing(true, transaction);
         updateHighlighting(true, transaction);
     } else {
-        updateHighlighting(false, nullptr);
-        updateAddressing(false);
+        updateHighlighting(false, transaction);
+        updateAddressing(false, transaction);
     }
 }
 
@@ -515,15 +514,15 @@ QGraphicsSimpleTextItem* CacheGraphic::drawText(const QString& text, qreal x, qr
     return textItem;
 }
 
-void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransaction* transaction) {
+void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransaction& transaction) {
     m_highlightingItems.clear();
 
     if (active) {
         // Redraw highlighting rectangles indicating the current indexing
 
         // Draw cache line highlighting rectangle
-        QPointF topLeft = QPointF(0, transaction->index.line * m_lineHeight);
-        QPointF bottomRight = QPointF(m_cacheWidth, (transaction->index.line + 1) * m_lineHeight);
+        QPointF topLeft = QPointF(0, transaction.index.line * m_lineHeight);
+        QPointF bottomRight = QPointF(m_cacheWidth, (transaction.index.line + 1) * m_lineHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* lineRectItem = m_highlightingItems.rbegin()->get();
         lineRectItem->setZValue(-2);
@@ -531,8 +530,8 @@ void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransact
         lineRectItem->setBrush(Qt::yellow);
 
         // Draw cache block highlighting rectangle
-        topLeft = QPointF(transaction->index.block * m_blockWidth + m_widthBeforeBlocks, 0);
-        bottomRight = QPointF((transaction->index.block + 1) * m_blockWidth + m_widthBeforeBlocks, m_cacheHeight);
+        topLeft = QPointF(transaction.index.block * m_blockWidth + m_widthBeforeBlocks, 0);
+        bottomRight = QPointF((transaction.index.block + 1) * m_blockWidth + m_widthBeforeBlocks, m_cacheHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* blockRectItem = m_highlightingItems.rbegin()->get();
         blockRectItem->setZValue(-2);
@@ -540,14 +539,14 @@ void CacheGraphic::updateHighlighting(bool active, const CacheSim::CacheTransact
         blockRectItem->setBrush(Qt::yellow);
 
         // Draw highlighting on the currently accessed block
-        topLeft = QPointF(transaction->index.block * m_blockWidth + m_widthBeforeBlocks,
-                          transaction->index.line * m_lineHeight + transaction->index.way * m_setHeight);
-        bottomRight = QPointF((transaction->index.block + 1) * m_blockWidth + m_widthBeforeBlocks,
-                              transaction->index.line * m_lineHeight + (transaction->index.way + 1) * m_setHeight);
+        topLeft = QPointF(transaction.index.block * m_blockWidth + m_widthBeforeBlocks,
+                          transaction.index.line * m_lineHeight + transaction.index.way * m_setHeight);
+        bottomRight = QPointF((transaction.index.block + 1) * m_blockWidth + m_widthBeforeBlocks,
+                              transaction.index.line * m_lineHeight + (transaction.index.way + 1) * m_setHeight);
         m_highlightingItems.emplace_back(std::make_unique<QGraphicsRectItem>(QRectF(topLeft, bottomRight), this));
         auto* hitRectItem = m_highlightingItems.rbegin()->get();
         hitRectItem->setZValue(-1);
-        if (transaction->isHit) {
+        if (transaction.isHit) {
             hitRectItem->setOpacity(0.4);
             hitRectItem->setBrush(Qt::green);
         } else {

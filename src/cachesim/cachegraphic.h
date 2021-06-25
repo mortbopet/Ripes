@@ -25,7 +25,7 @@ public slots:
      * The cache simulator indicates that some entries in the cache has changed. CacheGraphic will, using @p
      * transaction, lazily initialize and update all required values to reflect the new state of the cache.
      */
-    void dataChanged(const CacheSim::CacheTransaction* transaction);
+    void dataChanged(CacheSim::CacheTransaction transaction);
 
     /**
      * @brief wayInvalidated
@@ -71,7 +71,7 @@ private:
      * Constructs all of the "Valid" and "LRU" text items within the cache
      */
     void initializeControlBits();
-    void updateHighlighting(bool active, const CacheSim::CacheTransaction* transaction);
+    void updateHighlighting(bool active, const CacheSim::CacheTransaction& transaction);
     QGraphicsSimpleTextItem* drawText(const QString& text, const QPointF& pos, const QFont* otherFont = nullptr);
     QGraphicsSimpleTextItem* drawText(const QString& text, qreal x, qreal y, const QFont* otherFont = nullptr);
     QGraphicsSimpleTextItem* tryCreateGraphicsTextItem(QGraphicsSimpleTextItem** item, qreal x, qreal y);
@@ -80,7 +80,7 @@ private:
     // Graphical update functions
     void updateLineReplFields(unsigned lineIdx);
     void updateWay(unsigned lineIdx, unsigned wayIdx);
-    void updateAddressing(bool valid, const CacheSim::CacheTransaction* transaction = nullptr);
+    void updateAddressing(bool valid, const CacheSim::CacheTransaction& transaction);
     void drawIndexingItems();
     QString addressString() const;
 
