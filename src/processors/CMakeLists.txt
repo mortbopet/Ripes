@@ -25,23 +25,28 @@ macro(create_vsrtl_processor isa name)
     target_compile_features(${name} PRIVATE cxx_std_17)
 endmacro()
 
-macro(create_verilator_processor name verilatorDir)
-    file(GLOB LIB_SOURCES
-        ${name}/*.cpp
-        ${name}/${verilatorDir}/*.cpp
+macro(create_verilator_processor
+        SUBFOLDER
+        PROCFOLDER
+        SOURCES
+        TOP
+        ARGS
     )
-    file(GLOB LIB_HEADERS
-        ${name}/*.h
-        ${name}/${subfolder}/*.h
-    )
+    file(GLOB LIB_SOURCES ${SUBFOLDER}/*.cpp)
+    file(GLOB LIB_HEADERS ${SUBFOLDER}/*.h)
 
-    add_library(${name} ${LIB_SOURCES} ${LIB_HEADERS})
-    target_compile_features(${name} PRIVATE cxx_std_17)
+    add_library(${SUBFOLDER} ${LIB_SOURCES} ${LIB_HEADERS})
+    target_compile_features(${SUBFOLDER} PRIVATE cxx_std_17)
 
     # Link processor against Verilator runtime library
-    target_link_libraries(${name} ${VERILATOR_LIB})
+    target_link_libraries(${SUBFOLDER} PUBLIC ${VERILATOR_LIB})
     # Link Ripes lib against the processor library (Verilator processors are not header-only)
-    target_link_libraries(${RIPES_LIB} ${name})
+    target_link_libraries(${RIPES_LIB} PUBLIC ${SUBFOLDER})
+
+    verilate(${SUBFOLDER}
+      TOP_MODULE ${TOP}
+      SOURCES ${SOURCES}
+      VERILATOR_ARGS ${ARGS})
 
 endmacro()
 

@@ -71,6 +71,8 @@ if(RIPES_BUILD_VERILATOR_PROCESSORS)
     endif()
     message(STATUS "Building with Verilator processors")
     include_directories(SYSTEM $ENV{VERILATOR_ROOT}/include)
+    set(verilator_DIR $ENV{VERILATOR_ROOT})
+    find_package(verilator)
 
     # Create library containing Verilator runtime files, which verilator processors can link against
     file(GLOB VERILATOR_SOURCES $ENV{VERILATOR_ROOT}/include/verilated.cpp)

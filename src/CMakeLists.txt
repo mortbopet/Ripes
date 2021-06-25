@@ -35,8 +35,8 @@ target_include_directories (${RIPES_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(${RIPES_LIB} PRIVATE cxx_std_17)
 
 # Link external libraries
-target_link_libraries(${RIPES_LIB} fancytabbar_lib)
-target_link_libraries(${RIPES_LIB} ${VSRTL_GRAPHICS_LIB} Qt5::Charts)
+target_link_libraries(${RIPES_LIB} PUBLIC fancytabbar_lib)
+target_link_libraries(${RIPES_LIB} PUBLIC ${VSRTL_GRAPHICS_LIB} Qt5::Charts)
 
 add_subdirectory(processors)
 
