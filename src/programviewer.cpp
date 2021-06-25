@@ -164,8 +164,10 @@ void ProgramViewer::paintEvent(QPaintEvent* event) {
         const auto bbr = blockBoundingGeometry(hb.first);
         painter.setFont(font());
         const QRect stageStringRect = painter.fontMetrics().boundingRect(stageString);
-        painter.drawText(bbr.width() - stageStringRect.width() - /* right-hand side padding*/ 10,
-                         bbr.top() + bbr.height() / 2 + stageStringRect.height() / 2, stageString);
+        QPointF drawAt = QPointF(bbr.width() - stageStringRect.width() - /* right-hand side padding*/ 10,
+                                 bbr.top() + (bbr.height() / 2.0 - stageStringRect.height() / 2.0));
+        painter.drawText(QRectF(drawAt.x(), drawAt.y(), stageStringRect.width(), stageStringRect.height()),
+                         stageString);
     }
     painter.end();
 }
