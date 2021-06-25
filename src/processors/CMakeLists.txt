@@ -58,3 +58,23 @@ create_vsrtl_processor(RISC-V rv5s_no_fw_hz)
 create_vsrtl_processor(RISC-V rv5s_no_hz)
 create_vsrtl_processor(RISC-V rv5s_no_fw)
 create_vsrtl_processor(RISC-V rv6s_dual)
+
+if(RIPES_BUILD_VERILATOR_PROCESSORS)
+    # ================= PicoRV32 core =================
+    list(APPEND PICORV32_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/PicoRV32/picorv32/picorv32.v)
+
+    list(APPEND PICORV32_ARGS -GCATCH_ILLINSN=1)
+    list(APPEND PICORV32_ARGS -GENABLE_IRQ=1)
+    list(APPEND PICORV32_ARGS -GENABLE_DIV=1)
+    list(APPEND PICORV32_ARGS -GENABLE_MUL=1)
+    list(APPEND PICORV32_ARGS -GENABLE_PCPI=1)
+    list(APPEND PICORV32_ARGS -GENABLE_PCPI_ECALL_EBREAK=1)
+
+    create_verilator_processor(
+        PicoRV32           # subfolder
+        picorv32           # repo folder
+        "${PICORV32_SRCS}" # source files
+        picorv32           # top-level component
+        "${PICORV32_ARGS}" # Verilator arguments
+    )
+endif()

@@ -4,3 +4,6 @@
 [submodule "external/ELFIO"]
 	path = external/ELFIO
 	url = https://github.com/serge1/ELFIO
+[submodule "src/processors/PicoRV32/picorv32"]
+	path = src/processors/PicoRV32/picorv32
+	url = https://github.com/mortbopet/picorv32

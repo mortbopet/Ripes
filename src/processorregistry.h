@@ -8,6 +8,7 @@
 #include "isa/isainfo.h"
 #include "processors/interface/ripesprocessor.h"
 
+#include "processors/PicoRV32/ripes_picorv32.h"
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
@@ -34,6 +35,7 @@ enum ProcessorID {
     RV64_5S_NO_FW,
     RV64_5S,
     RV64_6S_DUAL,
+    PICORV32,
     NUM_PROCESSORS
 };
 Q_ENUM_NS(Ripes::ProcessorID);  // Register with the metaobject system
@@ -77,6 +79,7 @@ public:
     }
     static std::unique_ptr<RipesProcessor> constructProcessor(ProcessorID id, const QStringList& extensions) {
         switch (id) {
+                // RV32
             case ProcessorID::RV32_5S_NO_FW_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ<uint32_t>>(extensions);
             case ProcessorID::RV32_5S:
@@ -89,6 +92,10 @@ public:
                 return std::make_unique<vsrtl::core::RV5S_NO_HZ<uint32_t>>(extensions);
             case ProcessorID::RV32_5S_NO_FW:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW<uint32_t>>(extensions);
+            case ProcessorID::PICORV32:
+                return std::make_unique<PicoRV32>();
+
+                // RV64
             case ProcessorID::RV64_5S_NO_FW_HZ:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ<uint64_t>>(extensions);
             case ProcessorID::RV64_5S:
@@ -110,10 +117,10 @@ public:
 private:
     ProcessorRegistry() {
         // Initialize processors
+        ProcessorDescription desc;
 
         for (int xlen : {32, 64}) {
             // RISC-V single cycle
-            ProcessorDescription desc;
             desc.id = xlen == 32 ? ProcessorID::RV32_SS : ProcessorID::RV64_SS;
             desc.isa = xlen == 32 ? vsrtl::core::RVSS<uint32_t>::ISA() : vsrtl::core::RVSS<uint64_t>::ISA();
             desc.name = "Single-cycle processor";
@@ -206,6 +213,16 @@ private:
             desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
             m_descriptions[desc.id] = desc;
         }
+
+        // PicoRV
+        desc = ProcessorDescription();
+        desc.id = ProcessorID::PICORV32;
+        desc.isa = vsrtl::core::RVSS<uint32_t>::ISA();
+        desc.name = "PicoRV32";
+        desc.description = "This is only a test";
+        desc.layouts = {};
+        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        m_descriptions[desc.id] = desc;
     }
 
     static ProcessorRegistry& instance() {
