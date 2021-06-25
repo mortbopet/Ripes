@@ -115,7 +115,11 @@ void ProgramViewer::updateHighlightedAddresses() {
                 continue;
 
             // Record the stage name for the highlighted block for later painting
-            m_highlightedBlocksText[block] << ProcessorHandler::getProcessor()->stageName(sid);
+            QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
+            if (!stageInfo.namedState.isEmpty()) {
+                stageString += " (" + stageInfo.namedState + ")";
+            }
+            m_highlightedBlocksText[block] << stageString;
 
             // If a stage has already been highlighted (ie. an instruction exists in more than 1 stage at once), keep
             // the already set highlighting.

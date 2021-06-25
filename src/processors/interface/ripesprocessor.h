@@ -21,6 +21,7 @@ struct StageInfo {
     AInt pc = 0;
     bool stage_valid = false;
     State state;
+    QString namedState = "";
     bool operator==(const StageInfo& other) const {
         return this->pc == other.pc && this->stage_valid == other.stage_valid && this->state == other.state;
     }
