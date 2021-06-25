@@ -306,3 +306,5 @@ const static std::map<WritePolicy, QString> s_cacheWritePolicyStrings{{WritePoli
                                                                       {WritePolicy::WriteBack, "Write-back"}};
 
 }  // namespace Ripes
+
+Q_DECLARE_METATYPE(Ripes::CacheSim::CacheTransaction);

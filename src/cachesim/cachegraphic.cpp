@@ -73,7 +73,9 @@ private:
 };
 
 CacheGraphic::CacheGraphic(CacheSim& cache) : QGraphicsObject(nullptr), m_cache(cache), m_fm(m_font) {
-    connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged);
+    // Connect to CacheSim::dataChanged using QueuedConnection, to ensure allow for cross thread signalling (CacheSim is
+    // executed in the same thread as the simulator).
+    connect(&cache, &CacheSim::dataChanged, this, &CacheGraphic::dataChanged, Qt::QueuedConnection);
     connect(&cache, &CacheSim::wayInvalidated, this, &CacheGraphic::wayInvalidated);
     connect(&cache, &CacheSim::cacheInvalidated, this, &CacheGraphic::cacheInvalidated);
 
