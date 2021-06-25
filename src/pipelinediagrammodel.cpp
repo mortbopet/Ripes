@@ -8,7 +8,7 @@ namespace Ripes {
 
 static inline AInt indexToAddress(unsigned index) {
     if (auto spt = ProcessorHandler::getProgram()) {
-        return (index * ProcessorHandler::currentISA()->bytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
+        return (index * ProcessorHandler::currentISA()->instrBytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }
@@ -32,7 +32,7 @@ QVariant PipelineDiagramModel::headerData(int section, Qt::Orientation orientati
 }
 
 int PipelineDiagramModel::rowCount(const QModelIndex&) const {
-    return ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->bytes();
+    return ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->instrBytes();
 }
 
 int PipelineDiagramModel::columnCount(const QModelIndex&) const {
@@ -91,16 +91,25 @@ QVariant PipelineDiagramModel::data(const QModelIndex& index, int role) const {
     const auto& stageInfo = m_cycleStageInfos.at(index.column());
 
     QStringList stagesForAddr;
+    QString stageStr;
     for (const auto& si : stageInfo) {
         if (si.second.pc == addr && si.second.stage_valid && si.second.state == StageInfo::State::None) {
             if (m_cycleStageInfos.count(index.column() - 1)) {
                 const auto& prevCycleStageInfo = m_cycleStageInfos.at(index.column() - 1);
                 if (prevCycleStageInfo.at(si.first).stage_valid && prevCycleStageInfo.at(si.first).pc == si.second.pc) {
-                    stagesForAddr << "-";
+                    stageStr = "-";
+                    if (!si.second.namedState.isEmpty()) {
+                        stageStr += " (" + si.second.namedState + ")";
+                    }
+                    stagesForAddr << stageStr;
                     continue;
                 }
             }
-            stagesForAddr << ProcessorHandler::getProcessor()->stageName(si.first);
+            stageStr = ProcessorHandler::getProcessor()->stageName(si.first);
+            if (!si.second.namedState.isEmpty()) {
+                stageStr += " (" + si.second.namedState + ")";
+            }
+            stagesForAddr << stageStr;
         }
     }
 
