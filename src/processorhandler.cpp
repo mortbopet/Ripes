@@ -120,6 +120,30 @@ void ProcessorHandler::_triggerProcStateChangeTimer() {
     m_enqueueStateChangeLock.unlock();
 }
 
+class ProcessorClocker : public QRunnable {
+public:
+    explicit ProcessorClocker(bool& finished) : m_finished(finished) {}
+    void run() override {
+        ProcessorHandler::getProcessorNonConst()->clockProcessor();
+        ProcessorHandler::checkValidExecutionRange();
+        ProcessorHandler::checkProcessorFinished();
+        if (ProcessorHandler::checkBreakpoint()) {
+            ProcessorHandler::stopRun();
+        }
+        m_finished = true;
+    }
+
+private:
+    bool& m_finished;
+};
+
+void ProcessorHandler::_clock() {
+    if (m_clockFinished) {
+        m_clockFinished = false;
+        QThreadPool::globalInstance()->start(new ProcessorClocker(m_clockFinished));
+    }
+}
+
 void ProcessorHandler::_run() {
     ProcessorStatusManager::setStatus("Running...");
     emit runStarted();

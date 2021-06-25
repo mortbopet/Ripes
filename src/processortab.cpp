@@ -95,6 +95,8 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this, &ProcessorTab::updateStatistics);
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &ProcessorTab::updateInstructionLabels);
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
+            [=] { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     setupSimulatorActions(controlToolbar);
 
@@ -118,6 +120,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this, &ProcessorTab::reset);
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, this, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, &ProcessorTab::runFinished);
+    connect(ProcessorHandler::get(), &ProcessorHandler::stopping, this, &ProcessorTab::pause);
 
     // Send input data from the console to the SystemIO stdin stream
     connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
@@ -197,13 +200,13 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
 
     const QIcon clockIcon = QIcon(":/icons/step.svg");
     m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
-    connect(m_clockAction, &QAction::triggered, this, &ProcessorTab::clock);
+    connect(m_clockAction, &QAction::triggered, this, [=] { ProcessorHandler::clock(); });
     m_clockAction->setShortcut(QKeySequence("F5"));
     m_clockAction->setToolTip("Clock the circuit (F5)");
     controlToolbar->addAction(m_clockAction);
 
     QTimer* timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &ProcessorTab::clock);
+    connect(timer, &QTimer::timeout, this, [=] { ProcessorHandler::clock(); });
 
     const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
     const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
@@ -508,16 +511,6 @@ void ProcessorTab::run(bool state) {
 void ProcessorTab::reverse() {
     m_vsrtlWidget->reverse();
     enableSimulatorControls();
-}
-
-void ProcessorTab::clock() {
-    m_vsrtlWidget->clock();
-    ProcessorHandler::checkValidExecutionRange();
-    if (ProcessorHandler::checkBreakpoint()) {
-        pause();
-    }
-    ProcessorHandler::checkProcessorFinished();
-    m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
 }
 
 void ProcessorTab::showPipelineDiagram() {

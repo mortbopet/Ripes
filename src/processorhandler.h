@@ -136,6 +136,8 @@ public:
      */
     static void run() { get()->_run(); }
 
+    static void clock() { get()->_clock(); }
+
     /**
      * @brief stopRun
      * Sets the m_stopRunningFlag, and waits for any currently running asynchronous run execution to finish.
@@ -221,6 +223,7 @@ private:
     void _checkProcessorFinished();
     bool _isRunning();
     void _run();
+    void _clock();
     void _reset();
     void _stopRun();
     void _triggerProcStateChangeTimer();
@@ -249,6 +252,7 @@ private:
 
     QFutureWatcher<void> m_runWatcher;
     bool m_stopRunningFlag = false;
+    bool m_clockFinished = true;
 
     /**
      * @brief To avoid excessive UI updates due to things relying on procStateChangedNonRun, the m_procStateChangeTimer

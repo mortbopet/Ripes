@@ -52,7 +52,6 @@ public slots:
 
 private slots:
     void run(bool state);
-    void clock();
     void setInstructionViewCenterAddr(AInt address);
     void showPipelineDiagram();
 
