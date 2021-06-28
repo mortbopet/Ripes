@@ -51,10 +51,10 @@ public:
     MemoryAccess instrMemAccess() const override { return m_instrAccess; }
     VInt getRegister(RegisterFileType, unsigned i) const override;
     void setRegister(RegisterFileType, unsigned i, VInt v) override;
-    void setProgramCounter(AInt address) override;
-    void setPCInitialValue(AInt address) override{};
-    void finalize(const unsigned& finalizeReason) override{};
-    bool finished() const override { return 0; };
+    void setProgramCounter(AInt /* address */) override;
+    void setPCInitialValue(AInt /* address */) override{};
+    void finalize(FinalizeReason finalizeReason) override;
+    bool finished() const override { return m_finished; };
     long long getInstructionsRetired() const override;
     long long getCycleCount() const override;
 
@@ -69,6 +69,7 @@ private:
 
     void handleMemoryAccess();
 
+    bool m_finished = false;
     bool m_doPCPI = false;
     Vpicorv32* top = nullptr;
     vsrtl::core::AddressSpaceMM m_memory;

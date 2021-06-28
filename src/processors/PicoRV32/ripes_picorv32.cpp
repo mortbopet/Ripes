@@ -44,8 +44,15 @@ void PicoRV32::resetProcessor() {
     clockProcessor();
     clockProcessor();
     top->resetn = 1;
+    m_finished = false;
 
     processorWasReset.Emit();
+}
+
+void PicoRV32::finalize(FinalizeReason fr) {
+    if (fr == FinalizeReason::exitSyscall) {
+        m_finished = true;
+    }
 }
 
 StageInfo PicoRV32::stageInfo(unsigned) const {
