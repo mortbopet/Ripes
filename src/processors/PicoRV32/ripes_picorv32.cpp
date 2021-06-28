@@ -4,6 +4,7 @@
 #include "Vpicorv32.h"
 
 #include "../../binutils.h"
+#include "../RISC-V/riscv.h"
 
 namespace Ripes {
 
@@ -30,7 +31,7 @@ void PicoRV32::clockProcessor() {
         m_doPCPI = false;
     }
 
-    if (!m_doPCPI && top->pcpi_valid) {
+    if (!m_doPCPI && top->pcpi_valid && top->pcpi_insn == RVISA::Opcode::ECALL) {
         trapHandler();
         m_doPCPI = true;
     }
