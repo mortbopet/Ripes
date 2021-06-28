@@ -167,13 +167,13 @@ public:
     void setPCInitialValue(AInt address) override { pc_reg->setInitValue(address); }
     AddressSpaceMM& getMemory() override { return *m_memory; }
     VInt getRegister(RegisterFileType, unsigned i) const override { return registerFile->getRegister(i); }
-    void finalize(const unsigned& fr) override {
-        if (fr) {
+    void finalize(FinalizeReason fr) override {
+        if (fr == FinalizeReason::exitSyscall) {
             // Allow one additional clock cycle to clear the current instruction
             m_finishInNextCycle = true;
         }
     }
-    bool finished() const override { return m_finished; }
+    bool finished() const override { return m_finished || !stageInfo(0).stage_valid; }
     const std::vector<unsigned> breakpointTriggeringStages() const override { return {0}; }
 
     MemoryAccess dataMemAccess() const override { return memToAccessInfo(data_mem); }

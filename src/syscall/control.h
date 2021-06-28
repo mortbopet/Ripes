@@ -16,8 +16,7 @@ public:
     ExitSyscall() : BaseSyscall("Exit", "Exits the program with code 0") {}
     void execute() {
         SystemIO::printString("\nProgram exited with code: 0");
-        auto fr = RipesProcessor::FinalizeReason::exitSyscall;
-        ProcessorHandler::getProcessorNonConst()->finalize(fr);
+        ProcessorHandler::getProcessorNonConst()->finalize(RipesProcessor::FinalizeReason::exitSyscall);
     }
 };
 
@@ -30,8 +29,7 @@ public:
     void execute() {
         SystemIO::printString("\nProgram exited with code: " +
                               QString::number(BaseSyscall::getArg(RegisterFileType::GPR, 0)));
-        auto fr(RipesProcessor::FinalizeReason::exitSyscall);
-        ProcessorHandler::getProcessorNonConst()->finalize(fr);
+        ProcessorHandler::getProcessorNonConst()->finalize(RipesProcessor::FinalizeReason::exitSyscall);
     }
 };
 

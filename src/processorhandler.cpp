@@ -125,7 +125,6 @@ public:
     explicit ProcessorClocker(bool& finished) : m_finished(finished) {}
     void run() override {
         ProcessorHandler::getProcessorNonConst()->clockProcessor();
-        ProcessorHandler::checkValidExecutionRange();
         ProcessorHandler::checkProcessorFinished();
         if (ProcessorHandler::checkBreakpoint()) {
             ProcessorHandler::stopRun();
@@ -154,7 +153,6 @@ void ProcessorHandler::_run() {
      */
     const auto& cycleFunctor = [=] {
         bool stopRunning = m_stopRunningFlag;
-        _checkValidExecutionRange();
         stopRunning |= _checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
 
         if (stopRunning) {
@@ -383,15 +381,6 @@ bool ProcessorHandler::_isExecutableAddress(AInt address) const {
         }
     }
     return false;
-}
-
-void ProcessorHandler::_checkValidExecutionRange() const {
-    const auto pc = m_currentProcessor->nextFetchedAddress();
-    unsigned fr = 0;
-    if (!_isExecutableAddress(pc)) {
-        fr |= RipesProcessor::FinalizeReason::exitedExecutableRegion;
-    }
-    m_currentProcessor->finalize(fr);
 }
 
 void ProcessorHandler::_setRegisterValue(RegisterFileType rfid, const unsigned idx, VInt value) {

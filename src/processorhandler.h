@@ -61,14 +61,6 @@ public:
     }
 
     /**
-     * @brief checkValidExecutionRange
-     * Checks whether the processor, given continued clocking, that it will execute within the currently validated
-     * execution range. If the processor in the next cycle will start to fetch instructions outside of the validated
-     * range, the processor is instead requested to start finalizing.
-     */
-    static void checkValidExecutionRange() { get()->_checkValidExecutionRange(); }
-
-    /**
      * @brief isExecutableAddress
      * @returns whether @param address is within the executable section of the currently loaded program.
      */
@@ -205,7 +197,6 @@ private:
     void _loadProcessorToWidget(vsrtl::VSRTLWidget* widget);
     void _selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
                           RegisterInitialization setup = RegisterInitialization());
-    void _checkValidExecutionRange() const;
     bool _isExecutableAddress(AInt address) const;
     int _getCurrentProgramSize() const;
     AInt _getTextStart() const;

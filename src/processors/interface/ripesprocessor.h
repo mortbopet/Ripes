@@ -191,8 +191,8 @@ public:
      * segment to inside the .text segment. This will typically happen when a control-flow instruction is near the end
      * of the .text segment.
      */
-    enum FinalizeReason { exitedExecutableRegion = 0b1, exitSyscall = 0b10 };
-    virtual void finalize(const unsigned& finalizeReason) = 0;
+    enum FinalizeReason { None = 0b0, exitSyscall = 0b10 };
+    virtual void finalize(FinalizeReason finalizeReason) = 0;
 
     /**
      * @brief finished
