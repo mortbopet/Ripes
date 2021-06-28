@@ -482,12 +482,10 @@ public:
         m_syscallExitCycle = -1;
     }
 
-    static const ISAInfoBase* ISA() {
+    static const ISAInfoBase* supportsISA() {
         static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M"});
         return &s_isa;
     }
-
-    const ISAInfoBase* supportsISA() const override { return ISA(); }
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); }
 
     const std::set<RegisterFileType> registerFiles() const override {

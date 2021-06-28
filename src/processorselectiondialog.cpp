@@ -33,25 +33,25 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     QTreeWidgetItem* selectedItem = nullptr;
 
     for (auto& desc : ProcessorRegistry::getAvailableProcessors()) {
-        QTreeWidgetItem* processorItem = new QTreeWidgetItem({desc.second.name});
-        processorItem->setData(ProcessorColumn, Qt::UserRole, QVariant::fromValue(desc.second.id));
-        if (desc.second.id == ProcessorHandler::getID()) {
+        QTreeWidgetItem* processorItem = new QTreeWidgetItem({desc.second->name});
+        processorItem->setData(ProcessorColumn, Qt::UserRole, QVariant::fromValue(desc.second->id));
+        if (desc.second->id == ProcessorHandler::getID()) {
             // Highlight if currently selected processor
             auto font = processorItem->font(ProcessorColumn);
             font.setBold(true);
             processorItem->setFont(ProcessorColumn, font);
             selectedItem = processorItem;
         }
-        const QString& isaFamily = ISAFamilyNames.at(desc.second.isa->isaID());
+        const QString& isaFamily = ISAFamilyNames.at(desc.second->isa()->isaID());
         QTreeWidgetItem* familyItem = isaFamilyItems.at(isaFamily);
         auto& regWidthItemsForISA = isaFamilyRegWidthItems.at(familyItem);
-        auto isaRegWidthItem = regWidthItemsForISA.find(desc.second.isa->bits());
+        auto isaRegWidthItem = regWidthItemsForISA.find(desc.second->isa()->bits());
         if (isaRegWidthItem == regWidthItemsForISA.end()) {
             // Create reg width item
-            auto* widthItem = new QTreeWidgetItem({QString::number(desc.second.isa->bits()) + "-bit"});
+            auto* widthItem = new QTreeWidgetItem({QString::number(desc.second->isa()->bits()) + "-bit"});
             widthItem->setFlags(widthItem->flags() & ~(Qt::ItemIsSelectable));
-            regWidthItemsForISA[desc.second.isa->bits()] = widthItem;
-            isaRegWidthItem = regWidthItemsForISA.find(desc.second.isa->bits());
+            regWidthItemsForISA[desc.second->isa()->bits()] = widthItem;
+            isaRegWidthItem = regWidthItemsForISA.find(desc.second->isa()->bits());
             familyItem->insertChild(familyItem->childCount(), widthItem);
         }
         isaRegWidthItem->second->insertChild(isaRegWidthItem->second->childCount(), processorItem);
@@ -69,7 +69,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
 
     // Initialize extensions for processors; default to all available extensions
     for (const auto& desc : ProcessorRegistry::getAvailableProcessors()) {
-        m_selectedExtensionsForID[desc.second.id] = desc.second.isa->supportedExtensions();
+        m_selectedExtensionsForID[desc.second->id] = desc.second->isa()->supportedExtensions();
     }
     m_selectedExtensionsForID[ProcessorHandler::getID()] = ProcessorHandler::currentISA()->enabledExtensions();
 
@@ -122,13 +122,13 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
 
     // Update information widgets with the current processor info
     m_selectedID = id;
-    m_ui->name->setText(desc.name);
-    m_ui->ISA->setText(desc.isa->name());
-    m_ui->description->setPlainText(desc.description);
+    m_ui->name->setText(desc->name);
+    m_ui->ISA->setText(desc->isa()->name());
+    m_ui->description->setPlainText(desc->description);
     m_ui->regInitWidget->processorSelectionChanged(id);
 
     m_ui->layout->clear();
-    for (const auto& layout : desc.layouts) {
+    for (const auto& layout : desc->layouts) {
         m_ui->layout->addItem(layout.name);
     }
 
@@ -140,10 +140,10 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
         delete item;
     }
 
-    for (const auto& ext : desc.isa->supportedExtensions()) {
+    for (const auto& ext : desc->isa()->supportedExtensions()) {
         auto chkbox = new QCheckBox(ext);
         m_ui->extensions->addWidget(chkbox);
-        if (m_selectedExtensionsForID[desc.id].contains(ext)) {
+        if (m_selectedExtensionsForID[desc->id].contains(ext)) {
             chkbox->setChecked(true);
         }
         connect(chkbox, &QCheckBox::toggled, this, [=](bool toggled) {
@@ -158,7 +158,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
 
 const Layout* ProcessorSelectionDialog::getSelectedLayout() const {
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(m_selectedID);
-    for (const auto& layout : desc.layouts) {
+    for (const auto& layout : desc->layouts) {
         if (layout.name == m_ui->layout->currentText()) {
             return &layout;
         }

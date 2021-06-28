@@ -29,7 +29,7 @@ ProcessorHandler::ProcessorHandler() {
         // Some sanity checking
         m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV32_5S : m_currentID;
     }
-    _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa->supportedExtensions(),
+    _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa()->supportedExtensions(),
                      ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
@@ -245,7 +245,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
 
     // Keep current program if the ISA between the two processors are identical
     const bool keepProgram = m_currentProcessor && (m_currentProcessor->implementsISA()->eq(
-                                                       ProcessorRegistry::getDescription(id).isa, extensions));
+                                                       ProcessorRegistry::getDescription(id).isa(), extensions));
 
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);

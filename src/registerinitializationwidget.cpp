@@ -22,7 +22,7 @@ void RegisterSelectionComboBox::showPopup() {
     if (count())
         clear();
 
-    const auto& isa = ProcessorRegistry::getAvailableProcessors().at(m_parent->m_currentID).isa;
+    const auto& isa = ProcessorRegistry::getAvailableProcessors().at(m_parent->m_currentID)->isa();
     const auto& initializations = m_parent->m_initializations.at(m_parent->m_currentID);
 
     std::set<unsigned> regOptions;
@@ -58,8 +58,8 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget* parent)
     for (const auto& desc : ProcessorRegistry::getAvailableProcessors()) {
         // Set to initial value if this is the first time the dialog is loaded. Else, keep whatever changes has been
         // stored in the static variable, made in previous invokations of the dialog.
-        if (!m_initializations.count(desc.second.id)) {
-            m_initializations[desc.second.id] = desc.second.defaultRegisterVals;
+        if (!m_initializations.count(desc.second->id)) {
+            m_initializations[desc.second->id] = desc.second->defaultRegisterVals;
         }
     }
 }
@@ -91,7 +91,7 @@ void RegisterInitializationWidget::updateAddButtonState() {
 }
 
 int RegisterInitializationWidget::getNonInitializedRegIdx() {
-    const auto& currentISA = ProcessorRegistry::getAvailableProcessors().at(m_currentID).isa;
+    const auto& currentISA = ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isa();
     const auto& currentInitForProc = m_initializations.at(m_currentID);
     unsigned id = 0;
     while (currentInitForProc.count(id) || currentISA->regIsReadOnly(id)) {
@@ -109,7 +109,7 @@ RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addR
     }
 
     const auto& regLayout = m_ui->regInitLayout;
-    const auto& isa = ProcessorRegistry::getAvailableProcessors().at(m_currentID).isa;
+    const auto& isa = ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isa();
 
     auto& w = m_currentRegInitWidgets.emplace_back(std::make_unique<RegInitWidgets>());
     auto* w_ptr = w.get();
