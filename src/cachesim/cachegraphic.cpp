@@ -117,7 +117,11 @@ QString CacheGraphic::addressString() const {
 
 void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     CacheWay& way = m_cacheTextItems.at(lineIdx).at(wayIdx);
-    const CacheSim::CacheWay& simWay = m_cache.getLine(lineIdx)->at(wayIdx);
+    CacheSim::CacheWay simWay = CacheSim::CacheWay();
+
+    if (auto* cacheLine = m_cache.getLine(lineIdx)) {
+        simWay = cacheLine->at(wayIdx);
+    };
 
     // ======================== Update block text fields ======================
     if (simWay.valid) {
