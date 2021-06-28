@@ -8,13 +8,16 @@
 #include "isa/isainfo.h"
 #include "processors/interface/ripesprocessor.h"
 
-#include "processors/PicoRV32/ripes_picorv32.h"
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
+
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
+#include "processors/PicoRV32/ripes_picorv32.h"
+#endif
 
 namespace Ripes {
 Q_NAMESPACE
@@ -92,8 +95,11 @@ public:
                 return std::make_unique<vsrtl::core::RV5S_NO_HZ<uint32_t>>(extensions);
             case ProcessorID::RV32_5S_NO_FW:
                 return std::make_unique<vsrtl::core::RV5S_NO_FW<uint32_t>>(extensions);
+
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
             case ProcessorID::PICORV32:
                 return std::make_unique<PicoRV32>();
+#endif
 
                 // RV64
             case ProcessorID::RV64_5S_NO_FW_HZ:
@@ -214,6 +220,7 @@ private:
             m_descriptions[desc.id] = desc;
         }
 
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
         // PicoRV
         desc = ProcessorDescription();
         desc.id = ProcessorID::PICORV32;
@@ -223,6 +230,7 @@ private:
         desc.layouts = {};
         desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
         m_descriptions[desc.id] = desc;
+#endif
     }
 
     static ProcessorRegistry& instance() {
