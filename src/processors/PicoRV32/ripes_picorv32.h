@@ -31,14 +31,17 @@ class PicoRV32 : public RipesProcessor {
                                               {cpu_state_stmem, "stmem"},   {cpu_state_ldmem, "ldmem"}};
 
 public:
-    PicoRV32();
+    PicoRV32(const QStringList& /* extensions */);
     ~PicoRV32();
 
     void clockProcessor() override;
     void resetProcessor() override;
     unsigned features() const { return m_features; }
-    const ISAInfoBase* supportsISA() const override { return ISA(); }
-    const ISAInfoBase* implementsISA() const override { return ISA(); }
+    static const ISAInfoBase* supportsISA() {
+        static auto s_isa = ISAInfo<ISA::RV32I>({"M"});
+        return &s_isa;
+    }
+    const ISAInfoBase* implementsISA() const override { return supportsISA(); }
     virtual const std::set<RegisterFileType> registerFiles() const override { return {RegisterFileType::GPR}; }
     unsigned int stageCount() const override { return 1; }
     unsigned int getPcForStage(unsigned) const override;
@@ -61,11 +64,6 @@ public:
 private:
     PicoRV32(const PicoRV32&) = delete;
     PicoRV32& operator=(const PicoRV32&) = delete;
-
-    static const ISAInfoBase* ISA() {
-        static auto s_isa = ISAInfo<ISA::RV32I>({"M"});
-        return &s_isa;
-    }
 
     void handleMemoryAccess();
 

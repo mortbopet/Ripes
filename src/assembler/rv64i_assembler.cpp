@@ -84,6 +84,12 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, _InstrVec& instructions
 
 void RV64I_Assembler::enableExtM(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions) {
     RV32I_Assembler::extM<Reg_T, Instr_T>::enable(isa, instructions, pseudoInstructions);
+
+    instructions.push_back(RType32(Token("mulw"), 0b000, 0b0000001));
+    instructions.push_back(RType32(Token("divw"), 0b100, 0b0000001));
+    instructions.push_back(RType32(Token("divuw"), 0b101, 0b0000001));
+    instructions.push_back(RType32(Token("remw"), 0b110, 0b0000001));
+    instructions.push_back(RType32(Token("remuw"), 0b111, 0b0000001));
 }
 
 }  // namespace Assembler

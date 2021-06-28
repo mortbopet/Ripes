@@ -80,8 +80,10 @@ public:
     /**
      * @brief supportsISA
      * @return ISA alongside all of the supported extensions which this processor implements.
+     * The type inheriting RipesProcessor must implement a static function which provides information about the
+     * supported ISA of the processor.
      */
-    virtual const ISAInfoBase* supportsISA() const = 0;
+    // static const ISAInfoBase* T::supportsISA();
 
     /**
      * @brief implementsISA

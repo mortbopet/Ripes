@@ -7,7 +7,7 @@
 
 namespace Ripes {
 
-PicoRV32::PicoRV32() : m_dataAccess(), m_instrAccess() {
+PicoRV32::PicoRV32(const QStringList&) : m_dataAccess(), m_instrAccess() {
     m_features = 0;
     top = new Vpicorv32;
 }

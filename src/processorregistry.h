@@ -60,176 +60,151 @@ struct Layout {
     bool operator==(const Layout& rhs) const { return this->name == rhs.name; }
 };
 
-struct ProcessorDescription {
+class ProcInfoBase {
+public:
+    ProcInfoBase(ProcessorID _id, const QString& _name, const QString& _desc, const std::vector<Layout>& _layouts,
+                 const RegisterInitialization& _defaultRegVals = {})
+        : id(_id), name(_name), description(_desc), defaultRegisterVals(_defaultRegVals), layouts(_layouts) {}
     ProcessorID id;
-    RegisterInitialization defaultRegisterVals;
-    const ISAInfoBase* isa;
     QString name;
     QString description;
+    RegisterInitialization defaultRegisterVals;
     std::vector<Layout> layouts;
+    virtual const ISAInfoBase* isa() const = 0;
+    virtual std::unique_ptr<RipesProcessor> construct(const QStringList& extensions) = 0;
+};
+
+template <typename T>
+class ProcInfo : public ProcInfoBase {
+public:
+    using ProcInfoBase::ProcInfoBase;
+    std::unique_ptr<RipesProcessor> construct(const QStringList& extensions) { return std::make_unique<T>(extensions); }
+    // At this point we force the processor type T to implement a static function identifying its supported ISA.
+    const ISAInfoBase* isa() const { return T::supportsISA(); }
 };
 
 class ProcessorRegistry {
 public:
-    using ProcessorMap = std::map<ProcessorID, ProcessorDescription>;
+    using ProcessorMap = std::map<ProcessorID, std::unique_ptr<ProcInfoBase>>;
     static const ProcessorMap& getAvailableProcessors() { return instance().m_descriptions; }
-    static const ProcessorDescription& getDescription(ProcessorID id) {
+    static const ProcInfoBase& getDescription(ProcessorID id) {
         auto desc = instance().m_descriptions.find(id);
         if (desc == instance().m_descriptions.end()) {
-            return instance().m_descriptions.begin()->second;
+            return *instance().m_descriptions.begin()->second;
         }
-        return desc->second;
+        return *desc->second;
     }
     static std::unique_ptr<RipesProcessor> constructProcessor(ProcessorID id, const QStringList& extensions) {
-        switch (id) {
-                // RV32
-            case ProcessorID::RV32_5S_NO_FW_HZ:
-                return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ<uint32_t>>(extensions);
-            case ProcessorID::RV32_5S:
-                return std::make_unique<vsrtl::core::RV5S<uint32_t>>(extensions);
-            case ProcessorID::RV32_6S_DUAL:
-                return std::make_unique<vsrtl::core::RV6S_DUAL<uint32_t>>(extensions);
-            case ProcessorID::RV32_SS:
-                return std::make_unique<vsrtl::core::RVSS<uint32_t>>(extensions);
-            case ProcessorID::RV32_5S_NO_HZ:
-                return std::make_unique<vsrtl::core::RV5S_NO_HZ<uint32_t>>(extensions);
-            case ProcessorID::RV32_5S_NO_FW:
-                return std::make_unique<vsrtl::core::RV5S_NO_FW<uint32_t>>(extensions);
-
-#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
-            case ProcessorID::PICORV32:
-                return std::make_unique<PicoRV32>();
-#endif
-
-                // RV64
-            case ProcessorID::RV64_5S_NO_FW_HZ:
-                return std::make_unique<vsrtl::core::RV5S_NO_FW_HZ<uint64_t>>(extensions);
-            case ProcessorID::RV64_5S:
-                return std::make_unique<vsrtl::core::RV5S<uint64_t>>(extensions);
-            case ProcessorID::RV64_6S_DUAL:
-                return std::make_unique<vsrtl::core::RV6S_DUAL<uint64_t>>(extensions);
-            case ProcessorID::RV64_SS:
-                return std::make_unique<vsrtl::core::RVSS<uint64_t>>(extensions);
-            case ProcessorID::RV64_5S_NO_HZ:
-                return std::make_unique<vsrtl::core::RV5S_NO_HZ<uint64_t>>(extensions);
-            case ProcessorID::RV64_5S_NO_FW:
-                return std::make_unique<vsrtl::core::RV5S_NO_FW<uint64_t>>(extensions);
-            case ProcessorID::NUM_PROCESSORS:
-            default:
-                Q_UNREACHABLE();
-        }
+        auto& _this = instance();
+        auto it = _this.m_descriptions.find(id);
+        Q_ASSERT(it != _this.m_descriptions.end());
+        return it->second->construct(extensions);
     }
 
 private:
+    template <typename T>
+    void addProcessor(const ProcInfo<T>& pinfo) {
+        Q_ASSERT(m_descriptions.count(pinfo.id) == 0);
+        m_descriptions[pinfo.id] = std::make_unique<ProcInfo<T>>(pinfo);
+    }
+
     ProcessorRegistry() {
         // Initialize processors
-        ProcessorDescription desc;
+        std::vector<Layout> layouts;
+        RegisterInitialization defRegVals;
 
-        for (int xlen : {32, 64}) {
-            // RISC-V single cycle
-            desc.id = xlen == 32 ? ProcessorID::RV32_SS : ProcessorID::RV64_SS;
-            desc.isa = xlen == 32 ? vsrtl::core::RVSS<uint32_t>::ISA() : vsrtl::core::RVSS<uint64_t>::ISA();
-            desc.name = "Single-cycle processor";
-            desc.description = "A single cycle processor";
-            desc.layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", {QPointF{0.5, 0}}},
-                            {"Extended", ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json", {QPointF{0.5, 0}}}};
-            desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-            m_descriptions[desc.id] = desc;
+        // RISC-V single cycle
+        layouts = {{"Standard", ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json", {QPointF{0.5, 0}}},
+                   {"Extended", ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json", {QPointF{0.5, 0}}}};
+        defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        addProcessor(ProcInfo<vsrtl::core::RVSS<uint32_t>>(ProcessorID::RV32_SS, "Single-cycle processor",
+                                                           "A single cycle processor", layouts, defRegVals));
+        addProcessor(ProcInfo<vsrtl::core::RVSS<uint64_t>>(ProcessorID::RV64_SS, "Single-cycle processor",
+                                                           "A single cycle processor", layouts, defRegVals));
 
-            // RISC-V 5-stage without forwarding or hazard detection
-            desc = ProcessorDescription();
-            desc.id = xlen == 32 ? ProcessorID::RV32_5S_NO_FW_HZ : ProcessorID::RV64_5S_NO_FW_HZ;
-            desc.isa =
-                xlen == 32 ? vsrtl::core::RV5S_NO_FW_HZ<uint32_t>::ISA() : vsrtl::core::RV5S_NO_FW_HZ<uint64_t>::ISA();
-            desc.name = "5-stage processor w/o forwarding or hazard detection";
-            desc.description = "A 5-stage in-order processor with no forwarding or hazard detection/elimination.";
-            desc.layouts = {
-                {"Standard",
-                 ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.54, 0}, QPointF{0.73, 0}, QPointF{0.88, 0}}},
-                {"Extended",
-                 ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json",
-                 {QPointF{0.08, 0.0}, QPointF{0.31, 0.0}, QPointF{0.56, 0.0}, QPointF{0.76, 0.0}, QPointF{0.9, 0.0}}}};
+        // RISC-V 5-stage without forwarding or hazard detection
+        layouts = {
+            {"Standard",
+             ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
+             {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.54, 0}, QPointF{0.73, 0}, QPointF{0.88, 0}}},
+            {"Extended",
+             ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json",
+             {QPointF{0.08, 0.0}, QPointF{0.31, 0.0}, QPointF{0.56, 0.0}, QPointF{0.76, 0.0}, QPointF{0.9, 0.0}}}};
+        defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW_HZ<uint32_t>>(
+            ProcessorID::RV32_5S_NO_FW_HZ, "5-stage processor w/o forwarding or hazard detection",
+            "A 5-stage in-order processor with no forwarding or hazard detection/elimination.", layouts, defRegVals));
+        addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW_HZ<uint64_t>>(
+            ProcessorID::RV64_5S_NO_FW_HZ, "5-stage processor w/o forwarding or hazard detection",
+            "A 5-stage in-order processor with no forwarding or hazard detection/elimination.", layouts, defRegVals));
 
-            desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-            m_descriptions[desc.id] = desc;
+        // RISC-V 5-stage without hazard detection
+        layouts = {{"Standard",
+                    ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_standard_layout.json",
+                    {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0}, QPointF{0.75, 0}, QPointF{0.88, 0}}},
+                   {"Extended",
+                    ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_extended_layout.json",
+                    {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+        defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        addProcessor(ProcInfo<vsrtl::core::RV5S_NO_HZ<uint32_t>>(
+            ProcessorID::RV32_5S_NO_HZ, "5-stage processor w/o hazard detection",
+            "A 5-stage in-order processor with forwarding but no hazard detection/elimination.", layouts, defRegVals));
+        addProcessor(ProcInfo<vsrtl::core::RV5S_NO_HZ<uint64_t>>(
+            ProcessorID::RV64_5S_NO_HZ, "5-stage processor w/o hazard detection",
+            "A 5-stage in-order processor with forwarding but no hazard detection/elimination.", layouts, defRegVals));
 
-            // RISC-V 5-stage without hazard detection
-            desc = ProcessorDescription();
-            desc.id = xlen == 32 ? ProcessorID::RV32_5S_NO_HZ : ProcessorID::RV64_5S_NO_HZ;
-            desc.isa = xlen == 32 ? vsrtl::core::RV5S_NO_HZ<uint32_t>::ISA() : vsrtl::core::RV5S_NO_HZ<uint64_t>::ISA();
-            desc.name = "5-stage processor w/o hazard detection";
-            desc.description = "A 5-stage in-order processor with forwarding but no hazard detection/elimination.";
-            desc.layouts = {
-                {"Standard",
-                 ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_standard_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0}, QPointF{0.75, 0}, QPointF{0.88, 0}}},
-                {"Extended",
-                 ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_extended_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
-            desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-            m_descriptions[desc.id] = desc;
+        // RISC-V 5-stage without forwarding unit
+        layouts = {{"Standard",
+                    ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json",
+                    {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0}, QPointF{0.75, 0}, QPointF{0.88, 0}}},
+                   {"Extended",
+                    ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json",
+                    {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+        defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW<uint32_t>>(
+            ProcessorID::RV32_5S_NO_FW, "5-Stage processor w/o forwarding unit",
+            "A 5-stage in-order processor with hazard detection/elimination but no forwarding unit.", layouts,
+            defRegVals));
+        addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW<uint64_t>>(
+            ProcessorID::RV64_5S_NO_FW, "5-Stage processor w/o forwarding unit",
+            "A 5-stage in-order processor with hazard detection/elimination but no forwarding unit.", layouts,
+            defRegVals));
 
-            // RISC-V 5-stage without forwarding unit
-            desc = ProcessorDescription();
-            desc.id = xlen == 32 ? ProcessorID::RV32_5S_NO_FW : ProcessorID::RV64_5S_NO_FW;
-            desc.isa = xlen == 32 ? vsrtl::core::RV5S_NO_FW<uint32_t>::ISA() : vsrtl::core::RV5S_NO_FW<uint64_t>::ISA();
-            desc.name = "5-Stage processor w/o forwarding unit";
-            desc.description = "A 5-stage in-order processor with hazard detection/elimination but no forwarding unit.";
-            desc.layouts = {
-                {"Standard",
-                 ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0}, QPointF{0.75, 0}, QPointF{0.88, 0}}},
-                {"Extended",
-                 ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
-            desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-            m_descriptions[desc.id] = desc;
+        // RISC-V 5-stage
+        layouts = {{"Standard",
+                    ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json",
+                    {QPointF{0.08, 0}, QPointF{0.29, 0}, QPointF{0.55, 0}, QPointF{0.75, 0}, QPointF{0.87, 0}}},
+                   {"Extended",
+                    ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json",
+                    {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.54, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+        defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        addProcessor(ProcInfo<vsrtl::core::RV5S<uint32_t>>(
+            ProcessorID::RV32_5S, "5-stage processor",
+            "A 5-stage in-order processor with hazard detection/elimination and forwarding.", layouts, defRegVals));
+        addProcessor(ProcInfo<vsrtl::core::RV5S<uint64_t>>(
+            ProcessorID::RV64_5S, "5-stage processor",
+            "A 5-stage in-order processor with hazard detection/elimination and forwarding.", layouts, defRegVals));
 
-            // RISC-V 5-stage
-            desc = ProcessorDescription();
-            desc.id = xlen == 32 ? ProcessorID::RV32_5S : ProcessorID::RV64_5S;
-            desc.isa = xlen == 32 ? vsrtl::core::RV5S<uint32_t>::ISA() : vsrtl::core::RV5S<uint64_t>::ISA();
-            desc.name = "5-stage processor";
-            desc.description = "A 5-stage in-order processor with hazard detection/elimination and forwarding.";
-            desc.layouts = {
-                {"Standard",
-                 ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.29, 0}, QPointF{0.55, 0}, QPointF{0.75, 0}, QPointF{0.87, 0}}},
-                {"Extended",
-                 ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json",
-                 {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.54, 0}, QPointF{0.78, 0}, QPointF{0.9, 0}}}};
-            desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-            m_descriptions[desc.id] = desc;
-
-            // RISC-V 6-stage dual issue
-            desc = ProcessorDescription();
-            desc.id = xlen == 32 ? ProcessorID::RV32_6S_DUAL : ProcessorID::RV64_6S_DUAL;
-            desc.isa = xlen == 32 ? vsrtl::core::RV6S_DUAL<uint32_t>::ISA() : vsrtl::core::RV6S_DUAL<uint64_t>::ISA();
-            desc.name = "6-stage dual-issue processor";
-            desc.description =
-                "A 6-stage dual-issue in-order processor. Each way may execute arithmetic instructions, whereas way 1 "
-                "is "
-                "reserved for controlflow and ecall instructions, and way 2 for memory accessing instructions.";
-            desc.layouts = {{"Extended",
-                             ":/layouts/RISC-V/rv6s_dual/rv6s_dual_extended_layout.json",
-                             {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0}, QPointF{0.22, 1}, QPointF{0.35, 0},
-                               QPointF{0.35, 1}, QPointF{0.54, 0}, QPointF{0.54, 1}, QPointF{0.78, 0}, QPointF{0.78, 1},
-                               QPointF{0.87, 0}, QPointF{0.87, 1}}}}};
-            desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-            m_descriptions[desc.id] = desc;
-        }
+        // RISC-V 6-stage dual issue
+        layouts = {{"Extended",
+                    ":/layouts/RISC-V/rv6s_dual/rv6s_dual_extended_layout.json",
+                    {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0}, QPointF{0.22, 1}, QPointF{0.35, 0},
+                      QPointF{0.35, 1}, QPointF{0.54, 0}, QPointF{0.54, 1}, QPointF{0.78, 0}, QPointF{0.78, 1},
+                      QPointF{0.87, 0}, QPointF{0.87, 1}}}}};
+        defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+        addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint32_t>>(
+            ProcessorID::RV32_6S_DUAL, "6-stage dual-issue processor",
+            "A 6-stage dual-issue in-order processor. Each way may execute arithmetic instructions, whereas way 1 "
+            "is reserved for controlflow and ecall instructions, and way 2 for memory accessing instructions.",
+            layouts, defRegVals));
+        addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint64_t>>(
+            ProcessorID::RV64_6S_DUAL, "6-stage dual-issue processor",
+            "A 6-stage dual-issue in-order processor. Each way may execute arithmetic instructions, whereas way 1 "
+            "is reserved for controlflow and ecall instructions, and way 2 for memory accessing instructions.",
+            layouts, defRegVals));
 
 #ifdef RIPES_BUILD_VERILATOR_PROCESSORS
-        // PicoRV
-        desc = ProcessorDescription();
-        desc.id = ProcessorID::PICORV32;
-        desc.isa = vsrtl::core::RVSS<uint32_t>::ISA();
-        desc.name = "PicoRV32";
-        desc.description = "This is only a test";
-        desc.layouts = {};
-        desc.defaultRegisterVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
-        m_descriptions[desc.id] = desc;
+        addProcessor(ProcInfo<PicoRV32>(ProcessorID::PICORV32, "PicoRV32", "PicoRV32", {}, defRegVals));
 #endif
     }
 
