@@ -4,6 +4,7 @@
 #include <QFont>
 
 #include "fonts.h"
+#include "processorhandler.h"
 
 namespace Ripes {
 

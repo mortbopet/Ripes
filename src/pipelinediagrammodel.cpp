@@ -1,5 +1,6 @@
 #include "pipelinediagrammodel.h"
 
+#include "processorhandler.h"
 #include "ripessettings.h"
 
 #include <vector>

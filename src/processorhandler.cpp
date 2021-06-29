@@ -1,7 +1,6 @@
 #include "processorhandler.h"
 
 #include "processorregistry.h"
-#include "processors/interface/ripesprocessor.h"
 #include "processors/ripesvsrtlprocessor.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
@@ -62,6 +61,10 @@ ProcessorHandler::ProcessorHandler() {
 
     m_syscallManager = std::make_unique<RISCVSyscallManager>();
     m_constructing = false;
+}
+
+bool ProcessorHandler::isVSRTLProcessor() {
+    return static_cast<bool>(dynamic_cast<const RipesVSRTLProcessor*>(getProcessor()));
 }
 
 void ProcessorHandler::_loadProgram(const std::shared_ptr<Program>& p) {

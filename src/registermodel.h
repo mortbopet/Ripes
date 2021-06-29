@@ -1,12 +1,12 @@
 #pragma once
 
-#include <QColor>
 #include <set>
 
-#include "isa/isainfo.h"
-#include "radix.h"
-
 #include <QAbstractTableModel>
+#include <QColor>
+
+#include "processors/interface/ripesprocessor.h"
+#include "radix.h"
 
 namespace Ripes {
 

@@ -2,10 +2,10 @@
 
 #include <QWidget>
 
-#include "processorhandler.h"
-#include "registermodel.h"
+#include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
+class RegisterModel;
 
 namespace Ui {
 class RegisterWidget;

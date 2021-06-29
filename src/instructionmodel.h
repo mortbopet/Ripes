@@ -1,31 +1,16 @@
 #pragma once
 
-#include <QColor>
 #include <set>
-#include "processorhandler.h"
 
 #include <QAbstractTableModel>
+#include <QColor>
+
+#include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
 
 class Parser;
 class Pipeline;
-
-static inline AInt indexToAddress(const QModelIndex& index) {
-    if (auto prog_spt = ProcessorHandler::getProgram()) {
-        return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
-    }
-    return 0;
-}
-
-static inline int addressToRow(AInt addr) {
-    if (auto prog_spt = ProcessorHandler::getProgram()) {
-        if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
-            return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
-        }
-    }
-    return 0;
-}
 
 class InstructionModel : public QAbstractTableModel {
     Q_OBJECT
@@ -41,6 +26,8 @@ public:
 
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
+    AInt indexToAddress(const QModelIndex& index) const;
+    int addressToRow(AInt addr) const;
 
 signals:
     /**

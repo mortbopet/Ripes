@@ -3,7 +3,6 @@
 #include <QColor>
 #include <set>
 
-#include "isa/isainfo.h"
 #include "radix.h"
 
 #include <QAbstractTableModel>

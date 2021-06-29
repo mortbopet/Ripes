@@ -8,7 +8,6 @@
 #include <climits>
 #include <map>
 
-#include "processorhandler.h"
 #include "ripes_types.h"
 
 namespace Ripes {

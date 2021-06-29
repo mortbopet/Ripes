@@ -2,7 +2,6 @@
 
 #include <QAbstractTableModel>
 
-#include "processorhandler.h"
 #include "radix.h"
 
 namespace Ripes {

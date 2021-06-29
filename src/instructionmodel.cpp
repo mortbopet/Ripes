@@ -1,8 +1,24 @@
 #include "instructionmodel.h"
-
 #include <QHeaderView>
 
+#include "processorhandler.h"
+
 namespace Ripes {
+AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
+        return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
+    }
+    return 0;
+}
+
+int InstructionModel::addressToRow(AInt addr) const {
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
+        if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
+            return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
+        }
+    }
+    return 0;
+}
 
 InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
     for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {

@@ -10,6 +10,7 @@
 #include "processorregistry.h"
 
 #include "edittab.h"
+#include "isa/rvisainfo_common.h"
 #include "ripessettings.h"
 
 /**

@@ -1,8 +1,7 @@
 #pragma once
 
 #include <QAbstractTableModel>
-
-#include "processorhandler.h"
+#include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
 

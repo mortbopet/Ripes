@@ -1,5 +1,7 @@
 #include "radix.h"
 
+#include "processorhandler.h"
+
 namespace Ripes {
 
 void setISADepRegex(QRegExpValidator* validator) {

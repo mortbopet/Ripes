@@ -7,7 +7,6 @@
 #include <unordered_map>
 
 #include "memorymodel.h"
-#include "processorhandler.h"
 #include "ripestab.h"
 
 #include "io/iomanager.h"

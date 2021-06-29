@@ -458,7 +458,7 @@ void ProcessorTab::reset() {
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(AInt address) {
-    const auto index = addressToRow(address);
+    const auto index = m_instrModel->addressToRow(address);
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
     int indexTop = view->indexAt(rect.topLeft()).row();
