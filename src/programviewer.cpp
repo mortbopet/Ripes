@@ -186,27 +186,27 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
     painter.fillRect(area, gradient);
 
     QTextBlock block = firstVisibleBlock();
-    int top, bottom;
     if (block.isValid()) {
+        int top, bottom;
         top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
         bottom = top + static_cast<int>(blockBoundingRect(block).height());
-    }
 
-    bool ok;
-    while (block.isValid() && top <= event->rect().bottom()) {
-        if (block.isVisible() && bottom >= event->rect().top()) {
-            const AInt address = addressForBlock(block, ok);
-            if (ok) {
-                if (ProcessorHandler::hasBreakpoint(address)) {
-                    painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
-                                       m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+        bool ok;
+        while (block.isValid() && top <= event->rect().bottom()) {
+            if (block.isVisible() && bottom >= event->rect().top()) {
+                const AInt address = addressForBlock(block, ok);
+                if (ok) {
+                    if (ProcessorHandler::hasBreakpoint(address)) {
+                        painter.drawPixmap(m_breakpointArea->padding, top, m_breakpointArea->imageWidth,
+                                           m_breakpointArea->imageHeight, m_breakpointArea->m_breakpoint);
+                    }
                 }
             }
-        }
 
-        block = block.next();
-        top = bottom;
-        bottom = top + static_cast<int>(blockBoundingRect(block).height());
+            block = block.next();
+            top = bottom;
+            bottom = top + static_cast<int>(blockBoundingRect(block).height());
+        }
     }
 }
 
