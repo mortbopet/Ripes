@@ -35,6 +35,11 @@ void PicoRV32::clockProcessor() {
         trapHandler();
         m_doPCPI = true;
     }
+
+    if (top->trap) {
+        m_finished = true;
+    }
+
     processorWasClocked.Emit();
 }
 
