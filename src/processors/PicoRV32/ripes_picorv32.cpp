@@ -45,6 +45,13 @@ void PicoRV32::resetProcessor() {
     clockProcessor();
     clockProcessor();
     top->resetn = 1;
+
+    // Instead of forcing the user to use a linker script for having a reset vector, we compromise a bit and forcibly
+    // set the initial PC values as per what Ripes defines as the entry point. Reduces realism but makes assembly
+    // programming easier.
+    top->picorv32__DOT__reg_next_pc = m_initialPC;
+    top->picorv32__DOT__reg_pc = m_initialPC;
+
     m_finished = false;
 
     processorWasReset.Emit();
@@ -106,6 +113,10 @@ AInt PicoRV32::nextFetchedAddress() const {
 void PicoRV32::setProgramCounter(AInt address) {
     top->picorv32__DOT__reg_pc = address;
 };
+
+void PicoRV32::setPCInitialValue(AInt address) {
+    m_initialPC = address;
+}
 
 VInt PicoRV32::getRegister(RegisterFileType, unsigned i) const {
     Q_ASSERT(i < 32);

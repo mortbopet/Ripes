@@ -55,7 +55,7 @@ public:
     VInt getRegister(RegisterFileType, unsigned i) const override;
     void setRegister(RegisterFileType, unsigned i, VInt v) override;
     void setProgramCounter(AInt /* address */) override;
-    void setPCInitialValue(AInt /* address */) override{};
+    void setPCInitialValue(AInt /* address */) override;
     void finalize(FinalizeReason finalizeReason) override;
     bool finished() const override { return m_finished; };
     long long getInstructionsRetired() const override;
@@ -71,6 +71,7 @@ private:
     bool m_doPCPI = false;
     Vpicorv32* top = nullptr;
     vsrtl::core::AddressSpaceMM m_memory;
+    AInt m_initialPC = 0x0;
 
     MemoryAccess m_dataAccess;
     MemoryAccess m_instrAccess;
