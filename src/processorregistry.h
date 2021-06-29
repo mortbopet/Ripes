@@ -38,7 +38,11 @@ enum ProcessorID {
     RV64_5S_NO_FW,
     RV64_5S,
     RV64_6S_DUAL,
+
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
     PICORV32,
+#endif
+
     NUM_PROCESSORS
 };
 Q_ENUM_NS(Ripes::ProcessorID);  // Register with the metaobject system

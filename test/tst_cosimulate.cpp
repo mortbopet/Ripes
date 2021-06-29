@@ -80,6 +80,10 @@ private slots:
      * PROCESSOR MODELS TO TEST
      * Each of the following functions shall indicate a processor model to co-simulate.
      */
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
+    void testPicoRV32() { cosimulate(ProcessorID::PICORV32, {"M"}); }
+#endif
+
     void testRV6SDual() { cosimulate(ProcessorID::RV32_6S_DUAL, {"M"}); }
     void testRV5S() { cosimulate(ProcessorID::RV32_5S, {"M"}); }
     void testRV5SNoFW() { cosimulate(ProcessorID::RV32_5S_NO_FW, {"M"}); }
