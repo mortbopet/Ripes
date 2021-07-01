@@ -25,6 +25,7 @@ class PicoRV32 : public RipesProcessor {
         cpu_state_ldmem = 0b00000001
     };
 
+    // Copied from picorv32.v
     std::map<State, QString> stateToString = {{cpu_state_trap, "trap"},     {cpu_state_fetch, "fetch"},
                                               {cpu_state_ld_rs1, "ld_rs1"}, {cpu_state_ld_rs2, "ld_rs2"},
                                               {cpu_state_exec, "exec"},     {cpu_state_shift, "shift"},

@@ -63,6 +63,7 @@ if(RIPES_BUILD_VERILATOR_PROCESSORS)
     # ================= PicoRV32 core =================
     list(APPEND PICORV32_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/PicoRV32/picorv32/picorv32.v)
 
+    # These are all arguments for the top level picorv32.v entity
     list(APPEND PICORV32_ARGS -GCATCH_ILLINSN=1)
     list(APPEND PICORV32_ARGS -GENABLE_IRQ=1)
     list(APPEND PICORV32_ARGS -GENABLE_DIV=1)

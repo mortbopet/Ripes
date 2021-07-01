@@ -18,6 +18,7 @@ PicoRV32::~PicoRV32() {
 }
 
 void PicoRV32::clockProcessor() {
+    // Execute memory operations before clocking the processor
     handleMemoryAccess();
     if (m_doPCPI) {
         top->pcpi_ready = 1;
@@ -31,6 +32,7 @@ void PicoRV32::clockProcessor() {
         m_doPCPI = false;
     }
 
+    // Call the trap handler when the PCPI interface announces an ECALL instruction.
     if (!m_doPCPI && top->pcpi_valid && top->pcpi_insn == RVISA::Opcode::ECALL) {
         trapHandler();
         m_doPCPI = true;
@@ -52,7 +54,7 @@ void PicoRV32::resetProcessor() {
     top->resetn = 1;
 
     // Instead of forcing the user to use a linker script for having a reset vector, we compromise a bit and forcibly
-    // set the initial PC values as per what Ripes defines as the entry point. Reduces realism but makes assembly
+    // set the initial PC values as per what Ripes wants the entry point to be. Reduces realism but makes assembly
     // programming easier.
     top->picorv32__DOT__reg_next_pc = m_initialPC;
     top->picorv32__DOT__reg_pc = m_initialPC;
@@ -68,7 +70,9 @@ void PicoRV32::finalize(FinalizeReason fr) {
     }
 }
 
-StageInfo PicoRV32::stageInfo(unsigned) const {
+StageInfo PicoRV32::stageInfo(unsigned /*stageIndex*/) const {
+    // PicoRV32::stageCount() == 1, so ignore the stageIndex. However, translate the picorv32__DOT__cpu_state signal
+    // into named state information.
     StageInfo si;
     State state = static_cast<State>(top->picorv32__DOT__cpu_state);
     auto stateIt = stateToString.find(state);
@@ -84,6 +88,9 @@ StageInfo PicoRV32::stageInfo(unsigned) const {
 };
 
 void PicoRV32::handleMemoryAccess() {
+    // Translate memory read/write operations into accessing the vsrtl::core::AddressSpaceMM memory variable.
+    // vsrtl::core::AddressSpaceMM will most likely be moved to Ripes in the future, so it should not be seen as a VSRTL
+    // dependency. A similar access wrapper as this one should in theory be possible to write for AXI, AHB, ... busses.
     auto access = MemoryAccess();
     if (top->mem_valid) {
         top->mem_ready = 1;
@@ -103,11 +110,12 @@ void PicoRV32::handleMemoryAccess() {
         top->mem_ready = 0;
     }
 
+    // Update the instruction and data memory access information for this cycle, based on the information gathered.
     m_instrAccess = top->mem_instr ? access : MemoryAccess();
     m_dataAccess = top->mem_instr ? MemoryAccess() : access;
 }
 
-unsigned int PicoRV32::getPcForStage(unsigned) const {
+unsigned int PicoRV32::getPcForStage(unsigned /*stageIndex*/) const {
     return top->picorv32__DOT__reg_pc;
 };
 
