@@ -1,11 +1,31 @@
 #include "instructionmodel.h"
-
 #include <QHeaderView>
 
+#include "processorhandler.h"
+
 namespace Ripes {
+AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
+    if (m_program) {
+        auto& disassembleRes = m_program->getDisassembled();
+        if (disassembleRes.numInstructions() < static_cast<unsigned>(index.row()))
+            return 0;
+        if (auto addr = disassembleRes.indexToAddress(index.row()); addr.has_value())
+            return addr.value();
+    }
+    return 0;
+}
+
+int InstructionModel::addressToRow(AInt addr) const {
+    if (m_program) {
+        auto& disassembleRes = m_program->getDisassembled();
+        if (auto index = disassembleRes.addressToIndex(addr); index.has_value())
+            return index.value();
+    }
+    return 0;
+}
 
 InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
-    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
         m_stageNames << ProcessorHandler::getProcessor()->stageName(i);
         m_stageInfos[i];
     }
@@ -16,6 +36,9 @@ InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent
 }
 
 void InstructionModel::onProcessorReset() {
+    // Update handle to program
+    m_program = ProcessorHandler::getProgram();
+
     updateRowCount();
     beginResetModel();
     endResetModel();
@@ -27,7 +50,11 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 void InstructionModel::updateRowCount() {
-    m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->instrBytes();
+    if (m_program) {
+        auto& disassembleRes = m_program->getDisassembled();
+        m_rowCount = disassembleRes.numInstructions();
+    } else
+        m_rowCount = 0;
 }
 
 int InstructionModel::rowCount(const QModelIndex&) const {
@@ -36,7 +63,7 @@ int InstructionModel::rowCount(const QModelIndex&) const {
 
 void InstructionModel::updateStageInfo() {
     bool firstStageChanged = false;
-    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
         if (static_cast<unsigned>(m_stageInfos.size()) > i) {
             auto& oldStageInfo = m_stageInfos.at(i);
             if (i == 0) {
@@ -57,7 +84,7 @@ void InstructionModel::updateStageInfo() {
                 emit dataChanged(newIdx, newIdx, {Qt::DisplayRole});
             }
             if (firstStageChanged) {
-                emit firstStageInstrChanged(m_stageInfos.at(0).pc);
+                emit firstStageInstrChanged(addressToRow(m_stageInfos.at(0).pc));
                 firstStageChanged = false;
             }
         }
@@ -114,7 +141,14 @@ QVariant InstructionModel::stageData(AInt addr) const {
 }
 
 QVariant InstructionModel::instructionData(AInt addr) const {
-    return ProcessorHandler::disassembleInstr(addr);
+    if (m_program) {
+        auto& disres = m_program->getDisassembled();
+        auto instr = disres.getFromAddr(addr);
+        if (instr.has_value())
+            return instr.value();
+        return QVariant();
+    }
+    return QVariant();
 }
 
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {

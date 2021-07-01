@@ -13,11 +13,10 @@
 #include <sys/stat.h>
 #include <stdexcept>
 
+#include "STLExtras.h"
 #include "statusmanager.h"
 
 namespace Ripes {
-
-StatusManager(SystemIO);
 
 /*
 Copyright (c) 2003-2013,  Pete Sanderson and Kenneth Vollmar
@@ -110,7 +109,7 @@ private:
 
         // Reset all file information. Closes any open files and resets the arrays
         static void resetFiles() {
-            for (int i = 0; i < SYSCALL_MAXFILES; i++) {
+            for (int i = 0; i < SYSCALL_MAXFILES; ++i) {
                 close(i);
             }
             setupStdio();
@@ -177,12 +176,8 @@ private:
 
         // Determine whether a given filename is already in use.
         static bool filenameInUse(const QString& requestedFilename) {
-            for (int i = 0; i < SYSCALL_MAXFILES; i++) {
-                if (!fileNames[i].isEmpty() && fileNames[i] == requestedFilename) {
-                    return true;
-                }
-            }
-            return false;
+            return llvm::any_of(fileNames,
+                                [&](auto fn) { return !fn.second.isEmpty() && fn.second == requestedFilename; });
         }
 
         // Determine whether a given fd is already in use with the given flag.
@@ -317,7 +312,8 @@ public:
      * @return number of bytes read, 0 on EOF, or -1 on error
      */
     static int readFromFile(int fd, QByteArray& myBuffer, int lengthRequested) {
-        SystemIO::get();  // Ensure that SystemIO is constructed
+        s_abortSyscall = false;  // Reset any stale abort requests
+        SystemIO::get();         // Ensure that SystemIO is constructed
         /////////////// DPS 8-Jan-2013  //////////////////////////////////////////////////
         /// Read from STDIN file descriptor while using IDE - get input from Messages pane.
         if (!FileIOData::fdInUse(fd, O_RDONLY))  // Check the existence of the "read" fd
@@ -329,25 +325,27 @@ public:
         auto& InputStream = FileIOData::getStreamInUse(fd);
 
         if (fd == STDIN) {
-            SystemIOStatusManager::setStatus("Waiting for user input...");
-            while (myBuffer.size() == 0) {
+            // systemIO might be called from non-gui thread, so be threadsafe in interacting with the ui.
+            postToGUIThread([=] { SystemIOStatusManager::setStatusTimed("Waiting for user input...", 99999999); });
+            while (myBuffer.size() < lengthRequested) {
                 // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
                 FileIOData::s_stdioMutex.lock();
-                while (myBuffer.size() == 0) {
-                    /** We spin on a wait condition with a timeout. The timeout is required to ensure that we may
-                     * observe any abort flags (ie. if execution is stopped while waiting for IO */
-                    const bool dataInStdinStrm = FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex, 100);
-                    if (s_abortSyscall) {
-                        FileIOData::s_stdioMutex.unlock();
-                        s_abortSyscall = false;
-                        SystemIOStatusManager::clearStatus();
-                        return -1;
-                    }
-                    if (dataInStdinStrm) {
-                        myBuffer = InputStream.read(lengthRequested).toUtf8();
-                    }
+                if (s_abortSyscall) {
+                    FileIOData::s_stdioMutex.unlock();
+                    s_abortSyscall = false;
+                    postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
+                    return -1;
                 }
+                auto readData = InputStream.read(lengthRequested).toUtf8();
+                myBuffer.append(readData);
+                lengthRequested -= readData.length();
+
+                /** We spin on a wait condition with a timeout. The timeout is required to ensure that we may
+                 * observe any abort flags (ie. if execution is stopped while waiting for IO */
+                FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex, 100);
                 FileIOData::s_stdioMutex.unlock();
+                if (myBuffer.endsWith('\n'))
+                    break;
             }
         } else {
             // Reads up to lengthRequested bytes of data from this Input stream into an array of bytes.
@@ -363,7 +361,7 @@ public:
             }
         }
 
-        SystemIOStatusManager::clearStatus();
+        postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
         return myBuffer.size();
 
     }  // end readFromFile
@@ -407,7 +405,7 @@ public:
 
     static void printString(const QString& string) { emit get().doPrint(string); }
     static void reset() { FileIOData::resetFiles(); }
-    static void abortSyscall(bool state) { s_abortSyscall = state; }
+    static void abortSyscall() { s_abortSyscall = true; }
 
 signals:
     void doPrint(const QString&);
@@ -420,8 +418,8 @@ public slots:
     void putStdInData(const QByteArray& data) {
         FileIOData::s_stdioMutex.lock();
         FileIOData::s_stdinBuffer.append(data);
-        FileIOData::s_stdioMutex.unlock();
         FileIOData::s_stdinBufferEmpty.wakeAll();
+        FileIOData::s_stdioMutex.unlock();
     }
 
 private:

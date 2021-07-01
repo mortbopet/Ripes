@@ -22,17 +22,15 @@ QT_CHARTS_USE_NAMESPACE
 namespace Ripes {
 class ChartLineMarker;
 
-class MarkerObjects : public QObject {
+class CachePlotMarker : public QObject {
     Q_OBJECT
 
 public:
-    QGraphicsSimpleTextItem* coordX;
-    QGraphicsSimpleTextItem* coordY;
-    QGraphicsSimpleTextItem* label;
-    ChartLineMarker* marker;
-    const QLineSeries* series;
-    MarkerObjects(QObject* parent, QChart* chart, const QLineSeries* series);
-    void updateCoordinateValues(const QPointF& pos);
+    ChartLineMarker* marker = nullptr;
+    QLineSeries* series = nullptr;
+    QString name;
+    CachePlotMarker(QObject* parent, QChart* chart, QLineSeries* series, const QString& name);
+    void updateCoordinateValues(const QPointF& pos, bool showValue, bool showCycles);
     void clear();
 };
 
@@ -60,15 +58,15 @@ public slots:
     void keepCallout();
     void deleteCallout(Callout* callout);
     void tooltip(QPointF point, bool state);
-    void showSeriesMarker(const QLineSeries* series);
-    void hideSeriesMarker(const QLineSeries* series);
+    void hideSeriesMarker(QtCharts::QLineSeries* series);
+    void showSeriesMarker(QtCharts::QLineSeries* series, const QString& name);
 
 private:
     void resizeObjects(const QSizeF& size);
 
     QPointF m_hoverPos;
 
-    std::vector<std::unique_ptr<MarkerObjects>> m_markers;
+    std::vector<std::unique_ptr<CachePlotMarker>> m_markers;
 
     QChart* m_chart = nullptr;
     Callout* m_tooltip = nullptr;

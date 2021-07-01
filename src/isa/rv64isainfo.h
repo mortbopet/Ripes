@@ -26,7 +26,7 @@ public:
         QString march = "rv64i";
 
         // Proceed in canonical order
-        for (const auto& ext : {"M", "A", "F", "D"}) {
+        for (const auto& ext : {"M", "A", "F", "D", "C"}) {
             if (m_enabledExtensions.contains(ext)) {
                 march += QString(ext).toLower();
             }
@@ -35,6 +35,8 @@ public:
         return march;
     }
     QString CCmabi() const override { return "lp64"; }
+
+    unsigned instrByteAlignment() const override { return extensionEnabled("C") ? 2 : 4; };
 };
 
 }  // namespace Ripes

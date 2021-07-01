@@ -5,17 +5,16 @@
 #include <QObject>
 #include <memory>
 
+#include "VSRTL/graphics/gallantsignalwrapper.h"
 #include "assembler/assembler.h"
 #include "assembler/program.h"
-#include "gallantsignalwrapper.h"
 #include "processorregistry.h"
+#include "processors/interface/ripesprocessor.h"
 #include "syscall/ripes_syscall.h"
 
-#include "vsrtl_widget.h"
+#include "VSRTL/graphics/vsrtl_widget.h"
 
 namespace Ripes {
-
-StatusManager(Processor);
 
 /**
  * @brief The ProcessorHandler class
@@ -26,29 +25,48 @@ class ProcessorHandler : public QObject {
     Q_OBJECT
 
 public:
+    /// Returns a pointer to the ProcessorHandler singleton.
     static ProcessorHandler* get() {
         static auto* handler = new ProcessorHandler;
         return handler;
     }
 
-    static RipesProcessor* getProcessorNonConst() { return get()->_getProcessorNonConst(); }
+    /// Returns a non-const pointer to the currently instantiated processor.
+    static RipesProcessor* getProcessorNonConst() { return get()->_getProcessor(); }
+
+    /// Returns a pointer to the currently instantiated processor.
     static const RipesProcessor* getProcessor() { return get()->_getProcessor(); }
+
+    /// Return a pointer to the currently instantiated assembler.
     static const std::shared_ptr<Assembler::AssemblerBase> getAssembler() { return get()->_getAssembler(); }
+
+    /// Returns the ID of the currently instantiated processor.
     static const ProcessorID& getID() { return get()->_getID(); }
+
+    /// Returns a pointer to the currently instantiated program.
     static std::shared_ptr<const Program> getProgram() { return get()->_getProgram(); }
+
+    /// Returns a pointer to the currently instantiated ISA.
     static const ISAInfoBase* currentISA() { return get()->_currentISA(); }
+
+    /// Returns a reference to the system call manager.
     static const SyscallManager& getSyscallManager() { return get()->_getSyscallManager(); }
+
+    /// Sets the program p as the currently instantiated program.
     static void loadProgram(const std::shared_ptr<Program>& p) { get()->_loadProgram(p); }
-    static bool isVSRTLProcessor() {
-        return static_cast<bool>(dynamic_cast<const RipesVSRTLProcessor*>(getProcessor()));
-    }
+
+    /// Returns true if the current processor is a VSRTL-based processor. This may be used to enable VSRTL-specific
+    /// functionality, such as processor drawing.
+    static bool isVSRTLProcessor();
 
     /**
      * @brief loadProcessorToWidget
      * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns
      * a const ptr.
      */
-    static void loadProcessorToWidget(vsrtl::VSRTLWidget* widget) { get()->_loadProcessorToWidget(widget); }
+    static void loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute = false) {
+        get()->_loadProcessorToWidget(widget, doPlaceAndRoute);
+    }
 
     /**
      * @brief selectProcessor
@@ -56,7 +74,7 @@ public:
      * RipesProcessor interface.
      */
     static void selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
-                                RegisterInitialization setup = RegisterInitialization()) {
+                                const RegisterInitialization& setup = RegisterInitialization()) {
         get()->_selectProcessor(id, extensions, setup);
     }
 
@@ -112,12 +130,28 @@ public:
         return get()->_getRegisterValue(rfid, idx);
     }
 
+    /// Returns true if the processor is currently at a breakpoint. This is done through comparing the
+    /// breakpoint-triggering stages of the current processor, fetching the PC of those stages, and comparing them
+    /// against the current set of breakpoint addresses.
     static bool checkBreakpoint() { return get()->_checkBreakpoint(); }
+
+    /// Set/unset the provided address as a breakpoint.
     static void setBreakpoint(const AInt address, bool enabled) { get()->_setBreakpoint(address, enabled); }
+
+    /// Toggles a breakpoint at the provided address.
     static void toggleBreakpoint(const AInt address) { get()->_toggleBreakpoint(address); }
+
+    /// Returns true if there exists a breakpoint at the requested address.
     static bool hasBreakpoint(const AInt address) { return get()->_hasBreakpoint(address); }
+
+    /// Removes all currently set breakpoints.
     static void clearBreakpoints() { get()->_clearBreakpoints(); }
+
+    /// Trigger a processor finished check. This inspect the current processor run state, and if finished, emit a finish
+    /// signal.
     static void checkProcessorFinished() { get()->_checkProcessorFinished(); }
+
+    /// Returns true if the simulator is currently in "run" mode.
     static bool isRunning() { return get()->_isRunning(); }
 
     /**
@@ -186,17 +220,20 @@ private slots:
     void syscallTrap();
 
 private:
+    /// Private implementations of the ProcessorHandler singleton functions. For documentation, refer to their static
+    /// counterparts above.
+
     void _loadProgram(const std::shared_ptr<Program>& p);
-    RipesProcessor* _getProcessorNonConst() { return m_currentProcessor.get(); }
-    const RipesProcessor* _getProcessor() { return m_currentProcessor.get(); }
+    RipesProcessor* _getProcessor() { return m_currentProcessor.get(); }
+    const RipesProcessor* _getProcessor() const { return m_currentProcessor.get(); }
     const std::shared_ptr<Assembler::AssemblerBase> _getAssembler() { return m_currentAssembler; }
     const ProcessorID& _getID() const { return m_currentID; }
     std::shared_ptr<const Program> _getProgram() const { return m_program; }
     const ISAInfoBase* _currentISA() const { return m_currentProcessor->implementsISA(); }
     const SyscallManager& _getSyscallManager() const { return *m_syscallManager; }
-    void _loadProcessorToWidget(vsrtl::VSRTLWidget* widget);
+    void _loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute = false);
     void _selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
-                          RegisterInitialization setup = RegisterInitialization());
+                          const RegisterInitialization& setup = RegisterInitialization());
     bool _isExecutableAddress(AInt address) const;
     int _getCurrentProgramSize() const;
     AInt _getTextStart() const;
@@ -259,6 +296,6 @@ private:
      * Semaphore handling locking simulator thread execution whilst trapping to the execution environment.
      */
     QSemaphore m_sem;
-    std::vector<std::unique_ptr<GallantSignalWrapperBase>> m_signalWrappers;
+    std::vector<std::unique_ptr<vsrtl::GallantSignalWrapperBase>> m_signalWrappers;
 };
 }  // namespace Ripes

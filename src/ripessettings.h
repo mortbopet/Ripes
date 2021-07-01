@@ -11,6 +11,9 @@ namespace Ripes {
 #define RIPES_SETTING_REWINDSTACKSIZE ("simulator_rewindstacksize")
 #define RIPES_SETTING_CCPATH ("compiler_path")
 #define RIPES_SETTING_CCARGS ("compiler_args")
+#define RIPES_SETTING_FORMATTER_PATH ("formatter_path")
+#define RIPES_SETTING_FORMAT_ON_SAVE ("format_on_save")
+#define RIPES_SETTING_FORMATTER_ARGS ("formatter_args")
 #define RIPES_SETTING_LDARGS ("linker_args")
 #define RIPES_SETTING_CONSOLEECHO ("console_echo")
 #define RIPES_SETTING_CONSOLEBG ("console_bg_color")
@@ -39,17 +42,21 @@ namespace Ripes {
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
 #define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
 #define RIPES_SETTING_PROCESSOR_ID ("processor_id")
+#define RIPES_SETTING_PROCESSOR_EXTENSIONS ("processor_extensions")
 #define RIPES_SETTING_PROCESSOR_LAYOUT_ID ("processor_layout_id")
 #define RIPES_SETTING_FOLLOW_EXEC ("follow_execution")
 #define RIPES_SETTING_INPUT_TYPE ("input_type")
 #define RIPES_SETTING_SOURCECODE ("sourcecode")
 #define RIPES_SETTING_DARKMODE ("darkmode")
+#define RIPES_SETTING_SHOWSIGNALS ("show_signals")
 #define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
 #define RIPES_SETTING_EDITORREGS ("editor_regs")
+#define RIPES_SETTING_EDITORCONSOLE ("editor_console")
+#define RIPES_SETTING_EDITORSTAGEHIGHLIGHTING ("editor_stage_highlighting")
 
 #define RIPES_SETTING_HAS_SAVEFILE ("has_savefile")
 #define RIPES_SETTING_SAVEPATH ("savepath")
-#define RIPES_SETTING_SAVE_ASSEMBLY ("save_assembly")
+#define RIPES_SETTING_SAVE_SOURCE ("save_source")
 #define RIPES_SETTING_SAVE_BINARY ("save_binary")
 
 // ============= Definitions of all default settings within Ripes ==============
@@ -67,7 +74,13 @@ class SettingObserver : public QObject {
 
 public:
     SettingObserver(const QString& key) : m_key(key) {}
-    QVariant value() const;
+
+    template <typename T = QVariant>
+    T value() const {
+        QSettings settings;
+        Q_ASSERT(settings.contains(m_key));
+        return settings.value(m_key).value<T>();
+    }
 
 signals:
     void modified(const QVariant& value);
@@ -83,7 +96,12 @@ private:
 class RipesSettings : public QSettings {
 public:
     static void setValue(const QString& key, const QVariant& value);
-    static QVariant value(const QString& key);
+    template <typename T = QVariant>
+    static T value(const QString& key) {
+        return get().m_observers.at(key).value<T>();
+    }
+
+    static bool hasSetting(const QString& key) { return get().m_observers.count(key) != 0; }
 
     /**
      * @brief getObserver

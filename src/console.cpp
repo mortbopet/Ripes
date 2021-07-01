@@ -29,9 +29,9 @@ Console::Console(QWidget* parent) : QPlainTextEdit(parent) {
             paletteChangeFunctor);
     paletteChangeFunctor();
 
-    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO), &SettingObserver::modified, this,
             [=](const QVariant& value) { m_localEchoEnabled = value.toBool(); });
-    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONT), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONT), &SettingObserver::modified, this,
             [=](const QVariant& value) {
                 m_font = value.value<QFont>();
                 setFont(m_font);
@@ -78,8 +78,8 @@ void Console::keyPressEvent(QKeyEvent* e) {
                 const QString text = e->text();
                 // Buffer managing
                 if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
-                    // Return is interpreted as \r\n instead of the default \r
-                    m_buffer += "\r\n";
+                    // Return is interpreted as \n instead of the default \r
+                    m_buffer += "\n";
 
                     // Flush buffer to output
                     emit sendData(m_buffer.toLocal8Bit());

@@ -35,7 +35,7 @@ class Branch_DUAL : public Component {
     }
 
 public:
-    Branch_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
+    Branch_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
         pc_src << [=] {
             computeCycle();
             if (m_did_controlflow) {

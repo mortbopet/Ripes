@@ -14,7 +14,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_MEMWB : public MEMWB<XLEN> {
 public:
-    RV5S_MEMWB(std::string name, SimComponent* parent) : MEMWB<XLEN>(name, parent) {
+    RV5S_MEMWB(const std::string& name, SimComponent* parent) : MEMWB<XLEN>(name, parent) {
         CONNECT_REGISTERED_INPUT(stalled);
     }
 

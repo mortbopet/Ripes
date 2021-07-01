@@ -2,12 +2,13 @@
 
 #include <QWidget>
 
-#include "memorymodel.h"
+#include "ripes_types.h"
 
 namespace Ripes {
 
 class RadixSelectorWidget;
 class GoToComboBox;
+class MemoryModel;
 
 namespace Ui {
 class MemoryViewerWidget;
@@ -26,7 +27,7 @@ public:
 
 public slots:
     void updateView();
-    void setCentralAddress(AInt address);
+    void setCentralAddress(Ripes::AInt address);
 
 private:
     void setupNavigationWidgets();

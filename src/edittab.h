@@ -29,23 +29,26 @@ public:
     QString getAssemblyText();
     void newProgram();
     void clearAssemblyEditor();
-
+    SourceType getSourceType() { return m_currentSourceType; }
     bool isEditorEnabled() const { return m_editorEnabled; }
 
     const QByteArray* getBinaryData();
 
-    void loadFile(const LoadFileParams&);
-    /**
-     * @brief loadExternalFile
-     * sets the current source type to whatever is specified by @p params and calls loadFile(@p params);
-     */
-    void loadExternalFile(const LoadFileParams& params);
+    /// Loads a file into the editor. Returns true if the file was successfully loaded.
+    bool loadFile(const LoadFileParams&);
+    void loadSourceText(const QString& text);
+    Assembler::Errors* errors();
+
+    /// sets the current source type to whatever is specified by @p params and calls loadFile(@p params). Returns true
+    /// if the file loaded successfully.
+    bool loadExternalFile(const LoadFileParams& params);
 
 signals:
     void programChanged(const std::shared_ptr<Program>& program);
     void editorStateChanged(bool enabled);
 
 public slots:
+    void onSave();
     void onProcessorChanged();
     void updateProgramViewerHighlighting();
 

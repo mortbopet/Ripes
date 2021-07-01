@@ -14,6 +14,9 @@
 namespace Ripes {
 namespace Assembler {
 
+/// Type for instruction data. Should encompass all possible instruction widths.
+using Instr_T = uint64_t;
+
 class Token : public QString {
 public:
     inline Token(const QString& t) : QString(t) {}

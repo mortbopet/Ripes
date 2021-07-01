@@ -15,7 +15,8 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_IDII_DUAL : public Component {
 public:
-    RV5S_IDII_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
+    RV5S_IDII_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Instruction decode/instruction issue stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(pc_data, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(pc_exec, clear, enable);
 
@@ -40,6 +41,7 @@ public:
 
         CONNECT_REGISTERED_CLEN_INPUT(instr_data, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(instr_exec, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(instrsize, clear, enable);
     }
 
     REGISTERED_CLEN_INPUT(instr_data, c_RVInstrWidth);
@@ -67,6 +69,8 @@ public:
     REGISTERED_CLEN_INPUT(data_valid, 1);
 
     REGISTERED_CLEN_INPUT(valid, 1);
+
+    REGISTERED_CLEN_INPUT(instrsize, XLEN);
 
     // Register bank controls
     INPUTPORT(enable, 1);

@@ -10,7 +10,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_EXMEM_DUAL : public RV5S_EXMEM<XLEN> {
 public:
-    RV5S_EXMEM_DUAL(std::string name, SimComponent* parent) : RV5S_EXMEM<XLEN>(name, parent) {
+    RV5S_EXMEM_DUAL(const std::string& name, SimComponent* parent) : RV5S_EXMEM<XLEN>(name, parent) {
         CONNECT_REGISTERED_CLEN_INPUT(wr_reg_idx_data, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(reg_do_write_data, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_dual, this->clear, this->enable);

@@ -12,7 +12,8 @@ using namespace Ripes;
 template <unsigned XLEN>
 class EXMEM : public Component {
 public:
-    EXMEM(std::string name, SimComponent* parent) : Component(name, parent) {
+    EXMEM(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Execute/memory stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(pc, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(pc4, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(alures, clear, enable);

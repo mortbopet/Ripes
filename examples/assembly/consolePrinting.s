@@ -54,12 +54,12 @@ printNewline:
 # a1: range stop
 # a2: print method (ecall argument)
 loopPrint:
-    addi t0, a0 0
-    addi t1, a1 0
+    mv t0 a0
+    mv t1 a1
 loop:
     # Print value in a0 as specified by argument a2
-    addi a0, t0, 0
-    addi a7, a2, 0
+    mv a0 t0
+    mv a7 a2
     ecall
     # Print a delimiter between the numbers
     li a7, 4

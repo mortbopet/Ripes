@@ -10,7 +10,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Branch : public Component {
 public:
-    Branch(std::string name, SimComponent* parent) : Component(name, parent) {
+    Branch(const std::string& name, SimComponent* parent) : Component(name, parent) {
         // clang-format off
         res << [=] {
             switch(comp_op.uValue()){

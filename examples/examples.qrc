@@ -11,5 +11,6 @@
         <file>assembly/leds.s</file>
         <file>ELF/RanPi-RV32</file>
         <file>ELF/RanPi-RV64</file>
+        <file>assembly/consoleReading.s</file>
     </qresource>
 </RCC>

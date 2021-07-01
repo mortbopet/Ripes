@@ -2,6 +2,7 @@
 #include "ui_settingsdialog.h"
 
 #include "ccmanager.h"
+#include "formattermanager.h"
 #include "ripessettings.h"
 
 #include <QCheckBox>
@@ -19,6 +20,7 @@
 #include <QStackedWidget>
 
 #include "utilities/hexspinbox.h"
+#include "utilities/scrolleventfilter.h"
 
 namespace Ripes {
 
@@ -52,10 +54,14 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         widget->setValue(settingObserver->value().toUInt());
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
+        widget->installEventFilter(new ScrollEventFilter());
     } else if constexpr (std::is_same<T_EditWidget, HexSpinBox>()) {
-        widget->setValue(settingObserver->value().toUInt());
+        // The hex value is stored as an int, so get the int and static cast it to unsigned.
+        unsigned uValue = static_cast<unsigned>(settingObserver->value().toInt());
+        widget->setValue(uValue);
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
+        widget->installEventFilter(new ScrollEventFilter());
     } else if constexpr (std::is_same<T_EditWidget, QLineEdit>()) {
         widget->connect(widget, &QLineEdit::textChanged, settingObserver, &SettingObserver::setValue);
         widget->setText(settingObserver->value().toString());
@@ -76,9 +82,9 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         // deleted once the dialog is closed, to avoid a dangling connection between the settings object and the trigger
         // widget.
         auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, colorSetterFunctor);
-        widget->connect(widget, &QObject::destroyed, [=] { settingObserver->disconnect(conn); });
+        widget->connect(widget, &QObject::destroyed, settingObserver, [=] { settingObserver->disconnect(conn); });
 
-        widget->connect(widget, &QPushButton::clicked, [=](bool) {
+        widget->connect(widget, &QPushButton::clicked, settingObserver, [=](bool) {
             QColorDialog diag;
             diag.setCurrentColor(settingObserver->value().value<QColor>());
             if (diag.exec()) {
@@ -100,10 +106,10 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         // We want changes in the set font to propagate to the button, while in the dialog. But this connection must be
         // deleted once the dialog is closed, to avoid a dangling connection between the settings object and the trigger
         // widget.
-        auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, fontSetterFunctor);
-        widget->connect(widget, &QObject::destroyed, [=] { settingObserver->disconnect(conn); });
+        auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, widget, fontSetterFunctor);
+        widget->connect(widget, &QObject::destroyed, settingObserver, [=] { settingObserver->disconnect(conn); });
 
-        widget->connect(widget, &QPushButton::clicked, [=](bool) {
+        widget->connect(widget, &QPushButton::clicked, settingObserver, [=](bool) {
             QFontDialog diag;
             diag.setCurrentFont(settingObserver->value().value<QFont>());
             diag.setOption(QFontDialog::MonospacedFonts, true);
@@ -169,8 +175,9 @@ QWidget* SettingsDialog::createCompilerPage() {
     CCHLayout->addWidget(cclabel);
     CCHLayout->addWidget(ccpath);
     auto* pathBrowseButton = new QPushButton("Browse");
-    connect(pathBrowseButton, &QPushButton::clicked, [=, ccpath = ccpath] {
+    connect(pathBrowseButton, &QPushButton::clicked, this, [=, ccpath = ccpath] {
         QFileDialog dialog(this);
+        dialog.setOption(QFileDialog::DontUseNativeDialog);
         dialog.setAcceptMode(QFileDialog::AcceptOpen);
         if (dialog.exec()) {
             ccpath->setText(dialog.selectedFiles().at(0));
@@ -194,7 +201,8 @@ QWidget* SettingsDialog::createCompilerPage() {
     CCLayout->addLayout(CCArgHLayout);
     // Make changes in argument reemit ccpath text changed. By doing so, we revalidate the compiler once new arguments
     // have been added, implicitely validating the arguments along with it.
-    connect(ccArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
+    connect(ccArgs, &QLineEdit::textChanged, ccpath,
+            [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
     // Add linker arguments widget
     auto [ldArgLabel, ldArgs] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_LDARGS, "Linker arguments:");
@@ -202,7 +210,8 @@ QWidget* SettingsDialog::createCompilerPage() {
     LDArgHLayout->addWidget(ldArgLabel);
     LDArgHLayout->addWidget(ldArgs);
     CCLayout->addLayout(LDArgHLayout);
-    connect(ldArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
+    connect(ldArgs, &QLineEdit::textChanged, ccpath,
+            [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
     // Add effective compile command line view
     auto* CCCLineHLayout = new QHBoxLayout();
@@ -291,6 +300,49 @@ QWidget* SettingsDialog::createEditorPage() {
     appendToLayout({regsLabel, regsCheckbox}, pageLayout,
                    "Show (or hide) a view of the processor register file(s) in the editor tab.");
 
+    auto [consoleLabel, consoleCheckbox] =
+        createSettingsWidgets<QCheckBox>(RIPES_SETTING_EDITORCONSOLE, "Show console in editor tab");
+    appendToLayout({consoleLabel, consoleCheckbox}, pageLayout,
+                   "Show (or hide) a view of the console in the editor tab.");
+
+    auto [editorStageHighlightingLabel, editorStageHighlightingCheckbox] =
+        createSettingsWidgets<QCheckBox>(RIPES_SETTING_EDITORSTAGEHIGHLIGHTING, "Highlight stages in source");
+    appendToLayout({editorStageHighlightingLabel, editorStageHighlightingCheckbox}, pageLayout,
+                   "Show (or hide) highlighting of processor stages in the program source code.");
+
+    // ===== Source formatter
+    auto* formatterGroupBox = new QGroupBox("Formatter");
+    appendToLayout(formatterGroupBox, pageLayout);
+    auto* formatterLayout = new QGridLayout();
+    auto* formatterDesc = new QLabel("Format .c files using clang-format, if available.");
+    formatterDesc->setWordWrap(true);
+    appendToLayout(formatterDesc, formatterLayout);
+    formatterGroupBox->setLayout(formatterLayout);
+
+    // Formatter path
+    auto* FormatterPathLayout = new QHBoxLayout();
+    auto [formatterlabel, formatterpath] =
+        createSettingsWidgets<QLineEdit>(RIPES_SETTING_FORMATTER_PATH, "clang-format path:");
+    appendToLayout(FormatterPathLayout, formatterLayout);
+    FormatterPathLayout->addWidget(formatterlabel);
+    FormatterPathLayout->addWidget(formatterpath);
+    auto* pathBrowseButton = new QPushButton("Browse");
+    FormatterPathLayout->addWidget(pathBrowseButton);
+    connect(pathBrowseButton, &QPushButton::clicked, formatterpath, [=, formatterpath = formatterpath] {
+        QFileDialog dialog(this);
+        dialog.setAcceptMode(QFileDialog::AcceptOpen);
+        if (dialog.exec()) {
+            formatterpath->setText(dialog.selectedFiles().at(0));
+        }
+    });
+
+    // Format on save
+    appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_FORMAT_ON_SAVE, "Format on save:"), formatterLayout);
+
+    // Formatter arguments
+    appendToLayout(createSettingsWidgets<QLineEdit>(RIPES_SETTING_FORMATTER_ARGS, "Formatter arguments:"),
+                   formatterLayout);
+
     return pageWidget;
 }
 
@@ -349,8 +401,12 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     return pageWidget;
 }
 
-void SettingsDialog::appendToLayout(QGroupBox* groupBox, QGridLayout* pageLayout, int colSpan) {
-    pageLayout->addWidget(groupBox, pageLayout->rowCount(), 0, 1, colSpan);
+void SettingsDialog::appendToLayout(QLayout* layout, QGridLayout* pageLayout, int colSpan) {
+    pageLayout->addLayout(layout, pageLayout->rowCount(), 0, 1, colSpan);
+}
+
+void SettingsDialog::appendToLayout(QWidget* widget, QGridLayout* pageLayout, int colSpan) {
+    pageLayout->addWidget(widget, pageLayout->rowCount(), 0, 1, colSpan);
 }
 
 void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
@@ -379,14 +435,15 @@ void SettingsDialog::addPage(const QString& name, QWidget* page) {
     auto* item = new QListWidgetItem(name);
     m_ui->settingsList->addItem(item);
 
-    connect(m_ui->settingsList, &QListWidget::currentItemChanged, [=](QListWidgetItem* current, QListWidgetItem*) {
-        const QString _name = current->text();
-        Q_ASSERT(m_pageIndex.count(_name));
+    connect(m_ui->settingsList, &QListWidget::currentItemChanged, m_ui->settingsPages,
+            [=](QListWidgetItem* current, QListWidgetItem*) {
+                const QString _name = current->text();
+                Q_ASSERT(m_pageIndex.count(_name));
 
-        const int idx = m_pageIndex.at(_name);
-        m_ui->settingsPages->setCurrentIndex(idx);
-        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, idx);
-    });
+                const int idx = m_pageIndex.at(_name);
+                m_ui->settingsPages->setCurrentIndex(idx);
+                RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, idx);
+            });
 }
 
 }  // namespace Ripes

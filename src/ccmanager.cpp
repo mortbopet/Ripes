@@ -4,9 +4,11 @@
 #include "loaddialog.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
+#include "utilities/systemutils.h"
 
 #include <QProcess>
 #include <QProgressDialog>
+#include <QTextDocument>
 
 namespace Ripes {
 
@@ -59,18 +61,9 @@ bool CCManager::hasValidCC() {
 }
 
 QString CCManager::tryAutodetectCC() {
-    for (const auto& path : s_validAutodetectedCCs) {
-        QProcess process;
-
-        process.start(path, QStringList());
-        process.waitForFinished();
-
-        if (process.error() != QProcess::FailedToStart) {
-            // We have detected that a valid compiler exists in path
-            return path;
-        }
-    }
-
+    auto ccIt = llvm::find_if(s_validAutodetectedCCs, [&](const QString& path) { return isExecutable(path); });
+    if (ccIt != s_validAutodetectedCCs.end())
+        return *ccIt;
     return QString();
 }
 
@@ -150,7 +143,7 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), &progressDiag,
             &QProgressDialog::reset);
     connect(&m_process, &QProcess::errorOccurred, &progressDiag, &QProgressDialog::reset);
-    connect(&m_process, &QProcess::errorOccurred, [this]() { m_errored = true; });
+    connect(&m_process, &QProcess::errorOccurred, this, [this]() { m_errored = true; });
     m_process.setWorkingDirectory(cc.bin.absolutePath());
     m_process.setProgram(cc.bin.absoluteFilePath());
     m_process.setArguments(cc.args);
@@ -165,8 +158,9 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     }
     m_process.waitForFinished();
 
-    const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
-    res.success = success;
+    auto elfInfo = LoadDialog::validateELFFile(QFile(outname));
+    res.success = elfInfo.valid;
+    res.errorOutput.errMsg = elfInfo.errorMessage;
     res.aborted = m_aborted;
 
     return res;
@@ -176,17 +170,13 @@ QString CCManager::getError() {
     return get().m_process.readAllStandardError();
 }
 
-namespace {
-
-QStringList sanitizedArguments(const QString& args) {
+static QStringList sanitizedArguments(const QString& args) {
     QStringList arglist = args.split(" ");
     for (const auto invArg : {"", " ", "-"}) {
         arglist.removeAll(invArg);
     }
     return arglist;
 }
-
-}  // namespace
 
 CCManager::CompileCommand CCManager::createCompileCommand(const QStringList& files, const QString& outname) const {
     const auto& currentISA = ProcessorHandler::currentISA();

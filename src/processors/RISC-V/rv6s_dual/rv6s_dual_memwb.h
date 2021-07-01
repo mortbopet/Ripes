@@ -12,7 +12,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_MEMWB_DUAL : public RV5S_MEMWB<XLEN> {
 public:
-    RV5S_MEMWB_DUAL(std::string name, SimComponent* parent) : RV5S_MEMWB<XLEN>(name, parent) {
+    RV5S_MEMWB_DUAL(const std::string& name, SimComponent* parent) : RV5S_MEMWB<XLEN>(name, parent) {
         CONNECT_REGISTERED_INPUT(wr_reg_idx_data);
         CONNECT_REGISTERED_INPUT(reg_do_write_data);
         CONNECT_REGISTERED_INPUT(reg_wr_src_ctrl_dual);

@@ -7,3 +7,6 @@
 [submodule "src/processors/PicoRV32/picorv32"]
 	path = src/processors/PicoRV32/picorv32
 	url = https://github.com/mortbopet/picorv32
+[submodule "external/libelfin"]
+	path = external/libelfin
+	url = https://github.com/mortbopet/libelfin

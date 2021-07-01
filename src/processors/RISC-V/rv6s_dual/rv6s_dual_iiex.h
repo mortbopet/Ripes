@@ -10,7 +10,8 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_IIEX_DUAL : public RV5S_IDEX<XLEN> {
 public:
-    RV5S_IIEX_DUAL(std::string name, SimComponent* parent) : RV5S_IDEX<XLEN>(name, parent) {
+    RV5S_IIEX_DUAL(const std::string& name, SimComponent* parent) : RV5S_IDEX<XLEN>(name, parent) {
+        SimBase::setDescription("Instruction issue/execute stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(r1_data, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(r2_data, this->clear, this->enable);
 
@@ -27,7 +28,10 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx_data, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(exec_valid, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(data_valid, this->clear, this->enable);
+        CONNECT_REGISTERED_CLEN_INPUT(instrsize, this->clear, this->enable);
     }
+
+    REGISTERED_CLEN_INPUT(instrsize, XLEN);
 
     REGISTERED_CLEN_INPUT(pc_data, XLEN);
 

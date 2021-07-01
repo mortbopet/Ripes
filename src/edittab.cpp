@@ -2,6 +2,7 @@
 #include "ui_edittab.h"
 
 #include "elfio/elfio.hpp"
+#include "libelfin/dwarf/dwarf++.hh"
 
 #include <QCheckBox>
 #include <QLabel>
@@ -51,9 +52,13 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
     m_toolbar->addAction(m_buildAction);
 
-    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORREGS), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORREGS), &SettingObserver::modified, m_ui->registers,
             [=](const QVariant& val) { m_ui->registers->setVisible(val.toBool()); });
     RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
+
+    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE), &SettingObserver::modified, m_ui->console,
+            [=](const QVariant& val) { m_ui->console->setVisible(val.toBool()); });
+    RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE)->trigger();
 
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
     connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
@@ -65,15 +70,16 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
 
     // Ensure that changes to the current compiler path will disable C input, if the compiler is invalid
-    connect(&CCManager::get(), &CCManager::ccChanged, [=](auto res) {
+    connect(&CCManager::get(), &CCManager::ccChanged, this, [=](auto res) {
         if (!res.success) {
             m_ui->setAssemblyInput->setChecked(true);
         }
     });
 
     // During processor running, it should not be possible to build the program
-    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { m_buildAction->setEnabled(false); });
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, m_buildAction,
+            [=] { m_buildAction->setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_buildAction,
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &EditTab::updateProgramViewerHighlighting);
@@ -83,17 +89,25 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     sourceTypeChanged();
     enableEditor();
 
-    m_ui->splitter->setStretchFactor(0, 2);
-    m_ui->splitter->setStretchFactor(1, 2);
-    m_ui->splitter->setStretchFactor(2, 0);
+    // Make left-hand side widgets stretch wrt. registers
+    m_ui->toplevelSplitter->setStretchFactor(0, 2);
+    m_ui->toplevelSplitter->setStretchFactor(1, 0);
+
+    // make editor and program viewer stretch wrt. console
+    m_ui->leftSpliiter->setStretchFactor(0, INT_MAX);
+    m_ui->leftSpliiter->setStretchFactor(1, 0);
+
+    // make editor and program viewer stretch equally wrt. each other
+    m_ui->editorSplitter->setStretchFactor(0, 2);
+    m_ui->editorSplitter->setStretchFactor(1, 2);
 
     // State preservation
-    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, [=] {
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, this, [=] {
         RipesSettings::setValue(RIPES_SETTING_SOURCECODE, m_ui->codeEditor->document()->toPlainText());
         RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
     });
 
-    switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toUInt()) {
+    switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toInt()) {
         case SourceType::Assembly: {
             m_ui->setAssemblyInput->toggle();
             break;
@@ -118,29 +132,34 @@ void EditTab::showSymbolNavigator() {
     }
 }
 
-void EditTab::loadExternalFile(const LoadFileParams& params) {
+void EditTab::onSave() {
+    m_ui->codeEditor->onSave();
+}
+
+bool EditTab::loadExternalFile(const LoadFileParams& params) {
     if (params.type == SourceType::C) {
         // Try to enable C input and verify that source type was changed successfully. This allows us to trigger the
         // message box associated with C input, if no compiler is set. If so, load the file.
         enableEditor();
         m_ui->setCInput->setChecked(true);
         if (m_currentSourceType == SourceType::C) {
-            loadFile(params);
+            return loadFile(params);
         }
     } else if (params.type == SourceType::Assembly) {
         m_ui->setAssemblyInput->setChecked(true);
-        loadFile(params);
+        return loadFile(params);
     } else {
         m_currentSourceType = params.type;
-        loadFile(params);
+        return loadFile(params);
     }
+    return false;
 }
 
-void EditTab::loadFile(const LoadFileParams& fileParams) {
+bool EditTab::loadFile(const LoadFileParams& fileParams) {
     QFile file(fileParams.filepath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Error: Could not open file " + fileParams.filepath);
-        return;
+        return false;
     }
 
     bool success = true;
@@ -170,6 +189,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
         QMessageBox::warning(this, "Error", "Error: Could not load file " + fileParams.filepath);
     }
     file.close();
+    return success;
 }
 
 QString EditTab::getAssemblyText() {
@@ -184,6 +204,12 @@ void EditTab::updateProgramViewerHighlighting() {
     if (isVisible()) {
         m_ui->programViewer->updateHighlightedAddresses();
     }
+}
+
+Assembler::Errors* EditTab::errors() {
+    if (m_sourceErrors->empty())
+        return nullptr;
+    return m_sourceErrors.get();
 }
 
 void EditTab::sourceTypeChanged() {
@@ -221,6 +247,9 @@ void EditTab::onProcessorChanged() {
     // Notify a possible assembler change to the code editor - opcodes might have been added or removed which must be
     // reflected in the syntax highlighter
     m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
+
+    // Try reassembling
+    sourceCodeChanged();
 }
 
 void EditTab::sourceCodeChanged() {
@@ -309,6 +338,12 @@ void EditTab::on_disassembledViewButton_toggled() {
 }
 
 bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt) {
+    // Reopen the file, ensuring that we're reading it as a binary (non-text) file:
+    file.close();
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Error", "Error: Could not open file " + file.fileName());
+        return false;
+    }
     ProgramSection section;
     section.name = TEXT_SECTION_NAME;
     section.address = loadAt;
@@ -323,10 +358,42 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long en
     return true;
 }
 
-bool EditTab::loadSourceFile(Program&, QFile& file) {
+void EditTab::loadSourceText(const QString& text) {
     enableEditor();
-    setSourceText(file.readAll());
+    setSourceText(text);
+}
+
+bool EditTab::loadSourceFile(Program&, QFile& file) {
+    loadSourceText(file.readAll());
     return true;
+}
+
+using namespace ELFIO;
+class ELFIODwarfLoader : public ::dwarf::loader {
+public:
+    ELFIODwarfLoader(elfio& reader) : reader(reader) {}
+
+    const void* load(::dwarf::section_type section, size_t* size_out) override {
+        auto sec = reader.sections[::dwarf::elf::section_type_to_name(section)];
+        if (sec == nullptr)
+            return nullptr;
+        *size_out = sec->get_size();
+        return sec->get_data();
+    }
+
+private:
+    elfio& reader;
+};
+
+std::shared_ptr<ELFIODwarfLoader> createDwarfLoader(elfio& reader) {
+    return std::make_shared<ELFIODwarfLoader>(reader);
+}
+
+static bool isInternalSourceFile(const QString& filename) {
+    // Returns true if we have reason to believe that this file originated from within the Ripes editor. These will be
+    // temporary files like /.../Ripes.abc123.c
+    static QRegularExpression re("Ripes.[a-zA-Z0-9]+.c");
+    return re.match(filename).hasMatch();
 }
 
 bool EditTab::loadElfFile(Program& program, QFile& file) {
@@ -367,6 +434,44 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
                 program.symbols[value] = QString::fromStdString(name);
             }
         }
+    }
+
+    // Load DWARF information into the source mapping of the program.
+    // We'll only load information from compilation units which originated from a source file that plausibly arrived
+    // from within the Ripes editor.
+    QString editorSrcFile;
+    try {
+        ::dwarf::dwarf dw(createDwarfLoader(reader));
+        for (auto& cu : dw.compilation_units()) {
+            for (auto& line : cu.get_line_table()) {
+                if (!line.file)
+                    continue;
+                QString filePath = QString::fromStdString(line.file->path);
+                if (editorSrcFile.isEmpty()) {
+                    // Try to see if this compilation unit is from the Ripes editor:
+                    if (isInternalSourceFile(filePath))
+                        editorSrcFile = filePath;
+                }
+                if (editorSrcFile != filePath)
+                    continue;
+                program.sourceMapping[line.address].insert(line.line - 1);
+            }
+        }
+        if (!editorSrcFile.isEmpty()) {
+            // Finally, we need to generate a hash of the source file that we've loaded source mappings from, so the
+            // editor knows what editor contents applies to this program.
+            QFile srcFile(editorSrcFile);
+            if (srcFile.open(QFile::ReadOnly))
+                program.sourceHash = Program::calculateHash(srcFile.readAll());
+            else
+                throw ::dwarf::format_error("Could not find source file " + editorSrcFile.toStdString());
+        }
+    } catch (::dwarf::format_error& e) {
+        std::string msg = "Could not load debug information: ";
+        msg += e.what();
+        GeneralStatusManager::setStatusTimed(QString::fromStdString(msg), 2500);
+    } catch (...) {
+        // Something else went wrong.
     }
 
     program.entryPoint = reader.get_entry();

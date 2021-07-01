@@ -23,10 +23,13 @@ void CacheInterface::reverse() {
 }
 
 CacheSim::CacheSim(QObject* parent) : CacheInterface(parent) {
+    m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
+    m_wordBits = ProcessorHandler::currentISA()->bits();
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
         // Given that we are not updating the graphical state of the cache simulator whilst the processor is running,
         // once running is finished, the entirety of the cache view should be reloaded in the graphical view.
         emit hitrateChanged();
+        emit cacheInvalidated();
     });
 
     updateConfiguration();
@@ -93,7 +96,7 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
     size.bits += componentBits;
 
     // Data bits
-    componentBits = 32 * entries * getBlocks();
+    componentBits = m_wordBits * entries * getBlocks();
     size.components.push_back("Data bits: " + QString::number(componentBits));
     size.bits += componentBits;
 
@@ -107,23 +110,22 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
     ew.first = s_invalidIndex;
     ew.second = nullptr;
 
-    // Locate a new way based on replacement policy
+    // Locate a new way based on replacement policy.
     if (m_replPolicy == ReplPolicy::Random) {
         // Select a random way
         ew.first = std::rand() % getWays();
         ew.second = &cacheLine[ew.first];
     } else if (m_replPolicy == ReplPolicy::LRU) {
         if (getWays() == 1) {
-            // Nothing to do if we are in LRU and only have 1 set
+            // Nothing to do if we are in LRU and only have 1 set.
             ew.first = 0;
             ew.second = &cacheLine[ew.first];
         } else {
-            // Lazily all ways in the cacheline before starting to iterate
-            for (int i = 0; i < getWays(); i++) {
+            // Lazily initialize all ways in the cacheline before starting to iterate.
+            for (int i = 0; i < getWays(); ++i)
                 cacheLine[i];
-            }
 
-            // If there is an invalid cache line, select that
+            // If there is an invalid cache line, select that.
             auto it =
                 std::find_if(cacheLine.begin(), cacheLine.end(), [=](const auto& way) { return !way.second.valid; });
             if (it != cacheLine.end()) {
@@ -131,7 +133,7 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
                 ew.second = &it->second;
             }
             if (ew.second == nullptr) {
-                // Else, Find LRU way
+                // Else, Find LRU way.
                 for (auto& way : cacheLine) {
                     if (static_cast<long>(way.second.lru) == getWays() - 1) {
                         ew.first = way.first;
@@ -388,27 +390,27 @@ void CacheSim::pushTrace(const CacheTrace& eviction) {
 
 AInt CacheSim::buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const {
     AInt address = 0;
-    address |= tag << (2 /*byte offset*/ + getBlockBits() + getLineBits());
-    address |= lineIdx << (2 /*byte offset*/ + getBlockBits());
-    address |= blockIdx << (2 /*byte offset*/);
+    address |= tag << (m_byteOffset + getBlockBits() + getLineBits());
+    address |= lineIdx << (m_byteOffset + getBlockBits());
+    address |= blockIdx << (m_byteOffset);
     return address;
 }
 
 unsigned CacheSim::getLineIdx(const AInt address) const {
     AInt maskedAddress = address & m_lineMask;
-    maskedAddress >>= 2 + getBlockBits();
+    maskedAddress >>= m_byteOffset + getBlockBits();
     return maskedAddress;
 }
 
 unsigned CacheSim::getTag(const AInt address) const {
     AInt maskedAddress = address & m_tagMask;
-    maskedAddress >>= 2 + getBlockBits() + getLineBits();
+    maskedAddress >>= m_byteOffset + getBlockBits() + getLineBits();
     return maskedAddress;
 }
 
 unsigned CacheSim::getBlockIdx(const AInt address) const {
     AInt maskedAddress = address & m_blockMask;
-    maskedAddress >>= 2;
+    maskedAddress >>= m_byteOffset;
     return maskedAddress;
 }
 
@@ -438,6 +440,15 @@ void CacheSim::reverse() {
     CacheInterface::reverse();
 }
 
+void CacheSim::recalculateMasks() {
+    unsigned bitOffset = m_byteOffset;
+    m_blockMask = vsrtl::generateBitmask(getBlockBits()) << bitOffset;
+    bitOffset += getBlockBits();
+    m_lineMask = vsrtl::generateBitmask(getLineBits()) << bitOffset;
+    bitOffset += getLineBits();
+    m_tagMask = vsrtl::generateBitmask(m_wordBits - bitOffset) << bitOffset;
+}
+
 void CacheSim::reset() {
     /** see comment of m_isResetting */
     if (m_isResetting) {
@@ -450,12 +461,9 @@ void CacheSim::reset() {
     m_accessTrace.clear();
     m_traceStack.clear();
 
-    int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
-    m_blockMask = vsrtl::generateBitmask(getBlockBits()) << bitoffset;
-    bitoffset += getBlockBits();
-    m_lineMask = vsrtl::generateBitmask(getLineBits()) << bitoffset;
-    bitoffset += getLineBits();
-    m_tagMask = vsrtl::generateBitmask(32 - bitoffset) << bitoffset;
+    m_wordBits = ProcessorHandler::currentISA()->bits();
+    m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
+    recalculateMasks();
     m_isResetting = false;
 
     emit hitrateChanged();
@@ -466,12 +474,8 @@ void CacheSim::reset() {
 
 void CacheSim::updateConfiguration() {
     // Recalculate masks
-    int bitoffset = 2;  // 2^2 = 4-byte offset (32-bit words in cache)
-    m_blockMask = vsrtl::generateBitmask(getBlockBits()) << bitoffset;
-    bitoffset += getBlockBits();
-    m_lineMask = vsrtl::generateBitmask(getLineBits()) << bitoffset;
-    bitoffset += getLineBits();
-    m_tagMask = vsrtl::generateBitmask(32 - bitoffset) << bitoffset;
+    m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
+    recalculateMasks();
     emit configurationChanged();
 }
 

@@ -30,7 +30,7 @@ QString IOManager::cSymbolsHeaderpath() const {
 AInt IOManager::nextPeripheralAddress() const {
     AInt base = 0;
     if (m_periphMMappings.empty()) {
-        base = RipesSettings::value(RIPES_SETTING_PERIPHERALS_START).toUInt();
+        base = static_cast<unsigned>(RipesSettings::value(RIPES_SETTING_PERIPHERALS_START).toInt());
     } else {
         for (const auto& periph : m_periphMMappings) {
             if (periph.second.end() > base) {
@@ -91,8 +91,9 @@ void IOManager::unregisterPeripheralWithProcessor(IOBase* peripheral) {
 IOBase* IOManager::createPeripheral(IOType type, unsigned forcedId) {
     auto* peripheral = IOFactories.at(type)(nullptr);
 
-    connect(peripheral, &IOBase::sizeChanged, [=] { this->peripheralSizeChanged(peripheral); });
-    connect(peripheral, &IOBase::aboutToDelete, [=](std::atomic<bool>& ok) { this->removePeripheral(peripheral, ok); });
+    connect(peripheral, &IOBase::sizeChanged, this, [=] { this->peripheralSizeChanged(peripheral); });
+    connect(peripheral, &IOBase::aboutToDelete, this,
+            [=](std::atomic<bool>& ok) { this->removePeripheral(peripheral, ok); });
 
     if (forcedId != UINT_MAX) {
         peripheral->setID(forcedId);
@@ -171,7 +172,8 @@ void IOManager::updateSymbols() {
 
     // Generate symbol mapping + header file
     QStringList headerfile;
-    headerfile << "#pragma once";
+    headerfile << "#ifndef RIPES_IO_HEADER";
+    headerfile << "#define RIPES_IO_HEADER";
     for (const auto& p : m_periphMMappings) {
         const QString& periphName = cName(p.first->name());
         headerfile << "// *****************************************************************************";
@@ -187,6 +189,7 @@ void IOManager::updateSymbols() {
 
         headerfile << "\n";
     }
+    headerfile << "#endif // RIPES_IO_HEADER";
 
     // Store header file at a temporary location
     if (!(m_symbolsHeaderFile && (QFile::exists(m_symbolsHeaderFile->fileName())))) {

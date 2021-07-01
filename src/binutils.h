@@ -1,16 +1,18 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 #include <vector>
-#include "limits.h"
 
 #include "VSRTL/interface/vsrtl_binutils.h"
+#include "limits.h"
 #include "ripes_types.h"
+
+/// Most of the code in this file originates from LLVM MathExtras.h
 
 namespace Ripes {
 
 /// Checks if an integer fits into the given bit width.
-/// from LLVM MathExtras.h
 template <unsigned N>
 constexpr inline bool isInt(VIntS x) {
     return N >= 64 || (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
@@ -75,9 +77,13 @@ constexpr bool isPowerOf2(unsigned v) {
     return v && ((v & (v - 1)) == 0);
 }
 
+inline unsigned log2Ceil(double v) {
+    return static_cast<unsigned>(std::ceil(std::log2(v)));
+}
+
 template <typename T>
 unsigned firstSetBitIdx(const T& val) {
-    for (unsigned i = 0; i < CHAR_BIT * sizeof(T); i++) {
+    for (unsigned i = 0; i < CHAR_BIT * sizeof(T); ++i) {
         if ((val >> i) & 0x1) {
             return i;
         }

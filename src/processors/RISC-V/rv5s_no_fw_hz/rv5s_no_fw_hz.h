@@ -18,6 +18,7 @@
 #include "../rv_immediate.h"
 #include "../rv_memory.h"
 #include "../rv_registerfile.h"
+#include "../rv_uncompress.h"
 
 // Stage separating registers
 #include "rv5s_no_fw_hz_exmem.h"
@@ -41,12 +42,17 @@ public:
         : RipesVSRTLProcessor("5-Stage RISC-V Processor without forwarding or hazard detection") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
+        uncompress->setISA(m_enabledISA);
 
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
-        4 >> pc_4->op2;
+        pc_inc->out >> pc_4->op2;
         pc_src->out >> pc_reg->in;
+
+        2 >> pc_inc->get(PcInc::INC2);
+        4 >> pc_inc->get(PcInc::INC4);
+        uncompress->Pc_Inc >> pc_inc->select;
 
         // Note: pc_src works uses the PcSrc enum, but is selected by the boolean signal
         // from the controlflow OR gate. PcSrc enum values must adhere to the boolean
@@ -136,10 +142,14 @@ public:
         // IF/ID
         pc_4->out >> ifid_reg->pc4_in;
         pc_reg->out >> ifid_reg->pc_in;
-        instr_mem->data_out >> ifid_reg->instr_in;
+        uncompress->exp_instr >> ifid_reg->instr_in;
         1 >> ifid_reg->enable;
         efsc_or->out >> ifid_reg->clear;
         1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
+
+        // -----------------------------------------------------------------------
+        // Increment
+        instr_mem->data_out >> uncompress->instr;
 
         // -----------------------------------------------------------------------
         // ID/EX
@@ -215,6 +225,7 @@ public:
     SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
     SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
     SUBCOMPONENT(pc_4, Adder<XLEN>);
+    SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
 
     // Registers
     SUBCOMPONENT(pc_reg, Register<XLEN>);
@@ -230,6 +241,7 @@ public:
     SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
     SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
     SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
+    SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
 
     // Memories
     SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
@@ -379,7 +391,7 @@ public:
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 
-    void clock() override {
+    void clockProcessor() override {
         // An instruction has been retired if the instruction in the WB stage is valid and the PC is within the
         // executable range of the program
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {
@@ -408,9 +420,8 @@ public:
         m_syscallExitCycle = -1;
     }
 
-    static const ISAInfoBase* supportsISA() {
-        static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M"});
-        return &s_isa;
+    static ProcessorISAInfo supportsISA() {
+        return ProcessorISAInfo{std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()), {"M", "C"}, {"M"}};
     }
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
 

@@ -8,6 +8,7 @@
 #include "assembler/assembler.h"
 #include "assembler/program.h"
 
+#include "highlightabletextedit.h"
 #include "syntaxhighlighter.h"
 
 #include <memory>
@@ -20,7 +21,7 @@ namespace Ripes {
 
 class LineNumberArea;
 
-class CodeEditor : public QPlainTextEdit {
+class CodeEditor : public HighlightableTextEdit {
     Q_OBJECT
 public:
     CodeEditor(QWidget* parent = nullptr);
@@ -30,6 +31,7 @@ public:
     int lineNumberAreaWidth();
     void setupChangedTimer();
     void rehighlight();
+    void onSave();
 
     void setErrors(const std::shared_ptr<Assembler::Errors>& errors) { m_errors = errors; }
 
@@ -46,6 +48,7 @@ signals:
 protected:
     void resizeEvent(QResizeEvent* event) override;
     bool event(QEvent* e) override;
+    void updateHighlighting();
 
 private slots:
     void updateSidebarWidth(int newBlockCount);

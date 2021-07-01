@@ -4,6 +4,7 @@
 #include <QFont>
 
 #include "fonts.h"
+#include "processorhandler.h"
 
 namespace Ripes {
 
@@ -117,7 +118,7 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
         } else if (role == Qt::ForegroundRole) {
             // Assign a brush if one of the byte-indexed address covered by the aligned address has been written to
             QVariant unusedAddressBrush;
-            for (unsigned i = 0; i < ProcessorHandler::currentISA()->bytes(); i++) {
+            for (unsigned i = 0; i < ProcessorHandler::currentISA()->bytes(); ++i) {
                 QVariant addressBrush = fgColorData(alignedAddress, i, validAddress);
                 if (addressBrush.isNull()) {
                     return addressBrush;
@@ -173,8 +174,7 @@ QVariant MemoryModel::byteData(AInt address, AInt byteOffset, bool validAddress)
         // the memory model, containing X's.
         return "X";
     } else {
-        VInt value = ProcessorHandler::getMemory().readMemConst(address);
-        value = value >> (byteOffset * 8);
+        VInt value = ProcessorHandler::getMemory().readMemConst(address + byteOffset, 1);
         return encodeRadixValue(value & 0xFF, m_radix, 1);
     }
 }
@@ -187,8 +187,8 @@ QVariant MemoryModel::wordData(AInt address, bool validAddress) const {
         // the memory model, containing X's.
         return "X";
     } else {
-        VInt value = ProcessorHandler::getMemory().readMemConst(address);
-        return encodeRadixValue(value, m_radix, ProcessorHandler::currentISA()->bytes());
+        unsigned bytes = ProcessorHandler::currentISA()->bytes();
+        return encodeRadixValue(ProcessorHandler::getMemory().readMemConst(address, bytes), m_radix, bytes);
     }
 }
 

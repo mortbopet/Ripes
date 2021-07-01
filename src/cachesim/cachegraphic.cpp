@@ -116,16 +116,26 @@ QString CacheGraphic::addressString() const {
 }
 
 void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
-    CacheWay& way = m_cacheTextItems.at(lineIdx).at(wayIdx);
+    const auto& it = m_cacheTextItems.find(lineIdx);
+    if (it == m_cacheTextItems.end()) {
+        return;
+    }
+    const auto& wayIt = it->second.find(wayIdx);
+    if (wayIt == it->second.end()) {
+        return;
+    }
+    CacheWay& way = wayIt->second;
+
     CacheSim::CacheWay simWay = CacheSim::CacheWay();
 
     if (auto* cacheLine = m_cache.getLine(lineIdx)) {
         simWay = cacheLine->at(wayIdx);
     };
 
+    const unsigned bytes = ProcessorHandler::currentISA()->bytes();
     // ======================== Update block text fields ======================
     if (simWay.valid) {
-        for (int i = 0; i < m_cache.getBlocks(); i++) {
+        for (int i = 0; i < m_cache.getBlocks(); ++i) {
             QGraphicsSimpleTextItem* blockTextItem = nullptr;
             if (way.blocks.count(i) == 0) {
                 // Block text item has not yet been created
@@ -141,7 +151,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
 
             // Update block text
             const AInt addressForBlock = m_cache.buildAddress(simWay.tag, lineIdx, i);
-            const auto data = ProcessorHandler::getMemory().readMemConst(addressForBlock);
+            const auto data = ProcessorHandler::getMemory().readMemConst(addressForBlock, bytes);
             const QString text = encodeRadixValue(data, Radix::Hex, ProcessorHandler::currentISA()->bytes());
             blockTextItem->setText(text);
             QString tooltip =
@@ -294,7 +304,7 @@ void CacheGraphic::drawIndexingItems() {
         drawText(nextBitText, nextBitsPos - QPointF{m_fm.width(nextBitText), smallerFontMetric.height()}, &smallerFont);
     };
 
-    drawNextBitPos(2);  // Always start 2 bits in due to word-indexing
+    drawNextBitPos(log2Ceil(ProcessorHandler::currentISA()->bytes()));  // Account for word indexing
     if (m_cache.getBlockBits() > 0) {
         m_blockIndexStartPoint = nextBitsPos;
         drawNextBitPos(m_cache.getBlockBits());
@@ -395,7 +405,7 @@ void CacheGraphic::cacheInvalidated() {
     m_widthBeforeBlocks = width;
 
     // Draw horizontal lines between cache blocks
-    for (int i = 0; i < m_cache.getBlocks(); i++) {
+    for (int i = 0; i < m_cache.getBlocks(); ++i) {
         const QString blockText = "Block " + QString::number(i);
         drawText(blockText, width + m_tagWidth / 2 - m_fm.width(blockText) / 2, -m_fm.height());
         width += m_blockWidth;
@@ -405,7 +415,7 @@ void CacheGraphic::cacheInvalidated() {
     m_cacheWidth = width;
 
     // Draw cache line rows
-    for (int i = 0; i <= m_cache.getLines(); i++) {
+    for (int i = 0; i <= m_cache.getLines(); ++i) {
         qreal verticalAdvance = i * m_lineHeight;
         new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
 
@@ -422,7 +432,7 @@ void CacheGraphic::cacheInvalidated() {
     }
 
     // Draw line index numbers
-    for (int i = 0; i < m_cache.getLines(); i++) {
+    for (int i = 0; i < m_cache.getLines(); ++i) {
         const QString text = QString::number(i);
 
         const qreal y = i * m_lineHeight + m_lineHeight / 2 - m_setHeight / 2;
@@ -451,12 +461,26 @@ void CacheGraphic::cacheInvalidated() {
             updateLineReplFields(lineIdx);
         }
     }
+
+    if (auto* _scene = scene()) {
+        // Invalidate the scene rect to resize it to the current dimensions of the CacheGraphic
+        _scene->setSceneRect({});
+    }
 }
 
 void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction& transaction) {
     if (m_indexingVisible) {
         if (valid) {
-            const CacheWay& way = m_cacheTextItems.at(transaction.index.line).at(transaction.index.way);
+            const auto& it = m_cacheTextItems.find(transaction.index.line);
+            if (it == m_cacheTextItems.end()) {
+                return;
+            }
+            const auto& wayIt = it->second.find(transaction.index.way);
+            if (wayIt == it->second.end()) {
+                return;
+            }
+
+            const CacheWay& way = wayIt->second;
             m_addressTextItem->setText(QString::number(transaction.address, 2).rightJustified(32, '0'));
 
             if (way.tag) {

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -9,19 +9,27 @@ if(CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 endif()
 
-project(Ripes CXX)
+project(Ripes
+        LANGUAGES CXX
+        DESCRIPTION "A graphical processor simulator and assembly editor for the RISC-V ISA"
+        HOMEPAGE_URL "https://github.com/mortbopet/Ripes"
+)
+
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    include(GNUInstallDirs) #Must exist after declaring a project
+endif()
 
 # Error flags on everything but MSVC
 if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "-Wextra -Wall \
-        -Werror=switch -Werror=return-type -Werror=shadow \
+        -Werror=switch -Werror=return-type \
         -Werror=unreachable-code")
 endif()
 
 if(MSVC)
     add_definitions(/bigobj) # Allow big object
 elseif(MINGW)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj") # Allow big object
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbig-obj") # Allow big object
 endif()
 
 ######################################################################
@@ -61,7 +69,8 @@ qt5_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 include_directories(${RIPES_LIB} SYSTEM PUBLIC external/VSRTL/external/cereal/include)
 include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
 include_directories(SYSTEM external/ELFIO)
-include_directories(SYSTEM external/Signals)
+include_directories(SYSTEM external/VSRTL/external/Signals)
+include_directories(external/libelfin_cmake)
 include_directories(external)
 
 option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
@@ -90,6 +99,9 @@ elseif(${WIN32})
 endif()
 
 add_subdirectory(external)
+
+# Fix the name of the ripes library.
+set(RIPES_LIB ripes_lib)
 add_subdirectory(src)
 
 option(RIPES_BUILD_TESTS "Build Ripes tests" OFF)
@@ -103,4 +115,23 @@ add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUT
 # Link Qt libraries
 target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)
 # Link Ripes library
-target_link_libraries(${APP_NAME} ripes_lib)
+target_link_libraries(${APP_NAME} ${RIPES_LIB})
+
+if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
+    set(LINUX TRUE)
+endif()
+
+if(${LINUX})
+    install(TARGETS ${APP_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+elseif(${APPLE})
+    install(TARGETS ${APP_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        BUNDLE  DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/appdir/usr/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+)

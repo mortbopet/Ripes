@@ -41,7 +41,6 @@ public slots:
     void restart();
     void reset();
     void reverse();
-    void printToLog(const QString&);
     void processorFinished();
     void runFinished();
     void updateStatistics();
@@ -52,7 +51,8 @@ public slots:
 
 private slots:
     void run(bool state);
-    void setInstructionViewCenterAddr(AInt address);
+    void autoClock(bool state);
+    void setInstructionViewCenterRow(int row);
     void showPipelineDiagram();
 
 private:
@@ -83,6 +83,7 @@ private:
     QAction* m_reverseAction = nullptr;
     QAction* m_resetAction = nullptr;
     QAction* m_darkmodeAction = nullptr;
+    QTimer* m_autoClockTimer = nullptr;
 
     QSpinBox* m_autoClockInterval = nullptr;
 };

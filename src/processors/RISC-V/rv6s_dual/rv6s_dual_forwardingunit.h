@@ -30,7 +30,7 @@ class ForwardingUnit_DUAL : public Component {
     }
 
 public:
-    ForwardingUnit_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
+    ForwardingUnit_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
         alu_reg1_fw_ctrl_exec << [=] { return calculateForwarding(id_reg1_idx_exec.uValue()); };
         alu_reg2_fw_ctrl_exec << [=] { return calculateForwarding(id_reg2_idx_exec.uValue()); };
         alu_reg1_fw_ctrl_data << [=] { return calculateForwarding(id_reg1_idx_data.uValue()); };

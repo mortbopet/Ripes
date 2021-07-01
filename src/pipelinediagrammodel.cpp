@@ -1,12 +1,13 @@
 #include "pipelinediagrammodel.h"
 
+#include "processorhandler.h"
 #include "ripessettings.h"
 
 #include <vector>
 
 namespace Ripes {
 
-static inline AInt indexToAddress(unsigned index) {
+static AInt indexToAddress(unsigned index) {
     if (auto spt = ProcessorHandler::getProgram()) {
         return (index * ProcessorHandler::currentISA()->instrBytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
     }
@@ -64,12 +65,12 @@ void PipelineDiagramModel::prepareForView() {
 
 void PipelineDiagramModel::gatherStageInfo() {
     long long cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-    if (m_cycleStageInfos.count(cycleCount)) {
+    auto stageInfoForCycle = m_cycleStageInfos.find(cycleCount);
+    if (stageInfoForCycle == m_cycleStageInfos.end()) {
         return;
     }
-    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
-        m_cycleStageInfos[ProcessorHandler::getProcessor()->getCycleCount()][i] =
-            ProcessorHandler::getProcessor()->stageInfo(i);
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
+        stageInfoForCycle->second[i] = ProcessorHandler::getProcessor()->stageInfo(i);
     }
 }
 

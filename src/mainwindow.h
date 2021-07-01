@@ -10,10 +10,6 @@ QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
 namespace Ripes {
-
-StatusManager(General);
-StatusManager(ProcessorInfo);
-
 namespace Ui {
 class MainWindow;
 }
@@ -43,6 +39,9 @@ public:
 
     void closeEvent(QCloseEvent* event) override;
     void fitToView();
+
+signals:
+    void prepareSave();
 
 private slots:
     void wiki();

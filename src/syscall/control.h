@@ -47,8 +47,9 @@ public:
               {{0, "On success, brk() returns zero.  On error, -1 is returned, and errno is set to ENOMEM"}}) {}
 
     void execute() {
-        // Nothing to do
-        return;
+        // Nothing to do - at the moment we allow infinite growth of the heap.
+        // @todo: Add checks to ensure that the heap doesn't grow into the stack segment...!
+        BaseSyscall::setRet(RegisterFileType::GPR, 0, 0);
     }
 };
 

@@ -1,7 +1,6 @@
 #include "processorhandler.h"
 
 #include "processorregistry.h"
-#include "processors/interface/ripesprocessor.h"
 #include "processors/ripesvsrtlprocessor.h"
 #include "ripessettings.h"
 #include "statusmanager.h"
@@ -21,6 +20,7 @@ ProcessorHandler::ProcessorHandler() {
     m_constructing = true;
 
     // Contruct the default processor
+    // Processor ID
     if (RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).isNull()) {
         m_currentID = ProcessorID::RV32_5S;
     } else {
@@ -29,14 +29,21 @@ ProcessorHandler::ProcessorHandler() {
         // Some sanity checking
         m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV32_5S : m_currentID;
     }
-    _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isa()->supportedExtensions(),
-                     ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+
+    // Processor extensions
+    QStringList extensions;
+    if (RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull())
+        extensions = ProcessorRegistry::getDescription(m_currentID).isaInfo().isa->supportedExtensions();
+    else
+        extensions = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).value<QStringList>();
+
+    _selectProcessor(m_currentID, extensions, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
     m_procStateChangeTimer.setSingleShot(true);
-    m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
-    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, [=] {
-        m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+    m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
+    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, this, [=] {
+        m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
     });
 
     connect(&m_procStateChangeTimer, &QTimer::timeout, this, [=] {
@@ -49,12 +56,19 @@ ProcessorHandler::ProcessorHandler() {
         m_enqueueStateChangeLock.unlock();
     });
 
+    // Connect the runwatcher finished signals
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] {
+        emit runFinished();
+        _triggerProcStateChangeTimer();
+    });
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] { ProcessorStatusManager::clearStatus(); });
+
     // Connect relevant settings changes to VSRTL
-    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified, this,
             [=](const auto& size) { m_currentProcessor->setMaxReverseCycles(size.toUInt()); });
 
     // Update VSRTL reverse stack size to reflect current settings
-    m_currentProcessor->setMaxReverseCycles(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
+    m_currentProcessor->setMaxReverseCycles(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toInt());
 
     // Reset request handling
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified, this,
@@ -62,6 +76,10 @@ ProcessorHandler::ProcessorHandler() {
 
     m_syscallManager = std::make_unique<RISCVSyscallManager>();
     m_constructing = false;
+}
+
+bool ProcessorHandler::isVSRTLProcessor() {
+    return static_cast<bool>(dynamic_cast<const RipesVSRTLProcessor*>(getProcessor()));
 }
 
 void ProcessorHandler::_loadProgram(const std::shared_ptr<Program>& p) {
@@ -124,7 +142,7 @@ class ProcessorClocker : public QRunnable {
 public:
     explicit ProcessorClocker(bool& finished) : m_finished(finished) {}
     void run() override {
-        ProcessorHandler::getProcessorNonConst()->clockProcessor();
+        ProcessorHandler::getProcessorNonConst()->clock();
         ProcessorHandler::checkProcessorFinished();
         if (ProcessorHandler::checkBreakpoint()) {
             ProcessorHandler::stopRun();
@@ -144,30 +162,26 @@ void ProcessorHandler::_clock() {
 }
 
 void ProcessorHandler::_run() {
-    ProcessorStatusManager::setStatus("Running...");
+    ProcessorStatusManager::setStatusTimed("Running...");
     emit runStarted();
-    /** We create a cycleFunctor for running the design which will stop further running of the design when:
-     * - The user has stopped running the processor (m_stopRunningFlag)
-     * - the processor has finished executing
-     * - the processor has hit a breakpoint
-     */
-    const auto& cycleFunctor = [=] {
-        bool stopRunning = m_stopRunningFlag;
-        stopRunning |= _checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag;
-
-        if (stopRunning) {
-            m_vsrtlWidget->stop();
-        }
-    };
 
     // Start running through the VSRTL Widget interface
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] {
-        emit runFinished();
-        _triggerProcStateChangeTimer();
-    });
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] { ProcessorStatusManager::clearStatus(); });
+    m_runWatcher.setFuture(QtConcurrent::run([=] {
+        auto* vsrtl_proc = dynamic_cast<vsrtl::SimDesign*>(m_currentProcessor.get());
 
-    m_runWatcher.setFuture(m_vsrtlWidget->run(cycleFunctor));
+        if (vsrtl_proc) {
+            vsrtl_proc->setEnableSignals(false);
+        }
+
+        while (!(_checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag)) {
+            m_currentProcessor->clock();
+        }
+
+        if (vsrtl_proc) {
+            vsrtl_proc->setEnableSignals(true);
+        }
+        emit runFinished();
+    }));
 }
 
 void ProcessorHandler::_setBreakpoint(const AInt address, bool enabled) {
@@ -178,12 +192,12 @@ void ProcessorHandler::_setBreakpoint(const AInt address, bool enabled) {
     }
 }
 
-void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
+void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute) {
     m_vsrtlWidget = widget;
 
     // Currently, only VSRTL processors can be visualized
     if (auto* vsrtlProcessor = dynamic_cast<RipesVSRTLProcessor*>(m_currentProcessor.get())) {
-        widget->setDesign(vsrtlProcessor);
+        widget->setDesign(vsrtlProcessor, doPlaceAndRoute);
     }
 }
 
@@ -226,6 +240,7 @@ void ProcessorHandler::_reset() {
         return;
     }
 
+    SystemIO::abortSyscall();
     getProcessorNonConst()->resetProcessor();
 
     // Rewrite register initializations
@@ -238,14 +253,16 @@ void ProcessorHandler::_reset() {
 }
 
 void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList& extensions,
-                                        RegisterInitialization setup) {
+                                        const RegisterInitialization& setup) {
     m_currentID = id;
     m_currentRegInits = setup;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
+    RipesSettings::setValue(RIPES_SETTING_PROCESSOR_EXTENSIONS, extensions);
 
     // Keep current program if the ISA between the two processors are identical
-    const bool keepProgram = m_currentProcessor && (m_currentProcessor->implementsISA()->eq(
-                                                       ProcessorRegistry::getDescription(id).isa(), extensions));
+    const bool keepProgram =
+        m_currentProcessor && (m_currentProcessor->implementsISA()->eq(
+                                  ProcessorRegistry::getDescription(id).isaInfo().isa.get(), extensions));
 
     // Processor initializations
     m_currentProcessor = ProcessorRegistry::constructProcessor(m_currentID, extensions);
@@ -266,7 +283,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
 
     // Connect wrappers for making processor signal emissions thread safe.
     m_signalWrappers.clear();
-    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+    m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(new vsrtl::GallantSignalWrapper(
         this,
         [=] {
             if (!_isRunning()) {
@@ -280,7 +297,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     // cross-thread and out of order.
     m_currentProcessor->processorWasClocked.Connect(this, &ProcessorHandler::processorClocked);
 
-    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+    m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(new vsrtl::GallantSignalWrapper(
         this,
         [=] {
             emit processorReset();
@@ -288,7 +305,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         },
         m_currentProcessor->processorWasReset)));
 
-    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+    m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(new vsrtl::GallantSignalWrapper(
         this,
         [=] {
             emit processorReversed();
@@ -324,9 +341,10 @@ AInt ProcessorHandler::_getTextStart() const {
 
 QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
     if (m_program) {
-        return m_currentAssembler
-            ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
-            .first;
+        const unsigned instrBytes = _currentISA()->instrBytes();
+        auto disRes = m_currentAssembler->disassemble(m_currentProcessor->getMemory().readMem(addr, instrBytes),
+                                                      m_program.get()->symbols, addr);
+        return disRes.repr;
     } else {
         return QString();
     }
@@ -361,7 +379,7 @@ void ProcessorHandler::setStopRunFlag() {
     if (m_runWatcher.isRunning()) {
         m_stopRunningFlag = true;
         // We might be currently trapping for user I/O. Signal to abort the trap, in this avoiding a deadlock.
-        SystemIO::abortSyscall(true);
+        SystemIO::abortSyscall();
     }
 }
 
@@ -369,7 +387,6 @@ void ProcessorHandler::_stopRun() {
     setStopRunFlag();
     m_runWatcher.waitForFinished();
     m_stopRunningFlag = false;
-    SystemIO::abortSyscall(false);
 }
 
 bool ProcessorHandler::_isExecutableAddress(AInt address) const {

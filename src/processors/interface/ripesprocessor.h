@@ -179,9 +179,12 @@ public:
 
     /**
      * @brief clock
-     * Clocks the processor
+     * Clocks the processor.
      */
-    virtual void clockProcessor() = 0;
+    void clock() {
+        if (!finished())
+            clockProcessor();
+    }
 
     /**
      * @brief finalize
@@ -255,6 +258,12 @@ public:
     /** ======================================================================*/
 
 protected:
+    /**
+     * @brief clock
+     * Implementation of processor clocking.
+     */
+    virtual void clockProcessor() = 0;
+
     // m_features should be adjusted accordingly during processor construction
     unsigned m_features;
     bool m_emitsSignals = true;

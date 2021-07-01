@@ -16,9 +16,15 @@ bool SyscallManager::execute(SyscallID id) {
         return false;
     } else {
         const auto& syscall = m_syscalls.at(id);
-        SyscallStatusManager::setStatus("Handling system call: " + syscall->name() + " (" + QString::number(id) + ")");
+        const QString& syscallName = syscall->name();
+        postToGUIThread([=] {
+            // We don't have a good way of making non-permanent status timers pseudo-permanent until explicitly
+            // cleared... The best way to do so is to just have a very large timeout.
+            SyscallStatusManager::setStatusTimed(
+                "Handling system call: " + syscallName + " (" + QString::number(id) + ")", 99999999);
+        });
         syscall->execute();
-        SyscallStatusManager::clearStatus();
+        postToGUIThread([=] { SyscallStatusManager::clearStatus(); });
         return true;
     }
 }

@@ -18,9 +18,10 @@ For bugs or issues, please report these at the [issues page](https://github.com/
 
 ## Usage
 Ripes may be used to explore concepts such as:
-- How machine code is executed on a variety of microarchitectures
+- How machine code is executed on a variety of microarchitectures (RV32IMC/RV64IMC based)
 - How different cache designs influence performance
-- How assembly code is assembled to executable machine code
+- How C and assembly code is compiled and assembled to executable machine code
+- How a processor interacts with memory-mapped I/O
 
 If this is your first time using Ripes, please refer to the [introduction](https://github.com/mortbopet/Ripes/wiki/Ripes-Introduction).  
 For further information, please refer to the [Ripes wiki](https://github.com/mortbopet/Ripes/wiki).
@@ -39,7 +40,7 @@ For Windows, the C++ runtime library must be available (if not, a msvcp140.dll e
 
 ## Building
 Initially, the following dependencies must be made available:
-- A recent (5.14+) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
+- A recent (>=5.15) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
 - [CMake](https://cmake.org/)
 
 Then, Ripes can be checked out and built as a standard CMake project:
@@ -53,19 +54,20 @@ make                jom.exe / nmake.exe / ...
 Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
 
 ---
-In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen. Ripes. https://github.com/mortbopet/Ripes', e.g. using the following BibTeX code:
+In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen. Ripes. https://github.com/mortbopet/Ripes' or by referring to the [WCAE'21 paper on the project](https://ieeexplore.ieee.org/document/9707149), e.g. using the following BibTeX code:
 ```
 @MISC{Ripes,
 	author = {Morten Borup Petersen},
 	title = {Ripes},
 	howpublished = "\url{https://github.com/mortbopet/Ripes}"
 }
+
+@inproceedings{petersen2021ripes,
+  title={Ripes: A Visual Computer Architecture Simulator},
+  author={Petersen, Morten B},
+  booktitle={2021 ACM/IEEE Workshop on Computer Architecture Education (WCAE)},
+  pages={1--8},
+  year={2021},
+  organization={IEEE}
+}
 ```
-
-
-
-Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
-
-<a href="https://www.qt.io/">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/QtIcon.png" width="60" height="60" />
-</a>

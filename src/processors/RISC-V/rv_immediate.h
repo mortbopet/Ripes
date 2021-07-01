@@ -13,7 +13,8 @@ class Immediate : public Component {
     static_assert(XLEN == 32 || XLEN == 64, "Only RV32 and RV64 are supported");
 
 public:
-    Immediate(std::string name, SimComponent* parent) : Component(name, parent) {
+    Immediate(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Immediate value decoder");
         imm << [=] {
             Switch(opcode, RVInstr) {
                 case RVInstr::LUI:

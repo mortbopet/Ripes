@@ -15,7 +15,7 @@ RadixSelectorWidget::~RadixSelectorWidget() {
 }
 
 void RadixSelectorWidget::setRadix(Radix r) {
-    for (int i = 0; i < m_ui->displayType->count(); i++) {
+    for (int i = 0; i < m_ui->displayType->count(); ++i) {
         const Radix itemRadix = qvariant_cast<Radix>(m_ui->displayType->itemData(i));
         if (r == itemRadix) {
             m_ui->displayType->setCurrentIndex(i);
@@ -30,7 +30,7 @@ void RadixSelectorWidget::setupRadixComboBox() {
         m_ui->displayType->addItem(rt.second, QVariant::fromValue(rt.first));
     }
 
-    connect(m_ui->displayType, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+    connect(m_ui->displayType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int index) {
         const Radix r = qvariant_cast<Radix>(m_ui->displayType->itemData(index));
         emit radixChanged(r);
     });

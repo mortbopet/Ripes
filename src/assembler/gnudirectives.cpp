@@ -50,7 +50,7 @@ std::optional<Error> assembleData(const AssemblerBase* assembler, const Tokenize
         getImmediateErroring(token, val, line.sourceLine);
 
         if (isUInt<size * 8>(val) || isInt<size * 8>(val)) {
-            for (size_t i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; ++i) {
                 byteArray.append(val & 0xff);
                 val >>= 8;
             }
@@ -169,9 +169,7 @@ Directive zeroDirective() {
         int64_t value;
         getImmediateErroring(arg.line.tokens.at(0), value, arg.line.sourceLine);
         QByteArray bytes;
-        for (int i = 0; i < value; i++) {
-            bytes.append(static_cast<char>(0x0));
-        }
+        bytes.fill(0x0, value);
         return {bytes};
     };
     return Directive(".zero", zeroFunctor);

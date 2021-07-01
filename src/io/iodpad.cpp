@@ -10,7 +10,7 @@
 namespace Ripes {
 
 IODPad::IODPad(QWidget* parent) : IOBase(IOType::DPAD, parent) {
-    for (unsigned i = 0; i < DIRECTIONS; i++) {
+    for (unsigned i = 0; i < DIRECTIONS; ++i) {
         QString name;
         Qt::ArrowType arrow;
         switch (i) {

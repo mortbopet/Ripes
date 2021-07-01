@@ -12,7 +12,7 @@ namespace Ripes {
 
 class RipesVSRTLProcessor : public RipesProcessor, public vsrtl::core::Design {
 public:
-    RipesVSRTLProcessor(std::string name) : Design(name) {
+    RipesVSRTLProcessor(const std::string& name) : Design(name) {
         // VSRTL provides reversible simulation
         m_features = {Features::isReversible | Features::hasDCacheInterface | Features::hasICacheInterface};
 
@@ -27,7 +27,6 @@ public:
         reset();
     }
 
-    virtual void clockProcessor() override { clock(); }
     virtual void reverseProcessor() override { reverse(); }
 
     long long getInstructionsRetired() const override { return m_instructionsRetired; }

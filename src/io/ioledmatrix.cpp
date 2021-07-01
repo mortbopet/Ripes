@@ -1,9 +1,10 @@
 #include "ioledmatrix.h"
 
-#include "ioregistry.h"
-
 #include <QPainter>
 #include <QPen>
+
+#include "STLExtras.h"
+#include "ioregistry.h"
 
 namespace Ripes {
 
@@ -52,7 +53,7 @@ void IOLedMatrix::ioWrite(AInt offset, VInt value, unsigned) {
     emit scheduleUpdate();
 }
 
-inline QColor regToColor(uint32_t regVal) {
+static QColor regToColor(uint32_t regVal) {
     return QColor(regVal >> 16 & 0xFF, regVal >> 8 & 0xFF, regVal & 0xFF);
 }
 
@@ -68,14 +69,14 @@ void IOLedMatrix::updateLEDRegs() {
 
     m_regDescs.clear();
     m_regDescs.resize(nLEDs);
-    for (unsigned i = 0; i < m_regDescs.size(); i++) {
+    for (auto mRegDesc : llvm::enumerate(m_regDescs)) {
         RegDesc regdesc;
-        regdesc.name = "LED_" + QString::number(i);
+        regdesc.name = "LED_" + QString::number(mRegDesc.index());
         regdesc.rw = RegDesc::RW::RW;
         regdesc.bitWidth = 24;
-        regdesc.address = i * 4;
+        regdesc.address = mRegDesc.index() * 4;
         regdesc.exported = false;
-        m_regDescs.at(i) = regdesc;
+        mRegDesc.value() = regdesc;
     }
 
     updateGeometry();

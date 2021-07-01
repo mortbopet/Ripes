@@ -161,7 +161,7 @@ private:
     }
 
 public:
-    WayControl(std::string name, SimComponent* parent) : Component(name, parent) {
+    WayControl(const std::string& name, SimComponent* parent) : Component(name, parent) {
         data_way_valid << [=] {
             computeCycle();
             return m_dataWayValid;

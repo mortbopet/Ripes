@@ -9,7 +9,7 @@
 namespace Ripes {
 namespace Assembler {
 
-// An error is defined as a reference to a source line index + an error string
+/// An error is defined as a reference to a source line index + an error string
 using Error = std::pair<unsigned, QString>;
 class Errors : public std::vector<Error> {
 public:

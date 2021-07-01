@@ -6,14 +6,18 @@
 #include <QByteArray>
 #include <algorithm>
 
+#include "rv_c_ext.h"
+#include "rv_i_ext.h"
+#include "rv_m_ext.h"
+
 namespace Ripes {
 namespace Assembler {
 
-RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler<Reg_T, Instr_T>(isa) {
+RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa) : Assembler<Reg_T>(isa) {
     auto [instrs, pseudos] = initInstructions(isa);
 
     auto directives = gnuDirectives();
-    auto relocations = rvRelocations<Reg_T, Instr_T>();
+    auto relocations = rvRelocations<Reg_T>();
     initialize(instrs, pseudos, directives, relocations);
 
     // Initialize segment pointers and monitor settings changes to segment pointers
@@ -33,26 +37,20 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
     _InstrVec instructions;
     _PseudoInstrVec pseudoInstructions;
 
-    extI<Reg_T, Instr_T>::enable(isa, instructions, pseudoInstructions);
+    RV_I<Reg_T>::enable(isa, instructions, pseudoInstructions);
     for (const auto& extension : isa->enabledExtensions()) {
         switch (extension.unicode()->toLatin1()) {
             case 'M':
-                extM<Reg_T, Instr_T>::enable(isa, instructions, pseudoInstructions);
+                RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
                 break;
-            case 'F':
-                enableExtF(isa, instructions, pseudoInstructions);
+            case 'C':
+                RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
                 break;
             default:
                 assert(false && "Unhandled ISA extension");
         }
     }
     return {instructions, pseudoInstructions};
-}
-
-void RV32I_Assembler::enableExtF(const ISAInfoBase*, _InstrVec&, _PseudoInstrVec&) {
-    // Pseudo-op functors
-
-    // Assembler functors
 }
 
 }  // namespace Assembler

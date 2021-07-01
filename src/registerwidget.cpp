@@ -7,6 +7,7 @@
 
 #include "processorhandler.h"
 #include "radixselectorwidget.h"
+#include "registermodel.h"
 
 namespace Ripes {
 

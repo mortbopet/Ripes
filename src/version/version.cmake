@@ -1,5 +1,5 @@
 set(ENV{GIT_DIR} ${RIPES_SRC_DIR}/.git)
-execute_process(COMMAND git describe --tags
+execute_process(COMMAND git describe --tags --exclude "continuous" 
                 OUTPUT_VARIABLE GIT_REV
                 ERROR_QUIET)
 

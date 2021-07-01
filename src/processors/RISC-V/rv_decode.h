@@ -12,9 +12,10 @@ class Decode : public Component {
 public:
     void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
 
-    Decode(std::string name, SimComponent* parent) : Component(name, parent) {
+    Decode(const std::string& name, SimComponent* parent) : Component(name, parent) {
         opcode << [=] {
             const auto instrValue = instr.uValue();
+
             const unsigned l7 = instrValue & 0b1111111;
 
             // clang-format off
@@ -204,15 +205,15 @@ public:
         };
 
         wr_reg_idx << [=] {
-            return (instr.uValue() >> 7) & 0b11111;
+          return (instr.uValue() >> 7) & 0b11111;
         };
 
         r1_reg_idx << [=] {
-            return (instr.uValue() >> 15) & 0b11111;
+          return (instr.uValue() >> 15) & 0b11111;
         };
 
         r2_reg_idx << [=] {
-            return (instr.uValue() >> 20) & 0b11111;
+          return (instr.uValue() >> 20) & 0b11111;
         };
 
         // clang-format on

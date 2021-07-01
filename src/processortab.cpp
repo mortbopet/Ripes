@@ -9,6 +9,7 @@
 #include <QSpinBox>
 #include <QTemporaryFile>
 
+#include "consolewidget.h"
 #include "instructionmodel.h"
 #include "pipelinediagrammodel.h"
 #include "pipelinediagramwidget.h"
@@ -26,8 +27,7 @@
 
 namespace Ripes {
 
-namespace {
-inline QString convertToSIUnits(const double l_value, int precision = 2) {
+static QString convertToSIUnits(const double l_value, int precision = 2) {
     QString unit;
     double value;
 
@@ -63,7 +63,6 @@ inline QString convertToSIUnits(const double l_value, int precision = 2) {
     }
     return QString::number(0) + " ";
 }
-}  // namespace
 
 ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar, QWidget* parent)
     : RipesTab(additionalToolbar, parent), m_ui(new Ui::ProcessorTab) {
@@ -96,24 +95,20 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &ProcessorTab::updateInstructionLabels);
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
-            [=] { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
+            [=] { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible() && !m_autoClockAction->isChecked()); });
 
     setupSimulatorActions(controlToolbar);
 
     // Setup statistics update timer - this timer is distinct from the ProcessorHandler's update timer, given that it
     // needs to run during 'running' the processor.
     m_statUpdateTimer = new QTimer(this);
-    m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+    m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
     connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
-    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified,
-            [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt()); });
-
-    connect(m_ui->clearConsoleButton, &QPushButton::clicked, m_ui->console, &Console::clearConsole);
-    m_ui->clearConsoleButton->setIcon(QIcon(":/icons/clear.svg"));
-    m_ui->clearConsoleButton->setToolTip("Clear console");
+    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, m_statUpdateTimer,
+            [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt()); });
 
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
-    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified, m_reverseAction,
             [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     // Connect the global reset request signal to reset()
@@ -121,9 +116,6 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, this, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, &ProcessorTab::runFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::stopping, this, &ProcessorTab::pause);
-
-    // Send input data from the console to the SystemIO stdin stream
-    connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
 
     // Make processor view stretch wrt. consoles
     m_ui->pipelinesplitter->setStretchFactor(0, 1);
@@ -139,10 +131,6 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     // Initially, no file is loaded, disable toolbuttons
     enableSimulatorControls();
-}
-
-void ProcessorTab::printToLog(const QString& text) {
-    m_ui->console->putData(text.toUtf8());
 }
 
 void ProcessorTab::loadLayout(const Layout& layout) {
@@ -168,7 +156,7 @@ void ProcessorTab::loadLayout(const Layout& layout) {
 
     // Adjust stage label positions
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
-    for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
+    for (unsigned i = 0; i < m_stageInstructionLabels.size(); ++i) {
         auto& label = m_stageInstructionLabels.at(i);
         QFontMetrics metrics(label->font());
         label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i).x(),
@@ -205,34 +193,25 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_clockAction->setToolTip("Clock the circuit (F5)");
     controlToolbar->addAction(m_clockAction);
 
-    QTimer* timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, [=] { ProcessorHandler::clock(); });
+    m_autoClockTimer = new QTimer(this);
+    connect(m_autoClockTimer, &QTimer::timeout, this, [=] { ProcessorHandler::clock(); });
 
     const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
-    const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
     m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
     m_autoClockAction->setShortcut(QKeySequence("F6"));
     m_autoClockAction->setToolTip("Clock the circuit with the selected frequency (F6)");
     m_autoClockAction->setCheckable(true);
-    connect(m_autoClockAction, &QAction::toggled, this, [=](bool checked) {
-        if (!checked) {
-            timer->stop();
-            m_autoClockAction->setIcon(startAutoClockIcon);
-        } else {
-            timer->start();
-            m_autoClockAction->setIcon(stopAutoTimerIcon);
-        }
-    });
     m_autoClockAction->setChecked(false);
+    connect(m_autoClockAction, &QAction::triggered, this, &ProcessorTab::autoClock);
     controlToolbar->addAction(m_autoClockAction);
 
     m_autoClockInterval = new QSpinBox(this);
     m_autoClockInterval->setRange(1, 10000);
     m_autoClockInterval->setSuffix(" ms");
     m_autoClockInterval->setToolTip("Auto clock interval");
-    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), [timer](int msec) {
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), this, [this](int msec) {
         RipesSettings::setValue(RIPES_SETTING_AUTOCLOCK_INTERVAL, msec);
-        timer->setInterval(msec);
+        m_autoClockTimer->setInterval(msec);
     });
     m_autoClockInterval->setValue(RipesSettings::value(RIPES_SETTING_AUTOCLOCK_INTERVAL).toInt());
     controlToolbar->addWidget(m_autoClockInterval);
@@ -251,8 +230,11 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     // Setup processor-tab only actions
     m_displayValuesAction = new QAction("Show processor signal values", this);
     m_displayValuesAction->setCheckable(true);
-    m_displayValuesAction->setChecked(false);
-    connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
+    connect(m_displayValuesAction, &QAction::toggled, m_vsrtlWidget, [=](bool checked) {
+        RipesSettings::setValue(RIPES_SETTING_SHOWSIGNALS, QVariant::fromValue(checked));
+        m_vsrtlWidget->setOutputPortValuesVisible(checked);
+    });
+    m_displayValuesAction->setChecked(RipesSettings::value(RIPES_SETTING_SHOWSIGNALS).toBool());
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_pipelineDiagramAction = new QAction(tableIcon, "Show pipeline diagram", this);
@@ -314,15 +296,16 @@ void ProcessorTab::fitToScreen() {
 }
 
 void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
-    ProcessorHandler::loadProcessorToWidget(m_vsrtlWidget);
+    const bool doPlaceAndRoute = layout != nullptr;
+    ProcessorHandler::loadProcessorToWidget(m_vsrtlWidget, doPlaceAndRoute);
 
     // Construct stage instruction labels
     auto* topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
 
     m_stageInstructionLabels.clear();
     const auto& proc = ProcessorHandler::getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
-        auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
+    for (unsigned i = 0; i < proc->stageCount(); ++i) {
+        auto* stagelabel = new vsrtl::Label(topLevelComponent, "-");
         stagelabel->setPointSize(14);
         m_stageInstructionLabels[i] = stagelabel;
     }
@@ -390,7 +373,7 @@ void ProcessorTab::updateInstructionModel() {
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
                                                                     QHeaderView::Stretch);
     // Make the instruction view follow the instruction which is currently present in the first stage of the
-    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
+    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterRow);
 
     if (oldModel) {
         delete oldModel;
@@ -426,11 +409,11 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
     const auto& proc = ProcessorHandler::getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
+    for (unsigned i = 0; i < proc->stageCount(); ++i) {
         if (!m_stageInstructionLabels.count(i))
             continue;
         const auto stageInfo = proc->stageInfo(i);
-        auto* instrLabel = m_stageInstructionLabels.at(i);
+        auto& instrLabel = m_stageInstructionLabels.at(i);
         QString instrString;
         if (stageInfo.state != StageInfo::State::None) {
             /* clang-format off */
@@ -454,30 +437,51 @@ void ProcessorTab::updateInstructionLabels() {
 void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     enableSimulatorControls();
-    printToLog("\n");
+    SystemIO::printString("\n");
 }
 
-void ProcessorTab::setInstructionViewCenterAddr(AInt address) {
-    const auto index = addressToRow(address);
+void ProcessorTab::setInstructionViewCenterRow(int row) {
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
-    int indexTop = view->indexAt(rect.topLeft()).row();
-    int indexBot = view->indexAt(rect.bottomLeft()).row();
-    indexBot = indexBot < 0 ? m_instrModel->rowCount() : indexBot;
+    int rowTop = view->indexAt(rect.topLeft()).row();
+    int rowBot = view->indexAt(rect.bottomLeft()).row();
+    rowBot = rowBot < 0 ? m_instrModel->rowCount() : rowBot;
 
-    const int nItemsVisible = indexBot - indexTop;
+    const int nItemsVisible = rowBot - rowTop;
 
     // move scrollbar if if is not visible
-    if (index <= indexTop || index >= indexBot) {
+    if (row <= rowTop || row >= rowBot) {
         auto scrollbar = view->verticalScrollBar();
-        scrollbar->setValue(index - nItemsVisible / 2);
+        scrollbar->setValue(row - nItemsVisible / 2);
     }
 }
 
 void ProcessorTab::runFinished() {
     pause();
     ProcessorHandler::checkProcessorFinished();
+    m_vsrtlWidget->sync();
     m_statUpdateTimer->stop();
+}
+
+void ProcessorTab::autoClock(bool state) {
+    const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
+    const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
+    if (!state) {
+        m_autoClockTimer->stop();
+        m_autoClockAction->setIcon(startAutoClockIcon);
+    } else {
+        m_autoClockTimer->start();
+        m_autoClockAction->setIcon(stopAutoTimerIcon);
+    }
+
+    // Enable/disable all other actions
+    m_selectProcessorAction->setEnabled(!state);
+    m_clockAction->setEnabled(!state);
+    m_reverseAction->setEnabled(!state);
+    m_resetAction->setEnabled(!state);
+    m_displayValuesAction->setEnabled(!state);
+    m_pipelineDiagramAction->setEnabled(!state);
+    m_runAction->setEnabled(!state);
 }
 
 void ProcessorTab::run(bool state) {

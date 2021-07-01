@@ -8,6 +8,7 @@
 #include "flowlayout.h"
 #include "gotocombobox.h"
 #include "memorymodel.h"
+#include "processorhandler.h"
 #include "radixselectorwidget.h"
 
 namespace Ripes {

@@ -12,7 +12,8 @@ using namespace Ripes;
 template <unsigned XLEN>
 class IFID : public Component {
 public:
-    IFID(std::string name, SimComponent* parent) : Component(name, parent) {
+    IFID(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Instruction fetch/Instruction decode stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(pc4, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(pc, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(instr, clear, enable);

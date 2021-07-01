@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Ripes
-Comment=Ripes simulator
+Comment=A graphical processor simulator and assembly editor for the RISC-V ISA (https://github.com/mortbopet/Ripes)
 Exec=Ripes
 Icon=Ripes
 Categories=Education;Utility;

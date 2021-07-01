@@ -12,7 +12,8 @@ using namespace Ripes;
 template <unsigned XLEN>
 class IDEX : public Component {
 public:
-    IDEX(std::string name, SimComponent* parent) : Component(name, parent) {
+    IDEX(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Instruction decode/execute stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(pc4, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(pc, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(r1, clear, enable);

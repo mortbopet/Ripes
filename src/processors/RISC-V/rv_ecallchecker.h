@@ -11,7 +11,7 @@ using namespace Ripes;
 
 class EcallChecker : public Component {
 public:
-    EcallChecker(std::string name, SimComponent* parent) : Component(name, parent) {
+    EcallChecker(const std::string& name, SimComponent* parent) : Component(name, parent) {
         dummy << [=] {
             if (opcode.uValue() == RVInstr::ECALL && !stallEcallHandling.uValue() && !handlingEcall) {
                 assert(m_callback != nullptr && "No syscall callback was set!");

@@ -18,13 +18,15 @@ template <unsigned XLEN>
 class ALU : public Component {
 public:
     SetGraphicsType(ALU);
-    ALU(std::string name, SimComponent* parent) : Component(name, parent) {
+    ALU(const std::string& name, SimComponent* parent) : Component(name, parent) {
         res << [=] {
             switch (ctrl.uValue()) {
                 case ALUOp::ADD:
                     return op1.uValue() + op2.uValue();
                 case ALUOp::SUB:
                     return op1.uValue() - op2.uValue();
+                case ALUOp::MULW:
+                    return VT_U(signextend<32>(static_cast<int32_t>(op1.uValue()) * op2.uValue()));
                 case ALUOp::MUL:
                     return VT_U(op1.sValue() * op2.sValue());
                 case ALUOp::MULH: {
@@ -138,15 +140,15 @@ public:
                     return VT_U(signextend<32>(op1.uValue() - op2.uValue()));
 
                 case ALUOp::SLW:
-                    return VT_U(signextend<32>(op1.uValue() << (op2.uValue() & generateBitmask<5>())));
+                    return VT_U(signextend<32>(op1.uValue() << (op2.uValue() & generateBitmask(5))));
 
                 case ALUOp::SRAW:
                     return VT_U(
-                        signextend<32>(static_cast<int32_t>(op1.uValue()) >> (op2.uValue() & generateBitmask<5>())));
+                        signextend<32>(static_cast<int32_t>(op1.uValue()) >> (op2.uValue() & generateBitmask(5))));
 
                 case ALUOp::SRLW:
                     return VT_U(
-                        signextend<32>(static_cast<uint32_t>(op1.uValue()) >> (op2.uValue() & generateBitmask<5>())));
+                        signextend<32>(static_cast<uint32_t>(op1.uValue()) >> (op2.uValue() & generateBitmask(5))));
 
                 default:
                     throw std::runtime_error("Invalid ALU opcode");
