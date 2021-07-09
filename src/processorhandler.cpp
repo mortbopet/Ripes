@@ -183,12 +183,12 @@ void ProcessorHandler::_setBreakpoint(const AInt address, bool enabled) {
     }
 }
 
-void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget) {
+void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute) {
     m_vsrtlWidget = widget;
 
     // Currently, only VSRTL processors can be visualized
     if (auto* vsrtlProcessor = dynamic_cast<RipesVSRTLProcessor*>(m_currentProcessor.get())) {
-        widget->setDesign(vsrtlProcessor);
+        widget->setDesign(vsrtlProcessor, doPlaceAndRoute);
     }
 }
 

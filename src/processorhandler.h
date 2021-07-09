@@ -47,7 +47,9 @@ public:
      * Loads the current processor to the @param VSRTLWidget. Required given that ProcessorHandler::getProcessor returns
      * a const ptr.
      */
-    static void loadProcessorToWidget(vsrtl::VSRTLWidget* widget) { get()->_loadProcessorToWidget(widget); }
+    static void loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute = false) {
+        get()->_loadProcessorToWidget(widget, doPlaceAndRoute);
+    }
 
     /**
      * @brief selectProcessor
@@ -193,7 +195,7 @@ private:
     std::shared_ptr<const Program> _getProgram() const { return m_program; }
     const ISAInfoBase* _currentISA() const { return m_currentProcessor->implementsISA(); }
     const SyscallManager& _getSyscallManager() const { return *m_syscallManager; }
-    void _loadProcessorToWidget(vsrtl::VSRTLWidget* widget);
+    void _loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute = false);
     void _selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
                           RegisterInitialization setup = RegisterInitialization());
     bool _isExecutableAddress(AInt address) const;

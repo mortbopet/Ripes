@@ -314,7 +314,8 @@ void ProcessorTab::fitToScreen() {
 }
 
 void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
-    ProcessorHandler::loadProcessorToWidget(m_vsrtlWidget);
+    const bool doPlaceAndRoute = layout != nullptr;
+    ProcessorHandler::loadProcessorToWidget(m_vsrtlWidget, doPlaceAndRoute);
 
     // Construct stage instruction labels
     auto* topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
@@ -322,7 +323,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
     m_stageInstructionLabels.clear();
     const auto& proc = ProcessorHandler::getProcessor();
     for (unsigned i = 0; i < proc->stageCount(); i++) {
-        auto* stagelabel = new vsrtl::Label("-", topLevelComponent);
+        auto* stagelabel = new vsrtl::Label(topLevelComponent, "-");
         stagelabel->setPointSize(14);
         m_stageInstructionLabels[i] = stagelabel;
     }
@@ -430,7 +431,7 @@ void ProcessorTab::updateInstructionLabels() {
         if (!m_stageInstructionLabels.count(i))
             continue;
         const auto stageInfo = proc->stageInfo(i);
-        auto* instrLabel = m_stageInstructionLabels.at(i);
+        auto& instrLabel = m_stageInstructionLabels.at(i);
         QString instrString;
         if (stageInfo.state != StageInfo::State::None) {
             /* clang-format off */
