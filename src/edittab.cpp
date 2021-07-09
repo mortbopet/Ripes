@@ -221,6 +221,9 @@ void EditTab::onProcessorChanged() {
     // Notify a possible assembler change to the code editor - opcodes might have been added or removed which must be
     // reflected in the syntax highlighter
     m_ui->codeEditor->setSourceType(m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
+
+    // Try reassembling
+    sourceCodeChanged();
 }
 
 void EditTab::sourceCodeChanged() {
