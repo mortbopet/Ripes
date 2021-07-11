@@ -61,7 +61,7 @@ qt5_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 include_directories(${RIPES_LIB} SYSTEM PUBLIC external/VSRTL/external/cereal/include)
 include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
 include_directories(SYSTEM external/ELFIO)
-include_directories(SYSTEM external/Signals)
+include_directories(SYSTEM external/VSRTL/external/Signals)
 include_directories(external)
 
 option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
