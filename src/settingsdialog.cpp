@@ -76,9 +76,9 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         // deleted once the dialog is closed, to avoid a dangling connection between the settings object and the trigger
         // widget.
         auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, colorSetterFunctor);
-        widget->connect(widget, &QObject::destroyed, [=] { settingObserver->disconnect(conn); });
+        widget->connect(widget, &QObject::destroyed, settingObserver, [=] { settingObserver->disconnect(conn); });
 
-        widget->connect(widget, &QPushButton::clicked, [=](bool) {
+        widget->connect(widget, &QPushButton::clicked, settingObserver, [=](bool) {
             QColorDialog diag;
             diag.setCurrentColor(settingObserver->value().value<QColor>());
             if (diag.exec()) {
@@ -100,10 +100,10 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         // We want changes in the set font to propagate to the button, while in the dialog. But this connection must be
         // deleted once the dialog is closed, to avoid a dangling connection between the settings object and the trigger
         // widget.
-        auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, fontSetterFunctor);
-        widget->connect(widget, &QObject::destroyed, [=] { settingObserver->disconnect(conn); });
+        auto conn = settingObserver->connect(settingObserver, &SettingObserver::modified, widget, fontSetterFunctor);
+        widget->connect(widget, &QObject::destroyed, settingObserver, [=] { settingObserver->disconnect(conn); });
 
-        widget->connect(widget, &QPushButton::clicked, [=](bool) {
+        widget->connect(widget, &QPushButton::clicked, settingObserver, [=](bool) {
             QFontDialog diag;
             diag.setCurrentFont(settingObserver->value().value<QFont>());
             diag.setOption(QFontDialog::MonospacedFonts, true);

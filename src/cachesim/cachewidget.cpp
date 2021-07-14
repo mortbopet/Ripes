@@ -20,7 +20,7 @@ CacheWidget::CacheWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CacheW
 
     auto* cacheGraphic = new CacheGraphic(*m_cacheSim);
     m_scene->addItem(cacheGraphic);
-    connect(m_cacheSim.get(), &CacheSim::configurationChanged, [=] {
+    connect(m_cacheSim.get(), &CacheSim::configurationChanged, this, [=] {
         RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 
         auto cacheViews = m_scene->views();

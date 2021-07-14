@@ -19,8 +19,8 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     m_ui->memoryViewerWidget->updateView();
 
     // During processor running, it should not be possible to interact with the memory viewer or cache widgets
-    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { setEnabled(false); });
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, [=] { setEnabled(true); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this, [=] { setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] { setEnabled(true); });
 
     m_ui->memoryMapView->setModel(new MemoryMapModel(&IOManager::get(), this));
     m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(MemoryMapModel::Name, QHeaderView::ResizeToContents);

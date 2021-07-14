@@ -121,7 +121,7 @@ IOBase* IOTab::createPeripheral(IOType type, int forcedID) {
      * itself is resized. It seems a bit cumbersome, but this was the only way i wound to trigger both the QMainWindow
      * and the outer MDIWindow to register that its child widget has changed in size, and adjust itself accordingly.
      */
-    connect(peripheral, &IOBase::paramsChanged, [=] {
+    connect(peripheral, &IOBase::paramsChanged, this, [=] {
         // Ensure that a peripheral resize event, as a result of a parameter being changed, as been processed, so that
         // its new size has taken effect.
         QApplication::processEvents();

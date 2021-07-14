@@ -37,12 +37,12 @@ void CacheConfigWidget::setCache(const std::shared_ptr<CacheSim>& cache) {
     connect(m_ui->blocks, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setBlocks);
     connect(m_ui->lines, QOverload<int>::of(&QSpinBox::valueChanged), m_cache.get(), &CacheSim::setLines);
 
-    connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+    connect(m_ui->replacementPolicy, QOverload<int>::of(&QComboBox::currentIndexChanged), cache.get(), [=](int index) {
         m_cache->setReplacementPolicy(qvariant_cast<ReplPolicy>(m_ui->replacementPolicy->itemData(index)));
     });
-    connect(m_ui->wrHit, QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(m_ui->wrHit, QOverload<int>::of(&QComboBox::currentIndexChanged), cache.get(),
             [=](int index) { m_cache->setWritePolicy(qvariant_cast<WritePolicy>(m_ui->wrHit->itemData(index))); });
-    connect(m_ui->wrMiss, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+    connect(m_ui->wrMiss, QOverload<int>::of(&QComboBox::currentIndexChanged), cache.get(), [=](int index) {
         m_cache->setWriteAllocatePolicy(qvariant_cast<WriteAllocPolicy>(m_ui->wrMiss->itemData(index)));
     });
     connect(m_ui->savePresetButton, &QPushButton::clicked, this, &CacheConfigWidget::storePreset);
@@ -53,7 +53,7 @@ void CacheConfigWidget::setCache(const std::shared_ptr<CacheSim>& cache) {
     m_ui->removePresetButton->setToolTip("Delete cache preset");
 
     connect(m_cache.get(), &CacheSim::configurationChanged, this, &CacheConfigWidget::handleConfigurationChanged);
-    connect(m_cache.get(), &CacheSim::configurationChanged, [=] { emit configurationChanged(); });
+    connect(m_cache.get(), &CacheSim::configurationChanged, this, [=] { emit configurationChanged(); });
 
     setupPresets();
     handleConfigurationChanged();
@@ -108,7 +108,7 @@ void CacheConfigWidget::setupPresets() {
         m_ui->presets->addItem(preset.name, QVariant::fromValue<CachePreset>(preset));
     }
 
-    connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+    connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int index) {
         if (index == -1) {
             return;
         }

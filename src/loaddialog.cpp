@@ -47,8 +47,8 @@ LoadDialog::LoadDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::LoadDial
     m_ui->binaryEntryPoint->setValidator(validator);
     m_ui->binaryEntryPoint->setText("0x" + QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
 
-    connect(m_ui->binaryLoadAt, &QLineEdit::textChanged, [=] { this->validateCurrentFile(); });
-    connect(m_ui->binaryEntryPoint, &QLineEdit::textChanged, [=] { this->validateCurrentFile(); });
+    connect(m_ui->binaryLoadAt, &QLineEdit::textChanged, this, [=] { this->validateCurrentFile(); });
+    connect(m_ui->binaryEntryPoint, &QLineEdit::textChanged, this, [=] { this->validateCurrentFile(); });
 
     // ELF page
     m_ui->currentISA->setText(ProcessorHandler::currentISA()->name());

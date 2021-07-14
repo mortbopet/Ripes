@@ -65,15 +65,16 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction, &QAction::setEnabled);
 
     // Ensure that changes to the current compiler path will disable C input, if the compiler is invalid
-    connect(&CCManager::get(), &CCManager::ccChanged, [=](auto res) {
+    connect(&CCManager::get(), &CCManager::ccChanged, this, [=](auto res) {
         if (!res.success) {
             m_ui->setAssemblyInput->setChecked(true);
         }
     });
 
     // During processor running, it should not be possible to build the program
-    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, [=] { m_buildAction->setEnabled(false); });
-    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
+    connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, m_buildAction,
+            [=] { m_buildAction->setEnabled(false); });
+    connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, m_buildAction,
             [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &EditTab::updateProgramViewerHighlighting);
@@ -88,7 +89,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     m_ui->splitter->setStretchFactor(2, 0);
 
     // State preservation
-    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, [=] {
+    connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, this, [=] {
         RipesSettings::setValue(RIPES_SETTING_SOURCECODE, m_ui->codeEditor->document()->toPlainText());
         RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
     });

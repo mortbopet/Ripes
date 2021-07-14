@@ -34,7 +34,7 @@ ProcessorHandler::ProcessorHandler() {
     // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
     m_procStateChangeTimer.setSingleShot(true);
     m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
-    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, [=] {
+    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, this, [=] {
         m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
     });
 
@@ -151,11 +151,11 @@ void ProcessorHandler::_run() {
     emit runStarted();
 
     // Start running through the VSRTL Widget interface
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] {
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] {
         emit runFinished();
         _triggerProcStateChangeTimer();
     });
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, [=] { ProcessorStatusManager::clearStatus(); });
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] { ProcessorStatusManager::clearStatus(); });
 
     m_runWatcher.setFuture(QtConcurrent::run([=] {
         auto* vsrtl_proc = dynamic_cast<vsrtl::SimDesign*>(m_currentProcessor.get());

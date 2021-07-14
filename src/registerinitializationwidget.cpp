@@ -11,7 +11,7 @@ std::map<ProcessorID, RegisterInitialization> RegisterInitializationWidget::m_in
 
 RegisterSelectionComboBox::RegisterSelectionComboBox(RegisterInitializationWidget* parent)
     : QComboBox(parent), m_parent(parent) {
-    connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), [=] {
+    connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=] {
         const int oldIdx = m_index;
         m_index = currentData().toUInt();
         emit regIndexChanged(oldIdx, m_index);
