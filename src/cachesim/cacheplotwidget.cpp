@@ -32,6 +32,7 @@ namespace Ripes {
 
 CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CachePlotWidget) {
     m_ui->setupUi(this);
+    m_ui->plotView->setScene(new QGraphicsScene(this));
     setWindowTitle("Cache Access Statistics");
 
     setupEnumCombobox(m_ui->num, s_cacheVariableStrings);

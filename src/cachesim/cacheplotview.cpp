@@ -55,7 +55,7 @@ void MarkerObjects::updateCoordinateValues(const QPointF& pos) {
     coordY->setText(QString("Value: %1").arg(pos.y()));
 }
 
-CachePlotView::CachePlotView(QWidget* parent) : QGraphicsView(new QGraphicsScene, parent) {
+CachePlotView::CachePlotView(QWidget* parent) : QGraphicsView(parent) {
     setMouseTracking(true);
 }
 
