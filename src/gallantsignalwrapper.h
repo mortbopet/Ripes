@@ -13,7 +13,10 @@ namespace Ripes {
  * - Gallant signals are not thread safe. The wrapper will ensure that signals go through the signal/slot system of Qt,
  * which checks for, and handles, cross-thread signals.
  */
-struct GallantSignalWrapperBase {};
+struct GallantSignalWrapperBase {
+    virtual ~GallantSignalWrapperBase(){};
+};
+
 template <typename F, typename D, typename T>
 class GallantSignalWrapper : public GallantSignalWrapperBase {
 public:
