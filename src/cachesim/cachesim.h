@@ -57,6 +57,7 @@ class CacheInterface : public QObject {
     Q_OBJECT
 public:
     CacheInterface(QObject* parent) : QObject(parent) {}
+    virtual ~CacheInterface() {}
 
     /**
      * @brief access
