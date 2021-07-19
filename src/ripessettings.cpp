@@ -52,6 +52,7 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_FOLLOW_EXEC, "true"},
     {RIPES_SETTING_SOURCECODE, ""},
     {RIPES_SETTING_DARKMODE, false},
+    {RIPES_SETTING_SHOWSIGNALS, false},
     {RIPES_SETTING_INPUT_TYPE, static_cast<unsigned>(SourceType::Assembly)},
     {RIPES_SETTING_AUTOCLOCK_INTERVAL, 100},
 

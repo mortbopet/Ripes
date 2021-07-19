@@ -251,8 +251,11 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     // Setup processor-tab only actions
     m_displayValuesAction = new QAction("Show processor signal values", this);
     m_displayValuesAction->setCheckable(true);
-    m_displayValuesAction->setChecked(false);
-    connect(m_displayValuesAction, &QAction::triggered, m_vsrtlWidget, &vsrtl::VSRTLWidget::setOutputPortValuesVisible);
+    connect(m_displayValuesAction, &QAction::toggled, m_vsrtlWidget, [=](bool checked) {
+        RipesSettings::setValue(RIPES_SETTING_SHOWSIGNALS, QVariant::fromValue(checked));
+        m_vsrtlWidget->setOutputPortValuesVisible(checked);
+    });
+    m_displayValuesAction->setChecked(RipesSettings::value(RIPES_SETTING_SHOWSIGNALS).toBool());
 
     const QIcon tableIcon = QIcon(":/icons/spreadsheet.svg");
     m_pipelineDiagramAction = new QAction(tableIcon, "Show pipeline diagram", this);

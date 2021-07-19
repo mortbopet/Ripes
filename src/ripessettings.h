@@ -44,6 +44,7 @@ namespace Ripes {
 #define RIPES_SETTING_INPUT_TYPE ("input_type")
 #define RIPES_SETTING_SOURCECODE ("sourcecode")
 #define RIPES_SETTING_DARKMODE ("darkmode")
+#define RIPES_SETTING_SHOWSIGNALS ("show_signals")
 #define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
 #define RIPES_SETTING_EDITORREGS ("editor_regs")
 
