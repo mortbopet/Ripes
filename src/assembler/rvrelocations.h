@@ -31,6 +31,20 @@ Relocation<Reg_T, Instr_T> rv_pcrel_lo() {
         });
 }
 
+template <typename Reg_T, typename Instr_T>
+Relocation<Reg_T, Instr_T> rv_hi() {
+    return Relocation<Reg_T, Instr_T>("%hi",
+                                      [](const Reg_T val, const Reg_T /*reloc_addr*/) -> HandleRelocationRes<Reg_T> {
+                                          return {val >> 12 & 0xFFFFFF};
+                                      });
+}
+
+template <typename Reg_T, typename Instr_T>
+Relocation<Reg_T, Instr_T> rv_lo() {
+    return Relocation<Reg_T, Instr_T>(
+        "%lo", [](const Reg_T val, const Reg_T /*reloc_addr*/) -> HandleRelocationRes<Reg_T> { return {val & 0xFFF}; });
+}
+
 /** @brief
  * A collection of RISC-V assembler relocations
  */
@@ -41,6 +55,8 @@ RelocationsVec<Reg_T, Instr_T> rvRelocations() {
 
     relocations.push_back(std::make_shared<Relocation<Reg_T, Instr_T>>(rv_pcrel_hi<Reg_T, Instr_T>()));
     relocations.push_back(std::make_shared<Relocation<Reg_T, Instr_T>>(rv_pcrel_lo<Reg_T, Instr_T>()));
+    relocations.push_back(std::make_shared<Relocation<Reg_T, Instr_T>>(rv_hi<Reg_T, Instr_T>()));
+    relocations.push_back(std::make_shared<Relocation<Reg_T, Instr_T>>(rv_lo<Reg_T, Instr_T>()));
 
     return relocations;
 }
