@@ -451,6 +451,11 @@ void CacheGraphic::cacheInvalidated() {
             updateLineReplFields(lineIdx);
         }
     }
+
+    if (auto* _scene = scene()) {
+        // Invalidate the scene rect to resize it to the current dimensions of the CacheGraphic
+        _scene->setSceneRect({});
+    }
 }
 
 void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction& transaction) {

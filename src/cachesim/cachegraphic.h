@@ -15,7 +15,7 @@ class CacheGraphic : public QGraphicsObject {
 public:
     CacheGraphic(CacheSim& cache);
 
-    QRectF boundingRect() const override { return QRectF(); };
+    QRectF boundingRect() const override { return childrenBoundingRect(); };
 
     void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget* = nullptr) override {}
 
