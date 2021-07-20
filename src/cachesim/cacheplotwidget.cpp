@@ -62,7 +62,10 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
     connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles, &QWidget::setEnabled);
-    connect(m_ui->windowed, &QCheckBox::toggled, m_ui->mavgCursor, &QWidget::setEnabled);
+    connect(m_ui->windowed, &QCheckBox::toggled, [=](bool enabled) {
+        m_mavgMarkerAction->setChecked(enabled);
+        m_mavgMarkerAction->setEnabled(enabled);
+    });
 
     connect(m_ui->maxCyclesButton, &QPushButton::clicked, this, [=] {
         QMessageBox::information(
@@ -122,16 +125,14 @@ void CachePlotWidget::setCache(const std::shared_ptr<CacheSim>& cache) {
     m_series = new QLineSeries(m_plot);
     auto defaultPen = m_series->pen();  // Inherit default pen state
     defaultPen.setColor(Colors::FoundersRock);
-    m_series->setName("Total");
     m_series->setPen(defaultPen);
     m_plot->addSeries(m_series);
     m_mavgSeries = new QLineSeries(m_plot);
-    m_mavgSeries->setName("Moving avg.");
     defaultPen.setColor(Colors::Medalist);
     m_mavgSeries->setPen(defaultPen);
     m_plot->addSeries(m_mavgSeries);
     m_plot->createDefaultAxes();
-    m_plot->legend()->hide();
+    m_plot->legend()->show();
     m_ui->plotView->setPlot(m_plot);
     setupPlotActions();
 
@@ -189,10 +190,10 @@ CachePlotWidget::~CachePlotWidget() {
 }
 
 void CachePlotWidget::setupPlotActions() {
-    auto showMarkerFunctor = [=](const QLineSeries* series) {
+    auto showMarkerFunctor = [=](QLineSeries* series, const QString& name) {
         return [=](bool visible) {
             if (visible) {
-                m_ui->plotView->showSeriesMarker(series);
+                m_ui->plotView->showSeriesMarker(series, name);
             } else {
                 m_ui->plotView->hideSeriesMarker(series);
             }
@@ -203,14 +204,14 @@ void CachePlotWidget::setupPlotActions() {
     m_totalMarkerAction->setIcon(QIcon(":/icons/crosshair_blue.svg"));
     m_totalMarkerAction->setCheckable(true);
     m_ui->ratioCursor->setDefaultAction(m_totalMarkerAction);
-    connect(m_totalMarkerAction, &QAction::toggled, showMarkerFunctor(m_series));
+    connect(m_totalMarkerAction, &QAction::toggled, showMarkerFunctor(m_series, "Total"));
     m_totalMarkerAction->setChecked(true);
 
     m_mavgMarkerAction = new QAction("Enable moving average crosshair", this);
     m_mavgMarkerAction->setIcon(QIcon(":/icons/crosshair_gold.svg"));
     m_mavgMarkerAction->setCheckable(true);
     m_ui->mavgCursor->setDefaultAction(m_mavgMarkerAction);
-    connect(m_mavgMarkerAction, &QAction::toggled, showMarkerFunctor(m_mavgSeries));
+    connect(m_mavgMarkerAction, &QAction::toggled, showMarkerFunctor(m_mavgSeries, "Average"));
     m_mavgMarkerAction->setChecked(true);
 
     const QIcon copyIcon = QIcon(":/icons/documents.svg");
@@ -497,15 +498,11 @@ void CachePlotWidget::resetRatioPlot() {
     m_xStep = 1;
     m_lastDiffValid = false;
 
-    m_mavgMarkerAction->setChecked(m_ui->windowed->isChecked() && m_mavgMarkerAction->isChecked());
-
     if (m_ui->windowed->isChecked()) {
         m_mavgData = FixedQueue<double>(m_ui->windowCycles->value());
         m_mavgSeries->setVisible(true);
-        m_plot->legend()->setVisible(true);
     } else {
         m_mavgSeries->setVisible(false);
-        m_plot->legend()->setVisible(false);
     }
 
     updateRatioPlot();

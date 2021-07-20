@@ -29,30 +29,31 @@ void constrainInPlotRange(QPointF& pos, QChart* chart) {
 
 namespace Ripes {
 
-MarkerObjects::MarkerObjects(QObject* parent, QChart* chart, const QLineSeries* _series) : QObject(parent) {
-    marker = new ChartLineMarker(chart, _series);
-    coordX = new QGraphicsSimpleTextItem(chart);
-    coordY = new QGraphicsSimpleTextItem(chart);
-    label = new QGraphicsSimpleTextItem(chart);
-    label->setText(_series->name() + ":");
-    series = _series;
-    coordX->setText("Cycle: ");
-    coordY->setText("Value: ");
-
-    connect(marker, &ChartLineMarker::snappedMarkerChanged,
-            [=] { this->updateCoordinateValues(marker->getMarkerValuePos()); });
+CachePlotMarker::CachePlotMarker(QObject* parent, QChart* chart, QLineSeries* _series, const QString& _name)
+    : QObject(parent), marker(new ChartLineMarker(chart, _series)), series(_series), name(_name) {
+    connect(marker, &ChartLineMarker::snappedMarkerChanged, marker,
+            [=] { this->updateCoordinateValues(marker->getMarkerValuePos(), true, false); });
+    // Update initial marker text
+    updateCoordinateValues(QPointF(), false, false);
 }
 
-void MarkerObjects::clear() {
-    delete marker;
-    delete coordX;
-    delete coordY;
-    delete label;
+void CachePlotMarker::clear() {
+    if (marker != nullptr) {
+        delete marker;
+        marker = nullptr;
+    }
 }
 
-void MarkerObjects::updateCoordinateValues(const QPointF& pos) {
-    coordX->setText(QString("Cycle: %1").arg(pos.x()));
-    coordY->setText(QString("Value: %1").arg(pos.y()));
+void CachePlotMarker::updateCoordinateValues(const QPointF& pos, bool showValue, bool showCycles) {
+    QString info = name;
+
+    if (showValue) {
+        info += QString(": %1").arg(pos.y());
+    }
+    if (showCycles) {
+        info += QString(": %1").arg(pos.x());
+    }
+    series->setName(info);
 }
 
 CachePlotView::CachePlotView(QWidget* parent) : QGraphicsView(parent) {
@@ -72,6 +73,7 @@ void CachePlotView::leaveEvent(QEvent* event) {
     m_mouseInView = false;
     for (const auto& marker : m_markers) {
         marker->marker->hide();
+        marker->updateCoordinateValues(QPointF(), false, false);
     }
     QGraphicsView::leaveEvent(event);
 }
@@ -80,9 +82,6 @@ QPixmap CachePlotView::getPlotPixmap() {
     QVector<QGraphicsItem*> itemsToHide;
     for (const auto& marker : m_markers) {
         itemsToHide << marker->marker;
-        itemsToHide << marker->coordX;
-        itemsToHide << marker->coordY;
-        itemsToHide << marker->label;
     }
 
     for (const auto& i : itemsToHide) {
@@ -100,7 +99,7 @@ QPixmap CachePlotView::getPlotPixmap() {
     return p;
 };
 
-void CachePlotView::hideSeriesMarker(const QLineSeries* series) {
+void CachePlotView::hideSeriesMarker(QLineSeries* series) {
     auto marker =
         std::find_if(m_markers.begin(), m_markers.end(), [=](const auto& mob) { return mob->series == series; });
     Q_ASSERT(marker != m_markers.end());
@@ -109,8 +108,8 @@ void CachePlotView::hideSeriesMarker(const QLineSeries* series) {
     resizeObjects(scene()->sceneRect().size());
 }
 
-void CachePlotView::showSeriesMarker(const QLineSeries* series) {
-    m_markers.emplace_back(std::make_unique<MarkerObjects>(this, m_chart, series));
+void CachePlotView::showSeriesMarker(QLineSeries* series, const QString& name) {
+    m_markers.emplace_back(std::make_unique<CachePlotMarker>(this, m_chart, series, name));
     m_markers.rbegin()->get()->marker->setVisible(m_mouseInView);
     resizeObjects(scene()->sceneRect().size());
 }
@@ -139,13 +138,8 @@ void CachePlotView::setPlot(QChart* chart) {
 }
 
 void CachePlotView::resizeObjects(const QSizeF& size) {
-    int ySpaceForMarkers = 0;
-    if (m_markers.size() > 0) {
-        ySpaceForMarkers = m_markers.size() * m_markers.at(0)->coordX->boundingRect().height();
-    }
-
     scene()->setSceneRect(QRectF(QPoint(0, 0), size));
-    m_chart->resize(size - QSizeF(0, ySpaceForMarkers));
+    m_chart->resize(size);
     for (auto* item : scene()->items()) {
         if (auto* callout = dynamic_cast<Callout*>(item)) {
             callout->updateGeometry();
@@ -154,14 +148,6 @@ void CachePlotView::resizeObjects(const QSizeF& size) {
 
     for (unsigned i = 0; i < m_markers.size(); i++) {
         auto& marker = m_markers.at(i);
-        int yOffset = 0;
-        if (i > 0) {
-            yOffset = m_markers.at(i - 1)->coordX->boundingRect().height() * i;
-        }
-        const int y = yOffset + m_chart->size().height() - 20;
-        marker->label->setPos(m_chart->size().width() / 4 - marker->label->boundingRect().width(), y);
-        marker->coordX->setPos(m_chart->size().width() * 0.33, y);
-        marker->coordY->setPos(m_chart->size().width() * 0.55, y);
         marker->marker->updateLines();
     }
 }
