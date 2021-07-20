@@ -23,13 +23,11 @@ class Relocation {
     static_assert(std::numeric_limits<Instr_T>::is_integer, "Instruction type must be integer");
 
 public:
-    using RelocationHandler = std::function<HandleRelocationRes<Reg_T>(const Reg_T symbol_addr, const Reg_T reloc_pos)>;
+    using RelocationHandler = std::function<HandleRelocationRes<Reg_T>(const Reg_T value, const Reg_T reloc_pos)>;
     Relocation(const QString& relocation, const RelocationHandler& handler)
         : m_relocation(relocation), m_handler(handler) {}
 
-    HandleRelocationRes<Reg_T> handle(const Reg_T symbol_addr, const Reg_T reloc_pos) {
-        return m_handler(symbol_addr, reloc_pos);
-    }
+    HandleRelocationRes<Reg_T> handle(const Reg_T value, const Reg_T reloc_pos) { return m_handler(value, reloc_pos); }
     const QString& name() const { return m_relocation; }
 
 private:
