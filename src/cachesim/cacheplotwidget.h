@@ -70,6 +70,7 @@ private:
     void copyPlotDataToClipboard() const;
     void savePlot();
     void updateRatioPlot();
+    void updatePlotAxes();
     void updateAllowedRange(const RangeChangeSource src);
     void updatePlotWarningButton();
 
@@ -84,7 +85,7 @@ private:
     QLineSeries* m_series = nullptr;
     double m_maxY = -DBL_MAX;
     double m_minY = DBL_MAX;
-    unsigned m_lastCyclePlotted = 0;
+    int64_t m_lastCyclePlotted = 0;
     double m_xStep = 1.0;
     static constexpr int s_resamplingRatio = 2;
 
