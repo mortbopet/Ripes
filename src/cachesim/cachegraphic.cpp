@@ -116,7 +116,16 @@ QString CacheGraphic::addressString() const {
 }
 
 void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
-    CacheWay& way = m_cacheTextItems.at(lineIdx).at(wayIdx);
+    const auto& it = m_cacheTextItems.find(lineIdx);
+    if (it == m_cacheTextItems.end()) {
+        return;
+    }
+    const auto& wayIt = it->second.find(wayIdx);
+    if (wayIt == it->second.end()) {
+        return;
+    }
+    CacheWay& way = wayIt->second;
+
     CacheSim::CacheWay simWay = CacheSim::CacheWay();
 
     if (auto* cacheLine = m_cache.getLine(lineIdx)) {
@@ -461,7 +470,16 @@ void CacheGraphic::cacheInvalidated() {
 void CacheGraphic::updateAddressing(bool valid, const CacheSim::CacheTransaction& transaction) {
     if (m_indexingVisible) {
         if (valid) {
-            const CacheWay& way = m_cacheTextItems.at(transaction.index.line).at(transaction.index.way);
+            const auto& it = m_cacheTextItems.find(transaction.index.line);
+            if (it == m_cacheTextItems.end()) {
+                return;
+            }
+            const auto& wayIt = it->second.find(transaction.index.way);
+            if (wayIt == it->second.end()) {
+                return;
+            }
+
+            const CacheWay& way = wayIt->second;
             m_addressTextItem->setText(QString::number(transaction.address, 2).rightJustified(32, '0'));
 
             if (way.tag) {
