@@ -88,9 +88,9 @@ ProcessorRegistry::ProcessorRegistry() {
     // RISC-V 6-stage dual issue
     layouts = {{"Extended",
                 ":/layouts/RISC-V/rv6s_dual/rv6s_dual_extended_layout.json",
-                {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0}, QPointF{0.22, 1}, QPointF{0.35, 0},
-                  QPointF{0.35, 1}, QPointF{0.54, 0}, QPointF{0.54, 1}, QPointF{0.78, 0}, QPointF{0.78, 1},
-                  QPointF{0.87, 0}, QPointF{0.87, 1}}}}};
+                {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0}, QPointF{0.22, 1}, QPointF{0.40, 0},
+                  QPointF{0.40, 1}, QPointF{0.59, 0}, QPointF{0.59, 1}, QPointF{0.80, 0}, QPointF{0.80, 1},
+                  QPointF{0.90, 0}, QPointF{0.90, 1}}}}};
     defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
     addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint32_t>>(
         ProcessorID::RV32_6S_DUAL, "6-stage dual-issue processor",
