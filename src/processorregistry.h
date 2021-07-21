@@ -51,6 +51,7 @@ public:
     ProcInfoBase(ProcessorID _id, const QString& _name, const QString& _desc, const std::vector<Layout>& _layouts,
                  const RegisterInitialization& _defaultRegVals = {})
         : id(_id), name(_name), description(_desc), defaultRegisterVals(_defaultRegVals), layouts(_layouts) {}
+    virtual ~ProcInfoBase() = default;
     ProcessorID id;
     QString name;
     QString description;
