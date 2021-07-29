@@ -25,6 +25,8 @@ public:
                     return op1.uValue() + op2.uValue();
                 case ALUOp::SUB:
                     return op1.uValue() - op2.uValue();
+                case ALUOp::MULW:
+                    return VT_U(signextend<32>(static_cast<int32_t>(op1.uValue()) * op2.uValue()));
                 case ALUOp::MUL:
                     return VT_U(op1.sValue() * op2.sValue());
                 case ALUOp::MULH: {
