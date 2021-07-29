@@ -18,9 +18,10 @@ For bugs or issues, please report these at the [issues page](https://github.com/
 
 ## Usage
 Ripes may be used to explore concepts such as:
-- How machine code is executed on a variety of microarchitectures
+- How machine (and C) code is executed on a variety of microarchitectures (RV32IM/RV64IM based)
 - How different cache designs influence performance
 - How assembly code is assembled to executable machine code
+- How a processor interacts with memory-mapped I/O
 
 If this is your first time using Ripes, please refer to the [introduction](https://github.com/mortbopet/Ripes/wiki/Ripes-Introduction).  
 For further information, please refer to the [Ripes wiki](https://github.com/mortbopet/Ripes/wiki).
