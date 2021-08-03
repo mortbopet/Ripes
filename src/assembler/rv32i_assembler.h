@@ -71,15 +71,15 @@ void RV32I_Assembler::extI<Reg__T, Instr__T>::enable(const ISAInfoBase* isa, _In
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
-        Token("call"), {RegTok, ImmTok}, _PseudoExpandFunc(line) {
-            return LineTokensVec{LineTokens() << Token("auipc") << Token("x6") << line.tokens.at(1),
-                                 LineTokens() << Token("jalr") << Token("x1") << Token("x6") << line.tokens.at(1)};
+        Token("call"), {ImmTok}, _PseudoExpandFunc(line) {
+            return LineTokensVec{LineTokens() << Token("auipc") << Token("x1") << Token(line.tokens.at(1), "%pcrel_hi"),
+                                 LineTokens() << Token("jalr") << Token("x1") << Token("x1") << Token(QString("(%1 + 4)").arg(line.tokens.at(1)), "%pcrel_lo")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
-        Token("tail"), {RegTok, ImmTok}, _PseudoExpandFunc(line) {
-            return LineTokensVec{LineTokens() << Token("auipc") << Token("x6") << line.tokens.at(1),
-                                 LineTokens() << Token("jalr") << Token("x0") << Token("x6") << line.tokens.at(1)};
+        Token("tail"), {ImmTok}, _PseudoExpandFunc(line) {
+            return LineTokensVec{LineTokens() << Token("auipc") << Token("x6") << Token(line.tokens.at(1), "%pcrel_hi"),
+                                 LineTokens() << Token("jalr") << Token("x0") << Token("x6") << Token(QString("(%1 + 4)").arg(line.tokens.at(1)), "%pcrel_lo")};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
