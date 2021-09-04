@@ -236,6 +236,7 @@ private:
      * Called whenever one of the cache parameters changes. Emits signal configurationChanged after updating.
      */
     void updateConfiguration();
+    void recalculateMasks();
 
     /**
      * @brief reassociateMemory
@@ -251,9 +252,11 @@ private:
     unsigned m_lineMask = -1;
     unsigned m_tagMask = -1;
 
-    int m_blocks = 2;  // Some power of 2
-    int m_lines = 5;   // Some power of 2
-    int m_ways = 0;    // Some power of 2
+    int m_blocks = 2;            // Some power of 2
+    int m_lines = 5;             // Some power of 2
+    int m_ways = 0;              // Some power of 2
+    unsigned m_byteOffset = -1;  // # of bits to represent the # of bytes in a word
+    unsigned m_wordBits = -1;
 
     /**
      * @brief m_cacheLines

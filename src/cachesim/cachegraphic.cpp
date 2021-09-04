@@ -132,6 +132,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
         simWay = cacheLine->at(wayIdx);
     };
 
+    const unsigned bytes = ProcessorHandler::currentISA()->bytes();
     // ======================== Update block text fields ======================
     if (simWay.valid) {
         for (int i = 0; i < m_cache.getBlocks(); i++) {
@@ -150,7 +151,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
 
             // Update block text
             const AInt addressForBlock = m_cache.buildAddress(simWay.tag, lineIdx, i);
-            const auto data = ProcessorHandler::getMemory().readMemConst(addressForBlock);
+            const auto data = ProcessorHandler::getMemory().readMemConst(addressForBlock, bytes);
             const QString text = encodeRadixValue(data, Radix::Hex, ProcessorHandler::currentISA()->bytes());
             blockTextItem->setText(text);
             QString tooltip =
@@ -303,7 +304,7 @@ void CacheGraphic::drawIndexingItems() {
         drawText(nextBitText, nextBitsPos - QPointF{m_fm.width(nextBitText), smallerFontMetric.height()}, &smallerFont);
     };
 
-    drawNextBitPos(2);  // Always start 2 bits in due to word-indexing
+    drawNextBitPos(log2Ceil(ProcessorHandler::currentISA()->bytes()));  // Account for word indexing
     if (m_cache.getBlockBits() > 0) {
         m_blockIndexStartPoint = nextBitsPos;
         drawNextBitPos(m_cache.getBlockBits());

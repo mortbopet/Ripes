@@ -329,8 +329,9 @@ AInt ProcessorHandler::_getTextStart() const {
 
 QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
     if (m_program) {
+        const unsigned instrBytes = _currentISA()->instrBytes();
         return m_currentAssembler
-            ->disassemble(m_currentProcessor->getMemory().readMem(addr), m_program.get()->symbols, addr)
+            ->disassemble(m_currentProcessor->getMemory().readMem(addr, instrBytes), m_program.get()->symbols, addr)
             .first;
     } else {
         return QString();
