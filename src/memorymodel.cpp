@@ -174,8 +174,7 @@ QVariant MemoryModel::byteData(AInt address, AInt byteOffset, bool validAddress)
         // the memory model, containing X's.
         return "X";
     } else {
-        VInt value = ProcessorHandler::getMemory().readMemConst(address);
-        value = value >> (byteOffset * 8);
+        VInt value = ProcessorHandler::getMemory().readMemConst(address + byteOffset, 1);
         return encodeRadixValue(value & 0xFF, m_radix, 1);
     }
 }
@@ -188,8 +187,8 @@ QVariant MemoryModel::wordData(AInt address, bool validAddress) const {
         // the memory model, containing X's.
         return "X";
     } else {
-        VInt value = ProcessorHandler::getMemory().readMemConst(address);
-        return encodeRadixValue(value, m_radix, ProcessorHandler::currentISA()->bytes());
+        unsigned bytes = ProcessorHandler::currentISA()->bytes();
+        return encodeRadixValue(ProcessorHandler::getMemory().readMemConst(address, bytes), m_radix, bytes);
     }
 }
 
