@@ -48,6 +48,13 @@ ProcessorHandler::ProcessorHandler() {
         m_enqueueStateChangeLock.unlock();
     });
 
+    // Connect the runwatcher finished signals
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] {
+        emit runFinished();
+        _triggerProcStateChangeTimer();
+    });
+    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] { ProcessorStatusManager::clearStatus(); });
+
     // Connect relevant settings changes to VSRTL
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto& size) { m_currentProcessor->setMaxReverseCycles(size.toUInt()); });
@@ -151,12 +158,6 @@ void ProcessorHandler::_run() {
     emit runStarted();
 
     // Start running through the VSRTL Widget interface
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] {
-        emit runFinished();
-        _triggerProcStateChangeTimer();
-    });
-    connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] { ProcessorStatusManager::clearStatus(); });
-
     m_runWatcher.setFuture(QtConcurrent::run([=] {
         auto* vsrtl_proc = dynamic_cast<vsrtl::SimDesign*>(m_currentProcessor.get());
 
