@@ -260,6 +260,6 @@ private:
      * Semaphore handling locking simulator thread execution whilst trapping to the execution environment.
      */
     QSemaphore m_sem;
-    std::vector<std::unique_ptr<GallantSignalWrapperBase>> m_signalWrappers;
+    std::vector<std::unique_ptr<vsrtl::GallantSignalWrapperBase>> m_signalWrappers;
 };
 }  // namespace Ripes

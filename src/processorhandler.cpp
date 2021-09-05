@@ -271,7 +271,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
 
     // Connect wrappers for making processor signal emissions thread safe.
     m_signalWrappers.clear();
-    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+    m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(new vsrtl::GallantSignalWrapper(
         this,
         [=] {
             if (!_isRunning()) {
@@ -285,7 +285,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     // cross-thread and out of order.
     m_currentProcessor->processorWasClocked.Connect(this, &ProcessorHandler::processorClocked);
 
-    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+    m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(new vsrtl::GallantSignalWrapper(
         this,
         [=] {
             emit processorReset();
@@ -293,7 +293,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
         },
         m_currentProcessor->processorWasReset)));
 
-    m_signalWrappers.push_back(std::unique_ptr<GallantSignalWrapperBase>(new GallantSignalWrapper(
+    m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(new vsrtl::GallantSignalWrapper(
         this,
         [=] {
             emit processorReversed();
