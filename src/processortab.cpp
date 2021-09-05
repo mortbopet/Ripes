@@ -481,6 +481,7 @@ void ProcessorTab::setInstructionViewCenterAddr(AInt address) {
 void ProcessorTab::runFinished() {
     pause();
     ProcessorHandler::checkProcessorFinished();
+    m_vsrtlWidget->sync();
     m_statUpdateTimer->stop();
 }
 
