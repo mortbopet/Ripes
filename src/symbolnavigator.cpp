@@ -18,7 +18,7 @@ SymbolNavigator::SymbolNavigator(const ReverseSymbolMap& symbolmap, QWidget* par
     m_ui->symbolTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->symbolTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_ui->symbolTable->verticalHeader()->hide();
-    m_ui->symbolTable->setHorizontalHeaderLabels({"Address", "Label"});
+    m_ui->symbolTable->setHorizontalHeaderLabels({"Address", "Symbol"});
     m_ui->symbolTable->horizontalHeader()->setStretchLastSection(true);
     m_ui->symbolTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Go to symbol");
