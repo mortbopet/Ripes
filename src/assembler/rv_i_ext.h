@@ -15,14 +15,14 @@ namespace Assembler {
  * the assembler.
  * The extension enablers are templated to allow for sharing implementations between 32- and 64-bit variants.
  */
-template <typename Reg__T, typename Instr__T>
+template <typename Reg__T>
 struct RV_I {
     enum class Options {
         shifts64BitVariant,  // appends 'w' to 32-bit shift operations, for use in the 64-bit RISC-V ISA
         LI64BitVariant       // Modifies LI to be able to emit 64-bit constants
     };
 
-    ASSEMBLER_TYPES(Reg__T, Instr__T)
+    ASSEMBLER_TYPES(Reg__T)
     static void enable(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions,
                        const std::set<Options>& options = {}) {
         // Pseudo-op functors
@@ -243,14 +243,14 @@ struct RV_I {
         // Assembler functors
 
         instructions.push_back(std::shared_ptr<_Instruction>(
-            new _Instruction(_Opcode(Token("ecall"), {_OpPart(RVISA::Opcode::ECALL, 0, 6), _OpPart(0, 7, 31)}), {})));
+            new _Instruction(_Opcode(Token("ecall"), {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}), {})));
 
         instructions.push_back(UType(Token("lui"), RVISA::Opcode::LUI));
 
         instructions.push_back(std::shared_ptr<_Instruction>(
-            new _Instruction(_Opcode(Token("auipc"), {_OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
+            new _Instruction(_Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
                              {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),
-                              std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex, std::vector{_ImmPart(0, 12, 31)},
+                              std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex, std::vector{ImmPart(0, 12, 31)},
                                                      _Imm::SymbolType::Absolute)})));
 
         instructions.push_back(JType(Token("jal"), RVISA::Opcode::JAL));

@@ -17,7 +17,7 @@ class AssemblerBase;
 template <typename Reg_T>
 using HandleRelocationRes = std::variant<Error, Reg_T>;
 
-template <typename Reg_T, typename Instr_T>
+template <typename Reg_T>
 class Relocation {
     static_assert(std::numeric_limits<Reg_T>::is_integer, "Register type must be integer");
     static_assert(std::numeric_limits<Instr_T>::is_integer, "Instruction type must be integer");
@@ -35,11 +35,11 @@ private:
     RelocationHandler m_handler;
 };
 
-template <typename Reg_T, typename Instr_T>
-using RelocationsMap = std::map<QString, std::shared_ptr<Relocation<Reg_T, Instr_T>>>;
+template <typename Reg_T>
+using RelocationsMap = std::map<QString, std::shared_ptr<Relocation<Reg_T>>>;
 
-template <typename Reg_T, typename Instr_T>
-using RelocationsVec = std::vector<std::shared_ptr<Relocation<Reg_T, Instr_T>>>;
+template <typename Reg_T>
+using RelocationsVec = std::vector<std::shared_ptr<Relocation<Reg_T>>>;
 
 }  // namespace Assembler
 }  // namespace Ripes

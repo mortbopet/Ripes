@@ -6,19 +6,15 @@
 #include "assembler.h"
 #include "rvassembler_common.h"
 
-#include "rv_i_ext.h"
-#include "rv_m_ext.h"
-
 namespace Ripes {
 namespace Assembler {
 
-class RV32I_Assembler : public QObject, public Assembler<uint32_t, uint32_t> {
+class RV32I_Assembler : public QObject, public Assembler<uint32_t> {
     Q_OBJECT
 
 public:
     using Reg_T = uint32_t;
-    using Instr_T = uint32_t;
-    ASSEMBLER_TYPES(Reg_T, Instr_T)
+    ASSEMBLER_TYPES(Reg_T)
 
     RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa);
 

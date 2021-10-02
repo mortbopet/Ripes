@@ -5,18 +5,14 @@
 #include <QObject>
 #include <functional>
 
-#include "rv_i_ext.h"
-#include "rv_m_ext.h"
-
 namespace Ripes {
 namespace Assembler {
 
-class RV64I_Assembler : public QObject, public Assembler<uint64_t, uint32_t> {
+class RV64I_Assembler : public QObject, public Assembler<uint64_t> {
     Q_OBJECT
 
     using Reg_T = uint64_t;
-    using Instr_T = uint32_t;
-    ASSEMBLER_TYPES(Reg_T, Instr_T)
+    ASSEMBLER_TYPES(Reg_T)
 
 public:
     RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa);

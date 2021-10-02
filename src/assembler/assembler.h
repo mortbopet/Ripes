@@ -53,24 +53,31 @@ namespace Assembler {
     }
 
 // Macro for defining type aliases for register/instruction width specific types of the assembler types
-#define ASSEMBLER_TYPES(_Reg_T, _Instr_T)                           \
-    using _InstrVec = InstrVec<_Reg_T, _Instr_T>;                   \
-    using _InstrMap = InstrMap<_Reg_T, _Instr_T>;                   \
-    using _PseudoInstrVec = PseudoInstrVec<_Reg_T, _Instr_T>;       \
-    using _PseudoInstrMap = PseudoInstrMap<_Reg_T, _Instr_T>;       \
-    using _Instruction = Instruction<_Reg_T, _Instr_T>;             \
-    using _PseudoInstruction = PseudoInstruction<_Reg_T, _Instr_T>; \
-    using _OpPart = OpPart<_Instr_T>;                               \
-    using _Opcode = Opcode<_Reg_T, _Instr_T>;                       \
-    using _Imm = Imm<_Reg_T, _Instr_T>;                             \
-    using _ImmPart = ImmPart<_Instr_T>;                             \
-    using _Reg = Reg<_Reg_T, _Instr_T>;                             \
-    using _Matcher = Matcher<_Reg_T, _Instr_T>;                     \
-    using _FieldLinkRequest = FieldLinkRequest<_Reg_T, _Instr_T>;   \
-    using _RelocationsVec = RelocationsVec<_Reg_T, _Instr_T>;       \
-    using _RelocationsMap = RelocationsMap<_Reg_T, _Instr_T>;       \
-    using _AssembleRes = AssembleRes<_Reg_T, _Instr_T>;             \
-    using _InstrRes = InstrRes<_Reg_T, _Instr_T>;
+#define ASSEMBLER_TYPES(_Reg_T)                           \
+    using _InstrVec = InstrVec<_Reg_T>;                   \
+    using _InstrMap = InstrMap<_Reg_T>;                   \
+    using _PseudoInstrVec = PseudoInstrVec<_Reg_T>;       \
+    using _PseudoInstrMap = PseudoInstrMap<_Reg_T>;       \
+    using _Instruction = Instruction<_Reg_T>;             \
+    using _PseudoInstruction = PseudoInstruction<_Reg_T>; \
+    using _Opcode = Opcode<_Reg_T>;                       \
+    using _Imm = Imm<_Reg_T>;                             \
+    using _Reg = Reg<_Reg_T>;                             \
+    using _Matcher = Matcher<_Reg_T>;                     \
+    using _FieldLinkRequest = FieldLinkRequest<_Reg_T>;   \
+    using _RelocationsVec = RelocationsVec<_Reg_T>;       \
+    using _RelocationsMap = RelocationsMap<_Reg_T>;       \
+    using _AssembleRes = AssembleRes<_Reg_T>;             \
+    using _InstrRes = InstrRes<_Reg_T>;
+
+struct OpDisassembleResult {
+    /// Stringified representation of a disassembled machine word.
+    QString repr;
+    /// Number of bytes disassembled.
+    unsigned bytesDisassembled;
+    /// Optional error that occured during disassembly.
+    std::optional<Error> err;
+};
 
 class AssemblerBase {
 public:
@@ -92,8 +99,8 @@ public:
     }
 
     virtual DisassembleResult disassemble(const Program& program, const AInt baseAddress = 0) const = 0;
-    virtual std::pair<QString, std::optional<Error>> disassemble(const VInt word, const ReverseSymbolMap& symbols,
-                                                                 const AInt baseAddress = 0) const = 0;
+    virtual OpDisassembleResult disassemble(const VInt word, const ReverseSymbolMap& symbols,
+                                            const AInt baseAddress = 0) const = 0;
 
     virtual std::set<QString> getOpcodes() const = 0;
 
@@ -253,12 +260,12 @@ protected:
  *  Reg_T: type equal in size to the register width of the target
  *  Instr_T: type equal in size to the instruction width of the target
  */
-template <typename Reg_T, typename Instr_T>
+template <typename Reg_T>
 class Assembler : public AssemblerBase {
     static_assert(std::numeric_limits<Reg_T>::is_integer, "Register type must be integer");
     static_assert(std::numeric_limits<Instr_T>::is_integer, "Instruction type must be integer");
 
-    ASSEMBLER_TYPES(Reg_T, Instr_T)
+    ASSEMBLER_TYPES(Reg_T)
 
 public:
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
@@ -295,33 +302,49 @@ public:
     }
 
     DisassembleResult disassemble(const Program& program, const AInt baseAddress = 0) const override {
-        size_t i = 0;
+        VInt progByteIter = 0;
         DisassembleResult res;
         auto& programBits = program.getSection(".text")->data;
-        while ((i + sizeof(Instr_T)) <= static_cast<VInt>(programBits.size())) {
-            const Instr_T instructionWord = *reinterpret_cast<const Instr_T*>(programBits.data() + i);
-            auto disres = disassemble(instructionWord, program.symbols, baseAddress + i);
-            if (disres.second) {
-                res.errors.push_back(disres.second.value());
+        bool cont = true;
+        while (cont) {
+            const Instr_T instructionWord = *reinterpret_cast<const Instr_T*>(programBits.data() + progByteIter);
+            auto disres = disassemble(instructionWord, program.symbols, baseAddress + progByteIter);
+            res.program << disres.repr;
+            if (disres.err.has_value()) {
+                res.errors.push_back(disres.err.value());
+                /// Default to 4-byte increments.
+                /// @todo: this should rather be "to the next aligned boundary", with alignment beying defined by the
+                /// ISA.
+                progByteIter += 4;
+            } else {
+                /// Increment byte iterator by # of bytes disassembled. This is needed for ISAs with variable
+                /// instruction width.
+                progByteIter += disres.bytesDisassembled;
             }
-            res.program << disres.first;
-            i += sizeof(Instr_T);
+            cont = progByteIter <= static_cast<VInt>(programBits.size());
         }
         return res;
     }
 
-    std::pair<QString, std::optional<Error>> disassemble(const VInt word, const ReverseSymbolMap& symbols,
-                                                         const AInt baseAddress = 0) const override {
+    OpDisassembleResult disassemble(const VInt word, const ReverseSymbolMap& symbols,
+                                    const AInt baseAddress = 0) const override {
+        OpDisassembleResult opres;
+
         auto match = m_matcher->matchInstruction(word);
         if (auto* error = std::get_if<Error>(&match)) {
-            return {"unknown instruction", *error};
+            opres.repr = "Unknown instruction";
+            opres.err = *error;
+            return opres;
         }
 
         // Got match, disassemble
-        auto tokensVar = std::get<const _Instruction*>(match)->disassemble(word, baseAddress, symbols);
+        auto instruction = std::get<const _Instruction*>(match);
+        auto tokensVar = instruction->disassemble(word, baseAddress, symbols);
         if (auto* error = std::get_if<Error>(&match)) {
             // Error during disassembling
-            return {"invalid instruction", *error};
+            opres.repr = "Invalid instruction";
+            opres.err = *error;
+            return opres;
         }
 
         // Join tokens
@@ -331,8 +354,9 @@ public:
             joinedLine += token + " ";
         }
         joinedLine.chop(1);  // remove trailing ' '
-
-        return {joinedLine, {}};
+        opres.repr = joinedLine;
+        opres.bytesDisassembled = instruction->size();
+        return opres;
     }
 
     const _Matcher& getMatcher() { return *m_matcher; }
@@ -528,8 +552,10 @@ protected:
             currentSection = &program.sections.at(m_currentSection);
             addr_offset = currentSection->data.size();
             if (!wasDirective) {
-                std::weak_ptr<_Instruction> assembledWith;
+                /// Maintain a pointer to the instruction that was assembled.
+                std::shared_ptr<_Instruction> assembledWith;
                 runOperation(machineCode, _InstrRes, assembleInstruction, line, assembledWith);
+                assert(assembledWith && "Expected the assembler instruction to be set");
 
                 if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
                     LinkRequest req;
@@ -540,7 +566,7 @@ protected:
                     needsLinkage.push_back(req);
                 }
                 currentSection->data.append(
-                    QByteArray(reinterpret_cast<char*>(&machineCode.instruction), sizeof(machineCode.instruction)));
+                    QByteArray(reinterpret_cast<char*>(&machineCode.instruction), assembledWith->size()));
 
             }
             // This was a directive; check if any bytes needs to be appended to the segment
@@ -657,16 +683,17 @@ protected:
     }
 
     virtual _AssembleRes assembleInstruction(const TokenizedSrcLine& line,
-                                             std::weak_ptr<_Instruction>& assembledWith) const {
+                                             std::shared_ptr<_Instruction>& assembledWith) const {
         if (line.tokens.empty()) {
             return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
         }
         const auto& opcode = line.tokens.at(0);
-        if (m_instructionMap.count(opcode) == 0) {
+        auto instrIt = m_instructionMap.find(opcode);
+        if (instrIt == m_instructionMap.end()) {
             return {Error(line.sourceLine, "Unknown opcode '" + opcode + "'")};
         }
-        assembledWith = m_instructionMap.at(opcode);
-        return m_instructionMap.at(opcode)->assemble(line);
+        assembledWith = instrIt->second;
+        return assembledWith->assemble(line);
     }
 
     void setPseudoInstructions(_PseudoInstrVec& pseudoInstructions) {

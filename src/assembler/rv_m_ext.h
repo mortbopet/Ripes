@@ -15,9 +15,9 @@ namespace Assembler {
  * the assembler.
  * The extension enablers are templated to allow for sharing implementations between 32- and 64-bit variants.
  */
-template <typename Reg__T, typename Instr__T>
+template <typename Reg__T>
 struct RV_M {
-    ASSEMBLER_TYPES(Reg__T, Instr__T)
+    ASSEMBLER_TYPES(Reg__T)
     static void enable(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& /*pseudoInstructions*/) {
         // Pseudo-op functors
 

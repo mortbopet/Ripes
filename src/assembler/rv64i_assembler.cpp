@@ -8,14 +8,17 @@
 #include <QByteArray>
 #include <algorithm>
 
+#include "rv_i_ext.h"
+#include "rv_m_ext.h"
+
 namespace Ripes {
 namespace Assembler {
 
-RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa) : Assembler<Reg_T, Instr_T>(isa) {
+RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa) : Assembler<Reg_T>(isa) {
     auto [instrs, pseudos] = initInstructions(isa);
 
     auto directives = gnuDirectives();
-    auto relocations = rvRelocations<Reg_T, Instr_T>();
+    auto relocations = rvRelocations<Reg_T>();
     initialize(instrs, pseudos, directives, relocations);
 
     // Initialize segment pointers and monitor settings changes to segment pointers
@@ -49,9 +52,8 @@ RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I>* isa) const {
 }
 
 void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions) {
-    RV_I<Reg_T, Instr_T>::enable(
-        isa, instructions, pseudoInstructions,
-        {RV_I<Reg_T, Instr_T>::Options::shifts64BitVariant, RV_I<Reg_T, Instr_T>::Options::LI64BitVariant});
+    RV_I<Reg_T>::enable(isa, instructions, pseudoInstructions,
+                        {RV_I<Reg_T>::Options::shifts64BitVariant, RV_I<Reg_T>::Options::LI64BitVariant});
 
     instructions.push_back(IType32(Token("addiw"), 0b000));
 
@@ -83,7 +85,7 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase* isa, _InstrVec& instructions
 }
 
 void RV64I_Assembler::enableExtM(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions) {
-    RV_M<Reg_T, Instr_T>::enable(isa, instructions, pseudoInstructions);
+    RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
 
     instructions.push_back(RType32(Token("mulw"), 0b000, 0b0000001));
     instructions.push_back(RType32(Token("divw"), 0b100, 0b0000001));

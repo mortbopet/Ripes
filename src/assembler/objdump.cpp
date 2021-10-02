@@ -6,12 +6,17 @@
 namespace Ripes {
 namespace Assembler {
 
-namespace {
-void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets,
-                               const QString& symbol = QString()) {
+static void incrementAddressOffsetMap(const QString& text, AddrOffsetMap& map, int& offsets,
+                                      const QString& symbol = QString()) {
     map[text.count('\n')] = {offsets++, symbol};
 }
-}  // namespace
+
+/**
+ * Stringifer
+ * A stringifier is a function that takes a vector of bytes (representing an instruction word) alongside a base
+ * address, and returns a string representation of the data.
+ */
+using Stringifier = std::function<OpDisassembleResult(const std::vector<char>&, AInt)>;
 
 QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier stringifier, AddrOffsetMap& addrOffsetMap) {
     if (auto sp = program.lock()) {
@@ -22,15 +27,16 @@ QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier strin
         QString out;
         auto dataStream = QDataStream(textSection->data);
         std::vector<char> buffer;
-        const unsigned stride = ProcessorHandler::currentISA()->instrBytes();
         const unsigned regBytes = ProcessorHandler::currentISA()->bytes();
-        buffer.resize(stride);
 
         int infoOffsets = 0;
 
-        for (AInt addr = textSection->address; addr < textSection->address + textSection->data.length();
-             addr += stride) {
-            dataStream.readRawData(buffer.data(), stride);
+        AInt addr = textSection->address;
+        while (addr < textSection->address + textSection->data.length()) {
+            if (buffer.empty()) {
+                buffer.resize(sizeof(Instr_T));
+                dataStream.readRawData(buffer.data(), sizeof(Instr_T));
+            }
 
             // symbol label
             if (sp->symbols.count(addr)) {
@@ -46,15 +52,19 @@ QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier strin
             // Instruction address
             out += "\t" + QString::number(addr, 16) + ":\t\t";
 
+            // Stringified instruction
+            auto disres = stringifier(buffer, addr);
+
             // Instruction word
             QString wordString;
-            for (auto byte : buffer) {
-                wordString.prepend(QString().setNum(static_cast<uint8_t>(byte), 16).rightJustified(2, '0'));
+            for (size_t i = 0; i < disres.bytesDisassembled; ++i) {
+                auto it = buffer.begin();
+                wordString.prepend(QString().setNum(static_cast<uint8_t>(*it), 16).rightJustified(2, '0'));
+                buffer.erase(it);
             }
             out += wordString + "\t\t";
-
-            // Stringified instruction
-            out += stringifier(buffer, addr) + "\n";
+            out += disres.repr + "\n";
+            addr += disres.bytesDisassembled;
         }
         return out;
     }
@@ -71,20 +81,25 @@ QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& ad
             for (unsigned i = 0; i < instrBytes; i++) {
                 instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
             }
-            return assembler->disassemble(instr, program->symbols, address).first;
+            return assembler->disassemble(instr, program->symbols, address);
         },
         addrOffsetMap);
 }
 
 QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& addrOffsetMap) {
+    auto assembler = ProcessorHandler::getAssembler();
+    const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
     return stringifyProgram(
         program,
-        [](const std::vector<char>& buffer, AInt) {
+        [&](const std::vector<char>& buffer, AInt) {
+            OpDisassembleResult disres;
             QString binaryString;
-            for (auto byte : buffer) {
-                binaryString.prepend(QString().setNum(static_cast<uint8_t>(byte), 2).rightJustified(8, '0'));
+            assert(buffer.size() >= instrBytes);
+            for (size_t i = 0; i < instrBytes; i++) {
+                disres.repr.prepend(QString().setNum(static_cast<uint8_t>(buffer[i]), 2).rightJustified(8, '0'));
             }
-            return binaryString;
+            disres.bytesDisassembled = instrBytes;
+            return disres;
         },
         addrOffsetMap);
 }
