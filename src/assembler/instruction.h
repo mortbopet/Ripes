@@ -17,6 +17,7 @@
 namespace Ripes {
 namespace Assembler {
 
+/// start/stop values for bitranges are inclusive..
 struct BitRange {
     constexpr BitRange(unsigned _start, unsigned _stop, unsigned _N = 32) : start(_start), stop(_stop), N(_N) {
         assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
@@ -31,6 +32,20 @@ struct BitRange {
 
     bool operator==(const BitRange& other) const { return this->start == other.start && this->stop == other.stop; }
     bool operator<(const BitRange& other) const { return this->start < other.start; }
+};
+
+/** @brief OpPart
+ * A segment of an operation-identifying field of an instruction.
+ */
+struct OpPart {
+    OpPart(unsigned _value, BitRange _range) : value(_value), range(_range) {}
+    OpPart(unsigned _value, unsigned _start, unsigned _stop) : value(_value), range({_start, _stop}) {}
+    bool matches(Instr_T instruction) const { return range.decode(instruction) == value; }
+    const unsigned value;
+    const BitRange range;
+
+    bool operator==(const OpPart& other) const { return this->value == other.value && this->range == other.range; }
+    bool operator<(const OpPart& other) const { return this->range < other.range || this->value < other.value; }
 };
 
 template <typename Reg_T>
@@ -52,6 +67,8 @@ struct Field {
     virtual std::optional<Error> decode(const Instr_T instruction, const Reg_T address,
                                         const ReverseSymbolMap& symbolMap, LineTokens& line) const = 0;
 
+    /// Return the set of bitranges which consitutes this field.
+    virtual std::vector<BitRange> bitRanges() const = 0;
     const unsigned tokenIndex;
 };
 
@@ -70,20 +87,6 @@ using AssembleRes = std::variant<Error, InstrRes<Reg_T>>;
 
 using PseudoExpandRes = std::variant<Error, std::optional<std::vector<LineTokens>>>;
 using DisassembleRes = std::variant<Error, LineTokens>;
-
-/** @brief OpPart
- * A segment of an operation-identifying field of an instruction.
- */
-struct OpPart {
-    OpPart(unsigned _value, BitRange _range) : value(_value), range(_range) {}
-    OpPart(unsigned _value, unsigned _start, unsigned _stop) : value(_value), range({_start, _stop}) {}
-    bool matches(Instr_T instruction) const { return range.decode(instruction) == value; }
-    const unsigned value;
-    const BitRange range;
-
-    bool operator==(const OpPart& other) const { return this->value == other.value && this->range == other.range; }
-    bool operator<(const OpPart& other) const { return this->range < other.range || this->value < other.value; }
-};
 
 template <typename Reg_T>
 struct Opcode : public Field<Reg_T> {
@@ -105,6 +108,13 @@ struct Opcode : public Field<Reg_T> {
                                 LineTokens& line) const override {
         line.push_back(name);
         return std::nullopt;
+    }
+
+    std::vector<BitRange> bitRanges() const override {
+        std::vector<BitRange> ranges;
+        std::transform(opParts.begin(), opParts.end(), std::back_inserter(ranges),
+                       [&](auto opPart) { return opPart.range; });
+        return ranges;
     }
 
     const Token name;
@@ -147,6 +157,8 @@ struct Reg : public Field<Reg_T> {
         line.push_back(registerName);
         return std::nullopt;
     }
+
+    std::vector<BitRange> bitRanges() const override { return {m_range}; }
 
     const BitRange m_range;
     const ISAInfoBase* m_isa;
@@ -271,6 +283,13 @@ struct Imm : public Field<Reg_T> {
         return std::nullopt;
     }
 
+    std::vector<BitRange> bitRanges() const override {
+        std::vector<BitRange> ranges;
+        std::transform(parts.begin(), parts.end(), std::back_inserter(ranges),
+                       [&](auto opPart) { return opPart.range; });
+        return ranges;
+    }
+
     const std::vector<ImmPart> parts;
     const unsigned width;
     const Repr repr;
@@ -305,6 +324,8 @@ public:
             }
             return DisassembleRes(line);
         };
+
+        verify();
 
         // Sort fields by token index. This lets the disassembler naively write each parsed field in the order of
         // m_fields, ensuring that the disassembled tokens appear in correct order, without having to manually check
@@ -342,7 +363,61 @@ public:
      * @brief size
      * @return size of assembled instruction, in bytes.
      */
-    unsigned size() const { return 4; }
+    unsigned size() const { return m_byteSize; }
+
+    /// Verify that the bitranges specified for this operation:
+    /// 1. do not overlap
+    /// 2. fully defines the instruction (no bits are unaccounted for)
+    /// 3. is byte aligned
+    /// Using this information, we also set the size of this instruction.
+    void verify() {
+        // sanity check the provided token indexes
+        std::set<int> tokenIndexes;
+        for (auto& field : m_fields) {
+            if (tokenIndexes.count(field->tokenIndex))
+                assert(false && "Duplicate token indices!");
+            tokenIndexes.insert(field->tokenIndex);
+        }
+        for (size_t i = 1; i < m_fields.size() + 1; ++i) {
+            assert(tokenIndexes.count(i) && "Mismatched token indexes, should have registerred 1:N sequential tokens");
+        }
+
+        std::vector<BitRange> bitRanges;
+        for (auto& field : m_fields) {
+            auto fieldBitRanges = field->bitRanges();
+            std::copy(fieldBitRanges.begin(), fieldBitRanges.end(), std::back_inserter(bitRanges));
+        }
+        auto opcodeBitRanges = m_opcode.bitRanges();
+        std::copy(opcodeBitRanges.begin(), opcodeBitRanges.end(), std::back_inserter(bitRanges));
+
+        // 1.
+        std::set<unsigned> registeredBits;
+        for (auto& range : bitRanges) {
+            for (unsigned i = range.start; i <= range.stop; i++) {
+                assert(registeredBits.count(i) == 0 && "Bit already registerred by some other field");
+                registeredBits.insert(i);
+            }
+        }
+
+        // 2.
+        assert(registeredBits.count(0) == 1 && "Expected bit 0 to be in bit-range");
+        // rbegin due to set being sorted.
+        unsigned nBits = registeredBits.size();
+        if ((nBits - 1) != *registeredBits.rbegin()) {
+            std::string err = "Bits '";
+            for (unsigned i = 0; i < nBits; i++) {
+                if (registeredBits.count(i) == 0) {
+                    err += std::to_string(i) + ", ";
+                }
+            }
+            std::cerr << err << "\n";
+            assert(false);
+        }
+
+        // 3.
+        assert(nBits % CHAR_BIT == 0 && "Expected instruction to be byte-aligned");
+        m_byteSize = nBits / CHAR_BIT;
+    }
 
 private:
     std::function<AssembleRes<Reg_T>(const Instruction<Reg_T>*, const TokenizedSrcLine&)> m_assembler;
@@ -352,6 +427,7 @@ private:
     const Opcode<Reg_T> m_opcode;
     const int m_expectedTokens;
     std::vector<std::shared_ptr<Field<Reg_T>>> m_fields;
+    unsigned m_byteSize = -1;
 };
 
 template <typename Reg_T>
