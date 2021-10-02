@@ -70,7 +70,7 @@ namespace Assembler {
     using _RelocationsVec = RelocationsVec<_Reg_T, _Instr_T>;       \
     using _RelocationsMap = RelocationsMap<_Reg_T, _Instr_T>;       \
     using _AssembleRes = AssembleRes<_Reg_T, _Instr_T>;             \
-    using _InstrRes = InstrRes<_Reg_T, Instr_T>;
+    using _InstrRes = InstrRes<_Reg_T, _Instr_T>;
 
 class AssemblerBase {
 public:
