@@ -215,7 +215,7 @@ public:
     }
 
     static const ISAInfoBase* supportsISA() {
-        static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M"});
+        static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M", "C"});
         return &s_isa;
     }
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); }

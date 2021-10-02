@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <algorithm>
 
+#include "rv_c_ext.h"
 #include "rv_i_ext.h"
 #include "rv_m_ext.h"
 
@@ -41,6 +42,9 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I>* isa) const {
         switch (extension.unicode()->toLatin1()) {
             case 'M':
                 RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
+                break;
+            case 'C':
+                RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
                 break;
             default:
                 assert(false && "Unhandled ISA extension");

@@ -26,7 +26,7 @@ public:
         QString march = "rv64i";
 
         // Proceed in canonical order
-        for (const auto& ext : {"M", "A", "F", "D"}) {
+        for (const auto& ext : {"M", "A", "F", "D", "C"}) {
             if (m_enabledExtensions.contains(ext)) {
                 march += QString(ext).toLower();
             }

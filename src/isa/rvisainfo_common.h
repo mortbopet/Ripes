@@ -120,7 +120,7 @@ public:
 
 protected:
     QStringList m_enabledExtensions;
-    QStringList m_supportedExtensions = {"M"};
+    QStringList m_supportedExtensions = {"M", "C"};
 };
 
 }  // namespace Ripes
