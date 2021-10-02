@@ -5,6 +5,9 @@
 #include <QObject>
 #include <functional>
 
+#include "rv_i_ext.h"
+#include "rv_m_ext.h"
+
 namespace Ripes {
 namespace Assembler {
 
