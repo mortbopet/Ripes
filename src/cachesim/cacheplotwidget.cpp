@@ -20,15 +20,11 @@
 
 #include "limits.h"
 
-namespace {
+namespace Ripes {
 
-inline QPointF stepPoint(const QPointF& p1, const QPointF& p2) {
+static QPointF stepPoint(const QPointF& p1, const QPointF& p2) {
     return QPointF(p2.x(), p1.y());
 }
-
-}  // namespace
-
-namespace Ripes {
 
 CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui::CachePlotWidget) {
     m_ui->setupUi(this);

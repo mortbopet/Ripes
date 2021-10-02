@@ -176,17 +176,13 @@ QString CCManager::getError() {
     return get().m_process.readAllStandardError();
 }
 
-namespace {
-
-QStringList sanitizedArguments(const QString& args) {
+static QStringList sanitizedArguments(const QString& args) {
     QStringList arglist = args.split(" ");
     for (const auto invArg : {"", " ", "-"}) {
         arglist.removeAll(invArg);
     }
     return arglist;
 }
-
-}  // namespace
 
 CCManager::CompileCommand CCManager::createCompileCommand(const QStringList& files, const QString& outname) const {
     const auto& currentISA = ProcessorHandler::currentISA();

@@ -52,7 +52,7 @@ void IOLedMatrix::ioWrite(AInt offset, VInt value, unsigned) {
     emit scheduleUpdate();
 }
 
-inline QColor regToColor(uint32_t regVal) {
+static QColor regToColor(uint32_t regVal) {
     return QColor(regVal >> 16 & 0xFF, regVal >> 8 & 0xFF, regVal & 0xFF);
 }
 

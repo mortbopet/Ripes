@@ -317,8 +317,7 @@ void MainWindow::version() {
     aboutDialog.exec();
 }
 
-namespace {
-void writeTextFile(QFile& file, const QString& data) {
+static void writeTextFile(QFile& file, const QString& data) {
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
         stream << data;
@@ -326,14 +325,12 @@ void writeTextFile(QFile& file, const QString& data) {
     }
 }
 
-void writeBinaryFile(QFile& file, const QByteArray& data) {
+static void writeBinaryFile(QFile& file, const QByteArray& data) {
     if (file.open(QIODevice::WriteOnly)) {
         file.write(data);
         file.close();
     }
 }
-
-}  // namespace
 
 void MainWindow::saveFilesTriggered() {
     SaveDialog diag;

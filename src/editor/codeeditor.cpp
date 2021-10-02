@@ -85,7 +85,7 @@ void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
     setViewportMargins(m_sidebarWidth, 0, 0, 0);
 }
 
-inline int indentationOf(const QString& text) {
+static int indentationOf(const QString& text) {
     int indent = 0;
     for (const auto& ch : text) {
         if (ch == " ") {

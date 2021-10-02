@@ -26,8 +26,8 @@ public:
     QString CCmarch() const override {
         QString march = "rv32i";
 
-        // Proceed in canonical order
-        for (const auto& ext : {"M", "A", "F", "D"}) {
+        // Proceed in canonical order. Canonical ordering is defined in the RISC-V spec.
+        for (const auto& ext : {"M", "A", "F", "D", "C"}) {
             if (m_enabledExtensions.contains(ext)) {
                 march += QString(ext).toLower();
             }

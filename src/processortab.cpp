@@ -26,8 +26,7 @@
 
 namespace Ripes {
 
-namespace {
-inline QString convertToSIUnits(const double l_value, int precision = 2) {
+static QString convertToSIUnits(const double l_value, int precision = 2) {
     QString unit;
     double value;
 
@@ -63,7 +62,6 @@ inline QString convertToSIUnits(const double l_value, int precision = 2) {
     }
     return QString::number(0) + " ";
 }
-}  // namespace
 
 ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar, QWidget* parent)
     : RipesTab(additionalToolbar, parent), m_ui(new Ui::ProcessorTab) {

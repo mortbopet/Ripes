@@ -7,7 +7,7 @@
 
 namespace Ripes {
 
-static inline AInt indexToAddress(unsigned index) {
+static AInt indexToAddress(unsigned index) {
     if (auto spt = ProcessorHandler::getProgram()) {
         return (index * ProcessorHandler::currentISA()->instrBytes()) + spt->getSection(TEXT_SECTION_NAME)->address;
     }
