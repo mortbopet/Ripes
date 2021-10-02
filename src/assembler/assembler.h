@@ -565,6 +565,18 @@ protected:
                     req.section = m_currentSection;
                     needsLinkage.push_back(req);
                 }
+
+                /// Check if we're now misaligned wrt. the size of the instruction. Instructions should always be
+                /// emitted on an aligned boundary wrt. their size.
+                unsigned alignmentDiff = addr_offset % assembledWith->size();
+                if (alignmentDiff != 0) {
+                    errors.push_back({line.sourceLine, "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
+                                                           "-bit boundary). This instruction must be aligned on a " +
+                                                           QString::number(assembledWith->size() * 8) +
+                                                           "-bit boundary."});
+                    break;
+                }
+
                 currentSection->data.append(
                     QByteArray(reinterpret_cast<char*>(&machineCode.instruction), assembledWith->size()));
 
