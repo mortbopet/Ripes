@@ -33,9 +33,13 @@ QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier strin
 
         AInt addr = textSection->address;
         while (addr < textSection->address + textSection->data.length()) {
-            if (buffer.empty()) {
+            /// Ensure that we always have sizeof(Instr_T) bytes in the buffer, even though some of these bytes may be
+            /// invalid (due to reading past the end of stream). For the end-of-program edge,case, the while loop will
+            /// exit before we start decoding invalid data.
+            size_t curBufSize = buffer.size();
+            if (curBufSize < sizeof(Instr_T)) {
                 buffer.resize(sizeof(Instr_T));
-                dataStream.readRawData(buffer.data(), sizeof(Instr_T));
+                dataStream.readRawData(buffer.data() + curBufSize, sizeof(Instr_T) - curBufSize);
             }
 
             // symbol label
