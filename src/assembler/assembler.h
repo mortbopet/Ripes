@@ -81,6 +81,13 @@ struct OpDisassembleResult {
 
 class AssemblerBase {
 public:
+    AssemblerBase() {
+        /// Set the source line splitter regex and immediately JIT compile it.
+        /// Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
+        /// substrings.
+        m_splitterRegex = QRegularExpression(R"((\s+|\,)(?=(?:[^"]*"[^"]*")*[^"]*$))");
+        m_splitterRegex.optimize();
+    }
     virtual ~AssemblerBase() {}
     std::optional<Error> setCurrentSegment(Section seg) const {
         if (m_sectionBasePointers.count(seg) == 0) {
@@ -90,24 +97,33 @@ public:
         return {};
     }
 
+    /// Sets the base pointer of seg to the provided 'base' value.
     void setSegmentBase(Section seg, AInt base) { m_sectionBasePointers[seg] = base; }
 
+    /// Assembles an input program (represented as a list of strings). Optionally, a set of predefined symbols may be
+    /// provided to the assemble call.
     virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
     AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
         const auto programLines = program.split(QRegExp("[\r\n]"));
         return assemble(programLines, symbols);
     }
 
+    /// Disassembles an input program relative to the provided base address.
     virtual DisassembleResult disassemble(const Program& program, const AInt baseAddress = 0) const = 0;
+
+    /// Disassembles an input word using the provided symbol mapping relative to the provided base address.
     virtual OpDisassembleResult disassemble(const VInt word, const ReverseSymbolMap& symbols,
                                             const AInt baseAddress = 0) const = 0;
 
+    /// Returns the set of opcodes (as strings) which are supported by this assembler.
     virtual std::set<QString> getOpcodes() const = 0;
 
+    /// Adds a symbol to the current symbol mapping of this assembler defined at the 'line' in the input program.
     std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, VInt v) const {
         return addSymbol(line.sourceLine, s, v);
     }
 
+    /// Adds a symbol to the current symbol mapping of this assembler.
     std::optional<Error> addSymbol(const unsigned& line, Symbol s, VInt v) const {
         if (m_symbolMap.count(s)) {
             return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
@@ -116,14 +132,39 @@ public:
         return {};
     }
 
-    virtual ExprEvalRes evalExpr(const QString& expr) const = 0;
+    /// Resolves an expression through either the built-in symbol map, or through the expression evaluator.
+    ExprEvalRes evalExpr(const QString& expr) const {
+        auto symbolValue = m_symbolMap.find(expr);
+        if (symbolValue != m_symbolMap.end()) {
+            return symbolValue->second;
+        } else {
+            return evaluate(expr, &m_symbolMap);
+        }
+    }
+
+    void setDirectives(DirectiveVec& directives) {
+        if (m_directives.size() != 0) {
+            throw std::runtime_error("Directives already set");
+        }
+        m_directives = directives;
+        for (const auto& iter : m_directives) {
+            const auto directive = iter.get()->name();
+            if (m_directivesMap.count(directive) != 0) {
+                throw std::runtime_error("Error: directive " + directive.toStdString() +
+                                         " has already been registerred.");
+            }
+            m_directivesMap[directive] = iter;
+            if (iter->early()) {
+                m_earlyDirectives.insert(iter->name());
+            }
+        }
+    }
 
 protected:
-    virtual std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const {
-        // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
-        // substrings.
-        const static auto splitter = QRegularExpression(R"((\s+|\,)(?=(?:[^"]*"[^"]*")*[^"]*$))");
-        auto tokens = line.split(splitter);
+    /// Creates a set of LineTokens by tokenizing a line of source code.
+    QRegularExpression m_splitterRegex;
+    std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const {
+        auto tokens = line.split(m_splitterRegex);
         tokens.removeAll(QStringLiteral(""));
         auto joinedtokens = joinParentheses(tokens);
         if (auto* err = std::get_if<Error>(&joinedtokens)) {
@@ -133,9 +174,22 @@ protected:
         return std::get<LineTokens>(joinedtokens);
     }
 
-    virtual HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
-                                                 bool skipEarlyDirectives = true) const = 0;
-
+    HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok, bool skipEarlyDirectives = true) const {
+        ok = false;
+        if (arg.line.directive.isEmpty()) {
+            return std::nullopt;
+        }
+        ok = true;
+        try {
+            const auto& directive = m_directivesMap.at(arg.line.directive);
+            if (directive->early() && skipEarlyDirectives) {
+                return std::nullopt;
+            }
+            return directive->handle(this, arg);
+        } catch (const std::out_of_range&) {
+            return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
+        }
+    }
     /**
      * @brief splitSymbolsFromLine
      * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
@@ -254,6 +308,13 @@ protected:
      * directives to add symbols during assembling.
      */
     mutable SymbolMap m_symbolMap;
+
+    /**
+     * @brief m_assemblerDirectives is the set of supported assembler directives.
+     */
+    DirectiveVec m_directives;
+    DirectiveMap m_directivesMap;
+    EarlyDirectives m_earlyDirectives;
 };
 
 /**
@@ -600,15 +661,6 @@ protected:
         return {program};
     }
 
-    ExprEvalRes evalExpr(const QString& expr) const override {
-        auto symbolValue = m_symbolMap.find(expr);
-        if (symbolValue != m_symbolMap.end()) {
-            return symbolValue->second;
-        } else {
-            return evaluate(expr, &m_symbolMap);
-        }
-    }
-
     std::variant<Errors, NoPassResult> pass3(Program& program, const LinkRequests& needsLinkage) const {
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
@@ -762,24 +814,6 @@ protected:
         m_matcher = std::make_unique<_Matcher>(m_instructions);
     }
 
-    void setDirectives(DirectiveVec& directives) {
-        if (m_directives.size() != 0) {
-            throw std::runtime_error("Directives already set");
-        }
-        m_directives = directives;
-        for (const auto& iter : m_directives) {
-            const auto directive = iter.get()->name();
-            if (m_directivesMap.count(directive) != 0) {
-                throw std::runtime_error("Error: directive " + directive.toStdString() +
-                                         " has already been registerred.");
-            }
-            m_directivesMap[directive] = iter;
-            if (iter->early()) {
-                m_earlyDirectives.insert(iter->name());
-            }
-        }
-    }
-
     void setInstructions(_InstrVec& instructions) {
         if (m_instructions.size() != 0) {
             throw std::runtime_error("Instructions already set");
@@ -792,24 +826,6 @@ protected:
                                          "' has already been registerred.");
             }
             m_instructionMap[instr_name] = iter;
-        }
-    }
-
-    HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
-                                         bool skipEarlyDirectives = true) const override {
-        ok = false;
-        if (arg.line.directive.isEmpty()) {
-            return std::nullopt;
-        }
-        ok = true;
-        try {
-            const auto& directive = m_directivesMap.at(arg.line.directive);
-            if (directive->early() && skipEarlyDirectives) {
-                return std::nullopt;
-            }
-            return directive->handle(this, arg);
-        } catch (const std::out_of_range&) {
-            return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
         }
     }
 
@@ -833,13 +849,6 @@ protected:
      */
     _RelocationsVec m_relocations;
     _RelocationsMap m_relocationsMap;
-
-    /**
-     * @brief m_assemblerDirectives is the set of supported assembler directives.
-     */
-    DirectiveVec m_directives;
-    DirectiveMap m_directivesMap;
-    EarlyDirectives m_earlyDirectives;
 
     std::unique_ptr<_Matcher> m_matcher;
 
