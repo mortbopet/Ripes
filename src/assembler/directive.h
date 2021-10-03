@@ -19,6 +19,8 @@ struct DirectiveArg {
     const ProgramSection* section;
 };
 
+/// An assembler directive represents a function which may be activated through the source code. This function will then
+/// perform some transformation to the current state of the assembler.
 class Directive {
 public:
     using DirectiveHandler = std::function<HandleDirectiveRes(const AssemblerBase*, const DirectiveArg&)>;
@@ -32,7 +34,10 @@ public:
     bool early() const { return m_early; }
 
 private:
+    /// Name of this directive.
     const QString m_directive;
+
+    /// Directive handler.
     DirectiveHandler m_handler;
 
     /**
@@ -42,8 +47,9 @@ private:
     bool m_early;
 };
 
-using DirectiveMap = std::map<QString, std::shared_ptr<Directive>>;
-using DirectiveVec = std::vector<std::shared_ptr<Directive>>;
+using DirectivePtr = std::shared_ptr<Directive>;
+using DirectiveMap = std::map<QString, DirectivePtr>;
+using DirectiveVec = std::vector<DirectivePtr>;
 using EarlyDirectives = std::set<QString>;
 }  // namespace Assembler
 }  // namespace Ripes
