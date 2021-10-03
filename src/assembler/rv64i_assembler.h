@@ -10,9 +10,7 @@ namespace Assembler {
 
 class RV64I_Assembler : public QObject, public Assembler<uint64_t> {
     Q_OBJECT
-
     using Reg_T = uint64_t;
-    ASSEMBLER_TYPES(Reg_T)
 
 public:
     RV64I_Assembler(const ISAInfo<ISA::RV64I>* isa);

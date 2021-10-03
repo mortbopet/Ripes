@@ -14,8 +14,6 @@ class RV32I_Assembler : public QObject, public Assembler<uint32_t> {
 
 public:
     using Reg_T = uint32_t;
-    ASSEMBLER_TYPES(Reg_T)
-
     RV32I_Assembler(const ISAInfo<ISA::RV32I>* isa);
 
 private:

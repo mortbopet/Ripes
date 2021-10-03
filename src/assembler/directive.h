@@ -14,6 +14,8 @@ namespace Assembler {
 
 class AssemblerBase;
 
+/// A directive argument consists of a tokenized source line as well as the program section of which the directive
+/// handler should work on.
 struct DirectiveArg {
     const TokenizedSrcLine& line;
     const ProgramSection* section;
@@ -27,6 +29,7 @@ public:
     Directive(const QString& directive, const DirectiveHandler& handler, bool isEarly = false)
         : m_directive(directive), m_handler(handler), m_early(isEarly) {}
 
+    /// Executes the directive handler.
     HandleDirectiveRes handle(const AssemblerBase* assembler, const DirectiveArg& arg) {
         return m_handler(assembler, arg);
     }

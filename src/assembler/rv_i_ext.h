@@ -17,12 +17,12 @@ namespace Assembler {
  */
 template <typename Reg__T>
 struct RV_I {
+    AssemblerTypes(Reg__T);
     enum class Options {
         shifts64BitVariant,  // appends 'w' to 32-bit shift operations, for use in the 64-bit RISC-V ISA
         LI64BitVariant       // Modifies LI to be able to emit 64-bit constants
     };
 
-    ASSEMBLER_TYPES(Reg__T)
     static void enable(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& pseudoInstructions,
                        const std::set<Options>& options = {}) {
         // Pseudo-op functors

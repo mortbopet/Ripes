@@ -52,7 +52,7 @@ namespace Assembler {
     }
 
 // Macro for defining type aliases for register/instruction width specific types of the assembler types
-#define ASSEMBLER_TYPES(_Reg_T)                           \
+#define AssemblerTypes(_Reg_T)                            \
     using _InstrVec = InstrVec<_Reg_T>;                   \
     using _InstrMap = InstrMap<_Reg_T>;                   \
     using _PseudoInstrVec = PseudoInstrVec<_Reg_T>;       \
@@ -76,25 +76,25 @@ namespace Assembler {
 template <typename Reg_T>
 class Assembler : public AssemblerBase {
     static_assert(std::numeric_limits<Reg_T>::is_integer, "Register type must be integer");
-    ASSEMBLER_TYPES(Reg_T)
 
 public:
+    AssemblerTypes(Reg_T);
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
     AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const override {
         AssembleResult result;
 
-        // Per default, emit to .text until otherwise specified
+        /// by default, emit to .text until otherwise specified
         setCurrentSegment(".text");
         m_symbolMap.clear();
         if (symbols) {
             m_symbolMap = *symbols;
         }
 
-        // Tokenize each source line and separate symbol from remainder of tokens
+        /// Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);
 
-        // Pseudo instruction expansion
+        /// Pseudo instruction expansion
         runPass(expandedLines, SourceProgram, pass1, tokenizedLines);
 
         /** Assemble. During assembly, we generate:
