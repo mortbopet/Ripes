@@ -9,6 +9,7 @@
 #include <QSpinBox>
 #include <QTemporaryFile>
 
+#include "consolewidget.h"
 #include "instructionmodel.h"
 #include "pipelinediagrammodel.h"
 #include "pipelinediagramwidget.h"
@@ -18,7 +19,6 @@
 #include "registercontainerwidget.h"
 #include "registermodel.h"
 #include "ripessettings.h"
-#include "syscall/systemio.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
@@ -106,10 +106,6 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified,
             [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt()); });
 
-    connect(m_ui->clearConsoleButton, &QPushButton::clicked, m_ui->console, &Console::clearConsole);
-    m_ui->clearConsoleButton->setIcon(QIcon(":/icons/clear.svg"));
-    m_ui->clearConsoleButton->setToolTip("Clear console");
-
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
             [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
@@ -119,9 +115,6 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(ProcessorHandler::get(), &ProcessorHandler::exit, this, &ProcessorTab::processorFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, &ProcessorTab::runFinished);
     connect(ProcessorHandler::get(), &ProcessorHandler::stopping, this, &ProcessorTab::pause);
-
-    // Send input data from the console to the SystemIO stdin stream
-    connect(m_ui->console, &Console::sendData, &SystemIO::get(), &SystemIO::putStdInData);
 
     // Make processor view stretch wrt. consoles
     m_ui->pipelinesplitter->setStretchFactor(0, 1);
