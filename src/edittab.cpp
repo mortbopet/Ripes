@@ -55,7 +55,9 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
             [=](const QVariant& val) { m_ui->registers->setVisible(val.toBool()); });
     RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
 
-    RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE), &SettingObserver::modified,
+            [=](const QVariant& val) { m_ui->console->setVisible(val.toBool()); });
+    RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE)->trigger();
 
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
     connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
@@ -86,9 +88,17 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     sourceTypeChanged();
     enableEditor();
 
-    m_ui->splitter->setStretchFactor(0, 2);
-    m_ui->splitter->setStretchFactor(1, 2);
-    m_ui->splitter->setStretchFactor(2, 0);
+    // Make left-hand side widgets stretch wrt. registers
+    m_ui->toplevelSplitter->setStretchFactor(0, 2);
+    m_ui->toplevelSplitter->setStretchFactor(1, 0);
+
+    // make editor and program viewer stretch wrt. console
+    m_ui->leftSpliiter->setStretchFactor(0, INT_MAX);
+    m_ui->leftSpliiter->setStretchFactor(1, 0);
+
+    // make editor and program viewer stretch equally wrt. each other
+    m_ui->editorSplitter->setStretchFactor(0, 2);
+    m_ui->editorSplitter->setStretchFactor(1, 2);
 
     // State preservation
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT), &SettingObserver::modified, this, [=] {
