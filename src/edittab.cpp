@@ -55,6 +55,8 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
             [=](const QVariant& val) { m_ui->registers->setVisible(val.toBool()); });
     RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
 
+    RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
+
     connect(m_ui->enableEditor, &QPushButton::clicked, this, &EditTab::enableAssemblyInput);
     connect(m_ui->codeEditor, &CodeEditor::timedTextChanged, this, &EditTab::sourceCodeChanged);
 

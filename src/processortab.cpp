@@ -19,6 +19,7 @@
 #include "registercontainerwidget.h"
 #include "registermodel.h"
 #include "ripessettings.h"
+#include "syscall/systemio.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
@@ -130,10 +131,6 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
 
     // Initially, no file is loaded, disable toolbuttons
     enableSimulatorControls();
-}
-
-void ProcessorTab::printToLog(const QString& text) {
-    m_ui->console->putData(text.toUtf8());
 }
 
 void ProcessorTab::loadLayout(const Layout& layout) {
@@ -449,7 +446,7 @@ void ProcessorTab::updateInstructionLabels() {
 void ProcessorTab::reset() {
     m_autoClockAction->setChecked(false);
     enableSimulatorControls();
-    printToLog("\n");
+    SystemIO::printString("\n");
 }
 
 void ProcessorTab::setInstructionViewCenterAddr(AInt address) {
