@@ -172,7 +172,8 @@ void IOManager::updateSymbols() {
 
     // Generate symbol mapping + header file
     QStringList headerfile;
-    headerfile << "#pragma once";
+    headerfile << "#ifndef RIPES_IO_HEADER";
+    headerfile << "#define RIPES_IO_HEADER";
     for (const auto& p : m_periphMMappings) {
         const QString& periphName = cName(p.first->name());
         headerfile << "// *****************************************************************************";
@@ -188,6 +189,7 @@ void IOManager::updateSymbols() {
 
         headerfile << "\n";
     }
+    headerfile << "#endif // RIPES_IO_HEADER";
 
     // Store header file at a temporary location
     if (!(m_symbolsHeaderFile && (QFile::exists(m_symbolsHeaderFile->fileName())))) {
