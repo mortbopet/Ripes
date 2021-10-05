@@ -11,7 +11,7 @@ namespace Ripes {
 namespace Assembler {
 
 /// Register specialization for RV-C to handle the compressed register notation. 3 bits are used to represent registers
-/// x8-x15, with register x5=0b000, x15=0b111.
+/// x8-x15, with register x8=0b000, x15=0b111.
 template <typename Reg_T>
 struct RVCReg : public Reg<Reg_T> {
     using Reg<Reg_T>::Reg;
