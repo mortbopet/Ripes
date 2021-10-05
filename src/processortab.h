@@ -41,7 +41,6 @@ public slots:
     void restart();
     void reset();
     void reverse();
-    void printToLog(const QString&);
     void processorFinished();
     void runFinished();
     void updateStatistics();

@@ -2,9 +2,6 @@
 
 #include <QRegularExpression>
 
-#include "assembler_defines.h"
-#include "directive.h"
-#include "expreval.h"
 #include "instruction.h"
 #include "isa/isainfo.h"
 #include "matcher.h"
@@ -17,6 +14,8 @@
 #include <numeric>
 #include <set>
 #include <variant>
+
+#include "assemblerbase.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -53,7 +52,7 @@ namespace Assembler {
     }
 
 // Macro for defining type aliases for register/instruction width specific types of the assembler types
-#define ASSEMBLER_TYPES(_Reg_T)                           \
+#define AssemblerTypes(_Reg_T)                            \
     using _InstrVec = InstrVec<_Reg_T>;                   \
     using _InstrMap = InstrMap<_Reg_T>;                   \
     using _PseudoInstrVec = PseudoInstrVec<_Reg_T>;       \
@@ -70,192 +69,6 @@ namespace Assembler {
     using _AssembleRes = AssembleRes<_Reg_T>;             \
     using _InstrRes = InstrRes<_Reg_T>;
 
-struct OpDisassembleResult {
-    /// Stringified representation of a disassembled machine word.
-    QString repr;
-    /// Number of bytes disassembled.
-    unsigned bytesDisassembled;
-    /// Optional error that occured during disassembly.
-    std::optional<Error> err;
-};
-
-class AssemblerBase {
-public:
-    virtual ~AssemblerBase() {}
-    std::optional<Error> setCurrentSegment(Section seg) const {
-        if (m_sectionBasePointers.count(seg) == 0) {
-            return Error(0, "No base address set for segment '" + seg + +"'");
-        }
-        m_currentSection = seg;
-        return {};
-    }
-
-    void setSegmentBase(Section seg, AInt base) { m_sectionBasePointers[seg] = base; }
-
-    virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
-    AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const {
-        const auto programLines = program.split(QRegExp("[\r\n]"));
-        return assemble(programLines, symbols);
-    }
-
-    virtual DisassembleResult disassemble(const Program& program, const AInt baseAddress = 0) const = 0;
-    virtual OpDisassembleResult disassemble(const VInt word, const ReverseSymbolMap& symbols,
-                                            const AInt baseAddress = 0) const = 0;
-
-    virtual std::set<QString> getOpcodes() const = 0;
-
-    std::optional<Error> addSymbol(const TokenizedSrcLine& line, Symbol s, VInt v) const {
-        return addSymbol(line.sourceLine, s, v);
-    }
-
-    std::optional<Error> addSymbol(const unsigned& line, Symbol s, VInt v) const {
-        if (m_symbolMap.count(s)) {
-            return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
-        }
-        m_symbolMap[s] = v;
-        return {};
-    }
-
-    virtual ExprEvalRes evalExpr(const QString& expr) const = 0;
-
-protected:
-    virtual std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const {
-        // Regex: Split on all empty strings (\s+) and characters [, \[, \], \(, \)] except for quote-delimitered
-        // substrings.
-        const static auto splitter = QRegularExpression(R"((\s+|\,)(?=(?:[^"]*"[^"]*")*[^"]*$))");
-        auto tokens = line.split(splitter);
-        tokens.removeAll(QStringLiteral(""));
-        auto joinedtokens = joinParentheses(tokens);
-        if (auto* err = std::get_if<Error>(&joinedtokens)) {
-            err->first = sourceLine;
-            return *err;
-        }
-        return std::get<LineTokens>(joinedtokens);
-    }
-
-    virtual HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
-                                                 bool skipEarlyDirectives = true) const = 0;
-
-    /**
-     * @brief splitSymbolsFromLine
-     * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
-     */
-    virtual std::variant<Error, SymbolLinePair> splitSymbolsFromLine(const LineTokens& tokens, int sourceLine) const {
-        if (tokens.size() == 0) {
-            return {SymbolLinePair({}, tokens)};
-        }
-
-        // Handle the case where a token has been joined together with another token, ie "B:nop"
-        LineTokens splitTokens;
-        splitTokens.reserve(tokens.size());
-        for (const auto& token : tokens) {
-            Token buffer;
-            for (const auto& ch : token) {
-                buffer.append(ch);
-                if (ch == ':') {
-                    splitTokens.push_back(buffer);
-                    buffer.clear();
-                }
-            }
-            if (!buffer.isEmpty()) {
-                splitTokens.push_back(buffer);
-            }
-        }
-
-        LineTokens remainingTokens;
-        remainingTokens.reserve(splitTokens.size());
-        Symbols symbols;
-        bool symbolStillAllowed = true;
-        for (const auto& token : splitTokens) {
-            if (token.endsWith(':')) {
-                if (symbolStillAllowed) {
-                    const Symbol cleanedSymbol = Symbol(token.left(token.length() - 1), Symbol::Type::Address);
-                    if (symbols.count(cleanedSymbol.v) != 0) {
-                        return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol.v + "'")};
-                    } else {
-                        if (cleanedSymbol.v.isEmpty() || cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
-                            return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol.v + "'")};
-                        }
-
-                        symbols.insert(cleanedSymbol);
-                    }
-                } else {
-                    return {Error(sourceLine, QStringLiteral("Stray ':' in line"))};
-                }
-            } else {
-                remainingTokens.push_back(token);
-                symbolStillAllowed = false;
-            }
-        }
-        return {SymbolLinePair(symbols, remainingTokens)};
-    }
-
-    virtual std::variant<Error, DirectiveLinePair> splitDirectivesFromLine(const LineTokens& tokens,
-                                                                           int sourceLine) const {
-        if (tokens.size() == 0) {
-            return {DirectiveLinePair(QString(), tokens)};
-        }
-
-        LineTokens remainingTokens;
-        remainingTokens.reserve(tokens.size());
-        std::vector<QString> directives;
-        bool directivesStillAllowed = true;
-        for (const auto& token : tokens) {
-            if (token.startsWith('.')) {
-                if (directivesStillAllowed) {
-                    directives.push_back(token);
-                } else {
-                    return {Error(sourceLine, QStringLiteral("Stray '.' in line"))};
-                }
-            } else {
-                remainingTokens.push_back(token);
-                directivesStillAllowed = false;
-            }
-        }
-        if (directives.size() > 1) {
-            return {Error(sourceLine, QStringLiteral("Illegal multiple directives"))};
-        } else {
-            return {DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(), remainingTokens)};
-        }
-    }
-
-    virtual std::variant<Error, LineTokens> splitCommentFromLine(const LineTokens& tokens) const {
-        if (tokens.size() == 0) {
-            return {tokens};
-        }
-
-        LineTokens preCommentTokens;
-        preCommentTokens.reserve(tokens.size());
-        for (const auto& token : tokens) {
-            if (token.contains(commentDelimiter())) {
-                break;
-            } else {
-                preCommentTokens.push_back(token);
-            }
-        }
-        return {preCommentTokens};
-    }
-
-    virtual QChar commentDelimiter() const = 0;
-
-    /**
-     * @brief m_sectionBasePointers maintains the base position for the segments
-     * annoted by the Segment enum class.
-     */
-    std::map<Section, AInt> m_sectionBasePointers;
-    /**
-     * @brief m_currentSegment maintains the current segment where the assembler emits information.
-     * Marked mutable to allow for switching currently selected segment during assembling.
-     */
-    mutable Section m_currentSection;
-
-    /**
-     * @brief symbolMap maintains the symbols recorded during assembling. Marked mutable to allow for assembler
-     * directives to add symbols during assembling.
-     */
-    mutable SymbolMap m_symbolMap;
-};
-
 /**
  *  Reg_T: type equal in size to the register width of the target
  *  Instr_T: type equal in size to the instruction width of the target
@@ -263,27 +76,25 @@ protected:
 template <typename Reg_T>
 class Assembler : public AssemblerBase {
     static_assert(std::numeric_limits<Reg_T>::is_integer, "Register type must be integer");
-    static_assert(std::numeric_limits<Instr_T>::is_integer, "Instruction type must be integer");
-
-    ASSEMBLER_TYPES(Reg_T)
 
 public:
+    AssemblerTypes(Reg_T);
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
     AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const override {
         AssembleResult result;
 
-        // Per default, emit to .text until otherwise specified
+        /// by default, emit to .text until otherwise specified
         setCurrentSegment(".text");
         m_symbolMap.clear();
         if (symbols) {
             m_symbolMap = *symbols;
         }
 
-        // Tokenize each source line and separate symbol from remainder of tokens
+        /// Tokenize each source line and separate symbol from remainder of tokens
         runPass(tokenizedLines, SourceProgram, pass0, programLines);
 
-        // Pseudo instruction expansion
+        /// Pseudo instruction expansion
         runPass(expandedLines, SourceProgram, pass1, tokenizedLines);
 
         /** Assemble. During assembly, we generate:
@@ -600,15 +411,6 @@ protected:
         return {program};
     }
 
-    ExprEvalRes evalExpr(const QString& expr) const override {
-        auto symbolValue = m_symbolMap.find(expr);
-        if (symbolValue != m_symbolMap.end()) {
-            return symbolValue->second;
-        } else {
-            return evaluate(expr, &m_symbolMap);
-        }
-    }
-
     std::variant<Errors, NoPassResult> pass3(Program& program, const LinkRequests& needsLinkage) const {
         Errors errors;
         for (const auto& linkRequest : needsLinkage) {
@@ -762,24 +564,6 @@ protected:
         m_matcher = std::make_unique<_Matcher>(m_instructions);
     }
 
-    void setDirectives(DirectiveVec& directives) {
-        if (m_directives.size() != 0) {
-            throw std::runtime_error("Directives already set");
-        }
-        m_directives = directives;
-        for (const auto& iter : m_directives) {
-            const auto directive = iter.get()->name();
-            if (m_directivesMap.count(directive) != 0) {
-                throw std::runtime_error("Error: directive " + directive.toStdString() +
-                                         " has already been registerred.");
-            }
-            m_directivesMap[directive] = iter;
-            if (iter->early()) {
-                m_earlyDirectives.insert(iter->name());
-            }
-        }
-    }
-
     void setInstructions(_InstrVec& instructions) {
         if (m_instructions.size() != 0) {
             throw std::runtime_error("Instructions already set");
@@ -792,24 +576,6 @@ protected:
                                          "' has already been registerred.");
             }
             m_instructionMap[instr_name] = iter;
-        }
-    }
-
-    HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok,
-                                         bool skipEarlyDirectives = true) const override {
-        ok = false;
-        if (arg.line.directive.isEmpty()) {
-            return std::nullopt;
-        }
-        ok = true;
-        try {
-            const auto& directive = m_directivesMap.at(arg.line.directive);
-            if (directive->early() && skipEarlyDirectives) {
-                return std::nullopt;
-            }
-            return directive->handle(this, arg);
-        } catch (const std::out_of_range&) {
-            return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
         }
     }
 
@@ -833,13 +599,6 @@ protected:
      */
     _RelocationsVec m_relocations;
     _RelocationsMap m_relocationsMap;
-
-    /**
-     * @brief m_assemblerDirectives is the set of supported assembler directives.
-     */
-    DirectiveVec m_directives;
-    DirectiveMap m_directivesMap;
-    EarlyDirectives m_earlyDirectives;
 
     std::unique_ptr<_Matcher> m_matcher;
 

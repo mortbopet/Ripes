@@ -22,7 +22,7 @@ namespace Assembler {
  */
 template <typename Reg__T>
 struct RV_C {
-    ASSEMBLER_TYPES(Reg__T)
+    AssemblerTypes(Reg__T);
     static void enable(const ISAInfoBase* isa, _InstrVec& instructions, _PseudoInstrVec& /*pseudoInstructions*/) {
         // Pseudo-op functors
 

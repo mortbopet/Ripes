@@ -92,12 +92,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this, &MainWindow::tabChanged);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs, &QStackedWidget::setCurrentIndex);
     connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, editTab, &EditTab::updateProgramViewerHighlighting);
-
     setupMenus();
 
     // setup and connect widgets
     connect(editTab, &EditTab::editorStateChanged, [=] { RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false); });
-    connect(&SystemIO::get(), &SystemIO::doPrint, processorTab, &ProcessorTab::printToLog);
 
     // Setup status bar
     setupStatusBar();

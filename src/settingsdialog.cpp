@@ -291,6 +291,11 @@ QWidget* SettingsDialog::createEditorPage() {
     appendToLayout({regsLabel, regsCheckbox}, pageLayout,
                    "Show (or hide) a view of the processor register file(s) in the editor tab.");
 
+    auto [consoleLabel, consoleCheckbox] =
+        createSettingsWidgets<QCheckBox>(RIPES_SETTING_EDITORCONSOLE, "Show console in editor tab");
+    appendToLayout({consoleLabel, consoleCheckbox}, pageLayout,
+                   "Show (or hide) a view of the console in the editor tab.");
+
     return pageWidget;
 }
 
