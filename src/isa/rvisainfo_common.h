@@ -106,13 +106,13 @@ public:
          */
         if (flags == 0)
             return QString();
-        QString err;
-        for (const auto& flag : RVABI::ELFFlagStrings) {
-            if (flags & flag.first) {
-                err += "ELF flag '" + RVABI::ELFFlagStrings.at(flag.first) + "' unsupported<br/>";
-            }
+        for (const auto& flag : RVABI::ELFFlagStrings)
+            flags &= ~flag.first;
+
+        if (flags != 0) {
+            return "ELF flag '0b" + QString::number(flags, 2) + "' unsupported<br/>";
         }
-        return err;
+        return QString();
     }
 
     const QStringList& supportedExtensions() const override { return m_supportedExtensions; }
