@@ -165,8 +165,9 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     }
     m_process.waitForFinished();
 
-    const bool success = LoadDialog::validateELFFile(QFile(outname)).valid;
-    res.success = success;
+    auto elfInfo = LoadDialog::validateELFFile(QFile(outname));
+    res.success = elfInfo.valid;
+    res.errorOutput.errMsg = elfInfo.errorMessage;
     res.aborted = m_aborted;
 
     return res;
