@@ -47,6 +47,123 @@ struct RVCReg : public Reg<Reg_T> {
                          {std::make_shared<RVCReg<Reg__T>>(isa, 2, 2, 4, "rs2'"),                                  \
                           std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rd'/rs1'")}))
 
+#define CI_IMM_SLLI std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned,         \
+                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})
+
+#define CI_IMM_LDSP std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,         \
+                       std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12), ImmPart(3, 5, 6)})
+
+#define CI_IMM_LWSP std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,         \
+                       std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12), ImmPart(2, 4, 6)})
+
+#define CI_IMM_ADDI std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed,           \
+                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})
+
+#define CI_IMM_LUI std::make_shared<_Imm>(2, 18, _Imm::Repr::Signed,           \
+                       std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)})
+
+#define CIType(opcode, name, funct3, imm)                                      \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<_Reg>(isa, 1, 7, 11, "rd/rs1"), imm }))    
+    
+#define CINOPType(opcode, name)                                                \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart( 0 , 2, 15)}),{}))    
+
+#define CIADDI16SPType(opcode, name, funct3)                                   \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15),   \
+        OpPart(2, 7, 11)}),{ std::make_shared<_Imm>(1, 10, _Imm::Repr::Signed, \
+                            std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4),  \
+                            ImmPart(6, 5, 5), ImmPart(5, 2, 2), ImmPart(4, 6, 6)})}))      
+                       
+#define CSS_IMM_FSDSP std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,       \
+             std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)})
+
+#define CSS_IMM_SWSP std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,        \
+             std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)})
+
+#define CSSType(opcode, name, funct3, imm)                                     \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<_Reg>(isa, 1, 2, 6, "rs2"), imm }))   
+
+#define CL_IMM_LW std::make_shared<_Imm>(                                      \
+             3, 7, _Imm::Repr::Signed,                                         \
+             std::vector{ImmPart(6, 5, 5),ImmPart(3, 10, 12),ImmPart(2, 6, 6)})
+                       
+#define CL_IMM_LD std::make_shared<_Imm>(                                      \
+             3, 8, _Imm::Repr::Signed,                                         \
+             std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)})                       
+                       
+#define CLType(opcode, name, funct3, imm)                                      \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                \
+         std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"), imm}))  
+
+#define CSType(opcode, name, funct3)                                           \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rs2'"),               \
+         std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"),               \
+         std::make_shared<_Imm>(                                               \
+             3, 7, _Imm::Repr::Unsigned,                                       \
+             std::vector{ImmPart(6, 5, 5),ImmPart(3, 10, 12),ImmPart(2, 6, 6)})})) 
+
+#define CJType(opcode, name, funct3)                                           \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<_Imm>(                                               \
+             1, 12, _Imm::Repr::Signed,                                        \
+             std::vector{ImmPart(11, 12, 12),ImmPart(10, 8, 8),ImmPart(8, 9, 10),ImmPart(7, 6, 6), \
+             ImmPart(6, 7, 7),ImmPart(5, 2, 2),ImmPart(4, 11, 11),ImmPart(1, 3, 5)})}))   
+    
+#define CRType(opcode, name, funct4)                                           \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct4, 12, 15)}), \
+        {std::make_shared<_Reg>(isa, 1, 7, 11, "rs1"), \
+         std::make_shared<_Reg>(isa, 2, 2, 6, "rs2")}))     
+
+#define CR2Type(opcode, name, funct4)                                          \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(0 , 2, 6) ,OpPart(funct4, 12, 15)}), \
+        {std::make_shared<_Reg>(isa, 1, 7, 11, "rs1") }))    
+
+#define CREBREAKType(opcode, name, funct4)                                     \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(0, 2, 11),   \
+         OpPart(funct4, 12, 15)}),{}))                          
+                       
+#define CBType(opcode, name, funct3)                                           \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"),               \
+        std::make_shared<_Imm>( 2, 9, _Imm::Repr::Signed,                      \
+             std::vector{ImmPart(8, 12, 12),ImmPart(6, 5, 6),ImmPart(5, 2, 2), \
+             ImmPart(3, 10, 11), ImmPart(1, 3, 4) })}))       
+
+#define CB2_IMM_SRLI std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned,        \
+             std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6) })
+
+#define CB2_IMM_ANDI std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed,          \
+             std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6) })                       
+
+#define CB2Type(opcode, name, funct3, funct4, imm)                             \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct4, 10, 11), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"), imm }))                         
+                       
+#define CIWType(opcode, name, funct3)                                          \
+    std::shared_ptr<_Instruction>(new _Instruction(                            \
+        Opcode<Reg__T>(name, {OpPart(opcode , 0, 1), OpPart(funct3, 13, 15)}), \
+        {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                \
+         std::make_shared<_Imm>(                                               \
+             2, 10, _Imm::Repr::Unsigned,                                      \
+             std::vector{ImmPart(6, 7, 10),ImmPart(4, 11, 12),ImmPart(3, 5, 5),\
+             ImmPart(2, 6, 6) })}))        
+    
 /**
  * Extension enabler.
  * Calling an extension enabler will register the appropriate assemblers and pseudo-op expander functors with
@@ -60,12 +177,110 @@ struct RV_C {
         // Pseudo-op functors
 
         // Assembler functors
-        instructions.push_back(CAType(Token("c.and"), 0b11, 0b100011));
+        instructions.push_back(CAType(Token("c.sub"),  0b00, 0b100011));
+        instructions.push_back(CAType(Token("c.xor"),  0b01, 0b100011));
+        instructions.push_back(CAType(Token("c.or"),   0b10, 0b100011));
+        instructions.push_back(CAType(Token("c.and"),  0b11, 0b100011));
         instructions.push_back(CAType(Token("c.subw"), 0b00, 0b100111));
         instructions.push_back(CAType(Token("c.addw"), 0b01, 0b100111));
-        instructions.push_back(CAType(Token("c.or"), 0b10, 0b100011));
-        instructions.push_back(CAType(Token("c.xor"), 0b01, 0b100011));
-        instructions.push_back(CAType(Token("c.sub"), 0b00, 0b100011));
+        
+        
+        
+        
+        
+        instructions.push_back(CIType(0b10, Token("c.lwsp"), 0b010, CI_IMM_LWSP));
+        
+        if(isa->isaID() == ISA::RV32I)
+        {
+            instructions.push_back(CIType(0b10, Token("c.flwsp"), 0b011, CI_IMM_LWSP));
+        }
+        else //RV64 RV128
+        {
+            instructions.push_back(CIType(0b10, Token("c.ldsp"), 0b011, CI_IMM_LDSP));
+            instructions.push_back(CIType(0b01, Token("c.addiw"), 0b001, CI_IMM_ADDI));
+        }
+      
+        //instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
+        instructions.push_back(CIType(0b10, Token("c.fldsp"), 0b001, CI_IMM_LDSP));
+        instructions.push_back(CIType(0b10, Token("c.slli"), 0b000, CI_IMM_SLLI));
+    
+        instructions.push_back(CIType(0b01, Token("c.li"), 0b010, CI_IMM_ADDI));
+        instructions.push_back(CIType(0b01, Token("c.lui"), 0b011, CI_IMM_LUI));
+        //instructions.push_back(CIADDI16SPType(0b01, Token("c.addi16sp"), 0b011));//FIXME Duplicated with LUI  
+        //terminate called after throwing an instance of 'std::runtime_error'
+        //what():  Instruction 'c.lui' cannot be decoded; aliases with other instruction (Needs more discernable parts)
+
+        instructions.push_back(CIType(0b01, Token("c.addi"), 0b000, CI_IMM_ADDI));
+        instructions.push_back(CINOPType(0b01, Token("c.nop")));
+        
+        
+        instructions.push_back(CSSType(0b10, Token("c.swsp"), 0b110, CSS_IMM_SWSP));
+        if(isa->isaID() == ISA::RV32I)
+        {
+            instructions.push_back(CSSType(0b10, Token("c.fswsp"), 0b111, CSS_IMM_SWSP));
+        }
+        else
+        {
+            instructions.push_back(CSSType(0b10, Token("c.sdsp"), 0b111, CSS_IMM_FSDSP));
+        }
+        instructions.push_back(CSSType(0b10, Token("c.fsdsp"), 0b101, CSS_IMM_FSDSP));
+        //instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
+   
+        instructions.push_back(CLType(0b00, Token("c.lw"), 0b010, CL_IMM_LW));
+        if(isa->isaID() == ISA::RV32I)
+        {
+            instructions.push_back(CLType(0b00, Token("c.flw"), 0b011, CL_IMM_LW));
+        }
+        else
+        {
+            instructions.push_back(CLType(0b00, Token("c.ld"), 0b011, CL_IMM_LD));
+        }
+        //instructions.push_back(CLType(0b00, Token("c.lq"), 0b001));//RV128
+        instructions.push_back(CLType(0b00, Token("c.fld"), 0b001, CL_IMM_LD));
+        
+        
+        instructions.push_back(CSType(0b00, Token("c.sw"), 0b110));
+        if(isa->isaID() == ISA::RV32I)
+        {
+            instructions.push_back(CSType(0b00, Token("c.fsw"), 0b111));
+        }
+        else
+        {
+            instructions.push_back(CSType(0b00, Token("c.sd"), 0b111));
+        }
+        //instructions.push_back(CSType(0b00, Token("c.sq"), 0b101));//RV128
+        instructions.push_back(CSType(0b00, Token("c.fsd"), 0b101));
+        
+        instructions.push_back(CJType(0b01, Token("c.j"), 0b101));
+        if(isa->isaID() == ISA::RV32I)
+        {
+            instructions.push_back(CJType(0b01, Token("c.jal"), 0b001));
+        }
+                
+        instructions.push_back(CBType(0b01, Token("c.beqz"), 0b110));
+        instructions.push_back(CBType(0b01, Token("c.bnez"), 0b111));
+        
+        instructions.push_back(CIWType(0b00, Token("c.addi4spn"), 0b000));
+           
+        if(isa->isaID() == ISA::RV32I)
+        {
+            instructions.push_back(CB2Type(0b01, Token("c.srli"), 0b100, 0b00, CB2_IMM_SRLI));
+            instructions.push_back(CB2Type(0b01, Token("c.srai"), 0b100, 0b01, CB2_IMM_SRLI));
+        }
+        
+        instructions.push_back(CB2Type(0b01, Token("c.andi"), 0b100, 0b10, CB2_IMM_ANDI));
+           
+        instructions.push_back(CRType(0b10, Token("c.mv"), 0b1000));//FIXME disassemble erro with c.jr ?
+        instructions.push_back(CRType(0b10, Token("c.add"), 0b1001));
+        
+        instructions.push_back(CR2Type(0b10, Token("c.jr"), 0b1000));
+        instructions.push_back(CR2Type(0b10, Token("c.jalr"), 0b1001));
+        
+        //instructions.push_back(CREBREAKType(0b10, Token("c.ebreak"), 0b1001)); //FIXME Duplicated
+        //terminate called after throwing an instance of 'std::runtime_error'
+        //what():  Instruction cannot be decoded; aliases with other instruction (Identical to other instruction)
+        //c.ebreak is equal to c.jalr
+
     }
 };
 
