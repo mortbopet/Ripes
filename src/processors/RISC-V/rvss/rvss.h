@@ -36,9 +36,13 @@ public:
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
-        4 >> pc_4->op2;
+        pc_inc->out >> pc_4->op2;
         pc_src->out >> pc_reg->in;
-
+        
+        2 >> pc_inc->get(PcInc::INC2);
+        4 >> pc_inc->get(PcInc::INC4);
+        decode->Pc_Inc >> pc_inc->select;
+        
         // Note: pc_src works uses the PcSrc enum, but is selected by the boolean signal
         // from the controlflow OR gate. PcSrc enum values must adhere to the boolean
         // 0/1 values.
@@ -60,7 +64,7 @@ public:
         // -----------------------------------------------------------------------
         // Immediate
         decode->opcode >> immediate->opcode;
-        instr_mem->data_out >> immediate->instr;
+        decode->exp_instr >> immediate->instr;
 
         // -----------------------------------------------------------------------
         // Registers
@@ -137,7 +141,8 @@ public:
     SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
     SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
     SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
-
+    SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
+    
     // Memories
     SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
