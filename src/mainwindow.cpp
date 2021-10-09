@@ -53,10 +53,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     auto* controlToolbar = addToolBar("Simulator control");
     controlToolbar->setVisible(true);  // Always visible
 
-    auto* editToolbar = addToolBar("Edit");
-    editToolbar->setVisible(false);
-    auto* editTab = new EditTab(editToolbar, this);
-    m_stackedTabs->insertWidget(EditTabID, editTab);
+                auto* editToolbar = addToolBar("Edit");
+                editToolbar->setVisible(false);
+                auto* editTab = new EditTab(editToolbar, this);
+                m_stackedTabs->insertWidget(EditTabID, editTab);
     m_tabWidgets[EditTabID] = {editTab, editToolbar};
 
     auto* processorToolbar = addToolBar("Processor");
