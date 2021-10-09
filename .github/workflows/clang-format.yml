@@ -1,0 +1,42 @@
+
+name: Check code format
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Check with clang-format
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get Ripes
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        fetch-depth: 2
+    - name: clang-format
+      run: |
+        # Run clang-format
+        CHANGED_FILES=`git diff --name-only -r HEAD~ | grep -E '.(c|cpp|h|hpp)$' | xargs`
+        echo "Changed files: $CHANGED_FILES"
+        [ -z "$CHANGED_FILES" ] && exit 0
+        clang-format -i $CHANGED_FILES
+        git diff > clang-format.patch
+        if [ -s clang-format.patch ]; then
+          echo "Clang-format found formatting problems in the following files. See diff in the clang-format.patch artifact."
+          git diff --name-only 
+          exit 1
+        fi
+        echo "Clang-format found no formatting problems"
+        exit 0
+    - name: Upload clang-format patch
+      uses: actions/upload-artifact@v2
+      if: ${{ failure() }}
+      # Unfortunately, artifact uploads are always zips :(
+      with:
+        name: clang-format-patch
+        path: clang-format.patch
+    - name: clang-format patch display
+      if: ${{ failure() }}
+      run: |
+        # Display patch
+        cat clang-format.patch
