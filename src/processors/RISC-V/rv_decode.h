@@ -7,156 +7,150 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-
-//only support 32 bit instructions
-unsigned long int 
-uncompress(const unsigned long int instrValue)
-{
-    static unsigned long int instr_last  = 0;
+// only support 32 bit instructions
+unsigned long int uncompress(const unsigned long int instrValue) {
+    static unsigned long int instr_last = 0;
     static unsigned long int instr_cache = 0;
-    
-    //use cache to avoid run multiple times with same instruction in multiple calls
-    if(instr_last == instrValue)
-    {
+
+    // use cache to avoid run multiple times with same instruction in multiple calls
+    if (instr_last == instrValue) {
         return instr_cache;
     }
-    
-    unsigned long int new_instr= instrValue;
-    int imm; 
+
+    unsigned long int new_instr = instrValue;
+    int imm;
     int rd;
     int rs2;
-    
-    const int quadrant = instrValue & 0b11;
-    const int func3    = (instrValue & 0xE000)>> 13;
 
-         
-            switch(quadrant)
-            {
-                case 0x00:
-                    switch(func3)
-                    {
-                        case 0b000:
-                            break;
-                        case 0b001:
-                            break;
-                        case 0b010:
-                            break;
-                        case 0b011:
-                            break;
-                        case 0b100://RESERVED
-                            break;
-                        case 0b101:
-                            break;
-                        case 0b110:
-                            break;
-                        case 0b111:
-                            break;
-                    }
+    const int quadrant = instrValue & 0b11;
+    const int func3 = (instrValue & 0xE000) >> 13;
+
+    switch (quadrant) {
+        case 0x00:
+            switch (func3) {
+                case 0b000:
                     break;
-                case 0x01:
-                    switch(func3)
-                    {
-                        case 0b000:
-                            break;
-                        case 0b001:
-                            break;
-                        case 0b010://C.LI
-                        {
-                            const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
-                            //addi rd,x0, imm[5:0]
-                            rd = fields[3];
-                            imm = (fields[2] << 5)|fields[4];
-                            if( imm & 0x20) //test for negative
-                            {
-                                imm = imm | 0xFFFFFFC0;
-                            }
-                            new_instr =  (imm << 20)|(rd<<7) |RVInstr::ADDI;
-                            break;
-                        }
-                        case 0b011:
-                            break;
-                        case 0b100://MISC-ALU
-                        {
-                            const auto fields = RVInstrParser::getParser()->decodeCA16Instr(instrValue);
-                            rd = fields[4]  |0x8;
-                            rs2 = fields[6] |0x8;
-                            switch(fields[3])
-                            {
-                                case 0b00:
-                                    break;
-                                case 0b01:
-                                    break;
-                                case 0b10:
-                                    break;
-                                case 0b11:
-                                    switch(fields[2]<<2|fields[5])
-                                    {
-                                        case 0b000://c.sub 
-                                            new_instr = (0b0100000 << 25)|(rs2 << 20)|(rd << 15)|(0b000 <<12) |(rd<<7) |RVISA::Opcode::OP;
-                                            break;
-                                        case 0b001://c.xor
-                                            new_instr = (rs2 << 20)|(rd << 15)|(0b100 <<12) |(rd<<7) |RVISA::Opcode::OP;
-                                            break;
-                                        case 0b010://c.or
-                                            new_instr = (rs2 << 20)|(rd << 15)|(0b110 <<12) |(rd<<7) |RVISA::Opcode::OP;
-                                            break;
-                                        case 0b011://c.and
-                                            new_instr = (rs2 << 20)|(rd << 15)|(0b111 <<12) |(rd<<7) |RVISA::Opcode::OP;
-                                            break;
-                                        case 0b100://c.subw RV64C/RV128C-only
-                                            new_instr = (0b0100000 << 25)|(rs2 << 20)|(rd << 15)|(0b000 <<12) |(rd<<7) |RVISA::Opcode::OP32;
-                                            break;
-                                        case 0b101://c.addw RV64C/RV128C-only
-                                            new_instr = (rs2 << 20)|(rd << 15)|(0b000 <<12) |(rd<<7) |RVISA::Opcode::OP32;
-                                            break;
-                                        case 0b110://RESERVED
-                                            break;
-                                        case 0b111://RESERVED
-                                            break;                                            
-                                    }
-                                    break;                                    
-                            }
-                            break;
-                        }
-                        case 0b101:
-                            break;
-                        case 0b110:
-                            break;
-                        case 0b111:
-                            break;
-                    }
-                    break;        
-                case 0x02:
-                    switch(func3)
-                    {
-                        case 0b000:
-                            break;
-                        case 0b001:
-                            break;
-                        case 0b010:
-                            break;
-                        case 0b011:
-                            break;
-                        case 0b100:
-                            break;
-                        case 0b101:
-                            break;
-                        case 0b110:
-                            break;
-                        case 0b111:
-                            break;
-                    }
+                case 0b001:
                     break;
-                default://No compressed
+                case 0b010:
+                    break;
+                case 0b011:
+                    break;
+                case 0b100:  // RESERVED
+                    break;
+                case 0b101:
+                    break;
+                case 0b110:
+                    break;
+                case 0b111:
                     break;
             }
-    
-    instr_last = instrValue;         
-    instr_cache = new_instr;        
-            
+            break;
+        case 0x01:
+            switch (func3) {
+                case 0b000:
+                    break;
+                case 0b001:
+                    break;
+                case 0b010:  // C.LI
+                {
+                    const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
+                    // addi rd,x0, imm[5:0]
+                    rd = fields[3];
+                    imm = (fields[2] << 5) | fields[4];
+                    if (imm & 0x20)  // test for negative
+                    {
+                        imm = imm | 0xFFFFFFC0;
+                    }
+                    new_instr = (imm << 20) | (rd << 7) | RVInstr::ADDI;
+                    break;
+                }
+                case 0b011:
+                    break;
+                case 0b100:  // MISC-ALU
+                {
+                    const auto fields = RVInstrParser::getParser()->decodeCA16Instr(instrValue);
+                    rd = fields[4] | 0x8;
+                    rs2 = fields[6] | 0x8;
+                    switch (fields[3]) {
+                        case 0b00:
+                            break;
+                        case 0b01:
+                            break;
+                        case 0b10:
+                            break;
+                        case 0b11:
+                            switch (fields[2] << 2 | fields[5]) {
+                                case 0b000:  // c.sub
+                                    new_instr = (0b0100000 << 25) | (rs2 << 20) | (rd << 15) | (0b000 << 12) |
+                                                (rd << 7) | RVISA::Opcode::OP;
+                                    break;
+                                case 0b001:  // c.xor
+                                    new_instr =
+                                        (rs2 << 20) | (rd << 15) | (0b100 << 12) | (rd << 7) | RVISA::Opcode::OP;
+                                    break;
+                                case 0b010:  // c.or
+                                    new_instr =
+                                        (rs2 << 20) | (rd << 15) | (0b110 << 12) | (rd << 7) | RVISA::Opcode::OP;
+                                    break;
+                                case 0b011:  // c.and
+                                    new_instr =
+                                        (rs2 << 20) | (rd << 15) | (0b111 << 12) | (rd << 7) | RVISA::Opcode::OP;
+                                    break;
+                                case 0b100:  // c.subw RV64C/RV128C-only
+                                    new_instr = (0b0100000 << 25) | (rs2 << 20) | (rd << 15) | (0b000 << 12) |
+                                                (rd << 7) | RVISA::Opcode::OP32;
+                                    break;
+                                case 0b101:  // c.addw RV64C/RV128C-only
+                                    new_instr =
+                                        (rs2 << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) | RVISA::Opcode::OP32;
+                                    break;
+                                case 0b110:  // RESERVED
+                                    break;
+                                case 0b111:  // RESERVED
+                                    break;
+                            }
+                            break;
+                    }
+                    break;
+                }
+                case 0b101:
+                    break;
+                case 0b110:
+                    break;
+                case 0b111:
+                    break;
+            }
+            break;
+        case 0x02:
+            switch (func3) {
+                case 0b000:
+                    break;
+                case 0b001:
+                    break;
+                case 0b010:
+                    break;
+                case 0b011:
+                    break;
+                case 0b100:
+                    break;
+                case 0b101:
+                    break;
+                case 0b110:
+                    break;
+                case 0b111:
+                    break;
+            }
+            break;
+        default:  // No compressed
+            break;
+    }
+
+    instr_last = instrValue;
+    instr_cache = new_instr;
+
     return new_instr;
 }
-
 
 template <unsigned XLEN>
 class Decode : public Component {
@@ -166,12 +160,11 @@ public:
     Decode(std::string name, SimComponent* parent) : Component(name, parent) {
         opcode << [=] {
             auto instrValue = instr.uValue();
-            
-            if ((instr.uValue() & 0b11) != 0b11)
-            {
-               instrValue = uncompress(instrValue);
+
+            if ((instr.uValue() & 0b11) != 0b11) {
+                instrValue = uncompress(instrValue);
             }
-            
+
             const unsigned l7 = instrValue & 0b1111111;
 
             // clang-format off
@@ -399,7 +392,7 @@ public:
             }
             return instr.uValue();
         };
-        
+
         // clang-format on
     }
 
@@ -410,6 +403,7 @@ public:
     OUTPUTPORT(r2_reg_idx, c_RVRegsBits);
     OUTPUTPORT(Pc_Inc, 1);
     OUTPUTPORT(exp_instr, c_RVInstrWidth);
+
 private:
     void unknownInstruction() {}
     std::shared_ptr<ISAInfoBase> m_isa;

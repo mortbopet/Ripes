@@ -62,10 +62,10 @@ public:
     std::vector<uint32_t> decodeR32Instr(const uint32_t& instr) const { return m_decodeR32Instr(instr); }
     std::vector<uint32_t> decodeB32Instr(const uint32_t& instr) const { return m_decodeB32Instr(instr); }
 
-    //RVC
+    // RVC
     std::vector<uint32_t> decodeCA16Instr(const uint32_t& instr) const { return m_decodeCA16Instr(instr); }
     std::vector<uint32_t> decodeCI16Instr(const uint32_t& instr) const { return m_decodeCI16Instr(instr); }
-    
+
 private:
     RVInstrParser() {
         m_decodeR32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 7});  // from LSB to MSB
@@ -74,10 +74,10 @@ private:
         m_decodeB32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 1, 4, 3, 5, 5, 6, 1});
         m_decodeU32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 20});
         m_decodeJ32Instr = generateInstrParser<uint32_t>(std::vector<int>{7, 5, 8, 1, 10, 1});
-        
-        //RVC
-        m_decodeCA16Instr = generateInstrParser<uint32_t>(std::vector<int>{2,3,2,3,2,1,3,16});
-        m_decodeCI16Instr = generateInstrParser<uint32_t>(std::vector<int>{2,5,5,1,3,16});
+
+        // RVC
+        m_decodeCA16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 3, 2, 3, 2, 1, 3, 16});
+        m_decodeCI16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 5, 5, 1, 3, 16});
     }
     decode_functor<uint32_t> m_decodeU32Instr;
     decode_functor<uint32_t> m_decodeJ32Instr;
@@ -85,8 +85,8 @@ private:
     decode_functor<uint32_t> m_decodeS32Instr;
     decode_functor<uint32_t> m_decodeR32Instr;
     decode_functor<uint32_t> m_decodeB32Instr;
-    
-    //RVC
+
+    // RVC
     decode_functor<uint32_t> m_decodeCA16Instr;
     decode_functor<uint32_t> m_decodeCI16Instr;
 };
