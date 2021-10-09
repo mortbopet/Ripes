@@ -5,56 +5,49 @@
 
 namespace Ripes {
 AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
-    if (ProcessorHandler::currentISA()->extensionEnabled ("C"))
-    {
+    if (ProcessorHandler::currentISA()->extensionEnabled("C")) {
         if (auto prog_spt = ProcessorHandler::getProgram()) {
-          AInt addr=0;
-          for(int rowC = 0 ; rowC < index.row(); rowC++)
-            {
+            AInt addr = 0;
+            for (int rowC = 0; rowC < index.row(); rowC++) {
                 const VInt instr = ProcessorHandler::getMemory().readMem(addr, 2);
-                if((instr & 0b11) == 0b11) //32bits
-                  {
+                if ((instr & 0b11) == 0b11)  // 32bits
+                {
                     addr += 2;
-                  }
+                }
                 addr += 2;
             }
-          return addr +  prog_spt->getSection(TEXT_SECTION_NAME)->address;
+            return addr + prog_spt->getSection(TEXT_SECTION_NAME)->address;
         }
-    }       
-  else
-    {
-       if (auto prog_spt = ProcessorHandler::getProgram()) {
-           return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
-       }
+    } else {
+        if (auto prog_spt = ProcessorHandler::getProgram()) {
+            return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
+        }
     }
     return 0;
 }
 
 int InstructionModel::addressToRow(AInt addr) const {
-    if (ProcessorHandler::currentISA()->extensionEnabled ("C"))
-    {
-        if(addr == 0) return 0;
+    if (ProcessorHandler::currentISA()->extensionEnabled("C")) {
+        if (addr == 0)
+            return 0;
         if (auto prog_spt = ProcessorHandler::getProgram()) {
-          int rowC=0;
-          for(AInt addrC = 0 ; addrC < (addr-prog_spt->getSection(TEXT_SECTION_NAME)->address); addrC +=2)
-            {
+            int rowC = 0;
+            for (AInt addrC = 0; addrC < (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address); addrC += 2) {
                 const VInt word = ProcessorHandler::getMemory().readMem(addrC, 2);
-                if((word & 0b11) == 0b11) //32bits
-                  {
+                if ((word & 0b11) == 0b11)  // 32bits
+                {
                     addrC += 2;
-                  }
-                rowC++ ;
+                }
+                rowC++;
             }
-          return rowC;
+            return rowC;
         }
-    }       
-  else
-    {
-       if (auto prog_spt = ProcessorHandler::getProgram()) {
-           if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
-              return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
-          }
-       }
+    } else {
+        if (auto prog_spt = ProcessorHandler::getProgram()) {
+            if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
+                return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
+            }
+        }
     }
     return 0;
 }
@@ -82,22 +75,18 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 void InstructionModel::updateRowCount() {
-  if (ProcessorHandler::currentISA()->extensionEnabled ("C"))
-    {
-          m_rowCount = 0;
-          for(int addr =0 ; addr < ProcessorHandler::getCurrentProgramSize(); addr += 2)
+    if (ProcessorHandler::currentISA()->extensionEnabled("C")) {
+        m_rowCount = 0;
+        for (int addr = 0; addr < ProcessorHandler::getCurrentProgramSize(); addr += 2) {
+            const VInt word = ProcessorHandler::getMemory().readMem(addr, 16);
+            if ((word & 0x11) == 0x11)  // 32bits
             {
-                const VInt word = ProcessorHandler::getMemory().readMem(addr, 16);
-                if((word & 0x11) == 0x11) //32bits
-                  {
-                    addr +=2;
-                  }
-                  m_rowCount++;
+                addr += 2;
             }
-    }       
-  else
-    {
-           m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->instrBytes();
+            m_rowCount++;
+        }
+    } else {
+        m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->instrBytes();
     }
 }
 
