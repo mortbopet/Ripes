@@ -8,12 +8,10 @@ jobs:
     name: Check with clang-format
     runs-on: ubuntu-latest
     steps:
-    - name: Get CIRCT
+    - name: Get Ripes
       uses: actions/checkout@v2
       with:
-        submodules: 'false'
-        ref: ${{ github.head_ref }}
-        fetch-depth: 2
+        submodules: recursive
     - name: clang-format
       run: |
         # Run clang-format
