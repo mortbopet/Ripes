@@ -8,9 +8,9 @@ namespace core {
 using namespace Ripes;
 
 // only support 32 bit instructions
-unsigned long int uncompress(const unsigned long int instrValue) {
-    static unsigned long int instr_last = 0;
-    static unsigned long int instr_cache = 0;
+VInt uncompress(const VInt instrValue) {
+    static VInt instr_last = 0;
+    static VInt instr_cache = 0;
 
     // use cache to avoid run multiple times with same instruction in multiple calls
     if (instr_last == instrValue) {
