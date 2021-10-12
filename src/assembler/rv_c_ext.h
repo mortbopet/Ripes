@@ -47,9 +47,6 @@ struct RVCReg : public Reg<Reg_T> {
                          {std::make_shared<RVCReg<Reg__T>>(isa, 2, 2, 4, "rs2'"),                                  \
                           std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rd'/rs1'")}))
 
-#define CI_IMM_SLLI \
-    std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})
-
 #define CI_IMM_LDSP                                    \
     std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned, \
                            std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12), ImmPart(3, 5, 6)})
@@ -189,7 +186,9 @@ struct RV_C {
 
         // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
         instructions.push_back(CIType(0b10, Token("c.fldsp"), 0b001, CI_IMM_LDSP));
-        instructions.push_back(CIType(0b10, Token("c.slli"), 0b000, CI_IMM_SLLI));
+        instructions.push_back(CIType(
+            0b10, Token("c.slli"), 0b000,
+            std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
 
         instructions.push_back(CIType(0b01, Token("c.li"), 0b010, CI_IMM_ADDI));
         instructions.push_back(CIType(0b01, Token("c.lui"), 0b011, CI_IMM_LUI));
