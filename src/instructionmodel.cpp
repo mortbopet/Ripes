@@ -51,12 +51,16 @@ void InstructionModel::updateRowCount() {
     m_indexToAddress[0] = 0;
     m_rowCount = 0;
     const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
-    for (int addr = 0; addr < ProcessorHandler::getCurrentProgramSize();) {
-        auto disRes = ProcessorHandler::getAssembler()->disassemble(
-            ProcessorHandler::getMemory().readMem(addr, instrBytes), ProcessorHandler::getProgram()->symbols, addr);
-        addr += disRes.bytesDisassembled;
-        m_rowCount++;
-        m_indexToAddress[m_rowCount] = addr;
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
+        for (AInt addr = 0; addr < (AInt)ProcessorHandler::getCurrentProgramSize();) {
+            auto disRes = ProcessorHandler::getAssembler()->disassemble(
+                ProcessorHandler::getMemory().readMem(addr + prog_spt->getSection(TEXT_SECTION_NAME)->address,
+                                                      instrBytes),
+                ProcessorHandler::getProgram()->symbols, addr + prog_spt->getSection(TEXT_SECTION_NAME)->address);
+            addr += disRes.bytesDisassembled;
+            m_rowCount++;
+            m_indexToAddress[m_rowCount] = addr;
+        }
     }
 }
 
