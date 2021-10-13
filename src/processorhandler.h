@@ -32,7 +32,7 @@ public:
         return handler;
     }
 
-    static RipesProcessor* getProcessorNonConst() { return get()->_getProcessorNonConst(); }
+    static RipesProcessor* getProcessorNonConst() { return get()->_getProcessor(); }
     static const RipesProcessor* getProcessor() { return get()->_getProcessor(); }
     static const std::shared_ptr<Assembler::AssemblerBase> getAssembler() { return get()->_getAssembler(); }
     static const ProcessorID& getID() { return get()->_getID(); }
@@ -188,8 +188,8 @@ private slots:
 
 private:
     void _loadProgram(const std::shared_ptr<Program>& p);
-    RipesProcessor* _getProcessorNonConst() { return m_currentProcessor.get(); }
-    const RipesProcessor* _getProcessor() { return m_currentProcessor.get(); }
+    RipesProcessor* _getProcessor() { return m_currentProcessor.get(); }
+    const RipesProcessor* _getProcessor() const { return m_currentProcessor.get(); }
     const std::shared_ptr<Assembler::AssemblerBase> _getAssembler() { return m_currentAssembler; }
     const ProcessorID& _getID() const { return m_currentID; }
     std::shared_ptr<const Program> _getProgram() const { return m_program; }
