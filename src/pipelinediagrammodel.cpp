@@ -65,12 +65,12 @@ void PipelineDiagramModel::prepareForView() {
 
 void PipelineDiagramModel::gatherStageInfo() {
     long long cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-    if (m_cycleStageInfos.count(cycleCount)) {
+    auto stageInfoForCycle = m_cycleStageInfos.find(cycleCount);
+    if (stageInfoForCycle == m_cycleStageInfos.end()) {
         return;
     }
     for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
-        m_cycleStageInfos[ProcessorHandler::getProcessor()->getCycleCount()][i] =
-            ProcessorHandler::getProcessor()->stageInfo(i);
+        stageInfoForCycle->second[i] = ProcessorHandler::getProcessor()->stageInfo(i);
     }
 }
 
