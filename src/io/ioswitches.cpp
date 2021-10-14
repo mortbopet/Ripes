@@ -152,7 +152,7 @@ QString IOSwitches::description() const {
 
 void IOSwitches::updateSwitches() {
     const unsigned nSwitches = m_parameters.at(SWITCHES).value.toInt();
-    for (unsigned i = 0; i < nSwitches; i++) {
+    for (unsigned i = 0; i < nSwitches; ++i) {
         if (m_switches.count(i) == 0) {
             auto* sw = new ToggleButton(10, 8, true, this);
             auto* label = new QLabel(QString::number(i), this);

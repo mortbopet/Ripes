@@ -48,7 +48,7 @@ QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth) {
         }
         case Radix::ASCII: {
             QString str;
-            for (unsigned i = 0; i < byteWidth; i++) {
+            for (unsigned i = 0; i < byteWidth; ++i) {
                 str.prepend(QChar::fromLatin1(value & 0xFF));
                 value >>= 8;
             }
@@ -85,7 +85,7 @@ VInt decodeRadixValue(QString value, const Radix type, bool* ok) {
                 valueRev.prepend(c);
             }
             uint32_t v = 0;
-            for (int i = 0; i < valueRev.length(); i++) {
+            for (int i = 0; i < valueRev.length(); ++i) {
                 v |= (valueRev[i].toLatin1() & 0xFF) << (i * 8);
             }
             *ok = true;

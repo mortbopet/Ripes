@@ -229,7 +229,7 @@ protected:
          * information if it is a blank symbol (no other information on line).
          */
         Symbols carry;
-        for (int i = 0; i < program.size(); i++) {
+        for (int i = 0; i < program.size(); ++i) {
             const auto& line = program.at(i);
             if (line.isEmpty())
                 continue;
@@ -296,7 +296,7 @@ protected:
         SourceProgram expandedLines;
         expandedLines.reserve(tokenizedLines.size());
 
-        for (unsigned i = 0; i < tokenizedLines.size(); i++) {
+        for (unsigned i = 0; i < tokenizedLines.size(); ++i) {
             const auto& tokenizedLine = tokenizedLines.at(i);
             runOperation(expandedOps, std::optional<std::vector<LineTokens>>, expandPseudoOp, tokenizedLine);
             if (expandedOps) {

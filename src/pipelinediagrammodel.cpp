@@ -68,7 +68,7 @@ void PipelineDiagramModel::gatherStageInfo() {
     if (m_cycleStageInfos.count(cycleCount)) {
         return;
     }
-    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
         m_cycleStageInfos[ProcessorHandler::getProcessor()->getCycleCount()][i] =
             ProcessorHandler::getProcessor()->stageInfo(i);
     }

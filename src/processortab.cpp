@@ -156,7 +156,7 @@ void ProcessorTab::loadLayout(const Layout& layout) {
 
     // Adjust stage label positions
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
-    for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
+    for (unsigned i = 0; i < m_stageInstructionLabels.size(); ++i) {
         auto& label = m_stageInstructionLabels.at(i);
         QFontMetrics metrics(label->font());
         label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i).x(),
@@ -313,7 +313,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
 
     m_stageInstructionLabels.clear();
     const auto& proc = ProcessorHandler::getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
+    for (unsigned i = 0; i < proc->stageCount(); ++i) {
         auto* stagelabel = new vsrtl::Label(topLevelComponent, "-");
         stagelabel->setPointSize(14);
         m_stageInstructionLabels[i] = stagelabel;
@@ -418,7 +418,7 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
     const auto& proc = ProcessorHandler::getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
+    for (unsigned i = 0; i < proc->stageCount(); ++i) {
         if (!m_stageInstructionLabels.count(i))
             continue;
         const auto stageInfo = proc->stageInfo(i);

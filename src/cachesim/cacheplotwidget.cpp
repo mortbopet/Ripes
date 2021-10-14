@@ -220,7 +220,7 @@ void CachePlotWidget::savePlot() {
 
 void CachePlotWidget::copyPlotDataToClipboard() const {
     std::vector<Variable> allVariables;
-    for (int i = 0; i < N_TraceVars; i++) {
+    for (int i = 0; i < N_TraceVars; ++i) {
         allVariables.push_back(static_cast<Variable>(i));
     }
     const auto& allData = gatherData();
@@ -274,7 +274,7 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
     std::map<Variable, QList<QPoint>> cacheData;
     const auto& trace = m_cache->getAccessTrace();
 
-    for (int i = 0; i < N_TraceVars; i++) {
+    for (int i = 0; i < N_TraceVars; ++i) {
         cacheData[static_cast<Variable>(i)].reserve(trace.size());
     }
 
@@ -385,7 +385,7 @@ void CachePlotWidget::updateRatioPlot() {
     } else {
         lastPoint = QPointF(-1, 0);
     }
-    for (int i = 0; i < nNewPoints; i++) {
+    for (int i = 0; i < nNewPoints; ++i) {
         // Cummulative plot. For the unary variable, "Accesses" is just used to index into the cache data for
         // accessing the x variable.
         const auto& p1 =

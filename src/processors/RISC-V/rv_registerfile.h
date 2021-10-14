@@ -89,7 +89,7 @@ public:
 
     std::vector<VSRTL_VT_U> getRegisters() {
         std::vector<VSRTL_VT_U> regs;
-        for (int i = 0; i < c_RVRegs; i++)
+        for (int i = 0; i < c_RVRegs; ++i)
             regs.push_back(getRegister(i));
         return regs;
     }

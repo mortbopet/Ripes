@@ -50,7 +50,7 @@ std::optional<Error> assembleData(const AssemblerBase* assembler, const Tokenize
         getImmediateErroring(token, val, line.sourceLine);
 
         if (isUInt<size * 8>(val) || isInt<size * 8>(val)) {
-            for (size_t i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; ++i) {
                 byteArray.append(val & 0xff);
                 val >>= 8;
             }

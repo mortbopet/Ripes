@@ -68,7 +68,7 @@ void IOLedMatrix::updateLEDRegs() {
 
     m_regDescs.clear();
     m_regDescs.resize(nLEDs);
-    for (unsigned i = 0; i < m_regDescs.size(); i++) {
+    for (unsigned i = 0; i < m_regDescs.size(); ++i) {
         RegDesc regdesc;
         regdesc.name = "LED_" + QString::number(i);
         regdesc.rw = RegDesc::RW::RW;

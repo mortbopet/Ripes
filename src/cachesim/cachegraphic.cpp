@@ -135,7 +135,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     const unsigned bytes = ProcessorHandler::currentISA()->bytes();
     // ======================== Update block text fields ======================
     if (simWay.valid) {
-        for (int i = 0; i < m_cache.getBlocks(); i++) {
+        for (int i = 0; i < m_cache.getBlocks(); ++i) {
             QGraphicsSimpleTextItem* blockTextItem = nullptr;
             if (way.blocks.count(i) == 0) {
                 // Block text item has not yet been created
@@ -405,7 +405,7 @@ void CacheGraphic::cacheInvalidated() {
     m_widthBeforeBlocks = width;
 
     // Draw horizontal lines between cache blocks
-    for (int i = 0; i < m_cache.getBlocks(); i++) {
+    for (int i = 0; i < m_cache.getBlocks(); ++i) {
         const QString blockText = "Block " + QString::number(i);
         drawText(blockText, width + m_tagWidth / 2 - m_fm.width(blockText) / 2, -m_fm.height());
         width += m_blockWidth;
@@ -415,7 +415,7 @@ void CacheGraphic::cacheInvalidated() {
     m_cacheWidth = width;
 
     // Draw cache line rows
-    for (int i = 0; i <= m_cache.getLines(); i++) {
+    for (int i = 0; i <= m_cache.getLines(); ++i) {
         qreal verticalAdvance = i * m_lineHeight;
         new QGraphicsLineItem(0, verticalAdvance, m_cacheWidth, verticalAdvance, this);
 
@@ -432,7 +432,7 @@ void CacheGraphic::cacheInvalidated() {
     }
 
     // Draw line index numbers
-    for (int i = 0; i < m_cache.getLines(); i++) {
+    for (int i = 0; i < m_cache.getLines(); ++i) {
         const QString text = QString::number(i);
 
         const qreal y = i * m_lineHeight + m_lineHeight / 2 - m_setHeight / 2;

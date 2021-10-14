@@ -83,7 +83,7 @@ inline unsigned log2Ceil(double v) {
 
 template <typename T>
 unsigned firstSetBitIdx(const T& val) {
-    for (unsigned i = 0; i < CHAR_BIT * sizeof(T); i++) {
+    for (unsigned i = 0; i < CHAR_BIT * sizeof(T); ++i) {
         if ((val >> i) & 0x1) {
             return i;
         }

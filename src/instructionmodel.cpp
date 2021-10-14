@@ -21,7 +21,7 @@ int InstructionModel::addressToRow(AInt addr) const {
 }
 
 InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent) {
-    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
         m_stageNames << ProcessorHandler::getProcessor()->stageName(i);
         m_stageInfos[i];
     }
@@ -52,7 +52,7 @@ int InstructionModel::rowCount(const QModelIndex&) const {
 
 void InstructionModel::updateStageInfo() {
     bool firstStageChanged = false;
-    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); i++) {
+    for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount(); ++i) {
         if (static_cast<unsigned>(m_stageInfos.size()) > i) {
             auto& oldStageInfo = m_stageInfos.at(i);
             if (i == 0) {

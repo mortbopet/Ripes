@@ -146,7 +146,7 @@ void CachePlotView::resizeObjects(const QSizeF& size) {
         }
     }
 
-    for (unsigned i = 0; i < m_markers.size(); i++) {
+    for (unsigned i = 0; i < m_markers.size(); ++i) {
         auto& marker = m_markers.at(i);
         marker->marker->updateLines();
     }
