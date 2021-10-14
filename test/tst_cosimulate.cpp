@@ -196,7 +196,7 @@ void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
     Registers preRegs = dumpRegs();
 
     do {
-        ProcessorHandler::get()->getProcessorNonConst()->clockProcessor();
+        ProcessorHandler::get()->getProcessorNonConst()->clock();
         cycles++;
 
         Registers regs = dumpRegs();

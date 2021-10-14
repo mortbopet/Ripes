@@ -120,7 +120,7 @@ QString tst_RISCV::executeSimulator() {
     bool maxCyclesReached = false;
     unsigned cycles = 0;
     do {
-        ProcessorHandler::getProcessorNonConst()->clockProcessor();
+        ProcessorHandler::getProcessorNonConst()->clock();
 
         cycles++;
 

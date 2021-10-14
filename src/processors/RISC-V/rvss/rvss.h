@@ -187,7 +187,7 @@ public:
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 
-    void clock() override {
+    void clockProcessor() override {
         // Single cycle processor; 1 instruction retired per cycle!
         m_instructionsRetired++;
 

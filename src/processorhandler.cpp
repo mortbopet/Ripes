@@ -134,7 +134,7 @@ class ProcessorClocker : public QRunnable {
 public:
     explicit ProcessorClocker(bool& finished) : m_finished(finished) {}
     void run() override {
-        ProcessorHandler::getProcessorNonConst()->clockProcessor();
+        ProcessorHandler::getProcessorNonConst()->clock();
         ProcessorHandler::checkProcessorFinished();
         if (ProcessorHandler::checkBreakpoint()) {
             ProcessorHandler::stopRun();
@@ -166,7 +166,7 @@ void ProcessorHandler::_run() {
         }
 
         while (!(_checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag)) {
-            m_currentProcessor->clockProcessor();
+            m_currentProcessor->clock();
         }
 
         if (vsrtl_proc) {
