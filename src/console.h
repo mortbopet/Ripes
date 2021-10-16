@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QTextBlock>
+
 #include <QFont>
 #include <QPlainTextEdit>
 

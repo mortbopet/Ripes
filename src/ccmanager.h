@@ -5,7 +5,10 @@
 #include <QObject>
 #include <QProcess>
 #include <QString>
-#include <QTextDocument>
+
+QT_FORWARD_DECLARE_CLASS(QTextDocument)
+
+#include <memory>
 
 namespace Ripes {
 

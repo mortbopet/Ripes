@@ -1,0 +1,1 @@
+create_ripes_lib(isa LINK_TO_RIPES_LIB)

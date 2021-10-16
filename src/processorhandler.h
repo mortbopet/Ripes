@@ -5,14 +5,14 @@
 #include <QObject>
 #include <memory>
 
+#include "VSRTL/graphics/gallantsignalwrapper.h"
 #include "assembler/assembler.h"
 #include "assembler/program.h"
-#include "gallantsignalwrapper.h"
 #include "processorregistry.h"
 #include "processors/interface/ripesprocessor.h"
 #include "syscall/ripes_syscall.h"
 
-#include "vsrtl_widget.h"
+#include "VSRTL/graphics/vsrtl_widget.h"
 
 namespace Ripes {
 
