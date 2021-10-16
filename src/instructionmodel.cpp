@@ -25,7 +25,7 @@ int InstructionModel::addressToRow(AInt addr) const {
         auto it = disassembleRes.lower_bound(addrAdjusted);
         if (it == disassembleRes.end())
             return 0;
-        return it->first;
+        return std::distance(disassembleRes.begin(), it);
     }
     return 0;
 }
