@@ -65,21 +65,25 @@ struct ProgramSection {
  * Wrapper around a program to be loaded into simulator memory. Text section shall contain the instructions of the
  * program. Others section may contain all other program sections (.bss, .data, ...)
  */
-struct Program {
+class Program {
+public:
     AInt entryPoint = 0;
     std::map<QString, ProgramSection> sections;
     ReverseSymbolMap symbols;
 
-    const ProgramSection* getSection(const QString& name) const {
-        const auto secIter =
-            std::find_if(sections.begin(), sections.end(), [=](const auto& section) { return section.first == name; });
+    /// Returns the program section corresponding to the provided name. Return nullptr if no section was found with the
+    /// given name.
+    const ProgramSection* getSection(const QString& name) const;
 
-        if (secIter == sections.end()) {
-            return nullptr;
-        }
+    /// Returns the disassembled version of this program. The result is an ordered map of
+    /// [instruction address : disassembled instruction]
+    const std::map<VInt, QString>& getDisassembled() const;
 
-        return &secIter->second;
-    }
+private:
+    /// A caching of the disassembled version of this program. An ordered map of
+    /// [instruction address : disassembled instruction] with the iterator index equating to the line # of a given
+    /// instruction if the disassembly is printed.
+    mutable std::map<VInt, QString> disassembled;
 };
 
 }  // namespace Ripes

@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QColor>
 
+#include "assembler/program.h"
 #include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
@@ -32,10 +33,10 @@ public:
 signals:
     /**
      * @brief firstStageInstrChanged
-     * Emitted whenever the PC of the first stage, changed. Argument is the address of the instruction now present in
-     * the first stage.
+     * Emitted whenever the PC of the first stage, changed. Argument is the row of the instruction now present
+     * in the first stage.
      */
-    void firstStageInstrChanged(AInt);
+    void firstStageInstrChanged(int row);
 
 private:
     void updateStageInfo();
@@ -47,10 +48,10 @@ private:
     void updateRowCount();
     void onProcessorReset();
 
+    std::shared_ptr<const Program> m_program;
     QStringList m_stageNames;
     using StageID = unsigned;
     std::map<StageID, StageInfo> m_stageInfos;
     int m_rowCount = 0;
-    std::map<unsigned int, AInt> m_indexToAddress;
 };
 }  // namespace Ripes

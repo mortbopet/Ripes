@@ -382,7 +382,7 @@ void ProcessorTab::updateInstructionModel() {
     m_ui->instructionView->horizontalHeader()->setSectionResizeMode(InstructionModel::Instruction,
                                                                     QHeaderView::Stretch);
     // Make the instruction view follow the instruction which is currently present in the first stage of the
-    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterAddr);
+    connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this, &ProcessorTab::setInstructionViewCenterRow);
 
     if (oldModel) {
         delete oldModel;
@@ -449,20 +449,19 @@ void ProcessorTab::reset() {
     SystemIO::printString("\n");
 }
 
-void ProcessorTab::setInstructionViewCenterAddr(AInt address) {
-    const auto index = m_instrModel->addressToRow(address);
+void ProcessorTab::setInstructionViewCenterRow(int row) {
     const auto view = m_ui->instructionView;
     const auto rect = view->rect();
-    int indexTop = view->indexAt(rect.topLeft()).row();
-    int indexBot = view->indexAt(rect.bottomLeft()).row();
-    indexBot = indexBot < 0 ? m_instrModel->rowCount() : indexBot;
+    int rowTop = view->indexAt(rect.topLeft()).row();
+    int rowBot = view->indexAt(rect.bottomLeft()).row();
+    rowBot = rowBot < 0 ? m_instrModel->rowCount() : rowBot;
 
-    const int nItemsVisible = indexBot - indexTop;
+    const int nItemsVisible = rowBot - rowTop;
 
     // move scrollbar if if is not visible
-    if (index <= indexTop || index >= indexBot) {
+    if (row <= rowTop || row >= rowBot) {
         auto scrollbar = view->verticalScrollBar();
-        scrollbar->setValue(index - nItemsVisible / 2);
+        scrollbar->setValue(row - nItemsVisible / 2);
     }
 }
 
