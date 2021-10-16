@@ -5,21 +5,27 @@
 
 namespace Ripes {
 AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
-    if (auto prog_spt = ProcessorHandler::getProgram()) {
-        return m_indexToAddress.at(index.row()) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
+    if (m_program) {
+        auto& disassembleRes = m_program->getDisassembled();
+        if (disassembleRes.size() < static_cast<unsigned>(index.row()))
+            return -1;
+        /// Since disassembly results are ordered from low to high addresses, we take the row index'th disassembled
+        /// instruction, and return its address.
+        auto it = disassembleRes.begin();
+        std::advance(it, index.row());
+        return it->first;
     }
     return 0;
 }
 
 int InstructionModel::addressToRow(AInt addr) const {
-    if (auto prog_spt = ProcessorHandler::getProgram()) {
-        const AInt addrC = addr - prog_spt->getSection(TEXT_SECTION_NAME)->address;
-
-        for (unsigned int rowC = 0; rowC < m_indexToAddress.size(); rowC++) {
-            if (m_indexToAddress.at(rowC) >= addrC) {
-                return rowC;
-            }
-        }
+    if (m_program) {
+        const AInt addrAdjusted = addr - m_program->getSection(TEXT_SECTION_NAME)->address;
+        auto& disassembleRes = m_program->getDisassembled();
+        auto it = disassembleRes.lower_bound(addrAdjusted);
+        if (it == disassembleRes.end())
+            return 0;
+        return it->first;
     }
     return 0;
 }
@@ -36,6 +42,9 @@ InstructionModel::InstructionModel(QObject* parent) : QAbstractTableModel(parent
 }
 
 void InstructionModel::onProcessorReset() {
+    // Update handle to program
+    m_program = ProcessorHandler::getProgram();
+
     updateRowCount();
     beginResetModel();
     endResetModel();
@@ -47,21 +56,11 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 void InstructionModel::updateRowCount() {
-    m_indexToAddress.clear();
-    m_indexToAddress[0] = 0;
-    m_rowCount = 0;
-    const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
-    if (auto prog_spt = ProcessorHandler::getProgram()) {
-        for (AInt addr = 0; addr < (AInt)ProcessorHandler::getCurrentProgramSize();) {
-            auto disRes = ProcessorHandler::getAssembler()->disassemble(
-                ProcessorHandler::getMemory().readMem(addr + prog_spt->getSection(TEXT_SECTION_NAME)->address,
-                                                      instrBytes),
-                ProcessorHandler::getProgram()->symbols, addr + prog_spt->getSection(TEXT_SECTION_NAME)->address);
-            addr += disRes.bytesDisassembled;
-            m_rowCount++;
-            m_indexToAddress[m_rowCount] = addr;
-        }
-    }
+    if (m_program) {
+        auto& disassembleRes = m_program->getDisassembled();
+        m_rowCount = disassembleRes.size();
+    } else
+        m_rowCount = 0;
 }
 
 int InstructionModel::rowCount(const QModelIndex&) const {
@@ -148,7 +147,14 @@ QVariant InstructionModel::stageData(AInt addr) const {
 }
 
 QVariant InstructionModel::instructionData(AInt addr) const {
-    return ProcessorHandler::disassembleInstr(addr);
+    if (m_program) {
+        auto& disres = m_program->getDisassembled();
+        auto it = disres.find(addr);
+        if (it == disres.end())
+            return QVariant();
+        return it->second;
+    }
+    return QVariant();
 }
 
 QVariant InstructionModel::data(const QModelIndex& index, int role) const {

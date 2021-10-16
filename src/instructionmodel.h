@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QColor>
 
+#include "assembler/program.h"
 #include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
@@ -47,10 +48,10 @@ private:
     void updateRowCount();
     void onProcessorReset();
 
+    std::shared_ptr<const Program> m_program;
     QStringList m_stageNames;
     using StageID = unsigned;
     std::map<StageID, StageInfo> m_stageInfos;
     int m_rowCount = 0;
-    std::map<unsigned int, AInt> m_indexToAddress;
 };
 }  // namespace Ripes
