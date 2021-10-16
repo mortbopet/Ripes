@@ -13,7 +13,7 @@ add_custom_target(
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp
     )
 
-add_dependencies(${RIPES_LIB} version_file)
+add_dependencies(version_lib version_file)
 
 add_custom_command(
     OUTPUT
