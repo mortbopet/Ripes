@@ -51,5 +51,6 @@ private:
     using StageID = unsigned;
     std::map<StageID, StageInfo> m_stageInfos;
     int m_rowCount = 0;
+    std::map<unsigned int, AInt> m_indexToAddress;
 };
 }  // namespace Ripes

@@ -6,15 +6,19 @@
 namespace Ripes {
 AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
     if (auto prog_spt = ProcessorHandler::getProgram()) {
-        return (index.row() * 4) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
+        return m_indexToAddress.at(index.row()) + prog_spt->getSection(TEXT_SECTION_NAME)->address;
     }
     return 0;
 }
 
 int InstructionModel::addressToRow(AInt addr) const {
     if (auto prog_spt = ProcessorHandler::getProgram()) {
-        if (prog_spt->getSection(TEXT_SECTION_NAME) != nullptr) {
-            return (addr - prog_spt->getSection(TEXT_SECTION_NAME)->address) / 4;
+        const AInt addrC = addr - prog_spt->getSection(TEXT_SECTION_NAME)->address;
+
+        for (unsigned int rowC = 0; rowC < m_indexToAddress.size(); rowC++) {
+            if (m_indexToAddress.at(rowC) >= addrC) {
+                return rowC;
+            }
         }
     }
     return 0;
@@ -43,7 +47,21 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 }
 
 void InstructionModel::updateRowCount() {
-    m_rowCount = ProcessorHandler::getCurrentProgramSize() / ProcessorHandler::currentISA()->instrBytes();
+    m_indexToAddress.clear();
+    m_indexToAddress[0] = 0;
+    m_rowCount = 0;
+    const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
+    if (auto prog_spt = ProcessorHandler::getProgram()) {
+        for (AInt addr = 0; addr < (AInt)ProcessorHandler::getCurrentProgramSize();) {
+            auto disRes = ProcessorHandler::getAssembler()->disassemble(
+                ProcessorHandler::getMemory().readMem(addr + prog_spt->getSection(TEXT_SECTION_NAME)->address,
+                                                      instrBytes),
+                ProcessorHandler::getProgram()->symbols, addr + prog_spt->getSection(TEXT_SECTION_NAME)->address);
+            addr += disRes.bytesDisassembled;
+            m_rowCount++;
+            m_indexToAddress[m_rowCount] = addr;
+        }
+    }
 }
 
 int InstructionModel::rowCount(const QModelIndex&) const {
