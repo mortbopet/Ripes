@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -89,6 +89,9 @@ elseif(${WIN32})
 endif()
 
 add_subdirectory(external)
+
+# Fix the name of the ripes library.
+set(RIPES_LIB ripes_lib)
 add_subdirectory(src)
 
 option(RIPES_BUILD_TESTS "Build Ripes tests" OFF)
@@ -102,4 +105,4 @@ add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUT
 # Link Qt libraries
 target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)
 # Link Ripes library
-target_link_libraries(${APP_NAME} ripes_lib)
+target_link_libraries(${APP_NAME} ${RIPES_LIB})

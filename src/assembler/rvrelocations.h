@@ -1,7 +1,7 @@
 #pragma once
 
+#include "VSRTL/interface/vsrtl_binutils.h"
 #include "relocation.h"
-#include "vsrtl_binutils.h"
 
 namespace Ripes {
 namespace Assembler {
