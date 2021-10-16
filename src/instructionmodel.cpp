@@ -90,7 +90,7 @@ void InstructionModel::updateStageInfo() {
                 emit dataChanged(newIdx, newIdx, {Qt::DisplayRole});
             }
             if (firstStageChanged) {
-                emit firstStageInstrChanged(m_stageInfos.at(0).pc);
+                emit firstStageInstrChanged(addressToRow(m_stageInfos.at(0).pc));
                 firstStageChanged = false;
             }
         }

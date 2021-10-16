@@ -33,10 +33,10 @@ public:
 signals:
     /**
      * @brief firstStageInstrChanged
-     * Emitted whenever the PC of the first stage, changed. Argument is the address of the instruction now present in
-     * the first stage.
+     * Emitted whenever the PC of the first stage, changed. Argument is the row of the instruction now present
+     * in the first stage.
      */
-    void firstStageInstrChanged(AInt);
+    void firstStageInstrChanged(int row);
 
 private:
     void updateStageInfo();
