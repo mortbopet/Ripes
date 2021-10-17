@@ -9,7 +9,11 @@ if(CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 endif()
 
-project(Ripes CXX)
+project(Ripes
+        LANGUAGES CXX
+        DESCRIPTION "A graphical processor simulator and assembly editor for the RISC-V ISA"
+        HOMEPAGE_URL "https://github.com/mortbopet/Ripes")
+include(GNUInstallDirs) #Must exist after declaring a project
 
 # Error flags on everything but MSVC
 if(NOT MSVC)
@@ -106,3 +110,15 @@ add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUT
 target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)
 # Link Ripes library
 target_link_libraries(${APP_NAME} ${RIPES_LIB})
+
+install(TARGETS ${APP_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+)
+
+install(TARGETS fancytabbar_lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/appdir/usr/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
