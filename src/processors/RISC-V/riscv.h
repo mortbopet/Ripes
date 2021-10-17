@@ -65,6 +65,12 @@ public:
     // RVC
     std::vector<uint32_t> decodeCA16Instr(const uint32_t& instr) const { return m_decodeCA16Instr(instr); }
     std::vector<uint32_t> decodeCI16Instr(const uint32_t& instr) const { return m_decodeCI16Instr(instr); }
+    std::vector<uint32_t> decodeCS16Instr(const uint32_t& instr) const { return m_decodeCS16Instr(instr); }
+    std::vector<uint32_t> decodeCIW16Instr(const uint32_t& instr) const { return m_decodeCIW16Instr(instr); }
+    std::vector<uint32_t> decodeCSS16Instr(const uint32_t& instr) const { return m_decodeCSS16Instr(instr); }
+    std::vector<uint32_t> decodeCJ16Instr(const uint32_t& instr) const { return m_decodeCJ16Instr(instr); }
+    std::vector<uint32_t> decodeCB16Instr(const uint32_t& instr) const { return m_decodeCB16Instr(instr); }
+    std::vector<uint32_t> decodeCB216Instr(const uint32_t& instr) const { return m_decodeCB216Instr(instr); }
 
 private:
     RVInstrParser() {
@@ -78,6 +84,12 @@ private:
         // RVC
         m_decodeCA16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 3, 2, 3, 2, 1, 3, 16});
         m_decodeCI16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 5, 5, 1, 3, 16});
+        m_decodeCS16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 3, 2, 3, 3, 3, 16});
+        m_decodeCIW16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 3, 8, 3, 16});
+        m_decodeCSS16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 5, 6, 3, 16});
+        m_decodeCJ16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 11, 3, 16});
+        m_decodeCB16Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 5, 3, 3, 3, 16});
+        m_decodeCB216Instr = generateInstrParser<uint32_t>(std::vector<int>{2, 5, 3, 2, 1, 3, 16});
     }
     decode_functor<uint32_t> m_decodeU32Instr;
     decode_functor<uint32_t> m_decodeJ32Instr;
@@ -89,6 +101,12 @@ private:
     // RVC
     decode_functor<uint32_t> m_decodeCA16Instr;
     decode_functor<uint32_t> m_decodeCI16Instr;
+    decode_functor<uint32_t> m_decodeCS16Instr;
+    decode_functor<uint32_t> m_decodeCIW16Instr;
+    decode_functor<uint32_t> m_decodeCSS16Instr;
+    decode_functor<uint32_t> m_decodeCJ16Instr;
+    decode_functor<uint32_t> m_decodeCB16Instr;
+    decode_functor<uint32_t> m_decodeCB216Instr;
 };
 
 }  // namespace Ripes
