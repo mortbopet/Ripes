@@ -214,9 +214,8 @@ QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
     uint64_t adjustedLineNumber = 0;
     auto m_program = ProcessorHandler::getProgram();
     if (m_program) {
-        const AInt addrAdjusted = addr - m_program->getSection(TEXT_SECTION_NAME)->address;
         auto& disassembleRes = m_program->getDisassembled();
-        auto it = disassembleRes.lower_bound(addrAdjusted);
+        auto it = disassembleRes.lower_bound(addr);
         if (it == disassembleRes.end()) {
             adjustedLineNumber = 0;
         } else {
