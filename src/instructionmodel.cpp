@@ -20,9 +20,8 @@ AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
 
 int InstructionModel::addressToRow(AInt addr) const {
     if (m_program) {
-        const AInt addrAdjusted = addr - m_program->getSection(TEXT_SECTION_NAME)->address;
         auto& disassembleRes = m_program->getDisassembled();
-        auto it = disassembleRes.lower_bound(addrAdjusted);
+        auto it = disassembleRes.lower_bound(addr);
         if (it == disassembleRes.end())
             return 0;
         return std::distance(disassembleRes.begin(), it);
