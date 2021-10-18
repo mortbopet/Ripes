@@ -92,8 +92,10 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
                     rd = fields[3];
                     imm = fields[4];
-                    if (fields[2])
-                        imm = -imm;
+                    if (fields[2])  // test for negative
+                    {
+                        imm = imm | 0xFFFFFFE0;
+                    }
                     // addi rd, rd, nzimm[5:0]
                     new_instr = (imm << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) | RVISA::Opcode::OPIMM;
                 } break;
@@ -116,10 +118,10 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
                     // addi rd,x0, imm[5:0]
                     rd = fields[3];
-                    imm = (fields[2] << 5) | fields[4];
-                    if (imm & 0x20)  // test for negative
+                    imm =  fields[4];
+                    if (fields[2])  // test for negative
                     {
-                        imm = imm | 0xFFFFFFC0;
+                        imm = imm | 0xFFFFFFE0;
                     }
                     new_instr = (imm << 20) | (rd << 7) | RVISA::Opcode::OPIMM;
                     break;
