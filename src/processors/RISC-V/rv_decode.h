@@ -118,7 +118,7 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
                     // addi rd,x0, imm[5:0]
                     rd = fields[3];
-                    imm =  fields[4];
+                    imm = fields[4];
                     if (fields[2])  // test for negative
                     {
                         imm = imm | 0xFFFFFFE0;
