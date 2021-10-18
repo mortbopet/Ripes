@@ -17,6 +17,13 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
     static VInt instr_last = 0;
     static VInt instr_cache = 0;
 
+    const int quadrant = instrValue & 0b11;
+
+    if (quadrant == 0b11)  // dont need uncompress
+    {
+        return instrValue;
+    }
+
     // use cache to avoid run multiple times with same instruction in multiple calls
     if (instr_last == instrValue) {
         return instr_cache;
@@ -26,7 +33,6 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
     long imm;
     unsigned uimm, rd, rs1, rs2;
 
-    const int quadrant = instrValue & 0b11;
     const int func3 = (instrValue & 0xE000) >> 13;
 
     switch (quadrant) {
