@@ -211,8 +211,17 @@ void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
 }
 
 QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
-    const uint64_t adjustedLineNumber =
-        (addr - ProcessorHandler::get()->getTextStart()) / ProcessorHandler::currentISA()->instrBytes();
+    uint64_t adjustedLineNumber = 0;
+    auto m_program = ProcessorHandler::getProgram();
+    if (m_program) {
+        auto& disassembleRes = m_program->getDisassembled();
+        auto it = disassembleRes.lower_bound(addr);
+        if (it == disassembleRes.end()) {
+            adjustedLineNumber = 0;
+        } else {
+            adjustedLineNumber = std::distance(disassembleRes.begin(), it);
+        }
+    }
 
     if (m_labelAddrOffsetMap.empty()) {
         return document()->findBlockByNumber(adjustedLineNumber);
