@@ -12,8 +12,12 @@ endif()
 project(Ripes
         LANGUAGES CXX
         DESCRIPTION "A graphical processor simulator and assembly editor for the RISC-V ISA"
-        HOMEPAGE_URL "https://github.com/mortbopet/Ripes")
-include(GNUInstallDirs) #Must exist after declaring a project
+        HOMEPAGE_URL "https://github.com/mortbopet/Ripes"
+)
+
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    include(GNUInstallDirs) #Must exist after declaring a project
+endif()
 
 # Error flags on everything but MSVC
 if(NOT MSVC)
@@ -111,13 +115,16 @@ target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)
 # Link Ripes library
 target_link_libraries(${APP_NAME} ${RIPES_LIB})
 
-install(TARGETS ${APP_NAME}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
-)
-
-install(TARGETS fancytabbar_lib
-    LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-)
+if(${LINUX})
+    install(TARGETS ${APP_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+elseif(${APPLE})
+    install(TARGETS ${APP_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        BUNDLE  DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/appdir/usr/
     DESTINATION ${CMAKE_INSTALL_PREFIX}
