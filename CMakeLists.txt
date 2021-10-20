@@ -115,6 +115,10 @@ target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)
 # Link Ripes library
 target_link_libraries(${APP_NAME} ${RIPES_LIB})
 
+if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
+    set(LINUX TRUE)
+endif()
+
 if(${LINUX})
     install(TARGETS ${APP_NAME}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
