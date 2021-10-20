@@ -7,13 +7,8 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-#define dprintf \
-    if (0) {    \
-    } else      \
-        printf
-
 // only support 32 bit instructions
-VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
+static VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
     static VInt instr_last = 0;
     static VInt instr_cache = 0;
 
@@ -57,11 +52,15 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     new_instr = (uimm << 20) | (rs1 << 15) | (0b010 << 12) | (rd << 7) | RVISA::Opcode::LOAD;
                 } break;
                 case 0b011:
-                    if (isaID == ISA::RV32I) {
-                        // c.flw RV32FC-only
-                    } else {
-                        dprintf("TODO c.ld\n");
+                    if (isaID == ISA::RV64I) {  // c.ld
+                        const auto fields = RVInstrParser::getParser()->decodeCS16Instr(instrValue);
+                        rd = fields[5] | 0x8;
+                        rs1 = fields[3] | 0x8;
+                        uimm = (fields[4] << 6) | (fields[2] << 3);
+                        // ld rd ′ , offset[7:3](rs1 ′ )
+                        new_instr = (uimm << 20) | (rs1 << 15) | (0b011 << 12) | (rd << 7) | RVISA::Opcode::LOAD;
                     }
+                    // else{// c.flw RV32FC-only }
                     break;
                 // case 0b100:  // RESERVED
                 //    break;
@@ -77,11 +76,16 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                                 ((uimm & 0x1F) << 7) | RVISA::Opcode::STORE;
                 } break;
                 case 0b111:
-                    if (isaID == ISA::RV32I) {
-                        // c.fsw RV32FC-only
-                    } else {
-                        dprintf("TODO c.sd\n");
+                    if (isaID == ISA::RV64I) {  // c.sd
+                        const auto fields = RVInstrParser::getParser()->decodeCS16Instr(instrValue);
+                        rs1 = fields[3] | 0x8;
+                        rs2 = fields[5] | 0x8;
+                        uimm = (fields[4] << 6) | (fields[2] << 3);
+                        // sd rs2 ′ ,offset[7:3](rs1 ′ )
+                        new_instr = (((uimm & 0xFE0) >> 5) << 25) | (rs2 << 20) | (rs1 << 15) | (0b011 << 12) |
+                                    ((uimm & 0x1F) << 7) | RVISA::Opcode::STORE;
                     }
+                    // else { c.fsw RV32FC-only}
                     break;
             }
             break;
@@ -102,15 +106,27 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                 case 0b001:
                     if (isaID == ISA::RV32I) {  // c.jal
                         const auto fields = RVInstrParser::getParser()->decodeCJ16Instr(instrValue);
-
-                        imm = (fields[2] & 0x400) | ((fields[2] & 0x040) << 3) | (fields[2] & 0x180) |
-                              ((fields[2] & 0x010) << 2) | (fields[2] & 0x020) | ((fields[2] & 0x001) << 5) |
-                              ((fields[2] & 0x200) >> 6) | ((fields[2] & 0x00E) >> 1);
+                        imm = (((fields[2] & 0x040) << 3) | (fields[2] & 0x180) | ((fields[2] & 0x010) << 2) |
+                               (fields[2] & 0x020) | ((fields[2] & 0x001) << 4) | ((fields[2] & 0x200) >> 6) |
+                               ((fields[2] & 0x00E) >> 1));
+                        if (fields[2] & 0x400) {
+                            imm = imm | 0xFFE00;
+                        }
                         // jal x1,offset[11:1]
-                        new_instr =
-                            ((((imm & 0x7FF) << 10) | ((imm & 0x800) >> 3)) << 12) | (0b001 << 7) | RVISA::Opcode::JAL;
-                    } else {
-                        dprintf("TODO c.addiw\n");
+                        new_instr = ((((imm & 0x003FF) << 9) | ((imm & 0x00400) >> 2) | ((imm & 0x7F800) >> 11) |
+                                      (imm & 0x80000))
+                                     << 12) |
+                                    (0b00001 << 7) | RVISA::Opcode::JAL;
+                    } else {  // c.addiw;
+                        const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
+                        rd = fields[3];
+                        imm = fields[4];
+                        if (fields[2])  // test for negative
+                        {
+                            imm = imm | 0xFFFFFFE0;
+                        }
+                        // addiw rd, rd, imm[5:0]
+                        new_instr = (imm << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) | RVISA::Opcode::OPIMM32;
                     }
                     break;
                 case 0b010:  // C.LI
@@ -212,13 +228,17 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                 }
                 case 0b101: {  // c.j
                     const auto fields = RVInstrParser::getParser()->decodeCJ16Instr(instrValue);
-
-                    imm = (fields[2] & 0x400) | ((fields[2] & 0x040) << 3) | (fields[2] & 0x180) |
-                          ((fields[2] & 0x010) << 2) | (fields[2] & 0x020) | ((fields[2] & 0x001) << 5) |
-                          ((fields[2] & 0x200) >> 6) | ((fields[2] & 0x00E) >> 1);
+                    imm = (((fields[2] & 0x040) << 3) | (fields[2] & 0x180) | ((fields[2] & 0x010) << 2) |
+                           (fields[2] & 0x020) | ((fields[2] & 0x001) << 4) | ((fields[2] & 0x200) >> 6) |
+                           ((fields[2] & 0x00E) >> 1));
+                    if (fields[2] & 0x400) {
+                        imm = imm | 0xFFE00;
+                    }
                     // jal x0,offset[11:1]
                     new_instr =
-                        ((((imm & 0x7FF) << 10) | ((imm & 0x800) >> 3)) << 12) | (0b000 << 7) | RVISA::Opcode::JAL;
+                        ((((imm & 0x003FF) << 9) | ((imm & 0x00400) >> 2) | ((imm & 0x7F800) >> 11) | (imm & 0x80000))
+                         << 12) |
+                        (0b00000 << 7) | RVISA::Opcode::JAL;
                 } break;
                 case 0b110: {  // c.beqz
                     const auto fields = RVInstrParser::getParser()->decodeCB16Instr(instrValue);
@@ -269,11 +289,14 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     new_instr = (uimm << 20) | (0b0010 << 15) | (0b010 << 12) | (rd << 7) | RVISA::Opcode::LOAD;
                 } break;
                 case 0b011:
-                    if (isaID == ISA::RV32I) {
-                        // c.flwsp RV32FC-only
-                    } else {
-                        dprintf("TODO c.ldsp\n");
+                    if (isaID == ISA::RV64I) {  // c.ldsp
+                        const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
+                        rd = fields[3];
+                        uimm = ((fields[4] & 0x07) << 6) | (fields[2] << 5) | (fields[4] & 0x18);
+                        // ld rd,offset[8:3](x2)
+                        new_instr = (uimm << 20) | (0b0010 << 15) | (0b011 << 12) | (rd << 7) | RVISA::Opcode::LOAD;
                     }
+                    // else{// c.flwsp RV32FC-only}
                     break;
                 case 0b100: {
                     const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
@@ -314,11 +337,15 @@ VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                                 ((uimm & 0x1F) << 7) | RVISA::Opcode::STORE;
                 } break;
                 case 0b111:
-                    if (isaID == ISA::RV32I) {
-                        // c.fswsp RV32FC-only
-                    } else {
-                        dprintf("TODO c.sdsp\n");
+                    if (isaID == ISA::RV64I) {  // c.sdsp
+                        const auto fields = RVInstrParser::getParser()->decodeCSS16Instr(instrValue);
+                        rs2 = fields[3];
+                        uimm = ((fields[2] & 0x07) << 6) | (fields[2] & 0x38);
+                        // sd rs2,offset[8:3](x2)
+                        new_instr = (((uimm & 0xFE0) >> 5) << 25) | (rs2 << 20) | (0b00010 << 15) | (0b011 << 12) |
+                                    ((uimm & 0x1F) << 7) | RVISA::Opcode::STORE;
                     }
+                    // else{// c.fswsp RV32FC-only}
                     break;
             }
             break;
