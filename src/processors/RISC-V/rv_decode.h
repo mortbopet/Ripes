@@ -14,8 +14,7 @@ static VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
 
     const int quadrant = instrValue & 0b11;
 
-    if (quadrant == 0b11)  // dont need uncompress
-    {
+    if (quadrant == 0b11) {  // Not a compressed instruction
         return instrValue;
     }
 
@@ -96,8 +95,7 @@ static VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
                     rd = fields[3];
                     imm = fields[4];
-                    if (fields[2])  // test for negative
-                    {
+                    if (fields[2]) {  // test for negative
                         imm = imm | 0xFFFFFFE0;
                     }
                     // addi rd, rd, nzimm[5:0]
@@ -121,8 +119,7 @@ static VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                         const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
                         rd = fields[3];
                         imm = fields[4];
-                        if (fields[2])  // test for negative
-                        {
+                        if (fields[2]) {  // test for negative
                             imm = imm | 0xFFFFFFE0;
                         }
                         // addiw rd, rd, imm[5:0]
@@ -135,8 +132,7 @@ static VInt uncompress(const VInt instrValue, const Ripes::ISA isaID) {
                     // addi rd,x0, imm[5:0]
                     rd = fields[3];
                     imm = fields[4];
-                    if (fields[2])  // test for negative
-                    {
+                    if (fields[2]) {  // test for negative
                         imm = imm | 0xFFFFFFE0;
                     }
                     new_instr = (imm << 20) | (rd << 7) | RVISA::Opcode::OPIMM;
