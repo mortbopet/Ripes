@@ -49,7 +49,7 @@ private:
 
     QString m_currentTest;
 
-    void runTests(const ProcessorID& id, const QString& testdir);
+    void runTests(const ProcessorID& id, const QStringList& extensions, const QStringList& testdirs);
 
     void trapHandler();
 
@@ -59,15 +59,15 @@ private:
 
 private slots:
 
-    void testRV64_SingleCycle() { runTests(ProcessorID::RV64_SS, RISCV64_TEST_DIR); }
-    void testRV64_5StagePipeline() { runTests(ProcessorID::RV64_5S, RISCV64_TEST_DIR); }
-    void testRV64_5StagePipelineNOFW() { runTests(ProcessorID::RV64_5S_NO_FW, RISCV64_TEST_DIR); }
-    void testRV64_6SDual() { runTests(ProcessorID::RV64_6S_DUAL, RISCV64_TEST_DIR); }
+    void testRV64_SingleCycle() { runTests(ProcessorID::RV64_SS, {"M"}, {RISCV64_TEST_DIR}); }
+    void testRV64_5StagePipeline() { runTests(ProcessorID::RV64_5S, {"M"}, {RISCV64_TEST_DIR}); }
+    void testRV64_5StagePipelineNOFW() { runTests(ProcessorID::RV64_5S_NO_FW, {"M"}, {RISCV64_TEST_DIR}); }
+    void testRV64_6SDual() { runTests(ProcessorID::RV64_6S_DUAL, {"M"}, {RISCV64_TEST_DIR}); }
 
-    void testRV32_SingleCycle() { runTests(ProcessorID::RV32_SS, RISCV32_TEST_DIR); }
-    void testRV32_5StagePipeline() { runTests(ProcessorID::RV32_5S, RISCV32_TEST_DIR); }
-    void testRV32_5StagePipelineNOFW() { runTests(ProcessorID::RV32_5S_NO_FW, RISCV32_TEST_DIR); }
-    void testRV32_6SDual() { runTests(ProcessorID::RV32_6S_DUAL, RISCV32_TEST_DIR); }
+    void testRV32_SingleCycle() { runTests(ProcessorID::RV32_SS, {"M"}, {RISCV32_TEST_DIR}); }
+    void testRV32_5StagePipeline() { runTests(ProcessorID::RV32_5S, {"M"}, {RISCV32_TEST_DIR}); }
+    void testRV32_5StagePipelineNOFW() { runTests(ProcessorID::RV32_5S_NO_FW, {"M"}, {RISCV32_TEST_DIR}); }
+    void testRV32_6SDual() { runTests(ProcessorID::RV32_6S_DUAL, {"M"}, {RISCV32_TEST_DIR}); }
 };
 
 bool tst_RISCV::skipTest(const QString& test) {
@@ -138,46 +138,46 @@ QString tst_RISCV::executeSimulator() {
     return m_err;
 }
 
-void tst_RISCV::runTests(const ProcessorID& id, const QString& testdir) {
-    const auto dir = QDir(testdir);
-    const auto testFiles = dir.entryList({"*.s"});
-    const auto extensions = QStringList("M");
-    ProcessorHandler::selectProcessor(id, extensions);
+void tst_RISCV::runTests(const ProcessorID& id, const QStringList& extensions, const QStringList& testDirs) {
+    for (auto testDir : testDirs) {
+        const auto dir = QDir(testDir);
+        const auto testFiles = dir.entryList({"*.s"});
+        ProcessorHandler::selectProcessor(id, extensions);
 
-    for (const auto& test : testFiles) {
-        m_currentTest = test;
+        for (const auto& test : testFiles) {
+            m_currentTest = test;
+            if (skipTest(m_currentTest))
+                continue;
 
-        if (skipTest(m_currentTest))
-            continue;
+            qInfo() << "Running test: " << m_currentTest;
 
-        qInfo() << "Running test: " << m_currentTest;
+            // Assemble test file
+            auto f = QFile(testDir + QString(QDir::separator()) + test);
+            if (!f.open(QIODevice::ReadOnly)) {
+                QFAIL("Could not open test file");
+            }
+            const auto program = ProcessorHandler::getAssembler()->assemble(QString(f.readAll()).split("\n"));
+            if (program.errors.size() != 0) {
+                QString err = "Could not assemble program";
+                err += "\n errors were:";
+                err += program.errors.toString();
+                QFAIL(err.toStdString().c_str());
+            }
+            auto spProgram = std::make_shared<Program>(program.program);
 
-        // Assemble test file
-        auto f = QFile(testdir + QString(QDir::separator()) + test);
-        if (!f.open(QIODevice::ReadOnly)) {
-            QFAIL("Could not open test file");
+            // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
+            // reached.
+            ProcessorHandler::getProcessorNonConst()->trapHandler = [=] { trapHandler(); };
+            ProcessorHandler::get()->loadProgram(spProgram);
+            RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
+
+            const QString err = executeSimulator();
+            if (!err.isNull()) {
+                QFAIL(err.toStdString().c_str());
+            }
+
+            qInfo() << "Test '" << m_currentTest << "' succeeded.";
         }
-        const auto program = ProcessorHandler::getAssembler()->assemble(QString(f.readAll()).split("\n"));
-        if (program.errors.size() != 0) {
-            QString err = "Could not assemble program";
-            err += "\n errors were:";
-            err += program.errors.toString();
-            QFAIL(err.toStdString().c_str());
-        }
-        auto spProgram = std::make_shared<Program>(program.program);
-
-        // Override the ProcessorHandler's ECALL handling. In doing so, we verify whether the correct test value was
-        // reached.
-        ProcessorHandler::getProcessorNonConst()->trapHandler = [=] { trapHandler(); };
-        ProcessorHandler::get()->loadProgram(spProgram);
-        RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
-
-        const QString err = executeSimulator();
-        if (!err.isNull()) {
-            QFAIL(err.toStdString().c_str());
-        }
-
-        qInfo() << "Test '" << m_currentTest << "' succeeded.";
     }
 }
 
