@@ -9,8 +9,8 @@
 
 #include "assembler/rv32i_assembler.h"
 
-#if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR)
-static_assert(false, "RISCV32/64_TEST_DIR must be defined");
+#if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) || !defined(RISCV_C_TEST_DIR)
+static_assert(false, "RISCV test directiories must be defined");
 #endif
 
 /** RISC-V test suite

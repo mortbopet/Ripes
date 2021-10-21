@@ -5,8 +5,10 @@ find_package(Qt5Test REQUIRED)
 # Point to bundled tests within source directory
 set(RISCV32_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests)
 set(RISCV64_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests-64)
+set(RISCV_C_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests-c)
 add_definitions(-DRISCV32_TEST_DIR="${RISCV32_TEST_DIR}")
 add_definitions(-DRISCV64_TEST_DIR="${RISCV64_TEST_DIR}")
+add_definitions(-DRISCV_C_TEST_DIR="${RISCV_C_TEST_DIR}")
 
 macro(create_qtest name)
     add_executable(${name} ${name}.cpp)
