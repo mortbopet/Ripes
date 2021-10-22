@@ -53,7 +53,9 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
     } else if constexpr (std::is_same<T_EditWidget, HexSpinBox>()) {
-        widget->setValue(settingObserver->value().toUInt());
+        // The hex value is stored as an int, so get the int and static cast it to unsigned.
+        unsigned uValue = static_cast<unsigned>(settingObserver->value().toInt());
+        widget->setValue(uValue);
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
     } else if constexpr (std::is_same<T_EditWidget, QLineEdit>()) {

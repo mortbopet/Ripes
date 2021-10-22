@@ -76,7 +76,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
     if (selectedItem != nullptr) {
         // Select the processor and layout which is currently active
         m_ui->processors->setCurrentItem(selectedItem);
-        unsigned layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toUInt();
+        unsigned layoutID = RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
         if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::getID()).layouts.size()) {
             layoutID = 0;
         }

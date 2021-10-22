@@ -281,7 +281,7 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
     // Gather data up until the end of the trace or the maximum plotted cycles
 
     unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
-    const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt();
+    const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toInt();
     if (fromCycle > maxCycles) {
         return {};
     }
@@ -472,7 +472,7 @@ void CachePlotWidget::updateRatioPlot() {
 
 void CachePlotWidget::updatePlotWarningButton() {
     m_ui->maxCyclesButton->setVisible(m_lastCyclePlotted >=
-                                      RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt());
+                                      RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toInt());
 }
 
 void CachePlotWidget::resetRatioPlot() {
