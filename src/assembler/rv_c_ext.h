@@ -244,14 +244,12 @@ struct RV_C {
 
         instructions.push_back(CIWType(0b00, Token("c.addi4spn"), 0b000));
 
-        if (isa->isaID() == ISA::RV32I) {
-            instructions.push_back(CB2Type(
-                0b01, Token("c.srli"), 0b100, 0b00,
-                std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
-            instructions.push_back(CB2Type(
-                0b01, Token("c.srai"), 0b100, 0b01,
-                std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
-        }
+        instructions.push_back(CB2Type(
+            0b01, Token("c.srli"), 0b100, 0b00,
+            std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+        instructions.push_back(CB2Type(
+            0b01, Token("c.srai"), 0b100, 0b01,
+            std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
 
         instructions.push_back(CB2Type(
             0b01, Token("c.andi"), 0b100, 0b10,
