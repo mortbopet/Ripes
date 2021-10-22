@@ -9,7 +9,8 @@
 
 #include "assembler/rv32i_assembler.h"
 
-#if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) || !defined(RISCV_C_TEST_DIR)
+#if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) || !defined(RISCV32_C_TEST_DIR) || \
+    !defined(RISCV64_C_TEST_DIR)
 static_assert(false, "RISCV test directiories must be defined");
 #endif
 
@@ -63,11 +64,13 @@ private slots:
     void testRV64_5StagePipeline() { runTests(ProcessorID::RV64_5S, {"M"}, {RISCV64_TEST_DIR}); }
     void testRV64_5StagePipelineNOFW() { runTests(ProcessorID::RV64_5S_NO_FW, {"M"}, {RISCV64_TEST_DIR}); }
     void testRV64_6SDual() { runTests(ProcessorID::RV64_6S_DUAL, {"M"}, {RISCV64_TEST_DIR}); }
+    void testRV64C_SingleCycle() { runTests(ProcessorID::RV64_SS, {"M", "C"}, {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR}); }
 
     void testRV32_SingleCycle() { runTests(ProcessorID::RV32_SS, {"M"}, {RISCV32_TEST_DIR}); }
     void testRV32_5StagePipeline() { runTests(ProcessorID::RV32_5S, {"M"}, {RISCV32_TEST_DIR}); }
     void testRV32_5StagePipelineNOFW() { runTests(ProcessorID::RV32_5S_NO_FW, {"M"}, {RISCV32_TEST_DIR}); }
     void testRV32_6SDual() { runTests(ProcessorID::RV32_6S_DUAL, {"M"}, {RISCV32_TEST_DIR}); }
+    void testRV32C_SingleCycle() { runTests(ProcessorID::RV32_SS, {"M", "C"}, {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR}); }
 };
 
 bool tst_RISCV::skipTest(const QString& test) {
