@@ -10,10 +10,10 @@ d4: .word 0xfedcba98
 
 test_2:
  addi a1,a1,1
- li t2,1
- li gp,2
- bne a1,t2,fail
- lui sp,0x1
+ li  t2,1
+ li  gp,2
+ bne  a1,t2,fail
+ lui  sp,0x1
  addi sp,sp,564 
     
 test_3:
@@ -42,7 +42,7 @@ test_5:
  addi t2,t2,548
  li gp,5
  bne sp,t2, fail
- li a1,0
+ li     a1,0
  addi a1,a1, d1         
  
 test_6:
@@ -55,6 +55,22 @@ test_6:
  li gp,6
  bne a2,t2, fail
 
+test_7:
+ c.ld    a0,a1,0 #c.ld    a0, 0(a1)
+ c.addi  a0, 1
+ c.sd    a0,a1,0 #c.sd    a0, 0(a1)
+ c.ld    a2,a1,0 #c.ld    a2, 0(a1)
+ lui t2,0xfff6e
+ addiw t2,t2,1493
+ slli t2,t2,0xc
+ addi t2,t2,-837 
+ slli t2,t2,0xd
+ addi t2,t2, 1347
+ slli t2,t2,0xc
+ addi t2,t2,529
+ li gp,7
+ bne a2,t2,fail
+
 test_8:
  ori a0,zero,1
  c.addi a0,-16
@@ -64,12 +80,20 @@ test_8:
  bne a0,t2, fail 
  
 test_9:
- ori a5,zero,1
+  ori a5,zero,1
  c.li a5,-16
  c.nop
- li t2,-16
+  li t2,-16
  li gp,9
- bne a5,t2, fail
+  bne a5,t2, fail
+
+test_10:
+ c.ld a0,a1,0 #c.ld a0, 0(a1)
+ c.addiw a0, -1
+ lui t2,0x76543
+ addiw t2,t2,528
+ li gp,10
+ bne a0,t2,fail
 
 test_11:
  c.lui s0, -126976
@@ -81,8 +105,9 @@ test_11:
 test_12:
  c.lui s0, -126976
  c.srli s0,12
- lui t2,0x100
- addi t2,t2,-31 
+ addiw t2,zero,1
+ slli t2,t2,0x34
+ addi t2,t2, -31 
  li gp,12
  bne s0,t2, fail
 
@@ -129,6 +154,24 @@ test_18:
  li gp,18
  bne s1,t2, fail
 
+test_19:
+ lui s1,0x80000
+ addiw s1,s1,-1
+ c.li    a0, -1
+ c.subw  s1, a0
+ lui t2,0x80000
+ li gp,19
+ bne s1,t2,fail
+
+test_20:
+ lui s1,0x80000
+ addiw s1,s1,-1
+ c.li    a0, 1
+ c.addw  s1, a0
+ lui t2,0x80000
+ li gp,20
+ bne s1,t2,fail
+
 test_21:
  lui s0,0x1
  addi s0,s0,564 
@@ -157,7 +200,7 @@ test_31:
  c.j 4
  c.j fail
  c.nop
- li t2,0
+  li t2,0
  li gp,31
  bne zero,t2, fail
 
@@ -217,31 +260,33 @@ test_36:
  li t2,-2
  li gp,36
  bne ra,t2,fail
-
-test_37:
- auipc t0,0x0
- addi t0,t0,14 
- c.li ra,0
- c.jal 4
- c.j 4
- c.j 4
- c.j fail
- c.nop
- sub ra,ra,t0
- li t2,-2
- li gp,37
- bne ra,t2,fail
- li     sp,0
- addi sp,sp, d1 
-
-test_40:
+ 
+test_40: 
+ li sp,0x0
+ addi sp,sp,d1
  c.lwsp  a0, 12 
  c.addi a0,1  
  c.swsp  a0, 12
  c.lwsp  a2, 12 
  lui t2,0xfedcc
  addi t2,t2,-1383 
- li gp,40
+ li  gp,40
+ bne a2,t2,fail
+ 
+test_41:
+ c.ldsp  a0,8 #c.ldsp  a0, 8(sp)
+ c.addi  a0, 1
+ c.sdsp  a0, 8 #c.sdsp  a0, 8(sp)
+ c.ldsp  a2, 8 #c.ldsp  a2, 8(sp)
+ lui t2,0xfff6e
+ addiw t2,t2,1493
+ slli t2,t2,0xc
+ addi t2,t2,-837 
+ slli t2,t2,0xd
+ addi t2,t2,1347
+ slli t2,t2,0xc
+ addi t2,t2,529
+ li gp,41
  bne a2,t2,fail
 
 test_42:
