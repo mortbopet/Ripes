@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QMetaType>
 #include <QString>
+#include <optional>
 #include <vector>
 
 #include "ripes_types.h"
