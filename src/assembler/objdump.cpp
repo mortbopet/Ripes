@@ -82,7 +82,7 @@ QString objdump(const std::shared_ptr<const Program>& program, AddrOffsetMap& ad
         program,
         [&program, &assembler, instrBytes](const std::vector<char>& buffer, AInt address) {
             VInt instr = 0;
-            for (unsigned i = 0; i < instrBytes; i++) {
+            for (unsigned i = 0; i < instrBytes; ++i) {
                 instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
             }
             return assembler->disassemble(instr, program->symbols, address);
@@ -99,7 +99,7 @@ QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap&
             OpDisassembleResult disres;
             QString binaryString;
             assert(buffer.size() >= instrBytes);
-            for (size_t i = 0; i < instrBytes; i++) {
+            for (size_t i = 0; i < instrBytes; ++i) {
                 disres.repr.prepend(QString().setNum(static_cast<uint8_t>(buffer[i]), 2).rightJustified(8, '0'));
             }
             disres.bytesDisassembled = instrBytes;

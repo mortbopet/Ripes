@@ -102,10 +102,10 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     // Setup statistics update timer - this timer is distinct from the ProcessorHandler's update timer, given that it
     // needs to run during 'running' the processor.
     m_statUpdateTimer = new QTimer(this);
-    m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+    m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
     connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
     connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified,
-            [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt()); });
+            [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt()); });
 
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
     connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
@@ -156,7 +156,7 @@ void ProcessorTab::loadLayout(const Layout& layout) {
 
     // Adjust stage label positions
     const auto& parent = m_stageInstructionLabels.at(0)->parentItem();
-    for (unsigned i = 0; i < m_stageInstructionLabels.size(); i++) {
+    for (unsigned i = 0; i < m_stageInstructionLabels.size(); ++i) {
         auto& label = m_stageInstructionLabels.at(i);
         QFontMetrics metrics(label->font());
         label->setPos(parent->boundingRect().width() * layout.stageLabelPositions.at(i).x(),
@@ -313,7 +313,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout* layout) {
 
     m_stageInstructionLabels.clear();
     const auto& proc = ProcessorHandler::getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
+    for (unsigned i = 0; i < proc->stageCount(); ++i) {
         auto* stagelabel = new vsrtl::Label(topLevelComponent, "-");
         stagelabel->setPointSize(14);
         m_stageInstructionLabels[i] = stagelabel;
@@ -418,7 +418,7 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
     const auto& proc = ProcessorHandler::getProcessor();
-    for (unsigned i = 0; i < proc->stageCount(); i++) {
+    for (unsigned i = 0; i < proc->stageCount(); ++i) {
         if (!m_stageInstructionLabels.count(i))
             continue;
         const auto stageInfo = proc->stageInfo(i);

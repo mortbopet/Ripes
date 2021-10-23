@@ -33,9 +33,9 @@ ProcessorHandler::ProcessorHandler() {
 
     // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
     m_procStateChangeTimer.setSingleShot(true);
-    m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+    m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
     connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, this, [=] {
-        m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toUInt());
+        m_procStateChangeTimer.setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
     });
 
     connect(&m_procStateChangeTimer, &QTimer::timeout, this, [=] {
@@ -60,7 +60,7 @@ ProcessorHandler::ProcessorHandler() {
             [=](const auto& size) { m_currentProcessor->setMaxReverseCycles(size.toUInt()); });
 
     // Update VSRTL reverse stack size to reflect current settings
-    m_currentProcessor->setMaxReverseCycles(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toUInt());
+    m_currentProcessor->setMaxReverseCycles(RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toInt());
 
     // Reset request handling
     connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET), &SettingObserver::modified, this,
@@ -134,7 +134,7 @@ class ProcessorClocker : public QRunnable {
 public:
     explicit ProcessorClocker(bool& finished) : m_finished(finished) {}
     void run() override {
-        ProcessorHandler::getProcessorNonConst()->clockProcessor();
+        ProcessorHandler::getProcessorNonConst()->clock();
         ProcessorHandler::checkProcessorFinished();
         if (ProcessorHandler::checkBreakpoint()) {
             ProcessorHandler::stopRun();
@@ -166,7 +166,7 @@ void ProcessorHandler::_run() {
         }
 
         while (!(_checkBreakpoint() || m_currentProcessor->finished() || m_stopRunningFlag)) {
-            m_currentProcessor->clockProcessor();
+            m_currentProcessor->clock();
         }
 
         if (vsrtl_proc) {

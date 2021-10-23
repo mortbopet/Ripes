@@ -33,7 +33,7 @@ void RegisterContainerWidget::initialize() {
 }
 
 void RegisterContainerWidget::updateView() {
-    for (int i = 0; i < m_ui->tabWidget->count(); i++) {
+    for (int i = 0; i < m_ui->tabWidget->count(); ++i) {
         if (auto* regWidget = dynamic_cast<RegisterWidget*>(m_ui->tabWidget->widget(i))) {
             regWidget->updateView();
         }

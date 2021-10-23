@@ -220,7 +220,7 @@ void CachePlotWidget::savePlot() {
 
 void CachePlotWidget::copyPlotDataToClipboard() const {
     std::vector<Variable> allVariables;
-    for (int i = 0; i < N_TraceVars; i++) {
+    for (int i = 0; i < N_TraceVars; ++i) {
         allVariables.push_back(static_cast<Variable>(i));
     }
     const auto& allData = gatherData();
@@ -274,14 +274,14 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
     std::map<Variable, QList<QPoint>> cacheData;
     const auto& trace = m_cache->getAccessTrace();
 
-    for (int i = 0; i < N_TraceVars; i++) {
+    for (int i = 0; i < N_TraceVars; ++i) {
         cacheData[static_cast<Variable>(i)].reserve(trace.size());
     }
 
     // Gather data up until the end of the trace or the maximum plotted cycles
 
     unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
-    const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt();
+    const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toInt();
     if (fromCycle > maxCycles) {
         return {};
     }
@@ -334,7 +334,6 @@ void CachePlotWidget::updatePlotAxes() {
     QValueAxis* axisX = qobject_cast<QValueAxis*>(m_series->chart()->axes(Qt::Horizontal).first());
     Q_ASSERT(axisY);
     Q_ASSERT(axisX);
-    axisY->setLabelFormat("%.1f  ");
     axisY->setTitleText("%");
     int tickInterval = (m_maxY - m_minY) / axisY->tickCount();
     tickInterval = ((tickInterval + 5 - 1) / 5) * 5;  // Round to nearest multiple of 5
@@ -385,7 +384,7 @@ void CachePlotWidget::updateRatioPlot() {
     } else {
         lastPoint = QPointF(-1, 0);
     }
-    for (int i = 0; i < nNewPoints; i++) {
+    for (int i = 0; i < nNewPoints; ++i) {
         // Cummulative plot. For the unary variable, "Accesses" is just used to index into the cache data for
         // accessing the x variable.
         const auto& p1 =
@@ -472,7 +471,7 @@ void CachePlotWidget::updateRatioPlot() {
 
 void CachePlotWidget::updatePlotWarningButton() {
     m_ui->maxCyclesButton->setVisible(m_lastCyclePlotted >=
-                                      RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toUInt());
+                                      RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toInt());
 }
 
 void CachePlotWidget::resetRatioPlot() {

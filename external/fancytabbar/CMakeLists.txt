@@ -14,5 +14,5 @@ file(GLOB LIB_HEADERS *.h graphics/*.h)
 file(GLOB LIB_UIS *.ui)
 
 set(FANCYTABBAR_LIB fancytabbar_lib)
-add_library(${FANCYTABBAR_LIB} ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UIS})
+add_library(${FANCYTABBAR_LIB} STATIC ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UIS})
 target_link_libraries(${FANCYTABBAR_LIB} Qt5::Core Qt5::Widgets)

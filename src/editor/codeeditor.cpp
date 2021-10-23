@@ -102,7 +102,7 @@ static const QStringList c_closingBrackets = QStringList{")", "}", "]"};
 static const QStringList c_indentStartCharacters = QStringList{":", "(", "{", "["};
 
 void CodeEditor::keyPressEvent(QKeyEvent* e) {
-    const unsigned indentAmt = RipesSettings::value(RIPES_SETTING_INDENTAMT).toUInt();
+    const unsigned indentAmt = RipesSettings::value(RIPES_SETTING_INDENTAMT).toInt();
 
     const auto preCursorText = textCursor().block().text().left(textCursor().positionInBlock());
     const auto postCursorText =
@@ -158,7 +158,7 @@ void CodeEditor::keyPressEvent(QKeyEvent* e) {
     } else if (e->key() == Qt::Key_Backspace) {
         // Delete indentation, if present
         if (preCursorText.endsWith(QString(" ").repeated(indentAmt))) {
-            for (unsigned i = 0; i < indentAmt; i++) {
+            for (unsigned i = 0; i < indentAmt; ++i) {
                 textCursor().deletePreviousChar();
             }
         } else if (!preCursorChar.isEmpty() && !postCursorChar.isEmpty() && c_bracketPair.count(preCursorChar) &&

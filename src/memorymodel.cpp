@@ -118,7 +118,7 @@ QVariant MemoryModel::data(const QModelIndex& index, int role) const {
         } else if (role == Qt::ForegroundRole) {
             // Assign a brush if one of the byte-indexed address covered by the aligned address has been written to
             QVariant unusedAddressBrush;
-            for (unsigned i = 0; i < ProcessorHandler::currentISA()->bytes(); i++) {
+            for (unsigned i = 0; i < ProcessorHandler::currentISA()->bytes(); ++i) {
                 QVariant addressBrush = fgColorData(alignedAddress, i, validAddress);
                 if (addressBrush.isNull()) {
                     return addressBrush;

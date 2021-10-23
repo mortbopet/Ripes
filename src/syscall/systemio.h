@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <stdexcept>
 
+#include "STLExtras.h"
 #include "statusmanager.h"
 
 namespace Ripes {
@@ -110,7 +111,7 @@ private:
 
         // Reset all file information. Closes any open files and resets the arrays
         static void resetFiles() {
-            for (int i = 0; i < SYSCALL_MAXFILES; i++) {
+            for (int i = 0; i < SYSCALL_MAXFILES; ++i) {
                 close(i);
             }
             setupStdio();
@@ -177,12 +178,8 @@ private:
 
         // Determine whether a given filename is already in use.
         static bool filenameInUse(const QString& requestedFilename) {
-            for (int i = 0; i < SYSCALL_MAXFILES; i++) {
-                if (!fileNames[i].isEmpty() && fileNames[i] == requestedFilename) {
-                    return true;
-                }
-            }
-            return false;
+            return llvm::any_of(fileNames,
+                                [&](auto fn) { return !fn.second.isEmpty() && fn.second == requestedFilename; });
         }
 
         // Determine whether a given fd is already in use with the given flag.

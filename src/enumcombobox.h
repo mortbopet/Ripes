@@ -15,7 +15,7 @@ void setupEnumCombobox(QComboBox* combobox, const std::map<Enum, QString>& nameM
 
 template <typename Enum>
 void setEnumIndex(QComboBox* combobox, Enum enumItem) {
-    for (int i = 0; i < combobox->count(); i++) {
+    for (int i = 0; i < combobox->count(); ++i) {
         if (qvariant_cast<Enum>(combobox->itemData(i)) == enumItem) {
             combobox->setCurrentIndex(i);
             return;

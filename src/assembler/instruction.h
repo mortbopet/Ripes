@@ -393,7 +393,7 @@ public:
         // 1.
         std::set<unsigned> registeredBits;
         for (auto& range : bitRanges) {
-            for (unsigned i = range.start; i <= range.stop; i++) {
+            for (unsigned i = range.start; i <= range.stop; ++i) {
                 assert(registeredBits.count(i) == 0 && "Bit already registerred by some other field");
                 registeredBits.insert(i);
             }
@@ -405,7 +405,7 @@ public:
         unsigned nBits = registeredBits.size();
         if ((nBits - 1) != *registeredBits.rbegin()) {
             std::string err = "Bits '";
-            for (unsigned i = 0; i < nBits; i++) {
+            for (unsigned i = 0; i < nBits; ++i) {
                 if (registeredBits.count(i) == 0) {
                     err += std::to_string(i) + ", ";
                 }

@@ -15,6 +15,7 @@
 #include <set>
 #include <variant>
 
+#include "STLExtras.h"
 #include "assemblerbase.h"
 
 namespace Ripes {
@@ -229,25 +230,24 @@ protected:
          * information if it is a blank symbol (no other information on line).
          */
         Symbols carry;
-        for (int i = 0; i < program.size(); i++) {
-            const auto& line = program.at(i);
-            if (line.isEmpty())
+        for (auto line : llvm::enumerate(program)) {
+            if (line.value().isEmpty())
                 continue;
             TokenizedSrcLine tsl;
-            tsl.sourceLine = i;
-            runOperation(tokens, LineTokens, tokenize, program[i], i);
+            tsl.sourceLine = line.index();
+            runOperation(tokens, LineTokens, tokenize, line.value(), tsl.sourceLine);
 
             runOperation(remainingTokens, LineTokens, splitCommentFromLine, tokens);
 
             // Symbols precede directives
-            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, remainingTokens, i);
+            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, remainingTokens, tsl.sourceLine);
 
             tsl.symbols = symbolsAndRest.first;
 
             bool uniqueSymbols = true;
             for (const auto& s : symbolsAndRest.first) {
                 if (symbols.count(s) != 0) {
-                    errors.push_back(Error(i, "Multiple definitions of symbol '" + s.v + "'"));
+                    errors.push_back(Error(tsl.sourceLine, "Multiple definitions of symbol '" + s.v + "'"));
                     uniqueSymbols = false;
                     break;
                 }
@@ -257,7 +257,8 @@ protected:
             }
             symbols.insert(symbolsAndRest.first.begin(), symbolsAndRest.first.end());
 
-            runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second, i);
+            runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second,
+                         tsl.sourceLine);
             tsl.directive = directiveAndRest.first;
 
             // Parse (and remove) relocation hints from the tokens.
@@ -280,7 +281,8 @@ protected:
                              wasDirective, false);
             }
         }
-        if (errors.size() != 0) {
+
+        if (!errors.empty()) {
             return {errors};
         } else {
             return {tokenizedLines};
@@ -296,27 +298,26 @@ protected:
         SourceProgram expandedLines;
         expandedLines.reserve(tokenizedLines.size());
 
-        for (unsigned i = 0; i < tokenizedLines.size(); i++) {
-            const auto& tokenizedLine = tokenizedLines.at(i);
-            runOperation(expandedOps, std::optional<std::vector<LineTokens>>, expandPseudoOp, tokenizedLine);
+        for (auto tokenizedLine : llvm::enumerate(tokenizedLines)) {
+            runOperation(expandedOps, std::optional<std::vector<LineTokens>>, expandPseudoOp, tokenizedLine.value());
             if (expandedOps) {
                 /** @note: Original source line is kept for all resulting lines after pseudo-op expantion.
                  * Labels and directives are only kept for the first expanded op.
                  */
                 const auto& eops = expandedOps.value();
-                for (size_t j = 0; j < eops.size(); j++) {
+                for (auto eop : llvm::enumerate(eops)) {
                     TokenizedSrcLine tsl;
-                    tsl.tokens = eops.at(j);
-                    tsl.sourceLine = tokenizedLine.sourceLine;
-                    if (j == 0) {
-                        tsl.directive = tokenizedLine.directive;
-                        tsl.symbols = tokenizedLine.symbols;
+                    tsl.tokens = eop.value();
+                    tsl.sourceLine = tokenizedLine.value().sourceLine;
+                    if (eop.index() == 0) {
+                        tsl.directive = tokenizedLine.value().directive;
+                        tsl.symbols = tokenizedLine.value().symbols;
                     }
                     expandedLines.push_back(tsl);
                 }
             } else {
                 // This was not a pseudoinstruction; just add line to the set of expanded lines
-                expandedLines.push_back(tokenizedLine);
+                expandedLines.push_back(tokenizedLine.value());
             }
         }
 

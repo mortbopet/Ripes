@@ -110,23 +110,22 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
     ew.first = s_invalidIndex;
     ew.second = nullptr;
 
-    // Locate a new way based on replacement policy
+    // Locate a new way based on replacement policy.
     if (m_replPolicy == ReplPolicy::Random) {
         // Select a random way
         ew.first = std::rand() % getWays();
         ew.second = &cacheLine[ew.first];
     } else if (m_replPolicy == ReplPolicy::LRU) {
         if (getWays() == 1) {
-            // Nothing to do if we are in LRU and only have 1 set
+            // Nothing to do if we are in LRU and only have 1 set.
             ew.first = 0;
             ew.second = &cacheLine[ew.first];
         } else {
-            // Lazily all ways in the cacheline before starting to iterate
-            for (int i = 0; i < getWays(); i++) {
+            // Lazily initialize all ways in the cacheline before starting to iterate.
+            for (int i = 0; i < getWays(); ++i)
                 cacheLine[i];
-            }
 
-            // If there is an invalid cache line, select that
+            // If there is an invalid cache line, select that.
             auto it =
                 std::find_if(cacheLine.begin(), cacheLine.end(), [=](const auto& way) { return !way.second.valid; });
             if (it != cacheLine.end()) {
@@ -134,7 +133,7 @@ std::pair<unsigned, CacheSim::CacheWay*> CacheSim::locateEvictionWay(const Cache
                 ew.second = &it->second;
             }
             if (ew.second == nullptr) {
-                // Else, Find LRU way
+                // Else, Find LRU way.
                 for (auto& way : cacheLine) {
                     if (static_cast<long>(way.second.lru) == getWays() - 1) {
                         ew.first = way.first;

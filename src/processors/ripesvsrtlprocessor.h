@@ -27,7 +27,6 @@ public:
         reset();
     }
 
-    virtual void clockProcessor() override { clock(); }
     virtual void reverseProcessor() override { reverse(); }
 
     long long getInstructionsRetired() const override { return m_instructionsRetired; }

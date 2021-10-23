@@ -774,7 +774,7 @@ public:
         return amount;
     }
 
-    void clock() override {
+    void clockProcessor() override {
         // An instruction has been retired if the instruction in the WB stage is valid and the PC is within the
         // executable range of the program
         m_instructionsRetired += instructionsRetired();

@@ -39,7 +39,7 @@ void PipelineDiagramWidget::on_copy_clicked() {
     }
     textualRepr.append('\n');
     // Copy data
-    for (int i = 0; i < m_stageModel->rowCount(); i++) {
+    for (int i = 0; i < m_stageModel->rowCount(); ++i) {
         textualRepr.append(m_stageModel->headerData(i, Qt::Vertical).toString());
         textualRepr.append('\t');
         for (int j = 0; j < m_stageModel->columnCount(); j++) {

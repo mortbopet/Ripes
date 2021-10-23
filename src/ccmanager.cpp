@@ -7,6 +7,7 @@
 
 #include <QProcess>
 #include <QProgressDialog>
+#include <QTextDocument>
 
 namespace Ripes {
 

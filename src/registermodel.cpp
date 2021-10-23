@@ -2,6 +2,7 @@
 
 #include <QHeaderView>
 
+#include "STLExtras.h"
 #include "fonts.h"
 #include "processorhandler.h"
 
@@ -15,9 +16,8 @@ RegisterModel::RegisterModel(RegisterFileType rft, QObject* parent) : QAbstractT
 
 std::vector<VInt> RegisterModel::gatherRegisterValues() {
     std::vector<VInt> vals;
-    for (int i = 0; i < rowCount(); i++) {
+    for (int i = 0; i < rowCount(); ++i)
         vals.push_back(ProcessorHandler::getRegisterValue(m_rft, i));
-    }
     return vals;
 }
 
@@ -35,10 +35,10 @@ void RegisterModel::processorWasClocked() {
     endResetModel();
     const auto newRegValues = gatherRegisterValues();
     if (m_regValues.size() != 0) {
-        for (unsigned i = 0; i < newRegValues.size(); i++) {
-            if (m_regValues[i] != newRegValues[i]) {
-                m_mostRecentlyModifiedReg = i;
-                emit registerChanged(i);
+        for (auto newRegVal : llvm::enumerate(newRegValues)) {
+            if (m_regValues[newRegVal.index()] != newRegVal.value()) {
+                m_mostRecentlyModifiedReg = newRegVal.index();
+                emit registerChanged(newRegVal.index());
                 break;
             }
         }

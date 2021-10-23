@@ -412,7 +412,7 @@ public:
         setSynchronousValue(registerFile->_wr_mem, i, v);
     }
 
-    void clock() override {
+    void clockProcessor() override {
         // An instruction has been retired if the instruction in the WB stage is valid and the PC is within the
         // executable range of the program
         if (memwb_reg->valid_out.uValue() != 0 && isExecutableAddress(memwb_reg->pc_out.uValue())) {

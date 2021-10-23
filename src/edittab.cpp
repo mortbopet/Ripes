@@ -106,7 +106,7 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
         RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
     });
 
-    switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toUInt()) {
+    switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toInt()) {
         case SourceType::Assembly: {
             m_ui->setAssemblyInput->toggle();
             break;

@@ -26,7 +26,7 @@ void RegisterSelectionComboBox::showPopup() {
     const auto& initializations = m_parent->m_initializations.at(m_parent->m_currentID);
 
     std::set<unsigned> regOptions;
-    for (unsigned i = 0; i < isa->regCnt(); i++) {
+    for (unsigned i = 0; i < isa->regCnt(); ++i) {
         if (!isa->regIsReadOnly(i)) {
             regOptions.insert(i);
         }

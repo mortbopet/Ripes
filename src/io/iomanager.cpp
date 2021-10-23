@@ -30,7 +30,7 @@ QString IOManager::cSymbolsHeaderpath() const {
 AInt IOManager::nextPeripheralAddress() const {
     AInt base = 0;
     if (m_periphMMappings.empty()) {
-        base = RipesSettings::value(RIPES_SETTING_PERIPHERALS_START).toUInt();
+        base = static_cast<unsigned>(RipesSettings::value(RIPES_SETTING_PERIPHERALS_START).toInt());
     } else {
         for (const auto& periph : m_periphMMappings) {
             if (periph.second.end() > base) {
