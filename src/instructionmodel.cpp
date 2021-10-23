@@ -7,13 +7,10 @@ namespace Ripes {
 AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
     if (m_program) {
         auto& disassembleRes = m_program->getDisassembled();
-        if (disassembleRes.size() < static_cast<unsigned>(index.row()))
-            return -1;
-        /// Since disassembly results are ordered from low to high addresses, we take the row index'th disassembled
-        /// instruction, and return its address.
-        auto it = disassembleRes.begin();
-        std::advance(it, index.row());
-        return it->first;
+        if (disassembleRes.numInstructions() < static_cast<unsigned>(index.row()))
+            return 0;
+        if (auto addr = disassembleRes.indexToAddress(index.row()); addr.has_value())
+            return addr.value();
     }
     return 0;
 }
@@ -21,10 +18,8 @@ AInt InstructionModel::indexToAddress(const QModelIndex& index) const {
 int InstructionModel::addressToRow(AInt addr) const {
     if (m_program) {
         auto& disassembleRes = m_program->getDisassembled();
-        auto it = disassembleRes.lower_bound(addr);
-        if (it == disassembleRes.end())
-            return 0;
-        return std::distance(disassembleRes.begin(), it);
+        if (auto index = disassembleRes.addressToIndex(addr); index.has_value())
+            return index.value();
     }
     return 0;
 }
@@ -57,7 +52,7 @@ int InstructionModel::columnCount(const QModelIndex&) const {
 void InstructionModel::updateRowCount() {
     if (m_program) {
         auto& disassembleRes = m_program->getDisassembled();
-        m_rowCount = disassembleRes.size();
+        m_rowCount = disassembleRes.numInstructions();
     } else
         m_rowCount = 0;
 }
@@ -148,10 +143,10 @@ QVariant InstructionModel::stageData(AInt addr) const {
 QVariant InstructionModel::instructionData(AInt addr) const {
     if (m_program) {
         auto& disres = m_program->getDisassembled();
-        auto it = disres.find(addr);
-        if (it == disres.end())
-            return QVariant();
-        return it->second;
+        auto instr = disres.getFromAddr(addr);
+        if (instr.has_value())
+            return instr.value();
+        return QVariant();
     }
     return QVariant();
 }
