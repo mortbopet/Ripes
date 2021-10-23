@@ -17,6 +17,7 @@
 #include "../rv_immediate.h"
 #include "../rv_memory.h"
 #include "../rv_registerfile.h"
+#include "../rv_uncompress.h"
 
 namespace vsrtl {
 namespace core {
@@ -32,6 +33,7 @@ public:
     RVSS(const QStringList& extensions) : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
+        uncompress->setISA(m_enabledISA);
 
         // -----------------------------------------------------------------------
         // Program counter
@@ -41,7 +43,7 @@ public:
 
         2 >> pc_inc->get(PcInc::INC2);
         4 >> pc_inc->get(PcInc::INC4);
-        decode->Pc_Inc >> pc_inc->select;
+        uncompress->Pc_Inc >> pc_inc->select;
 
         // Note: pc_src works uses the PcSrc enum, but is selected by the boolean signal
         // from the controlflow OR gate. PcSrc enum values must adhere to the boolean
@@ -54,8 +56,12 @@ public:
         instr_mem->setMemory(m_memory);
 
         // -----------------------------------------------------------------------
+        // Uncompress
+        instr_mem->data_out >> uncompress->instr;
+
+        // -----------------------------------------------------------------------
         // Decode
-        instr_mem->data_out >> decode->instr;
+        uncompress->exp_instr >> decode->instr;
 
         // -----------------------------------------------------------------------
         // Control signals
@@ -64,7 +70,7 @@ public:
         // -----------------------------------------------------------------------
         // Immediate
         decode->opcode >> immediate->opcode;
-        decode->exp_instr >> immediate->instr;
+        uncompress->exp_instr >> immediate->instr;
 
         // -----------------------------------------------------------------------
         // Registers
@@ -130,6 +136,7 @@ public:
     SUBCOMPONENT(control, Control);
     SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
     SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
+    SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
     SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
     SUBCOMPONENT(pc_4, Adder<XLEN>);
 
