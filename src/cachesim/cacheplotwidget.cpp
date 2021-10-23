@@ -334,7 +334,6 @@ void CachePlotWidget::updatePlotAxes() {
     QValueAxis* axisX = qobject_cast<QValueAxis*>(m_series->chart()->axes(Qt::Horizontal).first());
     Q_ASSERT(axisY);
     Q_ASSERT(axisX);
-    axisY->setLabelFormat("%.1f  ");
     axisY->setTitleText("%");
     int tickInterval = (m_maxY - m_minY) / axisY->tickCount();
     tickInterval = ((tickInterval + 5 - 1) / 5) * 5;  // Round to nearest multiple of 5
