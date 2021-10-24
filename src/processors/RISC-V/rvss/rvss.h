@@ -12,12 +12,11 @@
 #include "../rv_alu.h"
 #include "../rv_branch.h"
 #include "../rv_control.h"
-#include "../rv_decode.h"
 #include "../rv_ecallchecker.h"
 #include "../rv_immediate.h"
 #include "../rv_memory.h"
 #include "../rv_registerfile.h"
-#include "../rv_uncompress.h"
+#include "rv_decodeRVC.h"
 
 namespace vsrtl {
 namespace core {
@@ -33,7 +32,6 @@ public:
     RVSS(const QStringList& extensions) : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
-        uncompress->setISA(m_enabledISA);
 
         // -----------------------------------------------------------------------
         // Program counter
@@ -43,7 +41,7 @@ public:
 
         2 >> pc_inc->get(PcInc::INC2);
         4 >> pc_inc->get(PcInc::INC4);
-        uncompress->Pc_Inc >> pc_inc->select;
+        decode->Pc_Inc >> pc_inc->select;
 
         // Note: pc_src works uses the PcSrc enum, but is selected by the boolean signal
         // from the controlflow OR gate. PcSrc enum values must adhere to the boolean
@@ -56,12 +54,8 @@ public:
         instr_mem->setMemory(m_memory);
 
         // -----------------------------------------------------------------------
-        // Uncompress
-        instr_mem->data_out >> uncompress->instr;
-
-        // -----------------------------------------------------------------------
         // Decode
-        uncompress->exp_instr >> decode->instr;
+        instr_mem->data_out >> decode->instr;
 
         // -----------------------------------------------------------------------
         // Control signals
@@ -70,7 +64,7 @@ public:
         // -----------------------------------------------------------------------
         // Immediate
         decode->opcode >> immediate->opcode;
-        uncompress->exp_instr >> immediate->instr;
+        decode->exp_instr >> immediate->instr;
 
         // -----------------------------------------------------------------------
         // Registers
@@ -135,8 +129,7 @@ public:
     SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
     SUBCOMPONENT(control, Control);
     SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
-    SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
-    SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
+    SUBCOMPONENT(decode, TYPE(DecodeRVC<XLEN>));
     SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
     SUBCOMPONENT(pc_4, Adder<XLEN>);
 
