@@ -50,6 +50,8 @@ jobs:
     - name: package artifacts
       run: |
         macdeployqt $(if [ ${{ matrix.build-type }} -eq Debug ]; then echo "-use-debug-libs"; fi) Ripes.app
+        # Enable HiDPI scaling for Retina systems
+        plutil -replace NSHighResolutionCapable -bool true Ripes.app/Contents/Info.plist
         source .github/workflows/scripts/set_version.sh
         export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
