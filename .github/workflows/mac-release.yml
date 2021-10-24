@@ -20,7 +20,7 @@ jobs:
         fetch-depth: 0
 
     - name: setup Homebrew
-      run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
+      run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp svg2png
 
     - name: Cache Qt
       id: cache-qt
@@ -52,6 +52,10 @@ jobs:
         macdeployqt $(if [ ${{ matrix.build-type }} -eq Debug ]; then echo "-use-debug-libs"; fi) Ripes.app
         # Enable HiDPI scaling for Retina systems
         plutil -replace NSHighResolutionCapable -bool true Ripes.app/Contents/Info.plist
+        # Create icon bundle
+        sh .github/workflows/scripts/svg2icns.sh resources/icons/logo.svg
+        mv logo.icns Ripes.app/Contents/Resources
+        plutil -replace CFBundleIconFile -string logo.icns Ripes.app/Contents/Info.plist
         source .github/workflows/scripts/set_version.sh
         export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
