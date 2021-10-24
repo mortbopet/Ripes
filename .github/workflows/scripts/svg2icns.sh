@@ -24,7 +24,7 @@ for SVG in "$@"; do
     for PARAMS in $SIZES; do
         SIZE=$(echo $PARAMS | cut -d, -f1)
         LABEL=$(echo $PARAMS | cut -d, -f2)
-        svg2png -w $SIZE -h $SIZE -i "$SVG" -o "$ICONSET"/icon_$LABEL.png
+        svg2png -w $SIZE -h $SIZE "$SVG" "$ICONSET"/icon_$LABEL.png
     done
 
     iconutil -c icns "$ICONSET"
