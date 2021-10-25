@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "STLExtras.h"
 #include "binutils.h"
 #include "isa/isainfo.h"
 #include "math.h"
@@ -419,6 +420,12 @@ public:
         m_byteSize = nBits / CHAR_BIT;
     }
 
+    void addExtraMatchCond(const std::function<bool(Instr_T)>& f) { m_extraMatchConditions.push_back(f); }
+    bool hasExtraMatchConds() const { return !m_extraMatchConditions.empty(); }
+    bool matchesWithExtras(Instr_T instr) {
+        return llvm::all_of(m_extraMatchConditions, [&](const auto& f) { return f(instr); });
+    }
+
 private:
     std::function<AssembleRes<Reg_T>(const Instruction<Reg_T>*, const TokenizedSrcLine&)> m_assembler;
     std::function<DisassembleRes(const Instruction<Reg_T>*, const Instr_T, const Reg_T, const ReverseSymbolMap&)>
@@ -428,6 +435,9 @@ private:
     const int m_expectedTokens;
     std::vector<std::shared_ptr<Field<Reg_T>>> m_fields;
     unsigned m_byteSize = -1;
+
+    /// An optional set of additional match conditions, if the default opcode-matching is insufficient.
+    std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
 };
 
 template <typename Reg_T>

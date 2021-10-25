@@ -61,11 +61,11 @@ private:
         if (isRoot || node.matcher.matches(instruction)) {
             if (node.children.size() > 0) {
                 for (const auto& child : node.children) {
-                    if (auto matchedInstr = matchInstructionRec(instruction, child, false)) {
+                    if (auto matchedInstr = matchInstructionRec(instruction, child, false); matchedInstr != nullptr) {
                         return matchedInstr;
                     }
                 }
-            } else {
+            } else if (node.instruction->matchesWithExtras(instruction)) {
                 return &(*node.instruction);
             }
         }
@@ -79,7 +79,7 @@ private:
         for (const auto& instr : instructions) {
             if (auto instrRef = instr.get()) {
                 const size_t nOpParts = instrRef->getOpcode().opParts.size();
-                if (nOpParts < fieldDepth) {
+                if (nOpParts < fieldDepth && !instrRef->hasExtraMatchConds()) {
                     QString err =
                         "Instruction '" + instr->name() +
                         "' cannot be decoded; aliases with other instruction (Needs more discernable parts)\n";
