@@ -27,7 +27,6 @@ test_3:
 test_4:
  c.addi16sp 496
  c.nop
- .word 0x0001617d
  lui t2,0x1
  addi t2,t2,1060 
  li gp,4
@@ -37,7 +36,6 @@ test_4:
 test_5:
  c.addi16sp -512
  c.nop
- .word 0x00017101
  lui t2,0x1
  addi t2,t2,548
  li gp,5
