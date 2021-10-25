@@ -55,13 +55,6 @@ struct RVCReg : public Reg<Reg_T> {
 #define CINOPType(opcode, name) \
     std::shared_ptr<_Instruction>(new _Instruction(Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 15)}), {}))
 
-#define CIADDI16SPType(opcode, name, funct3)                                                                         \
-    std::shared_ptr<_Instruction>(                                                                                   \
-        new _Instruction(Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15), OpPart(2, 7, 11)}),     \
-                         {std::make_shared<_Imm>(1, 10, _Imm::Repr::Signed,                                          \
-                                                 std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4), ImmPart(6, 5, 5), \
-                                                             ImmPart(5, 2, 2), ImmPart(4, 6, 6)})}))
-
 #define CSSType(opcode, name, funct3, imm)                                                     \
     std::shared_ptr<_Instruction>(                                                             \
         new _Instruction(Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}), \
@@ -177,12 +170,27 @@ struct RV_C {
         instructions.push_back(CIType(
             0b01, Token("c.li"), 0b010,
             std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
-        instructions.push_back(CIType(
+
+        auto cLuiInstr = CIType(
             0b01, Token("c.lui"), 0b011,
-            std::make_shared<_Imm>(2, 18, _Imm::Repr::Signed, std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)})));
-        // instructions.push_back(CIADDI16SPType(0b01, Token("c.addi16sp"), 0b011));//FIXME Duplicated with LUI
-        // terminate called after throwing an instance of 'std::runtime_error'
-        // what():  Instruction 'c.lui' cannot be decoded; aliases with other instruction (Needs more discernable parts)
+            std::make_shared<_Imm>(2, 18, _Imm::Repr::Signed, std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}));
+        cLuiInstr->addExtraMatchCond([](Instr_T instr) {
+            unsigned rd = (instr >> 7) & 0b11111;
+            return rd != 0 && rd != 2;
+        });
+
+        instructions.push_back(cLuiInstr);
+
+        auto cAddi16spInstr = std::shared_ptr<_Instruction>(new _Instruction(
+            Opcode<Reg__T>(Token("c.addi16sp"), {OpPart(0b01, 0, 1), OpPart(0b011, 13, 15), OpPart(2, 7, 11)}),
+            {std::make_shared<_Imm>(1, 10, _Imm::Repr::Signed,
+                                    std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4), ImmPart(6, 5, 5),
+                                                ImmPart(5, 2, 2), ImmPart(4, 6, 6)})}));
+        cLuiInstr->addExtraMatchCond([](Instr_T instr) {
+            unsigned rd = (instr >> 7) & 0b11111;
+            return rd == 2;
+        });
+        instructions.push_back(cAddi16spInstr);
 
         instructions.push_back(CIType(
             0b01, Token("c.addi"), 0b000,

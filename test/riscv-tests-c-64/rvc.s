@@ -25,8 +25,8 @@ test_3:
  bne a0,t2, fail 
     
 test_4:
-# c.addi16sp sp, 496  #not implemented in Ripes assembler https://github.com/mortbopet/Ripes/blob/c229749d39f0f2964d53245fdfe729fcbef2a5ff/src/assembler/rv_c_ext.h#L183
-# c.nop
+ c.addi16sp 496
+ c.nop
  .word 0x0001617d
  lui t2,0x1
  addi t2,t2,1060 
@@ -35,8 +35,8 @@ test_4:
    
     
 test_5:
-# c.addi16sp sp, -512 #not implemented in Ripes assembler https://github.com/mortbopet/Ripes/blob/c229749d39f0f2964d53245fdfe729fcbef2a5ff/src/assembler/rv_c_ext.h#L183
-# c.nop
+ c.addi16sp -512
+ c.nop
  .word 0x00017101
  lui t2,0x1
  addi t2,t2,548
