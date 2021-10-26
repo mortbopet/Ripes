@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include "iodpad.h"
+#include "ioexternalbus.h"
 #include "ioledmatrix.h"
 #include "ioswitches.h"
 
@@ -18,7 +19,7 @@
 
 namespace Ripes {
 
-enum IOType { LED_MATRIX, SWITCHES, DPAD, NPERIPHERALS };
+enum IOType { LED_MATRIX, SWITCHES, DPAD, EXTERNALBUS, NPERIPHERALS };
 
 template <typename T>
 IOBase *createIO(QWidget *parent) {
@@ -28,14 +29,14 @@ IOBase *createIO(QWidget *parent) {
 
 using IOFactory = std::function<IOBase *(QWidget *parent)>;
 
-const static std::map<IOType, QString> IOTypeTitles = {
-    {IOType::LED_MATRIX, "LED Matrix"},
-    {IOType::SWITCHES, "Switches"},
-    {IOType::DPAD, "D-Pad"}};
-const static std::map<IOType, IOFactory> IOFactories = {
-    {IOType::LED_MATRIX, createIO<IOLedMatrix>},
-    {IOType::SWITCHES, createIO<IOSwitches>},
-    {IOType::DPAD, createIO<IODPad>}};
+const static std::map<IOType, QString> IOTypeTitles = {{IOType::LED_MATRIX, "LED Matrix"},
+                                                       {IOType::SWITCHES, "Switches"},
+                                                       {IOType::DPAD, "D-Pad"},
+                                                       {IOType::EXTERNALBUS, "External bus"}};
+const static std::map<IOType, IOFactory> IOFactories = {{IOType::LED_MATRIX, createIO<IOLedMatrix>},
+                                                        {IOType::SWITCHES, createIO<IOSwitches>},
+                                                        {IOType::DPAD, createIO<IODPad>},
+                                                        {IOType::EXTERNALBUS, createIO<IOExternalBus>}};
 
 } // namespace Ripes
 
