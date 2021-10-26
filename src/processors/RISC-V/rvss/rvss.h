@@ -12,11 +12,11 @@
 #include "../rv_alu.h"
 #include "../rv_branch.h"
 #include "../rv_control.h"
-#include "../rv_decode.h"
 #include "../rv_ecallchecker.h"
 #include "../rv_immediate.h"
 #include "../rv_memory.h"
 #include "../rv_registerfile.h"
+#include "rv_decodeRVC.h"
 
 namespace vsrtl {
 namespace core {
@@ -129,7 +129,7 @@ public:
     SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
     SUBCOMPONENT(control, Control);
     SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
-    SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
+    SUBCOMPONENT(decode, TYPE(DecodeRVC<XLEN>));
     SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
     SUBCOMPONENT(pc_4, Adder<XLEN>);
 
