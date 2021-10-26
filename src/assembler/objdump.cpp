@@ -95,15 +95,18 @@ QString binobjdump(const std::shared_ptr<const Program>& program, AddrOffsetMap&
     const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
     return stringifyProgram(
         program,
-        [&](const std::vector<char>& buffer, AInt) {
-            OpDisassembleResult disres;
-            QString binaryString;
-            assert(buffer.size() >= instrBytes);
-            for (size_t i = 0; i < instrBytes; ++i) {
-                disres.repr.prepend(QString().setNum(static_cast<uint8_t>(buffer[i]), 2).rightJustified(8, '0'));
+        [&program, &assembler, instrBytes](const std::vector<char>& buffer, AInt address) {
+            /// Use disassembler to determine # of bytes disassembled, and then emit the byte representation.
+            VInt instr = 0;
+            for (unsigned i = 0; i < instrBytes; ++i) {
+                instr |= (buffer[i] & 0xFF) << (CHAR_BIT * i);
             }
-            disres.bytesDisassembled = instrBytes;
-            return disres;
+            auto disRes = assembler->disassemble(instr, program->symbols, address);
+            disRes.repr.clear();
+            for (size_t i = 0; i < disRes.bytesDisassembled; ++i) {
+                disRes.repr.prepend(QString().setNum(static_cast<uint8_t>(buffer[i]), 2).rightJustified(8, '0'));
+            }
+            return disRes;
         },
         addrOffsetMap);
 }
