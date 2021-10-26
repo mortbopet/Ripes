@@ -16,9 +16,9 @@
 #include "../rv_decode.h"
 #include "../rv_ecallchecker.h"
 #include "../rv_immediate.h"
-#include "../rv_uncompress.h"
 #include "../rv_memory.h"
 #include "../rv_registerfile.h"
+#include "../rv_uncompress.h"
 
 // Stage separating registers
 #include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
@@ -46,7 +46,7 @@ public:
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode->setISA(m_enabledISA);
         uncompress->setISA(m_enabledISA);
-        
+
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_4->op1;
@@ -86,7 +86,7 @@ public:
         // -----------------------------------------------------------------------
         // Immediate
         decode->opcode >> immediate->opcode;
-        ifid_reg->instr_out  >> immediate->instr;
+        ifid_reg->instr_out >> immediate->instr;
 
         // -----------------------------------------------------------------------
         // Registers
