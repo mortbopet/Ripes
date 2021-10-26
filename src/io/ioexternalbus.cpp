@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QPen>
 
+<<<<<<< HEAD
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
@@ -28,6 +29,15 @@ IOExternalBus::IOExternalBus(QWidget* parent)
 
     m_ui->setupUi(this);
     connect(m_ui->connectButton, &QPushButton::clicked, this, &IOExternalBus::connectButtonTriggered);
+=======
+#include "STLExtras.h"
+#include "ioregistry.h"
+
+namespace Ripes {
+
+IOExternalBus::IOExternalBus(QWidget* parent) : IOBase(IOType::EXTERNALBUS, parent), m_ui(new Ui::IOExternalBus) {
+    m_ui->setupUi(this);
+>>>>>>> 09b8475 (Initial commit for external bus peripheral)
 }
 
 IOExternalBus::~IOExternalBus() {
@@ -36,7 +46,11 @@ IOExternalBus::~IOExternalBus() {
 };
 
 unsigned IOExternalBus::byteSize() const {
+<<<<<<< HEAD
     return m_ByteSize;
+=======
+    return 1024;
+>>>>>>> 09b8475 (Initial commit for external bus peripheral)
 }
 
 QString IOExternalBus::description() const {
@@ -45,6 +59,7 @@ QString IOExternalBus::description() const {
 }
 
 VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
+<<<<<<< HEAD
     uint32_t rvalue = 0;
 
     if (tcpSocket->isOpen()) {
@@ -238,5 +253,12 @@ void IOExternalBus::disconnectOnError(QString msg) {
     emit regMapChanged();
     emit sizeChanged();
 }
+=======
+    return 0;
+}
+void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {}
+
+void IOExternalBus::parameterChanged(unsigned paramId) {}
+>>>>>>> 09b8475 (Initial commit for external bus peripheral)
 
 }  // namespace Ripes
