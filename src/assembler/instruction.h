@@ -436,7 +436,7 @@ private:
     std::vector<std::shared_ptr<Field<Reg_T>>> m_fields;
     unsigned m_byteSize = -1;
 
-    /// An optional set of additional match conditions, if the default opcode-matching is insufficient.
+    /// An optional set of disassembler match conditions, if the default opcode-based matching is insufficient.
     std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
 };
 
