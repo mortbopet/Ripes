@@ -13,7 +13,7 @@ public:
     void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
 
     Uncompress(std::string name, SimComponent* parent) : Component(name, parent) {
-        Pc_Inc << [=] { return (instr.uValue() & 0b11) == 0b11; };
+        Pc_Inc << [=] { return (((instr.uValue() & 0b11) == 0b11)||(!instr.uValue())); };
 
         // only support 32 bit instructions
         exp_instr << [=] {
