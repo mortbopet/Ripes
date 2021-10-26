@@ -49,7 +49,7 @@ public:
         pc_reg->out >> pc_4->op1;
         pc_inc->out >> pc_4->op2;
         pc_src->out >> pc_reg->in;
-        
+
         2 >> pc_inc->get(PcInc::INC2);
         4 >> pc_inc->get(PcInc::INC4);
         uncompress->Pc_Inc >> pc_inc->select;
@@ -150,7 +150,7 @@ public:
         // -----------------------------------------------------------------------
         // Increment
         instr_mem->data_out >> uncompress->instr;
-        
+
         // -----------------------------------------------------------------------
         // ID/EX
         1 >> idex_reg->enable;
@@ -226,7 +226,7 @@ public:
     SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
     SUBCOMPONENT(pc_4, Adder<XLEN>);
     SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
-    
+
     // Registers
     SUBCOMPONENT(pc_reg, Register<XLEN>);
 

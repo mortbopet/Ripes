@@ -54,7 +54,7 @@ public:
         pc_src->out >> pc_reg->in;
         0 >> pc_reg->clear;
         hzunit->hazardFEEnable >> pc_reg->enable;
-        
+
         2 >> pc_inc->get(PcInc::INC2);
         4 >> pc_inc->get(PcInc::INC4);
         uncompress->Pc_Inc >> pc_inc->select;
@@ -159,7 +159,7 @@ public:
         // -----------------------------------------------------------------------
         // Increment
         instr_mem->data_out >> uncompress->instr;
-        
+
         // -----------------------------------------------------------------------
         // ID/EX
         hzunit->hazardIDEXEnable >> idex_reg->enable;
@@ -262,7 +262,7 @@ public:
     SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
     SUBCOMPONENT(pc_4, Adder<XLEN>);
     SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
-    
+
     // Registers
     SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
 
