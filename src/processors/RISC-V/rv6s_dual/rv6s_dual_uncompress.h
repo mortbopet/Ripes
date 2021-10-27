@@ -11,11 +11,10 @@ using namespace Ripes;
 template <unsigned XLEN>
 class ShiftR16 : public Component {
 public:
-
     ShiftR16(std::string name, SimComponent* parent) : Component(name, parent) {
-        instr16 << [=] { return (instr.uValue() >> 16) ; };
+        instr16 << [=] { return (instr.uValue() >> 16); };
     }
-    
+
     INPUTPORT(instr, XLEN);
     OUTPUTPORT(instr16, XLEN);
 };
@@ -29,27 +28,25 @@ public:
     }
 
     UncompressDual(std::string name, SimComponent* parent) : Component(name, parent) {
-        
         instr1 >> shiftr16->instr;
-        shiftr16->instr16 >>  instr_split->get(PcInc::INC2);
+        shiftr16->instr16 >> instr_split->get(PcInc::INC2);
         instr2 >> instr_split->get(PcInc::INC4);
         uncompress1->Pc_Inc >> instr_split->select;
-        
+
         instr1 >> uncompress1->instr;
         uncompress1->Pc_Inc >> Pc_Inc1;
         uncompress1->exp_instr >> exp_instr1;
-        
+
         instr_split->out >> uncompress2->instr;
         uncompress2->Pc_Inc >> Pc_Inc2;
         uncompress2->exp_instr >> exp_instr2;
-
     }
 
     SUBCOMPONENT(uncompress1, TYPE(Uncompress<XLEN>));
     SUBCOMPONENT(uncompress2, TYPE(Uncompress<XLEN>));
     SUBCOMPONENT(instr_split, TYPE(EnumMultiplexer<PcInc, c_RVInstrWidth>));
     SUBCOMPONENT(shiftr16, TYPE(ShiftR16<c_RVInstrWidth>));
-    
+
     INPUTPORT(instr1, c_RVInstrWidth);
     INPUTPORT(instr2, c_RVInstrWidth);
     OUTPUTPORT(Pc_Inc1, 1);

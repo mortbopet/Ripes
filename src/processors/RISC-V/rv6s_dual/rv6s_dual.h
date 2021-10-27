@@ -20,8 +20,8 @@
 #include "rv6s_dual_control.h"
 #include "rv6s_dual_instr_mem.h"
 #include "rv6s_dual_registerfile.h"
-#include "rv6s_dual_waycontrol.h"
 #include "rv6s_dual_uncompress.h"
+#include "rv6s_dual_waycontrol.h"
 
 // Stage separating registers
 #include "rv6s_dual_branch.h"
@@ -73,17 +73,17 @@ public:
         pc_sum->out >> pc_8->op2;
         pc_reg->out >> pc_4->op1;
         pc_inc1->out >> pc_4->op2;
-        
+
         2 >> pc_inc1->get(PcInc::INC2);
         4 >> pc_inc1->get(PcInc::INC4);
         uncompress_dual->Pc_Inc1 >> pc_inc1->select;
-        
+
         2 >> pc_inc2->get(PcInc::INC2);
         4 >> pc_inc2->get(PcInc::INC4);
         uncompress_dual->Pc_Inc2 >> pc_inc2->select;
-        
+
         pc_inc1->out >> pc_sum->op1;
-        pc_inc2->out >> pc_sum->op2;      
+        pc_inc2->out >> pc_sum->op2;
 
         // link-address (computed in EX state when PC of EXEC way is known)
         iiex_reg->pc_out >> pc_4_link->op1;
@@ -313,12 +313,11 @@ public:
         fe_en_or->out >> ifid_reg->enable;
         efsc_or->out >> ifid_reg->clear;
         1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
-        
+
         // -----------------------------------------------------------------------
         // Increment
         instr_mem->data_out >> uncompress_dual->instr1;
         instr_mem->data_out2 >> uncompress_dual->instr2;
-        
 
         // -----------------------------------------------------------------------
         // ID/II
@@ -557,10 +556,10 @@ public:
     SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
     SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
     SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
-    
+
     SUBCOMPONENT(pc_inc1, TYPE(EnumMultiplexer<PcInc, XLEN>));
     SUBCOMPONENT(pc_inc2, TYPE(EnumMultiplexer<PcInc, XLEN>));
-    
+
     // Memories
     SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<XLEN, c_RVInstrWidth>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
