@@ -21,6 +21,7 @@
 #include "rv6s_dual_instr_mem.h"
 #include "rv6s_dual_registerfile.h"
 #include "rv6s_dual_waycontrol.h"
+#include "rv6s_dual_uncompress.h"
 
 // Stage separating registers
 #include "rv6s_dual_branch.h"
@@ -64,13 +65,25 @@ public:
         m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
         decode_way2->setISA(m_enabledISA);
         decode_way1->setISA(m_enabledISA);
+        uncompress_dual->setISA(m_enabledISA);
 
         // -----------------------------------------------------------------------
         // Program counter
         pc_reg->out >> pc_8->op1;
-        8 >> pc_8->op2;
+        pc_sum->out >> pc_8->op2;
         pc_reg->out >> pc_4->op1;
-        4 >> pc_4->op2;
+        pc_inc1->out >> pc_4->op2;
+        
+        2 >> pc_inc1->get(PcInc::INC2);
+        4 >> pc_inc1->get(PcInc::INC4);
+        uncompress_dual->Pc_Inc1 >> pc_inc1->select;
+        
+        2 >> pc_inc2->get(PcInc::INC2);
+        4 >> pc_inc2->get(PcInc::INC4);
+        uncompress_dual->Pc_Inc2 >> pc_inc2->select;
+        
+        pc_inc1->out >> pc_sum->op1;
+        pc_inc2->out >> pc_sum->op2;      
 
         // link-address (computed in EX state when PC of EXEC way is known)
         iiex_reg->pc_out >> pc_4_link->op1;
@@ -295,11 +308,17 @@ public:
         // IF/ID
         pc_4->out >> ifid_reg->pc4_in;
         pc_reg->out >> ifid_reg->pc_in;
-        instr_mem->data_out >> ifid_reg->instr_in;
-        instr_mem->data_out2 >> ifid_reg->instr2_in;
+        uncompress_dual->exp_instr1 >> ifid_reg->instr_in;
+        uncompress_dual->exp_instr2 >> ifid_reg->instr2_in;
         fe_en_or->out >> ifid_reg->enable;
         efsc_or->out >> ifid_reg->clear;
         1 >> ifid_reg->valid_in;  // Always valid unless register is cleared
+        
+        // -----------------------------------------------------------------------
+        // Increment
+        instr_mem->data_out >> uncompress_dual->instr1;
+        instr_mem->data_out2 >> uncompress_dual->instr2;
+        
 
         // -----------------------------------------------------------------------
         // ID/II
@@ -498,6 +517,8 @@ public:
     SUBCOMPONENT(pc_4, Adder<XLEN>);
     SUBCOMPONENT(pc_8, Adder<XLEN>);
     SUBCOMPONENT(pc_4_link, Adder<XLEN>);
+    SUBCOMPONENT(uncompress_dual, TYPE(UncompressDual<XLEN>));
+    SUBCOMPONENT(pc_sum, Adder<XLEN>);
 
     // Registers
     SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
@@ -536,7 +557,10 @@ public:
     SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
     SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
     SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
-
+    
+    SUBCOMPONENT(pc_inc1, TYPE(EnumMultiplexer<PcInc, XLEN>));
+    SUBCOMPONENT(pc_inc2, TYPE(EnumMultiplexer<PcInc, XLEN>));
+    
     // Memories
     SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<XLEN, c_RVInstrWidth>));
     SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
@@ -575,7 +599,7 @@ public:
         // clang-format off
         switch (idx) {
             case IF_1: return pc_reg->out.uValue();
-            case IF_2: return pc_reg->out.uValue() + 4;
+            case IF_2: return pc_reg->out.uValue() + pc_inc1->out.uValue();
             case ID_1: return ifid_reg->pc_out.uValue();
             case ID_2: return ifid_reg->pc4_out.uValue();
             case II_EXEC: return idii_reg->pc_exec_out.uValue();
