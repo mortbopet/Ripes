@@ -372,8 +372,6 @@ public:
 
 private:
     std::shared_ptr<ISAInfoBase> m_isa;
-    VInt instr_last;
-    VInt instr_cache;
 };
 
 }  // namespace core

@@ -12,10 +12,11 @@ template <unsigned XLEN>
 class ShiftR16 : public Component {
 public:
     ShiftR16(std::string name, SimComponent* parent) : Component(name, parent) {
-        instr16 << [=] { return (instr.uValue() >> 16); };
+        instr16 << [=] { return (((instr2.uValue() & 0xFFFF) << 16) | (instr1.uValue() >> 16)); };
     }
 
-    INPUTPORT(instr, XLEN);
+    INPUTPORT(instr1, XLEN);
+    INPUTPORT(instr2, XLEN);
     OUTPUTPORT(instr16, XLEN);
 };
 
@@ -28,7 +29,8 @@ public:
     }
 
     UncompressDual(std::string name, SimComponent* parent) : Component(name, parent) {
-        instr1 >> shiftr16->instr;
+        instr1 >> shiftr16->instr1;
+        instr2 >> shiftr16->instr2;
         shiftr16->instr16 >> instr_split->get(PcInc::INC2);
         instr2 >> instr_split->get(PcInc::INC4);
         uncompress1->Pc_Inc >> instr_split->select;

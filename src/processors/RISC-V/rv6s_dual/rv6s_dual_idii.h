@@ -40,6 +40,7 @@ public:
 
         CONNECT_REGISTERED_CLEN_INPUT(instr_data, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(instr_exec, clear, enable);
+        CONNECT_REGISTERED_CLEN_INPUT(instrsize, clear, enable);
     }
 
     REGISTERED_CLEN_INPUT(instr_data, c_RVInstrWidth);
@@ -67,6 +68,8 @@ public:
     REGISTERED_CLEN_INPUT(data_valid, 1);
 
     REGISTERED_CLEN_INPUT(valid, 1);
+
+    REGISTERED_CLEN_INPUT(instrsize, XLEN);
 
     // Register bank controls
     INPUTPORT(enable, 1);

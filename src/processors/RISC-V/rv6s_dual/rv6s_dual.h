@@ -85,9 +85,16 @@ public:
         pc_inc1->out >> pc_sum->op1;
         pc_inc2->out >> pc_sum->op2;
 
+        // -----------------------------------------------------------------------
+        // Instruction size
+        pc_inc1->out >> ifid_reg->instrsize1_in;
+        pc_inc2->out >> ifid_reg->instrsize2_in;
+        exec_way_instrsize->out >> idii_reg->instrsize_in;
+        idii_reg->instrsize_out >> iiex_reg->instrsize_in;
+
         // link-address (computed in EX state when PC of EXEC way is known)
         iiex_reg->pc_out >> pc_4_link->op1;
-        4 >> pc_4_link->op2;
+        iiex_reg->instrsize_out >> pc_4_link->op2;
 
         pc_src->out >> pc_reg->in;
         0 >> pc_reg->clear;
@@ -200,6 +207,10 @@ public:
         waycontrol->exec_way_src >> exec_way_wr_reg_idx->select;
         decode_way1->wr_reg_idx >> exec_way_wr_reg_idx->get(WaySrc::WAY1);
         decode_way2->wr_reg_idx >> exec_way_wr_reg_idx->get(WaySrc::WAY2);
+
+        waycontrol->exec_way_src >> exec_way_instrsize->select;
+        ifid_reg->instrsize1_out >> exec_way_instrsize->get(WaySrc::WAY1);
+        ifid_reg->instrsize2_out >> exec_way_instrsize->get(WaySrc::WAY2);
 
         // -----------------------------------------------------------------------
         // Registers
@@ -556,6 +567,7 @@ public:
     SUBCOMPONENT(exec_way_wr_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
     SUBCOMPONENT(exec_way_r1_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
     SUBCOMPONENT(exec_way_r2_reg_idx, TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
+    SUBCOMPONENT(exec_way_instrsize, TYPE(EnumMultiplexer<WaySrc, XLEN>));
 
     SUBCOMPONENT(pc_inc1, TYPE(EnumMultiplexer<PcInc, XLEN>));
     SUBCOMPONENT(pc_inc2, TYPE(EnumMultiplexer<PcInc, XLEN>));
