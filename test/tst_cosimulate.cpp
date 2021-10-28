@@ -153,7 +153,7 @@ QString tst_Cosimulate::generateErrorReport(const RegisterChange& change, const 
 
 void tst_Cosimulate::loadCurrentTest() {
     // Some manual work is required here since we are not instantiating the full application
-    m_loader->loadFile(m_currentTest);
+    m_loader->loadExternalFile(m_currentTest);
     if (m_currentTest.type == SourceType::Assembly) {
         m_loader->sourceCodeChanged();
     }
