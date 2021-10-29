@@ -12,7 +12,7 @@ template <unsigned int addrWidth, unsigned int dataWidth>
 class RVMemory : public Component, public BaseMemory<true> {
 public:
     SetGraphicsType(ClockedComponent);
-    RVMemory(std::string name, SimComponent* parent) : Component(name, parent) {
+    RVMemory(const std::string& name, SimComponent* parent) : Component(name, parent) {
         addr >> mem->addr;
         wr_en >> mem->wr_en;
         data_in >> mem->data_in;

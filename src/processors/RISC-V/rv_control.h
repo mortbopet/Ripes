@@ -239,7 +239,7 @@ public:
     /* clang-format on */
 
 public:
-    Control(std::string name, SimComponent* parent) : Component(name, parent) {
+    Control(const std::string& name, SimComponent* parent) : Component(name, parent) {
         comp_ctrl << [=] { return do_comp_ctrl(opcode.uValue()); };
         do_branch << [=] { return do_branch_ctrl(opcode.uValue()); };
         do_jump << [=] { return do_jump_ctrl(opcode.uValue()); };

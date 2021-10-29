@@ -14,7 +14,7 @@ template <unsigned XLEN, bool readBypass>
 class RegisterFile : public Component {
 public:
     SetGraphicsType(ClockedComponent);
-    RegisterFile(std::string name, SimComponent* parent) : Component(name, parent) {
+    RegisterFile(const std::string& name, SimComponent* parent) : Component(name, parent) {
         // Writes
 
         // Disable writes to register 0

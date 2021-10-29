@@ -14,7 +14,7 @@ using namespace Ripes;
 
 class ForwardingUnit : public Component {
 public:
-    ForwardingUnit(std::string name, SimComponent* parent) : Component(name, parent) {
+    ForwardingUnit(const std::string& name, SimComponent* parent) : Component(name, parent) {
         alu_reg1_forwarding_ctrl << [=] {
             const auto idx = id_reg1_idx.uValue();
             if (idx == 0) {

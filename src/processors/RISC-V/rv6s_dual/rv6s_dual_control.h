@@ -30,7 +30,7 @@ class Control_DUAL : public Component {
     }
 
 public:
-    Control_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
+    Control_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
         comp_ctrl << [=] { return exec_valid.uValue() ? Control::do_comp_ctrl(opcode_exec.uValue()) : +CompOp::NOP; };
         do_branch << [=] { return exec_valid.uValue() ? Control::do_branch_ctrl(opcode_exec.uValue()) : 0; };
         do_jump << [=] { return exec_valid.uValue() ? Control::do_jump_ctrl(opcode_exec.uValue()) : 0; };
