@@ -13,6 +13,7 @@ template <unsigned XLEN>
 class MEMWB : public Component {
 public:
     MEMWB(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Memory/write-back stage separating register");
         CONNECT_REGISTERED_INPUT(pc);
         CONNECT_REGISTERED_INPUT(pc4);
         CONNECT_REGISTERED_INPUT(alures);

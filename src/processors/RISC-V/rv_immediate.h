@@ -14,6 +14,7 @@ class Immediate : public Component {
 
 public:
     Immediate(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Immediate value decoder");
         imm << [=] {
             Switch(opcode, RVInstr) {
                 case RVInstr::LUI:

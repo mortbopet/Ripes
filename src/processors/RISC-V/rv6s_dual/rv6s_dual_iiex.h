@@ -11,6 +11,7 @@ template <unsigned XLEN>
 class RV5S_IIEX_DUAL : public RV5S_IDEX<XLEN> {
 public:
     RV5S_IIEX_DUAL(const std::string& name, SimComponent* parent) : RV5S_IDEX<XLEN>(name, parent) {
+        SimBase::setDescription("Instruction issue/execute stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(r1_data, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(r2_data, this->clear, this->enable);
 

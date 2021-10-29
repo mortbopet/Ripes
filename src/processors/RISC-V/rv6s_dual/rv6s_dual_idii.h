@@ -16,6 +16,7 @@ template <unsigned XLEN>
 class RV5S_IDII_DUAL : public Component {
 public:
     RV5S_IDII_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Instruction decode/instruction issue stage separating register");
         CONNECT_REGISTERED_CLEN_INPUT(pc_data, clear, enable);
         CONNECT_REGISTERED_CLEN_INPUT(pc_exec, clear, enable);
 
