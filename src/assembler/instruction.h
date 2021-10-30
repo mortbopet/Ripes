@@ -428,7 +428,7 @@ public:
 
     void addExtraMatchCond(const std::function<bool(Instr_T)>& f) { m_extraMatchConditions.push_back(f); }
     bool hasExtraMatchConds() const { return !m_extraMatchConditions.empty(); }
-    bool matchesWithExtras(Instr_T instr) {
+    bool matchesWithExtras(Instr_T instr) const {
         return llvm::all_of(m_extraMatchConditions, [&](const auto& f) { return f(instr); });
     }
 

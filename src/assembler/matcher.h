@@ -11,11 +11,22 @@ namespace Assembler {
 
 template <typename Reg_T>
 class Matcher {
-    struct MatchNode {
+    class MatchNode {
+    private:
+        /// If set, this match node will base its matching on the extra conditions for a function. Else, matches on the
+        /// OpPart assoacited with this node.
+        bool m_matchOnExtraMatchConds = false;
+
+    public:
         MatchNode(OpPart _matcher) : matcher(_matcher) {}
         OpPart matcher;
         std::vector<MatchNode> children;
         std::shared_ptr<Instruction<Reg_T>> instruction;
+        void matchOnExtraMatchConds() { m_matchOnExtraMatchConds = true; }
+
+        bool matches(const Instr_T& instr) const {
+            return m_matchOnExtraMatchConds ? instruction->matchesWithExtras(instr) : matcher.matches(instr);
+        }
 
         void print(unsigned depth = 0) const {
             if (depth == 0) {
@@ -68,7 +79,7 @@ public:
 private:
     const Instruction<Reg_T>* matchInstructionRec(const Instr_T& instruction, const MatchNode& node,
                                                   bool isRoot) const {
-        if (isRoot || node.matcher.matches(instruction)) {
+        if (isRoot || node.matches(instruction)) {
             if (node.children.size() > 0) {
                 for (const auto& child : node.children) {
                     if (auto matchedInstr = matchInstructionRec(instruction, child, false); matchedInstr != nullptr) {
@@ -116,6 +127,12 @@ private:
                 if (fieldDepth == nOpParts || instr->hasExtraMatchConds()) {
                     // End of opParts, uniquely identifiable instruction
                     MatchNode child(iter.first);
+                    // At this point, the opPart at this level for the instruction is invalid, and we must match on
+                    // extra conditions.
+                    if (fieldDepth > nOpParts) {
+                        assert(instr->hasExtraMatchConds());
+                        child.matchOnExtraMatchConds();
+                    }
                     child.instruction = instr;
                     node.children.push_back(child);
                     isUniqueIdentifiable = true;
