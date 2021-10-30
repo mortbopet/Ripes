@@ -32,7 +32,9 @@ struct BitRange {
     Instr_T decode(Instr_T instruction) const { return (instruction >> start) & mask; }
 
     bool operator==(const BitRange& other) const { return this->start == other.start && this->stop == other.stop; }
-    bool operator<(const BitRange& other) const { return this->start < other.start; }
+    bool operator<(const BitRange& other) const {
+        return (this->start == other.start) ? this->stop < other.stop : this->start < other.start;
+    }
 };
 
 /** @brief OpPart
@@ -46,7 +48,11 @@ struct OpPart {
     const BitRange range;
 
     bool operator==(const OpPart& other) const { return this->value == other.value && this->range == other.range; }
-    bool operator<(const OpPart& other) const { return this->range < other.range || this->value < other.value; }
+    bool operator<(const OpPart& other) const {
+        if (this->range == other.range)
+            return this->value < other.value;
+        return this->range < other.range;
+    }
 };
 
 template <typename Reg_T>
