@@ -186,7 +186,7 @@ struct RV_C {
             {std::make_shared<_Imm>(1, 10, _Imm::Repr::Signed,
                                     std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4), ImmPart(6, 5, 5),
                                                 ImmPart(5, 2, 2), ImmPart(4, 6, 6)})}));
-        cLuiInstr->addExtraMatchCond([](Instr_T instr) {
+        cAddi16spInstr->addExtraMatchCond([](Instr_T instr) {
             unsigned rd = (instr >> 7) & 0b11111;
             return rd == 2;
         });
