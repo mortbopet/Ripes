@@ -60,6 +60,7 @@ QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier strin
 
             // Stringified instruction
             auto disres = stringifier(buffer, addr);
+            assert(buffer.size() >= disres.bytesDisassembled);
 
             // Instruction word
             QString wordString;

@@ -15,7 +15,7 @@ struct OpDisassembleResult {
     /// Stringified representation of a disassembled machine word.
     QString repr;
     /// Number of bytes disassembled.
-    unsigned bytesDisassembled;
+    unsigned bytesDisassembled = 0;
     /// Optional error that occured during disassembly.
     std::optional<Error> err;
 };
