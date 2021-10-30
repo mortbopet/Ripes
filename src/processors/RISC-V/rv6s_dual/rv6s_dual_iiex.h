@@ -27,7 +27,10 @@ public:
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx_data, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(exec_valid, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(data_valid, this->clear, this->enable);
+        CONNECT_REGISTERED_CLEN_INPUT(instrsize, this->clear, this->enable);
     }
+
+    REGISTERED_CLEN_INPUT(instrsize, XLEN);
 
     REGISTERED_CLEN_INPUT(pc_data, XLEN);
 

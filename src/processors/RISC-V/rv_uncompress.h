@@ -13,7 +13,7 @@ public:
     void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
 
     Uncompress(std::string name, SimComponent* parent) : Component(name, parent) {
-        Pc_Inc << [=] { return (instr.uValue() & 0b11) == 0b11; };
+        Pc_Inc << [=] { return (((instr.uValue() & 0b11) == 0b11) || (!instr.uValue())); };
 
         // only support 32 bit instructions
         exp_instr << [=] {
@@ -33,15 +33,17 @@ public:
             switch (quadrant) {
                 case 0x00:  // quadrant
                     switch (func3) {
-                        case 0b000: {  // c.addi4spn
-                            const auto fields = RVInstrParser::getParser()->decodeCIW16Instr(instrValue);
-                            rd = fields[3] | 0x8;
-                            uimm = (((fields[2] & 0x3C) << 2) | ((fields[2] & 0xC0) >> 4) | ((fields[2] & 0x01) << 1) |
-                                    ((fields[2] & 0x02) >> 1))
-                                   << 2;
-                            // addi rd ′ , x2, nzuimm[9:2]
-                            new_instr =
-                                (uimm << 20) | (0b00010 << 15) | (0b000 << 12) | (rd << 7) | RVISA::Opcode::OPIMM;
+                        case 0b000: {          // c.addi4spn
+                            if (instrValue) {  // not illegal instruction
+                                const auto fields = RVInstrParser::getParser()->decodeCIW16Instr(instrValue);
+                                rd = fields[3] | 0x8;
+                                uimm = (((fields[2] & 0x3C) << 2) | ((fields[2] & 0xC0) >> 4) |
+                                        ((fields[2] & 0x01) << 1) | ((fields[2] & 0x02) >> 1))
+                                       << 2;
+                                // addi rd ′ , x2, nzuimm[9:2]
+                                new_instr =
+                                    (uimm << 20) | (0b00010 << 15) | (0b000 << 12) | (rd << 7) | RVISA::Opcode::OPIMM;
+                            }
                         } break;
                         // case 0b001: c.fld  RV32DC/RV64DC-only
                         case 0b010: {  // c.lw
@@ -370,8 +372,6 @@ public:
 
 private:
     std::shared_ptr<ISAInfoBase> m_isa;
-    VInt instr_last;
-    VInt instr_cache;
 };
 
 }  // namespace core
