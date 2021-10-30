@@ -24,15 +24,25 @@ class Matcher {
                 for (unsigned i = 0; i < depth; ++i) {
                     std::cout << "-";
                 }
-                QString matchField =
-                    QString::number(matcher.range.stop) + "[" +
-                    QStringLiteral("%1").arg(matcher.value, matcher.range.width(), 2, QLatin1Char('0')) + "]" +
-                    QString::number(matcher.range.start);
-                std::cout << matchField.toStdString() << " -> ";
+
+                if (!instruction || (instruction && depth <= instruction->getOpcode().opParts.size())) {
+                    QString matchField =
+                        QString::number(matcher.range.stop) + "[" +
+                        QStringLiteral("%1").arg(matcher.value, matcher.range.width(), 2, QLatin1Char('0')) + "]" +
+                        QString::number(matcher.range.start);
+                    std::cout << matchField.toStdString();
+                } else {
+                    // Extra match conditions must apply
+                    assert(instruction.get()->hasExtraMatchConds());
+                }
+                std::cout << " -> ";
             }
 
             if (instruction) {
-                std::cout << instruction.get()->name().toStdString() << std::endl;
+                std::cout << instruction.get()->name().toStdString();
+                if (instruction.get()->hasExtraMatchConds())
+                    std::cout << "*";
+                std::cout << std::endl;
             } else {
                 std::cout << std::endl;
                 for (const auto& child : children) {
@@ -72,10 +82,9 @@ private:
         return nullptr;
     }
 
-    MatchNode buildMatchTree(const std::vector<std::shared_ptr<Instruction<Reg_T>>>& instructions,
-                             const unsigned fieldDepth = 1, OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
+    MatchNode buildMatchTree(const InstrVec<Reg_T>& instructions, const unsigned fieldDepth = 1,
+                             OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
         std::map<OpPart, InstrVec<Reg_T>> instrsWithEqualOpPart;
-
         for (const auto& instr : instructions) {
             if (auto instrRef = instr.get()) {
                 const size_t nOpParts = instrRef->getOpcode().opParts.size();
@@ -100,12 +109,24 @@ private:
 
         MatchNode node(matcher);
         for (const auto& iter : instrsWithEqualOpPart) {
+            bool isUniqueIdentifiable = false;
             if (iter.second.size() == 1) {
-                // Uniquely identifiable instruction
-                MatchNode child(iter.first);
-                child.instruction = iter.second[0];
-                node.children.push_back(child);
-            } else {
+                auto& instr = iter.second[0];
+                const size_t nOpParts = instr->getOpcode().opParts.size();
+                if (fieldDepth == nOpParts || instr->hasExtraMatchConds()) {
+                    // End of opParts, uniquely identifiable instruction
+                    MatchNode child(iter.first);
+                    child.instruction = instr;
+                    node.children.push_back(child);
+                    isUniqueIdentifiable = true;
+                } else {
+                    // More opParts available; need to match on these as well. It might be that different instructions
+                    // alias across non-opcode fields such as immediates or registers. If the ISA is valid, matching on
+                    // all opcode parts should yield the correct instruction.
+                }
+            }
+
+            if (!isUniqueIdentifiable) {
                 // Match branch; recursively continue match tree
                 node.children.push_back(buildMatchTree(iter.second, fieldDepth + 1, iter.first));
             }
