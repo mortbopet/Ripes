@@ -18,7 +18,6 @@ test_2:
     
 test_3:
  c.addi4spn a0,1020
- c.nop
  lui t2,0x1
  addi t2,t2,1584 
  li gp,3
@@ -26,7 +25,6 @@ test_3:
     
 test_4:
  c.addi16sp 496
- c.nop
  lui t2,0x1
  addi t2,t2,1060 
  li gp,4
@@ -35,7 +33,6 @@ test_4:
     
 test_5:
  c.addi16sp -512
- c.nop
  lui t2,0x1
  addi t2,t2,548
  li gp,5
@@ -56,7 +53,6 @@ test_6:
 test_8:
  ori a0,zero,1
  c.addi a0,-16
- c.nop
  li t2,-15
  li gp,8
  bne a0,t2, fail 
@@ -64,7 +60,6 @@ test_8:
 test_9:
  ori a5,zero,1
  c.li a5,-16
- c.nop
  li t2,-16
  li gp,9
  bne a5,t2, fail
@@ -95,7 +90,6 @@ test_15:
  c.li s1,20
  c.li a0,6
  c.sub s1,a0
- c.nop
  li t2,14
  li gp,15
  bne s1,t2, fail
@@ -104,7 +98,6 @@ test_16:
  c.li s1,20
  c.li a0,6
  c.xor s1,a0
- c.nop
  li t2,18
  li gp,16
  bne s1,t2, fail
@@ -113,7 +106,6 @@ test_17:
  c.li s1,20
  c.li a0,6
  c.or s1,a0
- c.nop
  li t2,22
  li gp,17
  bne s1,t2, fail
@@ -122,7 +114,6 @@ test_18:
  c.li s1,20
  c.li a0,6
  c.and s1,a0
- c.nop
  li t2,4
  li gp,18
  bne s1,t2, fail
@@ -131,7 +122,6 @@ test_21:
  lui s0,0x1
  addi s0,s0,564 
  c.slli s0,0x4
- c.nop
  lui t2,0x12
  addi t2,t2,832 
  li gp,21
@@ -143,7 +133,6 @@ test_30:
  c.j 4
  c.j 4
  c.j fail
- c.nop
  li t2,0
  li gp,30
  bne ra,t2, fail
@@ -154,7 +143,6 @@ test_31:
  c.j 4
  c.j 4
  c.j fail
- c.nop
  li t2,0
  li gp,31
  bne zero,t2, fail
@@ -165,7 +153,6 @@ test_32:
  c.j 4
  c.j 4
  c.j fail
- c.nop
  li t2,0
  li gp,32
  bne zero,t2, fail
@@ -196,8 +183,6 @@ test_35:
  c.j 4
  c.j 4
  c.j fail
- c.nop
- nop
  li t2,0
  li gp,35
  bne ra,t2,fail
@@ -210,7 +195,6 @@ test_36:
  c.j 4
  c.j 4
  c.j fail
- c.nop
  sub ra,ra,t0
  li t2,-2
  li gp,36
@@ -224,7 +208,6 @@ test_37:
  c.j 4
  c.j 4
  c.j fail
- c.nop
  sub ra,ra,t0
  li t2,-2
  li gp,37

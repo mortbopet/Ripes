@@ -380,13 +380,25 @@ protected:
 
                 /// Check if we're now misaligned wrt. the size of the instruction. Instructions should always be
                 /// emitted on an aligned boundary wrt. their size.
-                unsigned alignmentDiff = addr_offset % assembledWith->size();
-                if (alignmentDiff != 0) {
-                    errors.push_back({line.sourceLine, "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
-                                                           "-bit boundary). This instruction must be aligned on a " +
-                                                           QString::number(assembledWith->size() * 8) +
-                                                           "-bit boundary."});
-                    break;
+                unsigned alignmentDiff;
+                if (m_isa->extensionEnabled("C")) {
+                    alignmentDiff = addr_offset % (assembledWith->size() / 2);
+                    if (alignmentDiff != 0) {
+                        errors.push_back(
+                            {line.sourceLine, "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
+                                                  "-bit boundary). This instruction must be aligned on a " +
+                                                  QString::number((assembledWith->size() / 2) * 8) + "-bit boundary."});
+                        break;
+                    }
+                } else {
+                    alignmentDiff = addr_offset % assembledWith->size();
+                    if (alignmentDiff != 0) {
+                        errors.push_back(
+                            {line.sourceLine, "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
+                                                  "-bit boundary). This instruction must be aligned on a " +
+                                                  QString::number(assembledWith->size() * 8) + "-bit boundary."});
+                        break;
+                    }
                 }
 
                 currentSection->data.append(
