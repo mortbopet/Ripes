@@ -265,7 +265,15 @@ QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
 AInt ProgramViewer::addressForBlock(QTextBlock block, bool& ok) const {
     ok = true;
     const static auto calcAddressFunc = [](int lineNumber) {
-        return lineNumber * ProcessorHandler::currentISA()->instrBytes() + ProcessorHandler::getTextStart();
+        auto m_program = ProcessorHandler::getProgram();
+        if (m_program) {
+            auto& disassembleRes = m_program->getDisassembled();
+            if (disassembleRes.numInstructions() < static_cast<unsigned>(lineNumber))
+                return 0;
+            if (auto addr = disassembleRes.indexToAddress(lineNumber); addr.has_value())
+                return static_cast<int>(addr.value());
+        }
+        return 0;
     };
 
     const int lineNumber = block.blockNumber();
