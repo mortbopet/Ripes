@@ -60,6 +60,13 @@ QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier strin
 
             // Stringified instruction
             auto disres = stringifier(buffer, addr);
+            if (disres.err.has_value()) {
+                // Error during disassembled; we'll just have to increment the address counter by the default
+                // instruction size of the ISA. std::min with buffer size in the edge case that we're erroring on a
+                // single instruction which is smaller than the default instruction width.
+                addr += std::min(static_cast<unsigned>(buffer.size()), instrBytes);
+            } else
+                addr += disres.bytesDisassembled;
             assert(buffer.size() >= disres.bytesDisassembled);
 
             // Instruction word
@@ -81,7 +88,6 @@ QString stringifyProgram(std::weak_ptr<const Program> program, Stringifier strin
             }
 
             out += disres.repr + "\n";
-            addr += disres.bytesDisassembled;
         }
         return out;
     }

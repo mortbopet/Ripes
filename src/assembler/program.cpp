@@ -82,7 +82,12 @@ const DisassembledProgram& Program::getDisassembled() const {
             // todo(mortbopet): shouldn't we do something about the possibility of the disassembling returning an error?
             const VInt realAddr = textSectionBaseAddr + addr;
             disassembled.set(line, realAddr, disRes.repr);
-            addr += disRes.bytesDisassembled;
+            if (disRes.err.has_value()) {
+                // Error during disassembled; we'll just have to increment the address counter by the default
+                // instruction size of the ISA.
+                addr += instrBytes;
+            } else
+                addr += disRes.bytesDisassembled;
             ++line;
         }
     }
