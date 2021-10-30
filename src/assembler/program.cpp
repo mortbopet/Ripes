@@ -68,15 +68,17 @@ const DisassembledProgram& Program::getDisassembled() const {
         return disassembled;
     }
     if (disassembled.empty()) {
+        auto& assembler = ProcessorHandler::getAssembler();
+        auto& memory = ProcessorHandler::getMemory();
+        auto& symbols = ProcessorHandler::getProgram()->symbols;
+
         // Initialize caching
         const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
         const VInt textSectionBaseAddr = textSection->address;
         unsigned line = 0;
-        for (AInt addr = 0; addr < (AInt)ProcessorHandler::getCurrentProgramSize();) {
+        for (AInt addr = 0; addr < static_cast<AInt>(ProcessorHandler::getCurrentProgramSize());) {
             const VInt disassembleAddr = addr + textSectionBaseAddr;
-            auto disRes = ProcessorHandler::getAssembler()->disassemble(
-                ProcessorHandler::getMemory().readMem(disassembleAddr, instrBytes),
-                ProcessorHandler::getProgram()->symbols, disassembleAddr);
+            auto disRes = assembler->disassemble(memory.readMem(disassembleAddr, instrBytes), symbols, disassembleAddr);
             // todo(mortbopet): shouldn't we do something about the possibility of the disassembling returning an error?
             const VInt realAddr = textSectionBaseAddr + addr;
             disassembled.set(line, realAddr, disRes.repr);
