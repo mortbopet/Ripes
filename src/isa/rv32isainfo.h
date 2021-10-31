@@ -37,12 +37,7 @@ public:
     }
     QString CCmabi() const override { return "ilp32"; }
 
-    unsigned instrByteAlignment() const {
-        if (extensionEnabled("C"))
-            return 2;
-        else
-            return 4;
-    };
+    unsigned instrByteAlignment() const { return extensionEnabled("C") ? 2 : 4; };
 };
 
 }  // namespace Ripes
