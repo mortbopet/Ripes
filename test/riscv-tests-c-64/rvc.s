@@ -239,6 +239,7 @@ test_35:
  c.j 4
  c.j fail
  c.nop
+ nop
  li t2,0
  li gp,35
  bne ra,t2,fail
