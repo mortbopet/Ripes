@@ -47,6 +47,7 @@ public:
     unsigned bytes() const { return bits() / CHAR_BIT; }            // Register width, in bytes
     virtual unsigned instrBits() const = 0;                         // Instruction width, in bits
     unsigned instrBytes() const { return instrBits() / CHAR_BIT; }  // Instruction width, in bytes
+    virtual unsigned instrByteAlignment() const { return 0; }       // Instruction Alignment, in bytes
     virtual int spReg() const { return -1; }                        // Stack pointer
     virtual int gpReg() const { return -1; }                        // Global pointer
     virtual int syscallReg() const { return -1; }                   // Syscall function register

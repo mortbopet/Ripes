@@ -18,7 +18,6 @@ test_2:
     
 test_3:
  c.addi4spn a0,1020
- c.nop
  lui t2,0x1
  addi t2,t2,1584 
  li gp,3
@@ -78,12 +77,12 @@ test_8:
  bne a0,t2, fail 
  
 test_9:
-  ori a5,zero,1
+ ori a5,zero,1
  c.li a5,-16
  c.nop
-  li t2,-16
+ li t2,-16
  li gp,9
-  bne a5,t2, fail
+ bne a5,t2, fail
 
 test_10:
  c.ld a0,a1,0 #c.ld a0, 0(a1)
@@ -198,7 +197,7 @@ test_31:
  c.j 4
  c.j fail
  c.nop
-  li t2,0
+ li t2,0
  li gp,31
  bne zero,t2, fail
 
@@ -253,8 +252,8 @@ test_36:
  c.j 4
  c.j 4
  c.j fail
- c.nop
  sub ra,ra,t0
+ c.nop
  li t2,-2
  li gp,36
  bne ra,t2,fail

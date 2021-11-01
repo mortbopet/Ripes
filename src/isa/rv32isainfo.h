@@ -36,6 +36,8 @@ public:
         return march;
     }
     QString CCmabi() const override { return "ilp32"; }
+
+    unsigned instrByteAlignment() const override { return extensionEnabled("C") ? 2 : 4; };
 };
 
 }  // namespace Ripes
