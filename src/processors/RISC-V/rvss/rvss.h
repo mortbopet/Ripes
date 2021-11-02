@@ -219,9 +219,8 @@ public:
         m_finished = false;
     }
 
-    static const ISAInfoBase* supportsISA() {
-        static auto s_isa = ISAInfo<XLenToRVISA<XLEN>()>(QStringList{"M", "C"});
-        return &s_isa;
+    static ProcessorISAInfo supportsISA() {
+        return ProcessorISAInfo{std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()), {"M", "C"}};
     }
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); }
     const std::set<RegisterFileType> registerFiles() const override {

@@ -3,6 +3,7 @@
 #include <QMap>
 #include <QSet>
 #include <QString>
+#include <memory>
 #include <set>
 
 #include "elfio/elf_types.hpp"
@@ -89,6 +90,12 @@ public:
 
 protected:
     ISAInfoBase() {}
+};
+
+// Shallow ISA info used to drive ISA construction and UI representation.
+struct ProcessorISAInfo {
+    std::shared_ptr<ISAInfoBase> isa;
+    QStringList supportedExtensions;
 };
 
 template <ISA isa>

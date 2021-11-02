@@ -57,7 +57,7 @@ public:
     QString description;
     RegisterInitialization defaultRegisterVals;
     std::vector<Layout> layouts;
-    virtual const ISAInfoBase* isa() const = 0;
+    virtual ProcessorISAInfo isaInfo() const = 0;
     virtual std::unique_ptr<RipesProcessor> construct(const QStringList& extensions) = 0;
 };
 
@@ -67,7 +67,7 @@ public:
     using ProcInfoBase::ProcInfoBase;
     std::unique_ptr<RipesProcessor> construct(const QStringList& extensions) { return std::make_unique<T>(extensions); }
     // At this point we force the processor type T to implement a static function identifying its supported ISA.
-    const ISAInfoBase* isa() const { return T::supportsISA(); }
+    ProcessorISAInfo isaInfo() const { return T::supportsISA(); }
 };
 
 class ProcessorRegistry {

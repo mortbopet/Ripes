@@ -22,12 +22,12 @@ void RegisterSelectionComboBox::showPopup() {
     if (count())
         clear();
 
-    const auto& isa = ProcessorRegistry::getAvailableProcessors().at(m_parent->m_currentID)->isa();
+    const auto& procisa = ProcessorRegistry::getAvailableProcessors().at(m_parent->m_currentID)->isaInfo();
     const auto& initializations = m_parent->m_initializations.at(m_parent->m_currentID);
 
     std::set<unsigned> regOptions;
-    for (unsigned i = 0; i < isa->regCnt(); ++i) {
-        if (!isa->regIsReadOnly(i)) {
+    for (unsigned i = 0; i < procisa.isa->regCnt(); ++i) {
+        if (!procisa.isa->regIsReadOnly(i)) {
             regOptions.insert(i);
         }
     }
@@ -37,7 +37,7 @@ void RegisterSelectionComboBox::showPopup() {
     }
 
     for (const auto& i : regOptions) {
-        addItem(isa->regName(i) + " (" + isa->regAlias(i) + ")", i);
+        addItem(procisa.isa->regName(i) + " (" + procisa.isa->regAlias(i) + ")", i);
     }
     QComboBox::showPopup();
 }
@@ -91,14 +91,14 @@ void RegisterInitializationWidget::updateAddButtonState() {
 }
 
 int RegisterInitializationWidget::getNonInitializedRegIdx() {
-    const auto& currentISA = ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isa();
+    const auto& currentISA = ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
     const auto& currentInitForProc = m_initializations.at(m_currentID);
     unsigned id = 0;
-    while (currentInitForProc.count(id) || currentISA->regIsReadOnly(id)) {
+    while (currentInitForProc.count(id) || currentISA.isa->regIsReadOnly(id)) {
         id++;
     }
 
-    return id < currentISA->regCnt() ? id : -1;
+    return id < currentISA.isa->regCnt() ? id : -1;
 }
 
 RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addRegisterInitialization(unsigned regIdx) {
@@ -109,7 +109,7 @@ RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addR
     }
 
     const auto& regLayout = m_ui->regInitLayout;
-    const auto& isa = ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isa();
+    const auto& procisa = ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
 
     auto& w = m_currentRegInitWidgets.emplace_back(std::make_unique<RegInitWidgets>());
     auto* w_ptr = w.get();
@@ -118,7 +118,7 @@ RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addR
     w->value = new QLineEdit(this);
     w->remove = new QPushButton(this);
 
-    w->name->addItem(isa->regName(regIdx) + " (" + isa->regAlias(regIdx) + ")", regIdx);
+    w->name->addItem(procisa.isa->regName(regIdx) + " (" + procisa.isa->regAlias(regIdx) + ")", regIdx);
 
     connect(w->name, &RegisterSelectionComboBox::regIndexChanged, [this, w_ptr](int oldIdx, int newIdx) {
         m_initializations.at(m_currentID).erase(oldIdx);
