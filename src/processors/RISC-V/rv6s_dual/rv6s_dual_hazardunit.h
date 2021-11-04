@@ -10,7 +10,7 @@ using namespace Ripes;
 
 class HazardUnit_DUAL : public Component {
 public:
-    HazardUnit_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
+    HazardUnit_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
         hazardFEEnable << [=] { return !hasHazard(); };
         hazardIDEXEnable << [=] { return !hasEcallHazard(); };
         hazardEXMEMClear << [=] { return hasEcallHazard(); };

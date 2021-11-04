@@ -12,7 +12,7 @@ namespace Ripes {
 
 class RipesVSRTLProcessor : public RipesProcessor, public vsrtl::core::Design {
 public:
-    RipesVSRTLProcessor(std::string name) : Design(name) {
+    RipesVSRTLProcessor(const std::string& name) : Design(name) {
         // VSRTL provides reversible simulation
         m_features = {Features::isReversible | Features::hasDCacheInterface | Features::hasICacheInterface};
 

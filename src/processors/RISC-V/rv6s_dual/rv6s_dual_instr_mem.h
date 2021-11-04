@@ -12,7 +12,7 @@ namespace core {
 template <unsigned int addrWidth, unsigned int dataWidth, bool byteIndexed = true>
 class ROM_DUAL : public ROM<addrWidth, dataWidth, byteIndexed> {
 public:
-    ROM_DUAL(std::string name, SimComponent* parent) : ROM<addrWidth, dataWidth, byteIndexed>(name, parent) {
+    ROM_DUAL(const std::string& name, SimComponent* parent) : ROM<addrWidth, dataWidth, byteIndexed>(name, parent) {
         data_out2 << [=] {
             auto _addr = this->addr.uValue() + 4;
             auto val =

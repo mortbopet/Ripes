@@ -12,7 +12,7 @@ class Decode : public Component {
 public:
     void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
 
-    Decode(std::string name, SimComponent* parent) : Component(name, parent) {
+    Decode(const std::string& name, SimComponent* parent) : Component(name, parent) {
         opcode << [=] {
             const auto instrValue = instr.uValue();
 

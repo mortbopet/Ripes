@@ -20,7 +20,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_IDEX : public IDEX<XLEN> {
 public:
-    RV5S_IDEX(std::string name, SimComponent* parent) : IDEX<XLEN>(name, parent) {
+    RV5S_IDEX(const std::string& name, SimComponent* parent) : IDEX<XLEN>(name, parent) {
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg1_idx, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(rd_reg2_idx, this->clear, this->enable);
         CONNECT_REGISTERED_CLEN_INPUT(opcode, this->clear, this->enable);

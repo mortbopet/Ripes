@@ -18,7 +18,7 @@ template <unsigned XLEN>
 class ALU : public Component {
 public:
     SetGraphicsType(ALU);
-    ALU(std::string name, SimComponent* parent) : Component(name, parent) {
+    ALU(const std::string& name, SimComponent* parent) : Component(name, parent) {
         res << [=] {
             switch (ctrl.uValue()) {
                 case ALUOp::ADD:

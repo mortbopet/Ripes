@@ -15,7 +15,7 @@ template <unsigned XLEN, bool readBypass>
 class RegisterFile_DUAL : public Component {
 public:
     SetGraphicsType(ClockedComponent);
-    RegisterFile_DUAL(std::string name, SimComponent* parent) : Component(name, parent) {
+    RegisterFile_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
         // Way 1
         r1_1_addr >> rf_1->r1_addr;
         r2_1_addr >> rf_1->r2_addr;

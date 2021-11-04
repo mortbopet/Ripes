@@ -10,7 +10,7 @@ using namespace Ripes;
 
 class HazardUnit_NO_FW : public Component {
 public:
-    HazardUnit_NO_FW(std::string name, SimComponent* parent) : Component(name, parent) {
+    HazardUnit_NO_FW(const std::string& name, SimComponent* parent) : Component(name, parent) {
         hazardFEEnable << [=] { return !hasHazard(); };
         hazardIDEXEnable << [=] { return !hasEcallHazard(); };
         hazardEXMEMClear << [=] { return hasEcallHazard(); };

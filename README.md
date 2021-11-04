@@ -62,11 +62,3 @@ In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen.
 	howpublished = "\url{https://github.com/mortbopet/Ripes}"
 }
 ```
-
-
-
-Icons kindly provided by Flaticon authors: [Smashicons](https://www.flaticon.com/authors/smashicons), [Freepik](https://www.flaticon.com/authors/freepik), [Vectors Market](https://www.flaticon.com/authors/vectors-market) & [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha).
-
-<a href="https://www.qt.io/">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/QtIcon.png" width="60" height="60" />
-</a>
