@@ -29,6 +29,7 @@ public:
     }
 
     UncompressDual(std::string name, SimComponent* parent) : Component(name, parent) {
+        setDescription("Uncompresses instructions from the 'C' extension into their 32-bit representation.");
         instr1 >> shiftr16->instr1;
         instr2 >> shiftr16->instr2;
         shiftr16->instr16 >> instr_split->get(PcInc::INC2);
