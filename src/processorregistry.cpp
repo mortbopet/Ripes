@@ -102,5 +102,9 @@ ProcessorRegistry::ProcessorRegistry() {
         "A 6-stage dual-issue in-order processor. Each way may execute arithmetic instructions, whereas way 1 "
         "is reserved for controlflow and ecall instructions, and way 2 for memory accessing instructions.",
         layouts, defRegVals));
+
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
+    addProcessor(ProcInfo<PicoRV32>(ProcessorID::PICORV32, "PicoRV32", "PicoRV32", {}, defRegVals));
+#endif
 }
 }  // namespace Ripes
