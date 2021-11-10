@@ -142,7 +142,7 @@ void IOExternalBus::connectButtonTriggered() {
                 // qWarning() << desc.object().value(QString("name")).toString ();
                 // qWarning() << desc.object().value(QString("description")).toString ();
                 // qWarning() << desc.object().value(QString("base address")).toInt ();
-                const int addrw = desc.object().value(QString("address width")).toInt();
+                const unsigned int addrw = desc.object().value(QString("address width")).toInt();
                 // qWarning() << addrw;
                 // qWarning() << desc.object().value(QString("symbols")).toString ();
 
@@ -152,7 +152,8 @@ void IOExternalBus::connectButtonTriggered() {
 
                 for (QJsonObject::iterator i = osymbols.begin(); i != osymbols.end(); i++) {
                     qWarning() << i.key() << "   " << i.value().toInt();
-                    m_regDescs.push_back(RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, i.value().toInt(), true});
+                    m_regDescs.push_back(
+                        RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, static_cast<AInt>(i.value().toInt()), true});
                 }
 
                 m_ui->connectButton->setText("Disconnect");
