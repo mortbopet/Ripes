@@ -236,18 +236,28 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
 }
 
 #ifdef WIN
+
 static WORD wVersionRequested = 2;
 static WSADATA wsaData;
 
-__attribute__((constructor)) static void initialize_socket(void) {
+static void initialize_socket(void);
+
+struct initialize_t_ {
+    finitialize_t_(void) { initialize_socket(); }
+};
+
+static initialize_t_ initialize_;
+
+static void initialize_socket(void) {
     WSAStartup(wVersionRequested, &wsaData);
     if (wsaData.wVersion != wVersionRequested) {
         fprintf(stderr, "\n Wrong version\n");
         return;
     }
+    atexit(finalize_socket);
 }
 
-__attribute__((destructor)) static void finalize_socket(void) {
+static void finalize_socket(void) {
     WSACleanup();
 }
 #endif
