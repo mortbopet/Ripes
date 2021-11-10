@@ -32,12 +32,20 @@ public:
     ~XTcpSocket(){};
 
     void close() {
+#ifdef WIN
+        closesocket(sockfd);
+#else
         ::close(sockfd);
+#endif
         sockfd = -1;
     }
 
     void abort() {
+#ifdef WIN
+        closesocket(sockfd);
+#else
         ::close(sockfd);
+#endif
         sockfd = -1;
     }
 
