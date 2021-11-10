@@ -237,9 +237,6 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
 
 #ifdef WIN
 
-static WORD wVersionRequested = 2;
-static WSADATA wsaData;
-
 static void initialize_socket(void);
 static void finalize_socket(void);
 
@@ -250,6 +247,9 @@ struct initialize_t_ {
 static initialize_t_ initialize_;
 
 static void initialize_socket(void) {
+    static WORD wVersionRequested = 2;
+    static WSADATA wsaData;
+
     WSAStartup(wVersionRequested, &wsaData);
     if (wsaData.wVersion != wVersionRequested) {
         fprintf(stderr, "\n Wrong version\n");
