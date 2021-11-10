@@ -13,6 +13,7 @@ WSADATA wsaData;
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <unistd.h>
 #endif
 
 // system headers independent
@@ -21,7 +22,6 @@ WSADATA wsaData;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 typedef struct sockaddr sockaddr;
 
