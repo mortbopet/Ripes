@@ -25,77 +25,75 @@
 
 typedef struct sockaddr sockaddr;
 
-    void XTcpSocket::close() {
+void XTcpSocket::close() {
 #ifdef _MSC_VER
-        closesocket(sockfd);
+    closesocket(sockfd);
 #else
-        ::close(sockfd);
+    ::close(sockfd);
 #endif
-        sockfd = -1;
-    }
+    sockfd = -1;
+}
 
-    void XTcpSocket::abort() {
+void XTcpSocket::abort() {
 #ifdef _MSC_VER
-        closesocket(sockfd);
+    closesocket(sockfd);
 #else
-        ::close(sockfd);
+    ::close(sockfd);
 #endif
-        sockfd = -1;
+    sockfd = -1;
+}
+
+int XTcpSocket::write(const char* buff, const int size) {
+    int ret;
+    // printf("writing %i\n",size);
+    if ((ret = send(sockfd, buff, size, MSG_NOSIGNAL)) != size) {
+#ifndef _MSC_VER
+        printf("send error : %s \n", strerror(errno));
+#endif
+        return -1;
+    }
+    return ret;
+}
+
+int XTcpSocket::read(char* buff, int size) {
+    int ret;
+    // printf("reading %i ... ",size);
+    // fflush(stdout);
+    if ((ret = recv(sockfd, buff, size, MSG_WAITALL)) != size) {
+#ifndef _MSC_VER
+        printf("recv error : %s \n", strerror(errno));
+#endif
+        return -1;
+    }
+    // printf("read %i of %i\n",ret, size);
+    return ret;
+}
+
+int XTcpSocket::connectToHost(const char* host, int port) {
+    struct sockaddr_in serv;
+
+    if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+#ifndef _MSC_VER
+        printf("socket error : %s \n", strerror(errno));
+#endif
+        return 0;
     }
 
-    int XTcpSocket::write(const char* buff, const int size) {
-        int ret;
-        // printf("writing %i\n",size);
-        if ((ret = send(sockfd, buff, size, MSG_NOSIGNAL)) != size) {
+    memset(&serv, 0, sizeof(serv));
+    serv.sin_family = AF_INET;
+    serv.sin_addr.s_addr = inet_addr(host);
+    serv.sin_port = htons(port);
+
+    if (connect(sockfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
 #ifndef _MSC_VER
-            printf("send error : %s \n", strerror(errno));
+        printf("connect error : %s \n", strerror(errno));
 #endif
-            return -1;
-        }
-        return ret;
+        close();
+        return 0;
     }
 
-    int XTcpSocket::read(char* buff, int size) {
-        int ret;
-        // printf("reading %i ... ",size);
-        // fflush(stdout);
-        if ((ret = recv(sockfd, buff, size, MSG_WAITALL)) != size) {
-#ifndef _MSC_VER
-            printf("recv error : %s \n", strerror(errno));
-#endif
-            return -1;
-        }
-        // printf("read %i of %i\n",ret, size);
-        return ret;
-    }
-
-
-
-    int XTcpSocket::connectToHost(const char* host, int port) {
-        struct sockaddr_in serv;
-
-        if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-#ifndef _MSC_VER
-            printf("socket error : %s \n", strerror(errno));
-#endif
-            return 0;
-        }
-
-        memset(&serv, 0, sizeof(serv));
-        serv.sin_family = AF_INET;
-        serv.sin_addr.s_addr = inet_addr(host);
-        serv.sin_port = htons(port);
-
-        if (connect(sockfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
-#ifndef _MSC_VER
-            printf("connect error : %s \n", strerror(errno));
-#endif
-            close();
-            return 0;
-        }
-
-        return 1;
-    }
+    return 1;
+}
 
 #ifdef _MSC_VER
 

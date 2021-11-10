@@ -243,6 +243,4 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
     return ret;
 }
 
-
-
 }  // namespace Ripes
