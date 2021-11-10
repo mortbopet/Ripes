@@ -3,8 +3,6 @@
 #ifdef _MSC_VER
 #include <winsock2.h>
 #include <ws2tcpip.h>
-WORD wVersionRequested = 2;
-WSADATA wsaData;
 #define SHUT_RDWR SD_BOTH
 #define MSG_NOSIGNAL 0
 #else

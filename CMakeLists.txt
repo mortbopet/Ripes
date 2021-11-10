@@ -129,9 +129,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 endif()
 
 target_link_libraries(${APP_NAME} ${RIPES_LIB})
-#if(MSVC)
-#    target_link_libraries(${APP_NAME} ws2_32)
-#endif()
+if(MSVC)
+    target_link_libraries(${APP_NAME} ws2_32)
+endif()
 
 
 if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
