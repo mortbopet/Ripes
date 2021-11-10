@@ -241,6 +241,7 @@ static WORD wVersionRequested = 2;
 static WSADATA wsaData;
 
 static void initialize_socket(void);
+static void finalize_socket(void);
 
 struct initialize_t_ {
     finitialize_t_(void) { initialize_socket(); }
