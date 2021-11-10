@@ -16,7 +16,6 @@ WSADATA wsaData;
 #endif
 
 // system headers independent
-#include <bits/socket.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
