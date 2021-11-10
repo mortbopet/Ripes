@@ -31,6 +31,7 @@ endif()
 
 if(MSVC)
     add_definitions(/bigobj) # Allow big object
+    find_library(WS2_32_LIBRARY ws2_32)
     add_definitions(-DWIN)
     target_link_libraries(${APP_NAME} ws2_32)
 elseif(MINGW)
