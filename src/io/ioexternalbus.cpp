@@ -244,7 +244,7 @@ static void initialize_socket(void);
 static void finalize_socket(void);
 
 struct initialize_t_ {
-    finitialize_t_(void) { initialize_socket(); }
+    void finitialize_t_(void) { initialize_socket(); }
 };
 
 static initialize_t_ initialize_;
