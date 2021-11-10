@@ -1,6 +1,6 @@
 // system headers dependent
 
-#ifdef WIN
+#ifdef _MSC_VER
 #include <winsock2.h>
 #include <ws2tcpip.h>
 WORD wVersionRequested = 2;
@@ -32,7 +32,7 @@ public:
     ~XTcpSocket(){};
 
     void close() {
-#ifdef WIN
+#ifdef _MSC_VER
         closesocket(sockfd);
 #else
         ::close(sockfd);
@@ -41,7 +41,7 @@ public:
     }
 
     void abort() {
-#ifdef WIN
+#ifdef _MSC_VER
         closesocket(sockfd);
 #else
         ::close(sockfd);
@@ -53,7 +53,7 @@ public:
         int ret;
         // printf("writing %i\n",size);
         if ((ret = send(sockfd, buff, size, MSG_NOSIGNAL)) != size) {
-#ifndef WIN
+#ifndef _MSC_VER
             printf("send error : %s \n", strerror(errno));
 #endif
             return -1;
@@ -66,7 +66,7 @@ public:
         // printf("reading %i ... ",size);
         // fflush(stdout);
         if ((ret = recv(sockfd, buff, size, MSG_WAITALL)) != size) {
-#ifndef WIN
+#ifndef _MSC_VER
             printf("recv error : %s \n", strerror(errno));
 #endif
             return -1;
@@ -81,7 +81,7 @@ public:
         struct sockaddr_in serv;
 
         if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-#ifndef WIN
+#ifndef _MSC_VER
             printf("socket error : %s \n", strerror(errno));
 #endif
             return 0;
@@ -93,7 +93,7 @@ public:
         serv.sin_port = htons(port);
 
         if (connect(sockfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
-#ifndef WIN
+#ifndef _MSC_VER
             printf("connect error : %s \n", strerror(errno));
 #endif
             close();

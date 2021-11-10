@@ -235,7 +235,7 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
     return ret;
 }
 
-#ifdef WIN
+#ifdef _MSC_VER
 
 static void initialize_socket(void);
 static void finalize_socket(void);
