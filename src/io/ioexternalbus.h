@@ -4,9 +4,22 @@
 #include <QVariant>
 #include <QWidget>
 
+#include "tcp.h"
+
 #include "iobase.h"
 
 namespace Ripes {
+// Vbus ==================================
+#include <netinet/in.h>
+#include <stdint.h>
+
+typedef struct {
+    uint32_t msg_type;
+    uint32_t payload_size;
+} cmd_header_t;
+
+enum { VB_PINFO = 1, VB_PWRITE, VB_PREAD, VB_PSTATUS, VB_DMAWR, VB_DMARD, VB_LAST };
+//=========================================
 
 namespace Ui {
 class IOExternalBus;
@@ -39,11 +52,24 @@ public:
 protected:
     virtual void parameterChanged(unsigned) override;
 
+private slots:
+    void connectButtonTriggered();
+    // void sktConnected();
+    // void sktRead();
+
 private:
+    uint32_t ByteSize;
+    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const char* payload = nullptr);
+    int32_t recv_cmd(cmd_header_t* cmd_header);
+    int32_t recv_payload(char* buff, const uint32_t payload_size);
+
     void updateAddress();
     Ui::IOExternalBus* m_ui = nullptr;
 
     std::vector<RegDesc> m_regDescs;
     std::vector<IOSymbol> m_extraSymbols;
+
+    XTcpSocket* tcpSocket = nullptr;
+    unsigned char skt_use;
 };
 }  // namespace Ripes

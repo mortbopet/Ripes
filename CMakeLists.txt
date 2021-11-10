@@ -129,6 +129,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 endif()
 
 
+if(${WIN32})
+add_definitions(-DWIN)
+target_link_libraries(TcpServer ws2_32)
+endif()
+
 if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
     set(LINUX TRUE)
 endif()

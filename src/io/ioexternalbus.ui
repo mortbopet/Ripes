@@ -26,7 +26,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="address"/>
+        <widget class="QLineEdit" name="address">
+         <property name="text">
+          <string>127.0.0.1</string>
+         </property>
+        </widget> 
        </item>
        <item>
         <widget class="QPushButton" name="connectButton">
@@ -56,7 +60,10 @@
        <item row="0" column="1">
         <widget class="QLineEdit" name="status">
          <property name="readOnly">
-          <bool>true</bool>
+          <bool>true</bool> 
+         </property>
+         <property name="text">
+          <string>Disconnected</string>
          </property>
         </widget>
        </item>
@@ -64,6 +71,9 @@
         <widget class="QLineEdit" name="server">
          <property name="readOnly">
           <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>-</string>
          </property>
         </widget>
        </item>
