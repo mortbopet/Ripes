@@ -6,7 +6,7 @@
 
 #include "iobase.h"
 
-#include "tcp.h"
+#include "XTcpSocket.h"
 
 namespace Ripes {
 // Vbus ==================================

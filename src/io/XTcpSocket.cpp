@@ -1,3 +1,5 @@
+#include "XTcpSocket.h"
+
 // system headers dependent
 
 #ifdef _MSC_VER
@@ -23,13 +25,7 @@
 
 typedef struct sockaddr sockaddr;
 
-class XTcpSocket {
-public:
-    XTcpSocket() { sockfd = -1; }
-
-    ~XTcpSocket(){};
-
-    void close() {
+    void XTcpSocket::close() {
 #ifdef _MSC_VER
         closesocket(sockfd);
 #else
@@ -38,7 +34,7 @@ public:
         sockfd = -1;
     }
 
-    void abort() {
+    void XTcpSocket::abort() {
 #ifdef _MSC_VER
         closesocket(sockfd);
 #else
@@ -47,7 +43,7 @@ public:
         sockfd = -1;
     }
 
-    int write(const char* buff, const int size) {
+    int XTcpSocket::write(const char* buff, const int size) {
         int ret;
         // printf("writing %i\n",size);
         if ((ret = send(sockfd, buff, size, MSG_NOSIGNAL)) != size) {
@@ -59,7 +55,7 @@ public:
         return ret;
     }
 
-    int read(char* buff, int size) {
+    int XTcpSocket::read(char* buff, int size) {
         int ret;
         // printf("reading %i ... ",size);
         // fflush(stdout);
@@ -73,9 +69,9 @@ public:
         return ret;
     }
 
-    int isOpen(void) { return (sockfd >= 0); }
 
-    int connectToHost(const char* host, int port) {
+
+    int XTcpSocket::connectToHost(const char* host, int port) {
         struct sockaddr_in serv;
 
         if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -101,8 +97,30 @@ public:
         return 1;
     }
 
-    int socketDescriptor(void) { return sockfd; }
+#ifdef _MSC_VER
 
-private:
-    int sockfd;
+static void initialize_socket(void);
+static void finalize_socket(void);
+
+struct initialize_t_ {
+    void finitialize_t_(void) { initialize_socket(); }
 };
+
+static initialize_t_ initialize_;
+
+static void initialize_socket(void) {
+    static WORD wVersionRequested = 2;
+    static WSADATA wsaData;
+
+    WSAStartup(wVersionRequested, &wsaData);
+    if (wsaData.wVersion != wVersionRequested) {
+        fprintf(stderr, "\n Wrong version\n");
+        return;
+    }
+    atexit(finalize_socket);
+}
+
+static void finalize_socket(void) {
+    WSACleanup();
+}
+#endif

@@ -9,6 +9,14 @@
 #include "STLExtras.h"
 #include "ioregistry.h"
 
+#ifdef _MSC_VER
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#endif
+
 #define dprintf \
     if (1) {    \
     } else      \
@@ -235,32 +243,6 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
     return ret;
 }
 
-#ifdef _MSC_VER
 
-static void initialize_socket(void);
-static void finalize_socket(void);
-
-struct initialize_t_ {
-    void finitialize_t_(void) { initialize_socket(); }
-};
-
-static initialize_t_ initialize_;
-
-static void initialize_socket(void) {
-    static WORD wVersionRequested = 2;
-    static WSADATA wsaData;
-
-    WSAStartup(wVersionRequested, &wsaData);
-    if (wsaData.wVersion != wVersionRequested) {
-        fprintf(stderr, "\n Wrong version\n");
-        return;
-    }
-    atexit(finalize_socket);
-}
-
-static void finalize_socket(void) {
-    WSACleanup();
-}
-#endif
 
 }  // namespace Ripes
