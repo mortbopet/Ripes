@@ -10,7 +10,6 @@
 
 namespace Ripes {
 // Vbus ==================================
-#include <netinet/in.h>
 #include <stdint.h>
 
 typedef struct {
