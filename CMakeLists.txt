@@ -33,7 +33,6 @@ if(MSVC)
     add_definitions(/bigobj) # Allow big object
     add_definitions(-DWIN)
     target_link_libraries(${APP_NAME} ws2_32)
-endif()
 elseif(MINGW)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbig-obj") # Allow big object
 endif()
