@@ -53,7 +53,9 @@ public:
         int ret;
         // printf("writing %i\n",size);
         if ((ret = send(sockfd, buff, size, MSG_NOSIGNAL)) != size) {
+#ifndef WIN
             printf("send error : %s \n", strerror(errno));
+#endif
             return -1;
         }
         return ret;
@@ -64,7 +66,9 @@ public:
         // printf("reading %i ... ",size);
         // fflush(stdout);
         if ((ret = recv(sockfd, buff, size, MSG_WAITALL)) != size) {
+#ifndef WIN
             printf("recv error : %s \n", strerror(errno));
+#endif
             return -1;
         }
         // printf("read %i of %i\n",ret, size);
@@ -77,7 +81,9 @@ public:
         struct sockaddr_in serv;
 
         if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+#ifndef WIN
             printf("socket error : %s \n", strerror(errno));
+#endif
             return 0;
         }
 
@@ -87,7 +93,9 @@ public:
         serv.sin_port = htons(port);
 
         if (connect(sockfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
+#ifndef WIN
             printf("connect error : %s \n", strerror(errno));
+#endif
             close();
             return 0;
         }

@@ -4,9 +4,9 @@
 #include <QVariant>
 #include <QWidget>
 
-#include "tcp.h"
-
 #include "iobase.h"
+
+#include "tcp.h"
 
 namespace Ripes {
 // Vbus ==================================
