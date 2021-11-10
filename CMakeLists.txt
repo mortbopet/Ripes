@@ -131,7 +131,7 @@ endif()
 
 if(${WIN32})
 add_definitions(-DWIN)
-target_link_libraries(TcpServer ws2_32)
+target_link_libraries(${APP_NAME} ws2_32)
 endif()
 
 if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
