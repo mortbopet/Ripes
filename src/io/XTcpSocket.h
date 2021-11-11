@@ -10,7 +10,6 @@ public:
     int isOpen(void) { return (sockfd >= 0); };
     int connectToHost(const char* host, int port);
     int socketDescriptor(void) { return sockfd; };
-
 private:
     int sockfd;
 };

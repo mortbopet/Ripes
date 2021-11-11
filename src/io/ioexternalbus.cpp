@@ -9,10 +9,7 @@
 #include "STLExtras.h"
 #include "ioregistry.h"
 
-#ifdef _MSC_VER
-//#include <winsock2.h>
-//#include <ws2tcpip.h>
-#else
+#ifndef _MSC_VER
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
@@ -163,6 +160,8 @@ void IOExternalBus::connectButtonTriggered() {
                     m_regDescs.push_back(
                         RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, static_cast<AInt>(i.value().toInt()), true});
                 }
+
+                ByteSize = addrw * osymbols.count();
 
                 m_ui->connectButton->setText("Disconnect");
                 m_ui->status->setText("Connected");
