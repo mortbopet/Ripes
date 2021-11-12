@@ -4,7 +4,6 @@
 #include <QPainter>
 #include <QPen>
 
-#include <QDebug>  //TODO remove
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
@@ -65,13 +64,13 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 
         cmd_header_t cmd_header;
 
-        if (recv_cmd(&cmd_header) < 0) {
+        if (recv_cmd(cmd_header) < 0) {
             skt_use = 0;
             return 0;
         }
 
         if (cmd_header.payload_size) {
-            uint32_t* payload = new uint32_t[2];
+            uint32_t payload[2];
             if (recv_payload((char*)payload, 8) < 0) {
                 skt_use = 0;
                 return 0;
@@ -81,7 +80,6 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
             }
             dprintf("Read addr[%x] = %x \n", payload[0], payload[1]);
             rvalue = payload[1];
-            delete[] payload;
         } else {
             skt_use = 0;
             printf("read error [%lx] (%x) msg=%i pyaload_size=%i !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", offset, size,
@@ -111,7 +109,7 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
 
         cmd_header_t cmd_header;
 
-        if (recv_cmd(&cmd_header) < 0) {
+        if (recv_cmd(cmd_header) < 0) {
             skt_use = 0;
             return;
         }
@@ -130,36 +128,28 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
 void IOExternalBus::connectButtonTriggered() {
     if (m_ui->connectButton->text().contains("Connect")) {
         tcpSocket->abort();
-        if (tcpSocket->connectToHost(m_ui->address->text().toStdString().c_str(), 7890)) {
+        if (tcpSocket->connectToHost(m_ui->address->text().toStdString().c_str(), m_ui->port->value())) {
             if (send_cmd(VB_PINFO) < 0)
                 return;
 
             cmd_header_t cmd_header;
 
-            if (recv_cmd(&cmd_header) < 0)
+            if (recv_cmd(cmd_header) < 0)
                 return;
 
             if (cmd_header.payload_size) {
-                char* buff = new char[cmd_header.payload_size + 1];
-                if (recv_payload(buff, cmd_header.payload_size) < 0)
+                QByteArray buff(cmd_header.payload_size + 1, 0);
+                if (recv_payload(buff.data(), cmd_header.payload_size) < 0)
                     return;
-                buff[cmd_header.payload_size] = 0;
-                printf("%s\n", buff);
 
-                QJsonDocument desc = QJsonDocument::fromJson(buff);
-                // qWarning() << desc.object().value(QString("name")).toString ();
-                // qWarning() << desc.object().value(QString("description")).toString ();
-                // qWarning() << desc.object().value(QString("base address")).toInt ();
+                dprintf("%s\n", buff.data());
+
+                QJsonDocument desc = QJsonDocument::fromJson(buff.data());
                 const unsigned int addrw = desc.object().value(QString("address width")).toInt();
-                // qWarning() << addrw;
-                // qWarning() << desc.object().value(QString("symbols")).toString ();
-
                 QJsonObject osymbols = desc.object().value(QString("symbols")).toObject();
 
                 m_regDescs.clear();
-
                 for (QJsonObject::iterator i = osymbols.begin(); i != osymbols.end(); i++) {
-                    qWarning() << i.key() << "   " << i.value().toInt();
                     m_regDescs.push_back(
                         RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, static_cast<AInt>(i.value().toInt()), true});
                 }
@@ -173,10 +163,10 @@ void IOExternalBus::connectButtonTriggered() {
                 emit regMapChanged();
                 emit sizeChanged();
 
-                delete[] buff;
+                // delete[] buff;
             }
         } else {
-            QMessageBox::information(this, tr("Ripes VBus"), tr("Connection error!"));
+            disconnectOnError();
         }
     } else {  // disconnect
         m_ui->connectButton->setText("Connect");
@@ -198,6 +188,7 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
     cmd_header.msg_type = htonl(cmd);
     cmd_header.payload_size = htonl(payload_size);
     if ((ret = tcpSocket->write(reinterpret_cast<const char*>(&cmd_header), sizeof(cmd_header))) < 0) {
+        disconnectOnError();
         return -1;
     }
 
@@ -205,6 +196,7 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
         int retp = 0;
 
         if ((retp = tcpSocket->write(payload, payload_size)) < 0) {
+            disconnectOnError();
             return -1;
         }
         ret += retp;
@@ -212,20 +204,21 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
     return ret;
 }
 
-int32_t IOExternalBus::recv_cmd(cmd_header_t* cmd_header) {
-    char* dp = reinterpret_cast<char*>(cmd_header);
+int32_t IOExternalBus::recv_cmd(cmd_header_t& cmd_header) {
+    char* dp = reinterpret_cast<char*>(&cmd_header);
     int ret = 0;
     int size = sizeof(cmd_header);
     do {
         if ((ret = tcpSocket->read(dp, size)) < 0) {
+            disconnectOnError();
             return -1;
         }
         size -= ret;
         dp += ret;
     } while (size);
 
-    cmd_header->msg_type = ntohl(cmd_header->msg_type);
-    cmd_header->payload_size = ntohl(cmd_header->payload_size);
+    cmd_header.msg_type = ntohl(cmd_header.msg_type);
+    cmd_header.payload_size = ntohl(cmd_header.payload_size);
 
     return ret;
 }
@@ -236,6 +229,7 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
     uint32_t size = payload_size;
     do {
         if ((ret = tcpSocket->read(dp, size)) < 0) {
+            disconnectOnError();
             return -1;
         }
         size -= ret;
@@ -243,6 +237,21 @@ int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
     } while (size && (ret > 0));
 
     return ret;
+}
+
+void IOExternalBus::disconnectOnError(void) {
+    QMessageBox::information(nullptr, tr("Ripes VBus"), tcpSocket->getLastErrorStr());
+    tcpSocket->close();
+
+    m_ui->connectButton->setText("Connect");
+    m_ui->status->setText("Disconnected");
+    m_ui->server->setText("-");
+    tcpSocket->abort();
+
+    m_regDescs.clear();
+
+    emit regMapChanged();
+    emit sizeChanged();
 }
 
 }  // namespace Ripes

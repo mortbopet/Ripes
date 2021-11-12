@@ -22,6 +22,38 @@
 #include <stdlib.h>
 #include <string.h>
 
+void XTcpSocket::FormatLastErrorStr(const char* func) {
+#ifdef _MSC_VER
+    int err;
+
+    char msgbuf[256];  // for a message up to 255 bytes.
+
+    msgbuf[0] = '\0';  // Microsoft doesn't guarantee this on man page.
+
+    err = WSAGetLastError();
+
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,  // flags
+                  NULL,                                                        // lpsource
+                  err,                                                         // message id
+                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),                   // languageid
+                  msgbuf,                                                      // output buffer
+                  sizeof(msgbuf),                                              // size of msgbuf, bytes
+                  NULL);                                                       // va_list of arguments
+
+    if (!*msgbuf)
+        snprintf(lastError, 255, "%s error : %d ", err);  // provide error # if no string available
+    else
+        snprintf(lastError, 255, "%s error : %s ", func, msgbuf);
+
+#else
+    snprintf(lastError, 255, "%s error : %s ", func, strerror(errno));
+#endif
+}
+
+const char* XTcpSocket::getLastErrorStr(void) {
+    return lastError;
+}
+
 void XTcpSocket::close() {
 #ifdef _MSC_VER
     closesocket(sockfd);
@@ -43,9 +75,7 @@ void XTcpSocket::abort() {
 int XTcpSocket::write(const char* buff, const int size) {
     int ret = send(sockfd, buff, size, MSG_NOSIGNAL);
     if (ret != size) {
-#ifndef _MSC_VER
-        printf("send error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("write");
         return -1;
     }
     return ret;
@@ -54,9 +84,7 @@ int XTcpSocket::write(const char* buff, const int size) {
 int XTcpSocket::read(char* buff, int size) {
     int ret = recv(sockfd, buff, size, MSG_WAITALL);
     if (ret != size) {
-#ifndef _MSC_VER
-        printf("recv error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("read");
         return -1;
     }
     return ret;
@@ -66,9 +94,7 @@ int XTcpSocket::connectToHost(const char* host, int port) {
     struct sockaddr_in serv;
 
     if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-#ifndef _MSC_VER
-        printf("socket error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("socket");
         return 0;
     }
 
@@ -78,9 +104,7 @@ int XTcpSocket::connectToHost(const char* host, int port) {
     serv.sin_port = htons(port);
 
     if (connect(sockfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {
-#ifndef _MSC_VER
-        printf("connect error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("connect");
         close();
         return 0;
     }
@@ -92,15 +116,13 @@ int XTcpSocket::serverStart(int port) {
     struct sockaddr_in serv;
 
     if ((listenfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-#ifndef _MSC_VER
-        printf("socket error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("socket");
         return -1;
     }
 
     int reuse = 1;
     if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0) {
-        perror("setsockopt(SO_REUSEADDR) failed");
+        FormatLastErrorStr("setsockopt(SO_REUSEADDR)");
     }
 
     memset(&serv, 0, sizeof(serv));
@@ -109,17 +131,13 @@ int XTcpSocket::serverStart(int port) {
     serv.sin_port = htons(port);
 
     if (bind(listenfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {
-#ifndef _MSC_VER
-        printf("bind error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("bind");
         serverClose();
         return -1;
     }
 
     if (listen(listenfd, SOMAXCONN) < 0) {
-#ifndef _MSC_VER
-        printf("listen error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("listen");
         serverClose();
         return -1;
     }
@@ -136,9 +154,7 @@ int XTcpSocket::serverAccept(void) {
 #endif
     sockfd = accept(listenfd, (struct sockaddr*)&cli, &clilen);
     if (sockfd < 0) {
-#ifndef _MSC_VER
-        printf("accept error : %s \n", strerror(errno));
-#endif
+        FormatLastErrorStr("accept");
         sockfd = -1;
     }
     return sockfd;

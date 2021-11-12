@@ -17,10 +17,13 @@ public:
     int serverStart(int port);
     int serverAccept(void);
     void serverClose(void);
-
+    const char* getLastErrorStr(void);
     static int instances;
 
 private:
+    void FormatLastErrorStr(const char* func);
+
+    char lastError[256];
     int sockfd = -1;
     int listenfd = -1;
 };
