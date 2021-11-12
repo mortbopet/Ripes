@@ -44,8 +44,6 @@ protected:
 
 private slots:
     void connectButtonTriggered();
-    // void sktConnected();
-    // void sktRead();
 
 private:
     uint32_t ByteSize;

@@ -12,7 +12,10 @@
 #include "STLExtras.h"
 #include "ioregistry.h"
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
