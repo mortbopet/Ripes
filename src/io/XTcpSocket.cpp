@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 void XTcpSocket::close() {
 #ifdef _MSC_VER
     closesocket(sockfd);
