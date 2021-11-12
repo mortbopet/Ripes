@@ -154,30 +154,29 @@ void XTcpSocket::serverClose(void) {
     listenfd = -1;
 }
 
+int XTcpSocket::instances = 0;
+
+XTcpSocket::XTcpSocket() {
 #ifdef _MSC_VER
+    if (!XTcpSocket::instances) {
+        WORD wVersionRequested = 2;
+        WSADATA wsaData;
 
-static void initialize_socket(void);
-static void finalize_socket(void);
-
-struct initialize_t_ {
-    void finitialize_t_(void) { initialize_socket(); }
-};
-
-static initialize_t_ initialize_;
-
-static void initialize_socket(void) {
-    static WORD wVersionRequested = 2;
-    static WSADATA wsaData;
-
-    WSAStartup(wVersionRequested, &wsaData);
-    if (wsaData.wVersion != wVersionRequested) {
-        fprintf(stderr, "\n Wrong version\n");
-        return;
+        WSAStartup(wVersionRequested, &wsaData);
+        if (wsaData.wVersion != wVersionRequested) {
+            fprintf(stderr, "\n Wrong version\n");
+            return;
+        }
     }
-    atexit(finalize_socket);
+#endif
+    ++XTcpSocket::instances;
 }
 
-static void finalize_socket(void) {
-    WSACleanup();
-}
+XTcpSocket::~XTcpSocket() {
+    --XTcpSocket::instances;
+#ifdef _MSC_VER
+    if (!XTcpSocket::instances) {
+        WSACleanup();
+    }
 #endif
+}

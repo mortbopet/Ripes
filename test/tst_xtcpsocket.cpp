@@ -14,15 +14,6 @@ private:
 private slots:
     void tst_pinpong();
 };
-/*
-void expect(const ExprEvalRes& res, const ExprEvalVT& expected) {
-    if (auto* err = std::get_if<Error>(&res)) {
-        QString errstr = "Got error: " + err->second;
-        QFAIL(errstr.toStdString().c_str());
-    }
-    QCOMPARE(std::get<ExprEvalVT>(res), expected);
-}
-*/
 
 void tst_xtcpsocket::tst_pinpong() {
     const char in[11] = "0123456789";
@@ -37,21 +28,13 @@ void tst_xtcpsocket::tst_pinpong() {
     server.write(in, 11);
     client.read(out, 11);
 
-    if (!strcmp(in, out)) {
-        printf("Ok\n");
-    } else {
-        printf("Error\n");
-    }
+    QCOMPARE(in, out);
 
     memset(out, 0, 11);
     client.write(in, 10);
     server.read(out, 10);
 
-    if (!strcmp(in, out)) {
-        printf("Ok\n");
-    } else {
-        printf("Error\n");
-    }
+    QCOMPARE(in, out);
 
     server.serverClose();
     server.close();

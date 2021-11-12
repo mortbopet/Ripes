@@ -3,7 +3,8 @@
 
 class XTcpSocket {
 public:
-    XTcpSocket(){};
+    XTcpSocket();
+    ~XTcpSocket();
     void close();
     void abort();
     int write(const char* buff, const int size);
@@ -16,6 +17,8 @@ public:
     int serverStart(int port);
     int serverAccept(void);
     void serverClose(void);
+
+    static int instances;
 
 private:
     int sockfd = -1;
