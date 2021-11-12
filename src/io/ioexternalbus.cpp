@@ -124,9 +124,6 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
     }
 }
 
-void IOExternalBus::parameterChanged(unsigned paramId) { /* no parameters */
-}
-
 void IOExternalBus::connectButtonTriggered() {
     if (m_ui->connectButton->text().contains("Connect")) {
         tcpSocket->abort();

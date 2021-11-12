@@ -22,9 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace {
-using sockaddr = struct sockaddr;
-}
 
 void XTcpSocket::close() {
 #ifdef _MSC_VER
@@ -81,7 +78,7 @@ int XTcpSocket::connectToHost(const char* host, int port) {
     serv.sin_addr.s_addr = inet_addr(host);
     serv.sin_port = htons(port);
 
-    if (connect(sockfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
+    if (connect(sockfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {
 #ifndef _MSC_VER
         printf("connect error : %s \n", strerror(errno));
 #endif
@@ -112,7 +109,7 @@ int XTcpSocket::serverStart(int port) {
     serv.sin_addr.s_addr = htonl(INADDR_ANY);
     serv.sin_port = htons(port);
 
-    if (bind(listenfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
+    if (bind(listenfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {
 #ifndef _MSC_VER
         printf("bind error : %s \n", strerror(errno));
 #endif
@@ -138,7 +135,7 @@ int XTcpSocket::serverAccept(void) {
 #else
     unsigned int clilen = sizeof(cli);
 #endif
-    sockfd = accept(listenfd, (sockaddr*)&cli, &clilen);
+    sockfd = accept(listenfd, (struct sockaddr*)&cli, &clilen);
     if (sockfd < 0) {
 #ifndef _MSC_VER
         printf("accept error : %s \n", strerror(errno));

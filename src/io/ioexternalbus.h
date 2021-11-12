@@ -40,7 +40,7 @@ public:
     virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
 
 protected:
-    virtual void parameterChanged(unsigned) override;
+    virtual void parameterChanged(unsigned) override{/* no parameters */};
 
 private slots:
     void connectButtonTriggered();
