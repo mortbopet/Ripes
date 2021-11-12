@@ -4,7 +4,10 @@
 #include <QPainter>
 #include <QPen>
 
-#include <QtWidgets>
+#include <QDebug>  //TODO remove
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMessageBox>
 
 #include "STLExtras.h"
 #include "ioregistry.h"

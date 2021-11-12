@@ -1,4 +1,3 @@
-
 #ifndef VBUS_H
 #define VBUS_H
 

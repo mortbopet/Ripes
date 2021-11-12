@@ -1,7 +1,6 @@
 #include "XTcpSocket.h"
 
-// system headers dependent
-
+// platform dependent system headers
 #ifdef _MSC_VER
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -16,14 +15,16 @@
 #include <unistd.h>
 #endif
 
-// system headers independent
+// platform independent system headers
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct sockaddr sockaddr;
+namespace {
+using sockaddr = struct sockaddr;
+}
 
 void XTcpSocket::close() {
 #ifdef _MSC_VER
@@ -44,9 +45,8 @@ void XTcpSocket::abort() {
 }
 
 int XTcpSocket::write(const char* buff, const int size) {
-    int ret;
-    // printf("writing %i\n",size);
-    if ((ret = send(sockfd, buff, size, MSG_NOSIGNAL)) != size) {
+    int ret = send(sockfd, buff, size, MSG_NOSIGNAL);
+    if (ret != size) {
 #ifndef _MSC_VER
         printf("send error : %s \n", strerror(errno));
 #endif
@@ -56,16 +56,13 @@ int XTcpSocket::write(const char* buff, const int size) {
 }
 
 int XTcpSocket::read(char* buff, int size) {
-    int ret;
-    // printf("reading %i ... ",size);
-    // fflush(stdout);
-    if ((ret = recv(sockfd, buff, size, MSG_WAITALL)) != size) {
+    int ret = recv(sockfd, buff, size, MSG_WAITALL);
+    if (ret != size) {
 #ifndef _MSC_VER
         printf("recv error : %s \n", strerror(errno));
 #endif
         return -1;
     }
-    // printf("read %i of %i\n",ret, size);
     return ret;
 }
 
@@ -93,6 +90,71 @@ int XTcpSocket::connectToHost(const char* host, int port) {
     }
 
     return 1;
+}
+
+int XTcpSocket::serverStart(int port) {
+    struct sockaddr_in serv;
+
+    if ((listenfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+#ifndef _MSC_VER
+        printf("socket error : %s \n", strerror(errno));
+#endif
+        return -1;
+    }
+
+    int reuse = 1;
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0) {
+        perror("setsockopt(SO_REUSEADDR) failed");
+    }
+
+    memset(&serv, 0, sizeof(serv));
+    serv.sin_family = AF_INET;
+    serv.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv.sin_port = htons(port);
+
+    if (bind(listenfd, (sockaddr*)&serv, sizeof(serv)) < 0) {
+#ifndef _MSC_VER
+        printf("bind error : %s \n", strerror(errno));
+#endif
+        serverClose();
+        return -1;
+    }
+
+    if (listen(listenfd, SOMAXCONN) < 0) {
+#ifndef _MSC_VER
+        printf("listen error : %s \n", strerror(errno));
+#endif
+        serverClose();
+        return -1;
+    }
+
+    return listenfd;
+}
+
+int XTcpSocket::serverAccept(void) {
+    struct sockaddr_in cli;
+#ifdef _MSC_VER
+    int clilen = sizeof(cli);
+#else
+    unsigned int clilen = sizeof(cli);
+#endif
+    sockfd = accept(listenfd, (sockaddr*)&cli, &clilen);
+    if (sockfd < 0) {
+#ifndef _MSC_VER
+        printf("accept error : %s \n", strerror(errno));
+#endif
+        sockfd = -1;
+    }
+    return sockfd;
+}
+
+void XTcpSocket::serverClose(void) {
+#ifdef _MSC_VER
+    closesocket(listenfd);
+#else
+    ::close(listenfd);
+#endif
+    listenfd = -1;
 }
 
 #ifdef _MSC_VER
