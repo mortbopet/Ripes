@@ -57,7 +57,8 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
             QApplication::processEvents();  // TODO only need in rvss, change to mutex
         skt_use = 1;
         uint32_t payload = htonl(offset);
-        if (send_cmd(VB_PREAD, 4, (const char*)&payload) < 0) {
+        QByteArray dp = QByteArray(static_cast<const char*>((void*)&payload), 4);
+        if (send_cmd(VB_PREAD, 4, &dp) < 0) {
             skt_use = 0;
             return 0;
         }
@@ -70,11 +71,13 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
         }
 
         if (cmd_header.payload_size) {
-            uint32_t payload[2];
-            if (recv_payload((char*)payload, 8) < 0) {
+            dp = QByteArray(8, 0);
+            if (recv_payload(dp, 8) < 0) {
                 skt_use = 0;
                 return 0;
             }
+            uint32_t* payload = (uint32_t*)dp.data();
+
             for (uint32_t i = 0; i < 2; i++) {
                 payload[i] = ntohl(payload[i]);
             }
@@ -102,7 +105,8 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
         uint32_t payload[2];
         payload[0] = htonl(offset);
         payload[1] = htonl(value);
-        if (send_cmd(VB_PWRITE, 8, (const char*)payload) < 0) {
+        QByteArray dp = QByteArray(static_cast<char*>((void*)payload), 8);
+        if (send_cmd(VB_PWRITE, 8, &dp) < 0) {
             skt_use = 0;
             return;
         }
@@ -128,20 +132,23 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
 void IOExternalBus::connectButtonTriggered() {
     if (m_ui->connectButton->text().contains("Connect")) {
         tcpSocket->abort();
-        if (tcpSocket->connectToHost(m_ui->address->text().toStdString().c_str(), m_ui->port->value())) {
-            if (send_cmd(VB_PINFO) < 0)
+        if (tcpSocket->connectToHost(m_ui->address->text(), m_ui->port->value())) {
+            if (send_cmd(VB_PINFO) < 0) {
+                disconnectOnError();
                 return;
-
+            }
             cmd_header_t cmd_header;
 
-            if (recv_cmd(cmd_header) < 0)
+            if (recv_cmd(cmd_header) < 0) {
+                disconnectOnError();
                 return;
-
+            }
             if (cmd_header.payload_size) {
                 QByteArray buff(cmd_header.payload_size + 1, 0);
-                if (recv_payload(buff.data(), cmd_header.payload_size) < 0)
+                if (recv_payload(buff, cmd_header.payload_size) < 0) {
+                    disconnectOnError();
                     return;
-
+                }
                 dprintf("%s\n", buff.data());
 
                 QJsonDocument desc = QJsonDocument::fromJson(buff.data());
@@ -181,13 +188,16 @@ void IOExternalBus::connectButtonTriggered() {
     }
 }
 
-int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size, const char* payload) {
+int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size, const QByteArray* payload) {
     int32_t ret;
     cmd_header_t cmd_header;
 
     cmd_header.msg_type = htonl(cmd);
     cmd_header.payload_size = htonl(payload_size);
-    if ((ret = tcpSocket->write(reinterpret_cast<const char*>(&cmd_header), sizeof(cmd_header))) < 0) {
+
+    QByteArray dp = QByteArray(static_cast<const char*>((void*)&cmd_header), sizeof(cmd_header_t));
+
+    if ((ret = tcpSocket->write(dp, sizeof(cmd_header))) < 0) {
         disconnectOnError();
         return -1;
     }
@@ -195,7 +205,7 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
     if (payload_size) {
         int retp = 0;
 
-        if ((retp = tcpSocket->write(payload, payload_size)) < 0) {
+        if ((retp = tcpSocket->write(*payload, payload_size)) < 0) {
             disconnectOnError();
             return -1;
         }
@@ -205,37 +215,27 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
 }
 
 int32_t IOExternalBus::recv_cmd(cmd_header_t& cmd_header) {
-    char* dp = reinterpret_cast<char*>(&cmd_header);
-    int ret = 0;
-    int size = sizeof(cmd_header);
-    do {
-        if ((ret = tcpSocket->read(dp, size)) < 0) {
-            disconnectOnError();
-            return -1;
-        }
-        size -= ret;
-        dp += ret;
-    } while (size);
+    QByteArray dp = QByteArray(static_cast<char*>((void*)&cmd_header), sizeof(cmd_header_t));
+    int ret = tcpSocket->read(dp, sizeof(cmd_header_t));
+    if (ret < 0) {
+        disconnectOnError();
+        return -1;
+    }
 
-    cmd_header.msg_type = ntohl(cmd_header.msg_type);
-    cmd_header.payload_size = ntohl(cmd_header.payload_size);
+    cmd_header_t* hr = (cmd_header_t*)dp.data();
+
+    cmd_header.msg_type = ntohl(hr->msg_type);
+    cmd_header.payload_size = ntohl(hr->payload_size);
 
     return ret;
 }
 
-int32_t IOExternalBus::recv_payload(char* buff, const uint32_t payload_size) {
-    char* dp = buff;
-    int ret = 0;
-    uint32_t size = payload_size;
-    do {
-        if ((ret = tcpSocket->read(dp, size)) < 0) {
-            disconnectOnError();
-            return -1;
-        }
-        size -= ret;
-        dp += ret;
-    } while (size && (ret > 0));
-
+int32_t IOExternalBus::recv_payload(QByteArray& buff, const uint32_t payload_size) {
+    int ret = tcpSocket->read(buff, payload_size);
+    if (ret < 0) {
+        disconnectOnError();
+        return -1;
+    }
     return ret;
 }
 

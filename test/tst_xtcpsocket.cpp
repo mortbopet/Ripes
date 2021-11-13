@@ -16,8 +16,8 @@ private slots:
 };
 
 void tst_xtcpsocket::tst_pinpong() {
-    const char in[11] = "0123456789";
-    char out[11];
+    const QByteArray in("0123456789", 10);
+    QByteArray out(10, 0);
 
     if (server.serverStart(7890) < 0) {
         QFAIL(server.getLastErrorStr());
@@ -28,17 +28,17 @@ void tst_xtcpsocket::tst_pinpong() {
     }
     future.waitForFinished();
 
-    memset(out, 0, 11);
-    if (server.write(in, 11) < 0) {
+    out.fill(' ', 10);
+    if (server.write(in, 10) < 0) {
         QFAIL(server.getLastErrorStr());
     }
-    if (client.read(out, 11) < 0) {
+    if (client.read(out, 10) < 0) {
         QFAIL(client.getLastErrorStr());
     }
 
     QCOMPARE(in, out);
 
-    memset(out, 0, 11);
+    out.fill(' ', 10);
     if (client.write(in, 10) < 0) {
         QFAIL(client.getLastErrorStr());
     }

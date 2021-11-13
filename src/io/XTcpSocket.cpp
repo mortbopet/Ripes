@@ -72,25 +72,25 @@ void XTcpSocket::abort() {
     sockfd = -1;
 }
 
-int XTcpSocket::write(const char* buff, const int size) {
-    int ret = send(sockfd, buff, size, MSG_NOSIGNAL);
-    if (ret != size) {
+int XTcpSocket::write(const QByteArray& buff, const size_t size) {
+    int ret = send(sockfd, buff.data(), size, MSG_NOSIGNAL);
+    if (ret != (int)size) {
         FormatLastErrorStr("write");
         return -1;
     }
     return ret;
 }
 
-int XTcpSocket::read(char* buff, int size) {
-    int ret = recv(sockfd, buff, size, MSG_WAITALL);
-    if (ret != size) {
+int XTcpSocket::read(QByteArray& buff, const size_t size) {
+    int ret = recv(sockfd, buff.data(), size, MSG_WAITALL);
+    if (ret != (int)size) {
         FormatLastErrorStr("read");
         return -1;
     }
     return ret;
 }
 
-int XTcpSocket::connectToHost(const char* host, int port) {
+int XTcpSocket::connectToHost(const QString& host, int port) {
     struct sockaddr_in serv;
 
     if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -100,7 +100,7 @@ int XTcpSocket::connectToHost(const char* host, int port) {
 
     memset(&serv, 0, sizeof(serv));
     serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = inet_addr(host);
+    serv.sin_addr.s_addr = inet_addr(host.toStdString().c_str());
     serv.sin_port = htons(port);
 
     if (connect(sockfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {

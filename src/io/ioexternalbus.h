@@ -47,9 +47,9 @@ private slots:
 
 private:
     uint32_t ByteSize;
-    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const char* payload = nullptr);
+    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const QByteArray* payload = nullptr);
     int32_t recv_cmd(cmd_header_t& cmd_header);
-    int32_t recv_payload(char* buff, const uint32_t payload_size);
+    int32_t recv_payload(QByteArray& buff, const uint32_t payload_size);
     void disconnectOnError(void);
 
     void updateAddress();
@@ -58,7 +58,7 @@ private:
     std::vector<RegDesc> m_regDescs;
     std::vector<IOSymbol> m_extraSymbols;
 
-    XTcpSocket* tcpSocket = nullptr;
+    std::unique_ptr<XTcpSocket> tcpSocket = nullptr;
     unsigned char skt_use;
 };
 }  // namespace Ripes

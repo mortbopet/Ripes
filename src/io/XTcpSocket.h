@@ -1,16 +1,20 @@
 #ifndef XTCPSOCKET_H
 #define XTCPSOCKET_H
 
-class XTcpSocket {
+#include <QByteArray>
+#include <QString>
+
+class XTcpSocket {  //: public QObject {
+    // Q_OBJECT
 public:
     XTcpSocket();
     ~XTcpSocket();
     void close();
     void abort();
-    int write(const char* buff, const int size);
-    int read(char* buff, int size);
+    int write(const QByteArray& buff, const size_t size);
+    int read(QByteArray& buff, const size_t size);
     int isOpen(void) { return (sockfd >= 0); };
-    int connectToHost(const char* host, int port);
+    int connectToHost(const QString& host, int port);
     int socketDescriptor(void) { return sockfd; };
 
     void setSocketDescriptor(int skt) { sockfd = skt; };
@@ -19,6 +23,9 @@ public:
     void serverClose(void);
     const char* getLastErrorStr(void);
     static int instances;
+
+    // signals:
+    //   void onError(const QString& msg);
 
 private:
     void FormatLastErrorStr(const char* func);
