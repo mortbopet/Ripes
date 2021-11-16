@@ -365,6 +365,19 @@ template <typename R, typename OutputIt, typename UnaryFunction>
 OutputIt transform(R&& Range, OutputIt d_first, UnaryFunction F) {
     return std::transform(adl_begin(Range), adl_end(Range), d_first, F);
 }
+
+/// Provide wrappers to std::find_if which take ranges instead of having to pass
+/// begin/end explicitly.
+template <typename R, typename UnaryPredicate>
+auto find_if(R&& Range, UnaryPredicate P) {
+    return std::find_if(adl_begin(Range), adl_end(Range), P);
+}
+
+template <typename R, typename UnaryPredicate>
+auto find_if_not(R&& Range, UnaryPredicate P) {
+    return std::find_if_not(adl_begin(Range), adl_end(Range), P);
+}
+
 }  // namespace llvm
 
 #endif  // LLVM_ADT_STLEXTRAS_H

@@ -117,6 +117,13 @@ public:
 
     const QStringList& supportedExtensions() const override { return m_supportedExtensions; }
     const QStringList& enabledExtensions() const override { return m_enabledExtensions; }
+    QString extensionDescription(const QString& ext) const override {
+        if (ext == "M")
+            return "Integer multiplication and division";
+        if (ext == "C")
+            return "Compressed instructions";
+        Q_UNREACHABLE();
+    }
 
 protected:
     QStringList m_enabledExtensions;

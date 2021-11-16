@@ -18,7 +18,7 @@ For bugs or issues, please report these at the [issues page](https://github.com/
 
 ## Usage
 Ripes may be used to explore concepts such as:
-- How machine code is executed on a variety of microarchitectures (RV32IM/RV64IM based)
+- How machine code is executed on a variety of microarchitectures (RV32IMC/RV64IMC based)
 - How different cache designs influence performance
 - How C and assembly code is compiled and assembled to executable machine code
 - How a processor interacts with memory-mapped I/O

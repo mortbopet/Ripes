@@ -76,6 +76,7 @@ public:
     virtual const QStringList& enabledExtensions() const = 0;
     bool extensionEnabled(const QString& ext) const { return enabledExtensions().contains(ext); }
     bool supportsExtension(const QString& ext) const { return supportedExtensions().contains(ext); }
+    virtual QString extensionDescription(const QString& ext) const = 0;
 
     /**
      * ISA equality is defined as a separate function rather than the == operator, given that we might need to check for

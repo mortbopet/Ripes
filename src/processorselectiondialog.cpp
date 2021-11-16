@@ -119,11 +119,12 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
 
     const ProcessorID id = qvariant_cast<ProcessorID>(current->data(ProcessorColumn, Qt::UserRole));
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(id);
+    auto isaInfo = desc->isaInfo();
 
     // Update information widgets with the current processor info
     m_selectedID = id;
     m_ui->name->setText(desc->name);
-    m_ui->ISA->setText(desc->isaInfo().isa->name());
+    m_ui->ISA->setText(isaInfo.isa->name());
     m_ui->description->setPlainText(desc->description);
     m_ui->regInitWidget->processorSelectionChanged(id);
 
@@ -140,8 +141,9 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
         delete item;
     }
 
-    for (const auto& ext : desc->isaInfo().supportedExtensions) {
+    for (const auto& ext : isaInfo.supportedExtensions) {
         auto chkbox = new QCheckBox(ext);
+        chkbox->setToolTip(isaInfo.isa->extensionDescription(ext));
         m_ui->extensions->addWidget(chkbox);
         if (m_selectedExtensionsForID[desc->id].contains(ext)) {
             chkbox->setChecked(true);
