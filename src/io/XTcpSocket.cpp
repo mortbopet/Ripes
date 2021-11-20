@@ -55,6 +55,7 @@ const char* XTcpSocket::getLastErrorStr(void) {
 }
 
 void XTcpSocket::close() {
+    // shutdown (sockfd,SHUT_RDWR );
 #ifdef _MSC_VER
     closesocket(sockfd);
 #else
@@ -64,12 +65,7 @@ void XTcpSocket::close() {
 }
 
 void XTcpSocket::abort() {
-#ifdef _MSC_VER
-    closesocket(sockfd);
-#else
-    ::close(sockfd);
-#endif
-    sockfd = -1;
+    close();
 }
 
 int XTcpSocket::write(const QByteArray& buff, const size_t size) {

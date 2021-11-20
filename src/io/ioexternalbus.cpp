@@ -179,6 +179,8 @@ void IOExternalBus::connectButtonTriggered() {
         m_ui->connectButton->setText("Connect");
         m_ui->status->setText("Disconnected");
         m_ui->server->setText("-");
+
+        send_cmd(VB_QUIT);
         tcpSocket->abort();
 
         m_regDescs.clear();

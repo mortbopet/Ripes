@@ -9,7 +9,7 @@ typedef struct {
     uint32_t payload_size;
 } cmd_header_t;
 
-enum { VB_PINFO = 1, VB_PWRITE, VB_PREAD, VB_PSTATUS, VB_DMAWR, VB_DMARD, VB_LAST };
+enum { VB_PINFO = 1, VB_PWRITE, VB_PREAD, VB_PSTATUS, VB_DMAWR, VB_DMARD, VB_QUIT, VB_LAST };
 //=========================================
 
 #endif /* VBUS_H */
