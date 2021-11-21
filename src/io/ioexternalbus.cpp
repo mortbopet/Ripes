@@ -51,7 +51,7 @@ QString IOExternalBus::description() const {
 
 VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
     uint32_t rvalue = 0;
-
+    printf("ioRead  offset=0x%x size=0x%x\n", offset, size);
     if (tcpSocket->isOpen()) {
         while (skt_use)
             QApplication::processEvents();  // TODO only need in rvss, change to mutex
@@ -97,6 +97,7 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 }
 
 void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
+    printf("ioWrite offset=0x%lx  size=0x%x  value=0x%x\n", offset, size, value);
     dprintf("===============>ioWrite [%lx] = %lx (%x)\n", offset, value, size);
     if (tcpSocket->isOpen()) {
         while (skt_use)
@@ -242,6 +243,7 @@ int32_t IOExternalBus::recv_payload(QByteArray& buff, const uint32_t payload_siz
 }
 
 void IOExternalBus::disconnectOnError(void) {
+    skt_use = 0;
     QMessageBox::information(nullptr, tr("Ripes VBus"), tcpSocket->getLastErrorStr());
     tcpSocket->close();
 
