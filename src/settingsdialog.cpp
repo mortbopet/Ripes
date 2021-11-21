@@ -19,6 +19,7 @@
 #include <QStackedWidget>
 
 #include "utilities/hexspinbox.h"
+#include "utilities/scrolleventfilter.h"
 
 namespace Ripes {
 
@@ -52,12 +53,14 @@ std::pair<QLabel*, T_TriggerWidget*> createSettingsWidgets(const QString& settin
         widget->setValue(settingObserver->value().toUInt());
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
+        widget->installEventFilter(new ScrollEventFilter());
     } else if constexpr (std::is_same<T_EditWidget, HexSpinBox>()) {
         // The hex value is stored as an int, so get the int and static cast it to unsigned.
         unsigned uValue = static_cast<unsigned>(settingObserver->value().toInt());
         widget->setValue(uValue);
         widget->connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), settingObserver,
                         &SettingObserver::setValue);
+        widget->installEventFilter(new ScrollEventFilter());
     } else if constexpr (std::is_same<T_EditWidget, QLineEdit>()) {
         widget->connect(widget, &QLineEdit::textChanged, settingObserver, &SettingObserver::setValue);
         widget->setText(settingObserver->value().toString());
