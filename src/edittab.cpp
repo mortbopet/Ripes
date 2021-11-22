@@ -199,6 +199,12 @@ void EditTab::updateProgramViewerHighlighting() {
     }
 }
 
+Assembler::Errors* EditTab::errors() {
+    if (m_sourceErrors->empty())
+        return nullptr;
+    return m_sourceErrors.get();
+}
+
 void EditTab::sourceTypeChanged() {
     if (!m_editorEnabled) {
         // Do nothing; editor is currently disabled so we should not care about updating our source type being the code
@@ -339,9 +345,13 @@ bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long en
     return true;
 }
 
-bool EditTab::loadSourceFile(Program&, QFile& file) {
+void EditTab::loadSourceText(const QString& text) {
     enableEditor();
-    setSourceText(file.readAll());
+    setSourceText(text);
+}
+
+bool EditTab::loadSourceFile(Program&, QFile& file) {
+    loadSourceText(file.readAll());
     return true;
 }
 

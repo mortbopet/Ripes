@@ -35,6 +35,9 @@ public:
     const QByteArray* getBinaryData();
 
     void loadFile(const LoadFileParams&);
+    void loadSourceText(const QString& text);
+    Assembler::Errors* errors();
+
     /**
      * @brief loadExternalFile
      * sets the current source type to whatever is specified by @p params and calls loadFile(@p params);

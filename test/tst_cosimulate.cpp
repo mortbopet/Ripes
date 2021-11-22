@@ -11,6 +11,7 @@
 
 #include "edittab.h"
 #include "isa/rvisainfo_common.h"
+#include "programloader.h"
 #include "ripessettings.h"
 
 /**
@@ -72,7 +73,7 @@ private:
     bool m_stop = false;
     QString m_err;
     LoadFileParams m_currentTest;
-    EditTab* m_loader = nullptr;
+    ProgramLoader* m_loader;
 
     std::map<QString, Trace> m_referenceTraces;
 
@@ -151,14 +152,6 @@ QString tst_Cosimulate::generateErrorReport(const RegisterChange& change, const 
     return err;
 }
 
-void tst_Cosimulate::loadCurrentTest() {
-    // Some manual work is required here since we are not instantiating the full application
-    m_loader->loadExternalFile(m_currentTest);
-    if (m_currentTest.type == SourceType::Assembly) {
-        m_loader->sourceCodeChanged();
-    }
-}
-
 /**
  * @brief tst_Cosimulate::executeSimulator
  * Runs the currently loaded simulator on the currently loaded program, generating a register trace while doing so.
@@ -166,16 +159,7 @@ void tst_Cosimulate::loadCurrentTest() {
  * discrepancy is detected.
  */
 void tst_Cosimulate::executeSimulator(Trace& trace, const Trace* refTrace) {
-    // Load a program through the edittab. This is not really suited for automatic testing, since the edit tab will
-    // trigger assembling after some timeout. To work around this, we allow for a bit of delay when loading the program.
-    loadCurrentTest();
-    int timeouts = 5;
-    while (timeouts-- > 0 && !ProcessorHandler::getProgram()) {
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 500);
-    }
-    if (!ProcessorHandler::getProgram()) {
-        QFAIL("No program was loaded!");
-    }
+    m_loader->loadTest(m_currentTest);
 
     // Override the ProcessorHandler's ECALL handling. In doing so, we can hook into when the EXIT syscall was executed,
     // to verify whether the correct test value was reached.
@@ -265,9 +249,7 @@ const Trace& tst_Cosimulate::generateReferenceTrace(const QStringList& extension
  * once in Ripes, due to the static nature of the ProcessorHandler.
  */
 void tst_Cosimulate::cosimulate(const ProcessorID& id, const QStringList& extensions) {
-    m_loader = new EditTab(new QToolBar(), nullptr);
-    connect(m_loader, &EditTab::programChanged, ProcessorHandler::get(), &ProcessorHandler::loadProgram);
-
+    m_loader = new ProgramLoader();
     for (const auto& test : s_testFiles) {
         m_currentTest = test;
         std::cout << test.filepath.toStdString() << std::endl;
