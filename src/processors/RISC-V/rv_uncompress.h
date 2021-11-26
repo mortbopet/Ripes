@@ -10,18 +10,25 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Uncompress : public Component {
 public:
-    void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
+    void setISA(const std::shared_ptr<ISAInfoBase>& isa) {
+        m_isa = isa;
+        m_disabled = !m_isa->extensionEnabled("C");
+    }
 
     Uncompress(std::string name, SimComponent* parent) : Component(name, parent) {
         setDescription("Uncompresses instructions from the 'C' extension into their 32-bit representation.");
-        Pc_Inc << [=] { return (((instr.uValue() & 0b11) == 0b11) || (!instr.uValue())); };
+        Pc_Inc << [=] {
+            if (m_disabled)
+                return true;
+            return (((instr.uValue() & 0b11) == 0b11) || (!instr.uValue()));
+        };
 
         // only support 32 bit instructions
         exp_instr << [=] {
             const auto instrValue = instr.uValue();
             const int quadrant = instrValue & 0b11;
 
-            if (quadrant == 0b11) {  // Not a compressed instruction
+            if ((quadrant == 0b11) || (m_disabled)) {  // Not a compressed instruction
                 return instrValue;
             }
 
@@ -373,6 +380,7 @@ public:
 
 private:
     std::shared_ptr<ISAInfoBase> m_isa;
+    bool m_disabled = true;
 };
 
 }  // namespace core
