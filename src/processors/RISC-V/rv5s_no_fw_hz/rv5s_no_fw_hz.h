@@ -421,7 +421,7 @@ public:
     }
 
     static ProcessorISAInfo supportsISA() {
-        return ProcessorISAInfo{std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()), {"M", "C"}};
+        return ProcessorISAInfo{std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()), {"M", "C"}, {"M"}};
     }
     const ISAInfoBase* implementsISA() const override { return m_enabledISA.get(); };
 

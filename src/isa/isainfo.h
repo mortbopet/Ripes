@@ -97,6 +97,7 @@ protected:
 struct ProcessorISAInfo {
     std::shared_ptr<ISAInfoBase> isa;
     QStringList supportedExtensions;
+    QStringList defaultExtensions;
 };
 
 template <ISA isa>

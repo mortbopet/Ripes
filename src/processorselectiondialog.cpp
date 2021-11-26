@@ -69,7 +69,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget* parent)
 
     // Initialize extensions for processors; default to all available extensions
     for (const auto& desc : ProcessorRegistry::getAvailableProcessors()) {
-        m_selectedExtensionsForID[desc.second->id] = desc.second->isaInfo().supportedExtensions;
+        m_selectedExtensionsForID[desc.second->id] = desc.second->isaInfo().defaultExtensions;
     }
     m_selectedExtensionsForID[ProcessorHandler::getID()] = ProcessorHandler::currentISA()->enabledExtensions();
 
