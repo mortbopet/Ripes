@@ -51,7 +51,7 @@ QString IOExternalBus::description() const {
 
 VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
     uint32_t rvalue = 0;
-    printf("ioRead  offset=0x%x size=0x%x\n", offset, size);
+
     if (tcpSocket->isOpen()) {
         while (skt_use)
             QApplication::processEvents();  // TODO only need in rvss, change to mutex
@@ -92,13 +92,12 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
         skt_use = 0;
     }
 
-    dprintf("===============>ioRead [%lx] = %x (%x)\n", offset, rvalue, size);
+    dprintf("===============>ioRead off=%lx  size=%x  value=%x\n", offset, size, rvalue);
     return rvalue;
 }
 
 void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
-    printf("ioWrite offset=0x%lx  size=0x%x  value=0x%x\n", offset, size, value);
-    dprintf("===============>ioWrite [%lx] = %lx (%x)\n", offset, value, size);
+    dprintf("===============>ioWrite off=%lx size=%lx  value=%x\n", offset, size, value);
     if (tcpSocket->isOpen()) {
         while (skt_use)
             QApplication::processEvents();  // TODO only need in rvss, change to mutex
@@ -192,7 +191,7 @@ void IOExternalBus::connectButtonTriggered() {
 }
 
 int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size, const QByteArray* payload) {
-    int32_t ret;
+    int32_t ret = -1;
     cmd_header_t cmd_header;
 
     cmd_header.msg_type = htonl(cmd);
@@ -200,20 +199,15 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
 
     QByteArray dp = QByteArray(static_cast<const char*>((void*)&cmd_header), sizeof(cmd_header_t));
 
-    if ((ret = tcpSocket->write(dp, sizeof(cmd_header))) < 0) {
+    if (payload_size) {
+        dp.append(*payload);
+    }
+
+    if ((ret = tcpSocket->write(dp, dp.size())) < 0) {
         disconnectOnError();
         return -1;
     }
 
-    if (payload_size) {
-        int retp = 0;
-
-        if ((retp = tcpSocket->write(*payload, payload_size)) < 0) {
-            disconnectOnError();
-            return -1;
-        }
-        ret += retp;
-    }
     return ret;
 }
 
