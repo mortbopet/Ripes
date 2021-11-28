@@ -16,7 +16,8 @@ bool SyscallManager::execute(SyscallID id) {
         return false;
     } else {
         const auto& syscall = m_syscalls.at(id);
-        SyscallStatusManager::setStatusTimed("Handling system call: " + syscall->name() + " (" + QString::number(id) + ")");
+        SyscallStatusManager::setStatusTimed("Handling system call: " + syscall->name() + " (" + QString::number(id) +
+                                             ")");
         syscall->execute();
         SyscallStatusManager::clearStatus();
         return true;
