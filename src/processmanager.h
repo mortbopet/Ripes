@@ -66,11 +66,15 @@ private:
     bool initialize() {
         auto settingsPath = static_cast<Impl*>(this)->getSettingsPath();
         if (!settingsPath.isEmpty() && RipesSettings::hasSetting(settingsPath)) {
+            // This program has a settings path associated with it. Link up with the settings path, ensuring that we
+            // update and revalidate the program on each settings path change.
+            auto* observer = RipesSettings::getObserver(settingsPath);
+            observer->connect(observer, &SettingObserver::modified,
+                              [&](const QVariant& value) { trySetProgram(value.toString()); });
+
             auto settingsPathValue = RipesSettings::value<QString>(settingsPath);
-            if (trySetProgram(settingsPathValue)) {
-                m_programPath = settingsPathValue;
+            if (trySetProgram(settingsPathValue))
                 return true;
-            }
         }
 
         // Couldn't initialize from settings, try autodetecting.

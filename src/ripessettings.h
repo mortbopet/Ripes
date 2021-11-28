@@ -11,6 +11,7 @@ namespace Ripes {
 #define RIPES_SETTING_REWINDSTACKSIZE ("simulator_rewindstacksize")
 #define RIPES_SETTING_CCPATH ("compiler_path")
 #define RIPES_SETTING_CCARGS ("compiler_args")
+#define RIPES_SETTING_FORMATTER_PATH ("formatter_path")
 #define RIPES_SETTING_FORMAT_ON_SAVE ("format_on_save")
 #define RIPES_SETTING_FORMATTER_ARGS ("formatter_args")
 #define RIPES_SETTING_LDARGS ("linker_args")

@@ -12,7 +12,7 @@ class FormatterManager : public ProcessManager<FormatterManager> {
 
 private:
     bool verifyProgram(const QString& path) { return true; }
-    QString getSettingsPath() { return QString(); }
+    QString getSettingsPath() { return RIPES_SETTING_FORMATTER_PATH; }
     QStringList getAlwaysArguments() {
         return RipesSettings::value(RIPES_SETTING_FORMATTER_ARGS).toString().split(" ");
     }

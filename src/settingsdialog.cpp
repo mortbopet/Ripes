@@ -306,11 +306,27 @@ QWidget* SettingsDialog::createEditorPage() {
     auto* formatterGroupBox = new QGroupBox("Formatter");
     appendToLayout(formatterGroupBox, pageLayout);
     auto* formatterLayout = new QGridLayout();
-    auto* formatterDesc =
-        new QLabel("If clang-format is found in PATH, formatting will be applied upon saving a .c file.");
+    auto* formatterDesc = new QLabel("Format .c files using clang-format, if available.");
     formatterDesc->setWordWrap(true);
     appendToLayout(formatterDesc, formatterLayout);
     formatterGroupBox->setLayout(formatterLayout);
+
+    // Formatter path
+    auto* FormatterPathLayout = new QHBoxLayout();
+    auto [formatterlabel, formatterpath] =
+        createSettingsWidgets<QLineEdit>(RIPES_SETTING_FORMATTER_PATH, "clang-format path:");
+    appendToLayout(FormatterPathLayout, formatterLayout);
+    FormatterPathLayout->addWidget(formatterlabel);
+    FormatterPathLayout->addWidget(formatterpath);
+    auto* pathBrowseButton = new QPushButton("Browse");
+    FormatterPathLayout->addWidget(pathBrowseButton);
+    connect(pathBrowseButton, &QPushButton::clicked, formatterpath, [=, formatterpath = formatterpath] {
+        QFileDialog dialog(this);
+        dialog.setAcceptMode(QFileDialog::AcceptOpen);
+        if (dialog.exec()) {
+            formatterpath->setText(dialog.selectedFiles().at(0));
+        }
+    });
 
     // Format on save
     appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_FORMAT_ON_SAVE, "Format on save:"), formatterLayout);

@@ -102,7 +102,12 @@ void CodeEditor::onSave() {
         clangFormatArgs << tmpSrc.fileName();
         auto [stdOut, stdErr] = FormatterManager::run(clangFormatArgs);
         if (!stdErr.isEmpty()) {
-            GeneralStatusManager::setStatusTimed("Error while running 'clang-format': " + stdErr, 2000);
+            QMessageBox::warning(this, "Ripes",
+                                 "Error while executing formatter. Make sure the formatter path points to a "
+                                 "valid version of clang-format\n"
+                                 "Error message was:\n" +
+                                     stdErr,
+                                 QMessageBox::Ok);
             return;
         }
 
