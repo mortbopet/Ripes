@@ -74,12 +74,6 @@ void SettingObserver::trigger() {
     setValue(value());
 }
 
-QVariant SettingObserver::value() const {
-    QSettings settings;
-    Q_ASSERT(settings.contains(m_key));
-    return settings.value(m_key);
-}
-
 RipesSettings::~RipesSettings() {}
 
 RipesSettings::RipesSettings() {
@@ -112,10 +106,6 @@ SettingObserver* RipesSettings::getObserver(const QString& key) {
 
 void RipesSettings::setValue(const QString& key, const QVariant& value) {
     get().m_observers.at(key).setValue(value);
-}
-
-QVariant RipesSettings::value(const QString& key) {
-    return get().m_observers.at(key).value();
 }
 
 }  // namespace Ripes

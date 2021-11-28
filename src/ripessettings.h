@@ -69,7 +69,13 @@ class SettingObserver : public QObject {
 
 public:
     SettingObserver(const QString& key) : m_key(key) {}
-    QVariant value() const;
+
+    template <typename T = QVariant>
+    T value() const {
+        QSettings settings;
+        Q_ASSERT(settings.contains(m_key));
+        return settings.value(m_key).value<T>();
+    }
 
 signals:
     void modified(const QVariant& value);
@@ -85,7 +91,12 @@ private:
 class RipesSettings : public QSettings {
 public:
     static void setValue(const QString& key, const QVariant& value);
-    static QVariant value(const QString& key);
+    template <typename T = QVariant>
+    static T value(const QString& key) {
+        return get().m_observers.at(key).value<T>();
+    }
+
+    static bool hasSetting(const QString& key) { return get().m_observers.count(key) != 0; }
 
     /**
      * @brief getObserver
