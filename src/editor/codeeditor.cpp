@@ -87,8 +87,14 @@ void CodeEditor::onSave() {
     if (!FormatterManager::hasValidProgram())
         return;
 
+    // We want to execute the formatter in the savefile's directory to adhere to any formatting config files.
+    auto savePath = RipesSettings::value(RIPES_SETTING_SAVEPATH).toString();
+    if (savePath.isEmpty())
+        return;
+
+    auto tmpDir = QFileInfo(savePath).dir();
     const auto tempFileTemplate =
-        QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
+        QString(tmpDir.path() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
     QTemporaryFile tmpSrc(tempFileTemplate);
     tmpSrc.setAutoRemove(true);
     if (tmpSrc.open()) {
