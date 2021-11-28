@@ -154,7 +154,7 @@ void ProcessorHandler::_clock() {
 }
 
 void ProcessorHandler::_run() {
-    ProcessorStatusManager::setStatus("Running...");
+    ProcessorStatusManager::setStatusTimed("Running...");
     emit runStarted();
 
     // Start running through the VSRTL Widget interface

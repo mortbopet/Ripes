@@ -123,7 +123,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(&name##StatusManager::get().emitter, &StatusEmitter::statusChanged, name##StatusLabel, &QLabel::setText); \
     connect(&name##StatusManager::get().emitter, &StatusEmitter::clear, name##StatusLabel, &QLabel::clear);
 
-#define setupPermanentStatusWidget(name) _setupStatusWidget(name, Permanent)
+#define setupPermanentStatusWidget(name) \
+    _setupStatusWidget(name, Permanent); \
+    name##StatusManager::get().setPermanent();
 
 #define setupStatusWidget(name) _setupStatusWidget(name, )
 
@@ -136,7 +138,7 @@ void MainWindow::setupStatusBar() {
         const auto& desc = ProcessorRegistry::getDescription(ProcessorHandler::getID());
         QString status =
             "Processor: " + desc.name + "    ISA: " + ProcessorHandler::getProcessor()->implementsISA()->name();
-        ProcessorInfoStatusManager::get().setStatus(status);
+        ProcessorInfoStatusManager::get().setStatusPermanent(status);
     };
     connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, updateProcessorInfo);
     updateProcessorInfo();
@@ -358,7 +360,7 @@ void MainWindow::saveFilesTriggered() {
     }
 
     if (didSave) {
-        GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "), 2000);
+        GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "), 1000);
     }
 }
 

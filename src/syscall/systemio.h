@@ -324,7 +324,7 @@ public:
         auto& InputStream = FileIOData::getStreamInUse(fd);
 
         if (fd == STDIN) {
-            SystemIOStatusManager::setStatus("Waiting for user input...");
+            SystemIOStatusManager::setStatusTimed("Waiting for user input...");
             while (myBuffer.size() == 0) {
                 // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
                 FileIOData::s_stdioMutex.lock();
