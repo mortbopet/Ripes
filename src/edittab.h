@@ -29,7 +29,7 @@ public:
     QString getAssemblyText();
     void newProgram();
     void clearAssemblyEditor();
-
+    SourceType getSourceType() { return m_currentSourceType; }
     bool isEditorEnabled() const { return m_editorEnabled; }
 
     const QByteArray* getBinaryData();

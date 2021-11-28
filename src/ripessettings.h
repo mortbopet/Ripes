@@ -51,7 +51,7 @@ namespace Ripes {
 
 #define RIPES_SETTING_HAS_SAVEFILE ("has_savefile")
 #define RIPES_SETTING_SAVEPATH ("savepath")
-#define RIPES_SETTING_SAVE_ASSEMBLY ("save_assembly")
+#define RIPES_SETTING_SAVE_SOURCE ("save_source")
 #define RIPES_SETTING_SAVE_BINARY ("save_binary")
 
 // ============= Definitions of all default settings within Ripes ==============

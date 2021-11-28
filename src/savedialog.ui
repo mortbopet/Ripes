@@ -19,16 +19,16 @@
      <item row="1" column="1">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QCheckBox" name="saveAssembly">
+        <widget class="QCheckBox" name="saveSource">
          <property name="text">
-          <string>Assembly source</string>
+          <string>source code</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="saveBinary">
          <property name="text">
-          <string>Assembled binary</string>
+          <string>assembled/compiled binary</string>
          </property>
         </widget>
        </item>

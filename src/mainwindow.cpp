@@ -333,7 +333,7 @@ static void writeBinaryFile(QFile& file, const QByteArray& data) {
 }
 
 void MainWindow::saveFilesTriggered() {
-    SaveDialog diag;
+    SaveDialog diag(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getSourceType());
     if (!RipesSettings::value(RIPES_SETTING_HAS_SAVEFILE).toBool()) {
         saveFilesAsTriggered();
         return;
@@ -342,9 +342,9 @@ void MainWindow::saveFilesTriggered() {
     bool didSave = false;
     QStringList savedFiles;
 
-    if (!diag.assemblyPath().isEmpty()) {
-        QFile file(diag.assemblyPath());
-        savedFiles << diag.assemblyPath();
+    if (!diag.sourcePath().isEmpty()) {
+        QFile file(diag.sourcePath());
+        savedFiles << diag.sourcePath();
         writeTextFile(file, static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText());
         didSave |= true;
     }
@@ -365,7 +365,7 @@ void MainWindow::saveFilesTriggered() {
 }
 
 void MainWindow::saveFilesAsTriggered() {
-    SaveDialog diag;
+    SaveDialog diag(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getSourceType());
     auto ret = diag.exec();
     if (ret == QDialog::Rejected) {
         return;
