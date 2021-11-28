@@ -26,7 +26,7 @@ function(create_ripes_lib NAME)
         set(LIB_NAME ${NAME})
     endif()
 
-    add_library(${LIB_NAME} STATIC ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UIS})
+    add_library(${LIB_NAME} STATIC ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UI})
     target_compile_features(${LIB_NAME} PRIVATE cxx_std_17)
     target_include_directories (${LIB_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
