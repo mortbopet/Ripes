@@ -131,29 +131,30 @@ void EditTab::showSymbolNavigator() {
     }
 }
 
-void EditTab::loadExternalFile(const LoadFileParams& params) {
+bool EditTab::loadExternalFile(const LoadFileParams& params) {
     if (params.type == SourceType::C) {
         // Try to enable C input and verify that source type was changed successfully. This allows us to trigger the
         // message box associated with C input, if no compiler is set. If so, load the file.
         enableEditor();
         m_ui->setCInput->setChecked(true);
         if (m_currentSourceType == SourceType::C) {
-            loadFile(params);
+            return loadFile(params);
         }
     } else if (params.type == SourceType::Assembly) {
         m_ui->setAssemblyInput->setChecked(true);
-        loadFile(params);
+        return loadFile(params);
     } else {
         m_currentSourceType = params.type;
-        loadFile(params);
+        return loadFile(params);
     }
+    return false;
 }
 
-void EditTab::loadFile(const LoadFileParams& fileParams) {
+bool EditTab::loadFile(const LoadFileParams& fileParams) {
     QFile file(fileParams.filepath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Error: Could not open file " + fileParams.filepath);
-        return;
+        return false;
     }
 
     bool success = true;
@@ -183,6 +184,7 @@ void EditTab::loadFile(const LoadFileParams& fileParams) {
         QMessageBox::warning(this, "Error", "Error: Could not load file " + fileParams.filepath);
     }
     file.close();
+    return success;
 }
 
 QString EditTab::getAssemblyText() {

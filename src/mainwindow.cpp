@@ -33,6 +33,11 @@
 
 namespace Ripes {
 
+static void clearSaveFile() {
+    RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
+    RipesSettings::setValue(RIPES_SETTING_SAVEPATH, "");
+}
+
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::MainWindow) {
     m_ui->setupUi(this);
     setWindowTitle("Ripes");
@@ -95,7 +100,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     setupMenus();
 
     // setup and connect widgets
-    connect(editTab, &EditTab::editorStateChanged, [=] { RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false); });
+    connect(editTab, &EditTab::editorStateChanged, [=] { clearSaveFile(); });
 
     // Setup status bar
     setupStatusBar();
@@ -231,7 +236,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = QString(":/examples/assembly/") + fileName;
                 parms.type = SourceType::Assembly;
                 static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
-                RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
+                clearSaveFile();
             });
         }
     }
@@ -245,7 +250,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = QString(":/examples/C/") + fileName;
                 parms.type = SourceType::C;
                 static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
-                RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
+                clearSaveFile();
             });
         }
     }
@@ -267,7 +272,7 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
                 parms.filepath = tmpELFFile->fileName();
                 parms.type = SourceType::ExternalELF;
                 static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(parms);
-                RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
+                clearSaveFile();
                 tmpELFFile->remove();
             });
         }
@@ -303,8 +308,13 @@ void MainWindow::loadFileTriggered() {
     if (!diag.exec())
         return;
 
-    static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(diag.getParams());
-    RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
+    if (static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->loadExternalFile(diag.getParams())) {
+        // Set the current save path to the loaded file. Only store the file basename without extension.
+        QFileInfo info = QFileInfo(diag.getParams().filepath);
+        auto savePath = info.dir().path() + QDir::separator() + info.baseName();
+        RipesSettings::setValue(RIPES_SETTING_SAVEPATH, savePath);
+        RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, true);
+    }
 }
 
 void MainWindow::wiki() {
@@ -405,7 +415,7 @@ void MainWindow::newProgramTriggered() {
             }
         }
     }
-    RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, false);
+    clearSaveFile();
     static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->newProgram();
 }
 

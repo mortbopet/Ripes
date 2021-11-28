@@ -34,15 +34,14 @@ public:
 
     const QByteArray* getBinaryData();
 
-    void loadFile(const LoadFileParams&);
+    /// Loads a file into the editor. Returns true if the file was successfully loaded.
+    bool loadFile(const LoadFileParams&);
     void loadSourceText(const QString& text);
     Assembler::Errors* errors();
 
-    /**
-     * @brief loadExternalFile
-     * sets the current source type to whatever is specified by @p params and calls loadFile(@p params);
-     */
-    void loadExternalFile(const LoadFileParams& params);
+    /// sets the current source type to whatever is specified by @p params and calls loadFile(@p params). Returns true
+    /// if the file loaded successfully.
+    bool loadExternalFile(const LoadFileParams& params);
 
 signals:
     void programChanged(const std::shared_ptr<Program>& program);
