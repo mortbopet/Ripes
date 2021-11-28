@@ -18,8 +18,6 @@
 
 namespace Ripes {
 
-StatusManager(SystemIO);
-
 /*
 Copyright (c) 2003-2013,  Pete Sanderson and Kenneth Vollmar
 

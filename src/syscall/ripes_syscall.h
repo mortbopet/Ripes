@@ -63,13 +63,6 @@ protected:
 };
 
 /**
- * @brief SyscallStatusManager
- * Any syscall status messages may be posted to the following class. This class is connected to a status bar widget
- * in the mainwindow and subsequently displays all messages to the user.
- */
-StatusManager(Syscall);
-
-/**
  * @brief The SyscallManager class
  *
  * It is expected that the syscallManager can be called outside of the main GUI thread. As such, all syscalls who

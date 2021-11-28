@@ -10,10 +10,6 @@ QT_FORWARD_DECLARE_CLASS(QStackedWidget)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
 namespace Ripes {
-
-StatusManager(General);
-StatusManager(ProcessorInfo);
-
 namespace Ui {
 class MainWindow;
 }

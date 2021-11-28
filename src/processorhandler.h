@@ -16,8 +16,6 @@
 
 namespace Ripes {
 
-StatusManager(Processor);
-
 /**
  * @brief The ProcessorHandler class
  * Manages construction and destruction of a VSRTL processor design, when selecting between processors.
