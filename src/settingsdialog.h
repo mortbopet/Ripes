@@ -45,7 +45,8 @@ private:
     void addPage(const QString& name, QWidget* page);
     void appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
                         const QString& description = QString());
-    void appendToLayout(QGroupBox* groupBox, QGridLayout* pageLayout, int colSpan = 2);
+    void appendToLayout(QWidget* widget, QGridLayout* pageLayout, int colSpan = 2);
+    void appendToLayout(QLayout* layout, QGridLayout* pageLayout, int colSpan = 2);
 
     std::map<QString, int> m_pageIndex;
 };

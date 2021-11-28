@@ -48,6 +48,7 @@ signals:
     void editorStateChanged(bool enabled);
 
 public slots:
+    void onSave();
     void onProcessorChanged();
     void updateProgramViewerHighlighting();
 

@@ -2,6 +2,7 @@
 #include "ui_settingsdialog.h"
 
 #include "ccmanager.h"
+#include "formattermanager.h"
 #include "ripessettings.h"
 
 #include <QCheckBox>
@@ -301,6 +302,39 @@ QWidget* SettingsDialog::createEditorPage() {
     appendToLayout({consoleLabel, consoleCheckbox}, pageLayout,
                    "Show (or hide) a view of the console in the editor tab.");
 
+    // ===== Source formatter
+    auto* formatterGroupBox = new QGroupBox("Formatter");
+    appendToLayout(formatterGroupBox, pageLayout);
+    auto* formatterLayout = new QGridLayout();
+    auto* formatterDesc = new QLabel("Format .c files using clang-format, if available.");
+    formatterDesc->setWordWrap(true);
+    appendToLayout(formatterDesc, formatterLayout);
+    formatterGroupBox->setLayout(formatterLayout);
+
+    // Formatter path
+    auto* FormatterPathLayout = new QHBoxLayout();
+    auto [formatterlabel, formatterpath] =
+        createSettingsWidgets<QLineEdit>(RIPES_SETTING_FORMATTER_PATH, "clang-format path:");
+    appendToLayout(FormatterPathLayout, formatterLayout);
+    FormatterPathLayout->addWidget(formatterlabel);
+    FormatterPathLayout->addWidget(formatterpath);
+    auto* pathBrowseButton = new QPushButton("Browse");
+    FormatterPathLayout->addWidget(pathBrowseButton);
+    connect(pathBrowseButton, &QPushButton::clicked, formatterpath, [=, formatterpath = formatterpath] {
+        QFileDialog dialog(this);
+        dialog.setAcceptMode(QFileDialog::AcceptOpen);
+        if (dialog.exec()) {
+            formatterpath->setText(dialog.selectedFiles().at(0));
+        }
+    });
+
+    // Format on save
+    appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_FORMAT_ON_SAVE, "Format on save:"), formatterLayout);
+
+    // Formatter arguments
+    appendToLayout(createSettingsWidgets<QLineEdit>(RIPES_SETTING_FORMATTER_ARGS, "Formatter arguments:"),
+                   formatterLayout);
+
     return pageWidget;
 }
 
@@ -359,8 +393,12 @@ QWidget* SettingsDialog::createEnvironmentPage() {
     return pageWidget;
 }
 
-void SettingsDialog::appendToLayout(QGroupBox* groupBox, QGridLayout* pageLayout, int colSpan) {
-    pageLayout->addWidget(groupBox, pageLayout->rowCount(), 0, 1, colSpan);
+void SettingsDialog::appendToLayout(QLayout* layout, QGridLayout* pageLayout, int colSpan) {
+    pageLayout->addLayout(layout, pageLayout->rowCount(), 0, 1, colSpan);
+}
+
+void SettingsDialog::appendToLayout(QWidget* widget, QGridLayout* pageLayout, int colSpan) {
+    pageLayout->addWidget(widget, pageLayout->rowCount(), 0, 1, colSpan);
 }
 
 void SettingsDialog::appendToLayout(std::pair<QLabel*, QWidget*> settingsWidgets, QGridLayout* pageLayout,
