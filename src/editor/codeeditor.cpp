@@ -17,9 +17,11 @@
 #include "colors.h"
 #include "csyntaxhighlighter.h"
 #include "fonts.h"
+#include "formattermanager.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "rvsyntaxhighlighter.h"
+#include "statusmanager.h"
 #include "syntaxhighlighter.h"
 
 namespace Ripes {
@@ -46,6 +48,75 @@ CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
 
     setWordWrapMode(QTextOption::NoWrap);
     setupChangedTimer();
+}
+
+struct ClangFormatResult {
+    // remapped cursor position. see clang-format --cursor for more info.
+    unsigned cursor;
+    QString formattedText;
+};
+
+static std::optional<ClangFormatResult> parseClangFormatOutput(const QString& cfOutput) {
+    // The first line should contain a JSON formatted array detailing the remapped cursor position and formatting
+    // status. If this is not the case, the clang-format version might be outdated or something else went wrong.
+    unsigned firstNewline = cfOutput.indexOf('\n');
+    auto firstLine = cfOutput.left(firstNewline);
+    auto rest = cfOutput.mid(firstNewline + 1);
+    auto jsonHeader = QJsonDocument::fromJson(firstLine.toUtf8());
+    if (jsonHeader.isNull())
+        return std::nullopt;
+
+    if (!jsonHeader.object().contains("Cursor"))
+        return std::nullopt;
+
+    ClangFormatResult res;
+    res.cursor = jsonHeader["Cursor"].toInt();
+    res.formattedText = rest;
+    return res;
+}
+
+void CodeEditor::onSave() {
+    // run the formatter, if applicable.
+
+    if (m_sourceType != SourceType::C)
+        return;
+
+    if (!RipesSettings::value(RIPES_SETTING_FORMAT_ON_SAVE).toBool())
+        return;
+
+    if (!FormatterManager::hasValidProgram())
+        return;
+
+    const auto tempFileTemplate =
+        QString(QDir::tempPath() + QDir::separator() + QCoreApplication::applicationName() + ".XXXXXX.c");
+    QTemporaryFile tmpSrc(tempFileTemplate);
+    tmpSrc.setAutoRemove(true);
+    if (tmpSrc.open()) {
+        tmpSrc.write(this->document()->toPlainText().toUtf8());
+        tmpSrc.close();
+        // Feed the current program to the formatter as stdin
+        QStringList clangFormatArgs;
+        // Track cursor changes
+        clangFormatArgs << "--cursor=" + QString::number(this->textCursor().position());
+        // Temporary file to apply format changes to
+        clangFormatArgs << tmpSrc.fileName();
+        auto [stdOut, stdErr] = FormatterManager::run(clangFormatArgs);
+        if (!stdErr.isEmpty()) {
+            GeneralStatusManager::setStatusTimed("Error while running 'clang-format': " + stdErr, 2000);
+            return;
+        }
+
+        if (!stdOut.isEmpty()) {
+            auto cfOutput = parseClangFormatOutput(stdOut);
+            if (!cfOutput)
+                return;
+            QTextCursor curs(this->document());
+            curs.select(QTextCursor::Document);
+            curs.insertText(cfOutput->formattedText);
+            curs.setPosition(cfOutput->cursor);
+            this->setTextCursor(curs);
+        }
+    }
 }
 
 void CodeEditor::setupChangedTimer() {

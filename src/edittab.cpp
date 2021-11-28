@@ -131,6 +131,10 @@ void EditTab::showSymbolNavigator() {
     }
 }
 
+void EditTab::onSave() {
+    m_ui->codeEditor->onSave();
+}
+
 bool EditTab::loadExternalFile(const LoadFileParams& params) {
     if (params.type == SourceType::C) {
         // Try to enable C input and verify that source type was changed successfully. This allows us to trigger the

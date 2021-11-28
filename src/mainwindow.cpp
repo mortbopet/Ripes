@@ -118,6 +118,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     connect(cacheTab, &CacheTab::focusAddressChanged, memoryTab, &MemoryTab::setCentralAddress);
 
+    connect(this, &MainWindow::prepareSave, editTab, &EditTab::onSave);
+
     m_currentTabID = ProcessorTabID;
     m_ui->tabbar->setActiveIndex(m_currentTabID);
 }
@@ -348,6 +350,8 @@ void MainWindow::saveFilesTriggered() {
         saveFilesAsTriggered();
         return;
     }
+
+    emit prepareSave();
 
     bool didSave = false;
     QStringList savedFiles;

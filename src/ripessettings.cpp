@@ -12,6 +12,8 @@ const std::map<QString, QVariant> s_defaultSettings = {
     // User-modifyable settings
     {RIPES_SETTING_REWINDSTACKSIZE, 100},
     {RIPES_SETTING_CCPATH, ""},
+    {RIPES_SETTING_FORMAT_ON_SAVE, true},
+    {RIPES_SETTING_FORMATTER_ARGS, "--style=LLVM"},
     {RIPES_SETTING_CCARGS, "-O0"},
     {RIPES_SETTING_LDARGS, "-static -lm"},  // Ensure statically linked executable + link with math library
     {RIPES_SETTING_CONSOLEECHO, "true"},

@@ -40,6 +40,9 @@ public:
     void closeEvent(QCloseEvent* event) override;
     void fitToView();
 
+signals:
+    void prepareSave();
+
 private slots:
     void wiki();
     void version();

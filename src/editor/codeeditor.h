@@ -30,6 +30,7 @@ public:
     int lineNumberAreaWidth();
     void setupChangedTimer();
     void rehighlight();
+    void onSave();
 
     void setErrors(const std::shared_ptr<Assembler::Errors>& errors) { m_errors = errors; }
 

@@ -4,6 +4,7 @@
 #include "loaddialog.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
+#include "utilities/systemutils.h"
 
 #include <QProcess>
 #include <QProgressDialog>
@@ -60,18 +61,9 @@ bool CCManager::hasValidCC() {
 }
 
 QString CCManager::tryAutodetectCC() {
-    for (const auto& path : s_validAutodetectedCCs) {
-        QProcess process;
-
-        process.start(path, QStringList());
-        process.waitForFinished();
-
-        if (process.error() != QProcess::FailedToStart) {
-            // We have detected that a valid compiler exists in path
-            return path;
-        }
-    }
-
+    auto ccIt = llvm::find_if(s_validAutodetectedCCs, [&](const QString& path) { return isExecutable(path); });
+    if (ccIt != s_validAutodetectedCCs.end())
+        return *ccIt;
     return QString();
 }
 
