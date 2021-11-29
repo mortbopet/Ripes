@@ -159,12 +159,12 @@ struct RV_I {
 
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
         new _PseudoInstruction(Token("bgtu"), {RegTok, RegTok, ImmTok}, _PseudoExpandFunc(line) {
-            return LineTokensVec{LineTokens{Token("bltu"), line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
+            return LineTokensVec{LineTokens{Token("bltu"), line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
 
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
         new _PseudoInstruction(Token("bleu"), {RegTok, RegTok, ImmTok}, _PseudoExpandFunc(line) {
-            return LineTokensVec{LineTokens{Token("bgeu"), line.tokens.at(2), line.tokens.at(2), line.tokens.at(3)}};
+            return LineTokensVec{LineTokens{Token("bgeu"), line.tokens.at(2), line.tokens.at(1), line.tokens.at(3)}};
         })));
         // clang-format on
 
