@@ -8,17 +8,17 @@
 
 #include "assembler/objdump.h"
 #include "assembler/program.h"
+#include "highlightabletextedit.h"
 #include "processorhandler.h"
 
 namespace Ripes {
 
 class BreakpointArea;
 
-class ProgramViewer : public QPlainTextEdit {
+class ProgramViewer : public HighlightableTextEdit {
     Q_OBJECT
 public:
     ProgramViewer(QWidget* parent = nullptr);
-    void paintEvent(QPaintEvent* e) override;
 
     void breakpointAreaPaintEvent(QPaintEvent* event);
     void breakpointClick(const QPoint& pos);
@@ -78,7 +78,6 @@ private:
      * non-address lines encountered up to and including the given label.
      */
     Assembler::AddrOffsetMap m_labelAddrOffsetMap;
-    std::map<QTextBlock, QStringList> m_highlightedBlocksText;
 };
 
 class BreakpointArea : public QWidget {

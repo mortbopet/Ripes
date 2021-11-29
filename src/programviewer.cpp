@@ -13,7 +13,7 @@
 
 namespace Ripes {
 
-ProgramViewer::ProgramViewer(QWidget* parent) : QPlainTextEdit(parent) {
+ProgramViewer::ProgramViewer(QWidget* parent) : HighlightableTextEdit(parent) {
     m_breakpointArea = new BreakpointArea(this);
 
     connect(this, &QPlainTextEdit::blockCountChanged, this, &ProgramViewer::updateSidebarWidth);
@@ -51,12 +51,7 @@ void ProgramViewer::updateProgram(bool binary) {
     const QString text = binary ? Assembler::binobjdump(ProcessorHandler::getProgram(), m_labelAddrOffsetMap)
                                 : Assembler::objdump(ProcessorHandler::getProgram(), m_labelAddrOffsetMap);
 
-    // A memory occurs within QPlainTextEdit::clear if extra selections has been set. This is most possibly a bug,
-    // but seems to be fixed if we manually clear the selections before we clear (and add new text) to the text
-    // edit.
-    setExtraSelections({});
-    setTextCursor(QTextCursor());
-
+    clearBlockHighlights();
     setPlainText(text);
     updateHighlightedAddresses();
 }
@@ -100,12 +95,10 @@ void ProgramViewer::setFollowEnabled(bool enabled) {
 }
 
 void ProgramViewer::updateHighlightedAddresses() {
+    clearBlockHighlights();
     const unsigned stages = ProcessorHandler::getProcessor()->stageCount();
-    QColor bg = QColorConstants::Red.lighter(120);
-    const int decRatio = 100 + 80 / stages;
+    auto colorGenerator = Colors::incrementalRedGenerator(stages);
     QList<QTextEdit::ExtraSelection> highlights;
-    std::set<AInt> highlightedPCs;
-    m_highlightedBlocksText.clear();
 
     for (unsigned sid = 0; sid < stages; sid++) {
         const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);
@@ -116,60 +109,15 @@ void ProgramViewer::updateHighlightedAddresses() {
 
             // Record the stage name for the highlighted block for later painting
             QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
-            if (!stageInfo.namedState.isEmpty()) {
+            if (!stageInfo.namedState.isEmpty())
                 stageString += " (" + stageInfo.namedState + ")";
-            }
-            m_highlightedBlocksText[block] << stageString;
-
-            // If a stage has already been highlighted (ie. an instruction exists in more than 1 stage at once), keep
-            // the already set highlighting.
-            if (highlightedPCs.count(stageInfo.pc)) {
-                continue;
-            }
-
-            QTextEdit::ExtraSelection es;
-            es.cursor = QTextCursor(block);
-            es.format.setProperty(QTextFormat::FullWidthSelection, true);
-
-            const auto bbr = blockBoundingRect(block);
-            QLinearGradient grad(bbr.topLeft(), bbr.bottomRight());
-            grad.setColorAt(0, palette().base().color());
-            grad.setColorAt(1, bg);
-            es.format.setBackground(grad);
-
-            highlights << es;
-            highlightedPCs.insert(stageInfo.pc);
+            highlightBlock(block, colorGenerator(), stageString);
         }
-        bg = bg.lighter(decRatio);
     }
-    setExtraSelections(highlights);
 
     if (m_following) {
         updateCenterAddressFromProcessor();
     }
-
-    // The stage text is drawn on the viewport itself, which is not automatically redrawn when the extra selections
-    // change. So, to ensure that the new stage text is written, also update the viewport.
-    viewport()->update();
-}
-
-void ProgramViewer::paintEvent(QPaintEvent* event) {
-    QPlainTextEdit::paintEvent(event);
-
-    // Draw stage names for highlighted addresses
-    QPainter painter(viewport());
-
-    for (const auto& hb : m_highlightedBlocksText) {
-        const QString stageString = hb.second.join('/');
-        const auto bbr = blockBoundingGeometry(hb.first);
-        painter.setFont(font());
-        const QRect stageStringRect = painter.fontMetrics().boundingRect(stageString);
-        QPointF drawAt = QPointF(bbr.width() - stageStringRect.width() - /* right-hand side padding*/ 10,
-                                 bbr.top() + (bbr.height() / 2.0 - stageStringRect.height() / 2.0));
-        painter.drawText(QRectF(drawAt.x(), drawAt.y(), stageStringRect.width(), stageStringRect.height()),
-                         stageString);
-    }
-    painter.end();
 }
 
 void ProgramViewer::breakpointAreaPaintEvent(QPaintEvent* event) {
