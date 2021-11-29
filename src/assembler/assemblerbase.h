@@ -32,7 +32,10 @@ public:
 
     /// Assembles an input program (represented as a list of strings). Optionally, a set of predefined symbols may be
     /// provided to the assemble call.
-    virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const = 0;
+    /// If programLines does not represent the source program directly (possibly due to conversion of newline/cr/..., an
+    /// explicit hash of the source program can be provided for later identification.
+    virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr,
+                                    QString sourceHash = QString()) const = 0;
     AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const;
 
     /// Disassembles an input program relative to the provided base address.

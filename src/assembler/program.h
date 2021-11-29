@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QHash>
 #include <QMap>
 #include <QMetaType>
 #include <QString>
@@ -99,9 +100,18 @@ private:
  */
 class Program {
 public:
+    // A source mapping is a mapping from {instruction address : source code line}
+    using SourceMapping = std::map<VInt, unsigned>;
+
     AInt entryPoint = 0;
     std::map<QString, ProgramSection> sections;
     ReverseSymbolMap symbols;
+    SourceMapping sourceMapping;
+
+    // Hash of the source code which this program resulted from. Expected to be a SHA-1 hash (fastest).
+    QString sourceHash;
+    // Returns true if data is equal to the sourceHash of this program.
+    bool isSameSource(const QByteArray& data) const;
 
     /// Returns the program section corresponding to the provided name. Return nullptr if no section was found with the
     /// given name.
@@ -110,6 +120,10 @@ public:
     /// Returns the disassembled version of this program. The result is an ordered map of
     /// [instruction address : disassembled instruction]
     const DisassembledProgram& getDisassembled() const;
+    const SourceMapping& getSourceMapping() const;
+
+    /// Calculates a hash used for source identification.
+    static QString calculateHash(const QByteArray& data);
 
 private:
     /// A caching of the disassembled version of this program.

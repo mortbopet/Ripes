@@ -82,7 +82,8 @@ public:
     AssemblerTypes(Reg_T);
     Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
-    AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr) const override {
+    AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr,
+                            QString sourceHash = QString()) const override {
         AssembleResult result;
 
         /// by default, emit to .text until otherwise specified
@@ -109,6 +110,7 @@ public:
         Q_UNUSED(unused);
 
         result.program = program;
+        result.program.sourceHash = sourceHash;
         result.program.entryPoint = m_sectionBasePointers.at(".text");
         return result;
     }
@@ -368,6 +370,7 @@ protected:
                 std::shared_ptr<_Instruction> assembledWith;
                 runOperation(machineCode, _InstrRes, assembleInstruction, line, assembledWith);
                 assert(assembledWith && "Expected the assembler instruction to be set");
+                program.sourceMapping[addr_offset] = line.sourceLine;
 
                 if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
                     LinkRequest req;

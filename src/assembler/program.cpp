@@ -94,4 +94,16 @@ const DisassembledProgram& Program::getDisassembled() const {
     return disassembled;
 }
 
+QString Program::calculateHash(const QByteArray& data) {
+    return QCryptographicHash::hash(data, QCryptographicHash::Sha1);
+}
+
+bool Program::isSameSource(const QByteArray& data) const {
+    /// We consider no source program to be equal to this program if no source hash has been set.
+    if (sourceHash.isEmpty())
+        return false;
+
+    return sourceHash == calculateHash(data);
+}
+
 }  // namespace Ripes

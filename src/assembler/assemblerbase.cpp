@@ -28,7 +28,7 @@ void AssemblerBase::setSegmentBase(Section seg, AInt base) {
 
 AssembleResult AssemblerBase::assembleRaw(const QString& program, const SymbolMap* symbols) const {
     const auto programLines = program.split(QRegExp("[\r\n]"));
-    return assemble(programLines, symbols);
+    return assemble(programLines, symbols, Program::calculateHash(program.toUtf8()));
 }
 
 /// Adds a symbol to the current symbol mapping of this assembler defined at the 'line' in the input program.
