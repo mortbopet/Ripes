@@ -26,12 +26,14 @@
 
 namespace Ripes {
 
-CodeEditor::CodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
+CodeEditor::CodeEditor(QWidget* parent) : HighlightableTextEdit(parent) {
     m_lineNumberArea = new LineNumberArea(this);
 
     connect(this, &QPlainTextEdit::blockCountChanged, this, &CodeEditor::updateSidebarWidth);
     connect(this, &QPlainTextEdit::updateRequest, this, &CodeEditor::updateSidebar);
     updateSidebarWidth(0);
+
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this, &CodeEditor::updateHighlighting);
 
     // Set font for the entire widget. calls to fontMetrics() will get the
     // dimensions of the currently set font
@@ -387,6 +389,54 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
         top = bottom;
         bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
+    }
+}
+
+void CodeEditor::updateHighlighting() {
+    clearBlockHighlights();
+
+    if (!RipesSettings::value(RIPES_SETTING_EDITORSTAGEHIGHLIGHTING).toBool())
+        return;
+
+    auto* proc = ProcessorHandler::getProcessor();
+    auto program = ProcessorHandler::getProgram().get();
+
+    // Is the current source in sync with the in-memory source?
+    if (!program || !program->isSameSource(document()->toPlainText().toUtf8()))
+        return;
+
+    auto sourceMapping = program->sourceMapping;
+
+    // Do nothing if no soruce mappings are available.
+    if (sourceMapping.empty())
+        return;
+
+    // Iterate over the processor stages and use the source mappings to determine the source line which originated the
+    // instruction.
+    const unsigned stages = proc->stageCount();
+    auto colorGenerator = Colors::incrementalRedGenerator(stages);
+    QList<QTextEdit::ExtraSelection> highlights;
+
+    for (unsigned sid = 0; sid < stages; sid++) {
+        const auto stageInfo = proc->stageInfo(sid);
+        if (stageInfo.stage_valid) {
+            auto sourceLine = sourceMapping.find(stageInfo.pc);
+            if (sourceLine == sourceMapping.end()) {
+                // No source line registerred for this PC.
+                continue;
+            }
+
+            // Find block
+            QTextBlock block = document()->findBlockByLineNumber(sourceLine->second);
+            if (!block.isValid())
+                continue;
+
+            // Record the stage name for the highlighted block for later painting
+            QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
+            if (!stageInfo.namedState.isEmpty())
+                stageString += " (" + stageInfo.namedState + ")";
+            highlightBlock(block, colorGenerator(), stageString);
+        }
     }
 }
 

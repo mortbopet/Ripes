@@ -51,6 +51,7 @@ namespace Ripes {
 #define RIPES_SETTING_AUTOCLOCK_INTERVAL ("autoclock_interval")
 #define RIPES_SETTING_EDITORREGS ("editor_regs")
 #define RIPES_SETTING_EDITORCONSOLE ("editor_console")
+#define RIPES_SETTING_EDITORSTAGEHIGHLIGHTING ("editor_stage_highlighting")
 
 #define RIPES_SETTING_HAS_SAVEFILE ("has_savefile")
 #define RIPES_SETTING_SAVEPATH ("savepath")

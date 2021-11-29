@@ -302,6 +302,11 @@ QWidget* SettingsDialog::createEditorPage() {
     appendToLayout({consoleLabel, consoleCheckbox}, pageLayout,
                    "Show (or hide) a view of the console in the editor tab.");
 
+    auto [editorStageHighlightingLabel, editorStageHighlightingCheckbox] =
+        createSettingsWidgets<QCheckBox>(RIPES_SETTING_EDITORSTAGEHIGHLIGHTING, "Highlight stages in source");
+    appendToLayout({editorStageHighlightingLabel, editorStageHighlightingCheckbox}, pageLayout,
+                   "Show (or hide) highlighting of processor stages in the program source code.");
+
     // ===== Source formatter
     auto* formatterGroupBox = new QGroupBox("Formatter");
     appendToLayout(formatterGroupBox, pageLayout);
