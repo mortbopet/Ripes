@@ -337,6 +337,12 @@ void EditTab::on_disassembledViewButton_toggled() {
 }
 
 bool EditTab::loadFlatBinaryFile(Program& program, QFile& file, unsigned long entryPoint, unsigned long loadAt) {
+    // Reopen the file, ensuring that we're reading it as a binary (non-text) file:
+    file.close();
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Error", "Error: Could not open file " + file.fileName());
+        return false;
+    }
     ProgramSection section;
     section.name = TEXT_SECTION_NAME;
     section.address = loadAt;
