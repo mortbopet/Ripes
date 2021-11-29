@@ -151,26 +151,37 @@ void IOExternalBus::connectButtonTriggered() {
                 }
                 dprintf("%s\n", buff.data());
 
-                QJsonDocument desc = QJsonDocument::fromJson(buff.data());
-                const unsigned int addrw = desc.object().value(QString("address width")).toInt();
-                QJsonObject osymbols = desc.object().value(QString("symbols")).toObject();
+                QJsonParseError error;
+                QJsonDocument desc = QJsonDocument::fromJson(buff.data(), &error);
+                if (error.error == QJsonParseError::NoError) {
+                    const unsigned int addrw = desc.object().value(QString("address width")).toInt();
+                    QJsonObject osymbols = desc.object().value(QString("symbols")).toObject();
 
-                m_regDescs.clear();
-                for (QJsonObject::iterator i = osymbols.begin(); i != osymbols.end(); i++) {
-                    m_regDescs.push_back(
-                        RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, static_cast<AInt>(i.value().toInt()), true});
+                    m_regDescs.clear();
+                    for (QJsonObject::iterator i = osymbols.begin(); i != osymbols.end(); i++) {
+                        m_regDescs.push_back(
+                            RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, static_cast<AInt>(i.value().toInt()), true});
+                    }
+
+                    ByteSize = addrw * osymbols.count();
+
+                    m_ui->connectButton->setText("Disconnect");
+                    m_ui->status->setText("Connected");
+                    m_ui->server->setText(desc.object().value(QString("name")).toString());
+
+                    emit regMapChanged();
+                    emit sizeChanged();
+
+                    // delete[] buff;
+                } else {
+                    QMessageBox::information(nullptr, tr("Ripes VBus"), QString("json: ") + error.errorString());
+                    m_ui->connectButton->setText("Connect");
+                    m_ui->status->setText("Disconnected");
+                    m_ui->server->setText("-");
+
+                    send_cmd(VB_QUIT);
+                    tcpSocket->abort();
                 }
-
-                ByteSize = addrw * osymbols.count();
-
-                m_ui->connectButton->setText("Disconnect");
-                m_ui->status->setText("Connected");
-                m_ui->server->setText(desc.object().value(QString("name")).toString());
-
-                emit regMapChanged();
-                emit sizeChanged();
-
-                // delete[] buff;
             }
         } else {
             disconnectOnError();
