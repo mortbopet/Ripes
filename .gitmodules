@@ -4,3 +4,6 @@
 [submodule "external/ELFIO"]
 	path = external/ELFIO
 	url = https://github.com/serge1/ELFIO
+[submodule "external/libelfin_cmake/libelfin"]
+	path = external/libelfin_cmake/libelfin
+	url = https://github.com/aclements/libelfin
