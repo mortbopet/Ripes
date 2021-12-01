@@ -10,7 +10,13 @@
 namespace Ripes {
 
 HighlightableTextEdit::HighlightableTextEdit(QWidget* parent) : QPlainTextEdit(parent) {
-    connect(this, &QPlainTextEdit::textChanged, this, &HighlightableTextEdit::clearBlockHighlights);
+    // Clear block highlighting on text inserted or removed. This avoids clearing block highlightins on formatting
+    // changes.
+    connect(this->document(), &QTextDocument::contentsChange, this, [&](int /*pos*/, int charsRemoved, int charsAdded) {
+        if ((charsRemoved == 0 && charsAdded == 0) || (charsAdded == charsRemoved))
+            return;
+        clearBlockHighlights();
+    });
 }
 
 void HighlightableTextEdit::paintEvent(QPaintEvent* event) {
@@ -31,6 +37,7 @@ void HighlightableTextEdit::paintEvent(QPaintEvent* event) {
         painter.drawText(QRectF(drawAt.x(), drawAt.y(), stageStringRect.width(), stageStringRect.height()),
                          stageString);
     }
+    viewport()->update();
     painter.end();
 }
 
