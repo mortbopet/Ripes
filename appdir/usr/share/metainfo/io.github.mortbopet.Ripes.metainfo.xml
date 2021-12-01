@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.mortbopet.Ripes</id>
+
+  <name>Ripes</name>
+  <summary>A graphical processor simulator and assembly editor for the RISC-V ISA</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <url type="homepage">https://mortbopet.github.io/Ripes/</url>
+
+  <description>
+    <p>
+    Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
+
+    If you enjoy using Ripes, or find it useful in teaching, please consider supporting the project through [GitHub Sponsors](https://github.com/sponsors/mortbopet) or donating through [Ko-Fi](https://ko-fi.com/mortbopet).
+
+    For questions, comments, feature requests, or new ideas, don&apos;t hesitate to share these at the [discussions page](https://github.com/mortbopet/Ripes/discussions).
+    For bugs or issues, please report these at the [issues page](https://github.com/mortbopet/Ripes/issues).
+
+    ![animated](https://github.com/mortbopet/Ripes/blob/master/resources/images/animation.gif?raw=true)
+    </p>
+
+    <p>
+    ## Usage
+    Ripes may be used to explore concepts such as:
+    - How machine code is executed on a variety of microarchitectures (RV32IMC/RV64IMC based)
+    - How different cache designs influence performance
+    - How C and assembly code is compiled and assembled to executable machine code
+    - How a processor interacts with memory-mapped I/O
+
+    If this is your first time using Ripes, please refer to the [introduction](https://github.com/mortbopet/Ripes/wiki/Ripes-Introduction).
+    For further information, please refer to the [Ripes wiki](https://github.com/mortbopet/Ripes/wiki).
+    </p>
+  </description>
+
+  <launchable type="desktop-id">Ripes.desktop</launchable>
+  <releases>
+    <release version="2.2.3" date="2021-09-13"/>
+  </releases>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/mortbopet/Ripes/blob/master/resources/images/processortab_static.png?raw=true</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.0" />
+</component>
