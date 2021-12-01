@@ -70,5 +70,6 @@ add_subdirectory(version)
 target_link_libraries(${RIPES_LIB} PUBLIC
     fancytabbar_lib
     ${VSRTL_GRAPHICS_LIB}
-    Qt5::Charts)
+    Qt5::Charts
+    dwarf++)
 

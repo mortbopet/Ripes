@@ -2,6 +2,7 @@
 #include "ui_edittab.h"
 
 #include "elfio/elfio.hpp"
+#include "libelfin/dwarf/dwarf++.hh"
 
 #include <QCheckBox>
 #include <QLabel>
@@ -367,6 +368,34 @@ bool EditTab::loadSourceFile(Program&, QFile& file) {
     return true;
 }
 
+using namespace ELFIO;
+class ELFIODwarfLoader : public ::dwarf::loader {
+public:
+    ELFIODwarfLoader(elfio& reader) : reader(reader) {}
+
+    const void* load(::dwarf::section_type section, size_t* size_out) override {
+        auto sec = reader.sections[::dwarf::elf::section_type_to_name(section)];
+        if (sec == nullptr)
+            return nullptr;
+        *size_out = sec->get_size();
+        return sec->get_data();
+    }
+
+private:
+    elfio& reader;
+};
+
+std::shared_ptr<ELFIODwarfLoader> createDwarfLoader(elfio& reader) {
+    return std::make_shared<ELFIODwarfLoader>(reader);
+}
+
+static bool isInternalSourceFile(const QString& filename) {
+    // Returns true if we have reason to believe that this file originated from within the Ripes editor. These will be
+    // temporary files like /.../Ripes.abc123.c
+    static QRegularExpression re("Ripes.[a-zA-Z0-9]+.c");
+    return re.match(filename).hasMatch();
+}
+
 bool EditTab::loadElfFile(Program& program, QFile& file) {
     ELFIO::elfio reader;
 
@@ -405,6 +434,39 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
                 program.symbols[value] = QString::fromStdString(name);
             }
         }
+    }
+
+    // Load DWARF information into the source mapping of the program.
+    // We'll only load information from compilation units which originated from a source file that plausibly arrived
+    // from within the Ripes editor.
+    QString editorSrcFile;
+    try {
+        ::dwarf::dwarf dw(createDwarfLoader(reader));
+        for (auto& cu : dw.compilation_units()) {
+            for (auto& line : cu.get_line_table()) {
+                if (!line.file)
+                    continue;
+                QString filePath = QString::fromStdString(line.file->path);
+                if (editorSrcFile.isEmpty()) {
+                    // Try to see if this compilation unit is from the Ripes editor:
+                    if (isInternalSourceFile(filePath))
+                        editorSrcFile = filePath;
+                }
+                if (editorSrcFile != filePath)
+                    continue;
+                qDebug() << "Mapping " << line.address << " to " << line.line;
+                program.sourceMapping[line.address] = line.line;
+            }
+        }
+
+        // Finally, we need to generate a hash of the source file that we've loaded source mappings from, so the editor
+        // knows what editor contents applies to this program.
+        QFile srcFile(editorSrcFile);
+        if (srcFile.open(QFile::ReadOnly)) {
+            program.sourceHash = Program::calculateHash(srcFile.readAll());
+        }
+    } catch (...) {
+        // Could not load DWARF information for some reason...
     }
 
     program.entryPoint = reader.get_entry();

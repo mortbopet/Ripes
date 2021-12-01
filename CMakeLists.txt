@@ -70,6 +70,7 @@ include_directories(${RIPES_LIB} SYSTEM PUBLIC external/VSRTL/external/cereal/in
 include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
 include_directories(SYSTEM external/ELFIO)
 include_directories(SYSTEM external/VSRTL/external/Signals)
+include_directories(external/libelfin_cmake)
 include_directories(external)
 
 option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
