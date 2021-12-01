@@ -463,6 +463,8 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
         QFile srcFile(editorSrcFile);
         if (srcFile.open(QFile::ReadOnly)) {
             program.sourceHash = Program::calculateHash(srcFile.readAll());
+        } else {
+            throw ::dwarf::format_error("Could not find source file " + editorSrcFile.toStdString());
         }
     } catch (::dwarf::format_error& e) {
         std::string msg = "Could not load debug information: ";
