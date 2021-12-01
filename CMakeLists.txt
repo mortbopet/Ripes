@@ -29,7 +29,7 @@ endif()
 if(MSVC)
     add_definitions(/bigobj) # Allow big object
 elseif(MINGW)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj") # Allow big object
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbig-obj") # Allow big object
 endif()
 
 ######################################################################
