@@ -454,8 +454,7 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
                 }
                 if (editorSrcFile != filePath)
                     continue;
-                qDebug() << "Mapping " << line.address << " to " << line.line;
-                program.sourceMapping[line.address] = line.line;
+                program.sourceMapping[line.address].insert(line.line - 1);
             }
         }
 

@@ -6,6 +6,7 @@
 #include <QMetaType>
 #include <QString>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "ripes_types.h"
@@ -100,8 +101,8 @@ private:
  */
 class Program {
 public:
-    // A source mapping is a mapping from {instruction address : source code line}
-    using SourceMapping = std::map<VInt, unsigned>;
+    // A source mapping is a mapping from {instruction address : source code lines}
+    using SourceMapping = std::map<VInt, std::set<unsigned>>;
 
     AInt entryPoint = 0;
     std::map<QString, ProgramSection> sections;

@@ -419,23 +419,26 @@ void CodeEditor::updateHighlighting() {
 
     for (unsigned sid = 0; sid < stages; sid++) {
         const auto stageInfo = proc->stageInfo(sid);
+        QColor stageColor = colorGenerator();
         if (stageInfo.stage_valid) {
-            auto sourceLine = sourceMapping.find(stageInfo.pc);
-            if (sourceLine == sourceMapping.end()) {
+            auto mappingIt = sourceMapping.find(stageInfo.pc);
+            if (mappingIt == sourceMapping.end()) {
                 // No source line registerred for this PC.
                 continue;
             }
 
-            // Find block
-            QTextBlock block = document()->findBlockByLineNumber(sourceLine->second);
-            if (!block.isValid())
-                continue;
+            for (auto sourceLine : mappingIt->second) {
+                // Find block
+                QTextBlock block = document()->findBlockByLineNumber(sourceLine);
+                if (!block.isValid())
+                    continue;
 
-            // Record the stage name for the highlighted block for later painting
-            QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
-            if (!stageInfo.namedState.isEmpty())
-                stageString += " (" + stageInfo.namedState + ")";
-            highlightBlock(block, colorGenerator(), stageString);
+                // Record the stage name for the highlighted block for later painting
+                QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
+                if (!stageInfo.namedState.isEmpty())
+                    stageString += " (" + stageInfo.namedState + ")";
+                highlightBlock(block, stageColor, stageString);
+            }
         }
     }
 }
