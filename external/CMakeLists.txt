@@ -11,3 +11,5 @@ add_subdirectory(fancytabbar)
 add_subdirectory(VSRTL)
 set(VSRTL_BUILD_APP OFF)
 set(VSRTL_BUILD_TESTS OFF)
+
+add_subdirectory(libelfin_cmake)
