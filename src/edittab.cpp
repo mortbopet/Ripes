@@ -464,8 +464,12 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
         if (srcFile.open(QFile::ReadOnly)) {
             program.sourceHash = Program::calculateHash(srcFile.readAll());
         }
+    } catch (::dwarf::format_error& e) {
+        std::string msg = "Could not load debug information: ";
+        msg += e.what();
+        GeneralStatusManager::setStatusTimed(QString::fromStdString(msg), 2500);
     } catch (...) {
-        // Could not load DWARF information for some reason...
+        // Something else went wrong.
     }
 
     program.entryPoint = reader.get_entry();
