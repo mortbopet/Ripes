@@ -44,7 +44,7 @@ endfunction()
 
 # Error flags on everything but MSVC
 if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "-Wextra -Wall \
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wall \
         -Werror=switch -Werror=return-type \
         -Werror=unreachable-code")
 elseif(MINGW)

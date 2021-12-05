@@ -457,14 +457,14 @@ bool EditTab::loadElfFile(Program& program, QFile& file) {
                 program.sourceMapping[line.address].insert(line.line - 1);
             }
         }
-
-        // Finally, we need to generate a hash of the source file that we've loaded source mappings from, so the editor
-        // knows what editor contents applies to this program.
-        QFile srcFile(editorSrcFile);
-        if (srcFile.open(QFile::ReadOnly)) {
-            program.sourceHash = Program::calculateHash(srcFile.readAll());
-        } else {
-            throw ::dwarf::format_error("Could not find source file " + editorSrcFile.toStdString());
+        if (!editorSrcFile.isEmpty()) {
+            // Finally, we need to generate a hash of the source file that we've loaded source mappings from, so the
+            // editor knows what editor contents applies to this program.
+            QFile srcFile(editorSrcFile);
+            if (srcFile.open(QFile::ReadOnly))
+                program.sourceHash = Program::calculateHash(srcFile.readAll());
+            else
+                throw ::dwarf::format_error("Could not find source file " + editorSrcFile.toStdString());
         }
     } catch (::dwarf::format_error& e) {
         std::string msg = "Could not load debug information: ";
