@@ -77,7 +77,6 @@ jobs:
       name: build Ripes
       run: |
         cmake -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .
-        cat external/libelfin_cmake/libelfin/dwarf/to_string.cc
         make -j $(nproc)
 
     - if: contains(matrix.os, 'windows')
