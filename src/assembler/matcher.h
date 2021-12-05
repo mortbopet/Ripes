@@ -105,16 +105,21 @@ private:
                         "' cannot be decoded; aliases with other instruction (Needs more discernable parts)\n";
                     throw std::runtime_error(err.toStdString().c_str());
                 }
-                const OpPart opPart = instrRef->getOpcode().opParts[fieldDepth - 1];
-                if (nOpParts == fieldDepth && instrsWithEqualOpPart.count(opPart) != 0) {
+                auto& opParts = instrRef->getOpcode().opParts;
+                const OpPart* opPart = nullptr;
+                if (fieldDepth > nOpParts)
+                    opPart = &opParts.back();
+                else
+                    opPart = &opParts[fieldDepth - 1];
+                if (nOpParts == fieldDepth && instrsWithEqualOpPart.count(*opPart) != 0) {
                     QString err;
                     err +=
                         "Instruction cannot be decoded; aliases with other instruction (Identical to other "
                         "instruction)\n";
-                    err += instr->name() + " is equal to " + instrsWithEqualOpPart.at(opPart).at(0)->name();
+                    err += instr->name() + " is equal to " + instrsWithEqualOpPart.at(*opPart).at(0)->name();
                     throw std::runtime_error(err.toStdString().c_str());
                 }
-                instrsWithEqualOpPart[opPart].push_back(instr);
+                instrsWithEqualOpPart[*opPart].push_back(instr);
             }
         }
 
