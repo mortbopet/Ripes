@@ -12,4 +12,8 @@ add_subdirectory(VSRTL)
 set(VSRTL_BUILD_APP OFF)
 set(VSRTL_BUILD_TESTS OFF)
 
-add_subdirectory(libelfin_cmake)
+add_subdirectory(libelfin)
+# Make autoMOC and autoUIC happy about the generated libelfin files
+set(libelfin_src "${CMAKE_CURRENT_SOURCE_DIR}/libelfin")
+set_property(SOURCE "${libelfin_src}/elf/to_string.cc" PROPERTY SKIP_AUTOGEN ON)
+set_property(SOURCE "${libelfin_src}/dwarf/to_string.cc" PROPERTY SKIP_AUTOGEN ON)
