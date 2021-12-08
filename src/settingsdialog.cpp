@@ -177,6 +177,7 @@ QWidget* SettingsDialog::createCompilerPage() {
     auto* pathBrowseButton = new QPushButton("Browse");
     connect(pathBrowseButton, &QPushButton::clicked, [=, ccpath = ccpath] {
         QFileDialog dialog(this);
+        dialog.setOption(QFileDialog::DontUseNativeDialog);
         dialog.setAcceptMode(QFileDialog::AcceptOpen);
         if (dialog.exec()) {
             ccpath->setText(dialog.selectedFiles().at(0));
