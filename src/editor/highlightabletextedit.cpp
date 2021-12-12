@@ -43,7 +43,10 @@ void HighlightableTextEdit::paintEvent(QPaintEvent* event) {
 
 void HighlightableTextEdit::applyHighlighting() {
     QList<QTextEdit::ExtraSelection> selections;
-    llvm::transform(m_blockHighlights, std::back_inserter(selections), [](const auto& bh) { return bh.selection; });
+    for (auto& bh : m_blockHighlights) {
+        if (auto selection = getExtraSelection(bh); selection.has_value())
+            selections.push_back(selection.value());
+    }
     setExtraSelections(selections);
 
     // The block text is drawn on the viewport itself, which is not automatically redrawn when the extra selections
@@ -64,24 +67,8 @@ void HighlightableTextEdit::clearBlockHighlights() {
     update();
 }
 
-void HighlightableTextEdit::setBlockGradient(BlockHighlight& highlight) {
-    auto block = highlight.selection.cursor.block();
-    if (!block.isValid())
-        return;
-    const auto bbr = blockBoundingRect(block);
-    QLinearGradient grad(bbr.topLeft(), bbr.bottomRight());
-    grad.setColorAt(0, palette().base().color());
-    grad.setColorAt(1, highlight.color);
-    highlight.selection.format.setBackground(grad);
-}
-
 void HighlightableTextEdit::resizeEvent(QResizeEvent* e) {
     QPlainTextEdit::resizeEvent(e);
-
-    // we need to update the highlighted lines whenever resizing the window to recalculate the highlighting gradient,
-    // reflecting the new widget size
-    for (auto& highlight : m_blockHighlights)
-        setBlockGradient(highlight);
     applyHighlighting();
 }
 
@@ -94,14 +81,28 @@ void HighlightableTextEdit::highlightBlock(const QTextBlock& block, const QColor
     // Check if we're already highlighting the block. If this is the case, do not set an additional highlight on it.
     if (m_highlightedBlocks.count(block))
         return;
-
     m_blockHighlights.push_back({});
     auto& highlight = m_blockHighlights.back();
-    highlight.selection.cursor = QTextCursor(block);
-    highlight.selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+    highlight.blockNumber = block.blockNumber();
     highlight.color = color;
-    setBlockGradient(highlight);
     applyHighlighting();
+}
+
+std::optional<QTextEdit::ExtraSelection>
+HighlightableTextEdit::getExtraSelection(const HighlightableTextEdit::BlockHighlight& highlighting) {
+    auto block = document()->findBlockByNumber(highlighting.blockNumber);
+    if (!block.isValid())
+        return {};
+
+    QTextEdit::ExtraSelection selection;
+    selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+    selection.cursor = QTextCursor(block);
+    const auto bbr = blockBoundingRect(block);
+    QLinearGradient grad(bbr.topLeft(), bbr.bottomRight());
+    grad.setColorAt(0, palette().base().color());
+    grad.setColorAt(1, highlighting.color);
+    selection.format.setBackground(grad);
+    return {selection};
 }
 
 }  // namespace Ripes
