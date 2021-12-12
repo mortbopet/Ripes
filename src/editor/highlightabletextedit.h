@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QTimer>
 
+#include <optional>
 #include <set>
 
 namespace Ripes {
@@ -18,7 +19,10 @@ class HighlightableTextEdit : public QPlainTextEdit {
     struct BlockHighlight {
         // Store the color which the block is highlighted with so that we can rehighlight a selection.
         QColor color;
-        QTextEdit::ExtraSelection selection;
+        // Only store the block number, not the block itself nor a ExtraSelection. After countless of hours of
+        // debugging, it's deemed that all of this is very unsafe to store outside of the QPlainTextEdit itself, and so
+        // we just rebuild all of this info whenever needed.
+        int blockNumber;
     };
 
 public:
@@ -34,7 +38,9 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
-    void setBlockGradient(BlockHighlight& highlight);
+    /// Creates a new ExtraSelection formatting from the information stored in BlockHighlighting.
+    std::optional<QTextEdit::ExtraSelection>
+    getExtraSelection(const HighlightableTextEdit::BlockHighlight& highlighting);
     void applyHighlighting();
 
     /// A list of strings which will be printed at the right-hand side of each block

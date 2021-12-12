@@ -42,6 +42,14 @@ function(create_ripes_lib NAME)
     endif()
 endfunction()
 
+# Error flags on everything but MSVC
+if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wall \
+        -Werror=switch -Werror=return-type \
+        -Werror=unreachable-code")
+elseif(MINGW)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa")
+endif()
 
 # Create the parent library. This will include everything in the current directory.
 create_ripes_lib(${RIPES_LIB} FIXED_NAME EXCLUDE_SRC_INC)
@@ -62,5 +70,6 @@ add_subdirectory(version)
 target_link_libraries(${RIPES_LIB} PUBLIC
     fancytabbar_lib
     ${VSRTL_GRAPHICS_LIB}
-    Qt5::Charts)
+    Qt5::Charts
+    dwarf++)
 

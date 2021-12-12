@@ -370,7 +370,7 @@ protected:
                 std::shared_ptr<_Instruction> assembledWith;
                 runOperation(machineCode, _InstrRes, assembleInstruction, line, assembledWith);
                 assert(assembledWith && "Expected the assembler instruction to be set");
-                program.sourceMapping[addr_offset] = line.sourceLine;
+                program.sourceMapping[addr_offset].insert(line.sourceLine);
 
                 if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
                     LinkRequest req;

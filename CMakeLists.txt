@@ -29,7 +29,7 @@ endif()
 if(MSVC)
     add_definitions(/bigobj) # Allow big object
 elseif(MINGW)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj") # Allow big object
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbig-obj") # Allow big object
 endif()
 
 ######################################################################
@@ -70,6 +70,7 @@ include_directories(${RIPES_LIB} SYSTEM PUBLIC external/VSRTL/external/cereal/in
 include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
 include_directories(SYSTEM external/ELFIO)
 include_directories(SYSTEM external/VSRTL/external/Signals)
+include_directories(external/libelfin_cmake)
 include_directories(external)
 
 option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
