@@ -23,7 +23,7 @@ namespace Ripes {
 
 IOExternalBus::IOExternalBus(QWidget* parent)
     : IOBase(IOType::EXTERNALBUS, parent), m_ui(new Ui::IOExternalBus), tcpSocket(new XTcpSocket()) {
-    ByteSize = 1;
+    m_ByteSize = 1;
     skt_use.unlock();
 
     m_ui->setupUi(this);
@@ -36,7 +36,7 @@ IOExternalBus::~IOExternalBus() {
 };
 
 unsigned IOExternalBus::byteSize() const {
-    return ByteSize;
+    return m_ByteSize;
 }
 
 QString IOExternalBus::description() const {
@@ -110,7 +110,7 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
 }
 
 void IOExternalBus::connectButtonTriggered() {
-    if (!Connected) {
+    if (!m_Connected) {
         tcpSocket->abort();
         if (tcpSocket->connectToHost(m_ui->address->text(), m_ui->port->value())) {
             if (send_cmd(VBUS::VB_PINFO) < 0) {
@@ -140,7 +140,7 @@ void IOExternalBus::connectButtonTriggered() {
                         m_regDescs.push_back(
                             RegDesc{i.key(), RegDesc::RW::RW, addrw * 8, static_cast<AInt>(i.value().toInt()), true});
                     }
-                    ByteSize = addrw * osymbols.count();
+                    m_ByteSize = addrw * osymbols.count();
                     updateConnectionStatus(true, desc.object().value(QString("name")).toString());
 
                 } else {
@@ -164,8 +164,8 @@ void IOExternalBus::connectButtonTriggered() {
 }
 
 void IOExternalBus::updateConnectionStatus(bool connected, QString Server) {
-    Connected = connected;
-    if (Connected) {
+    m_Connected = connected;
+    if (m_Connected) {
         m_ui->connectButton->setText("Disconnect");
         m_ui->status->setText("Connected");
         m_ui->server->setText(Server);

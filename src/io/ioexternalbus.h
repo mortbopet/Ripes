@@ -46,8 +46,8 @@ private slots:
     void connectButtonTriggered();
 
 private:
-    bool Connected = false;
-    uint32_t ByteSize;
+    bool m_Connected = false;
+    uint32_t m_ByteSize;
     int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const QByteArray& payload = {});
     int32_t recv_cmd(VBUS::CmdHeader& cmd_header);
     int32_t recv_payload(QByteArray& buff, const uint32_t payload_size);
