@@ -1,7 +1,7 @@
 #include "XTcpSocket.h"
 
 // platform dependent system headers
-#ifdef _MSC_VER
+#ifdef MSVC
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define SHUT_RDWR SD_BOTH
@@ -22,16 +22,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-void XTcpSocket::FormatLastErrorStr(const char* func) {
-#ifdef _MSC_VER
+void XTcpSocket::FormatLastErrorStr(const QString& func) {
+#ifdef MSVC
     int err;
-
     char msgbuf[256];  // for a message up to 255 bytes.
-
     msgbuf[0] = '\0';  // Microsoft doesn't guarantee this on man page.
-
     err = WSAGetLastError();
-
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,  // flags
                   NULL,                                                        // lpsource
                   err,                                                         // message id
@@ -41,22 +37,22 @@ void XTcpSocket::FormatLastErrorStr(const char* func) {
                   NULL);                                                       // va_list of arguments
 
     if (!*msgbuf)
-        snprintf(lastError, 255, "%s error : %d ", err);  // provide error # if no string available
+        lastError = func + " error number : " + QString(err);  // provide error # if no string available
     else
-        snprintf(lastError, 255, "%s error : %s ", func, msgbuf);
+        lastError = func + " error : " + msgbuf;
 
 #else
-    snprintf(lastError, 255, "%s error : %s ", func, strerror(errno));
+    lastError = func + " error : " + strerror(errno);
 #endif
 }
 
-const char* XTcpSocket::getLastErrorStr(void) {
+const QString XTcpSocket::getLastErrorStr(void) {
     return lastError;
 }
 
 void XTcpSocket::close() {
     // shutdown (sockfd,SHUT_RDWR );
-#ifdef _MSC_VER
+#ifdef MSVC
     closesocket(sockfd);
 #else
     ::close(sockfd);
@@ -69,7 +65,7 @@ void XTcpSocket::abort() {
 }
 
 int XTcpSocket::write(const QByteArray& buff, const size_t size) {
-    int ret = send(sockfd, buff.data(), size, MSG_NOSIGNAL);
+    int ret = send(sockfd, static_cast<const char*>(buff.data()), size, MSG_NOSIGNAL);
     if (ret != (int)size) {
         FormatLastErrorStr("write");
         return -1;
@@ -78,7 +74,7 @@ int XTcpSocket::write(const QByteArray& buff, const size_t size) {
 }
 
 int XTcpSocket::read(QByteArray& buff, const size_t size) {
-    int ret = recv(sockfd, buff.data(), size, MSG_WAITALL);
+    int ret = recv(sockfd, static_cast<char*>(buff.data()), size, MSG_WAITALL);
     if (ret != (int)size) {
         FormatLastErrorStr("read");
         return -1;
@@ -99,7 +95,7 @@ int XTcpSocket::connectToHost(const QString& host, int port) {
     serv.sin_addr.s_addr = inet_addr(host.toStdString().c_str());
     serv.sin_port = htons(port);
 
-    if (connect(sockfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {
+    if (connect(sockfd, reinterpret_cast<struct sockaddr*>(&serv), sizeof(serv)) < 0) {
         FormatLastErrorStr("connect");
         close();
         return 0;
@@ -117,7 +113,7 @@ int XTcpSocket::serverStart(int port) {
     }
 
     int reuse = 1;
-    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0) {
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse), sizeof(reuse)) < 0) {
         FormatLastErrorStr("setsockopt(SO_REUSEADDR)");
     }
 
@@ -126,7 +122,7 @@ int XTcpSocket::serverStart(int port) {
     serv.sin_addr.s_addr = htonl(INADDR_ANY);
     serv.sin_port = htons(port);
 
-    if (bind(listenfd, (struct sockaddr*)&serv, sizeof(serv)) < 0) {
+    if (bind(listenfd, reinterpret_cast<struct sockaddr*>(&serv), sizeof(serv)) < 0) {
         FormatLastErrorStr("bind");
         serverClose();
         return -1;
@@ -143,12 +139,8 @@ int XTcpSocket::serverStart(int port) {
 
 int XTcpSocket::serverAccept(void) {
     struct sockaddr_in cli;
-#ifdef _MSC_VER
-    int clilen = sizeof(cli);
-#else
     unsigned int clilen = sizeof(cli);
-#endif
-    sockfd = accept(listenfd, (struct sockaddr*)&cli, &clilen);
+    sockfd = accept(listenfd, reinterpret_cast<struct sockaddr*>(&cli), &clilen);
     if (sockfd < 0) {
         FormatLastErrorStr("accept");
         sockfd = -1;
@@ -157,7 +149,7 @@ int XTcpSocket::serverAccept(void) {
 }
 
 void XTcpSocket::serverClose(void) {
-#ifdef _MSC_VER
+#ifdef MSVC
     closesocket(listenfd);
 #else
     ::close(listenfd);
@@ -165,10 +157,10 @@ void XTcpSocket::serverClose(void) {
     listenfd = -1;
 }
 
-int XTcpSocket::instances = 0;
+std::atomic<int> XTcpSocket::instances = 0;
 
 XTcpSocket::XTcpSocket() {
-#ifdef _MSC_VER
+#ifdef MSVC
     if (!XTcpSocket::instances) {
         WORD wVersionRequested = 2;
         WSADATA wsaData;
@@ -185,7 +177,7 @@ XTcpSocket::XTcpSocket() {
 
 XTcpSocket::~XTcpSocket() {
     --XTcpSocket::instances;
-#ifdef _MSC_VER
+#ifdef MSVC
     if (!XTcpSocket::instances) {
         WSACleanup();
     }

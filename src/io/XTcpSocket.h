@@ -4,8 +4,7 @@
 #include <QByteArray>
 #include <QString>
 
-class XTcpSocket {  //: public QObject {
-    // Q_OBJECT
+class XTcpSocket {
 public:
     XTcpSocket();
     ~XTcpSocket();
@@ -21,16 +20,13 @@ public:
     int serverStart(int port);
     int serverAccept(void);
     void serverClose(void);
-    const char* getLastErrorStr(void);
-    static int instances;
-
-    // signals:
-    //   void onError(const QString& msg);
+    const QString getLastErrorStr(void);
+    static std::atomic<int> instances;
 
 private:
-    void FormatLastErrorStr(const char* func);
+    void FormatLastErrorStr(const QString& func);
 
-    char lastError[256];
+    QString lastError;
     int sockfd = -1;
     int listenfd = -1;
 };

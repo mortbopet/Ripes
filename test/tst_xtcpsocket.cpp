@@ -20,30 +20,30 @@ void tst_xtcpsocket::tst_pinpong() {
     QByteArray out(10, 0);
 
     if (server.serverStart(7890) < 0) {
-        QFAIL(server.getLastErrorStr());
+        QFAIL(server.getLastErrorStr().toStdString().c_str());
     }
     QFuture<void> future = QtConcurrent::run(&server, &XTcpSocket::serverAccept);
     if (client.connectToHost("127.0.0.1", 7890) < 0) {
-        QFAIL(client.getLastErrorStr());
+        QFAIL(client.getLastErrorStr().toStdString().c_str());
     }
     future.waitForFinished();
 
     out.fill(' ', 10);
     if (server.write(in, 10) < 0) {
-        QFAIL(server.getLastErrorStr());
+        QFAIL(server.getLastErrorStr().toStdString().c_str());
     }
     if (client.read(out, 10) < 0) {
-        QFAIL(client.getLastErrorStr());
+        QFAIL(client.getLastErrorStr().toStdString().c_str());
     }
 
     QCOMPARE(in, out);
 
     out.fill(' ', 10);
     if (client.write(in, 10) < 0) {
-        QFAIL(client.getLastErrorStr());
+        QFAIL(client.getLastErrorStr().toStdString().c_str());
     }
     if (server.read(out, 10) < 0) {
-        QFAIL(server.getLastErrorStr());
+        QFAIL(server.getLastErrorStr().toStdString().c_str());
     }
 
     QCOMPARE(in, out);

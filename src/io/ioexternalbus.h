@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QMutex>
 #include <QPen>
 #include <QVariant>
-#include <QWidget>
 
 #include "iobase.h"
 
@@ -46,12 +46,13 @@ private slots:
     void connectButtonTriggered();
 
 private:
+    bool Connected = false;
     uint32_t ByteSize;
-    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const QByteArray* payload = nullptr);
-    int32_t recv_cmd(cmd_header_t& cmd_header);
+    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const QByteArray& payload = {});
+    int32_t recv_cmd(VBUS::CmdHeader& cmd_header);
     int32_t recv_payload(QByteArray& buff, const uint32_t payload_size);
-    void disconnectOnError(void);
-
+    void disconnectOnError(QString msg = "");
+    void updateConnectionStatus(bool connected, QString Server = "-");
     void updateAddress();
     Ui::IOExternalBus* m_ui = nullptr;
 
@@ -59,6 +60,6 @@ private:
     std::vector<IOSymbol> m_extraSymbols;
 
     std::unique_ptr<XTcpSocket> tcpSocket = nullptr;
-    unsigned char skt_use;
+    QMutex skt_use;
 };
 }  // namespace Ripes
