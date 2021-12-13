@@ -1,7 +1,7 @@
 #include "XTcpSocket.h"
 
 // platform dependent system headers
-#ifdef MSVC
+#ifdef _MSC_VER
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define SHUT_RDWR SD_BOTH
@@ -23,7 +23,7 @@
 #include <string.h>
 
 void XTcpSocket::FormatLastErrorStr(const QString& func) {
-#ifdef MSVC
+#ifdef _MSC_VER
     int err;
     char msgbuf[256];  // for a message up to 255 bytes.
     msgbuf[0] = '\0';  // Microsoft doesn't guarantee this on man page.
@@ -52,7 +52,7 @@ const QString XTcpSocket::getLastErrorStr(void) {
 
 void XTcpSocket::close() {
     // shutdown (sockfd,SHUT_RDWR );
-#ifdef MSVC
+#ifdef _MSC_VER
     closesocket(sockfd);
 #else
     ::close(sockfd);
@@ -149,7 +149,7 @@ int XTcpSocket::serverAccept(void) {
 }
 
 void XTcpSocket::serverClose(void) {
-#ifdef MSVC
+#ifdef _MSC_VER
     closesocket(listenfd);
 #else
     ::close(listenfd);
@@ -160,7 +160,7 @@ void XTcpSocket::serverClose(void) {
 std::atomic<int> XTcpSocket::instances = 0;
 
 XTcpSocket::XTcpSocket() {
-#ifdef MSVC
+#ifdef _MSC_VER
     if (!XTcpSocket::instances) {
         WORD wVersionRequested = 2;
         WSADATA wsaData;
@@ -177,7 +177,7 @@ XTcpSocket::XTcpSocket() {
 
 XTcpSocket::~XTcpSocket() {
     --XTcpSocket::instances;
-#ifdef MSVC
+#ifdef _MSC_VER
     if (!XTcpSocket::instances) {
         WSACleanup();
     }

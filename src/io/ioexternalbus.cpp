@@ -17,7 +17,6 @@
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <qt5/QtCore/qmutex.h>
 #endif
 
 namespace Ripes {
