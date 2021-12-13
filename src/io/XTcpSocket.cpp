@@ -139,7 +139,11 @@ int XTcpSocket::serverStart(int port) {
 
 int XTcpSocket::serverAccept(void) {
     struct sockaddr_in cli;
-    unsigned int clilen = sizeof(cli);
+#ifdef _MSC_VER
+    int clilen = sizeof(cli);  // accept third argument is int on MSVC
+#else
+    unsigned int clilen = sizeof(cli);  // accpet third argument is unsigned int in gcc
+#endif
     sockfd = accept(listenfd, reinterpret_cast<struct sockaddr*>(&cli), &clilen);
     if (sockfd < 0) {
         FormatLastErrorStr("accept");
