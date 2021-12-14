@@ -27,8 +27,5 @@ create_qtest(tst_riscv)
 create_qtest(tst_assembler)
 create_qtest(tst_expreval)
 create_qtest(tst_cosimulate)
-<<<<<<< HEAD
 create_qtest(tst_reverse)
-=======
 create_qtest(tst_xtcpsocket)
->>>>>>> 6bf4bc6 (tst_xtcpsocket added)
