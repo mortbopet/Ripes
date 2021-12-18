@@ -211,7 +211,6 @@ void CodeEditor::keyPressEvent(QKeyEvent* e) {
         cursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor);
         setTextCursor(cursor);
     } else if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
-        QString toInsert;
         unsigned indent = 0;
         unsigned postIndent = 0;
         // Maintain level of indentation on enter key
@@ -321,8 +320,7 @@ void CodeEditor::updateSidebar(const QRect& rect, int dy) {
 }
 
 void CodeEditor::resizeEvent(QResizeEvent* e) {
-    QPlainTextEdit::resizeEvent(e);
-
+    HighlightableTextEdit::resizeEvent(e);
     const QRect cr = contentsRect();
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
@@ -415,7 +413,6 @@ void CodeEditor::updateHighlighting() {
     // instruction.
     const unsigned stages = proc->stageCount();
     auto colorGenerator = Colors::incrementalRedGenerator(stages);
-    QList<QTextEdit::ExtraSelection> highlights;
 
     for (unsigned sid = 0; sid < stages; sid++) {
         const auto stageInfo = proc->stageInfo(sid);

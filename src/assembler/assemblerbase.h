@@ -35,7 +35,7 @@ public:
     /// If programLines does not represent the source program directly (possibly due to conversion of newline/cr/..., an
     /// explicit hash of the source program can be provided for later identification.
     virtual AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr,
-                                    QString sourceHash = QString()) const = 0;
+                                    const QString& sourceHash = QString()) const = 0;
     AssembleResult assembleRaw(const QString& program, const SymbolMap* symbols = nullptr) const;
 
     /// Disassembles an input program relative to the provided base address.

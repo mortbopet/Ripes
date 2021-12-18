@@ -29,7 +29,7 @@ MemoryTab::MemoryTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, par
     m_ui->splitter->setStretchFactor(0, 2);
     m_ui->splitter->setStretchFactor(1, 1);
 
-    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
+    connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, m_ui->memoryViewerWidget,
             [=] { m_ui->memoryViewerWidget->updateView(); });
 }
 

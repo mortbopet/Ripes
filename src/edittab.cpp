@@ -52,11 +52,11 @@ EditTab::EditTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent)
     connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
     m_toolbar->addAction(m_buildAction);
 
-    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORREGS), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORREGS), &SettingObserver::modified, m_ui->registers,
             [=](const QVariant& val) { m_ui->registers->setVisible(val.toBool()); });
     RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
 
-    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE), &SettingObserver::modified, m_ui->console,
             [=](const QVariant& val) { m_ui->console->setVisible(val.toBool()); });
     RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE)->trigger();
 

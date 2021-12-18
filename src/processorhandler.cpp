@@ -56,7 +56,7 @@ ProcessorHandler::ProcessorHandler() {
     connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] { ProcessorStatusManager::clearStatus(); });
 
     // Connect relevant settings changes to VSRTL
-    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified, this,
             [=](const auto& size) { m_currentProcessor->setMaxReverseCycles(size.toUInt()); });
 
     // Update VSRTL reverse stack size to reflect current settings
@@ -244,7 +244,7 @@ void ProcessorHandler::_reset() {
 }
 
 void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList& extensions,
-                                        RegisterInitialization setup) {
+                                        const RegisterInitialization& setup) {
     m_currentID = id;
     m_currentRegInits = setup;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);

@@ -108,7 +108,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), m_ui(new Ui::Main
     // Reset and program reload signals
     connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, [=] { SystemIO::reset(); });
 
-    connect(m_ui->actionSystem_calls, &QAction::triggered, [=] {
+    connect(m_ui->actionSystem_calls, &QAction::triggered, this, [=] {
         SyscallViewer v;
         v.exec();
     });
@@ -186,7 +186,7 @@ void MainWindow::setupMenus() {
     const QIcon loadIcon = QIcon(":/icons/loadfile.svg");
     auto* loadAction = new QAction(loadIcon, "Load Program", this);
     loadAction->setShortcut(QKeySequence::Open);
-    connect(loadAction, &QAction::triggered, [=] { this->loadFileTriggered(); });
+    connect(loadAction, &QAction::triggered, this, [=] { this->loadFileTriggered(); });
     m_ui->menuFile->addAction(loadAction);
 
     m_ui->menuFile->addSeparator();
@@ -200,7 +200,7 @@ void MainWindow::setupMenus() {
     auto* saveAction = new QAction(saveIcon, "Save File", this);
     saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFilesTriggered);
-    connect(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab), &EditTab::editorStateChanged,
+    connect(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab), &EditTab::editorStateChanged, saveAction,
             [saveAction](bool enabled) { saveAction->setEnabled(enabled); });
     m_ui->menuFile->addAction(saveAction);
 
@@ -208,7 +208,7 @@ void MainWindow::setupMenus() {
     auto* saveAsAction = new QAction(saveAsIcon, "Save File As...", this);
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::saveFilesAsTriggered);
-    connect(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab), &EditTab::editorStateChanged,
+    connect(static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab), &EditTab::editorStateChanged, saveAction,
             [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
     m_ui->menuFile->addAction(saveAsAction);
 

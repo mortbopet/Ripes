@@ -58,8 +58,8 @@ public slots:
     void keepCallout();
     void deleteCallout(Callout* callout);
     void tooltip(QPointF point, bool state);
-    void hideSeriesMarker(QLineSeries* series);
-    void showSeriesMarker(QLineSeries* series, const QString& name);
+    void hideSeriesMarker(QtCharts::QLineSeries* series);
+    void showSeriesMarker(QtCharts::QLineSeries* series, const QString& name);
 
 private:
     void resizeObjects(const QSizeF& size);

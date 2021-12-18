@@ -36,7 +36,7 @@ void ProgramViewer::clearBreakpoints() {
 }
 
 void ProgramViewer::resizeEvent(QResizeEvent* e) {
-    QPlainTextEdit::resizeEvent(e);
+    HighlightableTextEdit::resizeEvent(e);
 
     const QRect cr = contentsRect();
     m_breakpointArea->setGeometry(cr.left(), cr.top(), m_breakpointArea->width(), cr.height());
@@ -98,7 +98,6 @@ void ProgramViewer::updateHighlightedAddresses() {
     clearBlockHighlights();
     const unsigned stages = ProcessorHandler::getProcessor()->stageCount();
     auto colorGenerator = Colors::incrementalRedGenerator(stages);
-    QList<QTextEdit::ExtraSelection> highlights;
 
     for (unsigned sid = 0; sid < stages; sid++) {
         const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);

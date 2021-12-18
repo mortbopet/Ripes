@@ -143,7 +143,7 @@ CCManager::CCRes CCManager::compile(const QStringList& files, QString outname, b
     connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), &progressDiag,
             &QProgressDialog::reset);
     connect(&m_process, &QProcess::errorOccurred, &progressDiag, &QProgressDialog::reset);
-    connect(&m_process, &QProcess::errorOccurred, [this]() { m_errored = true; });
+    connect(&m_process, &QProcess::errorOccurred, this, [this]() { m_errored = true; });
     m_process.setWorkingDirectory(cc.bin.absolutePath());
     m_process.setProgram(cc.bin.absoluteFilePath());
     m_process.setArguments(cc.args);

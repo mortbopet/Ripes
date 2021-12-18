@@ -192,7 +192,7 @@ public slots:
     void setBlocks(unsigned blocks);
     void setLines(unsigned lines);
     void setWays(unsigned ways);
-    void setPreset(const CachePreset& preset);
+    void setPreset(const Ripes::CachePreset& preset);
 
     /**
      * @brief reverse

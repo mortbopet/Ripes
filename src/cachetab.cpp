@@ -34,7 +34,7 @@ void CacheTab::tabVisibilityChanged(bool visible) {
      * cache tab is first shown.
      */
     if (!m_initialized && visible) {
-        QTimer::singleShot(100, [&] { m_ui->cacheTabWidget->flipTabs(); });
+        QTimer::singleShot(100, m_ui->cacheTabWidget, [&] { m_ui->cacheTabWidget->flipTabs(); });
         m_initialized = visible;
     }
 }

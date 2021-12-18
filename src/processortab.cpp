@@ -104,11 +104,11 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     m_statUpdateTimer = new QTimer(this);
     m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
     connect(m_statUpdateTimer, &QTimer::timeout, this, &ProcessorTab::updateStatistics);
-    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS), &SettingObserver::modified, m_statUpdateTimer,
             [=] { m_statUpdateTimer->setInterval(1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt()); });
 
     // Connect changes in VSRTL reversible stack size to checking whether the simulator is reversible
-    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE), &SettingObserver::modified, m_reverseAction,
             [=](const auto&) { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
 
     // Connect the global reset request signal to reset()
@@ -218,7 +218,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_autoClockInterval->setRange(1, 10000);
     m_autoClockInterval->setSuffix(" ms");
     m_autoClockInterval->setToolTip("Auto clock interval");
-    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), [timer](int msec) {
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), this, [timer](int msec) {
         RipesSettings::setValue(RIPES_SETTING_AUTOCLOCK_INTERVAL, msec);
         timer->setInterval(msec);
     });

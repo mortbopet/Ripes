@@ -80,10 +80,10 @@ class Assembler : public AssemblerBase {
 
 public:
     AssemblerTypes(Reg_T);
-    Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
+    explicit Assembler(const ISAInfoBase* isa) : m_isa(isa) {}
 
     AssembleResult assemble(const QStringList& programLines, const SymbolMap* symbols = nullptr,
-                            QString sourceHash = QString()) const override {
+                            const QString& sourceHash = QString()) const override {
         AssembleResult result;
 
         /// by default, emit to .text until otherwise specified
@@ -186,7 +186,7 @@ public:
         return opcodes;
     }
 
-    void setRelocations(_RelocationsVec& relocations) {
+    void setRelocations(const _RelocationsVec& relocations) {
         if (m_relocations.size() != 0) {
             throw std::runtime_error("Directives already set");
         }
@@ -514,7 +514,7 @@ protected:
         return assembledWith->assemble(line);
     }
 
-    void setPseudoInstructions(_PseudoInstrVec& pseudoInstructions) {
+    void setPseudoInstructions(const _PseudoInstrVec& pseudoInstructions) {
         if (m_pseudoInstructions.size() != 0) {
             throw std::runtime_error("Pseudoinstructions already set");
         }
@@ -559,8 +559,8 @@ protected:
         return {remainingTokens};
     }
 
-    void initialize(_InstrVec& instructions, _PseudoInstrVec& pseudoinstructions, DirectiveVec& directives,
-                    _RelocationsVec& relocations) {
+    void initialize(const _InstrVec& instructions, const _PseudoInstrVec& pseudoinstructions,
+                    const DirectiveVec& directives, const _RelocationsVec& relocations) {
         setInstructions(instructions);
         setPseudoInstructions(pseudoinstructions);
         setDirectives(directives);
@@ -568,7 +568,7 @@ protected:
         m_matcher = std::make_unique<_Matcher>(m_instructions);
     }
 
-    void setInstructions(_InstrVec& instructions) {
+    void setInstructions(const _InstrVec& instructions) {
         if (m_instructions.size() != 0) {
             throw std::runtime_error("Instructions already set");
         }

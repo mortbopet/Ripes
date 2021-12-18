@@ -74,7 +74,7 @@ public:
      * RipesProcessor interface.
      */
     static void selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
-                                RegisterInitialization setup = RegisterInitialization()) {
+                                const RegisterInitialization& setup = RegisterInitialization()) {
         get()->_selectProcessor(id, extensions, setup);
     }
 
@@ -233,7 +233,7 @@ private:
     const SyscallManager& _getSyscallManager() const { return *m_syscallManager; }
     void _loadProcessorToWidget(vsrtl::VSRTLWidget* widget, bool doPlaceAndRoute = false);
     void _selectProcessor(const ProcessorID& id, const QStringList& extensions = {},
-                          RegisterInitialization setup = RegisterInitialization());
+                          const RegisterInitialization& setup = RegisterInitialization());
     bool _isExecutableAddress(AInt address) const;
     int _getCurrentProgramSize() const;
     AInt _getTextStart() const;

@@ -141,7 +141,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
         delete item;
     }
 
-    for (const auto& ext : isaInfo.supportedExtensions) {
+    for (const auto& ext : qAsConst(isaInfo.supportedExtensions)) {
         auto chkbox = new QCheckBox(ext);
         chkbox->setToolTip(isaInfo.isa->extensionDescription(ext));
         m_ui->extensions->addWidget(chkbox);
@@ -160,13 +160,11 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem* current, QTreeW
 
 const Layout* ProcessorSelectionDialog::getSelectedLayout() const {
     const auto& desc = ProcessorRegistry::getAvailableProcessors().at(m_selectedID);
-    for (const auto& layout : desc->layouts) {
-        if (layout.name == m_ui->layout->currentText()) {
-            return &layout;
-        }
-    }
+    auto it =
+        llvm::find_if(desc->layouts, [&](const auto& layout) { return layout.name == m_ui->layout->currentText(); });
+    if (it != desc->layouts.end())
+        return &*it;
     return nullptr;
-    Q_UNREACHABLE();
 }
 
 }  // namespace Ripes

@@ -51,7 +51,7 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget* parent)
 
     const QIcon addIcon = QIcon(":/icons/plus.svg");
     m_ui->addInitButton->setIcon(addIcon);
-    connect(m_ui->addInitButton, &QPushButton::clicked,
+    connect(m_ui->addInitButton, &QPushButton::clicked, this,
             [=] { this->addRegisterInitialization(getNonInitializedRegIdx()); });
 
     // Initialize initializations for all available processors
@@ -120,7 +120,7 @@ RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addR
 
     w->name->addItem(procisa.isa->regName(regIdx) + " (" + procisa.isa->regAlias(regIdx) + ")", regIdx);
 
-    connect(w->name, &RegisterSelectionComboBox::regIndexChanged, [this, w_ptr](int oldIdx, int newIdx) {
+    connect(w->name, &RegisterSelectionComboBox::regIndexChanged, this, [this, w_ptr](int oldIdx, int newIdx) {
         m_initializations.at(m_currentID).erase(oldIdx);
         m_initializations.at(m_currentID)[newIdx];
         emit w_ptr->value->textChanged(w_ptr->value->text());
@@ -131,7 +131,7 @@ RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addR
 
     w->value->setValidator(m_hexValidator);
     w->value->setText("0x" + QString::number(m_initializations.at(m_currentID).at(regIdx), 16));
-    connect(w->value, &QLineEdit::textChanged, [this, w_ptr](const QString& text) {
+    connect(w->value, &QLineEdit::textChanged, this, [this, w_ptr](const QString& text) {
         this->m_initializations.at(this->m_currentID).at(w_ptr->name->currentData().toUInt()) =
             text.toUInt(nullptr, 16);
     });
@@ -140,7 +140,7 @@ RegisterInitializationWidget::RegInitWidgets* RegisterInitializationWidget::addR
     regLayout->addWidget(w->name, nInitializations, 0);
     regLayout->addWidget(w->value, nInitializations, 1);
     regLayout->addWidget(w->remove, nInitializations, 2);
-    connect(w->remove, &QPushButton::clicked, [this, w_ptr] { this->removeRegInitWidget(w_ptr); });
+    connect(w->remove, &QPushButton::clicked, this, [this, w_ptr] { this->removeRegInitWidget(w_ptr); });
 
     updateAddButtonState();
     return w.get();

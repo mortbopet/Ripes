@@ -55,7 +55,7 @@ public slots:
 
 private slots:
     void variablesChanged();
-    void rangeChanged(const RangeChangeSource src);
+    void rangeChanged(const CachePlotWidget::RangeChangeSource src);
     void updateHitrate();
 
 private:

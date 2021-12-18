@@ -27,8 +27,8 @@ void ChartLineMarker::snapToLine(bool enabled) {
 }
 
 void ChartLineMarker::updateLines() {
-    const QValueAxis* axisY = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Vertical).first());
-    const QValueAxis* axisX = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Horizontal).first());
+    const QValueAxis* axisY = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Vertical).constFirst());
+    const QValueAxis* axisX = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Horizontal).constFirst());
 
     QLineF hzLine, vtLine;
 
@@ -54,7 +54,7 @@ QPointF ChartLineMarker::getMarkerPos() const {
 
 void ChartLineMarker::move(const QPointF& center) {
     if (m_snapToLine) {
-        const QValueAxis* axisX = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Horizontal).first());
+        const QValueAxis* axisX = qobject_cast<QValueAxis*>(m_chart->axes(Qt::Horizontal).constFirst());
 
         // Note: we assume that the points are in a sorted order!
         const auto& points = m_series->pointsVector();

@@ -29,9 +29,9 @@ Console::Console(QWidget* parent) : QPlainTextEdit(parent) {
             paletteChangeFunctor);
     paletteChangeFunctor();
 
-    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO), &SettingObserver::modified, this,
             [=](const QVariant& value) { m_localEchoEnabled = value.toBool(); });
-    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONT), &SettingObserver::modified,
+    connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONT), &SettingObserver::modified, this,
             [=](const QVariant& value) {
                 m_font = value.value<QFont>();
                 setFont(m_font);

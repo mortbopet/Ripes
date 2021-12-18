@@ -21,9 +21,7 @@ public:
 
 signals:
     void indexChanged();
-    void jumpToAddress(AInt address);
-
-public slots:
+    void jumpToAddress(Ripes::AInt address);
 
 private:
     void signalFilter(int index);

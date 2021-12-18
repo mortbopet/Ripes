@@ -27,7 +27,7 @@ public slots:
     void processorWasClocked();
     void setRowsVisible(int rows);
     void offsetCentralAddress(int rowOffset);
-    void setCentralAddress(AInt address);
+    void setCentralAddress(Ripes::AInt address);
 
 private:
     QVariant addrData(AInt address, bool validAddress) const;

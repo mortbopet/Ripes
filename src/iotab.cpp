@@ -42,11 +42,11 @@ IOTab::IOTab(QToolBar* toolbar, QWidget* parent) : RipesTab(toolbar, parent), m_
         m_ui->peripheralsTable->setItem(row++, 0, periphItem);
     }
 
-    connect(m_ui->peripheralsTable, &QTableWidget::itemDoubleClicked,
+    connect(m_ui->peripheralsTable, &QTableWidget::itemDoubleClicked, this,
             [this](QTableWidgetItem* item) { this->createPeripheral(item->data(Qt::UserRole).value<IOType>()); });
 
     // Setup MDI area
-    connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, [this](QMdiSubWindow* w) {
+    connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, [this](QMdiSubWindow* w) {
         if (w == nullptr) {
             setPeripheralTabActive(nullptr);
         } else {

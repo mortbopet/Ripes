@@ -41,7 +41,7 @@ struct BitRange {
  * A segment of an operation-identifying field of an instruction.
  */
 struct OpPart {
-    OpPart(unsigned _value, BitRange _range) : value(_value), range(_range) {}
+    OpPart(unsigned _value, const BitRange& _range) : value(_value), range(_range) {}
     OpPart(unsigned _value, unsigned _start, unsigned _stop) : value(_value), range({_start, _stop}) {}
     bool matches(Instr_T instruction) const { return range.decode(instruction) == value; }
     const unsigned value;
@@ -103,7 +103,7 @@ struct Opcode : public Field<Reg_T> {
      * @param name: Name of operation
      * @param fields: list of OpParts corresponding to the identifying elements of the opcode.
      */
-    Opcode(const Token& _name, std::vector<OpPart> _opParts) : Field<Reg_T>(0), name(_name), opParts(_opParts) {}
+    Opcode(const Token& _name, const std::vector<OpPart>& _opParts) : Field<Reg_T>(0), name(_name), opParts(_opParts) {}
 
     std::optional<Error> apply(const TokenizedSrcLine&, Instr_T& instruction, FieldLinkRequest<Reg_T>&) const override {
         for (const auto& opPart : opParts) {
@@ -135,13 +135,13 @@ struct Reg : public Field<Reg_T> {
      * @param tokenIndex: Index within a list of decoded instruction tokens that corresponds to the register index
      * @param range: range in instruction field containing register index value
      */
-    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, BitRange range)
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, const BitRange& range)
         : Field<Reg_T>(_tokenIndex), m_range(range), m_isa(isa) {}
     Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop)
         : Field<Reg_T>(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
-    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, BitRange range, QString _regsd)
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, const BitRange& range, const QString& _regsd)
         : Field<Reg_T>(_tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
-    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop, QString _regsd)
+    Reg(const ISAInfoBase* isa, unsigned _tokenIndex, unsigned _start, unsigned _stop, const QString& _regsd)
         : Field<Reg_T>(_tokenIndex), m_range({_start, _stop}), m_isa(isa), regsd(_regsd) {}
     std::optional<Error> apply(const TokenizedSrcLine& line, Instr_T& instruction,
                                FieldLinkRequest<Reg_T>&) const override {
@@ -173,7 +173,7 @@ struct Reg : public Field<Reg_T> {
 };
 
 struct ImmPart {
-    ImmPart(unsigned _offset, BitRange _range) : offset(_offset), range(_range) {}
+    ImmPart(unsigned _offset, const BitRange& _range) : offset(_offset), range(_range) {}
     ImmPart(unsigned _offset, unsigned _start, unsigned _stop) : offset(_offset), range({_start, _stop}) {}
     void apply(const Instr_T value, Instr_T& instruction) const { instruction |= range.apply(value >> offset); }
     void decode(Instr_T& value, const Instr_T instruction) const { value |= range.decode(instruction) << offset; }
@@ -307,7 +307,7 @@ struct Imm : public Field<Reg_T> {
 template <typename Reg_T>
 class Instruction {
 public:
-    Instruction(Opcode<Reg_T> opcode, const std::vector<std::shared_ptr<Field<Reg_T>>>& fields)
+    Instruction(const Opcode<Reg_T>& opcode, const std::vector<std::shared_ptr<Field<Reg_T>>>& fields)
         : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {
         m_assembler = [](const Instruction* _this, const TokenizedSrcLine& line) {
             InstrRes<Reg_T> res;

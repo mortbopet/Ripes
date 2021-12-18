@@ -48,17 +48,17 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     m_ui->rangeMin->setValue(0);
     m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
 
-    connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this,
             [=] { rangeChanged(RangeChangeSource::Comboboxes); });
-    connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this,
             [=] { rangeChanged(RangeChangeSource::Comboboxes); });
-    connect(m_ui->rangeSlider, &ctkRangeSlider::valuesChanged, [=] { rangeChanged(RangeChangeSource::Slider); });
+    connect(m_ui->rangeSlider, &ctkRangeSlider::valuesChanged, this, [=] { rangeChanged(RangeChangeSource::Slider); });
 
     const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
     connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles, &QWidget::setEnabled);
-    connect(m_ui->windowed, &QCheckBox::toggled, [=](bool enabled) {
+    connect(m_ui->windowed, &QCheckBox::toggled, m_mavgMarkerAction, [=](bool enabled) {
         m_mavgMarkerAction->setChecked(enabled);
         m_mavgMarkerAction->setEnabled(enabled);
     });
@@ -256,7 +256,7 @@ void CachePlotWidget::copyPlotDataToClipboard() const {
 void CachePlotWidget::rangeChanged(const RangeChangeSource src) {
     updateAllowedRange(src);
     if (m_plot) {
-        m_plot->axes(Qt::Horizontal).first()->setRange(m_ui->rangeMin->value(), m_ui->rangeMax->value());
+        m_plot->axes(Qt::Horizontal).constFirst()->setRange(m_ui->rangeMin->value(), m_ui->rangeMax->value());
     }
 }
 
@@ -279,13 +279,10 @@ std::map<CachePlotWidget::Variable, QList<QPoint>> CachePlotWidget::gatherData(u
     }
 
     // Gather data up until the end of the trace or the maximum plotted cycles
-
-    unsigned cycles = ProcessorHandler::getProcessor()->getCycleCount();
     const unsigned maxCycles = RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toInt();
     if (fromCycle > maxCycles) {
         return {};
     }
-    cycles = cycles > maxCycles ? maxCycles : cycles;
 
     for (auto it = trace.upper_bound(fromCycle); it != trace.lower_bound(maxCycles); it++) {
         const auto& entry = it->second;
@@ -314,7 +311,7 @@ void resample(QLineSeries* series, unsigned target, double& step) {
     // sanity check
     QPointF plast = QPointF(0, 0);
     bool first = true;
-    for (const auto& p : newPoints) {
+    for (const auto& p : qAsConst(newPoints)) {
         if (!first) {
             Q_ASSERT(p.x() - plast.x() < step * 1.1);
             first = false;
@@ -380,7 +377,7 @@ void CachePlotWidget::updateRatioPlot() {
     QList<QPointF> newWindowPoints;
     QPointF lastPoint;
     if (m_series->pointsVector().size() > 0) {
-        lastPoint = m_series->pointsVector().last();
+        lastPoint = m_series->pointsVector().constLast();
     } else {
         lastPoint = QPointF(-1, 0);
     }

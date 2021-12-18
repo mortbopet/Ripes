@@ -175,7 +175,7 @@ QWidget* SettingsDialog::createCompilerPage() {
     CCHLayout->addWidget(cclabel);
     CCHLayout->addWidget(ccpath);
     auto* pathBrowseButton = new QPushButton("Browse");
-    connect(pathBrowseButton, &QPushButton::clicked, [=, ccpath = ccpath] {
+    connect(pathBrowseButton, &QPushButton::clicked, this, [=, ccpath = ccpath] {
         QFileDialog dialog(this);
         dialog.setOption(QFileDialog::DontUseNativeDialog);
         dialog.setAcceptMode(QFileDialog::AcceptOpen);
@@ -201,7 +201,8 @@ QWidget* SettingsDialog::createCompilerPage() {
     CCLayout->addLayout(CCArgHLayout);
     // Make changes in argument reemit ccpath text changed. By doing so, we revalidate the compiler once new arguments
     // have been added, implicitely validating the arguments along with it.
-    connect(ccArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
+    connect(ccArgs, &QLineEdit::textChanged, ccpath,
+            [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
     // Add linker arguments widget
     auto [ldArgLabel, ldArgs] = createSettingsWidgets<QLineEdit>(RIPES_SETTING_LDARGS, "Linker arguments:");
@@ -209,7 +210,8 @@ QWidget* SettingsDialog::createCompilerPage() {
     LDArgHLayout->addWidget(ldArgLabel);
     LDArgHLayout->addWidget(ldArgs);
     CCLayout->addLayout(LDArgHLayout);
-    connect(ldArgs, &QLineEdit::textChanged, [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
+    connect(ldArgs, &QLineEdit::textChanged, ccpath,
+            [=, ccpath = ccpath] { emit ccpath->textChanged(ccpath->text()); });
 
     // Add effective compile command line view
     auto* CCCLineHLayout = new QHBoxLayout();
@@ -433,14 +435,15 @@ void SettingsDialog::addPage(const QString& name, QWidget* page) {
     auto* item = new QListWidgetItem(name);
     m_ui->settingsList->addItem(item);
 
-    connect(m_ui->settingsList, &QListWidget::currentItemChanged, [=](QListWidgetItem* current, QListWidgetItem*) {
-        const QString _name = current->text();
-        Q_ASSERT(m_pageIndex.count(_name));
+    connect(m_ui->settingsList, &QListWidget::currentItemChanged, m_ui->settingsPages,
+            [=](QListWidgetItem* current, QListWidgetItem*) {
+                const QString _name = current->text();
+                Q_ASSERT(m_pageIndex.count(_name));
 
-        const int idx = m_pageIndex.at(_name);
-        m_ui->settingsPages->setCurrentIndex(idx);
-        RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, idx);
-    });
+                const int idx = m_pageIndex.at(_name);
+                m_ui->settingsPages->setCurrentIndex(idx);
+                RipesSettings::setValue(RIPES_SETTING_SETTING_TAB, idx);
+            });
 }
 
 }  // namespace Ripes

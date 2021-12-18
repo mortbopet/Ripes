@@ -74,7 +74,7 @@ void AssemblerBase::setDirectives(const DirectiveVec& directives) {
 
 std::variant<Error, LineTokens> AssemblerBase::tokenize(const QString& line, const int sourceLine) const {
     auto tokens = line.split(m_splitterRegex);
-    tokens.removeAll(QStringLiteral(""));
+    tokens.removeAll(QLatin1String(""));
     auto joinedtokens = joinParentheses(tokens);
     if (auto* err = std::get_if<Error>(&joinedtokens)) {
         err->first = sourceLine;

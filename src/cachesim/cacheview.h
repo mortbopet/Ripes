@@ -17,7 +17,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
 
 signals:
-    void cacheAddressSelected(AInt);
+    void cacheAddressSelected(Ripes::AInt);
 
 private slots:
     void setupMatrix();

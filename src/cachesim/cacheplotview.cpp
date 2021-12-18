@@ -15,8 +15,8 @@
 void constrainInPlotRange(QPointF& pos, QChart* chart) {
     const auto plotValue = chart->mapToValue(pos);
 
-    const QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
-    const QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+    const QValueAxis* axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).constFirst());
+    const QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).constFirst());
     const QPointF chartBottomLeft = chart->mapToPosition({axisX->min(), axisY->min()});
     const QPointF chartTopRight = chart->mapToPosition({axisX->max(), axisY->max()});
 
@@ -84,14 +84,14 @@ QPixmap CachePlotView::getPlotPixmap() {
         itemsToHide << marker->marker;
     }
 
-    for (const auto& i : itemsToHide) {
+    for (const auto& i : qAsConst(itemsToHide)) {
         if (i)
             i->hide();
     }
 
     QPixmap p = grab();
 
-    for (const auto& i : itemsToHide) {
+    for (const auto& i : qAsConst(itemsToHide)) {
         if (i)
             i->show();
     }

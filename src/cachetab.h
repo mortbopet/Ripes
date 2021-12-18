@@ -21,7 +21,7 @@ public:
     void tabVisibilityChanged(bool visible) override;
 
 signals:
-    void focusAddressChanged(AInt address);
+    void focusAddressChanged(Ripes::AInt address);
 
 private:
     Ui::CacheTab* m_ui;

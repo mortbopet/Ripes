@@ -18,6 +18,7 @@ public:
     QRectF boundingRect() const override { return childrenBoundingRect(); };
 
     void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget* = nullptr) override {}
+    bool indexingVisible() const { return m_indexingVisible; }
 
 public slots:
     /**
@@ -49,7 +50,6 @@ public slots:
     void reset();
 
     void setIndexingVisible(bool visible);
-    bool indexingVisible() const { return m_indexingVisible; }
 
 private:
     // Data structure modelling the cache; keeping graphics text items for each entry
