@@ -329,19 +329,28 @@ void MainWindow::version() {
     aboutDialog.exec();
 }
 
-static void writeTextFile(QFile& file, const QString& data) {
+static bool writeTextFile(QFile& file, const QString& data) {
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
         stream << data;
         file.close();
+        return true;
     }
+    return false;
 }
 
-static void writeBinaryFile(QFile& file, const QByteArray& data) {
-    if (file.open(QIODevice::WriteOnly)) {
+static bool writeBinaryFile(QFile& file, const QByteArray& data) {
+    if (!file.open(QIODevice::WriteOnly)) {
         file.write(data);
         file.close();
+        return true;
     }
+    return false;
+}
+
+// Ensures that any parent directories of 'path' exists.
+static bool ensurePath(const QString& path) {
+    return QDir().mkpath(QFileInfo(path).absoluteDir().absolutePath());
 }
 
 void MainWindow::saveFilesTriggered() {
@@ -352,30 +361,30 @@ void MainWindow::saveFilesTriggered() {
     }
 
     emit prepareSave();
-
-    bool didSave = false;
     QStringList savedFiles;
-
     if (!diag.sourcePath().isEmpty()) {
+        if (!ensurePath(diag.sourcePath()))
+            return;
         QFile file(diag.sourcePath());
         savedFiles << diag.sourcePath();
-        writeTextFile(file, static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText());
-        didSave |= true;
+        if (!writeTextFile(file, static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText()))
+            return;
     }
 
     if (!diag.binaryPath().isEmpty()) {
+        if (!ensurePath(diag.binaryPath()))
+            return;
         QFile file(diag.binaryPath());
         auto program = ProcessorHandler::getProgram();
-        if (program && (program.get()->sections.count(".text") != 0)) {
-            savedFiles << diag.binaryPath();
-            writeBinaryFile(file, program.get()->sections.at(".text").data);
-            didSave |= true;
-        }
+        if (!program || (program.get()->sections.count(".text") == 0))
+            return;
+
+        savedFiles << diag.binaryPath();
+        if (!writeBinaryFile(file, program.get()->sections.at(".text").data))
+            return;
     }
 
-    if (didSave) {
-        GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "), 1000);
-    }
+    GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "), 1000);
 }
 
 void MainWindow::saveFilesAsTriggered() {
