@@ -58,10 +58,6 @@ CachePlotWidget::CachePlotWidget(QWidget* parent) : QWidget(parent), m_ui(new Ui
     m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
     connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this, &CachePlotWidget::showSizeBreakdown);
     connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles, &QWidget::setEnabled);
-    connect(m_ui->windowed, &QCheckBox::toggled, m_mavgMarkerAction, [=](bool enabled) {
-        m_mavgMarkerAction->setChecked(enabled);
-        m_mavgMarkerAction->setEnabled(enabled);
-    });
 
     connect(m_ui->maxCyclesButton, &QPushButton::clicked, this, [=] {
         QMessageBox::information(
@@ -196,6 +192,10 @@ void CachePlotWidget::setupPlotActions() {
     m_ui->mavgCursor->setDefaultAction(m_mavgMarkerAction);
     connect(m_mavgMarkerAction, &QAction::toggled, showMarkerFunctor(m_mavgSeries, "Average"));
     m_mavgMarkerAction->setChecked(true);
+    connect(m_ui->windowed, &QCheckBox::toggled, m_mavgMarkerAction, [=](bool enabled) {
+        m_mavgMarkerAction->setChecked(enabled);
+        m_mavgMarkerAction->setEnabled(enabled);
+    });
 
     const QIcon copyIcon = QIcon(":/icons/documents.svg");
     m_copyDataAction = new QAction("Copy data to clipboard", this);
