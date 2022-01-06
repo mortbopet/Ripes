@@ -37,7 +37,6 @@ void HighlightableTextEdit::paintEvent(QPaintEvent* event) {
         painter.drawText(QRectF(drawAt.x(), drawAt.y(), stageStringRect.width(), stageStringRect.height()),
                          stageString);
     }
-    viewport()->update();
     painter.end();
 }
 
