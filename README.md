@@ -40,7 +40,7 @@ For Windows, the C++ runtime library must be available (if not, a msvcp140.dll e
 
 ## Building
 Initially, the following dependencies must be made available:
-- A recent (5.14+) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
+- A recent (>=5.15) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
 - [CMake](https://cmake.org/)
 
 Then, Ripes can be checked out and built as a standard CMake project:
