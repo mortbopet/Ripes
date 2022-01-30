@@ -324,7 +324,8 @@ public:
         auto& InputStream = FileIOData::getStreamInUse(fd);
 
         if (fd == STDIN) {
-            SystemIOStatusManager::setStatusTimed("Waiting for user input...");
+            // systemIO might be called from non-gui thread, so be threadsafe in interacting with the ui.
+            postToGUIThread([=] { SystemIOStatusManager::setStatusTimed("Waiting for user input...", 99999999); });
             while (myBuffer.size() == 0) {
                 // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
                 FileIOData::s_stdioMutex.lock();
@@ -358,7 +359,7 @@ public:
             }
         }
 
-        SystemIOStatusManager::clearStatus();
+        postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
         return myBuffer.size();
 
     }  // end readFromFile

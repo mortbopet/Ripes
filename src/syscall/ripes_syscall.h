@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QLabel>
 #include <QMessageBox>
@@ -80,18 +79,6 @@ public:
     const std::map<SyscallID, std::unique_ptr<Syscall>>& getSyscalls() const { return m_syscalls; }
 
 protected:
-    /**
-     * @brief postToGUIThread
-     * Schedules the execution of @param fun in the GUI thread.
-     * @param connection type.
-     */
-    template <typename F>
-    static void postToGUIThread(F&& fun, Qt::ConnectionType type = Qt::QueuedConnection) {
-        auto* obj = QAbstractEventDispatcher::instance(qApp->thread());
-        Q_ASSERT(obj);
-        QMetaObject::invokeMethod(obj, std::forward<F>(fun), type);
-    }
-
     SyscallManager() {}
     std::map<SyscallID, std::unique_ptr<Syscall>> m_syscalls;
 };

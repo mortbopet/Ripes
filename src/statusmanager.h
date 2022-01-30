@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QAbstractEventDispatcher>
+#include <QApplication>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -7,6 +9,19 @@
 #include <memory>
 
 namespace Ripes {
+
+/**
+ * @brief postToGUIThread
+ * Schedules the execution of @param fun in the GUI thread.
+ * @param connection type.
+ */
+template <typename F>
+static void postToGUIThread(F&& fun, Qt::ConnectionType type = Qt::QueuedConnection) {
+    auto* obj = QAbstractEventDispatcher::instance(qApp->thread());
+    Q_ASSERT(obj);
+    QMetaObject::invokeMethod(obj, std::forward<F>(fun), type);
+}
+
 class StatusEmitter : public QObject {
     Q_OBJECT
 public:
