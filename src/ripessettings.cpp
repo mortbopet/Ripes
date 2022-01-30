@@ -53,6 +53,7 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_VIEW_ZOOM, 250},
     {RIPES_SETTING_PERIPHERAL_SETTINGS, ""},
     {RIPES_SETTING_PROCESSOR_ID, QVariant() /* Let processorhandler define default */},
+    {RIPES_SETTING_PROCESSOR_EXTENSIONS, QVariant() /* Let processorhandler define default */},
     {RIPES_SETTING_PROCESSOR_LAYOUT_ID, 0},
     {RIPES_SETTING_FOLLOW_EXEC, "true"},
     {RIPES_SETTING_SOURCECODE, ""},

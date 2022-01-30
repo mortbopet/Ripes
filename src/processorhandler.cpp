@@ -20,6 +20,7 @@ ProcessorHandler::ProcessorHandler() {
     m_constructing = true;
 
     // Contruct the default processor
+    // Processor ID
     if (RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).isNull()) {
         m_currentID = ProcessorID::RV32_5S;
     } else {
@@ -28,8 +29,15 @@ ProcessorHandler::ProcessorHandler() {
         // Some sanity checking
         m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS ? ProcessorID::RV32_5S : m_currentID;
     }
-    _selectProcessor(m_currentID, ProcessorRegistry::getDescription(m_currentID).isaInfo().isa->supportedExtensions(),
-                     ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+
+    // Processor extensions
+    QStringList extensions;
+    if (RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull())
+        extensions = ProcessorRegistry::getDescription(m_currentID).isaInfo().isa->supportedExtensions();
+    else
+        extensions = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).value<QStringList>();
+
+    _selectProcessor(m_currentID, extensions, ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
 
     // The m_procStateChangeTimer limits maximum frequency of which the procStateChangedNonRun is emitted.
     m_procStateChangeTimer.setSingleShot(true);
@@ -248,6 +256,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID& id, const QStringList
     m_currentID = id;
     m_currentRegInits = setup;
     RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
+    RipesSettings::setValue(RIPES_SETTING_PROCESSOR_EXTENSIONS, extensions);
 
     // Keep current program if the ISA between the two processors are identical
     const bool keepProgram =

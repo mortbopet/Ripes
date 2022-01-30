@@ -42,6 +42,7 @@ namespace Ripes {
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
 #define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
 #define RIPES_SETTING_PROCESSOR_ID ("processor_id")
+#define RIPES_SETTING_PROCESSOR_EXTENSIONS ("processor_extensions")
 #define RIPES_SETTING_PROCESSOR_LAYOUT_ID ("processor_layout_id")
 #define RIPES_SETTING_FOLLOW_EXEC ("follow_execution")
 #define RIPES_SETTING_INPUT_TYPE ("input_type")
