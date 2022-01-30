@@ -326,24 +326,25 @@ public:
         if (fd == STDIN) {
             // systemIO might be called from non-gui thread, so be threadsafe in interacting with the ui.
             postToGUIThread([=] { SystemIOStatusManager::setStatusTimed("Waiting for user input...", 99999999); });
-            while (myBuffer.size() == 0) {
+            while (myBuffer.size() < lengthRequested) {
                 // Lock the stdio objects and try to read from stdio. If no data is present, wait until so.
                 FileIOData::s_stdioMutex.lock();
-                while (myBuffer.size() == 0) {
-                    /** We spin on a wait condition with a timeout. The timeout is required to ensure that we may
-                     * observe any abort flags (ie. if execution is stopped while waiting for IO */
-                    const bool dataInStdinStrm = FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex, 100);
-                    if (s_abortSyscall) {
-                        FileIOData::s_stdioMutex.unlock();
-                        s_abortSyscall = false;
-                        SystemIOStatusManager::clearStatus();
-                        return -1;
-                    }
-                    if (dataInStdinStrm) {
-                        myBuffer = InputStream.read(lengthRequested).toUtf8();
-                    }
+                if (s_abortSyscall) {
+                    FileIOData::s_stdioMutex.unlock();
+                    s_abortSyscall = false;
+                    postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
+                    return -1;
                 }
+                auto readData = InputStream.read(lengthRequested).toUtf8();
+                myBuffer.append(readData);
+                lengthRequested -= readData.length();
+
+                /** We spin on a wait condition with a timeout. The timeout is required to ensure that we may
+                 * observe any abort flags (ie. if execution is stopped while waiting for IO */
+                FileIOData::s_stdinBufferEmpty.wait(&FileIOData::s_stdioMutex, 100);
                 FileIOData::s_stdioMutex.unlock();
+                if (myBuffer.endsWith('\n'))
+                    break;
             }
         } else {
             // Reads up to lengthRequested bytes of data from this Input stream into an array of bytes.
@@ -416,8 +417,8 @@ public slots:
     void putStdInData(const QByteArray& data) {
         FileIOData::s_stdioMutex.lock();
         FileIOData::s_stdinBuffer.append(data);
-        FileIOData::s_stdioMutex.unlock();
         FileIOData::s_stdinBufferEmpty.wakeAll();
+        FileIOData::s_stdioMutex.unlock();
     }
 
 private:
