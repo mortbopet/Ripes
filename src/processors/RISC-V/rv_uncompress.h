@@ -261,9 +261,9 @@ public:
                                 imm = 0xFF80 | imm;
                             }
                             // beq rs1 ′ , x0, offset[8:1]
-                            new_instr = ((((imm & 0x8000) >> 9) | ((imm & 0x3F00) >> 8)) << 25) | (0b00 << 20) |
+                            new_instr = ((((imm & 0x0800) >> 5) | ((imm & 0x03F0) >> 4)) << 25) | (0b00 << 20) |
                                         (rs1 << 15) | (0b000 << 12) |
-                                        ((((imm & 0x000F) << 1) | ((imm & 0x4000) >> 14)) << 7) | RVISA::Opcode::BRANCH;
+                                        ((((imm & 0x000F) << 1) | ((imm & 0x0400) >> 10)) << 7) | RVISA::Opcode::BRANCH;
                         } break;
                         case 0b111: {  // c.bnez
                             const auto fields = RVInstrParser::getParser()->decodeCB16Instr(instrValue);
@@ -274,9 +274,9 @@ public:
                                 imm = 0xFF80 | imm;
                             }
                             // bne rs1 ′ , x0, offset[8:1]
-                            new_instr = ((((imm & 0x8000) >> 9) | ((imm & 0x3F00) >> 8)) << 25) | (0b00 << 20) |
+                            new_instr = ((((imm & 0x0800) >> 5) | ((imm & 0x03F0) >> 4)) << 25) | (0b00 << 20) |
                                         (rs1 << 15) | (0b001 << 12) |
-                                        ((((imm & 0x000F) << 1) | ((imm & 0x4000) >> 14)) << 7) | RVISA::Opcode::BRANCH;
+                                        ((((imm & 0x000F) << 1) | ((imm & 0x0400) >> 10)) << 7) | RVISA::Opcode::BRANCH;
                         } break;
                     }
                     break;
