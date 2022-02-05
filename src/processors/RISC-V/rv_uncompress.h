@@ -297,7 +297,7 @@ public:
                         case 0b010: {  // c.lwsp
                             const auto fields = RVInstrParser::getParser()->decodeCI16Instr(instrValue);
                             rd = fields[3];
-                            uimm = ((fields[4] & 0x03) << 7) | (fields[2] << 6) | (fields[4] & 0x1C);
+                            uimm = ((fields[4] & 0x03) << 6) | (fields[2] << 5) | (fields[4] & 0x1C);
                             // lw rd,offset[7:2](x2)
                             new_instr = (uimm << 20) | (0b0010 << 15) | (0b010 << 12) | (rd << 7) | RVISA::Opcode::LOAD;
                         } break;
