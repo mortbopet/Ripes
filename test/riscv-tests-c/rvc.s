@@ -248,8 +248,31 @@ test_42:
  li t2,582
  li gp,42
  bne t0,t2, fail 
-    
-    
+ 
+test_43:
+ li a5, 1     
+ c.bnez a5, 255    
+ bne zero,gp, test_44
+.zero 244
+ bne zero,gp, fail
+ nop
+ c.bnez a5, -255
+ 
+test_44:
+ li a5, 0      
+ c.beqz a5, 255    
+ bne zero,gp, test_45
+.zero 244
+ bne zero,gp, fail
+ nop
+ c.beqz a5, -255
+
+test_45:
+ li a5,0xabcd   
+ c.swsp a5, 252
+ c.lwsp a6, 252
+ bne a5,a6, fail 
+     
  bne zero,gp, pass
   
 
