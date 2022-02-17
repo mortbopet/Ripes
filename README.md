@@ -54,11 +54,19 @@ make                jom.exe / nmake.exe / ...
 Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
 
 ---
-In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen. Ripes. https://github.com/mortbopet/Ripes', e.g. using the following BibTeX code:
+In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen. Ripes. https://github.com/mortbopet/Ripes' or by referring to the [WCAE'21 paper on the project](https://ieeexplore.ieee.org/document/9707149), e.g. using the following BibTeX code:
 ```
 @MISC{Ripes,
 	author = {Morten Borup Petersen},
 	title = {Ripes},
 	howpublished = "\url{https://github.com/mortbopet/Ripes}"
 }
+
+@INPROCEEDINGS{petersen2021wcae,
+  author={Petersen, Morten B.},
+  booktitle={2021 ACM/IEEE Workshop on Computer Architecture Education (WCAE)}, 
+  title={Ripes: A Visual Computer Architecture Simulator}, 
+  year={2021},
+  pages={1-8},
+  doi={10.1109/WCAE53984.2021.9707149}}
 ```
