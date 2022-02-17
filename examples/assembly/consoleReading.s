@@ -4,11 +4,9 @@
 .data
 prompt1: .string "\nEnter character "
 prompt2: .string "\nCharacter was "
-buffer:
-  .zero 255
+buffer:  .zero 255
 
 .text
-
 readLoop:
   li a7 4
   la a0 prompt1
@@ -23,15 +21,15 @@ readLoop:
   ecall
   j readLoop
 
-
 getChar:
-  # Use syscall "Read" on file descriptor 0 (stdin)
+  # Use syscall "read" on file descriptor 0 (stdin)
   li a7 63
   li a0 0
   la a1 buffer
   li a2 255
   ecall
-  # Read first char of the buffer and return it in a0
+  # Read the first word of the buffer
   lw a0 0 a1
+  # Mask the first char and return it
   andi a0 a0 255
   ret
