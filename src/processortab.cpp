@@ -95,7 +95,7 @@ ProcessorTab::ProcessorTab(QToolBar* controlToolbar, QToolBar* additionalToolbar
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
             &ProcessorTab::updateInstructionLabels);
     connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun, this,
-            [=] { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible()); });
+            [=] { m_reverseAction->setEnabled(m_vsrtlWidget->isReversible() && !m_autoClockAction->isChecked()); });
 
     setupSimulatorActions(controlToolbar);
 
@@ -193,34 +193,25 @@ void ProcessorTab::setupSimulatorActions(QToolBar* controlToolbar) {
     m_clockAction->setToolTip("Clock the circuit (F5)");
     controlToolbar->addAction(m_clockAction);
 
-    QTimer* timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, [=] { ProcessorHandler::clock(); });
+    m_autoClockTimer = new QTimer(this);
+    connect(m_autoClockTimer, &QTimer::timeout, this, [=] { ProcessorHandler::clock(); });
 
     const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
-    const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
     m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
     m_autoClockAction->setShortcut(QKeySequence("F6"));
     m_autoClockAction->setToolTip("Clock the circuit with the selected frequency (F6)");
     m_autoClockAction->setCheckable(true);
-    connect(m_autoClockAction, &QAction::toggled, this, [=](bool checked) {
-        if (!checked) {
-            timer->stop();
-            m_autoClockAction->setIcon(startAutoClockIcon);
-        } else {
-            timer->start();
-            m_autoClockAction->setIcon(stopAutoTimerIcon);
-        }
-    });
     m_autoClockAction->setChecked(false);
+    connect(m_autoClockAction, &QAction::triggered, this, &ProcessorTab::autoClock);
     controlToolbar->addAction(m_autoClockAction);
 
     m_autoClockInterval = new QSpinBox(this);
     m_autoClockInterval->setRange(1, 10000);
     m_autoClockInterval->setSuffix(" ms");
     m_autoClockInterval->setToolTip("Auto clock interval");
-    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), this, [timer](int msec) {
+    connect(m_autoClockInterval, qOverload<int>(&QSpinBox::valueChanged), this, [this](int msec) {
         RipesSettings::setValue(RIPES_SETTING_AUTOCLOCK_INTERVAL, msec);
-        timer->setInterval(msec);
+        m_autoClockTimer->setInterval(msec);
     });
     m_autoClockInterval->setValue(RipesSettings::value(RIPES_SETTING_AUTOCLOCK_INTERVAL).toInt());
     controlToolbar->addWidget(m_autoClockInterval);
@@ -470,6 +461,27 @@ void ProcessorTab::runFinished() {
     ProcessorHandler::checkProcessorFinished();
     m_vsrtlWidget->sync();
     m_statUpdateTimer->stop();
+}
+
+void ProcessorTab::autoClock(bool state) {
+    const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
+    const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
+    if (!state) {
+        m_autoClockTimer->stop();
+        m_autoClockAction->setIcon(startAutoClockIcon);
+    } else {
+        m_autoClockTimer->start();
+        m_autoClockAction->setIcon(stopAutoTimerIcon);
+    }
+
+    // Enable/disable all other actions
+    m_selectProcessorAction->setEnabled(!state);
+    m_clockAction->setEnabled(!state);
+    m_reverseAction->setEnabled(!state);
+    m_resetAction->setEnabled(!state);
+    m_displayValuesAction->setEnabled(!state);
+    m_pipelineDiagramAction->setEnabled(!state);
+    m_runAction->setEnabled(!state);
 }
 
 void ProcessorTab::run(bool state) {

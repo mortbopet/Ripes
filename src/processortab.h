@@ -51,6 +51,7 @@ public slots:
 
 private slots:
     void run(bool state);
+    void autoClock(bool state);
     void setInstructionViewCenterRow(int row);
     void showPipelineDiagram();
 
@@ -82,6 +83,7 @@ private:
     QAction* m_reverseAction = nullptr;
     QAction* m_resetAction = nullptr;
     QAction* m_darkmodeAction = nullptr;
+    QTimer* m_autoClockTimer = nullptr;
 
     QSpinBox* m_autoClockInterval = nullptr;
 };
