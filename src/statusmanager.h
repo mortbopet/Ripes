@@ -87,6 +87,7 @@ public:
 
     static void clearStatus() {
         auto& me = get();
+        me.m_timer.stop();
         if (!me.statusQueue.empty())
             me.statusQueue.pop_back();
         if (!me.statusQueue.empty())
