@@ -282,6 +282,11 @@ void MainWindow::setupExamplesMenu(QMenu* parent) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
+    // Stop the processor if running
+    auto* proc = ProcessorHandler::get();
+    if (proc->isRunning())
+        proc->stopRun();
+
     if (static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->isEditorEnabled() &&
         !static_cast<EditTab*>(m_tabWidgets.at(EditTabID).tab)->getAssemblyText().isEmpty()) {
         QMessageBox saveMsgBox(this);
