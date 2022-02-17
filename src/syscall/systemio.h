@@ -312,7 +312,8 @@ public:
      * @return number of bytes read, 0 on EOF, or -1 on error
      */
     static int readFromFile(int fd, QByteArray& myBuffer, int lengthRequested) {
-        SystemIO::get();  // Ensure that SystemIO is constructed
+        s_abortSyscall = false;  // Reset any stale abort requests
+        SystemIO::get();         // Ensure that SystemIO is constructed
         /////////////// DPS 8-Jan-2013  //////////////////////////////////////////////////
         /// Read from STDIN file descriptor while using IDE - get input from Messages pane.
         if (!FileIOData::fdInUse(fd, O_RDONLY))  // Check the existence of the "read" fd
@@ -404,7 +405,7 @@ public:
 
     static void printString(const QString& string) { emit get().doPrint(string); }
     static void reset() { FileIOData::resetFiles(); }
-    static void abortSyscall(bool state) { s_abortSyscall = state; }
+    static void abortSyscall() { s_abortSyscall = true; }
 
 signals:
     void doPrint(const QString&);

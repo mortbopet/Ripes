@@ -240,6 +240,7 @@ void ProcessorHandler::_reset() {
         return;
     }
 
+    SystemIO::abortSyscall();
     getProcessorNonConst()->resetProcessor();
 
     // Rewrite register initializations
@@ -378,7 +379,7 @@ void ProcessorHandler::setStopRunFlag() {
     if (m_runWatcher.isRunning()) {
         m_stopRunningFlag = true;
         // We might be currently trapping for user I/O. Signal to abort the trap, in this avoiding a deadlock.
-        SystemIO::abortSyscall(true);
+        SystemIO::abortSyscall();
     }
 }
 
@@ -386,7 +387,6 @@ void ProcessorHandler::_stopRun() {
     setStopRunFlag();
     m_runWatcher.waitForFinished();
     m_stopRunningFlag = false;
-    SystemIO::abortSyscall(false);
 }
 
 bool ProcessorHandler::_isExecutableAddress(AInt address) const {
