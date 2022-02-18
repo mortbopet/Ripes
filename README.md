@@ -62,11 +62,12 @@ In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen.
 	howpublished = "\url{https://github.com/mortbopet/Ripes}"
 }
 
-@INPROCEEDINGS{petersen2021wcae,
-  author={Petersen, Morten B.},
-  booktitle={2021 ACM/IEEE Workshop on Computer Architecture Education (WCAE)}, 
-  title={Ripes: A Visual Computer Architecture Simulator}, 
+@inproceedings{petersen2021ripes,
+  title={Ripes: A Visual Computer Architecture Simulator},
+  author={Petersen, Morten B},
+  booktitle={2021 ACM/IEEE Workshop on Computer Architecture Education (WCAE)},
+  pages={1--8},
   year={2021},
-  pages={1-8},
-  doi={10.1109/WCAE53984.2021.9707149}}
+  organization={IEEE}
+}
 ```
