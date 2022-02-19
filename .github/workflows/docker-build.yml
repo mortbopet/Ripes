@@ -18,7 +18,7 @@ jobs:
         name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: mortbopet
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Build and push
@@ -27,4 +27,4 @@ jobs:
           file: "./docker/ripes.dockerfile"
           context: "./docker/"
           push: true
-          tags: matsievskiysv/ripes:latest
+          tags: mortbopet/ripes:latest
