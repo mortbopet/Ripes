@@ -9,6 +9,10 @@
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
+#ifdef RIPES_BUILD_VERILATOR_PROCESSORS
+#include "processors/PicoRV32/ripes_picorv32.h"
+#endif
+
 namespace Ripes {
 
 ProcessorRegistry::ProcessorRegistry() {

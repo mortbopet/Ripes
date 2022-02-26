@@ -6,13 +6,12 @@
 #include <memory>
 
 #include "VSRTL/graphics/gallantsignalwrapper.h"
+#include "VSRTL/graphics/vsrtl_widget.h"
 #include "assembler/assembler.h"
 #include "assembler/program.h"
 #include "processorregistry.h"
 #include "processors/interface/ripesprocessor.h"
 #include "syscall/ripes_syscall.h"
-
-#include "VSRTL/graphics/vsrtl_widget.h"
 
 namespace Ripes {
 

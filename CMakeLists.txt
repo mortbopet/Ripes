@@ -22,8 +22,7 @@ endif()
 # Error flags on everything but MSVC
 if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "-Wextra -Wall \
-        -Werror=switch -Werror=return-type \
-        -Werror=unreachable-code")
+        -Werror=switch -Werror=return-type")
 endif()
 
 if(MSVC)

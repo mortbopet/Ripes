@@ -38,11 +38,10 @@ public:
     void clockProcessor() override;
     void resetProcessor() override;
     unsigned features() const { return m_features; }
-    static const ISAInfoBase* supportsISA() {
-        static auto s_isa = ISAInfo<ISA::RV32I>({"M"});
-        return &s_isa;
+    static ProcessorISAInfo supportsISA() {
+        return ProcessorISAInfo{std::make_shared<ISAInfo<ISA::RV32I>>(QStringList()), {"M"}, {"M"}};
     }
-    const ISAInfoBase* implementsISA() const override { return supportsISA(); }
+    const ISAInfoBase* implementsISA() const override { return m_isa.get(); }
     virtual const std::set<RegisterFileType> registerFiles() const override { return {RegisterFileType::GPR}; }
     unsigned int stageCount() const override { return 1; }
     unsigned int getPcForStage(unsigned) const override;
@@ -76,6 +75,7 @@ private:
 
     MemoryAccess m_dataAccess;
     MemoryAccess m_instrAccess;
+    std::shared_ptr<ISAInfoBase> m_isa;
 };
 
 }  // namespace Ripes
