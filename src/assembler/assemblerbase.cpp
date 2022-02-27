@@ -72,10 +72,12 @@ void AssemblerBase::setDirectives(const DirectiveVec& directives) {
     }
 }
 
-std::variant<Error, LineTokens> AssemblerBase::tokenize(const QString& line, const int sourceLine) const {
-    auto tokens = line.split(m_splitterRegex);
-    tokens.removeAll(QLatin1String(""));
-    auto joinedtokens = joinParentheses(tokens);
+std::variant<Error, LineTokens> AssemblerBase::tokenize(const QString& line, int sourceLine) const {
+    auto quoteTokenized = tokenizeQuotes(line, sourceLine);
+    if (auto* error = std::get_if<Error>(&quoteTokenized))
+        return {*error};
+
+    auto joinedtokens = joinParentheses(std::get<QStringList>(quoteTokenized));
     if (auto* err = std::get_if<Error>(&joinedtokens)) {
         err->first = sourceLine;
         return *err;
@@ -114,6 +116,11 @@ std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Li
     LineTokens splitTokens;
     splitTokens.reserve(tokens.size());
     for (const auto& token : tokens) {
+        if (token.startsWith('\"') && token.endsWith('\"')) {
+            // Skip quoted strings.
+            splitTokens.push_back(token);
+            continue;
+        }
         Token buffer;
         for (const auto& ch : token) {
             buffer.append(ch);

@@ -43,6 +43,7 @@ private slots:
     void tst_expression();
     void tst_invalidLabel();
     void tst_directives();
+    void tst_stringDirectives();
     void tst_riscv();
 
 private:
@@ -329,6 +330,22 @@ void tst_Assembler::tst_labelWithPseudo() {
     testAssemble(QStringList() << "j end"
                                << "end:nop",
                  Expect::Success);
+}
+
+void tst_Assembler::tst_stringDirectives() {
+    testAssemble(QStringList() << R"(A: .string "a b c")", Expect::Success);
+    testAssemble(QStringList() << R"(A: .string "a : c")", Expect::Success);
+    testAssemble(QStringList() << R"(A: .string "a \" c")", Expect::Success);
+    testAssemble(QStringList() << R"(A: .string "a \" \" c")", Expect::Success);
+    testAssemble(QStringList() << R"(A: .string "a \\" c")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string "a c" "a c")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string "a c\")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string "a c)", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string a c ")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string ")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string a c\")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string """")", Expect::Fail);
+    testAssemble(QStringList() << R"(A: .string "")", Expect::Success);
 }
 
 void tst_Assembler::tst_matcher() {

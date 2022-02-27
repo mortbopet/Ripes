@@ -63,7 +63,7 @@ public:
 protected:
     /// Creates a set of LineTokens by tokenizing a line of source code.
     QRegularExpression m_splitterRegex;
-    std::variant<Error, LineTokens> tokenize(const QString& line, const int sourceLine) const;
+    std::variant<Error, LineTokens> tokenize(const QString& line, int sourceLine) const;
 
     HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok, bool skipEarlyDirectives = true) const;
 

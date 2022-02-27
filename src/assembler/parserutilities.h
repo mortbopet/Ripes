@@ -24,5 +24,7 @@ int64_t getImmediateSext32(const QString& string, bool& canConvert);
  */
 std::variant<Error, LineTokens> joinParentheses(const QStringList& tokens);
 
+/// Quote-aware string tokenization.
+std::variant<Error, QStringList> tokenizeQuotes(const QString& line, unsigned sourceLine);
 }  // namespace Assembler
 }  // namespace Ripes

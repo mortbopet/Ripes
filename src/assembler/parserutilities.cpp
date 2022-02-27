@@ -125,5 +125,47 @@ std::variant<Error, LineTokens> joinParentheses(const QStringList& tokens) {
     }
 }
 
+std::variant<Error, QStringList> tokenizeQuotes(const QString& line, unsigned sourceLine) {
+    QStringList tokens;
+    bool inQuotes = false;
+    bool escape = false;
+    QString substr;
+    auto pushSubstr = [&]{
+        tokens.push_back(substr);
+        substr.clear();
+    };
+    for (auto& ch : line) {
+        if (inQuotes) {
+            if (!escape) {
+                if (inQuotes && ch == '"') {
+                    inQuotes = false;
+                    substr += ch;
+                    pushSubstr();
+                    continue;
+                }
+                if (ch == '\\')
+                    escape = true;
+            } else
+                escape = false;
+            substr.push_back(ch);
+        } else {
+            if (ch == " " || ch == "," || ch == "\t") {
+                if (!substr.isEmpty())
+                    pushSubstr();
+            } else
+                substr.push_back(ch);
+            if (ch == "\"")
+                inQuotes = true;
+        }
+    }
+
+    if (inQuotes)
+        return {Error({sourceLine, "Missing terminating '\"' character."})};
+
+    tokens.push_back(substr);
+    tokens.removeAll(QLatin1String(""));
+    return {tokens};
+}
+
 }  // namespace Assembler
 }  // namespace Ripes
