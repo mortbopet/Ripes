@@ -4,6 +4,18 @@
 namespace Ripes {
 namespace Assembler {
 
+static QString numTokensError(unsigned expected, const TokenizedSrcLine& line) {
+    QString err = QString::fromStdString("Invalid number of directive arguments; expected " + std::to_string(expected) +
+                                         " but got " + std::to_string(line.tokens.size()) + "[");
+    for (auto t : llvm::enumerate(line.tokens)) {
+        err += t.value();
+        if (t.index() < (line.tokens.size() - 1))
+            err += ", ";
+    };
+    err += "].";
+    return err;
+}
+
 #define add_directive(container, directive) container.push_back(std::make_shared<Directive>(directive));
 
 DirectiveVec gnuDirectives() {
@@ -77,7 +89,7 @@ HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveAr
 
 HandleDirectiveRes stringFunctor(const AssemblerBase*, const DirectiveArg& arg) {
     if (arg.line.tokens.length() != 1) {
-        return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 1)")};
+        return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(1, arg.line))};
     }
     QString string = arg.line.tokens.at(0);
     string.replace("\\n", "\n");
@@ -137,7 +149,7 @@ Directive dummyDirective(const QString& name) {
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
     return [segment](const AssemblerBase* assembler, const DirectiveArg& arg) {
         if (arg.line.tokens.length() != 0) {
-            return HandleDirectiveRes{Error(arg.line.sourceLine, "Invalid number of arguments (expected 0)")};
+            return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(0, arg.line))};
         }
         auto err = assembler->setCurrentSegment(segment);
         if (err) {
@@ -164,7 +176,7 @@ Directive dataDirective() {
 Directive zeroDirective() {
     auto zeroFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() != 1) {
-            return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 1)")};
+            return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(1, arg.line))};
         }
         int64_t value;
         getImmediateErroring(arg.line.tokens.at(0), value, arg.line.sourceLine);
@@ -178,7 +190,7 @@ Directive zeroDirective() {
 Directive equDirective() {
     auto equFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() != 2) {
-            return {Error(arg.line.sourceLine, "Invalid number of arguments (expected 2)")};
+            return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(2, arg.line))};
         }
         int64_t value;
         getImmediateErroring(arg.line.tokens.at(1), value, arg.line.sourceLine);
