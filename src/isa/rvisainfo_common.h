@@ -99,7 +99,7 @@ public:
         success = false;
         return 0;
     }
-    virtual int syscallArgReg(unsigned argIdx) const {
+    virtual int syscallArgReg(unsigned argIdx) const override {
         assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
         return argIdx + 10;
     }

@@ -53,7 +53,7 @@ public:
     virtual int gpReg() const { return -1; }                        // Global pointer
     virtual int syscallReg() const { return -1; }                   // Syscall function register
     // Mapping between syscall argument # and the corresponding register # wherein that argument is passed.
-    virtual int syscallArgReg(unsigned argIdx) const { return -1; }
+    virtual int syscallArgReg(unsigned /*argIdx*/) const { return -1; }
 
     // GCC Compile command architecture and ABI specification strings
     virtual QString CCmarch() const = 0;
