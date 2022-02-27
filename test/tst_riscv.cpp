@@ -154,18 +154,19 @@ void tst_RISCV::runTests(const ProcessorID& id, const QStringList& extensions, c
         ProcessorHandler::selectProcessor(id, extensions);
 
         for (const auto& test : testFiles) {
-            m_currentTest = test;
-            if (skipTest(m_currentTest))
+            auto testPath = testDir + QString(QDir::separator()) + test;
+            m_currentTest = testPath;
+            if (skipTest(test))
                 continue;
 
             qInfo() << "Running test: " << m_currentTest;
 
             // Assemble test file
-            auto f = QFile(testDir + QString(QDir::separator()) + test);
+            auto f = QFile(testPath);
             if (!f.open(QIODevice::ReadOnly)) {
                 QFAIL("Could not open test file");
             }
-            const auto program = ProcessorHandler::getAssembler()->assemble(QString(f.readAll()).split("\n"));
+            const auto program = ProcessorHandler::getAssembler()->assembleRaw(QString(f.readAll()));
             if (program.errors.size() != 0) {
                 QString err = "Could not assemble program";
                 err += "\n errors were:";
