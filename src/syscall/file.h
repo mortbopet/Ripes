@@ -132,7 +132,7 @@ class GetCWDSyscall : public BaseSyscall {
 public:
     GetCWDSyscall()
         : BaseSyscall("GetCWD", "Writes the path of the current working directory into a buffer",
-                      {{0, "the buffer to write into"}, {1, "the length of the buffer"}},
+                      {{0, "address of the buffer to write into"}, {1, "the length of the buffer"}},
                       {{0, "-1 if the path is longer than the buffer"}}) {}
     void execute() {
         const int byteAddress =

@@ -99,6 +99,10 @@ public:
         success = false;
         return 0;
     }
+    virtual int syscallArgReg(unsigned argIdx) const {
+        assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
+        return argIdx + 10;
+    }
 
     QString elfSupportsFlags(unsigned flags) const override {
         /** We expect no flags for RV32IM compiled RISC-V executables.

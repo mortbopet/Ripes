@@ -37,17 +37,17 @@ SyscallViewer::SyscallViewer(QWidget* parent) : QDialog(parent), m_ui(new Ui::Sy
     connect(m_ui->syscallList, &QTableWidget::currentItemChanged, this, &SyscallViewer::handleItemChanged);
 
     // Setup syscall argument styling
-    m_ui->syscallArguments->setColumnCount(2);
+    m_ui->syscallArguments->setColumnCount(3);
     m_ui->syscallArguments->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->syscallArguments->horizontalHeader()->setStretchLastSection(true);
-    m_ui->syscallArguments->setHorizontalHeaderLabels({"Arg. #", "Description"});
+    m_ui->syscallArguments->setHorizontalHeaderLabels({"Arg. #", "Reg.", "Description"});
     m_ui->syscallArguments->verticalHeader()->hide();
 
     // Setup syscall returns styling
-    m_ui->syscallReturns->setColumnCount(2);
+    m_ui->syscallReturns->setColumnCount(3);
     m_ui->syscallReturns->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->syscallReturns->horizontalHeader()->setStretchLastSection(true);
-    m_ui->syscallReturns->setHorizontalHeaderLabels({"Ret. #", "Description"});
+    m_ui->syscallReturns->setHorizontalHeaderLabels({"Ret. #", "Reg.", "Description"});
     m_ui->syscallReturns->verticalHeader()->hide();
 
     // Select first row to set the initial state
@@ -78,22 +78,32 @@ void SyscallViewer::setCurrentSyscall(const Syscall* syscall) {
     for (const auto& iter : syscall->returnDescriptions()) {
         addItemToTable(m_ui->syscallReturns, iter.first, iter.second);
     }
+    m_ui->syscallArguments->resizeColumnToContents(0);
+    m_ui->syscallArguments->resizeColumnToContents(1);
+    m_ui->syscallReturns->resizeColumnToContents(0);
+    m_ui->syscallReturns->resizeColumnToContents(1);
 }
 
 void SyscallViewer::addItemToTable(QTableWidget* table, unsigned int idx, const QString& description) {
     table->setRowCount(table->rowCount() + 1);
     QTableWidgetItem* idxItem = new QTableWidgetItem();
+    QTableWidgetItem* regItem = new QTableWidgetItem();
     QTableWidgetItem* textItem = new QTableWidgetItem();
 
+    auto* isa = ProcessorHandler::currentISA();
+
     idxItem->setData(Qt::EditRole, QString::number(idx));
+    regItem->setData(Qt::EditRole, isa->regAlias(isa->syscallArgReg(idx)));
     textItem->setData(Qt::DisplayRole, description);
 
     idxItem->setFlags(idxItem->flags() ^ Qt::ItemIsEditable);
+    regItem->setFlags(idxItem->flags() ^ Qt::ItemIsEditable);
     textItem->setFlags(textItem->flags() ^ Qt::ItemIsEditable);
 
     const int row = table->rowCount() - 1;
     table->setItem(row, 0, idxItem);
-    table->setItem(row, 1, textItem);
+    table->setItem(row, 1, regItem);
+    table->setItem(row, 2, textItem);
 }
 
 void SyscallViewer::addSyscall(unsigned id, const Syscall* syscall) {
