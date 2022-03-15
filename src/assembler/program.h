@@ -42,6 +42,23 @@ public:
     bool is(const Type t) const { return type & t; }
     bool is(const unsigned t) const { return type & t; }
 
+    // A local symbol is a numerical label.
+    bool isLocal() const {
+        bool ok;
+        (void)v.toUInt(&ok);
+        return ok;
+    }
+
+    /// Returns true if this symbol is legal. An illegal symbal is any symbol that starts with a numeric value which is
+    /// not a number.
+    bool isLegal() const {
+        bool startsWithNum;
+        QString(v.front()).toInt(&startsWithNum);
+        if (startsWithNum && !isLocal())
+            return false;
+        return true;
+    }
+
     operator const QString&() const { return v; }
 
     QString v;

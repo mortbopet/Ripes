@@ -248,7 +248,10 @@ protected:
 
             bool uniqueSymbols = true;
             for (const auto& s : symbolsAndRest.first) {
-                if (symbols.count(s) != 0) {
+                if (!s.isLegal())
+                    errors.push_back(Error(tsl.sourceLine, "Illegal symbol '" + s.v + "'"));
+
+                if (!s.isLocal() && symbols.count(s) != 0) {
                     errors.push_back(Error(tsl.sourceLine, "Multiple definitions of symbol '" + s.v + "'"));
                     uniqueSymbols = false;
                     break;
@@ -356,7 +359,11 @@ protected:
             VInt addr_offset = currentSection->data.size();
             for (const auto& s : line.symbols) {
                 // Record symbol position as its absolute address in memory
-                runOperationNoRes(addSymbol, line, s, addr_offset + program.sections.at(m_currentSection).address);
+                auto res = m_symbolMap.addSymbol(line, s, addr_offset + program.sections.at(m_currentSection).address);
+                if (res) {
+                    errors.push_back(res.value());
+                    continue;
+                }
             }
 
             runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective,
@@ -405,8 +412,9 @@ protected:
             return {errors};
         }
 
-        // Register address symbols in program struct
-        for (const auto& iter : m_symbolMap) {
+        // Register address symbols in program struct.
+        /// @todo: also consider relative symbols here.
+        for (const auto& iter : m_symbolMap.abs) {
             if (iter.first.is(Symbol::Type::Address)) {
                 program.symbols[iter.second] = iter.first;
             }
@@ -424,10 +432,10 @@ protected:
             // Add the special __address__ symbol indicating the address of the instruction itself. Not done through
             // addSymbol given that we redefine this symbol on each line.
             const Reg_T linkRequestAddress = linkReqAddress(linkRequest);
-            m_symbolMap["__address__"] = linkRequestAddress;
+            m_symbolMap.abs["__address__"] = linkRequestAddress;
 
             // Expression evaluation also performs symbol evaluation
-            auto exprRes = evalExpr(symbol);
+            auto exprRes = evalExpr(symbol, linkRequest.sourceLine);
             if (auto* err = std::get_if<Error>(&exprRes)) {
                 err->first = linkRequest.sourceLine;
                 errors.push_back(*err);

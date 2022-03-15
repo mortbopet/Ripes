@@ -181,7 +181,7 @@ void IOManager::updateSymbols() {
         headerfile << "// *****************************************************************************";
 
         auto symbols = assemblerSymbolsForPeriph(p.first);
-        m_assemblerSymbols.insert(symbols.begin(), symbols.end());
+        m_assemblerSymbols.abs.insert(symbols.begin(), symbols.end());
 
         for (const auto& symbol : assemblerSymbolsForPeriph(p.first)) {
             headerfile << "#define " + symbol.first.v + "\t" + "(0x" + QString::number(symbol.second, 16) + ")";

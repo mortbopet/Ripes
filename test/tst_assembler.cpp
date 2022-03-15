@@ -45,6 +45,7 @@ private slots:
     void tst_directives();
     void tst_stringDirectives();
     void tst_riscv();
+    void tst_relativeLabels();
 
 private:
     QString createProgram(int entries) {
@@ -346,6 +347,23 @@ void tst_Assembler::tst_stringDirectives() {
     testAssemble(QStringList() << R"(A: .string a c\")", Expect::Fail);
     testAssemble(QStringList() << R"(A: .string """")", Expect::Fail);
     testAssemble(QStringList() << R"(A: .string "")", Expect::Success);
+}
+
+void tst_Assembler::tst_relativeLabels() {
+    testAssemble(QStringList() << "1f:  bne x0 a0 1f", Expect::Fail);
+    testAssemble(QStringList() << "1:  bne x0 a0 1f"
+                               << "1:  bne x0 a0 1b",
+                 Expect::Success);
+
+    testAssemble(QStringList() << "bne x0 a0 2f"
+                               << "2:"
+                               << "1:  bne x0 a0 1f"
+                               << "1:  bne x0 a0 1b"
+                               << "bne x0 a0 2b",
+                 Expect::Success);
+    testAssemble(QStringList() << "bne x0 a0 2f"
+                               << "2:",
+                 Expect::Fail);
 }
 
 void tst_Assembler::tst_matcher() {
