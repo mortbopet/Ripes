@@ -7,6 +7,7 @@
 #include "assembler_defines.h"
 #include "directive.h"
 #include "expreval.h"
+#include "symbolmap.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -48,17 +49,19 @@ public:
     /// Returns the set of opcodes (as strings) which are supported by this assembler.
     virtual std::set<QString> getOpcodes() const = 0;
 
-    /// Adds a symbol to the current symbol mapping of this assembler defined at the 'line' in the input program.
-    std::optional<Error> addSymbol(const TokenizedSrcLine& line, const Symbol& s, VInt v) const;
-
-    /// Adds a symbol to the current symbol mapping of this assembler.
-    std::optional<Error> addSymbol(const unsigned& line, const Symbol& s, VInt v) const;
-
     /// Resolves an expression through either the built-in symbol map, or through the expression evaluator.
-    ExprEvalRes evalExpr(const QString& expr) const;
+    ExprEvalRes evalExpr(const QString& expr, unsigned sourceLine) const;
 
     /// Set the supported directives for this assembler.
     void setDirectives(const DirectiveVec& directives);
+
+    /**
+     * @brief symbolMap maintains the symbols recorded during assembling. Marked mutable to allow for assembler
+     * directives to add symbols during assembling.
+     * publically exposed to allow for Directives (such as equDirective) to be able to insert symbols into the
+     * assembler... this might be smelly code (!!!).
+     */
+    mutable SymbolMap m_symbolMap;
 
 protected:
     /// Creates a set of LineTokens by tokenizing a line of source code.
@@ -92,12 +95,6 @@ protected:
      * Marked mutable to allow for switching currently selected segment during assembling.
      */
     mutable Section m_currentSection;
-
-    /**
-     * @brief symbolMap maintains the symbols recorded during assembling. Marked mutable to allow for assembler
-     * directives to add symbols during assembling.
-     */
-    mutable SymbolMap m_symbolMap;
 
     /**
      * The set of supported assembler directives. A assembler can add directives through

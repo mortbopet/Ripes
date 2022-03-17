@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assembler/assembler_defines.h"
+#include "assembler/symbolmap.h"
 #include "iobase.h"
 #include "ioregistry.h"
 

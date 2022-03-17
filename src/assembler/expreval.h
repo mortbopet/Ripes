@@ -4,6 +4,7 @@
 #include <variant>
 #include "assembler_defines.h"
 #include "assemblererror.h"
+#include "symbolmap.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -21,7 +22,7 @@ using ExprEvalRes = std::variant<Error, ExprEvalVT>;
  * functionality is mainly intended to be used by the assembler to expand complex pseudoinstructions and as such not
  * by the user.
  */
-ExprEvalRes evaluate(const QString&, const SymbolMap* variables = nullptr);
+ExprEvalRes evaluate(const QString&, const AbsoluteSymbolMap* variables = nullptr);
 
 /**
  * @brief couldBeExpression

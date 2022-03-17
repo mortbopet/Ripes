@@ -45,12 +45,12 @@ DirectiveVec gnuDirectives() {
     return directives;
 }
 
-#define getImmediateErroring(token, res, srcline)        \
-    auto exprRes##res = assembler->evalExpr(token);      \
-    if (auto* err = std::get_if<Error>(&exprRes##res)) { \
-        err->first = srcline;                            \
-        return {*err};                                   \
-    }                                                    \
+#define getImmediateErroring(token, res, srcline)            \
+    auto exprRes##res = assembler->evalExpr(token, srcline); \
+    if (auto* err = std::get_if<Error>(&exprRes##res)) {     \
+        err->first = srcline;                                \
+        return {*err};                                       \
+    }                                                        \
     res = std::get<ExprEvalVT>(exprRes##res);
 
 template <size_t size>
@@ -195,7 +195,7 @@ Directive equDirective() {
         int64_t value;
         getImmediateErroring(arg.line.tokens.at(1), value, arg.line.sourceLine);
 
-        auto err = assembler->addSymbol(arg.line, arg.line.tokens.at(0), value);
+        auto err = assembler->m_symbolMap.addSymbol(arg.line, arg.line.tokens.at(0), value);
         if (err) {
             return err.value();
         }

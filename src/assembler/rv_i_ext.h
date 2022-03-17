@@ -178,9 +178,10 @@ struct RV_I {
                 int64_t immediate = getImmediateSext32(line.tokens.at(2), canConvert);
 
                 if (!canConvert) {
+                    auto absSymbols = symbols.copyRelativeTo(line.sourceLine);
                     // Check if the immediate has been made available in the symbol set at this point...
-                    auto it = symbols.find(line.tokens.at(2));
-                    if (it != symbols.end()) {
+                    auto it = absSymbols.find(line.tokens.at(2));
+                    if (it != absSymbols.end()) {
                         immediate = it->second;
                     } else {
                         if (unsignedFitErr) {

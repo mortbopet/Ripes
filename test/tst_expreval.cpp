@@ -23,8 +23,8 @@ void tst_ExprEval::tst_binops() {
     expect(evaluate("(0x2*(3+4))+4"), 18);
     expect(evaluate("2+3*7*5"), 107);
     SymbolMap symbols;
-    symbols["B"] = 2;
-    expect(evaluate("(B *(3+ 4))+4", &symbols), 18);
+    symbols.abs["B"] = 2;
+    expect(evaluate("(B *(3+ 4))+4", &symbols.abs), 18);
 }
 
 QTEST_APPLESS_MAIN(tst_ExprEval)

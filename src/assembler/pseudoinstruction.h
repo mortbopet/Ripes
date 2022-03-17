@@ -2,6 +2,7 @@
 
 #include "assembler_defines.h"
 #include "instruction.h"
+#include "symbolmap.h"
 
 namespace Ripes {
 namespace Assembler {

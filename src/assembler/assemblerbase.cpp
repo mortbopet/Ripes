@@ -31,27 +31,15 @@ AssembleResult AssemblerBase::assembleRaw(const QString& program, const SymbolMa
     return assemble(programLines, symbols, Program::calculateHash(program.toUtf8()));
 }
 
-/// Adds a symbol to the current symbol mapping of this assembler defined at the 'line' in the input program.
-std::optional<Error> AssemblerBase::addSymbol(const TokenizedSrcLine& line, const Symbol& s, VInt v) const {
-    return addSymbol(line.sourceLine, s, v);
-}
-
-/// Adds a symbol to the current symbol mapping of this assembler.
-std::optional<Error> AssemblerBase::addSymbol(const unsigned& line, const Symbol& s, VInt v) const {
-    if (m_symbolMap.count(s)) {
-        return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
-    }
-    m_symbolMap[s] = v;
-    return {};
-}
-
 /// Resolves an expression through either the built-in symbol map, or through the expression evaluator.
-ExprEvalRes AssemblerBase::evalExpr(const QString& expr) const {
-    auto symbolValue = m_symbolMap.find(expr);
-    if (symbolValue != m_symbolMap.end()) {
+ExprEvalRes AssemblerBase::evalExpr(const QString& expr, unsigned sourceLine) const {
+    auto relativeMap = m_symbolMap.copyRelativeTo(sourceLine);
+
+    auto symbolValue = relativeMap.find(expr);
+    if (symbolValue != relativeMap.end()) {
         return symbolValue->second;
     } else {
-        return evaluate(expr, &m_symbolMap);
+        return evaluate(expr, &relativeMap);
     }
 }
 
