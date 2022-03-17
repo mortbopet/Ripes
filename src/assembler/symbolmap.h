@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include "assembler_defines.h"
 
 namespace Ripes {
