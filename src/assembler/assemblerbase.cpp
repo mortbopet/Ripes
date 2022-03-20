@@ -60,7 +60,7 @@ void AssemblerBase::setDirectives(const DirectiveVec& directives) {
     }
 }
 
-std::variant<Error, LineTokens> AssemblerBase::tokenize(const Location& location, const QString& line) const {
+Result<LineTokens> AssemblerBase::tokenize(const Location& location, const QString& line) const {
     auto quoteTokenized = tokenizeQuotes(location, line);
     if (auto* error = std::get_if<Error>(&quoteTokenized))
         return {*error};
@@ -72,20 +72,21 @@ std::variant<Error, LineTokens> AssemblerBase::tokenize(const Location& location
     return std::get<LineTokens>(joinedtokens);
 }
 
-HandleDirectiveRes AssemblerBase::assembleDirective(const DirectiveArg& arg, bool& ok, bool skipEarlyDirectives) const {
+Result<QByteArray> AssemblerBase::assembleDirective(const DirectiveArg& arg, bool& ok,
+                                                      bool skipEarlyDirectives) const {
     ok = false;
     if (arg.line.directive.isEmpty()) {
-        return std::nullopt;
+        return QByteArray();
     }
     ok = true;
     try {
         const auto& directive = m_directivesMap.at(arg.line.directive);
         if (directive->early() && skipEarlyDirectives) {
-            return std::nullopt;
+            return QByteArray();
         }
         return directive->handle(this, arg);
     } catch (const std::out_of_range&) {
-        return {Error(arg.line, "Unknown directive '" + arg.line.directive + "'")};
+        return Error(arg.line, "Unknown directive '" + arg.line.directive + "'");
     }
 }
 
@@ -93,8 +94,7 @@ HandleDirectiveRes AssemblerBase::assembleDirective(const DirectiveArg& arg, boo
  * @brief splitSymbolsFromLine
  * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
  */
-std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Location& location,
-                                                                        const LineTokens& tokens) const {
+Result<SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Location& location, const LineTokens& tokens) const {
     if (tokens.size() == 0) {
         return {SymbolLinePair({}, tokens)};
     }
@@ -149,8 +149,8 @@ std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Lo
     return {SymbolLinePair(symbols, remainingTokens)};
 }
 
-std::variant<Error, DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(const Location& location,
-                                                                              const LineTokens& tokens) const {
+Result<DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(const Location& location,
+                                                                   const LineTokens& tokens) const {
     if (tokens.size() == 0) {
         return {DirectiveLinePair(QString(), tokens)};
     }
@@ -178,7 +178,7 @@ std::variant<Error, DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(co
     }
 }
 
-std::variant<Error, LineTokens> AssemblerBase::splitCommentFromLine(const LineTokens& tokens) const {
+Result<LineTokens> AssemblerBase::splitCommentFromLine(const LineTokens& tokens) const {
     if (tokens.size() == 0) {
         return {tokens};
     }

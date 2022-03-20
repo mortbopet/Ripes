@@ -185,11 +185,11 @@ struct RV_I {
                         immediate = it->second;
                     } else {
                         if (unsignedFitErr) {
-                            return PseudoExpandRes{Error(
+                            return Result<std::vector<LineTokens>>{Error(
                                 line, QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
                                           .arg(line.tokens.at(2)))};
                         } else {
-                            return PseudoExpandRes{
+                            return Result<std::vector<LineTokens>>{
                                 Error(line, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
                         }
                     }
@@ -200,7 +200,7 @@ struct RV_I {
                  * For more insight, please refer to there, since their comments have been left out of this source
                  * code.
                  */
-                std::function<PseudoExpandRes(int64_t, bool)> genInstrSeq = [&](int64_t val, bool isRV64) {
+                std::function<Result<std::vector<LineTokens>>(int64_t, bool)> genInstrSeq = [&](int64_t val, bool isRV64) {
                     if (isInt<32>(val) || (!isRV64 && isUInt<32>(val))) {
                         int64_t Hi20 = ((val + 0x800) >> 12) & 0xFFFFF;
                         int64_t Lo12 = vsrtl::signextend<12>(val);
@@ -215,10 +215,10 @@ struct RV_I {
                                           << (liveDstReg ? line.tokens.at(1) : Token("x0")) << QString::number(Lo12));
                             liveDstReg = true;
                         }
-                        return PseudoExpandRes{res};
+                        return Result<std::vector<LineTokens>>{res};
                     }
                     if (!isRV64) {
-                        return PseudoExpandRes{
+                        return Result<std::vector<LineTokens>>{
                             Error(line, QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
                                             .arg(line.tokens.at(2)))};
                     }
@@ -233,7 +233,7 @@ struct RV_I {
                         res.push_back(LineTokens() << Token("addi") << line.tokens.at(1) << line.tokens.at(1)
                                                    << QString::number(Lo12));
                     }
-                    return PseudoExpandRes{res};
+                    return Result<std::vector<LineTokens>>{res};
                 };
                 auto instrSeq = genInstrSeq(immediate, options.count(Options::LI64BitVariant));
                 return instrSeq;

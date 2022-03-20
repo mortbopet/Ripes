@@ -66,7 +66,7 @@ bool matchedParens(std::vector<QChar>& parensStack, QChar end) {
     return (toMatch == '[' && end == ']') || (toMatch == '(' && end == ')');
 }
 
-std::variant<Error, LineTokens> joinParentheses(const Location& loc, const QStringList& tokens) {
+Result< LineTokens> joinParentheses(const Location& loc, const QStringList& tokens) {
     LineTokens outtokens;
     std::vector<QChar> parensStack;
 
@@ -125,7 +125,7 @@ std::variant<Error, LineTokens> joinParentheses(const Location& loc, const QStri
     }
 }
 
-std::variant<Error, QStringList> tokenizeQuotes(const Location& location, const QString& line) {
+Result< QStringList> tokenizeQuotes(const Location& location, const QString& line) {
     QStringList tokens;
     bool inQuotes = false;
     bool escape = false;

@@ -13,7 +13,7 @@ extern const QRegularExpression s_exprOperatorsRegex;
 extern const QString s_exprOperators;
 extern const QString s_exprTokens;
 using ExprEvalVT = int64_t;  // Expression evaluation value type
-using ExprEvalRes = std::variant<Error, ExprEvalVT>;
+using ExprEvalRes = Result< ExprEvalVT>;
 
 /**
  * @brief evaluate

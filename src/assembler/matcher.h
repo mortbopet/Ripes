@@ -68,7 +68,7 @@ public:
         : m_matchRoot(buildMatchTree(instructions, 1)) {}
     void print() const { m_matchRoot.print(); }
 
-    std::variant<Error, const Instruction<Reg_T>*> matchInstruction(const Instr_T& instruction) const {
+    Result< const Instruction<Reg_T>*> matchInstruction(const Instr_T& instruction) const {
         auto match = matchInstructionRec(instruction, m_matchRoot, true);
         if (match == nullptr) {
             return Error(0, "Unknown instruction");

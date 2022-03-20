@@ -15,7 +15,7 @@ namespace Assembler {
 class AssemblerBase;
 
 template <typename Reg_T>
-using HandleRelocationRes = std::variant<Error, Reg_T>;
+using HandleRelocationRes = Result< Reg_T>;
 
 template <typename Reg_T>
 class Relocation {

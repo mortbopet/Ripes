@@ -66,22 +66,21 @@ public:
 protected:
     /// Creates a set of LineTokens by tokenizing a line of source code.
     QRegularExpression m_splitterRegex;
-    std::variant<Error, LineTokens> tokenize(const Location& location, const QString& line) const;
+    Result<LineTokens> tokenize(const Location& location, const QString& line) const;
 
-    HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok, bool skipEarlyDirectives = true) const;
+    Result<QByteArray> assembleDirective(const DirectiveArg& arg, bool& ok, bool skipEarlyDirectives = true) const;
 
     /**
      * @brief splitSymbolsFromLine
      * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
      */
-    std::variant<Error, SymbolLinePair> splitSymbolsFromLine(const Location& location, const LineTokens& tokens) const;
+    Result<SymbolLinePair> splitSymbolsFromLine(const Location& location, const LineTokens& tokens) const;
 
-    std::variant<Error, DirectiveLinePair> splitDirectivesFromLine(const Location& location,
-                                                                   const LineTokens& tokens) const;
+    Result<DirectiveLinePair> splitDirectivesFromLine(const Location& location, const LineTokens& tokens) const;
 
     /// Given an input set of tokens, splits away commented code from the tokens based on the comment delimiter, i.e.:
     /// {"a", "b", "#", "c"} => {"a", "b"}
-    std::variant<Error, LineTokens> splitCommentFromLine(const LineTokens& tokens) const;
+    Result<LineTokens> splitCommentFromLine(const LineTokens& tokens) const;
 
     /// Returns the comment-delimiting character for this assembler.
     virtual QChar commentDelimiter() const = 0;
