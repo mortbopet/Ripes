@@ -178,20 +178,19 @@ struct RV_I {
                 int64_t immediate = getImmediateSext32(line.tokens.at(2), canConvert);
 
                 if (!canConvert) {
-                    auto absSymbols = symbols.copyRelativeTo(line.sourceLine);
+                    auto absSymbols = symbols.copyRelativeTo(line.sourceLine());
                     // Check if the immediate has been made available in the symbol set at this point...
                     auto it = absSymbols.find(line.tokens.at(2));
                     if (it != absSymbols.end()) {
                         immediate = it->second;
                     } else {
                         if (unsignedFitErr) {
-                            return PseudoExpandRes{
-                                Error(line.sourceLine,
-                                      QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
+                            return PseudoExpandRes{Error(
+                                line, QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
                                           .arg(line.tokens.at(2)))};
                         } else {
                             return PseudoExpandRes{
-                                Error(line.sourceLine, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
+                                Error(line, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
                         }
                     }
                 }
@@ -220,9 +219,8 @@ struct RV_I {
                     }
                     if (!isRV64) {
                         return PseudoExpandRes{
-                            Error(line.sourceLine,
-                                  QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
-                                      .arg(line.tokens.at(2)))};
+                            Error(line, QString("Invalid immediate '%1'; can't emit >32-bit imm for non-RV64 target")
+                                            .arg(line.tokens.at(2)))};
                     }
                     int64_t Lo12 = vsrtl::signextend<12>(val);
                     int64_t Hi52 = ((VInt)val + 0x800ull) >> 12;

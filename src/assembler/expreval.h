@@ -22,7 +22,7 @@ using ExprEvalRes = std::variant<Error, ExprEvalVT>;
  * functionality is mainly intended to be used by the assembler to expand complex pseudoinstructions and as such not
  * by the user.
  */
-ExprEvalRes evaluate(const QString&, const AbsoluteSymbolMap* variables = nullptr);
+ExprEvalRes evaluate(const Location&, const QString&, const AbsoluteSymbolMap* variables = nullptr);
 
 /**
  * @brief couldBeExpression

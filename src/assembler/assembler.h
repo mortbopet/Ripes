@@ -28,6 +28,7 @@ namespace Assembler {
     auto passFunction##_res = passFunction(__VA_ARGS__);                           \
     if (auto* errors = std::get_if<Errors>(&passFunction##_res)) {                 \
         result.errors.insert(result.errors.end(), errors->begin(), errors->end()); \
+        assert(result.errors.size() != 0);                                         \
         return result;                                                             \
     }                                                                              \
     auto resName = std::get<resType>(passFunction##_res);
@@ -41,6 +42,7 @@ namespace Assembler {
     auto operationFunction##_res = operationFunction(__VA_ARGS__);    \
     if (auto* error = std::get_if<Error>(&operationFunction##_res)) { \
         errors.push_back(*error);                                     \
+        assert(errors.size() != 0);                                   \
         continue;                                                     \
     }                                                                 \
     auto resName = std::get<resType>(operationFunction##_res);
@@ -49,6 +51,7 @@ namespace Assembler {
     auto operationFunction##_res = operationFunction(__VA_ARGS__); \
     if (operationFunction##_res) {                                 \
         errors.push_back(operationFunction##_res.value());         \
+        assert(errors.size() != 0);                                \
         continue;                                                  \
     }
 
@@ -87,7 +90,7 @@ public:
         AssembleResult result;
 
         /// by default, emit to .text until otherwise specified
-        setCurrentSegment(".text");
+        setCurrentSegment(Location::unknown(), ".text");
         m_symbolMap.clear();
         if (symbols) {
             m_symbolMap = *symbols;
@@ -202,10 +205,11 @@ public:
     }
 
 protected:
-    struct LinkRequest {
-        unsigned sourceLine;  // Source location of code which resulted in the link request
-        Reg_T offset;         // Offset of instruction in segment which needs link resolution
-        Section section;      // Section which instruction was emitted in
+    struct LinkRequest : public Location {
+        // sourceLine: Source location of code which resulted in the link request
+        LinkRequest(const Location& location) : Location(location) {}
+        Reg_T offset;     // Offset of instruction in segment which needs link resolution
+        Section section;  // Section which instruction was emitted in
 
         // Reference to the immediate field which resolves the symbol and the requested symbol
         _FieldLinkRequest fieldRequest;
@@ -235,24 +239,23 @@ protected:
         for (auto line : llvm::enumerate(program)) {
             if (line.value().isEmpty())
                 continue;
-            TokenizedSrcLine tsl;
-            tsl.sourceLine = line.index();
-            runOperation(tokens, LineTokens, tokenize, line.value(), tsl.sourceLine);
+            TokenizedSrcLine tsl(line.index());
+            runOperation(tokens, LineTokens, tokenize, tsl, line.value());
 
             runOperation(remainingTokens, LineTokens, splitCommentFromLine, tokens);
 
             // Symbols precede directives
-            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, remainingTokens, tsl.sourceLine);
+            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, tsl, remainingTokens);
 
             tsl.symbols = symbolsAndRest.first;
 
             bool uniqueSymbols = true;
             for (const auto& s : symbolsAndRest.first) {
                 if (!s.isLegal())
-                    errors.push_back(Error(tsl.sourceLine, "Illegal symbol '" + s.v + "'"));
+                    errors.push_back(Error(tsl, "Illegal symbol '" + s.v + "'"));
 
                 if (!s.isLocal() && symbols.count(s) != 0) {
-                    errors.push_back(Error(tsl.sourceLine, "Multiple definitions of symbol '" + s.v + "'"));
+                    errors.push_back(Error(tsl, "Multiple definitions of symbol '" + s.v + "'"));
                     uniqueSymbols = false;
                     break;
                 }
@@ -262,8 +265,7 @@ protected:
             }
             symbols.insert(symbolsAndRest.first.begin(), symbolsAndRest.first.end());
 
-            runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, symbolsAndRest.second,
-                         tsl.sourceLine);
+            runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, tsl, symbolsAndRest.second);
             tsl.directive = directiveAndRest.first;
 
             // Parse (and remove) relocation hints from the tokens.
@@ -311,9 +313,8 @@ protected:
                  */
                 const auto& eops = expandedOps.value();
                 for (auto eop : llvm::enumerate(eops)) {
-                    TokenizedSrcLine tsl;
+                    TokenizedSrcLine tsl(tokenizedLine.value().sourceLine());
                     tsl.tokens = eop.value();
-                    tsl.sourceLine = tokenizedLine.value().sourceLine;
                     if (eop.index() == 0) {
                         tsl.directive = tokenizedLine.value().directive;
                         tsl.symbols = tokenizedLine.value().symbols;
@@ -377,11 +378,10 @@ protected:
                 std::shared_ptr<_Instruction> assembledWith;
                 runOperation(machineCode, _InstrRes, assembleInstruction, line, assembledWith);
                 assert(assembledWith && "Expected the assembler instruction to be set");
-                program.sourceMapping[addr_offset].insert(line.sourceLine);
+                program.sourceMapping[addr_offset].insert(line.sourceLine());
 
                 if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
-                    LinkRequest req;
-                    req.sourceLine = line.sourceLine;
+                    LinkRequest req(line.sourceLine());
                     req.offset = addr_offset;
                     req.fieldRequest = machineCode.linksWithSymbol;
                     req.section = m_currentSection;
@@ -392,10 +392,10 @@ protected:
                 /// emitted on an aligned boundary wrt. their size.
                 const unsigned alignmentDiff = addr_offset % (m_isa->instrByteAlignment());
                 if (alignmentDiff != 0) {
-                    errors.push_back({line.sourceLine, "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
-                                                           "-bit boundary). This instruction must be aligned on a " +
-                                                           QString::number((m_isa->instrByteAlignment()) * 8) +
-                                                           "-bit boundary."});
+                    errors.push_back(
+                        {line.sourceLine(), "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
+                                                "-bit boundary). This instruction must be aligned on a " +
+                                                QString::number((m_isa->instrByteAlignment()) * 8) + "-bit boundary."});
                     break;
                 }
 
@@ -435,9 +435,8 @@ protected:
             m_symbolMap.abs["__address__"] = linkRequestAddress;
 
             // Expression evaluation also performs symbol evaluation
-            auto exprRes = evalExpr(symbol, linkRequest.sourceLine);
+            auto exprRes = evalExpr(linkRequest, symbol);
             if (auto* err = std::get_if<Error>(&exprRes)) {
-                err->first = linkRequest.sourceLine;
                 errors.push_back(*err);
                 continue;
             } else {
@@ -464,8 +463,8 @@ protected:
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const _Imm*>(linkRequest.fieldRequest.field)) {
-                if (auto err = immField->applySymbolResolution(symbolValue, instr, linkReqAddress(linkRequest),
-                                                               linkRequest.sourceLine)) {
+                if (auto err =
+                        immField->applySymbolResolution(linkRequest, symbolValue, instr, linkReqAddress(linkRequest))) {
                     errors.push_back(err.value());
                     continue;
                 }
@@ -511,12 +510,12 @@ protected:
     virtual _AssembleRes assembleInstruction(const TokenizedSrcLine& line,
                                              std::shared_ptr<_Instruction>& assembledWith) const {
         if (line.tokens.empty()) {
-            return {Error(line.sourceLine, "Empty source lines should be impossible at this point")};
+            return {Error(line, "Empty source lines should be impossible at this point")};
         }
         const auto& opcode = line.tokens.at(0);
         auto instrIt = m_instructionMap.find(opcode);
         if (instrIt == m_instructionMap.end()) {
-            return {Error(line.sourceLine, "Unknown opcode '" + opcode + "'")};
+            return {Error(line, "Unknown opcode '" + opcode + "'")};
         }
         assembledWith = instrIt->second;
         return assembledWith->assemble(line);

@@ -13,9 +13,9 @@ AssemblerBase::AssemblerBase() {
     m_splitterRegex.optimize();
 }
 
-std::optional<Error> AssemblerBase::setCurrentSegment(Section seg) const {
+std::optional<Error> AssemblerBase::setCurrentSegment(const Location& location, const Section& seg) const {
     if (m_sectionBasePointers.count(seg) == 0) {
-        return Error(0, "No base address set for segment '" + seg + +"'");
+        return Error(location, "No base address set for segment '" + seg + +"'");
     }
     m_currentSection = seg;
     return {};
@@ -32,14 +32,14 @@ AssembleResult AssemblerBase::assembleRaw(const QString& program, const SymbolMa
 }
 
 /// Resolves an expression through either the built-in symbol map, or through the expression evaluator.
-ExprEvalRes AssemblerBase::evalExpr(const QString& expr, unsigned sourceLine) const {
-    auto relativeMap = m_symbolMap.copyRelativeTo(sourceLine);
+ExprEvalRes AssemblerBase::evalExpr(const Location& location, const QString& expr) const {
+    auto relativeMap = m_symbolMap.copyRelativeTo(location.sourceLine());
 
     auto symbolValue = relativeMap.find(expr);
     if (symbolValue != relativeMap.end()) {
         return symbolValue->second;
     } else {
-        return evaluate(expr, &relativeMap);
+        return evaluate(location, expr, &relativeMap);
     }
 }
 
@@ -60,16 +60,15 @@ void AssemblerBase::setDirectives(const DirectiveVec& directives) {
     }
 }
 
-std::variant<Error, LineTokens> AssemblerBase::tokenize(const QString& line, int sourceLine) const {
-    auto quoteTokenized = tokenizeQuotes(line, sourceLine);
+std::variant<Error, LineTokens> AssemblerBase::tokenize(const Location& location, const QString& line) const {
+    auto quoteTokenized = tokenizeQuotes(location, line);
     if (auto* error = std::get_if<Error>(&quoteTokenized))
         return {*error};
 
-    auto joinedtokens = joinParentheses(std::get<QStringList>(quoteTokenized));
-    if (auto* err = std::get_if<Error>(&joinedtokens)) {
-        err->first = sourceLine;
+    auto joinedtokens = joinParentheses(location, std::get<QStringList>(quoteTokenized));
+    if (auto* err = std::get_if<Error>(&joinedtokens))
         return *err;
-    }
+
     return std::get<LineTokens>(joinedtokens);
 }
 
@@ -86,7 +85,7 @@ HandleDirectiveRes AssemblerBase::assembleDirective(const DirectiveArg& arg, boo
         }
         return directive->handle(this, arg);
     } catch (const std::out_of_range&) {
-        return {Error(arg.line.sourceLine, "Unknown directive '" + arg.line.directive + "'")};
+        return {Error(arg.line, "Unknown directive '" + arg.line.directive + "'")};
     }
 }
 
@@ -94,8 +93,8 @@ HandleDirectiveRes AssemblerBase::assembleDirective(const DirectiveArg& arg, boo
  * @brief splitSymbolsFromLine
  * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
  */
-std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const LineTokens& tokens,
-                                                                        int sourceLine) const {
+std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Location& location,
+                                                                        const LineTokens& tokens) const {
     if (tokens.size() == 0) {
         return {SymbolLinePair({}, tokens)};
     }
@@ -131,16 +130,16 @@ std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Li
             if (symbolStillAllowed) {
                 const Symbol cleanedSymbol = Symbol(token.left(token.length() - 1), Symbol::Type::Address);
                 if (symbols.count(cleanedSymbol.v) != 0) {
-                    return {Error(sourceLine, "Multiple definitions of symbol '" + cleanedSymbol.v + "'")};
+                    return {Error(location, "Multiple definitions of symbol '" + cleanedSymbol.v + "'")};
                 } else {
                     if (cleanedSymbol.v.isEmpty() || cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
-                        return {Error(sourceLine, "Invalid symbol '" + cleanedSymbol.v + "'")};
+                        return {Error(location, "Invalid symbol '" + cleanedSymbol.v + "'")};
                     }
 
                     symbols.insert(cleanedSymbol);
                 }
             } else {
-                return {Error(sourceLine, QStringLiteral("Stray ':' in line"))};
+                return {Error(location, QStringLiteral("Stray ':' in line"))};
             }
         } else {
             remainingTokens.push_back(token);
@@ -150,8 +149,8 @@ std::variant<Error, SymbolLinePair> AssemblerBase::splitSymbolsFromLine(const Li
     return {SymbolLinePair(symbols, remainingTokens)};
 }
 
-std::variant<Error, DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(const LineTokens& tokens,
-                                                                              int sourceLine) const {
+std::variant<Error, DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(const Location& location,
+                                                                              const LineTokens& tokens) const {
     if (tokens.size() == 0) {
         return {DirectiveLinePair(QString(), tokens)};
     }
@@ -165,7 +164,7 @@ std::variant<Error, DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(co
             if (directivesStillAllowed) {
                 directives.push_back(token);
             } else {
-                return {Error(sourceLine, QStringLiteral("Stray '.' in line"))};
+                return {Error(location, QStringLiteral("Stray '.' in line"))};
             }
         } else {
             remainingTokens.push_back(token);
@@ -173,7 +172,7 @@ std::variant<Error, DirectiveLinePair> AssemblerBase::splitDirectivesFromLine(co
         }
     }
     if (directives.size() > 1) {
-        return {Error(sourceLine, QStringLiteral("Illegal multiple directives"))};
+        return {Error(location, QStringLiteral("Illegal multiple directives"))};
     } else {
         return {DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(), remainingTokens)};
     }

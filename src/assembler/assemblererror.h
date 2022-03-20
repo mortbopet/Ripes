@@ -6,11 +6,28 @@
 #include <map>
 #include <vector>
 
+#include "location.h"
+
 namespace Ripes {
 namespace Assembler {
 
 /// An error is defined as a reference to a source line index + an error string
-using Error = std::pair<unsigned, QString>;
+class Error : public Location {
+public:
+    Error(const Location& location, const QString& message) : Location(location), m_message(message) {}
+    const QString& errorMessage() const { return m_message; }
+    friend QTextStream& operator<<(QTextStream& stream, const Error& err);
+
+private:
+    // Error message to report
+    QString m_message;
+};
+
+inline QTextStream& operator<<(QTextStream& stream, const Error& err) {
+    stream << QString("line ") << err.toString() << " : " << err.errorMessage();
+    return stream;
+}
+
 class Errors : public std::vector<Error> {
 public:
     void print() const {
@@ -22,7 +39,7 @@ public:
         QString str;
         auto strStream = QTextStream(&str);
         for (const auto& iter : *this) {
-            strStream << "line " << iter.first << ": " << iter.second << "\n";
+            strStream << iter << "\n";
         }
         return str;
     }
@@ -40,7 +57,7 @@ public:
             _mapcache.clear();
             std::map<unsigned, QString> m;
             for (const auto& iter : *this) {
-                _mapcache[iter.first] = iter.second;
+                _mapcache[iter.sourceLine()] = iter.errorMessage();
             }
         }
         return _mapcache;

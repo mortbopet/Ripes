@@ -66,14 +66,14 @@ bool matchedParens(std::vector<QChar>& parensStack, QChar end) {
     return (toMatch == '[' && end == ']') || (toMatch == '(' && end == ')');
 }
 
-std::variant<Error, LineTokens> joinParentheses(const QStringList& tokens) {
+std::variant<Error, LineTokens> joinParentheses(const Location& loc, const QStringList& tokens) {
     LineTokens outtokens;
     std::vector<QChar> parensStack;
 
     QString tokenBuffer;
     auto commitBuffer = [&]() {
         if (!tokenBuffer.isEmpty()) {
-            outtokens << tokenBuffer;
+            outtokens << Token(tokenBuffer);
             tokenBuffer.clear();
         }
     };
@@ -81,7 +81,7 @@ std::variant<Error, LineTokens> joinParentheses(const QStringList& tokens) {
     for (const auto& token : tokens) {
         if (token.startsWith("\"") && token.endsWith("\"")) {
             // String literal; ignore parentheses inside
-            outtokens << token;
+            outtokens << Token(token);
             continue;
         }
         for (const auto& ch : token) {
@@ -104,7 +104,7 @@ std::variant<Error, LineTokens> joinParentheses(const QStringList& tokens) {
                             tokenBuffer.append(ch);
                         }
                     } else {
-                        return {Error(-1, "Unmatched parenthesis")};
+                        return {Error(loc, "Unmatched parenthesis")};
                     }
                     break;
                 }
@@ -121,16 +121,16 @@ std::variant<Error, LineTokens> joinParentheses(const QStringList& tokens) {
     if (parensStack.empty()) {
         return outtokens;
     } else {
-        return {Error(-1, "Unmatched parenthesis")};
+        return {Error(loc, "Unmatched parenthesis")};
     }
 }
 
-std::variant<Error, QStringList> tokenizeQuotes(const QString& line, unsigned sourceLine) {
+std::variant<Error, QStringList> tokenizeQuotes(const Location& location, const QString& line) {
     QStringList tokens;
     bool inQuotes = false;
     bool escape = false;
     QString substr;
-    auto pushSubstr = [&]{
+    auto pushSubstr = [&] {
         tokens.push_back(substr);
         substr.clear();
     };
@@ -160,7 +160,7 @@ std::variant<Error, QStringList> tokenizeQuotes(const QString& line, unsigned so
     }
 
     if (inQuotes)
-        return {Error({sourceLine, "Missing terminating '\"' character."})};
+        return {Error(location, "Missing terminating '\"' character.")};
 
     tokens.push_back(substr);
     tokens.removeAll(QLatin1String(""));

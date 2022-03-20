@@ -45,12 +45,10 @@ DirectiveVec gnuDirectives() {
     return directives;
 }
 
-#define getImmediateErroring(token, res, srcline)            \
-    auto exprRes##res = assembler->evalExpr(token, srcline); \
-    if (auto* err = std::get_if<Error>(&exprRes##res)) {     \
-        err->first = srcline;                                \
-        return {*err};                                       \
-    }                                                        \
+#define getImmediateErroring(token, res, location)            \
+    auto exprRes##res = assembler->evalExpr(location, token); \
+    if (auto* err = std::get_if<Error>(&exprRes##res))        \
+        return {*err};                                        \
     res = std::get<ExprEvalVT>(exprRes##res);
 
 template <size_t size>
@@ -59,7 +57,7 @@ std::optional<Error> assembleData(const AssemblerBase* assembler, const Tokenize
     for (const auto& token : line.tokens) {
         int64_t val;
         static_assert(sizeof(val) >= size, "Requested data width greater than what is representable");
-        getImmediateErroring(token, val, line.sourceLine);
+        getImmediateErroring(token, val, line);
 
         if (isUInt<size * 8>(val) || isInt<size * 8>(val)) {
             for (size_t i = 0; i < size; ++i) {
@@ -67,7 +65,7 @@ std::optional<Error> assembleData(const AssemblerBase* assembler, const Tokenize
                 val >>= 8;
             }
         } else {
-            return {Error(line.sourceLine, QString("'%1' does not fit in %2 bytes").arg(val).arg(size))};
+            return {Error(line, QString("'%1' does not fit in %2 bytes").arg(val).arg(size))};
         }
     }
     return {};
@@ -76,7 +74,7 @@ std::optional<Error> assembleData(const AssemblerBase* assembler, const Tokenize
 template <size_t size>
 HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveArg& arg) {
     if (arg.line.tokens.length() < 1) {
-        return {Error(arg.line.sourceLine, "Invalid number of arguments (expected >1)")};
+        return {Error(arg.line, "Invalid number of arguments (expected >1)")};
     }
     QByteArray bytes;
     auto err = assembleData<size>(assembler, arg.line, bytes);
@@ -89,7 +87,7 @@ HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveAr
 
 HandleDirectiveRes stringFunctor(const AssemblerBase*, const DirectiveArg& arg) {
     if (arg.line.tokens.length() != 1) {
-        return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(1, arg.line))};
+        return HandleDirectiveRes{Error(arg.line, numTokensError(1, arg.line))};
     }
     QString string = arg.line.tokens.at(0);
     string.replace("\\n", "\n");
@@ -149,14 +147,11 @@ Directive dummyDirective(const QString& name) {
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
     return [segment](const AssemblerBase* assembler, const DirectiveArg& arg) {
         if (arg.line.tokens.length() != 0) {
-            return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(0, arg.line))};
+            return HandleDirectiveRes{Error(arg.line, numTokensError(0, arg.line))};
         }
-        auto err = assembler->setCurrentSegment(segment);
-        if (err) {
-            // Embed source line into error message
-            err.value().first = arg.line.sourceLine;
+        auto err = assembler->setCurrentSegment(arg.line, segment);
+        if (err)
             return HandleDirectiveRes{err.value()};
-        }
         return HandleDirectiveRes(std::nullopt);
     };
 }
@@ -176,10 +171,10 @@ Directive dataDirective() {
 Directive zeroDirective() {
     auto zeroFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() != 1) {
-            return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(1, arg.line))};
+            return HandleDirectiveRes{Error(arg.line, numTokensError(1, arg.line))};
         }
         int64_t value;
-        getImmediateErroring(arg.line.tokens.at(0), value, arg.line.sourceLine);
+        getImmediateErroring(arg.line.tokens.at(0), value, arg.line);
         QByteArray bytes;
         bytes.fill(0x0, value);
         return {bytes};
@@ -190,10 +185,10 @@ Directive zeroDirective() {
 Directive equDirective() {
     auto equFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() != 2) {
-            return HandleDirectiveRes{Error(arg.line.sourceLine, numTokensError(2, arg.line))};
+            return HandleDirectiveRes{Error(arg.line, numTokensError(2, arg.line))};
         }
         int64_t value;
-        getImmediateErroring(arg.line.tokens.at(1), value, arg.line.sourceLine);
+        getImmediateErroring(arg.line.tokens.at(1), value, arg.line);
 
         auto err = assembler->m_symbolMap.addSymbol(arg.line, arg.line.tokens.at(0), value);
         if (err) {
@@ -209,26 +204,26 @@ Directive equDirective() {
 Directive alignDirective() {
     auto alignFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
         if (arg.line.tokens.length() == 0 || arg.line.tokens.length() > 3) {
-            return {Error(arg.line.sourceLine, "Invalid number of arguments (expected at least 1, at most 3)")};
+            return {Error(arg.line, "Invalid number of arguments (expected at least 1, at most 3)")};
         }
         int boundary, fill, max;
         fill = max = 0;
         bool hasMax = false;
 
-        getImmediateErroring(arg.line.tokens.at(0), boundary, arg.line.sourceLine);
+        getImmediateErroring(arg.line.tokens.at(0), boundary, arg.line);
         if (arg.line.tokens.size() > 1) {
-            getImmediateErroring(arg.line.tokens.at(1), fill, arg.line.sourceLine);
+            getImmediateErroring(arg.line.tokens.at(1), fill, arg.line);
         }
         if (arg.line.tokens.size() > 2) {
-            getImmediateErroring(arg.line.tokens.at(2), max, arg.line.sourceLine);
+            getImmediateErroring(arg.line.tokens.at(2), max, arg.line);
             hasMax = true;
         }
 
         if (boundary < 0 || fill < 0 || (hasMax && max < 0)) {
-            return {Error(arg.line.sourceLine, ".align arguments must be positive")};
+            return {Error(arg.line, ".align arguments must be positive")};
         }
         if (fill > UINT8_MAX) {
-            return {Error(arg.line.sourceLine, ".align fill value must be in range [0;255]")};
+            return {Error(arg.line, ".align fill value must be in range [0;255]")};
         }
         if (boundary == 0) {
             return {QByteArray()};

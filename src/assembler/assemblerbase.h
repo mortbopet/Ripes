@@ -26,7 +26,7 @@ class AssemblerBase {
 public:
     AssemblerBase();
     virtual ~AssemblerBase() {}
-    std::optional<Error> setCurrentSegment(Section seg) const;
+    std::optional<Error> setCurrentSegment(const Location& location, const Section& seg) const;
 
     /// Sets the base pointer of seg to the provided 'base' value.
     void setSegmentBase(Section seg, AInt base);
@@ -50,7 +50,7 @@ public:
     virtual std::set<QString> getOpcodes() const = 0;
 
     /// Resolves an expression through either the built-in symbol map, or through the expression evaluator.
-    ExprEvalRes evalExpr(const QString& expr, unsigned sourceLine) const;
+    ExprEvalRes evalExpr(const Location& location, const QString& expr) const;
 
     /// Set the supported directives for this assembler.
     void setDirectives(const DirectiveVec& directives);
@@ -66,7 +66,7 @@ public:
 protected:
     /// Creates a set of LineTokens by tokenizing a line of source code.
     QRegularExpression m_splitterRegex;
-    std::variant<Error, LineTokens> tokenize(const QString& line, int sourceLine) const;
+    std::variant<Error, LineTokens> tokenize(const Location& location, const QString& line) const;
 
     HandleDirectiveRes assembleDirective(const DirectiveArg& arg, bool& ok, bool skipEarlyDirectives = true) const;
 
@@ -74,9 +74,10 @@ protected:
      * @brief splitSymbolsFromLine
      * @returns a pair consisting of a symbol and the the input @p line tokens where the symbol has been removed.
      */
-    std::variant<Error, SymbolLinePair> splitSymbolsFromLine(const LineTokens& tokens, int sourceLine) const;
+    std::variant<Error, SymbolLinePair> splitSymbolsFromLine(const Location& location, const LineTokens& tokens) const;
 
-    std::variant<Error, DirectiveLinePair> splitDirectivesFromLine(const LineTokens& tokens, int sourceLine) const;
+    std::variant<Error, DirectiveLinePair> splitDirectivesFromLine(const Location& location,
+                                                                   const LineTokens& tokens) const;
 
     /// Given an input set of tokens, splits away commented code from the tokens based on the comment delimiter, i.e.:
     /// {"a", "b", "#", "c"} => {"a", "b"}

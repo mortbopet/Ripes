@@ -380,7 +380,7 @@ void tst_Assembler::tst_matcher() {
     for (const auto& iter : toMatch) {
         auto match = assembler.getMatcher().matchInstruction(iter.second);
         if (auto* error = std::get_if<Error>(&match)) {
-            QFAIL(error->second.toStdString().c_str());
+            QFAIL(error->toString().toStdString().c_str());
         }
 
         auto matchInstr = std::get<const RV32I_Assembler::_Instruction*>(match);
@@ -392,7 +392,7 @@ void tst_Assembler::tst_matcher() {
 
         auto disRes = matchInstr->disassemble(iter.second, 0, {});
         if (auto* error = std::get_if<Error>(&disRes)) {
-            QFAIL(error->second.toStdString().c_str());
+            QFAIL(error->toString().toStdString().c_str());
         }
 
         auto disassembled = std::get<LineTokens>(disRes);

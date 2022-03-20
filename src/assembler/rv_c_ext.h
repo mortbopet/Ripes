@@ -21,9 +21,9 @@ struct RVCReg : public Reg<Reg_T> {
         const QString& regToken = line.tokens[this->tokenIndex];
         unsigned reg = this->m_isa->regNumber(regToken, success);
         if (!success)
-            return Error(line.sourceLine, "Unknown register '" + regToken + "'");
+            return Error(line, "Unknown register '" + regToken + "'");
         if (!(8 <= reg && reg <= 15))
-            return Error(line.sourceLine, "Only registers x8-x15 are allowed for this instruction");
+            return Error(line, "Only registers x8-x15 are allowed for this instruction");
         reg -= 8;
         instruction |= this->m_range.apply(reg);
         return std::nullopt;

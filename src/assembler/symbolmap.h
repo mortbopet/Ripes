@@ -19,12 +19,12 @@ struct SymbolMap {
     }
 
     std::optional<Error> addSymbol(const TokenizedSrcLine& line, const Symbol& s, VInt v) {
-        return s.isLocal() ? addRelSymbol(line.sourceLine, s, v) : addAbsSymbol(line.sourceLine, s, v);
+        return s.isLocal() ? addRelSymbol(line.sourceLine(), s, v) : addAbsSymbol(line.sourceLine(), s, v);
     }
 
     /// Adds a symbol to the current symbol mapping of this assembler defined at the 'line' in the input program.
     std::optional<Error> addAbsSymbol(const TokenizedSrcLine& line, const Symbol& s, VInt v) {
-        return addAbsSymbol(line.sourceLine, s, v);
+        return addAbsSymbol(line.sourceLine(), s, v);
     }
 
     /// Adds a symbol to the current symbol mapping of this assembler.
@@ -33,7 +33,7 @@ struct SymbolMap {
     /// Adds a relative symbol to this symbol map. A relative symbol is unqiued based on the tuple <symbol ID, source
     /// line>.
     std::optional<Error> addRelSymbol(const TokenizedSrcLine& line, const Symbol& s, VInt v) {
-        return addRelSymbol(line.sourceLine, s, v);
+        return addRelSymbol(line.sourceLine(), s, v);
     }
 
     std::optional<Error> addRelSymbol(const unsigned& line, const Symbol& s, VInt v);

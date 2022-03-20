@@ -19,9 +19,9 @@ using Instr_T = uint64_t;
 
 class Token : public QString {
 public:
-    inline Token(const QString& t) : QString(t) {}
-    inline Token(const QString& t, const QString& relocation) : QString(t), m_relocation(relocation) {}
-    inline Token() : QString() {}
+    Token(const QString& t) : QString(t) {}
+    Token(const QString& t, const QString& relocation) : QString(t), m_relocation(relocation) {}
+    Token() : QString() {}
     void setRelocation(const QString& relocation) { m_relocation = relocation; }
     bool hasRelocation() const { return !m_relocation.isEmpty(); }
     const QString& relocation() const { return m_relocation; }
@@ -36,11 +36,11 @@ using DirectiveLinePair = std::pair<QString, LineTokens>;
 
 using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
 
-struct TokenizedSrcLine {
+struct TokenizedSrcLine : public Location {
+    explicit TokenizedSrcLine(unsigned sourceLine) : Location(sourceLine) {}
     Symbols symbols;
     LineTokens tokens;
     QString directive;
-    unsigned sourceLine = 0;
     AInt programAddress = -1;
 };
 

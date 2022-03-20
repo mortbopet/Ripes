@@ -271,7 +271,12 @@ void EditTab::assemble() {
     if (m_sourceErrors->size() == 0) {
         ProcessorHandler::loadProgram(std::make_shared<Program>(res.program));
     } else {
-        // Errors occured; rehighlight will reflect current m_sourceErrors in the editor
+        // Errors occured; rehighlight will reflect current m_sourceErrors in the editor.
+#ifndef NDEBUG
+        // Ensure only valid error messages are present.
+        for (auto& err : *m_sourceErrors)
+            assert(err.isKnownSourceLine());
+#endif
     }
     m_ui->codeEditor->rehighlight();
 }

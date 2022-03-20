@@ -149,7 +149,7 @@ struct Reg : public Field<Reg_T> {
         const QString& regToken = line.tokens[this->tokenIndex];
         const unsigned reg = m_isa->regNumber(regToken, success);
         if (!success) {
-            return Error(line.sourceLine, "Unknown register '" + regToken + "'");
+            return Error(line, "Unknown register '" + regToken + "'");
         }
         instruction |= m_range.apply(reg);
         return std::nullopt;
@@ -157,7 +157,7 @@ struct Reg : public Field<Reg_T> {
     std::optional<Error> decode(const Instr_T instruction, const Reg_T /*address*/, const ReverseSymbolMap&,
                                 LineTokens& line) const override {
         const unsigned regNumber = m_range.decode(instruction);
-        const Token registerName = m_isa->regName(regNumber);
+        const Token registerName(m_isa->regName(regNumber));
         if (registerName.isEmpty()) {
             return Error(0, "Unknown register number '" + QString::number(regNumber) + "'");
         }
@@ -225,7 +225,7 @@ struct Imm : public Field<Reg_T> {
             return {};
         }
 
-        if (auto err = checkFitsInWidth(value, line.sourceLine)) {
+        if (auto err = checkFitsInWidth(value, line)) {
             return err;
         }
 
@@ -235,7 +235,7 @@ struct Imm : public Field<Reg_T> {
         return std::nullopt;
     }
 
-    std::optional<Error> checkFitsInWidth(Reg_T_S value, unsigned sourceLine) const {
+    std::optional<Error> checkFitsInWidth(Reg_T_S value, const Location& sourceLine) const {
         if (!(repr == Repr::Signed ? isInt(width, value) : (isUInt(width, value)))) {
             const QString v = repr == Repr::Signed ? QString::number(static_cast<Reg_T_S>(value))
                                                    : QString::number(static_cast<Reg_T_U>(value));
@@ -244,8 +244,8 @@ struct Imm : public Field<Reg_T> {
         return std::nullopt;
     }
 
-    std::optional<Error> applySymbolResolution(Reg_T symbolValue, Instr_T& instruction, const Reg_T address,
-                                               unsigned sourceLine) const {
+    std::optional<Error> applySymbolResolution(const Location& loc, Reg_T symbolValue, Instr_T& instruction,
+                                               const Reg_T address) const {
         Reg_T adjustedValue = symbolValue;
         if (symbolType == SymbolType::Relative) {
             adjustedValue -= address;
@@ -255,7 +255,7 @@ struct Imm : public Field<Reg_T> {
             adjustedValue = symbolTransformer(adjustedValue);
         }
 
-        if (auto err = checkFitsInWidth(adjustedValue, sourceLine)) {
+        if (auto err = checkFitsInWidth(adjustedValue, loc)) {
             return err;
         }
 
@@ -352,9 +352,9 @@ public:
             }
         }
         if (line.tokens.size() != m_expectedTokens) {
-            return Error(line.sourceLine, "Instruction " + m_opcode.name + Hint + " expects " +
-                                              QString::number(m_expectedTokens - 1) + " arguments, but got " +
-                                              QString::number(line.tokens.size() - 1));
+            return Error(line, "Instruction " + m_opcode.name + Hint + " expects " +
+                                   QString::number(m_expectedTokens - 1) + " arguments, but got " +
+                                   QString::number(line.tokens.size() - 1));
         }
         return m_assembler(this, line);
     }

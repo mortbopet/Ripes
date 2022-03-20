@@ -23,9 +23,8 @@ public:
 
     PseudoExpandRes expand(const TokenizedSrcLine& line, const SymbolMap& symbols) {
         if (line.tokens.length() != m_expectedTokens) {
-            return Error(line.sourceLine, "Instruction '" + m_opcode + "' expects " +
-                                              QString::number(m_expectedTokens - 1) + " arguments, but got " +
-                                              QString::number(line.tokens.length() - 1));
+            return Error(line, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
+                                   " arguments, but got " + QString::number(line.tokens.length() - 1));
         }
 
         return m_expander(*this, line, symbols);

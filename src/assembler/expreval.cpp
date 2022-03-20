@@ -145,11 +145,11 @@ void SignExtend::print(std::ostream& os) const {
 // clang-format on
 
 using ExprRes = std::variant<Error, std::shared_ptr<Expr>>;
-ExprRes parseRight(const QString& s, int& pos, int& depth);
+ExprRes parseRight(const Location& loc, const QString& s, int& pos, int& depth);
 
 template <typename BinOp>
-ExprRes rightRec(const std::shared_ptr<Expr>& lhs, const QString& s, int& pos, int& depth) {
-    auto rhs = parseRight(s, pos, depth);
+ExprRes rightRec(const Location& loc, const std::shared_ptr<Expr>& lhs, const QString& s, int& pos, int& depth) {
+    auto rhs = parseRight(loc, s, pos, depth);
     if (auto* err = std::get_if<Error>(&rhs)) {
         return {*err};
     }
@@ -158,26 +158,26 @@ ExprRes rightRec(const std::shared_ptr<Expr>& lhs, const QString& s, int& pos, i
 
 #define Token(lhs) std::make_shared<Expr>(Literal{lhs})
 
-ExprRes parseLeft(const QString& s, int& pos, int& depth);
-ExprRes parseRight(const QString& s, int& pos, int& depth) {
+ExprRes parseLeft(const Location& loc, const QString& s, int& pos, int& depth);
+ExprRes parseRight(const Location& loc, const QString& s, int& pos, int& depth) {
     QString lhs;
     while (pos < s.length()) {
         // clang-format off
         auto& ch = s.at(pos);
         pos++;
         switch (ch.unicode()) {
-            case '(': { depth++; return parseLeft(s, pos, depth);}
-            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(-1, "Unmatched parenthesis in expression '" + s + '"'));};
-            case '+': { return rightRec<Add>(Token(lhs), s, pos, depth);}
-            case '/': { return rightRec<Div>(Token(lhs), s, pos, depth);}
-            case '*': { return rightRec<Mul>(Token(lhs), s, pos, depth);}
+            case '(': { depth++; return parseLeft(loc, s, pos, depth);}
+            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(loc, "Unmatched parenthesis in expression '" + s + '"'));};
+            case '+': { return rightRec<Add>(loc, Token(lhs), s, pos, depth);}
+            case '/': { return rightRec<Div>(loc, Token(lhs), s, pos, depth);}
+            case '*': { return rightRec<Mul>(loc, Token(lhs), s, pos, depth);}
             case '-': {
                 auto lhsToken = lhs.isEmpty() ? std::make_shared<Expr>(Nothing()) : Token(lhs); // Allow unary '-'
-                return rightRec<Sub>(lhsToken, s, pos, depth);}
-            case '%': { return rightRec<Mod>(Token(lhs), s, pos, depth);}
-            case '|': { return rightRec<Or>(Token(lhs), s, pos, depth);}
-            case '&': { return rightRec<And>(Token(lhs), s, pos, depth);}
-            case '@': { return rightRec<SignExtend>(Token(lhs), s, pos, depth);}
+                return rightRec<Sub>(loc, lhsToken, s, pos, depth);}
+            case '%': { return rightRec<Mod>(loc, Token(lhs), s, pos, depth);}
+            case '|': { return rightRec<Or>(loc, Token(lhs), s, pos, depth);}
+            case '&': { return rightRec<And>(loc, Token(lhs), s, pos, depth);}
+            case '@': { return rightRec<SignExtend>(loc, Token(lhs), s, pos, depth);}
             default:  {lhs.append(ch);}
         }
         // clang-format on
@@ -185,8 +185,8 @@ ExprRes parseRight(const QString& s, int& pos, int& depth) {
     return Token(lhs);
 }
 
-ExprRes parseLeft(const QString& s, int& pos, int& depth) {
-    auto left = parseRight(s, pos, depth);
+ExprRes parseLeft(const Location& loc, const QString& s, int& pos, int& depth) {
+    auto left = parseRight(loc, s, pos, depth);
     if (auto* err = std::get_if<Error>(&left)) {
         return {*err};
     }
@@ -197,15 +197,15 @@ ExprRes parseLeft(const QString& s, int& pos, int& depth) {
         pos++;
         // clang-format off
         switch (ch.unicode()) {
-            case '+': { return rightRec<Add>(res, s, pos, depth);}
-            case '/': { return rightRec<Div>(res, s, pos, depth);}
-            case '|': { return rightRec<Or>(res, s, pos, depth);}
-            case '&': { return rightRec<And>(res, s, pos, depth);}
-            case '*': { return rightRec<Mul>(res, s, pos, depth);}
-            case '-': { return rightRec<Sub>(res, s, pos, depth);}
-            case '%': { return rightRec<Mod>(res, s, pos, depth);}
-            case '@': { return rightRec<SignExtend>(res, s, pos, depth);}
-            case ')': { return depth-- != 0 ? res : ExprRes(Error(-1, "Unmatched parenthesis in expression '" + s + '"'));};
+            case '+': { return rightRec<Add>(loc, res, s, pos, depth);}
+            case '/': { return rightRec<Div>(loc, res, s, pos, depth);}
+            case '|': { return rightRec<Or> (loc, res, s, pos, depth);}
+            case '&': { return rightRec<And>(loc, res, s, pos, depth);}
+            case '*': { return rightRec<Mul>(loc, res, s, pos, depth);}
+            case '-': { return rightRec<Sub>(loc, res, s, pos, depth);}
+            case '%': { return rightRec<Mod>(loc, res, s, pos, depth);}
+            case '@': { return rightRec<SignExtend>(loc, res, s, pos, depth);}
+            case ')': { return depth-- != 0 ? res : ExprRes(Error(loc, "Unmatched parenthesis in expression '" + s + '"'));};
             default:  { return ExprRes(Error(-1, "Invalid operator '" + QString(ch) + "' in expression '" + s + "'"));}
         }
         // clang-format on
@@ -262,12 +262,12 @@ VIntS evaluate(const std::shared_ptr<Expr>& expr, const AbsoluteSymbolMap* varia
     Q_UNREACHABLE();
 }
 
-ExprEvalRes evaluate(const QString& s, const AbsoluteSymbolMap* variables) {
+ExprEvalRes evaluate(const Location& loc, const QString& s, const AbsoluteSymbolMap* variables) {
     QString sNoWhitespace = s;
     sNoWhitespace.replace(" ", "");
     int pos = 0;
     int depth = 0;
-    auto exprTree = parseLeft(sNoWhitespace, pos, depth);
+    auto exprTree = parseLeft(loc, sNoWhitespace, pos, depth);
     if (auto* err = std::get_if<Error>(&exprTree)) {
         return *err;
     }
@@ -275,7 +275,7 @@ ExprEvalRes evaluate(const QString& s, const AbsoluteSymbolMap* variables) {
     try {
         return {evaluate(exprTreeRes, variables)};
     } catch (const std::runtime_error& e) {
-        return {Error(-1, e.what())};
+        return {Error(loc, e.what())};
     }
 }
 
