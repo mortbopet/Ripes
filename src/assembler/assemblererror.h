@@ -67,5 +67,37 @@ private:
     mutable std::map<unsigned, QString> _mapcache;
 };
 
+/// An Assembler Result structure is a variant which carries either an error message or some result value.
+template <typename T = std::monostate>
+struct Result : public std::variant<Error, T> {
+    using V_T = std::variant<Error, T>;
+
+    Result(const T& v) : V_T(v) {}
+
+    Result(const Error& err) : V_T(err) {}
+
+    const T& value() {
+        auto opt = std::get_if<T>(this);
+        if (opt) {
+            return *opt;
+        }
+        assert(false && "Optional<T>::value() called on an Optional<Error>");
+    }
+
+    const Error& error() {
+        auto opt = std::get_if<Error>(this);
+        if (opt) {
+            return *opt;
+        }
+        assert(false && "Optional<T>::error() called on an Optional<T>");
+    }
+
+    bool isError() const { return std::holds_alternative<Error>(*this); }
+    bool isResult() const { return std::holds_alternative<T>(*this); }
+
+    // Convenience function for a default constructed value of T.
+    static T def() { return std::monostate(); }
+};
+
 }  // namespace Assembler
 }  // namespace Ripes

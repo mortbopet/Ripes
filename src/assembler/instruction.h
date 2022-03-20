@@ -90,10 +90,7 @@ struct InstrRes {
 };
 
 template <typename Reg_T>
-using AssembleRes = std::variant<Error, InstrRes<Reg_T>>;
-
-using PseudoExpandRes = std::variant<Error, std::optional<std::vector<LineTokens>>>;
-using DisassembleRes = std::variant<Error, LineTokens>;
+using AssembleRes = Result<InstrRes<Reg_T>>;
 
 template <typename Reg_T>
 struct Opcode : public Field<Reg_T> {
@@ -225,9 +222,8 @@ struct Imm : public Field<Reg_T> {
             return {};
         }
 
-        if (auto err = checkFitsInWidth(value, line)) {
-            return err;
-        }
+        if (auto res = checkFitsInWidth(value, line); res.isError())
+            return res.error();
 
         for (const auto& part : parts) {
             part.apply(value, instruction);
@@ -235,34 +231,30 @@ struct Imm : public Field<Reg_T> {
         return std::nullopt;
     }
 
-    std::optional<Error> checkFitsInWidth(Reg_T_S value, const Location& sourceLine) const {
+    Result<> checkFitsInWidth(Reg_T_S value, const Location& sourceLine) const {
         if (!(repr == Repr::Signed ? isInt(width, value) : (isUInt(width, value)))) {
             const QString v = repr == Repr::Signed ? QString::number(static_cast<Reg_T_S>(value))
                                                    : QString::number(static_cast<Reg_T_U>(value));
             return Error(sourceLine, "Immediate value '" + v + "' does not fit in " + QString::number(width) + " bits");
         }
-        return std::nullopt;
+        return Result<>::def();
     }
 
-    std::optional<Error> applySymbolResolution(const Location& loc, Reg_T symbolValue, Instr_T& instruction,
-                                               const Reg_T address) const {
+    Result<> applySymbolResolution(const Location& loc, Reg_T symbolValue, Instr_T& instruction, Reg_T address) const {
         Reg_T adjustedValue = symbolValue;
-        if (symbolType == SymbolType::Relative) {
+        if (symbolType == SymbolType::Relative)
             adjustedValue -= address;
-        }
 
-        if (symbolTransformer) {
+        if (symbolTransformer)
             adjustedValue = symbolTransformer(adjustedValue);
-        }
 
-        if (auto err = checkFitsInWidth(adjustedValue, loc)) {
-            return err;
-        }
+        if (auto res = checkFitsInWidth(adjustedValue, loc); res.isError())
+            return res.error();
 
-        for (const auto& part : parts) {
+        for (const auto& part : parts)
             part.apply(adjustedValue, instruction);
-        }
-        return std::nullopt;
+
+        return Result<>::def();
     }
 
     std::optional<Error> decode(const Instr_T instruction, const Reg_T address, const ReverseSymbolMap& symbolMap,
@@ -326,10 +318,10 @@ public:
             _this->m_opcode.decode(instruction, address, symbolMap, line);
             for (const auto& field : _this->m_fields) {
                 if (auto error = field->decode(instruction, address, symbolMap, line)) {
-                    return DisassembleRes(*error);
+                    return Result<LineTokens>(*error);
                 }
             }
-            return DisassembleRes(line);
+            return Result<LineTokens>(line);
         };
 
         verify();
@@ -359,8 +351,8 @@ public:
         return m_assembler(this, line);
     }
 
-    DisassembleRes disassemble(const Instr_T instruction, const Reg_T address,
-                               const ReverseSymbolMap& symbolMap) const {
+    Result<LineTokens> disassemble(const Instr_T instruction, const Reg_T address,
+                                   const ReverseSymbolMap& symbolMap) const {
         return m_disassembler(this, instruction, address, symbolMap);
     }
 
@@ -434,7 +426,7 @@ public:
 
 private:
     std::function<AssembleRes<Reg_T>(const Instruction<Reg_T>*, const TokenizedSrcLine&)> m_assembler;
-    std::function<DisassembleRes(const Instruction<Reg_T>*, const Instr_T, const Reg_T, const ReverseSymbolMap&)>
+    std::function<Result<LineTokens>(const Instruction<Reg_T>*, const Instr_T, const Reg_T, const ReverseSymbolMap&)>
         m_disassembler;
 
     const Opcode<Reg_T> m_opcode;

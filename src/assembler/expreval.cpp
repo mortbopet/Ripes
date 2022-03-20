@@ -144,7 +144,7 @@ void SignExtend::print(std::ostream& os) const {
 
 // clang-format on
 
-using ExprRes = std::variant<Error, std::shared_ptr<Expr>>;
+using ExprRes = Result< std::shared_ptr<Expr>>;
 ExprRes parseRight(const Location& loc, const QString& s, int& pos, int& depth);
 
 template <typename BinOp>

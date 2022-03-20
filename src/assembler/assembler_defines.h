@@ -34,8 +34,6 @@ using LineTokensVec = std::vector<LineTokens>;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
 
-using HandleDirectiveRes = std::variant<Error, std::optional<QByteArray>>;
-
 struct TokenizedSrcLine : public Location {
     explicit TokenizedSrcLine(unsigned sourceLine) : Location(sourceLine) {}
     Symbols symbols;

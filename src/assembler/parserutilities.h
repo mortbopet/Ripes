@@ -22,9 +22,9 @@ int64_t getImmediateSext32(const QString& string, bool& canConvert);
  * For example:
  * [lw, x10, (B, +, (3*2))(x10)] => [lw, x10, B + 3*2), x10]
  */
-std::variant<Error, LineTokens> joinParentheses(const Location& location, const QStringList& tokens);
+Result< LineTokens> joinParentheses(const Location& location, const QStringList& tokens);
 
 /// Quote-aware string tokenization.
-std::variant<Error, QStringList> tokenizeQuotes(const Location& location, const QString& line);
+Result< QStringList> tokenizeQuotes(const Location& location, const QString& line);
 }  // namespace Assembler
 }  // namespace Ripes

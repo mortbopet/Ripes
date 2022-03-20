@@ -12,7 +12,7 @@ class PseudoInstruction;
 
 template <typename Reg_T>
 using PseudoExpandFunc =
-    std::function<PseudoExpandRes(const PseudoInstruction<Reg_T>& /*this*/, const TokenizedSrcLine&, const SymbolMap&)>;
+    std::function<Result<std::vector<LineTokens>>(const PseudoInstruction<Reg_T>& /*this*/, const TokenizedSrcLine&, const SymbolMap&)>;
 
 template <typename Reg_T>
 class PseudoInstruction {
@@ -21,7 +21,7 @@ public:
                       const PseudoExpandFunc<Reg_T>& expander)
         : m_expander(expander), m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()), m_fields(fields) {}
 
-    PseudoExpandRes expand(const TokenizedSrcLine& line, const SymbolMap& symbols) {
+    Result<std::vector<LineTokens>> expand(const TokenizedSrcLine& line, const SymbolMap& symbols) {
         if (line.tokens.length() != m_expectedTokens) {
             return Error(line, "Instruction '" + m_opcode + "' expects " + QString::number(m_expectedTokens - 1) +
                                    " arguments, but got " + QString::number(line.tokens.length() - 1));

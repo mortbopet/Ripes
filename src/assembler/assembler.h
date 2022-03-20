@@ -38,14 +38,13 @@ namespace Assembler {
  * type) which runs inside a loop. In case of the operation throwing an error, the error is recorded and the next
  * iteration of the loop is executed. If not, the result value is provided through variable 'resName'.
  */
-#define runOperation(resName, resType, operationFunction, ...)        \
-    auto operationFunction##_res = operationFunction(__VA_ARGS__);    \
-    if (auto* error = std::get_if<Error>(&operationFunction##_res)) { \
-        errors.push_back(*error);                                     \
-        assert(errors.size() != 0);                                   \
-        continue;                                                     \
-    }                                                                 \
-    auto resName = std::get<resType>(operationFunction##_res);
+#define runOperation(resName, operationFunction, ...)              \
+    auto operationFunction##_res = operationFunction(__VA_ARGS__); \
+    if (operationFunction##_res.isError()) {                       \
+        errors.push_back(operationFunction##_res.error());         \
+        continue;                                                  \
+    }                                                              \
+    auto resName = operationFunction##_res.value();
 
 #define runOperationNoRes(operationFunction, ...)                  \
     auto operationFunction##_res = operationFunction(__VA_ARGS__); \
@@ -240,12 +239,12 @@ protected:
             if (line.value().isEmpty())
                 continue;
             TokenizedSrcLine tsl(line.index());
-            runOperation(tokens, LineTokens, tokenize, tsl, line.value());
+            runOperation(tokens, tokenize, tsl, line.value());
 
-            runOperation(remainingTokens, LineTokens, splitCommentFromLine, tokens);
+            runOperation(remainingTokens, splitCommentFromLine, tokens);
 
             // Symbols precede directives
-            runOperation(symbolsAndRest, SymbolLinePair, splitSymbolsFromLine, tsl, remainingTokens);
+            runOperation(symbolsAndRest, splitSymbolsFromLine, tsl, remainingTokens);
 
             tsl.symbols = symbolsAndRest.first;
 
@@ -265,11 +264,11 @@ protected:
             }
             symbols.insert(symbolsAndRest.first.begin(), symbolsAndRest.first.end());
 
-            runOperation(directiveAndRest, DirectiveLinePair, splitDirectivesFromLine, tsl, symbolsAndRest.second);
+            runOperation(directiveAndRest, splitDirectivesFromLine, tsl, symbolsAndRest.second);
             tsl.directive = directiveAndRest.first;
 
             // Parse (and remove) relocation hints from the tokens.
-            runOperation(finalTokens, LineTokens, splitRelocationsFromLine, directiveAndRest.second);
+            runOperation(finalTokens, splitRelocationsFromLine, directiveAndRest.second);
 
             tsl.tokens = finalTokens;
             if (tsl.tokens.empty() && tsl.directive.isEmpty()) {
@@ -284,8 +283,7 @@ protected:
 
             if (!tsl.directive.isEmpty() && m_earlyDirectives.count(tsl.directive)) {
                 bool wasDirective;  // unused
-                runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective, DirectiveArg{tsl, nullptr},
-                             wasDirective, false);
+                runOperation(directiveBytes, assembleDirective, DirectiveArg{tsl, nullptr}, wasDirective, false);
             }
         }
 
@@ -306,8 +304,8 @@ protected:
         expandedLines.reserve(tokenizedLines.size());
 
         for (auto tokenizedLine : llvm::enumerate(tokenizedLines)) {
-            runOperation(expandedOps, std::optional<std::vector<LineTokens>>, expandPseudoOp, tokenizedLine.value());
-            if (expandedOps) {
+            auto expandedOps = expandPseudoOp(tokenizedLine.value());
+            if (expandedOps.isResult()) {
                 /** @note: Original source line is kept for all resulting lines after pseudo-op expantion.
                  * Labels and directives are only kept for the first expanded op.
                  */
@@ -367,8 +365,7 @@ protected:
                 }
             }
 
-            runOperation(directiveBytes, std::optional<QByteArray>, assembleDirective,
-                         DirectiveArg{line, currentSection}, wasDirective);
+            runOperation(directiveBytes, assembleDirective, DirectiveArg{line, currentSection}, wasDirective);
 
             // Currently emitting segment may have changed during the assembler directive; refresh state
             currentSection = &program.sections.at(m_currentSection);
@@ -376,7 +373,7 @@ protected:
             if (!wasDirective) {
                 /// Maintain a pointer to the instruction that was assembled.
                 std::shared_ptr<_Instruction> assembledWith;
-                runOperation(machineCode, _InstrRes, assembleInstruction, line, assembledWith);
+                runOperation(machineCode, assembleInstruction, line, assembledWith);
                 assert(assembledWith && "Expected the assembler instruction to be set");
                 program.sourceMapping[addr_offset].insert(line.sourceLine());
 
@@ -401,12 +398,9 @@ protected:
 
                 currentSection->data.append(
                     QByteArray(reinterpret_cast<char*>(&machineCode.instruction), assembledWith->size()));
-
             }
-            // This was a directive; check if any bytes needs to be appended to the segment
-            else if (directiveBytes) {
-                currentSection->data.append(directiveBytes.value());
-            }
+            // This was a directive; append any assembled bytes to the segment.
+            currentSection->data.append(directiveBytes);
         }
         if (errors.size() != 0) {
             return {errors};
@@ -425,7 +419,7 @@ protected:
 
     std::variant<Errors, NoPassResult> pass3(Program& program, const LinkRequests& needsLinkage) const {
         Errors errors;
-        for (const auto& linkRequest : needsLinkage) {
+        for (const LinkRequest& linkRequest : needsLinkage) {
             const auto& symbol = linkRequest.fieldRequest.symbol;
             Reg_T symbolValue;
 
@@ -463,9 +457,10 @@ protected:
 
             // Re-apply immediate resolution using the value acquired from the symbol map
             if (auto* immField = dynamic_cast<const _Imm*>(linkRequest.fieldRequest.field)) {
-                if (auto err =
-                        immField->applySymbolResolution(linkRequest, symbolValue, instr, linkReqAddress(linkRequest))) {
-                    errors.push_back(err.value());
+                if (auto res =
+                        immField->applySymbolResolution(linkRequest, symbolValue, instr, linkReqAddress(linkRequest));
+                    res.isError()) {
+                    errors.push_back(res.error());
                     continue;
                 }
             } else {
@@ -482,14 +477,14 @@ protected:
         }
     }
 
-    virtual PseudoExpandRes expandPseudoOp(const TokenizedSrcLine& line) const {
+    virtual Result<std::vector<LineTokens>> expandPseudoOp(const TokenizedSrcLine& line) const {
         if (line.tokens.empty()) {
-            return PseudoExpandRes(std::nullopt);
+            return Error(line, "Not a pseudo instruction");
         }
         const auto& opcode = line.tokens.at(0);
         if (m_pseudoInstructionMap.count(opcode) == 0) {
             // Not a pseudo instruction
-            return PseudoExpandRes(std::nullopt);
+            return Error(line, "Not a pseudo instruction");
         }
         auto res = m_pseudoInstructionMap.at(opcode)->expand(line, m_symbolMap);
         if (auto* error = std::get_if<Error>(&res)) {
@@ -498,7 +493,7 @@ protected:
                 // If this pseudo-instruction aliases with an instruction but threw an error (could arise if ie.
                 // arguments provided were intended for the normal instruction and not the pseudoinstruction), then
                 // return as if not a pseudo-instruction, falling to normal instruction handling
-                return PseudoExpandRes(std::nullopt);
+                return Error(line, "");
             }
         }
 
@@ -542,7 +537,7 @@ protected:
      * Identify relocations in tokens; when found, add the relocation to the _following_ token. Relocations are _not_
      * added to the set of remaining tokens.
      */
-    virtual std::variant<Error, LineTokens> splitRelocationsFromLine(LineTokens& tokens) const {
+    virtual Result<LineTokens> splitRelocationsFromLine(LineTokens& tokens) const {
         if (tokens.size() == 0) {
             return {tokens};
         }

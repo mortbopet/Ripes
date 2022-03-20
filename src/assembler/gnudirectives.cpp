@@ -72,7 +72,7 @@ std::optional<Error> assembleData(const AssemblerBase* assembler, const Tokenize
 }
 
 template <size_t size>
-HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveArg& arg) {
+Result<QByteArray> dataFunctor(const AssemblerBase* assembler, const DirectiveArg& arg) {
     if (arg.line.tokens.length() < 1) {
         return {Error(arg.line, "Invalid number of arguments (expected >1)")};
     }
@@ -85,9 +85,9 @@ HandleDirectiveRes dataFunctor(const AssemblerBase* assembler, const DirectiveAr
     }
 }
 
-HandleDirectiveRes stringFunctor(const AssemblerBase*, const DirectiveArg& arg) {
+Result<QByteArray> stringFunctor(const AssemblerBase*, const DirectiveArg& arg) {
     if (arg.line.tokens.length() != 1) {
-        return HandleDirectiveRes{Error(arg.line, numTokensError(1, arg.line))};
+        return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
     }
     QString string = arg.line.tokens.at(0);
     string.replace("\\n", "\n");
@@ -141,18 +141,18 @@ Directive stringDirective() {
  */
 Directive dummyDirective(const QString& name) {
     return Directive(name,
-                     [](const AssemblerBase*, const DirectiveArg&) -> HandleDirectiveRes { return {QByteArray()}; });
+                     [](const AssemblerBase*, const DirectiveArg&) -> Result<QByteArray> { return {QByteArray()}; });
 }
 
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString& segment) {
     return [segment](const AssemblerBase* assembler, const DirectiveArg& arg) {
         if (arg.line.tokens.length() != 0) {
-            return HandleDirectiveRes{Error(arg.line, numTokensError(0, arg.line))};
+            return Result<QByteArray>{Error(arg.line, numTokensError(0, arg.line))};
         }
         auto err = assembler->setCurrentSegment(arg.line, segment);
         if (err)
-            return HandleDirectiveRes{err.value()};
-        return HandleDirectiveRes(std::nullopt);
+            return Result<QByteArray>{err.value()};
+        return Result<QByteArray>(QByteArray());
     };
 }
 
@@ -169,9 +169,9 @@ Directive dataDirective() {
 }
 
 Directive zeroDirective() {
-    auto zeroFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
+    auto zeroFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> Result<QByteArray> {
         if (arg.line.tokens.length() != 1) {
-            return HandleDirectiveRes{Error(arg.line, numTokensError(1, arg.line))};
+            return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
         }
         int64_t value;
         getImmediateErroring(arg.line.tokens.at(0), value, arg.line);
@@ -183,9 +183,9 @@ Directive zeroDirective() {
 }
 
 Directive equDirective() {
-    auto equFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
+    auto equFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> Result<QByteArray> {
         if (arg.line.tokens.length() != 2) {
-            return HandleDirectiveRes{Error(arg.line, numTokensError(2, arg.line))};
+            return Result<QByteArray>{Error(arg.line, numTokensError(2, arg.line))};
         }
         int64_t value;
         getImmediateErroring(arg.line.tokens.at(1), value, arg.line);
@@ -195,14 +195,14 @@ Directive equDirective() {
             return err.value();
         }
 
-        return HandleDirectiveRes(std::nullopt);
+        return Result<QByteArray>(QByteArray());
     };
     return Directive(".equ", equFunctor,
                      true /* Constants should be made available during ie. pseudo instruction expansion */);
 }
 
 Directive alignDirective() {
-    auto alignFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> HandleDirectiveRes {
+    auto alignFunctor = [](const AssemblerBase* assembler, const DirectiveArg& arg) -> Result<QByteArray> {
         if (arg.line.tokens.length() == 0 || arg.line.tokens.length() > 3) {
             return {Error(arg.line, "Invalid number of arguments (expected at least 1, at most 3)")};
         }
