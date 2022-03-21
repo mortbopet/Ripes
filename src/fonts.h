@@ -5,5 +5,5 @@ namespace Fonts {
 
 constexpr auto monospace = "Inconsolata";
 
-}  // namespace Fonts
-}  // namespace Ripes
+} // namespace Fonts
+} // namespace Ripes

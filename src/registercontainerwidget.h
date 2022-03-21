@@ -9,16 +9,16 @@ class RegisterContainerWidget;
 }
 
 class RegisterContainerWidget : public QWidget {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit RegisterContainerWidget(QWidget* parent = nullptr);
-    ~RegisterContainerWidget();
+  explicit RegisterContainerWidget(QWidget *parent = nullptr);
+  ~RegisterContainerWidget();
 
 private:
-    void initialize();
-    void updateView();
-    Ui::RegisterContainerWidget* m_ui;
+  void initialize();
+  void updateView();
+  Ui::RegisterContainerWidget *m_ui;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

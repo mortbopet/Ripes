@@ -11,17 +11,17 @@ class PipelineDiagramWidget;
 }
 
 class PipelineDiagramWidget : public QDialog {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    PipelineDiagramWidget(PipelineDiagramModel* model, QWidget* parent = nullptr);
-    ~PipelineDiagramWidget() override;
+  PipelineDiagramWidget(PipelineDiagramModel *model, QWidget *parent = nullptr);
+  ~PipelineDiagramWidget() override;
 
 private slots:
-    void on_copy_clicked();
+  void on_copy_clicked();
 
 private:
-    Ui::PipelineDiagramWidget* m_ui = nullptr;
-    PipelineDiagramModel* m_stageModel = nullptr;
+  Ui::PipelineDiagramWidget *m_ui = nullptr;
+  PipelineDiagramModel *m_stageModel = nullptr;
 };
-}  // namespace Ripes
+} // namespace Ripes

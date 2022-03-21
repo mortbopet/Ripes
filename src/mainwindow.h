@@ -24,51 +24,58 @@ class RipesTab;
 struct LoadFileParams;
 
 struct TabWidgets {
-    RipesTab* tab;
-    QToolBar* toolbar;
+  RipesTab *tab;
+  QToolBar *toolbar;
 };
 
 class MainWindow : public QMainWindow {
-    Q_OBJECT
+  Q_OBJECT
 
-    enum TabIndex { EditTabID, ProcessorTabID, CacheTabID, MemoryTabID, IOTabID, NTabsID };
+  enum TabIndex {
+    EditTabID,
+    ProcessorTabID,
+    CacheTabID,
+    MemoryTabID,
+    IOTabID,
+    NTabsID
+  };
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
-    ~MainWindow() override;
+  explicit MainWindow(QWidget *parent = nullptr);
+  ~MainWindow() override;
 
-    void closeEvent(QCloseEvent* event) override;
-    void fitToView();
+  void closeEvent(QCloseEvent *event) override;
+  void fitToView();
 
 signals:
-    void prepareSave();
+  void prepareSave();
 
 private slots:
-    void wiki();
-    void version();
+  void wiki();
+  void version();
 
-    void loadFileTriggered();
+  void loadFileTriggered();
 
-    void saveFilesTriggered();
-    void saveFilesAsTriggered();
-    void newProgramTriggered();
-    void settingsTriggered();
-    void tabChanged(int index);
+  void saveFilesTriggered();
+  void saveFilesAsTriggered();
+  void newProgramTriggered();
+  void settingsTriggered();
+  void tabChanged(int index);
 
 private:
-    void loadFile(const QString& filename, SourceType type);
+  void loadFile(const QString &filename, SourceType type);
 
-    void setupStatusBar();
-    void setupMenus();
-    void setupExamplesMenu(QMenu* parent);
+  void setupStatusBar();
+  void setupMenus();
+  void setupExamplesMenu(QMenu *parent);
 
-    Ui::MainWindow* m_ui = nullptr;
-    QActionGroup* m_binaryStoreAction;
-    QToolBar* m_toolbar = nullptr;
+  Ui::MainWindow *m_ui = nullptr;
+  QActionGroup *m_binaryStoreAction;
+  QToolBar *m_toolbar = nullptr;
 
-    // Tabs
-    QStackedWidget* m_stackedTabs = nullptr;
-    std::map<TabIndex, TabWidgets> m_tabWidgets;
-    TabIndex m_currentTabID = ProcessorTabID;
+  // Tabs
+  QStackedWidget *m_stackedTabs = nullptr;
+  std::map<TabIndex, TabWidgets> m_tabWidgets;
+  TabIndex m_currentTabID = ProcessorTabID;
 };
-}  // namespace Ripes
+} // namespace Ripes

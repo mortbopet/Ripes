@@ -11,18 +11,18 @@ class AddressDialog;
 }
 
 class AddressDialog : public QDialog {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    friend class GoToComboBox;
-    explicit AddressDialog(QWidget* parent = nullptr);
-    ~AddressDialog() override;
+  friend class GoToComboBox;
+  explicit AddressDialog(QWidget *parent = nullptr);
+  ~AddressDialog() override;
 
-    AInt getAddress() const { return m_address; }
+  AInt getAddress() const { return m_address; }
 
 private:
-    Ui::AddressDialog* m_ui = nullptr;
-    AInt m_address = 0;
-    void validateTargetAddress(const QString& address);
+  Ui::AddressDialog *m_ui = nullptr;
+  AInt m_address = 0;
+  void validateTargetAddress(const QString &address);
 };
-}  // namespace Ripes
+} // namespace Ripes

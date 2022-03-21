@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QWidget>
 #include "ripestab.h"
+#include <QWidget>
 
 #include "ripes_types.h"
 
@@ -12,20 +12,20 @@ class CacheTab;
 }
 
 class CacheTab : public RipesTab {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit CacheTab(QToolBar* toolbar, QWidget* parent = nullptr);
-    ~CacheTab() override;
+  explicit CacheTab(QToolBar *toolbar, QWidget *parent = nullptr);
+  ~CacheTab() override;
 
-    void tabVisibilityChanged(bool visible) override;
+  void tabVisibilityChanged(bool visible) override;
 
 signals:
-    void focusAddressChanged(Ripes::AInt address);
+  void focusAddressChanged(Ripes::AInt address);
 
 private:
-    Ui::CacheTab* m_ui;
-    bool m_initialized = false;
+  Ui::CacheTab *m_ui;
+  bool m_initialized = false;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

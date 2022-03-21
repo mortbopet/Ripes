@@ -8,25 +8,25 @@
 namespace Ripes {
 
 class Console : public QPlainTextEdit {
-    Q_OBJECT
+  Q_OBJECT
 
 signals:
-    void sendData(const QByteArray& data);
+  void sendData(const QByteArray &data);
 
 public:
-    Console(QWidget* parent = nullptr);
-    void putData(const QByteArray& data);
-    void clearConsole();
+  Console(QWidget *parent = nullptr);
+  void putData(const QByteArray &data);
+  void clearConsole();
 
 protected:
-    void keyPressEvent(QKeyEvent* e) override;
+  void keyPressEvent(QKeyEvent *e) override;
 
 private:
-    void backspace();
+  void backspace();
 
-    bool m_localEchoEnabled = false;
-    QFont m_font;
-    QString m_buffer;
+  bool m_localEchoEnabled = false;
+  QFont m_font;
+  QString m_buffer;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

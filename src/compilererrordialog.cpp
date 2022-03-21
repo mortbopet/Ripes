@@ -3,21 +3,20 @@
 
 namespace Ripes {
 
-CompilerErrorDialog::CompilerErrorDialog(QWidget* parent) : QDialog(parent), m_ui(new Ui::CompilerErrorDialog) {
-    m_ui->setupUi(this);
+CompilerErrorDialog::CompilerErrorDialog(QWidget *parent)
+    : QDialog(parent), m_ui(new Ui::CompilerErrorDialog) {
+  m_ui->setupUi(this);
 
-    setWindowTitle("Compilation error");
+  setWindowTitle("Compilation error");
 }
 
-void CompilerErrorDialog::setText(const QString& text) {
-    m_ui->infoText->setText(text);
+void CompilerErrorDialog::setText(const QString &text) {
+  m_ui->infoText->setText(text);
 }
-void CompilerErrorDialog::setErrorText(const QString& text) {
-    m_ui->errorText->setPlainText(text);
-}
-
-CompilerErrorDialog::~CompilerErrorDialog() {
-    delete m_ui;
+void CompilerErrorDialog::setErrorText(const QString &text) {
+  m_ui->errorText->setPlainText(text);
 }
 
-}  // namespace Ripes
+CompilerErrorDialog::~CompilerErrorDialog() { delete m_ui; }
+
+} // namespace Ripes

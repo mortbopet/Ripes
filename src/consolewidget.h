@@ -9,17 +9,17 @@ class ConsoleWidget;
 }
 
 class ConsoleWidget : public QWidget {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit ConsoleWidget(QWidget* parent = nullptr);
-    ~ConsoleWidget();
+  explicit ConsoleWidget(QWidget *parent = nullptr);
+  ~ConsoleWidget();
 
-    void putData(const QByteArray& data);
-    void clearConsole();
+  void putData(const QByteArray &data);
+  void clearConsole();
 
 private:
-    Ui::ConsoleWidget* m_ui;
+  Ui::ConsoleWidget *m_ui;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

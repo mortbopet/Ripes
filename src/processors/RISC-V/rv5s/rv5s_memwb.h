@@ -14,12 +14,13 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RV5S_MEMWB : public MEMWB<XLEN> {
 public:
-    RV5S_MEMWB(const std::string& name, SimComponent* parent) : MEMWB<XLEN>(name, parent) {
-        CONNECT_REGISTERED_INPUT(stalled);
-    }
+  RV5S_MEMWB(const std::string &name, SimComponent *parent)
+      : MEMWB<XLEN>(name, parent) {
+    CONNECT_REGISTERED_INPUT(stalled);
+  }
 
-    REGISTERED_INPUT(stalled, 1);
+  REGISTERED_INPUT(stalled, 1);
 };
 
-}  // namespace core
-}  // namespace vsrtl
+} // namespace core
+} // namespace vsrtl

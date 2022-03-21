@@ -12,26 +12,27 @@ namespace Ripes {
 
 class CSyntaxHighlighter : public SyntaxHighlighter {
 public:
-    CSyntaxHighlighter(QTextDocument* parent = nullptr, std::shared_ptr<Assembler::Errors> errors = {});
-    void syntaxHighlightBlock(const QString& text) override;
+  CSyntaxHighlighter(QTextDocument *parent = nullptr,
+                     std::shared_ptr<Assembler::Errors> errors = {});
+  void syntaxHighlightBlock(const QString &text) override;
 
 private:
-    struct HighlightingRule {
-        QRegularExpression pattern;
-        QTextCharFormat format;
-    };
-    QVector<HighlightingRule> highlightingRules;
+  struct HighlightingRule {
+    QRegularExpression pattern;
+    QTextCharFormat format;
+  };
+  QVector<HighlightingRule> highlightingRules;
 
-    QRegularExpression commentStartExpression;
-    QRegularExpression commentEndExpression;
+  QRegularExpression commentStartExpression;
+  QRegularExpression commentEndExpression;
 
-    QTextCharFormat keywordFormat;
-    QTextCharFormat typeFormat;
-    QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat multiLineCommentFormat;
-    QTextCharFormat preprocessorFormat;
-    QTextCharFormat quotationFormat;
-    QTextCharFormat functionFormat;
+  QTextCharFormat keywordFormat;
+  QTextCharFormat typeFormat;
+  QTextCharFormat singleLineCommentFormat;
+  QTextCharFormat multiLineCommentFormat;
+  QTextCharFormat preprocessorFormat;
+  QTextCharFormat quotationFormat;
+  QTextCharFormat functionFormat;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

@@ -23,57 +23,60 @@ namespace Ripes {
 class ChartLineMarker;
 
 class CachePlotMarker : public QObject {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    ChartLineMarker* marker = nullptr;
-    QLineSeries* series = nullptr;
-    QString name;
-    CachePlotMarker(QObject* parent, QChart* chart, QLineSeries* series, const QString& name);
-    void updateCoordinateValues(const QPointF& pos, bool showValue, bool showCycles);
-    void clear();
+  ChartLineMarker *marker = nullptr;
+  QLineSeries *series = nullptr;
+  QString name;
+  CachePlotMarker(QObject *parent, QChart *chart, QLineSeries *series,
+                  const QString &name);
+  void updateCoordinateValues(const QPointF &pos, bool showValue,
+                              bool showCycles);
+  void clear();
 };
 
 class CachePlotView : public QGraphicsView {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    CachePlotView(QWidget* parent = nullptr);
+  CachePlotView(QWidget *parent = nullptr);
 
-    void setPlot(QChart* chart);
+  void setPlot(QChart *chart);
 
-    /**
-     * @brief getPlotPixmap
-     * @returns a pixmap containing only the plot (ie. no coordinate values nor marker)
-     */
-    QPixmap getPlotPixmap();
+  /**
+   * @brief getPlotPixmap
+   * @returns a pixmap containing only the plot (ie. no coordinate values nor
+   * marker)
+   */
+  QPixmap getPlotPixmap();
 
 protected:
-    void resizeEvent(QResizeEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void enterEvent(QEvent* event) override;
-    void leaveEvent(QEvent* event) override;
+  void resizeEvent(QResizeEvent *event) override;
+  void mouseMoveEvent(QMouseEvent *event) override;
+  void enterEvent(QEvent *event) override;
+  void leaveEvent(QEvent *event) override;
 
 public slots:
-    void keepCallout();
-    void deleteCallout(Callout* callout);
-    void tooltip(QPointF point, bool state);
-    void hideSeriesMarker(QtCharts::QLineSeries* series);
-    void showSeriesMarker(QtCharts::QLineSeries* series, const QString& name);
+  void keepCallout();
+  void deleteCallout(Callout *callout);
+  void tooltip(QPointF point, bool state);
+  void hideSeriesMarker(QtCharts::QLineSeries *series);
+  void showSeriesMarker(QtCharts::QLineSeries *series, const QString &name);
 
 private:
-    void resizeObjects(const QSizeF& size);
+  void resizeObjects(const QSizeF &size);
 
-    QPointF m_hoverPos;
+  QPointF m_hoverPos;
 
-    std::vector<std::unique_ptr<CachePlotMarker>> m_markers;
+  std::vector<std::unique_ptr<CachePlotMarker>> m_markers;
 
-    QChart* m_chart = nullptr;
-    Callout* m_tooltip = nullptr;
-    QMutex m_tooltipLock;
+  QChart *m_chart = nullptr;
+  Callout *m_tooltip = nullptr;
+  QMutex m_tooltipLock;
 
-    bool m_mouseInView = false;
-    bool m_crosshairEnabled = true;
+  bool m_mouseInView = false;
+  bool m_crosshairEnabled = true;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

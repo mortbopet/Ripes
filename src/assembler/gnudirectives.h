@@ -28,12 +28,12 @@ Directive fourByteDirective();
 Directive longDirective();
 Directive alignDirective();
 
-Directive dummyDirective(const QString& name);
+Directive dummyDirective(const QString &name);
 
 Directive textDirective();
 Directive dataDirective();
 Directive bssDirective();
 Directive equDirective();
 
-}  // namespace Assembler
-}  // namespace Ripes
+} // namespace Assembler
+} // namespace Ripes

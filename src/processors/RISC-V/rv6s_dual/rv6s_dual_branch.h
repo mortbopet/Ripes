@@ -10,7 +10,7 @@ using namespace Ripes;
 
 template <unsigned XLEN>
 class Branch_DUAL : public Component {
-    /* clang-format off */
+  /* clang-format off */
     bool branch_taken() const {
         switch(comp_op.uValue()){
             case CompOp::NOP: return false;
@@ -23,47 +23,49 @@ class Branch_DUAL : public Component {
             default: assert("Comparator: Unknown comparison operator"); return false;
         }
     }
-    /* clang-format on */
+  /* clang-format on */
 
-    void computeCycle() {
-        if (m_design->getCycleCount() == cachedCycle)
-            return;
+  void computeCycle() {
+    if (m_design->getCycleCount() == cachedCycle)
+      return;
 
-        m_did_controlflow = (branch_taken() && do_branch.uValue()) || do_jump.uValue();
+    m_did_controlflow =
+        (branch_taken() && do_branch.uValue()) || do_jump.uValue();
 
-        cachedCycle = m_design->getCycleCount();
-    }
+    cachedCycle = m_design->getCycleCount();
+  }
 
 public:
-    Branch_DUAL(const std::string& name, SimComponent* parent) : Component(name, parent) {
-        pc_src << [=] {
-            computeCycle();
-            if (m_did_controlflow) {
-                return PcSrc::ALU;
-            } else {
-                // Todo: Info from scheduling
-                return PcSrc::PC4;
-            }
-        };
+  Branch_DUAL(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
+    pc_src << [=] {
+      computeCycle();
+      if (m_did_controlflow) {
+        return PcSrc::ALU;
+      } else {
+        // Todo: Info from scheduling
+        return PcSrc::PC4;
+      }
+    };
 
-        did_controlflow << [=] {
-            computeCycle();
-            return m_did_controlflow;
-        };
-    }
+    did_controlflow << [=] {
+      computeCycle();
+      return m_did_controlflow;
+    };
+  }
 
-    INPUTPORT_ENUM(comp_op, CompOp);
-    INPUTPORT(op1, XLEN);
-    INPUTPORT(op2, XLEN);
-    INPUTPORT(do_branch, 1);
-    INPUTPORT(do_jump, 1);
-    OUTPUTPORT_ENUM(pc_src, PcSrc);
-    OUTPUTPORT(did_controlflow, 1);
+  INPUTPORT_ENUM(comp_op, CompOp);
+  INPUTPORT(op1, XLEN);
+  INPUTPORT(op2, XLEN);
+  INPUTPORT(do_branch, 1);
+  INPUTPORT(do_jump, 1);
+  OUTPUTPORT_ENUM(pc_src, PcSrc);
+  OUTPUTPORT(did_controlflow, 1);
 
 private:
-    unsigned cachedCycle = -1;
-    bool m_did_controlflow;
+  unsigned cachedCycle = -1;
+  bool m_did_controlflow;
 };
 
-}  // namespace core
-}  // namespace vsrtl
+} // namespace core
+} // namespace vsrtl

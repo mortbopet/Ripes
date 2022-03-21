@@ -49,10 +49,11 @@ const QStringList RegDescs = QStringList() << "Hard-Wired zero"
                                          << "Temporary register\nSaver: Caller"
                                          << "Temporary register\nSaver: Caller";
 // clang-format on
-}  // namespace RVISA
+} // namespace RVISA
 
 namespace RVABI {
-const std::map<RVElfFlags, QString> ELFFlagStrings{{RVC, "RVC"}, {FloatABI, "Float ABI"}, {RVE, "RVE"}, {TSO, "TSO"}};
+const std::map<RVElfFlags, QString> ELFFlagStrings{
+    {RVC, "RVC"}, {FloatABI, "Float ABI"}, {RVE, "RVE"}, {TSO, "TSO"}};
 }
 
-}  // namespace Ripes
+} // namespace Ripes

@@ -4,6 +4,6 @@
 
 namespace Ripes {
 
-bool isExecutable(const QString& path, const QStringList& dummyArgs = {});
+bool isExecutable(const QString &path, const QStringList &dummyArgs = {});
 
-}  // namespace Ripes
+} // namespace Ripes
