@@ -15,27 +15,27 @@ class MemoryViewerWidget;
 }
 
 class MemoryViewerWidget : public QWidget {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    MemoryViewerWidget(QWidget* parent = nullptr);
-    ~MemoryViewerWidget();
+  MemoryViewerWidget(QWidget *parent = nullptr);
+  ~MemoryViewerWidget();
 
-    void updateModel();
+  void updateModel();
 
-    MemoryModel* m_memoryModel = nullptr;
+  MemoryModel *m_memoryModel = nullptr;
 
 public slots:
-    void updateView();
-    void setCentralAddress(Ripes::AInt address);
+  void updateView();
+  void setCentralAddress(Ripes::AInt address);
 
 private:
-    void setupNavigationWidgets();
+  void setupNavigationWidgets();
 
-    Ui::MemoryViewerWidget* m_ui = nullptr;
+  Ui::MemoryViewerWidget *m_ui = nullptr;
 
-    RadixSelectorWidget* m_radixSelector = nullptr;
-    GoToComboBox* m_goToSection = nullptr;
-    GoToComboBox* m_goToRegister = nullptr;
+  RadixSelectorWidget *m_radixSelector = nullptr;
+  GoToComboBox *m_goToSection = nullptr;
+  GoToComboBox *m_goToRegister = nullptr;
 };
-}  // namespace Ripes
+} // namespace Ripes

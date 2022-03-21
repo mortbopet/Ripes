@@ -11,18 +11,19 @@ class SyscallViewer;
 }
 
 class SyscallViewer : public QDialog {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit SyscallViewer(QWidget* parent = nullptr);
-    ~SyscallViewer();
+  explicit SyscallViewer(QWidget *parent = nullptr);
+  ~SyscallViewer();
 
 private:
-    void handleItemChanged(QTableWidgetItem* current, QTableWidgetItem* previous);
-    void addSyscall(unsigned id, const Syscall* syscall);
-    void addItemToTable(QTableWidget* table, unsigned idx, const QString& description);
-    void setCurrentSyscall(const Syscall* syscall);
+  void handleItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
+  void addSyscall(unsigned id, const Syscall *syscall);
+  void addItemToTable(QTableWidget *table, unsigned idx,
+                      const QString &description);
+  void setCurrentSyscall(const Syscall *syscall);
 
-    Ui::SyscallViewer* m_ui;
+  Ui::SyscallViewer *m_ui;
 };
-}  // namespace Ripes
+} // namespace Ripes

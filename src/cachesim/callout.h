@@ -50,28 +50,29 @@ class CachePlotView;
 
 class Callout : public QGraphicsItem {
 public:
-    Callout(Ripes::CachePlotView* view, QChart* parent);
+  Callout(Ripes::CachePlotView *view, QChart *parent);
 
-    void setText(const QString& text);
-    void setAnchor(QPointF point);
-    void updateGeometry();
+  void setText(const QString &text);
+  void setAnchor(QPointF point);
+  void updateGeometry();
 
-    QRectF boundingRect() const override;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  QRectF boundingRect() const override;
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+             QWidget *widget) override;
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
 
 private:
-    Ripes::CachePlotView* m_view = nullptr;
-    QString m_text;
-    QRectF m_textRect;
-    QRectF m_rect;
-    QPointF m_anchor;
-    QFont m_font;
-    QChart* m_chart;
+  Ripes::CachePlotView *m_view = nullptr;
+  QString m_text;
+  QRectF m_textRect;
+  QRectF m_rect;
+  QPointF m_anchor;
+  QFont m_font;
+  QChart *m_chart;
 };
 
-#endif  // CALLOUT_H
+#endif // CALLOUT_H

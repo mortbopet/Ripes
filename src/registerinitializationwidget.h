@@ -18,55 +18,56 @@ class RegisterInitializationWidget;
 }
 
 class RegisterInitializationWidget : public QWidget {
-    Q_OBJECT
-    friend class RegisterSelectionComboBox;
+  Q_OBJECT
+  friend class RegisterSelectionComboBox;
 
-    struct RegInitWidgets {
-        RegisterSelectionComboBox* name = nullptr;
-        QLineEdit* value = nullptr;
-        QPushButton* remove = nullptr;
+  struct RegInitWidgets {
+    RegisterSelectionComboBox *name = nullptr;
+    QLineEdit *value = nullptr;
+    QPushButton *remove = nullptr;
 
-        ~RegInitWidgets() { clear(); }
-        void clear();
-    };
+    ~RegInitWidgets() { clear(); }
+    void clear();
+  };
 
 public:
-    explicit RegisterInitializationWidget(QWidget* parent = nullptr);
-    ~RegisterInitializationWidget();
+  explicit RegisterInitializationWidget(QWidget *parent = nullptr);
+  ~RegisterInitializationWidget();
 
-    RegisterInitialization getInitialization() const;
+  RegisterInitialization getInitialization() const;
 
-    void processorSelectionChanged(ProcessorID id);
+  void processorSelectionChanged(ProcessorID id);
 
 private slots:
-    RegisterInitializationWidget::RegInitWidgets* addRegisterInitialization(unsigned regIdx);
+  RegisterInitializationWidget::RegInitWidgets *
+  addRegisterInitialization(unsigned regIdx);
 
 private:
-    void updateAddButtonState();
-    int getNonInitializedRegIdx();
-    void removeRegInitWidget(RegInitWidgets* w);
+  void updateAddButtonState();
+  int getNonInitializedRegIdx();
+  void removeRegInitWidget(RegInitWidgets *w);
 
-    Ui::RegisterInitializationWidget* m_ui = nullptr;
+  Ui::RegisterInitializationWidget *m_ui = nullptr;
 
-    static std::map<ProcessorID, RegisterInitialization> m_initializations;
-    ProcessorID m_currentID;
-    QRegExpValidator* m_hexValidator;
+  static std::map<ProcessorID, RegisterInitialization> m_initializations;
+  ProcessorID m_currentID;
+  QRegExpValidator *m_hexValidator;
 
-    std::vector<std::unique_ptr<RegInitWidgets>> m_currentRegInitWidgets;
+  std::vector<std::unique_ptr<RegInitWidgets>> m_currentRegInitWidgets;
 };
 
 class RegisterSelectionComboBox : public QComboBox {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    RegisterSelectionComboBox(RegisterInitializationWidget* parent = nullptr);
-    void showPopup() override;
+  RegisterSelectionComboBox(RegisterInitializationWidget *parent = nullptr);
+  void showPopup() override;
 
 signals:
-    void regIndexChanged(int oldIdx, int newIdx);
+  void regIndexChanged(int oldIdx, int newIdx);
 
 private:
-    int m_index = -1;
-    RegisterInitializationWidget* m_parent = nullptr;
+  int m_index = -1;
+  RegisterInitializationWidget *m_parent = nullptr;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

@@ -33,8 +33,9 @@ namespace Ripes {
 #define RIPES_SETTING_CACHE_PRESETS ("cache_presets")
 #define RIPES_SETTING_PERIPHERAL_SETTINGS ("peripheral_settings")
 
-// This is not really a setting, but instead a method to leverage the static observer objects that are generated for a
-// setting. Used for other objects to hook into a signal emitted just before the application closes.
+// This is not really a setting, but instead a method to leverage the static
+// observer objects that are generated for a setting. Used for other objects to
+// hook into a signal emitted just before the application closes.
 #define RIPES_GLOBALSIGNAL_QUIT ("sig_quit")
 #define RIPES_GLOBALSIGNAL_REQRESET ("req_reset")
 
@@ -65,59 +66,62 @@ const extern std::map<QString, QVariant> s_defaultSettings;
 /**
  * @brief The SettingObserver class
  * A wrapper class around a single Ripes setting.
- * Provides a slot for setting the setting and a signal for broadcasting that the setting was modified. Useful for
- * propagating settings changes to all over the codebase.
+ * Provides a slot for setting the setting and a signal for broadcasting that
+ * the setting was modified. Useful for propagating settings changes to all over
+ * the codebase.
  */
 class SettingObserver : public QObject {
-    Q_OBJECT
-    friend class RipesSettings;
+  Q_OBJECT
+  friend class RipesSettings;
 
 public:
-    SettingObserver(const QString& key) : m_key(key) {}
+  SettingObserver(const QString &key) : m_key(key) {}
 
-    template <typename T = QVariant>
-    T value() const {
-        QSettings settings;
-        Q_ASSERT(settings.contains(m_key));
-        return settings.value(m_key).value<T>();
-    }
+  template <typename T = QVariant>
+  T value() const {
+    QSettings settings;
+    Q_ASSERT(settings.contains(m_key));
+    return settings.value(m_key).value<T>();
+  }
 
 signals:
-    void modified(const QVariant& value);
+  void modified(const QVariant &value);
 
 public slots:
-    void setValue(const QVariant& value);
-    void trigger();
+  void setValue(const QVariant &value);
+  void trigger();
 
 private:
-    QString m_key;
+  QString m_key;
 };
 
 class RipesSettings : public QSettings {
 public:
-    static void setValue(const QString& key, const QVariant& value);
-    template <typename T = QVariant>
-    static T value(const QString& key) {
-        return get().m_observers.at(key).value<T>();
-    }
+  static void setValue(const QString &key, const QVariant &value);
+  template <typename T = QVariant>
+  static T value(const QString &key) {
+    return get().m_observers.at(key).value<T>();
+  }
 
-    static bool hasSetting(const QString& key) { return get().m_observers.count(key) != 0; }
+  static bool hasSetting(const QString &key) {
+    return get().m_observers.count(key) != 0;
+  }
 
-    /**
-     * @brief getObserver
-     * returns the observer for the given setting key @p key
-     */
-    static SettingObserver* getObserver(const QString& key);
+  /**
+   * @brief getObserver
+   * returns the observer for the given setting key @p key
+   */
+  static SettingObserver *getObserver(const QString &key);
 
 private:
-    static RipesSettings& get() {
-        static RipesSettings inst;
-        return inst;
-    }
-    RipesSettings();
-    ~RipesSettings();
+  static RipesSettings &get() {
+    static RipesSettings inst;
+    return inst;
+  }
+  RipesSettings();
+  ~RipesSettings();
 
-    std::map<QString, SettingObserver> m_observers;
+  std::map<QString, SettingObserver> m_observers;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

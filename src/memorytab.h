@@ -14,16 +14,16 @@ class MemoryTab;
 }
 
 class MemoryTab : public RipesTab {
-    friend class CacheTabWidget;
-    Q_OBJECT
+  friend class CacheTabWidget;
+  Q_OBJECT
 
 public:
-    MemoryTab(QToolBar* toolbar, QWidget* parent = nullptr);
-    ~MemoryTab() override;
+  MemoryTab(QToolBar *toolbar, QWidget *parent = nullptr);
+  ~MemoryTab() override;
 
-    void setCentralAddress(unsigned address);
+  void setCentralAddress(unsigned address);
 
 private:
-    Ui::MemoryTab* m_ui = nullptr;
+  Ui::MemoryTab *m_ui = nullptr;
 };
-}  // namespace Ripes
+} // namespace Ripes

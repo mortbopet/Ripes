@@ -10,8 +10,9 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Branch : public Component {
 public:
-    Branch(const std::string& name, SimComponent* parent) : Component(name, parent) {
-        // clang-format off
+  Branch(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
+    // clang-format off
         res << [=] {
             switch(comp_op.uValue()){
                 case CompOp::NOP: return false;
@@ -24,14 +25,14 @@ public:
                 default: assert("Comparator: Unknown comparison operator"); return false;
             }
         };
-        // clang-format on
-    }
+    // clang-format on
+  }
 
-    INPUTPORT_ENUM(comp_op, CompOp);
-    INPUTPORT(op1, XLEN);
-    INPUTPORT(op2, XLEN);
-    OUTPUTPORT(res, 1);
+  INPUTPORT_ENUM(comp_op, CompOp);
+  INPUTPORT(op1, XLEN);
+  INPUTPORT(op2, XLEN);
+  OUTPUTPORT(res, 1);
 };
 
-}  // namespace core
-}  // namespace vsrtl
+} // namespace core
+} // namespace vsrtl

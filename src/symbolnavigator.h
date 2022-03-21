@@ -11,17 +11,17 @@ class SymbolNavigator;
 }
 
 class SymbolNavigator : public QDialog {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    SymbolNavigator(const ReverseSymbolMap& symbolmap, QWidget* parent = nullptr);
-    ~SymbolNavigator();
+  SymbolNavigator(const ReverseSymbolMap &symbolmap, QWidget *parent = nullptr);
+  ~SymbolNavigator();
 
-    AInt getSelectedSymbolAddress() const;
+  AInt getSelectedSymbolAddress() const;
 
 private:
-    void addSymbol(const AInt address, const QString& label);
+  void addSymbol(const AInt address, const QString &label);
 
-    Ui::SymbolNavigator* m_ui;
+  Ui::SymbolNavigator *m_ui;
 };
-}  // namespace Ripes
+} // namespace Ripes

@@ -9,17 +9,17 @@ class IOPeripheralTab;
 }
 
 class IOPeripheralTab : public QWidget {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    IOPeripheralTab(QWidget* parent, IOBase* peripheral);
-    ~IOPeripheralTab();
+  IOPeripheralTab(QWidget *parent, IOBase *peripheral);
+  ~IOPeripheralTab();
 
 private:
-    void updateExportsInfo();
+  void updateExportsInfo();
 
-    Ui::IOPeripheralTab* m_ui = nullptr;
-    IOBase* m_peripheral = nullptr;
+  Ui::IOPeripheralTab *m_ui = nullptr;
+  IOBase *m_peripheral = nullptr;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

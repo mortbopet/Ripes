@@ -9,7 +9,7 @@ using namespace Ripes;
 
 class Control : public Component {
 public:
-    /* clang-format off */
+  /* clang-format off */
     static CompOp do_comp_ctrl(const VSRTL_VT_U& opc) {
         switch(opc){
             case RVInstr::BEQ: return CompOp::EQ;
@@ -236,37 +236,38 @@ public:
             default: return 0;
         }
     }
-    /* clang-format on */
+  /* clang-format on */
 
 public:
-    Control(const std::string& name, SimComponent* parent) : Component(name, parent) {
-        comp_ctrl << [=] { return do_comp_ctrl(opcode.uValue()); };
-        do_branch << [=] { return do_branch_ctrl(opcode.uValue()); };
-        do_jump << [=] { return do_jump_ctrl(opcode.uValue()); };
-        mem_ctrl << [=] { return do_mem_ctrl(opcode.uValue()); };
-        reg_do_write_ctrl << [=] { return do_reg_do_write_ctrl(opcode.uValue()); };
-        reg_wr_src_ctrl << [=] { return do_reg_wr_src_ctrl(opcode.uValue()); };
-        alu_op1_ctrl << [=] { return do_alu_op1_ctrl(opcode.uValue()); };
-        alu_op2_ctrl << [=] { return do_alu_op2_ctrl(opcode.uValue()); };
-        alu_ctrl << [=] { return do_alu_ctrl(opcode.uValue()); };
-        mem_do_write_ctrl << [=] { return do_do_mem_write_ctrl(opcode.uValue()); };
-        mem_do_read_ctrl << [=] { return do_do_read_ctrl(opcode.uValue()); };
-    }
+  Control(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
+    comp_ctrl << [=] { return do_comp_ctrl(opcode.uValue()); };
+    do_branch << [=] { return do_branch_ctrl(opcode.uValue()); };
+    do_jump << [=] { return do_jump_ctrl(opcode.uValue()); };
+    mem_ctrl << [=] { return do_mem_ctrl(opcode.uValue()); };
+    reg_do_write_ctrl << [=] { return do_reg_do_write_ctrl(opcode.uValue()); };
+    reg_wr_src_ctrl << [=] { return do_reg_wr_src_ctrl(opcode.uValue()); };
+    alu_op1_ctrl << [=] { return do_alu_op1_ctrl(opcode.uValue()); };
+    alu_op2_ctrl << [=] { return do_alu_op2_ctrl(opcode.uValue()); };
+    alu_ctrl << [=] { return do_alu_ctrl(opcode.uValue()); };
+    mem_do_write_ctrl << [=] { return do_do_mem_write_ctrl(opcode.uValue()); };
+    mem_do_read_ctrl << [=] { return do_do_read_ctrl(opcode.uValue()); };
+  }
 
-    INPUTPORT_ENUM(opcode, RVInstr);
+  INPUTPORT_ENUM(opcode, RVInstr);
 
-    OUTPUTPORT(reg_do_write_ctrl, 1);
-    OUTPUTPORT(mem_do_write_ctrl, 1);
-    OUTPUTPORT(mem_do_read_ctrl, 1);
-    OUTPUTPORT(do_branch, 1);
-    OUTPUTPORT(do_jump, 1);
-    OUTPUTPORT_ENUM(comp_ctrl, CompOp);
-    OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
-    OUTPUTPORT_ENUM(mem_ctrl, MemOp);
-    OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
-    OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
-    OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
+  OUTPUTPORT(reg_do_write_ctrl, 1);
+  OUTPUTPORT(mem_do_write_ctrl, 1);
+  OUTPUTPORT(mem_do_read_ctrl, 1);
+  OUTPUTPORT(do_branch, 1);
+  OUTPUTPORT(do_jump, 1);
+  OUTPUTPORT_ENUM(comp_ctrl, CompOp);
+  OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
+  OUTPUTPORT_ENUM(mem_ctrl, MemOp);
+  OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
+  OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
+  OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
 };
 
-}  // namespace core
-}  // namespace vsrtl
+} // namespace core
+} // namespace vsrtl

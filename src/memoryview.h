@@ -10,24 +10,24 @@ namespace Ripes {
 // central address
 
 class MemoryView : public QTableView {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    MemoryView(QWidget* parent = nullptr);
+  MemoryView(QWidget *parent = nullptr);
 
-    void wheelEvent(QWheelEvent* event) override;
+  void wheelEvent(QWheelEvent *event) override;
 
 protected:
-    void resizeEvent(QResizeEvent* event) override;
+  void resizeEvent(QResizeEvent *event) override;
 
 public slots:
-    void setVisibleRows() {}
+  void setVisibleRows() {}
 
 signals:
-    void scrolled(bool dir);
-    void resized();
+  void scrolled(bool dir);
+  void resized();
 
 private:
-    int m_rowHeight = 0;
+  int m_rowHeight = 0;
 };
-}  // namespace Ripes
+} // namespace Ripes

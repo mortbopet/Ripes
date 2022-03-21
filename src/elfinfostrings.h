@@ -193,11 +193,12 @@ const static QMap<unsigned, QString> s_elfTypes {
 // clang-format on
 
 static QString getNameForElfMachine(unsigned machine) {
-    return s_elfMachineNames.contains(machine) ? s_elfMachineNames[machine] : "Unknown";
+  return s_elfMachineNames.contains(machine) ? s_elfMachineNames[machine]
+                                             : "Unknown";
 }
 
 static QString getNameForElfType(unsigned machine) {
-    return s_elfTypes.contains(machine) ? s_elfTypes[machine] : "Unknown";
+  return s_elfTypes.contains(machine) ? s_elfTypes[machine] : "Unknown";
 }
 
-}  // namespace Ripes
+} // namespace Ripes

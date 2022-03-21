@@ -10,21 +10,24 @@ namespace Ripes {
 namespace Assembler {
 
 struct ImmConvInfo {
-    bool isUnsigned = false;
-    bool is32bit = false;
+  bool isUnsigned = false;
+  bool is32bit = false;
 };
 
-int64_t getImmediate(const QString& string, bool& canConvert, ImmConvInfo* convInfo = nullptr);
-int64_t getImmediateSext32(const QString& string, bool& canConvert);
+int64_t getImmediate(const QString &string, bool &canConvert,
+                     ImmConvInfo *convInfo = nullptr);
+int64_t getImmediateSext32(const QString &string, bool &canConvert);
 
 /**
- * @brief joinParentheses takes a number of tokens and merges together tokens contained within top-level parentheses.
- * For example:
- * [lw, x10, (B, +, (3*2))(x10)] => [lw, x10, B + 3*2), x10]
+ * @brief joinParentheses takes a number of tokens and merges together tokens
+ * contained within top-level parentheses. For example: [lw, x10, (B, +,
+ * (3*2))(x10)] => [lw, x10, B + 3*2), x10]
  */
-Result< LineTokens> joinParentheses(const Location& location, const QStringList& tokens);
+Result<LineTokens> joinParentheses(const Location &location,
+                                   const QStringList &tokens);
 
 /// Quote-aware string tokenization.
-Result< QStringList> tokenizeQuotes(const Location& location, const QString& line);
-}  // namespace Assembler
-}  // namespace Ripes
+Result<QStringList> tokenizeQuotes(const Location &location,
+                                   const QString &line);
+} // namespace Assembler
+} // namespace Ripes

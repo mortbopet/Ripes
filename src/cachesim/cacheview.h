@@ -7,25 +7,25 @@
 namespace Ripes {
 
 class CacheView : public QGraphicsView {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    CacheView(QWidget* parent);
-    void fitScene();
+  CacheView(QWidget *parent);
+  void fitScene();
 
 protected:
-    void wheelEvent(QWheelEvent*) override;
-    void mousePressEvent(QMouseEvent* event) override;
+  void wheelEvent(QWheelEvent *) override;
+  void mousePressEvent(QMouseEvent *event) override;
 
 signals:
-    void cacheAddressSelected(Ripes::AInt);
+  void cacheAddressSelected(Ripes::AInt);
 
 private slots:
-    void setupMatrix();
-    void zoomIn(int level = 1);
-    void zoomOut(int level = 1);
+  void setupMatrix();
+  void zoomIn(int level = 1);
+  void zoomOut(int level = 1);
 
 private:
-    qreal m_zoom;
+  qreal m_zoom;
 };
 
-}  // namespace Ripes
+} // namespace Ripes

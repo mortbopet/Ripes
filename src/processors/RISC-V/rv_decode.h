@@ -10,15 +10,16 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Decode : public Component {
 public:
-    void setISA(const std::shared_ptr<ISAInfoBase>& isa) { m_isa = isa; }
+  void setISA(const std::shared_ptr<ISAInfoBase> &isa) { m_isa = isa; }
 
-    Decode(const std::string& name, SimComponent* parent) : Component(name, parent) {
-        opcode << [=] {
-            const auto instrValue = instr.uValue();
+  Decode(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
+    opcode << [=] {
+      const auto instrValue = instr.uValue();
 
-            const unsigned l7 = instrValue & 0b1111111;
+      const unsigned l7 = instrValue & 0b1111111;
 
-            // clang-format off
+      // clang-format off
             switch(l7) {
             case RVISA::Opcode::LUI: return RVInstr::LUI;
             case RVISA::Opcode::AUIPC: return RVInstr::AUIPC;
@@ -216,19 +217,19 @@ public:
           return (instr.uValue() >> 20) & 0b11111;
         };
 
-        // clang-format on
-    }
+    // clang-format on
+  }
 
-    INPUTPORT(instr, c_RVInstrWidth);
-    OUTPUTPORT_ENUM(opcode, RVInstr);
-    OUTPUTPORT(wr_reg_idx, c_RVRegsBits);
-    OUTPUTPORT(r1_reg_idx, c_RVRegsBits);
-    OUTPUTPORT(r2_reg_idx, c_RVRegsBits);
+  INPUTPORT(instr, c_RVInstrWidth);
+  OUTPUTPORT_ENUM(opcode, RVInstr);
+  OUTPUTPORT(wr_reg_idx, c_RVRegsBits);
+  OUTPUTPORT(r1_reg_idx, c_RVRegsBits);
+  OUTPUTPORT(r2_reg_idx, c_RVRegsBits);
 
 private:
-    void unknownInstruction() {}
-    std::shared_ptr<ISAInfoBase> m_isa;
+  void unknownInstruction() {}
+  std::shared_ptr<ISAInfoBase> m_isa;
 };
 
-}  // namespace core
-}  // namespace vsrtl
+} // namespace core
+} // namespace vsrtl
