@@ -4,6 +4,7 @@
 #include <QTextStream>
 #include <iostream>
 #include <map>
+#include <variant>
 #include <vector>
 
 #include "location.h"
@@ -71,6 +72,7 @@ private:
 
 /// An Assembler Result structure is a variant which carries either an error
 /// message or some result value.
+/// Monostate used in cases of no return result, but still error-able.
 template <typename T = std::monostate>
 struct Result : public std::variant<Error, T> {
   using V_T = std::variant<Error, T>;
@@ -85,6 +87,7 @@ struct Result : public std::variant<Error, T> {
       return *opt;
     }
     assert(false && "Optional<T>::value() called on an Optional<Error>");
+    return std::get<T>(*this); // Make compiler happy
   }
 
   const Error &error() {
@@ -93,6 +96,7 @@ struct Result : public std::variant<Error, T> {
       return *opt;
     }
     assert(false && "Optional<T>::error() called on an Optional<T>");
+    return std::get<Error>(*this); // Make compiler happy
   }
 
   bool isError() const { return std::holds_alternative<Error>(*this); }
