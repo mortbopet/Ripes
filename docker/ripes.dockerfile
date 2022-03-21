@@ -11,8 +11,8 @@ RUN apt-get update -q \
     libqt5charts5-dev \
     libqt5svg5-dev \
     python3 \
-    && apt-get autoremove \
-    && apt-get autoclean \
+    && apt-get -y autoremove \
+    && apt-get -y autoclean \
     && rm -rf /var/lib/apt/lists/*
 
 ARG GIT_SSL_NO_VERIFY=true
