@@ -30,11 +30,8 @@ struct StageInfo {
   bool operator!=(const StageInfo &other) const { return !(*this == other); }
 };
 
-/**
- * @brief The MemoryAccess struct
- * Address is byte-aligned, and the accessed bytes are [address : address +
- * bytes[
- */
+/// Address is byte-aligned, and the accessed bytes are [address : address +
+/// bytes[
 struct MemoryAccess {
   enum Type { None, Read, Write };
   Type type = None;
@@ -42,14 +39,15 @@ struct MemoryAccess {
   unsigned bytes;
 };
 
+/// A StageIndex denotes a unique stage within a processor.
 struct StageIndex : public std::pair<unsigned, unsigned> {
   using std::pair<unsigned, unsigned>::pair;
   unsigned lane() const { return this->first; }
   unsigned index() const { return this->second; }
 };
 
-/// Structural description of the processor model. Currently this is a map of {#
-/// of lanes, # of stages}.
+/// Structural description of the processor model. Currently this is a map of
+///   {# of lanes : # of stages}
 struct ProcessorStructure : public std::map<unsigned, unsigned> {
   using std::map<unsigned, unsigned>::map;
 
@@ -174,8 +172,8 @@ public:
   virtual const ISAInfoBase *implementsISA() const = 0;
 
   /**
-   * @brief stageCount
-   * @return number of stages for the processor
+   * @brief structure
+   * @return a datastructure describing the structural layout of the processor.
    */
   virtual const ProcessorStructure &structure() const = 0;
 
