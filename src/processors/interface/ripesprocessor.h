@@ -44,20 +44,68 @@ struct MemoryAccess {
 
 struct StageIndex : public std::pair<unsigned, unsigned> {
   using std::pair<unsigned, unsigned>::pair;
-  unsigned lane() const {return this->first;}
-  unsigned index() const {return this->second;}
+  unsigned lane() const { return this->first; }
+  unsigned index() const { return this->second; }
 };
 
-
-/// Structural description of the processor model. Currently this is a map of {# of lanes, # of stages}.
-/// @todo: add an iterator over all stages.
+/// Structural description of the processor model. Currently this is a map of {#
+/// of lanes, # of stages}.
 struct ProcessorStructure : public std::map<unsigned, unsigned> {
   using std::map<unsigned, unsigned>::map;
+
+  struct StageIterator {
+    StageIterator(const ProcessorStructure &structure)
+        : m_structure(structure) {}
+
+    struct Iterator {
+      using iterator_category = std::forward_iterator_tag;
+      using difference_type = std::ptrdiff_t;
+      using value_type = StageIndex;
+      using pointer = value_type *;
+      using reference = value_type &;
+
+      Iterator(unsigned lane, unsigned index,
+               const ProcessorStructure &structure)
+          : m_lane(lane), m_index(index), m_structure(structure) {}
+      StageIndex operator*() const { return {m_lane, m_index}; }
+      StageIndex operator->() const { return {m_lane, m_index}; }
+      Iterator &operator++() {
+        ++m_index;
+        if (m_index == m_structure.at(m_lane)) {
+          m_index = 0;
+          ++m_lane;
+        }
+        return *this;
+      }
+      Iterator operator++(int) {
+        Iterator tmp = *this;
+        ++(*this);
+        return tmp;
+      }
+      bool operator==(const Iterator &other) const {
+        return m_lane == other.m_lane && m_index == other.m_index;
+      }
+      bool operator!=(const Iterator &other) const { return !(*this == other); }
+
+      unsigned m_lane = 0;
+      unsigned m_index = 0;
+      const ProcessorStructure &m_structure;
+    };
+
+    Iterator begin() const { return Iterator(0, 0, m_structure); }
+    Iterator end() const {
+      return Iterator(m_structure.size(), 0, m_structure);
+    }
+    const ProcessorStructure &m_structure;
+  };
+
+  // Returns an iterator over all stages.
+  StageIterator stageIt() const { return {*this}; }
 
   // Returns the total number of stages of this processor.
   unsigned numStages() const {
     unsigned count = 0;
-    for(auto it : *this)
+    for (auto it : *this)
       count += it.second;
     return count;
   }
@@ -129,9 +177,7 @@ public:
    * @brief stageCount
    * @return number of stages for the processor
    */
-  virtual const ProcessorStructure& structure() const = 0;
-
-
+  virtual const ProcessorStructure &structure() const = 0;
 
   /**
    * @brief getPcForStage

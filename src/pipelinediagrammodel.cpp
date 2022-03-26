@@ -76,13 +76,9 @@ void PipelineDiagramModel::gatherStageInfo() {
   if (stageInfoForCycle == m_cycleStageInfos.end()) {
     return;
   }
-  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
-    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
-      StageIndex idx = {laneIt.first, stageIdx};
-      stageInfoForCycle->second[idx] =
-          ProcessorHandler::getProcessor()->stageInfo(idx);
-    }
-  }
+  for (auto idx : ProcessorHandler::getProcessor()->structure().stageIt())
+    stageInfoForCycle->second[idx] =
+        ProcessorHandler::getProcessor()->stageInfo(idx);
 }
 
 QVariant PipelineDiagramModel::data(const QModelIndex &index, int role) const {

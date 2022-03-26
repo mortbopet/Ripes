@@ -105,21 +105,18 @@ void ProgramViewer::updateHighlightedAddresses() {
       ProcessorHandler::getProcessor()->structure().numStages();
   auto colorGenerator = Colors::incrementalRedGenerator(stages);
 
-  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
-    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
-      StageIndex sid = {laneIt.first, stageIdx};
-      const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);
-      if (stageInfo.stage_valid) {
-        auto block = blockForAddress(stageInfo.pc);
-        if (!block.isValid())
-          continue;
+  for (auto sid : ProcessorHandler::getProcessor()->structure().stageIt()) {
+    const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);
+    if (stageInfo.stage_valid) {
+      auto block = blockForAddress(stageInfo.pc);
+      if (!block.isValid())
+        continue;
 
-        // Record the stage name for the highlighted block for later painting
-        QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
-        if (!stageInfo.namedState.isEmpty())
-          stageString += " (" + stageInfo.namedState + ")";
-        highlightBlock(block, colorGenerator(), stageString);
-      }
+      // Record the stage name for the highlighted block for later painting
+      QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
+      if (!stageInfo.namedState.isEmpty())
+        stageString += " (" + stageInfo.namedState + ")";
+      highlightBlock(block, colorGenerator(), stageString);
     }
   }
 

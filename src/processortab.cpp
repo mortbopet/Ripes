@@ -186,15 +186,12 @@ void ProcessorTab::loadLayout(const Layout &layout) {
 
   // Adjust stage label positions
   const auto &parent = m_stageInstructionLabels.at({0, 0})->parentItem();
-  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
-    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
-      StageIndex sid = {laneIt.first, stageIdx};
-      auto &label = m_stageInstructionLabels.at(sid);
-      QFontMetrics metrics(label->font());
-      label->setPos(parent->boundingRect().width() *
-                        layout.stageLabelPositions.at(sid).x(),
-                    metrics.height() * layout.stageLabelPositions.at(sid).y());
-    }
+  for (auto sid : ProcessorHandler::getProcessor()->structure().stageIt()) {
+    auto &label = m_stageInstructionLabels.at(sid);
+    QFontMetrics metrics(label->font());
+    label->setPos(parent->boundingRect().width() *
+                      layout.stageLabelPositions.at(sid).x(),
+                  metrics.height() * layout.stageLabelPositions.at(sid).y());
   }
 }
 
@@ -473,16 +470,14 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
   const auto &proc = ProcessorHandler::getProcessor();
-  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
-    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
-      StageIndex sid = {laneIt.first, stageIdx};
-      if (!m_stageInstructionLabels.count(sid))
-        continue;
-      const auto stageInfo = proc->stageInfo(sid);
-      auto &instrLabel = m_stageInstructionLabels.at(sid);
-      QString instrString;
-      if (stageInfo.state != StageInfo::State::None) {
-        /* clang-format off */
+  for (auto sid : ProcessorHandler::getProcessor()->structure().stageIt()) {
+    if (!m_stageInstructionLabels.count(sid))
+      continue;
+    const auto stageInfo = proc->stageInfo(sid);
+    auto &instrLabel = m_stageInstructionLabels.at(sid);
+    QString instrString;
+    if (stageInfo.state != StageInfo::State::None) {
+      /* clang-format off */
             switch (stageInfo.state) {
                 case StageInfo::State::Flushed: instrString = "nop (flush)"; break;
                 case StageInfo::State::Stalled: instrString = "nop (stall)"; break;
@@ -490,14 +485,13 @@ void ProcessorTab::updateInstructionLabels() {
                 case StageInfo::State::Unused: instrString = "nop (unused)"; break;
                 case StageInfo::State::None: Q_UNREACHABLE();
             }
-        /* clang-format on */
-        instrLabel->forceDefaultTextColor(Qt::red);
-      } else if (stageInfo.stage_valid) {
-        instrString = ProcessorHandler::disassembleInstr(stageInfo.pc);
-        instrLabel->clearForcedDefaultTextColor();
-      }
-      instrLabel->setText(instrString);
+      /* clang-format on */
+      instrLabel->forceDefaultTextColor(Qt::red);
+    } else if (stageInfo.stage_valid) {
+      instrString = ProcessorHandler::disassembleInstr(stageInfo.pc);
+      instrLabel->clearForcedDefaultTextColor();
     }
+    instrLabel->setText(instrString);
   }
 }
 
