@@ -47,21 +47,8 @@ class RV6S_DUAL : public RipesVSRTLProcessor {
   static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
-  enum Stage {
-    IF_1 = 0,
-    IF_2 = 1,
-    ID_1 = 2,
-    ID_2 = 3,
-    II_EXEC = 4,
-    II_DATA = 5,
-    EX_EXEC = 6,
-    EX_DATA = 7,
-    MEM_EXEC = 8,
-    MEM_DATA = 9,
-    WB_EXEC = 10,
-    WB_DATA = 11,
-    STAGECOUNT
-  };
+  enum Lane { EXEC, DATA, LANECOUNT };
+  enum Stage { IF, ID, II, EX, MEM, WB, STAGECOUNT };
   RV6S_DUAL(const QStringList &extensions)
       : RipesVSRTLProcessor("6-Stage dual-issue RISC-V Processor") {
     m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
@@ -637,151 +624,161 @@ public:
   SUBCOMPONENT(ecallChecker, EcallChecker);
 
   // Ripes interface compliance
-  unsigned int stageCount() const override { return STAGECOUNT; }
-  unsigned int getPcForStage(unsigned int idx) const override {
-    // clang-format off
-        switch (idx) {
-            case IF_1: return pc_reg->out.uValue();
-            case IF_2: return pc_reg->out.uValue() + pc_inc1->out.uValue();
-            case ID_1: return ifid_reg->pc_out.uValue();
-            case ID_2: return ifid_reg->pc4_out.uValue();
-            case II_EXEC: return idii_reg->pc_exec_out.uValue();
-            case II_DATA: return idii_reg->pc_data_out.uValue();
-            case EX_EXEC: return iiex_reg->pc_out.uValue();
-            case EX_DATA: return iiex_reg->pc_data_out.uValue();
-            case MEM_EXEC: return exmem_reg->pc_out.uValue();
-            case MEM_DATA: return exmem_reg->pc_data_out.uValue();
-            case WB_EXEC: return memwb_reg->pc_out.uValue();
-            case WB_DATA: return memwb_reg->pc_data_out.uValue();
-            default: assert(false && "Processor does not contain stage");
-        }
-        Q_UNREACHABLE();
-    // clang-format on
+  const ProcessorStructure &structure() const override { return m_structure; }
+  unsigned int getPcForStage(StageIndex idx) const override {
+    if (idx == StageIndex{EXEC, IF})
+      return pc_reg->out.uValue();
+    if (idx == StageIndex{DATA, IF})
+      return pc_reg->out.uValue() + pc_inc1->out.uValue();
+    if (idx == StageIndex{EXEC, ID})
+      return ifid_reg->pc_out.uValue();
+    if (idx == StageIndex{DATA, ID})
+      return ifid_reg->pc4_out.uValue();
+    if (idx == StageIndex{EXEC, II})
+      return idii_reg->pc_exec_out.uValue();
+    if (idx == StageIndex{DATA, II})
+      return idii_reg->pc_data_out.uValue();
+    if (idx == StageIndex{EXEC, EX})
+      return iiex_reg->pc_out.uValue();
+    if (idx == StageIndex{DATA, EX})
+      return iiex_reg->pc_data_out.uValue();
+    if (idx == StageIndex{EXEC, MEM})
+      return exmem_reg->pc_out.uValue();
+    if (idx == StageIndex{DATA, MEM})
+      return exmem_reg->pc_data_out.uValue();
+    if (idx == StageIndex{EXEC, WB})
+      return memwb_reg->pc_out.uValue();
+    if (idx == StageIndex{DATA, WB})
+      return memwb_reg->pc_data_out.uValue();
+    Q_UNREACHABLE();
   }
   AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
-  QString stageName(unsigned int idx) const override {
-    // clang-format off
-        switch (idx) {
-            case IF_1: case IF_2: return "IF";
-            case ID_1: case ID_2: return "ID";
-            case II_EXEC: case II_DATA: return "II";
-            case EX_EXEC: case EX_DATA: return "EX";
-            case MEM_EXEC: case MEM_DATA: return "MEM";
-            case WB_EXEC: case WB_DATA: return "WB";
-            default: assert(false && "Processor does not contain stage");
-        }
-        Q_UNREACHABLE();
-    // clang-format on
+  QString stageName(StageIndex idx) const override {
+    if (idx == StageIndex{EXEC, IF} || idx == StageIndex{DATA, IF})
+      return "IF";
+    if (idx == StageIndex{EXEC, ID} || idx == StageIndex{DATA, ID})
+      return "ID";
+    if (idx == StageIndex{EXEC, II} || idx == StageIndex{DATA, II})
+      return "II";
+    if (idx == StageIndex{EXEC, EX} || idx == StageIndex{DATA, EX})
+      return "EX";
+    if (idx == StageIndex{EXEC, MEM} || idx == StageIndex{DATA, MEM})
+      return "MEM";
+    if (idx == StageIndex{EXEC, WB} || idx == StageIndex{DATA, WB})
+      return "WB";
+    Q_UNREACHABLE();
   }
-  StageInfo stageInfo(unsigned int stage) const override {
+  StageInfo stageInfo(StageIndex stage) const override {
     bool stageValid = true;
     // Has the pipeline stage been filled?
-    stageValid &= (stage / 2) <= m_cycleCount;
+    stageValid &= (stage.index() / 2) <= m_cycleCount;
 
-    if (idii_reg->way_stall_out.uValue()) {
+    // Has the stage been cleared?
+    if (stage == StageIndex{EXEC, ID} || stage == StageIndex{DATA, ID})
+      stageValid &= ifid_reg->valid_out.uValue();
+    else if (stage == StageIndex{EXEC, II})
+      stageValid &=
+          idii_reg->valid_out.uValue() && idii_reg->exec_valid_out.uValue();
+    else if (stage == StageIndex{DATA, II})
+      stageValid &=
+          idii_reg->valid_out.uValue() && idii_reg->data_valid_out.uValue();
+    else if (stage == StageIndex{EXEC, EX})
+      stageValid &=
+          iiex_reg->valid_out.uValue() && iiex_reg->exec_valid_out.uValue();
+    else if (stage == StageIndex{DATA, EX})
+      stageValid &=
+          iiex_reg->valid_out.uValue() && iiex_reg->data_valid_out.uValue();
+    else if (stage == StageIndex{EXEC, MEM})
+      stageValid &=
+          exmem_reg->valid_out.uValue() && exmem_reg->exec_valid_out.uValue();
+    else if (stage == StageIndex{DATA, MEM})
+      stageValid &=
+          exmem_reg->valid_out.uValue() && exmem_reg->data_valid_out.uValue();
+    else if (stage == StageIndex{EXEC, WB})
+      stageValid &=
+          memwb_reg->valid_out.uValue() && memwb_reg->exec_valid_out.uValue();
+    else if (stage == StageIndex{DATA, WB})
+      stageValid &=
+          memwb_reg->valid_out.uValue() && memwb_reg->data_valid_out.uValue();
+
+    // Is the stage carrying a valid (executable) PC?
+    /// @todo: also check for valid way (not cleared)
+    if (stage == StageIndex{EXEC, ID})
+      stageValid &= isExecutableAddress(ifid_reg->pc_out.uValue());
+    else if (stage == StageIndex{DATA, ID})
+      stageValid &= isExecutableAddress(ifid_reg->pc4_out.uValue());
+    else if (stage == StageIndex{EXEC, II})
+      stageValid &= isExecutableAddress(idii_reg->pc_out.uValue());
+    else if (stage == StageIndex{DATA, II})
+      stageValid &= isExecutableAddress(idii_reg->pc_data_out.uValue());
+    else if (stage == StageIndex{EXEC, EX})
+      stageValid &= isExecutableAddress(iiex_reg->pc_out.uValue());
+    else if (stage == StageIndex{DATA, EX})
+      stageValid &= isExecutableAddress(iiex_reg->pc_data_out.uValue());
+    else if (stage == StageIndex{EXEC, MEM})
+      stageValid &= isExecutableAddress(exmem_reg->pc_out.uValue());
+    else if (stage == StageIndex{DATA, MEM})
+      stageValid &= isExecutableAddress(exmem_reg->pc_data_out.uValue());
+    else if (stage == StageIndex{EXEC, WB})
+      stageValid &= isExecutableAddress(memwb_reg->pc_out.uValue());
+    else if (stage == StageIndex{DATA, WB})
+      stageValid &= isExecutableAddress(memwb_reg->pc_data_out.uValue());
+    else if (stage == StageIndex{EXEC, IF} || stage == StageIndex{DATA, IF})
+      stageValid &= isExecutableAddress(pc_reg->out.uValue());
+
+    // Are we currently clearing the pipeline due to a syscall exit? if such,
+    // all stages before the EX stage are invalid
+    if (stage.index() < EX) {
+      stageValid &= !ecallChecker->isSysCallExiting();
     }
-
-    // clang-format off
-        // Has the stage been cleared?
-        switch(stage){
-        case ID_1: case ID_2: stageValid &= ifid_reg->valid_out.uValue(); break;
-        case II_EXEC: stageValid &= idii_reg->valid_out.uValue() && idii_reg->exec_valid_out.uValue(); break;
-        case II_DATA: stageValid &= idii_reg->valid_out.uValue() && idii_reg->data_valid_out.uValue(); break;
-        case EX_EXEC: stageValid &= iiex_reg->valid_out.uValue() && iiex_reg->exec_valid_out.uValue(); break;
-        case EX_DATA: stageValid &= iiex_reg->valid_out.uValue() && iiex_reg->data_valid_out.uValue(); break;
-        case MEM_EXEC: stageValid &= exmem_reg->valid_out.uValue() && exmem_reg->exec_valid_out.uValue(); break;
-        case MEM_DATA: stageValid &= exmem_reg->valid_out.uValue() && exmem_reg->data_valid_out.uValue(); break;
-        case WB_EXEC: stageValid &= memwb_reg->valid_out.uValue() && memwb_reg->exec_valid_out.uValue(); break;
-        case WB_DATA: stageValid &= memwb_reg->valid_out.uValue() && memwb_reg->data_valid_out.uValue(); break;
-        default: case IF_1: case IF_2: break;
-        }
-
-
-        // Is the stage carrying a valid (executable) PC?
-        /// @todo: also check for valid way (not cleared)
-        switch(stage){
-        case ID_1: stageValid &= isExecutableAddress(ifid_reg->pc_out.uValue()); break;
-        case ID_2: stageValid &= isExecutableAddress(ifid_reg->pc4_out.uValue()); break;
-        case II_EXEC: stageValid &= isExecutableAddress(idii_reg->pc_out.uValue()); break;
-        case II_DATA: stageValid &= isExecutableAddress(idii_reg->pc_data_out.uValue()); break;
-        case EX_EXEC: stageValid &= isExecutableAddress(iiex_reg->pc_out.uValue()) ; break;
-        case EX_DATA: stageValid &= isExecutableAddress(iiex_reg->pc_data_out.uValue()) ; break;
-        case MEM_EXEC: stageValid &= isExecutableAddress(exmem_reg->pc_out.uValue()) ; break;
-        case MEM_DATA: stageValid &= isExecutableAddress(exmem_reg->pc_data_out.uValue()) ; break;
-        case WB_EXEC: stageValid &= isExecutableAddress(memwb_reg->pc_out.uValue()) ; break;
-        case WB_DATA: stageValid &= isExecutableAddress(memwb_reg->pc_data_out.uValue()) ; break;
-        default: case IF_1: case IF_2: stageValid &= isExecutableAddress(pc_reg->out.uValue()); break;
-        }
-
-        // Are we currently clearing the pipeline due to a syscall exit? if such, all stages before the EX stage are invalid
-        if(stage < EX_EXEC){
-            stageValid &= !ecallChecker->isSysCallExiting();
-        }
-    // clang-format on
 
     // Gather stage state info
     StageInfo::State state = StageInfo ::State::None;
-    switch (stage) {
-    case IF_1:
-    case IF_2:
-      break;
-    case ID_1:
-    case ID_2:
-      if (m_cycleCount >= (ID_1 / 2)) {
-        if (idii_reg->way_stall_out.uValue() && stage == ID_1) {
+    if (stage == StageIndex(EXEC, ID) || stage == StageIndex(DATA, ID)) {
+      if (m_cycleCount >= ID) {
+        if (idii_reg->way_stall_out.uValue() && stage.lane() == EXEC) {
           state = StageInfo::State::WayHazard;
         } else if (ifid_reg->valid_out.uValue() == 0) {
           state = StageInfo::State::Flushed;
         }
       }
-      break;
-    case II_EXEC:
-    case II_DATA:
-      if (m_cycleCount >= (II_EXEC / 2)) {
+    } else if (stage == StageIndex(EXEC, II) || stage == StageIndex(DATA, II)) {
+      if (m_cycleCount >= II) {
         if (idii_reg->valid_out.uValue() == 0) {
           state = StageInfo::State::Flushed;
-        } else if (stage == II_EXEC ? !idii_reg->exec_valid_out.uValue()
-                                    : !idii_reg->data_valid_out.uValue()) {
+        } else if (stage.lane() == EXEC ? !idii_reg->exec_valid_out.uValue()
+                                        : !idii_reg->data_valid_out.uValue()) {
           state = StageInfo::State::Unused;
         }
       }
-      break;
-    case EX_EXEC:
-    case EX_DATA: {
-      if (m_cycleCount >= (EX_EXEC / 2)) {
+    } else if (stage == StageIndex(EXEC, EX) || stage == StageIndex(DATA, EX)) {
+      if (m_cycleCount >= EX) {
         if (iiex_reg->valid_out.uValue() == 0) {
           state = StageInfo::State::Flushed;
-        } else if (stage == EX_EXEC ? !iiex_reg->exec_valid_out.uValue()
-                                    : !iiex_reg->data_valid_out.uValue()) {
+        } else if (stage.lane() == EXEC ? !iiex_reg->exec_valid_out.uValue()
+                                        : !iiex_reg->data_valid_out.uValue()) {
           state = StageInfo::State::Unused;
         }
       }
-      break;
-    }
-    case MEM_DATA:
-    case MEM_EXEC: {
-      if (m_cycleCount >= (MEM_EXEC / 2)) {
+    } else if (stage == StageIndex(EXEC, MEM) ||
+               stage == StageIndex(DATA, MEM)) {
+      if (m_cycleCount >= MEM) {
         if (exmem_reg->valid_out.uValue() == 0) {
           state = StageInfo::State::Flushed;
-        } else if (stage == MEM_EXEC ? !exmem_reg->exec_valid_out.uValue()
-                                     : !exmem_reg->data_valid_out.uValue()) {
+        } else if (stage.lane() == EXEC ? !exmem_reg->exec_valid_out.uValue()
+                                        : !exmem_reg->data_valid_out.uValue()) {
           state = StageInfo::State::Unused;
         }
       }
-      break;
-    }
-    case WB_DATA:
-    case WB_EXEC: {
-      if (m_cycleCount >= (WB_EXEC / 2)) {
+    } else if (stage == StageIndex(EXEC, WB) || stage == StageIndex(DATA, WB)) {
+      if (m_cycleCount >= WB) {
         if (memwb_reg->valid_out.uValue() == 0) {
           state = StageInfo::State::Flushed;
-        } else if (stage == WB_EXEC ? !memwb_reg->exec_valid_out.uValue()
-                                    : !memwb_reg->data_valid_out.uValue()) {
+        } else if (stage.lane() == EXEC ? !memwb_reg->exec_valid_out.uValue()
+                                        : !memwb_reg->data_valid_out.uValue()) {
           state = StageInfo::State::Unused;
         }
       }
-      break;
-    }
     }
 
     return StageInfo({getPcForStage(stage), stageValid, state});
@@ -808,9 +805,9 @@ public:
     ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() ||
                                     (fr & FinalizeReason::exitSyscall));
   }
-  const std::vector<unsigned> breakpointTriggeringStages() const override {
-    return {IF_1, IF_2};
-  };
+  const std::vector<StageIndex> breakpointTriggeringStages() const override {
+    return {{DATA, IF}, {EXEC, IF}};
+  }
 
   MemoryAccess dataMemAccess() const override {
     return memToAccessInfo(data_mem);
@@ -825,10 +822,13 @@ public:
     // The processor is finished when there are no more valid instructions in
     // the pipeline
     bool allStagesInvalid = true;
-    for (int stage = IF_1; stage < STAGECOUNT; stage++) {
-      allStagesInvalid &= !stageInfo(stage).stage_valid;
-      if (!allStagesInvalid)
-        break;
+
+    for (int lane = 0; lane < LANECOUNT; lane++) {
+      for (int stage = IF; stage < STAGECOUNT; stage++) {
+        allStagesInvalid &= !stageInfo({lane, stage}).stage_valid;
+        if (!allStagesInvalid)
+          break;
+      }
     }
     return allStagesInvalid;
   }
@@ -903,11 +903,12 @@ private:
   /**
    * @brief m_syscallExitCycle
    * The variable will contain the cycle of which an exit system call was
-   * executed. From this, we may determine when we roll back an exit system call
-   * during rewinding.
+   * executed. From this, we may determine when we roll back an exit system
+   * call during rewinding.
    */
   long long m_syscallExitCycle = -1;
   std::shared_ptr<ISAInfoBase> m_enabledISA;
+  ProcessorStructure m_structure = {{0, 6}, {1, 6}};
 };
 
 } // namespace core

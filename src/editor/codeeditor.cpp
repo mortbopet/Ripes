@@ -442,30 +442,34 @@ void CodeEditor::updateHighlighting() {
 
   // Iterate over the processor stages and use the source mappings to determine
   // the source line which originated the instruction.
-  const unsigned stages = proc->stageCount();
+  const unsigned stages = proc->structure().numStages();
   auto colorGenerator = Colors::incrementalRedGenerator(stages);
 
-  for (unsigned sid = 0; sid < stages; sid++) {
-    const auto stageInfo = proc->stageInfo(sid);
-    QColor stageColor = colorGenerator();
-    if (stageInfo.stage_valid) {
-      auto mappingIt = sourceMapping.find(stageInfo.pc);
-      if (mappingIt == sourceMapping.end()) {
-        // No source line registerred for this PC.
-        continue;
-      }
-
-      for (auto sourceLine : mappingIt->second) {
-        // Find block
-        QTextBlock block = document()->findBlockByLineNumber(sourceLine);
-        if (!block.isValid())
+  for (auto laneIt : proc->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex sid = StageIndex{laneIt.first, stageIdx};
+      const auto stageInfo = proc->stageInfo(sid);
+      QColor stageColor = colorGenerator();
+      if (stageInfo.stage_valid) {
+        auto mappingIt = sourceMapping.find(stageInfo.pc);
+        if (mappingIt == sourceMapping.end()) {
+          // No source line registerred for this PC.
           continue;
+        }
 
-        // Record the stage name for the highlighted block for later painting
-        QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
-        if (!stageInfo.namedState.isEmpty())
-          stageString += " (" + stageInfo.namedState + ")";
-        highlightBlock(block, stageColor, stageString);
+        for (auto sourceLine : mappingIt->second) {
+          // Find block
+          QTextBlock block = document()->findBlockByLineNumber(sourceLine);
+          if (!block.isValid())
+            continue;
+
+          // Record the stage name for the highlighted block for later painting
+          QString stageString =
+              ProcessorHandler::getProcessor()->stageName(sid);
+          if (!stageInfo.namedState.isEmpty())
+            stageString += " (" + stageInfo.namedState + ")";
+          highlightBlock(block, stageColor, stageString);
+        }
       }
     }
   }

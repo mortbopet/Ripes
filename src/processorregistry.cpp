@@ -19,10 +19,10 @@ ProcessorRegistry::ProcessorRegistry() {
   // RISC-V single cycle
   layouts = {{"Standard",
               ":/layouts/RISC-V/rvss/rv_ss_standard_layout.json",
-              {QPointF{0.5, 0}}},
+              {{{0, 0}, QPointF{0.5, 0}}}},
              {"Extended",
               ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json",
-              {QPointF{0.5, 0}}}};
+              {{{0, 0}, QPointF{0.5, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RVSS<uint32_t>>(
       ProcessorID::RV32_SS, "Single-cycle processor",
@@ -35,12 +35,18 @@ ProcessorRegistry::ProcessorRegistry() {
   layouts = {
       {"Standard",
        ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json",
-       {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.54, 0}, QPointF{0.73, 0},
-        QPointF{0.88, 0}}},
+       {{{0, 0}, QPointF{0.08, 0}},
+        {{0, 1}, QPointF{0.3, 0}},
+        {{0, 2}, QPointF{0.54, 0}},
+        {{0, 3}, QPointF{0.73, 0}},
+        {{0, 4}, QPointF{0.88, 0}}}},
       {"Extended",
        ":/layouts/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json",
-       {QPointF{0.08, 0.0}, QPointF{0.31, 0.0}, QPointF{0.56, 0.0},
-        QPointF{0.76, 0.0}, QPointF{0.9, 0.0}}}};
+       {{{0, 0}, QPointF{0.08, 0.0}},
+        {{0, 1}, QPointF{0.31, 0.0}},
+        {{0, 2}, QPointF{0.56, 0.0}},
+        {{0, 3}, QPointF{0.76, 0.0}},
+        {{0, 4}, QPointF{0.9, 0.0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW_HZ<uint32_t>>(
       ProcessorID::RV32_5S_NO_FW_HZ,
@@ -58,12 +64,18 @@ ProcessorRegistry::ProcessorRegistry() {
   // RISC-V 5-stage without hazard detection
   layouts = {{"Standard",
               ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_standard_layout.json",
-              {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0},
-               QPointF{0.75, 0}, QPointF{0.88, 0}}},
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.3, 0}},
+               {{0, 2}, QPointF{0.53, 0}},
+               {{0, 3}, QPointF{0.75, 0}},
+               {{0, 4}, QPointF{0.88, 0}}}},
              {"Extended",
               ":/layouts/RISC-V/rv5s_no_hz/rv5s_no_hz_extended_layout.json",
-              {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0},
-               QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.28, 0}},
+               {{0, 2}, QPointF{0.53, 0}},
+               {{0, 3}, QPointF{0.78, 0}},
+               {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_HZ<uint32_t>>(
       ProcessorID::RV32_5S_NO_HZ, "5-stage processor w/o hazard detection",
@@ -79,12 +91,18 @@ ProcessorRegistry::ProcessorRegistry() {
   // RISC-V 5-stage without forwarding unit
   layouts = {{"Standard",
               ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json",
-              {QPointF{0.08, 0}, QPointF{0.3, 0}, QPointF{0.53, 0},
-               QPointF{0.75, 0}, QPointF{0.88, 0}}},
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.3, 0}},
+               {{0, 2}, QPointF{0.53, 0}},
+               {{0, 3}, QPointF{0.75, 0}},
+               {{0, 4}, QPointF{0.88, 0}}}},
              {"Extended",
               ":/layouts/RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json",
-              {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.53, 0},
-               QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.28, 0}},
+               {{0, 2}, QPointF{0.53, 0}},
+               {{0, 3}, QPointF{0.78, 0}},
+               {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW<uint32_t>>(
       ProcessorID::RV32_5S_NO_FW, "5-Stage processor w/o forwarding unit",
@@ -100,12 +118,18 @@ ProcessorRegistry::ProcessorRegistry() {
   // RISC-V 5-stage
   layouts = {{"Standard",
               ":/layouts/RISC-V/rv5s/rv5s_standard_layout.json",
-              {QPointF{0.08, 0}, QPointF{0.29, 0}, QPointF{0.55, 0},
-               QPointF{0.75, 0}, QPointF{0.87, 0}}},
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.29, 0}},
+               {{0, 2}, QPointF{0.55, 0}},
+               {{0, 3}, QPointF{0.75, 0}},
+               {{0, 4}, QPointF{0.87, 0}}}},
              {"Extended",
               ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json",
-              {QPointF{0.08, 0}, QPointF{0.28, 0}, QPointF{0.54, 0},
-               QPointF{0.78, 0}, QPointF{0.9, 0}}}};
+              {{{0, 1}, QPointF{0.08, 0}},
+               {{0, 2}, QPointF{0.28, 0}},
+               {{0, 3}, QPointF{0.54, 0}},
+               {{0, 4}, QPointF{0.78, 0}},
+               {{0, 5}, QPointF{0.9, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint32_t>>(
       ProcessorID::RV32_5S, "5-stage processor",
@@ -121,10 +145,18 @@ ProcessorRegistry::ProcessorRegistry() {
   // RISC-V 6-stage dual issue
   layouts = {{"Extended",
               ":/layouts/RISC-V/rv6s_dual/rv6s_dual_extended_layout.json",
-              {{QPointF{0.06, 0}, QPointF{0.06, 1}, QPointF{0.22, 0},
-                QPointF{0.22, 1}, QPointF{0.40, 0}, QPointF{0.40, 1},
-                QPointF{0.59, 0}, QPointF{0.59, 1}, QPointF{0.80, 0},
-                QPointF{0.80, 1}, QPointF{0.90, 0}, QPointF{0.90, 1}}}}};
+              {{{{0, 0}, QPointF{0.06, 0}},
+                {{1, 0}, QPointF{0.06, 1}},
+                {{0, 1}, QPointF{0.22, 0}},
+                {{1, 1}, QPointF{0.22, 1}},
+                {{0, 2}, QPointF{0.40, 0}},
+                {{1, 2}, QPointF{0.40, 1}},
+                {{0, 3}, QPointF{0.59, 0}},
+                {{1, 3}, QPointF{0.59, 1}},
+                {{0, 4}, QPointF{0.80, 0}},
+                {{1, 4}, QPointF{0.80, 1}},
+                {{0, 5}, QPointF{0.90, 0}},
+                {{1, 5}, QPointF{0.90, 1}}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint32_t>>(
       ProcessorID::RV32_6S_DUAL, "6-stage dual-issue processor",

@@ -52,9 +52,9 @@ private:
   void onProcessorReset();
 
   std::shared_ptr<const Program> m_program;
-  QStringList m_stageNames;
+  std::map<StageIndex, QString> m_stageNames;
   using StageID = unsigned;
-  std::map<StageID, StageInfo> m_stageInfos;
+  std::map<StageIndex, StageInfo> m_stageInfos;
   int m_rowCount = 0;
 };
 } // namespace Ripes

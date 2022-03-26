@@ -160,13 +160,13 @@ public:
   SUBCOMPONENT(ecallChecker, EcallChecker);
 
   // Ripes interface compliance
-  unsigned int stageCount() const override { return 1; }
-  unsigned int getPcForStage(unsigned int) const override {
+  const ProcessorStructure &structure() const override { return m_structure; }
+  unsigned int getPcForStage(StageIndex) const override {
     return pc_reg->out.uValue();
   }
   AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
-  QString stageName(unsigned int) const override { return "•"; }
-  StageInfo stageInfo(unsigned int) const override {
+  QString stageName(StageIndex) const override { return "•"; }
+  StageInfo stageInfo(StageIndex) const override {
     return StageInfo({pc_reg->out.uValue(),
                       isExecutableAddress(pc_reg->out.uValue()),
                       StageInfo::State::None});
@@ -189,10 +189,10 @@ public:
     }
   }
   bool finished() const override {
-    return m_finished || !stageInfo(0).stage_valid;
+    return m_finished || !stageInfo({0, 0}).stage_valid;
   }
-  const std::vector<unsigned> breakpointTriggeringStages() const override {
-    return {0};
+  const std::vector<StageIndex> breakpointTriggeringStages() const override {
+    return {{0, 0}};
   }
 
   MemoryAccess dataMemAccess() const override {
@@ -261,6 +261,7 @@ private:
   bool m_finishInNextCycle = false;
   bool m_finished = false;
   std::shared_ptr<ISAInfoBase> m_enabledISA;
+  ProcessorStructure m_structure = {{0, 1}};
 };
 
 } // namespace core

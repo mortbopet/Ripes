@@ -307,10 +307,10 @@ public:
   SUBCOMPONENT(ecallChecker, EcallChecker);
 
   // Ripes interface compliance
-  unsigned int stageCount() const override { return STAGECOUNT; }
-  unsigned int getPcForStage(unsigned int idx) const override {
+  const ProcessorStructure &structure() const override { return m_structure; }
+  unsigned int getPcForStage(StageIndex idx) const override {
     // clang-format off
-        switch (idx) {
+        switch (idx.index()) {
             case IF: return pc_reg->out.uValue();
             case ID: return ifid_reg->pc_out.uValue();
             case EX: return idex_reg->pc_out.uValue();
@@ -322,9 +322,9 @@ public:
     // clang-format on
   }
   AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
-  QString stageName(unsigned int idx) const override {
+  QString stageName(StageIndex idx) const override {
     // clang-format off
-        switch (idx) {
+        switch (idx.index()) {
             case IF: return "IF";
             case ID: return "ID";
             case EX: return "EX";
@@ -335,14 +335,14 @@ public:
         Q_UNREACHABLE();
     // clang-format on
   }
-  StageInfo stageInfo(unsigned int stage) const override {
+  StageInfo stageInfo(StageIndex stage) const override {
     bool stageValid = true;
     // Has the pipeline stage been filled?
-    stageValid &= stage <= m_cycleCount;
+    stageValid &= stage.index() <= m_cycleCount;
 
     // clang-format off
         // Has the stage been cleared?
-        switch(stage){
+        switch(stage.index()){
         case ID: stageValid &= ifid_reg->valid_out.uValue(); break;
         case EX: stageValid &= idex_reg->valid_out.uValue(); break;
         case MEM: stageValid &= exmem_reg->valid_out.uValue(); break;
@@ -351,7 +351,7 @@ public:
         }
 
         // Is the stage carrying a valid (executable) PC?
-        switch(stage){
+        switch(stage.index()){
         case ID: stageValid &= isExecutableAddress(ifid_reg->pc_out.uValue()); break;
         case EX: stageValid &= isExecutableAddress(idex_reg->pc_out.uValue()); break;
         case MEM: stageValid &= isExecutableAddress(exmem_reg->pc_out.uValue()); break;
@@ -360,14 +360,14 @@ public:
         }
 
         // Are we currently clearing the pipeline due to a syscall exit? if such, all stages before the EX stage are invalid
-        if(stage < EX){
+        if(stage.index() < EX){
             stageValid &= !ecallChecker->isSysCallExiting();
         }
     // clang-format on
 
     // Gather stage state info
     StageInfo::State state = StageInfo ::State::None;
-    switch (stage) {
+    switch (stage.index()) {
     case IF:
       break;
     case ID:
@@ -425,8 +425,8 @@ public:
     ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() ||
                                     (fr & FinalizeReason::exitSyscall));
   }
-  const std::vector<unsigned> breakpointTriggeringStages() const override {
-    return {IF};
+  const std::vector<StageIndex> breakpointTriggeringStages() const override {
+    return {{0, IF}};
   }
 
   MemoryAccess dataMemAccess() const override {
@@ -443,7 +443,7 @@ public:
     // the pipeline
     bool allStagesInvalid = true;
     for (int stage = IF; stage < STAGECOUNT; stage++) {
-      allStagesInvalid &= !stageInfo(stage).stage_valid;
+      allStagesInvalid &= !stageInfo(StageIndex{0, stage}).stage_valid;
       if (!allStagesInvalid)
         break;
     }
@@ -514,6 +514,7 @@ private:
    */
   long long m_syscallExitCycle = -1;
   std::shared_ptr<ISAInfoBase> m_enabledISA;
+  ProcessorStructure m_structure = {{0, 5}};
 };
 
 } // namespace core

@@ -161,7 +161,7 @@ void ProcessorTab::loadLayout(const Layout &layout) {
     return; // Not a valid layout
 
   if (layout.stageLabelPositions.size() !=
-      ProcessorHandler::getProcessor()->stageCount()) {
+      ProcessorHandler::getProcessor()->structure().numStages()) {
     Q_ASSERT(false &&
              "A stage label position must be specified for each stage");
   }
@@ -185,13 +185,16 @@ void ProcessorTab::loadLayout(const Layout &layout) {
   tmpLayoutFile->remove();
 
   // Adjust stage label positions
-  const auto &parent = m_stageInstructionLabels.at(0)->parentItem();
-  for (unsigned i = 0; i < m_stageInstructionLabels.size(); ++i) {
-    auto &label = m_stageInstructionLabels.at(i);
-    QFontMetrics metrics(label->font());
-    label->setPos(parent->boundingRect().width() *
-                      layout.stageLabelPositions.at(i).x(),
-                  metrics.height() * layout.stageLabelPositions.at(i).y());
+  const auto &parent = m_stageInstructionLabels.at({0, 0})->parentItem();
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex sid = {laneIt.first, stageIdx};
+      auto &label = m_stageInstructionLabels.at(sid);
+      QFontMetrics metrics(label->font());
+      label->setPos(parent->boundingRect().width() *
+                        layout.stageLabelPositions.at(sid).x(),
+                    metrics.height() * layout.stageLabelPositions.at(sid).y());
+    }
   }
 }
 
@@ -355,11 +358,13 @@ void ProcessorTab::loadProcessorToWidget(const Layout *layout) {
   auto *topLevelComponent = m_vsrtlWidget->getTopLevelComponent();
 
   m_stageInstructionLabels.clear();
-  const auto &proc = ProcessorHandler::getProcessor();
-  for (unsigned i = 0; i < proc->stageCount(); ++i) {
-    auto *stagelabel = new vsrtl::Label(topLevelComponent, "-");
-    stagelabel->setPointSize(14);
-    m_stageInstructionLabels[i] = stagelabel;
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex sid = {laneIt.first, stageIdx};
+      auto *stagelabel = new vsrtl::Label(topLevelComponent, "-");
+      stagelabel->setPointSize(14);
+      m_stageInstructionLabels[sid] = stagelabel;
+    }
   }
   if (layout != nullptr) {
     loadLayout(*layout);
@@ -468,14 +473,16 @@ void ProcessorTab::enableSimulatorControls() {
 
 void ProcessorTab::updateInstructionLabels() {
   const auto &proc = ProcessorHandler::getProcessor();
-  for (unsigned i = 0; i < proc->stageCount(); ++i) {
-    if (!m_stageInstructionLabels.count(i))
-      continue;
-    const auto stageInfo = proc->stageInfo(i);
-    auto &instrLabel = m_stageInstructionLabels.at(i);
-    QString instrString;
-    if (stageInfo.state != StageInfo::State::None) {
-      /* clang-format off */
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex sid = {laneIt.first, stageIdx};
+      if (!m_stageInstructionLabels.count(sid))
+        continue;
+      const auto stageInfo = proc->stageInfo(sid);
+      auto &instrLabel = m_stageInstructionLabels.at(sid);
+      QString instrString;
+      if (stageInfo.state != StageInfo::State::None) {
+        /* clang-format off */
             switch (stageInfo.state) {
                 case StageInfo::State::Flushed: instrString = "nop (flush)"; break;
                 case StageInfo::State::Stalled: instrString = "nop (stall)"; break;
@@ -483,13 +490,14 @@ void ProcessorTab::updateInstructionLabels() {
                 case StageInfo::State::Unused: instrString = "nop (unused)"; break;
                 case StageInfo::State::None: Q_UNREACHABLE();
             }
-      /* clang-format on */
-      instrLabel->forceDefaultTextColor(Qt::red);
-    } else if (stageInfo.stage_valid) {
-      instrString = ProcessorHandler::disassembleInstr(stageInfo.pc);
-      instrLabel->clearForcedDefaultTextColor();
+        /* clang-format on */
+        instrLabel->forceDefaultTextColor(Qt::red);
+      } else if (stageInfo.stage_valid) {
+        instrString = ProcessorHandler::disassembleInstr(stageInfo.pc);
+        instrLabel->clearForcedDefaultTextColor();
+      }
+      instrLabel->setText(instrString);
     }
-    instrLabel->setText(instrString);
   }
 }
 

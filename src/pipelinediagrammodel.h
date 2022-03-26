@@ -31,7 +31,7 @@ private:
    * @brief m_cycleStageInfos
    * map<cycle, map<stageId, stageInfo>>
    */
-  std::map<long long, std::map<unsigned, StageInfo>> m_cycleStageInfos;
+  std::map<long long, std::map<StageIndex, StageInfo>> m_cycleStageInfos;
 
   /**
    * @brief m_atMaxCycles

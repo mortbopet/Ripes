@@ -76,10 +76,12 @@ void PipelineDiagramModel::gatherStageInfo() {
   if (stageInfoForCycle == m_cycleStageInfos.end()) {
     return;
   }
-  for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount();
-       ++i) {
-    stageInfoForCycle->second[i] =
-        ProcessorHandler::getProcessor()->stageInfo(i);
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex idx = {laneIt.first, stageIdx};
+      stageInfoForCycle->second[idx] =
+          ProcessorHandler::getProcessor()->stageInfo(idx);
+    }
   }
 }
 

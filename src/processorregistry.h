@@ -45,7 +45,7 @@ struct Layout {
    * labels can be "stacked" over one another. Must contain an entry for each
    * stage in the processor model.
    */
-  std::vector<QPointF> stageLabelPositions;
+  std::map<StageIndex, QPointF> stageLabelPositions;
   bool operator==(const Layout &rhs) const { return this->name == rhs.name; }
 };
 

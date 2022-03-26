@@ -86,7 +86,7 @@ void ProgramViewer::setCenterAddress(const AInt address) {
 }
 
 void ProgramViewer::updateCenterAddressFromProcessor() {
-  const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(0);
+  const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo({0, 0});
   setCenterAddress(stageInfo.pc);
 }
 
@@ -101,21 +101,25 @@ void ProgramViewer::setFollowEnabled(bool enabled) {
 
 void ProgramViewer::updateHighlightedAddresses() {
   clearBlockHighlights();
-  const unsigned stages = ProcessorHandler::getProcessor()->stageCount();
+  const unsigned stages =
+      ProcessorHandler::getProcessor()->structure().numStages();
   auto colorGenerator = Colors::incrementalRedGenerator(stages);
 
-  for (unsigned sid = 0; sid < stages; sid++) {
-    const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);
-    if (stageInfo.stage_valid) {
-      auto block = blockForAddress(stageInfo.pc);
-      if (!block.isValid())
-        continue;
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex sid = {laneIt.first, stageIdx};
+      const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(sid);
+      if (stageInfo.stage_valid) {
+        auto block = blockForAddress(stageInfo.pc);
+        if (!block.isValid())
+          continue;
 
-      // Record the stage name for the highlighted block for later painting
-      QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
-      if (!stageInfo.namedState.isEmpty())
-        stageString += " (" + stageInfo.namedState + ")";
-      highlightBlock(block, colorGenerator(), stageString);
+        // Record the stage name for the highlighted block for later painting
+        QString stageString = ProcessorHandler::getProcessor()->stageName(sid);
+        if (!stageInfo.namedState.isEmpty())
+          stageString += " (" + stageInfo.namedState + ")";
+        highlightBlock(block, colorGenerator(), stageString);
+      }
     }
   }
 

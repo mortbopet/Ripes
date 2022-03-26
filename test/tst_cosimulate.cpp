@@ -190,9 +190,9 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
   m_err = QString();
   bool maxCyclesReached = false;
   unsigned cycles = 0;
-  trace.push_back(
-      TraceEntry{dumpRegs(), cycles,
-                 ProcessorHandler::get()->getProcessor()->getPcForStage(0)});
+  trace.push_back(TraceEntry{
+      dumpRegs(), cycles,
+      ProcessorHandler::get()->getProcessor()->getPcForStage({0, 0})});
 
   decltype(refTrace->begin()) cmpRegState;
   if (refTrace) {
@@ -212,7 +212,7 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
     if (regNeq(regs, trace.rbegin()->regs)) {
       trace.push_back(TraceEntry{
           dumpRegs(), cycles,
-          ProcessorHandler::get()->getProcessor()->getPcForStage(0)});
+          ProcessorHandler::get()->getProcessor()->getPcForStage({0, 0})});
 
       // Check whether change corresponds to expected change in comparison
       // trace. regChange might contain multiple register changes (for

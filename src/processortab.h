@@ -6,6 +6,7 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include "processors/interface/ripesprocessor.h"
 #include "ripes_types.h"
 #include "ripestab.h"
 
@@ -70,7 +71,7 @@ private:
 
   vsrtl::VSRTLWidget *m_vsrtlWidget = nullptr;
 
-  std::map<unsigned, vsrtl::Label *> m_stageInstructionLabels;
+  std::map<StageIndex, vsrtl::Label *> m_stageInstructionLabels;
 
   QTimer *m_statUpdateTimer;
 

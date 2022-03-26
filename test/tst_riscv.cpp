@@ -110,10 +110,10 @@ bool tst_RISCV::skipTest(const QString &test) {
 
 QString tst_RISCV::dumpRegs() {
   QString str = "\n" + m_currentTest + "\nRegister dump:";
-  str +=
-      "\t PC:" +
-      QString::number(ProcessorHandler::getProcessor()->getPcForStage(0), 16) +
-      "\n";
+  str += "\t PC:" +
+         QString::number(
+             ProcessorHandler::getProcessor()->getPcForStage({0, 0}), 16) +
+         "\n";
   for (unsigned i = 0; i < ProcessorHandler::currentISA()->regCnt(); i++) {
     const auto value =
         ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, i);

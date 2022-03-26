@@ -42,6 +42,27 @@ struct MemoryAccess {
   unsigned bytes;
 };
 
+struct StageIndex : public std::pair<unsigned, unsigned> {
+  using std::pair<unsigned, unsigned>::pair;
+  unsigned lane() const {return this->first;}
+  unsigned index() const {return this->second;}
+};
+
+
+/// Structural description of the processor model. Currently this is a map of {# of lanes, # of stages}.
+/// @todo: add an iterator over all stages.
+struct ProcessorStructure : public std::map<unsigned, unsigned> {
+  using std::map<unsigned, unsigned>::map;
+
+  // Returns the total number of stages of this processor.
+  unsigned numStages() const {
+    unsigned count = 0;
+    for(auto it : *this)
+      count += it.second;
+    return count;
+  }
+};
+
 /**
  * @brief The RipesProcessor class
  * Interface for all Ripes processors. This interface is intended to be
@@ -108,20 +129,22 @@ public:
    * @brief stageCount
    * @return number of stages for the processor
    */
-  virtual unsigned int stageCount() const = 0;
+  virtual const ProcessorStructure& structure() const = 0;
+
+
 
   /**
    * @brief getPcForStage
    * @param stageIndex
    * @return Program counter currently present in stage @param stageIndex
    */
-  virtual unsigned int getPcForStage(unsigned stageIndex) const = 0;
+  virtual unsigned int getPcForStage(StageIndex stageIndex) const = 0;
 
   /**
    * @brief stageName
    * @return name of stage identified by @param stageIndex
    */
-  virtual QString stageName(unsigned stageIndex) const = 0;
+  virtual QString stageName(StageIndex stageIndex) const = 0;
 
   /**
    * @brief nextFetchedAddress
@@ -136,14 +159,14 @@ public:
    * @return Additional info related to the state of stage @param stageIndex in
    * the current cycle
    */
-  virtual StageInfo stageInfo(unsigned stageIndex) const = 0;
+  virtual StageInfo stageInfo(StageIndex stageIndex) const = 0;
 
   /**
    * @brief breakpointTriggeringStages
    * @returns the stage indices for which a breakpoint is triggered when the
    * breakpoint PC address enters the stage.
    */
-  virtual const std::vector<unsigned> breakpointTriggeringStages() const = 0;
+  virtual const std::vector<StageIndex> breakpointTriggeringStages() const = 0;
 
   /**
    * @brief getMemory

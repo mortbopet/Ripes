@@ -27,10 +27,12 @@ int InstructionModel::addressToRow(AInt addr) const {
 
 InstructionModel::InstructionModel(QObject *parent)
     : QAbstractTableModel(parent) {
-  for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount();
-       ++i) {
-    m_stageNames << ProcessorHandler::getProcessor()->stageName(i);
-    m_stageInfos[i];
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex idx = {laneIt.first, stageIdx};
+      m_stageNames[idx] = ProcessorHandler::getProcessor()->stageName(idx);
+      m_stageInfos[idx] = ProcessorHandler::getProcessor()->stageInfo(idx);
+    }
   }
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
           this, &InstructionModel::updateStageInfo);
@@ -65,31 +67,33 @@ int InstructionModel::rowCount(const QModelIndex &) const { return m_rowCount; }
 
 void InstructionModel::updateStageInfo() {
   bool firstStageChanged = false;
-  for (unsigned i = 0; i < ProcessorHandler::getProcessor()->stageCount();
-       ++i) {
-    if (static_cast<unsigned>(m_stageInfos.size()) > i) {
-      auto &oldStageInfo = m_stageInfos.at(i);
-      if (i == 0) {
-        if (oldStageInfo.pc !=
-            ProcessorHandler::getProcessor()->stageInfo(i).pc) {
-          firstStageChanged = true;
+  for (auto laneIt : ProcessorHandler::getProcessor()->structure()) {
+    for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
+      StageIndex idx = {laneIt.first, stageIdx};
+      auto stageInfoIt = m_stageInfos.find(idx);
+      if (stageInfoIt != m_stageInfos.end()) {
+        auto &oldStageInfo = m_stageInfos.at(idx);
+        if (idx == StageIndex(0, 0)) {
+          if (oldStageInfo.pc !=
+              ProcessorHandler::getProcessor()->stageInfo(idx).pc) {
+            firstStageChanged = true;
+          }
         }
-      }
-      const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(i);
-      const AInt oldAddress = oldStageInfo.pc;
-      const bool stageInfoChanged = oldStageInfo != stageInfo;
-      oldStageInfo = stageInfo;
-      if (stageInfoChanged) {
-        const int oldRow = addressToRow(oldAddress);
-        const int newRow = addressToRow(stageInfo.pc);
-        const QModelIndex oldIdx = index(oldRow, Stage);
-        const QModelIndex newIdx = index(newRow, Stage);
-        emit dataChanged(oldIdx, oldIdx, {Qt::DisplayRole});
-        emit dataChanged(newIdx, newIdx, {Qt::DisplayRole});
-      }
-      if (firstStageChanged) {
-        emit firstStageInstrChanged(addressToRow(m_stageInfos.at(0).pc));
-        firstStageChanged = false;
+        const auto stageInfo = ProcessorHandler::getProcessor()->stageInfo(idx);
+        const AInt oldAddress = oldStageInfo.pc;
+        if (oldStageInfo != stageInfo) {
+          oldStageInfo = stageInfo;
+          const int oldRow = addressToRow(oldAddress);
+          const int newRow = addressToRow(stageInfo.pc);
+          const QModelIndex oldIdx = index(oldRow, Stage);
+          const QModelIndex newIdx = index(newRow, Stage);
+          emit dataChanged(oldIdx, oldIdx, {Qt::DisplayRole});
+          emit dataChanged(newIdx, newIdx, {Qt::DisplayRole});
+        }
+        if (firstStageChanged) {
+          emit firstStageInstrChanged(addressToRow(m_stageInfos.at({0, 0}).pc));
+          firstStageChanged = false;
+        }
       }
     }
   }
