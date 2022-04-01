@@ -2,7 +2,9 @@
 
 #include "assembler/program.h"
 #include "processorregistry.h"
+#include "telemetry.h"
 #include <QCommandLineParser>
+#include <set>
 
 namespace Ripes {
 
@@ -12,15 +14,14 @@ struct CmdModeOptions {
   ProcessorID proc;
   QStringList isaExtensions;
   bool verbose;
+  QString outputFile;
 
-  // telemetry
-  bool cycles = false;
-  bool cpi = false;
-  bool ipc = false;
+  // A list of enabled telemetry options.
+  std::vector<std::shared_ptr<Telemetry>> telemetry;
 };
 
 /// Adds Ripes command-line mode options to a parser.
-void addCmdOptions(QCommandLineParser &parser);
+void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options);
 /// Parses Ripes command-line mode options to a CmdModeOptions struct. Returns
 /// true if options were parsed successfully.
 bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,

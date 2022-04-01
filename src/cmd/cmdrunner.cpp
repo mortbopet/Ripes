@@ -91,26 +91,34 @@ int CmdRunner::runModel() {
 int CmdRunner::postRun() {
   info("Post-run", false, true);
 
-  const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-  const auto instrsRetired =
-      ProcessorHandler::getProcessor()->getInstructionsRetired();
-  const double cpi =
-      static_cast<double>(cycleCount) / static_cast<double>(instrsRetired);
-  const double ipc = 1 / cpi;
+  // Open telemetry stream
+  std::unique_ptr<QTextStream> stream;
+  std::unique_ptr<QFile> outputFile;
+  if (m_options.outputFile.isEmpty()) {
+    stream = std::make_unique<QTextStream>(stdout, QIODevice::WriteOnly);
+  } else {
+    outputFile = std::make_unique<QFile>(m_options.outputFile);
+    if (!outputFile->open(QIODevice::Truncate | QIODevice::Text |
+                          QIODevice::WriteOnly)) {
+      error("Failed to open output file");
+      return 1;
+    }
+    stream = std::make_unique<QTextStream>(outputFile.get());
+  }
 
-  if (m_options.cycles)
-    info("Cycles: " + QString::number(cycleCount), true);
+  for (auto &telemetry : m_options.telemetry)
+    if (telemetry->isEnabled())
+      telemetry->report(*stream);
 
-  if (m_options.cpi)
-    info("CPI: " + QString::number(cpi), true);
-
-  if (m_options.ipc)
-    info("IPC: " + QString::number(ipc), true);
+  // Close output file if necessary
+  if (!m_options.outputFile.isEmpty())
+    outputFile->close();
 
   return 0;
 }
 
 void CmdRunner::info(QString msg, bool alwaysPrint, bool header) {
+
   if (m_options.verbose || alwaysPrint) {
     if (header) {
       int headerWidth = 80;

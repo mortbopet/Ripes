@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void initParser(QCommandLineParser &parser) {
+void initParser(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
   QString helpText =
       "The command line interface allows for assembling/compiling/executing a "
       "\n"
@@ -24,7 +24,7 @@ void initParser(QCommandLineParser &parser) {
   parser.setApplicationDescription(helpText);
   QCommandLineOption modeOption("mode", "Ripes mode [gui, sh]", "mode", "gui");
   parser.addOption(modeOption);
-  Ripes::addCmdOptions(parser);
+  Ripes::addCmdOptions(parser, options);
 }
 
 enum CommandLineParseResult {
@@ -69,9 +69,8 @@ int guiMode(QApplication &app) {
   return app.exec();
 }
 
-int cmdMode(QCommandLineParser &parser, QApplication &) {
+int cmdMode(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
   QString err;
-  Ripes::CmdModeOptions options;
   if (!Ripes::parseCmdOptions(parser, err, options)) {
     std::cerr << "ERROR: " << err.toStdString() << std::endl;
     parser.showHelp();
@@ -90,7 +89,8 @@ int main(int argc, char **argv) {
   QCoreApplication::setApplicationName("Ripes");
 
   QCommandLineParser parser;
-  initParser(parser);
+  Ripes::CmdModeOptions options;
+  initParser(parser, options);
   QString err;
   switch (parseCommandLine(parser, err)) {
   case CommandLineError:
@@ -103,6 +103,6 @@ int main(int argc, char **argv) {
   case CommandLineGUI:
     return guiMode(app);
   case CommandLineCMD:
-    return cmdMode(parser, app);
+    return cmdMode(parser, options);
   }
 }

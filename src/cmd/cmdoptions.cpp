@@ -1,5 +1,7 @@
 #include "cmdoptions.h"
 #include "processorregistry.h"
+#include "telemetry.h"
+#include <QFile>
 #include <QMetaEnum>
 
 namespace Ripes {
@@ -10,7 +12,7 @@ QString enumToString(T value) {
   return QMetaEnum::fromType<T>().valueToKey(castValue);
 }
 
-void addCmdOptions(QCommandLineParser &parser) {
+void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
 
   QCommandLineOption srcOption("src", "Source file", "src");
   parser.addOption(srcOption);
@@ -40,13 +42,23 @@ void addCmdOptions(QCommandLineParser &parser) {
   QCommandLineOption verboseOption("v", "Verbose output");
   parser.addOption(verboseOption);
 
+  // Output to file
+  QCommandLineOption outputOption(
+      "output",
+      "Telemetry output file. If not set, telemtry is printed to stdout.",
+      "output", "");
+  parser.addOption(outputOption);
+
   // Telemtry reporting
-  QCommandLineOption cycles("cycles", "Print # of cycles executed");
-  parser.addOption(cycles);
-  QCommandLineOption cpi("cpi", "Print CPI");
-  parser.addOption(cpi);
-  QCommandLineOption ipc("ipc", "Print IPC");
-  parser.addOption(ipc);
+  options.telemetry.push_back(std::make_shared<CyclesTelemetry>());
+  options.telemetry.push_back(std::make_shared<CPITelemetry>());
+  options.telemetry.push_back(std::make_shared<IPCTelemetry>());
+
+  for (auto &telemetry : options.telemetry) {
+    QCommandLineOption telemetryOption(telemetry->key(),
+                                       telemetry->description());
+    parser.addOption(telemetryOption);
+  }
 }
 
 bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
@@ -111,10 +123,12 @@ bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
     }
   }
 
-  // Telemtry reporting
-  options.cycles = parser.isSet("cycles");
-  options.cpi = parser.isSet("cpi");
-  options.ipc = parser.isSet("ipc");
+  options.outputFile = parser.value("output");
+
+  // Enable selected telemetry options.
+  for (auto &telemetry : options.telemetry)
+    if (parser.isSet(telemetry->key()))
+      telemetry->enable();
 
   return true;
 }
