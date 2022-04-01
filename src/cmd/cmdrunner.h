@@ -8,7 +8,7 @@ namespace Ripes {
 /// The CmdRunner class is used to run Ripes in command-line mode.
 /// Based on a CmdModeOptions struct, it will run the appropriate combination
 /// of source processing (assembler/compiler/...), processor model execution
-/// as well as telemtry gathering and reporting.
+/// as well as telemetry gathering and reporting.
 class CmdRunner : public QObject {
   Q_OBJECT
 public:

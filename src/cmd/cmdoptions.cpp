@@ -26,14 +26,14 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
   parser.addOption(QCommandLineOption("v", "Verbose output"));
   parser.addOption(QCommandLineOption(
       "output",
-      "Telemetry output file. If not set, telemtry is printed to stdout.",
+      "Telemetry output file. If not set, telemetry is printed to stdout.",
       "output"));
   parser.addOption(
       QCommandLineOption("json", "Report JSON-formatted telemetry."));
 
   parser.addOption(QCommandLineOption("all", "Enable all telemetry options."));
 
-  // Telemtry reporting
+  // telemetry reporting
   options.telemetry.push_back(std::make_shared<CyclesTelemetry>());
   options.telemetry.push_back(std::make_shared<InstrsRetiredTelemetry>());
   options.telemetry.push_back(std::make_shared<CPITelemetry>());
