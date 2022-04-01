@@ -51,13 +51,15 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
 
   // Telemtry reporting
   options.telemetry.push_back(std::make_shared<CyclesTelemetry>());
+  options.telemetry.push_back(std::make_shared<InstrsRetiredTelemetry>());
   options.telemetry.push_back(std::make_shared<CPITelemetry>());
   options.telemetry.push_back(std::make_shared<IPCTelemetry>());
   options.telemetry.push_back(std::make_shared<PipelineTelemetry>());
+  options.telemetry.push_back(std::make_shared<RegisterTelemetry>());
 
   for (auto &telemetry : options.telemetry) {
-    QCommandLineOption telemetryOption(telemetry->key(),
-                                       telemetry->description());
+    QString desc = "Report " + telemetry->description();
+    QCommandLineOption telemetryOption(telemetry->key(), desc);
     parser.addOption(telemetryOption);
   }
 }

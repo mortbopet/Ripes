@@ -4,6 +4,7 @@
 
 #include "pipelinediagrammodel.h"
 #include "processorhandler.h"
+#include "radix.h"
 
 #include <memory>
 
@@ -35,7 +36,7 @@ private:
 class CPITelemetry : public Telemetry {
   QString key() const override { return "cpi"; }
   QString description() const override {
-    return "Report cycles per instruction";
+    return "cycles per instruction (CPI)";
   }
   void report(QTextStream &out) override {
     const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
@@ -43,14 +44,14 @@ class CPITelemetry : public Telemetry {
         ProcessorHandler::getProcessor()->getInstructionsRetired();
     const double cpi =
         static_cast<double>(cycleCount) / static_cast<double>(instrsRetired);
-    out << "CPI: " << QString::number(cpi) << "\n";
+    out << QString::number(cpi) << "\n";
   }
 };
 
 class IPCTelemetry : public Telemetry {
   QString key() const override { return "ipc"; }
   QString description() const override {
-    return "Report instructions per cycle";
+    return "instructions per cycle (IPC)";
   }
   void report(QTextStream &out) override {
     const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
@@ -59,18 +60,26 @@ class IPCTelemetry : public Telemetry {
     const double cpi =
         static_cast<double>(cycleCount) / static_cast<double>(instrsRetired);
     const double ipc = 1 / cpi;
-    out << "IPC: " << QString::number(ipc) << "\n";
+    out << QString::number(ipc) << "\n";
   }
 };
 
 class CyclesTelemetry : public Telemetry {
   QString key() const override { return "cycles"; }
-  QString description() const override {
-    return "Report total number of cycles";
-  }
+  QString description() const override { return "cycles"; }
   void report(QTextStream &out) override {
     const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-    out << "Cycles: " << QString::number(cycleCount) << "\n";
+    out << QString::number(cycleCount) << "\n";
+  }
+};
+
+class InstrsRetiredTelemetry : public Telemetry {
+  QString key() const override { return "iret"; }
+  QString description() const override { return "instructions retired"; }
+  void report(QTextStream &out) override {
+    const auto instrsRetired =
+        ProcessorHandler::getProcessor()->getInstructionsRetired();
+    out << QString::number(instrsRetired) << "\n";
   }
 };
 
@@ -83,16 +92,30 @@ public:
   }
 
   QString key() const override { return "pipeline"; }
-  QString description() const override { return "Report pipeline state"; }
+  QString description() const override { return "pipeline state"; }
   void report(QTextStream &out) override {
     // Simply grab the current state of the pipeline diagram model and print it.
-    out << "===== Pipeline diagram\n";
     out << m_pipelineDiagramModel->toString() << "\n";
-    out << "=====\n";
   }
 
 private:
   std::shared_ptr<PipelineDiagramModel> m_pipelineDiagramModel;
+};
+
+class RegisterTelemetry : public Telemetry {
+public:
+  RegisterTelemetry() {}
+  QString key() const override { return "regs"; }
+  QString description() const override { return "register values"; }
+  void report(QTextStream &out) override {
+    auto *isa = ProcessorHandler::currentISA();
+    for (unsigned i = 0; i < isa->regCnt(); i++) {
+      auto v = ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i);
+      out << isa->regName(i) << ":\t"
+          << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
+      out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
+    }
+  }
 };
 
 } // namespace Ripes

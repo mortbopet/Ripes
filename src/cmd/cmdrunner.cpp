@@ -107,8 +107,10 @@ int CmdRunner::postRun() {
   }
 
   for (auto &telemetry : m_options.telemetry)
-    if (telemetry->isEnabled())
+    if (telemetry->isEnabled()) {
+      *stream << "===== " << telemetry->description() << "\n";
       telemetry->report(*stream);
+    }
 
   // Close output file if necessary
   if (!m_options.outputFile.isEmpty())
