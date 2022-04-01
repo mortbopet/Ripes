@@ -76,8 +76,6 @@ private:
   void compile();
 
   void updateProgramViewer();
-  bool loadFlatBinaryFile(Program &program, QFile &file,
-                          unsigned long entryPoint, unsigned long loadAt);
   bool loadSourceFile(Program &program, QFile &file);
   bool loadElfFile(Program &program, QFile &file);
 
