@@ -9,7 +9,7 @@ namespace Ripes {
 CmdRunner::CmdRunner(const CmdModeOptions &options)
     : QObject(), m_options(options) {
   info("Ripes command-line mode", false, true);
-  ProcessorHandler::selectProcessor(m_options.proc);
+  ProcessorHandler::selectProcessor(m_options.proc, m_options.isaExtensions);
 
   // Connect systemIO output to stdout.
   connect(&SystemIO::get(), &SystemIO::doPrint, this, [&](auto text) {
