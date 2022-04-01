@@ -25,8 +25,8 @@ public:
   // Returns the description of this telemetry.
   virtual QString description() const = 0;
 
-  void enable() { m_enabled = true; }
-  void disable() { m_enabled = false; }
+  virtual void enable() { m_enabled = true; }
+  virtual void disable() { m_enabled = false; }
   bool isEnabled() const { return m_enabled; }
 
 private:
@@ -85,10 +85,12 @@ class InstrsRetiredTelemetry : public Telemetry {
 
 class PipelineTelemetry : public Telemetry {
 public:
-  PipelineTelemetry() {
+  PipelineTelemetry() {}
+  void enable() override {
     // The PipelineDiagramModel will automatically, upon construction, connect
     // to the ProcessorHandler and record information during execution.
     m_pipelineDiagramModel = std::make_shared<PipelineDiagramModel>();
+    Telemetry::enable();
   }
 
   QString key() const override { return "pipeline"; }
