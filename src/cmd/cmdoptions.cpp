@@ -53,6 +53,7 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
   options.telemetry.push_back(std::make_shared<CyclesTelemetry>());
   options.telemetry.push_back(std::make_shared<CPITelemetry>());
   options.telemetry.push_back(std::make_shared<IPCTelemetry>());
+  options.telemetry.push_back(std::make_shared<PipelineTelemetry>());
 
   for (auto &telemetry : options.telemetry) {
     QCommandLineOption telemetryOption(telemetry->key(),

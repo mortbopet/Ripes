@@ -20,6 +20,9 @@ public:
                       int role = Qt::DisplayRole) const override;
   void prepareForView();
 
+  /// Returns a tab-separated stringified version of this pipeline diagram.
+  QString toString() const;
+
 public slots:
   void processorWasClocked();
   void reset();

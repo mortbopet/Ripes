@@ -2,7 +2,10 @@
 
 #include <QTextStream>
 
+#include "pipelinediagrammodel.h"
 #include "processorhandler.h"
+
+#include <memory>
 
 namespace Ripes {
 
@@ -69,6 +72,27 @@ class CyclesTelemetry : public Telemetry {
     const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
     out << "Cycles: " << QString::number(cycleCount) << "\n";
   }
+};
+
+class PipelineTelemetry : public Telemetry {
+public:
+  PipelineTelemetry() {
+    // The PipelineDiagramModel will automatically, upon construction, connect
+    // to the ProcessorHandler and record information during execution.
+    m_pipelineDiagramModel = std::make_shared<PipelineDiagramModel>();
+  }
+
+  QString key() const override { return "pipeline"; }
+  QString description() const override { return "Report pipeline state"; }
+  void report(QTextStream &out) override {
+    // Simply grab the current state of the pipeline diagram model and print it.
+    out << "===== Pipeline diagram\n";
+    out << m_pipelineDiagramModel->toString() << "\n";
+    out << "=====\n";
+  }
+
+private:
+  std::shared_ptr<PipelineDiagramModel> m_pipelineDiagramModel;
 };
 
 } // namespace Ripes

@@ -73,11 +73,13 @@ void PipelineDiagramModel::prepareForView() {
 void PipelineDiagramModel::gatherStageInfo() {
   long long cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
   auto stageInfoForCycle = m_cycleStageInfos.find(cycleCount);
-  if (stageInfoForCycle == m_cycleStageInfos.end()) {
+  if (stageInfoForCycle != m_cycleStageInfos.end()) {
+    // Already gathered stage info for this cycle.
     return;
   }
+  m_cycleStageInfos[cycleCount];
   for (auto idx : ProcessorHandler::getProcessor()->structure().stageIt())
-    stageInfoForCycle->second[idx] =
+    m_cycleStageInfos[cycleCount][idx] =
         ProcessorHandler::getProcessor()->stageInfo(idx);
 }
 
@@ -130,4 +132,28 @@ QVariant PipelineDiagramModel::data(const QModelIndex &index, int role) const {
 
   return stagesForAddr.join('/');
 }
+
+QString PipelineDiagramModel::toString() const {
+  QString textualRepr;
+
+  // Copy headers
+  textualRepr.append('\t');
+  for (int j = 0; j < columnCount(); j++) {
+    textualRepr.append(headerData(j, Qt::Horizontal).toString());
+    textualRepr.append('\t');
+  }
+  textualRepr.append('\n');
+  // Copy data
+  for (int i = 0; i < rowCount(); ++i) {
+    textualRepr.append(headerData(i, Qt::Vertical).toString());
+    textualRepr.append('\t');
+    for (int j = 0; j < columnCount(); j++) {
+      textualRepr.append(data(index(i, j)).toString());
+      textualRepr.append('\t');
+    }
+    textualRepr.append('\n');
+  }
+  return textualRepr;
+}
+
 } // namespace Ripes
