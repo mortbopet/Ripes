@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QMetaEnum>
 #include <QMetaType>
 #include <QPointF>
 #include <map>
@@ -9,6 +10,12 @@
 
 namespace Ripes {
 Q_NAMESPACE
+
+template <typename T>
+QString enumToString(T value) {
+  int castValue = static_cast<int>(value);
+  return QMetaEnum::fromType<T>().valueToKey(castValue);
+}
 
 // =============================== Processors =================================
 // The order of the ProcessorID enum defines the order of which the processors

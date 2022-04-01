@@ -6,21 +6,10 @@
 
 namespace Ripes {
 
-template <typename T>
-QString enumToString(T value) {
-  int castValue = static_cast<int>(value);
-  return QMetaEnum::fromType<T>().valueToKey(castValue);
-}
-
 void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
-
-  QCommandLineOption srcOption("src", "Source file", "src");
-  parser.addOption(srcOption);
-
-  QCommandLineOption srcTypeOption("t", "Source type. Options: [c, asm, bin]",
-                                   "type", "asm");
-  srcTypeOption.setDefaultValue("asm");
-  parser.addOption(srcTypeOption);
+  parser.addOption(QCommandLineOption("src", "Source file", "src"));
+  parser.addOption(QCommandLineOption(
+      "t", "Source type. Options: [c, asm, bin]", "type", "asm"));
 
   // Processor models. Generate information from processor registry.
   QStringList processorOptions;
@@ -29,25 +18,20 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
         enumToString<ProcessorID>(static_cast<ProcessorID>(i)));
   QString desc =
       "Processor model. Options: [" + processorOptions.join(", ") + "]";
-  QCommandLineOption processorOption("proc", desc, "proc");
-  parser.addOption(processorOption);
-
-  // ISA extensions.
-  QCommandLineOption isaExtensionsOptions("isaexts",
-                                          "ISA extensions to enable (comma "
-                                          "separated)",
-                                          "isaexts", "");
-  parser.addOption(isaExtensionsOptions);
-
-  QCommandLineOption verboseOption("v", "Verbose output");
-  parser.addOption(verboseOption);
-
-  // Output to file
-  QCommandLineOption outputOption(
+  parser.addOption(QCommandLineOption("proc", desc, "proc"));
+  parser.addOption(QCommandLineOption("isaexts",
+                                      "ISA extensions to enable (comma "
+                                      "separated)",
+                                      "isaexts", ""));
+  parser.addOption(QCommandLineOption("v", "Verbose output"));
+  parser.addOption(QCommandLineOption(
       "output",
       "Telemetry output file. If not set, telemtry is printed to stdout.",
-      "output", "");
-  parser.addOption(outputOption);
+      "output"));
+  parser.addOption(
+      QCommandLineOption("json", "Report JSON-formatted telemetry."));
+
+  parser.addOption(QCommandLineOption("all", "Enable all telemetry options."));
 
   // Telemtry reporting
   options.telemetry.push_back(std::make_shared<CyclesTelemetry>());
@@ -56,6 +40,7 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
   options.telemetry.push_back(std::make_shared<IPCTelemetry>());
   options.telemetry.push_back(std::make_shared<PipelineTelemetry>());
   options.telemetry.push_back(std::make_shared<RegisterTelemetry>());
+  options.telemetry.push_back(std::make_shared<RunInfoTelemetry>(&parser));
 
   for (auto &telemetry : options.telemetry) {
     QString desc = "Report " + telemetry->description();
@@ -106,6 +91,8 @@ bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
   }
   options.proc = static_cast<ProcessorID>(procID);
 
+  options.jsonOutput = parser.isSet("json");
+
   if (parser.isSet("isaexts")) {
     options.isaExtensions = parser.value("isaexts").split(",");
 
@@ -130,7 +117,7 @@ bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
 
   // Enable selected telemetry options.
   for (auto &telemetry : options.telemetry)
-    if (parser.isSet(telemetry->key()))
+    if (parser.isSet("all") || parser.isSet(telemetry->key()))
       telemetry->enable();
 
   return true;

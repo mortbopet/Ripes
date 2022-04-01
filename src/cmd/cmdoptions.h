@@ -15,6 +15,7 @@ struct CmdModeOptions {
   QStringList isaExtensions;
   bool verbose;
   QString outputFile;
+  bool jsonOutput;
 
   // A list of enabled telemetry options.
   std::vector<std::shared_ptr<Telemetry>> telemetry;

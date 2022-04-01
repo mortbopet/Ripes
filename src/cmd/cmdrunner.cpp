@@ -4,7 +4,33 @@
 #include "programutilities.h"
 #include "syscall/systemio.h"
 
+#include <QJsonDocument>
+#include <QJsonObject>
+
 namespace Ripes {
+
+// An extended QVariant-to-string convertion method which handles a few special
+// cases.
+static QString qVariantToString(QVariant &v) {
+  QString def = v.toString();
+  if (!def.isEmpty())
+    return def;
+
+  if (v.canConvert<QVariantMap>()) {
+    QVariantMap map = qvariant_cast<QVariantMap>(v);
+    QString out;
+    for (auto it : map.toStdMap())
+      out += it.first + ": " + qVariantToString(it.second) + "\n";
+    return out;
+  } else if (v.canConvert<QStringList>()) {
+    QStringList list = qvariant_cast<QStringList>(v);
+    return list.join(", ");
+  }
+
+  // Fallback will always be to return an empty string (this also applies to
+  // cases where the QVariant actually was an empty string!).
+  return def;
+}
 
 CmdRunner::CmdRunner(const CmdModeOptions &options)
     : QObject(), m_options(options) {
@@ -91,7 +117,7 @@ int CmdRunner::runModel() {
 int CmdRunner::postRun() {
   info("Post-run", false, true);
 
-  // Open telemetry stream
+  // Open output stream
   std::unique_ptr<QTextStream> stream;
   std::unique_ptr<QFile> outputFile;
   if (m_options.outputFile.isEmpty()) {
@@ -106,11 +132,23 @@ int CmdRunner::postRun() {
     stream = std::make_unique<QTextStream>(outputFile.get());
   }
 
-  for (auto &telemetry : m_options.telemetry)
-    if (telemetry->isEnabled()) {
-      *stream << "===== " << telemetry->description() << "\n";
-      telemetry->report(*stream);
-    }
+  if (m_options.jsonOutput) {
+    // Telemetry output
+    QJsonObject jsonOutput;
+    for (auto &telemetry : m_options.telemetry)
+      if (telemetry->isEnabled())
+        jsonOutput.insert(telemetry->prettyKey(),
+                          QJsonValue::fromVariant(telemetry->report()));
+    *stream << QJsonDocument(jsonOutput).toJson(QJsonDocument::Indented);
+  } else {
+    // Telemetry output
+    for (auto &telemetry : m_options.telemetry)
+      if (telemetry->isEnabled()) {
+        *stream << "===== " << telemetry->description() << "\n";
+        QVariant reportedValue = telemetry->report();
+        *stream << qVariantToString(reportedValue) << "\n";
+      }
+  }
 
   // Close output file if necessary
   if (!m_options.outputFile.isEmpty())
