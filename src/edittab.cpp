@@ -13,6 +13,7 @@
 #include "assembler/program.h"
 
 #include "ccmanager.h"
+#include "cmd/programutilities.h"
 #include "compilererrordialog.h"
 #include "editor/codeeditor.h"
 #include "io/iomanager.h"
@@ -189,23 +190,35 @@ bool EditTab::loadFile(const LoadFileParams &fileParams) {
   auto loadedProgram = std::make_shared<Program>();
   switch (fileParams.type) {
   case SourceType::C:
-  case SourceType::Assembly:
+  case SourceType::Assembly: {
     success &= loadSourceFile(*loadedProgram, file);
     break;
-  case SourceType::FlatBinary:
-    success &=
-        loadFlatBinaryFile(*loadedProgram, file, fileParams.binaryEntryPoint,
-                           fileParams.binaryLoadAt);
+  }
+  case SourceType::FlatBinary: {
+    QString err = loadFlatBinaryFile(*loadedProgram, file.fileName(),
+                                     fileParams.binaryEntryPoint,
+                                     fileParams.binaryLoadAt);
+    success = err.isEmpty();
+    if (!success) {
+      QMessageBox::warning(this, "Error", err);
+    } else {
+      m_ui->curInputSrcLabel->setText("Flat binary");
+      m_ui->inputSrcPath->setText(file.fileName());
+      disableEditor();
+    }
     break;
-  case SourceType::InternalELF:
+  }
+  case SourceType::InternalELF: {
     success &= loadElfFile(*loadedProgram, file);
     break;
-  case SourceType::ExternalELF:
+  }
+  case SourceType::ExternalELF: {
     // Since there is no related source code for an externally compiled ELF, the
     // editor is disabled
     disableEditor();
     success &= loadElfFile(*loadedProgram, file);
     break;
+  }
   }
 
   if (success) {
@@ -367,31 +380,6 @@ void EditTab::disableEditor() {
 }
 
 void EditTab::on_disassembledViewButton_toggled() { updateProgramViewer(); }
-
-bool EditTab::loadFlatBinaryFile(Program &program, QFile &file,
-                                 unsigned long entryPoint,
-                                 unsigned long loadAt) {
-  // Reopen the file, ensuring that we're reading it as a binary (non-text)
-  // file:
-  file.close();
-  if (!file.open(QIODevice::ReadOnly)) {
-    QMessageBox::warning(this, "Error",
-                         "Error: Could not open file " + file.fileName());
-    return false;
-  }
-  ProgramSection section;
-  section.name = TEXT_SECTION_NAME;
-  section.address = loadAt;
-  section.data = file.readAll();
-
-  program.sections[TEXT_SECTION_NAME] = section;
-  program.entryPoint = entryPoint;
-
-  m_ui->curInputSrcLabel->setText("Flat binary");
-  m_ui->inputSrcPath->setText(file.fileName());
-  disableEditor();
-  return true;
-}
 
 void EditTab::loadSourceText(const QString &text) {
   enableEditor();

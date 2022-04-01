@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMetaType>
+#include <QPointF>
 #include <map>
 #include <memory>
 
@@ -27,7 +28,7 @@ enum ProcessorID {
   RV64_6S_DUAL,
   NUM_PROCESSORS
 };
-Q_ENUM_NS(Ripes::ProcessorID); // Register with the metaobject system
+Q_ENUM_NS(ProcessorID); // Register with the metaobject system
 // ============================================================================
 
 using RegisterInitialization = std::map<unsigned, VInt>;
