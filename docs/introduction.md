@@ -150,27 +150,10 @@ Ripes includes memory mapped I/O allowing for interaction with various different
 
 [here](mmio.md).
 
-## Command-line interface
-
-Ripes v.2.2.5 adds support for command-line execution. Through this, programs can be assembled, compiled, and loaded into the simulator, and simulated on any processor model in Ripes.  
-An example execution could be:
-```sh
-./Ripes 
-  --mode cli            \ # Enable command line interface
-  --src foo.s           \ # Input file
-  -t asm                \ # Input file type
-  --proc "RV32_5S"      \ # Processor model
-  --isaexts M,C         \ # ISA extensions to enable in the assembler/processor  
-  --ipc                 \ # show IPC
-  --cycles              \ # show # of cycles executed
-  --pipeline              # Show pipeline state during execution
-```
-
-See `./Ripes --help` for further information on using Ripes in command-line mode.
-
 ## Up Next...
 This concludes the introduction to Ripes and its main features. Reading on, please refer to the following pages:
 - [Cache simulation with Ripes](cache_sim.md)
 - [Building and Executing C programs with Ripes](c_programming.md)
 - [Adapting Compiler Explorer generated RISC-V assembly code](compiler_explorer.md)
 - [Interacting with memory-mapped devices](mmio.md)
+- [Using the command line interface](cli.md)

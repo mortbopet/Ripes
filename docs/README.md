@@ -10,4 +10,5 @@ Is this your first time using Ripes? check out the [introduction/tutorial](intro
 - [Adapting Compiler Explorer generated RISC-V assembly code](compiler_explorer.md)
 - [Memory-mapped IO in Ripes](mmio.md)
 - [Supported ecalls](ecalls.md)
+- [Command-line interface](cli.md)
 - [Release notes](release_notes.md)
