@@ -16,6 +16,7 @@ struct CmdModeOptions {
   bool verbose;
   QString outputFile;
   bool jsonOutput;
+  int timeout;
 
   // A list of enabled telemetry options.
   std::vector<std::shared_ptr<Telemetry>> telemetry;

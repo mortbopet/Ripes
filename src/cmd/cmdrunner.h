@@ -26,7 +26,8 @@ private:
 
   /// Prints requested telemetry to the console/output file.
   int postRun();
-  void info(QString msg, bool alwaysPrint = false, bool header = false);
+  void info(QString msg, bool alwaysPrint = false, bool header = false,
+            const QString &prefix = "INFO");
   void error(const QString &msg);
 
   CmdModeOptions m_options;

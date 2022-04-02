@@ -23,6 +23,11 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
                                       "ISA extensions to enable (comma "
                                       "separated)",
                                       "isaexts", ""));
+  parser.addOption(QCommandLineOption(
+      "timeout",
+      "Simulation timeout in milliseconds. If simulation does not finish "
+      "within the specified time, it will be aborted.",
+      "timeout", "0"));
   parser.addOption(QCommandLineOption("v", "Verbose output"));
   parser.addOption(QCommandLineOption(
       "output",
@@ -110,6 +115,15 @@ bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
         errorMessage += " supports extensions: " + exts.join(", ");
         return false;
       }
+    }
+  }
+
+  if (parser.isSet("timeout")) {
+    bool ok;
+    options.timeout = parser.value("timeout").toUInt(&ok);
+    if (!ok) {
+      errorMessage = "Invalid timeout value specified (--timeout).";
+      return false;
     }
   }
 

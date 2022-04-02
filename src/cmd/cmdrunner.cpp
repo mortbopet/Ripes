@@ -103,14 +103,31 @@ int CmdRunner::processInput() {
 
 int CmdRunner::runModel() {
   info("Running model", false, true);
-  ProcessorHandler::run();
 
   // Wait until receiving ProcessorHandler::runFinished signal
   // before proceeding.
   QEventLoop loop;
   QObject::connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
                    &loop, &QEventLoop::quit);
+  bool hadTimeout = false;
+  QTimer timeoutTimer;
+  timeoutTimer.setSingleShot(true);
+  QObject::connect(&timeoutTimer, &QTimer::timeout, &loop, &QEventLoop::quit);
+  QObject::connect(&timeoutTimer, &QTimer::timeout, &loop,
+                   [&]() { hadTimeout = true; });
+
+  ProcessorHandler::run();
+  if (m_options.timeout != 0)
+    timeoutTimer.start(m_options.timeout);
   loop.exec();
+
+  if (hadTimeout) {
+    ProcessorHandler::stopRun();
+    error("Simulation did not finish within the specified timeout (" +
+          QString::number(m_options.timeout) + " ms)");
+    return 1;
+  }
+
   return 0;
 }
 
@@ -157,7 +174,8 @@ int CmdRunner::postRun() {
   return 0;
 }
 
-void CmdRunner::info(QString msg, bool alwaysPrint, bool header) {
+void CmdRunner::info(QString msg, bool alwaysPrint, bool header,
+                     const QString &prefix) {
 
   if (m_options.verbose || alwaysPrint) {
     if (header) {
@@ -171,13 +189,11 @@ void CmdRunner::info(QString msg, bool alwaysPrint, bool header) {
         msg.append("=");
       }
     } else
-      msg.prepend("INFO: ");
+      msg.prepend(prefix + ": ");
     std::cout << msg.toStdString() << std::endl;
   }
 }
 
-void CmdRunner::error(const QString &msg) {
-  info("ERROR: " + msg, true, false);
-}
+void CmdRunner::error(const QString &msg) { info(msg, true, false, "ERROR"); }
 
 } // namespace Ripes
