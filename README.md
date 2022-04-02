@@ -23,8 +23,8 @@ Ripes may be used to explore concepts such as:
 - How C and assembly code is compiled and assembled to executable machine code
 - How a processor interacts with memory-mapped I/O
 
-If this is your first time using Ripes, please refer to the [introduction/tutorial](https://github.com/mortbopet/Ripes/docs/introduction.md).  
-For further information, please refer to the [Ripes documentation](https://github.com/mortbopet/Ripes/docs).
+If this is your first time using Ripes, please refer to the [introduction/tutorial](docs/introduction.md).  
+For further information, please refer to the [Ripes documentation](docs/README.md).
 
 ## Downloading & Installation
 Prebuilt binaries are available for Linux, Windows & Mac through the [Releases page](https://github.com/mortbopet/Ripes/releases).  
