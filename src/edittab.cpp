@@ -13,7 +13,7 @@
 #include "assembler/program.h"
 
 #include "ccmanager.h"
-#include "cmd/programutilities.h"
+#include "cli/programutilities.h"
 #include "compilererrordialog.h"
 #include "editor/codeeditor.h"
 #include "io/iomanager.h"

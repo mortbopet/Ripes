@@ -1,4 +1,4 @@
-#include "cmdoptions.h"
+#include "clioptions.h"
 #include "processorregistry.h"
 #include "telemetry.h"
 #include <QFile>
@@ -6,7 +6,7 @@
 
 namespace Ripes {
 
-void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
+void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   parser.addOption(QCommandLineOption("src", "Source file", "src"));
   parser.addOption(QCommandLineOption(
       "t", "Source type. Options: [c, asm, bin]", "type", "asm"));
@@ -54,8 +54,8 @@ void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
   }
 }
 
-bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
-                     CmdModeOptions &options) {
+bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
+                     CLIModeOptions &options) {
   options.verbose = parser.isSet("v");
 
   if (!parser.isSet("src")) {

@@ -1,1 +1,0 @@
-create_ripes_lib(cmd LINK_TO_RIPES_LIB)

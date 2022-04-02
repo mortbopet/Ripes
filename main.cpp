@@ -6,13 +6,13 @@
 #include <QTimer>
 #include <iostream>
 
-#include "src/cmd/cmdoptions.h"
-#include "src/cmd/cmdrunner.h"
+#include "src/cli/clioptions.h"
+#include "src/cli/clirunner.h"
 #include "src/mainwindow.h"
 
 using namespace std;
 
-void initParser(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
+void initParser(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   QString helpText =
       "The command line interface allows for assembling/compiling/executing a "
       "\n"
@@ -22,16 +22,16 @@ void initParser(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
 
   helpText.prepend("Ripes command line interface.\n");
   parser.setApplicationDescription(helpText);
-  QCommandLineOption modeOption("mode", "Ripes mode [gui, sh]", "mode", "gui");
+  QCommandLineOption modeOption("mode", "Ripes mode [gui, cli]", "mode", "gui");
   parser.addOption(modeOption);
-  Ripes::addCmdOptions(parser, options);
+  Ripes::addCLIOptions(parser, options);
 }
 
 enum CommandLineParseResult {
   CommandLineError,
   CommandLineHelpRequested,
   CommandLineGUI,
-  CommandLineCMD
+  CommandLineCLI
 };
 
 CommandLineParseResult parseCommandLine(QCommandLineParser &parser,
@@ -47,8 +47,8 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser,
 
   if (parser.value("mode") == "gui")
     return CommandLineGUI;
-  else if (parser.value("mode") == "sh")
-    return CommandLineCMD;
+  else if (parser.value("mode") == "cli")
+    return CommandLineCLI;
   else {
     errorMessage = "Invalid mode: " + parser.value("mode");
     return CommandLineError;
@@ -69,14 +69,14 @@ int guiMode(QApplication &app) {
   return app.exec();
 }
 
-int cmdMode(QCommandLineParser &parser, Ripes::CmdModeOptions &options) {
+int CLIMode(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   QString err;
-  if (!Ripes::parseCmdOptions(parser, err, options)) {
+  if (!Ripes::parseCLIOptions(parser, err, options)) {
     std::cerr << "ERROR: " << err.toStdString() << std::endl;
     parser.showHelp();
     return 0;
   }
-  return Ripes::CmdRunner(options).run();
+  return Ripes::CLIRunner(options).run();
 }
 
 int main(int argc, char **argv) {
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   QCoreApplication::setApplicationName("Ripes");
 
   QCommandLineParser parser;
-  Ripes::CmdModeOptions options;
+  Ripes::CLIModeOptions options;
   initParser(parser, options);
   QString err;
   switch (parseCommandLine(parser, err)) {
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     return 0;
   case CommandLineGUI:
     return guiMode(app);
-  case CommandLineCMD:
-    return cmdMode(parser, options);
+  case CommandLineCLI:
+    return CLIMode(parser, options);
   }
 }

@@ -1,4 +1,4 @@
-#include "cmdrunner.h"
+#include "clirunner.h"
 #include "io/iomanager.h"
 #include "processorhandler.h"
 #include "programutilities.h"
@@ -32,9 +32,9 @@ static QString qVariantToString(QVariant &v) {
   return def;
 }
 
-CmdRunner::CmdRunner(const CmdModeOptions &options)
+CLIRunner::CLIRunner(const CLIModeOptions &options)
     : QObject(), m_options(options) {
-  info("Ripes command-line mode", false, true);
+  info("Ripes CLI mode", false, true);
   ProcessorHandler::selectProcessor(m_options.proc, m_options.isaExtensions);
 
   // Connect systemIO output to stdout.
@@ -46,7 +46,7 @@ CmdRunner::CmdRunner(const CmdModeOptions &options)
   // TODO: how to handle system input?
 }
 
-int CmdRunner::run() {
+int CLIRunner::run() {
   if (processInput())
     return 1;
 
@@ -59,7 +59,7 @@ int CmdRunner::run() {
   return 0;
 }
 
-int CmdRunner::processInput() {
+int CLIRunner::processInput() {
   info("Processing input file", false, true);
 
   switch (m_options.srcType) {
@@ -101,7 +101,7 @@ int CmdRunner::processInput() {
   return 0;
 }
 
-int CmdRunner::runModel() {
+int CLIRunner::runModel() {
   info("Running model", false, true);
 
   // Wait until receiving ProcessorHandler::runFinished signal
@@ -131,7 +131,7 @@ int CmdRunner::runModel() {
   return 0;
 }
 
-int CmdRunner::postRun() {
+int CLIRunner::postRun() {
   info("Post-run", false, true);
 
   // Open output stream
@@ -174,7 +174,7 @@ int CmdRunner::postRun() {
   return 0;
 }
 
-void CmdRunner::info(QString msg, bool alwaysPrint, bool header,
+void CLIRunner::info(QString msg, bool alwaysPrint, bool header,
                      const QString &prefix) {
 
   if (m_options.verbose || alwaysPrint) {
@@ -194,6 +194,6 @@ void CmdRunner::info(QString msg, bool alwaysPrint, bool header,
   }
 }
 
-void CmdRunner::error(const QString &msg) { info(msg, true, false, "ERROR"); }
+void CLIRunner::error(const QString &msg) { info(msg, true, false, "ERROR"); }
 
 } // namespace Ripes

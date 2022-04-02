@@ -8,7 +8,7 @@
 
 namespace Ripes {
 
-struct CmdModeOptions {
+struct CLIModeOptions {
   QString src;
   SourceType srcType;
   ProcessorID proc;
@@ -22,11 +22,12 @@ struct CmdModeOptions {
   std::vector<std::shared_ptr<Telemetry>> telemetry;
 };
 
-/// Adds Ripes command-line mode options to a parser.
-void addCmdOptions(QCommandLineParser &parser, Ripes::CmdModeOptions &options);
-/// Parses Ripes command-line mode options to a CmdModeOptions struct. Returns
+/// Adds Ripes CLI options to a parser.
+void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options);
+
+/// Parses Ripes CLI mode options to a CLIModeOptions struct. Returns
 /// true if options were parsed successfully.
-bool parseCmdOptions(QCommandLineParser &parser, QString &errorMessage,
-                     CmdModeOptions &options);
+bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
+                     CLIModeOptions &options);
 
 } // namespace Ripes
