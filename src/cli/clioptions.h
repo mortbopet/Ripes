@@ -13,10 +13,10 @@ struct CLIModeOptions {
   SourceType srcType;
   ProcessorID proc;
   QStringList isaExtensions;
-  bool verbose;
-  QString outputFile;
-  bool jsonOutput;
-  int timeout;
+  bool verbose = false;
+  QString outputFile = "";
+  bool jsonOutput = false;
+  int timeout = 0;
 
   // A list of enabled telemetry options.
   std::vector<std::shared_ptr<Telemetry>> telemetry;

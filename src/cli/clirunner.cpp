@@ -116,11 +116,36 @@ int CLIRunner::runModel() {
   QObject::connect(&timeoutTimer, &QTimer::timeout, &loop,
                    [&]() { hadTimeout = true; });
 
+  // Display status info every second when verbose output is enabled.
+  QTimer infoTimer;
+  QElapsedTimer elapsed;
+  elapsed.start();
+  infoTimer.connect(&infoTimer, &QTimer::timeout, this, [&]() {
+    QTime timeFormat(0, 0);
+    QString infostr =
+        timeFormat.addMSecs(elapsed.elapsed()).toString("hh:mm:ss");
+    const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
+    const auto instrsRetired =
+        ProcessorHandler::getProcessor()->getInstructionsRetired();
+    infostr += "\tcycles: " + QString::number(cycleCount);
+    infostr += "\tretired: " + QString::number(instrsRetired);
+    info(infostr, false, false);
+  });
+
+  if (m_options.verbose)
+    infoTimer.start(1000);
+
+  // Start simulation
   ProcessorHandler::run();
   if (m_options.timeout != 0)
     timeoutTimer.start(m_options.timeout);
   loop.exec();
 
+  // Event loop finished either by processor finishing or timeout. Determine the
+  // cause and act.
+
+  timeoutTimer.stop();
+  infoTimer.stop();
   if (hadTimeout) {
     ProcessorHandler::stopRun();
     error("Simulation did not finish within the specified timeout (" +
