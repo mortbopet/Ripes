@@ -7,9 +7,9 @@
 namespace Ripes {
 
 void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
-  parser.addOption(QCommandLineOption("src", "Source file", "src"));
+  parser.addOption(QCommandLineOption("src", "Path to source file.", "path"));
   parser.addOption(QCommandLineOption(
-      "t", "Source type. Options: [c, asm, bin]", "type", "asm"));
+      "t", "Source file type. Options: [c, asm, bin]", "type", "asm"));
 
   // Processor models. Generate information from processor registry.
   QStringList processorOptions;
@@ -18,20 +18,20 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
         enumToString<ProcessorID>(static_cast<ProcessorID>(i)));
   QString desc =
       "Processor model. Options: [" + processorOptions.join(", ") + "]";
-  parser.addOption(QCommandLineOption("proc", desc, "proc"));
+  parser.addOption(QCommandLineOption("proc", desc, "name"));
   parser.addOption(QCommandLineOption("isaexts",
                                       "ISA extensions to enable (comma "
                                       "separated)",
-                                      "isaexts", ""));
+                                      "extensions", ""));
   parser.addOption(QCommandLineOption(
       "timeout",
       "Simulation timeout in milliseconds. If simulation does not finish "
       "within the specified time, it will be aborted.",
-      "timeout", "0"));
+      "ms", "0"));
   parser.addOption(QCommandLineOption("v", "Verbose output"));
   parser.addOption(QCommandLineOption(
       "output", "Report output file. If not set, report is printed to stdout.",
-      "output"));
+      "path"));
   parser.addOption(QCommandLineOption("json", "JSON-formatted report."));
 
   parser.addOption(QCommandLineOption("all", "Enable all report options."));

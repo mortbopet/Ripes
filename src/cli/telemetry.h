@@ -135,7 +135,7 @@ public:
   }
   QString key() const override { return "runinfo"; }
   QString description() const override {
-    return "simulation information in output (processor "
+    return "simulation information (processor "
            "configuration, input file, ...)";
   }
   QVariant report() override {
