@@ -30,13 +30,11 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
       "timeout", "0"));
   parser.addOption(QCommandLineOption("v", "Verbose output"));
   parser.addOption(QCommandLineOption(
-      "output",
-      "Telemetry output file. If not set, telemetry is printed to stdout.",
+      "output", "Report output file. If not set, report is printed to stdout.",
       "output"));
-  parser.addOption(
-      QCommandLineOption("json", "Report JSON-formatted telemetry."));
+  parser.addOption(QCommandLineOption("json", "JSON-formatted report."));
 
-  parser.addOption(QCommandLineOption("all", "Enable all telemetry options."));
+  parser.addOption(QCommandLineOption("all", "Enable all report options."));
 
   // telemetry reporting
   options.telemetry.push_back(std::make_shared<CyclesTelemetry>());

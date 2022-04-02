@@ -28,9 +28,9 @@ See `./Ripes --help` for further information.
 |  --isaexts <isaexts> |  ISA extensions to enable (comma separated). |
 |  --timeout <timeout> |  Simulation timeout in milliseconds. If simulation does not finish within the specified time, it will be aborted. |
 |  -v                  |  Verbose output and runtime status information. |
-|  --output <output>   |  Telemetry output file. If not set, telemetry is printed to stdout. |
-|  --json              |  Report JSON-formatted telemetry. |
-|  --all               |  Enable all telemetry options. |
+|  --output <output>   |  Report output file. If not set, report is printed to stdout. |
+|  --json              |  JSON-formatted report. |
+|  --all               |  Enable all report options. |
 |  --cycles            |  Report cycles |
 |  --iret              |  Report instructions retired |
 |  --cpi               |  Report cycles per instruction (CPI) |
