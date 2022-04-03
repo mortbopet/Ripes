@@ -17,6 +17,7 @@ struct CLIModeOptions {
   QString outputFile = "";
   bool jsonOutput = false;
   int timeout = 0;
+  RegisterInitialization regInit;
 
   // A list of enabled telemetry options.
   std::vector<std::shared_ptr<Telemetry>> telemetry;

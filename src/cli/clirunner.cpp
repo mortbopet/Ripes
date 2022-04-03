@@ -35,7 +35,8 @@ static QString qVariantToString(QVariant &v) {
 CLIRunner::CLIRunner(const CLIModeOptions &options)
     : QObject(), m_options(options) {
   info("Ripes CLI mode", false, true);
-  ProcessorHandler::selectProcessor(m_options.proc, m_options.isaExtensions);
+  ProcessorHandler::selectProcessor(m_options.proc, m_options.isaExtensions,
+                                    m_options.regInit);
 
   // Connect systemIO output to stdout.
   connect(&SystemIO::get(), &SystemIO::doPrint, this, [&](auto text) {

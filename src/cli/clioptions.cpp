@@ -1,5 +1,6 @@
 #include "clioptions.h"
 #include "processorregistry.h"
+#include "radix.h"
 #include "telemetry.h"
 #include <QFile>
 #include <QMetaEnum>
@@ -23,6 +24,12 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
                                       "ISA extensions to enable (comma "
                                       "separated)",
                                       "extensions", ""));
+  parser.addOption(QCommandLineOption(
+      "reginit",
+      "Comma-separated list of register initialization values. The register "
+      "value may be specified in signed, hex, or boolean notation. Format:\n"
+      "<register idx>=<value>,<register idx>=<value>",
+      "[rid:v]"));
   parser.addOption(QCommandLineOption(
       "timeout",
       "Simulation timeout in milliseconds. If simulation does not finish "
@@ -126,6 +133,49 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
   }
 
   options.outputFile = parser.value("output");
+
+  // Validate register initializations
+  if (parser.isSet("reginit")) {
+    QStringList regInitList = parser.value("reginit").split(",");
+    for (auto &regInit : regInitList) {
+      QStringList regInitParts = regInit.split("=");
+      if (regInitParts.size() != 2) {
+        errorMessage = "Invalid register initialization '" + regInit +
+                       "' specified (--reginit).";
+        return false;
+      }
+      bool ok;
+      int regIdx = regInitParts[0].toInt(&ok);
+      if (!ok) {
+        errorMessage = "Invalid register index '" + regInitParts[0] +
+                       "' specified (--reginit).";
+        return false;
+      }
+
+      auto &vstr = regInitParts[1];
+      VInt regVal;
+      if (vstr.startsWith("0x"))
+        regVal = decodeRadixValue(vstr, Radix::Hex, &ok);
+      else if (vstr.startsWith("0b"))
+        regVal = decodeRadixValue(vstr, Radix::Binary, &ok);
+      else
+        regVal = decodeRadixValue(vstr, Radix::Signed, &ok);
+
+      if (!ok) {
+        errorMessage =
+            "Invalid register value '" + vstr + "' specified (--reginit).";
+        return false;
+      }
+
+      if (options.regInit.count(regIdx) > 0) {
+        errorMessage = "Duplicate register initialization for register " +
+                       QString::number(regIdx) + " specified (--reginit).";
+        return false;
+      }
+
+      options.regInit[regIdx] = regVal;
+    }
+  }
 
   // Enable selected telemetry options.
   for (auto &telemetry : options.telemetry)

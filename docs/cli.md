@@ -38,4 +38,6 @@ See `./Ripes --help` for further information.
 |  --pipeline          |  Report pipeline state |
 |  --regs              |  Report register values |
 |  --runinfo           |  Report simulation information in output (processor configuration, input file, ...) |
+|   --reginit <[rid:v]>|     Comma-separated list of register initialization values. The register value may be specified in signed, hex, or boolean notation. Format: `<register idx>=<value>,<register idx>=<value>` |
+
 
