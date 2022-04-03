@@ -179,15 +179,16 @@ int CLIRunner::postRun() {
     QJsonObject jsonOutput;
     for (auto &telemetry : m_options.telemetry)
       if (telemetry->isEnabled())
-        jsonOutput.insert(telemetry->prettyKey(),
-                          QJsonValue::fromVariant(telemetry->report()));
+        jsonOutput.insert(
+            telemetry->prettyKey(),
+            QJsonValue::fromVariant(telemetry->report(/*json=*/true)));
     *stream << QJsonDocument(jsonOutput).toJson(QJsonDocument::Indented);
   } else {
     // Telemetry output
     for (auto &telemetry : m_options.telemetry)
       if (telemetry->isEnabled()) {
         *stream << "===== " << telemetry->description() << "\n";
-        QVariant reportedValue = telemetry->report();
+        QVariant reportedValue = telemetry->report(/*json=*/false);
         *stream << qVariantToString(reportedValue) << "\n";
       }
   }

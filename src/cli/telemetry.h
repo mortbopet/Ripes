@@ -16,8 +16,9 @@ public:
   Telemetry() {}
   virtual ~Telemetry(){};
 
-  // Report this telemetry as a QVariant.
-  virtual QVariant report() = 0;
+  // Returns a QVariant representing representing this telemtry. If 'json' is
+  // set, indicates that the output is intended for JSON export.
+  virtual QVariant report(bool /*json*/) = 0;
 
   // Returns the name of this telemetry.
   virtual QString key() const = 0;
@@ -42,7 +43,8 @@ class CPITelemetry : public Telemetry {
   QString description() const override {
     return "cycles per instruction (CPI)";
   }
-  QVariant report() override {
+
+  QVariant report(bool /*json*/) override {
     const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
     const auto instrsRetired =
         ProcessorHandler::getProcessor()->getInstructionsRetired();
@@ -58,7 +60,7 @@ class IPCTelemetry : public Telemetry {
   QString description() const override {
     return "instructions per cycle (IPC)";
   }
-  QVariant report() override {
+  QVariant report(bool /*json*/) override {
     const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
     const auto instrsRetired =
         ProcessorHandler::getProcessor()->getInstructionsRetired();
@@ -72,7 +74,7 @@ class IPCTelemetry : public Telemetry {
 class CyclesTelemetry : public Telemetry {
   QString key() const override { return "cycles"; }
   QString description() const override { return "cycles"; }
-  QVariant report() override {
+  QVariant report(bool /*json*/) override {
     return ProcessorHandler::getProcessor()->getCycleCount();
   }
 };
@@ -81,7 +83,7 @@ class InstrsRetiredTelemetry : public Telemetry {
   QString key() const override { return "iret"; }
   QString prettyKey() const override { return "# instructions retired"; }
   QString description() const override { return "instructions retired"; }
-  QVariant report() override {
+  QVariant report(bool /*json*/) override {
     return ProcessorHandler::getProcessor()->getInstructionsRetired();
   }
 };
@@ -98,7 +100,7 @@ public:
 
   QString key() const override { return "pipeline"; }
   QString description() const override { return "pipeline state"; }
-  QVariant report() override {
+  QVariant report(bool /*json*/) override {
     // Simply grab the current state of the pipeline diagram model and print it.
     return m_pipelineDiagramModel->toString();
   }
@@ -112,17 +114,26 @@ public:
   QString key() const override { return "regs"; }
   QString prettyKey() const override { return "registers"; }
   QString description() const override { return "register values"; }
-  QVariant report() override {
-    QString v;
-    QTextStream out(&v);
+  QVariant report(bool json) override {
+    QVariantMap registerMap;
     auto *isa = ProcessorHandler::currentISA();
-    for (unsigned i = 0; i < isa->regCnt(); i++) {
-      auto v = ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i);
-      out << isa->regName(i) << ":\t"
-          << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
-      out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
+    if (json) {
+      for (unsigned i = 0; i < isa->regCnt(); i++) {
+        registerMap[isa->regName(i)] = QVariant::fromValue(
+            ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i));
+      }
+      return registerMap;
+    } else {
+      QString outStr;
+      QTextStream out(&outStr);
+      for (unsigned i = 0; i < isa->regCnt(); i++) {
+        auto v = ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i);
+        out << isa->regName(i) << ":\t"
+            << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
+        out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
+      }
+      return outStr;
     }
-    return v;
   }
 };
 
@@ -138,7 +149,7 @@ public:
     return "simulation information (processor "
            "configuration, input file, ...)";
   }
-  QVariant report() override {
+  QVariant report(bool /*json*/) override {
     QVariantMap m;
     m["processor"] = enumToString<ProcessorID>(ProcessorHandler::getID());
     m["ISA extensions"] = ProcessorHandler::currentISA()->enabledExtensions();
