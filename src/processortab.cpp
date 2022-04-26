@@ -599,20 +599,24 @@ void ProcessorTab::showPipelineDiagram() {
 
 void ProcessorTab::processorClocked() {
   const auto proc = ProcessorHandler::get()->getProcessor();
-  const auto lastStage = proc->stageInfo(proc->stageCount() - 1);
-  if (lastStage.state == StageInfo::State::Stalled)
-    m_stallCount++;
-  if (lastStage.state == StageInfo::State::Flushed)
-    m_flushCycleCount++;
+  for (auto lane : proc->structure()) {
+    const auto laneLastStage = proc->stageInfo({lane.first, lane.second - 1});
+    if (laneLastStage.state == StageInfo::State::Stalled)
+      m_stallCount++;
+    if (laneLastStage.state == StageInfo::State::Flushed)
+      m_flushCycleCount++;
+  }
 }
 
 void ProcessorTab::processorReversed() {
   const auto proc = ProcessorHandler::get()->getProcessor();
-  const auto lastStage = proc->stageInfo(proc->stageCount() - 1);
-  if (lastStage.state == StageInfo::State::Stalled)
-    m_stallCount--;
-  if (lastStage.state == StageInfo::State::Flushed)
-    m_flushCycleCount--;
+  for (auto lane : proc->structure()) {
+    const auto laneLastStage = proc->stageInfo({lane.first, lane.second - 1});
+    if (laneLastStage.state == StageInfo::State::Stalled)
+      m_stallCount--;
+    if (laneLastStage.state == StageInfo::State::Flushed)
+      m_flushCycleCount--;
+  }
 }
 
 } // namespace Ripes
