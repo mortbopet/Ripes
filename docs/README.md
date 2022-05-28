@@ -5,7 +5,7 @@ Welcome to the Ripes docs! You'll find all Ripes documentation pages in the list
 Is this your first time using Ripes? check out the [introduction/tutorial](introduction.md).
 
 - [Ripes introduction/tutorial](introduction.md)
-- [Cache simulation with Ripes](cache.md)
+- [Cache simulation with Ripes](cache_sim.md)
 - [Building and Executing C programs with Ripes](c_programming.md)
 - [Adapting Compiler Explorer generated RISC-V assembly code](compiler_explorer.md)
 - [Memory-mapped IO in Ripes](mmio.md)
