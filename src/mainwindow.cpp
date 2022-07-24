@@ -381,7 +381,7 @@ static bool writeTextFile(QFile &file, const QString &data) {
 }
 
 static bool writeBinaryFile(QFile &file, const QByteArray &data) {
-  if (!file.open(QIODevice::WriteOnly)) {
+  if (file.open(QIODevice::WriteOnly)) {
     file.write(data);
     file.close();
     return true;
@@ -411,8 +411,11 @@ void MainWindow::saveFilesTriggered() {
     savedFiles << diag.sourcePath();
     if (!writeTextFile(file,
                        static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-                           ->getAssemblyText()))
+                           ->getAssemblyText())) {
+      QMessageBox::information(this, "File error",
+                               "Error when saving file: " + file.errorString());
       return;
+    }
   }
 
   if (!diag.binaryPath().isEmpty()) {
@@ -424,8 +427,11 @@ void MainWindow::saveFilesTriggered() {
       return;
 
     savedFiles << diag.binaryPath();
-    if (!writeBinaryFile(file, program.get()->sections.at(".text").data))
+    if (!writeBinaryFile(file, program.get()->sections.at(".text").data)) {
+      QMessageBox::information(this, "File error",
+                               "Error when saving file: " + file.errorString());
       return;
+    }
   }
 
   GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "),
