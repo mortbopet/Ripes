@@ -91,7 +91,7 @@ The following example illustrates how different cache configurations may have an
 ### Example Program
 The example program allows us to specify some memory access pattern wherein adjusting this access pattern will have an impact on cache performance.
 
-The example program is sketched out as a C program and compiled to RISC-V assembly using [Compiler Explorer](https://godbolt.org/) (for tips on how to convert compiler-explorer generated RISC-V assembly to assembly compatible with the Ripes assembler, refer to [this docs page](https://github.com/mortbopet/Ripes/docs/compiler_explorer.md)).
+The example program is sketched out as a C program and compiled to RISC-V assembly using [Compiler Explorer](https://godbolt.org/) (for tips on how to convert compiler-explorer generated RISC-V assembly to assembly compatible with the Ripes assembler, refer to [this docs page](https://github.com/mortbopet/Ripes/blob/master/docs/compiler_explorer.md)).
 ```C++
 unsigned stride = 4;
 unsigned accessesPerTurn = 128;
