@@ -15,6 +15,7 @@
 - Fixed string literal tokenizer; '\\"' and ':' are now allowed inside string directives.
 - Added register column to system call help window.
 - Added support for local/relative labels in assembler.
+- Fixed pipeline diagram not updating
 
 ## Ripes v2.2.4
 
