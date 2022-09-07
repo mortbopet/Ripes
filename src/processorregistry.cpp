@@ -125,11 +125,11 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 4}, QPointF{0.87, 0}}}},
              {"Extended",
               ":/layouts/RISC-V/rv5s/rv5s_extended_layout.json",
-              {{{0, 1}, QPointF{0.08, 0}},
-               {{0, 2}, QPointF{0.28, 0}},
-               {{0, 3}, QPointF{0.54, 0}},
-               {{0, 4}, QPointF{0.78, 0}},
-               {{0, 5}, QPointF{0.9, 0}}}}};
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.28, 0}},
+               {{0, 2}, QPointF{0.54, 0}},
+               {{0, 3}, QPointF{0.78, 0}},
+               {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint32_t>>(
       ProcessorID::RV32_5S, "5-stage processor",
