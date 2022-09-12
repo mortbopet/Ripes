@@ -7,7 +7,7 @@
 
 Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
 
-If you enjoy using Ripes, or find it useful in teaching, please consider supporting the project through [GitHub Sponsors](https://github.com/sponsors/mortbopet) or donating through [Ko-Fi](https://ko-fi.com/mortbopet).
+If you enjoy using Ripes, or find it useful in teaching, feel free to leave a tip through [Ko-Fi](https://ko-fi.com/mortbopet).
 
 For questions, comments, feature requests, or new ideas, don't hesitate to share these at the [discussions page](https://github.com/mortbopet/Ripes/discussions).  
 For bugs or issues, please report these at the [issues page](https://github.com/mortbopet/Ripes/issues).
