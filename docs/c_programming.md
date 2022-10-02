@@ -17,7 +17,7 @@ Ripes requires a bare-metal RISC-V toolchain, specifically the tuple`riscv64-unk
 <p align="center">
     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/ccsettings.png?raw=true" />
 </p>
-With a valid toolchain available, navigate to `Edit->Settings->Editor`. Here, one may provide a bath to a compatible compiler executable, ie. the `riscv64-unknown-elf-gcc` executable. Ripes will automatically try to search for the executable in the current `PATH`. If no compiler was found automatically, one may browse and navigate to the compiler executable. If a valid compiler has been specified, the `compiler path` field will turn green.  
+With a valid toolchain available, navigate to `Edit->Settings->Editor`. Here, one may provide a path to a compatible compiler executable, ie. the `riscv64-unknown-elf-gcc` executable. Ripes will automatically try to search for the executable in the current `PATH`. If no compiler was found automatically, one may browse and navigate to the compiler executable. If a valid compiler has been specified, the `compiler path` field will turn green.  
 One may specify additional compiler arguments in the `compiler arguments` field, such as optimization level etc.
 
 **MacOS users** may experience that when trying to register the compiler, a popup may appear stating that ".. was blocked from use because it is not from an identified developer". This will appear for _all_ separate executables used by the toolchain (assembler, linker, etc..). 
