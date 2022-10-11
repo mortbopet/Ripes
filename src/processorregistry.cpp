@@ -11,6 +11,36 @@
 
 namespace Ripes {
 
+// TODO: This whole registration logic is ugly and should be reworked - either
+// load a JSON file at runtime, or have a small codegen pass during compilation
+// to generate this file based on an input JSON.
+
+#define no_hz_note                                                             \
+  "<br><b>NOTE: given the lack of a hazard unit (and "                         \
+  "therefore the lack of dynamic hazard resolution in the pipeline) programs " \
+  "with hazards will execute incorrectly, unless resolved by inserting "       \
+  "nop's to manually stall the pipeline.</b>";
+
+constexpr const char rv5s_no_fw_hz_desc[] =
+    "A 5-stage in-order processor with no forwarding or hazard "
+    "detection/elimination." no_hz_note;
+
+constexpr const char rv5s_no_hz_desc[] =
+    "A 5-stage in-order processor with forwarding but no hazard "
+    "detection/elimination." no_hz_note;
+constexpr const char rv5s_desc[] =
+    "A 5-stage in-order processor with hazard detection/elimination and "
+    "forwarding.";
+constexpr const char rv5s_no_fw_desc[] =
+    "A 5-stage in-order processor with hazard detection/elimination but no "
+    "forwarding unit.";
+
+constexpr const char rv6s_desc[] =
+    "A 6-stage dual-issue in-order processor. Each way may execute "
+    "arithmetic instructions, whereas way 1 "
+    "is reserved for controlflow and ecall instructions, and way 2 for "
+    "memory accessing instructions.";
+
 ProcessorRegistry::ProcessorRegistry() {
   // Initialize processors
   std::vector<Layout> layouts;
@@ -51,15 +81,11 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW_HZ<uint32_t>>(
       ProcessorID::RV32_5S_NO_FW_HZ,
       "5-stage processor w/o forwarding or hazard detection",
-      "A 5-stage in-order processor with no forwarding or hazard "
-      "detection/elimination.",
-      layouts, defRegVals));
+      rv5s_no_fw_hz_desc, layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW_HZ<uint64_t>>(
       ProcessorID::RV64_5S_NO_FW_HZ,
       "5-stage processor w/o forwarding or hazard detection",
-      "A 5-stage in-order processor with no forwarding or hazard "
-      "detection/elimination.",
-      layouts, defRegVals));
+      rv5s_no_fw_hz_desc, layouts, defRegVals));
 
   // RISC-V 5-stage without hazard detection
   layouts = {{"Standard",
@@ -79,14 +105,10 @@ ProcessorRegistry::ProcessorRegistry() {
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_HZ<uint32_t>>(
       ProcessorID::RV32_5S_NO_HZ, "5-stage processor w/o hazard detection",
-      "A 5-stage in-order processor with forwarding but no hazard "
-      "detection/elimination.",
-      layouts, defRegVals));
+      rv5s_no_hz_desc, layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_HZ<uint64_t>>(
       ProcessorID::RV64_5S_NO_HZ, "5-stage processor w/o hazard detection",
-      "A 5-stage in-order processor with forwarding but no hazard "
-      "detection/elimination.",
-      layouts, defRegVals));
+      rv5s_no_hz_desc, layouts, defRegVals));
 
   // RISC-V 5-stage without forwarding unit
   layouts = {{"Standard",
@@ -106,14 +128,10 @@ ProcessorRegistry::ProcessorRegistry() {
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW<uint32_t>>(
       ProcessorID::RV32_5S_NO_FW, "5-Stage processor w/o forwarding unit",
-      "A 5-stage in-order processor with hazard detection/elimination but no "
-      "forwarding unit.",
-      layouts, defRegVals));
+      rv5s_no_fw_desc, layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW<uint64_t>>(
       ProcessorID::RV64_5S_NO_FW, "5-Stage processor w/o forwarding unit",
-      "A 5-stage in-order processor with hazard detection/elimination but no "
-      "forwarding unit.",
-      layouts, defRegVals));
+      rv5s_no_fw_desc, layouts, defRegVals));
 
   // RISC-V 5-stage
   layouts = {{"Standard",
@@ -132,15 +150,11 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint32_t>>(
-      ProcessorID::RV32_5S, "5-stage processor",
-      "A 5-stage in-order processor with hazard detection/elimination and "
-      "forwarding.",
-      layouts, defRegVals));
+      ProcessorID::RV32_5S, "5-stage processor", rv5s_desc, layouts,
+      defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint64_t>>(
-      ProcessorID::RV64_5S, "5-stage processor",
-      "A 5-stage in-order processor with hazard detection/elimination and "
-      "forwarding.",
-      layouts, defRegVals));
+      ProcessorID::RV64_5S, "5-stage processor", rv5s_desc, layouts,
+      defRegVals));
 
   // RISC-V 6-stage dual issue
   layouts = {{"Extended",
@@ -159,18 +173,10 @@ ProcessorRegistry::ProcessorRegistry() {
                 {{1, 5}, QPointF{0.90, 1}}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint32_t>>(
-      ProcessorID::RV32_6S_DUAL, "6-stage dual-issue processor",
-      "A 6-stage dual-issue in-order processor. Each way may execute "
-      "arithmetic instructions, whereas way 1 "
-      "is reserved for controlflow and ecall instructions, and way 2 for "
-      "memory accessing instructions.",
+      ProcessorID::RV32_6S_DUAL, "6-stage dual-issue processor", rv6s_desc,
       layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint64_t>>(
-      ProcessorID::RV64_6S_DUAL, "6-stage dual-issue processor",
-      "A 6-stage dual-issue in-order processor. Each way may execute "
-      "arithmetic instructions, whereas way 1 "
-      "is reserved for controlflow and ecall instructions, and way 2 for "
-      "memory accessing instructions.",
+      ProcessorID::RV64_6S_DUAL, "6-stage dual-issue processor", rv6s_desc,
       layouts, defRegVals));
 }
 } // namespace Ripes

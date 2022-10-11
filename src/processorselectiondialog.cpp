@@ -141,7 +141,10 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
   m_selectedID = id;
   m_ui->name->setText(desc->name);
   m_ui->ISA->setText(isaInfo.isa->name());
-  m_ui->description->setPlainText(desc->description);
+  m_ui->description->clear();
+  m_ui->description->appendHtml(desc->description);
+  m_ui->description->moveCursor(QTextCursor::Start);
+  m_ui->description->ensureCursorVisible();
   m_ui->regInitWidget->processorSelectionChanged(id);
 
   m_ui->layout->clear();
