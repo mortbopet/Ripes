@@ -24,7 +24,7 @@ The cache is configurable through the following options:
 
 - **Ways**: Associativity specification. Specified in a power of two (ie. a "two-way set associative cache" will have `ways=1 (2^1 = 2 ways)` whereas a "direct mapped cache" will have `ways=0 (2^0 = 1 way)`). 
 - **Lines**: Number of cache lines. The number of cache lines will define the size of the `index` used to index within the cache. Specified in a power of two.
-- **Words**: Number of words within each cache line. The number of words will define the size of the `word index` used to select a word within a cache line. Specified in a power of two.
+- **Words/Line**: Number of words within each cache line. The number of words will define the size of the `word index` used to select a word within a cache line. Specified in a power of two.
 - **Wr. hit/Wr. miss**: Cache write policies. Please refer to [this Wikipedia article](https://en.wikipedia.org/wiki/Cache_(computing)#Writing_policies) for further info.
 - **Repl. policy**: Cache replacement policies. Please refer to [this Wikipedia article](https://en.wikipedia.org/wiki/Cache_replacement_policies) for further info.
 
