@@ -115,7 +115,7 @@ public:
     void assertValid() const {
       Q_ASSERT(line != s_invalidIndex && "Cache line index is invalid");
       Q_ASSERT(way != s_invalidIndex && "Cache way index is invalid");
-      Q_ASSERT(block != s_invalidIndex && "Cache block index is invalid");
+      Q_ASSERT(block != s_invalidIndex && "Cache word index is invalid");
     }
 
     bool operator==(const CacheIndex &other) const {

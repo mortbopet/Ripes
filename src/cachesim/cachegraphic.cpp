@@ -459,7 +459,7 @@ void CacheGraphic::cacheInvalidated() {
 
   // Draw horizontal lines between cache blocks
   for (int i = 0; i < m_cache.getBlocks(); ++i) {
-    const QString blockText = "Block " + QString::number(i);
+    const QString blockText = "Word " + QString::number(i);
     drawText(blockText, width + m_tagWidth / 2 - m_fm.width(blockText) / 2,
              -m_fm.height());
     width += m_blockWidth;
