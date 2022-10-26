@@ -24,7 +24,7 @@ The cache is configurable through the following options:
 
 - **Ways**: Associativity specification. Specified in a power of two (ie. a "two-way set associative cache" will have `ways=1 (2^1 = 2 ways)` whereas a "direct mapped cache" will have `ways=0 (2^0 = 1 way)`). 
 - **Lines**: Number of cache lines. The number of cache lines will define the size of the `index` used to index within the cache. Specified in a power of two.
-- **Blocks**: Number of blocks within each cache line. The number of blocks will define the size of the `block index` used to select a block within a cache line. Specified in a power of two.
+- **Words**: Number of words within each cache line. The number of words will define the size of the `word index` used to select a word within a cache line. Specified in a power of two.
 - **Wr. hit/Wr. miss**: Cache write policies. Please refer to [this Wikipedia article](https://en.wikipedia.org/wiki/Cache_(computing)#Writing_policies) for further info.
 - **Repl. policy**: Cache replacement policies. Please refer to [this Wikipedia article](https://en.wikipedia.org/wiki/Cache_replacement_policies) for further info.
 
@@ -51,14 +51,14 @@ Columns within the cache view are defined as:
 - **D**: Dirty bit. Whether the cache way contains dirty data (the cache way was written to, in write-back mode).
 - **LRU**: Visible when `ways > 0` and `Repl. policy = LRU`. A value which was just accessed will have LRU = 0, and a value which is about to be evicted will have an LRU value of `LRU = 2^(ways) - 1`.
 - **Tag**: Current tag of the cached way.
-- **Block #**: Cached data.
+- **Word #**: Cached data.
 
 The cache view may be interacted with as follows:
-- Hovering over a block will display the physical address of the cached value
-- Clicking a block will move the memory view to the corresponding physical address of the cached value.
+- Hovering over a word will display the physical address of the cached value
+- Clicking a word will move the memory view to the corresponding physical address of the cached value.
 - The cache view may be zoomed by performing a `ctrl+scroll` operation (`cmd+scroll on OSX`).
 
-When the cache is indexed, the corresponding _line_ row and _block_ column will be highlighted in yellow. The intersection of these corresponds to all the cells which may contain the cached value. Hence, for a direct mapped cache, only 1 cell will be in the intersection whereas for an _N_-way cache, _N_ cells will be highlighted. In the 4-way set associative cache picture above, we see that 4 cells are highlighted. A cell being highlighted as green indicates a cache hit, whilst red indicates a cache miss. A cell being highlighted in blue indicates that the value is dirty (with write-hit policy "write-back").
+When the cache is indexed, the corresponding _line_ row and _word_ column will be highlighted in yellow. The intersection of these corresponds to all the cells which may contain the cached value. Hence, for a direct mapped cache, only 1 cell will be in the intersection whereas for an _N_-way cache, _N_ cells will be highlighted. In the 4-way set associative cache picture above, we see that 4 cells are highlighted. A cell being highlighted as green indicates a cache hit, whilst red indicates a cache miss. A cell being highlighted in blue indicates that the value is dirty (with write-hit policy "write-back").
 
 ### Cache Access Statistics & Plotting
 
@@ -166,7 +166,7 @@ For the chosen cache configuration we see that the line index of the cache is th
 Applying the bitmask to the access pattern listed above, we see that all access addresses mask to `0x0` and thus will index to the same cache line. In other words, we have no diversity with respect to the indexing in the cache for the given access pattern.  
 In this case, a set-associative cache could be more suitable than a direct-mapped cache.  
 
-Select the cache preset `32-entry 4-word 2-way set associative`. Note that this cache design provides the _same_ number of possibly cached blocks as the previous direct-mapped design. Next, rerun the program.  
+Select the cache preset `32-entry 4-word 2-way set associative`. Note that this cache design provides the _same_ number of possibly cached words as the previous direct-mapped design. Next, rerun the program.
 In this case, we see that the cache achieves a hit rate of `0.9885`. We no longer experience associativity conflicts, since each of the two accesses, whilst mapping to the same cache index, will be placed in separate ways.
 
 ***

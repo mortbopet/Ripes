@@ -1,5 +1,8 @@
 # Ripes Release Notes
 
+### Bug fixes and minor stuff
+- Changed the terminology for caches, substituting "Word" for "Block". Most textbooks use the term "cache block" interchangeably with "cache line", so using "Block" for words stored in a cache line was confusing.
+
 ## Ripes v2.2.5
 
 ### New Features:
