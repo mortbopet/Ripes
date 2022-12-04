@@ -15,6 +15,7 @@ QT_CHARTS_BEGIN_NAMESPACE
 class QChartView;
 class QChart;
 class QLineSeries;
+class QValueAxis;
 QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
@@ -40,8 +41,13 @@ namespace Ui {
 class CachePlotWidget;
 }
 
+class PlotConfiguration;
+class CachePlotView;
+
 class CachePlotWidget : public QWidget {
   Q_OBJECT
+
+  friend class PlotConfiguration;
 
   enum class RangeChangeSource { Slider, Comboboxes, Cycles };
 
@@ -58,9 +64,28 @@ public:
     N_TraceVars,
     Unary
   };
+
+  static const QString &variableName(Variable);
+
+  static std::set<Variable> allVariables() {
+    return {Writes,  Reads,      Hits,     Misses, WasHit,
+            WasMiss, Writebacks, Accesses, Unary};
+  }
+
   explicit CachePlotWidget(QWidget *parent = nullptr);
   void setCache(const std::shared_ptr<CacheSim> &cache);
   ~CachePlotWidget();
+
+  /**
+   * @brief gatherData
+   * @returns a list of QPoints containing plotable data gathered from the cache
+   * simulator, starting from the specified cycle and for the requested cache
+   * variables.
+   */
+  std::map<Variable, QList<QPoint>>
+  gatherData(unsigned fromCycle, std::set<Variable> variables) const;
+
+  CachePlotView *getPlotView();
 
 public slots:
 
@@ -70,17 +95,11 @@ private slots:
   void updateHitrate();
 
 private:
-  /**
-   * @brief gatherData
-   * @returns a list of QPoints containing plotable data gathered from the cache
-   * simulator, starting from the specified cycle
-   */
-  std::map<Variable, QList<QPoint>> gatherData(unsigned fromCycle = 0) const;
   void setupPlotActions();
   void showSizeBreakdown();
   void copyPlotDataToClipboard() const;
   void savePlot();
-  void updateRatioPlot();
+  void updatePlot();
   void updatePlotAxes();
   void updateAllowedRange(const RangeChangeSource src);
   void updatePlotWarningButton();
@@ -92,44 +111,30 @@ private:
    */
   void resampleToScreen(QLineSeries *series);
 
-  void resetRatioPlot();
+  void resetPlots();
   QChart *m_plot = nullptr;
-  QLineSeries *m_series = nullptr;
-  double m_maxY = -DBL_MAX;
-  double m_minY = DBL_MAX;
+  QValueAxis *m_xAxis = nullptr;
+  QValueAxis *m_yAxis = nullptr;
   int64_t m_lastCyclePlotted = 0;
-  double m_xStep = 1.0;
   static constexpr int s_resamplingRatio = 2;
 
-  QLineSeries *m_mavgSeries = nullptr;
-  // N last computations of the change in ratio value
-  FixedQueue<double> m_mavgData;
+  // Number of plots created.
+  unsigned plotsCreated = 1;
 
   Ui::CachePlotWidget *m_ui;
   std::shared_ptr<CacheSim> m_cache;
 
-  CachePlotWidget::Variable m_numerator;
-  CachePlotWidget::Variable m_denominator;
-
   QAction *m_copyDataAction = nullptr;
   QAction *m_savePlotAction = nullptr;
-  QAction *m_ratioMarkerAction = nullptr;
-  QAction *m_mavgMarkerAction = nullptr;
 
   std::vector<QWidget *> m_rangeWidgets;
+
+  // Map between a plot config and its current tab index.
+  std::set<PlotConfiguration *> m_plotConfigs;
 };
 
-const static std::map<CachePlotWidget::Variable, QString>
-    s_cacheVariableStrings{
-        {CachePlotWidget::Variable::Writes, "Writes"},
-        {CachePlotWidget::Variable::Reads, "Reads"},
-        {CachePlotWidget::Variable::Hits, "Hits"},
-        {CachePlotWidget::Variable::Misses, "Misses"},
-        {CachePlotWidget::Variable::Writebacks, "Writebacks"},
-        {CachePlotWidget::Variable::Accesses, "Access count"},
-        {CachePlotWidget::Variable::Unary, "1"},
-        {CachePlotWidget::Variable::WasHit, "Was hit"},
-        {CachePlotWidget::Variable::WasMiss, "Was miss"}};
+extern const std::map<CachePlotWidget::Variable, QString>
+    s_cacheVariableStrings;
 
 } // namespace Ripes
 

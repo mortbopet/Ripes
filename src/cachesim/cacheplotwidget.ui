@@ -37,70 +37,21 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayout_2">
-            <item row="3" column="1">
-             <widget class="QCheckBox" name="showMAvg">
-              <property name="text">
-               <string>Moving avg.</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Denominator</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Numerator</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QComboBox" name="den"/>
-            </item>
-            <item row="3" column="2">
-             <widget class="QSpinBox" name="windowCycles">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="suffix">
-               <string> cyc.</string>
-              </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
-              <property name="maximum">
-               <number>999</number>
-              </property>
-              <property name="value">
-               <number>50</number>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QComboBox" name="num"/>
-            </item>
-            <item row="2" column="1">
-             <widget class="QCheckBox" name="showRatio">
-              <property name="toolTip">
-               <string>Show/hide the ratio (numerator/denominator) plot</string>
-              </property>
-              <property name="text">
-               <string>Ratio</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QTabWidget" name="plotConfigs">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string/>
+             </attribute>
+            </widget>
+            <widget class="QWidget" name="tab_2">
+             <attribute name="title">
+              <string>Tab 2</string>
+             </attribute>
+            </widget>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -327,20 +278,6 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QToolButton" name="ratioCursor">
-         <property name="text">
-          <string>...</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="mavgCursor">
-         <property name="text">
-          <string>...</string>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QToolButton" name="copyData">
          <property name="text">

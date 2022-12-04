@@ -33,6 +33,7 @@ public:
                   const QString &name);
   void updateCoordinateValues(const QPointF &pos, bool showValue,
                               bool showCycles);
+  void setName(const QString &name);
   void clear();
 };
 
@@ -62,14 +63,17 @@ public slots:
   void deleteCallout(Callout *callout);
   void tooltip(QPointF point, bool state);
   void hideSeriesMarker(QtCharts::QLineSeries *series);
-  void showSeriesMarker(QtCharts::QLineSeries *series, const QString &name);
+  void showSeriesMarker(QtCharts::QLineSeries *series);
+  void setSeriesName(QtCharts::QLineSeries *series, const QString &name);
+  void addSeries(QtCharts::QLineSeries *series, const QString &name);
+  void removeSeries(QtCharts::QLineSeries *series);
 
 private:
   void resizeObjects(const QSizeF &size);
 
   QPointF m_hoverPos;
 
-  std::vector<std::unique_ptr<CachePlotMarker>> m_markers;
+  std::map<QLineSeries *, std::unique_ptr<CachePlotMarker>> m_markers;
 
   QChart *m_chart = nullptr;
   Callout *m_tooltip = nullptr;

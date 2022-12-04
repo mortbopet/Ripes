@@ -25,6 +25,9 @@ void ChartLineMarker::snapToLine(bool enabled) {
 }
 
 void ChartLineMarker::updateLines() {
+  if (m_chart->axes().size() == 0)
+    return;
+
   const QValueAxis *axisY =
       qobject_cast<QValueAxis *>(m_chart->axes(Qt::Vertical).constFirst());
   const QValueAxis *axisX =
@@ -52,6 +55,9 @@ QPointF ChartLineMarker::getMarkerValuePos() const {
 QPointF ChartLineMarker::getMarkerPos() const { return m_center; }
 
 void ChartLineMarker::move(const QPointF &center) {
+  if (m_chart->axes().size() == 0)
+    return;
+
   if (m_snapToLine) {
     const QValueAxis *axisX =
         qobject_cast<QValueAxis *>(m_chart->axes(Qt::Horizontal).constFirst());

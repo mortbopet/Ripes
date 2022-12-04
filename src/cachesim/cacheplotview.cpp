@@ -15,6 +15,9 @@
 void constrainInPlotRange(QPointF &pos, QChart *chart) {
   const auto plotValue = chart->mapToValue(pos);
 
+  if (chart->axes().size() == 0)
+    return;
+
   const QValueAxis *axisY =
       qobject_cast<QValueAxis *>(chart->axes(Qt::Vertical).constFirst());
   const QValueAxis *axisX =
@@ -51,6 +54,11 @@ void CachePlotMarker::clear() {
   }
 }
 
+void CachePlotMarker::setName(const QString &name) {
+  this->name = name;
+  updateCoordinateValues(QPointF(), false, false);
+}
+
 void CachePlotMarker::updateCoordinateValues(const QPointF &pos, bool showValue,
                                              bool showCycles) {
   QString info = name;
@@ -70,26 +78,25 @@ CachePlotView::CachePlotView(QWidget *parent) : QGraphicsView(parent) {
 
 void CachePlotView::enterEvent(QEvent *event) {
   m_mouseInView = true;
-  for (const auto &marker : m_markers) {
-    marker->marker->show();
-  }
+  for (auto &it : m_markers)
+    it.second->marker->show();
 
   QGraphicsView::enterEvent(event);
 }
 
 void CachePlotView::leaveEvent(QEvent *event) {
   m_mouseInView = false;
-  for (const auto &marker : m_markers) {
-    marker->marker->hide();
-    marker->updateCoordinateValues(QPointF(), false, false);
+  for (auto &it : m_markers) {
+    it.second->marker->hide();
+    it.second->updateCoordinateValues(QPointF(), false, false);
   }
   QGraphicsView::leaveEvent(event);
 }
 
 QPixmap CachePlotView::getPlotPixmap() {
   QVector<QGraphicsItem *> itemsToHide;
-  for (const auto &marker : m_markers) {
-    itemsToHide << marker->marker;
+  for (auto &it : m_markers) {
+    itemsToHide << it.second->marker;
   }
 
   for (const auto &i : qAsConst(itemsToHide)) {
@@ -105,23 +112,51 @@ QPixmap CachePlotView::getPlotPixmap() {
   }
 
   return p;
-};
+}
 
 void CachePlotView::hideSeriesMarker(QLineSeries *series) {
-  auto marker =
-      std::find_if(m_markers.begin(), m_markers.end(),
-                   [=](const auto &mob) { return mob->series == series; });
-  Q_ASSERT(marker != m_markers.end());
-  marker->get()->clear();
-  m_markers.erase(marker);
+  auto it = m_markers.find(series);
+  assert(it != m_markers.end() && "Marker not found!");
+  it->second->marker->setVisible(false);
   resizeObjects(scene()->sceneRect().size());
 }
 
-void CachePlotView::showSeriesMarker(QLineSeries *series, const QString &name) {
-  m_markers.emplace_back(
-      std::make_unique<CachePlotMarker>(this, m_chart, series, name));
-  m_markers.rbegin()->get()->marker->setVisible(m_mouseInView);
+void CachePlotView::removeSeries(QLineSeries *series) {
+  auto marker = m_markers.find(series);
+  Q_ASSERT(marker != m_markers.end());
+  marker->second->clear();
+  m_markers.erase(series);
   resizeObjects(scene()->sceneRect().size());
+  m_chart->removeSeries(series);
+}
+
+void CachePlotView::addSeries(QLineSeries *series, const QString &name) {
+  assert(m_markers.find(series) == m_markers.end() &&
+         "Marker already added for series!");
+  m_markers[series] =
+      std::make_unique<CachePlotMarker>(this, m_chart, series, name);
+  m_markers.at(series)->marker->setVisible(m_mouseInView);
+  resizeObjects(scene()->sceneRect().size());
+  m_chart->addSeries(series);
+  auto xAxis = m_chart->axes(Qt::Horizontal).constFirst();
+  auto yAxis = m_chart->axes(Qt::Vertical).constFirst();
+  assert(xAxis && yAxis && "Expected axes to already be present on the plot!");
+  series->attachAxis(xAxis);
+  series->attachAxis(yAxis);
+}
+
+void CachePlotView::showSeriesMarker(QLineSeries *series) {
+  auto it = m_markers.find(series);
+  assert(it != m_markers.end() && "Marker not found!");
+  it->second->marker->setVisible(true);
+  resizeObjects(scene()->sceneRect().size());
+}
+
+void CachePlotView::setSeriesName(QLineSeries *series, const QString &name) {
+  auto marker = m_markers.find(series);
+  assert(m_markers.find(series) != m_markers.end() &&
+         "Marker not added for series!");
+  marker->second->setName(name);
 }
 
 void CachePlotView::setPlot(QChart *chart) {
@@ -157,10 +192,8 @@ void CachePlotView::resizeObjects(const QSizeF &size) {
     }
   }
 
-  for (unsigned i = 0; i < m_markers.size(); ++i) {
-    auto &marker = m_markers.at(i);
-    marker->marker->updateLines();
-  }
+  for (auto &it : m_markers)
+    it.second->marker->updateLines();
 }
 
 void CachePlotView::resizeEvent(QResizeEvent *event) {
@@ -175,8 +208,8 @@ void CachePlotView::mouseMoveEvent(QMouseEvent *event) {
   constrainInPlotRange(m_hoverPos, m_chart);
 
   if (m_markers.size() > 0) {
-    for (const auto &marker : m_markers) {
-      marker->marker->move(m_hoverPos);
+    for (auto &it : m_markers) {
+      it.second->marker->move(m_hoverPos);
     }
   }
   QGraphicsView::mouseMoveEvent(event);
