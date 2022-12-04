@@ -104,9 +104,6 @@ private:
   QLineSeries *m_mavgSeries = nullptr;
   // N last computations of the change in ratio value
   FixedQueue<double> m_mavgData;
-  // Last cycle numerator and denominator values
-  bool m_lastDiffValid = false;
-  std::pair<QPoint, QPoint> m_lastDiffData;
 
   Ui::CachePlotWidget *m_ui;
   std::shared_ptr<CacheSim> m_cache;

@@ -469,9 +469,6 @@ void CachePlotWidget::updateRatioPlot() {
           std::accumulate(m_mavgData.begin(), m_mavgData.end(), 0.0) /
           m_mavgData.size();
       newWindowPoints << QPointF(p1.x(), wAvg);
-      m_lastDiffData.first = p1;
-      m_lastDiffData.second = p2;
-      m_lastDiffValid = true;
     }
   }
 
@@ -517,7 +514,6 @@ void CachePlotWidget::resetRatioPlot() {
   m_mavgSeries->clear();
   m_lastCyclePlotted = 0;
   m_xStep = 1;
-  m_lastDiffValid = false;
 
   if (m_ui->showMAvg->isChecked()) {
     m_mavgData = FixedQueue<double>(m_ui->windowCycles->value());
