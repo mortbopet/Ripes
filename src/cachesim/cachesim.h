@@ -144,11 +144,13 @@ public:
     int reads = 0;
     int writes = 0;
     int writebacks = 0;
+    CacheTransaction lastTransaction;
     CacheAccessTrace() {}
     CacheAccessTrace(const CacheTransaction &transaction)
         : CacheAccessTrace(CacheAccessTrace(), transaction) {}
     CacheAccessTrace(const CacheAccessTrace &pre,
                      const CacheTransaction &transaction) {
+      lastTransaction = transaction;
       reads = pre.reads + (transaction.type == MemoryAccess::Read ? 1 : 0);
       writes = pre.writes + (transaction.type == MemoryAccess::Write ? 1 : 0);
       writebacks = pre.writebacks + (transaction.isWriteback ? 1 : 0);

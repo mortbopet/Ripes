@@ -45,8 +45,11 @@ CachePlotWidget::CachePlotWidget(QWidget *parent)
           &CachePlotWidget::variablesChanged);
   connect(m_ui->den, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           &CachePlotWidget::variablesChanged);
-  connect(m_ui->windowed, &QCheckBox::toggled, this,
+  connect(m_ui->showMAvg, &QCheckBox::toggled, this,
           &CachePlotWidget::variablesChanged);
+  connect(m_ui->showRatio, &QCheckBox::toggled, this,
+          &CachePlotWidget::variablesChanged);
+
   connect(m_ui->windowCycles, QOverload<int>::of(&QSpinBox::valueChanged), this,
           &CachePlotWidget::variablesChanged);
 
@@ -64,7 +67,7 @@ CachePlotWidget::CachePlotWidget(QWidget *parent)
   m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
   connect(m_ui->sizeBreakdownButton, &QPushButton::clicked, this,
           &CachePlotWidget::showSizeBreakdown);
-  connect(m_ui->windowed, &QCheckBox::toggled, m_ui->windowCycles,
+  connect(m_ui->showMAvg, &QCheckBox::toggled, m_ui->windowCycles,
           &QWidget::setEnabled);
 
   connect(m_ui->maxCyclesButton, &QPushButton::clicked, this, [=] {
@@ -197,22 +200,29 @@ void CachePlotWidget::setupPlotActions() {
     };
   };
 
-  m_totalMarkerAction = new QAction("Enable total crosshair", this);
-  m_totalMarkerAction->setIcon(QIcon(":/icons/crosshair_blue.svg"));
-  m_totalMarkerAction->setCheckable(true);
-  m_ui->ratioCursor->setDefaultAction(m_totalMarkerAction);
-  connect(m_totalMarkerAction, &QAction::toggled,
+  // Setup ratio marker.
+  m_ratioMarkerAction = new QAction("Enable ratio crosshair", this);
+  m_ratioMarkerAction->setIcon(QIcon(":/icons/crosshair_blue.svg"));
+  m_ratioMarkerAction->setCheckable(true);
+  m_ui->ratioCursor->setDefaultAction(m_ratioMarkerAction);
+  connect(m_ratioMarkerAction, &QAction::toggled,
           showMarkerFunctor(m_series, "Total"));
-  m_totalMarkerAction->setChecked(true);
+  m_ratioMarkerAction->setChecked(true);
+  connect(m_ui->showRatio, &QCheckBox::toggled, m_ratioMarkerAction,
+          [=](bool enabled) {
+            m_ratioMarkerAction->setChecked(enabled);
+            m_ratioMarkerAction->setEnabled(enabled);
+          });
 
+  // Setup moving average marker.
   m_mavgMarkerAction = new QAction("Enable moving average crosshair", this);
   m_mavgMarkerAction->setIcon(QIcon(":/icons/crosshair_gold.svg"));
   m_mavgMarkerAction->setCheckable(true);
   m_ui->mavgCursor->setDefaultAction(m_mavgMarkerAction);
   connect(m_mavgMarkerAction, &QAction::toggled,
-          showMarkerFunctor(m_mavgSeries, "Average"));
+          showMarkerFunctor(m_mavgSeries, "Moving average"));
   m_mavgMarkerAction->setChecked(true);
-  connect(m_ui->windowed, &QCheckBox::toggled, m_mavgMarkerAction,
+  connect(m_ui->showMAvg, &QCheckBox::toggled, m_mavgMarkerAction,
           [=](bool enabled) {
             m_mavgMarkerAction->setChecked(enabled);
             m_mavgMarkerAction->setEnabled(enabled);
@@ -323,6 +333,10 @@ CachePlotWidget::gatherData(unsigned fromCycle) const {
     cacheData[Variable::Writebacks].append(QPoint(it->first, entry.writebacks));
     cacheData[Variable::Accesses].append(
         QPoint(it->first, entry.hits + entry.misses));
+    cacheData[Variable::WasHit].append(
+        QPoint(it->first, entry.lastTransaction.isHit));
+    cacheData[Variable::WasMiss].append(
+        QPoint(it->first, !entry.lastTransaction.isHit));
   }
 
   return cacheData;
@@ -449,33 +463,15 @@ void CachePlotWidget::updateRatioPlot() {
     }
 
     // Moving average plot
-    if (m_ui->windowed->isChecked()) {
-      QPointF dNum, dDen;
-      if (!m_lastDiffValid) {
-        dNum = p1;
-        dDen = p2;
-        m_lastDiffValid = true;
-      } else {
-        dNum = p1 - m_lastDiffData.first;
-        dDen = p2 - m_lastDiffData.second;
-      }
-      double wRatio = 0;
-      if (dDen.y() != 0) {
-        wRatio = static_cast<double>(dNum.y()) / dDen.y();
-        wRatio *= 100.0;
-      }
-
-      m_maxY = wRatio > m_maxY ? wRatio : m_maxY;
-      m_minY = wRatio < m_minY ? wRatio : m_minY;
-      m_mavgData.push(wRatio);
-
-      // Plot moving average
+    if (m_ui->showMAvg->isChecked()) {
+      m_mavgData.push(newPoint.y());
       const double wAvg =
           std::accumulate(m_mavgData.begin(), m_mavgData.end(), 0.0) /
           m_mavgData.size();
       newWindowPoints << QPointF(p1.x(), wAvg);
       m_lastDiffData.first = p1;
       m_lastDiffData.second = p2;
+      m_lastDiffValid = true;
     }
   }
 
@@ -485,7 +481,7 @@ void CachePlotWidget::updateRatioPlot() {
 
   plotMover(m_series, false);
   m_series->append(newPoints);
-  if (m_ui->windowed->isChecked()) {
+  if (m_ui->showMAvg->isChecked()) {
     plotMover(m_mavgSeries, false);
     m_mavgSeries->append(newWindowPoints);
   }
@@ -501,7 +497,7 @@ void CachePlotWidget::updateRatioPlot() {
   }
 
   plotMover(m_series, true);
-  if (m_ui->windowed->isChecked()) {
+  if (m_ui->showMAvg->isChecked()) {
     plotMover(m_mavgSeries, true);
   }
 
@@ -523,12 +519,14 @@ void CachePlotWidget::resetRatioPlot() {
   m_xStep = 1;
   m_lastDiffValid = false;
 
-  if (m_ui->windowed->isChecked()) {
+  if (m_ui->showMAvg->isChecked()) {
     m_mavgData = FixedQueue<double>(m_ui->windowCycles->value());
     m_mavgSeries->setVisible(true);
   } else {
     m_mavgSeries->setVisible(false);
   }
+
+  m_series->setVisible(m_ui->showRatio->isChecked());
 
   updateAllowedRange(RangeChangeSource::Cycles);
   updatePlotAxes();

@@ -51,6 +51,8 @@ public:
     Reads,
     Hits,
     Misses,
+    WasHit,
+    WasMiss,
     Writebacks,
     Accesses,
     N_TraceVars,
@@ -114,7 +116,7 @@ private:
 
   QAction *m_copyDataAction = nullptr;
   QAction *m_savePlotAction = nullptr;
-  QAction *m_totalMarkerAction = nullptr;
+  QAction *m_ratioMarkerAction = nullptr;
   QAction *m_mavgMarkerAction = nullptr;
 
   std::vector<QWidget *> m_rangeWidgets;
@@ -129,7 +131,8 @@ const static std::map<CachePlotWidget::Variable, QString>
         {CachePlotWidget::Variable::Writebacks, "Writebacks"},
         {CachePlotWidget::Variable::Accesses, "Access count"},
         {CachePlotWidget::Variable::Unary, "1"},
-    };
+        {CachePlotWidget::Variable::WasHit, "Was hit"},
+        {CachePlotWidget::Variable::WasMiss, "Was miss"}};
 
 } // namespace Ripes
 
