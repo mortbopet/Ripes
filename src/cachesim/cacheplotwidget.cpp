@@ -1,4 +1,4 @@
-#include "cacheplotwidget.h"
+#include "cachesim/cacheplotwidget.h"
 #include "ui_cacheplotwidget.h"
 
 #include <QCheckBox>

@@ -1,4 +1,4 @@
-#include "highlightabletextedit.h"
+#include "editor/highlightabletextedit.h"
 
 #include "STLExtras.h"
 

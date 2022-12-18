@@ -1,7 +1,7 @@
-#include "clirunner.h"
+#include "cli/clirunner.h"
+#include "cli/programutilities.h"
 #include "io/iomanager.h"
 #include "processorhandler.h"
-#include "programutilities.h"
 #include "syscall/systemio.h"
 
 #include <QJsonDocument>

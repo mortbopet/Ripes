@@ -6,7 +6,7 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../../ripesvsrtlprocessor.h"
+#include "processors/ripesvsrtlprocessor.h"
 
 // Functional units
 #include "../riscv.h"

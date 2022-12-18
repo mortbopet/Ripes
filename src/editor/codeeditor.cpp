@@ -1,4 +1,4 @@
-#include "codeeditor.h"
+#include "editor/codeeditor.h"
 
 #include <QAction>
 #include <QApplication>
@@ -15,14 +15,14 @@
 #include <iterator>
 
 #include "colors.h"
-#include "csyntaxhighlighter.h"
+#include "editor/csyntaxhighlighter.h"
+#include "editor/rvsyntaxhighlighter.h"
+#include "editor/syntaxhighlighter.h"
 #include "fonts.h"
 #include "formattermanager.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
-#include "rvsyntaxhighlighter.h"
 #include "statusmanager.h"
-#include "syntaxhighlighter.h"
 
 namespace Ripes {
 

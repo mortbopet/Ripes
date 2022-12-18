@@ -1,1 +1,1 @@
-create_ripes_lib(syscall LINK_TO_RIPES_LIB)
+add_ripes_sources(syscall)

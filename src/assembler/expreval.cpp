@@ -1,11 +1,11 @@
-#include "expreval.h"
+#include "assembler/expreval.h"
 
 #include <iostream>
 #include <memory>
 
-#include "assembler_defines.h"
+#include "assembler/assembler_defines.h"
+#include "assembler/parserutilities.h"
 #include "binutils.h"
-#include "parserutilities.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -22,7 +22,7 @@ const QString s_exprTokens QStringLiteral("()+-*/%@");
 struct Expr;
 
 struct Printable {
-  virtual ~Printable(){};
+  virtual ~Printable() {}
   virtual void print(std::ostream &str) const = 0;
 };
 

@@ -1,7 +1,7 @@
-#include "clioptions.h"
+#include "cli/clioptions.h"
+#include "cli/telemetry.h"
 #include "processorregistry.h"
 #include "radix.h"
-#include "telemetry.h"
 #include <QFile>
 #include <QMetaEnum>
 

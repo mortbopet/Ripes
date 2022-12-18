@@ -1,5 +1,5 @@
-#include "ioswitches.h"
-#include "ioregistry.h"
+#include "io/ioswitches.h"
+#include "io/ioregistry.h"
 
 #include <QAbstractButton>
 #include <QPainter>

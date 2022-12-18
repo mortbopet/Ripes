@@ -1,10 +1,10 @@
-#include "memorymapmodel.h"
+#include "io/memorymapmodel.h"
 
 #include <QHeaderView>
 
 #include "fonts.h"
-#include "iobase.h"
-#include "iomanager.h"
+#include "io/iobase.h"
+#include "io/iomanager.h"
 #include "processorhandler.h"
 #include "radix.h"
 

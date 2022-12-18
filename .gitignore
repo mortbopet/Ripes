@@ -4,6 +4,8 @@
 *.o
 Makefile
 
+CMakeLists.txt.user*
+
 
 # Qt generated files
 moc_*

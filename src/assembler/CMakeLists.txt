@@ -1,1 +1,1 @@
-create_ripes_lib(assembler LINK_TO_RIPES_LIB)
+add_ripes_sources(assembler)

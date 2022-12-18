@@ -1,4 +1,4 @@
-#include "rvisainfo_common.h"
+#include "isa/rvisainfo_common.h"
 
 namespace Ripes {
 namespace RVISA {

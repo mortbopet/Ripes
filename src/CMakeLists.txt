@@ -4,42 +4,17 @@ function(check_nonempty_string STR)
     endif()
 endfunction()
 
-# Function to create sub-libraries for the Ripes library. A library is
-# built based on the *.h,*.cpp and *.ui within the immediate directory of
-# the CMakeLists.txt file. If LINK_TO_RIPES_LIB is set, the ${RIPES_LIB}
-# will be linked to the newly defined library.
-function(create_ripes_lib NAME)
-    cmake_parse_arguments(OPTIONS
-        "LINK_TO_RIPES_LIB;FIXED_NAME;EXCLUDE_SRC_INC" # options
-        ""                             # 1-valued keywords
-        ""                             # multi-valued keywords
-        ${ARGN})
+# Appends the .cpp and .ui files to the ripes library.
+function(add_ripes_sources NAME)
+    file(GLOB DIR_SOURCES *.cpp)
+    file(GLOB DIR_UI *.ui)
 
-    file(GLOB LIB_SOURCES *.cpp)
-    file(GLOB LIB_HEADERS *.h)
-    file(GLOB LIB_UI *.ui)
-    if(NOT OPTIONS_FIXED_NAME)
-        check_nonempty_string(NAME)
-        set(LIB_NAME ${NAME}_lib)
-    else()
-        check_nonempty_string(OPTIONS_FIXED_NAME)
-        set(LIB_NAME ${NAME})
-    endif()
-
-    add_library(${LIB_NAME} STATIC ${LIB_SOURCES} ${LIB_HEADERS} ${LIB_UI})
-    target_compile_features(${LIB_NAME} PRIVATE cxx_std_17)
-    target_include_directories (${LIB_NAME} PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        )
-
-    target_link_libraries(${LIB_NAME} PUBLIC Qt5::Gui)
-    if(NOT OPTIONS_EXCLUDE_SRC_INC)
-        target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
-    endif()
-
-    if(OPTIONS_LINK_TO_RIPES_LIB)
-        target_link_libraries(${RIPES_LIB} PUBLIC ${LIB_NAME})
-    endif()
+    # Also pull in the includes from the correspoding directory in
+    # ${CMAKE_SOURCE_DIR}/include. This is a bit antithetical to CMake
+    # but is needed for Qt AUTOMOC to run.
+    file(RELATIVE_PATH CURRENT_DIR_PATH_RELATIVE ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR})
+    file(GLOB DIR_INCLUDES ${CMAKE_SOURCE_DIR}/include/${CURRENT_DIR_PATH_RELATIVE}/*.h)
+    target_sources(${RIPES_LIB} PUBLIC ${DIR_SOURCES} ${DIR_UI} ${DIR_INCLUDES})
 endfunction()
 
 # Error flags on everything but MSVC
@@ -52,10 +27,27 @@ elseif(MINGW)
 endif()
 
 # Create the parent library. This will include everything in the current directory.
-create_ripes_lib(${RIPES_LIB} FIXED_NAME EXCLUDE_SRC_INC)
+add_library(${RIPES_LIB} STATIC)
+target_include_directories(${RIPES_LIB} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_ripes_sources(${RIPES_LIB})
 
-# All of the following subdirectories will create separate libraries and link them into
-# ripes_lib
+target_link_libraries(${RIPES_LIB} PUBLIC
+    fancytabbar_lib
+    ${VSRTL_GRAPHICS_LIB}
+    Qt5::Charts
+    dwarf++
+    Qt5::Gui)
+
+# Header-only library includes
+target_include_directories(${RIPES_LIB} PUBLIC
+    ${CMAKE_SOURCE_DIR}/external/VSRTL/external/cereal/include
+    ${CMAKE_SOURCE_DIR}/external/VSRTL/external
+    ${CMAKE_SOURCE_DIR}/external/ELFIO
+    ${CMAKE_SOURCE_DIR}/external/VSRTL/external/Signals
+    ${CMAKE_SOURCE_DIR}/external/libelfin_cmake
+    ${CMAKE_SOURCE_DIR}/external
+)
+
 add_subdirectory(isa)
 add_subdirectory(cachesim)
 add_subdirectory(editor)
@@ -66,11 +58,3 @@ add_subdirectory(utilities)
 add_subdirectory(processors)
 add_subdirectory(version)
 add_subdirectory(cli)
-
-# Also link Qt and VSRTL libraries.
-target_link_libraries(${RIPES_LIB} PUBLIC
-    fancytabbar_lib
-    ${VSRTL_GRAPHICS_LIB}
-    Qt5::Charts
-    dwarf++)
-

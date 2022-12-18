@@ -8,7 +8,7 @@
 
 #include "assembler/objdump.h"
 #include "assembler/program.h"
-#include "highlightabletextedit.h"
+#include "editor/highlightabletextedit.h"
 #include "processorhandler.h"
 
 namespace Ripes {

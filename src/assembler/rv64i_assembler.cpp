@@ -1,16 +1,16 @@
-#include "rv64i_assembler.h"
-#include "gnudirectives.h"
+#include "assembler/rv64i_assembler.h"
+#include "assembler/gnudirectives.h"
+#include "assembler/rv32i_assembler.h"
+#include "assembler/rvassembler_common.h"
+#include "assembler/rvrelocations.h"
 #include "ripessettings.h"
-#include "rv32i_assembler.h"
-#include "rvassembler_common.h"
-#include "rvrelocations.h"
 
 #include <QByteArray>
 #include <algorithm>
 
-#include "rv_c_ext.h"
-#include "rv_i_ext.h"
-#include "rv_m_ext.h"
+#include "assembler/rv_c_ext.h"
+#include "assembler/rv_i_ext.h"
+#include "assembler/rv_m_ext.h"
 
 namespace Ripes {
 namespace Assembler {
