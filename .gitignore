@@ -3,6 +3,8 @@
 *.autosave
 *.o
 Makefile
+build*
+.vscode
 
 
 # Qt generated files
