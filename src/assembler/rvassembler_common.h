@@ -17,8 +17,8 @@ namespace Assembler {
        std::make_shared<_Reg>(isa, 2, 20, 24, "rs2"),                          \
        std::make_shared<_Imm>(                                                 \
            3, 13, _Imm::Repr::Signed,                                          \
-           std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),                 \
-                       ImmPart(5, 25, 30), ImmPart(1, 8, 11)},                 \
+           std::vector{_Imm::ImmPart(12, 31, 31), _Imm::ImmPart(11, 7, 7),     \
+                       _Imm::ImmPart(5, 25, 30), _Imm::ImmPart(1, 8, 11)},     \
            _Imm::SymbolType::Relative)}))
 
 #define ITypeCommon(opcode, name, funct3)                                      \
@@ -27,7 +27,7 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
        std::make_shared<_Imm>(3, 12, _Imm::Repr::Signed,                       \
-                              std::vector{ImmPart(0, 20, 31)})}))
+                              std::vector{_Imm::ImmPart(0, 20, 31)})}))
 
 #define IType(name, funct3) ITypeCommon(RVISA::OPIMM, name, funct3)
 #define IType32(name, funct3) ITypeCommon(RVISA::OPIMM32, name, funct3)
@@ -39,7 +39,7 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Reg>(isa, 3, 15, 19, "rs1"),                          \
        std::make_shared<_Imm>(2, 12, _Imm::Repr::Signed,                       \
-                              std::vector{ImmPart(0, 20, 31)})}))
+                              std::vector{_Imm::ImmPart(0, 20, 31)})}))
 
 #define IShiftType32(name, opcode, funct3, funct7)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -48,7 +48,7 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
        std::make_shared<_Imm>(3, 5, _Imm::Repr::Unsigned,                      \
-                              std::vector{ImmPart(0, 20, 24)})}))
+                              std::vector{_Imm::ImmPart(0, 20, 24)})}))
 
 #define IShiftType64(name, opcode, funct3, funct6)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -57,7 +57,7 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
        std::make_shared<_Imm>(3, 6, _Imm::Repr::Unsigned,                      \
-                              std::vector{ImmPart(0, 20, 25)})}))
+                              std::vector{_Imm::ImmPart(0, 20, 25)})}))
 
 #define RTypeCommon(name, opcode, funct3, funct7)                              \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -78,7 +78,7 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 3, 15, 19, "rs1"),                          \
        std::make_shared<_Imm>(                                                 \
            2, 12, _Imm::Repr::Signed,                                          \
-           std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}),                \
+           std::vector{_Imm::ImmPart(5, 25, 31), _Imm::ImmPart(0, 7, 11)}),    \
        std::make_shared<_Reg>(isa, 1, 20, 24, "rs2")}))
 
 #define UType(name, opcode)                                                    \
@@ -86,7 +86,7 @@ namespace Assembler {
       _Opcode(name, {OpPart(opcode, 0, 6)}),                                   \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex,                          \
-                              std::vector{ImmPart(0, 12, 31)})}))
+                              std::vector{_Imm::ImmPart(0, 12, 31)})}))
 
 #define JType(name, opcode)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -94,8 +94,8 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Imm>(                                                 \
            2, 21, _Imm::Repr::Signed,                                          \
-           std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),               \
-                       ImmPart(11, 20, 20), ImmPart(1, 21, 30)},               \
+           std::vector{_Imm::ImmPart(20, 31, 31), _Imm::ImmPart(12, 12, 19),   \
+                       _Imm::ImmPart(11, 20, 20), _Imm::ImmPart(1, 21, 30)},   \
            _Imm::SymbolType::Relative)}))
 
 #define JALRType(name)                                                         \
@@ -105,7 +105,7 @@ namespace Assembler {
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
        std::make_shared<_Imm>(3, 12, _Imm::Repr::Signed,                       \
-                              std::vector{ImmPart(0, 20, 31)})}))
+                              std::vector{_Imm::ImmPart(0, 20, 31)})}))
 
 #define RegTok _PseudoInstruction::reg()
 #define ImmTok _PseudoInstruction::imm()

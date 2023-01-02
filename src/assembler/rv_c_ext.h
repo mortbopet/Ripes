@@ -78,19 +78,19 @@ struct RVCReg : public Reg<Reg_T> {
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rs2'"),                 \
        std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"),                 \
        std::make_shared<_Imm>(3, 7, _Imm::Repr::Unsigned,                      \
-                              std::vector{ImmPart(6, 5, 5),                    \
-                                          ImmPart(3, 10, 12),                  \
-                                          ImmPart(2, 6, 6)})}))
+                              std::vector{_Imm::ImmPart(6, 5, 5),              \
+                                          _Imm::ImmPart(3, 10, 12),            \
+                                          _Imm::ImmPart(2, 6, 6)})}))
 
 #define CJType(opcode, name, funct3)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<_Imm>(                                                 \
           1, 12, _Imm::Repr::Signed,                                           \
-          std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),                  \
-                      ImmPart(8, 9, 10), ImmPart(7, 6, 6), ImmPart(6, 7, 7),   \
-                      ImmPart(5, 2, 2), ImmPart(4, 11, 11),                    \
-                      ImmPart(1, 3, 5)})}))
+          std::vector{_Imm::ImmPart(11, 12, 12), _Imm::ImmPart(10, 8, 8),      \
+                      _Imm::ImmPart(8, 9, 10), _Imm::ImmPart(7, 6, 6),         \
+                      _Imm::ImmPart(6, 7, 7), _Imm::ImmPart(5, 2, 2),          \
+                      _Imm::ImmPart(4, 11, 11), _Imm::ImmPart(1, 3, 5)})}))
 
 #define CRType(opcode, name, funct4)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -116,8 +116,9 @@ struct RVCReg : public Reg<Reg_T> {
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"),                 \
        std::make_shared<_Imm>(                                                 \
            2, 9, _Imm::Repr::Signed,                                           \
-           std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6), ImmPart(5, 2, 2), \
-                       ImmPart(3, 10, 11), ImmPart(1, 3, 4)})}))
+           std::vector{_Imm::ImmPart(8, 12, 12), _Imm::ImmPart(6, 5, 6),       \
+                       _Imm::ImmPart(5, 2, 2), _Imm::ImmPart(3, 10, 11),       \
+                       _Imm::ImmPart(1, 3, 4)})}))
 
 #define CB2Type(opcode, name, funct3, funct4, imm)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -131,8 +132,8 @@ struct RVCReg : public Reg<Reg_T> {
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                  \
        std::make_shared<_Imm>(                                                 \
            2, 10, _Imm::Repr::Unsigned,                                        \
-           std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),                  \
-                       ImmPart(3, 5, 5), ImmPart(2, 6, 6)})}))
+           std::vector{_Imm::ImmPart(6, 7, 10), _Imm::ImmPart(4, 11, 12),      \
+                       _Imm::ImmPart(3, 5, 5), _Imm::ImmPart(2, 6, 6)})}))
 
 /**
  * Extension enabler.
@@ -156,57 +157,59 @@ struct RV_C {
     instructions.push_back(CAType(Token("c.subw"), 0b00, 0b100111));
     instructions.push_back(CAType(Token("c.addw"), 0b01, 0b100111));
 
-    instructions.push_back(CIType(
-        0b10, Token("c.lwsp"), 0b010,
-        std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,
-                               std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
-                                           ImmPart(2, 4, 6)})));
+    instructions.push_back(
+        CIType(0b10, Token("c.lwsp"), 0b010,
+               std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,
+                                      std::vector{_Imm::ImmPart(6, 2, 3),
+                                                  _Imm::ImmPart(5, 12, 12),
+                                                  _Imm::ImmPart(2, 4, 6)})));
 
     if (isa->isaID() == ISA::RV32I) {
       instructions.push_back(
           CIType(0b10, Token("c.flwsp"), 0b011,
                  std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,
-                                        std::vector{ImmPart(6, 2, 3),
-                                                    ImmPart(5, 12, 12),
-                                                    ImmPart(2, 4, 6)})));
+                                        std::vector{_Imm::ImmPart(6, 2, 3),
+                                                    _Imm::ImmPart(5, 12, 12),
+                                                    _Imm::ImmPart(2, 4, 6)})));
     } else // RV64 RV128
     {
       instructions.push_back(
           CIType(0b10, Token("c.ldsp"), 0b011,
                  std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,
-                                        std::vector{ImmPart(6, 2, 4),
-                                                    ImmPart(5, 12, 12),
-                                                    ImmPart(3, 5, 6)})));
+                                        std::vector{_Imm::ImmPart(6, 2, 4),
+                                                    _Imm::ImmPart(5, 12, 12),
+                                                    _Imm::ImmPart(3, 5, 6)})));
       instructions.push_back(
           CIType(0b01, Token("c.addiw"), 0b001,
-                 std::make_shared<_Imm>(
-                     2, 6, _Imm::Repr::Signed,
-                     std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+                 std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed,
+                                        std::vector{_Imm::ImmPart(5, 12, 12),
+                                                    _Imm::ImmPart(0, 2, 6)})));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
-    instructions.push_back(CIType(
-        0b10, Token("c.fldsp"), 0b001,
-        std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,
-                               std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
-                                           ImmPart(3, 5, 6)})));
+    instructions.push_back(
+        CIType(0b10, Token("c.fldsp"), 0b001,
+               std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,
+                                      std::vector{_Imm::ImmPart(6, 2, 4),
+                                                  _Imm::ImmPart(5, 12, 12),
+                                                  _Imm::ImmPart(3, 5, 6)})));
     instructions.push_back(
         CIType(0b10, Token("c.slli"), 0b000,
-               std::make_shared<_Imm>(
-                   2, 6, _Imm::Repr::Unsigned,
-                   std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+               std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned,
+                                      std::vector{_Imm::ImmPart(5, 12, 12),
+                                                  _Imm::ImmPart(0, 2, 6)})));
 
     instructions.push_back(
         CIType(0b01, Token("c.li"), 0b010,
-               std::make_shared<_Imm>(
-                   2, 6, _Imm::Repr::Signed,
-                   std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+               std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed,
+                                      std::vector{_Imm::ImmPart(5, 12, 12),
+                                                  _Imm::ImmPart(0, 2, 6)})));
 
     auto cLuiInstr =
         CIType(0b01, Token("c.lui"), 0b011,
-               std::make_shared<_Imm>(
-                   2, 18, _Imm::Repr::Signed,
-                   std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}));
+               std::make_shared<_Imm>(2, 18, _Imm::Repr::Signed,
+                                      std::vector{_Imm::ImmPart(17, 12, 12),
+                                                  _Imm::ImmPart(12, 2, 6)}));
     cLuiInstr->addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
       return rd != 0 && rd != 2;
@@ -220,8 +223,9 @@ struct RV_C {
             {OpPart(0b01, 0, 1), OpPart(0b011, 13, 15), OpPart(2, 7, 11)}),
         {std::make_shared<_Imm>(
             1, 10, _Imm::Repr::Signed,
-            std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4), ImmPart(6, 5, 5),
-                        ImmPart(5, 2, 2), ImmPart(4, 6, 6)})}));
+            std::vector{_Imm::ImmPart(9, 12, 12), _Imm::ImmPart(7, 3, 4),
+                        _Imm::ImmPart(6, 5, 5), _Imm::ImmPart(5, 2, 2),
+                        _Imm::ImmPart(4, 6, 6)})}));
     cAddi16spInstr->addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
       return rd == 2;
@@ -230,61 +234,62 @@ struct RV_C {
 
     instructions.push_back(
         CIType(0b01, Token("c.addi"), 0b000,
-               std::make_shared<_Imm>(
-                   2, 6, _Imm::Repr::Signed,
-                   std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+               std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed,
+                                      std::vector{_Imm::ImmPart(5, 12, 12),
+                                                  _Imm::ImmPart(0, 2, 6)})));
     instructions.push_back(CINOPType(0b01, Token("c.nop")));
 
     instructions.push_back(
         CSSType(0b10, Token("c.swsp"), 0b110,
-                std::make_shared<_Imm>(
-                    2, 8, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)})));
+                std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,
+                                       std::vector{_Imm::ImmPart(6, 7, 8),
+                                                   _Imm::ImmPart(2, 9, 12)})));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(
-          CSSType(0b10, Token("c.fswsp"), 0b111,
-                  std::make_shared<_Imm>(
-                      2, 8, _Imm::Repr::Unsigned,
-                      std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)})));
+      instructions.push_back(CSSType(
+          0b10, Token("c.fswsp"), 0b111,
+          std::make_shared<_Imm>(
+              2, 8, _Imm::Repr::Unsigned,
+              std::vector{_Imm::ImmPart(6, 7, 8), _Imm::ImmPart(2, 9, 12)})));
     } else {
-      instructions.push_back(
-          CSSType(0b10, Token("c.sdsp"), 0b111,
-                  std::make_shared<_Imm>(
-                      2, 9, _Imm::Repr::Unsigned,
-                      std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)})));
+      instructions.push_back(CSSType(
+          0b10, Token("c.sdsp"), 0b111,
+          std::make_shared<_Imm>(
+              2, 9, _Imm::Repr::Unsigned,
+              std::vector{_Imm::ImmPart(6, 7, 9), _Imm::ImmPart(3, 10, 12)})));
     }
     instructions.push_back(
         CSSType(0b10, Token("c.fsdsp"), 0b101,
-                std::make_shared<_Imm>(
-                    2, 9, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)})));
+                std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,
+                                       std::vector{_Imm::ImmPart(6, 7, 9),
+                                                   _Imm::ImmPart(3, 10, 12)})));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
-    instructions.push_back(CLType(
-        0b00, Token("c.lw"), 0b010,
-        std::make_shared<_Imm>(3, 7, _Imm::Repr::Signed,
-                               std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
-                                           ImmPart(2, 6, 6)})));
+    instructions.push_back(
+        CLType(0b00, Token("c.lw"), 0b010,
+               std::make_shared<_Imm>(3, 7, _Imm::Repr::Signed,
+                                      std::vector{_Imm::ImmPart(6, 5, 5),
+                                                  _Imm::ImmPart(3, 10, 12),
+                                                  _Imm::ImmPart(2, 6, 6)})));
     if (isa->isaID() == ISA::RV32I) {
       instructions.push_back(
           CLType(0b00, Token("c.flw"), 0b011,
                  std::make_shared<_Imm>(3, 7, _Imm::Repr::Signed,
-                                        std::vector{ImmPart(6, 5, 5),
-                                                    ImmPart(3, 10, 12),
-                                                    ImmPart(2, 6, 6)})));
+                                        std::vector{_Imm::ImmPart(6, 5, 5),
+                                                    _Imm::ImmPart(3, 10, 12),
+                                                    _Imm::ImmPart(2, 6, 6)})));
     } else {
-      instructions.push_back(
-          CLType(0b00, Token("c.ld"), 0b011,
-                 std::make_shared<_Imm>(
-                     3, 8, _Imm::Repr::Signed,
-                     std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)})));
+      instructions.push_back(CLType(
+          0b00, Token("c.ld"), 0b011,
+          std::make_shared<_Imm>(
+              3, 8, _Imm::Repr::Signed,
+              std::vector{_Imm::ImmPart(6, 5, 6), _Imm::ImmPart(3, 10, 12)})));
     }
     // instructions.push_back(CLType(0b00, Token("c.lq"), 0b001));//RV128
     instructions.push_back(
         CLType(0b00, Token("c.fld"), 0b001,
-               std::make_shared<_Imm>(
-                   3, 8, _Imm::Repr::Signed,
-                   std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)})));
+               std::make_shared<_Imm>(3, 8, _Imm::Repr::Signed,
+                                      std::vector{_Imm::ImmPart(6, 5, 6),
+                                                  _Imm::ImmPart(3, 10, 12)})));
 
     instructions.push_back(CSType(0b00, Token("c.sw"), 0b110));
     if (isa->isaID() == ISA::RV32I) {
@@ -307,20 +312,20 @@ struct RV_C {
 
     instructions.push_back(
         CB2Type(0b01, Token("c.srli"), 0b100, 0b00,
-                std::make_shared<_Imm>(
-                    2, 6, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+                std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned,
+                                       std::vector{_Imm::ImmPart(5, 12, 12),
+                                                   _Imm::ImmPart(0, 2, 6)})));
     instructions.push_back(
         CB2Type(0b01, Token("c.srai"), 0b100, 0b01,
-                std::make_shared<_Imm>(
-                    2, 6, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+                std::make_shared<_Imm>(2, 6, _Imm::Repr::Unsigned,
+                                       std::vector{_Imm::ImmPart(5, 12, 12),
+                                                   _Imm::ImmPart(0, 2, 6)})));
 
     instructions.push_back(
         CB2Type(0b01, Token("c.andi"), 0b100, 0b10,
-                std::make_shared<_Imm>(
-                    2, 6, _Imm::Repr::Signed,
-                    std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+                std::make_shared<_Imm>(2, 6, _Imm::Repr::Signed,
+                                       std::vector{_Imm::ImmPart(5, 12, 12),
+                                                   _Imm::ImmPart(0, 2, 6)})));
 
     instructions.push_back(CRType(
         0b10, Token("c.mv"), 0b1000)); // FIXME disassemble erro with c.jr ?

@@ -49,7 +49,7 @@ public:
   }
   static std::shared_ptr<Imm<Reg_T>> imm() {
     return std::make_shared<Imm<Reg_T>>(0, 0, Imm<Reg_T>::Repr::Hex,
-                                        std::vector<ImmPart>{});
+                                        std::vector<Imm<Reg_T>::ImmPart>{});
   }
 
 private:

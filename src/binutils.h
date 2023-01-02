@@ -70,7 +70,7 @@ constexpr inline bool isUInt<32>(VInt x) {
 constexpr inline bool isUInt(unsigned N, uint64_t X) {
   return N >= 64 || X < (UINT64_C(1) << (N));
 }
-constexpr inline bool isInt(unsigned N, VIntS x) {
+constexpr inline bool isInt(unsigned N, int64_t x) {
   return N >= 64 ||
          (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
 }

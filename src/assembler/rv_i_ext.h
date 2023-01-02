@@ -271,7 +271,7 @@ struct RV_I {
         _Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
         {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),
          std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex,
-                                std::vector{ImmPart(0, 12, 31)},
+                                std::vector{_Imm::ImmPart(0, 12, 31)},
                                 _Imm::SymbolType::Absolute)})));
 
     instructions.push_back(JType(Token("jal"), RVISA::Opcode::JAL));

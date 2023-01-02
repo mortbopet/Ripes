@@ -27,11 +27,12 @@ struct BitRange {
   }
   constexpr unsigned width() const { return stop - start + 1; }
   const unsigned start, stop, N;
-  const Instr_T mask = vsrtl::generateBitmask(width());
+  const Instr_T _mask = vsrtl::generateBitmask(width());
 
-  Instr_T apply(Instr_T value) const { return (value & mask) << start; }
+  Instr_T mask(Instr_T value) const { return (value & _mask); }
+  Instr_T apply(Instr_T value) const { return mask(value) << start; }
   Instr_T decode(Instr_T instruction) const {
-    return (instruction >> start) & mask;
+    return (instruction >> start) & _mask;
   }
 
   bool operator==(const BitRange &other) const {
@@ -197,28 +198,45 @@ struct Reg : public Field<Reg_T> {
   const QString regsd = "reg";
 };
 
-struct ImmPart {
-  ImmPart(unsigned _offset, const BitRange &_range)
-      : offset(_offset), range(_range) {}
-  ImmPart(unsigned _offset, unsigned _start, unsigned _stop)
-      : offset(_offset), range({_start, _stop}) {}
-  void apply(const Instr_T value, Instr_T &instruction) const {
-    instruction |= range.apply(value >> offset);
-  }
-  void decode(Instr_T &value, const Instr_T instruction) const {
-    value |= range.decode(instruction) << offset;
-  }
-  const unsigned offset;
-  const BitRange range;
-};
-
 template <typename Reg_T>
 struct Imm : public Field<Reg_T> {
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
-  enum class Repr { Unsigned, Signed, Hex };
   enum class SymbolType { None, Relative, Absolute };
+  enum class Repr { Unsigned, Signed, Hex };
+
+  static Result<> checkFitsInWidth(Repr repr, int64_t value, unsigned width,
+                                   const Location &sourceLine) {
+    if (!(repr == Repr::Signed ? isInt(width, value)
+                               : (isUInt(width, value)))) {
+      const QString v = repr == Repr::Signed
+                            ? QString::number(static_cast<Reg_T_S>(value))
+                            : QString::number(static_cast<Reg_T_U>(value));
+      return Error(sourceLine, "Immediate value '" + v + "' does not fit in " +
+                                   QString::number(width) + " bits");
+    }
+    return Result<>::def();
+  }
+
+  struct ImmPart {
+    ImmPart(unsigned _offset, const BitRange &_range)
+        : offset(_offset), range(_range) {}
+    ImmPart(unsigned _offset, unsigned _start, unsigned _stop)
+        : offset(_offset), range({_start, _stop}) {}
+    Result<> apply(const Instr_T value, Instr_T &instruction,
+                   const Location &sourceLine, Instr_T &checkValue) const {
+      instruction |= range.apply(value >> offset);
+      checkValue |= range.apply(value);
+      return Result<>::def();
+    }
+    void decode(Instr_T &value, const Instr_T instruction) const {
+      value |= range.decode(instruction) << offset;
+    }
+    const unsigned offset;
+    const BitRange range;
+  };
+
   /**
    * @brief Imm
    * @param _tokenIndex: Index within a list of decoded instruction tokens that
@@ -237,7 +255,15 @@ struct Imm : public Field<Reg_T> {
       SymbolType _symbolType = SymbolType::None,
       const std::function<Reg_T(Reg_T)> &_symbolTransformer = {})
       : Field<Reg_T>(_tokenIndex), parts(_parts), width(_width), repr(_repr),
-        symbolType(_symbolType), symbolTransformer(_symbolTransformer) {}
+        symbolType(_symbolType), symbolTransformer(_symbolTransformer) {
+    if (!parts.empty()) {
+      unsigned smallestOffset = UINT_MAX;
+      for (const auto &part : parts)
+        if (part.offset < smallestOffset)
+          smallestOffset = part.offset;
+      offset = smallestOffset;
+    }
+  }
 
   int64_t getImm(const QString &immToken, bool &success) const {
     return repr == Repr::Signed ? getImmediateSext32(immToken, success)
@@ -249,7 +275,7 @@ struct Imm : public Field<Reg_T> {
         FieldLinkRequest<Reg_T> &linksWithSymbol) const override {
     bool success;
     const Token &immToken = line.tokens[this->tokenIndex];
-    Reg_T_S value = getImm(immToken, success);
+    int64_t value = getImm(immToken, success);
 
     if (!success) {
       // Could not directly resolve immediate. Register it as a symbol to link
@@ -260,25 +286,25 @@ struct Imm : public Field<Reg_T> {
       return {};
     }
 
-    if (auto res = checkFitsInWidth(value, line); res.isError())
+    uint64_t checkValue = 0;
+    for (const auto &part : parts) {
+      if (auto res = part.apply(value, instruction, line, checkValue);
+          res.isError())
+        return res.error();
+    }
+
+    // At this point, the user-provided value should be exactly the value which
+    // will be applied in the instruction. This might be too RISC-V specific,
+    // but the checkValue will be the actual decoded value, so 'value'must be
+    // shifted by any leading offset as defined by the parts of this immediate.
+    if (checkValue != (value << offset))
+      return Error(line, "Immediate value '" + immToken + "' does not fit in " +
+                             QString::number(width) + " bits");
+
+    if (auto res = checkFitsInWidth(repr, value, width, line); res.isError())
       return res.error();
 
-    for (const auto &part : parts) {
-      part.apply(value, instruction);
-    }
     return std::nullopt;
-  }
-
-  Result<> checkFitsInWidth(Reg_T_S value, const Location &sourceLine) const {
-    if (!(repr == Repr::Signed ? isInt(width, value)
-                               : (isUInt(width, value)))) {
-      const QString v = repr == Repr::Signed
-                            ? QString::number(static_cast<Reg_T_S>(value))
-                            : QString::number(static_cast<Reg_T_U>(value));
-      return Error(sourceLine, "Immediate value '" + v + "' does not fit in " +
-                                   QString::number(width) + " bits");
-    }
-    return Result<>::def();
   }
 
   Result<> applySymbolResolution(const Location &loc, Reg_T symbolValue,
@@ -290,11 +316,16 @@ struct Imm : public Field<Reg_T> {
     if (symbolTransformer)
       adjustedValue = symbolTransformer(adjustedValue);
 
-    if (auto res = checkFitsInWidth(adjustedValue, loc); res.isError())
+    if (auto res = checkFitsInWidth(repr, adjustedValue, width, loc);
+        res.isError())
       return res.error();
 
-    for (const auto &part : parts)
-      part.apply(adjustedValue, instruction);
+    uint64_t checkValue = 0;
+    for (const auto &part : parts) {
+      if (auto res = part.apply(adjustedValue, instruction, loc, checkValue);
+          res.isError())
+        return res.error();
+    }
 
     return Result<>::def();
   }
@@ -335,6 +366,7 @@ struct Imm : public Field<Reg_T> {
 
   const std::vector<ImmPart> parts;
   const unsigned width;
+  unsigned offset = 0;
   const Repr repr;
   const SymbolType symbolType;
   const std::function<Reg_T(Reg_T)> symbolTransformer;
