@@ -1,9 +1,9 @@
-#include "periphparammodel.h"
+#include "io/periphparammodel.h"
 
 #include <QHeaderView>
 #include <QSpinBox>
 
-#include "iobase.h"
+#include "io/iobase.h"
 #include "processorhandler.h"
 
 namespace Ripes {

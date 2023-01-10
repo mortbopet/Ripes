@@ -1,10 +1,10 @@
-#include "ioledmatrix.h"
+#include "io/ioledmatrix.h"
 
 #include <QPainter>
 #include <QPen>
 
 #include "STLExtras.h"
-#include "ioregistry.h"
+#include "io/ioregistry.h"
 
 namespace Ripes {
 

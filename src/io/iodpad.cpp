@@ -1,5 +1,5 @@
-#include "iodpad.h"
-#include "ioregistry.h"
+#include "io/iodpad.h"
+#include "io/ioregistry.h"
 
 #include <QGridLayout>
 #include <QKeyEvent>

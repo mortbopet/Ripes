@@ -1,4 +1,4 @@
-#include "cacheview.h"
+#include "cachesim/cacheview.h"
 
 #include <QGraphicsSimpleTextItem>
 #include <QWheelEvent>

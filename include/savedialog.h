@@ -1,6 +1,6 @@
 #pragma once
 
-#include "program.h"
+#include "assembler/program.h"
 #include "ripessettings.h"
 #include <QDialog>
 

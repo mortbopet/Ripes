@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include "callout.h"
+#include "cachesim/callout.h"
 #include <QAction>
 #include <QMenu>
 #include <QtCharts/QChart>
@@ -36,7 +36,7 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 
-#include "cacheplotview.h"
+#include "cachesim/cacheplotview.h"
 
 Callout::Callout(Ripes::CachePlotView *view, QChart *chart)
     : QGraphicsItem(chart), m_view(view), m_chart(chart) {}

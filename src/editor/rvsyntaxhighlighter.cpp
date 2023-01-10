@@ -1,4 +1,4 @@
-#include "rvsyntaxhighlighter.h"
+#include "editor/rvsyntaxhighlighter.h"
 
 #include "colors.h"
 

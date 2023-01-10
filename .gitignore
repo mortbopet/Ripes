@@ -6,6 +6,8 @@ Makefile
 build*
 .vscode
 
+CMakeLists.txt.user*
+
 
 # Qt generated files
 moc_*

@@ -1,4 +1,4 @@
-#include "cacheconfigwidget.h"
+#include "cachesim/cacheconfigwidget.h"
 #include "ui_cacheconfigwidget.h"
 
 #include <QInputDialog>
@@ -8,7 +8,7 @@
 #include <QToolButton>
 #include <QtCharts/QChartView>
 
-#include "cacheplotwidget.h"
+#include "cachesim/cacheplotwidget.h"
 #include "enumcombobox.h"
 #include "ripessettings.h"
 

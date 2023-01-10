@@ -1,4 +1,4 @@
-create_ripes_lib(version LINK_TO_RIPES_LIB)
+add_ripes_sources(version)
 
 # -----------------------------------------------------------------------------
 # Version control file
@@ -13,7 +13,7 @@ add_custom_target(
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp
     )
 
-add_dependencies(version_lib version_file)
+add_dependencies(${RIPES_LIB} version_file)
 
 add_custom_command(
     OUTPUT

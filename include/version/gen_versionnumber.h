@@ -1,0 +1,1 @@
+#define RIPES_GIT_VERSION "N/A"

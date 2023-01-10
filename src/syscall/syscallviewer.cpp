@@ -1,4 +1,4 @@
-#include "syscallviewer.h"
+#include "syscall/syscallviewer.h"
 #include "ui_syscallviewer.h"
 
 #include "processorhandler.h"

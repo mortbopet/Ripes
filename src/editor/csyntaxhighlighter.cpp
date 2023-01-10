@@ -1,4 +1,4 @@
-#include "csyntaxhighlighter.h"
+#include "editor/csyntaxhighlighter.h"
 
 #include "colors.h"
 

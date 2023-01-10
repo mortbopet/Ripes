@@ -1,6 +1,5 @@
-#include "assemblerbase.h"
-
-#include "parserutilities.h"
+#include "assembler/assemblerbase.h"
+#include "assembler/parserutilities.h"
 
 namespace Ripes {
 namespace Assembler {

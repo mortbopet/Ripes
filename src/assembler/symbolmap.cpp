@@ -1,4 +1,4 @@
-#include "symbolmap.h"
+#include "assembler/symbolmap.h"
 
 namespace Ripes {
 namespace Assembler {

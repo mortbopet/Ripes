@@ -1,4 +1,4 @@
-#include "cacheplotview.h"
+#include "cachesim/cacheplotview.h"
 
 #include <QtCharts/QChart>
 #include <QtCharts/QLineSeries>
@@ -9,8 +9,8 @@
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsTextItem>
 
-#include "callout.h"
-#include "chartlinemarker.h"
+#include "cachesim/callout.h"
+#include "cachesim/chartlinemarker.h"
 
 void constrainInPlotRange(QPointF &pos, QChart *chart) {
   const auto plotValue = chart->mapToValue(pos);

@@ -32,6 +32,8 @@ elseif(MINGW)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbig-obj") # Allow big object
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 ######################################################################
 ## GUI setup
 ######################################################################
@@ -48,10 +50,12 @@ find_package(Qt5Widgets CONFIG REQUIRED)
 find_package(Qt5Svg REQUIRED)
 find_package(Qt5Charts CONFIG REQUIRED)
 
-# Finding Qt includes
+# Include Qt includes
+# TODO: fix this, it's VSRTL which relies on global includes...
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5Core_INCLUDE_DIRS})
 include_directories(${Qt5Charts_INCLUDE_DIRS})
+
 
 ######################################################################
 ## Resources setup
@@ -64,14 +68,6 @@ qt5_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 ######################################################################
 ## Library setup
 ######################################################################
-
-# Header-only libraries used in the project must be included from top CMakeLists.txt file
-include_directories(${RIPES_LIB} SYSTEM PUBLIC external/VSRTL/external/cereal/include)
-include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
-include_directories(SYSTEM external/ELFIO)
-include_directories(SYSTEM external/VSRTL/external/Signals)
-include_directories(external/libelfin_cmake)
-include_directories(external)
 
 option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
 if(RIPES_BUILD_VERILATOR_PROCESSORS)

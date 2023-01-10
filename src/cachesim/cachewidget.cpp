@@ -1,11 +1,11 @@
-#include "cachewidget.h"
+#include "cachesim/cachewidget.h"
 #include "ui_cachewidget.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
-#include "cachegraphic.h"
-#include "cacheview.h"
+#include "cachesim/cachegraphic.h"
+#include "cachesim/cacheview.h"
 #include "ripessettings.h"
 
 namespace Ripes {

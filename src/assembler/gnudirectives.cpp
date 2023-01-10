@@ -1,5 +1,5 @@
-#include "gnudirectives.h"
-#include "assembler.h"
+#include "assembler/gnudirectives.h"
+#include "assembler/assembler.h"
 
 namespace Ripes {
 namespace Assembler {

@@ -6,9 +6,9 @@
 #include <QTimer>
 #include <iostream>
 
-#include "src/cli/clioptions.h"
-#include "src/cli/clirunner.h"
-#include "src/mainwindow.h"
+#include "cli/clioptions.h"
+#include "cli/clirunner.h"
+#include "mainwindow.h"
 
 using namespace std;
 

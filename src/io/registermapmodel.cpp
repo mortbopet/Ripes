@@ -1,9 +1,9 @@
-#include "registermapmodel.h"
+#include "io/registermapmodel.h"
 
 #include <QHeaderView>
 
 #include "fonts.h"
-#include "iobase.h"
+#include "io/iobase.h"
 #include "processorhandler.h"
 
 namespace Ripes {
