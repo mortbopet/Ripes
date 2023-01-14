@@ -222,17 +222,20 @@ QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
 
 AInt ProgramViewer::addressForBlock(QTextBlock block, bool &ok) const {
   ok = true;
-  const static auto calcAddressFunc = [](int lineNumber) {
+  const static auto calcAddressFunc =
+      [&](int lineNumber) -> std::optional<AInt> {
     auto m_program = ProcessorHandler::getProgram();
     if (m_program) {
       auto &disassembleRes = m_program->getDisassembled();
-      if (disassembleRes.numInstructions() < static_cast<unsigned>(lineNumber))
-        return 0;
+      if (disassembleRes.numInstructions() <
+          static_cast<unsigned>(lineNumber)) {
+        return std::nullopt;
+      }
       if (auto addr = disassembleRes.indexToAddress(lineNumber);
           addr.has_value())
-        return static_cast<int>(addr.value());
+        return static_cast<AInt>(addr.value());
     }
-    return 0;
+    return std::nullopt;
   };
 
   const int lineNumber = block.blockNumber();
@@ -248,8 +251,11 @@ AInt ProgramViewer::addressForBlock(QTextBlock block, bool &ok) const {
   // subtract the invalid line count up to the given point.
   int adjustedLineNumber = lineNumber;
 
-  if (m_labelAddrOffsetMap.empty())
-    return calcAddressFunc(adjustedLineNumber);
+  if (m_labelAddrOffsetMap.empty()) {
+    auto calcAddressRes = calcAddressFunc(adjustedLineNumber);
+    ok = calcAddressRes.has_value();
+    return ok ? calcAddressRes.value() : 0;
+  }
 
   auto low = m_labelAddrOffsetMap.lower_bound(lineNumber);
 
@@ -257,7 +263,9 @@ AInt ProgramViewer::addressForBlock(QTextBlock block, bool &ok) const {
       static_cast<unsigned>(lineNumber) < low->first) {
     // The line number is less that the position of the first offset block;
     // address is directly inferred from linenumber.
-    return calcAddressFunc(adjustedLineNumber);
+    auto calcAddressRes = calcAddressFunc(adjustedLineNumber);
+    ok = calcAddressRes.has_value();
+    return ok ? calcAddressRes.value() : 0;
   }
 
   if (low != m_labelAddrOffsetMap.begin()) {
@@ -265,7 +273,9 @@ AInt ProgramViewer::addressForBlock(QTextBlock block, bool &ok) const {
   }
 
   adjustedLineNumber -= (low->second.first + 1);
-  return calcAddressFunc(adjustedLineNumber);
+  auto calcAddressRes = calcAddressFunc(adjustedLineNumber);
+  ok = calcAddressRes.has_value();
+  return ok ? calcAddressRes.value() : 0;
 }
 
 AInt ProgramViewer::addressForPos(const QPoint &pos, bool &ok) const {

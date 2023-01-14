@@ -1,5 +1,13 @@
 # Ripes Release Notes
 
+## Ripes v2.2.7
+
+### Bug fixes and minor stuff
+- Fixed auto-clocking not being stopped when a breakpoint has been hit.
+- Fixed breakpoint set at line 0 also being mirrored at line `num instructions`.
+
+## Ripes v2.2.6
+
 ### Bug fixes and minor stuff
 - Changed the terminology for caches, substituting "Word" for "Block". Most textbooks use the term "cache block" interchangeably with "cache line", so using "Block" for words stored in a cache line was confusing.
 

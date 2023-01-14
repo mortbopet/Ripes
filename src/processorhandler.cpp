@@ -159,24 +159,27 @@ void ProcessorHandler::_triggerProcStateChangeTimer() {
 
 class ProcessorClocker : public QRunnable {
 public:
-  explicit ProcessorClocker(bool &finished) : m_finished(finished) {}
+  explicit ProcessorClocker(std::mutex &clockLock) : clockLock(clockLock) {}
   void run() override {
+    std::unique_lock l(clockLock);
     ProcessorHandler::getProcessorNonConst()->clock();
     ProcessorHandler::checkProcessorFinished();
     if (ProcessorHandler::checkBreakpoint()) {
       ProcessorHandler::stopRun();
     }
-    m_finished = true;
   }
 
 private:
-  bool &m_finished;
+  std::mutex &clockLock;
 };
 
 void ProcessorHandler::_clock() {
-  if (m_clockFinished) {
-    m_clockFinished = false;
-    QThreadPool::globalInstance()->start(new ProcessorClocker(m_clockFinished));
+  // Attempt to grab the clock lock - if not possible to acquire, this means
+  // that there already is an ongoing clock event. This _clock event will
+  // therefore be ignored.
+  if (m_clockLock.try_lock()) {
+    QThreadPool::globalInstance()->start(new ProcessorClocker(m_clockLock));
+    m_clockLock.unlock();
   }
 }
 

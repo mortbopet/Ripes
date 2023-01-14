@@ -230,7 +230,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
 
   m_autoClockTimer = new QTimer(this);
   connect(m_autoClockTimer, &QTimer::timeout, this,
-          [=] { ProcessorHandler::clock(); });
+          [=] { autoClockTimeout(); });
 
   const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
   m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
@@ -239,8 +239,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
       "Clock the circuit with the selected frequency (F6)");
   m_autoClockAction->setCheckable(true);
   m_autoClockAction->setChecked(false);
-  connect(m_autoClockAction, &QAction::triggered, this,
-          &ProcessorTab::autoClock);
+  connect(m_autoClockAction, &QAction::toggled, this, &ProcessorTab::autoClock);
   controlToolbar->addAction(m_autoClockAction);
 
   m_autoClockInterval = new QSpinBox(this);
@@ -524,6 +523,12 @@ void ProcessorTab::runFinished() {
   m_statUpdateTimer->stop();
 }
 
+void ProcessorTab::autoClockTimeout() {
+  if (ProcessorHandler::checkBreakpoint())
+    return;
+  ProcessorHandler::clock();
+}
+
 void ProcessorTab::autoClock(bool state) {
   const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
   const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
@@ -531,6 +536,11 @@ void ProcessorTab::autoClock(bool state) {
     m_autoClockTimer->stop();
     m_autoClockAction->setIcon(startAutoClockIcon);
   } else {
+    // Always clock the processor to start with. Afterwards, run
+    // autoClockTimeout() which will check if the processor is at a breakpoint.
+    // This is to circumvent some annoying cross-thread, eventloop,
+    // race-condition-y state setting wrt. when exactly a breakpoint is hit.
+    ProcessorHandler::clock();
     m_autoClockTimer->start();
     m_autoClockAction->setIcon(stopAutoTimerIcon);
   }

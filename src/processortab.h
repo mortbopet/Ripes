@@ -54,6 +54,7 @@ public slots:
 private slots:
   void run(bool state);
   void autoClock(bool state);
+  void autoClockTimeout();
   void setInstructionViewCenterRow(int row);
   void showPipelineDiagram();
 
