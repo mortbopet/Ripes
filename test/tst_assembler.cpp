@@ -308,8 +308,15 @@ void tst_Assembler::tst_invalidreg() {
 }
 
 void tst_Assembler::tst_edgeImmediates() {
-  testAssemble(QStringList() << "addi a0 a0 2047"
-                             << "addi a0 a0 -2048",
+  testAssemble(QStringList()
+                   << "addi a0 a0 2047"
+                   << "addi a0 a0 -2048"
+                   // Hex and binary immediates which fits in 12 bits.
+                   << "addi x2, x0, 0xAFF"
+                   << "addi x2, x0, 0b101010101010"
+                   // Negative values expressed in hex should be accepted if
+                   // they're expressed using the full 32-bit immediate space.
+                   << "addi x2, x0, 0xFFFFFFF1",
                Expect::Success);
 }
 

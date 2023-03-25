@@ -218,6 +218,15 @@ struct Imm : public Field<Reg_T> {
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
   enum class Repr { Unsigned, Signed, Hex };
+  static Radix reprToRadix(Repr repr) {
+    if (repr == Repr::Unsigned)
+      return Radix::Unsigned;
+    if (repr == Repr::Signed)
+      return Radix::Signed;
+    if (repr == Repr::Hex)
+      return Radix::Hex;
+    return Radix::Unsigned;
+  }
   enum class SymbolType { None, Relative, Absolute };
   /**
    * @brief Imm
@@ -239,9 +248,11 @@ struct Imm : public Field<Reg_T> {
       : Field<Reg_T>(_tokenIndex), parts(_parts), width(_width), repr(_repr),
         symbolType(_symbolType), symbolTransformer(_symbolTransformer) {}
 
-  int64_t getImm(const QString &immToken, bool &success) const {
-    return repr == Repr::Signed ? getImmediateSext32(immToken, success)
-                                : getImmediate(immToken, success);
+  int64_t getImm(const QString &immToken, bool &success,
+                 ImmConvInfo &convInfo) const {
+    return repr == Repr::Signed
+               ? getImmediateSext32(immToken, success, &convInfo)
+               : getImmediate(immToken, success, &convInfo);
   }
 
   std::optional<Error>
@@ -249,7 +260,8 @@ struct Imm : public Field<Reg_T> {
         FieldLinkRequest<Reg_T> &linksWithSymbol) const override {
     bool success;
     const Token &immToken = line.tokens[this->tokenIndex];
-    Reg_T_S value = getImm(immToken, success);
+    ImmConvInfo convInfo;
+    Reg_T_S value = getImm(immToken, success, convInfo);
 
     if (!success) {
       // Could not directly resolve immediate. Register it as a symbol to link
@@ -260,7 +272,8 @@ struct Imm : public Field<Reg_T> {
       return {};
     }
 
-    if (auto res = checkFitsInWidth(value, line); res.isError())
+    if (auto res = checkFitsInWidth(value, line, convInfo, immToken);
+        res.isError())
       return res.error();
 
     for (const auto &part : parts) {
@@ -269,20 +282,53 @@ struct Imm : public Field<Reg_T> {
     return std::nullopt;
   }
 
-  Result<> checkFitsInWidth(Reg_T_S value, const Location &sourceLine) const {
-    if (!(repr == Repr::Signed ? isInt(width, value)
-                               : (isUInt(width, value)))) {
-      const QString v = repr == Repr::Signed
-                            ? QString::number(static_cast<Reg_T_S>(value))
-                            : QString::number(static_cast<Reg_T_U>(value));
-      return Error(sourceLine, "Immediate value '" + v + "' does not fit in " +
+  Result<> checkFitsInWidth(Reg_T_S value, const Location &sourceLine,
+                            ImmConvInfo &convInfo,
+                            QString token = QString()) const {
+    bool err = false;
+    if (repr != Repr::Signed) {
+      if (!isUInt(width, value)) {
+        err = true;
+        if (token.isEmpty())
+          token = QString::number(static_cast<Reg_T_U>(value));
+      }
+    } else {
+
+      // In case of a bitwize (binary or hex) radix, interpret the value as
+      // legal if it fits in the width of this immediate (equal to an unsigned
+      // immediate check). e.g. a signed immediate value of 12 bits must be able
+      // to accept 0xAFF.
+      bool isBitwize =
+          convInfo.radix == Radix::Hex || convInfo.radix == Radix::Binary;
+      if (isBitwize) {
+        err = !isUInt(width, value);
+      }
+
+      if (!isBitwize || (isBitwize && err)) {
+        // A signed representation using an integer value in assembly OR a
+        // negative bitwize value which is represented in its full length (e.g.
+        // 0xFFFFFFF1).
+        err = !isInt(width, value);
+      }
+
+      if (err)
+        if (token.isEmpty())
+          token = QString::number(static_cast<Reg_T_S>(value));
+    }
+
+    if (err) {
+      return Error(sourceLine, "Immediate value '" + token +
+                                   "' does not fit in " +
                                    QString::number(width) + " bits");
     }
+
     return Result<>::def();
   }
 
   Result<> applySymbolResolution(const Location &loc, Reg_T symbolValue,
                                  Instr_T &instruction, Reg_T address) const {
+    ImmConvInfo convInfo;
+    convInfo.radix = reprToRadix(repr);
     Reg_T adjustedValue = symbolValue;
     if (symbolType == SymbolType::Relative)
       adjustedValue -= address;
@@ -290,7 +336,8 @@ struct Imm : public Field<Reg_T> {
     if (symbolTransformer)
       adjustedValue = symbolTransformer(adjustedValue);
 
-    if (auto res = checkFitsInWidth(adjustedValue, loc); res.isError())
+    if (auto res = checkFitsInWidth(adjustedValue, loc, convInfo);
+        res.isError())
       return res.error();
 
     for (const auto &part : parts)
