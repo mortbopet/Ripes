@@ -8,6 +8,7 @@
 #include "assembler/program.h"
 #include "assembler/rv32i_assembler.h"
 #include "assembler/rv64i_assembler.h"
+#include "io/iomanager.h"
 
 #include "syscall/riscv_syscall.h"
 
@@ -272,6 +273,10 @@ void ProcessorHandler::_reset() {
   for (const auto &kv : m_currentRegInits) {
     _setRegisterValue(RegisterFileType::GPR, kv.first, kv.second);
   }
+
+  // Reset IO devices.
+  IOManager::get().reset();
+
   // Forcing memory values doesn't necessarily mean that the processor will
   // notify that its state changed. Manually trigger a state change signal, to
   // ensure this.

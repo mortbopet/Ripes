@@ -34,6 +34,10 @@ public:
   virtual VInt ioRead(AInt offset, unsigned size) override;
   virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
 
+  virtual void reset() override {
+    std::fill(m_ledRegs.begin(), m_ledRegs.end(), 0);
+  }
+
 protected:
   virtual void parameterChanged(unsigned) override { updateLEDRegs(); };
 

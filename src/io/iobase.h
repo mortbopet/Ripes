@@ -113,6 +113,12 @@ public:
   virtual unsigned byteSize() const = 0;
 
   /**
+   * @brief reset
+   * Hook for an IO device to run a reset procedure upon processor reset.
+   */
+  virtual void reset() {}
+
+  /**
    * Read/write functions from processor
    */
   virtual VInt ioRead(AInt offset, unsigned bytes) = 0;

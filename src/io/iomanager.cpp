@@ -29,6 +29,13 @@ QString IOManager::cSymbolsHeaderpath() const {
   }
 }
 
+void IOManager::reset() {
+  for (auto &device : m_peripherals) {
+    device->reset();
+    device->update();
+  }
+}
+
 AInt IOManager::nextPeripheralAddress() const {
   AInt base = 0;
   if (m_periphMMappings.empty()) {

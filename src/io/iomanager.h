@@ -60,6 +60,12 @@ public:
   std::vector<std::pair<Symbol, AInt>>
   assemblerSymbolsForPeriph(IOBase *peripheral) const;
 
+  /**
+   * @brief reset
+   * Call to reset all IO devices.
+   */
+  void reset();
+
 signals:
   void memoryMapChanged();
   void peripheralRemoved(QObject *peripheral);
