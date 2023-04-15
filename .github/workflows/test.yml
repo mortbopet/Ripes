@@ -60,7 +60,7 @@ jobs:
       uses: jurplel/install-qt-action@v3
       with:
         version: '6.5.0'
-        modules: 'qtcharts qtsvg'
+        modules: 'qtcharts'
         install-deps: false
 
     - if: contains( matrix.os, 'windows')
@@ -68,7 +68,7 @@ jobs:
       uses: jurplel/install-qt-action@v3
       with:
         version: '6.5.0'
-        modules: 'qtcharts qtsvg'
+        modules: 'qtcharts'
         install-deps: false
         arch: win64_msvc2019_64
 

@@ -55,7 +55,7 @@ jobs:
         version: '6.5.0'
         host: 'linux'
         target: 'wasm_multithread'
-        modules: 'qtcharts qtsvg'
+        modules: 'qtcharts'
         install-deps: false
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 

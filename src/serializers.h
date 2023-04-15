@@ -6,7 +6,6 @@
 #include <QIODevice>
 #include <QVariant>
 
-
 template <class Archive>
 void save(Archive &archive, const QVariant &v) {
   // Seems cumbersome but only easy way to serialize a QVariant in cereal
