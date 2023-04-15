@@ -70,10 +70,6 @@ void RegisterWidget::showContextMenu(const QPoint &pos) {
   // If the register is not read only, add "set register value" action.
   if (m_model->flags(index) & Qt::ItemIsEditable) {
     menu.addAction("Set register value", [&]() {
-      // A dialog which says "Register value"
-      // A text field which is pre-filled with the current value of the register
-      // A button which says "Set"
-      // A button which says "Cancel"
       QInputDialog dialog(this);
       dialog.setWindowTitle("Set register value");
       dialog.setLabelText("Register value");
@@ -87,6 +83,16 @@ void RegisterWidget::showContextMenu(const QPoint &pos) {
       }
     });
   }
+
+  auto goToAddressAction = QAction("Go to address");
+  goToAddressAction.setToolTip("Make all memory viewers move to the address "
+                               "contained in the selected register");
+  connect(&goToAddressAction, &QAction::triggered, [&]() {
+    const auto address = m_model->data(index, Qt::EditRole).toULongLong();
+    ProcessorHandler::setMemoryFocusAddress(address);
+  });
+  menu.addAction(&goToAddressAction);
+  menu.setToolTipsVisible(true);
 
   menu.exec(m_ui->registerView->viewport()->mapToGlobal(pos));
 }

@@ -185,6 +185,10 @@ public:
   /// Returns true if the simulator is currently in "run" mode.
   static bool isRunning() { return get()->_isRunning(); }
 
+  static void setMemoryFocusAddress(AInt address) {
+    emit get()->memoryFocusAddressChanged(address);
+  }
+
   /**
    * @brief run
    * Asynchronously runs the current processor. During this, the processor will
@@ -248,6 +252,10 @@ signals:
                                  // GUI updating
   void procStateChangedNonRun(); // processorReset | processorReversed |
                                  // processorClockedNonRun
+
+  // Emitted whenever the global memory focus address for the application should
+  // change.
+  void memoryFocusAddressChanged(AInt address);
 
 private slots:
   /**
