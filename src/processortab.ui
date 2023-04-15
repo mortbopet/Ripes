@@ -46,7 +46,31 @@
       <widget class="QWidget" name="horizontalLayoutWidget_2">
        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
         <item>
-         <widget class="ConsoleWidget" name="console" native="true"/>
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Console</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="0" column="0">
+             <widget class="ConsoleWidget" name="console" native="true"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Memory</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="0" column="0">
+             <widget class="MemoryViewerWidget" name="widget" native="true"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_2">
@@ -331,6 +355,12 @@
    <class>ConsoleWidget</class>
    <extends>QWidget</extends>
    <header>consolewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MemoryViewerWidget</class>
+   <extends>QWidget</extends>
+   <header>memoryviewerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
