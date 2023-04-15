@@ -4,6 +4,8 @@
 
 #include <QHeaderView>
 
+#include "processorhandler.h"
+
 namespace Ripes {
 
 MemoryView::MemoryView(QWidget *parent) : QTableView(parent) {}

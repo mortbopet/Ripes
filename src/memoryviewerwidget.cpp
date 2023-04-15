@@ -21,6 +21,15 @@ MemoryViewerWidget::MemoryViewerWidget(QWidget *parent)
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
           &MemoryViewerWidget::updateModel);
   updateModel();
+
+  // During processor running, it should not be possible to interact with the
+  // memory viewer.
+  connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
+          [=] { setEnabled(false); });
+  connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
+          [=] { setEnabled(true); });
+  connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
+          this, [=] { this->updateView(); });
 }
 
 MemoryViewerWidget::~MemoryViewerWidget() { delete m_ui; }

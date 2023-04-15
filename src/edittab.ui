@@ -339,7 +339,31 @@
         </item>
        </layout>
       </widget>
-      <widget class="ConsoleWidget" name="console" native="true"/>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="consoleTab">
+        <attribute name="title">
+         <string>Console</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="ConsoleWidget" name="console" native="true"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="memoryTab">
+        <attribute name="title">
+         <string>Memory</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_8">
+         <item row="0" column="0">
+          <widget class="MemoryViewerWidget" name="memoryView" native="true"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
      </widget>
      <widget class="RegisterContainerWidget" name="registers" native="true"/>
     </widget>
@@ -354,12 +378,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ConsoleWidget</class>
-   <extends>QWidget</extends>
-   <header>consolewidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
    <header>editor/codeeditor.h</header>
@@ -368,6 +386,18 @@
    <class>ProgramViewer</class>
    <extends>QPlainTextEdit</extends>
    <header>programviewer.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ConsoleWidget</class>
+   <extends>QWidget</extends>
+   <header>consolewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MemoryViewerWidget</class>
+   <extends>QWidget</extends>
+   <header>memoryviewerwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

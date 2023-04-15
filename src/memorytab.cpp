@@ -19,13 +19,6 @@ MemoryTab::MemoryTab(QToolBar *toolbar, QWidget *parent)
   m_ui->memoryViewerWidget->updateModel();
   m_ui->memoryViewerWidget->updateView();
 
-  // During processor running, it should not be possible to interact with the
-  // memory viewer or cache widgets
-  connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
-          [=] { setEnabled(false); });
-  connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
-          [=] { setEnabled(true); });
-
   m_ui->memoryMapView->setModel(new MemoryMapModel(&IOManager::get(), this));
   m_ui->memoryMapView->horizontalHeader()->setSectionResizeMode(
       MemoryMapModel::Name, QHeaderView::ResizeToContents);
@@ -35,10 +28,6 @@ MemoryTab::MemoryTab(QToolBar *toolbar, QWidget *parent)
       MemoryMapModel::Size, QHeaderView::ResizeToContents);
   m_ui->splitter->setStretchFactor(0, 2);
   m_ui->splitter->setStretchFactor(1, 1);
-
-  connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
-          m_ui->memoryViewerWidget,
-          [=] { m_ui->memoryViewerWidget->updateView(); });
 }
 
 MemoryTab::~MemoryTab() { delete m_ui; }
