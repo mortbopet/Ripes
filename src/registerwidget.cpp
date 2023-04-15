@@ -1,10 +1,14 @@
 #include "registerwidget.h"
 #include "ui_registerwidget.h"
 
+#include <QClipboard>
 #include <QHeaderView>
+#include <QInputDialog>
+#include <QMenu>
 #include <QScrollBar>
 #include <QTableView>
 
+#include "addressdialog.h"
 #include "processorhandler.h"
 #include "radixselectorwidget.h"
 #include "registermodel.h"
@@ -27,6 +31,11 @@ void RegisterWidget::initialize() {
   m_model = new RegisterModel(m_regFileID, this);
   m_ui->registerView->setModel(m_model);
 
+  // Add custom right click menu to register view
+  m_ui->registerView->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(m_ui->registerView, &QTableView::customContextMenuRequested, this,
+          &RegisterWidget::showContextMenu);
+
   m_ui->registerView->horizontalHeader()->setSectionResizeMode(
       RegisterModel::Name, QHeaderView::ResizeToContents);
   m_ui->registerView->horizontalHeader()->setSectionResizeMode(
@@ -42,6 +51,45 @@ void RegisterWidget::initialize() {
 }
 
 void RegisterWidget::updateView() { m_model->processorWasClocked(); }
+
+void RegisterWidget::showContextMenu(const QPoint &pos) {
+  const auto index = m_ui->registerView->indexAt(pos);
+  if (!index.isValid())
+    return;
+
+  // Only allow context menu on the value column
+  if (index.column() != RegisterModel::Value)
+    return;
+
+  QMenu menu;
+  menu.addAction("Copy register value", [&]() {
+    QApplication::clipboard()->setText(
+        m_model->data(index, Qt::DisplayRole).toString());
+  });
+
+  // If the register is not read only, add "set register value" action.
+  if (m_model->flags(index) & Qt::ItemIsEditable) {
+    menu.addAction("Set register value", [&]() {
+      // A dialog which says "Register value"
+      // A text field which is pre-filled with the current value of the register
+      // A button which says "Set"
+      // A button which says "Cancel"
+      QInputDialog dialog(this);
+      dialog.setWindowTitle("Set register value");
+      dialog.setLabelText("Register value");
+      dialog.setTextValue(m_model->data(index, Qt::DisplayRole).toString());
+      dialog.setOkButtonText("Set");
+      dialog.setCancelButtonText("Cancel");
+      dialog.setWindowFlags(dialog.windowFlags() &
+                            ~Qt::WindowContextHelpButtonHint);
+      if (dialog.exec() == QDialog::Accepted) {
+        m_model->setData(index, dialog.textValue(), /*unused*/ 0);
+      }
+    });
+  }
+
+  menu.exec(m_ui->registerView->viewport()->mapToGlobal(pos));
+}
 
 void RegisterWidget::setRegisterviewCenterIndex(int index) {
   const auto view = m_ui->registerView;

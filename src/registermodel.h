@@ -48,6 +48,7 @@ private:
   QVariant aliasData(unsigned idx) const;
   QVariant valueData(unsigned idx) const;
   QVariant tooltipData(unsigned idx) const;
+  VInt registerData(unsigned idx) const;
 
   Radix m_radix = Radix::Hex;
   unsigned m_regBytes;

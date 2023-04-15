@@ -26,6 +26,7 @@ public slots:
   void setRegisterviewCenterIndex(int index);
 
 private:
+  void showContextMenu(const QPoint &pos);
   Ui::RegisterWidget *m_ui = nullptr;
   RegisterModel *m_model = nullptr;
   const RegisterFileType m_regFileID;

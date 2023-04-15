@@ -113,6 +113,8 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const {
       return QFont(Fonts::monospace, 11);
     case Qt::ForegroundRole:
       return QBrush(Qt::blue);
+    case Qt::EditRole:
+      return QVariant::fromValue(registerData(idx));
     default:
       break;
     }
@@ -138,9 +140,12 @@ QVariant RegisterModel::tooltipData(unsigned idx) const {
   return ProcessorHandler::currentISA()->regInfo(idx);
 }
 
+VInt RegisterModel::registerData(unsigned idx) const {
+  return ProcessorHandler::getRegisterValue(m_rft, idx);
+}
+
 QVariant RegisterModel::valueData(unsigned idx) const {
-  return encodeRadixValue(ProcessorHandler::getRegisterValue(m_rft, idx),
-                          m_radix, m_regBytes);
+  return encodeRadixValue(registerData(idx), m_radix, m_regBytes);
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex &index) const {

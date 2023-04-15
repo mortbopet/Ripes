@@ -2,9 +2,11 @@
 
 ## Ripes v2.2.7
 
-### Bug fixes and minor stuff
+### Bug fixes and new stuff
 - Fixed auto-clocking not being stopped when a breakpoint has been hit.
 - Fixed breakpoint set at line 0 also being mirrored at line `num instructions`.
+- Added a memory viewer widget to the edit tab
+- Register values can now be copied from the register widget (right click).
 
 ## Ripes v2.2.6
 
