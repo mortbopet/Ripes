@@ -127,7 +127,7 @@ void ToggleButton::mouseReleaseEvent(QMouseEvent *e) {
   }
 }
 
-void ToggleButton::enterEvent(QEvent *event) {
+void ToggleButton::enterEvent(QEnterEvent *event) {
   setCursor(Qt::PointingHandCursor);
   QAbstractButton::enterEvent(event);
 }

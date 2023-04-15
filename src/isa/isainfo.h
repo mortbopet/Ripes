@@ -1,5 +1,6 @@
 #pragma once
 
+#include "limits.h"
 #include <QMap>
 #include <QSet>
 #include <QString>

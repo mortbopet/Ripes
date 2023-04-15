@@ -30,7 +30,7 @@ protected:
   void paintEvent(QPaintEvent *event);
   void mousePressEvent(QMouseEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
-  void enterEvent(QEvent *event);
+  void enterEvent(QEnterEvent *event);
   void leaveEvent(QEvent *event);
 
   QRect getTabRect(qint32 index);

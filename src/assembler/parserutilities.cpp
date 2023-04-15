@@ -169,12 +169,12 @@ Result<QStringList> tokenizeQuotes(const Location &location,
         escape = false;
       substr.push_back(ch);
     } else {
-      if (ch == " " || ch == "," || ch == "\t") {
+      if (ch == ' ' || ch == ',' || ch == '\t') {
         if (!substr.isEmpty())
           pushSubstr();
       } else
         substr.push_back(ch);
-      if (ch == "\"")
+      if (ch == '\"')
         inQuotes = true;
     }
   }

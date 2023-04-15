@@ -4,14 +4,14 @@
 
 namespace Ripes {
 
-void setISADepRegex(QRegExpValidator *validator) {
+void setISADepRegex(QRegularExpressionValidator *validator) {
   const auto isaBytes = ProcessorHandler::currentISA()->bytes();
   if (isaBytes == 2) {
-    validator->setRegExp(hexRegex16);
+    validator->setRegularExpression(hexRegex16);
   } else if (isaBytes == 4) {
-    validator->setRegExp(hexRegex32);
+    validator->setRegularExpression(hexRegex32);
   } else if (isaBytes == 8) {
-    validator->setRegExp(hexRegex64);
+    validator->setRegularExpression(hexRegex64);
   } else {
     Q_UNREACHABLE();
   }

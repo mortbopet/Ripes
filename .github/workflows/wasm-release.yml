@@ -1,4 +1,4 @@
-name: Ubuntu 18.04 / Qt 6.5.0
+name: WASM / Qt 6.5.0
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -8,12 +8,12 @@ jobs:
   buildUbuntuXenial:
     runs-on: ubuntu-18.04
     env:
-      CC: gcc-9
-      CXX: g++-9
+      CC: emcc
+      CXX: em++
 
-    strateg
+    strategy:
       matrix:
-        build-type: [Release, Debug]
+        build-type: [Release]
 
     steps:
 
@@ -42,16 +42,22 @@ jobs:
         path: ../Qt
         key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
 
-    - name: Install Qt
+    - name: install Emscripten
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install latest 3.1.25
+        ./emsdk activate 3.1.25
+
+    - name: install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        aqtversion: '==3.1.*'
-        py7zrversion: '>=0.20.2'
         version: '6.5.0'
         host: 'linux'
-        target: 'desktop'
-        arch: 'gcc_64'
-        modules: 'qtcharts'
+        target: 'wasm_multithread'
+        modules: 'qtcharts qtsvg'
+        install-deps: false
+        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: checkout sources
       uses: actions/checkout@v2
@@ -63,40 +69,15 @@ jobs:
       run: |
         echo "--------------------------------------------------------------"
         echo "building desktop"
+        source emsdk/emsdk_env.sh
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} .
         make -j $(nproc)
-
-    - name: package artifacts
-      run: |
-        mkdir -p appdir/usr/bin/
-        mv Ripes appdir/usr/bin/
-        wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-        chmod a+x linuxdeployqt-continuous-x86_64.AppImage
-        source .github/workflows/scripts/set_version.sh
-        export VERSION=${RIPES_VERSION}-linux # linuxdeployqt uses this for naming the package
-        echo "Version is: ${VERSION}"
-        ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract-and-run appdir/usr/share/applications/*.desktop \
-          -appimage -verbose=2 -extra-plugins=iconengines
 
     - uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.build-type }}_executable
-        path: Ripes*.AppImage*
-
-    - name: continuous release
-      uses: softprops/action-gh-release@v1
-      if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release'
-      with:
-        prerelease: true
-        files: Ripes*.AppImage*
-        tag_name: continuous
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release')
-      name: tagged release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: Ripes*.AppImage*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        path: |
+          Ripes.wasm
+          Ripes.js
+          Ripes.worker.js
+          qtloader.js

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QChart>
 #include <QMutex>
 #include <QtCharts/QChartGlobal>
 #include <QtWidgets/QGraphicsView>
@@ -10,14 +11,10 @@ class QMouseEvent;
 class QResizeEvent;
 QT_END_NAMESPACE
 
-QT_CHARTS_BEGIN_NAMESPACE
 class QChart;
 class QLineSeries;
-QT_CHARTS_END_NAMESPACE
 
 class Callout;
-
-QT_CHARTS_USE_NAMESPACE
 
 namespace Ripes {
 class ChartLineMarker;
@@ -54,15 +51,15 @@ public:
 protected:
   void resizeEvent(QResizeEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
-  void enterEvent(QEvent *event) override;
+  void enterEvent(QEnterEvent *event) override;
   void leaveEvent(QEvent *event) override;
 
 public slots:
   void keepCallout();
   void deleteCallout(Callout *callout);
   void tooltip(QPointF point, bool state);
-  void hideSeriesMarker(QtCharts::QLineSeries *series);
-  void showSeriesMarker(QtCharts::QLineSeries *series, const QString &name);
+  void hideSeriesMarker(QLineSeries *series);
+  void showSeriesMarker(QLineSeries *series, const QString &name);
 
 private:
   void resizeObjects(const QSizeF &size);

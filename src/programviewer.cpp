@@ -28,7 +28,7 @@ ProgramViewer::ProgramViewer(QWidget *parent) : HighlightableTextEdit(parent) {
   setFont(m_font);
   m_fontTimer.setSingleShot(true);
 
-  setTabStopDistance(QFontMetricsF(m_font).width(' ') * 4);
+  setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') * 4);
 
   setLineWrapMode(QPlainTextEdit::NoWrap);
 }

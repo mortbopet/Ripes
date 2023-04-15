@@ -51,8 +51,8 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::RegisterInitializationWidget) {
   m_ui->setupUi(this);
 
-  m_hexValidator = new QRegExpValidator(this);
-  m_hexValidator->setRegExp(hexRegex32);
+  m_hexValidator = new QRegularExpressionValidator(this);
+  m_hexValidator->setRegularExpression(hexRegex32);
 
   const QIcon addIcon = QIcon(":/icons/plus.svg");
   m_ui->addInitButton->setIcon(addIcon);

@@ -3,7 +3,9 @@
 #include "VSRTL/external/cereal/include/cereal/cereal.hpp"
 
 #include <QDataStream>
+#include <QIODevice>
 #include <QVariant>
+
 
 template <class Archive>
 void save(Archive &archive, const QVariant &v) {

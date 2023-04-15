@@ -114,7 +114,8 @@ void CacheGraphic::updateLineReplFields(unsigned lineIdx) {
     // LRU text might have changed; update LRU field position to center in
     // column
     const qreal y = lineIdx * m_lineHeight + way.first * m_setHeight;
-    const qreal x = m_widthBeforeLRU + m_lruWidth / 2 - m_fm.width(lruText) / 2;
+    const qreal x =
+        m_widthBeforeLRU + m_lruWidth / 2 - m_fm.horizontalAdvance(lruText) / 2;
 
     way.second.lru->setPos(x, y);
   }
@@ -149,8 +150,9 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
       QGraphicsSimpleTextItem *blockTextItem = nullptr;
       if (way.blocks.count(i) == 0) {
         // Block text item has not yet been created
-        const qreal x = m_widthBeforeBlocks + i * m_blockWidth +
-                        (m_blockWidth / 2 - m_fm.width(addressString()) / 2);
+        const qreal x =
+            m_widthBeforeBlocks + i * m_blockWidth +
+            (m_blockWidth / 2 - m_fm.horizontalAdvance(addressString()) / 2);
         const qreal y = lineIdx * m_lineHeight + wayIdx * m_setHeight;
 
         way.blocks[i] = createGraphicsTextItemSP(x, y);
@@ -200,7 +202,8 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     QGraphicsSimpleTextItem *tagTextItem = way.tag.get();
     if (tagTextItem == nullptr) {
       const qreal x =
-          m_widthBeforeTag + (m_tagWidth / 2 - m_fm.width(addressString()) / 2);
+          m_widthBeforeTag +
+          (m_tagWidth / 2 - m_fm.horizontalAdvance(addressString()) / 2);
       const qreal y = lineIdx * m_lineHeight + wayIdx * m_setHeight;
       way.tag = createGraphicsTextItemSP(x, y);
       tagTextItem = way.tag.get();
@@ -325,12 +328,14 @@ void CacheGraphic::drawIndexingItems() {
            &smallerFont);
   const QString topBits = "31";
   drawText(topBits,
-           m_addressTextItem->pos().x() - smallerFontMetric.width(topBits),
+           m_addressTextItem->pos().x() -
+               smallerFontMetric.horizontalAdvance(topBits),
            m_addressTextItem->pos().y() - m_setHeight, &smallerFont);
 
   unsigned bitIdx = 0;
   auto drawNextBitPos = [&](unsigned additionalOffset) {
-    nextBitsPos -= {m_fm.width(QString("-").repeated(additionalOffset)), 0};
+    nextBitsPos -=
+        {m_fm.horizontalAdvance(QString("-").repeated(additionalOffset)), 0};
     bitIdx += additionalOffset;
     auto line = new QGraphicsLineItem(
         QLineF{nextBitsPos, nextBitsPos + QPointF{0, m_setHeight}}, this);
@@ -342,8 +347,8 @@ void CacheGraphic::drawIndexingItems() {
     drawText(thisBitText, nextBitsPos - QPointF{0, smallerFontMetric.height()},
              &smallerFont);
     drawText(nextBitText,
-             nextBitsPos -
-                 QPointF{m_fm.width(nextBitText), smallerFontMetric.height()},
+             nextBitsPos - QPointF{m_fm.horizontalAdvance(nextBitText),
+                                   smallerFontMetric.height()},
              &smallerFont);
   };
 
@@ -382,7 +387,7 @@ void CacheGraphic::drawIndexingItems() {
   // Draw top header
   const QString addrStr = "Access address";
   QPointF addrStrPos = m_addressTextItem->pos();
-  addrStrPos.rx() -= m_fm.width(addrStr) * 1.1;
+  addrStrPos.rx() -= m_fm.horizontalAdvance(addrStr) * 1.1;
   //  addrStrPos.ry() += m_setHeight;
   drawText(addrStr, addrStrPos);
 }
@@ -401,9 +406,9 @@ void CacheGraphic::cacheInvalidated() {
   // Determine cell dimensions
   m_setHeight = m_fm.height();
   m_lineHeight = m_setHeight * m_cache.getWays();
-  m_blockWidth = m_fm.width(" " + addressString() + " ");
-  m_bitWidth = m_fm.width("00");
-  m_lruWidth = m_fm.width(QString::number(m_cache.getWays()) + " ");
+  m_blockWidth = m_fm.horizontalAdvance(" " + addressString() + " ");
+  m_bitWidth = m_fm.horizontalAdvance("00");
+  m_lruWidth = m_fm.horizontalAdvance(QString::number(m_cache.getWays()) + " ");
   m_cacheHeight = m_lineHeight * m_cache.getLines();
   m_tagWidth = m_blockWidth;
 
@@ -438,9 +443,10 @@ void CacheGraphic::cacheInvalidated() {
     new QGraphicsLineItem(width + m_lruWidth, 0, width + m_lruWidth,
                           m_cacheHeight, this);
     const QString LRUBitText = "LRU";
-    auto *textItem = drawText(
-        LRUBitText, width + m_lruWidth / 2 - m_fm.width(LRUBitText) / 2,
-        -m_fm.height());
+    auto *textItem = drawText(LRUBitText,
+                              width + m_lruWidth / 2 -
+                                  m_fm.horizontalAdvance(LRUBitText) / 2,
+                              -m_fm.height());
     textItem->setToolTip("Least Recently Used bits");
     width += m_lruWidth;
   }
@@ -451,7 +457,8 @@ void CacheGraphic::cacheInvalidated() {
   new QGraphicsLineItem(m_tagWidth + width, 0, m_tagWidth + width,
                         m_cacheHeight, this);
   const QString tagText = "Tag";
-  drawText(tagText, width + m_tagWidth / 2 - m_fm.width(tagText) / 2,
+  drawText(tagText,
+           width + m_tagWidth / 2 - m_fm.horizontalAdvance(tagText) / 2,
            -m_fm.height());
 
   width += m_tagWidth;
@@ -460,7 +467,8 @@ void CacheGraphic::cacheInvalidated() {
   // Draw horizontal lines between cache blocks
   for (int i = 0; i < m_cache.getBlocks(); ++i) {
     const QString blockText = "Word " + QString::number(i);
-    drawText(blockText, width + m_tagWidth / 2 - m_fm.width(blockText) / 2,
+    drawText(blockText,
+             width + m_tagWidth / 2 - m_fm.horizontalAdvance(blockText) / 2,
              -m_fm.height());
     width += m_blockWidth;
     new QGraphicsLineItem(width, 0, width, m_cacheHeight, this);
@@ -492,13 +500,13 @@ void CacheGraphic::cacheInvalidated() {
     const QString text = QString::number(i);
 
     const qreal y = i * m_lineHeight + m_lineHeight / 2 - m_setHeight / 2;
-    const qreal x = -m_fm.width(text) * 1.2;
+    const qreal x = -m_fm.horizontalAdvance(text) * 1.2;
     drawText(text, x, y);
   }
 
   // Draw index column text
   const QString indexText = "Index";
-  const qreal x = -m_fm.width(indexText) * 1.2;
+  const qreal x = -m_fm.horizontalAdvance(indexText) * 1.2;
   drawText(indexText, x, -m_fm.height());
 
   // Draw indexing - this does not change the 'width' advancement, and is purely
@@ -555,7 +563,7 @@ void CacheGraphic::updateAddressing(
                                     (transaction.index.line + 0.5) *
                                         m_lineHeight};
         lineIndexingPoly << QPointF{
-            -m_fm.width(QString::number(m_cache.getLines())) * 1.25,
+            -m_fm.horizontalAdvance(QString::number(m_cache.getLines())) * 1.25,
             lineIndexingPoly.last().y()};
         m_lineIndexingLine->setPolygon(lineIndexingPoly);
 
@@ -679,12 +687,13 @@ void CacheGraphic::initializeControlBits() {
       qreal x;
 
       // Create valid field
-      x = m_bitWidth / 2 - m_fm.width("0") / 2;
+      x = m_bitWidth / 2 - m_fm.horizontalAdvance("0") / 2;
       line[setIdx].valid = drawText("0", x, y);
 
       if (m_cache.getWritePolicy() == WritePolicy::WriteBack) {
         // Create dirty bit field
-        x = m_widthBeforeDirty + m_bitWidth / 2 - m_fm.width("0") / 2;
+        x = m_widthBeforeDirty + m_bitWidth / 2 -
+            m_fm.horizontalAdvance("0") / 2;
         line[setIdx].dirty = drawText("0", x, y);
       }
 
@@ -692,7 +701,8 @@ void CacheGraphic::initializeControlBits() {
           m_cache.getWays() > 1) {
         // Create LRU field
         const QString lruText = QString::number(m_cache.getWays() - 1);
-        x = m_widthBeforeLRU + m_lruWidth / 2 - m_fm.width(lruText) / 2;
+        x = m_widthBeforeLRU + m_lruWidth / 2 -
+            m_fm.horizontalAdvance(lruText) / 2;
         line[setIdx].lru = drawText(lruText, x, y);
       }
     }

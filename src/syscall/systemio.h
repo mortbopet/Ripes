@@ -231,7 +231,7 @@ private:
       {
         s_fileErrorString = "File name " + filename +
                             " exceeds maximum open file limit of " +
-                            SYSCALL_MAXFILES;
+                            QString::number(SYSCALL_MAXFILES);
         return -1;
       }
 

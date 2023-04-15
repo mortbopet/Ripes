@@ -57,17 +57,17 @@ jobs:
     # Qt installation
     - if: "!contains(matrix.os, 'windows')"
       name: install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
+        version: '6.5.0'
         modules: 'qtcharts qtsvg'
         install-deps: false
 
     - if: contains( matrix.os, 'windows')
       name: install Qt (Windows)
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
+        version: '6.5.0'
         modules: 'qtcharts qtsvg'
         install-deps: false
         arch: win64_msvc2019_64

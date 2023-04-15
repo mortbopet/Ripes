@@ -11,13 +11,9 @@
 QT_FORWARD_DECLARE_CLASS(QToolBar);
 QT_FORWARD_DECLARE_CLASS(QAction);
 
-QT_CHARTS_BEGIN_NAMESPACE
 class QChartView;
 class QChart;
 class QLineSeries;
-QT_CHARTS_END_NAMESPACE
-
-QT_CHARTS_USE_NAMESPACE
 
 template <typename T>
 class FixedQueue : public std::deque<T> {
