@@ -22,13 +22,6 @@ jobs:
     - name: setup Homebrew
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp svg2png
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:

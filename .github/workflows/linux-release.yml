@@ -1,4 +1,4 @@
-name: Ubuntu 18.04 / Qt 6.5.0
+name: Ubuntu 20.04 / Qt 6.5.0
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -6,7 +6,7 @@ on:
 
 jobs:
   buildUbuntuXenial:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
       CC: gcc-9
       CXX: g++-9
@@ -34,13 +34,6 @@ jobs:
         libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
         libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
         libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libegl1
-
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3

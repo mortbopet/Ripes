@@ -17,13 +17,6 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:

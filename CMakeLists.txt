@@ -4,6 +4,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+message(status "QT_HOST_PATH = ${QT_HOST_PATH}")
+
+
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     message(STATUS "CCache enabled")
@@ -119,6 +122,13 @@ qt_add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAY
 target_link_libraries(${APP_NAME} PUBLIC Qt6::Core Qt6::Widgets)
 # Link Ripes library
 target_link_libraries(${APP_NAME} PUBLIC ${RIPES_LIB})
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+    # https://doc.qt.io/qt-6/wasm.html#asyncify
+    target_link_options(${RIPES_LIB} PUBLIC -sASYNCIFY -Os)
+    target_link_options(${APP_NAME} PUBLIC -sASYNCIFY -Os)
+endif()
+
 
 if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
     set(LINUX TRUE)
