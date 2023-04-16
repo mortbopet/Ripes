@@ -1,4 +1,4 @@
-name: Mac / Qt 5.15
+name: Mac / Qt 6.5.0
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -22,20 +22,16 @@ jobs:
     - name: setup Homebrew
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp svg2png
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
       with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
-
-    - name: install Qt
-      uses: jurplel/install-qt-action@v2
-      with:
-        version: '5.15.2'
-        modules: 'qtcharts qtsvg'
-        install-deps: false
-        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        aqtversion: '==3.1.*'
+        py7zrversion: '>=0.20.2'
+        version: '6.5.0'
+        host: 'mac'
+        target: 'desktop'
+        arch: 'clang_64'
+        modules: 'qtcharts'
 
     - name: build Ripes
       run: |

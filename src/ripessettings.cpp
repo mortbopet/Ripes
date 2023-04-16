@@ -93,10 +93,6 @@ RipesSettings::RipesSettings() {
   QCoreApplication::setOrganizationDomain("https://github.com/mortbopet/Ripes");
   QCoreApplication::setApplicationName("Ripes");
 
-  // Serializer registrations
-  qRegisterMetaTypeStreamOperators<CachePreset>("cachePreset");
-  qRegisterMetaTypeStreamOperators<QList<CachePreset>>("cachePresetList");
-
   // Populate settings with default values if settings value is not found
   QSettings settings;
   for (const auto &setting : s_defaultSettings) {

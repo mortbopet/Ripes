@@ -10,6 +10,8 @@
 
 namespace Ripes {
 
+#ifdef RIPES_WITH_QPROCESS
+
 // A process manager is responsible for managing the autodetection and execution
 // of processes. A program manager is a singleton for each specialization of the
 // template. This is done through static polymorphism.
@@ -134,5 +136,41 @@ private:
                          QString(m_process.readAllStandardError())};
   }
 };
+
+#else
+
+template <typename Impl>
+class ProcessManager {
+  // A dummy version of the above which does nothing, but preserves the
+  // interface.
+public:
+  struct ProcessResult {
+    QString stdOut;
+    QString stdErr;
+  };
+  ProcessManager() = default;
+  virtual ~ProcessManager() = default;
+
+  static bool hasValidProgram() { return false; }
+  static const QString &program() { return get().m_programPath; }
+  static QString getError() { return QString(); }
+  static ProcessResult run(const QStringList &args,
+                           bool showProgressDialog = false) {
+    return ProcessResult();
+  }
+
+  static ProcessManager &get() {
+    static ProcessManager instance;
+    return instance;
+  }
+signals:
+
+  bool trySetProgram(const QString &path) { return false; }
+
+private:
+  QString m_programPath;
+};
+
+#endif
 
 } // namespace Ripes

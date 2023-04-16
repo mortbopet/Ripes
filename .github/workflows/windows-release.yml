@@ -1,4 +1,4 @@
-name: Windows / Qt 5.15
+name: Windows / Qt 6.5.0
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -17,21 +17,16 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
       with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
-
-    - name: install Qt
-      uses: jurplel/install-qt-action@v2
-      with:
-        version: '5.15.2'
-        modules: 'qtcharts qtsvg'
-        install-deps: false
-        arch: win64_msvc2019_64
-        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        aqtversion: '==3.1.*'
+        py7zrversion: '>=0.20.2'
+        version: '6.5.0'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        modules: 'qtcharts'
 
     - name: checkout sources
       uses: actions/checkout@v2

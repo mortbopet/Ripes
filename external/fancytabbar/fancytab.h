@@ -11,10 +11,10 @@
  */
 class FancyTab {
 public:
-    FancyTab(const QIcon& icon, QString text);
+  FancyTab(const QIcon &icon, QString text);
 
-    QString m_text;
-    QIcon m_icon;
+  QString m_text;
+  QIcon m_icon;
 };
 
-#endif  // FANCYTAB_H
+#endif // FANCYTAB_H

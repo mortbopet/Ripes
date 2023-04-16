@@ -5,8 +5,6 @@
 
 #include <QGraphicsObject>
 
-QT_CHARTS_USE_NAMESPACE
-
 namespace Ripes {
 
 class ChartLineMarker : public QGraphicsObject {

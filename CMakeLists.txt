@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+message(status "QT_HOST_PATH = ${QT_HOST_PATH}")
+
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
@@ -42,24 +46,27 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+set(RIPES_WITH_QPROCESS ON CACHE BOOL "Build with QProcess-related utilities")
+# Add as a C++ definition
+if(RIPES_WITH_QPROCESS)
+    add_definitions(-DRIPES_WITH_QPROCESS)
+endif()
+
 # Find required Qt packages
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets CONFIG REQUIRED)
-find_package(Qt5Svg REQUIRED)
-find_package(Qt5Charts CONFIG REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Svg Charts REQUIRED)
 
 # Finding Qt includes
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
-include_directories(${Qt5Core_INCLUDE_DIRS})
-include_directories(${Qt5Charts_INCLUDE_DIRS})
+include_directories(${Qt6Widgets_INCLUDE_DIRS})
+include_directories(${Qt6Core_INCLUDE_DIRS})
+include_directories(${Qt6Charts_INCLUDE_DIRS})
 
 ######################################################################
 ## Resources setup
 ######################################################################
-qt5_add_resources(ICONS_SRC ${CMAKE_SOURCE_DIR}/resources/icons/icons.qrc)
-qt5_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
-qt5_add_resources(LAYOUTS_SRC ${CMAKE_SOURCE_DIR}/src/processors/layouts.qrc)
-qt5_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
+qt6_add_resources(ICONS_SRC ${CMAKE_SOURCE_DIR}/resources/icons/icons.qrc)
+qt6_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
+qt6_add_resources(LAYOUTS_SRC ${CMAKE_SOURCE_DIR}/src/processors/layouts.qrc)
+qt6_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 
 ######################################################################
 ## Library setup
@@ -109,12 +116,19 @@ if(RIPES_BUILD_TESTS)
 endif()
 
 set(APP_NAME Ripes)
-add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUTS_SRC} ${FONTS_SRC} main.cpp)
+qt_add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUTS_SRC} ${FONTS_SRC} main.cpp)
 
 # Link Qt libraries
-target_link_libraries(${APP_NAME} Qt5::Core Qt5::Widgets)
+target_link_libraries(${APP_NAME} PUBLIC Qt6::Core Qt6::Widgets)
 # Link Ripes library
-target_link_libraries(${APP_NAME} ${RIPES_LIB})
+target_link_libraries(${APP_NAME} PUBLIC ${RIPES_LIB})
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+    # https://doc.qt.io/qt-6/wasm.html#asyncify
+    target_link_options(${RIPES_LIB} PUBLIC -sASYNCIFY -Os)
+    target_link_options(${APP_NAME} PUBLIC -sASYNCIFY -Os)
+endif()
+
 
 if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
     set(LINUX TRUE)

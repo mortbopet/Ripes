@@ -1,7 +1,7 @@
 # Ripes
-[![Windows / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml)
-[![Mac release / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml)
-[![Ubuntu release 16.04 / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml)
+[![Windows / Qt 6.5.0](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml)
+[![Mac release / Qt 6.5.0](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml)
+[![Ubuntu release 16.04 / Qt 6.5.0](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml)
 [![Ripes CI tests](https://github.com/mortbopet/Ripes/actions/workflows/test.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/test.yml)
 [![Gitter](https://badges.gitter.im/Ripes-VSRTL/Ripes.svg)](https://gitter.im/Ripes-VSRTL/)
 
@@ -40,8 +40,9 @@ For Windows, the C++ runtime library must be available (if not, a msvcp140.dll e
 
 ## Building
 Initially, the following dependencies must be made available:
-- A recent (>=5.15) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
+- A recent (>=6.5.0) version of [Qt](https://www.qt.io/download) + Qt Charts (**not** bundled with Qt by default, but can be selected during Qt installation)
 - [CMake](https://cmake.org/)
+- `sudo apt-get install libegl1-mesa-dev`
 
 Then, Ripes can be checked out and built as a standard CMake project:
 ```

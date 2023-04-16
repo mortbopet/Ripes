@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-18.04]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-20.04]
 
     steps:
     - uses: actions/checkout@v2
@@ -57,18 +57,18 @@ jobs:
     # Qt installation
     - if: "!contains(matrix.os, 'windows')"
       name: install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
-        modules: 'qtcharts qtsvg'
+        version: '6.5.0'
+        modules: 'qtcharts'
         install-deps: false
 
     - if: contains( matrix.os, 'windows')
       name: install Qt (Windows)
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
-        modules: 'qtcharts qtsvg'
+        version: '6.5.0'
+        modules: 'qtcharts'
         install-deps: false
         arch: win64_msvc2019_64
 

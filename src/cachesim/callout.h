@@ -38,11 +38,7 @@ QT_BEGIN_NAMESPACE
 class QGraphicsSceneMouseEvent;
 QT_END_NAMESPACE
 
-QT_CHARTS_BEGIN_NAMESPACE
 class QChart;
-QT_CHARTS_END_NAMESPACE
-
-QT_CHARTS_USE_NAMESPACE
 
 namespace Ripes {
 class CachePlotView;

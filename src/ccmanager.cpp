@@ -120,6 +120,7 @@ CCManager::CCRes CCManager::compile(const QTextDocument *source,
 
 CCManager::CCRes CCManager::compile(const QStringList &files, QString outname,
                                     bool showProgressdiag) {
+#ifdef RIPES_WITH_QPROCESS
   CCRes res;
   if (outname.isEmpty()) {
     outname = QDir::tempPath() + QDir::separator() +
@@ -181,9 +182,20 @@ CCManager::CCRes CCManager::compile(const QStringList &files, QString outname,
   res.aborted = m_aborted;
 
   return res;
+#else
+  CCRes res;
+  res.success = false;
+  return res;
+#endif
 }
 
-QString CCManager::getError() { return get().m_process.readAllStandardError(); }
+QString CCManager::getError() {
+#ifdef RIPES_WITH_QPROCESS
+  return get().m_process.readAllStandardError();
+#else
+  return QString();
+#endif
+}
 
 static QStringList sanitizedArguments(const QString &args) {
   QStringList arglist = args.split(" ");
@@ -241,6 +253,7 @@ CCManager::createCompileCommand(const QStringList &files,
 }
 
 CCManager::CCRes CCManager::verifyCC(const QString &CCPath) {
+#ifdef RIPES_WITH_QPROCESS
   // Try to set CCPath as current compiler, and compile test program
   m_currentCC = CCPath;
 
@@ -271,6 +284,11 @@ CCManager::CCRes CCManager::verifyCC(const QString &CCPath) {
 
 verifyCC_end:
   return res;
+#else
+  CCRes res;
+  res.success = false;
+  return res;
+#endif
 }
 
 } // namespace Ripes

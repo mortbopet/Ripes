@@ -216,8 +216,8 @@ template <typename RangeT>
 using IterOfRange = decltype(std::begin(std::declval<RangeT &>()));
 
 template <typename RangeT>
-using ValueOfRange = typename std::remove_reference<decltype(
-    *std::begin(std::declval<RangeT &>()))>::type;
+using ValueOfRange = typename std::remove_reference<decltype(*std::begin(
+    std::declval<RangeT &>()))>::type;
 
 template <typename R>
 class enumerator_iter;

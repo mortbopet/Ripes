@@ -13,7 +13,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QRegExpValidator>
+#include <QRegularExpressionValidator>
 
 namespace Ripes {
 
@@ -45,7 +45,8 @@ LoadDialog::LoadDialog(QWidget *parent)
   // -- nothing to do/verify
 
   // Binary page
-  QRegExpValidator *validator = new QRegExpValidator(this);
+  QRegularExpressionValidator *validator =
+      new QRegularExpressionValidator(this);
   setISADepRegex(validator);
   m_ui->binaryLoadAt->setValidator(validator);
   m_ui->binaryLoadAt->setText(

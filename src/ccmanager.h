@@ -105,7 +105,9 @@ private:
 
   CCManager();
   QString m_currentCC;
+#ifdef RIPES_WITH_QPROCESS
   QProcess m_process;
+#endif
   bool m_errored = false;
   bool m_aborted = false;
   std::unique_ptr<QFile> m_tmpSrcFile;

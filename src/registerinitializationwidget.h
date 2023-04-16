@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QRegExpValidator>
+#include <QRegularExpressionValidator>
 #include <QWidget>
 
 #include "processorregistry.h"
@@ -51,7 +51,7 @@ private:
 
   static std::map<ProcessorID, RegisterInitialization> m_initializations;
   ProcessorID m_currentID;
-  QRegExpValidator *m_hexValidator;
+  QRegularExpressionValidator *m_hexValidator;
 
   std::vector<std::unique_ptr<RegInitWidgets>> m_currentRegInitWidgets;
 };

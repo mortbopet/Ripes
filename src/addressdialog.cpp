@@ -2,7 +2,7 @@
 #include "ui_addressdialog.h"
 
 #include <QPushButton>
-#include <QRegExpValidator>
+#include <QRegularExpressionValidator>
 
 #include "processorhandler.h"
 #include "radix.h"
@@ -13,7 +13,8 @@ AddressDialog::AddressDialog(QWidget *parent)
     : QDialog(parent), m_ui(new Ui::AddressDialog) {
   m_ui->setupUi(this);
 
-  QRegExpValidator *validator = new QRegExpValidator(this);
+  QRegularExpressionValidator *validator =
+      new QRegularExpressionValidator(this);
   setISADepRegex(validator);
   m_ui->address->setValidator(validator);
   m_ui->address->setText(

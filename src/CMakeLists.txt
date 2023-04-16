@@ -32,7 +32,7 @@ function(create_ripes_lib NAME)
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
-    target_link_libraries(${LIB_NAME} PUBLIC Qt5::Gui)
+    target_link_libraries(${LIB_NAME} PUBLIC Qt6::Gui)
     if(NOT OPTIONS_EXCLUDE_SRC_INC)
         target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
     endif()
@@ -71,6 +71,6 @@ add_subdirectory(cli)
 target_link_libraries(${RIPES_LIB} PUBLIC
     fancytabbar_lib
     ${VSRTL_GRAPHICS_LIB}
-    Qt5::Charts
+    Qt6::Charts
     dwarf++)
 

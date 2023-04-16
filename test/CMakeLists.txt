@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-find_package(Qt5Test REQUIRED)
+find_package(Qt6 COMPONENTS Test REQUIRED)
 
 # Point to bundled tests within source directory
 set(RISCV32_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riscv-tests)
@@ -16,7 +16,7 @@ macro(create_qtest name)
     add_executable(${name} ${name}.cpp programloader.h)
     add_test(${name} ${name})
     target_include_directories (${name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(${name} Qt5::Core Qt5::Widgets Qt5::Test)
+    target_link_libraries(${name} Qt6::Core Qt6::Widgets Qt6::Test)
     target_link_libraries(${name} ripes_lib)
 endmacro()
 

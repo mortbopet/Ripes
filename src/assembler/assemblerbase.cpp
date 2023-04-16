@@ -31,7 +31,7 @@ void AssemblerBase::setSegmentBase(Section seg, AInt base) {
 
 AssembleResult AssemblerBase::assembleRaw(const QString &program,
                                           const SymbolMap *symbols) const {
-  const auto programLines = program.split(QRegExp("[\r\n]"));
+  const auto programLines = program.split(QRegularExpression("[\r\n]"));
   return assemble(programLines, symbols,
                   Program::calculateHash(program.toUtf8()));
 }

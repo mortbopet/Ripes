@@ -205,7 +205,7 @@ void FancyTabBar::mouseMoveEvent(QMouseEvent *event) {
  *   cursor enter FancyTabBar area.
  * \param event see qt documentation for more details about this parameter.
  */
-void FancyTabBar::enterEvent(QEvent *event) {
+void FancyTabBar::enterEvent(QEnterEvent *event) {
   QEnterEvent *enterEvent = static_cast<QEnterEvent *>(event);
   hower = getTabIndexByPoint(enterEvent->x(), enterEvent->y());
   update();

@@ -68,7 +68,7 @@ CachePlotView::CachePlotView(QWidget *parent) : QGraphicsView(parent) {
   setMouseTracking(true);
 }
 
-void CachePlotView::enterEvent(QEvent *event) {
+void CachePlotView::enterEvent(QEnterEvent *event) {
   m_mouseInView = true;
   for (const auto &marker : m_markers) {
     marker->marker->show();

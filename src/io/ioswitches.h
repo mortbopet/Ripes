@@ -35,7 +35,7 @@ protected:
   void paintEvent(QPaintEvent *) override;
   void resizeEvent(QResizeEvent *) override;
   void mouseReleaseEvent(QMouseEvent *) override;
-  void enterEvent(QEvent *event) override;
+  void enterEvent(QEnterEvent *event) override;
   void setChecked(bool checked);
 
   int offset();
