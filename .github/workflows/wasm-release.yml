@@ -1,8 +1,8 @@
 name: WASM / Qt 6.5.0
 on:
-  workflow_run:
-    workflows: ["Release setup"]
-    types: [completed]
+  push:
+    branches:
+      - '*'
 
 jobs:
   buildUbuntuXenial:
