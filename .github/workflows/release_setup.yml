@@ -1,9 +1,11 @@
 name: Release setup
 
-on:
-  push:
-    branches:
-      - '*'
+#on:
+#  push:
+#    branches:
+#      - '*'
+
+on: push
 
 jobs:
   release-setup:
