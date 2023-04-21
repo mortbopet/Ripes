@@ -40,7 +40,7 @@ jobs:
         export PATH=$QT_ROOT/bin:$PATH
         export CMAKE_PREFIX_PATH=$QT_ROOT/lib/cmake
         DIR=$(pwd)
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} .
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_OSX_ARCHITECTURES arm64;x86_64 .
         make
 
     - name: package artifacts
