@@ -53,7 +53,7 @@ jobs:
         mv logo.icns Ripes.app/Contents/Resources
         plutil -replace CFBundleIconFile -string logo.icns Ripes.app/Contents/Info.plist
         source .github/workflows/scripts/set_version.sh
-        export APPNAME=Ripes-${RIPES_VERSION}-mac-x86_64
+        export APPNAME=Ripes-${RIPES_VERSION}-mac-universal2
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
         sudo mv Ripes.app ${APPNAME}.app
         sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
