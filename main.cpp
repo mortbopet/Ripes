@@ -58,6 +58,12 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser,
 int guiMode(QApplication &app) {
   Ripes::MainWindow m;
 
+#ifdef Q_OS_WASM
+  // In the WASM build, we'll just want a full-screen application that can't be
+  // dragged or resized by the user.
+  m.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+#endif
+
   // The following sequence of events manages to successfully start the
   // application as maximized, with the processor at a reasonable size. This has
   // been found to be specially a problem on windows.
