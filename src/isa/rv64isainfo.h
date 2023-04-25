@@ -34,7 +34,7 @@ public:
 
     return march;
   }
-  QString CCmabi() const override { return "lp64"; }
+  QString CCmabi() const override { return "sysv"; }
 
   unsigned instrByteAlignment() const override {
     return extensionEnabled("C") ? 2 : 4;
