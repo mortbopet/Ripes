@@ -22,9 +22,11 @@
 
 namespace Ripes {
 
+ static uint64_t simtime=0;   //FIXME use intruction counter
+
 IOExternalBus::IOExternalBus(QWidget* parent)
     : IOBase(IOType::EXTERNALBUS, parent), m_ui(new Ui::IOExternalBus), tcpSocket(new XTcpSocket()) {
-    m_ByteSize = 1;
+    m_ByteSize = 0x46;
     skt_use.unlock();
 
     m_ui->setupUi(this);
@@ -63,10 +65,11 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
     uint32_t rvalue = 0;
 
     if (tcpSocket->isOpen()) {
+        simtime+=100000000L;
         skt_use.lock();
         uint32_t payload = htonl(offset);
         QByteArray dp = QByteArray(reinterpret_cast<const char*>(&payload), 4);
-        if (send_cmd(VBUS::VB_PREAD, 4, dp) < 0) {
+        if (send_cmd(VBUS::VB_PREAD, 4, dp, simtime) < 0) {
             skt_use.unlock();
             return 0;
         }
@@ -100,12 +103,13 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 
 void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
     if (tcpSocket->isOpen()) {
+        simtime+=100000000L;
         skt_use.lock();
         uint32_t payload[2];
         payload[0] = htonl(offset);
         payload[1] = htonl(value);
         QByteArray dp = QByteArray(reinterpret_cast<char*>(payload), 8);
-        if (send_cmd(VBUS::VB_PWRITE, 8, dp) < 0) {
+        if (send_cmd(VBUS::VB_PWRITE, 8, dp, simtime) < 0) {
             skt_use.unlock();
             return;
         }
@@ -128,7 +132,7 @@ void IOExternalBus::connectButtonTriggered() {
     if (!m_Connected) {
         tcpSocket->abort();
         if (tcpSocket->connectToHost(m_ui->address->text(), m_ui->port->value())) {
-            if (send_cmd(VBUS::VB_PINFO) < 0) {
+            if (send_cmd(VBUS::VB_PINFO, 0, {}, simtime) < 0) {
                 disconnectOnError();
                 return;
             }
@@ -161,7 +165,7 @@ void IOExternalBus::connectButtonTriggered() {
                 } else {
                     QMessageBox::information(nullptr, tr("Ripes VBus"), QString("json: ") + error.errorString());
                     updateConnectionStatus(false);
-                    send_cmd(VBUS::VB_QUIT);
+                    send_cmd(VBUS::VB_QUIT, 0, {}, simtime);
                     tcpSocket->abort();
                 }
             }
@@ -170,7 +174,7 @@ void IOExternalBus::connectButtonTriggered() {
         }
     } else {  // disconnect
         updateConnectionStatus(false);
-        send_cmd(VBUS::VB_QUIT);
+        send_cmd(VBUS::VB_QUIT, 0, {}, simtime);
         tcpSocket->abort();
         m_regDescs.clear();
     }
@@ -191,12 +195,13 @@ void IOExternalBus::updateConnectionStatus(bool connected, QString Server) {
     }
 }
 
-int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size, const QByteArray& payload) {
+int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size, const QByteArray& payload,const uint64_t time ) {
     int32_t ret = -1;
     VBUS::CmdHeader cmd_header;
 
     cmd_header.msg_type = htonl(cmd);
     cmd_header.payload_size = htonl(payload_size);
+    cmd_header.time = htonll(time);
 
     QByteArray dp = QByteArray(reinterpret_cast<const char*>(&cmd_header), sizeof(VBUS::CmdHeader));
 
@@ -224,6 +229,7 @@ int32_t IOExternalBus::recv_cmd(VBUS::CmdHeader& cmd_header) {
 
     cmd_header.msg_type = ntohl(hr->msg_type);
     cmd_header.payload_size = ntohl(hr->payload_size);
+    cmd_header.time = ntohll(cmd_header.time);
 
     return ret;
 }

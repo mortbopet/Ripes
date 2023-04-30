@@ -48,7 +48,7 @@ private slots:
 private:
     bool m_Connected = false;
     uint32_t m_ByteSize;
-    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size = 0, const QByteArray& payload = {});
+    int32_t send_cmd(const uint32_t cmd, const uint32_t payload_size, const QByteArray& payload , const uint64_t time);
     int32_t recv_cmd(VBUS::CmdHeader& cmd_header);
     int32_t recv_payload(QByteArray& buff, const uint32_t payload_size);
     void disconnectOnError(QString msg = "");
