@@ -128,9 +128,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     target_link_options(${APP_NAME} PUBLIC -sASYNCIFY -Os)
 endif()
 
-target_link_libraries(${APP_NAME} ${RIPES_LIB})
 if(MSVC)
-    target_link_libraries(${APP_NAME} ws2_32)
+	target_link_libraries(${APP_NAME} PUBLIC ws2_32)
 endif()
 
 

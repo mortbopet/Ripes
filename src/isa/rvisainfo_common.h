@@ -93,7 +93,7 @@ public:
   int gpReg() const override { return 3; }
   int syscallReg() const override { return 17; }
   unsigned instrBits() const override { return 32; }
-  unsigned elfMachineId() const override { return EM_RISCV; }
+  unsigned elfMachineId() const override { return ELFIO::EM_RISCV; }
   unsigned int regNumber(const QString &reg, bool &success) const override {
     QString regRes = reg;
     success = true;
