@@ -180,7 +180,7 @@ ELFInfo LoadDialog::validateELFFile(const QFile &file) {
   }
 
   // Is it a compatible file class?
-  elfbits = reader.get_class() == ELFIO::ELFCLASS32 ? 32 : 64;
+  elfbits = reader.get_class() == ELFCLASS32 ? 32 : 64;
   if (elfbits != ProcessorHandler::currentISA()->bits()) {
     const QString bitSize = elfbits == 32 ? "32" : "64";
     info.errorMessage =
@@ -191,12 +191,12 @@ ELFInfo LoadDialog::validateELFFile(const QFile &file) {
   }
 
   // executable? (Not dynamically linked nor relocateable)
-  if (!(reader.get_type() == ELFIO::ET_EXEC)) {
+  if (!(reader.get_type() == ET_EXEC)) {
     info.errorMessage =
         "Only executable ELF files are supported.<br/><br/>File type is<br/>" +
         QString::number(reader.get_type()) + " (" +
         getNameForElfType(reader.get_type()) + ")<br/>Expected<br/>" +
-        QString::number(ELFIO::ET_EXEC) + " (" + getNameForElfType(ELFIO::ET_EXEC) + ")";
+        QString::number(ET_EXEC) + " (" + getNameForElfType(ET_EXEC) + ")";
     info.valid = false;
     goto finish;
   }

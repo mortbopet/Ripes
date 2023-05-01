@@ -22,7 +22,7 @@ public:
   ISA isaID() const override { return ISA::RV32I; }
 
   unsigned int bits() const override { return 32; }
-  unsigned elfMachineId() const override { return ELFIO::EM_RISCV; }
+  unsigned elfMachineId() const override { return EM_RISCV; }
   QString CCmarch() const override {
     QString march = "rv32i";
 
