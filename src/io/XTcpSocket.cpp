@@ -39,7 +39,7 @@ void XTcpSocket::FormatLastErrorStr(const QString &func) {
 
   if (!*msgbuf)
     lastError = func + " error number : " +
-                QString(err); // provide error # if no string available
+                QString::number(err); // provide error # if no string available
   else
     lastError = func + " error : " + msgbuf;
 
