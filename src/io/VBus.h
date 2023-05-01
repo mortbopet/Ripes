@@ -6,12 +6,20 @@
 
 namespace VBUS {
 struct CmdHeader {
-    uint32_t msg_type;
-    uint32_t payload_size;
-    uint64_t time;
+  uint32_t msg_type;
+  uint32_t payload_size;
+  uint64_t time;
 };
 
-enum { VB_PINFO = 1, VB_PWRITE, VB_PREAD, VB_PSTATUS, VB_QUIT, VB_SYNC, VB_LAST };
+enum {
+  VB_PINFO = 1,
+  VB_PWRITE,
+  VB_PREAD,
+  VB_PSTATUS,
+  VB_QUIT,
+  VB_SYNC,
+  VB_LAST
+};
 
 #if __BIG_ENDIAN__
 #define htonll(x) (x)
@@ -21,7 +29,7 @@ enum { VB_PINFO = 1, VB_PWRITE, VB_PREAD, VB_PSTATUS, VB_QUIT, VB_SYNC, VB_LAST 
 #define ntohll(x) (((uint64_t)ntohl((x)&0xFFFFFFFF) << 32) | ntohl((x) >> 32))
 #endif
 
-}  // namespace VBUS
+} // namespace VBUS
 //=========================================
 
 #endif /* VBUS_H */
