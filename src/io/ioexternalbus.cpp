@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QMutexLocker>
 
 #include "STLExtras.h"
 #include "ioregistry.h"
@@ -51,10 +52,10 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 
   if (tcpSocket->isOpen()) {
     simtime += 100000000L;
-    skt_use.lock();
+    QMutexLocker locker(&skt_use);
     uint32_t payload = htonl(offset);
     QByteArray dp = QByteArray(reinterpret_cast<const char *>(&payload), 4);
-    if (send_cmd(VBUS::VB_PREAD, 4, dp, simtime) < 0) {
+    if (send_cmd(VBUS::VB_PREAD, dp.size(), dp, simtime) < 0) {
       return 0;
     }
 
@@ -66,8 +67,7 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 
     if (cmd_header.payload_size) {
       dp = QByteArray(8, 0);
-      if (recv_payload(dp, 8) < 0) {
-        skt_use.unlock();
+      if (recv_payload(dp, dp.size()) < 0) {
         return 0;
       }
       uint32_t *payload = reinterpret_cast<uint32_t *>(dp.data());
@@ -79,7 +79,6 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
     } else {
       disconnectOnError("read error");
     }
-    skt_use.unlock();
   }
   return rvalue;
 }
@@ -87,12 +86,12 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
   if (tcpSocket->isOpen()) {
     simtime += 100000000L;
-    skt_use.lock();
+    QMutexLocker locker(&skt_use);
     uint32_t payload[2];
     payload[0] = htonl(offset);
     payload[1] = htonl(value);
     QByteArray dp = QByteArray(reinterpret_cast<char *>(payload), 8);
-    if (send_cmd(VBUS::VB_PWRITE, 8, dp, simtime) < 0) {
+    if (send_cmd(VBUS::VB_PWRITE, dp.size(), dp, simtime) < 0) {
       return;
     }
 
@@ -105,14 +104,12 @@ void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
     if (cmd_header.msg_type != VBUS::VB_PWRITE) {
       disconnectOnError("write error");
     }
-    skt_use.unlock();
   }
 }
 
 void IOExternalBus::connectButtonTriggered() {
   if (!m_Connected) {
     tcpSocket->abort();
-    skt_use.lock();
     if (tcpSocket->connectToHost(m_ui->address->text(), m_ui->port->value())) {
       if (send_cmd(VBUS::VB_PINFO, 0, {}, simtime) < 0) {
         return;
@@ -137,6 +134,7 @@ void IOExternalBus::connectButtonTriggered() {
               desc.object().value(QString("symbols")).toObject();
 
           m_regDescs.clear();
+
           for (QJsonObject::iterator i = osymbols.begin(); i != osymbols.end();
                i++) {
             m_regDescs.push_back(RegDesc{i.key(), RegDesc::RW::RW, addrw * 8,
@@ -154,7 +152,6 @@ void IOExternalBus::connectButtonTriggered() {
           send_cmd(VBUS::VB_QUIT, 0, {}, simtime);
           tcpSocket->abort();
         }
-        skt_use.unlock();
       }
     } else {
       disconnectOnError();
@@ -201,7 +198,6 @@ int32_t IOExternalBus::send_cmd(const uint32_t cmd, const uint32_t payload_size,
 
   if ((ret = tcpSocket->write(dp, dp.size())) < 0) {
     disconnectOnError();
-    return -1;
   }
 
   return ret;
@@ -213,7 +209,7 @@ int32_t IOExternalBus::recv_cmd(VBUS::CmdHeader &cmd_header) {
   int ret = tcpSocket->read(dp, sizeof(VBUS::CmdHeader));
   if (ret < 0) {
     disconnectOnError();
-    return -1;
+    return ret;
   }
 
   VBUS::CmdHeader *hr = reinterpret_cast<VBUS::CmdHeader *>(dp.data());
@@ -230,20 +226,16 @@ int32_t IOExternalBus::recv_payload(QByteArray &buff,
   int ret = tcpSocket->read(buff, payload_size);
   if (ret < 0) {
     disconnectOnError();
-    return -1;
   }
   return ret;
 }
 
-void IOExternalBus::disconnectOnError(QString msg) {
-  skt_use.unlock();
+void IOExternalBus::disconnectOnError(const QString msg) {
 
-  if (msg.length() > 1) {
-    QMessageBox::information(nullptr, tr("Ripes VBus"), msg);
-  } else {
-    QMessageBox::information(nullptr, tr("Ripes VBus"),
-                             tcpSocket->getLastErrorStr());
-  }
+  QMessageBox::information(nullptr, tr("Ripes VBus"),
+                           (msg.length() > 1) ? msg
+                                              : tcpSocket->getLastErrorStr());
+
   tcpSocket->close();
   updateConnectionStatus(false);
   tcpSocket->abort();
