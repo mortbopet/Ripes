@@ -22,8 +22,6 @@
 
 namespace Ripes {
 
-static uint64_t simtime = 0; // FIXME use instruction counter
-
 IOExternalBus::IOExternalBus(QWidget *parent)
     : IOBase(IOType::EXTERNALBUS, parent), m_ui(new Ui::IOExternalBus),
       tcpSocket(new XTcpSocket()) {
@@ -51,7 +49,10 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
   uint32_t rvalue = 0;
 
   if (tcpSocket->isOpen()) {
-    simtime += 100000000L;
+    uint64_t simtime = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+                           std::chrono::system_clock::now())
+                           .time_since_epoch()
+                           .count();
     QMutexLocker locker(&skt_use);
     uint32_t payload = htonl(offset);
     QByteArray dp = QByteArray(reinterpret_cast<const char *>(&payload), 4);
@@ -85,7 +86,10 @@ VInt IOExternalBus::ioRead(AInt offset, unsigned size) {
 
 void IOExternalBus::ioWrite(AInt offset, VInt value, unsigned size) {
   if (tcpSocket->isOpen()) {
-    simtime += 100000000L;
+    uint64_t simtime = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+                           std::chrono::system_clock::now())
+                           .time_since_epoch()
+                           .count();
     QMutexLocker locker(&skt_use);
     uint32_t payload[2];
     payload[0] = htonl(offset);
@@ -111,6 +115,10 @@ void IOExternalBus::connectButtonTriggered() {
   if (!m_Connected) {
     tcpSocket->abort();
     if (tcpSocket->connectToHost(m_ui->address->text(), m_ui->port->value())) {
+      uint64_t simtime = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+                             std::chrono::system_clock::now())
+                             .time_since_epoch()
+                             .count();
       if (send_cmd(VBUS::VB_PINFO, 0, {}, simtime) < 0) {
         return;
       }
@@ -158,7 +166,7 @@ void IOExternalBus::connectButtonTriggered() {
     }
   } else { // disconnect
     updateConnectionStatus(false);
-    send_cmd(VBUS::VB_QUIT, 0, {}, simtime);
+    send_cmd(VBUS::VB_QUIT, 0, {}, 0);
     tcpSocket->abort();
     m_regDescs.clear();
   }
