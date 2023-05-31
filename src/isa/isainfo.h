@@ -103,7 +103,7 @@ public:
    * ISA equality is defined as a separate function rather than the == operator,
    * given that we might need to check for ISA equivalence, without having
    * instantiated the other ISA. As such, it being uninstantiated does not allow
-   * compoarison of extensions.
+   * comparison of extensions.
    */
   bool eq(const ISAInfoBase *other, const QStringList &otherExts) const {
     const auto ext1 = QSet(this->enabledExtensions().begin(),
