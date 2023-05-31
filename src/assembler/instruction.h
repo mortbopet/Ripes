@@ -89,7 +89,7 @@ struct Field {
                                       const ReverseSymbolMap &symbolMap,
                                       LineTokens &line) const = 0;
 
-  /// Return the set of bitranges which consitutes this field.
+  /// Return the set of bitranges which constitutes this field.
   virtual std::vector<BitRange> bitRanges() const = 0;
   const unsigned tokenIndex;
 };
