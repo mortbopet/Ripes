@@ -3,6 +3,7 @@
 #include <QPolygonF>
 
 #include "processors/RISC-V/rv5s/rv5s.h"
+#include "processors/RISC-V/rv5s_br/rv5s_br.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
@@ -31,6 +32,9 @@ constexpr const char rv5s_no_hz_desc[] =
 constexpr const char rv5s_desc[] =
     "A 5-stage in-order processor with hazard detection/elimination and "
     "forwarding.";
+constexpr const char rv5s_br_desc[] =
+    "A 5-stage in-order processor with hazard detection/elimination, "
+    "forwarding, and branch prediction.";
 constexpr const char rv5s_no_fw_desc[] =
     "A 5-stage in-order processor with hazard detection/elimination but no "
     "forwarding unit.";
@@ -154,6 +158,22 @@ ProcessorRegistry::ProcessorRegistry() {
       defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint64_t>>(
       ProcessorID::RV64_5S, "5-stage processor", rv5s_desc, layouts,
+      defRegVals));
+
+  // RISC-V 5-stage w/ branch prediction
+  layouts = {{"Extended",
+              ":/layouts/RISC-V/rv5s_br/rv5s_br_extended_layout.json",
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.28, 0}},
+               {{0, 2}, QPointF{0.54, 0}},
+               {{0, 3}, QPointF{0.78, 0}},
+               {{0, 4}, QPointF{0.9, 0}}}}};
+  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  addProcessor(ProcInfo<vsrtl::core::RV5S_BR<uint32_t>>(
+      ProcessorID::RV32_5S_BR, "5-stage processor w/ branch prediction", rv5s_br_desc, layouts,
+      defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RV5S_BR<uint64_t>>(
+      ProcessorID::RV64_5S_BR, "5-stage processor w/ branch prediction", rv5s_br_desc, layouts,
       defRegVals));
 
   // RISC-V 6-stage dual issue
