@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -30,6 +30,7 @@ RUN aqt install-qt linux desktop 6.5.0 gcc_64 -m qtcharts
 
 ARG GIT_SSL_NO_VERIFY=true
 ENV LC_ALL=C.UTF-8 SHELL=/bin/bash
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/6.5.0/gcc_64/lib"
 
 ARG BRANCH=master
 RUN git clone --recursive --branch ${BRANCH} https://github.com/mortbopet/Ripes.git /tmp/ripes \
