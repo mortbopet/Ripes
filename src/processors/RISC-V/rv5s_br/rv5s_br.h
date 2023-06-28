@@ -284,7 +284,7 @@ public:
     br_ifid_reg->curr_pre_targ_out >> br_idex_reg->curr_pre_targ_in;
     br_ifid_reg->curr_pre_take_out >> br_idex_reg->curr_pre_take_in;
 
-    br_idex_reg->curr_pre_targ_out >> brunit->prev_pre_targ;
+    idex_reg->pc_out >> brunit->prev_pc;
     br_idex_reg->curr_pre_take_out >> brunit->prev_pre_take;
 
     br_idex_reg->curr_pre_targ_out >> br_comp_target->op1;
@@ -532,12 +532,12 @@ public:
       // An exit system call was executed. Record the cycle of the execution,
       // and enable the ecallChecker's system call exiting signal.
       m_syscallExitCycle = m_cycleCount;
-      uint16_t num_misses = brunit->num_misses;
-      uint16_t num_branches = brunit->num_branches;
-      printf("MISSES: %d\tBRANCHES: %d\tACCURACY %4.2f%%\n",
-            num_misses,
-            num_branches,
-            (1 - (float)num_misses / (float)num_branches) * 100.0);
+      uint16_t num_branch_miss = brunit->num_branch_miss;
+      uint16_t num_branch = brunit->num_branch;
+      printf("BRANCHES: %d\tMISSES: %d\tACCURACY %4.2f%%\n",
+            num_branch,
+            num_branch_miss,
+            (1 - (float)num_branch_miss / (float)num_branch) * 100.0);
     }
     ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() ||
                                     (fr & FinalizeReason::exitSyscall));
@@ -600,8 +600,8 @@ public:
     ecallChecker->setSysCallExiting(false);
     Design::reset();
     m_syscallExitCycle = -1;
-    brunit->num_branches = 0;
-    brunit->num_misses = 0;
+    brunit->num_branch = 0;
+    brunit->num_branch_miss = 0;
   }
 
   static ProcessorISAInfo supportsISA() {

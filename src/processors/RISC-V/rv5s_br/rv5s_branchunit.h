@@ -35,7 +35,7 @@ public:
   SUBCOMPONENT(__immediate, TYPE(Immediate<XLEN>));
 
   INPUTPORT(prev_is_b, 1);
-  INPUTPORT(prev_pre_targ, XLEN);
+  INPUTPORT(prev_pc, XLEN);
   INPUTPORT(prev_pre_take, 1);
   INPUTPORT(prev_pre_miss, 1);
   INPUTPORT(curr_instr, c_RVInstrWidth);
@@ -45,8 +45,8 @@ public:
   OUTPUTPORT(curr_is_b, 1);
   OUTPUTPORT(curr_is_j, 1);
 
-  uint16_t num_misses = 0;
-  uint16_t num_branches = 0;
+  uint16_t num_branch_miss = 0;
+  uint16_t num_branch = 0;
 
 private:
   uint64_t get_curr_pre_targ() {
@@ -73,6 +73,7 @@ private:
   bool get_curr_is_j() {
       Switch (__decode->opcode, RVInstr) {
         case RVInstr::JAL:
+          return true;
         case RVInstr::JALR:
           return true;
         default:
@@ -132,7 +133,7 @@ private:
       return false;
     }
 
-    uint16_t check_bits = ((get_curr_pre_targ() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
+    uint16_t check_bits = ((curr_pc.uValue() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
     uint16_t history = local_history_table[check_bits];
     uint16_t prediction_state = branch_prediction_table[history];
 
@@ -149,15 +150,15 @@ private:
     }
 
     if (prev_pre_miss.uValue()) {
-      num_misses++;
+      num_branch_miss++;
     }
-    num_branches++;
 
-    uint16_t check_bits = ((prev_pre_targ.uValue() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
+    num_branch++;
+
+    uint16_t check_bits = ((prev_pc.uValue() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
     bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
     uint16_t history = local_history_table[check_bits];
     local_history_table[check_bits] = (history | (prev_actual_taken << NUM_HISTORY_BITS)) >> 1;
-    history = local_history_table[check_bits];
     uint16_t prediction_state = branch_prediction_table[history];
 
     if (prev_actual_taken) {
