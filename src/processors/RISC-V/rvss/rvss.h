@@ -257,6 +257,10 @@ public:
     return rfs;
   }
 
+  Component* getBranchUnit() const override {
+    return nullptr;
+  }
+
 private:
   bool m_finishInNextCycle = false;
   bool m_finished = false;

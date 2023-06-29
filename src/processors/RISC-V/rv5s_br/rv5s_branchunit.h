@@ -48,6 +48,11 @@ public:
   uint16_t num_branch_miss = 0;
   uint16_t num_branch = 0;
 
+  static constexpr unsigned NUM_HISTORY_BITS = 8;
+  static constexpr unsigned NUM_PREDICTION_BITS = 2;
+  uint16_t local_history_table[1 << NUM_HISTORY_BITS];
+  uint16_t branch_prediction_table[1 << NUM_HISTORY_BITS];
+
 private:
   uint64_t get_curr_pre_targ() {
     if (get_curr_is_b() || get_curr_is_j()) {
@@ -80,9 +85,6 @@ private:
           return false;
       }
   }
-
-  static constexpr unsigned NUM_HISTORY_BITS = 8;
-  static constexpr unsigned NUM_PREDICTION_BITS = 2;
 
   // This branch unit currently uses an (8, 2) correlated predictor.
   // That is, it keeps track of the result of the last 8 branches and uses
@@ -120,9 +122,6 @@ private:
    * 
    * If MSB is 1, branch is taken, otherwise it is not.
    */
-
-  uint16_t local_history_table[1 << NUM_HISTORY_BITS];
-  uint16_t branch_prediction_table[1 << NUM_HISTORY_BITS];
 
   bool get_curr_pre_take() {
     if (get_curr_is_j()) {

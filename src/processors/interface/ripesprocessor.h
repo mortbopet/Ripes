@@ -8,6 +8,7 @@
 
 #include "../../isa/isainfo.h"
 #include "../../ripes_types.h"
+#include "../RISC-V/rv5s_br/rv5s_branchunit.h"
 
 namespace Ripes {
 
@@ -243,6 +244,12 @@ public:
    * Set the value of register @param i to @param v.
    */
   virtual void setRegister(RegisterFileType rfid, unsigned i, VInt v) = 0;
+
+  /**
+   * @brief getBranchUnit
+   * @return Generic Component object
+   */
+  virtual vsrtl::core::Component* getBranchUnit() const = 0;
 
   /**
    * @brief setProgramCounter

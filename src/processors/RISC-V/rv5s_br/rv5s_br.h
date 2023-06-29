@@ -532,12 +532,6 @@ public:
       // An exit system call was executed. Record the cycle of the execution,
       // and enable the ecallChecker's system call exiting signal.
       m_syscallExitCycle = m_cycleCount;
-      uint16_t num_branch_miss = brunit->num_branch_miss;
-      uint16_t num_branch = brunit->num_branch;
-      printf("BRANCHES: %d\tMISSES: %d\tACCURACY %4.2f%%\n",
-            num_branch,
-            num_branch_miss,
-            (1 - (float)num_branch_miss / (float)num_branch) * 100.0);
     }
     ecallChecker->setSysCallExiting(ecallChecker->isSysCallExiting() ||
                                     (fr & FinalizeReason::exitSyscall));
@@ -622,6 +616,10 @@ public:
       rfs.insert(RegisterFileType::FPR);
     }
     return rfs;
+  }
+
+  Component* getBranchUnit() const override {
+    return brunit;
   }
 
 private:
