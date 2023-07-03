@@ -490,10 +490,6 @@ public:
     return rfs;
   }
 
-  Component* getBranchUnit() const override {
-    return nullptr;
-  }
-
 private:
   /**
    * @brief m_syscallExitCycle

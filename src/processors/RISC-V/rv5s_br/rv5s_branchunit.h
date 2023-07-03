@@ -7,8 +7,6 @@
 #include "../rv_decode.h"
 #include "../rv_immediate.h"
 
-#include <cstdio>
-
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
@@ -20,7 +18,9 @@ public:
       : Component(name, parent) {
     curr_pre_targ << [=] { return get_curr_pre_targ(); };
 
-    curr_pre_take << [=] { update_prev_prediction(); bool take = get_curr_pre_take(); return take; };
+    curr_pre_take << [=] { (this->*(updateFuncs[predictor]))(); 
+                           bool take = (this->*(predictionFuncs[predictor]))(); 
+                           return take; };
 
     curr_is_b << [=] { return get_curr_is_b(); };
 
@@ -50,10 +50,62 @@ public:
 
   static constexpr unsigned NUM_HISTORY_BITS = 8;
   static constexpr unsigned NUM_PREDICTION_BITS = 2;
+  static constexpr unsigned NUM_PREDICTORS = 1;
+  static constexpr unsigned REV_STACK_SIZE = 100;
   uint16_t local_history_table[1 << NUM_HISTORY_BITS];
   uint16_t branch_prediction_table[1 << NUM_HISTORY_BITS];
+  std::deque<uint16_t> m_reverse_lht_stack;
+  std::deque<uint16_t> m_reverse_bpt_stack;
+
+  void resetPredictorState() {
+    for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
+      local_history_table[i] = 0;
+      branch_prediction_table[i] = 0;
+    }
+  }
+
+  void resetPredictorCounters() {
+    num_branch = 0;
+    num_branch_miss = 0;
+  }
+
+  void saveState() {
+    for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
+      m_reverse_lht_stack.push_front(local_history_table[i]);
+      m_reverse_bpt_stack.push_front(branch_prediction_table[i]);
+    }
+
+    if (m_reverse_lht_stack.size() > REV_STACK_SIZE * (1 << NUM_HISTORY_BITS)) {
+      for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
+        m_reverse_lht_stack.pop_back();
+      }
+    }
+
+    if (m_reverse_bpt_stack.size() > REV_STACK_SIZE * (1 << NUM_HISTORY_BITS)) {
+      for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
+        m_reverse_bpt_stack.pop_back();
+      }
+    }
+  }
+
+  void restoreState() {
+    if (m_reverse_lht_stack.size() == 0) {
+      return;
+    }
+    if (m_reverse_bpt_stack.size() == 0) {
+      return;
+    }
+
+    for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
+      local_history_table[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_lht_stack.front();
+      branch_prediction_table[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_bpt_stack.front();
+      m_reverse_lht_stack.pop_front();
+      m_reverse_bpt_stack.pop_front();
+    }
+  }
 
 private:
+
   uint64_t get_curr_pre_targ() {
     if (get_curr_is_b() || get_curr_is_j()) {
       return curr_pc.uValue() + __immediate->imm.uValue();
@@ -86,44 +138,7 @@ private:
       }
   }
 
-  // This branch unit currently uses an (8, 2) correlated predictor.
-  // That is, it keeps track of the result of the last 8 branches and uses
-  // a 2-bit state machine to predict the next branch.
-
-  // Given the type of the tables, technically this can support up to a
-  // (16, 16) predictor, but this would require 256KB of RAM for the
-  // predictor, and would be much more latent, this is unrealistic
-  // for actual hardware, whereas (8, 2) is very feasible.
-
-  /**
-   * n-bit state machine:
-   * 
-   *       /--T--\
-   *       |     v
-   *  /-> [11...11] <-T-- [01...11] --\
-   *  |       |               ^       |
-   *  T       N               T       N
-   *  |       v               |       |
-   *  |-- [11...10]       [01...10] --|
-   *  |       |               ^       |
-   *  T       N               T       N
-   *  |       v               |       |
-   * ...     ...             ...     ...
-   *  |       |               ^       |
-   *  T       N               T       N
-   *  |       v               |       |
-   *  |-- [10...01]       [00...01] --|
-   *  |       |               ^       |
-   *  T       N               T       N
-   *  |       v               |       |
-   *  \-- [10...00] --N-> [00...00] <-/
-   *                       ^     |
-   *                       \--N--/
-   * 
-   * If MSB is 1, branch is taken, otherwise it is not.
-   */
-
-  bool get_curr_pre_take() {
+  bool getPredictionLocal() {
     if (get_curr_is_j()) {
       return true;
     }
@@ -143,16 +158,10 @@ private:
     }
   }
 
-  void update_prev_prediction() {
+  void updatePredictionLocal() {
     if (!prev_is_b.uValue()) {
       return;
     }
-
-    if (prev_pre_miss.uValue()) {
-      num_branch_miss++;
-    }
-
-    num_branch++;
 
     uint16_t check_bits = ((prev_pc.uValue() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
     bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
@@ -183,6 +192,19 @@ private:
       }
     }
   }
+
+  uint8_t predictor = 0;
+
+  typedef bool (BranchUnit<XLEN>::*getPredictionFunc)(void);
+  typedef void (BranchUnit<XLEN>::*updatePredictionFunc)(void);
+
+  getPredictionFunc predictionFuncs[NUM_PREDICTORS] = {
+    &BranchUnit<XLEN>::getPredictionLocal
+  };
+
+  updatePredictionFunc updateFuncs[NUM_PREDICTORS] = {
+    &BranchUnit<XLEN>::updatePredictionLocal
+  };
 };
 } // namespace core
 } // namespace vsrtl

@@ -246,12 +246,6 @@ public:
   virtual void setRegister(RegisterFileType rfid, unsigned i, VInt v) = 0;
 
   /**
-   * @brief getBranchUnit
-   * @return Generic Component object
-   */
-  virtual vsrtl::core::Component* getBranchUnit() const = 0;
-
-  /**
    * @brief setProgramCounter
    * Sets the program counter of the processor to @param address
    */

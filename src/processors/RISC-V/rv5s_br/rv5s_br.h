@@ -37,8 +37,6 @@
 #include "rv5s_branch_miss.h"
 #include "rv5s_branch_nextpc.h"
 
-#include <cstdio>
-
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
@@ -573,6 +571,16 @@ public:
       m_instructionsRetired++;
     }
 
+    if (brunit->prev_is_b.uValue()) {
+      brunit->num_branch++;
+    }
+    
+    if (brunit->prev_pre_miss.uValue()) {
+      brunit->num_branch_miss++;
+    }
+    
+    brunit->saveState();
+
     Design::clock();
   }
 
@@ -583,19 +591,29 @@ public:
       ecallChecker->setSysCallExiting(false);
       m_syscallExitCycle = -1;
     }
+
     Design::reverse();
     if (memwb_reg->valid_out.uValue() != 0 &&
         isExecutableAddress(memwb_reg->pc_out.uValue())) {
       m_instructionsRetired--;
     }
+
+    if (brunit->prev_is_b.uValue()) {
+      brunit->num_branch--;
+    }
+
+    if (brunit->prev_pre_miss.uValue()) {
+      brunit->num_branch_miss--;
+    }
+
+    brunit->restoreState();
   }
 
   void reset() override {
     ecallChecker->setSysCallExiting(false);
     Design::reset();
     m_syscallExitCycle = -1;
-    brunit->num_branch = 0;
-    brunit->num_branch_miss = 0;
+    brunit->resetPredictorCounters();
   }
 
   static ProcessorISAInfo supportsISA() {
@@ -616,10 +634,6 @@ public:
       rfs.insert(RegisterFileType::FPR);
     }
     return rfs;
-  }
-
-  Component* getBranchUnit() const override {
-    return brunit;
   }
 
 private:

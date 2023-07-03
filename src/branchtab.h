@@ -22,9 +22,15 @@ public:
 
   void updateStatistics();
 
+  void updateRuntimeFacts();
+
   void setupTables(int rows, int colums);
 
   void updateTables();
+
+  void procChanged();
+
+  void predictorChanged();
 
 signals:
   void focusAddressChanged(Ripes::AInt address);
@@ -37,6 +43,7 @@ private:
   int table_columns = 4;
   int num_history_bits = 8;
   int num_prediction_bits = 2;
+  bool isBranchProc = true;
 };
 
 } // namespace Ripes
