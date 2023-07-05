@@ -24,13 +24,13 @@ public:
 
   void updateRuntimeFacts();
 
-  void setupTables(int rows, int colums);
+  void setupTables(int rows1, int colums1, int rows2, int columns2);
 
   void updateTables();
 
   void procChanged();
 
-  void predictorChanged();
+  void predictorChanged(bool is_preset);
 
 signals:
   void focusAddressChanged(Ripes::AInt address);
@@ -39,11 +39,15 @@ private:
   Ui::BranchTab *m_ui;
   bool m_initialized = false;
   QTimer *m_statUpdateTimer;
-  int table_rows = 32;
-  int table_columns = 4;
-  int num_history_bits = 8;
-  int num_prediction_bits = 2;
-  bool isBranchProc = true;
+  int table1_rows = 0;
+  int table1_columns = 0;
+  int table2_rows = 0;
+  int table2_columns = 0;
+  uint16_t num_pc_check_bits = 0;
+  uint16_t num_history_bits = 0;
+  uint16_t num_prediction_bits = 0;
+  bool is_branch_proc = true;
+  uint8_t predictor = 0;
 };
 
 } // namespace Ripes

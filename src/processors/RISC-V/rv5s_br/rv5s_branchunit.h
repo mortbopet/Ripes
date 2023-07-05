@@ -29,6 +29,8 @@ public:
     curr_instr >> __decode->instr;
     curr_instr >> __immediate->instr;
     __decode->opcode >> __immediate->opcode;
+
+    changePredictor(0, NUM_PC_CHECK_BITS, NUM_HISTORY_BITS, NUM_PREDICTION_BITS);
   }
 
   SUBCOMPONENT(__decode, TYPE(Decode<XLEN>));
@@ -48,19 +50,22 @@ public:
   uint16_t num_branch_miss = 0;
   uint16_t num_branch = 0;
 
-  static constexpr unsigned NUM_HISTORY_BITS = 8;
-  static constexpr unsigned NUM_PREDICTION_BITS = 2;
-  static constexpr unsigned NUM_PREDICTORS = 1;
+  unsigned NUM_PC_CHECK_BITS = 8;
+  unsigned NUM_HISTORY_BITS = 8;
+  unsigned NUM_PREDICTION_BITS = 2;
+  static constexpr unsigned NUM_PREDICTORS = 5;
   static constexpr unsigned REV_STACK_SIZE = 100;
-  uint16_t local_history_table[1 << NUM_HISTORY_BITS];
-  uint16_t branch_prediction_table[1 << NUM_HISTORY_BITS];
+  uint16_t* local_history_table = nullptr;
+  uint16_t* pattern_history_table = nullptr;
   std::deque<uint16_t> m_reverse_lht_stack;
-  std::deque<uint16_t> m_reverse_bpt_stack;
+  std::deque<uint16_t> m_reverse_pht_stack;
 
   void resetPredictorState() {
-    for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
+    for (int i = 0; i < 1 << NUM_PC_CHECK_BITS; i++) {
       local_history_table[i] = 0;
-      branch_prediction_table[i] = 0;
+    }
+    for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
+      pattern_history_table[i] = 0;
     }
   }
 
@@ -70,20 +75,22 @@ public:
   }
 
   void saveState() {
-    for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
+    for (int i = 0; i < (1 << NUM_PC_CHECK_BITS); i++) {
       m_reverse_lht_stack.push_front(local_history_table[i]);
-      m_reverse_bpt_stack.push_front(branch_prediction_table[i]);
+    }
+    for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
+      m_reverse_pht_stack.push_front(pattern_history_table[i]);
     }
 
-    if (m_reverse_lht_stack.size() > REV_STACK_SIZE * (1 << NUM_HISTORY_BITS)) {
-      for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
+    if (m_reverse_lht_stack.size() > REV_STACK_SIZE * (1 << NUM_PC_CHECK_BITS)) {
+      for (int i = 0; i < 1 << NUM_PC_CHECK_BITS; i++) {
         m_reverse_lht_stack.pop_back();
       }
     }
 
-    if (m_reverse_bpt_stack.size() > REV_STACK_SIZE * (1 << NUM_HISTORY_BITS)) {
+    if (m_reverse_pht_stack.size() > REV_STACK_SIZE * (1 << NUM_HISTORY_BITS)) {
       for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
-        m_reverse_bpt_stack.pop_back();
+        m_reverse_pht_stack.pop_back();
       }
     }
   }
@@ -92,16 +99,35 @@ public:
     if (m_reverse_lht_stack.size() == 0) {
       return;
     }
-    if (m_reverse_bpt_stack.size() == 0) {
+    if (m_reverse_pht_stack.size() == 0) {
       return;
     }
 
-    for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
-      local_history_table[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_lht_stack.front();
-      branch_prediction_table[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_bpt_stack.front();
+    for (int i = 0; i < (1 << NUM_PC_CHECK_BITS); i++) {
+      local_history_table[(1 << NUM_PC_CHECK_BITS) - i - 1] = m_reverse_lht_stack.front();
       m_reverse_lht_stack.pop_front();
-      m_reverse_bpt_stack.pop_front();
     }
+    for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
+      pattern_history_table[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_pht_stack.front();
+      m_reverse_pht_stack.pop_front();
+    }
+  }
+
+  void changePredictor(uint8_t predictor, uint16_t num_pc_check_bits, uint16_t num_history_bits, uint16_t num_prediction_bits) {
+    NUM_PC_CHECK_BITS = num_pc_check_bits;
+    NUM_HISTORY_BITS = num_history_bits;
+    NUM_PREDICTION_BITS = num_prediction_bits;
+    this->predictor = predictor;
+
+    if (local_history_table != nullptr) {
+      delete[] local_history_table;
+    }
+    local_history_table = new uint16_t[1 << NUM_PC_CHECK_BITS];
+    
+    if (pattern_history_table != nullptr) {
+      delete[] pattern_history_table;
+    }
+    pattern_history_table = new uint16_t[1 << NUM_HISTORY_BITS];
   }
 
 private:
@@ -138,7 +164,7 @@ private:
       }
   }
 
-  bool getPredictionLocal() {
+  bool getPredictionTwoLevel() {
     if (get_curr_is_j()) {
       return true;
     }
@@ -147,9 +173,12 @@ private:
       return false;
     }
 
-    uint16_t check_bits = ((curr_pc.uValue() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
+    uint16_t check_bits = ((curr_pc.uValue() >> 2) << (64 - NUM_PC_CHECK_BITS)) >> (64 - NUM_PC_CHECK_BITS);
+    if (NUM_PC_CHECK_BITS == 0) {
+      check_bits = 0;
+    }
     uint16_t history = local_history_table[check_bits];
-    uint16_t prediction_state = branch_prediction_table[history];
+    uint16_t prediction_state = pattern_history_table[history];
 
     switch (prediction_state >> (NUM_PREDICTION_BITS - 1)) {
       case 0: return false;
@@ -158,26 +187,29 @@ private:
     }
   }
 
-  void updatePredictionLocal() {
+  void updatePredictionTwoLevel() {
     if (!prev_is_b.uValue()) {
       return;
     }
 
-    uint16_t check_bits = ((prev_pc.uValue() >> 2) << (64 - NUM_HISTORY_BITS)) >> (64 - NUM_HISTORY_BITS);
+    uint16_t check_bits = ((prev_pc.uValue() >> 2) << (64 - NUM_PC_CHECK_BITS)) >> (64 - NUM_PC_CHECK_BITS);
+    if (NUM_PC_CHECK_BITS == 0) {
+      check_bits = 0;
+    }
     bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
     uint16_t history = local_history_table[check_bits];
     local_history_table[check_bits] = (history | (prev_actual_taken << NUM_HISTORY_BITS)) >> 1;
-    uint16_t prediction_state = branch_prediction_table[history];
+    uint16_t prediction_state = pattern_history_table[history];
 
     if (prev_actual_taken) {
       if (prediction_state == (1 << NUM_PREDICTION_BITS) - 1) {
         return;
       }
       else if (prediction_state >= (1 << (NUM_PREDICTION_BITS - 1)) - 1) {
-        branch_prediction_table[history] = (1 << NUM_PREDICTION_BITS) - 1;
+        pattern_history_table[history] = (1 << NUM_PREDICTION_BITS) - 1;
       }
       else {
-        branch_prediction_table[history] += 1;
+        pattern_history_table[history] += 1;
       }
     }
     else {
@@ -185,12 +217,84 @@ private:
         return;
       }
       else if (prediction_state <= (1 << (NUM_PREDICTION_BITS - 1))) {
-        branch_prediction_table[history] = 0;
+        pattern_history_table[history] = 0;
       }
       else {
-        branch_prediction_table[history] -= 1;
+        pattern_history_table[history] -= 1;
       }
     }
+  }
+
+  bool getPredictionCounter() {
+    if (get_curr_is_j()) {
+      return true;
+    }
+
+    else if (!get_curr_is_b()) {
+      return false;
+    }
+
+    uint16_t prediction_state = pattern_history_table[0];
+
+    switch (prediction_state >> (NUM_PREDICTION_BITS - 1)) {
+      case 0: return false;
+      case 1: return true;
+      default: return false;
+    }
+  }
+
+  void updatePredictionCounter() {
+    if (!prev_is_b.uValue()) {
+      return;
+    }
+
+    bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
+    uint16_t prediction_state = pattern_history_table[0];
+
+    if (prev_actual_taken) {
+      if (prediction_state == (1 << NUM_PREDICTION_BITS) - 1) {
+        return;
+      }
+      else {
+        pattern_history_table[0] += 1;
+      }
+    }
+    else {
+      if (prediction_state == 0) {
+        return;
+      }
+      else {
+        pattern_history_table[0] -= 1;
+      }
+    }
+  }
+
+  bool getPredictionAlwaysTaken() {
+    if (get_curr_is_j()) {
+      return true;
+    }
+    
+    if (!get_curr_is_b()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void updatePredictionAlwaysTaken() {
+    return;
+  }
+
+  bool getPredictionAlwaysNotTaken() {
+    if (get_curr_is_j()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  void updatePredictionAlwaysNotTaken() {
+    return;
   }
 
   uint8_t predictor = 0;
@@ -199,11 +303,19 @@ private:
   typedef void (BranchUnit<XLEN>::*updatePredictionFunc)(void);
 
   getPredictionFunc predictionFuncs[NUM_PREDICTORS] = {
-    &BranchUnit<XLEN>::getPredictionLocal
+    &BranchUnit<XLEN>::getPredictionTwoLevel,
+    &BranchUnit<XLEN>::getPredictionTwoLevel,
+    &BranchUnit<XLEN>::getPredictionCounter,
+    &BranchUnit<XLEN>::getPredictionAlwaysTaken,
+    &BranchUnit<XLEN>::getPredictionAlwaysNotTaken
   };
 
   updatePredictionFunc updateFuncs[NUM_PREDICTORS] = {
-    &BranchUnit<XLEN>::updatePredictionLocal
+    &BranchUnit<XLEN>::updatePredictionTwoLevel,
+    &BranchUnit<XLEN>::updatePredictionTwoLevel,
+    &BranchUnit<XLEN>::updatePredictionCounter,
+    &BranchUnit<XLEN>::updatePredictionAlwaysTaken,
+    &BranchUnit<XLEN>::updatePredictionAlwaysNotTaken
   };
 };
 } // namespace core

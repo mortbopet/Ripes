@@ -8,7 +8,6 @@
 
 #include "processorhandler.h"
 #include "ripessettings.h"
-#include "processors/RISC-V/rv5s_br/rv5s_branchunit.h"
 #include "processors/RISC-V/rv5s_br/rv5s_br.h"
 
 #include <cmath>
@@ -109,116 +108,45 @@ static unsigned getXLEN() {
   return ProcessorHandler::getProcessor()->implementsISA()->bits();
 }
 
-static void resetPredictorCounters() {
-  if (!isRV5S_BR()) {
-    return;
+// Probably a better way to do this but this is quick, easy, and it works
+#define morb_no_ret(ret, member)   \
+  if (!isRV5S_BR()) {              \
+    ret;                           \
+  }                                \
+  if (getXLEN() == 32) { \
+    getBU<32, uint32_t>()->member; \
+  }                                \
+  if (getXLEN() == 64) {           \
+    getBU<64, uint64_t>()->member; \
   }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    brunit->resetPredictorCounters();
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    brunit->resetPredictorCounters();
-  }
-}
+
+#define morb_ret(ret, member)             \
+  if (!isRV5S_BR()) {                     \
+    ret;                                  \
+  }                                       \
+  if (getXLEN() == 32) {                  \
+    return getBU<32, uint32_t>()->member; \
+  }                                       \
+  if (getXLEN() == 64) {                  \
+    return getBU<64, uint64_t>()->member; \
+  }                                       \
+  ret;
+
+
+static uint16_t  getNumBranch()                     { morb_ret(return 0, num_branch) }
+static uint16_t  getNumBranchMiss()                 { morb_ret(return 0, num_branch_miss) }
+static uint16_t* getLocalHistoryTable()             { morb_ret(return nullptr, local_history_table) }
+static uint16_t* getPatternHistoryTable()           { morb_ret(return nullptr, pattern_history_table) }
+static bool      getPredictTaken()                  { morb_ret(return false, curr_pre_take.uValue()) }
+static void      resetPredictorCounters()           { morb_no_ret(return, resetPredictorCounters()) }
 
 static void resetPredictorState() {
-  if (!isRV5S_BR()) {
-    return;
-  }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    brunit->resetPredictorState();
-    resetPredictorCounters();
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    brunit->resetPredictorState();
-    resetPredictorCounters();
-  }
+  morb_no_ret(return, resetPredictorState())
+  morb_no_ret(return, resetPredictorCounters())
 }
 
-static uint16_t getNumBranch() {
-  if (!isRV5S_BR()) {
-    return 0;
-  }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    return brunit->num_branch;
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    return brunit->num_branch;
-  }
-  return 0;
-}
-
-static uint16_t getNumBranchMiss() {
-  if (!isRV5S_BR()) {
-    return 0;
-  }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    return brunit->num_branch_miss;
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    return brunit->num_branch_miss;
-  }
-  return 0;
-}
-
-static uint16_t* getLocalHistoryTable() {
-  if (!isRV5S_BR()) {
-    return nullptr;
-  }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    return brunit->local_history_table;
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    return brunit->local_history_table;
-  }
-  return nullptr;
-}
-
-static uint16_t* getPatternHistoryTable() {
-  if (!isRV5S_BR()) {
-    return nullptr;
-  }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    return brunit->branch_prediction_table;
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    return brunit->branch_prediction_table;
-  }
-  return nullptr;
-}
-
-static bool getPredictTaken() {
-  if (!isRV5S_BR()) {
-    return false;
-  }
-  unsigned const XLEN = getXLEN();
-  if (XLEN == 32) {
-    vsrtl::core::BranchUnit<32>* brunit = getBU<32, uint32_t>();
-    return brunit->curr_pre_take.uValue();
-  }
-  if (XLEN == 64) {
-    vsrtl::core::BranchUnit<64>* brunit = getBU<64, uint64_t>();
-    return brunit->curr_pre_take.uValue();
-  }
-  return false;
+static void changePredictor(uint8_t predictor, uint16_t num_pc_check_bits, uint16_t num_history_bits, uint16_t num_prediction_bits) {
+  morb_no_ret(return, changePredictor(predictor, num_pc_check_bits, num_history_bits, num_prediction_bits));
 }
 
 BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
@@ -244,7 +172,13 @@ BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
                 this->updateRuntimeFacts();
                 this->updateTables(); });
   connect(m_ui->predictorSelect, &QComboBox::currentIndexChanged,
-          this, &BranchTab::predictorChanged);
+          this, [=] { this->predictorChanged(true); });
+  connect(m_ui->pc_check_bits, &QComboBox::currentIndexChanged,
+          this, [=] { this->predictorChanged(false); });
+  connect(m_ui->history_bits, &QComboBox::currentIndexChanged,
+          this, [=] { this->predictorChanged(false); });
+  connect(m_ui->prediction_bits, &QComboBox::currentIndexChanged,
+          this, [=] { this->predictorChanged(false); });
   
 
   // Setup statistics update timer - this timer is distinct from the
@@ -277,7 +211,6 @@ BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
   m_ui->splitter->setStretchFactor(2, 10);
   m_ui->splitter->setSizes({1, 1000, 1000});
   
-  BranchTab::setupTables(32, 8);
   BranchTab::procChanged();
 }
 
@@ -290,28 +223,91 @@ void BranchTab::tabVisibilityChanged(bool visible) {
 void BranchTab::procChanged() {
   if (!isRV5S_BR()) {
     this->setEnabled(false);
-    BranchTab::updateTables();
+    BranchTab::predictorChanged(true);
     BranchTab::updateStatistics();
     BranchTab::updateRuntimeFacts();
-    this->isBranchProc = false;
+    this->is_branch_proc = false;
     resetPredictorState();
   }
   else {
     this->setEnabled(true);
-    this->isBranchProc = true;
-    BranchTab::updateTables();
+    this->is_branch_proc = true;
+    BranchTab::predictorChanged(true);
     BranchTab::updateStatistics();
     BranchTab::updateRuntimeFacts();
     resetPredictorState();
   }
 }
 
-void BranchTab::predictorChanged() {
-  return; // Not implemented
+void BranchTab::predictorChanged(bool is_preset) {
+  if (is_preset) {
+    int index = m_ui->predictorSelect->currentIndex();
+    switch(index) {
+      case 0: this->predictor = 0;           // Local Predictor
+              this->num_pc_check_bits = 8;   
+              this->num_history_bits = 8;
+              this->num_prediction_bits = 2;
+              break;
+      case 1: this->predictor = 1;           // Global Predictor
+              this->num_pc_check_bits = 0;
+              this->num_history_bits = 8;
+              this->num_prediction_bits = 2;
+              break;
+      case 2: this->predictor = 2;           // Saturating Counter
+              this->num_pc_check_bits = 0;
+              this->num_history_bits = 0;
+              this->num_prediction_bits = 2;
+              break;
+      case 3: this->predictor = 3;           // Always Taken
+              this->num_pc_check_bits = 0;
+              this->num_history_bits = 0;
+              this->num_prediction_bits = 0;
+              break;
+      case 4: this->predictor = 4;           // Always Not Taken
+              this->num_pc_check_bits = 0;
+              this->num_history_bits = 0;
+              this->num_prediction_bits = 0;
+              break;
+    }
+    bool oldState = m_ui->pc_check_bits->blockSignals(true);
+    m_ui->pc_check_bits->setCurrentIndex(this->num_pc_check_bits);
+    m_ui->pc_check_bits->blockSignals(oldState);
+
+    oldState = m_ui->history_bits->blockSignals(true);
+    m_ui->history_bits->setCurrentIndex(this->num_history_bits);
+    m_ui->history_bits->blockSignals(oldState);
+
+    oldState = m_ui->prediction_bits->blockSignals(true);
+    m_ui->prediction_bits->setCurrentIndex(this->num_prediction_bits);
+    m_ui->prediction_bits->blockSignals(oldState);
+  }
+
+  else {
+    this->predictor = m_ui->predictorSelect->currentIndex();
+    this->num_pc_check_bits = m_ui->pc_check_bits->currentIndex();
+    this->num_history_bits = m_ui->history_bits->currentIndex();
+    this->num_prediction_bits = m_ui->prediction_bits->currentIndex();
+  }
+
+  changePredictor(this->predictor, this->num_pc_check_bits, this->num_history_bits, this->num_prediction_bits);
+
+  int num_table1_entries = 1 << this->num_pc_check_bits;
+  int columns1 = (num_table1_entries > 8) ? 8 : num_table1_entries;
+  int rows1 = (num_table1_entries > 8) ? num_table1_entries / columns1 : 1;
+
+  int num_table2_entries = 1 << this->num_history_bits;
+  int columns2 = (num_table2_entries > 8) ? 8 : num_table2_entries;
+  int rows2 = (num_table2_entries > 8) ? num_table2_entries / columns2 : 1;
+
+  resetPredictorState();
+  BranchTab::setupTables(rows1, columns1, rows2, columns2);
+  BranchTab::updateTables();
+  BranchTab::updateStatistics();
+  BranchTab::updateRuntimeFacts();
 }
 
 void BranchTab::updateStatistics() {
-  if (!this->isBranchProc) {
+  if (!this->is_branch_proc) {
     return;
   }
 
@@ -363,7 +359,7 @@ void BranchTab::updateStatistics() {
 }
 
 void BranchTab::updateRuntimeFacts() {
-  if (!this->isBranchProc) {
+  if (!this->is_branch_proc) {
     return;
   }
 
@@ -398,7 +394,7 @@ void BranchTab::updateRuntimeFacts() {
                                   "}");
     uint16_t* lht = getLocalHistoryTable();
     uint16_t* pht = getPatternHistoryTable();
-    uint16_t lht_entry = lht[(addr >> 2) & ((1 << this->num_history_bits) - 1)];
+    uint16_t lht_entry = lht[(addr >> 2) & ((1 << this->num_pc_check_bits) - 1)];
     uint16_t pht_entry = pht[lht_entry];
     m_ui->lhtEntry->setText(QStringLiteral("%1").arg(lht_entry,
                                                   this->num_history_bits,
@@ -445,56 +441,54 @@ void BranchTab::updateRuntimeFacts() {
   }
 }
 
-void BranchTab::setupTables(int rows, int columns) {
-  if (!this->isBranchProc) {
+void BranchTab::setupTables(int rows1, int columns1, int rows2, int columns2) {
+  if (!this->is_branch_proc) {
     return;
   }
 
-  this->table_rows = rows;
-  this->table_columns = columns;
+  this->table1_rows = rows1;
+  this->table1_columns = columns1;
+  this->table2_rows = rows2;
+  this->table2_columns = columns2;
 
-  m_ui->table1->setRowCount(rows + 1);
-  m_ui->table1->setColumnCount(columns + 1);
-  for (int i = 0; i < rows + 1; i++) {
-    int h = m_ui->table1->rowHeight(i);
-    m_ui->table1->setRowHeight(i, h - 10);
+  m_ui->table1->setRowCount(rows1 + 1);
+  m_ui->table1->setColumnCount(columns1 + 1);
+  for (int i = 0; i < rows1 + 1; i++) {
+    m_ui->table1->setRowHeight(i, 20);
   }
-  for (int i = 1; i < rows + 1; i++) {
-    QTableWidgetItem* item = new QTableWidgetItem("0x" + QString::number((i - 1) * columns * 4, 16));
+  for (int i = 1; i < rows1 + 1; i++) {
+    QTableWidgetItem* item = new QTableWidgetItem("0x" + QString::number((i - 1) * columns1 * 4, 16));
     item->setTextAlignment(Qt::AlignRight);
     m_ui->table1->setItem(i, 0, item);
   }
-  for (int i = 0; i < columns + 1; i++) {
-    int w = m_ui->table1->columnWidth(i);
-    m_ui->table1->setColumnWidth(i, w - 30);
+  for (int i = 0; i < columns1 + 1; i++) {
+    m_ui->table1->setColumnWidth(i, 70);
   }
-  for (int i = 1; i < columns + 1; i++) {
+  for (int i = 1; i < columns1 + 1; i++) {
     QTableWidgetItem* item = new QTableWidgetItem("0x" + QString::number((i - 1) * 4, 16));
     item->setTextAlignment(Qt::AlignHCenter);
     m_ui->table1->setItem(0, i, item);
   }
 
-  m_ui->table2->setRowCount(rows + 1);
-  m_ui->table2->setColumnCount(columns + 1);
-  for (int i = 0; i < rows + 1; i++) {
-    int h = m_ui->table2->rowHeight(i);
-    m_ui->table2->setRowHeight(i, h - 10);
+  m_ui->table2->setRowCount(rows2 + 1);
+  m_ui->table2->setColumnCount(columns2 + 1);
+  for (int i = 0; i < rows2 + 1; i++) {
+    m_ui->table2->setRowHeight(i, 20);
   }
-  for (int i = 1; i < rows + 1; i++) {
-    QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg((i - 1) * columns,
-                                                  (int)log2(rows * columns),
+  for (int i = 1; i < rows2 + 1; i++) {
+    QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg((i - 1) * columns2,
+                                                  (int)log2(rows2 * columns2),
                                                   2,
                                                   QLatin1Char('0')));
     item->setTextAlignment(Qt::AlignRight);
     m_ui->table2->setItem(i, 0, item);
   }
-  for (int i = 0; i < columns + 1; i++) {
-    int w = m_ui->table2->columnWidth(i);
-    m_ui->table2->setColumnWidth(i, w - 30);
+  for (int i = 0; i < columns2 + 1; i++) {
+    m_ui->table2->setColumnWidth(i, 70);
   }
-  for (int i = 1; i < columns + 1; i++) {
+  for (int i = 1; i < columns2 + 1; i++) {
     QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg((i - 1),
-                                                  (int)log2(columns),
+                                                  (int)log2(columns2),
                                                   2,
                                                   QLatin1Char('0')));
     item->setTextAlignment(Qt::AlignHCenter);
@@ -503,7 +497,7 @@ void BranchTab::setupTables(int rows, int columns) {
 }
 
 void BranchTab::updateTables() {
-  if (!this->isBranchProc) {
+  if (!this->is_branch_proc) {
     return;
   }
 
@@ -516,62 +510,100 @@ void BranchTab::updateTables() {
   uint16_t* pht = getPatternHistoryTable();
 
   if (!lht || !pht) {
-    for (int i = 1; i < this->table_rows + 1; i++) {
-      for (int j = 1; j < this->table_columns + 1; j++) {
+    for (int i = 1; i < this->table1_rows + 1; i++) {
+      for (int j = 1; j < this->table1_columns + 1; j++) {
         uint16_t lht_entry = 0;
-        uint16_t pht_entry = 0;
 
-        QTableWidgetItem* item1 = new QTableWidgetItem(QStringLiteral("%1").arg(lht_entry,
+        QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg(lht_entry,
                                                                           this->num_history_bits,
                                                                           2,
                                                                           QLatin1Char('0')));
-        item1->setTextAlignment(Qt::AlignHCenter);
-        m_ui->table1->setItem(i, j, item1);
+        item->setTextAlignment(Qt::AlignHCenter);
+        m_ui->table1->setItem(i, j, item);
+      }
+    }for (int i = 1; i < this->table2_rows + 1; i++) {
+      for (int j = 1; j < this->table2_columns + 1; j++) {
+        uint16_t pht_entry = 0;
 
-        QTableWidgetItem* item2 = new QTableWidgetItem(QStringLiteral("%1").arg(pht_entry,
+        QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg(pht_entry,
                                                                           this->num_prediction_bits,
                                                                           2,
                                                                           QLatin1Char('0')));
-        item2->setTextAlignment(Qt::AlignHCenter);
-        m_ui->table2->setItem(i, j, item2);
+        item->setTextAlignment(Qt::AlignHCenter);
+        m_ui->table2->setItem(i, j, item);
       }
     }
   }
   else {
-    for (int i = 1; i < this->table_rows + 1; i++) {
-      for (int j = 1; j < this->table_columns + 1; j++) {
-        uint16_t lht_entry = lht[(j - 1) + this->table_columns * (i - 1)];
-        uint16_t pht_entry = pht[(j - 1) + this->table_columns * (i - 1)];
+    for (int i = 1; i < this->table1_rows + 1; i++) {
+      for (int j = 1; j < this->table1_columns + 1; j++) {
+        uint16_t lht_entry = lht[(j - 1) + this->table1_columns * (i - 1)];
 
-        QTableWidgetItem* item1 = new QTableWidgetItem(QStringLiteral("%1").arg(lht_entry,
+        QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg(lht_entry,
                                                                           this->num_history_bits,
                                                                           2,
                                                                           QLatin1Char('0')));
-        item1->setTextAlignment(Qt::AlignHCenter);
-        m_ui->table1->setItem(i, j, item1);
-        switch (countOnes(lht_entry)) {
-          case 0: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 128, 128))); break;
-          case 1: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 160, 160))); break;
-          case 2: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 192, 192))); break;
-          case 3: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 224, 224))); break;
-          case 4: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 255, 255))); break;
-          case 5: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(224, 255, 224))); break;
-          case 6: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(192, 255, 192))); break;
-          case 7: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(160, 255, 160))); break;
-          case 8: m_ui->table1->item(i, j)->setBackground(QBrush(QColor(128, 255, 128))); break;
+        item->setTextAlignment(Qt::AlignHCenter);
+
+        m_ui->table1->setItem(i, j, item);
+
+        if (this->num_history_bits % 2 == 0) {
+          int num_ones = countOnes(lht_entry);
+          int step = 128 / (this->num_history_bits / 2);
+
+          if (num_ones == this->num_history_bits / 2) {
+            m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 255, 255)));
+          }
+
+          else if (num_ones < this->num_history_bits / 2) {
+            int num_steps = num_ones;
+            m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 128 + num_steps * step, 128 + num_steps * step)));
+          }
+
+          else {
+            int num_steps = this->num_history_bits - num_ones;
+            m_ui->table1->item(i, j)->setBackground(QBrush(QColor(128 + num_steps * step, 255, 128 + num_steps * step)));
+          }
         }
 
-        QTableWidgetItem* item2 = new QTableWidgetItem(QStringLiteral("%1").arg(pht_entry,
+        else {
+          int num_ones = countOnes(lht_entry);
+          int step = 128 / ((this->num_history_bits + 1) / 2);
+
+          if (num_ones <= this->num_history_bits / 2) {
+            int num_steps = num_ones;
+            m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 128 + num_steps * step, 128 + num_steps * step)));
+          }
+
+          else {
+            int num_steps = this->num_history_bits - num_ones;
+            m_ui->table1->item(i, j)->setBackground(QBrush(QColor(128 + num_steps * step, 255, 128 + num_steps * step)));
+          }
+        }
+      }
+    }
+    for (int i = 1; i < this->table2_rows + 1; i++) {
+      for (int j = 1; j < this->table2_columns + 1; j++) {
+        uint16_t pht_entry = pht[(j - 1) + this->table2_columns * (i - 1)];
+
+        QTableWidgetItem* item = new QTableWidgetItem(QStringLiteral("%1").arg(pht_entry,
                                                                           this->num_prediction_bits,
                                                                           2,
                                                                           QLatin1Char('0')));
-        item2->setTextAlignment(Qt::AlignHCenter);
-        m_ui->table2->setItem(i, j, item2);
-        switch (pht_entry) {
-          case 0: m_ui->table2->item(i, j)->setBackground(brush_snt); break;
-          case 1: m_ui->table2->item(i, j)->setBackground(brush_wnt); break;
-          case 2: m_ui->table2->item(i, j)->setBackground(brush_wt); break;
-          case 3: m_ui->table2->item(i, j)->setBackground(brush_st); break;
+        item->setTextAlignment(Qt::AlignHCenter);
+
+        m_ui->table2->setItem(i, j, item);
+
+        int step = 128 / (1 << (this->num_prediction_bits - 1));
+
+        if (pht_entry < (1 << (this->num_prediction_bits - 1))) {
+          int num_steps = pht_entry;
+          m_ui->table2->item(i, j)->setBackground(QBrush(QColor(255, 128 + num_steps * step, 128 + num_steps * step)));
+        }
+
+        else {
+          int num_steps = ((1 << this->num_prediction_bits) - 1) - pht_entry;
+          m_ui->table2->item(i, j)->setBackground(QBrush(QColor(128 + num_steps * step, 255, 128 + num_steps * step)));
         }
       }
     }
