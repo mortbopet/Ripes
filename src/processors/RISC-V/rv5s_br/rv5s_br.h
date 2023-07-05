@@ -573,10 +573,9 @@ public:
 
     if (brunit->prev_is_b.uValue()) {
       brunit->num_branch++;
-    }
-    
-    if (brunit->prev_pre_miss.uValue()) {
-      brunit->num_branch_miss++;
+      if (brunit->prev_pre_miss.uValue()) {
+        brunit->num_branch_miss++;
+      }
     }
     
     brunit->saveState();
@@ -600,11 +599,11 @@ public:
 
     if (brunit->prev_is_b.uValue()) {
       brunit->num_branch--;
+      if (brunit->prev_pre_miss.uValue()) {
+        brunit->num_branch_miss--;
+      }
     }
 
-    if (brunit->prev_pre_miss.uValue()) {
-      brunit->num_branch_miss--;
-    }
 
     brunit->restoreState();
   }

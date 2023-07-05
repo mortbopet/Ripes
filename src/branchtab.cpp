@@ -199,12 +199,18 @@ BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
           this, [=] { m_statUpdateTimer->start();
                       m_ui->resetCounter->setEnabled(false);
                       m_ui->resetState->setEnabled(false);
-                      m_ui->predictorSelect->setEnabled(false); });
+                      m_ui->predictorSelect->setEnabled(false);
+                      m_ui->pc_check_bits->setEnabled(false);
+                      m_ui->history_bits->setEnabled(false);
+                      m_ui->prediction_bits->setEnabled(false); });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
           this, [=] { m_statUpdateTimer->stop();
                       m_ui->resetCounter->setEnabled(true);
                       m_ui->resetState->setEnabled(true);
-                      m_ui->predictorSelect->setEnabled(true); });
+                      m_ui->predictorSelect->setEnabled(true);
+                      m_ui->pc_check_bits->setEnabled(true);
+                      m_ui->history_bits->setEnabled(true);
+                      m_ui->prediction_bits->setEnabled(true); });
   
   m_ui->splitter->setStretchFactor(0, 0);
   m_ui->splitter->setStretchFactor(1, 10);
@@ -549,7 +555,13 @@ void BranchTab::updateTables() {
 
         if (this->num_history_bits % 2 == 0) {
           int num_ones = countOnes(lht_entry);
-          int step = 128 / (this->num_history_bits / 2);
+          int step = 0;
+          if (this->num_history_bits == 0) {
+            step = 128;
+          }
+          else {
+            step = 128 / (this->num_history_bits / 2);
+          }
 
           if (num_ones == this->num_history_bits / 2) {
             m_ui->table1->item(i, j)->setBackground(QBrush(QColor(255, 255, 255)));
@@ -594,17 +606,23 @@ void BranchTab::updateTables() {
 
         m_ui->table2->setItem(i, j, item);
 
-        int step = 128 / (1 << (this->num_prediction_bits - 1));
-
-        if (pht_entry < (1 << (this->num_prediction_bits - 1))) {
-          int num_steps = pht_entry;
-          m_ui->table2->item(i, j)->setBackground(QBrush(QColor(255, 128 + num_steps * step, 128 + num_steps * step)));
+        if (this->predictor == 4) {
+          m_ui->table2->item(i, j)->setBackground(QBrush(QColor(255, 128, 128)));
         }
-
         else {
-          int num_steps = ((1 << this->num_prediction_bits) - 1) - pht_entry;
-          m_ui->table2->item(i, j)->setBackground(QBrush(QColor(128 + num_steps * step, 255, 128 + num_steps * step)));
+          int step = 128 / (1 << (this->num_prediction_bits - 1));
+
+          if (pht_entry < (1 << (this->num_prediction_bits - 1))) {
+            int num_steps = pht_entry;
+            m_ui->table2->item(i, j)->setBackground(QBrush(QColor(255, 128 + num_steps * step, 128 + num_steps * step)));
+          }
+
+          else {
+            int num_steps = ((1 << this->num_prediction_bits) - 1) - pht_entry;
+            m_ui->table2->item(i, j)->setBackground(QBrush(QColor(128 + num_steps * step, 255, 128 + num_steps * step)));
+          }
         }
+        
       }
     }
   }
