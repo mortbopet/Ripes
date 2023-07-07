@@ -3,6 +3,7 @@
 #include "../riscv.h"
 
 #include "VSRTL/core/vsrtl_component.h"
+#include "VSRTL/core/vsrtl_register.h"
 
 #include "../rv_decode.h"
 #include "../rv_immediate.h"
@@ -29,6 +30,7 @@ public:
     curr_instr >> __decode->instr;
     curr_instr >> __immediate->instr;
     __decode->opcode >> __immediate->opcode;
+    dummyreg->out >> dummyreg->in;
 
     changePredictor(0, NUM_PC_CHECK_BITS, NUM_HISTORY_BITS, NUM_PREDICTION_BITS);
   }
@@ -47,6 +49,7 @@ public:
 
   SUBCOMPONENT(__decode, TYPE(Decode<XLEN>));
   SUBCOMPONENT(__immediate, TYPE(Immediate<XLEN>));
+  SUBCOMPONENT(dummyreg, Register<1>);
 
   INPUTPORT(prev_is_b, 1);
   INPUTPORT(prev_pc, XLEN);
@@ -66,7 +69,6 @@ public:
   unsigned NUM_HISTORY_BITS = 8;
   unsigned NUM_PREDICTION_BITS = 2;
   static constexpr unsigned NUM_PREDICTORS = 5;
-  static constexpr unsigned REV_STACK_SIZE = 100;
   uint16_t* local_history_table = nullptr;
   uint16_t* pattern_history_table = nullptr;
   std::deque<uint16_t> m_reverse_lht_stack;
@@ -94,13 +96,13 @@ public:
       m_reverse_pht_stack.push_front(pattern_history_table[i]);
     }
 
-    if (m_reverse_lht_stack.size() > REV_STACK_SIZE * (1 << NUM_PC_CHECK_BITS)) {
+    if (m_reverse_lht_stack.size() > dummyreg->reverseStackSize() * (1 << NUM_PC_CHECK_BITS)) {
       for (int i = 0; i < 1 << NUM_PC_CHECK_BITS; i++) {
         m_reverse_lht_stack.pop_back();
       }
     }
 
-    if (m_reverse_pht_stack.size() > REV_STACK_SIZE * (1 << NUM_HISTORY_BITS)) {
+    if (m_reverse_pht_stack.size() > dummyreg->reverseStackSize() * (1 << NUM_HISTORY_BITS)) {
       for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
         m_reverse_pht_stack.pop_back();
       }

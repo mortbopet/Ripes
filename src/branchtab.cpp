@@ -10,10 +10,6 @@
 #include "ripessettings.h"
 #include "processors/RISC-V/rv5s_br/rv5s_br.h"
 
-#include <cmath>
-#include <typeinfo>
-#include <cstdio>
-
 namespace Ripes {
   
 static QString convertToSIUnits(const double l_value, int precision = 2) {
