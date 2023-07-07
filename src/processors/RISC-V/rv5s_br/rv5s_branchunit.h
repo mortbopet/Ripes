@@ -33,6 +33,18 @@ public:
     changePredictor(0, NUM_PC_CHECK_BITS, NUM_HISTORY_BITS, NUM_PREDICTION_BITS);
   }
 
+  ~BranchUnit() {
+    if (local_history_table != nullptr) {
+      delete[] local_history_table;
+      local_history_table = nullptr;
+    }
+    
+    if (pattern_history_table != nullptr) {
+      delete[] pattern_history_table;
+      pattern_history_table = nullptr;
+    }
+  }
+
   SUBCOMPONENT(__decode, TYPE(Decode<XLEN>));
   SUBCOMPONENT(__immediate, TYPE(Immediate<XLEN>));
 
@@ -121,11 +133,13 @@ public:
 
     if (local_history_table != nullptr) {
       delete[] local_history_table;
+      local_history_table = nullptr;
     }
     local_history_table = new uint16_t[1 << NUM_PC_CHECK_BITS];
     
     if (pattern_history_table != nullptr) {
       delete[] pattern_history_table;
+      pattern_history_table = nullptr;
     }
     pattern_history_table = new uint16_t[1 << NUM_HISTORY_BITS];
   }

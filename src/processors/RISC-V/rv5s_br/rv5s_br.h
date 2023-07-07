@@ -613,6 +613,8 @@ public:
     Design::reset();
     m_syscallExitCycle = -1;
     brunit->resetPredictorCounters();
+    brunit->m_reverse_lht_stack.clear();
+    brunit->m_reverse_pht_stack.clear();
   }
 
   static ProcessorISAInfo supportsISA() {
