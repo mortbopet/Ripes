@@ -55,6 +55,7 @@ jobs:
         source .github/workflows/scripts/set_version.sh
         export APPNAME=Ripes-${RIPES_VERSION}-mac-universal2
         echo "APPNAME=${APPNAME}" >> $GITHUB_ENV
+        chmod +x Ripes.app/Contents/MacOS/Ripes
         sudo mv Ripes.app ${APPNAME}.app
         sudo zip -r ${APPNAME}.zip ${APPNAME}.app/
 
