@@ -8,6 +8,8 @@
 #include "../rv_decode.h"
 #include "../rv_immediate.h"
 
+#include <cstdio>
+
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
@@ -17,11 +19,16 @@ class BranchUnit : public Component {
 public:
   BranchUnit(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
+    changePredictor(0, NUM_PC_CHECK_BITS, NUM_HISTORY_BITS,
+                    NUM_PREDICTION_BITS);
+
     curr_pre_targ << [=] { return get_curr_pre_targ(); };
 
-    curr_pre_take << [=] { (this->*(updateFuncs[predictor]))(); 
-                           bool take = (this->*(predictionFuncs[predictor]))(); 
-                           return take; };
+    curr_pre_take << [=] {
+      (this->*(updateFuncs[predictor]))();
+      bool take = (this->*(predictionFuncs[predictor]))();
+      return take;
+    };
 
     curr_is_b << [=] { return get_curr_is_b(); };
 
@@ -31,8 +38,6 @@ public:
     curr_instr >> __immediate->instr;
     __decode->opcode >> __immediate->opcode;
     dummyreg->out >> dummyreg->in;
-
-    changePredictor(0, NUM_PC_CHECK_BITS, NUM_HISTORY_BITS, NUM_PREDICTION_BITS);
   }
 
   ~BranchUnit() {
@@ -40,7 +45,7 @@ public:
       delete[] local_history_table;
       local_history_table = nullptr;
     }
-    
+
     if (pattern_history_table != nullptr) {
       delete[] pattern_history_table;
       pattern_history_table = nullptr;
@@ -69,8 +74,8 @@ public:
   unsigned NUM_HISTORY_BITS = 8;
   unsigned NUM_PREDICTION_BITS = 2;
   static constexpr unsigned NUM_PREDICTORS = 5;
-  uint16_t* local_history_table = nullptr;
-  uint16_t* pattern_history_table = nullptr;
+  uint16_t *local_history_table = nullptr;
+  uint16_t *pattern_history_table = nullptr;
   std::deque<uint16_t> m_reverse_lht_stack;
   std::deque<uint16_t> m_reverse_pht_stack;
 
@@ -96,13 +101,15 @@ public:
       m_reverse_pht_stack.push_front(pattern_history_table[i]);
     }
 
-    if (m_reverse_lht_stack.size() > dummyreg->reverseStackSize() * (1 << NUM_PC_CHECK_BITS)) {
+    if (m_reverse_lht_stack.size() >
+        dummyreg->reverseStackSize() * (1 << NUM_PC_CHECK_BITS)) {
       for (int i = 0; i < 1 << NUM_PC_CHECK_BITS; i++) {
         m_reverse_lht_stack.pop_back();
       }
     }
 
-    if (m_reverse_pht_stack.size() > dummyreg->reverseStackSize() * (1 << NUM_HISTORY_BITS)) {
+    if (m_reverse_pht_stack.size() >
+        dummyreg->reverseStackSize() * (1 << NUM_HISTORY_BITS)) {
       for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
         m_reverse_pht_stack.pop_back();
       }
@@ -118,16 +125,20 @@ public:
     }
 
     for (int i = 0; i < (1 << NUM_PC_CHECK_BITS); i++) {
-      local_history_table[(1 << NUM_PC_CHECK_BITS) - i - 1] = m_reverse_lht_stack.front();
+      local_history_table[(1 << NUM_PC_CHECK_BITS) - i - 1] =
+          m_reverse_lht_stack.front();
       m_reverse_lht_stack.pop_front();
     }
     for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
-      pattern_history_table[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_pht_stack.front();
+      pattern_history_table[(1 << NUM_HISTORY_BITS) - i - 1] =
+          m_reverse_pht_stack.front();
       m_reverse_pht_stack.pop_front();
     }
   }
 
-  void changePredictor(uint8_t predictor, uint16_t num_pc_check_bits, uint16_t num_history_bits, uint16_t num_prediction_bits) {
+  void changePredictor(uint8_t predictor, uint16_t num_pc_check_bits,
+                       uint16_t num_history_bits,
+                       uint16_t num_prediction_bits) {
     NUM_PC_CHECK_BITS = num_pc_check_bits;
     NUM_HISTORY_BITS = num_history_bits;
     NUM_PREDICTION_BITS = num_prediction_bits;
@@ -138,16 +149,17 @@ public:
       local_history_table = nullptr;
     }
     local_history_table = new uint16_t[1 << NUM_PC_CHECK_BITS];
-    
+
     if (pattern_history_table != nullptr) {
       delete[] pattern_history_table;
       pattern_history_table = nullptr;
     }
     pattern_history_table = new uint16_t[1 << NUM_HISTORY_BITS];
+
+    resetPredictorState();
   }
 
 private:
-
   uint64_t get_curr_pre_targ() {
     if (get_curr_is_b() || get_curr_is_j()) {
       return curr_pc.uValue() + __immediate->imm.uValue();
@@ -156,28 +168,27 @@ private:
   }
 
   bool get_curr_is_b() {
-      Switch (__decode->opcode, RVInstr) {
-        case RVInstr::BEQ:
-        case RVInstr::BNE:
-        case RVInstr::BLT:
-        case RVInstr::BGE:
-        case RVInstr::BLTU:
-        case RVInstr::BGEU:
-          return true;
-        default:
-          return false;
-      }
+    Switch(__decode->opcode, RVInstr) {
+    case RVInstr::BEQ:
+    case RVInstr::BNE:
+    case RVInstr::BLT:
+    case RVInstr::BGE:
+    case RVInstr::BLTU:
+    case RVInstr::BGEU:
+      return true;
+    default:
+      return false;
+    }
   }
 
   bool get_curr_is_j() {
-      Switch (__decode->opcode, RVInstr) {
-        case RVInstr::JAL:
-          return true;
-        case RVInstr::JALR:
-          return true;
-        default:
-          return false;
-      }
+    Switch(__decode->opcode, RVInstr) {
+    case RVInstr::JAL:
+    case RVInstr::JALR:
+      return true;
+    default:
+      return false;
+    }
   }
 
   bool getPredictionTwoLevel() {
@@ -189,7 +200,9 @@ private:
       return false;
     }
 
-    uint16_t check_bits = ((curr_pc.uValue() >> 2) << (64 - NUM_PC_CHECK_BITS)) >> (64 - NUM_PC_CHECK_BITS);
+    uint16_t check_bits =
+        ((curr_pc.uValue() >> 2) << (64 - NUM_PC_CHECK_BITS)) >>
+        (64 - NUM_PC_CHECK_BITS);
     if (NUM_PC_CHECK_BITS == 0) {
       check_bits = 0;
     }
@@ -197,9 +210,12 @@ private:
     uint16_t prediction_state = pattern_history_table[history];
 
     switch (prediction_state >> (NUM_PREDICTION_BITS - 1)) {
-      case 0: return false;
-      case 1: return true;
-      default: return false;
+    case 0:
+      return false;
+    case 1:
+      return true;
+    default:
+      return false;
     }
   }
 
@@ -208,34 +224,32 @@ private:
       return;
     }
 
-    uint16_t check_bits = ((prev_pc.uValue() >> 2) << (64 - NUM_PC_CHECK_BITS)) >> (64 - NUM_PC_CHECK_BITS);
+    uint16_t check_bits =
+        ((prev_pc.uValue() >> 2) << (64 - NUM_PC_CHECK_BITS)) >>
+        (64 - NUM_PC_CHECK_BITS);
     if (NUM_PC_CHECK_BITS == 0) {
       check_bits = 0;
     }
     bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
     uint16_t history = local_history_table[check_bits];
-    local_history_table[check_bits] = (history | (prev_actual_taken << NUM_HISTORY_BITS)) >> 1;
+    local_history_table[check_bits] =
+        (history | (prev_actual_taken << NUM_HISTORY_BITS)) >> 1;
     uint16_t prediction_state = pattern_history_table[history];
 
     if (prev_actual_taken) {
       if (prediction_state == (1 << NUM_PREDICTION_BITS) - 1) {
         return;
-      }
-      else if (prediction_state >= (1 << (NUM_PREDICTION_BITS - 1)) - 1) {
+      } else if (prediction_state >= (1 << (NUM_PREDICTION_BITS - 1)) - 1) {
         pattern_history_table[history] = (1 << NUM_PREDICTION_BITS) - 1;
-      }
-      else {
+      } else {
         pattern_history_table[history] += 1;
       }
-    }
-    else {
+    } else {
       if (prediction_state == 0) {
         return;
-      }
-      else if (prediction_state <= (1 << (NUM_PREDICTION_BITS - 1))) {
+      } else if (prediction_state <= (1 << (NUM_PREDICTION_BITS - 1))) {
         pattern_history_table[history] = 0;
-      }
-      else {
+      } else {
         pattern_history_table[history] -= 1;
       }
     }
@@ -253,9 +267,12 @@ private:
     uint16_t prediction_state = pattern_history_table[0];
 
     switch (prediction_state >> (NUM_PREDICTION_BITS - 1)) {
-      case 0: return false;
-      case 1: return true;
-      default: return false;
+    case 0:
+      return false;
+    case 1:
+      return true;
+    default:
+      return false;
     }
   }
 
@@ -270,16 +287,13 @@ private:
     if (prev_actual_taken) {
       if (prediction_state == (1 << NUM_PREDICTION_BITS) - 1) {
         return;
-      }
-      else {
+      } else {
         pattern_history_table[0] += 1;
       }
-    }
-    else {
+    } else {
       if (prediction_state == 0) {
         return;
-      }
-      else {
+      } else {
         pattern_history_table[0] -= 1;
       }
     }
@@ -289,7 +303,7 @@ private:
     if (get_curr_is_j()) {
       return true;
     }
-    
+
     if (!get_curr_is_b()) {
       return false;
     }
@@ -297,9 +311,7 @@ private:
     return true;
   }
 
-  void updatePredictionAlwaysTaken() {
-    return;
-  }
+  void updatePredictionAlwaysTaken() { return; }
 
   bool getPredictionAlwaysNotTaken() {
     if (get_curr_is_j()) {
@@ -309,9 +321,7 @@ private:
     return false;
   }
 
-  void updatePredictionAlwaysNotTaken() {
-    return;
-  }
+  void updatePredictionAlwaysNotTaken() { return; }
 
   uint8_t predictor = 0;
 
@@ -319,20 +329,18 @@ private:
   typedef void (BranchUnit<XLEN>::*updatePredictionFunc)(void);
 
   getPredictionFunc predictionFuncs[NUM_PREDICTORS] = {
-    &BranchUnit<XLEN>::getPredictionTwoLevel,
-    &BranchUnit<XLEN>::getPredictionTwoLevel,
-    &BranchUnit<XLEN>::getPredictionCounter,
-    &BranchUnit<XLEN>::getPredictionAlwaysTaken,
-    &BranchUnit<XLEN>::getPredictionAlwaysNotTaken
-  };
+      &BranchUnit<XLEN>::getPredictionTwoLevel,
+      &BranchUnit<XLEN>::getPredictionTwoLevel,
+      &BranchUnit<XLEN>::getPredictionCounter,
+      &BranchUnit<XLEN>::getPredictionAlwaysTaken,
+      &BranchUnit<XLEN>::getPredictionAlwaysNotTaken};
 
   updatePredictionFunc updateFuncs[NUM_PREDICTORS] = {
-    &BranchUnit<XLEN>::updatePredictionTwoLevel,
-    &BranchUnit<XLEN>::updatePredictionTwoLevel,
-    &BranchUnit<XLEN>::updatePredictionCounter,
-    &BranchUnit<XLEN>::updatePredictionAlwaysTaken,
-    &BranchUnit<XLEN>::updatePredictionAlwaysNotTaken
-  };
+      &BranchUnit<XLEN>::updatePredictionTwoLevel,
+      &BranchUnit<XLEN>::updatePredictionTwoLevel,
+      &BranchUnit<XLEN>::updatePredictionCounter,
+      &BranchUnit<XLEN>::updatePredictionAlwaysTaken,
+      &BranchUnit<XLEN>::updatePredictionAlwaysNotTaken};
 };
 } // namespace core
 } // namespace vsrtl

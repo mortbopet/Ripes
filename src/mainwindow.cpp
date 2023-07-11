@@ -1,10 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "branchtab.h"
 #include "cachetab.h"
 #include "edittab.h"
 #include "iotab.h"
-#include "branchtab.h"
 #include "loaddialog.h"
 #include "memorytab.h"
 #include "processorhandler.h"

@@ -8,7 +8,6 @@
 
 #include "../../isa/isainfo.h"
 #include "../../ripes_types.h"
-#include "../RISC-V/rv5s_br/rv5s_branchunit.h"
 
 namespace Ripes {
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "VSRTL/core/vsrtl_adder.h"
+#include "VSRTL/core/vsrtl_comparator.h"
 #include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_design.h"
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
-#include "VSRTL/core/vsrtl_comparator.h"
 
 #include "../../ripesvsrtlprocessor.h"
 
@@ -22,20 +22,20 @@
 #include "../rv_uncompress.h"
 
 // Stage separating registers
-#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
 #include "../rv5s/rv5s_exmem.h"
 #include "../rv5s/rv5s_idex.h"
 #include "../rv5s/rv5s_memwb.h"
+#include "../rv5s_no_fw_hz/rv5s_no_fw_hz_ifid.h"
 
 // Forwarding & Hazard detection unit
 #include "../rv5s/rv5s_forwardingunit.h"
 #include "../rv5s/rv5s_hazardunit.h"
 
 // Branch prediction unit
-#include "rv5s_branchunit.h"
-#include "rv5s_branch_regs.h"
 #include "rv5s_branch_miss.h"
 #include "rv5s_branch_nextpc.h"
+#include "rv5s_branch_regs.h"
+#include "rv5s_branchunit.h"
 
 namespace vsrtl {
 namespace core {
@@ -430,7 +430,9 @@ public:
         Q_UNREACHABLE();
     // clang-format on
   }
-  AInt nextFetchedAddress() const override { return br_nextpc->curr_next.uValue(); }
+  AInt nextFetchedAddress() const override {
+    return br_nextpc->curr_next.uValue();
+  }
   QString stageName(StageIndex idx) const override {
     // clang-format off
         switch (idx.index()) {
@@ -577,7 +579,7 @@ public:
         brunit->num_branch_miss++;
       }
     }
-    
+
     brunit->saveState();
 
     Design::clock();
@@ -592,6 +594,7 @@ public:
     }
 
     Design::reverse();
+
     if (memwb_reg->valid_out.uValue() != 0 &&
         isExecutableAddress(memwb_reg->pc_out.uValue())) {
       m_instructionsRetired--;
@@ -603,7 +606,6 @@ public:
         brunit->num_branch_miss--;
       }
     }
-
 
     brunit->restoreState();
   }

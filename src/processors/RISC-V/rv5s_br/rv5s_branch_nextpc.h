@@ -16,14 +16,11 @@ public:
     curr_next << [=] {
       if (curr_miss_1.uValue()) {
         return curr_act_targ.uValue();
-      }
-      else if (curr_miss_2.uValue()) {
+      } else if (curr_miss_2.uValue()) {
         return pc_4_ex.uValue();
-      }
-      else if (curr_pre_take.uValue()) {
+      } else if (curr_pre_take.uValue()) {
         return curr_pre_targ.uValue();
-      }
-      else {
+      } else {
         return pc_4_id.uValue();
       }
     };

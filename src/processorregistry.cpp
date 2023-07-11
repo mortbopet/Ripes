@@ -170,11 +170,11 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_BR<uint32_t>>(
-      ProcessorID::RV32_5S_BR, "5-stage processor w/ branch prediction", rv5s_br_desc, layouts,
-      defRegVals));
+      ProcessorID::RV32_5S_BR, "5-stage processor w/ branch prediction",
+      rv5s_br_desc, layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5S_BR<uint64_t>>(
-      ProcessorID::RV64_5S_BR, "5-stage processor w/ branch prediction", rv5s_br_desc, layouts,
-      defRegVals));
+      ProcessorID::RV64_5S_BR, "5-stage processor w/ branch prediction",
+      rv5s_br_desc, layouts, defRegVals));
 
   // RISC-V 6-stage dual issue
   layouts = {{"Extended",
