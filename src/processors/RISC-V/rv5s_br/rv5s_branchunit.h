@@ -40,18 +40,6 @@ public:
     dummyreg->out >> dummyreg->in;
   }
 
-  ~BranchUnit() {
-    if (local_history_table != nullptr) {
-      delete[] local_history_table;
-      local_history_table = nullptr;
-    }
-
-    if (pattern_history_table != nullptr) {
-      delete[] pattern_history_table;
-      pattern_history_table = nullptr;
-    }
-  }
-
   SUBCOMPONENT(__decode, TYPE(Decode<XLEN>));
   SUBCOMPONENT(__immediate, TYPE(Immediate<XLEN>));
   SUBCOMPONENT(dummyreg, Register<1>);
@@ -74,18 +62,14 @@ public:
   unsigned NUM_HISTORY_BITS = 8;
   unsigned NUM_PREDICTION_BITS = 2;
   static constexpr unsigned NUM_PREDICTORS = 5;
-  uint16_t *local_history_table = nullptr;
-  uint16_t *pattern_history_table = nullptr;
+  std::unique_ptr<uint16_t[]> lht;
+  std::unique_ptr<uint16_t[]> pht;
   std::deque<uint16_t> m_reverse_lht_stack;
   std::deque<uint16_t> m_reverse_pht_stack;
 
   void resetPredictorState() {
-    for (int i = 0; i < 1 << NUM_PC_CHECK_BITS; i++) {
-      local_history_table[i] = 0;
-    }
-    for (int i = 0; i < 1 << NUM_HISTORY_BITS; i++) {
-      pattern_history_table[i] = 0;
-    }
+    std::fill_n(lht.get(), 1 << NUM_PC_CHECK_BITS, 0);
+    std::fill_n(pht.get(), 1 << NUM_HISTORY_BITS, 0);
   }
 
   void resetPredictorCounters() {
@@ -95,10 +79,10 @@ public:
 
   void saveState() {
     for (int i = 0; i < (1 << NUM_PC_CHECK_BITS); i++) {
-      m_reverse_lht_stack.push_front(local_history_table[i]);
+      m_reverse_lht_stack.push_front(lht.get()[i]);
     }
     for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
-      m_reverse_pht_stack.push_front(pattern_history_table[i]);
+      m_reverse_pht_stack.push_front(pht.get()[i]);
     }
 
     if (m_reverse_lht_stack.size() >
@@ -125,13 +109,11 @@ public:
     }
 
     for (int i = 0; i < (1 << NUM_PC_CHECK_BITS); i++) {
-      local_history_table[(1 << NUM_PC_CHECK_BITS) - i - 1] =
-          m_reverse_lht_stack.front();
+      lht.get()[(1 << NUM_PC_CHECK_BITS) - i - 1] = m_reverse_lht_stack.front();
       m_reverse_lht_stack.pop_front();
     }
     for (int i = 0; i < (1 << NUM_HISTORY_BITS); i++) {
-      pattern_history_table[(1 << NUM_HISTORY_BITS) - i - 1] =
-          m_reverse_pht_stack.front();
+      pht.get()[(1 << NUM_HISTORY_BITS) - i - 1] = m_reverse_pht_stack.front();
       m_reverse_pht_stack.pop_front();
     }
   }
@@ -144,17 +126,8 @@ public:
     NUM_PREDICTION_BITS = num_prediction_bits;
     this->predictor = predictor;
 
-    if (local_history_table != nullptr) {
-      delete[] local_history_table;
-      local_history_table = nullptr;
-    }
-    local_history_table = new uint16_t[1 << NUM_PC_CHECK_BITS];
-
-    if (pattern_history_table != nullptr) {
-      delete[] pattern_history_table;
-      pattern_history_table = nullptr;
-    }
-    pattern_history_table = new uint16_t[1 << NUM_HISTORY_BITS];
+    lht.reset(new uint16_t[1 << NUM_PC_CHECK_BITS]());
+    pht.reset(new uint16_t[1 << NUM_HISTORY_BITS]());
 
     resetPredictorState();
   }
@@ -206,8 +179,8 @@ private:
     if (NUM_PC_CHECK_BITS == 0) {
       check_bits = 0;
     }
-    uint16_t history = local_history_table[check_bits];
-    uint16_t prediction_state = pattern_history_table[history];
+    uint16_t history = lht.get()[check_bits];
+    uint16_t prediction_state = pht.get()[history];
 
     switch (prediction_state >> (NUM_PREDICTION_BITS - 1)) {
     case 0:
@@ -231,26 +204,26 @@ private:
       check_bits = 0;
     }
     bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
-    uint16_t history = local_history_table[check_bits];
-    local_history_table[check_bits] =
+    uint16_t history = lht.get()[check_bits];
+    lht.get()[check_bits] =
         (history | (prev_actual_taken << NUM_HISTORY_BITS)) >> 1;
-    uint16_t prediction_state = pattern_history_table[history];
+    uint16_t prediction_state = pht.get()[history];
 
     if (prev_actual_taken) {
       if (prediction_state == (1 << NUM_PREDICTION_BITS) - 1) {
         return;
       } else if (prediction_state >= (1 << (NUM_PREDICTION_BITS - 1)) - 1) {
-        pattern_history_table[history] = (1 << NUM_PREDICTION_BITS) - 1;
+        pht.get()[history] = (1 << NUM_PREDICTION_BITS) - 1;
       } else {
-        pattern_history_table[history] += 1;
+        pht.get()[history] += 1;
       }
     } else {
       if (prediction_state == 0) {
         return;
       } else if (prediction_state <= (1 << (NUM_PREDICTION_BITS - 1))) {
-        pattern_history_table[history] = 0;
+        pht.get()[history] = 0;
       } else {
-        pattern_history_table[history] -= 1;
+        pht.get()[history] -= 1;
       }
     }
   }
@@ -264,7 +237,7 @@ private:
       return false;
     }
 
-    uint16_t prediction_state = pattern_history_table[0];
+    uint16_t prediction_state = pht.get()[0];
 
     switch (prediction_state >> (NUM_PREDICTION_BITS - 1)) {
     case 0:
@@ -282,19 +255,19 @@ private:
     }
 
     bool prev_actual_taken = prev_pre_take.uValue() ^ prev_pre_miss.uValue();
-    uint16_t prediction_state = pattern_history_table[0];
+    uint16_t prediction_state = pht.get()[0];
 
     if (prev_actual_taken) {
       if (prediction_state == (1 << NUM_PREDICTION_BITS) - 1) {
         return;
       } else {
-        pattern_history_table[0] += 1;
+        pht.get()[0] += 1;
       }
     } else {
       if (prediction_state == 0) {
         return;
       } else {
-        pattern_history_table[0] -= 1;
+        pht.get()[0] -= 1;
       }
     }
   }

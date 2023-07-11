@@ -132,11 +132,9 @@ static unsigned getXLEN() {
 
 static uint16_t getNumBranch() { morb_ret(return 0, num_branch) }
 static uint16_t getNumBranchMiss() { morb_ret(return 0, num_branch_miss) }
-static uint16_t *getLocalHistoryTable() {
-  morb_ret(return nullptr, local_history_table)
-}
+static uint16_t *getLocalHistoryTable() { morb_ret(return nullptr, lht.get()) }
 static uint16_t *getPatternHistoryTable() {
-  morb_ret(return nullptr, pattern_history_table)
+  morb_ret(return nullptr, pht.get())
 }
 static bool getPredictTaken() { morb_ret(return false, curr_pre_take.uValue()) }
 static void resetPredictorCounters() {
