@@ -43,9 +43,9 @@ private:
   int table1_columns = 0;
   int table2_rows = 0;
   int table2_columns = 0;
-  uint16_t num_pc_check_bits = 0;
+  uint16_t num_address_bits = 0;
   uint16_t num_history_bits = 0;
-  uint16_t num_prediction_bits = 0;
+  uint16_t num_state_bits = 0;
   bool is_branch_proc = true;
   uint8_t predictor = 0;
 };

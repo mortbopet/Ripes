@@ -379,7 +379,7 @@ public:
   SUBCOMPONENT(hzunit, HazardUnit);
 
   // Branch prediction unit and necessary gates/registers
-  SUBCOMPONENT(brunit, BranchUnit<XLEN>);
+  SUBCOMPONENT(brunit, TYPE(BranchUnit<XLEN_T, XLEN>));
 
   SUBCOMPONENT(br_ifid_reg, TYPE(RV5S_BR_IFID<XLEN>));
   SUBCOMPONENT(br_idex_reg, TYPE(RV5S_BR_IDEX<XLEN>));
@@ -574,13 +574,13 @@ public:
     }
 
     if (brunit->prev_is_b.uValue()) {
-      brunit->num_branch++;
+      brunit->predictor_ptr.get()->num_conditional++;
       if (brunit->prev_pre_miss.uValue()) {
-        brunit->num_branch_miss++;
+        brunit->predictor_ptr.get()->num_conditional_miss++;
       }
     }
 
-    brunit->saveState();
+    brunit->predictor_ptr.get()->saveState();
 
     Design::clock();
   }
@@ -601,22 +601,20 @@ public:
     }
 
     if (brunit->prev_is_b.uValue()) {
-      brunit->num_branch--;
+      brunit->predictor_ptr.get()->num_conditional--;
       if (brunit->prev_pre_miss.uValue()) {
-        brunit->num_branch_miss--;
+        brunit->predictor_ptr.get()->num_conditional_miss--;
       }
     }
 
-    brunit->restoreState();
+    brunit->predictor_ptr.get()->restoreState();
   }
 
   void reset() override {
     ecallChecker->setSysCallExiting(false);
     Design::reset();
     m_syscallExitCycle = -1;
-    brunit->resetPredictorCounters();
-    brunit->m_reverse_lht_stack.clear();
-    brunit->m_reverse_pht_stack.clear();
+    brunit->predictor_ptr.get()->resetPredictorCounters();
   }
 
   static ProcessorISAInfo supportsISA() {
