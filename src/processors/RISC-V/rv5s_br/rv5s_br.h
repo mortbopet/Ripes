@@ -32,6 +32,7 @@
 #include "../rv5s/rv5s_hazardunit.h"
 
 // Branch prediction unit
+#include "../../branch/predictorhandler.h"
 #include "rv5s_branch_miss.h"
 #include "rv5s_branch_nextpc.h"
 #include "rv5s_branch_regs.h"
@@ -574,13 +575,13 @@ public:
     }
 
     if (brunit->prev_is_b.uValue()) {
-      brunit->predictor_ptr.get()->num_conditional++;
+      PredictorHandler::getPredictor()->num_conditional++;
       if (brunit->prev_pre_miss.uValue()) {
-        brunit->predictor_ptr.get()->num_conditional_miss++;
+        PredictorHandler::getPredictor()->num_conditional_miss++;
       }
     }
 
-    brunit->predictor_ptr.get()->saveState();
+    PredictorHandler::clock();
 
     Design::clock();
   }
@@ -601,20 +602,20 @@ public:
     }
 
     if (brunit->prev_is_b.uValue()) {
-      brunit->predictor_ptr.get()->num_conditional--;
+      PredictorHandler::getPredictor()->num_conditional--;
       if (brunit->prev_pre_miss.uValue()) {
-        brunit->predictor_ptr.get()->num_conditional_miss--;
+        PredictorHandler::getPredictor()->num_conditional_miss--;
       }
     }
 
-    brunit->predictor_ptr.get()->restoreState();
+    PredictorHandler::reverse();
   }
 
   void reset() override {
     ecallChecker->setSysCallExiting(false);
     Design::reset();
     m_syscallExitCycle = -1;
-    brunit->predictor_ptr.get()->resetPredictorCounters();
+    PredictorHandler::getPredictor()->resetPredictorCounters();
   }
 
   static ProcessorISAInfo supportsISA() {

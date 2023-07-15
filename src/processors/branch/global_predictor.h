@@ -58,12 +58,12 @@ public:
 
     bool prev_actual_taken = predict_taken ^ miss;
 
-    uint16_t history = this->lht.get()[0];
+    ARRAY_T history = this->lht.get()[0];
 
     this->lht.get()[0] =
         (history | (prev_actual_taken << num_history_bits)) >> 1;
 
-    uint16_t prediction_state = this->pht.get()[history];
+    ARRAY_T prediction_state = this->pht.get()[history];
 
     if (prev_actual_taken) {
       if (prediction_state == (1 << num_state_bits) - 1) {

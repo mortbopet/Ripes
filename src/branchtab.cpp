@@ -108,18 +108,6 @@ static unsigned getXLEN() {
 }
 
 // Probably a better way to do this but this is quick, easy, and it works
-#define morb_no_ret(ret, member)                                               \
-  if (!isRV5S_BR()) {                                                          \
-    ret;                                                                       \
-  }                                                                            \
-  switch (getXLEN()) {                                                         \
-  case 32:                                                                     \
-    getBU<32, uint32_t>()->member;                                             \
-    break;                                                                     \
-  case 64:                                                                     \
-    getBU<64, uint64_t>()->member;                                             \
-    break;                                                                     \
-  }
 
 #define morb_ret(ret, member)                                                  \
   if (!isRV5S_BR()) {                                                          \
@@ -134,41 +122,41 @@ static unsigned getXLEN() {
   ret;
 
 static uint16_t getNumConditional() {
-  morb_ret(return 0, predictor_ptr.get()->num_conditional)
+  return PredictorHandler::getPredictor()->num_conditional;
 }
 
 static uint16_t getNumConditionalMiss() {
-  morb_ret(return 0, predictor_ptr.get()->num_conditional_miss)
+  return PredictorHandler::getPredictor()->num_conditional_miss;
 }
 
 static double getConditionalAccuracy() {
-  morb_ret(return 0, predictor_ptr.get()->getConditionalAccuracy())
+  return PredictorHandler::getPredictor()->getConditionalAccuracy();
 }
 
 static uint16_t *getLocalHistoryTable() {
-  morb_ret(return nullptr, predictor_ptr.get()->lht.get())
+  return PredictorHandler::getPredictor()->lht.get();
 }
 
 static uint16_t *getPatternHistoryTable() {
-  morb_ret(return nullptr, predictor_ptr.get()->pht.get())
+  return PredictorHandler::getPredictor()->pht.get();
 }
 
 static bool getPredictTaken() { morb_ret(return false, curr_pre_take.uValue()) }
 
 static void resetPredictorCounters() {
-  morb_no_ret(return, predictor_ptr.get()->resetPredictorCounters())
+  PredictorHandler::getPredictor()->resetPredictorCounters();
 }
 
 static void resetPredictorState() {
-  morb_no_ret(return, predictor_ptr.get()->resetPredictorState())
-      morb_no_ret(return, predictor_ptr.get()->resetPredictorCounters())
+  PredictorHandler::getPredictor()->resetPredictorState();
+  PredictorHandler::getPredictor()->resetPredictorCounters();
 }
 
 static void changePredictor(uint8_t predictor, uint16_t num_address_bits,
                             uint16_t num_history_bits,
                             uint16_t num_state_bits) {
-  morb_no_ret(return, changePredictor(predictor, num_address_bits,
-                                      num_history_bits, num_state_bits));
+  PredictorHandler::changePredictor(predictor, num_address_bits,
+                                    num_history_bits, num_state_bits);
 }
 
 BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
