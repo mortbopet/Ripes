@@ -15,6 +15,7 @@ public:
   AlwaysNotTakenPredictor() {
     this->lht.reset(new ARRAY_T[1]);
     this->pht.reset(new ARRAY_T[1]);
+    resetPredictorState();
   }
 
   bool getPrediction(XLEN_T addr, bool is_branch,
