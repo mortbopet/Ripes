@@ -304,6 +304,8 @@ public:
    */
   virtual long long getCycleCount() const = 0;
 
+  virtual bool supportsBranchPrediction() const = 0;
+
   /** ======================= Signals and callbacks ======================= */
   /**
    * @brief clocked, reversed & reset signals

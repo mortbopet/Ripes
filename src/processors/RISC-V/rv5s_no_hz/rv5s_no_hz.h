@@ -490,6 +490,8 @@ public:
     return rfs;
   }
 
+  bool supportsBranchPrediction() const override { return false; }
+
 private:
   /**
    * @brief m_syscallExitCycle

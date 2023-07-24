@@ -7,8 +7,8 @@
 #include <QTimer>
 
 #include "processorhandler.h"
-#include "processors/RISC-V/rv5s_br/rv5s_br.h"
 #include "processors/branch/predictorhandler.h"
+#include "processors/branch/branchpredictionprocessor.h"
 #include "ripessettings.h"
 
 namespace Ripes {
@@ -50,38 +50,20 @@ static QString convertToSIUnits(const double l_value, int precision = 2) {
   return QString::number(0) + " ";
 }
 
-static bool isBranch(QString inst) {
-  if (inst.contains("beq", Qt::CaseInsensitive) ||
-      inst.contains("bne", Qt::CaseInsensitive) ||
-      inst.contains("blt", Qt::CaseInsensitive) ||
-      inst.contains("bge", Qt::CaseInsensitive) ||
-      inst.contains("bltu", Qt::CaseInsensitive) ||
-      inst.contains("bgeu", Qt::CaseInsensitive)) {
-    return true;
-  }
-  return false;
+static bool isConditional() {
+  BranchPredictionProcessor *proc = dynamic_cast<BranchPredictionProcessor *>(
+      ProcessorHandler::getProcessorNonConst());
+  return proc->currentInstructionIsConditional();
 }
 
-static bool isJAL(QString inst) {
-  if (inst.contains("jal", Qt::CaseInsensitive)) {
-    return true;
-  }
-  return false;
+static bool isBranch() {
+  BranchPredictionProcessor *proc = dynamic_cast<BranchPredictionProcessor *>(
+      ProcessorHandler::getProcessorNonConst());
+  return proc->currentInstructionIsBranch();
 }
 
-static bool isJALR(QString inst) {
-  if (inst.contains("jalr", Qt::CaseInsensitive)) {
-    return true;
-  }
-  return false;
-}
-
-static bool isRV5S_BR() {
-  if (ProcessorHandler::getID() == RV32_5S_BR ||
-      ProcessorHandler::getID() == RV64_5S_BR) {
-    return true;
-  }
-  return false;
+static bool isBR() {
+  return ProcessorHandler::getProcessorNonConst()->supportsBranchPrediction();
 }
 
 static uint8_t countOnes(uint16_t num) {
@@ -93,33 +75,6 @@ static uint8_t countOnes(uint16_t num) {
   }
   return numOnes;
 }
-
-template <unsigned XLEN, typename XLEN_T>
-static vsrtl::core::BranchUnit<XLEN_T, XLEN> *getBU() {
-  using namespace vsrtl;
-  using namespace core;
-  const RV5S_BR<XLEN_T> *proc =
-      dynamic_cast<const RV5S_BR<XLEN_T> *>(ProcessorHandler::getProcessor());
-  return proc->brunit;
-}
-
-static unsigned getXLEN() {
-  return ProcessorHandler::getProcessor()->implementsISA()->bits();
-}
-
-// Probably a better way to do this but this is quick, easy, and it works
-
-#define morb_ret(ret, member)                                                  \
-  if (!isRV5S_BR()) {                                                          \
-    ret;                                                                       \
-  }                                                                            \
-  switch (getXLEN()) {                                                         \
-  case 32:                                                                     \
-    return getBU<32, uint32_t>()->member;                                      \
-  case 64:                                                                     \
-    return getBU<64, uint64_t>()->member;                                      \
-  }                                                                            \
-  ret;
 
 static uint16_t getNumConditional() {
   return PredictorHandler::getPredictor()->num_conditional;
@@ -141,7 +96,11 @@ static uint16_t *getPatternHistoryTable() {
   return PredictorHandler::getPredictor()->pht.get();
 }
 
-static bool getPredictTaken() { morb_ret(return false, curr_pre_take.uValue()) }
+static bool getPredictTaken() {
+  BranchPredictionProcessor *proc = dynamic_cast<BranchPredictionProcessor *>(
+      ProcessorHandler::getProcessorNonConst());
+  return proc->currentGetPrediction();
+}
 
 static void resetPredictorCounters() {
   PredictorHandler::getPredictor()->resetPredictorCounters();
@@ -187,11 +146,11 @@ BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
   });
   connect(m_ui->predictorSelect, &QComboBox::currentIndexChanged, this,
           [=] { this->predictorChanged(true); });
-  connect(m_ui->pc_check_bits, &QComboBox::currentIndexChanged, this,
+  connect(m_ui->address_bits, &QComboBox::currentIndexChanged, this,
           [=] { this->predictorChanged(false); });
   connect(m_ui->history_bits, &QComboBox::currentIndexChanged, this,
           [=] { this->predictorChanged(false); });
-  connect(m_ui->prediction_bits, &QComboBox::currentIndexChanged, this,
+  connect(m_ui->state_bits, &QComboBox::currentIndexChanged, this,
           [=] { this->predictorChanged(false); });
 
   // Setup statistics update timer - this timer is distinct from the
@@ -213,18 +172,18 @@ BranchTab::BranchTab(QToolBar *toolbar, QWidget *parent)
     m_ui->resetCounter->setEnabled(false);
     m_ui->resetState->setEnabled(false);
     m_ui->predictorSelect->setEnabled(false);
-    m_ui->pc_check_bits->setEnabled(false);
+    m_ui->address_bits->setEnabled(false);
     m_ui->history_bits->setEnabled(false);
-    m_ui->prediction_bits->setEnabled(false);
+    m_ui->state_bits->setEnabled(false);
   });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
     m_statUpdateTimer->stop();
     m_ui->resetCounter->setEnabled(true);
     m_ui->resetState->setEnabled(true);
     m_ui->predictorSelect->setEnabled(true);
-    m_ui->pc_check_bits->setEnabled(true);
+    m_ui->address_bits->setEnabled(true);
     m_ui->history_bits->setEnabled(true);
-    m_ui->prediction_bits->setEnabled(true);
+    m_ui->state_bits->setEnabled(true);
   });
 
   m_ui->splitter->setStretchFactor(0, 0);
@@ -242,7 +201,7 @@ void BranchTab::tabVisibilityChanged(bool visible) {
 }
 
 void BranchTab::procChanged() {
-  if (!isRV5S_BR()) {
+  if (!isBR()) {
     this->setEnabled(false);
     BranchTab::predictorChanged(true);
     BranchTab::updateStatistics();
@@ -268,65 +227,65 @@ void BranchTab::predictorChanged(bool is_preset) {
       this->num_address_bits = 8;
       this->num_history_bits = 8;
       this->num_state_bits = 2;
-      m_ui->pc_check_bits->setEnabled(true);
+      m_ui->address_bits->setEnabled(true);
       m_ui->history_bits->setEnabled(true);
-      m_ui->prediction_bits->setEnabled(true);
+      m_ui->state_bits->setEnabled(true);
       break;
     case 1:
       this->predictor = 1; // Global Predictor
       this->num_address_bits = 0;
       this->num_history_bits = 8;
       this->num_state_bits = 2;
-      m_ui->pc_check_bits->setEnabled(false);
+      m_ui->address_bits->setEnabled(false);
       m_ui->history_bits->setEnabled(true);
-      m_ui->prediction_bits->setEnabled(true);
+      m_ui->state_bits->setEnabled(true);
       break;
     case 2:
       this->predictor = 2; // Saturating Counter
       this->num_address_bits = 0;
       this->num_history_bits = 0;
       this->num_state_bits = 2;
-      m_ui->pc_check_bits->setEnabled(false);
+      m_ui->address_bits->setEnabled(false);
       m_ui->history_bits->setEnabled(false);
-      m_ui->prediction_bits->setEnabled(true);
+      m_ui->state_bits->setEnabled(true);
       break;
     case 3:
       this->predictor = 3; // Always Taken
       this->num_address_bits = 0;
       this->num_history_bits = 0;
       this->num_state_bits = 0;
-      m_ui->pc_check_bits->setEnabled(false);
+      m_ui->address_bits->setEnabled(false);
       m_ui->history_bits->setEnabled(false);
-      m_ui->prediction_bits->setEnabled(false);
+      m_ui->state_bits->setEnabled(false);
       break;
     case 4:
       this->predictor = 4; // Always Not Taken
       this->num_address_bits = 0;
       this->num_history_bits = 0;
       this->num_state_bits = 0;
-      m_ui->pc_check_bits->setEnabled(false);
+      m_ui->address_bits->setEnabled(false);
       m_ui->history_bits->setEnabled(false);
-      m_ui->prediction_bits->setEnabled(false);
+      m_ui->state_bits->setEnabled(false);
       break;
     }
-    bool oldState = m_ui->pc_check_bits->blockSignals(true);
-    m_ui->pc_check_bits->setCurrentIndex(this->num_address_bits);
-    m_ui->pc_check_bits->blockSignals(oldState);
+    bool oldState = m_ui->address_bits->blockSignals(true);
+    m_ui->address_bits->setCurrentIndex(this->num_address_bits);
+    m_ui->address_bits->blockSignals(oldState);
 
     oldState = m_ui->history_bits->blockSignals(true);
     m_ui->history_bits->setCurrentIndex(this->num_history_bits);
     m_ui->history_bits->blockSignals(oldState);
 
-    oldState = m_ui->prediction_bits->blockSignals(true);
-    m_ui->prediction_bits->setCurrentIndex(this->num_state_bits);
-    m_ui->prediction_bits->blockSignals(oldState);
+    oldState = m_ui->state_bits->blockSignals(true);
+    m_ui->state_bits->setCurrentIndex(this->num_state_bits);
+    m_ui->state_bits->blockSignals(oldState);
   }
 
   else {
     this->predictor = m_ui->predictorSelect->currentIndex();
-    this->num_address_bits = m_ui->pc_check_bits->currentIndex();
+    this->num_address_bits = m_ui->address_bits->currentIndex();
     this->num_history_bits = m_ui->history_bits->currentIndex();
-    this->num_state_bits = m_ui->prediction_bits->currentIndex();
+    this->num_state_bits = m_ui->state_bits->currentIndex();
   }
 
   changePredictor(this->predictor, this->num_address_bits,
@@ -409,7 +368,7 @@ void BranchTab::updateRuntimeFacts() {
   QString inst = ProcessorHandler::disassembleInstr(addr);
   m_ui->currInst->setText(inst);
 
-  if (!isRV5S_BR()) {
+  if (!isBR()) {
     m_ui->isBranch->setStyleSheet("QLineEdit"
                                   "{"
                                   "background: rgb(255, 255, 255)"
@@ -427,7 +386,7 @@ void BranchTab::updateRuntimeFacts() {
     return;
   }
 
-  if (isBranch(inst)) {
+  if (isConditional()) {
     m_ui->isBranch->setStyleSheet("QLineEdit"
                                   "{"
                                   "background: rgb(128, 255, 128)"
@@ -452,7 +411,7 @@ void BranchTab::updateRuntimeFacts() {
     m_ui->phtEntry->setText("");
   }
 
-  if (isJAL(inst) || isJALR(inst)) {
+  if (isBranch() && !isConditional()) {
     m_ui->isJump->setStyleSheet("QLineEdit"
                                 "{"
                                 "background: rgb(128, 255, 128)"

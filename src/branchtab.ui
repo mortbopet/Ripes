@@ -190,7 +190,7 @@
          <item row="4" column="0">
           <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>PC Check Bits:</string>
+            <string>Address Bits:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -293,7 +293,7 @@
          <item row="25" column="0">
           <widget class="QLineEdit" name="isBranch">
            <property name="text">
-            <string>Is Branch</string>
+            <string>Conditional</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -316,7 +316,7 @@
          <item row="25" column="1">
           <widget class="QLineEdit" name="isJump">
            <property name="text">
-            <string>Is Jump</string>
+            <string>Unconditional</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -435,7 +435,7 @@
          <item row="5" column="0">
           <widget class="QLabel" name="label_19">
            <property name="text">
-            <string>Prediction Bits:</string>
+            <string>State Bits:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -443,7 +443,7 @@
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QComboBox" name="pc_check_bits">
+          <widget class="QComboBox" name="address_bits">
            <item>
             <property name="text">
              <string>0</string>
@@ -492,7 +492,7 @@
           </widget>
          </item>
          <item row="5" column="1">
-          <widget class="QComboBox" name="prediction_bits">
+          <widget class="QComboBox" name="state_bits">
            <item>
             <property name="text">
              <string>0</string>

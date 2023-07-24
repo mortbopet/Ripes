@@ -257,6 +257,8 @@ public:
     return rfs;
   }
 
+  bool supportsBranchPrediction() const override { return false; }
+
 private:
   bool m_finishInNextCycle = false;
   bool m_finished = false;

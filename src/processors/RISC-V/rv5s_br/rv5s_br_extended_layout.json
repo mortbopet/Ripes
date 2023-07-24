@@ -223,29 +223,29 @@
           {
             "key": 4,
             "value": {
-              "x": 168,
-              "y": 826
-            }
-          },
-          {
-            "key": 5,
-            "value": {
               "x": 1428,
               "y": 882
             }
           },
           {
+            "key": 5,
+            "value": {
+              "x": 168,
+              "y": 826
+            }
+          },
+          {
             "key": 6,
             "value": {
-              "x": 378,
-              "y": 882
+              "x": 980,
+              "y": 938
             }
           },
           {
             "key": 7,
             "value": {
-              "x": 378,
-              "y": 826
+              "x": 1456,
+              "y": 434
             }
           },
           {
@@ -259,68 +259,68 @@
             "key": 9,
             "value": {
               "x": 980,
-              "y": 938
+              "y": 882
             }
           },
           {
             "key": 10,
             "value": {
-              "x": 1456,
-              "y": 434
+              "x": 378,
+              "y": 826
             }
           },
           {
             "key": 11,
             "value": {
-              "x": 980,
+              "x": 378,
               "y": 882
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 10
-          },
-          {
             "first": 10,
-            "second": 1
-          },
-          {
-            "first": 6,
-            "second": 7
-          },
-          {
-            "first": 5,
-            "second": 11
-          },
-          {
-            "first": 0,
             "second": 5
           },
           {
-            "first": 7,
+            "first": 0,
             "second": 4
           },
           {
             "first": 4,
-            "second": 8
-          },
-          {
-            "first": 9,
-            "second": 2
+            "second": 9
           },
           {
             "first": 11,
-            "second": 9
+            "second": 10
+          },
+          {
+            "first": 7,
+            "second": 1
+          },
+          {
+            "first": 0,
+            "second": 7
+          },
+          {
+            "first": 6,
+            "second": 2
+          },
+          {
+            "first": 9,
+            "second": 6
           },
           {
             "first": 8,
             "second": 3
           },
           {
-            "first": 11,
-            "second": 6
+            "first": 9,
+            "second": 11
+          },
+          {
+            "first": 5,
+            "second": 8
           }
         ]
       },
@@ -552,16 +552,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -970,16 +970,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -1334,28 +1334,28 @@
             "key": 2,
             "value": {
               "x": 728,
-              "y": 994
+              "y": 1008
             }
           },
           {
             "key": 3,
             "value": {
               "x": 728,
-              "y": 1008
+              "y": 994
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
+            "first": 2,
             "second": 3
           },
           {
-            "first": 2,
+            "first": 3,
             "second": 1
           },
           {
-            "first": 3,
+            "first": 0,
             "second": 2
           }
         ]
@@ -1800,16 +1800,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -1849,16 +1849,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -1898,16 +1898,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -1947,16 +1947,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -2032,31 +2032,31 @@
         "wires": [
           {
             "first": 6,
-            "second": 2
+            "second": 7
           },
           {
             "first": 0,
             "second": 5
           },
           {
-            "first": 0,
-            "second": 1
-          },
-          {
-            "first": 5,
-            "second": 6
+            "first": 8,
+            "second": 3
           },
           {
             "first": 7,
             "second": 8
           },
           {
-            "first": 8,
-            "second": 3
+            "first": 6,
+            "second": 2
           },
           {
-            "first": 6,
-            "second": 7
+            "first": 5,
+            "second": 6
+          },
+          {
+            "first": 0,
+            "second": 1
           },
           {
             "first": 8,
@@ -2135,32 +2135,32 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 5
-          },
-          {
-            "first": 7,
-            "second": 8
-          },
-          {
             "first": 8,
             "second": 3
           },
           {
-            "first": 5,
-            "second": 6
-          },
-          {
             "first": 6,
-            "second": 7
+            "second": 2
           },
           {
             "first": 0,
             "second": 1
           },
           {
+            "first": 7,
+            "second": 8
+          },
+          {
             "first": 6,
-            "second": 2
+            "second": 7
+          },
+          {
+            "first": 5,
+            "second": 6
+          },
+          {
+            "first": 0,
+            "second": 5
           },
           {
             "first": 8,
@@ -2375,16 +2375,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -2611,16 +2611,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -2847,16 +2847,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -3083,16 +3083,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -3141,12 +3141,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
             "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -3221,8 +3221,12 @@
         ],
         "wires": [
           {
-            "first": 4,
-            "second": 2
+            "first": 7,
+            "second": 3
+          },
+          {
+            "first": 8,
+            "second": 6
           },
           {
             "first": 6,
@@ -3233,12 +3237,8 @@
             "second": 7
           },
           {
-            "first": 8,
-            "second": 6
-          },
-          {
-            "first": 7,
-            "second": 3
+            "first": 4,
+            "second": 2
           },
           {
             "first": 5,
@@ -3318,28 +3318,28 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 6
-          },
-          {
-            "first": 6,
-            "second": 7
-          },
-          {
-            "first": 7,
-            "second": 3
-          },
-          {
-            "first": 4,
-            "second": 2
+            "first": 5,
+            "second": 4
           },
           {
             "first": 3,
             "second": 5
           },
           {
-            "first": 5,
-            "second": 4
+            "first": 6,
+            "second": 7
+          },
+          {
+            "first": 4,
+            "second": 2
+          },
+          {
+            "first": 7,
+            "second": 3
+          },
+          {
+            "first": 0,
+            "second": 6
           },
           {
             "first": 7,
@@ -3599,16 +3599,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -3822,51 +3822,51 @@
             "key": 2,
             "value": {
               "x": 574,
-              "y": 854
+              "y": 742
             }
           },
           {
             "key": 3,
             "value": {
               "x": 350,
-              "y": 994
+              "y": 854
             }
           },
           {
             "key": 4,
             "value": {
               "x": 350,
-              "y": 854
+              "y": 994
             }
           },
           {
             "key": 5,
             "value": {
               "x": 574,
-              "y": 742
+              "y": 854
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 5
-          },
-          {
-            "first": 3,
-            "second": 1
-          },
-          {
             "first": 5,
-            "second": 2
-          },
-          {
-            "first": 4,
             "second": 3
           },
           {
-            "first": 2,
+            "first": 3,
             "second": 4
+          },
+          {
+            "first": 2,
+            "second": 5
+          },
+          {
+            "first": 4,
+            "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -4297,29 +4297,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 14
+              "y": 56
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 56
+              "y": 14
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
-            "second": 3
+            "second": 1
           },
           {
             "first": 3,
-            "second": 1
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -4346,29 +4346,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 28
+              "y": 140
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 140
+              "y": 28
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
-            "second": 3
+            "second": 1
           },
           {
             "first": 3,
-            "second": 1
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -4395,29 +4395,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 42
+              "y": 224
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 224
+              "y": 42
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
-            "second": 3
+            "second": 1
           },
           {
             "first": 3,
-            "second": 1
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -4457,16 +4457,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -4541,32 +4541,32 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 5
-          },
-          {
-            "first": 8,
-            "second": 7
-          },
-          {
             "first": 7,
             "second": 3
           },
           {
-            "first": 5,
-            "second": 6
-          },
-          {
             "first": 6,
-            "second": 8
+            "second": 2
           },
           {
             "first": 0,
             "second": 1
           },
           {
+            "first": 8,
+            "second": 7
+          },
+          {
             "first": 6,
-            "second": 2
+            "second": 8
+          },
+          {
+            "first": 5,
+            "second": 6
+          },
+          {
+            "first": 0,
+            "second": 5
           },
           {
             "first": 7,
@@ -4645,32 +4645,32 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 8
-          },
-          {
-            "first": 6,
-            "second": 7
-          },
-          {
             "first": 7,
             "second": 3
           },
           {
-            "first": 8,
-            "second": 5
-          },
-          {
             "first": 5,
-            "second": 6
+            "second": 2
           },
           {
             "first": 0,
             "second": 1
           },
           {
+            "first": 6,
+            "second": 7
+          },
+          {
             "first": 5,
-            "second": 2
+            "second": 6
+          },
+          {
+            "first": 8,
+            "second": 5
+          },
+          {
+            "first": 0,
+            "second": 8
           },
           {
             "first": 7,
@@ -4885,16 +4885,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             }
           ]
         },
@@ -5121,16 +5121,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             }
           ]
         },
@@ -5357,16 +5357,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -5593,16 +5593,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -6061,28 +6061,28 @@
             "key": 4,
             "value": {
               "x": 1274,
-              "y": 938
+              "y": 1134
             }
           },
           {
             "key": 5,
-            "value": {
-              "x": 140,
-              "y": 854
-            }
-          },
-          {
-            "key": 6,
             "value": {
               "x": 280,
               "y": 1134
             }
           },
           {
-            "key": 7,
+            "key": 6,
             "value": {
               "x": 1274,
-              "y": 1134
+              "y": 938
+            }
+          },
+          {
+            "key": 7,
+            "value": {
+              "x": 140,
+              "y": 854
             }
           },
           {
@@ -6095,90 +6095,90 @@
           {
             "key": 9,
             "value": {
-              "x": 210,
-              "y": 742
+              "x": 280,
+              "y": 854
             }
           },
           {
             "key": 10,
             "value": {
-              "x": 1316,
-              "y": 966
+              "x": 210,
+              "y": 742
             }
           },
           {
             "key": 11,
             "value": {
               "x": 1316,
-              "y": 938
+              "y": 966
             }
           },
           {
             "key": 12,
             "value": {
-              "x": 210,
-              "y": 560
+              "x": 1316,
+              "y": 938
             }
           },
           {
             "key": 13,
             "value": {
-              "x": 280,
-              "y": 854
+              "x": 210,
+              "y": 560
             }
           }
         ],
         "wires": [
           {
             "first": 10,
-            "second": 1
-          },
-          {
-            "first": 0,
-            "second": 4
-          },
-          {
-            "first": 9,
             "second": 2
           },
           {
-            "first": 12,
-            "second": 3
-          },
-          {
-            "first": 13,
-            "second": 5
-          },
-          {
-            "first": 6,
-            "second": 13
-          },
-          {
-            "first": 4,
-            "second": 7
-          },
-          {
-            "first": 7,
+            "first": 0,
             "second": 6
           },
           {
-            "first": 11,
-            "second": 10
-          },
-          {
-            "first": 4,
-            "second": 11
-          },
-          {
             "first": 9,
-            "second": 12
+            "second": 7
           },
           {
-            "first": 8,
-            "second": 9
+            "first": 13,
+            "second": 3
+          },
+          {
+            "first": 6,
+            "second": 4
           },
           {
             "first": 5,
+            "second": 9
+          },
+          {
+            "first": 11,
+            "second": 1
+          },
+          {
+            "first": 4,
+            "second": 5
+          },
+          {
+            "first": 12,
+            "second": 11
+          },
+          {
+            "first": 6,
+            "second": 12
+          },
+          {
+            "first": 10,
+            "second": 13
+          },
+          {
+            "first": 8,
+            "second": 10
+          },
+          {
+            "first": 7,
             "second": 8
           }
         ]
@@ -6219,22 +6219,22 @@
           {
             "key": 4,
             "value": {
-              "x": 196,
-              "y": 574
+              "x": 294,
+              "y": 840
             }
           },
           {
             "key": 5,
             "value": {
-              "x": 294,
-              "y": 1120
+              "x": 1260,
+              "y": 994
             }
           },
           {
             "key": 6,
             "value": {
               "x": 294,
-              "y": 840
+              "y": 1120
             }
           },
           {
@@ -6247,8 +6247,8 @@
           {
             "key": 8,
             "value": {
-              "x": 1260,
-              "y": 994
+              "x": 196,
+              "y": 574
             }
           },
           {
@@ -6289,39 +6289,39 @@
         ],
         "wires": [
           {
-            "first": 8,
-            "second": 11
+            "first": 13,
+            "second": 7
           },
           {
-            "first": 0,
-            "second": 8
+            "first": 8,
+            "second": 3
           },
           {
             "first": 5,
-            "second": 6
-          },
-          {
-            "first": 9,
-            "second": 5
+            "second": 11
           },
           {
             "first": 12,
             "second": 2
           },
           {
-            "first": 4,
-            "second": 3
+            "first": 9,
+            "second": 6
           },
           {
-            "first": 13,
-            "second": 7
+            "first": 6,
+            "second": 4
+          },
+          {
+            "first": 0,
+            "second": 5
           },
           {
             "first": 11,
             "second": 10
           },
           {
-            "first": 6,
+            "first": 4,
             "second": 13
           },
           {
@@ -6334,10 +6334,10 @@
           },
           {
             "first": 12,
-            "second": 4
+            "second": 8
           },
           {
-            "first": 8,
+            "first": 5,
             "second": 9
           }
         ]
@@ -6536,15 +6536,15 @@
           {
             "key": 5,
             "value": {
-              "x": 1400,
-              "y": 980
+              "x": 56,
+              "y": 952
             }
           },
           {
             "key": 6,
             "value": {
-              "x": 56,
-              "y": 952
+              "x": 1400,
+              "y": 980
             }
           },
           {
@@ -6592,35 +6592,35 @@
         ],
         "wires": [
           {
-            "first": 8,
-            "second": 6
-          },
-          {
-            "first": 5,
-            "second": 10
-          },
-          {
-            "first": 0,
-            "second": 12
-          },
-          {
-            "first": 0,
-            "second": 5
-          },
-          {
-            "first": 7,
-            "second": 4
+            "first": 9,
+            "second": 8
           },
           {
             "first": 11,
             "second": 2
           },
           {
-            "first": 9,
-            "second": 8
+            "first": 0,
+            "second": 12
+          },
+          {
+            "first": 7,
+            "second": 4
+          },
+          {
+            "first": 0,
+            "second": 6
           },
           {
             "first": 6,
+            "second": 10
+          },
+          {
+            "first": 8,
+            "second": 5
+          },
+          {
+            "first": 5,
             "second": 1
           },
           {
@@ -6632,7 +6632,7 @@
             "second": 3
           },
           {
-            "first": 5,
+            "first": 6,
             "second": 9
           },
           {
@@ -6995,14 +6995,14 @@
             "key": 2,
             "value": {
               "x": 70,
-              "y": 658
+              "y": 434
             }
           },
           {
             "key": 3,
             "value": {
               "x": 70,
-              "y": 434
+              "y": 658
             }
           },
           {
@@ -7015,20 +7015,20 @@
         ],
         "wires": [
           {
+            "first": 2,
+            "second": 1
+          },
+          {
+            "first": 4,
+            "second": 3
+          },
+          {
             "first": 0,
             "second": 4
           },
           {
-            "first": 4,
-            "second": 2
-          },
-          {
             "first": 3,
-            "second": 1
-          },
-          {
-            "first": 2,
-            "second": 3
+            "second": 2
           }
         ]
       },
@@ -7417,21 +7417,21 @@
           {
             "key": 7,
             "value": {
-              "x": 490,
-              "y": 1008
+              "x": 448,
+              "y": 826
             }
           },
           {
             "key": 8,
             "value": {
-              "x": 1344,
-              "y": 1148
+              "x": 490,
+              "y": 1008
             }
           },
           {
             "key": 9,
             "value": {
-              "x": 448,
+              "x": 1344,
               "y": 1148
             }
           },
@@ -7453,53 +7453,53 @@
             "key": 12,
             "value": {
               "x": 448,
-              "y": 826
+              "y": 1148
             }
           }
         ],
         "wires": [
           {
-            "first": 7,
-            "second": 4
-          },
-          {
             "first": 11,
-            "second": 12
-          },
-          {
-            "first": 0,
-            "second": 8
-          },
-          {
-            "first": 12,
-            "second": 1
-          },
-          {
-            "first": 12,
-            "second": 6
+            "second": 10
           },
           {
             "first": 6,
             "second": 2
           },
           {
+            "first": 7,
+            "second": 6
+          },
+          {
+            "first": 7,
+            "second": 1
+          },
+          {
+            "first": 0,
+            "second": 9
+          },
+          {
             "first": 11,
-            "second": 10
+            "second": 7
+          },
+          {
+            "first": 8,
+            "second": 4
           },
           {
             "first": 10,
-            "second": 7
+            "second": 8
           },
           {
             "first": 10,
             "second": 5
           },
           {
-            "first": 8,
-            "second": 9
+            "first": 9,
+            "second": 12
           },
           {
-            "first": 9,
+            "first": 12,
             "second": 11
           },
           {
@@ -7775,7 +7775,6 @@
     },
     "brunit": {
       "Top name": "brunit",
-      "Expanded": false,
       "Rect": {
         "x": 0,
         "y": 0,
@@ -7793,10 +7792,6 @@
         {
           "key": 0,
           "value": [
-            {
-              "key": "curr_instr",
-              "value": 1
-            },
             {
               "key": "curr_pc",
               "value": 2
@@ -7969,38 +7964,6 @@
         "UserHidden": false,
         "PortWidthVisible": true
       },
-      "curr_instr": {
-        "Label": {
-          "Visible": false,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 8,
-          "Text": {
-            "str": "curr_instr"
-          },
-          "Pos": {
-            "x": 0.0,
-            "y": 14.0
-          },
-          "Alignment": 132
-        },
-        "ValueLabel": {
-          "Visible": false,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 10,
-          "Text": {
-            "str": "0x0000006f"
-          },
-          "Pos": {
-            "x": 112.0,
-            "y": 910.0
-          },
-          "Alignment": 132
-        },
-        "UserHidden": false,
-        "PortWidthVisible": true
-      },
       "curr_pc": {
         "Label": {
           "Visible": false,
@@ -8161,583 +8124,6 @@
         "UserHidden": false,
         "PortWidthVisible": true
       },
-      "prev_is_b_in_wire": {
-        "Parent": "brunit",
-        "From port": {
-          "first": 0,
-          "second": [
-            "prev_is_b",
-            "brunit"
-          ]
-        },
-        "To ports": [],
-        "points": [],
-        "wires": []
-      },
-      "prev_pc_in_wire": {
-        "Parent": "brunit",
-        "From port": {
-          "first": 0,
-          "second": [
-            "prev_pc",
-            "brunit"
-          ]
-        },
-        "To ports": [],
-        "points": [],
-        "wires": []
-      },
-      "prev_pre_take_in_wire": {
-        "Parent": "brunit",
-        "From port": {
-          "first": 0,
-          "second": [
-            "prev_pre_take",
-            "brunit"
-          ]
-        },
-        "To ports": [],
-        "points": [],
-        "wires": []
-      },
-      "prev_pre_miss_in_wire": {
-        "Parent": "brunit",
-        "From port": {
-          "first": 0,
-          "second": [
-            "prev_pre_miss",
-            "brunit"
-          ]
-        },
-        "To ports": [],
-        "points": [],
-        "wires": []
-      },
-      "curr_instr_in_wire": {
-        "Parent": "brunit",
-        "From port": {
-          "first": 0,
-          "second": [
-            "curr_instr",
-            "brunit"
-          ]
-        },
-        "To ports": [
-          {
-            "key": 1,
-            "value": [
-              "instr",
-              "__decode"
-            ]
-          },
-          {
-            "key": 2,
-            "value": [
-              "instr",
-              "__immediate"
-            ]
-          }
-        ],
-        "points": [
-          {
-            "key": 3,
-            "value": {
-              "x": 14,
-              "y": 70
-            }
-          },
-          {
-            "key": 4,
-            "value": {
-              "x": 14,
-              "y": 84
-            }
-          }
-        ],
-        "wires": [
-          {
-            "first": 3,
-            "second": 2
-          },
-          {
-            "first": 4,
-            "second": 1
-          },
-          {
-            "first": 3,
-            "second": 4
-          },
-          {
-            "first": 0,
-            "second": 3
-          }
-        ]
-      },
-      "curr_pc_in_wire": {
-        "Parent": "brunit",
-        "From port": {
-          "first": 0,
-          "second": [
-            "curr_pc",
-            "brunit"
-          ]
-        },
-        "To ports": [],
-        "points": [],
-        "wires": []
-      },
-      "__decode": {
-        "Top name": "__decode",
-        "Rect": {
-          "x": 0,
-          "y": 0,
-          "w": 3,
-          "h": 5
-        },
-        "rot": 0,
-        "Pos": {
-          "x": 42,
-          "y": 42
-        },
-        "Visible": false,
-        "User hidden": false,
-        "Component border": [
-          {
-            "key": 0,
-            "value": [
-              {
-                "key": "instr",
-                "value": 3
-              }
-            ]
-          },
-          {
-            "key": 1,
-            "value": [
-              {
-                "key": "opcode",
-                "value": 1
-              },
-              {
-                "key": "r1_reg_idx",
-                "value": 3
-              },
-              {
-                "key": "r2_reg_idx",
-                "value": 4
-              },
-              {
-                "key": "wr_reg_idx",
-                "value": 2
-              }
-            ]
-          }
-        ],
-        "instr": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "instr"
-            },
-            "Pos": {
-              "x": 0.0,
-              "y": 42.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x0000006f"
-            },
-            "Pos": {
-              "x": 42.0,
-              "y": 84.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "opcode": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "opcode"
-            },
-            "Pos": {
-              "x": 42.0,
-              "y": 14.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "JAL"
-            },
-            "Pos": {
-              "x": 84.0,
-              "y": 56.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "wr_reg_idx": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "wr_reg_idx"
-            },
-            "Pos": {
-              "x": 42.0,
-              "y": 28.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x00"
-            },
-            "Pos": {
-              "x": 84.0,
-              "y": 70.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "r1_reg_idx": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "r1_reg_idx"
-            },
-            "Pos": {
-              "x": 42.0,
-              "y": 42.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x00"
-            },
-            "Pos": {
-              "x": 84.0,
-              "y": 84.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "r2_reg_idx": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "r2_reg_idx"
-            },
-            "Pos": {
-              "x": 42.0,
-              "y": 56.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x00"
-            },
-            "Pos": {
-              "x": 84.0,
-              "y": 98.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "opcode_out_wire": {
-          "Parent": "brunit",
-          "From port": {
-            "first": 0,
-            "second": [
-              "opcode",
-              "__decode"
-            ]
-          },
-          "To ports": [
-            {
-              "key": 1,
-              "value": [
-                "opcode",
-                "__immediate"
-              ]
-            }
-          ],
-          "points": [],
-          "wires": [
-            {
-              "first": 0,
-              "second": 1
-            }
-          ]
-        },
-        "wr_reg_idx_out_wire": {
-          "Parent": "brunit",
-          "From port": {
-            "first": 0,
-            "second": [
-              "wr_reg_idx",
-              "__decode"
-            ]
-          },
-          "To ports": [],
-          "points": [],
-          "wires": []
-        },
-        "r1_reg_idx_out_wire": {
-          "Parent": "brunit",
-          "From port": {
-            "first": 0,
-            "second": [
-              "r1_reg_idx",
-              "__decode"
-            ]
-          },
-          "To ports": [],
-          "points": [],
-          "wires": []
-        },
-        "r2_reg_idx_out_wire": {
-          "Parent": "brunit",
-          "From port": {
-            "first": 0,
-            "second": [
-              "r2_reg_idx",
-              "__decode"
-            ]
-          },
-          "To ports": [],
-          "points": [],
-          "wires": []
-        },
-        "Name label": {
-          "Visible": true,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 12,
-          "Text": {
-            "str": "__decode"
-          },
-          "Pos": {
-            "x": -16.453125,
-            "y": -28.0
-          },
-          "Alignment": 132
-        },
-        "Indicators": []
-      },
-      "__immediate": {
-        "Top name": "__immediate",
-        "Rect": {
-          "x": 0,
-          "y": 0,
-          "w": 2,
-          "h": 3
-        },
-        "rot": 0,
-        "Pos": {
-          "x": 140,
-          "y": 42
-        },
-        "Visible": false,
-        "User hidden": false,
-        "Component border": [
-          {
-            "key": 0,
-            "value": [
-              {
-                "key": "instr",
-                "value": 2
-              },
-              {
-                "key": "opcode",
-                "value": 1
-              }
-            ]
-          },
-          {
-            "key": 1,
-            "value": [
-              {
-                "key": "imm",
-                "value": 2
-              }
-            ]
-          }
-        ],
-        "opcode": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "opcode"
-            },
-            "Pos": {
-              "x": 0.0,
-              "y": 14.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "JAL"
-            },
-            "Pos": {
-              "x": 140.0,
-              "y": 56.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "instr": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "instr"
-            },
-            "Pos": {
-              "x": 0.0,
-              "y": 28.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x0000006f"
-            },
-            "Pos": {
-              "x": 140.0,
-              "y": 70.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "imm": {
-          "Label": {
-            "Visible": true,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "imm"
-            },
-            "Pos": {
-              "x": 28.0,
-              "y": 28.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x0000000000000000"
-            },
-            "Pos": {
-              "x": 168.0,
-              "y": 70.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": true
-        },
-        "imm_out_wire": {
-          "Parent": "brunit",
-          "From port": {
-            "first": 0,
-            "second": [
-              "imm",
-              "__immediate"
-            ]
-          },
-          "To ports": [],
-          "points": [],
-          "wires": []
-        },
-        "Name label": {
-          "Visible": true,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 12,
-          "Text": {
-            "str": "__immediate"
-          },
-          "Pos": {
-            "x": -35.046875,
-            "y": -28.0
-          },
-          "Alignment": 132
-        },
-        "Indicators": []
-      },
       "curr_pre_targ_out_wire": {
         "Parent": "5-Stage RISC-V Processor",
         "From port": {
@@ -8788,8 +8174,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 1
+            "first": 3,
+            "second": 2
+          },
+          {
+            "first": 4,
+            "second": 5
           },
           {
             "first": 5,
@@ -8800,12 +8190,8 @@
             "second": 4
           },
           {
-            "first": 4,
-            "second": 5
-          },
-          {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 1
           }
         ]
       },
@@ -8866,8 +8252,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 5
+            "first": 4,
+            "second": 6
+          },
+          {
+            "first": 6,
+            "second": 3
           },
           {
             "first": 5,
@@ -8878,12 +8268,8 @@
             "second": 2
           },
           {
-            "first": 6,
-            "second": 3
-          },
-          {
-            "first": 4,
-            "second": 6
+            "first": 0,
+            "second": 5
           },
           {
             "first": 5,
@@ -8927,16 +8313,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -8990,16 +8376,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 4,
+            "second": 3
           },
           {
             "first": 0,
             "second": 5
           },
           {
-            "first": 4,
-            "second": 3
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
@@ -10024,28 +9410,28 @@
             "key": 2,
             "value": {
               "x": 56,
-              "y": 14
+              "y": 56
             }
           },
           {
             "key": 3,
             "value": {
               "x": 56,
-              "y": 56
+              "y": 14
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
-            "first": 3,
+            "first": 2,
             "second": 1
           },
           {
-            "first": 2,
+            "first": 3,
+            "second": 2
+          },
+          {
+            "first": 0,
             "second": 3
           }
         ]
@@ -10086,16 +9472,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -10135,16 +9521,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -10399,33 +9785,33 @@
               "key": 3,
               "value": {
                 "x": 14,
-                "y": 140
+                "y": 14
               }
             },
             {
               "key": 4,
               "value": {
                 "x": 14,
-                "y": 14
+                "y": 140
               }
             }
           ],
           "wires": [
             {
               "first": 4,
-              "second": 3
-            },
-            {
-              "first": 4,
-              "second": 2
+              "second": 1
             },
             {
               "first": 0,
-              "second": 4
+              "second": 3
             },
             {
               "first": 3,
-              "second": 1
+              "second": 2
+            },
+            {
+              "first": 3,
+              "second": 4
             }
           ]
         },
@@ -10452,28 +9838,28 @@
               "key": 2,
               "value": {
                 "x": 14,
-                "y": 28
+                "y": 154
               }
             },
             {
               "key": 3,
               "value": {
                 "x": 14,
-                "y": 154
+                "y": 28
               }
             }
           ],
           "wires": [
             {
-              "first": 2,
+              "first": 0,
               "second": 3
             },
             {
-              "first": 3,
+              "first": 2,
               "second": 1
             },
             {
-              "first": 0,
+              "first": 3,
               "second": 2
             }
           ]
@@ -10514,16 +9900,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 0,
+              "second": 3
             },
             {
               "first": 2,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -10550,29 +9936,29 @@
               "key": 2,
               "value": {
                 "x": 14,
-                "y": 168
+                "y": 56
               }
             },
             {
               "key": 3,
               "value": {
                 "x": 14,
-                "y": 56
+                "y": 168
               }
             }
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
-            },
-            {
-              "first": 3,
+              "first": 0,
               "second": 2
             },
             {
-              "first": 0,
+              "first": 2,
               "second": 3
+            },
+            {
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -10697,30 +10083,30 @@
               {
                 "key": 2,
                 "value": {
-                  "x": 0,
+                  "x": 112,
                   "y": 84
                 }
               },
               {
                 "key": 3,
                 "value": {
-                  "x": 112,
+                  "x": 0,
                   "y": 84
                 }
               }
             ],
             "wires": [
               {
-                "first": 0,
-                "second": 3
-              },
-              {
                 "first": 3,
-                "second": 2
+                "second": 1
               },
               {
                 "first": 2,
-                "second": 1
+                "second": 3
+              },
+              {
+                "first": 0,
+                "second": 2
               }
             ]
           },
@@ -11346,51 +10732,51 @@
             "key": 5,
             "value": {
               "x": 560,
-              "y": 210
+              "y": 462
             }
           },
           {
             "key": 6,
             "value": {
               "x": 560,
-              "y": 602
+              "y": 210
             }
           },
           {
             "key": 7,
             "value": {
               "x": 560,
-              "y": 462
+              "y": 602
             }
           }
         ],
         "wires": [
           {
-            "first": 7,
-            "second": 5
-          },
-          {
-            "first": 0,
-            "second": 7
-          },
-          {
-            "first": 7,
-            "second": 4
-          },
-          {
-            "first": 4,
-            "second": 6
-          },
-          {
-            "first": 6,
-            "second": 2
-          },
-          {
             "first": 4,
             "second": 3
           },
           {
+            "first": 7,
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 5
+          },
+          {
             "first": 5,
+            "second": 6
+          },
+          {
+            "first": 4,
+            "second": 7
+          },
+          {
+            "first": 5,
+            "second": 4
+          },
+          {
+            "first": 6,
             "second": 1
           }
         ]
@@ -11431,16 +10817,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -11481,48 +10867,48 @@
             "key": 4,
             "value": {
               "x": 602,
-              "y": 812
+              "y": 406
             }
           },
           {
             "key": 5,
             "value": {
               "x": 602,
-              "y": 406
+              "y": 532
             }
           },
           {
             "key": 6,
             "value": {
               "x": 602,
-              "y": 532
+              "y": 812
             }
           }
         ],
         "wires": [
           {
-            "first": 6,
-            "second": 2
-          },
-          {
-            "first": 0,
+            "first": 4,
             "second": 5
           },
           {
             "first": 5,
-            "second": 1
-          },
-          {
-            "first": 4,
-            "second": 3
-          },
-          {
-            "first": 6,
-            "second": 4
+            "second": 2
           },
           {
             "first": 5,
             "second": 6
+          },
+          {
+            "first": 6,
+            "second": 3
+          },
+          {
+            "first": 4,
+            "second": 1
+          },
+          {
+            "first": 0,
+            "second": 4
           }
         ]
       },
@@ -11583,12 +10969,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 4
+            "first": 4,
+            "second": 1
+          },
+          {
+            "first": 5,
+            "second": 3
           },
           {
             "first": 6,
-            "second": 5
+            "second": 2
           },
           {
             "first": 4,
@@ -11596,15 +10986,11 @@
           },
           {
             "first": 6,
-            "second": 2
+            "second": 5
           },
           {
-            "first": 5,
-            "second": 3
-          },
-          {
-            "first": 4,
-            "second": 1
+            "first": 0,
+            "second": 4
           }
         ]
       },
@@ -12021,7 +11407,7 @@
         "wires": [
           {
             "first": 0,
-            "second": 3
+            "second": 1
           },
           {
             "first": 0,
@@ -12029,7 +11415,7 @@
           },
           {
             "first": 0,
-            "second": 1
+            "second": 3
           }
         ]
       },
@@ -12213,11 +11599,11 @@
         "wires": [
           {
             "first": 0,
-            "second": 2
+            "second": 1
           },
           {
             "first": 0,
-            "second": 1
+            "second": 2
           }
         ]
       },
@@ -13237,16 +12623,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -13273,28 +12659,28 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 70
+              "y": 644
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 644
+              "y": 70
             }
           }
         ],
         "wires": [
           {
-            "first": 2,
+            "first": 0,
             "second": 3
           },
           {
-            "first": 3,
+            "first": 2,
             "second": 1
           },
           {
-            "first": 0,
+            "first": 3,
             "second": 2
           }
         ]
@@ -13335,16 +12721,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -13371,28 +12757,28 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 224
+              "y": 56
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 56
+              "y": 224
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
+            "first": 2,
             "second": 3
           },
           {
-            "first": 2,
+            "first": 3,
             "second": 1
           },
           {
-            "first": 3,
+            "first": 0,
             "second": 2
           }
         ]
@@ -13420,29 +12806,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 476
+              "y": 140
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 140
+              "y": 476
             }
           }
         ],
         "wires": [
           {
             "first": 3,
-            "second": 2
+            "second": 1
           },
           {
             "first": 0,
-            "second": 3
+            "second": 2
           },
           {
             "first": 2,
-            "second": 1
+            "second": 3
           }
         ]
       },
@@ -13469,29 +12855,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 154
+              "y": 588
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 588
+              "y": 154
             }
           }
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
-          },
-          {
-            "first": 2,
+            "first": 0,
             "second": 3
           },
           {
-            "first": 0,
+            "first": 3,
             "second": 2
+          },
+          {
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -13531,16 +12917,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 3,
+            "second": 1
           },
           {
             "first": 0,
             "second": 2
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -13580,16 +12966,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -13629,16 +13015,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 3,
+            "second": 1
           },
           {
             "first": 0,
             "second": 2
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -13678,16 +13064,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -13784,69 +13170,69 @@
             "key": 12,
             "value": {
               "x": 14,
-              "y": 70
+              "y": 98
             }
           },
           {
             "key": 13,
             "value": {
               "x": 14,
-              "y": 98
+              "y": 70
             }
           }
         ],
         "wires": [
           {
-            "first": 13,
-            "second": 7
-          },
-          {
-            "first": 13,
-            "second": 10
-          },
-          {
-            "first": 13,
-            "second": 6
-          },
-          {
-            "first": 13,
+            "first": 0,
             "second": 12
           },
           {
-            "first": 13,
-            "second": 2
-          },
-          {
-            "first": 13,
+            "first": 12,
             "second": 9
           },
           {
-            "first": 0,
+            "first": 12,
+            "second": 2
+          },
+          {
+            "first": 12,
             "second": 13
           },
           {
-            "first": 13,
+            "first": 12,
+            "second": 6
+          },
+          {
+            "first": 12,
+            "second": 10
+          },
+          {
+            "first": 12,
             "second": 11
           },
           {
             "first": 12,
-            "second": 1
+            "second": 7
           },
           {
-            "first": 13,
+            "first": 12,
+            "second": 4
+          },
+          {
+            "first": 12,
+            "second": 8
+          },
+          {
+            "first": 12,
+            "second": 3
+          },
+          {
+            "first": 12,
             "second": 5
           },
           {
             "first": 13,
-            "second": 3
-          },
-          {
-            "first": 13,
-            "second": 8
-          },
-          {
-            "first": 13,
-            "second": 4
+            "second": 1
           }
         ]
       },
@@ -13943,69 +13329,69 @@
             "key": 12,
             "value": {
               "x": 14,
-              "y": 84
+              "y": 112
             }
           },
           {
             "key": 13,
             "value": {
               "x": 14,
-              "y": 112
+              "y": 84
             }
           }
         ],
         "wires": [
           {
-            "first": 13,
-            "second": 9
-          },
-          {
-            "first": 13,
-            "second": 6
-          },
-          {
-            "first": 13,
-            "second": 10
-          },
-          {
-            "first": 13,
-            "second": 7
-          },
-          {
-            "first": 13,
+            "first": 12,
             "second": 3
           },
           {
-            "first": 13,
-            "second": 2
+            "first": 12,
+            "second": 7
           },
           {
-            "first": 13,
+            "first": 12,
+            "second": 9
+          },
+          {
+            "first": 12,
+            "second": 10
+          },
+          {
+            "first": 12,
+            "second": 6
+          },
+          {
+            "first": 12,
+            "second": 4
+          },
+          {
+            "first": 0,
             "second": 12
           },
           {
             "first": 13,
-            "second": 4
+            "second": 1
           },
           {
-            "first": 13,
-            "second": 8
-          },
-          {
-            "first": 13,
-            "second": 5
-          },
-          {
-            "first": 13,
+            "first": 12,
             "second": 11
           },
           {
             "first": 12,
-            "second": 1
+            "second": 5
           },
           {
-            "first": 0,
+            "first": 12,
+            "second": 8
+          },
+          {
+            "first": 12,
             "second": 13
+          },
+          {
+            "first": 12,
+            "second": 2
           }
         ]
       },
@@ -14045,16 +13431,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -14094,16 +13480,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 2,
+            "second": 3
           },
           {
             "first": 0,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 3
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -14314,16 +13700,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -14550,16 +13936,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             }
           ]
         },
@@ -14786,16 +14172,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -15022,16 +14408,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             }
           ]
         },
@@ -15258,16 +14644,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -15494,16 +14880,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -15730,16 +15116,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -15966,16 +15352,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -16202,16 +15588,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -16438,16 +15824,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -16674,16 +16060,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             }
           ]
         },
@@ -16910,16 +16296,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -17042,73 +16428,73 @@
             "key": 6,
             "value": {
               "x": 1554,
-              "y": 350
+              "y": 630
             }
           },
           {
             "key": 7,
             "value": {
               "x": 1554,
-              "y": 434
+              "y": 350
             }
           },
           {
             "key": 8,
-            "value": {
-              "x": 1554,
-              "y": 630
-            }
-          },
-          {
-            "key": 9,
             "value": {
               "x": 1008,
               "y": 476
             }
           },
           {
-            "key": 10,
+            "key": 9,
             "value": {
               "x": 1008,
               "y": 630
+            }
+          },
+          {
+            "key": 10,
+            "value": {
+              "x": 1554,
+              "y": 434
             }
           }
         ],
         "wires": [
           {
-            "first": 7,
+            "first": 10,
             "second": 6
           },
           {
             "first": 7,
-            "second": 3
-          },
-          {
-            "first": 8,
-            "second": 10
-          },
-          {
-            "first": 10,
-            "second": 9
-          },
-          {
-            "first": 6,
             "second": 4
           },
           {
-            "first": 7,
+            "first": 9,
             "second": 8
           },
           {
-            "first": 9,
-            "second": 5
+            "first": 6,
+            "second": 9
           },
           {
-            "first": 0,
+            "first": 10,
+            "second": 3
+          },
+          {
+            "first": 10,
             "second": 7
           },
           {
-            "first": 9,
+            "first": 0,
+            "second": 10
+          },
+          {
+            "first": 8,
+            "second": 5
+          },
+          {
+            "first": 8,
             "second": 2
           },
           {
@@ -17153,16 +16539,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -17235,12 +16621,12 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 4
-          },
-          {
             "first": 0,
             "second": 3
+          },
+          {
+            "first": 3,
+            "second": 1
           },
           {
             "first": 4,
@@ -17248,7 +16634,7 @@
           },
           {
             "first": 3,
-            "second": 1
+            "second": 4
           }
         ]
       },
@@ -17316,32 +16702,32 @@
         ],
         "wires": [
           {
-            "first": 5,
-            "second": 7
-          },
-          {
-            "first": 6,
-            "second": 3
-          },
-          {
             "first": 4,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 4
-          },
-          {
             "first": 7,
-            "second": 2
+            "second": 6
           },
           {
             "first": 4,
             "second": 5
           },
           {
+            "first": 6,
+            "second": 3
+          },
+          {
             "first": 7,
-            "second": 6
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 4
+          },
+          {
+            "first": 5,
+            "second": 7
           }
         ]
       },
@@ -17374,12 +16760,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
             "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -17432,16 +16818,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -17507,16 +16893,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -17887,12 +17273,12 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
-          },
-          {
             "first": 0,
             "second": 2
+          },
+          {
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -17925,12 +17311,12 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
-          },
-          {
             "first": 0,
             "second": 2
+          },
+          {
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -18464,81 +17850,81 @@
           {
             "key": 6,
             "value": {
-              "x": 364,
-              "y": 672
-            }
-          },
-          {
-            "key": 7,
-            "value": {
               "x": 826,
               "y": 840
             }
           },
           {
-            "key": 8,
-            "value": {
-              "x": 826,
-              "y": 672
-            }
-          },
-          {
-            "key": 9,
+            "key": 7,
             "value": {
               "x": 364,
-              "y": 546
-            }
-          },
-          {
-            "key": 10,
-            "value": {
-              "x": 420,
               "y": 672
             }
           },
           {
-            "key": 11,
+            "key": 8,
             "value": {
               "x": 420,
               "y": 742
             }
           },
           {
-            "key": 12,
+            "key": 9,
             "value": {
               "x": 420,
               "y": 812
+            }
+          },
+          {
+            "key": 10,
+            "value": {
+              "x": 826,
+              "y": 672
+            }
+          },
+          {
+            "key": 11,
+            "value": {
+              "x": 364,
+              "y": 546
+            }
+          },
+          {
+            "key": 12,
+            "value": {
+              "x": 420,
+              "y": 672
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 7
-          },
-          {
-            "first": 6,
-            "second": 9
-          },
-          {
-            "first": 8,
-            "second": 10
-          },
-          {
-            "first": 10,
-            "second": 6
-          },
-          {
-            "first": 7,
-            "second": 8
+            "first": 9,
+            "second": 2
           },
           {
             "first": 0,
             "second": 5
           },
           {
+            "first": 6,
+            "second": 10
+          },
+          {
             "first": 12,
-            "second": 2
+            "second": 7
+          },
+          {
+            "first": 10,
+            "second": 12
+          },
+          {
+            "first": 7,
+            "second": 11
+          },
+          {
+            "first": 0,
+            "second": 6
           },
           {
             "first": 0,
@@ -18546,18 +17932,18 @@
           },
           {
             "first": 11,
-            "second": 12
-          },
-          {
-            "first": 9,
             "second": 4
           },
           {
-            "first": 10,
-            "second": 11
+            "first": 8,
+            "second": 9
           },
           {
-            "first": 11,
+            "first": 12,
+            "second": 8
+          },
+          {
+            "first": 8,
             "second": 3
           }
         ]
@@ -18606,19 +17992,19 @@
         "wires": [
           {
             "first": 0,
-            "second": 2
+            "second": 3
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 4,
+            "second": 1
           },
           {
             "first": 3,
             "second": 4
           },
           {
-            "first": 4,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -18666,19 +18052,19 @@
         "wires": [
           {
             "first": 0,
-            "second": 3
+            "second": 2
           },
           {
-            "first": 3,
-            "second": 4
+            "first": 0,
+            "second": 3
           },
           {
             "first": 4,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 4
           }
         ]
       },
@@ -18711,11 +18097,11 @@
         "wires": [
           {
             "first": 0,
-            "second": 2
+            "second": 1
           },
           {
             "first": 0,
-            "second": 1
+            "second": 2
           }
         ]
       },
@@ -20468,29 +19854,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 140
+              "y": 28
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 28
+              "y": 140
             }
           }
         ],
         "wires": [
           {
             "first": 3,
-            "second": 2
+            "second": 1
           },
           {
             "first": 0,
-            "second": 3
+            "second": 2
           },
           {
             "first": 2,
-            "second": 1
+            "second": 3
           }
         ]
       },
@@ -20517,29 +19903,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 98
+              "y": 476
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 476
+              "y": 98
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
-            "second": 3
+            "second": 1
           },
           {
             "first": 3,
-            "second": 1
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -20566,29 +19952,29 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 308
+              "y": 112
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 112
+              "y": 308
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
-          },
-          {
             "first": 3,
-            "second": 2
+            "second": 1
           },
           {
             "first": 2,
-            "second": 1
+            "second": 3
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -20628,16 +20014,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -20677,16 +20063,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -20726,16 +20112,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -20775,16 +20161,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -20824,16 +20210,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -20873,16 +20259,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -20922,16 +20308,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -20971,16 +20357,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -21020,16 +20406,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -21069,16 +20455,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -21118,16 +20504,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -21167,16 +20553,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -21216,16 +20602,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -21265,16 +20651,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 2,
+            "second": 3
           },
           {
             "first": 0,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 3
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -21455,11 +20841,19 @@
         "wires": [
           {
             "first": 23,
-            "second": 17
+            "second": 5
           },
           {
             "first": 23,
-            "second": 8
+            "second": 15
+          },
+          {
+            "first": 0,
+            "second": 22
+          },
+          {
+            "first": 22,
+            "second": 6
           },
           {
             "first": 23,
@@ -21467,19 +20861,7 @@
           },
           {
             "first": 23,
-            "second": 15
-          },
-          {
-            "first": 23,
-            "second": 5
-          },
-          {
-            "first": 22,
-            "second": 6
-          },
-          {
-            "first": 0,
-            "second": 22
+            "second": 8
           },
           {
             "first": 23,
@@ -21487,11 +20869,23 @@
           },
           {
             "first": 23,
-            "second": 7
+            "second": 17
           },
           {
             "first": 23,
-            "second": 3
+            "second": 12
+          },
+          {
+            "first": 0,
+            "second": 19
+          },
+          {
+            "first": 22,
+            "second": 23
+          },
+          {
+            "first": 23,
+            "second": 14
           },
           {
             "first": 0,
@@ -21499,19 +20893,11 @@
           },
           {
             "first": 23,
-            "second": 14
-          },
-          {
-            "first": 22,
-            "second": 23
-          },
-          {
-            "first": 0,
-            "second": 19
+            "second": 3
           },
           {
             "first": 23,
-            "second": 12
+            "second": 7
           },
           {
             "first": 23,
@@ -21519,7 +20905,23 @@
           },
           {
             "first": 23,
-            "second": 16
+            "second": 13
+          },
+          {
+            "first": 23,
+            "second": 9
+          },
+          {
+            "first": 22,
+            "second": 2
+          },
+          {
+            "first": 22,
+            "second": 18
+          },
+          {
+            "first": 23,
+            "second": 4
           },
           {
             "first": 0,
@@ -21527,23 +20929,7 @@
           },
           {
             "first": 23,
-            "second": 4
-          },
-          {
-            "first": 22,
-            "second": 18
-          },
-          {
-            "first": 22,
-            "second": 2
-          },
-          {
-            "first": 23,
-            "second": 9
-          },
-          {
-            "first": 23,
-            "second": 13
+            "second": 16
           }
         ]
       },
@@ -21724,11 +21110,7 @@
         "wires": [
           {
             "first": 23,
-            "second": 8
-          },
-          {
-            "first": 23,
-            "second": 15
+            "second": 13
           },
           {
             "first": 0,
@@ -21736,43 +21118,19 @@
           },
           {
             "first": 23,
-            "second": 13
-          },
-          {
-            "first": 22,
-            "second": 23
-          },
-          {
-            "first": 23,
-            "second": 12
-          },
-          {
-            "first": 0,
-            "second": 20
-          },
-          {
-            "first": 23,
             "second": 9
           },
           {
             "first": 23,
-            "second": 1
+            "second": 15
           },
           {
             "first": 23,
-            "second": 4
+            "second": 8
           },
           {
             "first": 23,
-            "second": 10
-          },
-          {
-            "first": 0,
-            "second": 22
-          },
-          {
-            "first": 23,
-            "second": 11
+            "second": 3
           },
           {
             "first": 22,
@@ -21780,7 +21138,23 @@
           },
           {
             "first": 23,
-            "second": 3
+            "second": 11
+          },
+          {
+            "first": 0,
+            "second": 22
+          },
+          {
+            "first": 23,
+            "second": 10
+          },
+          {
+            "first": 23,
+            "second": 4
+          },
+          {
+            "first": 23,
+            "second": 1
           },
           {
             "first": 23,
@@ -21788,23 +21162,7 @@
           },
           {
             "first": 23,
-            "second": 7
-          },
-          {
-            "first": 23,
-            "second": 5
-          },
-          {
-            "first": 0,
-            "second": 21
-          },
-          {
-            "first": 22,
-            "second": 18
-          },
-          {
-            "first": 23,
-            "second": 14
+            "second": 16
           },
           {
             "first": 22,
@@ -21812,7 +21170,35 @@
           },
           {
             "first": 23,
-            "second": 16
+            "second": 14
+          },
+          {
+            "first": 22,
+            "second": 18
+          },
+          {
+            "first": 0,
+            "second": 21
+          },
+          {
+            "first": 23,
+            "second": 5
+          },
+          {
+            "first": 23,
+            "second": 7
+          },
+          {
+            "first": 22,
+            "second": 23
+          },
+          {
+            "first": 0,
+            "second": 20
+          },
+          {
+            "first": 23,
+            "second": 12
           }
         ]
       },
@@ -21852,16 +21238,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -21901,16 +21287,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -21950,16 +21336,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -21999,16 +21385,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -22048,16 +21434,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -22254,14 +21640,14 @@
             {
               "key": 2,
               "value": {
-                "x": 56,
+                "x": 70,
                 "y": 308
               }
             },
             {
               "key": 3,
               "value": {
-                "x": 70,
+                "x": 56,
                 "y": 308
               }
             }
@@ -22269,15 +21655,15 @@
           "wires": [
             {
               "first": 2,
-              "second": 3
+              "second": 1
             },
             {
               "first": 0,
-              "second": 2
+              "second": 3
             },
             {
               "first": 3,
-              "second": 1
+              "second": 2
             }
           ]
         },
@@ -22504,16 +21890,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -22740,16 +22126,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -22976,16 +22362,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -23212,16 +22598,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -23448,16 +22834,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -23684,16 +23070,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -23920,16 +23306,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -24156,16 +23542,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -24392,16 +23778,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -24628,16 +24014,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 0,
+              "second": 3
             },
             {
               "first": 2,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -24864,16 +24250,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -25100,16 +24486,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -25336,16 +24722,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 0,
+              "second": 3
             },
             {
               "first": 2,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -25572,16 +24958,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             }
           ]
         },
@@ -25808,16 +25194,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -26044,16 +25430,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -26280,16 +25666,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             }
           ]
         },
@@ -26516,16 +25902,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -26752,16 +26138,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             }
           ]
         },
@@ -26988,16 +26374,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -27224,16 +26610,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -27359,32 +26745,32 @@
         ],
         "wires": [
           {
-            "first": 8,
-            "second": 11
-          },
-          {
-            "first": 6,
-            "second": 12
-          },
-          {
-            "first": 0,
-            "second": 9
-          },
-          {
-            "first": 0,
-            "second": 2
-          },
-          {
-            "first": 7,
-            "second": 10
+            "first": 9,
+            "second": 1
           },
           {
             "first": 9,
             "second": 4
           },
           {
-            "first": 9,
-            "second": 1
+            "first": 0,
+            "second": 9
+          },
+          {
+            "first": 6,
+            "second": 12
+          },
+          {
+            "first": 7,
+            "second": 10
+          },
+          {
+            "first": 0,
+            "second": 2
+          },
+          {
+            "first": 8,
+            "second": 11
           },
           {
             "first": 4,
@@ -27469,20 +26855,20 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 5
-          },
-          {
             "first": 6,
             "second": 3
+          },
+          {
+            "first": 4,
+            "second": 1
           },
           {
             "first": 0,
             "second": 4
           },
           {
-            "first": 4,
-            "second": 1
+            "first": 3,
+            "second": 5
           },
           {
             "first": 4,
@@ -27641,20 +27027,20 @@
         ],
         "wires": [
           {
-            "first": 4,
-            "second": 3
+            "first": 0,
+            "second": 4
           },
           {
             "first": 4,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 4
-          },
-          {
             "first": 3,
             "second": 2
+          },
+          {
+            "first": 4,
+            "second": 3
           }
         ]
       },
@@ -27713,12 +27099,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
             "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -27751,12 +27137,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
             "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -27789,12 +27175,12 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
-          },
-          {
             "first": 0,
             "second": 2
+          },
+          {
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -27875,12 +27261,12 @@
             "second": 3
           },
           {
-            "first": 0,
-            "second": 4
-          },
-          {
             "first": 4,
             "second": 1
+          },
+          {
+            "first": 0,
+            "second": 4
           }
         ]
       },
@@ -27939,12 +27325,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
-          },
-          {
             "first": 2,
             "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -28036,16 +27422,16 @@
         ],
         "wires": [
           {
+            "first": 2,
+            "second": 1
+          },
+          {
             "first": 0,
             "second": 3
           },
           {
             "first": 3,
             "second": 2
-          },
-          {
-            "first": 2,
-            "second": 1
           }
         ]
       },
@@ -28085,16 +27471,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -28128,33 +27514,33 @@
             "key": 3,
             "value": {
               "x": 938,
-              "y": 784
+              "y": 574
             }
           },
           {
             "key": 4,
             "value": {
               "x": 938,
-              "y": 574
+              "y": 784
             }
           }
         ],
         "wires": [
           {
             "first": 3,
-            "second": 2
+            "second": 4
+          },
+          {
+            "first": 0,
+            "second": 3
           },
           {
             "first": 0,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 4
-          },
-          {
             "first": 4,
-            "second": 3
+            "second": 2
           }
         ]
       },
@@ -28181,28 +27567,28 @@
             "key": 2,
             "value": {
               "x": 462,
-              "y": 210
+              "y": 182
             }
           },
           {
             "key": 3,
             "value": {
               "x": 462,
-              "y": 182
+              "y": 210
             }
           }
         ],
         "wires": [
           {
-            "first": 3,
+            "first": 0,
             "second": 2
           },
           {
-            "first": 2,
+            "first": 3,
             "second": 1
           },
           {
-            "first": 0,
+            "first": 2,
             "second": 3
           }
         ]
@@ -28383,30 +27769,30 @@
           {
             "key": 2,
             "value": {
-              "x": 336,
+              "x": 1442,
               "y": 350
             }
           },
           {
             "key": 3,
             "value": {
-              "x": 1442,
+              "x": 336,
               "y": 350
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
-          },
-          {
             "first": 3,
-            "second": 2
+            "second": 1
           },
           {
             "first": 2,
-            "second": 1
+            "second": 3
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -28497,38 +27883,6 @@
           ]
         }
       ],
-      "pc4_in": {
-        "Label": {
-          "Visible": false,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 8,
-          "Text": {
-            "str": "pc4_in"
-          },
-          "Pos": {
-            "x": 0.0,
-            "y": 196.0
-          },
-          "Alignment": 132
-        },
-        "ValueLabel": {
-          "Visible": false,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 10,
-          "Text": {
-            "str": "0x0000000000010768"
-          },
-          "Pos": {
-            "x": 381.0,
-            "y": 302.0
-          },
-          "Alignment": 132
-        },
-        "UserHidden": false,
-        "PortWidthVisible": true
-      },
       "instr_in": {
         "Label": {
           "Visible": false,
@@ -28689,6 +28043,38 @@
         "UserHidden": true,
         "PortWidthVisible": false
       },
+      "pc4_in": {
+        "Label": {
+          "Visible": false,
+          "Bold": false,
+          "Italic": false,
+          "PtSize": 8,
+          "Text": {
+            "str": "pc4_in"
+          },
+          "Pos": {
+            "x": 0.0,
+            "y": 196.0
+          },
+          "Alignment": 132
+        },
+        "ValueLabel": {
+          "Visible": false,
+          "Bold": false,
+          "Italic": false,
+          "PtSize": 10,
+          "Text": {
+            "str": "0x0000000000010768"
+          },
+          "Pos": {
+            "x": 381.0,
+            "y": 302.0
+          },
+          "Alignment": 132
+        },
+        "UserHidden": false,
+        "PortWidthVisible": true
+      },
       "pc4_out": {
         "Label": {
           "Visible": false,
@@ -28817,55 +28203,6 @@
         "UserHidden": true,
         "PortWidthVisible": false
       },
-      "pc4_in_in_wire": {
-        "Parent": "ifid_reg",
-        "From port": {
-          "first": 0,
-          "second": [
-            "pc4_in",
-            "ifid_reg"
-          ]
-        },
-        "To ports": [
-          {
-            "key": 1,
-            "value": [
-              "in",
-              "pc4_reg"
-            ]
-          }
-        ],
-        "points": [
-          {
-            "key": 2,
-            "value": {
-              "x": 28,
-              "y": 112
-            }
-          },
-          {
-            "key": 3,
-            "value": {
-              "x": 14,
-              "y": 112
-            }
-          }
-        ],
-        "wires": [
-          {
-            "first": 0,
-            "second": 2
-          },
-          {
-            "first": 3,
-            "second": 1
-          },
-          {
-            "first": 2,
-            "second": 3
-          }
-        ]
-      },
       "instr_in_in_wire": {
         "Parent": "ifid_reg",
         "From port": {
@@ -28902,16 +28239,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 2,
+            "second": 1
           },
           {
             "first": 0,
             "second": 3
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -28938,28 +28275,28 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 70
+              "y": 140
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 140
+              "y": 70
             }
           }
         ],
         "wires": [
           {
-            "first": 0,
+            "first": 3,
             "second": 2
           },
           {
-            "first": 3,
+            "first": 2,
             "second": 1
           },
           {
-            "first": 2,
+            "first": 0,
             "second": 3
           }
         ]
@@ -29022,15 +28359,11 @@
         "wires": [
           {
             "first": 5,
-            "second": 2
-          },
-          {
-            "first": 5,
-            "second": 4
+            "second": 6
           },
           {
             "first": 6,
-            "second": 1
+            "second": 3
           },
           {
             "first": 0,
@@ -29038,11 +28371,15 @@
           },
           {
             "first": 6,
-            "second": 3
+            "second": 1
           },
           {
             "first": 5,
-            "second": 6
+            "second": 4
+          },
+          {
+            "first": 5,
+            "second": 2
           }
         ]
       },
@@ -29103,28 +28440,28 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 6
-          },
-          {
             "first": 6,
-            "second": 5
-          },
-          {
-            "first": 5,
-            "second": 3
-          },
-          {
-            "first": 5,
-            "second": 1
+            "second": 4
           },
           {
             "first": 6,
             "second": 2
           },
           {
+            "first": 5,
+            "second": 1
+          },
+          {
+            "first": 5,
+            "second": 3
+          },
+          {
             "first": 6,
-            "second": 4
+            "second": 5
+          },
+          {
+            "first": 0,
+            "second": 6
           }
         ]
       },
@@ -29164,16 +28501,65 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 0,
+            "first": 2,
+            "second": 1
+          }
+        ]
+      },
+      "pc4_in_in_wire": {
+        "Parent": "ifid_reg",
+        "From port": {
+          "first": 0,
+          "second": [
+            "pc4_in",
+            "ifid_reg"
+          ]
+        },
+        "To ports": [
+          {
+            "key": 1,
+            "value": [
+              "in",
+              "pc4_reg"
+            ]
+          }
+        ],
+        "points": [
+          {
+            "key": 2,
+            "value": {
+              "x": 28,
+              "y": 112
+            }
+          },
+          {
+            "key": 3,
+            "value": {
+              "x": 14,
+              "y": 112
+            }
+          }
+        ],
+        "wires": [
+          {
+            "first": 2,
             "second": 3
+          },
+          {
+            "first": 3,
+            "second": 1
+          },
+          {
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -29384,16 +28770,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -29456,6 +28842,38 @@
             ]
           }
         ],
+        "clear": {
+          "Label": {
+            "Visible": false,
+            "Bold": false,
+            "Italic": false,
+            "PtSize": 8,
+            "Text": {
+              "str": "clear"
+            },
+            "Pos": {
+              "x": 0.0,
+              "y": 42.0
+            },
+            "Alignment": 132
+          },
+          "ValueLabel": {
+            "Visible": false,
+            "Bold": false,
+            "Italic": false,
+            "PtSize": 10,
+            "Text": {
+              "str": "0x1"
+            },
+            "Pos": {
+              "x": 3.0,
+              "y": 330.0
+            },
+            "Alignment": 132
+          },
+          "UserHidden": false,
+          "PortWidthVisible": false
+        },
         "in": {
           "Label": {
             "Visible": false,
@@ -29514,38 +28932,6 @@
             "Pos": {
               "x": 3.0,
               "y": 316.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": false
-        },
-        "clear": {
-          "Label": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "clear"
-            },
-            "Pos": {
-              "x": 0.0,
-              "y": 42.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x1"
-            },
-            "Pos": {
-              "x": 3.0,
-              "y": 330.0
             },
             "Alignment": 132
           },
@@ -29620,16 +29006,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -29856,16 +29242,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -30092,16 +29478,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 3
+              "first": 2,
+              "second": 1
             },
             {
               "first": 3,
               "second": 2
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 0,
+              "second": 3
             }
           ]
         },
@@ -30190,12 +29576,8 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
-          },
-          {
             "first": 3,
-            "second": 4
+            "second": 1
           },
           {
             "first": 4,
@@ -30203,7 +29585,11 @@
           },
           {
             "first": 3,
-            "second": 1
+            "second": 4
+          },
+          {
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -30449,16 +29835,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -30652,16 +30038,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -31698,28 +31084,28 @@
             "key": 2,
             "value": {
               "x": 14,
-              "y": 322
+              "y": 42
             }
           },
           {
             "key": 3,
             "value": {
               "x": 14,
-              "y": 42
+              "y": 322
             }
           }
         ],
         "wires": [
           {
-            "first": 3,
+            "first": 0,
             "second": 2
           },
           {
-            "first": 2,
+            "first": 3,
             "second": 1
           },
           {
-            "first": 0,
+            "first": 2,
             "second": 3
           }
         ]
@@ -31760,16 +31146,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -31809,16 +31195,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -31858,16 +31244,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -31907,16 +31293,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
+            "first": 0,
+            "second": 3
           },
           {
             "first": 3,
             "second": 2
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -31956,16 +31342,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 3,
+            "second": 1
           },
           {
             "first": 0,
             "second": 2
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -32005,16 +31391,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -32054,16 +31440,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -32103,16 +31489,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 1
+            "first": 2,
+            "second": 3
           },
           {
             "first": 0,
             "second": 2
           },
           {
-            "first": 2,
-            "second": 3
+            "first": 3,
+            "second": 1
           }
         ]
       },
@@ -32251,16 +31637,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -32415,16 +31801,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -32579,16 +31965,16 @@
           ],
           "wires": [
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             }
           ]
         },
@@ -32743,16 +32129,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 3
+              "first": 3,
+              "second": 1
             },
             {
               "first": 0,
               "second": 2
             },
             {
-              "first": 3,
-              "second": 1
+              "first": 2,
+              "second": 3
             }
           ]
         },
@@ -32907,16 +32293,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -33071,16 +32457,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 1
+              "first": 0,
+              "second": 2
             },
             {
               "first": 2,
               "second": 3
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 3,
+              "second": 1
             }
           ]
         },
@@ -33235,16 +32621,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 0,
+              "second": 3
             },
             {
               "first": 2,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 3
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -33399,16 +32785,16 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 3
+              "first": 0,
+              "second": 2
             },
             {
               "first": 3,
               "second": 1
             },
             {
-              "first": 0,
-              "second": 2
+              "first": 2,
+              "second": 3
             }
           ]
         },
@@ -33556,12 +32942,12 @@
           ],
           "wires": [
             {
-              "first": 2,
-              "second": 1
-            },
-            {
               "first": 0,
               "second": 2
+            },
+            {
+              "first": 2,
+              "second": 1
             }
           ]
         },
@@ -33630,12 +33016,12 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
-          },
-          {
             "first": 3,
             "second": 1
+          },
+          {
+            "first": 2,
+            "second": 3
           },
           {
             "first": 0,
@@ -33705,16 +33091,16 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 2
+            "first": 3,
+            "second": 1
           },
           {
             "first": 2,
             "second": 3
           },
           {
-            "first": 3,
-            "second": 1
+            "first": 0,
+            "second": 2
           }
         ]
       },
@@ -33747,12 +33133,12 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 1
-          },
-          {
             "first": 0,
             "second": 2
+          },
+          {
+            "first": 2,
+            "second": 1
           }
         ]
       },
@@ -33786,14 +33172,14 @@
             "key": 3,
             "value": {
               "x": 1932,
-              "y": 546
+              "y": 70
             }
           },
           {
             "key": 4,
             "value": {
               "x": 1932,
-              "y": 70
+              "y": 546
             }
           },
           {
@@ -33820,15 +33206,15 @@
         ],
         "wires": [
           {
-            "first": 4,
-            "second": 6
+            "first": 7,
+            "second": 2
           },
           {
-            "first": 3,
-            "second": 7
+            "first": 5,
+            "second": 1
           },
           {
-            "first": 3,
+            "first": 0,
             "second": 4
           },
           {
@@ -33836,16 +33222,16 @@
             "second": 5
           },
           {
-            "first": 0,
+            "first": 4,
             "second": 3
           },
           {
-            "first": 5,
-            "second": 1
+            "first": 4,
+            "second": 7
           },
           {
-            "first": 7,
-            "second": 2
+            "first": 3,
+            "second": 6
           }
         ]
       },
@@ -33934,32 +33320,32 @@
         ],
         "wires": [
           {
-            "first": 7,
-            "second": 6
-          },
-          {
-            "first": 6,
-            "second": 2
-          },
-          {
-            "first": 10,
-            "second": 7
-          },
-          {
-            "first": 8,
-            "second": 1
-          },
-          {
-            "first": 9,
-            "second": 4
+            "first": 0,
+            "second": 5
           },
           {
             "first": 10,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 5
+            "first": 10,
+            "second": 7
+          },
+          {
+            "first": 9,
+            "second": 4
+          },
+          {
+            "first": 6,
+            "second": 2
+          },
+          {
+            "first": 8,
+            "second": 1
+          },
+          {
+            "first": 7,
+            "second": 6
           },
           {
             "first": 5,
@@ -34202,8 +33588,12 @@
         ],
         "wires": [
           {
-            "first": 0,
-            "second": 3
+            "first": 5,
+            "second": 4
+          },
+          {
+            "first": 3,
+            "second": 5
           },
           {
             "first": 3,
@@ -34214,12 +33604,8 @@
             "second": 2
           },
           {
-            "first": 3,
-            "second": 5
-          },
-          {
-            "first": 5,
-            "second": 4
+            "first": 0,
+            "second": 3
           }
         ]
       },
@@ -34685,21 +34071,21 @@
           {
             "key": 7,
             "value": {
-              "x": 196,
-              "y": 322
+              "x": 182,
+              "y": 602
             }
           },
           {
             "key": 8,
             "value": {
-              "x": 84,
-              "y": 924
+              "x": 196,
+              "y": 322
             }
           },
           {
             "key": 9,
             "value": {
-              "x": 182,
+              "x": 84,
               "y": 602
             }
           },
@@ -34707,38 +34093,38 @@
             "key": 10,
             "value": {
               "x": 84,
-              "y": 602
+              "y": 924
             }
           }
         ],
         "wires": [
           {
+            "first": 5,
+            "second": 2
+          },
+          {
+            "first": 0,
+            "second": 7
+          },
+          {
+            "first": 6,
+            "second": 8
+          },
+          {
             "first": 6,
             "second": 3
           },
           {
-            "first": 6,
-            "second": 7
+            "first": 8,
+            "second": 1
           },
           {
             "first": 9,
             "second": 10
           },
           {
-            "first": 8,
-            "second": 4
-          },
-          {
             "first": 7,
-            "second": 1
-          },
-          {
-            "first": 0,
             "second": 9
-          },
-          {
-            "first": 5,
-            "second": 2
           },
           {
             "first": 0,
@@ -34750,7 +34136,7 @@
           },
           {
             "first": 10,
-            "second": 8
+            "second": 4
           }
         ]
       },
@@ -35034,24 +34420,24 @@
         ],
         "wires": [
           {
-            "first": 4,
-            "second": 5
+            "first": 3,
+            "second": 2
           },
           {
             "first": 4,
             "second": 3
           },
           {
-            "first": 0,
-            "second": 4
-          },
-          {
             "first": 5,
             "second": 1
           },
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 4
+          },
+          {
+            "first": 4,
+            "second": 5
           }
         ]
       },
@@ -35320,7 +34706,7 @@
             "key": 4,
             "value": {
               "x": 1176,
-              "y": 476
+              "y": 602
             }
           },
           {
@@ -35334,45 +34720,45 @@
             "key": 6,
             "value": {
               "x": 1176,
-              "y": 462
+              "y": 476
             }
           },
           {
             "key": 7,
             "value": {
               "x": 1176,
-              "y": 602
+              "y": 462
             }
           }
         ],
         "wires": [
           {
-            "first": 7,
+            "first": 5,
+            "second": 4
+          },
+          {
+            "first": 0,
+            "second": 7
+          },
+          {
+            "first": 6,
+            "second": 2
+          },
+          {
+            "first": 4,
             "second": 1
           },
           {
             "first": 6,
-            "second": 4
+            "second": 5
           },
           {
             "first": 5,
             "second": 3
           },
           {
-            "first": 4,
-            "second": 5
-          },
-          {
-            "first": 4,
-            "second": 2
-          },
-          {
-            "first": 0,
+            "first": 7,
             "second": 6
-          },
-          {
-            "first": 5,
-            "second": 7
           }
         ]
       },
@@ -35640,21 +35026,21 @@
           {
             "key": 4,
             "value": {
-              "x": 1918,
-              "y": 84
+              "x": 616,
+              "y": 378
             }
           },
           {
             "key": 5,
             "value": {
-              "x": 1022,
-              "y": 378
+              "x": 1918,
+              "y": 84
             }
           },
           {
             "key": 6,
             "value": {
-              "x": 616,
+              "x": 1022,
               "y": 378
             }
           },
@@ -35682,39 +35068,39 @@
         ],
         "wires": [
           {
-            "first": 8,
-            "second": 9
+            "first": 4,
+            "second": 1
           },
           {
-            "first": 8,
-            "second": 3
+            "first": 5,
+            "second": 8
           },
           {
             "first": 9,
-            "second": 5
+            "second": 6
+          },
+          {
+            "first": 7,
+            "second": 4
           },
           {
             "first": 9,
             "second": 7
           },
           {
-            "first": 7,
-            "second": 6
+            "first": 8,
+            "second": 3
           },
           {
-            "first": 4,
-            "second": 8
-          },
-          {
-            "first": 6,
-            "second": 1
+            "first": 8,
+            "second": 9
           },
           {
             "first": 0,
-            "second": 4
+            "second": 5
           },
           {
-            "first": 5,
+            "first": 6,
             "second": 2
           }
         ]
@@ -35796,6 +35182,70 @@
           ]
         }
       ],
+      "r1_addr": {
+        "Label": {
+          "Visible": true,
+          "Bold": false,
+          "Italic": false,
+          "PtSize": 8,
+          "Text": {
+            "str": "R1 idx"
+          },
+          "Pos": {
+            "x": -0.5071204523788993,
+            "y": 31.57086230377172
+          },
+          "Alignment": 1
+        },
+        "ValueLabel": {
+          "Visible": false,
+          "Bold": false,
+          "Italic": false,
+          "PtSize": 10,
+          "Text": {
+            "str": "0x00"
+          },
+          "Pos": {
+            "x": 633.0,
+            "y": 400.0
+          },
+          "Alignment": 132
+        },
+        "UserHidden": false,
+        "PortWidthVisible": true
+      },
+      "r2_addr": {
+        "Label": {
+          "Visible": true,
+          "Bold": false,
+          "Italic": false,
+          "PtSize": 8,
+          "Text": {
+            "str": "R2 idx"
+          },
+          "Pos": {
+            "x": 1.0253542314962943,
+            "y": 59.8452618981222
+          },
+          "Alignment": 1
+        },
+        "ValueLabel": {
+          "Visible": false,
+          "Bold": false,
+          "Italic": false,
+          "PtSize": 10,
+          "Text": {
+            "str": "0x00"
+          },
+          "Pos": {
+            "x": 633.0,
+            "y": 428.0
+          },
+          "Alignment": 132
+        },
+        "UserHidden": false,
+        "PortWidthVisible": true
+      },
       "wr_addr": {
         "Label": {
           "Visible": true,
@@ -35892,70 +35342,6 @@
         "UserHidden": false,
         "PortWidthVisible": true
       },
-      "r1_addr": {
-        "Label": {
-          "Visible": true,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 8,
-          "Text": {
-            "str": "R1 idx"
-          },
-          "Pos": {
-            "x": -0.5071204523788993,
-            "y": 31.57086230377172
-          },
-          "Alignment": 1
-        },
-        "ValueLabel": {
-          "Visible": false,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 10,
-          "Text": {
-            "str": "0x00"
-          },
-          "Pos": {
-            "x": 633.0,
-            "y": 400.0
-          },
-          "Alignment": 132
-        },
-        "UserHidden": false,
-        "PortWidthVisible": true
-      },
-      "r2_addr": {
-        "Label": {
-          "Visible": true,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 8,
-          "Text": {
-            "str": "R2 idx"
-          },
-          "Pos": {
-            "x": 1.0253542314962943,
-            "y": 59.8452618981222
-          },
-          "Alignment": 1
-        },
-        "ValueLabel": {
-          "Visible": false,
-          "Bold": false,
-          "Italic": false,
-          "PtSize": 10,
-          "Text": {
-            "str": "0x00"
-          },
-          "Pos": {
-            "x": 633.0,
-            "y": 428.0
-          },
-          "Alignment": 132
-        },
-        "UserHidden": false,
-        "PortWidthVisible": true
-      },
       "r1_out": {
         "Label": {
           "Visible": true,
@@ -36020,117 +35406,6 @@
         "UserHidden": false,
         "PortWidthVisible": true
       },
-      "wr_addr_in_wire": {
-        "Parent": "registerFile",
-        "From port": {
-          "first": 0,
-          "second": [
-            "wr_addr",
-            "registerFile"
-          ]
-        },
-        "To ports": [
-          {
-            "key": 1,
-            "value": [
-              "addr",
-              "_wr_mem"
-            ]
-          }
-        ],
-        "points": [
-          {
-            "key": 2,
-            "value": {
-              "x": 56,
-              "y": 42
-            }
-          },
-          {
-            "key": 3,
-            "value": {
-              "x": 56,
-              "y": 56
-            }
-          }
-        ],
-        "wires": [
-          {
-            "first": 0,
-            "second": 2
-          },
-          {
-            "first": 2,
-            "second": 3
-          },
-          {
-            "first": 3,
-            "second": 1
-          }
-        ]
-      },
-      "data_in_in_wire": {
-        "Parent": "registerFile",
-        "From port": {
-          "first": 0,
-          "second": [
-            "data_in",
-            "registerFile"
-          ]
-        },
-        "To ports": [
-          {
-            "key": 1,
-            "value": [
-              "data_in",
-              "_wr_mem"
-            ]
-          }
-        ],
-        "points": [
-          {
-            "key": 2,
-            "value": {
-              "x": 56,
-              "y": 98
-            }
-          },
-          {
-            "key": 3,
-            "value": {
-              "x": 56,
-              "y": 56
-            }
-          }
-        ],
-        "wires": [
-          {
-            "first": 2,
-            "second": 1
-          },
-          {
-            "first": 0,
-            "second": 3
-          },
-          {
-            "first": 3,
-            "second": 2
-          }
-        ]
-      },
-      "wr_en_in_wire": {
-        "Parent": "registerFile",
-        "From port": {
-          "first": 0,
-          "second": [
-            "wr_en",
-            "registerFile"
-          ]
-        },
-        "To ports": [],
-        "points": [],
-        "wires": []
-      },
       "r1_addr_in_wire": {
         "Parent": "registerFile",
         "From port": {
@@ -36167,16 +35442,16 @@
         ],
         "wires": [
           {
-            "first": 3,
-            "second": 2
+            "first": 0,
+            "second": 3
           },
           {
             "first": 2,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 3
+            "first": 3,
+            "second": 2
           }
         ]
       },
@@ -36216,6 +35491,104 @@
         ],
         "wires": [
           {
+            "first": 2,
+            "second": 1
+          },
+          {
+            "first": 0,
+            "second": 3
+          },
+          {
+            "first": 3,
+            "second": 2
+          }
+        ]
+      },
+      "wr_addr_in_wire": {
+        "Parent": "registerFile",
+        "From port": {
+          "first": 0,
+          "second": [
+            "wr_addr",
+            "registerFile"
+          ]
+        },
+        "To ports": [
+          {
+            "key": 1,
+            "value": [
+              "addr",
+              "_wr_mem"
+            ]
+          }
+        ],
+        "points": [
+          {
+            "key": 2,
+            "value": {
+              "x": 56,
+              "y": 42
+            }
+          },
+          {
+            "key": 3,
+            "value": {
+              "x": 56,
+              "y": 56
+            }
+          }
+        ],
+        "wires": [
+          {
+            "first": 3,
+            "second": 1
+          },
+          {
+            "first": 2,
+            "second": 3
+          },
+          {
+            "first": 0,
+            "second": 2
+          }
+        ]
+      },
+      "data_in_in_wire": {
+        "Parent": "registerFile",
+        "From port": {
+          "first": 0,
+          "second": [
+            "data_in",
+            "registerFile"
+          ]
+        },
+        "To ports": [
+          {
+            "key": 1,
+            "value": [
+              "data_in",
+              "_wr_mem"
+            ]
+          }
+        ],
+        "points": [
+          {
+            "key": 2,
+            "value": {
+              "x": 56,
+              "y": 98
+            }
+          },
+          {
+            "key": 3,
+            "value": {
+              "x": 56,
+              "y": 56
+            }
+          }
+        ],
+        "wires": [
+          {
             "first": 3,
             "second": 2
           },
@@ -36228,6 +35601,19 @@
             "second": 1
           }
         ]
+      },
+      "wr_en_in_wire": {
+        "Parent": "registerFile",
+        "From port": {
+          "first": 0,
+          "second": [
+            "wr_en",
+            "registerFile"
+          ]
+        },
+        "To ports": [],
+        "points": [],
+        "wires": []
       },
       "_rd1_mem": {
         "Top name": "_rd1_mem",
@@ -36523,38 +35909,6 @@
             ]
           }
         ],
-        "addr": {
-          "Label": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 8,
-            "Text": {
-              "str": "addr"
-            },
-            "Pos": {
-              "x": 28.0,
-              "y": 14.0
-            },
-            "Alignment": 132
-          },
-          "ValueLabel": {
-            "Visible": false,
-            "Bold": false,
-            "Italic": false,
-            "PtSize": 10,
-            "Text": {
-              "str": "0x00"
-            },
-            "Pos": {
-              "x": 143.0,
-              "y": 50.0
-            },
-            "Alignment": 132
-          },
-          "UserHidden": false,
-          "PortWidthVisible": false
-        },
         "wr_en": {
           "Label": {
             "Visible": false,
@@ -36587,18 +35941,18 @@
           "UserHidden": false,
           "PortWidthVisible": false
         },
-        "wr_width": {
+        "addr": {
           "Label": {
             "Visible": false,
             "Bold": false,
             "Italic": false,
             "PtSize": 8,
             "Text": {
-              "str": "wr_width"
+              "str": "addr"
             },
             "Pos": {
               "x": 28.0,
-              "y": 42.0
+              "y": 14.0
             },
             "Alignment": 132
           },
@@ -36608,11 +35962,11 @@
             "Italic": false,
             "PtSize": 10,
             "Text": {
-              "str": "-8"
+              "str": "0x00"
             },
             "Pos": {
-              "x": 124.6375,
-              "y": 88.8
+              "x": 143.0,
+              "y": 50.0
             },
             "Alignment": 132
           },
@@ -36645,6 +35999,38 @@
             "Pos": {
               "x": 143.0,
               "y": 92.0
+            },
+            "Alignment": 132
+          },
+          "UserHidden": false,
+          "PortWidthVisible": false
+        },
+        "wr_width": {
+          "Label": {
+            "Visible": false,
+            "Bold": false,
+            "Italic": false,
+            "PtSize": 8,
+            "Text": {
+              "str": "wr_width"
+            },
+            "Pos": {
+              "x": 28.0,
+              "y": 42.0
+            },
+            "Alignment": 132
+          },
+          "ValueLabel": {
+            "Visible": false,
+            "Bold": false,
+            "Italic": false,
+            "PtSize": 10,
+            "Text": {
+              "str": "-8"
+            },
+            "Pos": {
+              "x": 124.6375,
+              "y": 88.8
             },
             "Alignment": 132
           },
@@ -36761,16 +36147,16 @@
           ],
           "wires": [
             {
-              "first": 3,
-              "second": 2
+              "first": 2,
+              "second": 1
             },
             {
               "first": 0,
               "second": 3
             },
             {
-              "first": 2,
-              "second": 1
+              "first": 3,
+              "second": 2
             }
           ]
         },
@@ -37036,16 +36422,16 @@
         ],
         "wires": [
           {
-            "first": 2,
-            "second": 3
+            "first": 0,
+            "second": 2
           },
           {
             "first": 3,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 2
+            "first": 2,
+            "second": 3
           }
         ]
       },
@@ -37065,69 +36451,36 @@
               "instr_in",
               "ifid_reg"
             ]
-          },
-          {
-            "key": 2,
-            "value": [
-              "curr_instr",
-              "brunit"
-            ]
           }
         ],
         "points": [
+          {
+            "key": 2,
+            "value": {
+              "x": 364,
+              "y": 518
+            }
+          },
           {
             "key": 3,
             "value": {
               "x": 364,
               "y": 518
             }
-          },
-          {
-            "key": 4,
-            "value": {
-              "x": 364,
-              "y": 518
-            }
-          },
-          {
-            "key": 5,
-            "value": {
-              "x": 336,
-              "y": 616
-            }
-          },
-          {
-            "key": 6,
-            "value": {
-              "x": 98,
-              "y": 616
-            }
           }
         ],
         "wires": [
           {
-            "first": 6,
-            "second": 2
-          },
-          {
-            "first": 5,
-            "second": 6
-          },
-          {
-            "first": 4,
+            "first": 0,
             "second": 3
           },
           {
-            "first": 3,
+            "first": 2,
             "second": 1
           },
           {
-            "first": 0,
-            "second": 4
-          },
-          {
-            "first": 0,
-            "second": 5
+            "first": 3,
+            "second": 2
           }
         ]
       },

@@ -7,6 +7,7 @@
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
+#include "../../branch/branchpredictionprocessor.h"
 #include "../../ripesvsrtlprocessor.h"
 
 // Functional units
@@ -43,7 +44,7 @@ namespace core {
 using namespace Ripes;
 
 template <typename XLEN_T>
-class RV5S_BR : public RipesVSRTLProcessor {
+class RV5S_BR : public RipesVSRTLProcessor, public BranchPredictionProcessor {
   static_assert(std::is_same<uint32_t, XLEN_T>::value ||
                     std::is_same<uint64_t, XLEN_T>::value,
                 "Only supports 32- and 64-bit variants");
@@ -274,8 +275,8 @@ public:
 
     // -----------------------------------------------------------------------
     // Branch prediction unit
+    brunit->setProc(dynamic_cast<BranchPredictionProcessor *>(this));
     pc_reg->out >> brunit->curr_pc;
-    uncompress->exp_instr >> brunit->curr_instr;
 
     brunit->curr_pre_targ >> br_ifid_reg->curr_pre_targ_in;
     brunit->curr_pre_take >> br_ifid_reg->curr_pre_take_in;
@@ -636,6 +637,61 @@ public:
       rfs.insert(RegisterFileType::FPR);
     }
     return rfs;
+  }
+
+  bool supportsBranchPrediction() const override { return true; }
+
+  // Branch Prediction
+
+  bool currentInstructionIsBranch() override {
+    unsigned opcode = uncompress->exp_instr.uValue() & 0x7F;
+    switch (opcode) {
+    case RVISA::Opcode::JAL:
+    case RVISA::Opcode::JALR:
+    case RVISA::Opcode::BRANCH:
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  bool currentInstructionIsConditional() override {
+    unsigned opcode = uncompress->exp_instr.uValue() & 0x7F;
+    return opcode == RVISA::Opcode::BRANCH;
+  }
+
+  VInt currentInstructionImmediate() override {
+    unsigned opcode = uncompress->exp_instr.uValue() & 0x7F;
+    switch (opcode) {
+    case RVISA::Opcode::JAL: {
+      const auto fields = RVInstrParser::getParser()->decodeJ32Instr(
+          uncompress->exp_instr.uValue());
+      return VT_U(signextend<21>(fields[0] << 20 | fields[1] << 1 |
+                                 fields[2] << 11 | fields[3] << 12));
+    }
+    case RVISA::Opcode::JALR: {
+      return VT_U(signextend<12>((uncompress->exp_instr.uValue() >> 20)));
+    }
+    case RVISA::Opcode::BRANCH: {
+      const auto fields = RVInstrParser::getParser()->decodeB32Instr(
+          uncompress->exp_instr.uValue());
+      return VT_U(signextend<13>((fields[0] << 12) | (fields[1] << 5) |
+                                 (fields[5] << 1) | (fields[6] << 11)));
+    }
+    default:
+      return 0;
+    }
+  }
+
+  AInt currentInstructionTarget() override {
+    if (!currentInstructionIsBranch()) {
+      return 0;
+    }
+    return pc_reg->out.uValue() + currentInstructionImmediate();
+  }
+
+  bool currentGetPrediction() override {
+    return brunit->curr_pre_take.uValue();
   }
 
 private:

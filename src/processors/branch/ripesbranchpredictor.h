@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../ripes_types.h"
-#include <deque>
 #include <memory>
 
 namespace Ripes {

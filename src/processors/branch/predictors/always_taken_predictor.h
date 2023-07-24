@@ -1,18 +1,18 @@
 #pragma once
 
-#include "ripesbranchpredictor.h"
+#include "../ripesbranchpredictor.h"
 
 namespace Ripes {
 
 template <typename XLEN_T, typename ARRAY_T>
-class AlwaysNotTakenPredictor : public RipesBranchPredictor<XLEN_T, ARRAY_T> {
+class AlwaysTakenPredictor : public RipesBranchPredictor<XLEN_T, ARRAY_T> {
   static_assert(std::is_same<uint32_t, XLEN_T>::value ||
                     std::is_same<uint64_t, XLEN_T>::value,
                 "Only supports 32- and 64-bit variants");
   static constexpr unsigned XLEN = sizeof(XLEN_T) * 8;
 
 public:
-  AlwaysNotTakenPredictor() {
+  AlwaysTakenPredictor() {
     this->lht.reset(new ARRAY_T[1]);
     this->pht.reset(new ARRAY_T[1]);
     resetPredictorState();
@@ -25,7 +25,11 @@ public:
       return true;
     }
 
-    return false;
+    else if (!is_conditional) {
+      return false;
+    }
+
+    return true;
   }
 
   void updatePrediction(XLEN_T addr, bool predict_taken, bool miss,

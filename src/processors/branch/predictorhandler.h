@@ -4,11 +4,11 @@
 
 #include "ripesbranchpredictor.h"
 
-#include "always_not_taken_predictor.h"
-#include "always_taken_predictor.h"
-#include "counter_predictor.h"
-#include "global_predictor.h"
-#include "local_predictor.h"
+#include "predictors/always_not_taken_predictor.h"
+#include "predictors/always_taken_predictor.h"
+#include "predictors/counter_predictor.h"
+#include "predictors/global_predictor.h"
+#include "predictors/local_predictor.h"
 
 #include "../../ripessettings.h"
 
@@ -16,9 +16,8 @@ namespace Ripes {
 
 /**
  * @brief The ProcessorHandler class
- * Manages construction and destruction of a VSRTL processor design, when
- * selecting between processors. Manages all interaction and control of the
- * current processor.
+ * Manages the branch predictor and provides an ISA and processor agnostic
+ * interface.
  */
 class PredictorHandler : public QObject {
 
@@ -55,11 +54,9 @@ public:
   static void clock() { return get()->_clock(); }
   static void reverse() { return get()->_reverse(); }
 
-  std::unique_ptr<RipesBranchPredictor<XLEN_T, ARRAY_T>> current_predictor;
-
 private:
   RipesBranchPredictor<XLEN_T, ARRAY_T> *_getPredictor() {
-    return current_predictor.get();
+    return this->current_predictor.get();
   }
 
   void _changePredictor(uint8_t predictor, uint16_t num_address_bits,
@@ -88,9 +85,11 @@ private:
     }
   }
 
-  void _clock() { PredictorHandler::getPredictor()->saveState(); }
+  void _clock() { getPredictor()->saveState(); }
 
-  void _reverse() { PredictorHandler::getPredictor()->restoreState(); }
+  void _reverse() { getPredictor()->restoreState(); }
+
+  std::unique_ptr<RipesBranchPredictor<XLEN_T, ARRAY_T>> current_predictor;
 };
 
 } // namespace Ripes

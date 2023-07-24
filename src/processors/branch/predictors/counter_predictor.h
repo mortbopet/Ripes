@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ripesbranchpredictor.h"
+#include "../ripesbranchpredictor.h"
 
 namespace Ripes {
 
