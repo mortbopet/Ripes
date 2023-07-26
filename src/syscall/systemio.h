@@ -75,13 +75,31 @@ private:
   static constexpr int SYSCALL_BUFSIZE = 128;
   // Maximum number of files that can be open
   static constexpr int SYSCALL_MAXFILES = 32;
+  // Flags for open system call (following Unix conventions):
 
+  // Opens the file for reading data only. File's content can't be modified.
   static constexpr int O_RDONLY = 0x00000000;
+
+  // Opens the file for writing data only. File's content can't be read.
   static constexpr int O_WRONLY = 0x00000001;
+
+  // Opens the file for both reading and writing.
   static constexpr int O_RDWR = 0x00000002;
+
+  // Append
+  // Adds the data to the end of the file instead of overwriting it.
   static constexpr int O_APPEND = 0x00000008;
+
+  // Creates a new file if it doesn't exist.
+  // Read and write permissions can be specified
   static constexpr int O_CREAT = 0x00000200; // 512
+
+  // Truncate
+  // Clears the file content before writing.
   static constexpr int O_TRUNC = 0x00000400; // 1024
+
+  // Exclusive 
+  // Used with O_CREAT to ensure file creation fails if the file already exists
   static constexpr int O_EXCL = 0x00000800;  // 2048
 
   // //////////////////////////////////////////////////////////////////////////////
