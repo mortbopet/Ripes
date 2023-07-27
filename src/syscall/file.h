@@ -14,7 +14,7 @@ class OpenSyscall : public BaseSyscall {
 
 public:
   OpenSyscall()
-      : BaseSyscall("Open", "Opens a file from a path",
+      : BaseSyscall("Open", "The open system call is used to open files in the file system. It allows you to create new files or open existing ones for reading, writing, or both. The call returns a file descriptor that represents the opened file, which is later used for performing various operations on the file.",
                     {{0, "Pointer to null terminated string for the path"},
                      {1, "flags"}},
                     {{0, "the file decriptor or -1 if an error occurred"}}) {}
