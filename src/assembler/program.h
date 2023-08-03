@@ -121,6 +121,12 @@ private:
  */
 class Program {
 public:
+  /// Returns a pointer to this class singleton.
+  static Program *get() {
+      static auto *handler = new Program;
+      return handler;
+  }
+
   // A source mapping is a mapping from {instruction address : source code
   // lines}
   using SourceMapping = std::map<VInt, std::set<unsigned>>;
@@ -148,9 +154,18 @@ public:
   /// Calculates a hash used for source identification.
   static QString calculateHash(const QByteArray &data);
 
+  /**
+   * @brief getCurrentProgramSize
+   * @return size (in bytes) of the currently loaded .text segment
+   */
+  static int getCurrentProgramSize() { return get()->_getCurrentProgramSize(); }
+
 private:
   /// A caching of the disassembled version of this program.
   mutable DisassembledProgram disassembled;
+
+  /// Returns the current program size.
+  int _getCurrentProgramSize() const;
 };
 
 } // namespace Ripes

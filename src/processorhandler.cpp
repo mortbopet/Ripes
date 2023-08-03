@@ -361,16 +361,6 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
   RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 }
 
-int ProcessorHandler::_getCurrentProgramSize() const {
-  if (m_program) {
-    const auto *textSection = m_program->getSection(TEXT_SECTION_NAME);
-    if (textSection)
-      return textSection->data.length();
-  }
-
-  return 0;
-}
-
 AInt ProcessorHandler::_getTextStart() const {
   if (m_program) {
     const auto *textSection = m_program->getSection(TEXT_SECTION_NAME);
