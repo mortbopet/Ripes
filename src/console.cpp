@@ -43,6 +43,10 @@ Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
           });
 
   m_localEchoEnabled = RipesSettings::value(RIPES_SETTING_CONSOLEECHO).toBool();
+
+  // Retrieve and store saved window size and state
+   m_savedSize = RipesSettings::value(RIPES_SETTING_CONSOLESIZE).toSize();
+   m_savedState = static_cast<Qt::WindowStates>(RipesSettings::value(RIPES_SETTING_CONSOLESTATE).toInt());
 }
 
 void Console::putData(const QByteArray &bytes) {
@@ -109,7 +113,19 @@ void Console::keyPressEvent(QKeyEvent *e) {
         }
       }
     }
-  }
+    }
+}
+
+void Console::resizeEvent(QResizeEvent *event) {
+    QPlainTextEdit::resizeEvent(event);
+    m_savedSize = event->size();
+    m_savedState = windowState();
+}
+
+void Console::moveEvent(QMoveEvent *event) {
+    QPlainTextEdit::moveEvent(event);
+    m_savedSize = event->pos();
+    m_savedState = windowState();
 }
 
 } // namespace Ripes
