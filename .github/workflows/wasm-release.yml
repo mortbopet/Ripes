@@ -1,4 +1,4 @@
-name: WASM / Qt 6.5.0
+name: WASM / Qt 6.6.0
 on:
   push:
     branches:
@@ -46,12 +46,12 @@ jobs:
       with:
         aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.5.0'
+        version: '6.6.0'
         host: 'linux'
         target: 'desktop'
         arch: 'gcc_64'
         cache: 'true'
-        cache-key-prefix: 'install-qt-host-6.5.0'
+        cache-key-prefix: 'install-qt-host-6.6.0'
         modules: 'qtcharts'
 
     - name: Install Qt (Emscripten)
@@ -59,13 +59,13 @@ jobs:
       with:
         aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.5.0'
+        version: '6.6.0'
         host: 'linux'
         target: 'desktop'
         arch: 'wasm_multithread'
         modules: 'qtcharts'
         cache: 'true'
-        cache-key-prefix: 'install-qt-emscripten-6.5.0'
+        cache-key-prefix: 'install-qt-emscripten-6.6.0'
 
     - name: install Emscripten
       run: |
@@ -78,15 +78,15 @@ jobs:
       run: |
         echo "building desktop"
         source emsdk/emsdk_env.sh
-        export QT_HOST_PATH=$(pwd)/../Qt/6.5.0/gcc_64/
+        export QT_HOST_PATH=$(pwd)/../Qt/6.6.0/gcc_64/
         find ${QT_HOST_PATH}
         cmake                                           \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}   \
           -DRIPES_WITH_QPROCESS=OFF                     \
           -DEMSCRIPTEN=1                                \
           -DQT_HOST_PATH="${QT_HOST_PATH}"              \
-          -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.5.0/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
-          -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.5.0/wasm_multithread/ \
+          -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.6.0/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
+          -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.6.0/wasm_multithread/ \
           -DEMSCRIPTEN_FORCE_COMPILERS=ON \
           .
         make -j $(nproc)
