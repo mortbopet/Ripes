@@ -41,8 +41,8 @@ public:
     ui->instrType->clear();
     if (auto *instruction = std::get<const Assembler::Instruction<Reg_T> *>(instructionResult)) {
       ui->mnemonic->setText(instruction->name());
-//      ui->context->setText(ProcessorHandler::disassembleInstr(addr));
-//      ui->syntax->setText(instruction->syntax());
+      ui->context->setText(ProcessorHandler::disassembleInstr(addr));
+      ui->syntax->setText(instruction->syntax());
 //      ui->instrType->setText(RVISA::InstructionTypeNames.at(instruction->getInstructionType()));
     }
   }

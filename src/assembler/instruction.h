@@ -529,6 +529,26 @@ public:
                         [&](const auto &f) { return f(instr); });
   }
 
+  const QString syntax() const {
+    // Build syntax for assembly instruction
+    QString line = name() + "";
+    int immediates = 0;
+    for (const auto &field : m_fields) {
+      line += " ";
+
+      // Add syntax for each field
+      if (auto *reg = dynamic_cast<Reg<Reg_T> *>(field.get())) {
+        line += reg->regsd;
+      } else if (dynamic_cast<Imm<Reg_T> *>(field.get())) {
+        // TODO: Specify more about the immediate, such as if it is signed and
+        //       how many bits it contains
+        line += "imm" + QString::number(immediates);
+        immediates += 1;
+      }
+    }
+    return line;
+  }
+
 private:
   std::function<AssembleRes<Reg_T>(const Instruction<Reg_T> *,
                                    const TokenizedSrcLine &)>
