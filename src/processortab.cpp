@@ -95,6 +95,8 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
 
   m_stageModel = new PipelineDiagramModel(this);
 
+  setupInstructionDetailsWindow();
+
   updateInstructionModel();
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
           this, &ProcessorTab::updateStatistics);
@@ -193,6 +195,10 @@ void ProcessorTab::loadLayout(const Layout &layout) {
                       layout.stageLabelPositions.at(sid).x(),
                   metrics.height() * layout.stageLabelPositions.at(sid).y());
   }
+}
+
+void ProcessorTab::setupInstructionDetailsWindow() {
+  m_instrDetails = new InstructionDetails;
 }
 
 void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
@@ -296,6 +302,13 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
           });
   m_darkmodeAction->setChecked(
       RipesSettings::value(RIPES_SETTING_DARKMODE).toBool());
+
+  m_viewInstructionDetailsAction = new QAction("View instruction details", this);
+  connect(m_viewInstructionDetailsAction, &QAction::triggered, m_instrDetails,
+          [=] {
+            m_instrDetails->show();
+            m_instrDetails->focusWidget();
+          });
 }
 
 void ProcessorTab::updateStatistics() {
@@ -447,7 +460,10 @@ void ProcessorTab::restart() {
   enableSimulatorControls();
 }
 
-ProcessorTab::~ProcessorTab() { delete m_ui; }
+ProcessorTab::~ProcessorTab() {
+  delete m_instrDetails;
+  delete m_ui;
+}
 
 void ProcessorTab::processorFinished() {
   // Disallow further clocking of the circuit

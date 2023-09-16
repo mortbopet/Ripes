@@ -246,6 +246,9 @@ void MainWindow::setupMenus() {
   m_ui->menuView->addAction(
       static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
           ->m_displayValuesAction);
+  m_ui->menuView->addAction(
+      static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
+          ->m_viewInstructionDetailsAction);
 }
 
 MainWindow::~MainWindow() { delete m_ui; }
@@ -335,6 +338,11 @@ void MainWindow::closeEvent(QCloseEvent *event) {
       saveFilesTriggered();
     }
   }
+
+  // Close instruction details window
+  auto *instrDetailsWindow = static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
+                                 ->m_instrDetails;
+  instrDetailsWindow->close();
 
   // Emit an observable signal to indicate that the application is about to
   // close

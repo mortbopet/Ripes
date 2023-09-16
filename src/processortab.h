@@ -6,6 +6,7 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include "instructiondetails.h"
 #include "processors/interface/ripesprocessor.h"
 #include "ripes_types.h"
 #include "ripestab.h"
@@ -60,6 +61,7 @@ private slots:
 
 private:
   void setupSimulatorActions(QToolBar *controlToolbar);
+  void setupInstructionDetailsWindow();
   void enableSimulatorControls();
   void updateInstructionModel();
   void updateRegisterModel();
@@ -68,6 +70,7 @@ private:
 
   Ui::ProcessorTab *m_ui = nullptr;
   InstructionModel *m_instrModel = nullptr;
+  InstructionDetails *m_instrDetails = nullptr;
   PipelineDiagramModel *m_stageModel = nullptr;
 
   vsrtl::VSRTLWidget *m_vsrtlWidget = nullptr;
@@ -86,6 +89,7 @@ private:
   QAction *m_reverseAction = nullptr;
   QAction *m_resetAction = nullptr;
   QAction *m_darkmodeAction = nullptr;
+  QAction *m_viewInstructionDetailsAction = nullptr;
   QTimer *m_autoClockTimer = nullptr;
 
   QSpinBox *m_autoClockInterval = nullptr;
