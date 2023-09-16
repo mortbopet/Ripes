@@ -261,6 +261,7 @@ struct RV_I {
     // Assembler functors
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
+        RVISA::ITYPE,
         _Opcode(Token("ecall"),
                 {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}),
         {})));
@@ -268,6 +269,7 @@ struct RV_I {
     instructions.push_back(UType(Token("lui"), RVISA::Opcode::LUI));
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
+        RVISA::UTYPE,
         _Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
         {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),
          std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex,

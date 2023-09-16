@@ -390,9 +390,13 @@ struct Imm : public Field<Reg_T> {
 template <typename Reg_T>
 class Instruction {
 public:
-  Instruction(const Opcode<Reg_T> &opcode,
+  // This refers to the class of instruction in the ISA. In RISC-V, some example types are Branch,
+  // Register, Immediate, Jump, and Compressed Immediate.
+  using InstructionType = unsigned;
+
+  Instruction(const InstructionType instrType, const Opcode<Reg_T> &opcode,
               const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
-      : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()),
+      : m_instrType(instrType), m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()),
         m_fields(fields) {
     m_assembler = [](const Instruction *_this, const TokenizedSrcLine &line) {
       InstrRes<Reg_T> res;
@@ -454,6 +458,7 @@ public:
     return m_disassembler(this, instruction, address, symbolMap);
   }
 
+  InstructionType getInstructionType() const { return m_instrType; }
   const Opcode<Reg_T> &getOpcode() const { return m_opcode; }
   const QString &name() const { return m_opcode.name; }
   /**
@@ -558,6 +563,7 @@ private:
       m_disassembler;
 
   const Opcode<Reg_T> m_opcode;
+  const InstructionType m_instrType;
   const int m_expectedTokens;
   std::vector<std::shared_ptr<Field<Reg_T>>> m_fields;
   unsigned m_byteSize = -1;

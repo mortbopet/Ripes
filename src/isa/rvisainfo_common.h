@@ -17,6 +17,26 @@ constexpr ISA XLenToRVISA() {
 
 namespace RVISA {
 
+enum InstructionType {
+  BTYPE = 0,
+  ITYPE,
+  LTYPE,
+  RTYPE,
+  STYPE,
+  UTYPE,
+  JTYPE,
+  CIWTYPE,
+  CLTYPE,
+  CSTYPE,
+  CATYPE,
+  CBTYPE,
+  CJTYPE,
+  CITYPE,
+  CSSTYPE,
+  CRTYPE
+};
+
+extern const QStringList InstructionTypeNames;
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
 extern const QStringList RegDescs;

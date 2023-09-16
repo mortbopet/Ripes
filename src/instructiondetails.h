@@ -43,7 +43,7 @@ public:
       ui->mnemonic->setText(instruction->name());
       ui->context->setText(ProcessorHandler::disassembleInstr(addr));
       ui->syntax->setText(instruction->syntax());
-//      ui->instrType->setText(RVISA::InstructionTypeNames.at(instruction->getInstructionType()));
+      ui->instrType->setText(RVISA::InstructionTypeNames.at(instruction->getInstructionType()));
     }
   }
 private:

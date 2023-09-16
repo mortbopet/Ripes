@@ -47,6 +47,7 @@ struct RVCReg : public Reg<Reg_T> {
 
 #define CAType(name, funct2, funct6)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CATYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(0b01, 0, 1), OpPart(funct2, 5, 6),          \
                             OpPart(funct6, 10, 15)}),                          \
       {std::make_shared<RVCReg<Reg__T>>(isa, 2, 2, 4, "rs2'"),                 \
@@ -54,26 +55,31 @@ struct RVCReg : public Reg<Reg_T> {
 
 #define CIType(opcode, name, funct3, imm)                                      \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CITYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd/rs1"), imm}))
 
 #define CINOPType(opcode, name)                                                \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CITYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 15)}), {}))
 
 #define CSSType(opcode, name, funct3, imm)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CSSTYPE,                                                          \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<_Reg>(isa, 1, 2, 6, "rs2"), imm}))
 
 #define CLType(opcode, name, funct3, imm)                                      \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CLTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                  \
        std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"), imm}))
 
 #define CSType(opcode, name, funct3)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CSTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rs2'"),                 \
        std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"),                 \
@@ -84,6 +90,7 @@ struct RVCReg : public Reg<Reg_T> {
 
 #define CJType(opcode, name, funct3)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CJTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<_Imm>(                                                 \
           1, 12, _Imm::Repr::Signed,                                           \
@@ -94,24 +101,28 @@ struct RVCReg : public Reg<Reg_T> {
 
 #define CRType(opcode, name, funct4)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CRTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct4, 12, 15)}),    \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rs1"),                           \
        std::make_shared<_Reg>(isa, 2, 2, 6, "rs2")}))
 
 #define CR2Type(opcode, name, funct4)                                          \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CRTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 6),             \
                             OpPart(funct4, 12, 15)}),                          \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rs1")}))
 
 #define CREBREAKType(opcode, name, funct4)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CRTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 11),            \
                             OpPart(funct4, 12, 15)}),                          \
       {}))
 
 #define CBType(opcode, name, funct3)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CBTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"),                 \
        std::make_shared<_Imm>(                                                 \
@@ -121,12 +132,14 @@ struct RVCReg : public Reg<Reg_T> {
 
 #define CB2Type(opcode, name, funct3, funct4, imm)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CBTYPE,                                                           \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct4, 10, 11),      \
                             OpPart(funct3, 13, 15)}),                          \
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"), imm}))
 
 #define CIWType(opcode, name, funct3)                                          \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::CIWTYPE,                                                          \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
       {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                  \
        std::make_shared<_Imm>(                                                 \
@@ -214,7 +227,9 @@ struct RV_C {
 
     instructions.push_back(cLuiInstr);
 
+    // NOTE: This instruction might have it's own instruction type
     auto cAddi16spInstr = std::shared_ptr<_Instruction>(new _Instruction(
+        RVISA::CIWTYPE,
         Opcode<Reg__T>(
             Token("c.addi16sp"),
             {OpPart(0b01, 0, 1), OpPart(0b011, 13, 15), OpPart(2, 7, 11)}),

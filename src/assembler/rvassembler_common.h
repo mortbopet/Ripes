@@ -11,6 +11,7 @@ namespace Assembler {
 
 #define BType(name, funct3)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::BTYPE,                                                            \
       _Opcode(name,                                                            \
               {OpPart(RVISA::Opcode::BRANCH, 0, 6), OpPart(funct3, 12, 14)}),  \
       {std::make_shared<_Reg>(isa, 1, 15, 19, "rs1"),                          \
@@ -23,6 +24,7 @@ namespace Assembler {
 
 #define ITypeCommon(opcode, name, funct3)                                      \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::ITYPE,                                                            \
       _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14)}),           \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
@@ -34,6 +36,7 @@ namespace Assembler {
 
 #define LoadType(name, funct3)                                                 \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::LTYPE,                                                            \
       _Opcode(name,                                                            \
               {OpPart(RVISA::Opcode::LOAD, 0, 6), OpPart(funct3, 12, 14)}),    \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
@@ -43,6 +46,7 @@ namespace Assembler {
 
 #define IShiftType32(name, opcode, funct3, funct7)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::ITYPE,                                                            \
       _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14),             \
                      OpPart(funct7, 25, 31)}),                                 \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
@@ -52,6 +56,7 @@ namespace Assembler {
 
 #define IShiftType64(name, opcode, funct3, funct6)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::ITYPE,                                                            \
       _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14),             \
                      OpPart(funct6, 26, 31)}),                                 \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
@@ -61,6 +66,7 @@ namespace Assembler {
 
 #define RTypeCommon(name, opcode, funct3, funct7)                              \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::RTYPE,                                                            \
       _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14),             \
                      OpPart(funct7, 25, 31)}),                                 \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
@@ -73,6 +79,7 @@ namespace Assembler {
 
 #define SType(name, funct3)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::STYPE,                                                            \
       _Opcode(name,                                                            \
               {OpPart(RVISA::Opcode::STORE, 0, 6), OpPart(funct3, 12, 14)}),   \
       {std::make_shared<_Reg>(isa, 3, 15, 19, "rs1"),                          \
@@ -83,6 +90,7 @@ namespace Assembler {
 
 #define UType(name, opcode)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::UTYPE,                                                            \
       _Opcode(name, {OpPart(opcode, 0, 6)}),                                   \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex,                          \
@@ -90,6 +98,7 @@ namespace Assembler {
 
 #define JType(name, opcode)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::JTYPE,                                                            \
       _Opcode(name, {OpPart(opcode, 0, 6)}),                                   \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
        std::make_shared<_Imm>(                                                 \
@@ -100,6 +109,7 @@ namespace Assembler {
 
 #define JALRType(name)                                                         \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
+      RVISA::JTYPE,                                                            \
       _Opcode(name,                                                            \
               {OpPart(RVISA::Opcode::JALR, 0, 6), OpPart(0b000, 12, 14)}),     \
       {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
