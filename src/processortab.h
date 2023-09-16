@@ -61,7 +61,6 @@ private slots:
 
 private:
   void setupSimulatorActions(QToolBar *controlToolbar);
-  void setupInstructionDetailsWindow();
   void enableSimulatorControls();
   void updateInstructionModel();
   void updateRegisterModel();
@@ -70,8 +69,8 @@ private:
 
   Ui::ProcessorTab *m_ui = nullptr;
   InstructionModel *m_instrModel = nullptr;
-  InstructionDetails *m_instrDetails = nullptr;
   PipelineDiagramModel *m_stageModel = nullptr;
+  InstructionDetailsWindow *m_instrDetails = nullptr;
 
   vsrtl::VSRTLWidget *m_vsrtlWidget = nullptr;
 

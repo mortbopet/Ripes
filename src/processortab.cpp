@@ -19,6 +19,7 @@
 #include "registercontainerwidget.h"
 #include "registermodel.h"
 #include "ripessettings.h"
+#include "assembler/rv32i_assembler.h"
 #include "syscall/systemio.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
@@ -95,7 +96,9 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
 
   m_stageModel = new PipelineDiagramModel(this);
 
-  setupInstructionDetailsWindow();
+  m_instrDetails = new InstructionDetailsWindow;
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
+          m_instrDetails, &InstructionDetailsWindow::setAssembler);
 
   updateInstructionModel();
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
@@ -195,10 +198,6 @@ void ProcessorTab::loadLayout(const Layout &layout) {
                       layout.stageLabelPositions.at(sid).x(),
                   metrics.height() * layout.stageLabelPositions.at(sid).y());
   }
-}
-
-void ProcessorTab::setupInstructionDetailsWindow() {
-  m_instrDetails = new InstructionDetails;
 }
 
 void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
@@ -449,6 +448,11 @@ void ProcessorTab::updateInstructionModel() {
   // in the first stage of the
   connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this,
           &ProcessorTab::setInstructionViewCenterRow);
+
+  connect(m_ui->instructionView, &QAbstractItemView::doubleClicked, m_instrDetails,
+          [=](const QModelIndex &index) {
+            m_instrDetails->setInstruction(m_instrModel->indexToAddress(index));
+          });
 
   if (oldModel) {
     delete oldModel;

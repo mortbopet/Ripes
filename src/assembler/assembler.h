@@ -185,6 +185,25 @@ public:
     return opres;
   }
 
+  Result<const Instruction<Reg_T> *> getInstruction(const VInt word,
+                                           const ReverseSymbolMap &symbols,
+                                           const AInt baseAddress = 0) {
+    OpDisassembleResult opres;
+
+    auto match = m_matcher->matchInstruction(word);
+    if (auto *error = std::get_if<Error>(&match)) {
+      return match;
+    }
+
+    auto instruction = std::get<const _Instruction *>(match);
+    auto tokensVar = instruction->disassemble(word, baseAddress, symbols);
+    if (auto *error = std::get_if<Error>(&match)) {
+      return match;
+    }
+
+    return instruction;
+  }
+
   const _Matcher &getMatcher() { return *m_matcher; }
 
   std::set<QString> getOpcodes() const override {

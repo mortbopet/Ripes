@@ -7,6 +7,7 @@
 #include "assembler_defines.h"
 #include "directive.h"
 #include "expreval.h"
+#include "instruction.h"
 #include "symbolmap.h"
 
 namespace Ripes {
