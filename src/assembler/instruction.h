@@ -545,7 +545,7 @@ public:
       if (auto *reg = dynamic_cast<Reg<Reg_T> *>(field.get())) {
         line += reg->regsd;
       } else if (dynamic_cast<Imm<Reg_T> *>(field.get())) {
-        // TODO: Specify more about the immediate, such as if it is signed and
+        // TODO(raccog): Specify more about the immediate, such as if it is signed and
         //       how many bits it contains
         line += "imm" + QString::number(immediates);
         immediates += 1;
