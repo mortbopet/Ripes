@@ -29,9 +29,23 @@ void InstructionDetailsWindow::setAssembler() {
     std::cerr << "Instruction details window not setup for " << isa->bits()
               << " bit register ISAs.\n";
   }
+  clearUiFields();
+}
+
+void InstructionDetailsWindow::clearUiFields()  {
+  m_ui->address->clear();
+  m_ui->isa->clear();
+  m_ui->mnemonic->clear();
+  m_ui->context->clear();
+  m_ui->syntax->clear();
+  m_ui->instrType->clear();
+  m_ui->description->clear();
+  m_ui->extension->clear();
+  m_ui->operation->clear();
 }
 
 void InstructionDetailsWindow::setInstruction(AInt addr) {
+  clearUiFields();
   m_instructionDetails->setInstruction(m_ui, addr);
   show();
   activateWindow();

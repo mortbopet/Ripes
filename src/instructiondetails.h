@@ -36,9 +36,6 @@ public:
     ui->address->setText("0x" + QString::number(addr, 16));
     ui->isa->setText(isa->name());
     ui->mnemonic->setText("Invalid instruction");
-    ui->context->clear();
-    ui->syntax->clear();
-    ui->instrType->clear();
     if (auto *instruction = std::get<const Assembler::Instruction<Reg_T> *>(instructionResult)) {
       ui->mnemonic->setText(instruction->name());
       ui->context->setText(ProcessorHandler::disassembleInstr(addr));
@@ -62,6 +59,8 @@ public slots:
   void setInstruction(AInt addr);
 
 private:
+  void clearUiFields();
+
   Ui::InstructionDetails *m_ui;
   std::unique_ptr<InstructionDetailsBase> m_instructionDetails;
 };
