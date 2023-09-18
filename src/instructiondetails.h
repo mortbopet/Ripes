@@ -35,12 +35,16 @@ public:
     auto instructionResult = m_assembler->getInstruction(word, program->symbols, addr);
     ui->address->setText("0x" + QString::number(addr, 16));
     ui->isa->setText(isa->name());
-    ui->mnemonic->setText("Invalid instruction");
     if (auto *instruction = std::get<const Assembler::Instruction<Reg_T> *>(instructionResult)) {
       ui->mnemonic->setText(instruction->name());
       ui->context->setText(ProcessorHandler::disassembleInstr(addr));
       ui->syntax->setText(instruction->syntax());
       ui->instrType->setText(RVISA::InstructionTypeNames.at(instruction->getInstructionType()));
+      ui->description->setText("TODO: Add descriptions");
+      ui->extension->setText("TODO: Add extension");
+      ui->operation->setText("TODO: Add operation");
+    } else {
+      ui->mnemonic->setText("Invalid instruction");
     }
   }
 private:
