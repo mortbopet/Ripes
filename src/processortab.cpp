@@ -27,6 +27,82 @@
 
 namespace Ripes {
 
+
+static QString generateTooltipTable() {
+  // Create HTML table of instruction encoding for use in instruction tooltip
+  QString tooltipTable = "<table border=\"1\">"
+                         "<thead><tr>";
+  // Table header
+  for (int i = 0; i < 32; ++i) {
+    tooltipTable += "<th width=\"20\" align=\"center\">";
+    tooltipTable += QString::number(31 - i);
+    tooltipTable += "</th>";
+  }
+  tooltipTable += "</tr></thead>"
+                  "<tbody><tr>";
+
+  // add instruction
+  auto tdStart = "<td align=\"center\">";
+  auto tdStartRed = "<td bgcolor=\"#ea9999\" align=\"center\">";
+  auto tdStartLightRed = "<td bgcolor=\"#f4cccc\" align=\"center\">";
+  auto tdStartReg = "<td colspan=\"5\" bgcolor=\"#efefef\" align=\"center\">";
+  auto tdEnd = "</td>";
+  //  funct7
+  tooltipTable += tdStartRed;
+  tooltipTable += "-";
+  tooltipTable += tdEnd;
+  tooltipTable += tdStartRed;
+  tooltipTable += "0";
+  tooltipTable += tdEnd;
+  for (int i = 0; i < 5; ++i) {
+    tooltipTable += tdStartRed;
+    tooltipTable += "-";
+    tooltipTable += tdEnd;
+  }
+  //  rs2
+  tooltipTable += tdStartReg;
+  tooltipTable += "rs2";
+  tooltipTable += tdEnd;
+  //  rs1
+  tooltipTable += tdStartReg;
+  tooltipTable += "rs1";
+  tooltipTable += tdEnd;
+  //  funct3
+  for (int i = 0; i < 3; ++i) {
+    tooltipTable += tdStartRed;
+    tooltipTable += "0";
+    tooltipTable += tdEnd;
+  }
+  //  rd
+  tooltipTable += tdStartReg;
+  tooltipTable += "rd";
+  tooltipTable += tdEnd;
+  //  opcode
+  tooltipTable += tdStartLightRed;
+  tooltipTable += "0";
+  tooltipTable += tdEnd;
+  for (int i = 0; i < 2; ++i) {
+    tooltipTable += tdStartLightRed;
+    tooltipTable += "1";
+    tooltipTable += tdEnd;
+  }
+  for (int i = 0; i < 2; ++i) {
+    tooltipTable += tdStartLightRed;
+    tooltipTable += "0";
+    tooltipTable += tdEnd;
+  }
+  //  quadrant
+  for (int i = 0; i < 2; ++i) {
+    tooltipTable += tdStart;
+    tooltipTable += "1";
+    tooltipTable += tdEnd;
+  }
+
+  tooltipTable += "</tr></tbody>"
+                  "</table>";
+  return tooltipTable;
+}
+
 static QString convertToSIUnits(const double l_value, int precision = 2) {
   QString unit;
   double value;
@@ -491,6 +567,7 @@ void ProcessorTab::updateInstructionLabels() {
       instrLabel->clearForcedDefaultTextColor();
     }
     instrLabel->setText(instrString);
+    instrLabel->setToolTip(generateTooltipTable());
   }
 }
 
