@@ -82,8 +82,8 @@ std::shared_ptr<Reg<Reg_T>> makeRvReg(const ISAInfoBase *isa, unsigned fieldInde
 template <typename Reg_T>
 class RVBTypeImm : public Imm<Reg_T> {
 public:
-  RVBTypeImm()
-      : Imm<Reg_T>(3, 13, Imm<Reg_T>::Repr::Signed,
+  RVBTypeImm(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 13, Imm<Reg_T>::Repr::Signed,
                    std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
                                ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
                    Imm<Reg_T>::SymbolType::Relative) {}
@@ -92,8 +92,8 @@ public:
 template <typename Reg_T>
 class RVITypeImm : public Imm<Reg_T> {
 public:
-  RVITypeImm()
-      : Imm<Reg_T>(3, 12, Imm<Reg_T>::Repr::Signed,
+  RVITypeImm(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
                    std::vector{ImmPart(0, 20, 31)}) {}
 };
 
@@ -107,7 +107,7 @@ public:
                           RVOpPartFunct3(funct3)}),
             {makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 1),
              makeRvReg<Reg_T, RVRegRs2<Reg_T>>(isa, 2),
-             std::make_shared<Imm<Reg_T>>(RVBTypeImm<Reg_T>())
+             std::make_shared<Imm<Reg_T>>(RVBTypeImm<Reg_T>(3))
             }) {}
 };
 
@@ -126,7 +126,7 @@ public:
             Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), RVOpPartFunct3(funct3)}),
             {makeRvReg<Reg_T, RVRegRd<Reg_T>>(isa, 1),
              makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 2),
-             std::make_shared<Imm<Reg_T>>(RVITypeImm<Reg_T>())
+             std::make_shared<Imm<Reg_T>>(RVITypeImm<Reg_T>(3))
             }) {}
 };
 
