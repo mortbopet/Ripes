@@ -296,19 +296,13 @@ struct RV_I {
     instructions.push_back(defineIType<Reg__T>("andi", 0b111, isa));
 
     if (options.count(Options::shifts64BitVariant)) {
-      instructions.push_back(
-          IShiftType32(Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000));
-      instructions.push_back(
-          IShiftType32(Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000));
-      instructions.push_back(
-          IShiftType32(Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000));
+      instructions.push_back(defineIShiftType32<Reg__T>("slliw", RVISA::OPIMM32, 0b001, 0b0000000, isa));
+      instructions.push_back(defineIShiftType32<Reg__T>("srliw", RVISA::OPIMM32, 0b101, 0b0000000, isa));
+      instructions.push_back(defineIShiftType32<Reg__T>("sraiw", RVISA::OPIMM32, 0b101, 0b0100000, isa));
     } else {
-      instructions.push_back(
-          IShiftType32(Token("slli"), RVISA::OPIMM, 0b001, 0b0000000));
-      instructions.push_back(
-          IShiftType32(Token("srli"), RVISA::OPIMM, 0b101, 0b0000000));
-      instructions.push_back(
-          IShiftType32(Token("srai"), RVISA::OPIMM, 0b101, 0b0100000));
+      instructions.push_back(defineIShiftType32<Reg__T>("slli", RVISA::OPIMM, 0b001, 0b0000000, isa));
+      instructions.push_back(defineIShiftType32<Reg__T>("srli", RVISA::OPIMM, 0b101, 0b0000000, isa));
+      instructions.push_back(defineIShiftType32<Reg__T>("srai", RVISA::OPIMM, 0b101, 0b0100000, isa));
     }
 
     instructions.push_back(RType(Token("add"), 0b000, 0b0000000));

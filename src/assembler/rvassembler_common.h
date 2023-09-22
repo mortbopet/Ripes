@@ -80,6 +80,14 @@ std::shared_ptr<Reg<Reg_T>> makeRvReg(const ISAInfoBase *isa, unsigned fieldInde
 }
 
 template <typename Reg_T>
+class RVImm5 : public Imm<Reg_T> {
+public:
+  RVImm5(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 5, Imm<Reg_T>::Repr::Unsigned,
+                   std::vector{ImmPart(0, 20, 24)}) {}
+};
+
+template <typename Reg_T>
 class RVImm12 : public Imm<Reg_T> {
 public:
   RVImm12(unsigned fieldIndex)
@@ -178,17 +186,28 @@ std::shared_ptr<Instruction<Reg_T>> defineLType(const QString &name, unsigned fu
       new LTypeInstr<Reg_T>(Token(name), funct3, isa));
 }
 
+template <typename Reg_T>
+class IShiftType32Instr : public RVInstruction<Reg_T> {
+public:
+  IShiftType32Instr(const Token &name, RVISA::Opcode opcode, unsigned funct3,
+                    unsigned funct7, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), RVOpPartFunct3(funct3),
+                                 RVOpPartFunct7(funct7)}),
+            {makeRvReg<Reg_T, RVRegRd<Reg_T>>(isa, 1),
+             makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 2),
+             std::make_shared<Imm<Reg_T>>(RVImm5<Reg_T>(3))}) {}
+};
+
+template <typename Reg_T>
+std::shared_ptr<Instruction<Reg_T>> defineIShiftType32(const QString &name,
+    RVISA::Opcode opcode, unsigned funct3, unsigned funct7, const ISAInfoBase *isa) {
+  return std::shared_ptr<Instruction<Reg_T>>(
+      new IShiftType32Instr<Reg_T>(Token(name), opcode, funct3, funct7, isa));
+}
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define IShiftType32(name, opcode, funct3, funct7)                             \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14),             \
-                     OpPart(funct7, 25, 31)}),                                 \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
-       std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
-       std::make_shared<_Imm>(3, 5, _Imm::Repr::Unsigned,                      \
-                              std::vector{ImmPart(0, 20, 24)})}))
 
 #define IShiftType64(name, opcode, funct3, funct6)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
