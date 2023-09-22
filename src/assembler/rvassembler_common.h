@@ -79,6 +79,16 @@ std::shared_ptr<Reg<Reg_T>> makeRvReg(const ISAInfoBase *isa, unsigned fieldInde
   return std::make_shared<Reg<Reg_T>>(RVReg_T(isa, fieldIndex));
 }
 
+template <typename Reg_T>
+class RVBTypeImm : public Imm<Reg_T> {
+public:
+  RVBTypeImm()
+      : Imm<Reg_T>(3, 13, Imm<Reg_T>::Repr::Signed,
+                   std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
+                               ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
+                   Imm<Reg_T>::SymbolType::Relative) {}
+};
+
 // A B-Type RISC-V instruction
 template <typename Reg_T>
 class BTypeInstr : public RVInstruction<Reg_T> {
@@ -89,14 +99,7 @@ public:
                           RVOpPartFunct3(funct3)}),
             {makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 1),
              makeRvReg<Reg_T, RVRegRs2<Reg_T>>(isa, 2),
-              std::make_shared<Imm<Reg_T>>(
-                3, 13, Imm<Reg_T>::Repr::Signed,
-                std::vector{
-                  ImmPart(12, 31, 31), ImmPart(11, 7, 7),
-                  ImmPart(5, 25, 30), ImmPart(1, 8, 11)
-                },
-                Imm<Reg_T>::SymbolType::Relative
-              )
+             std::make_shared<Imm<Reg_T>>(RVBTypeImm<Reg_T>())
             }) {}
 };
 
