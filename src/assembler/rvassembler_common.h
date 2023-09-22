@@ -89,17 +89,29 @@ std::shared_ptr<Instruction<Reg_T>> defineIType32(const QString &name, unsigned 
       new IType32Instr<Reg_T>(Token(name), funct3, isa));
 }
 
+template <typename Reg_T>
+class LTypeInstr : public RVInstruction<Reg_T> {
+public:
+  LTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            Opcode<Reg_T>(name, {OpPart(RVISA::Opcode::LOAD, 0, 6), OpPart(funct3, 12, 14)}),
+            {
+              std::make_shared<Reg<Reg_T>>(isa, 1, 7, 11, "rd"),
+                std::make_shared<Reg<Reg_T>>(isa, 3, 15, 19, "rs1"),
+                std::make_shared<Imm<Reg_T>>(2, 12, Imm<Reg_T>::Repr::Signed,
+                                          std::vector{ImmPart(0, 20, 31)})
+            }) {}
+};
+
+template <typename Reg_T>
+std::shared_ptr<Instruction<Reg_T>> defineLType(const QString &name, unsigned funct3,
+                                                  const ISAInfoBase *isa) {
+  return std::shared_ptr<Instruction<Reg_T>>(
+      new LTypeInstr<Reg_T>(Token(name), funct3, isa));
+}
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define LoadType(name, funct3)                                                 \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name,                                                            \
-              {OpPart(RVISA::Opcode::LOAD, 0, 6), OpPart(funct3, 12, 14)}),    \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
-       std::make_shared<_Reg>(isa, 3, 15, 19, "rs1"),                          \
-       std::make_shared<_Imm>(2, 12, _Imm::Repr::Signed,                       \
-                              std::vector{ImmPart(0, 20, 31)})}))
 
 #define IShiftType32(name, opcode, funct3, funct7)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \

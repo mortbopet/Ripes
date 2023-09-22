@@ -85,8 +85,8 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
   instructions.push_back(RType32(Token("srlw"), 0b101, 0b0000000));
   instructions.push_back(RType32(Token("sraw"), 0b101, 0b0100000));
 
-  instructions.push_back(LoadType(Token("lwu"), 0b110));
-  instructions.push_back(LoadType(Token("ld"), 0b011));
+  instructions.push_back(defineLType<Reg_T>("lwu", 0b110, isa));
+  instructions.push_back(defineLType<Reg_T>("ld", 0b011, isa));
   instructions.push_back(SType(Token("sd"), 0b011));
 
   pseudoInstructions.push_back(PseudoLoad(Token("ld")));

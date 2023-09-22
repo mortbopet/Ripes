@@ -278,11 +278,11 @@ struct RV_I {
 
     instructions.push_back(JALRType(Token("jalr")));
 
-    instructions.push_back(LoadType(Token("lb"), 0b000));
-    instructions.push_back(LoadType(Token("lh"), 0b001));
-    instructions.push_back(LoadType(Token("lw"), 0b010));
-    instructions.push_back(LoadType(Token("lbu"), 0b100));
-    instructions.push_back(LoadType(Token("lhu"), 0b101));
+    instructions.push_back(defineLType<Reg__T>("lb", 0b000, isa));
+    instructions.push_back(defineLType<Reg__T>("lh", 0b001, isa));
+    instructions.push_back(defineLType<Reg__T>("lw", 0b010, isa));
+    instructions.push_back(defineLType<Reg__T>("lbu", 0b100, isa));
+    instructions.push_back(defineLType<Reg__T>("lhu", 0b101, isa));
 
     instructions.push_back(SType(Token("sb"), 0b000));
     instructions.push_back(SType(Token("sh"), 0b001));
