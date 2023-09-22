@@ -15,29 +15,89 @@ public:
       : Instruction<Reg_T>(opcode, fields) {}
 };
 
+class RVOpPartOpcode : public OpPart {
+public:
+  RVOpPartOpcode(RVISA::Opcode opcode)
+      : OpPart(opcode, 0, 6) {}
+};
+
+class RVOpPartFunct3 : public OpPart {
+public:
+  RVOpPartFunct3(unsigned funct3)
+      : OpPart(funct3, 12, 14) {}
+};
+
+class RVOpPartFunct6 : public OpPart {
+public:
+  RVOpPartFunct6(unsigned funct6)
+      : OpPart(funct6, 26, 31) {}
+};
+
+class RVOpPartFunct7 : public OpPart {
+public:
+  RVOpPartFunct7(unsigned funct7)
+      : OpPart(funct7, 25, 31) {}
+};
+
+template <typename Reg_T>
+class RVOpcode : public Opcode<Reg_T> {
+public:
+  RVOpcode(const Token &name, RVISA::Opcode opcode)
+      : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode)}) {}
+
+  RVOpcode(const Token &name, RVISA::Opcode opcode, RVOpPartFunct3 funct3)
+      : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), funct3}) {}
+
+  RVOpcode(const Token &name, RVISA::Opcode opcode, RVOpPartFunct3 funct3,
+           RVOpPartFunct7 funct7)
+      : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), funct3, funct7}) {}
+};
+
+template <typename Reg_T>
+class RVRegRs1 : public Reg<Reg_T> {
+public:
+  RVRegRs1(const ISAInfoBase *isa, unsigned fieldIndex)
+      : Reg<Reg_T>(isa, fieldIndex, 15, 19, "rs1") {}
+};
+
+template <typename Reg_T>
+class RVRegRs2 : public Reg<Reg_T> {
+public:
+  RVRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
+      : Reg<Reg_T>(isa, fieldIndex, 20, 24, "rs2") {}
+};
+
+template <typename Reg_T>
+class RVRegRd : public Reg<Reg_T> {
+public:
+  RVRegRd(const ISAInfoBase *isa, unsigned fieldIndex)
+      : Reg<Reg_T>(isa, fieldIndex, 7, 11, "rd") {}
+};
+
+template <typename Reg_T, class RVReg_T>
+std::shared_ptr<Reg<Reg_T>> makeRvReg(const ISAInfoBase *isa, unsigned fieldIndex) {
+  return std::make_shared<Reg<Reg_T>>(RVReg_T(isa, fieldIndex));
+}
+
 // A B-Type RISC-V instruction
 template <typename Reg_T>
 class BTypeInstr : public RVInstruction<Reg_T> {
 public:
   BTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            Opcode<Reg_T>(name,
-                          {
-                           OpPart(RVISA::Opcode::BRANCH, 0, 6),
-                           OpPart(funct3, 12, 14)
-                          }),
-                          {
-                            std::make_shared<Reg<Reg_T>>(isa, 1, 15, 19, "rs1"),
-                            std::make_shared<Reg<Reg_T>>(isa, 2, 20, 24, "rs2"),
-                            std::make_shared<Imm<Reg_T>>(
-                              3, 13, Imm<Reg_T>::Repr::Signed,
-                              std::vector{
-                                ImmPart(12, 31, 31), ImmPart(11, 7, 7),
-                                ImmPart(5, 25, 30), ImmPart(1, 8, 11)
-                              },
-                              Imm<Reg_T>::SymbolType::Relative
-                            )
-                          }) {}
+            Opcode<Reg_T>(name, {RVOpPartOpcode(RVISA::Opcode::BRANCH),
+                          RVOpPartFunct3(funct3)}),
+            {makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 1),
+             makeRvReg<Reg_T, RVRegRs2<Reg_T>>(isa, 2),
+              std::make_shared<Imm<Reg_T>>(
+                3, 13, Imm<Reg_T>::Repr::Signed,
+                std::vector{
+                  ImmPart(12, 31, 31), ImmPart(11, 7, 7),
+                  ImmPart(5, 25, 30), ImmPart(1, 8, 11)
+                },
+                Imm<Reg_T>::SymbolType::Relative
+              )
+            }) {}
 };
 
 template <typename Reg_T>
