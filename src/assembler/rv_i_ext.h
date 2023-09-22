@@ -322,12 +322,12 @@ struct RV_I {
     instructions.push_back(RType(Token("or"), 0b110, 0b0000000));
     instructions.push_back(RType(Token("and"), 0b111, 0b0000000));
 
-    instructions.push_back(BType(Token("beq"), 0b000));
-    instructions.push_back(BType(Token("bne"), 0b001));
-    instructions.push_back(BType(Token("blt"), 0b100));
-    instructions.push_back(BType(Token("bge"), 0b101));
-    instructions.push_back(BType(Token("bltu"), 0b110));
-    instructions.push_back(BType(Token("bgeu"), 0b111));
+    instructions.push_back(BTypeInstr<Reg__T>::defineInstr("beq", 0b000, isa));
+    instructions.push_back(BTypeInstr<Reg__T>::defineInstr("bne", 0b001, isa));
+    instructions.push_back(BTypeInstr<Reg__T>::defineInstr("blt", 0b100, isa));
+    instructions.push_back(BTypeInstr<Reg__T>::defineInstr("bge", 0b101, isa));
+    instructions.push_back(BTypeInstr<Reg__T>::defineInstr("bltu", 0b110, isa));
+    instructions.push_back(BTypeInstr<Reg__T>::defineInstr("bgeu", 0b111, isa));
   }
 };
 

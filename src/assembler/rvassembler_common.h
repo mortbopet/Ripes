@@ -6,20 +6,48 @@
 namespace Ripes {
 namespace Assembler {
 
+// A base class for RISC-V instructions
+template <typename Reg_T>
+class RVInstruction : public Instruction<Reg_T> {
+public:
+  RVInstruction(const Opcode<Reg_T> &opcode,
+                const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+      : Instruction<Reg_T>(opcode, fields) {}
+};
+
+// A B-Type RISC-V instruction
+template <typename Reg_T>
+class BTypeInstr : public RVInstruction<Reg_T> {
+public:
+  BTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            Opcode<Reg_T>(name,
+                          {
+                           OpPart(RVISA::Opcode::BRANCH, 0, 6),
+                           OpPart(funct3, 12, 14)
+                          }),
+                          {
+                            std::make_shared<Reg<Reg_T>>(isa, 1, 15, 19, "rs1"),
+                            std::make_shared<Reg<Reg_T>>(isa, 2, 20, 24, "rs2"),
+                            std::make_shared<Imm<Reg_T>>(
+                              3, 13, Imm<Reg_T>::Repr::Signed,
+                              std::vector{
+                                ImmPart(12, 31, 31), ImmPart(11, 7, 7),
+                                ImmPart(5, 25, 30), ImmPart(1, 8, 11)
+                              },
+                              Imm<Reg_T>::SymbolType::Relative
+                            )
+                          }) {}
+
+  static std::shared_ptr<Instruction<Reg_T>> defineInstr(const QString &name, unsigned funct3,
+                                                         const ISAInfoBase *isa) {
+    return std::shared_ptr<Instruction<Reg_T>>(
+        new BTypeInstr<Reg_T>(Token(name), funct3, isa));
+  }
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define BType(name, funct3)                                                    \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name,                                                            \
-              {OpPart(RVISA::Opcode::BRANCH, 0, 6), OpPart(funct3, 12, 14)}),  \
-      {std::make_shared<_Reg>(isa, 1, 15, 19, "rs1"),                          \
-       std::make_shared<_Reg>(isa, 2, 20, 24, "rs2"),                          \
-       std::make_shared<_Imm>(                                                 \
-           3, 13, _Imm::Repr::Signed,                                          \
-           std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),                 \
-                       ImmPart(5, 25, 30), ImmPart(1, 8, 11)},                 \
-           _Imm::SymbolType::Relative)}))
 
 #define ITypeCommon(opcode, name, funct3)                                      \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
