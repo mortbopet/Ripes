@@ -89,6 +89,14 @@ public:
                    Imm<Reg_T>::SymbolType::Relative) {}
 };
 
+template <typename Reg_T>
+class RVITypeImm : public Imm<Reg_T> {
+public:
+  RVITypeImm()
+      : Imm<Reg_T>(3, 12, Imm<Reg_T>::Repr::Signed,
+                   std::vector{ImmPart(0, 20, 31)}) {}
+};
+
 // A B-Type RISC-V instruction
 template <typename Reg_T>
 class BTypeInstr : public RVInstruction<Reg_T> {
@@ -115,12 +123,10 @@ class ITypeInstrCommon : public RVInstruction<Reg_T> {
 public:
   ITypeInstrCommon(RVISA::Opcode opcode, const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            Opcode<Reg_T>(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14)}),
-            {
-              std::make_shared<Reg<Reg_T>>(isa, 1, 7, 11, "rd"),
-              std::make_shared<Reg<Reg_T>>(isa, 2, 15, 19, "rs1"),
-              std::make_shared<Imm<Reg_T>>(3, 12, Imm<Reg_T>::Repr::Signed,
-                std::vector{ImmPart(0, 20, 31)})
+            Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), RVOpPartFunct3(funct3)}),
+            {makeRvReg<Reg_T, RVRegRd<Reg_T>>(isa, 1),
+             makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 2),
+             std::make_shared<Imm<Reg_T>>(RVITypeImm<Reg_T>())
             }) {}
 };
 
