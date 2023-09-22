@@ -70,7 +70,7 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
                       {RV_I<Reg_T>::Options::shifts64BitVariant,
                        RV_I<Reg_T>::Options::LI64BitVariant});
 
-  instructions.push_back(IType32(Token("addiw"), 0b000));
+  instructions.push_back(defineIType32<Reg_T>("addiw", 0b000, isa));
 
   instructions.push_back(
       IShiftType64(Token("slli"), RVISA::OPIMM, 0b001, 0b000000));

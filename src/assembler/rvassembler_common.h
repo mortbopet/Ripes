@@ -75,19 +75,22 @@ std::shared_ptr<Instruction<Reg_T>> defineIType(const QString &name, unsigned fu
       new ITypeInstr<Reg_T>(Token(name), funct3, isa));
 }
 
+template <typename Reg_T>
+class IType32Instr : public ITypeInstrCommon<Reg_T> {
+public:
+  IType32Instr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
+      : ITypeInstrCommon<Reg_T>(RVISA::OPIMM32, name, funct3, isa) {}
+};
+
+template <typename Reg_T>
+std::shared_ptr<Instruction<Reg_T>> defineIType32(const QString &name, unsigned funct3,
+                                                const ISAInfoBase *isa) {
+  return std::shared_ptr<Instruction<Reg_T>>(
+      new IType32Instr<Reg_T>(Token(name), funct3, isa));
+}
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define ITypeCommon(opcode, name, funct3)                                      \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14)}),           \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
-       std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
-       std::make_shared<_Imm>(3, 12, _Imm::Repr::Signed,                       \
-                              std::vector{ImmPart(0, 20, 31)})}))
-
-#define IType(name, funct3) ITypeCommon(RVISA::OPIMM, name, funct3)
-#define IType32(name, funct3) ITypeCommon(RVISA::OPIMM32, name, funct3)
 
 #define LoadType(name, funct3)                                                 \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
