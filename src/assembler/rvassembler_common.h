@@ -38,13 +38,14 @@ public:
                               Imm<Reg_T>::SymbolType::Relative
                             )
                           }) {}
-
-  static std::shared_ptr<Instruction<Reg_T>> defineInstr(const QString &name, unsigned funct3,
-                                                         const ISAInfoBase *isa) {
-    return std::shared_ptr<Instruction<Reg_T>>(
-        new BTypeInstr<Reg_T>(Token(name), funct3, isa));
-  }
 };
+
+template <typename Reg_T>
+std::shared_ptr<Instruction<Reg_T>> defineBType(const QString &name, unsigned funct3,
+                                                       const ISAInfoBase *isa) {
+  return std::shared_ptr<Instruction<Reg_T>>(
+      new BTypeInstr<Reg_T>(Token(name), funct3, isa));
+}
 
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
