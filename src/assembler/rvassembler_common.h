@@ -80,21 +80,21 @@ std::shared_ptr<Reg<Reg_T>> makeRvReg(const ISAInfoBase *isa, unsigned fieldInde
 }
 
 template <typename Reg_T>
-class RVBTypeImm : public Imm<Reg_T> {
+class RVImm12 : public Imm<Reg_T> {
 public:
-  RVBTypeImm(unsigned fieldIndex)
+  RVImm12(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
+                   std::vector{ImmPart(0, 20, 31)}) {}
+};
+
+template <typename Reg_T>
+class RVImm13 : public Imm<Reg_T> {
+public:
+  RVImm13(unsigned fieldIndex)
       : Imm<Reg_T>(fieldIndex, 13, Imm<Reg_T>::Repr::Signed,
                    std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
                                ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
                    Imm<Reg_T>::SymbolType::Relative) {}
-};
-
-template <typename Reg_T>
-class RVITypeImm : public Imm<Reg_T> {
-public:
-  RVITypeImm(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
-                   std::vector{ImmPart(0, 20, 31)}) {}
 };
 
 // A B-Type RISC-V instruction
@@ -107,7 +107,7 @@ public:
                           RVOpPartFunct3(funct3)}),
             {makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 1),
              makeRvReg<Reg_T, RVRegRs2<Reg_T>>(isa, 2),
-             std::make_shared<Imm<Reg_T>>(RVBTypeImm<Reg_T>(3))
+             std::make_shared<Imm<Reg_T>>(RVImm13<Reg_T>(3))
             }) {}
 };
 
@@ -126,7 +126,7 @@ public:
             Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), RVOpPartFunct3(funct3)}),
             {makeRvReg<Reg_T, RVRegRd<Reg_T>>(isa, 1),
              makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 2),
-             std::make_shared<Imm<Reg_T>>(RVITypeImm<Reg_T>(3))
+             std::make_shared<Imm<Reg_T>>(RVImm12<Reg_T>(3))
             }) {}
 };
 
@@ -163,12 +163,11 @@ class LTypeInstr : public RVInstruction<Reg_T> {
 public:
   LTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            Opcode<Reg_T>(name, {OpPart(RVISA::Opcode::LOAD, 0, 6), OpPart(funct3, 12, 14)}),
-            {
-              std::make_shared<Reg<Reg_T>>(isa, 1, 7, 11, "rd"),
-                std::make_shared<Reg<Reg_T>>(isa, 3, 15, 19, "rs1"),
-                std::make_shared<Imm<Reg_T>>(2, 12, Imm<Reg_T>::Repr::Signed,
-                                          std::vector{ImmPart(0, 20, 31)})
+            Opcode<Reg_T>(name, {RVOpPartOpcode(RVISA::Opcode::LOAD),
+                                 RVOpPartFunct3(funct3)}),
+            {makeRvReg<Reg_T, RVRegRd<Reg_T>>(isa, 1),
+             makeRvReg<Reg_T, RVRegRs1<Reg_T>>(isa, 3),
+             std::make_shared<Imm<Reg_T>>(RVImm12<Reg_T>(2))
             }) {}
 };
 
