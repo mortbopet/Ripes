@@ -288,12 +288,12 @@ struct RV_I {
     instructions.push_back(SType(Token("sh"), 0b001));
     instructions.push_back(SType(Token("sw"), 0b010));
 
-    instructions.push_back(IType(Token("addi"), 0b000));
-    instructions.push_back(IType(Token("slti"), 0b010));
-    instructions.push_back(IType(Token("sltiu"), 0b011));
-    instructions.push_back(IType(Token("xori"), 0b100));
-    instructions.push_back(IType(Token("ori"), 0b110));
-    instructions.push_back(IType(Token("andi"), 0b111));
+    instructions.push_back(defineIType<Reg__T>("addi", 0b000, isa));
+    instructions.push_back(defineIType<Reg__T>("slti", 0b010, isa));
+    instructions.push_back(defineIType<Reg__T>("sltiu", 0b011, isa));
+    instructions.push_back(defineIType<Reg__T>("xori", 0b100, isa));
+    instructions.push_back(defineIType<Reg__T>("ori", 0b110, isa));
+    instructions.push_back(defineIType<Reg__T>("andi", 0b111, isa));
 
     if (options.count(Options::shifts64BitVariant)) {
       instructions.push_back(

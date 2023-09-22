@@ -47,6 +47,34 @@ std::shared_ptr<Instruction<Reg_T>> defineBType(const QString &name, unsigned fu
       new BTypeInstr<Reg_T>(Token(name), funct3, isa));
 }
 
+template <typename Reg_T>
+class ITypeInstrCommon : public RVInstruction<Reg_T> {
+public:
+  ITypeInstrCommon(RVISA::Opcode opcode, const Token &name, unsigned funct3, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            Opcode<Reg_T>(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14)}),
+            {
+              std::make_shared<Reg<Reg_T>>(isa, 1, 7, 11, "rd"),
+              std::make_shared<Reg<Reg_T>>(isa, 2, 15, 19, "rs1"),
+              std::make_shared<Imm<Reg_T>>(3, 12, Imm<Reg_T>::Repr::Signed,
+                std::vector{ImmPart(0, 20, 31)})
+            }) {}
+};
+
+template <typename Reg_T>
+class ITypeInstr : public ITypeInstrCommon<Reg_T> {
+public:
+  ITypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
+      : ITypeInstrCommon<Reg_T>(RVISA::OPIMM, name, funct3, isa) {}
+};
+
+template <typename Reg_T>
+std::shared_ptr<Instruction<Reg_T>> defineIType(const QString &name, unsigned funct3,
+                                                const ISAInfoBase *isa) {
+  return std::shared_ptr<Instruction<Reg_T>>(
+      new ITypeInstr<Reg_T>(Token(name), funct3, isa));
+}
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
 
