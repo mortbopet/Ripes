@@ -72,7 +72,9 @@ public slots:
   void on_disassembledViewButton_toggled();
 
 private:
-  void assemble();
+  // Assembles the provided text and updates the ProcessorHandler with the
+  // assembled program.
+  void assemble(const QString &sourceText);
   void compile();
 
   void updateProgramViewer();

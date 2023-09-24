@@ -59,6 +59,9 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   connect(m_buildAction, &QAction::triggered, this, &EditTab::compile);
   m_toolbar->addAction(m_buildAction);
 
+  m_ui->codeEditor->document()->setPlainText(
+      RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
+
   connect(
       RipesSettings::getObserver(RIPES_SETTING_EDITORREGS),
       &SettingObserver::modified, m_ui->registers,
@@ -121,15 +124,6 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   m_ui->editorSplitter->setStretchFactor(0, 2);
   m_ui->editorSplitter->setStretchFactor(1, 2);
 
-  // State preservation
-  connect(
-      RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT),
-      &SettingObserver::modified, this, [=] {
-        RipesSettings::setValue(RIPES_SETTING_SOURCECODE,
-                                m_ui->codeEditor->document()->toPlainText());
-        RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
-      });
-
   switch (RipesSettings::value(RIPES_SETTING_INPUT_TYPE).toInt()) {
   case SourceType::Assembly: {
     m_ui->setAssemblyInput->toggle();
@@ -142,9 +136,6 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   default:
     break;
   }
-
-  m_ui->codeEditor->document()->setPlainText(
-      RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
 }
 
 void EditTab::showSymbolNavigator() {
@@ -279,6 +270,9 @@ void EditTab::sourceTypeChanged() {
   // Notify the source type change to the code editor
   m_ui->codeEditor->setSourceType(
       m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
+
+  // And store in settings
+  RipesSettings::setValue(RIPES_SETTING_INPUT_TYPE, m_currentSourceType);
 }
 
 void EditTab::onProcessorChanged() {
@@ -292,9 +286,12 @@ void EditTab::onProcessorChanged() {
 }
 
 void EditTab::sourceCodeChanged() {
+  auto source = m_ui->codeEditor->document()->toPlainText();
+  // Update the editor text setting for program persistance.
+  RipesSettings::setValue(RIPES_SETTING_SOURCECODE, source);
   switch (m_currentSourceType) {
   case SourceType::Assembly:
-    assemble();
+    assemble(source);
     break;
   default:
     // Do nothing, either some external program is loaded or, if compiling from
@@ -303,10 +300,9 @@ void EditTab::sourceCodeChanged() {
   }
 }
 
-void EditTab::assemble() {
+void EditTab::assemble(const QString &source) {
   auto res = ProcessorHandler::getAssembler()->assembleRaw(
-      m_ui->codeEditor->document()->toPlainText(),
-      &IOManager::get().assemblerSymbols());
+      source, &IOManager::get().assemblerSymbols());
   *m_sourceErrors = res.errors;
   if (m_sourceErrors->size() == 0) {
     ProcessorHandler::loadProgram(std::make_shared<Program>(res.program));
