@@ -2,7 +2,7 @@
 [![Windows / Qt 6.5.0](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml)
 [![Mac release / Qt 6.5.0](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml)
 [![Ubuntu release 16.04 / Qt 6.5.0](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml)
-[![Ripes CI tests](https://github.com/mortbopet/Ripes/actions/workflows/test.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/test.yml)
+[![WASM / Qt 6.6.0](https://github.com/mortbopet/Ripes/actions/workflows/wasm-release.yml/badge.svg?branch=master)](https://github.com/mortbopet/Ripes/actions/workflows/wasm-release.yml)
 [![Gitter](https://badges.gitter.im/Ripes-VSRTL/Ripes.svg)](https://gitter.im/Ripes-VSRTL/)
 
 Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
