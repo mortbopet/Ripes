@@ -308,9 +308,9 @@ public:
   STypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::STORE, RVOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 1)),
+            {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 3)),
              std::make_shared<Imm<Reg_T>>(RVImmSType<Reg_T>(2)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 3))}) {}
+             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 1))}) {}
 };
 
 template <typename Reg_T>
