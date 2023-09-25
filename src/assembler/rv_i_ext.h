@@ -275,7 +275,8 @@ struct RV_I {
                                 std::vector{ImmPart(0, 12, 31)},
                                 _Imm::SymbolType::Absolute)})));
 
-    instructions.push_back(JType(Token("jal"), RVISA::Opcode::JAL));
+    instructions.push_back(std::make_shared<_Instruction>(
+        JTypeInstr<Reg__T>(Token("jal"), RVISA::Opcode::JAL, isa)));
 
     instructions.push_back(JALRType(Token("jalr")));
 

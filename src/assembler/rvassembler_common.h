@@ -151,7 +151,7 @@ public:
 // A RISC-V signed immediate field with an input width of 13 bits.
 // Used in B-Type instructions.
 //
-// It is defined as 4 separate parts:
+// It is defined as:
 //  - Imm[31:12] = Inst[31]
 //  - Imm[11]    = Inst[7]
 //  - Imm[10:5]  = Inst[30:25]
@@ -170,7 +170,7 @@ public:
 // A RISC-V signed immediate field with an input width of 20 bits.
 // Used in U-Type instructions.
 //
-// It is defined as 4 separate parts:
+// It is defined as:
 //  - Imm[31:12] = Inst[31:12]
 //  - Imm[11:0]  = 0
 template <typename Reg_T>
@@ -178,6 +178,27 @@ class RVImmUType : public Imm<Reg_T> {
 public:
   RVImmUType(unsigned fieldIndex)
       : Imm<Reg_T>(fieldIndex, 32, Imm<Reg_T>::Repr::Hex, std::vector{ImmPart(0, 12, 31)}) {}
+};
+
+
+// A RISC-V signed immediate field with an input width of 21 bits.
+// Used in J-Type instructions.
+//
+// It is defined as:
+//  - Imm[31:20] = Inst[31]
+//  - Imm[19:12] = Inst[19:12]
+//  - Imm[11]    = Inst[20]
+//  - Imm[10:5]  = Inst[30:25]
+//  - Imm[4:1]   = Inst[24:21]
+//  - Imm[0]     = 0
+template <typename Reg_T>
+class RVImmJType : public Imm<Reg_T> {
+public:
+  RVImmJType(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 21, Imm<Reg_T>::Repr::Signed,
+                   std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),
+                               ImmPart(11, 20, 20), ImmPart(1, 21, 30)},
+                   Imm<Reg_T>::SymbolType::Relative) {}
 };
 
 // A B-Type RISC-V instruction
@@ -302,18 +323,18 @@ public:
              std::make_shared<Imm<Reg_T>>(RVImmUType<Reg_T>(2))}) {}
 };
 
+template <typename Reg_T>
+class JTypeInstr : public RVInstruction<Reg_T> {
+public:
+  JTypeInstr(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            RVOpcode<Reg_T>(name, opcode),
+            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
+             std::make_shared<Imm<Reg_T>>(RVImmJType<Reg_T>(2))}) {}
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define JType(name, opcode)                                                    \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name, {OpPart(opcode, 0, 6)}),                                   \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
-       std::make_shared<_Imm>(                                                 \
-           2, 21, _Imm::Repr::Signed,                                          \
-           std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),               \
-                       ImmPart(11, 20, 20), ImmPart(1, 21, 30)},               \
-           _Imm::SymbolType::Relative)}))
 
 #define JALRType(name)                                                         \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
