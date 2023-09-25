@@ -361,7 +361,7 @@ void MainWindow::loadFileTriggered() {
 
 void MainWindow::wiki() {
   QDesktopServices::openUrl(
-      QUrl(QString("https://github.com/mortbopet/Ripes/wiki")));
+      QUrl(QString("https://github.com/mortbopet/Ripes/blob/master/docs/README.md")));
 }
 
 void MainWindow::version() {
