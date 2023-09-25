@@ -160,7 +160,7 @@
            <item>
             <widget class="QLabel" name="label_6">
              <property name="text">
-              <string>Info:</string>
+              <string>ELF info:</string>
              </property>
             </widget>
            </item>
