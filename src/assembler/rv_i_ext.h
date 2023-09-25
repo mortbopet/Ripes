@@ -289,9 +289,12 @@ struct RV_I {
     instructions.push_back(std::make_shared<_Instruction>(
         LTypeInstr<Reg__T>(Token("lhu"), 0b101, isa)));
 
-    instructions.push_back(SType(Token("sb"), 0b000));
-    instructions.push_back(SType(Token("sh"), 0b001));
-    instructions.push_back(SType(Token("sw"), 0b010));
+    instructions.push_back(std::make_shared<_Instruction>(
+        STypeInstr<Reg__T>(Token("sb"), 0b000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        STypeInstr<Reg__T>(Token("sh"), 0b001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        STypeInstr<Reg__T>(Token("sw"), 0b010, isa)));
 
     instructions.push_back(std::make_shared<_Instruction>(
         ITypeInstr<Reg__T>(Token("addi"), 0b000, isa)));

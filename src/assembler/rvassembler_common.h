@@ -127,6 +127,19 @@ public:
                    std::vector{ImmPart(0, 20, 31)}) {}
 };
 
+// A RISC-V signed immediate field with a width of 12 bits. Used in S-Type instructions.
+// It is defined as:
+//  - Imm[31:11] = Bit 31
+//  - Imm[10:5]  = Bits 25-30 (inclusive)
+//  - Imm[4:0]   = Bits 7-11 (inclusive)
+template <typename Reg_T>
+class RVImmSType : public Imm<Reg_T> {
+public:
+  RVImmSType(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
+                   std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
+};
+
 // A RISC-V signed immediate field with a width of 13 bits.
 // It is defined as 4 separate parts:
 //  - Imm[31:12] = Bit 31
@@ -245,18 +258,19 @@ public:
       : RTypeInstrCommon<Reg_T>(name, RVISA::OP32, funct3, funct7, isa) {}
 };
 
+template <typename Reg_T>
+class STypeInstr : public RVInstruction<Reg_T> {
+public:
+  STypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            RVOpcode<Reg_T>(name, RVISA::Opcode::STORE, RVOpPartFunct3(funct3)),
+            {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 1)),
+             std::make_shared<Imm<Reg_T>>(RVImmSType<Reg_T>(2)),
+             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 3))}) {}
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define SType(name, funct3)                                                    \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name,                                                            \
-              {OpPart(RVISA::Opcode::STORE, 0, 6), OpPart(funct3, 12, 14)}),   \
-      {std::make_shared<_Reg>(isa, 3, 15, 19, "rs1"),                          \
-       std::make_shared<_Imm>(                                                 \
-           2, 12, _Imm::Repr::Signed,                                          \
-           std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}),                \
-       std::make_shared<_Reg>(isa, 1, 20, 24, "rs2")}))
 
 #define UType(name, opcode)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
