@@ -93,36 +93,36 @@ public:
       : Reg<Reg_T>(isa, fieldIndex, 7, 11, "rd") {}
 };
 
-// A RISC-V unsigned immediate field with a width of 5 bits.
+// A RISC-V unsigned immediate field with a width of 5 bits. Used in I-Shift32-Type instructions.
 // It is defined as:
 //  - Imm[4:0] = Bits 20-24 (inclusive)
 template <typename Reg_T>
-class RVImm5 : public Imm<Reg_T> {
+class RVImmIShift32Type : public Imm<Reg_T> {
 public:
-  RVImm5(unsigned fieldIndex)
+  RVImmIShift32Type(unsigned fieldIndex)
       : Imm<Reg_T>(fieldIndex, 5, Imm<Reg_T>::Repr::Unsigned,
                    std::vector{ImmPart(0, 20, 24)}) {}
 };
 
-// A RISC-V unsigned immediate field with a width of 6 bits.
+// A RISC-V unsigned immediate field with a width of 6 bits. Used in I-Shift64-Type instructions.
 // It is defined as:
 //  - Imm[5:0] = Bits 20-25 (inclusive)
 template <typename Reg_T>
-class RVImm6 : public Imm<Reg_T> {
+class RVImmIShift64Type : public Imm<Reg_T> {
 public:
-  RVImm6(unsigned fieldIndex)
+  RVImmIShift64Type(unsigned fieldIndex)
       : Imm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Unsigned,
                    std::vector{ImmPart(0, 20, 25)}) {}
 };
 
-// A RISC-V signed immediate field with a width of 12 bits.
+// A RISC-V signed immediate field with a width of 12 bits. Used in L-Type and I-Type instructions.
 // It is defined as:
 //  - Imm[31:11] = Bit 31
 //  - Imm[10:0]  = Bits 20-30 (inclusive)
 template <typename Reg_T>
-class RVImm12 : public Imm<Reg_T> {
+class RVImmCommon12 : public Imm<Reg_T> {
 public:
-  RVImm12(unsigned fieldIndex)
+  RVImmCommon12(unsigned fieldIndex)
       : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
                    std::vector{ImmPart(0, 20, 31)}) {}
 };
@@ -140,7 +140,7 @@ public:
                    std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
 };
 
-// A RISC-V signed immediate field with a width of 13 bits.
+// A RISC-V signed immediate field with a width of 13 bits. Used in B-Type instructions.
 // It is defined as 4 separate parts:
 //  - Imm[31:12] = Bit 31
 //  - Imm[11]    = Bit 7
@@ -148,9 +148,9 @@ public:
 //  - Imm[4:1]   = Bits 8-11 (inclusive)
 //  - Imm[0]     = Constant 0
 template <typename Reg_T>
-class RVImm13 : public Imm<Reg_T> {
+class RVImmBType : public Imm<Reg_T> {
 public:
-  RVImm13(unsigned fieldIndex)
+  RVImmBType(unsigned fieldIndex)
       : Imm<Reg_T>(fieldIndex, 13, Imm<Reg_T>::Repr::Signed,
                    std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
                                ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
@@ -166,7 +166,7 @@ public:
             RVOpcode<Reg_T>(name, RVISA::Opcode::BRANCH, RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImm13<Reg_T>(3))
+             std::make_shared<Imm<Reg_T>>(RVImmBType<Reg_T>(3))
             }) {}
 };
 
@@ -178,7 +178,7 @@ public:
             RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImm12<Reg_T>(3))
+             std::make_shared<Imm<Reg_T>>(RVImmCommon12<Reg_T>(3))
             }) {}
 };
 
@@ -204,7 +204,7 @@ public:
             RVOpcode<Reg_T>(name, RVISA::Opcode::LOAD, RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 3)),
-             std::make_shared<Imm<Reg_T>>(RVImm12<Reg_T>(2))
+             std::make_shared<Imm<Reg_T>>(RVImmCommon12<Reg_T>(2))
             }) {}
 };
 
@@ -217,7 +217,7 @@ public:
             RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3), RVOpPartFunct7(funct7)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImm5<Reg_T>(3))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmIShift32Type<Reg_T>(3))}) {}
 };
 
 template <typename Reg_T>
@@ -229,7 +229,7 @@ public:
             RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3), RVOpPartFunct6(funct6)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImm6<Reg_T>(3))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmIShift64Type<Reg_T>(3))}) {}
 };
 
 template <typename Reg_T>
