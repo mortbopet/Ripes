@@ -15,44 +15,54 @@ public:
       : Instruction<Reg_T>(opcode, fields) {}
 };
 
+// All RISC-V opcodes are defined as the 7 LSBs of the instruction
 class RVOpPartOpcode : public OpPart {
 public:
   RVOpPartOpcode(RVISA::Opcode opcode)
       : OpPart(opcode, 0, 6) {}
 };
 
+// All RISC-V Funct3 opcode parts are defined as bits 12-14 (inclusive) of the instruction
 class RVOpPartFunct3 : public OpPart {
 public:
   RVOpPartFunct3(unsigned funct3)
       : OpPart(funct3, 12, 14) {}
 };
 
+// All RISC-V Funct6 opcode parts are defined as bits 26-31 (inclusive) of the instruction
 class RVOpPartFunct6 : public OpPart {
 public:
   RVOpPartFunct6(unsigned funct6)
       : OpPart(funct6, 26, 31) {}
 };
 
+// All RISC-V Funct7 opcode parts are defined as bits 25-31 (inclusive) of the instruction
 class RVOpPartFunct7 : public OpPart {
 public:
   RVOpPartFunct7(unsigned funct7)
       : OpPart(funct7, 25, 31) {}
 };
 
+// A RISC-V opcode defines the encoding of specific instructions
 template <typename Reg_T>
 class RVOpcode : public Opcode<Reg_T> {
 public:
+  // A RISC-V opcode with no parts
   RVOpcode(const Token &name, RVISA::Opcode opcode)
       : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode)}) {}
 
+  // A RISC-V opcode with a Funct3 part
   RVOpcode(const Token &name, RVISA::Opcode opcode, RVOpPartFunct3 funct3)
       : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), funct3}) {}
 
+  // A RISC-V opcode with Funct3 and Funct7 parts
   RVOpcode(const Token &name, RVISA::Opcode opcode, RVOpPartFunct3 funct3,
            RVOpPartFunct7 funct7)
       : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), funct3, funct7}) {}
 };
 
+// The RISC-V Rs1 field contains a source register index.
+// It is defined as bits 15-19 (inclusive)
 template <typename Reg_T>
 class RVRegRs1 : public Reg<Reg_T> {
 public:
@@ -60,6 +70,8 @@ public:
       : Reg<Reg_T>(isa, fieldIndex, 15, 19, "rs1") {}
 };
 
+// The RISC-V Rs2 field contains a source register index.
+// It is defined as bits 20-24 (inclusive)
 template <typename Reg_T>
 class RVRegRs2 : public Reg<Reg_T> {
 public:
@@ -67,6 +79,8 @@ public:
       : Reg<Reg_T>(isa, fieldIndex, 20, 24, "rs2") {}
 };
 
+// The RISC-V Rd field contains a destination register index.
+// It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
 class RVRegRd : public Reg<Reg_T> {
 public:
@@ -74,6 +88,9 @@ public:
       : Reg<Reg_T>(isa, fieldIndex, 7, 11, "rd") {}
 };
 
+// A RISC-V unsigned immediate field with a width of 5 bits.
+// It is defined as:
+//  - Imm[4:0] = Bits 20-24 (inclusive)
 template <typename Reg_T>
 class RVImm5 : public Imm<Reg_T> {
 public:
@@ -82,6 +99,10 @@ public:
                    std::vector{ImmPart(0, 20, 24)}) {}
 };
 
+// A RISC-V signed immediate field with a width of 12 bits.
+// It is defined as:
+//  - Imm[31:11] = Bit 31
+//  - Imm[10:0]  = Bits 20-30 (inclusive)
 template <typename Reg_T>
 class RVImm12 : public Imm<Reg_T> {
 public:
@@ -90,6 +111,13 @@ public:
                    std::vector{ImmPart(0, 20, 31)}) {}
 };
 
+// A RISC-V signed immediate field with a width of 13 bits.
+// It is defined as 4 separate parts:
+//  - Imm[31:12] = Bit 31
+//  - Imm[11]    = Bit 7
+//  - Imm[10:5]  = Bits 25-30 (inclusive)
+//  - Imm[4:1]   = Bits 8-11 (inclusive)
+//  - Imm[0]     = Constant 0
 template <typename Reg_T>
 class RVImm13 : public Imm<Reg_T> {
 public:
