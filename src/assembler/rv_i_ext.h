@@ -278,31 +278,48 @@ struct RV_I {
 
     instructions.push_back(JALRType(Token("jalr")));
 
-    instructions.push_back(defineLType<Reg__T>("lb", 0b000, isa));
-    instructions.push_back(defineLType<Reg__T>("lh", 0b001, isa));
-    instructions.push_back(defineLType<Reg__T>("lw", 0b010, isa));
-    instructions.push_back(defineLType<Reg__T>("lbu", 0b100, isa));
-    instructions.push_back(defineLType<Reg__T>("lhu", 0b101, isa));
+    instructions.push_back(std::make_shared<_Instruction>(
+        LTypeInstr<Reg__T>(Token("lb"), 0b000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        LTypeInstr<Reg__T>(Token("lh"), 0b001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        LTypeInstr<Reg__T>(Token("lw"), 0b010, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        LTypeInstr<Reg__T>(Token("lbu"), 0b100, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        LTypeInstr<Reg__T>(Token("lhu"), 0b101, isa)));
 
     instructions.push_back(SType(Token("sb"), 0b000));
     instructions.push_back(SType(Token("sh"), 0b001));
     instructions.push_back(SType(Token("sw"), 0b010));
 
-    instructions.push_back(defineIType<Reg__T>("addi", 0b000, isa));
-    instructions.push_back(defineIType<Reg__T>("slti", 0b010, isa));
-    instructions.push_back(defineIType<Reg__T>("sltiu", 0b011, isa));
-    instructions.push_back(defineIType<Reg__T>("xori", 0b100, isa));
-    instructions.push_back(defineIType<Reg__T>("ori", 0b110, isa));
-    instructions.push_back(defineIType<Reg__T>("andi", 0b111, isa));
+    instructions.push_back(std::make_shared<_Instruction>(
+        ITypeInstr<Reg__T>(Token("addi"), 0b000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        ITypeInstr<Reg__T>(Token("slti"), 0b010, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        ITypeInstr<Reg__T>(Token("sltiu"), 0b011, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        ITypeInstr<Reg__T>(Token("xori"), 0b100, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        ITypeInstr<Reg__T>(Token("ori"), 0b110, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        ITypeInstr<Reg__T>(Token("andi"), 0b111, isa)));
 
     if (options.count(Options::shifts64BitVariant)) {
-      instructions.push_back(defineIShiftType32<Reg__T>("slliw", RVISA::OPIMM32, 0b001, 0b0000000, isa));
-      instructions.push_back(defineIShiftType32<Reg__T>("srliw", RVISA::OPIMM32, 0b101, 0b0000000, isa));
-      instructions.push_back(defineIShiftType32<Reg__T>("sraiw", RVISA::OPIMM32, 0b101, 0b0100000, isa));
+      instructions.push_back(std::make_shared<_Instruction>(
+          IShiftType32Instr<Reg__T>(Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000, isa)));
+      instructions.push_back(std::make_shared<_Instruction>(
+          IShiftType32Instr<Reg__T>(Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000, isa)));
+      instructions.push_back(std::make_shared<_Instruction>(
+          IShiftType32Instr<Reg__T>(Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000, isa)));
     } else {
-      instructions.push_back(defineIShiftType32<Reg__T>("slli", RVISA::OPIMM, 0b001, 0b0000000, isa));
-      instructions.push_back(defineIShiftType32<Reg__T>("srli", RVISA::OPIMM, 0b101, 0b0000000, isa));
-      instructions.push_back(defineIShiftType32<Reg__T>("srai", RVISA::OPIMM, 0b101, 0b0100000, isa));
+      instructions.push_back(std::make_shared<_Instruction>(
+          IShiftType32Instr<Reg__T>(Token("slli"), RVISA::OPIMM, 0b001, 0b0000000, isa)));
+      instructions.push_back(std::make_shared<_Instruction>(
+          IShiftType32Instr<Reg__T>(Token("srli"), RVISA::OPIMM, 0b101, 0b0000000, isa)));
+      instructions.push_back(std::make_shared<_Instruction>(
+          IShiftType32Instr<Reg__T>(Token("srai"), RVISA::OPIMM, 0b101, 0b0100000, isa)));
     }
 
     instructions.push_back(RType(Token("add"), 0b000, 0b0000000));
@@ -316,12 +333,18 @@ struct RV_I {
     instructions.push_back(RType(Token("or"), 0b110, 0b0000000));
     instructions.push_back(RType(Token("and"), 0b111, 0b0000000));
 
-    instructions.push_back(defineBType<Reg__T>("beq", 0b000, isa));
-    instructions.push_back(defineBType<Reg__T>("bne", 0b001, isa));
-    instructions.push_back(defineBType<Reg__T>("blt", 0b100, isa));
-    instructions.push_back(defineBType<Reg__T>("bge", 0b101, isa));
-    instructions.push_back(defineBType<Reg__T>("bltu", 0b110, isa));
-    instructions.push_back(defineBType<Reg__T>("bgeu", 0b111, isa));
+    instructions.push_back(std::make_shared<_Instruction>(
+        BTypeInstr<Reg__T>(Token("beq"), 0b000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        BTypeInstr<Reg__T>(Token("bne"), 0b001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        BTypeInstr<Reg__T>(Token("blt"), 0b100, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        BTypeInstr<Reg__T>(Token("bge"), 0b101, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        BTypeInstr<Reg__T>(Token("bltu"), 0b110, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        BTypeInstr<Reg__T>(Token("bgeu"), 0b111, isa)));
   }
 };
 

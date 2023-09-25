@@ -70,7 +70,8 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
                       {RV_I<Reg_T>::Options::shifts64BitVariant,
                        RV_I<Reg_T>::Options::LI64BitVariant});
 
-  instructions.push_back(defineIType32<Reg_T>("addiw", 0b000, isa));
+  instructions.push_back(std::make_shared<_Instruction>(
+      IType32Instr<Reg_T>(Token("addiw"), 0b000, isa)));
 
   instructions.push_back(
       IShiftType64(Token("slli"), RVISA::OPIMM, 0b001, 0b000000));
@@ -85,8 +86,10 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
   instructions.push_back(RType32(Token("srlw"), 0b101, 0b0000000));
   instructions.push_back(RType32(Token("sraw"), 0b101, 0b0100000));
 
-  instructions.push_back(defineLType<Reg_T>("lwu", 0b110, isa));
-  instructions.push_back(defineLType<Reg_T>("ld", 0b011, isa));
+  instructions.push_back(std::make_shared<_Instruction>(
+      LTypeInstr<Reg_T>(Token("lwu"), 0b110, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      LTypeInstr<Reg_T>(Token("ld"), 0b011, isa)));
   instructions.push_back(SType(Token("sd"), 0b011));
 
   pseudoInstructions.push_back(PseudoLoad(Token("ld")));
