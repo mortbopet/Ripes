@@ -265,7 +265,8 @@ struct RV_I {
                 {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}),
         {})));
 
-    instructions.push_back(UType(Token("lui"), RVISA::Opcode::LUI));
+    instructions.push_back(std::make_shared<_Instruction>(
+        UTypeInstr<Reg__T>(Token("lui"), RVISA::Opcode::LUI, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
         _Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
