@@ -322,16 +322,26 @@ struct RV_I {
           IShiftType32Instr<Reg__T>(Token("srai"), RVISA::OPIMM, 0b101, 0b0100000, isa)));
     }
 
-    instructions.push_back(RType(Token("add"), 0b000, 0b0000000));
-    instructions.push_back(RType(Token("sub"), 0b000, 0b0100000));
-    instructions.push_back(RType(Token("sll"), 0b001, 0b0000000));
-    instructions.push_back(RType(Token("slt"), 0b010, 0b0000000));
-    instructions.push_back(RType(Token("sltu"), 0b011, 0b0000000));
-    instructions.push_back(RType(Token("xor"), 0b100, 0b0000000));
-    instructions.push_back(RType(Token("srl"), 0b101, 0b0000000));
-    instructions.push_back(RType(Token("sra"), 0b101, 0b0100000));
-    instructions.push_back(RType(Token("or"), 0b110, 0b0000000));
-    instructions.push_back(RType(Token("and"), 0b111, 0b0000000));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("add"), 0b000, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("sub"), 0b000, 0b0100000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("sll"), 0b001, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("slt"), 0b010, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("sltu"), 0b011, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("xor"), 0b100, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("srl"), 0b101, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("sra"), 0b101, 0b0100000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("or"), 0b110, 0b0000000, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("and"), 0b111, 0b0000000, isa)));
 
     instructions.push_back(std::make_shared<_Instruction>(
         BTypeInstr<Reg__T>(Token("beq"), 0b000, isa)));

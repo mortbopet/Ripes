@@ -80,11 +80,16 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
   instructions.push_back(std::make_shared<_Instruction>(
       IShiftType64Instr<Reg_T>(Token("srai"), RVISA::OPIMM, 0b101, 0b010000, isa)));
 
-  instructions.push_back(RType32(Token("addw"), 0b000, 0b0000000));
-  instructions.push_back(RType32(Token("subw"), 0b000, 0b0100000));
-  instructions.push_back(RType32(Token("sllw"), 0b001, 0b0000000));
-  instructions.push_back(RType32(Token("srlw"), 0b101, 0b0000000));
-  instructions.push_back(RType32(Token("sraw"), 0b101, 0b0100000));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("addw"), 0b000, 0b0000000, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("subw"), 0b000, 0b0100000, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("sllw"), 0b001, 0b0000000, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("srlw"), 0b101, 0b0000000, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("sraw"), 0b101, 0b0100000, isa)));
 
   instructions.push_back(std::make_shared<_Instruction>(
       LTypeInstr<Reg_T>(Token("lwu"), 0b110, isa)));
@@ -114,11 +119,16 @@ void RV64I_Assembler::enableExtM(const ISAInfoBase *isa,
                                  _PseudoInstrVec &pseudoInstructions) {
   RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
 
-  instructions.push_back(RType32(Token("mulw"), 0b000, 0b0000001));
-  instructions.push_back(RType32(Token("divw"), 0b100, 0b0000001));
-  instructions.push_back(RType32(Token("divuw"), 0b101, 0b0000001));
-  instructions.push_back(RType32(Token("remw"), 0b110, 0b0000001));
-  instructions.push_back(RType32(Token("remuw"), 0b111, 0b0000001));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("mulw"), 0b000, 0b0000001, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("divw"), 0b100, 0b0000001, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("divuw"), 0b101, 0b0000001, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("remw"), 0b110, 0b0000001, isa)));
+  instructions.push_back(std::make_shared<_Instruction>(
+      RType32Instr<Reg_T>(Token("remuw"), 0b111, 0b0000001, isa)));
 }
 
 } // namespace Assembler

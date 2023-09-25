@@ -219,20 +219,34 @@ public:
              std::make_shared<Imm<Reg_T>>(RVImm6<Reg_T>(3))}) {}
 };
 
+template <typename Reg_T>
+class RTypeInstrCommon : public RVInstruction<Reg_T> {
+public:
+  RTypeInstrCommon(const Token &name, RVISA::Opcode opcode, unsigned funct3,
+                 unsigned funct7, const ISAInfoBase *isa)
+    : RVInstruction<Reg_T>(
+            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3), RVOpPartFunct7(funct7)),
+            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
+             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
+             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 3))}) {}
+};
+
+template <typename Reg_T>
+class RTypeInstr : public RTypeInstrCommon<Reg_T> {
+public:
+  RTypeInstr(const Token &name, unsigned funct3, unsigned funct7, const ISAInfoBase *isa)
+      : RTypeInstrCommon<Reg_T>(name, RVISA::OP, funct3, funct7, isa) {}
+};
+
+template <typename Reg_T>
+class RType32Instr : public RTypeInstrCommon<Reg_T> {
+public:
+  RType32Instr(const Token &name, unsigned funct3, unsigned funct7, const ISAInfoBase *isa)
+      : RTypeInstrCommon<Reg_T>(name, RVISA::OP32, funct3, funct7, isa) {}
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define RTypeCommon(name, opcode, funct3, funct7)                              \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name, {OpPart(opcode, 0, 6), OpPart(funct3, 12, 14),             \
-                     OpPart(funct7, 25, 31)}),                                 \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
-       std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
-       std::make_shared<_Reg>(isa, 3, 20, 24, "rs2")}))
-
-#define RType(name, funct3, funct7) RTypeCommon(name, RVISA::OP, funct3, funct7)
-#define RType32(name, funct3, funct7)                                          \
-  RTypeCommon(name, RVISA::OP32, funct3, funct7)
 
 #define SType(name, funct3)                                                    \
   std::shared_ptr<_Instruction>(new _Instruction(                              \

@@ -24,14 +24,22 @@ struct RV_M {
     // Pseudo-op functors
 
     // Assembler functors
-    instructions.push_back(RType(Token("mul"), 0b000, 0b0000001));
-    instructions.push_back(RType(Token("mulh"), 0b001, 0b0000001));
-    instructions.push_back(RType(Token("mulhsu"), 0b010, 0b0000001));
-    instructions.push_back(RType(Token("mulhu"), 0b011, 0b0000001));
-    instructions.push_back(RType(Token("div"), 0b100, 0b0000001));
-    instructions.push_back(RType(Token("divu"), 0b101, 0b0000001));
-    instructions.push_back(RType(Token("rem"), 0b110, 0b0000001));
-    instructions.push_back(RType(Token("remu"), 0b111, 0b0000001));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("mul"), 0b000, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("mulh"), 0b001, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("mulhsu"), 0b010, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("mulhu"), 0b011, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("div"), 0b100, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("divu"), 0b101, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("rem"), 0b110, 0b0000001, isa)));
+    instructions.push_back(std::make_shared<_Instruction>(
+        RTypeInstr<Reg__T>(Token("remu"), 0b111, 0b0000001, isa)));
   }
 };
 
