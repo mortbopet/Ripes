@@ -278,7 +278,8 @@ struct RV_I {
     instructions.push_back(std::make_shared<_Instruction>(
         JTypeInstr<Reg__T>(Token("jal"), RVISA::Opcode::JAL, isa)));
 
-    instructions.push_back(JALRType(Token("jalr")));
+    instructions.push_back(std::make_shared<_Instruction>(
+        JALRTypeInstr<Reg__T>(Token("jalr"), isa)));
 
     instructions.push_back(std::make_shared<_Instruction>(
         LTypeInstr<Reg__T>(Token("lb"), 0b000, isa)));

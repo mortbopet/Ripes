@@ -333,17 +333,19 @@ public:
              std::make_shared<Imm<Reg_T>>(RVImmJType<Reg_T>(2))}) {}
 };
 
+template <typename Reg_T>
+class JALRTypeInstr : public RVInstruction<Reg_T> {
+public:
+  JALRTypeInstr(const Token &name, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            RVOpcode<Reg_T>(name, RVISA::Opcode::JALR, RVOpPartFunct3(0b000)),
+            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
+             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
+             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(3))}) {}
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
-
-#define JALRType(name)                                                         \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      _Opcode(name,                                                            \
-              {OpPart(RVISA::Opcode::JALR, 0, 6), OpPart(0b000, 12, 14)}),     \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),                            \
-       std::make_shared<_Reg>(isa, 2, 15, 19, "rs1"),                          \
-       std::make_shared<_Imm>(3, 12, _Imm::Repr::Signed,                       \
-                              std::vector{ImmPart(0, 20, 31)})}))
 
 #define RegTok _PseudoInstruction::reg()
 #define ImmTok _PseudoInstruction::imm()
