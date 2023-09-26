@@ -164,8 +164,8 @@ public:
 
 // A RISC-V immediate field with an input width of 6 bits.
 // Used in the following instructions:
-//  - C.ADDI (unsigned)
-//  - C.ADDIW (unsigned)
+//  - C.ADDI (signed)
+//  - C.ADDIW (signed)
 //  - C.SLLI (unsigned)
 //  - C.LI (signed)
 //
