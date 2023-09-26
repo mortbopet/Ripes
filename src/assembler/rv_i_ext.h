@@ -35,9 +35,12 @@ struct RV_I {
         new PseudoLoadInstr<Reg__T>(Token("lh"))));
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
         new PseudoLoadInstr<Reg__T>(Token("lw"))));
-    pseudoInstructions.push_back(PseudoStore(Token("sb")));
-    pseudoInstructions.push_back(PseudoStore(Token("sh")));
-    pseudoInstructions.push_back(PseudoStore(Token("sw")));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new PseudoStoreInstr<Reg__T>(Token("sb"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new PseudoStoreInstr<Reg__T>(Token("sh"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new PseudoStoreInstr<Reg__T>(Token("sw"))));
 
     // clang-format off
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(

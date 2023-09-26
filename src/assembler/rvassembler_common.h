@@ -366,6 +366,37 @@ public:
             }) {}
 };
 
+// The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if
+// we detect that a number has been provided, then abort the pseudo-op handling.
+template <typename Reg_T>
+class PseudoStoreInstr : public PseudoInstruction<Reg_T> {
+public:
+  PseudoStoreInstr(const Token &name)
+      : PseudoInstruction<Reg_T>(
+            name,
+            {PseudoInstruction<Reg_T>::reg(),
+             PseudoInstruction<Reg_T>::imm(),
+             PseudoInstruction<Reg_T>::reg()},
+            [=](const PseudoInstruction<Reg_T> &, const TokenizedSrcLine &line,
+                const SymbolMap &) {
+              bool canConvert;
+              getImmediate(line.tokens.at(2), canConvert);
+              if (canConvert) {
+                return Result<std::vector<LineTokens>>(
+                    Error(0, "Unused; will fallback to non-pseudo op sw"));
+              }
+              LineTokensVec v;
+              v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
+                                       << Token(line.tokens.at(2), "%pcrel_hi"));
+              v.push_back(LineTokens()
+                          << name << line.tokens.at(1)
+                          << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
+                                   "%pcrel_lo")
+                          << line.tokens.at(3));
+              return Result<std::vector<LineTokens>>(v);
+            }) {}
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
 
@@ -379,28 +410,6 @@ public:
 #define _PseudoExpandFunc(line)                                                \
   [](const _PseudoInstruction &, const TokenizedSrcLine &line,                 \
      const SymbolMap &)
-
-// The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if
-// we detect that a number has been provided, then abort the pseudo-op handling.
-#define PseudoStore(name)                                                      \
-  std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(                  \
-      name, {RegTok, ImmTok, RegTok}, _PseudoExpandFunc(line) {                \
-        bool canConvert;                                                       \
-        getImmediate(line.tokens.at(2), canConvert);                           \
-        if (canConvert) {                                                      \
-          return Result<std::vector<LineTokens>>(                              \
-              Error(0, "Unused; will fallback to non-pseudo op sw"));          \
-        }                                                                      \
-        LineTokensVec v;                                                       \
-        v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)        \
-                                 << Token(line.tokens.at(2), "%pcrel_hi"));    \
-        v.push_back(LineTokens()                                               \
-                    << name << line.tokens.at(1)                               \
-                    << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),       \
-                             "%pcrel_lo")                                      \
-                    << line.tokens.at(3));                                     \
-        return Result<std::vector<LineTokens>>(v);                             \
-      }))
 
 } // namespace Assembler
 } // namespace Ripes
