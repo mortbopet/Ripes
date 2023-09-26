@@ -22,6 +22,13 @@ public:
       : OpPart(opcode, 0, 6) {}
 };
 
+// All RISC-V instruction quadrants are defined as the 2 LSBs of the instruction
+class RVOpPartQuadrant : public OpPart {
+public:
+  RVOpPartQuadrant(RVISA::Quadrant quadrant)
+      : OpPart(quadrant, 0, 1) {}
+};
+
 // All RISC-V Funct3 opcode parts are defined as bits 12-14 (inclusive) of the instruction
 class RVOpPartFunct3 : public OpPart {
 public:

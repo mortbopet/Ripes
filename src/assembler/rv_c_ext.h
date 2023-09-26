@@ -45,12 +45,70 @@ struct RVCReg : public Reg<Reg_T> {
   }
 };
 
-#define CAType(name, funct2, funct6)                                           \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(0b01, 0, 1), OpPart(funct2, 5, 6),          \
-                            OpPart(funct6, 10, 15)}),                          \
-      {std::make_shared<RVCReg<Reg__T>>(isa, 2, 2, 4, "rs2'"),                 \
-       std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rd'/rs1'")}))
+// A base class for RISC-V compressed instructions
+template <typename Reg_T>
+class RVCInstruction : public RVInstruction<Reg_T> {
+public:
+  RVCInstruction(const Opcode<Reg_T> &opcode,
+                 const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+      : RVInstruction<Reg_T>(opcode, fields) {}
+};
+
+// All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the instruction
+class RVCOpPartFunct2 : public OpPart {
+public:
+  RVCOpPartFunct2(unsigned funct2)
+      : OpPart(funct2, 5, 6) {}
+};
+
+// All RISC-V compressed Funct6 opcode parts are defined as bits 10-15 (inclusive) of the instruction
+class RVCOpPartFunct6 : public OpPart {
+public:
+  RVCOpPartFunct6(unsigned funct6)
+      : OpPart(funct6, 10, 15) {}
+};
+
+// A RISC-V compressed opcode defines the encoding of specific compressed instructions
+template <typename Reg_T>
+class RVCOpcode : public Opcode<Reg_T> {
+public:
+  // A RISC-V opcode with compressed Funct2 and Funct6 parts
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
+            RVCOpPartFunct6 funct6)
+      : Opcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
+};
+
+// The RISC-V Compressed Rs2 field contains a source register index.
+// It is defined as bits 2-4 (inclusive)
+template <typename Reg_T>
+class RVCRegRs2 : public RVCReg<Reg_T> {
+public:
+  RVCRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
+};
+
+// The RISC-V Compressed Rs2 field contains a destination register index.
+// It is defined as bits 7-9 (inclusive)
+template <typename Reg_T>
+class RVCRegRd : public RVCReg<Reg_T> {
+public:
+  RVCRegRd(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
+};
+
+template <typename Reg_T>
+class CATypeInstr : public RVInstruction<Reg_T> {
+public:
+  CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
+              const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name,
+                            RVISA::Quadrant::QUADRANT1,
+                            RVCOpPartFunct2(funct2),
+                            RVCOpPartFunct6(funct6)),
+            {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 2)),
+             std::make_shared<RVCReg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1))}) {}
+};
 
 #define CIType(opcode, name, funct3, imm)                                      \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -149,12 +207,18 @@ struct RV_C {
     // Pseudo-op functors
 
     // Assembler functors
-    instructions.push_back(CAType(Token("c.sub"), 0b00, 0b100011));
-    instructions.push_back(CAType(Token("c.xor"), 0b01, 0b100011));
-    instructions.push_back(CAType(Token("c.or"), 0b10, 0b100011));
-    instructions.push_back(CAType(Token("c.and"), 0b11, 0b100011));
-    instructions.push_back(CAType(Token("c.subw"), 0b00, 0b100111));
-    instructions.push_back(CAType(Token("c.addw"), 0b01, 0b100111));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CATypeInstr<Reg__T>(Token("c.sub"), 0b00, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CATypeInstr<Reg__T>(Token("c.xor"), 0b01, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CATypeInstr<Reg__T>(Token("c.or"), 0b10, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CATypeInstr<Reg__T>(Token("c.and"), 0b11, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CATypeInstr<Reg__T>(Token("c.subw"), 0b00, 0b100111, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CATypeInstr<Reg__T>(Token("c.addw"), 0b01, 0b100111, isa)));
 
     instructions.push_back(CIType(
         0b10, Token("c.lwsp"), 0b010,

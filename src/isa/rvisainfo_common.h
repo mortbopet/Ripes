@@ -35,6 +35,12 @@ enum Opcode {
   AUIPC = 0b0010111,
   INVALID = 0b0
 };
+enum Quadrant {
+  QUADRANT0 = 0b00,
+  QUADRANT1 = 0b01,
+  QUADRANT2 = 0b10,
+  QUADRANT3 = 0b11
+};
 
 } // namespace RVISA
 
