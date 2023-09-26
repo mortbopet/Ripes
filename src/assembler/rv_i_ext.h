@@ -319,19 +319,25 @@ struct RV_I {
         ITypeInstr<Reg__T>(Token("andi"), 0b111, isa)));
 
     if (options.count(Options::shifts64BitVariant)) {
-      instructions.push_back(std::make_shared<_Instruction>(
-          IShiftType32Instr<Reg__T>(Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000, isa)));
-      instructions.push_back(std::make_shared<_Instruction>(
-          IShiftType32Instr<Reg__T>(Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000, isa)));
-      instructions.push_back(std::make_shared<_Instruction>(
-          IShiftType32Instr<Reg__T>(Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000, isa)));
+      instructions.push_back(
+          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+              Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000, isa)));
+      instructions.push_back(
+          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+              Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000, isa)));
+      instructions.push_back(
+          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+              Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000, isa)));
     } else {
-      instructions.push_back(std::make_shared<_Instruction>(
-          IShiftType32Instr<Reg__T>(Token("slli"), RVISA::OPIMM, 0b001, 0b0000000, isa)));
-      instructions.push_back(std::make_shared<_Instruction>(
-          IShiftType32Instr<Reg__T>(Token("srli"), RVISA::OPIMM, 0b101, 0b0000000, isa)));
-      instructions.push_back(std::make_shared<_Instruction>(
-          IShiftType32Instr<Reg__T>(Token("srai"), RVISA::OPIMM, 0b101, 0b0100000, isa)));
+      instructions.push_back(
+          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+              Token("slli"), RVISA::OPIMM, 0b001, 0b0000000, isa)));
+      instructions.push_back(
+          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+              Token("srli"), RVISA::OPIMM, 0b101, 0b0000000, isa)));
+      instructions.push_back(
+          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+              Token("srai"), RVISA::OPIMM, 0b101, 0b0100000, isa)));
     }
 
     instructions.push_back(std::make_shared<_Instruction>(

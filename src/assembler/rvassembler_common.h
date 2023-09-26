@@ -18,36 +18,34 @@ public:
 // All RISC-V opcodes are defined as the 7 LSBs of the instruction
 class RVOpPartOpcode : public OpPart {
 public:
-  RVOpPartOpcode(RVISA::Opcode opcode)
-      : OpPart(opcode, 0, 6) {}
+  RVOpPartOpcode(RVISA::Opcode opcode) : OpPart(opcode, 0, 6) {}
 };
 
 // All RISC-V instruction quadrants are defined as the 2 LSBs of the instruction
 class RVOpPartQuadrant : public OpPart {
 public:
-  RVOpPartQuadrant(RVISA::Quadrant quadrant)
-      : OpPart(quadrant, 0, 1) {}
+  RVOpPartQuadrant(RVISA::Quadrant quadrant) : OpPart(quadrant, 0, 1) {}
 };
 
-// All RISC-V Funct3 opcode parts are defined as bits 12-14 (inclusive) of the instruction
+// All RISC-V Funct3 opcode parts are defined as bits 12-14 (inclusive) of the
+// instruction
 class RVOpPartFunct3 : public OpPart {
 public:
-  RVOpPartFunct3(unsigned funct3)
-      : OpPart(funct3, 12, 14) {}
+  RVOpPartFunct3(unsigned funct3) : OpPart(funct3, 12, 14) {}
 };
 
-// All RISC-V Funct6 opcode parts are defined as bits 26-31 (inclusive) of the instruction
+// All RISC-V Funct6 opcode parts are defined as bits 26-31 (inclusive) of the
+// instruction
 class RVOpPartFunct6 : public OpPart {
 public:
-  RVOpPartFunct6(unsigned funct6)
-      : OpPart(funct6, 26, 31) {}
+  RVOpPartFunct6(unsigned funct6) : OpPart(funct6, 26, 31) {}
 };
 
-// All RISC-V Funct7 opcode parts are defined as bits 25-31 (inclusive) of the instruction
+// All RISC-V Funct7 opcode parts are defined as bits 25-31 (inclusive) of the
+// instruction
 class RVOpPartFunct7 : public OpPart {
 public:
-  RVOpPartFunct7(unsigned funct7)
-      : OpPart(funct7, 25, 31) {}
+  RVOpPartFunct7(unsigned funct7) : OpPart(funct7, 25, 31) {}
 };
 
 // A RISC-V opcode defines the encoding of specific instructions
@@ -184,9 +182,9 @@ template <typename Reg_T>
 class RVImmUType : public Imm<Reg_T> {
 public:
   RVImmUType(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 32, Imm<Reg_T>::Repr::Hex, std::vector{ImmPart(0, 12, 31)}) {}
+      : Imm<Reg_T>(fieldIndex, 32, Imm<Reg_T>::Repr::Hex,
+                   std::vector{ImmPart(0, 12, 31)}) {}
 };
-
 
 // A RISC-V signed immediate field with an input width of 21 bits.
 // Used in J-Type instructions.
@@ -214,23 +212,23 @@ class BTypeInstr : public RVInstruction<Reg_T> {
 public:
   BTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, RVISA::Opcode::BRANCH, RVOpPartFunct3(funct3)),
+            RVOpcode<Reg_T>(name, RVISA::Opcode::BRANCH,
+                            RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmBType<Reg_T>(3))
-            }) {}
+             std::make_shared<Imm<Reg_T>>(RVImmBType<Reg_T>(3))}) {}
 };
 
 template <typename Reg_T>
 class ITypeInstrCommon : public RVInstruction<Reg_T> {
 public:
-  ITypeInstrCommon(RVISA::Opcode opcode, const Token &name, unsigned funct3, const ISAInfoBase *isa)
+  ITypeInstrCommon(RVISA::Opcode opcode, const Token &name, unsigned funct3,
+                   const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(3))
-            }) {}
+             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(3))}) {}
 };
 
 template <typename Reg_T>
@@ -255,8 +253,7 @@ public:
             RVOpcode<Reg_T>(name, RVISA::Opcode::LOAD, RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 3)),
-             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(2))
-            }) {}
+             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(2))}) {}
 };
 
 template <typename Reg_T>
@@ -265,7 +262,8 @@ public:
   IShiftType32Instr(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                     unsigned funct7, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3), RVOpPartFunct7(funct7)),
+            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3),
+                            RVOpPartFunct7(funct7)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
              std::make_shared<Imm<Reg_T>>(RVImmIShift32Type<Reg_T>(3))}) {}
@@ -277,7 +275,8 @@ public:
   IShiftType64Instr(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                     unsigned funct6, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3), RVOpPartFunct6(funct6)),
+            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3),
+                            RVOpPartFunct6(funct6)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
              std::make_shared<Imm<Reg_T>>(RVImmIShift64Type<Reg_T>(3))}) {}
@@ -287,9 +286,10 @@ template <typename Reg_T>
 class RTypeInstrCommon : public RVInstruction<Reg_T> {
 public:
   RTypeInstrCommon(const Token &name, RVISA::Opcode opcode, unsigned funct3,
-                 unsigned funct7, const ISAInfoBase *isa)
-    : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3), RVOpPartFunct7(funct7)),
+                   unsigned funct7, const ISAInfoBase *isa)
+      : RVInstruction<Reg_T>(
+            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3),
+                            RVOpPartFunct7(funct7)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
              std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 3))}) {}
@@ -298,14 +298,16 @@ public:
 template <typename Reg_T>
 class RTypeInstr : public RTypeInstrCommon<Reg_T> {
 public:
-  RTypeInstr(const Token &name, unsigned funct3, unsigned funct7, const ISAInfoBase *isa)
+  RTypeInstr(const Token &name, unsigned funct3, unsigned funct7,
+             const ISAInfoBase *isa)
       : RTypeInstrCommon<Reg_T>(name, RVISA::OP, funct3, funct7, isa) {}
 };
 
 template <typename Reg_T>
 class RType32Instr : public RTypeInstrCommon<Reg_T> {
 public:
-  RType32Instr(const Token &name, unsigned funct3, unsigned funct7, const ISAInfoBase *isa)
+  RType32Instr(const Token &name, unsigned funct3, unsigned funct7,
+               const ISAInfoBase *isa)
       : RTypeInstrCommon<Reg_T>(name, RVISA::OP32, funct3, funct7, isa) {}
 };
 
@@ -357,13 +359,13 @@ public:
   PseudoLoadInstr(const Token &name)
       : PseudoInstruction<Reg_T>(
             name,
-            {PseudoInstruction<Reg_T>::reg(),
-             PseudoInstruction<Reg_T>::imm()},
+            {PseudoInstruction<Reg_T>::reg(), PseudoInstruction<Reg_T>::imm()},
             [=](const PseudoInstruction<Reg_T> &, const TokenizedSrcLine &line,
                 const SymbolMap &) {
               LineTokensVec v;
-              v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
-                                       << Token(line.tokens.at(2), "%pcrel_hi"));
+              v.push_back(LineTokens()
+                          << Token("auipc") << line.tokens.at(1)
+                          << Token(line.tokens.at(2), "%pcrel_hi"));
               v.push_back(LineTokens()
                           << name << line.tokens.at(1)
                           << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
@@ -381,8 +383,7 @@ public:
   PseudoStoreInstr(const Token &name)
       : PseudoInstruction<Reg_T>(
             name,
-            {PseudoInstruction<Reg_T>::reg(),
-             PseudoInstruction<Reg_T>::imm(),
+            {PseudoInstruction<Reg_T>::reg(), PseudoInstruction<Reg_T>::imm(),
              PseudoInstruction<Reg_T>::reg()},
             [=](const PseudoInstruction<Reg_T> &, const TokenizedSrcLine &line,
                 const SymbolMap &) {
@@ -393,8 +394,9 @@ public:
                     Error(0, "Unused; will fallback to non-pseudo op sw"));
               }
               LineTokensVec v;
-              v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
-                                       << Token(line.tokens.at(2), "%pcrel_hi"));
+              v.push_back(LineTokens()
+                          << Token("auipc") << line.tokens.at(3)
+                          << Token(line.tokens.at(2), "%pcrel_hi"));
               v.push_back(LineTokens()
                           << name << line.tokens.at(1)
                           << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),

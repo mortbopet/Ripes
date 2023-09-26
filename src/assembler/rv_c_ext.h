@@ -54,21 +54,22 @@ public:
       : RVInstruction<Reg_T>(opcode, fields) {}
 };
 
-// All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the instruction
+// All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the
+// instruction
 class RVCOpPartFunct2 : public OpPart {
 public:
-  RVCOpPartFunct2(unsigned funct2)
-      : OpPart(funct2, 5, 6) {}
+  RVCOpPartFunct2(unsigned funct2) : OpPart(funct2, 5, 6) {}
 };
 
-// All RISC-V compressed Funct6 opcode parts are defined as bits 10-15 (inclusive) of the instruction
+// All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
+// (inclusive) of the instruction
 class RVCOpPartFunct6 : public OpPart {
 public:
-  RVCOpPartFunct6(unsigned funct6)
-      : OpPart(funct6, 10, 15) {}
+  RVCOpPartFunct6(unsigned funct6) : OpPart(funct6, 10, 15) {}
 };
 
-// A RISC-V compressed opcode defines the encoding of specific compressed instructions
+// A RISC-V compressed opcode defines the encoding of specific compressed
+// instructions
 template <typename Reg_T>
 class RVCOpcode : public Opcode<Reg_T> {
 public:
@@ -102,10 +103,8 @@ public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
               const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name,
-                            RVISA::Quadrant::QUADRANT1,
-                            RVCOpPartFunct2(funct2),
-                            RVCOpPartFunct6(funct6)),
+            RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
+                             RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
             {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 2)),
              std::make_shared<RVCReg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1))}) {}
 };

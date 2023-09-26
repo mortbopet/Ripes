@@ -73,12 +73,15 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
   instructions.push_back(std::make_shared<_Instruction>(
       IType32Instr<Reg_T>(Token("addiw"), 0b000, isa)));
 
-  instructions.push_back(std::make_shared<_Instruction>(
-      IShiftType64Instr<Reg_T>(Token("slli"), RVISA::OPIMM, 0b001, 0b000000, isa)));
-  instructions.push_back(std::make_shared<_Instruction>(
-      IShiftType64Instr<Reg_T>(Token("srli"), RVISA::OPIMM, 0b101, 0b000000, isa)));
-  instructions.push_back(std::make_shared<_Instruction>(
-      IShiftType64Instr<Reg_T>(Token("srai"), RVISA::OPIMM, 0b101, 0b010000, isa)));
+  instructions.push_back(
+      std::make_shared<_Instruction>(IShiftType64Instr<Reg_T>(
+          Token("slli"), RVISA::OPIMM, 0b001, 0b000000, isa)));
+  instructions.push_back(
+      std::make_shared<_Instruction>(IShiftType64Instr<Reg_T>(
+          Token("srli"), RVISA::OPIMM, 0b101, 0b000000, isa)));
+  instructions.push_back(
+      std::make_shared<_Instruction>(IShiftType64Instr<Reg_T>(
+          Token("srai"), RVISA::OPIMM, 0b101, 0b010000, isa)));
 
   instructions.push_back(std::make_shared<_Instruction>(
       RType32Instr<Reg_T>(Token("addw"), 0b000, 0b0000000, isa)));
