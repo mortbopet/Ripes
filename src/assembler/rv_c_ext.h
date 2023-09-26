@@ -107,6 +107,15 @@ public:
       : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
+// The RISC-V Compressed Rs1 field contains a source register index.
+// It is defined as bits 7-9 (inclusive)
+template <typename Reg_T>
+class RVCRegRs1Prime : public RVCReg<Reg_T> {
+public:
+  RVCRegRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rs1'") {}
+};
+
 // The RISC-V Compressed Rs2 field contains a source register index.
 // It is defined as bits 2-6 (inclusive)
 template <typename Reg_T>
@@ -141,6 +150,15 @@ class RVCRegRdRs1 : public RVCReg<Reg_T> {
 public:
   RVCRegRdRs1(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
+};
+
+// The RISC-V Compressed Rd' field contains a destination register
+// index. It is defined as bits 2-4 (inclusive)
+template <typename Reg_T>
+class RVCRegRdPrime : public RVCReg<Reg_T> {
+public:
+  RVCRegRdPrime(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
 };
 
 // A base class for RISC-V compressed immediates
@@ -251,6 +269,23 @@ public:
                       std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
 };
 
+// A RISC-V signed immediate field with an input width of 7 bits.
+// Used in C.LW and C.FLW instructions.
+//
+// It is defined as:
+//  - Imm[6]   = Inst[5]
+//  - Imm[5:3] = Inst[12:10]
+//  - Imm[2]   = Inst[6]
+//  - Imm[1:0] = 0
+template <typename Reg_T>
+class RVCImmLW : public RVCImm<Reg_T> {
+public:
+  RVCImmLW()
+      : RVCImm<Reg_T>(3, 7, Imm<Reg_T>::Repr::Signed,
+                      std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
+                                  ImmPart(2, 6, 6)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -292,6 +327,18 @@ public:
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 1)),
              std::make_shared<Imm<Reg_T>>(imm)}) {}
+};
+
+template <typename Reg_T>
+class CLTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CLTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
+              const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
+             std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 2),
+             std::make_shared<RVCImm<Reg_T>>(imm)}) {}
 };
 
 #define CLType(opcode, name, funct3, imm)                                      \
@@ -468,18 +515,13 @@ struct RV_C {
                          RVCImmSDSP<Reg__T>(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
-    instructions.push_back(CLType(
-        0b00, Token("c.lw"), 0b010,
-        std::make_shared<_Imm>(3, 7, _Imm::Repr::Signed,
-                               std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
-                                           ImmPart(2, 6, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.lw"), 0b010,
+                        RVCImmLW<Reg__T>(), isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(
-          CLType(0b00, Token("c.flw"), 0b011,
-                 std::make_shared<_Imm>(3, 7, _Imm::Repr::Signed,
-                                        std::vector{ImmPart(6, 5, 5),
-                                                    ImmPart(3, 10, 12),
-                                                    ImmPart(2, 6, 6)})));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
+                          RVCImmLW<Reg__T>(), isa)));
     } else {
       instructions.push_back(
           CLType(0b00, Token("c.ld"), 0b011,
