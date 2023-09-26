@@ -54,25 +54,32 @@ public:
       : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
+// A base class for RISC-V compressed opcode parts
+class RVCOpPart : public RVOpPart {
+public:
+  RVCOpPart(unsigned funct2, unsigned start, unsigned stop)
+      : RVOpPart(funct2, start, stop) {}
+};
+
 // All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the
 // instruction
-class RVCOpPartFunct2 : public RVOpPart {
+class RVCOpPartFunct2 : public RVCOpPart {
 public:
-  RVCOpPartFunct2(unsigned funct2) : RVOpPart(funct2, 5, 6) {}
+  RVCOpPartFunct2(unsigned funct2) : RVCOpPart(funct2, 5, 6) {}
 };
 
 // All RISC-V Funct3 opcode parts are defined as bits 5-6 (inclusive) of the
 // instruction
-class RVCOpPartFunct3 : public RVOpPart {
+class RVCOpPartFunct3 : public RVCOpPart {
 public:
-  RVCOpPartFunct3(unsigned funct3) : RVOpPart(funct3, 13, 15) {}
+  RVCOpPartFunct3(unsigned funct3) : RVCOpPart(funct3, 13, 15) {}
 };
 
 // All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
 // (inclusive) of the instruction
-class RVCOpPartFunct6 : public RVOpPart {
+class RVCOpPartFunct6 : public RVCOpPart {
 public:
-  RVCOpPartFunct6(unsigned funct6) : RVOpPart(funct6, 10, 15) {}
+  RVCOpPartFunct6(unsigned funct6) : RVCOpPart(funct6, 10, 15) {}
 };
 
 // A RISC-V compressed opcode defines the encoding of specific compressed
@@ -217,11 +224,6 @@ public:
             {std::make_shared<Reg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1)),
              std::make_shared<Imm<Reg_T>>(imm)}) {}
 };
-
-#define CIType(opcode, name, funct3, imm)                                      \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rd/rs1"), imm}))
 
 #define CINOPType(opcode, name)                                                \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
