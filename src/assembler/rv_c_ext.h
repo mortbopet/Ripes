@@ -128,18 +128,18 @@ public:
 // The RISC-V Compressed Rd'/Rs1' field contains a source or destination
 // register index. It is defined as bits 7-9 (inclusive)
 template <typename Reg_T>
-class RVCRegRdPrime : public RVCReg<Reg_T> {
+class RVCRegRdRs1Prime : public RVCReg<Reg_T> {
 public:
-  RVCRegRdPrime(const ISAInfoBase *isa, unsigned fieldIndex)
+  RVCRegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
 };
 
 // The RISC-V Compressed Rd/Rs1 field contains a source or destination register
 // index. It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
-class RVCRegRd : public RVCReg<Reg_T> {
+class RVCRegRdRs1 : public RVCReg<Reg_T> {
 public:
-  RVCRegRd(const ISAInfoBase *isa, unsigned fieldIndex)
+  RVCRegRdRs1(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
 };
 
@@ -260,7 +260,8 @@ public:
             RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
                              RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
             {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2Prime<Reg_T>(isa, 2)),
-             std::make_shared<RVCReg<Reg_T>>(RVCRegRdPrime<Reg_T>(isa, 1))}) {}
+             std::make_shared<RVCReg<Reg_T>>(
+                 RVCRegRdRs1Prime<Reg_T>(isa, 1))}) {}
 };
 
 template <typename Reg_T>
@@ -270,7 +271,7 @@ public:
               const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1)),
+            {std::make_shared<Reg<Reg_T>>(RVCRegRdRs1<Reg_T>(isa, 1)),
              std::make_shared<Imm<Reg_T>>(imm)}) {}
 };
 
@@ -292,11 +293,6 @@ public:
             {std::make_shared<Reg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 1)),
              std::make_shared<Imm<Reg_T>>(imm)}) {}
 };
-
-#define CSSType(opcode, name, funct3, imm)                                     \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<_Reg>(isa, 1, 2, 6, "rs2"), imm}))
 
 #define CLType(opcode, name, funct3, imm)                                      \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
