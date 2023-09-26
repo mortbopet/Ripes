@@ -344,6 +344,28 @@ public:
              std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(3))}) {}
 };
 
+template <typename Reg_T>
+class PseudoLoadInstr : public PseudoInstruction<Reg_T> {
+public:
+  PseudoLoadInstr(const Token &name)
+      : PseudoInstruction<Reg_T>(
+            name,
+            {PseudoInstruction<Reg_T>::reg(),
+             PseudoInstruction<Reg_T>::imm()},
+            [=](const PseudoInstruction<Reg_T> &, const TokenizedSrcLine &line,
+                const SymbolMap &) {
+              LineTokensVec v;
+              v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
+                                       << Token(line.tokens.at(2), "%pcrel_hi"));
+              v.push_back(LineTokens()
+                          << name << line.tokens.at(1)
+                          << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
+                                   "%pcrel_lo")
+                          << line.tokens.at(1));
+              return v;
+            }) {}
+};
+
 // The following macros assumes that ASSEMBLER_TYPES(..., ...) has been defined
 // for the given assembler.
 
@@ -357,20 +379,6 @@ public:
 #define _PseudoExpandFunc(line)                                                \
   [](const _PseudoInstruction &, const TokenizedSrcLine &line,                 \
      const SymbolMap &)
-
-#define PseudoLoad(name)                                                       \
-  std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(                  \
-      name, {RegTok, ImmTok}, _PseudoExpandFunc(line) {                        \
-        LineTokensVec v;                                                       \
-        v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)        \
-                                 << Token(line.tokens.at(2), "%pcrel_hi"));    \
-        v.push_back(LineTokens()                                               \
-                    << name << line.tokens.at(1)                               \
-                    << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),       \
-                             "%pcrel_lo")                                      \
-                    << line.tokens.at(1));                                     \
-        return v;                                                              \
-      }))
 
 // The sw is a pseudo-op if a symbol is given as the immediate token. Thus, if
 // we detect that a number has been provided, then abort the pseudo-op handling.

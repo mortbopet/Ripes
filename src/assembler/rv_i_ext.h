@@ -29,9 +29,12 @@ struct RV_I {
                      _PseudoInstrVec &pseudoInstructions,
                      const std::set<Options> &options = {}) {
     // Pseudo-op functors
-    pseudoInstructions.push_back(PseudoLoad(Token("lb")));
-    pseudoInstructions.push_back(PseudoLoad(Token("lh")));
-    pseudoInstructions.push_back(PseudoLoad(Token("lw")));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new PseudoLoadInstr<Reg__T>(Token("lb"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new PseudoLoadInstr<Reg__T>(Token("lh"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new PseudoLoadInstr<Reg__T>(Token("lw"))));
     pseudoInstructions.push_back(PseudoStore(Token("sb")));
     pseudoInstructions.push_back(PseudoStore(Token("sh")));
     pseudoInstructions.push_back(PseudoStore(Token("sw")));

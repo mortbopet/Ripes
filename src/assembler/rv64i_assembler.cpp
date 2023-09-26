@@ -98,7 +98,8 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
   instructions.push_back(std::make_shared<_Instruction>(
       STypeInstr<Reg_T>(Token("sd"), 0b011, isa)));
 
-  pseudoInstructions.push_back(PseudoLoad(Token("ld")));
+  pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+      new PseudoLoadInstr<Reg_T>(Token("ld"))));
   pseudoInstructions.push_back(PseudoStore(Token("sd")));
   pseudoInstructions.push_back(
       std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
