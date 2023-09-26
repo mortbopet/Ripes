@@ -117,6 +117,17 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
 };
 
+// A base class for RISC-V compressed immediates
+template <typename Reg_T>
+class RVCImm : public RVImm<Reg_T> {
+public:
+  RVCImm(
+      unsigned tokenIndex, unsigned width, typename Imm<Reg_T>::Repr repr,
+      const std::vector<ImmPart> &parts,
+      typename Imm<Reg_T>::SymbolType symbolType = Imm<Reg_T>::SymbolType::None)
+      : RVImm<Reg_T>(tokenIndex, width, repr, parts, symbolType) {}
+};
+
 // A RISC-V unsigned immediate field with an input width of 8 bits.
 // Used in C.LSWP and C.FLWSP instructions.
 //
@@ -126,12 +137,12 @@ public:
 //  - Imm[4:2] = Inst[6:4]
 //  - Imm[1:0] = 0
 template <typename Reg_T>
-class RVCImmLWSP : public RVImm<Reg_T> {
+class RVCImmLWSP : public RVCImm<Reg_T> {
 public:
   RVCImmLWSP(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 8, Imm<Reg_T>::Repr::Unsigned,
-                     std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
-                                 ImmPart(2, 4, 6)}) {}
+      : RVCImm<Reg_T>(fieldIndex, 8, Imm<Reg_T>::Repr::Unsigned,
+                      std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
+                                  ImmPart(2, 4, 6)}) {}
 };
 
 // A RISC-V unsigned immediate field with an input width of 9 bits.
@@ -143,12 +154,12 @@ public:
 //  - Imm[4:3] = Inst[6:5]
 //  - Imm[2:0] = 0
 template <typename Reg_T>
-class RVCImmLDSP : public RVImm<Reg_T> {
+class RVCImmLDSP : public RVCImm<Reg_T> {
 public:
   RVCImmLDSP(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 9, Imm<Reg_T>::Repr::Unsigned,
-                     std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
-                                 ImmPart(3, 5, 6)}) {}
+      : RVCImm<Reg_T>(fieldIndex, 9, Imm<Reg_T>::Repr::Unsigned,
+                      std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
+                                  ImmPart(3, 5, 6)}) {}
 };
 
 // A RISC-V signed immediate field with an input width of 6 bits.
@@ -158,11 +169,11 @@ public:
 //  - Imm[5]   = Inst[12]
 //  - Imm[4:0] = Inst[6:2]
 template <typename Reg_T>
-class RVCImmADDI : public RVImm<Reg_T> {
+class RVCImmADDI : public RVCImm<Reg_T> {
 public:
   RVCImmADDI(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Signed,
-                     std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
+      : RVCImm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Signed,
+                      std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
 };
 
 template <typename Reg_T>
@@ -181,10 +192,11 @@ template <typename Reg_T>
 class CITypeInstr : public RVCInstruction<Reg_T> {
 public:
   CITypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
-              std::shared_ptr<Imm<Reg_T>> imm, const ISAInfoBase *isa)
+              const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1)), imm}) {}
+            {std::make_shared<Reg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1)),
+             std::make_shared<Imm<Reg_T>>(imm)}) {}
 };
 
 #define CIType(opcode, name, funct3, imm)                                      \
@@ -297,30 +309,28 @@ struct RV_C {
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CATypeInstr<Reg__T>(Token("c.addw"), 0b01, 0b100111, isa)));
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new CITypeInstr<Reg__T>(
-            RVISA::Quadrant::QUADRANT2, Token("c.lwsp"), 0b010,
-            std::make_shared<_Imm>(RVCImmLWSP<Reg__T>(2)), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CITypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT2, Token("c.lwsp"),
+                                0b010, RVCImmLWSP<Reg__T>(2), isa)));
 
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(
-          std::shared_ptr<_Instruction>(new CITypeInstr<Reg__T>(
-              RVISA::Quadrant::QUADRANT2, Token("c.flwsp"), 0b011,
-              std::make_shared<_Imm>(RVCImmLWSP<Reg__T>(2)), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new CITypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT2, Token("c.flwsp"),
+                                  0b011, RVCImmLWSP<Reg__T>(2), isa)));
     } else // RV64 RV128
     {
       instructions.push_back(std::shared_ptr<_Instruction>(
           new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
-                          std::make_shared<_Imm>(RVCImmLDSP<Reg__T>(2)), isa)));
+                          RVCImmLDSP<Reg__T>(2), isa)));
       instructions.push_back(std::shared_ptr<_Instruction>(
           new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
-                          std::make_shared<_Imm>(RVCImmADDI<Reg__T>(2)), isa)));
+                          RVCImmADDI<Reg__T>(2), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
-                        std::make_shared<_Imm>(RVCImmLDSP<Reg__T>(2)), isa)));
+                        RVCImmLDSP<Reg__T>(2), isa)));
     instructions.push_back(
         CIType(0b10, Token("c.slli"), 0b000,
                std::make_shared<_Imm>(
@@ -361,7 +371,7 @@ struct RV_C {
 
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addi"), 0b000,
-                        std::make_shared<_Imm>(RVCImmADDI<Reg__T>(2)), isa)));
+                        RVCImmADDI<Reg__T>(2), isa)));
     instructions.push_back(CINOPType(0b01, Token("c.nop")));
 
     instructions.push_back(
