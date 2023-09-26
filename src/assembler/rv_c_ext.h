@@ -82,11 +82,21 @@ public:
   RVCOpPartFunct6(unsigned funct6) : RVCOpPart(funct6, 10, 15) {}
 };
 
+// Bits 2-15 (inclusive) are set to 0 in a compressed NOP instruction
+class RVCOpPartNOP : public RVCOpPart {
+public:
+  RVCOpPartNOP() : RVCOpPart(0, 2, 15) {}
+};
+
 // A RISC-V compressed opcode defines the encoding of specific compressed
 // instructions
 template <typename Reg_T>
 class RVCOpcode : public RVOpcode<Reg_T> {
 public:
+  // A RISC-V compressed NOP opcode
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartNOP nopPart)
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
+
   // A RISC-V opcode with compressed Funct2 and Funct6 parts
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
             RVCOpPartFunct6 funct6)
@@ -225,9 +235,13 @@ public:
              std::make_shared<Imm<Reg_T>>(imm)}) {}
 };
 
-#define CINOPType(opcode, name)                                                \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 15)}), {}))
+template <typename Reg_T>
+class CINOPTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CINOPTypeInstr(RVISA::Quadrant quadrant, const Token &name)
+      : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, quadrant, RVCOpPartNOP()),
+                              {}) {}
+};
 
 #define CSSType(opcode, name, funct3, imm)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -387,7 +401,9 @@ struct RV_C {
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addi"), 0b000,
                         RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
-    instructions.push_back(CINOPType(0b01, Token("c.nop")));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CINOPTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT1, Token("c.nop"))));
 
     instructions.push_back(
         CSSType(0b10, Token("c.swsp"), 0b110,
