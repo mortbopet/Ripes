@@ -15,6 +15,7 @@
 #include "syscall/syscallviewer.h"
 #include "syscall/systemio.h"
 #include "version/version.h"
+#include "wasmSupport.h"
 
 #include "fancytabbar/fancytabbar.h"
 
@@ -204,7 +205,6 @@ void MainWindow::setupMenus() {
   connect(loadAction, &QAction::triggered, this,
           [=] { this->loadFileTriggered(); });
   m_ui->menuFile->addAction(loadAction);
-
   m_ui->menuFile->addSeparator();
 
   auto *examplesMenu = m_ui->menuFile->addMenu("Load Example...");
@@ -231,7 +231,6 @@ void MainWindow::setupMenus() {
           &EditTab::editorStateChanged, saveAction,
           [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
   m_ui->menuFile->addAction(saveAsAction);
-
   m_ui->menuFile->addSeparator();
 
   const QIcon exitIcon = QIcon(":/icons/cancel.svg");
@@ -246,6 +245,9 @@ void MainWindow::setupMenus() {
   m_ui->menuView->addAction(
       static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
           ->m_displayValuesAction);
+
+  // File I/O is not yet supported on WASM due to sandboxing.
+  disableIfWasm(QList{loadAction, saveAction, saveAsAction, exitAction});
 }
 
 MainWindow::~MainWindow() { delete m_ui; }
@@ -360,8 +362,8 @@ void MainWindow::loadFileTriggered() {
 }
 
 void MainWindow::wiki() {
-  QDesktopServices::openUrl(
-      QUrl(QString("https://github.com/mortbopet/Ripes/blob/master/docs/README.md")));
+  QDesktopServices::openUrl(QUrl(QString(
+      "https://github.com/mortbopet/Ripes/blob/master/docs/README.md")));
 }
 
 void MainWindow::version() {

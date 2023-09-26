@@ -20,6 +20,7 @@
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "symbolnavigator.h"
+#include "wasmSupport.h"
 
 namespace Ripes {
 
@@ -87,6 +88,8 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
           &EditTab::sourceTypeChanged);
   connect(m_ui->setCInput, &QRadioButton::toggled, m_buildAction,
           &QAction::setEnabled);
+  // C compiler is not yet supported on WASM.
+  disableIfWasm(m_ui->setCInput);
 
   // Ensure that changes to the current compiler path will disable C input, if
   // the compiler is invalid

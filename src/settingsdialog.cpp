@@ -21,6 +21,7 @@
 
 #include "utilities/hexspinbox.h"
 #include "utilities/scrolleventfilter.h"
+#include "wasmSupport.h"
 
 namespace Ripes {
 
@@ -148,7 +149,10 @@ SettingsDialog::SettingsDialog(QWidget *parent)
   // Create settings pages
   addPage("Environment", createEnvironmentPage());
   addPage("Simulator", createSimulatorPage());
-  addPage("Compiler", createCompilerPage());
+  auto *compilerPage = createCompilerPage();
+  addPage("Compiler", compilerPage);
+  // No C compiler support (yet) for wasm.
+  disableIfWasm(compilerPage);
   addPage("Editor", createEditorPage());
 
   m_ui->settingsList->setCurrentRow(
