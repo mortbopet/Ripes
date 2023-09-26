@@ -180,6 +180,21 @@ public:
                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
 };
 
+// A RISC-V signed immediate field with an input width of 18 bits.
+// Used in C.LUI instructions.
+//
+// It is defined as:
+//  - Imm[17]    = Inst[12]
+//  - Imm[16:12] = Inst[6:2]
+//  - Imm[12:0]  = 0
+template <typename Reg_T>
+class RVCImmLUI : public RVCImm<Reg_T> {
+public:
+  RVCImmLUI()
+      : RVCImm<Reg_T>(2, 18, Imm<Reg_T>::Repr::Signed,
+                      std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -343,11 +358,9 @@ struct RV_C {
         new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.li"), 0b010,
                         RVCImmCommon6<Reg__T>(2, _Imm::Repr::Signed), isa)));
 
-    auto cLuiInstr =
-        CIType(0b01, Token("c.lui"), 0b011,
-               std::make_shared<_Imm>(
-                   2, 18, _Imm::Repr::Signed,
-                   std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}));
+    auto cLuiInstr = std::shared_ptr<_Instruction>(
+        new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.lui"), 0b011,
+                        RVCImmLUI<Reg__T>(), isa));
     cLuiInstr->addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
       return rd != 0 && rd != 2;
