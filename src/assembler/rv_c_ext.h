@@ -61,6 +61,13 @@ public:
   RVCOpPartFunct2(unsigned funct2) : OpPart(funct2, 5, 6) {}
 };
 
+// All RISC-V Funct3 opcode parts are defined as bits 5-6 (inclusive) of the
+// instruction
+class RVCOpPartFunct3 : public OpPart {
+public:
+  RVCOpPartFunct3(unsigned funct3) : OpPart(funct3, 13, 15) {}
+};
+
 // All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
 // (inclusive) of the instruction
 class RVCOpPartFunct6 : public OpPart {
@@ -77,6 +84,10 @@ public:
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
             RVCOpPartFunct6 funct6)
       : Opcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
+
+  // A RISC-V opcode with a compressed Funct3 part
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
+      : Opcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
 };
 
 // The RISC-V Compressed Rs2 field contains a source register index.
@@ -88,25 +99,61 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
 };
 
-// The RISC-V Compressed Rs2 field contains a destination register index.
-// It is defined as bits 7-9 (inclusive)
+// The RISC-V Compressed Rs2 field contains a source or destination register
+// index. It is defined as bits 7-9 (inclusive)
+template <typename Reg_T>
+class RVCRegRdPrime : public RVCReg<Reg_T> {
+public:
+  RVCRegRdPrime(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
+};
+
+// The RISC-V Compressed Rs2 field contains a source or destination register
+// index. It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
 class RVCRegRd : public RVCReg<Reg_T> {
 public:
   RVCRegRd(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
+      : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
+};
+
+// A RISC-V unsigned immediate field with an input width of 8 bits.
+// Used in C.LSWP and C.FLWSP instructions.
+//
+// It is defined as:
+//  - Imm[7:6] = Inst[3:2]
+//  - Imm[5]   = Inst[12]
+//  - Imm[4:2] = Inst[6:4]
+//  - Imm[1:0] = 0
+template <typename Reg_T>
+class RVCImmLWSP : public Imm<Reg_T> {
+public:
+  RVCImmLWSP(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 8, Imm<Reg_T>::Repr::Unsigned,
+                   std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
+                               ImmPart(2, 4, 6)}) {}
 };
 
 template <typename Reg_T>
-class CATypeInstr : public RVInstruction<Reg_T> {
+class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
               const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
+      : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
                              RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
             {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 2)),
-             std::make_shared<RVCReg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1))}) {}
+             std::make_shared<RVCReg<Reg_T>>(RVCRegRdPrime<Reg_T>(isa, 1))}) {}
+};
+
+template <typename Reg_T>
+class CITypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CITypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
+              std::shared_ptr<Imm<Reg_T>> imm, const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<Reg<Reg_T>>(RVCRegRd<Reg_T>(isa, 1)), imm}) {}
 };
 
 #define CIType(opcode, name, funct3, imm)                                      \
@@ -193,10 +240,10 @@ public:
 
 /**
  * Extension enabler.
- * Calling an extension enabler will register the appropriate assemblers and
- * pseudo-op expander functors with the assembler. The extension enablers are
- * templated to allow for sharing implementations between 32- and 64-bit
- * variants.
+ * Calling an extension enabler will register the appropriate assemblers
+ * and pseudo-op expander functors with the assembler. The extension
+ * enablers are templated to allow for sharing implementations between 32-
+ * and 64-bit variants.
  */
 template <typename Reg__T>
 struct RV_C {
@@ -219,19 +266,16 @@ struct RV_C {
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CATypeInstr<Reg__T>(Token("c.addw"), 0b01, 0b100111, isa)));
 
-    instructions.push_back(CIType(
-        0b10, Token("c.lwsp"), 0b010,
-        std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,
-                               std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
-                                           ImmPart(2, 4, 6)})));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CITypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT2, Token("c.lwsp"), 0b010,
+            std::make_shared<_Imm>(RVCImmLWSP<Reg__T>(2)), isa)));
 
     if (isa->isaID() == ISA::RV32I) {
       instructions.push_back(
-          CIType(0b10, Token("c.flwsp"), 0b011,
-                 std::make_shared<_Imm>(2, 8, _Imm::Repr::Unsigned,
-                                        std::vector{ImmPart(6, 2, 3),
-                                                    ImmPart(5, 12, 12),
-                                                    ImmPart(2, 4, 6)})));
+          std::shared_ptr<_Instruction>(new CITypeInstr<Reg__T>(
+              RVISA::Quadrant::QUADRANT2, Token("c.flwsp"), 0b011,
+              std::make_shared<_Imm>(RVCImmLWSP<Reg__T>(2)), isa)));
     } else // RV64 RV128
     {
       instructions.push_back(
