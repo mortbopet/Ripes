@@ -108,16 +108,25 @@ public:
 };
 
 // The RISC-V Compressed Rs2 field contains a source register index.
-// It is defined as bits 2-4 (inclusive)
+// It is defined as bits 2-6 (inclusive)
 template <typename Reg_T>
 class RVCRegRs2 : public RVCReg<Reg_T> {
 public:
   RVCRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 2, 6, "rs2") {}
+};
+
+// The RISC-V Compressed Rs2' field contains a source register index.
+// It is defined as bits 2-4 (inclusive)
+template <typename Reg_T>
+class RVCRegRs2Prime : public RVCReg<Reg_T> {
+public:
+  RVCRegRs2Prime(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
 };
 
-// The RISC-V Compressed Rs2 field contains a source or destination register
-// index. It is defined as bits 7-9 (inclusive)
+// The RISC-V Compressed Rd'/Rs1' field contains a source or destination
+// register index. It is defined as bits 7-9 (inclusive)
 template <typename Reg_T>
 class RVCRegRdPrime : public RVCReg<Reg_T> {
 public:
@@ -125,7 +134,7 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
 };
 
-// The RISC-V Compressed Rs2 field contains a source or destination register
+// The RISC-V Compressed Rd/Rs1 field contains a source or destination register
 // index. It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
 class RVCRegRd : public RVCReg<Reg_T> {
@@ -220,7 +229,7 @@ public:
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
                              RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
-            {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 2)),
+            {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2Prime<Reg_T>(isa, 2)),
              std::make_shared<RVCReg<Reg_T>>(RVCRegRdPrime<Reg_T>(isa, 1))}) {}
 };
 
@@ -241,6 +250,17 @@ public:
   CINOPTypeInstr(RVISA::Quadrant quadrant, const Token &name)
       : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, quadrant, RVCOpPartNOP()),
                               {}) {}
+};
+
+template <typename Reg_T>
+class CSSTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CSSTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
+               const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<Reg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 1)),
+             std::make_shared<Imm<Reg_T>>(imm)}) {}
 };
 
 #define CSSType(opcode, name, funct3, imm)                                     \
