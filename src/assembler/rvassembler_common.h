@@ -5,53 +5,73 @@
 
 namespace Ripes {
 namespace Assembler {
-
-// A base class for RISC-V instructions
 template <typename Reg_T>
-class RVInstruction : public Instruction<Reg_T> {
+// A base class for all RISC-V instructions
+class RVInstructionBase : public Instruction<Reg_T> {
 public:
-  RVInstruction(const Opcode<Reg_T> &opcode,
-                const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+  RVInstructionBase(const Opcode<Reg_T> &opcode,
+                    const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
       : Instruction<Reg_T>(opcode, fields) {}
 };
 
-// All RISC-V opcodes are defined as the 7 LSBs of the instruction
-class RVOpPartOpcode : public OpPart {
+// RISC-V instruction class (for compressed instructions, see class
+// RVCInstruction)
+template <typename Reg_T>
+class RVInstruction : public RVInstructionBase<Reg_T> {
 public:
-  RVOpPartOpcode(RVISA::Opcode opcode) : OpPart(opcode, 0, 6) {}
+  RVInstruction(const Opcode<Reg_T> &opcode,
+                const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+      : RVInstructionBase<Reg_T>(opcode, fields) {}
+};
+
+// A base class for all RISC-V opcode parts
+class RVOpPart : public OpPart {
+public:
+  RVOpPart(unsigned value, unsigned start, unsigned stop)
+      : OpPart(value, start, stop) {}
+};
+
+// All RISC-V opcodes are defined as the 7 LSBs of the instruction
+class RVOpPartOpcode : public RVOpPart {
+public:
+  RVOpPartOpcode(RVISA::Opcode opcode) : RVOpPart(opcode, 0, 6) {}
 };
 
 // All RISC-V instruction quadrants are defined as the 2 LSBs of the instruction
-class RVOpPartQuadrant : public OpPart {
+class RVOpPartQuadrant : public RVOpPart {
 public:
-  RVOpPartQuadrant(RVISA::Quadrant quadrant) : OpPart(quadrant, 0, 1) {}
+  RVOpPartQuadrant(RVISA::Quadrant quadrant) : RVOpPart(quadrant, 0, 1) {}
 };
 
 // All RISC-V Funct3 opcode parts are defined as bits 12-14 (inclusive) of the
 // instruction
-class RVOpPartFunct3 : public OpPart {
+class RVOpPartFunct3 : public RVOpPart {
 public:
-  RVOpPartFunct3(unsigned funct3) : OpPart(funct3, 12, 14) {}
+  RVOpPartFunct3(unsigned funct3) : RVOpPart(funct3, 12, 14) {}
 };
 
 // All RISC-V Funct6 opcode parts are defined as bits 26-31 (inclusive) of the
 // instruction
-class RVOpPartFunct6 : public OpPart {
+class RVOpPartFunct6 : public RVOpPart {
 public:
-  RVOpPartFunct6(unsigned funct6) : OpPart(funct6, 26, 31) {}
+  RVOpPartFunct6(unsigned funct6) : RVOpPart(funct6, 26, 31) {}
 };
 
 // All RISC-V Funct7 opcode parts are defined as bits 25-31 (inclusive) of the
 // instruction
-class RVOpPartFunct7 : public OpPart {
+class RVOpPartFunct7 : public RVOpPart {
 public:
-  RVOpPartFunct7(unsigned funct7) : OpPart(funct7, 25, 31) {}
+  RVOpPartFunct7(unsigned funct7) : RVOpPart(funct7, 25, 31) {}
 };
 
 // A RISC-V opcode defines the encoding of specific instructions
 template <typename Reg_T>
 class RVOpcode : public Opcode<Reg_T> {
 public:
+  // Construct opcode from parts
+  RVOpcode(const Token &name, const std::vector<OpPart> &opParts)
+      : Opcode<Reg_T>(name, opParts) {}
+
   // A RISC-V opcode with no parts
   RVOpcode(const Token &name, RVISA::Opcode opcode)
       : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode)}) {}
@@ -71,31 +91,51 @@ public:
       : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), funct3, funct7}) {}
 };
 
+// A base class for all RISC-V register types
+template <typename Reg_T>
+class RVReg : public Reg<Reg_T> {
+public:
+  RVReg(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
+        unsigned stop, const QString &regsd)
+      : Reg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
+};
+
 // The RISC-V Rs1 field contains a source register index.
 // It is defined as bits 15-19 (inclusive)
 template <typename Reg_T>
-class RVRegRs1 : public Reg<Reg_T> {
+class RVRegRs1 : public RVReg<Reg_T> {
 public:
   RVRegRs1(const ISAInfoBase *isa, unsigned fieldIndex)
-      : Reg<Reg_T>(isa, fieldIndex, 15, 19, "rs1") {}
+      : RVReg<Reg_T>(isa, fieldIndex, 15, 19, "rs1") {}
 };
 
 // The RISC-V Rs2 field contains a source register index.
 // It is defined as bits 20-24 (inclusive)
 template <typename Reg_T>
-class RVRegRs2 : public Reg<Reg_T> {
+class RVRegRs2 : public RVReg<Reg_T> {
 public:
   RVRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
-      : Reg<Reg_T>(isa, fieldIndex, 20, 24, "rs2") {}
+      : RVReg<Reg_T>(isa, fieldIndex, 20, 24, "rs2") {}
 };
 
 // The RISC-V Rd field contains a destination register index.
 // It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
-class RVRegRd : public Reg<Reg_T> {
+class RVRegRd : public RVReg<Reg_T> {
 public:
   RVRegRd(const ISAInfoBase *isa, unsigned fieldIndex)
-      : Reg<Reg_T>(isa, fieldIndex, 7, 11, "rd") {}
+      : RVReg<Reg_T>(isa, fieldIndex, 7, 11, "rd") {}
+};
+
+// A base class for all RISC-V immediate types
+template <typename Reg_T>
+class RVImm : public Imm<Reg_T> {
+public:
+  RVImm(
+      unsigned tokenIndex, unsigned width, typename Imm<Reg_T>::Repr repr,
+      const std::vector<ImmPart> &parts,
+      typename Imm<Reg_T>::SymbolType symbolType = Imm<Reg_T>::SymbolType::None)
+      : Imm<Reg_T>(tokenIndex, width, repr, parts, symbolType) {}
 };
 
 // A RISC-V unsigned immediate field with an input width of 5 bits.
@@ -104,11 +144,11 @@ public:
 // It is defined as:
 //  - Imm[4:0] = Inst[24:20]
 template <typename Reg_T>
-class RVImmIShift32Type : public Imm<Reg_T> {
+class RVImmIShift32Type : public RVImm<Reg_T> {
 public:
   RVImmIShift32Type(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 5, Imm<Reg_T>::Repr::Unsigned,
-                   std::vector{ImmPart(0, 20, 24)}) {}
+      : RVImm<Reg_T>(fieldIndex, 5, Imm<Reg_T>::Repr::Unsigned,
+                     std::vector{ImmPart(0, 20, 24)}) {}
 };
 
 // A RISC-V unsigned immediate field with an input width of 6 bits.
@@ -117,11 +157,11 @@ public:
 // It is defined as:
 //  - Imm[5:0] = Inst[25:20]
 template <typename Reg_T>
-class RVImmIShift64Type : public Imm<Reg_T> {
+class RVImmIShift64Type : public RVImm<Reg_T> {
 public:
   RVImmIShift64Type(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Unsigned,
-                   std::vector{ImmPart(0, 20, 25)}) {}
+      : RVImm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Unsigned,
+                     std::vector{ImmPart(0, 20, 25)}) {}
 };
 
 // A RISC-V signed immediate field with an input width of 12 bits.
@@ -131,11 +171,11 @@ public:
 //  - Imm[31:11] = Inst[31]
 //  - Imm[10:0]  = Inst[30:20]
 template <typename Reg_T>
-class RVImmIType : public Imm<Reg_T> {
+class RVImmIType : public RVImm<Reg_T> {
 public:
   RVImmIType(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
-                   std::vector{ImmPart(0, 20, 31)}) {}
+      : RVImm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
+                     std::vector{ImmPart(0, 20, 31)}) {}
 };
 
 // A RISC-V signed immediate field with an input width of 12 bits.
@@ -146,11 +186,11 @@ public:
 //  - Imm[10:5]  = Inst[30:25]
 //  - Imm[4:0]   = Inst[11:7]
 template <typename Reg_T>
-class RVImmSType : public Imm<Reg_T> {
+class RVImmSType : public RVImm<Reg_T> {
 public:
   RVImmSType(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
-                   std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
+      : RVImm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
+                     std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
 };
 
 // A RISC-V signed immediate field with an input width of 13 bits.
@@ -163,13 +203,13 @@ public:
 //  - Imm[4:1]   = Inst[11:8]
 //  - Imm[0]     = 0
 template <typename Reg_T>
-class RVImmBType : public Imm<Reg_T> {
+class RVImmBType : public RVImm<Reg_T> {
 public:
   RVImmBType(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 13, Imm<Reg_T>::Repr::Signed,
-                   std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
-                               ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
-                   Imm<Reg_T>::SymbolType::Relative) {}
+      : RVImm<Reg_T>(fieldIndex, 13, Imm<Reg_T>::Repr::Signed,
+                     std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
+                                 ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
+                     Imm<Reg_T>::SymbolType::Relative) {}
 };
 
 // A RISC-V signed immediate field with an input width of 20 bits.
@@ -179,11 +219,11 @@ public:
 //  - Imm[31:12] = Inst[31:12]
 //  - Imm[11:0]  = 0
 template <typename Reg_T>
-class RVImmUType : public Imm<Reg_T> {
+class RVImmUType : public RVImm<Reg_T> {
 public:
   RVImmUType(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 32, Imm<Reg_T>::Repr::Hex,
-                   std::vector{ImmPart(0, 12, 31)}) {}
+      : RVImm<Reg_T>(fieldIndex, 32, Imm<Reg_T>::Repr::Hex,
+                     std::vector{ImmPart(0, 12, 31)}) {}
 };
 
 // A RISC-V signed immediate field with an input width of 21 bits.
@@ -197,13 +237,13 @@ public:
 //  - Imm[4:1]   = Inst[24:21]
 //  - Imm[0]     = 0
 template <typename Reg_T>
-class RVImmJType : public Imm<Reg_T> {
+class RVImmJType : public RVImm<Reg_T> {
 public:
   RVImmJType(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 21, Imm<Reg_T>::Repr::Signed,
-                   std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),
-                               ImmPart(11, 20, 20), ImmPart(1, 21, 30)},
-                   Imm<Reg_T>::SymbolType::Relative) {}
+      : RVImm<Reg_T>(fieldIndex, 21, Imm<Reg_T>::Repr::Signed,
+                     std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),
+                                 ImmPart(11, 20, 20), ImmPart(1, 21, 30)},
+                     Imm<Reg_T>::SymbolType::Relative) {}
 };
 
 // A B-Type RISC-V instruction

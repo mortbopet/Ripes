@@ -14,8 +14,8 @@ namespace Assembler {
 /// 3 bits are used to represent registers x8-x15, with register x8=0b000,
 /// x15=0b111.
 template <typename Reg_T>
-struct RVCReg : public Reg<Reg_T> {
-  using Reg<Reg_T>::Reg;
+struct RVCReg : public RVReg<Reg_T> {
+  using RVReg<Reg_T>::RVReg;
   std::optional<Error> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                              FieldLinkRequest<Reg_T> &) const override {
     bool success;
@@ -47,47 +47,47 @@ struct RVCReg : public Reg<Reg_T> {
 
 // A base class for RISC-V compressed instructions
 template <typename Reg_T>
-class RVCInstruction : public RVInstruction<Reg_T> {
+class RVCInstruction : public RVInstructionBase<Reg_T> {
 public:
   RVCInstruction(const Opcode<Reg_T> &opcode,
                  const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
-      : RVInstruction<Reg_T>(opcode, fields) {}
+      : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
 // All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the
 // instruction
-class RVCOpPartFunct2 : public OpPart {
+class RVCOpPartFunct2 : public RVOpPart {
 public:
-  RVCOpPartFunct2(unsigned funct2) : OpPart(funct2, 5, 6) {}
+  RVCOpPartFunct2(unsigned funct2) : RVOpPart(funct2, 5, 6) {}
 };
 
 // All RISC-V Funct3 opcode parts are defined as bits 5-6 (inclusive) of the
 // instruction
-class RVCOpPartFunct3 : public OpPart {
+class RVCOpPartFunct3 : public RVOpPart {
 public:
-  RVCOpPartFunct3(unsigned funct3) : OpPart(funct3, 13, 15) {}
+  RVCOpPartFunct3(unsigned funct3) : RVOpPart(funct3, 13, 15) {}
 };
 
 // All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
 // (inclusive) of the instruction
-class RVCOpPartFunct6 : public OpPart {
+class RVCOpPartFunct6 : public RVOpPart {
 public:
-  RVCOpPartFunct6(unsigned funct6) : OpPart(funct6, 10, 15) {}
+  RVCOpPartFunct6(unsigned funct6) : RVOpPart(funct6, 10, 15) {}
 };
 
 // A RISC-V compressed opcode defines the encoding of specific compressed
 // instructions
 template <typename Reg_T>
-class RVCOpcode : public Opcode<Reg_T> {
+class RVCOpcode : public RVOpcode<Reg_T> {
 public:
   // A RISC-V opcode with compressed Funct2 and Funct6 parts
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
             RVCOpPartFunct6 funct6)
-      : Opcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
 
   // A RISC-V opcode with a compressed Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
-      : Opcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
 };
 
 // The RISC-V Compressed Rs2 field contains a source register index.
@@ -126,12 +126,12 @@ public:
 //  - Imm[4:2] = Inst[6:4]
 //  - Imm[1:0] = 0
 template <typename Reg_T>
-class RVCImmLWSP : public Imm<Reg_T> {
+class RVCImmLWSP : public RVImm<Reg_T> {
 public:
   RVCImmLWSP(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 8, Imm<Reg_T>::Repr::Unsigned,
-                   std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
-                               ImmPart(2, 4, 6)}) {}
+      : RVImm<Reg_T>(fieldIndex, 8, Imm<Reg_T>::Repr::Unsigned,
+                     std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
+                                 ImmPart(2, 4, 6)}) {}
 };
 
 // A RISC-V unsigned immediate field with an input width of 9 bits.
@@ -143,12 +143,12 @@ public:
 //  - Imm[4:3] = Inst[6:5]
 //  - Imm[2:0] = 0
 template <typename Reg_T>
-class RVCImmLDSP : public Imm<Reg_T> {
+class RVCImmLDSP : public RVImm<Reg_T> {
 public:
   RVCImmLDSP(unsigned fieldIndex)
-      : Imm<Reg_T>(fieldIndex, 9, Imm<Reg_T>::Repr::Unsigned,
-                   std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
-                               ImmPart(3, 5, 6)}) {}
+      : RVImm<Reg_T>(fieldIndex, 9, Imm<Reg_T>::Repr::Unsigned,
+                     std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
+                                 ImmPart(3, 5, 6)}) {}
 };
 
 template <typename Reg_T>
