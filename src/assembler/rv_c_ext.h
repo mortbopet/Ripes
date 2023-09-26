@@ -146,7 +146,7 @@ public:
 };
 
 // A RISC-V unsigned immediate field with an input width of 9 bits.
-// Used in C.LSWP and C.FLWSP instructions.
+// Used in C.LDWP and C.FLDSP instructions.
 //
 // It is defined as:
 //  - Imm[8:6] = Inst[4:2]
@@ -163,7 +163,7 @@ public:
 };
 
 // A RISC-V signed immediate field with an input width of 6 bits.
-// Used in C.LSWP and C.FLWSP instructions.
+// Used in C.ADDI and C.ADDIW instructions.
 //
 // It is defined as:
 //  - Imm[5]   = Inst[12]
