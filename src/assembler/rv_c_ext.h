@@ -162,17 +162,21 @@ public:
                                   ImmPart(3, 5, 6)}) {}
 };
 
-// A RISC-V signed immediate field with an input width of 6 bits.
-// Used in C.ADDI and C.ADDIW instructions.
+// A RISC-V immediate field with an input width of 6 bits.
+// Used in the following instructions:
+//  - C.ADDI (unsigned)
+//  - C.ADDIW (unsigned)
+//  - C.SLLI (unsigned)
+//  - C.LI (signed)
 //
 // It is defined as:
 //  - Imm[5]   = Inst[12]
 //  - Imm[4:0] = Inst[6:2]
 template <typename Reg_T>
-class RVCImmADDI : public RVCImm<Reg_T> {
+class RVCImmCommon6 : public RVCImm<Reg_T> {
 public:
-  RVCImmADDI(unsigned fieldIndex)
-      : RVCImm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Signed,
+  RVCImmCommon6(unsigned fieldIndex, typename Imm<Reg_T>::Repr repr)
+      : RVCImm<Reg_T>(fieldIndex, 6, repr,
                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
 };
 
@@ -322,9 +326,9 @@ struct RV_C {
       instructions.push_back(std::shared_ptr<_Instruction>(
           new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
                           RVCImmLDSP<Reg__T>(2), isa)));
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
-                          RVCImmADDI<Reg__T>(2), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new CITypeInstr(
+          RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
+          RVCImmCommon6<Reg__T>(2, _Imm::Repr::Unsigned), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
@@ -371,7 +375,7 @@ struct RV_C {
 
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addi"), 0b000,
-                        RVCImmADDI<Reg__T>(2), isa)));
+                        RVCImmCommon6<Reg__T>(2, _Imm::Repr::Unsigned), isa)));
     instructions.push_back(CINOPType(0b01, Token("c.nop")));
 
     instructions.push_back(
