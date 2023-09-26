@@ -335,17 +335,13 @@ struct RV_C {
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
                         RVCImmLDSP<Reg__T>(2), isa)));
-    instructions.push_back(
-        CIType(0b10, Token("c.slli"), 0b000,
-               std::make_shared<_Imm>(
-                   2, 6, _Imm::Repr::Unsigned,
-                   std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.slli"), 0b000,
+                        RVCImmCommon6<Reg__T>(2, _Imm::Repr::Unsigned), isa)));
 
-    instructions.push_back(
-        CIType(0b01, Token("c.li"), 0b010,
-               std::make_shared<_Imm>(
-                   2, 6, _Imm::Repr::Signed,
-                   std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.li"), 0b010,
+                        RVCImmCommon6<Reg__T>(2, _Imm::Repr::Signed), isa)));
 
     auto cLuiInstr =
         CIType(0b01, Token("c.lui"), 0b011,
