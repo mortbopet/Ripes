@@ -151,6 +151,20 @@ public:
                                  ImmPart(3, 5, 6)}) {}
 };
 
+// A RISC-V signed immediate field with an input width of 6 bits.
+// Used in C.LSWP and C.FLWSP instructions.
+//
+// It is defined as:
+//  - Imm[5]   = Inst[12]
+//  - Imm[4:0] = Inst[6:2]
+template <typename Reg_T>
+class RVCImmADDI : public RVImm<Reg_T> {
+public:
+  RVCImmADDI(unsigned fieldIndex)
+      : RVImm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Signed,
+                     std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -298,11 +312,9 @@ struct RV_C {
       instructions.push_back(std::shared_ptr<_Instruction>(
           new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
                           std::make_shared<_Imm>(RVCImmLDSP<Reg__T>(2)), isa)));
-      instructions.push_back(
-          CIType(0b01, Token("c.addiw"), 0b001,
-                 std::make_shared<_Imm>(
-                     2, 6, _Imm::Repr::Signed,
-                     std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
+                          std::make_shared<_Imm>(RVCImmADDI<Reg__T>(2)), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
@@ -347,11 +359,9 @@ struct RV_C {
     });
     instructions.push_back(cAddi16spInstr);
 
-    instructions.push_back(
-        CIType(0b01, Token("c.addi"), 0b000,
-               std::make_shared<_Imm>(
-                   2, 6, _Imm::Repr::Signed,
-                   std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CITypeInstr(RVISA::Quadrant::QUADRANT1, Token("c.addi"), 0b000,
+                        std::make_shared<_Imm>(RVCImmADDI<Reg__T>(2)), isa)));
     instructions.push_back(CINOPType(0b01, Token("c.nop")));
 
     instructions.push_back(
