@@ -236,6 +236,21 @@ public:
                       std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
 };
 
+// A RISC-V unsigned immediate field with an input width of 9 bits.
+// Used in C.SDSP and C.FSDSP instructions.
+//
+// It is defined as:
+//  - Imm[8:6] = Inst[9:7]
+//  - Imm[5:3] = Inst[12:10]
+//  - Imm[2:0] = 0
+template <typename Reg_T>
+class RVCImmSDSP : public RVCImm<Reg_T> {
+public:
+  RVCImmSDSP()
+      : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
+                      std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -448,17 +463,13 @@ struct RV_C {
           new CSSTypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.fswsp"), 0b111,
                            RVCImmSWSP<Reg__T>(), isa)));
     } else {
-      instructions.push_back(
-          CSSType(0b10, Token("c.sdsp"), 0b111,
-                  std::make_shared<_Imm>(
-                      2, 9, _Imm::Repr::Unsigned,
-                      std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)})));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new CSSTypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.sdsp"), 0b111,
+                           RVCImmSDSP<Reg__T>(), isa)));
     }
-    instructions.push_back(
-        CSSType(0b10, Token("c.fsdsp"), 0b101,
-                std::make_shared<_Imm>(
-                    2, 9, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CSSTypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.fsdsp"), 0b101,
+                         RVCImmSDSP<Reg__T>(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
     instructions.push_back(CLType(
