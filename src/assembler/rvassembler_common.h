@@ -146,8 +146,8 @@ public:
 template <typename Reg_T>
 class RVImmIShift32Type : public RVImm<Reg_T> {
 public:
-  RVImmIShift32Type(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 5, Imm<Reg_T>::Repr::Unsigned,
+  RVImmIShift32Type()
+      : RVImm<Reg_T>(3, 5, Imm<Reg_T>::Repr::Unsigned,
                      std::vector{ImmPart(0, 20, 24)}) {}
 };
 
@@ -159,8 +159,8 @@ public:
 template <typename Reg_T>
 class RVImmIShift64Type : public RVImm<Reg_T> {
 public:
-  RVImmIShift64Type(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 6, Imm<Reg_T>::Repr::Unsigned,
+  RVImmIShift64Type()
+      : RVImm<Reg_T>(3, 6, Imm<Reg_T>::Repr::Unsigned,
                      std::vector{ImmPart(0, 20, 25)}) {}
 };
 
@@ -188,8 +188,8 @@ public:
 template <typename Reg_T>
 class RVImmSType : public RVImm<Reg_T> {
 public:
-  RVImmSType(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
+  RVImmSType()
+      : RVImm<Reg_T>(2, 12, Imm<Reg_T>::Repr::Signed,
                      std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
 };
 
@@ -205,8 +205,8 @@ public:
 template <typename Reg_T>
 class RVImmBType : public RVImm<Reg_T> {
 public:
-  RVImmBType(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 13, Imm<Reg_T>::Repr::Signed,
+  RVImmBType()
+      : RVImm<Reg_T>(3, 13, Imm<Reg_T>::Repr::Signed,
                      std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
                                  ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
                      Imm<Reg_T>::SymbolType::Relative) {}
@@ -221,8 +221,8 @@ public:
 template <typename Reg_T>
 class RVImmUType : public RVImm<Reg_T> {
 public:
-  RVImmUType(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 32, Imm<Reg_T>::Repr::Hex,
+  RVImmUType()
+      : RVImm<Reg_T>(2, 32, Imm<Reg_T>::Repr::Hex,
                      std::vector{ImmPart(0, 12, 31)}) {}
 };
 
@@ -239,8 +239,8 @@ public:
 template <typename Reg_T>
 class RVImmJType : public RVImm<Reg_T> {
 public:
-  RVImmJType(unsigned fieldIndex)
-      : RVImm<Reg_T>(fieldIndex, 21, Imm<Reg_T>::Repr::Signed,
+  RVImmJType()
+      : RVImm<Reg_T>(2, 21, Imm<Reg_T>::Repr::Signed,
                      std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),
                                  ImmPart(11, 20, 20), ImmPart(1, 21, 30)},
                      Imm<Reg_T>::SymbolType::Relative) {}
@@ -256,7 +256,7 @@ public:
                             RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmBType<Reg_T>(3))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmBType<Reg_T>())}) {}
 };
 
 template <typename Reg_T>
@@ -306,7 +306,7 @@ public:
                             RVOpPartFunct7(funct7)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIShift32Type<Reg_T>(3))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmIShift32Type<Reg_T>())}) {}
 };
 
 template <typename Reg_T>
@@ -319,7 +319,7 @@ public:
                             RVOpPartFunct6(funct6)),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
              std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIShift64Type<Reg_T>(3))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmIShift64Type<Reg_T>())}) {}
 };
 
 template <typename Reg_T>
@@ -358,7 +358,7 @@ public:
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::STORE, RVOpPartFunct3(funct3)),
             {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 3)),
-             std::make_shared<Imm<Reg_T>>(RVImmSType<Reg_T>(2)),
+             std::make_shared<Imm<Reg_T>>(RVImmSType<Reg_T>()),
              std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 1))}) {}
 };
 
@@ -369,7 +369,7 @@ public:
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, opcode),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Imm<Reg_T>>(RVImmUType<Reg_T>(2))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmUType<Reg_T>())}) {}
 };
 
 template <typename Reg_T>
@@ -379,7 +379,7 @@ public:
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, opcode),
             {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Imm<Reg_T>>(RVImmJType<Reg_T>(2))}) {}
+             std::make_shared<Imm<Reg_T>>(RVImmJType<Reg_T>())}) {}
 };
 
 template <typename Reg_T>
