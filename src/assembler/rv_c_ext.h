@@ -45,15 +45,6 @@ struct RVCReg : public RVReg<Reg_T> {
   }
 };
 
-// A base class for RISC-V compressed instructions
-template <typename Reg_T>
-class RVCInstruction : public RVInstructionBase<Reg_T> {
-public:
-  RVCInstruction(const Opcode<Reg_T> &opcode,
-                 const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
-      : RVInstructionBase<Reg_T>(opcode, fields) {}
-};
-
 // A base class for RISC-V compressed opcode parts
 class RVCOpPart : public RVOpPart {
 public:
@@ -105,6 +96,15 @@ public:
   // A RISC-V opcode with a compressed Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
+};
+
+// A base class for RISC-V compressed instructions
+template <typename Reg_T>
+class RVCInstruction : public RVInstructionBase<Reg_T> {
+public:
+  RVCInstruction(const RVCOpcode<Reg_T> &opcode,
+                 const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+      : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
 // The RISC-V Compressed Rs2 field contains a source register index.

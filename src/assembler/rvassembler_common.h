@@ -5,24 +5,6 @@
 
 namespace Ripes {
 namespace Assembler {
-template <typename Reg_T>
-// A base class for all RISC-V instructions
-class RVInstructionBase : public Instruction<Reg_T> {
-public:
-  RVInstructionBase(const Opcode<Reg_T> &opcode,
-                    const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
-      : Instruction<Reg_T>(opcode, fields) {}
-};
-
-// RISC-V instruction class (for compressed instructions, see class
-// RVCInstruction)
-template <typename Reg_T>
-class RVInstruction : public RVInstructionBase<Reg_T> {
-public:
-  RVInstruction(const Opcode<Reg_T> &opcode,
-                const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
-      : RVInstructionBase<Reg_T>(opcode, fields) {}
-};
 
 // A base class for all RISC-V opcode parts
 class RVOpPart : public OpPart {
@@ -89,6 +71,25 @@ public:
   RVOpcode(const Token &name, RVISA::Opcode opcode, RVOpPartFunct3 funct3,
            RVOpPartFunct7 funct7)
       : Opcode<Reg_T>(name, {RVOpPartOpcode(opcode), funct3, funct7}) {}
+};
+
+// A base class for all RISC-V instructions
+template <typename Reg_T>
+class RVInstructionBase : public Instruction<Reg_T> {
+public:
+  RVInstructionBase(const RVOpcode<Reg_T> &opcode,
+                    const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+      : Instruction<Reg_T>(opcode, fields) {}
+};
+
+// RISC-V instruction class (for compressed instructions, see class
+// RVCInstruction)
+template <typename Reg_T>
+class RVInstruction : public RVInstructionBase<Reg_T> {
+public:
+  RVInstruction(const RVOpcode<Reg_T> &opcode,
+                const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+      : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
 // A base class for all RISC-V register types
