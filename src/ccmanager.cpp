@@ -20,7 +20,7 @@ const static QString s_testprogram = "int main() { return 0; }";
 QString indentString(const QString &string, int indent) {
   auto subStrings = string.split("\n");
   auto indentedStrings = QStringList();
-  for (const auto &str : qAsConst(subStrings)) {
+  for (const auto &str : std::as_const(subStrings)) {
     indentedStrings << QString(" ").repeated(indent) + str;
   }
   return indentedStrings.join("\n");

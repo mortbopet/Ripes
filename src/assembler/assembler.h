@@ -176,7 +176,7 @@ public:
     // Join tokens
     QString joinedLine;
     const auto tokens = std::get<LineTokens>(tokensVar);
-    for (const auto &token : qAsConst(tokens)) {
+    for (const auto &token : std::as_const(tokens)) {
       joinedLine += token + " ";
     }
     joinedLine.chop(1); // remove trailing ' '

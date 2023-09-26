@@ -154,8 +154,8 @@ public:
   static bool hasValidProgram() { return false; }
   static const QString &program() { return get().m_programPath; }
   static QString getError() { return QString(); }
-  static ProcessResult run(const QStringList &args,
-                           bool showProgressDialog = false) {
+  static ProcessResult run(const QStringList &,
+                           bool = false) {
     return ProcessResult();
   }
 
@@ -165,7 +165,7 @@ public:
   }
 signals:
 
-  bool trySetProgram(const QString &path) { return false; }
+  bool trySetProgram(const QString &) { return false; }
 
 private:
   QString m_programPath;

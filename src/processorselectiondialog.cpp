@@ -160,7 +160,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
     delete item;
   }
 
-  for (const auto &ext : qAsConst(isaInfo.supportedExtensions)) {
+  for (const auto &ext : std::as_const(isaInfo.supportedExtensions)) {
     auto chkbox = new QCheckBox(ext);
     chkbox->setToolTip(isaInfo.isa->extensionDescription(ext));
     m_ui->extensions->addWidget(chkbox);

@@ -24,7 +24,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
                    << "\\bgp\\b"
                    << "\\btp\\b"
                    << "\\bfp\\b";
-  for (const auto &pattern : qAsConst(registerPatterns)) {
+  for (const auto &pattern : std::as_const(registerPatterns)) {
     rule.pattern = QRegularExpression(pattern);
     rule.format = registerFormat;
     m_highlightingRules.append(rule);
@@ -70,7 +70,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
 }
 
 void RVSyntaxHighlighter::syntaxHighlightBlock(const QString &text) {
-  for (const HighlightingRule &rule : qAsConst(m_highlightingRules)) {
+  for (const HighlightingRule &rule : std::as_const(m_highlightingRules)) {
     QRegularExpressionMatchIterator matchIterator =
         rule.pattern.globalMatch(text);
     while (matchIterator.hasNext()) {

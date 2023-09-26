@@ -11,7 +11,7 @@ static QString numTokensError(unsigned expected, const TokenizedSrcLine &line) {
       std::to_string(line.tokens.size()) + "[");
   for (auto t : llvm::enumerate(line.tokens)) {
     err += t.value();
-    if (t.index() < (line.tokens.size() - 1))
+    if (static_cast<int64_t>(t.index()) < (line.tokens.size() - 1))
       err += ", ";
   };
   err += "].";

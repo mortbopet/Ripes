@@ -344,7 +344,7 @@ CachePlotWidget::gatherData(unsigned fromCycle) const {
 
 void resample(QLineSeries *series, unsigned target, double &step) {
   QVector<QPointF> newPoints;
-  const auto &oldPoints = series->pointsVector();
+  const auto &oldPoints = series->points();
   step = (oldPoints.last().x() / static_cast<double>(target)) *
          2; // *2 to account for steps
   newPoints.reserve(target);
@@ -356,7 +356,7 @@ void resample(QLineSeries *series, unsigned target, double &step) {
   // sanity check
   QPointF plast = QPointF(0, 0);
   bool first = true;
-  for (const auto &p : qAsConst(newPoints)) {
+  for (const auto &p : std::as_const(newPoints)) {
     if (!first) {
       Q_ASSERT(p.x() - plast.x() < step * 1.1);
       first = false;
@@ -426,8 +426,8 @@ void CachePlotWidget::updateRatioPlot() {
   QList<QPointF> newPoints;
   QList<QPointF> newWindowPoints;
   QPointF lastPoint;
-  if (m_series->pointsVector().size() > 0) {
-    lastPoint = m_series->pointsVector().constLast();
+  if (m_series->points().size() > 0) {
+    lastPoint = m_series->points().constLast();
   } else {
     lastPoint = QPointF(-1, 0);
   }
@@ -489,7 +489,7 @@ void CachePlotWidget::updateRatioPlot() {
   // points, and we resample at a 2x ratio
   const int maxPoints =
       RipesSettings::value(RIPES_SETTING_CACHE_MAXPOINTS).toInt() * 2 * 2;
-  if (m_series->pointsVector().size() >= maxPoints) {
+  if (m_series->points().size() >= maxPoints) {
     resample(m_series, maxPoints / 2, m_xStep);
   }
 

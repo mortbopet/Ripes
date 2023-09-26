@@ -50,7 +50,7 @@ void SaveDialog::accept() {
 
 void SaveDialog::pathChanged() {
   bool okEnabled = !QFileInfo(m_ui->filePath->text()).fileName().isEmpty();
-  okEnabled &= m_ui->saveSource->isChecked() | m_ui->saveBinary->isChecked();
+  okEnabled &= m_ui->saveSource->isChecked() || m_ui->saveBinary->isChecked();
 
   m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(okEnabled);
 

@@ -92,14 +92,14 @@ QPixmap CachePlotView::getPlotPixmap() {
     itemsToHide << marker->marker;
   }
 
-  for (const auto &i : qAsConst(itemsToHide)) {
+  for (const auto &i : std::as_const(itemsToHide)) {
     if (i)
       i->hide();
   }
 
   QPixmap p = grab();
 
-  for (const auto &i : qAsConst(itemsToHide)) {
+  for (const auto &i : std::as_const(itemsToHide)) {
     if (i)
       i->show();
   }
