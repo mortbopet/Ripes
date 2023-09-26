@@ -134,6 +134,23 @@ public:
                                ImmPart(2, 4, 6)}) {}
 };
 
+// A RISC-V unsigned immediate field with an input width of 9 bits.
+// Used in C.LSWP and C.FLWSP instructions.
+//
+// It is defined as:
+//  - Imm[8:6] = Inst[4:2]
+//  - Imm[5]   = Inst[12]
+//  - Imm[4:3] = Inst[6:5]
+//  - Imm[2:0] = 0
+template <typename Reg_T>
+class RVCImmLDSP : public Imm<Reg_T> {
+public:
+  RVCImmLDSP(unsigned fieldIndex)
+      : Imm<Reg_T>(fieldIndex, 9, Imm<Reg_T>::Repr::Unsigned,
+                   std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
+                               ImmPart(3, 5, 6)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -278,12 +295,9 @@ struct RV_C {
               std::make_shared<_Imm>(RVCImmLWSP<Reg__T>(2)), isa)));
     } else // RV64 RV128
     {
-      instructions.push_back(
-          CIType(0b10, Token("c.ldsp"), 0b011,
-                 std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,
-                                        std::vector{ImmPart(6, 2, 4),
-                                                    ImmPart(5, 12, 12),
-                                                    ImmPart(3, 5, 6)})));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
+                          std::make_shared<_Imm>(RVCImmLDSP<Reg__T>(2)), isa)));
       instructions.push_back(
           CIType(0b01, Token("c.addiw"), 0b001,
                  std::make_shared<_Imm>(
@@ -292,11 +306,9 @@ struct RV_C {
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
-    instructions.push_back(CIType(
-        0b10, Token("c.fldsp"), 0b001,
-        std::make_shared<_Imm>(2, 9, _Imm::Repr::Unsigned,
-                               std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
-                                           ImmPart(3, 5, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CITypeInstr(RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
+                        std::make_shared<_Imm>(RVCImmLDSP<Reg__T>(2)), isa)));
     instructions.push_back(
         CIType(0b10, Token("c.slli"), 0b000,
                std::make_shared<_Imm>(
