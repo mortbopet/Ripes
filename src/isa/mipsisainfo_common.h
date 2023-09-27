@@ -138,15 +138,9 @@ class MIPSISAInfoBase : public ISAInfoBase {
 public:
   unsigned int regCnt() const override { return 34; }
   QString regName(unsigned i) const override {
-    QString regNameDollar = MIPSISA::RegNames.size() > static_cast<int>(i)
-                                ? MIPSISA::RegNames.at(static_cast<int>(i))
-                                : QString();
-    regNameDollar.prepend("$");
-    regNameDollar.prepend("x");
     return (MIPSISA::RegNames.size() > static_cast<int>(i)
                 ? MIPSISA::RegNames.at(static_cast<int>(i))
                 : QString());
-    // return regNameDollar;
   }
   QString regAlias(unsigned i) const override {
     return MIPSISA::RegAliases.size() > static_cast<int>(i)
@@ -167,19 +161,19 @@ public:
   unsigned elfMachineId() const override { return EM_MIPS; }
   unsigned int regNumber(const QString &reg, bool &success) const override {
     QString regRes = reg;
-    QString regNoDollar = regRes.remove('$');
-
+    success = true;
     if (reg[0] != '$') {
       success = false;
       return 0;
     }
 
-    success = true;
-    if (reg[0] == '$' && (MIPSISA::RegNames.count(reg) != 0)) {
+    QString regNoDollar = regRes.remove('$');
+
+    if (MIPSISA::RegNames.count(reg) != 0) {
       regRes.remove('$');
       return regRes.toInt(&success, 10);
-    } else if (MIPSISA::RegAliases.contains(regNoDollar)) {
-      return MIPSISA::RegAliases.indexOf(regNoDollar);
+    } else if (int idx = MIPSISA::RegAliases.indexOf(regNoDollar); idx != -1) {
+      return idx;
     }
     success = false;
     return 0;

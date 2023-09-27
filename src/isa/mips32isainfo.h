@@ -13,9 +13,7 @@ public:
     for (const auto &ext : extensions) {
       if (supportsExtension(ext)) {
         m_enabledExtensions << ext;
-      } /*else {
-        assert(false && "Invalid extension specified for ISA");
-      }*/
+      }
     }
   }
 
@@ -29,9 +27,7 @@ public:
   }
   QString CCmabi() const override { return "ilp32"; }
 
-  unsigned instrByteAlignment() const override {
-    return extensionEnabled("C") ? 2 : 4;
-  };
+  unsigned instrByteAlignment() const override { return 4; };
 };
 
 } // namespace Ripes
