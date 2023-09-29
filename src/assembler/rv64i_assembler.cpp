@@ -71,40 +71,40 @@ void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
                        RV_I<Reg_T>::Options::LI64BitVariant});
 
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new IType32Instr<Reg_T>(Token("addiw"), 0b000, isa)));
+      new RVInstrI32Type<Reg_T>(Token("addiw"), 0b000, isa)));
 
   instructions.push_back(
-      std::shared_ptr<_Instruction>(new IShiftType64Instr<Reg_T>(
+      std::shared_ptr<_Instruction>(new RVInstrIShift64Type<Reg_T>(
           Token("slli"), RVISA::OPIMM, 0b001, 0b000000, isa)));
   instructions.push_back(
-      std::shared_ptr<_Instruction>(new IShiftType64Instr<Reg_T>(
+      std::shared_ptr<_Instruction>(new RVInstrIShift64Type<Reg_T>(
           Token("srli"), RVISA::OPIMM, 0b101, 0b000000, isa)));
   instructions.push_back(
-      std::shared_ptr<_Instruction>(new IShiftType64Instr<Reg_T>(
+      std::shared_ptr<_Instruction>(new RVInstrIShift64Type<Reg_T>(
           Token("srai"), RVISA::OPIMM, 0b101, 0b010000, isa)));
 
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("addw"), 0b000, 0b0000000, isa)));
+      new RVInstrR32Type<Reg_T>(Token("addw"), 0b000, 0b0000000, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("subw"), 0b000, 0b0100000, isa)));
+      new RVInstrR32Type<Reg_T>(Token("subw"), 0b000, 0b0100000, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("sllw"), 0b001, 0b0000000, isa)));
+      new RVInstrR32Type<Reg_T>(Token("sllw"), 0b001, 0b0000000, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("srlw"), 0b101, 0b0000000, isa)));
+      new RVInstrR32Type<Reg_T>(Token("srlw"), 0b101, 0b0000000, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("sraw"), 0b101, 0b0100000, isa)));
+      new RVInstrR32Type<Reg_T>(Token("sraw"), 0b101, 0b0100000, isa)));
 
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new LTypeInstr<Reg_T>(Token("lwu"), 0b110, isa)));
+      new RVInstrLType<Reg_T>(Token("lwu"), 0b110, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new LTypeInstr<Reg_T>(Token("ld"), 0b011, isa)));
+      new RVInstrLType<Reg_T>(Token("ld"), 0b011, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new STypeInstr<Reg_T>(Token("sd"), 0b011, isa)));
+      new RVInstrSType<Reg_T>(Token("sd"), 0b011, isa)));
 
   pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
-      new PseudoLoadInstr<Reg_T>(Token("ld"))));
+      new RVPseudoInstrLoad<Reg_T>(Token("ld"))));
   pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
-      new PseudoStoreInstr<Reg_T>(Token("sd"))));
+      new RVPseudoInstrStore<Reg_T>(Token("sd"))));
   pseudoInstructions.push_back(
       std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
           Token("negw"), {RegTok, RegTok}, _PseudoExpandFunc(line) {
@@ -126,15 +126,15 @@ void RV64I_Assembler::enableExtM(const ISAInfoBase *isa,
   RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
 
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("mulw"), 0b000, 0b0000001, isa)));
+      new RVInstrR32Type<Reg_T>(Token("mulw"), 0b000, 0b0000001, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("divw"), 0b100, 0b0000001, isa)));
+      new RVInstrR32Type<Reg_T>(Token("divw"), 0b100, 0b0000001, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("divuw"), 0b101, 0b0000001, isa)));
+      new RVInstrR32Type<Reg_T>(Token("divuw"), 0b101, 0b0000001, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("remw"), 0b110, 0b0000001, isa)));
+      new RVInstrR32Type<Reg_T>(Token("remw"), 0b110, 0b0000001, isa)));
   instructions.push_back(std::shared_ptr<_Instruction>(
-      new RType32Instr<Reg_T>(Token("remuw"), 0b111, 0b0000001, isa)));
+      new RVInstrR32Type<Reg_T>(Token("remuw"), 0b111, 0b0000001, isa)));
 }
 
 } // namespace Assembler

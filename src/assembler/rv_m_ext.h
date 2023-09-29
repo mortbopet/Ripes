@@ -25,21 +25,21 @@ struct RV_M {
 
     // Assembler functors
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("mul"), 0b000, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("mul"), 0b000, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("mulh"), 0b001, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("mulh"), 0b001, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("mulhsu"), 0b010, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("mulhsu"), 0b010, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("mulhu"), 0b011, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("mulhu"), 0b011, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("div"), 0b100, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("div"), 0b100, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("divu"), 0b101, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("divu"), 0b101, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("rem"), 0b110, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("rem"), 0b110, 0b0000001, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RTypeInstr<Reg__T>(Token("remu"), 0b111, 0b0000001, isa)));
+        new RVInstrRType<Reg__T>(Token("remu"), 0b111, 0b0000001, isa)));
   }
 };
 
