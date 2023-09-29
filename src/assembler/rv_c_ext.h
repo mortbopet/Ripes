@@ -286,6 +286,21 @@ public:
                                   ImmPart(2, 6, 6)}) {}
 };
 
+// A RISC-V signed immediate field with an input width of 8 bits.
+// Used in C.LD and C.FLD instructions.
+//
+// It is defined as:
+//  - Imm[7:6] = Inst[6:5]
+//  - Imm[5:3] = Inst[12:10]
+//  - Imm[2:0] = 0
+template <typename Reg_T>
+class RVCImmLD : public RVCImm<Reg_T> {
+public:
+  RVCImmLD()
+      : RVCImm<Reg_T>(3, 8, Imm<Reg_T>::Repr::Signed,
+                      std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -340,12 +355,6 @@ public:
              std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 2),
              std::make_shared<RVCImm<Reg_T>>(imm)}) {}
 };
-
-#define CLType(opcode, name, funct3, imm)                                      \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                  \
-       std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"), imm}))
 
 #define CSType(opcode, name, funct3)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -523,18 +532,14 @@ struct RV_C {
           new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
                           RVCImmLW<Reg__T>(), isa)));
     } else {
-      instructions.push_back(
-          CLType(0b00, Token("c.ld"), 0b011,
-                 std::make_shared<_Imm>(
-                     3, 8, _Imm::Repr::Signed,
-                     std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)})));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
+                          RVCImmLD<Reg__T>(), isa)));
     }
     // instructions.push_back(CLType(0b00, Token("c.lq"), 0b001));//RV128
-    instructions.push_back(
-        CLType(0b00, Token("c.fld"), 0b001,
-               std::make_shared<_Imm>(
-                   3, 8, _Imm::Repr::Signed,
-                   std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.fld"), 0b001,
+                        RVCImmLD<Reg__T>(), isa)));
 
     instructions.push_back(CSType(0b00, Token("c.sw"), 0b110));
     if (isa->isaID() == ISA::RV32I) {
