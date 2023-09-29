@@ -103,6 +103,10 @@ public:
 template <typename Reg_T>
 class RVCOpcode : public RVOpcode<Reg_T> {
 public:
+  // Construct opcode from parts
+  RVCOpcode(const Token &name, const std::vector<OpPart> &opParts)
+      : RVOpcode<Reg_T>(name, opParts) {}
+
   // A RISC-V compressed NOP opcode
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartNOP nopPart)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
@@ -450,11 +454,17 @@ public:
              std::make_shared<RVCRegRs2<Reg_T>>(isa, 2)}) {}
 };
 
-#define CR2Type(opcode, name, funct4)                                          \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 6),             \
-                            OpPart(funct4, 12, 15)}),                          \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rs1")}))
+template <typename Reg_T>
+class CR2TypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CR2TypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct4,
+               const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name,
+                             {RVOpPartQuadrant(quadrant), RVOpPart(0, 2, 6),
+                              RVCOpPartFunct4(funct4)}),
+            {std::make_shared<RVCRegRs1<Reg_T>>(isa, 1)}) {}
+};
 
 #define CREBREAKType(opcode, name, funct4)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -665,8 +675,12 @@ struct RV_C {
         std::shared_ptr<_Instruction>(new CRTypeInstr<Reg__T>(
             RVISA::Quadrant::QUADRANT2, Token("c.add"), 0b1001, isa)));
 
-    instructions.push_back(CR2Type(0b10, Token("c.jr"), 0b1000));
-    instructions.push_back(CR2Type(0b10, Token("c.jalr"), 0b1001));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CR2TypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT2, Token("c.jr"), 0b1000, isa)));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CR2TypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT2, Token("c.jalr"), 0b1001, isa)));
 
     // instructions.push_back(CREBREAKType(0b10, Token("c.ebreak"), 0b1001));
     // //FIXME Duplicated terminate called after throwing an instance of
