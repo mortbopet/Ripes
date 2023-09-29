@@ -57,15 +57,15 @@ struct RVCRegCompressed : public RVCReg<Reg_T> {
   }
 };
 
-// A base class for RISC-V compressed opcode parts
+/// A base class for RISC-V compressed opcode parts
 class RVCOpPart : public RVOpPart {
 public:
   RVCOpPart(unsigned funct2, unsigned start, unsigned stop)
       : RVOpPart(funct2, start, stop) {}
 };
 
-// All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the
-// instruction
+/// All RISC-V Funct2 opcode parts are defined as bits 5-6 (inclusive) of the
+/// instruction
 class RVCOpPartFunct2 : public RVCOpPart {
 public:
   enum Offset { OFFSET5 = 5, OFFSET10 = 10 };
@@ -73,66 +73,66 @@ public:
       : RVCOpPart(funct2, offset, offset + 1) {}
 };
 
-// All RISC-V Funct3 opcode parts are defined as bits 13-15 (inclusive) of the
-// instruction
+/// All RISC-V Funct3 opcode parts are defined as bits 13-15 (inclusive) of the
+/// instruction
 class RVCOpPartFunct3 : public RVCOpPart {
 public:
   RVCOpPartFunct3(unsigned funct3) : RVCOpPart(funct3, 13, 15) {}
 };
 
-// All RISC-V Funct4 opcode parts are defined as bits 12-15 (inclusive) of the
-// instruction
+/// All RISC-V Funct4 opcode parts are defined as bits 12-15 (inclusive) of the
+/// instruction
 class RVCOpPartFunct4 : public RVCOpPart {
 public:
   RVCOpPartFunct4(unsigned funct4) : RVCOpPart(funct4, 12, 15) {}
 };
 
-// All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
-// (inclusive) of the instruction
+/// All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
+/// (inclusive) of the instruction
 class RVCOpPartFunct6 : public RVCOpPart {
 public:
   RVCOpPartFunct6(unsigned funct6) : RVCOpPart(funct6, 10, 15) {}
 };
 
-// Bits 2-15 (inclusive) are set to 0 in a compressed NOP instruction
+/// Bits 2-15 (inclusive) are set to 0 in a compressed NOP instruction
 class RVCOpPartNOP : public RVCOpPart {
 public:
   RVCOpPartNOP() : RVCOpPart(0, 2, 15) {}
 };
 
-// A RISC-V compressed opcode defines the encoding of specific compressed
-// instructions
+/// A RISC-V compressed opcode defines the encoding of specific compressed
+/// instructions
 template <typename Reg_T>
 class RVCOpcode : public RVOpcode<Reg_T> {
 public:
-  // Construct opcode from parts
+  /// Construct opcode from parts
   RVCOpcode(const Token &name, const std::vector<OpPart> &opParts)
       : RVOpcode<Reg_T>(name, opParts) {}
 
-  // A RISC-V opcode with a compressed Funct3 part
+  /// A RISC-V opcode with a compressed Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
 
-  // A RISC-V compressed NOP opcode
+  /// A RISC-V compressed NOP opcode
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartNOP nopPart)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
 
-  // A RISC-V opcode with a compressed Funct4 part
+  /// A RISC-V opcode with a compressed Funct4 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct4 funct4)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct4}) {}
 
-  // A RISC-V opcode with compressed Funct2 and Funct6 parts
+  /// A RISC-V opcode with compressed Funct2 and Funct6 parts
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
             RVCOpPartFunct6 funct6)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
 
-  // A RISC-V opcode with a compressed Funct3 part
+  /// A RISC-V opcode with a compressed Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
             RVCOpPartFunct3 funct3)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct3}) {}
 };
 
-// A base class for RISC-V compressed instructions
+/// A base class for RISC-V compressed instructions
 template <typename Reg_T>
 class RVCInstruction : public RVInstructionBase<Reg_T> {
 public:
@@ -141,8 +141,8 @@ public:
       : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
-// The RISC-V Compressed Rs1 field contains a source register index.
-// It is defined as bits 7-11 (inclusive)
+/// The RISC-V Compressed Rs1 field contains a source register index.
+/// It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
 class RVCRegRs1 : public RVCReg<Reg_T> {
 public:
@@ -150,8 +150,8 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rs1") {}
 };
 
-// The RISC-V Compressed Rs2 field contains a source register index.
-// It is defined as bits 2-6 (inclusive)
+/// The RISC-V Compressed Rs2 field contains a source register index.
+/// It is defined as bits 2-6 (inclusive)
 template <typename Reg_T>
 class RVCRegRs2 : public RVCReg<Reg_T> {
 public:
@@ -159,8 +159,8 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 2, 6, "rs2") {}
 };
 
-// The RISC-V Compressed Rd/Rs1 field contains a source or destination register
-// index. It is defined as bits 7-11 (inclusive)
+/// The RISC-V Compressed Rd/Rs1 field contains a source or destination register
+/// index. It is defined as bits 7-11 (inclusive)
 template <typename Reg_T>
 class RVCRegRdRs1 : public RVCReg<Reg_T> {
 public:
@@ -168,8 +168,8 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
 };
 
-// The RISC-V Compressed Rs1 field contains a source register index.
-// It is defined as bits 7-9 (inclusive)
+/// The RISC-V Compressed Rs1 field contains a source register index.
+/// It is defined as bits 7-9 (inclusive)
 template <typename Reg_T>
 class RVCRegRs1Prime : public RVCRegCompressed<Reg_T> {
 public:
@@ -177,8 +177,8 @@ public:
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rs1'") {}
 };
 
-// The RISC-V Compressed Rs2' field contains a source register index.
-// It is defined as bits 2-4 (inclusive)
+/// The RISC-V Compressed Rs2' field contains a source register index.
+/// It is defined as bits 2-4 (inclusive)
 template <typename Reg_T>
 class RVCRegRs2Prime : public RVCRegCompressed<Reg_T> {
 public:
@@ -186,8 +186,8 @@ public:
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
 };
 
-// The RISC-V Compressed Rd' field contains a destination register
-// index. It is defined as bits 2-4 (inclusive)
+/// The RISC-V Compressed Rd' field contains a destination register
+/// index. It is defined as bits 2-4 (inclusive)
 template <typename Reg_T>
 class RVCRegRdPrime : public RVCRegCompressed<Reg_T> {
 public:
@@ -195,8 +195,8 @@ public:
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
 };
 
-// The RISC-V Compressed Rd'/Rs1' field contains a source or destination
-// register index. It is defined as bits 7-9 (inclusive)
+/// The RISC-V Compressed Rd'/Rs1' field contains a source or destination
+/// register index. It is defined as bits 7-9 (inclusive)
 template <typename Reg_T>
 class RVCRegRdRs1Prime : public RVCRegCompressed<Reg_T> {
 public:
@@ -204,7 +204,7 @@ public:
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
 };
 
-// A base class for RISC-V compressed immediates
+/// A base class for RISC-V compressed immediates
 template <typename Reg_T>
 class RVCImm : public RVImm<Reg_T> {
 public:
@@ -215,14 +215,14 @@ public:
       : RVImm<Reg_T>(tokenIndex, width, repr, parts, symbolType) {}
 };
 
-// A RISC-V unsigned immediate field with an input width of 8 bits.
-// Used in C.LSWP and C.FLWSP instructions.
-//
-// It is defined as:
-//  - Imm[7:6] = Inst[3:2]
-//  - Imm[5]   = Inst[12]
-//  - Imm[4:2] = Inst[6:4]
-//  - Imm[1:0] = 0
+/// A RISC-V unsigned immediate field with an input width of 8 bits.
+/// Used in C.LSWP and C.FLWSP instructions.
+///
+/// It is defined as:
+///  - Imm[7:6] = Inst[3:2]
+///  - Imm[5]   = Inst[12]
+///  - Imm[4:2] = Inst[6:4]
+///  - Imm[1:0] = 0
 template <typename Reg_T>
 class RVCImmLWSP : public RVCImm<Reg_T> {
 public:
@@ -232,14 +232,14 @@ public:
                                   ImmPart(2, 4, 6)}) {}
 };
 
-// A RISC-V unsigned immediate field with an input width of 9 bits.
-// Used in C.LDWP and C.FLDSP instructions.
-//
-// It is defined as:
-//  - Imm[8:6] = Inst[4:2]
-//  - Imm[5]   = Inst[12]
-//  - Imm[4:3] = Inst[6:5]
-//  - Imm[2:0] = 0
+/// A RISC-V unsigned immediate field with an input width of 9 bits.
+/// Used in C.LDWP and C.FLDSP instructions.
+///
+/// It is defined as:
+///  - Imm[8:6] = Inst[4:2]
+///  - Imm[5]   = Inst[12]
+///  - Imm[4:3] = Inst[6:5]
+///  - Imm[2:0] = 0
 template <typename Reg_T>
 class RVCImmLDSP : public RVCImm<Reg_T> {
 public:
@@ -249,16 +249,16 @@ public:
                                   ImmPart(3, 5, 6)}) {}
 };
 
-// A RISC-V immediate field with an input width of 6 bits.
-// Used in the following instructions:
-//  - C.ADDI (signed)
-//  - C.ADDIW (signed)
-//  - C.SLLI (unsigned)
-//  - C.LI (signed)
-//
-// It is defined as:
-//  - Imm[5]   = Inst[12]
-//  - Imm[4:0] = Inst[6:2]
+/// A RISC-V immediate field with an input width of 6 bits.
+/// Used in the following instructions:
+///  - C.ADDI (signed)
+///  - C.ADDIW (signed)
+///  - C.SLLI (unsigned)
+///  - C.LI (signed)
+///
+/// It is defined as:
+///  - Imm[5]   = Inst[12]
+///  - Imm[4:0] = Inst[6:2]
 template <typename Reg_T>
 class RVCImmCommon6 : public RVCImm<Reg_T> {
 public:
@@ -267,13 +267,13 @@ public:
                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
 };
 
-// A RISC-V signed immediate field with an input width of 18 bits.
-// Used in C.LUI instructions.
-//
-// It is defined as:
-//  - Imm[17]    = Inst[12]
-//  - Imm[16:12] = Inst[6:2]
-//  - Imm[12:0]  = 0
+/// A RISC-V signed immediate field with an input width of 18 bits.
+/// Used in C.LUI instructions.
+///
+/// It is defined as:
+///  - Imm[17]    = Inst[12]
+///  - Imm[16:12] = Inst[6:2]
+///  - Imm[12:0]  = 0
 template <typename Reg_T>
 class RVCImmLUI : public RVCImm<Reg_T> {
 public:
@@ -282,13 +282,13 @@ public:
                       std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
 };
 
-// A RISC-V unsigned immediate field with an input width of 8 bits.
-// Used in C.SWSP and C.FSWSP instructions.
-//
-// It is defined as:
-//  - Imm[7:6] = Inst[8:7]
-//  - Imm[5:2] = Inst[12:9]
-//  - Imm[1:0] = 0
+/// A RISC-V unsigned immediate field with an input width of 8 bits.
+/// Used in C.SWSP and C.FSWSP instructions.
+///
+/// It is defined as:
+///  - Imm[7:6] = Inst[8:7]
+///  - Imm[5:2] = Inst[12:9]
+///  - Imm[1:0] = 0
 template <typename Reg_T>
 class RVCImmSWSP : public RVCImm<Reg_T> {
 public:
@@ -297,13 +297,13 @@ public:
                       std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
 };
 
-// A RISC-V unsigned immediate field with an input width of 9 bits.
-// Used in C.SDSP and C.FSDSP instructions.
-//
-// It is defined as:
-//  - Imm[8:6] = Inst[9:7]
-//  - Imm[5:3] = Inst[12:10]
-//  - Imm[2:0] = 0
+/// A RISC-V unsigned immediate field with an input width of 9 bits.
+/// Used in C.SDSP and C.FSDSP instructions.
+///
+/// It is defined as:
+///  - Imm[8:6] = Inst[9:7]
+///  - Imm[5:3] = Inst[12:10]
+///  - Imm[2:0] = 0
 template <typename Reg_T>
 class RVCImmSDSP : public RVCImm<Reg_T> {
 public:
@@ -312,20 +312,20 @@ public:
                       std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
 };
 
-// A RISC-V immediate field with an input width of 7 bits.
-// Used in the following instructions:
-//  - C.LW
-//  - C.FLW
-//  - C.SW
-//  - C.FSW
-//  - C.SD
-//  - C.FSD
-//
-// It is defined as:
-//  - Imm[6]   = Inst[5]
-//  - Imm[5:3] = Inst[12:10]
-//  - Imm[2]   = Inst[6]
-//  - Imm[1:0] = 0
+/// A RISC-V immediate field with an input width of 7 bits.
+/// Used in the following instructions:
+///  - C.LW
+///  - C.FLW
+///  - C.SW
+///  - C.FSW
+///  - C.SD
+///  - C.FSD
+///
+/// It is defined as:
+///  - Imm[6]   = Inst[5]
+///  - Imm[5:3] = Inst[12:10]
+///  - Imm[2]   = Inst[6]
+///  - Imm[1:0] = 0
 template <typename Reg_T>
 class RVCImmCommon7 : public RVCImm<Reg_T> {
 public:
@@ -335,13 +335,13 @@ public:
                                   ImmPart(2, 6, 6)}) {}
 };
 
-// A RISC-V signed immediate field with an input width of 8 bits.
-// Used in C.LD and C.FLD instructions.
-//
-// It is defined as:
-//  - Imm[7:6] = Inst[6:5]
-//  - Imm[5:3] = Inst[12:10]
-//  - Imm[2:0] = 0
+/// A RISC-V signed immediate field with an input width of 8 bits.
+/// Used in C.LD and C.FLD instructions.
+///
+/// It is defined as:
+///  - Imm[7:6] = Inst[6:5]
+///  - Imm[5:3] = Inst[12:10]
+///  - Imm[2:0] = 0
 template <typename Reg_T>
 class RVCImmLD : public RVCImm<Reg_T> {
 public:
@@ -350,19 +350,19 @@ public:
                       std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
 };
 
-// A RISC-V signed immediate field with an input width of 12 bits.
-// Used in C.J and C.JAL instructions.
-//
-// It is defined as:
-//  - Imm[11]  = Inst[12]
-//  - Imm[10]  = Inst[8]
-//  - Imm[9:8] = Inst[10:9]
-//  - Imm[7]   = Inst[6]
-//  - Imm[6]   = Inst[7]
-//  - Imm[5]   = Inst[2]
-//  - Imm[4]   = Inst[11]
-//  - Imm[3:1] = Inst[5:3]
-//  - Imm[0]   = 0
+/// A RISC-V signed immediate field with an input width of 12 bits.
+/// Used in C.J and C.JAL instructions.
+///
+/// It is defined as:
+///  - Imm[11]  = Inst[12]
+///  - Imm[10]  = Inst[8]
+///  - Imm[9:8] = Inst[10:9]
+///  - Imm[7]   = Inst[6]
+///  - Imm[6]   = Inst[7]
+///  - Imm[5]   = Inst[2]
+///  - Imm[4]   = Inst[11]
+///  - Imm[3:1] = Inst[5:3]
+///  - Imm[0]   = 0
 template <typename Reg_T>
 class RVCImmJ : public RVCImm<Reg_T> {
 public:
@@ -374,6 +374,16 @@ public:
                                   ImmPart(4, 11, 11), ImmPart(1, 3, 5)}) {}
 };
 
+/// A RISC-V signed immediate field with an input width of 9 bits.
+/// Used in C.BEQZ and C.BNEZ instructions.
+///
+/// It is defined as:
+///  - Imm[8]   = Inst[12]
+///  - Imm[7:6] = Inst[6:5]
+///  - Imm[5]   = Inst[2]
+///  - Imm[4:3] = Inst[11:10]
+///  - Imm[2:1] = Inst[4:3]
+///  - Imm[0]   = 0
 template <typename Reg_T>
 class RVCImmB : public RVCImm<Reg_T> {
 public:
@@ -384,6 +394,12 @@ public:
                                   ImmPart(1, 3, 4)}) {}
 };
 
+/// A RISC-V immediate field with an input width of 6 bits.
+/// Used in C.SRLI, C.SRAI, and C.ANDI instructions.
+///
+/// It is defined as:
+///  - Imm[5]   = Inst[12]
+///  - Imm[4:0] = Inst[6:2]
 template <typename Reg_T>
 class RVCImmB2 : public RVCImm<Reg_T> {
 public:
@@ -392,6 +408,15 @@ public:
                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
 };
 
+/// A RISC-V unsigned immediate field with an input width of 10 bits.
+/// Used in the C.ADDI4SPN instruction.
+///
+/// It is defined as:
+///  - Imm[9:6] = Inst[10:7]
+///  - Imm[5:4] = Inst[12:11]
+///  - Imm[3]   = Inst[5]
+///  - Imm[2]   = Inst[6]
+///  - Imm[1:0] = 0
 template <typename Reg_T>
 class RVCImmIW : public RVCImm<Reg_T> {
 public:
