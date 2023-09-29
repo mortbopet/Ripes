@@ -271,8 +271,8 @@ struct RV_I {
                 {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}),
         {})));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        UTypeInstr<Reg__T>(Token("lui"), RVISA::Opcode::LUI, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new UTypeInstr<Reg__T>(Token("lui"), RVISA::Opcode::LUI, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
         _Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
@@ -281,98 +281,98 @@ struct RV_I {
                                 std::vector{ImmPart(0, 12, 31)},
                                 _Imm::SymbolType::Absolute)})));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        JTypeInstr<Reg__T>(Token("jal"), RVISA::Opcode::JAL, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new JTypeInstr<Reg__T>(Token("jal"), RVISA::Opcode::JAL, isa)));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        JALRTypeInstr<Reg__T>(Token("jalr"), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new JALRTypeInstr<Reg__T>(Token("jalr"), isa)));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        LTypeInstr<Reg__T>(Token("lb"), 0b000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        LTypeInstr<Reg__T>(Token("lh"), 0b001, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        LTypeInstr<Reg__T>(Token("lw"), 0b010, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        LTypeInstr<Reg__T>(Token("lbu"), 0b100, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        LTypeInstr<Reg__T>(Token("lhu"), 0b101, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new LTypeInstr<Reg__T>(Token("lb"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new LTypeInstr<Reg__T>(Token("lh"), 0b001, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new LTypeInstr<Reg__T>(Token("lw"), 0b010, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new LTypeInstr<Reg__T>(Token("lbu"), 0b100, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new LTypeInstr<Reg__T>(Token("lhu"), 0b101, isa)));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        STypeInstr<Reg__T>(Token("sb"), 0b000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        STypeInstr<Reg__T>(Token("sh"), 0b001, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        STypeInstr<Reg__T>(Token("sw"), 0b010, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new STypeInstr<Reg__T>(Token("sb"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new STypeInstr<Reg__T>(Token("sh"), 0b001, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new STypeInstr<Reg__T>(Token("sw"), 0b010, isa)));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        ITypeInstr<Reg__T>(Token("addi"), 0b000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        ITypeInstr<Reg__T>(Token("slti"), 0b010, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        ITypeInstr<Reg__T>(Token("sltiu"), 0b011, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        ITypeInstr<Reg__T>(Token("xori"), 0b100, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        ITypeInstr<Reg__T>(Token("ori"), 0b110, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        ITypeInstr<Reg__T>(Token("andi"), 0b111, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new ITypeInstr<Reg__T>(Token("addi"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new ITypeInstr<Reg__T>(Token("slti"), 0b010, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new ITypeInstr<Reg__T>(Token("sltiu"), 0b011, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new ITypeInstr<Reg__T>(Token("xori"), 0b100, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new ITypeInstr<Reg__T>(Token("ori"), 0b110, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new ITypeInstr<Reg__T>(Token("andi"), 0b111, isa)));
 
     if (options.count(Options::shifts64BitVariant)) {
       instructions.push_back(
-          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+          std::shared_ptr<_Instruction>(new IShiftType32Instr<Reg__T>(
               Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000, isa)));
       instructions.push_back(
-          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+          std::shared_ptr<_Instruction>(new IShiftType32Instr<Reg__T>(
               Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000, isa)));
       instructions.push_back(
-          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+          std::shared_ptr<_Instruction>(new IShiftType32Instr<Reg__T>(
               Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000, isa)));
     } else {
       instructions.push_back(
-          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+          std::shared_ptr<_Instruction>(new IShiftType32Instr<Reg__T>(
               Token("slli"), RVISA::OPIMM, 0b001, 0b0000000, isa)));
       instructions.push_back(
-          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+          std::shared_ptr<_Instruction>(new IShiftType32Instr<Reg__T>(
               Token("srli"), RVISA::OPIMM, 0b101, 0b0000000, isa)));
       instructions.push_back(
-          std::make_shared<_Instruction>(IShiftType32Instr<Reg__T>(
+          std::shared_ptr<_Instruction>(new IShiftType32Instr<Reg__T>(
               Token("srai"), RVISA::OPIMM, 0b101, 0b0100000, isa)));
     }
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("add"), 0b000, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("sub"), 0b000, 0b0100000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("sll"), 0b001, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("slt"), 0b010, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("sltu"), 0b011, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("xor"), 0b100, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("srl"), 0b101, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("sra"), 0b101, 0b0100000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("or"), 0b110, 0b0000000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        RTypeInstr<Reg__T>(Token("and"), 0b111, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("add"), 0b000, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("sub"), 0b000, 0b0100000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("sll"), 0b001, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("slt"), 0b010, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("sltu"), 0b011, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("xor"), 0b100, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("srl"), 0b101, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("sra"), 0b101, 0b0100000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("or"), 0b110, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RTypeInstr<Reg__T>(Token("and"), 0b111, 0b0000000, isa)));
 
-    instructions.push_back(std::make_shared<_Instruction>(
-        BTypeInstr<Reg__T>(Token("beq"), 0b000, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        BTypeInstr<Reg__T>(Token("bne"), 0b001, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        BTypeInstr<Reg__T>(Token("blt"), 0b100, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        BTypeInstr<Reg__T>(Token("bge"), 0b101, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        BTypeInstr<Reg__T>(Token("bltu"), 0b110, isa)));
-    instructions.push_back(std::make_shared<_Instruction>(
-        BTypeInstr<Reg__T>(Token("bgeu"), 0b111, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new BTypeInstr<Reg__T>(Token("beq"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new BTypeInstr<Reg__T>(Token("bne"), 0b001, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new BTypeInstr<Reg__T>(Token("blt"), 0b100, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new BTypeInstr<Reg__T>(Token("bge"), 0b101, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new BTypeInstr<Reg__T>(Token("bltu"), 0b110, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new BTypeInstr<Reg__T>(Token("bgeu"), 0b111, isa)));
   }
 };
 
