@@ -319,6 +319,30 @@ public:
                       std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
 };
 
+// A RISC-V signed immediate field with an input width of 12 bits.
+// Used in C.J and C.JAL instructions.
+//
+// It is defined as:
+//  - Imm[11]  = Inst[12]
+//  - Imm[10]  = Inst[8]
+//  - Imm[9:8] = Inst[10:9]
+//  - Imm[7]   = Inst[6]
+//  - Imm[6]   = Inst[7]
+//  - Imm[5]   = Inst[2]
+//  - Imm[4]   = Inst[11]
+//  - Imm[3:1] = Inst[5:3]
+//  - Imm[0]   = 0
+template <typename Reg_T>
+class RVCImmJ : public RVCImm<Reg_T> {
+public:
+  RVCImmJ()
+      : RVCImm<Reg_T>(1, 12, Imm<Reg_T>::Repr::Signed,
+                      std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),
+                                  ImmPart(8, 9, 10), ImmPart(7, 6, 6),
+                                  ImmPart(6, 7, 7), ImmPart(5, 2, 2),
+                                  ImmPart(4, 11, 11), ImmPart(1, 3, 5)}) {}
+};
+
 template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
@@ -386,15 +410,14 @@ public:
                  Imm<Reg_T>::Repr::Unsigned)}) {}
 };
 
-#define CJType(opcode, name, funct3)                                           \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<_Imm>(                                                 \
-          1, 12, _Imm::Repr::Signed,                                           \
-          std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),                  \
-                      ImmPart(8, 9, 10), ImmPart(7, 6, 6), ImmPart(6, 7, 7),   \
-                      ImmPart(5, 2, 2), ImmPart(4, 11, 11),                    \
-                      ImmPart(1, 3, 5)})}))
+template <typename Reg_T>
+class CJTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CJTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCImmJ<Reg_T>>()}) {}
+};
 
 #define CRType(opcode, name, funct4)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -578,9 +601,13 @@ struct RV_C {
         std::shared_ptr<_Instruction>(new CSTypeInstr<Reg__T>(
             RVISA::Quadrant::QUADRANT0, Token("c.fsd"), 0b101, isa)));
 
-    instructions.push_back(CJType(0b01, Token("c.j"), 0b101));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CJTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT1, Token("c.j"), 0b101)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(CJType(0b01, Token("c.jal"), 0b001));
+      instructions.push_back(
+          std::shared_ptr<_Instruction>(new CJTypeInstr<Reg__T>(
+              RVISA::Quadrant::QUADRANT1, Token("c.jal"), 0b001)));
     }
 
     instructions.push_back(CBType(0b01, Token("c.beqz"), 0b110));
