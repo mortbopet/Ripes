@@ -10,12 +10,24 @@
 namespace Ripes {
 namespace Assembler {
 
+/// A base class for all RV-C registers (5-bit and 3-bit)
+template <typename Reg_T>
+class RVCReg : public RVReg<Reg_T> {
+public:
+  RVCReg(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
+         unsigned stop, const QString &regsd)
+      : RVReg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
+};
+
 /// Register specialization for RV-C to handle the compressed register notation.
 /// 3 bits are used to represent registers x8-x15, with register x8=0b000,
 /// x15=0b111.
 template <typename Reg_T>
-struct RVCReg : public RVReg<Reg_T> {
-  using RVReg<Reg_T>::RVReg;
+struct RVCRegCompressed : public RVCReg<Reg_T> {
+  RVCRegCompressed(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
+                   unsigned stop, const QString &regsd)
+      : RVCReg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
+
   std::optional<Error> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                              FieldLinkRequest<Reg_T> &) const override {
     bool success;
@@ -107,15 +119,6 @@ public:
       : RVInstructionBase<Reg_T>(opcode, fields) {}
 };
 
-// The RISC-V Compressed Rs1 field contains a source register index.
-// It is defined as bits 7-9 (inclusive)
-template <typename Reg_T>
-class RVCRegRs1Prime : public RVCReg<Reg_T> {
-public:
-  RVCRegRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rs1'") {}
-};
-
 // The RISC-V Compressed Rs2 field contains a source register index.
 // It is defined as bits 2-6 (inclusive)
 template <typename Reg_T>
@@ -123,24 +126,6 @@ class RVCRegRs2 : public RVCReg<Reg_T> {
 public:
   RVCRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 2, 6, "rs2") {}
-};
-
-// The RISC-V Compressed Rs2' field contains a source register index.
-// It is defined as bits 2-4 (inclusive)
-template <typename Reg_T>
-class RVCRegRs2Prime : public RVCReg<Reg_T> {
-public:
-  RVCRegRs2Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
-};
-
-// The RISC-V Compressed Rd'/Rs1' field contains a source or destination
-// register index. It is defined as bits 7-9 (inclusive)
-template <typename Reg_T>
-class RVCRegRdRs1Prime : public RVCReg<Reg_T> {
-public:
-  RVCRegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
 };
 
 // The RISC-V Compressed Rd/Rs1 field contains a source or destination register
@@ -152,13 +137,40 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
 };
 
+// The RISC-V Compressed Rs1 field contains a source register index.
+// It is defined as bits 7-9 (inclusive)
+template <typename Reg_T>
+class RVCRegRs1Prime : public RVCRegCompressed<Reg_T> {
+public:
+  RVCRegRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rs1'") {}
+};
+
+// The RISC-V Compressed Rs2' field contains a source register index.
+// It is defined as bits 2-4 (inclusive)
+template <typename Reg_T>
+class RVCRegRs2Prime : public RVCRegCompressed<Reg_T> {
+public:
+  RVCRegRs2Prime(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
+};
+
 // The RISC-V Compressed Rd' field contains a destination register
 // index. It is defined as bits 2-4 (inclusive)
 template <typename Reg_T>
-class RVCRegRdPrime : public RVCReg<Reg_T> {
+class RVCRegRdPrime : public RVCRegCompressed<Reg_T> {
 public:
   RVCRegRdPrime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
+      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
+};
+
+// The RISC-V Compressed Rd'/Rs1' field contains a source or destination
+// register index. It is defined as bits 7-9 (inclusive)
+template <typename Reg_T>
+class RVCRegRdRs1Prime : public RVCRegCompressed<Reg_T> {
+public:
+  RVCRegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
 };
 
 // A base class for RISC-V compressed immediates
@@ -312,12 +324,13 @@ class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
               const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
-                             RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
-            {std::make_shared<RVCReg<Reg_T>>(RVCRegRs2Prime<Reg_T>(isa, 2)),
-             std::make_shared<RVCReg<Reg_T>>(
-                 RVCRegRdRs1Prime<Reg_T>(isa, 1))}) {}
+      : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
+                                               RVCOpPartFunct2(funct2),
+                                               RVCOpPartFunct6(funct6)),
+                              {std::make_shared<RVCRegCompressed<Reg_T>>(
+                                   RVCRegRs2Prime<Reg_T>(isa, 2)),
+                               std::make_shared<RVCRegCompressed<Reg_T>>(
+                                   RVCRegRdRs1Prime<Reg_T>(isa, 1))}) {}
 };
 
 template <typename Reg_T>
@@ -346,8 +359,8 @@ public:
                const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVCRegRs2<Reg_T>(isa, 1)),
-             std::make_shared<Imm<Reg_T>>(imm)}) {}
+            {std::make_shared<RVCRegRs2<Reg_T>>(isa, 1),
+             std::make_shared<RVCImm<Reg_T>>(imm)}) {}
 };
 
 template <typename Reg_T>
