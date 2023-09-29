@@ -368,6 +368,16 @@ public:
 };
 
 template <typename Reg_T>
+class RVCImmB : public RVCImm<Reg_T> {
+public:
+  RVCImmB()
+      : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Signed,
+                      std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6),
+                                  ImmPart(5, 2, 2), ImmPart(3, 10, 11),
+                                  ImmPart(1, 3, 4)}) {}
+};
+
+template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
@@ -466,20 +476,22 @@ public:
             {std::make_shared<RVCRegRs1<Reg_T>>(isa, 1)}) {}
 };
 
+template <typename Reg_T>
+class CBTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CBTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
+              const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 1),
+             std::make_shared<RVCImmB<Reg_T>>()}) {}
+};
+
 #define CREBREAKType(opcode, name, funct4)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 11),            \
                             OpPart(funct4, 12, 15)}),                          \
       {}))
-
-#define CBType(opcode, name, funct3)                                           \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"),                 \
-       std::make_shared<_Imm>(                                                 \
-           2, 9, _Imm::Repr::Signed,                                           \
-           std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6), ImmPart(5, 2, 2), \
-                       ImmPart(3, 10, 11), ImmPart(1, 3, 4)})}))
 
 #define CB2Type(opcode, name, funct3, funct4, imm)                             \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -645,8 +657,12 @@ struct RV_C {
               RVISA::Quadrant::QUADRANT1, Token("c.jal"), 0b001)));
     }
 
-    instructions.push_back(CBType(0b01, Token("c.beqz"), 0b110));
-    instructions.push_back(CBType(0b01, Token("c.bnez"), 0b111));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CBTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT1, Token("c.beqz"), 0b110, isa)));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CBTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT1, Token("c.bnez"), 0b111, isa)));
 
     instructions.push_back(CIWType(0b00, Token("c.addi4spn"), 0b000));
 
