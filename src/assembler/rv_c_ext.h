@@ -71,11 +71,18 @@ public:
   RVCOpPartFunct2(unsigned funct2) : RVCOpPart(funct2, 5, 6) {}
 };
 
-// All RISC-V Funct3 opcode parts are defined as bits 5-6 (inclusive) of the
+// All RISC-V Funct3 opcode parts are defined as bits 13-15 (inclusive) of the
 // instruction
 class RVCOpPartFunct3 : public RVCOpPart {
 public:
   RVCOpPartFunct3(unsigned funct3) : RVCOpPart(funct3, 13, 15) {}
+};
+
+// All RISC-V Funct4 opcode parts are defined as bits 12-15 (inclusive) of the
+// instruction
+class RVCOpPartFunct4 : public RVCOpPart {
+public:
+  RVCOpPartFunct4(unsigned funct4) : RVCOpPart(funct4, 12, 15) {}
 };
 
 // All RISC-V compressed Funct6 opcode parts are defined as bits 10-15
@@ -108,6 +115,10 @@ public:
   // A RISC-V opcode with a compressed Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
+
+  // A RISC-V opcode with a compressed Funct4 part
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct4 funct4)
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct4}) {}
 };
 
 // A base class for RISC-V compressed instructions
@@ -117,6 +128,15 @@ public:
   RVCInstruction(const RVCOpcode<Reg_T> &opcode,
                  const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
       : RVInstructionBase<Reg_T>(opcode, fields) {}
+};
+
+// The RISC-V Compressed Rs1 field contains a source register index.
+// It is defined as bits 7-11 (inclusive)
+template <typename Reg_T>
+class RVCRegRs1 : public RVCReg<Reg_T> {
+public:
+  RVCRegRs1(const ISAInfoBase *isa, unsigned fieldIndex)
+      : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rs1") {}
 };
 
 // The RISC-V Compressed Rs2 field contains a source register index.
@@ -419,11 +439,16 @@ public:
             {std::make_shared<RVCImmJ<Reg_T>>()}) {}
 };
 
-#define CRType(opcode, name, funct4)                                           \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct4, 12, 15)}),    \
-      {std::make_shared<_Reg>(isa, 1, 7, 11, "rs1"),                           \
-       std::make_shared<_Reg>(isa, 2, 2, 6, "rs2")}))
+template <typename Reg_T>
+class CRTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CRTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct4,
+              const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct4(funct4)),
+            {std::make_shared<RVCRegRs1<Reg_T>>(isa, 1),
+             std::make_shared<RVCRegRs2<Reg_T>>(isa, 2)}) {}
+};
 
 #define CR2Type(opcode, name, funct4)                                          \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -632,9 +657,13 @@ struct RV_C {
                     2, 6, _Imm::Repr::Signed,
                     std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
 
-    instructions.push_back(CRType(
-        0b10, Token("c.mv"), 0b1000)); // FIXME disassemble erro with c.jr ?
-    instructions.push_back(CRType(0b10, Token("c.add"), 0b1001));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CRTypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT2, Token("c.mv"),
+                                0b1000,
+                                isa))); // FIXME disassemble erro with c.jr ?
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CRTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT2, Token("c.add"), 0b1001, isa)));
 
     instructions.push_back(CR2Type(0b10, Token("c.jr"), 0b1000));
     instructions.push_back(CR2Type(0b10, Token("c.jalr"), 0b1001));
