@@ -269,8 +269,14 @@ public:
                       std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
 };
 
-// A RISC-V signed immediate field with an input width of 7 bits.
-// Used in C.LW and C.FLW instructions.
+// A RISC-V immediate field with an input width of 7 bits.
+// Used in the following instructions:
+//  - C.LW
+//  - C.FLW
+//  - C.SW
+//  - C.FSW
+//  - C.SD
+//  - C.FSD
 //
 // It is defined as:
 //  - Imm[6]   = Inst[5]
@@ -278,10 +284,10 @@ public:
 //  - Imm[2]   = Inst[6]
 //  - Imm[1:0] = 0
 template <typename Reg_T>
-class RVCImmLW : public RVCImm<Reg_T> {
+class RVCImmCommon7 : public RVCImm<Reg_T> {
 public:
-  RVCImmLW()
-      : RVCImm<Reg_T>(3, 7, Imm<Reg_T>::Repr::Signed,
+  RVCImmCommon7(typename Imm<Reg_T>::Repr repr)
+      : RVCImm<Reg_T>(3, 7, repr,
                       std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
                                   ImmPart(2, 6, 6)}) {}
 };
@@ -356,15 +362,18 @@ public:
              std::make_shared<RVCImm<Reg_T>>(imm)}) {}
 };
 
-#define CSType(opcode, name, funct3)                                           \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rs2'"),                 \
-       std::make_shared<RVCReg<Reg__T>>(isa, 2, 7, 9, "rs1'"),                 \
-       std::make_shared<_Imm>(3, 7, _Imm::Repr::Unsigned,                      \
-                              std::vector{ImmPart(6, 5, 5),                    \
-                                          ImmPart(3, 10, 12),                  \
-                                          ImmPart(2, 6, 6)})}))
+template <typename Reg_T>
+class CSTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CSTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
+              const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCRegRs2Prime<Reg_T>>(isa, 1),
+             std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 2),
+             std::make_shared<RVCImmCommon7<Reg_T>>(
+                 Imm<Reg_T>::Repr::Unsigned)}) {}
+};
 
 #define CJType(opcode, name, funct3)                                           \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -524,13 +533,13 @@ struct RV_C {
                          RVCImmSDSP<Reg__T>(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.lw"), 0b010,
-                        RVCImmLW<Reg__T>(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new CLTypeInstr(
+        RVISA::Quadrant::QUADRANT0, Token("c.lw"), 0b010,
+        RVCImmCommon7<Reg__T>(Imm<Reg__T>::Repr::Signed), isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
-                          RVCImmLW<Reg__T>(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new CLTypeInstr(
+          RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
+          RVCImmCommon7<Reg__T>(Imm<Reg__T>::Repr::Signed), isa)));
     } else {
       instructions.push_back(std::shared_ptr<_Instruction>(
           new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
@@ -541,14 +550,22 @@ struct RV_C {
         new CLTypeInstr(RVISA::Quadrant::QUADRANT0, Token("c.fld"), 0b001,
                         RVCImmLD<Reg__T>(), isa)));
 
-    instructions.push_back(CSType(0b00, Token("c.sw"), 0b110));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CSTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT0, Token("c.sw"), 0b110, isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(CSType(0b00, Token("c.fsw"), 0b111));
+      instructions.push_back(
+          std::shared_ptr<_Instruction>(new CSTypeInstr<Reg__T>(
+              RVISA::Quadrant::QUADRANT0, Token("c.fsw"), 0b111, isa)));
     } else {
-      instructions.push_back(CSType(0b00, Token("c.sd"), 0b111));
+      instructions.push_back(
+          std::shared_ptr<_Instruction>(new CSTypeInstr<Reg__T>(
+              RVISA::Quadrant::QUADRANT0, Token("c.sd"), 0b111, isa)));
     }
     // instructions.push_back(CSType(0b00, Token("c.sq"), 0b101));//RV128
-    instructions.push_back(CSType(0b00, Token("c.fsd"), 0b101));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CSTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT0, Token("c.fsd"), 0b101, isa)));
 
     instructions.push_back(CJType(0b01, Token("c.j"), 0b101));
     if (isa->isaID() == ISA::RV32I) {
