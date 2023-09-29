@@ -393,6 +393,15 @@ public:
 };
 
 template <typename Reg_T>
+class RVCImmIW : public RVCImm<Reg_T> {
+public:
+  RVCImmIW()
+      : RVCImm<Reg_T>(2, 10, Imm<Reg_T>::Repr::Unsigned,
+                      std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),
+                                  ImmPart(3, 5, 5), ImmPart(2, 6, 6)}) {}
+};
+
+template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
@@ -517,20 +526,22 @@ public:
              std::make_shared<RVCImmB2<Reg_T>>(repr)}) {}
 };
 
+template <typename Reg_T>
+class CIWTypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CIWTypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
+               const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
+             std::make_shared<RVCImmIW<Reg_T>>()}) {}
+};
+
 #define CREBREAKType(opcode, name, funct4)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 11),            \
                             OpPart(funct4, 12, 15)}),                          \
       {}))
-
-#define CIWType(opcode, name, funct3)                                          \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct3, 13, 15)}),    \
-      {std::make_shared<RVCReg<Reg__T>>(isa, 1, 2, 4, "rd'"),                  \
-       std::make_shared<_Imm>(                                                 \
-           2, 10, _Imm::Repr::Unsigned,                                        \
-           std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),                  \
-                       ImmPart(3, 5, 5), ImmPart(2, 6, 6)})}))
 
 /**
  * Extension enabler.
@@ -688,7 +699,9 @@ struct RV_C {
         std::shared_ptr<_Instruction>(new CBTypeInstr<Reg__T>(
             RVISA::Quadrant::QUADRANT1, Token("c.bnez"), 0b111, isa)));
 
-    instructions.push_back(CIWType(0b00, Token("c.addi4spn"), 0b000));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new CIWTypeInstr<Reg__T>(
+            RVISA::Quadrant::QUADRANT0, Token("c.addi4spn"), 0b000, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CB2TypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.srli"),
