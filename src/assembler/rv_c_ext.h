@@ -68,7 +68,9 @@ public:
 // instruction
 class RVCOpPartFunct2 : public RVCOpPart {
 public:
-  RVCOpPartFunct2(unsigned funct2) : RVCOpPart(funct2, 5, 6) {}
+  enum Offset { OFFSET5 = 5, OFFSET10 = 10 };
+  RVCOpPartFunct2(unsigned funct2, Offset offset)
+      : RVCOpPart(funct2, offset, offset + 1) {}
 };
 
 // All RISC-V Funct3 opcode parts are defined as bits 13-15 (inclusive) of the
@@ -107,9 +109,17 @@ public:
   RVCOpcode(const Token &name, const std::vector<OpPart> &opParts)
       : RVOpcode<Reg_T>(name, opParts) {}
 
+  // A RISC-V opcode with a compressed Funct3 part
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
+
   // A RISC-V compressed NOP opcode
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartNOP nopPart)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
+
+  // A RISC-V opcode with a compressed Funct4 part
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct4 funct4)
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct4}) {}
 
   // A RISC-V opcode with compressed Funct2 and Funct6 parts
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
@@ -117,12 +127,9 @@ public:
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
 
   // A RISC-V opcode with a compressed Funct3 part
-  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
-
-  // A RISC-V opcode with a compressed Funct4 part
-  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct4 funct4)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct4}) {}
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
+            RVCOpPartFunct3 funct3)
+      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct3}) {}
 };
 
 // A base class for RISC-V compressed instructions
@@ -378,13 +385,22 @@ public:
 };
 
 template <typename Reg_T>
+class RVCImmB2 : public RVCImm<Reg_T> {
+public:
+  RVCImmB2(typename Imm<Reg_T>::Repr repr)
+      : RVCImm<Reg_T>(2, 6, repr,
+                      std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
+};
+
+template <typename Reg_T>
 class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
               const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
-                             RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
+                             RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET5),
+                             RVCOpPartFunct6(funct6)),
             {std::make_shared<RVCRegRs2Prime<Reg_T>>(isa, 2),
              std::make_shared<RVCRegRdRs1Prime<Reg_T>>(isa, 1)}) {}
 };
@@ -487,17 +503,25 @@ public:
              std::make_shared<RVCImmB<Reg_T>>()}) {}
 };
 
+template <typename Reg_T>
+class CB2TypeInstr : public RVCInstruction<Reg_T> {
+public:
+  CB2TypeInstr(RVISA::Quadrant quadrant, const Token &name, unsigned funct2,
+               unsigned funct3, typename Imm<Reg_T>::Repr repr,
+               const ISAInfoBase *isa)
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, quadrant,
+                             RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET10),
+                             RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 1),
+             std::make_shared<RVCImmB2<Reg_T>>(repr)}) {}
+};
+
 #define CREBREAKType(opcode, name, funct4)                                     \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
       Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 11),            \
                             OpPart(funct4, 12, 15)}),                          \
       {}))
-
-#define CB2Type(opcode, name, funct3, funct4, imm)                             \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(funct4, 10, 11),      \
-                            OpPart(funct3, 13, 15)}),                          \
-      {std::make_shared<RVCReg<Reg__T>>(isa, 1, 7, 9, "rs1'"), imm}))
 
 #define CIWType(opcode, name, funct3)                                          \
   std::shared_ptr<_Instruction>(new _Instruction(                              \
@@ -666,22 +690,16 @@ struct RV_C {
 
     instructions.push_back(CIWType(0b00, Token("c.addi4spn"), 0b000));
 
-    instructions.push_back(
-        CB2Type(0b01, Token("c.srli"), 0b100, 0b00,
-                std::make_shared<_Imm>(
-                    2, 6, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
-    instructions.push_back(
-        CB2Type(0b01, Token("c.srai"), 0b100, 0b01,
-                std::make_shared<_Imm>(
-                    2, 6, _Imm::Repr::Unsigned,
-                    std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CB2TypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.srli"),
+                                 0b00, 0b100, _Imm::Repr::Unsigned, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CB2TypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.srai"),
+                                 0b01, 0b100, _Imm::Repr::Unsigned, isa)));
 
-    instructions.push_back(
-        CB2Type(0b01, Token("c.andi"), 0b100, 0b10,
-                std::make_shared<_Imm>(
-                    2, 6, _Imm::Repr::Signed,
-                    std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)})));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new CB2TypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.andi"),
+                                 0b10, 0b100, _Imm::Repr::Signed, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
         new CRTypeInstr<Reg__T>(RVISA::Quadrant::QUADRANT2, Token("c.mv"),
