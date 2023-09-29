@@ -324,13 +324,11 @@ class CATypeInstr : public RVCInstruction<Reg_T> {
 public:
   CATypeInstr(const Token &name, unsigned funct2, unsigned funct6,
               const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
-                                               RVCOpPartFunct2(funct2),
-                                               RVCOpPartFunct6(funct6)),
-                              {std::make_shared<RVCRegCompressed<Reg_T>>(
-                                   RVCRegRs2Prime<Reg_T>(isa, 2)),
-                               std::make_shared<RVCRegCompressed<Reg_T>>(
-                                   RVCRegRdRs1Prime<Reg_T>(isa, 1))}) {}
+      : RVCInstruction<Reg_T>(
+            RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
+                             RVCOpPartFunct2(funct2), RVCOpPartFunct6(funct6)),
+            {std::make_shared<RVCRegRs2Prime<Reg_T>>(isa, 2),
+             std::make_shared<RVCRegRdRs1Prime<Reg_T>>(isa, 1)}) {}
 };
 
 template <typename Reg_T>
@@ -340,8 +338,8 @@ public:
               const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVCRegRdRs1<Reg_T>(isa, 1)),
-             std::make_shared<Imm<Reg_T>>(imm)}) {}
+            {std::make_shared<RVCRegRdRs1<Reg_T>>(isa, 1),
+             std::make_shared<RVCImm<Reg_T>>(imm)}) {}
 };
 
 template <typename Reg_T>

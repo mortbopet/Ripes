@@ -252,12 +252,11 @@ template <typename Reg_T>
 class BTypeInstr : public RVInstruction<Reg_T> {
 public:
   BTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, RVISA::Opcode::BRANCH,
-                            RVOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmBType<Reg_T>())}) {}
+      : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, RVISA::Opcode::BRANCH,
+                                             RVOpPartFunct3(funct3)),
+                             {std::make_shared<RVRegRs1<Reg_T>>(isa, 1),
+                              std::make_shared<RVRegRs2<Reg_T>>(isa, 2),
+                              std::make_shared<RVImmBType<Reg_T>>()}) {}
 };
 
 template <typename Reg_T>
@@ -267,9 +266,9 @@ public:
                    const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(3))}) {}
+            {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+             std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
+             std::make_shared<RVImmIType<Reg_T>>(3)}) {}
 };
 
 template <typename Reg_T>
@@ -292,9 +291,9 @@ public:
   LTypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::LOAD, RVOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 3)),
-             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(2))}) {}
+            {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+             std::make_shared<RVRegRs1<Reg_T>>(isa, 3),
+             std::make_shared<RVImmIType<Reg_T>>(2)}) {}
 };
 
 template <typename Reg_T>
@@ -302,12 +301,12 @@ class IShiftType32Instr : public RVInstruction<Reg_T> {
 public:
   IShiftType32Instr(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                     unsigned funct7, const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3),
-                            RVOpPartFunct7(funct7)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIShift32Type<Reg_T>())}) {}
+      : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode,
+                                             RVOpPartFunct3(funct3),
+                                             RVOpPartFunct7(funct7)),
+                             {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+                              std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
+                              std::make_shared<RVImmIShift32Type<Reg_T>>()}) {}
 };
 
 template <typename Reg_T>
@@ -315,12 +314,12 @@ class IShiftType64Instr : public RVInstruction<Reg_T> {
 public:
   IShiftType64Instr(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                     unsigned funct6, const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3),
-                            RVOpPartFunct6(funct6)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIShift64Type<Reg_T>())}) {}
+      : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode,
+                                             RVOpPartFunct3(funct3),
+                                             RVOpPartFunct6(funct6)),
+                             {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+                              std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
+                              std::make_shared<RVImmIShift64Type<Reg_T>>()}) {}
 };
 
 template <typename Reg_T>
@@ -328,12 +327,12 @@ class RTypeInstrCommon : public RVInstruction<Reg_T> {
 public:
   RTypeInstrCommon(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                    unsigned funct7, const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode, RVOpPartFunct3(funct3),
-                            RVOpPartFunct7(funct7)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 3))}) {}
+      : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode,
+                                             RVOpPartFunct3(funct3),
+                                             RVOpPartFunct7(funct7)),
+                             {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+                              std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
+                              std::make_shared<RVRegRs2<Reg_T>>(isa, 3)}) {}
 };
 
 template <typename Reg_T>
@@ -358,29 +357,27 @@ public:
   STypeInstr(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::STORE, RVOpPartFunct3(funct3)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 3)),
-             std::make_shared<Imm<Reg_T>>(RVImmSType<Reg_T>()),
-             std::make_shared<Reg<Reg_T>>(RVRegRs2<Reg_T>(isa, 1))}) {}
+            {std::make_shared<RVRegRs1<Reg_T>>(isa, 3),
+             std::make_shared<RVImmSType<Reg_T>>(),
+             std::make_shared<RVRegRs2<Reg_T>>(isa, 1)}) {}
 };
 
 template <typename Reg_T>
 class UTypeInstr : public RVInstruction<Reg_T> {
 public:
   UTypeInstr(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Imm<Reg_T>>(RVImmUType<Reg_T>())}) {}
+      : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode),
+                             {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+                              std::make_shared<RVImmUType<Reg_T>>()}) {}
 };
 
 template <typename Reg_T>
 class JTypeInstr : public RVInstruction<Reg_T> {
 public:
   JTypeInstr(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
-      : RVInstruction<Reg_T>(
-            RVOpcode<Reg_T>(name, opcode),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Imm<Reg_T>>(RVImmJType<Reg_T>())}) {}
+      : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode),
+                             {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+                              std::make_shared<RVImmJType<Reg_T>>()}) {}
 };
 
 template <typename Reg_T>
@@ -389,9 +386,9 @@ public:
   JALRTypeInstr(const Token &name, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::JALR, RVOpPartFunct3(0b000)),
-            {std::make_shared<Reg<Reg_T>>(RVRegRd<Reg_T>(isa, 1)),
-             std::make_shared<Reg<Reg_T>>(RVRegRs1<Reg_T>(isa, 2)),
-             std::make_shared<Imm<Reg_T>>(RVImmIType<Reg_T>(3))}) {}
+            {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
+             std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
+             std::make_shared<RVImmIType<Reg_T>>(3)}) {}
 };
 
 template <typename Reg_T>
