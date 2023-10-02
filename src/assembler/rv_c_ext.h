@@ -89,18 +89,10 @@ public:
   RVCOpPartFunct4(unsigned funct4) : RVCOpPart(funct4, 12, 15) {}
 };
 
-/// All RV-C Funct6 opcode parts are defined as a 6-bit field in bits 10-15
-/// of the instruction
-class RVCOpPartFunct6 : public RVCOpPart {
-public:
-  RVCOpPartFunct6(unsigned funct6) : RVCOpPart(funct6, 10, 15) {}
-};
-
-/// The 14-bit field from bits 2-15 are set to 0 in a compressed NOP instruction
-class RVCOpPartNOP : public RVCOpPart {
-public:
-  RVCOpPartNOP() : RVCOpPart(0, 2, 15) {}
-};
+template <typename Reg_T>
+class RVCInstrCAType;
+template <typename Reg_T>
+class RVCInstrCINOPType;
 
 /// A RV-C opcode defines the encoding of specific compressed
 /// instructions
@@ -116,7 +108,8 @@ public:
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
 
   /// A RV-C NOP opcode
-  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartNOP nopPart)
+  RVCOpcode(const Token &name, RVISA::Quadrant quadrant,
+            typename RVCInstrCINOPType<Reg_T>::RVCOpPartNOP nopPart)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
 
   /// An RV-C opcode with a Funct4 part
@@ -125,7 +118,7 @@ public:
 
   /// An RV-C opcode with Funct2 and Funct6 parts
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
-            RVCOpPartFunct6 funct6)
+            typename RVCInstrCAType<Reg_T>::RVCOpPartFunct6 funct6)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
 
   /// An RV-C opcode with a Funct3 part
@@ -161,16 +154,6 @@ public:
       : RVCReg<Reg_T>(isa, fieldIndex, 2, 6, "rs2") {}
 };
 
-/// The RV-C Rd/Rs1 field contains a source or destination register
-/// index.
-/// It is defined as a 5-bit field in bits 7-11 of the instruction
-template <typename Reg_T>
-class RVCRegRdRs1 : public RVCReg<Reg_T> {
-public:
-  RVCRegRdRs1(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
-};
-
 /// The RV-C Rs1' field contains a source register index.
 /// It is defined as a 3-bit field in bits 7-9 of the instruction
 template <typename Reg_T>
@@ -199,16 +182,6 @@ public:
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
 };
 
-/// The RV-C Rd'/Rs1' field contains a source or destination
-/// register index.
-/// It is defined as a 3-bit field in bits 7-9 of the instruction
-template <typename Reg_T>
-class RVCRegRdRs1Prime : public RVCRegCompressed<Reg_T> {
-public:
-  RVCRegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
-};
-
 /// A base class for RV-C immediates
 template <typename Reg_T>
 class RVCImm : public RVImm<Reg_T> {
@@ -218,40 +191,6 @@ public:
       const std::vector<ImmPart> &parts,
       typename Imm<Reg_T>::SymbolType symbolType = Imm<Reg_T>::SymbolType::None)
       : RVImm<Reg_T>(tokenIndex, width, repr, parts, symbolType) {}
-};
-
-/// An RV-C unsigned immediate field with an input width of 8 bits.
-/// Used in C.LSWP and C.FLWSP instructions.
-///
-/// It is defined as:
-///  - Imm[7:6] = Inst[3:2]
-///  - Imm[5]   = Inst[12]
-///  - Imm[4:2] = Inst[6:4]
-///  - Imm[1:0] = 0
-template <typename Reg_T>
-class RVCImmLWSP : public RVCImm<Reg_T> {
-public:
-  RVCImmLWSP()
-      : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
-                      std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
-                                  ImmPart(2, 4, 6)}) {}
-};
-
-/// An RV-C unsigned immediate field with an input width of 9 bits.
-/// Used in C.LDWP and C.FLDSP instructions.
-///
-/// It is defined as:
-///  - Imm[8:6] = Inst[4:2]
-///  - Imm[5]   = Inst[12]
-///  - Imm[4:3] = Inst[6:5]
-///  - Imm[2:0] = 0
-template <typename Reg_T>
-class RVCImmLDSP : public RVCImm<Reg_T> {
-public:
-  RVCImmLDSP()
-      : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
-                      std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
-                                  ImmPart(3, 5, 6)}) {}
 };
 
 /// An RV-C immediate field with an input width of 6 bits.
@@ -270,51 +209,6 @@ public:
   RVCImmCommon6(typename Imm<Reg_T>::Repr repr)
       : RVCImm<Reg_T>(2, 6, repr,
                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
-};
-
-/// An RV-C signed immediate field with an input width of 18 bits.
-/// Used in C.LUI instructions.
-///
-/// It is defined as:
-///  - Imm[17]    = Inst[12]
-///  - Imm[16:12] = Inst[6:2]
-///  - Imm[12:0]  = 0
-template <typename Reg_T>
-class RVCImmLUI : public RVCImm<Reg_T> {
-public:
-  RVCImmLUI()
-      : RVCImm<Reg_T>(2, 18, Imm<Reg_T>::Repr::Signed,
-                      std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
-};
-
-/// An RV-C unsigned immediate field with an input width of 8 bits.
-/// Used in C.SWSP and C.FSWSP instructions.
-///
-/// It is defined as:
-///  - Imm[7:6] = Inst[8:7]
-///  - Imm[5:2] = Inst[12:9]
-///  - Imm[1:0] = 0
-template <typename Reg_T>
-class RVCImmSWSP : public RVCImm<Reg_T> {
-public:
-  RVCImmSWSP()
-      : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
-                      std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
-};
-
-/// An RV-C unsigned immediate field with an input width of 9 bits.
-/// Used in C.SDSP and C.FSDSP instructions.
-///
-/// It is defined as:
-///  - Imm[8:6] = Inst[9:7]
-///  - Imm[5:3] = Inst[12:10]
-///  - Imm[2:0] = 0
-template <typename Reg_T>
-class RVCImmSDSP : public RVCImm<Reg_T> {
-public:
-  RVCImmSDSP()
-      : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
-                      std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
 };
 
 /// An RV-C immediate field with an input width of 7 bits.
@@ -340,100 +234,6 @@ public:
                                   ImmPart(2, 6, 6)}) {}
 };
 
-/// An RV-C signed immediate field with an input width of 8 bits.
-/// Used in C.LD and C.FLD instructions.
-///
-/// It is defined as:
-///  - Imm[7:6] = Inst[6:5]
-///  - Imm[5:3] = Inst[12:10]
-///  - Imm[2:0] = 0
-template <typename Reg_T>
-class RVCImmLD : public RVCImm<Reg_T> {
-public:
-  RVCImmLD()
-      : RVCImm<Reg_T>(3, 8, Imm<Reg_T>::Repr::Signed,
-                      std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
-};
-
-/// An RV-C signed immediate field with an input width of 12 bits.
-/// Used in C.J and C.JAL instructions.
-///
-/// It is defined as:
-///  - Imm[11]  = Inst[12]
-///  - Imm[10]  = Inst[8]
-///  - Imm[9:8] = Inst[10:9]
-///  - Imm[7]   = Inst[6]
-///  - Imm[6]   = Inst[7]
-///  - Imm[5]   = Inst[2]
-///  - Imm[4]   = Inst[11]
-///  - Imm[3:1] = Inst[5:3]
-///  - Imm[0]   = 0
-template <typename Reg_T>
-class RVCImmJ : public RVCImm<Reg_T> {
-public:
-  RVCImmJ()
-      : RVCImm<Reg_T>(1, 12, Imm<Reg_T>::Repr::Signed,
-                      std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),
-                                  ImmPart(8, 9, 10), ImmPart(7, 6, 6),
-                                  ImmPart(6, 7, 7), ImmPart(5, 2, 2),
-                                  ImmPart(4, 11, 11), ImmPart(1, 3, 5)}) {}
-};
-
-/// An RV-C signed immediate field with an input width of 9 bits.
-/// Used in C.BEQZ and C.BNEZ instructions.
-///
-/// It is defined as:
-///  - Imm[8]   = Inst[12]
-///  - Imm[7:6] = Inst[6:5]
-///  - Imm[5]   = Inst[2]
-///  - Imm[4:3] = Inst[11:10]
-///  - Imm[2:1] = Inst[4:3]
-///  - Imm[0]   = 0
-template <typename Reg_T>
-class RVCImmB : public RVCImm<Reg_T> {
-public:
-  RVCImmB()
-      : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Signed,
-                      std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6),
-                                  ImmPart(5, 2, 2), ImmPart(3, 10, 11),
-                                  ImmPart(1, 3, 4)}) {}
-};
-
-/// An RV-C immediate field with an input width of 6 bits.
-/// Used in the following instructions:
-///  - C.SRLI (unsigned)
-///  - C.SRAI (unsigned)
-///  - C.ANDI (signed)
-///
-/// It is defined as:
-///  - Imm[5]   = Inst[12]
-///  - Imm[4:0] = Inst[6:2]
-template <typename Reg_T>
-class RVCImmB2 : public RVCImm<Reg_T> {
-public:
-  RVCImmB2(typename Imm<Reg_T>::Repr repr)
-      : RVCImm<Reg_T>(2, 6, repr,
-                      std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
-};
-
-/// An RV-C unsigned immediate field with an input width of 10 bits.
-/// Used in the C.ADDI4SPN instruction.
-///
-/// It is defined as:
-///  - Imm[9:6] = Inst[10:7]
-///  - Imm[5:4] = Inst[12:11]
-///  - Imm[3]   = Inst[5]
-///  - Imm[2]   = Inst[6]
-///  - Imm[1:0] = 0
-template <typename Reg_T>
-class RVCImmIW : public RVCImm<Reg_T> {
-public:
-  RVCImmIW()
-      : RVCImm<Reg_T>(2, 10, Imm<Reg_T>::Repr::Unsigned,
-                      std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),
-                                  ImmPart(3, 5, 5), ImmPart(2, 6, 6)}) {}
-};
-
 /// A CA-Type RV-C instruction
 template <typename Reg_T>
 class RVCInstrCAType : public RVCInstruction<Reg_T> {
@@ -445,7 +245,23 @@ public:
                              RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET5),
                              RVCOpPartFunct6(funct6)),
             {std::make_shared<RVCRegRs2Prime<Reg_T>>(isa, 2),
-             std::make_shared<RVCRegRdRs1Prime<Reg_T>>(isa, 1)}) {}
+             std::make_shared<RVCRegRdRs1Prime>(isa, 1)}) {}
+
+  /// All RV-C Funct6 opcode parts are defined as a 6-bit field in bits 10-15
+  /// of the instruction
+  class RVCOpPartFunct6 : public RVCOpPart {
+  public:
+    RVCOpPartFunct6(unsigned funct6) : RVCOpPart(funct6, 10, 15) {}
+  };
+
+  /// The RV-C Rd'/Rs1' field contains a source or destination
+  /// register index.
+  /// It is defined as a 3-bit field in bits 7-9 of the instruction
+  class RVCRegRdRs1Prime : public RVCRegCompressed<Reg_T> {
+  public:
+    RVCRegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
+        : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
+  };
 };
 
 /// A CI-Type RV-C instruction
@@ -456,8 +272,63 @@ public:
                  const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRdRs1<Reg_T>>(isa, 1),
+            {std::make_shared<RVCRegRdRs1>(isa, 1),
              std::make_shared<RVCImm<Reg_T>>(imm)}) {}
+
+  /// The RV-C Rd/Rs1 field contains a source or destination register
+  /// index.
+  /// It is defined as a 5-bit field in bits 7-11 of the instruction
+  class RVCRegRdRs1 : public RVCReg<Reg_T> {
+  public:
+    RVCRegRdRs1(const ISAInfoBase *isa, unsigned fieldIndex)
+        : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
+  };
+
+  /// An RV-C unsigned immediate field with an input width of 8 bits.
+  /// Used in C.LSWP and C.FLWSP instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[7:6] = Inst[3:2]
+  ///  - Imm[5]   = Inst[12]
+  ///  - Imm[4:2] = Inst[6:4]
+  ///  - Imm[1:0] = 0
+  class RVCImmLWSP : public RVCImm<Reg_T> {
+  public:
+    RVCImmLWSP()
+        : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
+                        std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
+                                    ImmPart(2, 4, 6)}) {}
+  };
+
+  /// An RV-C unsigned immediate field with an input width of 9 bits.
+  /// Used in C.LDWP and C.FLDSP instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[8:6] = Inst[4:2]
+  ///  - Imm[5]   = Inst[12]
+  ///  - Imm[4:3] = Inst[6:5]
+  ///  - Imm[2:0] = 0
+  class RVCImmLDSP : public RVCImm<Reg_T> {
+  public:
+    RVCImmLDSP()
+        : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
+                        std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
+                                    ImmPart(3, 5, 6)}) {}
+  };
+
+  /// An RV-C signed immediate field with an input width of 18 bits.
+  /// Used in C.LUI instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[17]    = Inst[12]
+  ///  - Imm[16:12] = Inst[6:2]
+  ///  - Imm[12:0]  = 0
+  class RVCImmLUI : public RVCImm<Reg_T> {
+  public:
+    RVCImmLUI()
+        : RVCImm<Reg_T>(2, 18, Imm<Reg_T>::Repr::Signed,
+                        std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
+  };
 };
 
 /// A CINOP-Type RV-C instruction
@@ -467,6 +338,13 @@ public:
   RVCInstrCINOPType(RVISA::Quadrant quadrant, const Token &name)
       : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, quadrant, RVCOpPartNOP()),
                               {}) {}
+
+  /// The 14-bit field from bits 2-15 are set to 0 in a compressed NOP
+  /// instruction
+  class RVCOpPartNOP : public RVCOpPart {
+  public:
+    RVCOpPartNOP() : RVCOpPart(0, 2, 15) {}
+  };
 };
 
 /// A CSS-Type RV-C instruction
@@ -479,6 +357,34 @@ public:
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
             {std::make_shared<RVCRegRs2<Reg_T>>(isa, 1),
              std::make_shared<RVCImm<Reg_T>>(imm)}) {}
+
+  /// An RV-C unsigned immediate field with an input width of 8 bits.
+  /// Used in C.SWSP and C.FSWSP instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[7:6] = Inst[8:7]
+  ///  - Imm[5:2] = Inst[12:9]
+  ///  - Imm[1:0] = 0
+  class RVCImmSWSP : public RVCImm<Reg_T> {
+  public:
+    RVCImmSWSP()
+        : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
+                        std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
+  };
+
+  /// An RV-C unsigned immediate field with an input width of 9 bits.
+  /// Used in C.SDSP and C.FSDSP instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[8:6] = Inst[9:7]
+  ///  - Imm[5:3] = Inst[12:10]
+  ///  - Imm[2:0] = 0
+  class RVCImmSDSP : public RVCImm<Reg_T> {
+  public:
+    RVCImmSDSP()
+        : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
+                        std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
+  };
 };
 
 /// A CL-Type RV-C instruction
@@ -492,6 +398,20 @@ public:
             {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
              std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 2),
              std::make_shared<RVCImm<Reg_T>>(imm)}) {}
+
+  /// An RV-C signed immediate field with an input width of 8 bits.
+  /// Used in C.LD and C.FLD instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[7:6] = Inst[6:5]
+  ///  - Imm[5:3] = Inst[12:10]
+  ///  - Imm[2:0] = 0
+  class RVCImmLD : public RVCImm<Reg_T> {
+  public:
+    RVCImmLD()
+        : RVCImm<Reg_T>(3, 8, Imm<Reg_T>::Repr::Signed,
+                        std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
+  };
 };
 
 /// A CS-Type RV-C instruction
@@ -515,7 +435,30 @@ public:
   RVCInstrCJType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCImmJ<Reg_T>>()}) {}
+            {std::make_shared<RVCImmJ>()}) {}
+
+  /// An RV-C signed immediate field with an input width of 12 bits.
+  /// Used in C.J and C.JAL instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[11]  = Inst[12]
+  ///  - Imm[10]  = Inst[8]
+  ///  - Imm[9:8] = Inst[10:9]
+  ///  - Imm[7]   = Inst[6]
+  ///  - Imm[6]   = Inst[7]
+  ///  - Imm[5]   = Inst[2]
+  ///  - Imm[4]   = Inst[11]
+  ///  - Imm[3:1] = Inst[5:3]
+  ///  - Imm[0]   = 0
+  class RVCImmJ : public RVCImm<Reg_T> {
+  public:
+    RVCImmJ()
+        : RVCImm<Reg_T>(1, 12, Imm<Reg_T>::Repr::Signed,
+                        std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),
+                                    ImmPart(8, 9, 10), ImmPart(7, 6, 6),
+                                    ImmPart(6, 7, 7), ImmPart(5, 2, 2),
+                                    ImmPart(4, 11, 11), ImmPart(1, 3, 5)}) {}
+  };
 };
 
 /// A CR-Type RV-C instruction
@@ -552,7 +495,26 @@ public:
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
             {std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 1),
-             std::make_shared<RVCImmB<Reg_T>>()}) {}
+             std::make_shared<RVCImmB>()}) {}
+
+  /// An RV-C signed immediate field with an input width of 9 bits.
+  /// Used in C.BEQZ and C.BNEZ instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[8]   = Inst[12]
+  ///  - Imm[7:6] = Inst[6:5]
+  ///  - Imm[5]   = Inst[2]
+  ///  - Imm[4:3] = Inst[11:10]
+  ///  - Imm[2:1] = Inst[4:3]
+  ///  - Imm[0]   = 0
+  class RVCImmB : public RVCImm<Reg_T> {
+  public:
+    RVCImmB()
+        : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Signed,
+                        std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6),
+                                    ImmPart(5, 2, 2), ImmPart(3, 10, 11),
+                                    ImmPart(1, 3, 4)}) {}
+  };
 };
 
 /// A CB2-Type RV-C instruction
@@ -567,7 +529,23 @@ public:
                              RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET10),
                              RVCOpPartFunct3(funct3)),
             {std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 1),
-             std::make_shared<RVCImmB2<Reg_T>>(repr)}) {}
+             std::make_shared<RVCImmB2>(repr)}) {}
+
+  /// An RV-C immediate field with an input width of 6 bits.
+  /// Used in the following instructions:
+  ///  - C.SRLI (unsigned)
+  ///  - C.SRAI (unsigned)
+  ///  - C.ANDI (signed)
+  ///
+  /// It is defined as:
+  ///  - Imm[5]   = Inst[12]
+  ///  - Imm[4:0] = Inst[6:2]
+  class RVCImmB2 : public RVCImm<Reg_T> {
+  public:
+    RVCImmB2(typename Imm<Reg_T>::Repr repr)
+        : RVCImm<Reg_T>(2, 6, repr,
+                        std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
+  };
 };
 
 /// A CIW-Type RV-C instruction
@@ -579,7 +557,24 @@ public:
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
             {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
-             std::make_shared<RVCImmIW<Reg_T>>()}) {}
+             std::make_shared<RVCImmIW>()}) {}
+
+  /// An RV-C unsigned immediate field with an input width of 10 bits.
+  /// Used in the C.ADDI4SPN instruction.
+  ///
+  /// It is defined as:
+  ///  - Imm[9:6] = Inst[10:7]
+  ///  - Imm[5:4] = Inst[12:11]
+  ///  - Imm[3]   = Inst[5]
+  ///  - Imm[2]   = Inst[6]
+  ///  - Imm[1:0] = 0
+  class RVCImmIW : public RVCImm<Reg_T> {
+  public:
+    RVCImmIW()
+        : RVCImm<Reg_T>(2, 10, Imm<Reg_T>::Repr::Unsigned,
+                        std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),
+                                    ImmPart(3, 5, 5), ImmPart(2, 6, 6)}) {}
+  };
 };
 
 #define CREBREAKType(opcode, name, funct4)                                     \
@@ -616,29 +611,30 @@ struct RV_C {
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVCInstrCAType<Reg__T>(Token("c.addw"), 0b01, 0b100111, isa)));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCIType<Reg__T>(RVISA::Quadrant::QUADRANT2, Token("c.lwsp"),
-                                   0b010, RVCImmLWSP<Reg__T>(), isa)));
+    instructions.push_back(
+        std::shared_ptr<_Instruction>(new RVCInstrCIType<Reg__T>(
+            RVISA::Quadrant::QUADRANT2, Token("c.lwsp"), 0b010,
+            typename RVCInstrCIType<Reg__T>::RVCImmLWSP(), isa)));
 
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new RVCInstrCIType<Reg__T>(RVISA::Quadrant::QUADRANT2,
-                                     Token("c.flwsp"), 0b011,
-                                     RVCImmLWSP<Reg__T>(), isa)));
+      instructions.push_back(
+          std::shared_ptr<_Instruction>(new RVCInstrCIType<Reg__T>(
+              RVISA::Quadrant::QUADRANT2, Token("c.flwsp"), 0b011,
+              typename RVCInstrCIType<Reg__T>::RVCImmLWSP(), isa)));
     } else // RV64 RV128
     {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
-                             RVCImmLDSP<Reg__T>(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
+          RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
+          typename RVCInstrCIType<Reg__T>::RVCImmLDSP(), isa)));
       instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
           RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
           RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
-                           RVCImmLDSP<Reg__T>(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
+        RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
+        typename RVCInstrCIType<Reg__T>::RVCImmLDSP(), isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.slli"), 0b000,
                            RVCImmCommon6<Reg__T>(_Imm::Repr::Unsigned), isa)));
@@ -649,7 +645,7 @@ struct RV_C {
 
     auto cLuiInstr = std::shared_ptr<_Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT1, Token("c.lui"), 0b011,
-                           RVCImmLUI<Reg__T>(), isa));
+                           typename RVCInstrCIType<Reg__T>::RVCImmLUI(), isa));
     cLuiInstr->addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
       return rd != 0 && rd != 2;
@@ -678,21 +674,21 @@ struct RV_C {
         std::shared_ptr<_Instruction>(new RVCInstrCINOPType<Reg__T>(
             RVISA::Quadrant::QUADRANT1, Token("c.nop"))));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.swsp"), 0b110,
-                            RVCImmSWSP<Reg__T>(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+        RVISA::Quadrant::QUADRANT2, Token("c.swsp"), 0b110,
+        typename RVCInstrCSSType<Reg__T>::RVCImmSWSP(), isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.fswsp"),
-                              0b111, RVCImmSWSP<Reg__T>(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+          RVISA::Quadrant::QUADRANT2, Token("c.fswsp"), 0b111,
+          typename RVCInstrCSSType<Reg__T>::RVCImmSWSP(), isa)));
     } else {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.sdsp"),
-                              0b111, RVCImmSDSP<Reg__T>(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+          RVISA::Quadrant::QUADRANT2, Token("c.sdsp"), 0b111,
+          typename RVCInstrCSSType<Reg__T>::RVCImmSDSP(), isa)));
     }
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.fsdsp"), 0b101,
-                            RVCImmSDSP<Reg__T>(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+        RVISA::Quadrant::QUADRANT2, Token("c.fsdsp"), 0b101,
+        typename RVCInstrCSSType<Reg__T>::RVCImmSDSP(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
     instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
@@ -703,14 +699,14 @@ struct RV_C {
           RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
           RVCImmCommon7<Reg__T>(Imm<Reg__T>::Repr::Signed), isa)));
     } else {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
-                             RVCImmLD<Reg__T>(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
+          RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
+          typename RVCInstrCLType<Reg__T>::RVCImmLD(), isa)));
     }
     // instructions.push_back(CLType(0b00, Token("c.lq"), 0b001));//RV128
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.fld"), 0b001,
-                           RVCImmLD<Reg__T>(), isa)));
+                           typename RVCInstrCLType<Reg__T>::RVCImmLD(), isa)));
 
     instructions.push_back(
         std::shared_ptr<_Instruction>(new RVCInstrCSType<Reg__T>(
