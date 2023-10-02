@@ -7,51 +7,44 @@ namespace Ripes {
 namespace Assembler {
 
 /// A base class for all RISC-V opcode parts
-class RVOpPart : public OpPart {
-public:
+struct RVOpPart : public OpPart {
   RVOpPart(unsigned value, unsigned start, unsigned stop)
       : OpPart(value, start, stop) {}
 };
 
 /// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
 /// instruction
-class RVOpPartOpcode : public RVOpPart {
-public:
+struct RVOpPartOpcode : public RVOpPart {
   RVOpPartOpcode(RVISA::Opcode opcode) : RVOpPart(opcode, 0, 6) {}
 };
 
 /// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1 of
 /// the instruction
-class RVOpPartQuadrant : public RVOpPart {
-public:
+struct RVOpPartQuadrant : public RVOpPart {
   RVOpPartQuadrant(RVISA::Quadrant quadrant) : RVOpPart(quadrant, 0, 1) {}
 };
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14 of
 /// the instruction
-class RVOpPartFunct3 : public RVOpPart {
-public:
+struct RVOpPartFunct3 : public RVOpPart {
   RVOpPartFunct3(unsigned funct3) : RVOpPart(funct3, 12, 14) {}
 };
 
 /// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31 of
 /// the instruction
-class RVOpPartFunct6 : public RVOpPart {
-public:
+struct RVOpPartFunct6 : public RVOpPart {
   RVOpPartFunct6(unsigned funct6) : RVOpPart(funct6, 26, 31) {}
 };
 
 /// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31 of
 /// the instruction
-class RVOpPartFunct7 : public RVOpPart {
-public:
+struct RVOpPartFunct7 : public RVOpPart {
   RVOpPartFunct7(unsigned funct7) : RVOpPart(funct7, 25, 31) {}
 };
 
 /// A RISC-V opcode defines the encoding of specific instructions
 template <typename Reg_T>
-class RVOpcode : public Opcode<Reg_T> {
-public:
+struct RVOpcode : public Opcode<Reg_T> {
   /// Construct opcode from parts
   RVOpcode(const Token &name, const std::vector<OpPart> &opParts)
       : Opcode<Reg_T>(name, opParts) {}
@@ -77,8 +70,7 @@ public:
 
 /// A base class for all RISC-V instructions
 template <typename Reg_T>
-class RVInstructionBase : public Instruction<Reg_T> {
-public:
+struct RVInstructionBase : public Instruction<Reg_T> {
   RVInstructionBase(const RVOpcode<Reg_T> &opcode,
                     const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
       : Instruction<Reg_T>(opcode, fields) {}
@@ -87,8 +79,7 @@ public:
 /// RISC-V instruction class (for compressed instructions, see class
 /// RVCInstruction)
 template <typename Reg_T>
-class RVInstruction : public RVInstructionBase<Reg_T> {
-public:
+struct RVInstruction : public RVInstructionBase<Reg_T> {
   RVInstruction(const RVOpcode<Reg_T> &opcode,
                 const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
       : RVInstructionBase<Reg_T>(opcode, fields) {}
@@ -96,8 +87,7 @@ public:
 
 /// A base class for all RISC-V register types
 template <typename Reg_T>
-class RVReg : public Reg<Reg_T> {
-public:
+struct RVReg : public Reg<Reg_T> {
   RVReg(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
         unsigned stop, const QString &regsd)
       : Reg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
@@ -106,8 +96,7 @@ public:
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction
 template <typename Reg_T>
-class RVRegRs1 : public RVReg<Reg_T> {
-public:
+struct RVRegRs1 : public RVReg<Reg_T> {
   RVRegRs1(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVReg<Reg_T>(isa, fieldIndex, 15, 19, "rs1") {}
 };
@@ -115,8 +104,7 @@ public:
 /// The RISC-V Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 20-24 of the instruction
 template <typename Reg_T>
-class RVRegRs2 : public RVReg<Reg_T> {
-public:
+struct RVRegRs2 : public RVReg<Reg_T> {
   RVRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVReg<Reg_T>(isa, fieldIndex, 20, 24, "rs2") {}
 };
@@ -124,16 +112,14 @@ public:
 /// The RISC-V Rd field contains a destination register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <typename Reg_T>
-class RVRegRd : public RVReg<Reg_T> {
-public:
+struct RVRegRd : public RVReg<Reg_T> {
   RVRegRd(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVReg<Reg_T>(isa, fieldIndex, 7, 11, "rd") {}
 };
 
 /// A base class for all RISC-V immediate types
 template <typename Reg_T>
-class RVImm : public Imm<Reg_T> {
-public:
+struct RVImm : public Imm<Reg_T> {
   RVImm(
       unsigned tokenIndex, unsigned width, typename Imm<Reg_T>::Repr repr,
       const std::vector<ImmPart> &parts,
@@ -148,8 +134,7 @@ public:
 ///  - Imm[31:11] = Inst[31]
 ///  - Imm[10:0]  = Inst[30:20]
 template <typename Reg_T>
-class RVImmI : public RVImm<Reg_T> {
-public:
+struct RVImmI : public RVImm<Reg_T> {
   RVImmI(unsigned fieldIndex)
       : RVImm<Reg_T>(fieldIndex, 12, Imm<Reg_T>::Repr::Signed,
                      std::vector{ImmPart(0, 20, 31)}) {}
@@ -157,8 +142,7 @@ public:
 
 /// A B-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrBType : public RVInstruction<Reg_T> {
-public:
+struct RVInstrBType : public RVInstruction<Reg_T> {
   RVInstrBType(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, RVISA::Opcode::BRANCH,
                                              RVOpPartFunct3(funct3)),
@@ -175,8 +159,7 @@ public:
   ///  - Imm[10:5]  = Inst[30:25]
   ///  - Imm[4:1]   = Inst[11:8]
   ///  - Imm[0]     = 0
-  class RVImmB : public RVImm<Reg_T> {
-  public:
+  struct RVImmB : public RVImm<Reg_T> {
     RVImmB()
         : RVImm<Reg_T>(3, 13, Imm<Reg_T>::Repr::Signed,
                        std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
@@ -187,8 +170,7 @@ public:
 
 /// A base I-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrITypeBase : public RVInstruction<Reg_T> {
-public:
+struct RVInstrITypeBase : public RVInstruction<Reg_T> {
   RVInstrITypeBase(RVISA::Opcode opcode, const Token &name, unsigned funct3,
                    const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
@@ -200,24 +182,21 @@ public:
 
 /// A I-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrIType : public RVInstrITypeBase<Reg_T> {
-public:
+struct RVInstrIType : public RVInstrITypeBase<Reg_T> {
   RVInstrIType(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstrITypeBase<Reg_T>(RVISA::OPIMM, name, funct3, isa) {}
 };
 
 /// A I32-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrI32Type : public RVInstrITypeBase<Reg_T> {
-public:
+struct RVInstrI32Type : public RVInstrITypeBase<Reg_T> {
   RVInstrI32Type(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstrITypeBase<Reg_T>(RVISA::OPIMM32, name, funct3, isa) {}
 };
 
 /// An L-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrLType : public RVInstruction<Reg_T> {
-public:
+struct RVInstrLType : public RVInstruction<Reg_T> {
   RVInstrLType(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::LOAD, RVOpPartFunct3(funct3)),
@@ -228,8 +207,7 @@ public:
 
 /// An IShift32-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrIShift32Type : public RVInstruction<Reg_T> {
-public:
+struct RVInstrIShift32Type : public RVInstruction<Reg_T> {
   RVInstrIShift32Type(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                       unsigned funct7, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode,
@@ -244,8 +222,7 @@ public:
   ///
   /// It is defined as:
   ///  - Imm[4:0] = Inst[24:20]
-  class RVImmIShift32 : public RVImm<Reg_T> {
-  public:
+  struct RVImmIShift32 : public RVImm<Reg_T> {
     RVImmIShift32()
         : RVImm<Reg_T>(3, 5, Imm<Reg_T>::Repr::Unsigned,
                        std::vector{ImmPart(0, 20, 24)}) {}
@@ -254,8 +231,7 @@ public:
 
 /// An IShift64-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrIShift64Type : public RVInstruction<Reg_T> {
-public:
+struct RVInstrIShift64Type : public RVInstruction<Reg_T> {
   RVInstrIShift64Type(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                       unsigned funct6, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode,
@@ -270,8 +246,7 @@ public:
   ///
   /// It is defined as:
   ///  - Imm[5:0] = Inst[25:20]
-  class RVImmIShift64 : public RVImm<Reg_T> {
-  public:
+  struct RVImmIShift64 : public RVImm<Reg_T> {
     RVImmIShift64()
         : RVImm<Reg_T>(3, 6, Imm<Reg_T>::Repr::Unsigned,
                        std::vector{ImmPart(0, 20, 25)}) {}
@@ -280,8 +255,7 @@ public:
 
 /// A base R-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrRTypeBase : public RVInstruction<Reg_T> {
-public:
+struct RVInstrRTypeBase : public RVInstruction<Reg_T> {
   RVInstrRTypeBase(const Token &name, RVISA::Opcode opcode, unsigned funct3,
                    unsigned funct7, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode,
@@ -294,8 +268,7 @@ public:
 
 /// An R-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrRType : public RVInstrRTypeBase<Reg_T> {
-public:
+struct RVInstrRType : public RVInstrRTypeBase<Reg_T> {
   RVInstrRType(const Token &name, unsigned funct3, unsigned funct7,
                const ISAInfoBase *isa)
       : RVInstrRTypeBase<Reg_T>(name, RVISA::OP, funct3, funct7, isa) {}
@@ -303,8 +276,7 @@ public:
 
 /// An R32-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrR32Type : public RVInstrRTypeBase<Reg_T> {
-public:
+struct RVInstrR32Type : public RVInstrRTypeBase<Reg_T> {
   RVInstrR32Type(const Token &name, unsigned funct3, unsigned funct7,
                  const ISAInfoBase *isa)
       : RVInstrRTypeBase<Reg_T>(name, RVISA::OP32, funct3, funct7, isa) {}
@@ -312,8 +284,7 @@ public:
 
 /// An S-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrSType : public RVInstruction<Reg_T> {
-public:
+struct RVInstrSType : public RVInstruction<Reg_T> {
   RVInstrSType(const Token &name, unsigned funct3, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::STORE, RVOpPartFunct3(funct3)),
@@ -328,8 +299,7 @@ public:
   ///  - Imm[31:11] = Inst[31]
   ///  - Imm[10:5]  = Inst[30:25]
   ///  - Imm[4:0]   = Inst[11:7]
-  class RVImmS : public RVImm<Reg_T> {
-  public:
+  struct RVImmS : public RVImm<Reg_T> {
     RVImmS()
         : RVImm<Reg_T>(2, 12, Imm<Reg_T>::Repr::Signed,
                        std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
@@ -338,8 +308,7 @@ public:
 
 /// A U-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrUType : public RVInstruction<Reg_T> {
-public:
+struct RVInstrUType : public RVInstruction<Reg_T> {
   RVInstrUType(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode),
                              {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
@@ -351,8 +320,7 @@ public:
   /// It is defined as:
   ///  - Imm[31:12] = Inst[31:12]
   ///  - Imm[11:0]  = 0
-  class RVImmU : public RVImm<Reg_T> {
-  public:
+  struct RVImmU : public RVImm<Reg_T> {
     RVImmU()
         : RVImm<Reg_T>(2, 32, Imm<Reg_T>::Repr::Hex,
                        std::vector{ImmPart(0, 12, 31)}) {}
@@ -361,8 +329,7 @@ public:
 
 /// A J-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrJType : public RVInstruction<Reg_T> {
-public:
+struct RVInstrJType : public RVInstruction<Reg_T> {
   RVInstrJType(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode),
                              {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
@@ -378,8 +345,7 @@ public:
   ///  - Imm[10:5]  = Inst[30:25]
   ///  - Imm[4:1]   = Inst[24:21]
   ///  - Imm[0]     = 0
-  class RVImmJ : public RVImm<Reg_T> {
-  public:
+  struct RVImmJ : public RVImm<Reg_T> {
     RVImmJ()
         : RVImm<Reg_T>(2, 21, Imm<Reg_T>::Repr::Signed,
                        std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),
@@ -390,8 +356,7 @@ public:
 
 /// A JALR-Type RISC-V instruction
 template <typename Reg_T>
-class RVInstrJALRType : public RVInstruction<Reg_T> {
-public:
+struct RVInstrJALRType : public RVInstruction<Reg_T> {
   RVInstrJALRType(const Token &name, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::JALR, RVOpPartFunct3(0b000)),
@@ -402,8 +367,7 @@ public:
 
 /// A Load-Type RISC-V pseudo-instruction
 template <typename Reg_T>
-class RVPseudoInstrLoad : public PseudoInstruction<Reg_T> {
-public:
+struct RVPseudoInstrLoad : public PseudoInstruction<Reg_T> {
   RVPseudoInstrLoad(const Token &name)
       : PseudoInstruction<Reg_T>(
             name,
@@ -429,8 +393,7 @@ public:
 /// we detect that a number has been provided, then abort the pseudo-op
 /// handling.
 template <typename Reg_T>
-class RVPseudoInstrStore : public PseudoInstruction<Reg_T> {
-public:
+struct RVPseudoInstrStore : public PseudoInstruction<Reg_T> {
   RVPseudoInstrStore(const Token &name)
       : PseudoInstruction<Reg_T>(
             name,

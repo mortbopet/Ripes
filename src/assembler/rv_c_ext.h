@@ -12,8 +12,7 @@ namespace Assembler {
 
 /// A base class for all RV-C registers (5-bit and 3-bit)
 template <typename Reg_T>
-class RVCReg : public RVReg<Reg_T> {
-public:
+struct RVCReg : public RVReg<Reg_T> {
   RVCReg(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
          unsigned stop, const QString &regsd)
       : RVReg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
@@ -60,16 +59,14 @@ struct RVCRegCompressed : public RVCReg<Reg_T> {
 };
 
 /// A base class for RV-C opcode parts
-class RVCOpPart : public RVOpPart {
-public:
+struct RVCOpPart : public RVOpPart {
   RVCOpPart(unsigned value, unsigned start, unsigned stop)
       : RVOpPart(value, start, stop) {}
 };
 
 /// All RISC-V Funct2 opcode parts are defined as a 2-bit field in bits 5-6 of
 /// the instruction
-class RVCOpPartFunct2 : public RVCOpPart {
-public:
+struct RVCOpPartFunct2 : public RVCOpPart {
   enum Offset { OFFSET5 = 5, OFFSET10 = 10 };
   RVCOpPartFunct2(unsigned funct2, Offset offset)
       : RVCOpPart(funct2, offset, offset + 1) {}
@@ -77,28 +74,25 @@ public:
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 13-15 of
 /// the instruction
-class RVCOpPartFunct3 : public RVCOpPart {
-public:
+struct RVCOpPartFunct3 : public RVCOpPart {
   RVCOpPartFunct3(unsigned funct3) : RVCOpPart(funct3, 13, 15) {}
 };
 
 /// All RISC-V Funct4 opcode parts are defined as a 4-bit field in bits 12-15 of
 /// the instruction
-class RVCOpPartFunct4 : public RVCOpPart {
-public:
+struct RVCOpPartFunct4 : public RVCOpPart {
   RVCOpPartFunct4(unsigned funct4) : RVCOpPart(funct4, 12, 15) {}
 };
 
 template <typename Reg_T>
-class RVCInstrCAType;
+struct RVCInstrCAType;
 template <typename Reg_T>
-class RVCInstrCINOPType;
+struct RVCInstrCINOPType;
 
 /// A RV-C opcode defines the encoding of specific compressed
 /// instructions
 template <typename Reg_T>
-class RVCOpcode : public RVOpcode<Reg_T> {
-public:
+struct RVCOpcode : public RVOpcode<Reg_T> {
   /// Construct opcode from parts
   RVCOpcode(const Token &name, const std::vector<OpPart> &opParts)
       : RVOpcode<Reg_T>(name, opParts) {}
@@ -129,8 +123,7 @@ public:
 
 /// A base class for RV-C instructions
 template <typename Reg_T>
-class RVCInstruction : public RVInstructionBase<Reg_T> {
-public:
+struct RVCInstruction : public RVInstructionBase<Reg_T> {
   RVCInstruction(const RVCOpcode<Reg_T> &opcode,
                  const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
       : RVInstructionBase<Reg_T>(opcode, fields) {}
@@ -139,8 +132,7 @@ public:
 /// The RV-C Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <typename Reg_T>
-class RVCRegRs1 : public RVCReg<Reg_T> {
-public:
+struct RVCRegRs1 : public RVCReg<Reg_T> {
   RVCRegRs1(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rs1") {}
 };
@@ -148,8 +140,7 @@ public:
 /// The RV-C Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 2-6 of the instruction
 template <typename Reg_T>
-class RVCRegRs2 : public RVCReg<Reg_T> {
-public:
+struct RVCRegRs2 : public RVCReg<Reg_T> {
   RVCRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCReg<Reg_T>(isa, fieldIndex, 2, 6, "rs2") {}
 };
@@ -157,8 +148,7 @@ public:
 /// The RV-C Rs1' field contains a source register index.
 /// It is defined as a 3-bit field in bits 7-9 of the instruction
 template <typename Reg_T>
-class RVCRegRs1Prime : public RVCRegCompressed<Reg_T> {
-public:
+struct RVCRegRs1Prime : public RVCRegCompressed<Reg_T> {
   RVCRegRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rs1'") {}
 };
@@ -166,8 +156,7 @@ public:
 /// The RV-C Rs2' field contains a source register index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
 template <typename Reg_T>
-class RVCRegRs2Prime : public RVCRegCompressed<Reg_T> {
-public:
+struct RVCRegRs2Prime : public RVCRegCompressed<Reg_T> {
   RVCRegRs2Prime(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
 };
@@ -176,16 +165,14 @@ public:
 /// index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
 template <typename Reg_T>
-class RVCRegRdPrime : public RVCRegCompressed<Reg_T> {
-public:
+struct RVCRegRdPrime : public RVCRegCompressed<Reg_T> {
   RVCRegRdPrime(const ISAInfoBase *isa, unsigned fieldIndex)
       : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
 };
 
 /// A base class for RV-C immediates
 template <typename Reg_T>
-class RVCImm : public RVImm<Reg_T> {
-public:
+struct RVCImm : public RVImm<Reg_T> {
   RVCImm(
       unsigned tokenIndex, unsigned width, typename Imm<Reg_T>::Repr repr,
       const std::vector<ImmPart> &parts,
@@ -204,8 +191,7 @@ public:
 ///  - Imm[5]   = Inst[12]
 ///  - Imm[4:0] = Inst[6:2]
 template <typename Reg_T>
-class RVCImmCommon6 : public RVCImm<Reg_T> {
-public:
+struct RVCImmCommon6 : public RVCImm<Reg_T> {
   RVCImmCommon6(typename Imm<Reg_T>::Repr repr)
       : RVCImm<Reg_T>(2, 6, repr,
                       std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
@@ -226,8 +212,7 @@ public:
 ///  - Imm[2]   = Inst[6]
 ///  - Imm[1:0] = 0
 template <typename Reg_T>
-class RVCImmCommon7 : public RVCImm<Reg_T> {
-public:
+struct RVCImmCommon7 : public RVCImm<Reg_T> {
   RVCImmCommon7(typename Imm<Reg_T>::Repr repr)
       : RVCImm<Reg_T>(3, 7, repr,
                       std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
@@ -236,8 +221,7 @@ public:
 
 /// A CA-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCAType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCAType : public RVCInstruction<Reg_T> {
   RVCInstrCAType(const Token &name, unsigned funct2, unsigned funct6,
                  const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -249,16 +233,14 @@ public:
 
   /// All RV-C Funct6 opcode parts are defined as a 6-bit field in bits 10-15
   /// of the instruction
-  class RVCOpPartFunct6 : public RVCOpPart {
-  public:
+  struct RVCOpPartFunct6 : public RVCOpPart {
     RVCOpPartFunct6(unsigned funct6) : RVCOpPart(funct6, 10, 15) {}
   };
 
   /// The RV-C Rd'/Rs1' field contains a source or destination
   /// register index.
   /// It is defined as a 3-bit field in bits 7-9 of the instruction
-  class RVCRegRdRs1Prime : public RVCRegCompressed<Reg_T> {
-  public:
+  struct RVCRegRdRs1Prime : public RVCRegCompressed<Reg_T> {
     RVCRegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
         : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
   };
@@ -266,8 +248,7 @@ public:
 
 /// A CI-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCIType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCIType : public RVCInstruction<Reg_T> {
   RVCInstrCIType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                  const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -278,8 +259,7 @@ public:
   /// The RV-C Rd/Rs1 field contains a source or destination register
   /// index.
   /// It is defined as a 5-bit field in bits 7-11 of the instruction
-  class RVCRegRdRs1 : public RVCReg<Reg_T> {
-  public:
+  struct RVCRegRdRs1 : public RVCReg<Reg_T> {
     RVCRegRdRs1(const ISAInfoBase *isa, unsigned fieldIndex)
         : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
   };
@@ -292,8 +272,7 @@ public:
   ///  - Imm[5]   = Inst[12]
   ///  - Imm[4:2] = Inst[6:4]
   ///  - Imm[1:0] = 0
-  class RVCImmLWSP : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmLWSP : public RVCImm<Reg_T> {
     RVCImmLWSP()
         : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
                         std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
@@ -308,8 +287,7 @@ public:
   ///  - Imm[5]   = Inst[12]
   ///  - Imm[4:3] = Inst[6:5]
   ///  - Imm[2:0] = 0
-  class RVCImmLDSP : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmLDSP : public RVCImm<Reg_T> {
     RVCImmLDSP()
         : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
                         std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
@@ -323,8 +301,7 @@ public:
   ///  - Imm[17]    = Inst[12]
   ///  - Imm[16:12] = Inst[6:2]
   ///  - Imm[12:0]  = 0
-  class RVCImmLUI : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmLUI : public RVCImm<Reg_T> {
     RVCImmLUI()
         : RVCImm<Reg_T>(2, 18, Imm<Reg_T>::Repr::Signed,
                         std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
@@ -333,24 +310,21 @@ public:
 
 /// A CINOP-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCINOPType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCINOPType : public RVCInstruction<Reg_T> {
   RVCInstrCINOPType(RVISA::Quadrant quadrant, const Token &name)
       : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, quadrant, RVCOpPartNOP()),
                               {}) {}
 
   /// The 14-bit field from bits 2-15 are set to 0 in a compressed NOP
   /// instruction
-  class RVCOpPartNOP : public RVCOpPart {
-  public:
+  struct RVCOpPartNOP : public RVCOpPart {
     RVCOpPartNOP() : RVCOpPart(0, 2, 15) {}
   };
 };
 
 /// A CSS-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCSSType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCSSType : public RVCInstruction<Reg_T> {
   RVCInstrCSSType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                   const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -365,8 +339,7 @@ public:
   ///  - Imm[7:6] = Inst[8:7]
   ///  - Imm[5:2] = Inst[12:9]
   ///  - Imm[1:0] = 0
-  class RVCImmSWSP : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmSWSP : public RVCImm<Reg_T> {
     RVCImmSWSP()
         : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
                         std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
@@ -379,8 +352,7 @@ public:
   ///  - Imm[8:6] = Inst[9:7]
   ///  - Imm[5:3] = Inst[12:10]
   ///  - Imm[2:0] = 0
-  class RVCImmSDSP : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmSDSP : public RVCImm<Reg_T> {
     RVCImmSDSP()
         : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
                         std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
@@ -389,8 +361,7 @@ public:
 
 /// A CL-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCLType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCLType : public RVCInstruction<Reg_T> {
   RVCInstrCLType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                  const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -406,8 +377,7 @@ public:
   ///  - Imm[7:6] = Inst[6:5]
   ///  - Imm[5:3] = Inst[12:10]
   ///  - Imm[2:0] = 0
-  class RVCImmLD : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmLD : public RVCImm<Reg_T> {
     RVCImmLD()
         : RVCImm<Reg_T>(3, 8, Imm<Reg_T>::Repr::Signed,
                         std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
@@ -416,8 +386,7 @@ public:
 
 /// A CS-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCSType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCSType : public RVCInstruction<Reg_T> {
   RVCInstrCSType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                  const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -430,8 +399,7 @@ public:
 
 /// A CJ-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCJType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCJType : public RVCInstruction<Reg_T> {
   RVCInstrCJType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
@@ -450,8 +418,7 @@ public:
   ///  - Imm[4]   = Inst[11]
   ///  - Imm[3:1] = Inst[5:3]
   ///  - Imm[0]   = 0
-  class RVCImmJ : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmJ : public RVCImm<Reg_T> {
     RVCImmJ()
         : RVCImm<Reg_T>(1, 12, Imm<Reg_T>::Repr::Signed,
                         std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),
@@ -463,8 +430,7 @@ public:
 
 /// A CR-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCRType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCRType : public RVCInstruction<Reg_T> {
   RVCInstrCRType(RVISA::Quadrant quadrant, const Token &name, unsigned funct4,
                  const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -475,8 +441,7 @@ public:
 
 /// A CR2-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCR2Type : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCR2Type : public RVCInstruction<Reg_T> {
   RVCInstrCR2Type(RVISA::Quadrant quadrant, const Token &name, unsigned funct4,
                   const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -488,8 +453,7 @@ public:
 
 /// A CB-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCBType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCBType : public RVCInstruction<Reg_T> {
   RVCInstrCBType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                  const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -507,8 +471,7 @@ public:
   ///  - Imm[4:3] = Inst[11:10]
   ///  - Imm[2:1] = Inst[4:3]
   ///  - Imm[0]   = 0
-  class RVCImmB : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmB : public RVCImm<Reg_T> {
     RVCImmB()
         : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Signed,
                         std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6),
@@ -519,8 +482,7 @@ public:
 
 /// A CB2-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCB2Type : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCB2Type : public RVCInstruction<Reg_T> {
   RVCInstrCB2Type(RVISA::Quadrant quadrant, const Token &name, unsigned funct2,
                   unsigned funct3, typename Imm<Reg_T>::Repr repr,
                   const ISAInfoBase *isa)
@@ -540,8 +502,7 @@ public:
   /// It is defined as:
   ///  - Imm[5]   = Inst[12]
   ///  - Imm[4:0] = Inst[6:2]
-  class RVCImmB2 : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmB2 : public RVCImm<Reg_T> {
     RVCImmB2(typename Imm<Reg_T>::Repr repr)
         : RVCImm<Reg_T>(2, 6, repr,
                         std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
@@ -550,8 +511,7 @@ public:
 
 /// A CIW-Type RV-C instruction
 template <typename Reg_T>
-class RVCInstrCIWType : public RVCInstruction<Reg_T> {
-public:
+struct RVCInstrCIWType : public RVCInstruction<Reg_T> {
   RVCInstrCIWType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                   const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
@@ -568,8 +528,7 @@ public:
   ///  - Imm[3]   = Inst[5]
   ///  - Imm[2]   = Inst[6]
   ///  - Imm[1:0] = 0
-  class RVCImmIW : public RVCImm<Reg_T> {
-  public:
+  struct RVCImmIW : public RVCImm<Reg_T> {
     RVCImmIW()
         : RVCImm<Reg_T>(2, 10, Imm<Reg_T>::Repr::Unsigned,
                         std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),
