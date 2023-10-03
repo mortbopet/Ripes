@@ -148,7 +148,7 @@ struct RVInstrBType : public RVInstruction<Reg_T> {
                                              RVOpPartFunct3(funct3)),
                              {std::make_shared<RVRegRs1<Reg_T>>(isa, 1),
                               std::make_shared<RVRegRs2<Reg_T>>(isa, 2),
-                              std::make_shared<RVImmB>()}) {}
+                              std::make_shared<ImmB>()}) {}
 
   /// A RISC-V signed immediate field with an input width of 13 bits.
   /// Used in B-Type instructions.
@@ -159,8 +159,8 @@ struct RVInstrBType : public RVInstruction<Reg_T> {
   ///  - Imm[10:5]  = Inst[30:25]
   ///  - Imm[4:1]   = Inst[11:8]
   ///  - Imm[0]     = 0
-  struct RVImmB : public RVImm<Reg_T> {
-    RVImmB()
+  struct ImmB : public RVImm<Reg_T> {
+    ImmB()
         : RVImm<Reg_T>(3, 13, Imm<Reg_T>::Repr::Signed,
                        std::vector{ImmPart(12, 31, 31), ImmPart(11, 7, 7),
                                    ImmPart(5, 25, 30), ImmPart(1, 8, 11)},
@@ -215,15 +215,15 @@ struct RVInstrIShift32Type : public RVInstruction<Reg_T> {
                                              RVOpPartFunct7(funct7)),
                              {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
                               std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
-                              std::make_shared<RVImmIShift32>()}) {}
+                              std::make_shared<ImmIShift32>()}) {}
 
   /// A RISC-V unsigned immediate field with an input width of 5 bits.
   /// Used in IShift32-Type instructions.
   ///
   /// It is defined as:
   ///  - Imm[4:0] = Inst[24:20]
-  struct RVImmIShift32 : public RVImm<Reg_T> {
-    RVImmIShift32()
+  struct ImmIShift32 : public RVImm<Reg_T> {
+    ImmIShift32()
         : RVImm<Reg_T>(3, 5, Imm<Reg_T>::Repr::Unsigned,
                        std::vector{ImmPart(0, 20, 24)}) {}
   };
@@ -239,15 +239,15 @@ struct RVInstrIShift64Type : public RVInstruction<Reg_T> {
                                              RVOpPartFunct6(funct6)),
                              {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
                               std::make_shared<RVRegRs1<Reg_T>>(isa, 2),
-                              std::make_shared<RVImmIShift64>()}) {}
+                              std::make_shared<ImmIShift64>()}) {}
 
   /// A RISC-V unsigned immediate field with an input width of 6 bits.
   /// Used in IShift64-Type instructions.
   ///
   /// It is defined as:
   ///  - Imm[5:0] = Inst[25:20]
-  struct RVImmIShift64 : public RVImm<Reg_T> {
-    RVImmIShift64()
+  struct ImmIShift64 : public RVImm<Reg_T> {
+    ImmIShift64()
         : RVImm<Reg_T>(3, 6, Imm<Reg_T>::Repr::Unsigned,
                        std::vector{ImmPart(0, 20, 25)}) {}
   };
@@ -289,7 +289,7 @@ struct RVInstrSType : public RVInstruction<Reg_T> {
       : RVInstruction<Reg_T>(
             RVOpcode<Reg_T>(name, RVISA::Opcode::STORE, RVOpPartFunct3(funct3)),
             {std::make_shared<RVRegRs1<Reg_T>>(isa, 3),
-             std::make_shared<RVImmS>(),
+             std::make_shared<ImmS>(),
              std::make_shared<RVRegRs2<Reg_T>>(isa, 1)}) {}
 
   /// A RISC-V signed immediate field with an input width of 12 bits.
@@ -299,8 +299,8 @@ struct RVInstrSType : public RVInstruction<Reg_T> {
   ///  - Imm[31:11] = Inst[31]
   ///  - Imm[10:5]  = Inst[30:25]
   ///  - Imm[4:0]   = Inst[11:7]
-  struct RVImmS : public RVImm<Reg_T> {
-    RVImmS()
+  struct ImmS : public RVImm<Reg_T> {
+    ImmS()
         : RVImm<Reg_T>(2, 12, Imm<Reg_T>::Repr::Signed,
                        std::vector{ImmPart(5, 25, 31), ImmPart(0, 7, 11)}) {}
   };
@@ -312,7 +312,7 @@ struct RVInstrUType : public RVInstruction<Reg_T> {
   RVInstrUType(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode),
                              {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
-                              std::make_shared<RVImmU>()}) {}
+                              std::make_shared<ImmU>()}) {}
 
   /// A RISC-V immediate field with an input width of 32 bits.
   /// Used in U-Type instructions.
@@ -320,8 +320,8 @@ struct RVInstrUType : public RVInstruction<Reg_T> {
   /// It is defined as:
   ///  - Imm[31:12] = Inst[31:12]
   ///  - Imm[11:0]  = 0
-  struct RVImmU : public RVImm<Reg_T> {
-    RVImmU()
+  struct ImmU : public RVImm<Reg_T> {
+    ImmU()
         : RVImm<Reg_T>(2, 32, Imm<Reg_T>::Repr::Hex,
                        std::vector{ImmPart(0, 12, 31)}) {}
   };
@@ -333,7 +333,7 @@ struct RVInstrJType : public RVInstruction<Reg_T> {
   RVInstrJType(const Token &name, RVISA::Opcode opcode, const ISAInfoBase *isa)
       : RVInstruction<Reg_T>(RVOpcode<Reg_T>(name, opcode),
                              {std::make_shared<RVRegRd<Reg_T>>(isa, 1),
-                              std::make_shared<RVImmJ>()}) {}
+                              std::make_shared<ImmJ>()}) {}
 
   /// A RISC-V signed immediate field with an input width of 21 bits.
   /// Used in J-Type instructions.
@@ -345,8 +345,8 @@ struct RVInstrJType : public RVInstruction<Reg_T> {
   ///  - Imm[10:5]  = Inst[30:25]
   ///  - Imm[4:1]   = Inst[24:21]
   ///  - Imm[0]     = 0
-  struct RVImmJ : public RVImm<Reg_T> {
-    RVImmJ()
+  struct ImmJ : public RVImm<Reg_T> {
+    ImmJ()
         : RVImm<Reg_T>(2, 21, Imm<Reg_T>::Repr::Signed,
                        std::vector{ImmPart(20, 31, 31), ImmPart(12, 12, 19),
                                    ImmPart(11, 20, 20), ImmPart(1, 21, 30)},
