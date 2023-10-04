@@ -582,18 +582,18 @@ struct RV_C {
               typename RVCInstrCIType<Reg__T>::ImmLWSP(), isa)));
     } else // RV64 RV128
     {
-      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
-          RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
-          typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
+                             typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
       instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
           RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
           RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
-    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
-        RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
-        typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
+                           typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.slli"), 0b000,
                            RVCImmCommon6<Reg__T>(_Imm::Repr::Unsigned), isa)));
@@ -633,9 +633,9 @@ struct RV_C {
         std::shared_ptr<_Instruction>(new RVCInstrCINOPType<Reg__T>(
             RVISA::Quadrant::QUADRANT1, Token("c.nop"))));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
-        RVISA::Quadrant::QUADRANT2, Token("c.swsp"), 0b110,
-        typename RVCInstrCSSType<Reg__T>::ImmSWSP(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.swsp"), 0b110,
+                            typename RVCInstrCSSType<Reg__T>::ImmSWSP(), isa)));
     if (isa->isaID() == ISA::RV32I) {
       instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
           RVISA::Quadrant::QUADRANT2, Token("c.fswsp"), 0b111,
@@ -645,9 +645,9 @@ struct RV_C {
           RVISA::Quadrant::QUADRANT2, Token("c.sdsp"), 0b111,
           typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
     }
-    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
-        RVISA::Quadrant::QUADRANT2, Token("c.fsdsp"), 0b101,
-        typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.fsdsp"), 0b101,
+                            typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
     instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
@@ -658,9 +658,9 @@ struct RV_C {
           RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
           RVCImmCommon7<Reg__T>(Imm<Reg__T>::Repr::Signed), isa)));
     } else {
-      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
-          RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
-          typename RVCInstrCLType<Reg__T>::ImmLD(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(
+          new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
+                             typename RVCInstrCLType<Reg__T>::ImmLD(), isa)));
     }
     // instructions.push_back(CLType(0b00, Token("c.lq"), 0b001));//RV128
     instructions.push_back(std::shared_ptr<_Instruction>(
