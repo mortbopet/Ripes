@@ -29,12 +29,18 @@ struct RV_I {
                      _PseudoInstrVec &pseudoInstructions,
                      const std::set<Options> &options = {}) {
     // Pseudo-op functors
-    pseudoInstructions.push_back(PseudoLoad(Token("lb")));
-    pseudoInstructions.push_back(PseudoLoad(Token("lh")));
-    pseudoInstructions.push_back(PseudoLoad(Token("lw")));
-    pseudoInstructions.push_back(PseudoStore(Token("sb")));
-    pseudoInstructions.push_back(PseudoStore(Token("sh")));
-    pseudoInstructions.push_back(PseudoStore(Token("sw")));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new RVPseudoInstrLoad<Reg__T>(Token("lb"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new RVPseudoInstrLoad<Reg__T>(Token("lh"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new RVPseudoInstrLoad<Reg__T>(Token("lw"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new RVPseudoInstrStore<Reg__T>(Token("sb"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new RVPseudoInstrStore<Reg__T>(Token("sh"))));
+    pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(
+        new RVPseudoInstrStore<Reg__T>(Token("sw"))));
 
     // clang-format off
     pseudoInstructions.push_back(std::shared_ptr<_PseudoInstruction>(new _PseudoInstruction(
@@ -265,7 +271,8 @@ struct RV_I {
                 {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}),
         {})));
 
-    instructions.push_back(UType(Token("lui"), RVISA::Opcode::LUI));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrUType<Reg__T>(Token("lui"), RVISA::Opcode::LUI, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
         _Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
@@ -274,60 +281,98 @@ struct RV_I {
                                 std::vector{ImmPart(0, 12, 31)},
                                 _Imm::SymbolType::Absolute)})));
 
-    instructions.push_back(JType(Token("jal"), RVISA::Opcode::JAL));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrJType<Reg__T>(Token("jal"), RVISA::Opcode::JAL, isa)));
 
-    instructions.push_back(JALRType(Token("jalr")));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrJALRType<Reg__T>(Token("jalr"), isa)));
 
-    instructions.push_back(LoadType(Token("lb"), 0b000));
-    instructions.push_back(LoadType(Token("lh"), 0b001));
-    instructions.push_back(LoadType(Token("lw"), 0b010));
-    instructions.push_back(LoadType(Token("lbu"), 0b100));
-    instructions.push_back(LoadType(Token("lhu"), 0b101));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrLType<Reg__T>(Token("lb"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrLType<Reg__T>(Token("lh"), 0b001, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrLType<Reg__T>(Token("lw"), 0b010, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrLType<Reg__T>(Token("lbu"), 0b100, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrLType<Reg__T>(Token("lhu"), 0b101, isa)));
 
-    instructions.push_back(SType(Token("sb"), 0b000));
-    instructions.push_back(SType(Token("sh"), 0b001));
-    instructions.push_back(SType(Token("sw"), 0b010));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrSType<Reg__T>(Token("sb"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrSType<Reg__T>(Token("sh"), 0b001, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrSType<Reg__T>(Token("sw"), 0b010, isa)));
 
-    instructions.push_back(IType(Token("addi"), 0b000));
-    instructions.push_back(IType(Token("slti"), 0b010));
-    instructions.push_back(IType(Token("sltiu"), 0b011));
-    instructions.push_back(IType(Token("xori"), 0b100));
-    instructions.push_back(IType(Token("ori"), 0b110));
-    instructions.push_back(IType(Token("andi"), 0b111));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrIType<Reg__T>(Token("addi"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrIType<Reg__T>(Token("slti"), 0b010, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrIType<Reg__T>(Token("sltiu"), 0b011, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrIType<Reg__T>(Token("xori"), 0b100, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrIType<Reg__T>(Token("ori"), 0b110, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrIType<Reg__T>(Token("andi"), 0b111, isa)));
 
     if (options.count(Options::shifts64BitVariant)) {
       instructions.push_back(
-          IShiftType32(Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000));
+          std::shared_ptr<_Instruction>(new RVInstrIShift32Type<Reg__T>(
+              Token("slliw"), RVISA::OPIMM32, 0b001, 0b0000000, isa)));
       instructions.push_back(
-          IShiftType32(Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000));
+          std::shared_ptr<_Instruction>(new RVInstrIShift32Type<Reg__T>(
+              Token("srliw"), RVISA::OPIMM32, 0b101, 0b0000000, isa)));
       instructions.push_back(
-          IShiftType32(Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000));
+          std::shared_ptr<_Instruction>(new RVInstrIShift32Type<Reg__T>(
+              Token("sraiw"), RVISA::OPIMM32, 0b101, 0b0100000, isa)));
     } else {
       instructions.push_back(
-          IShiftType32(Token("slli"), RVISA::OPIMM, 0b001, 0b0000000));
+          std::shared_ptr<_Instruction>(new RVInstrIShift32Type<Reg__T>(
+              Token("slli"), RVISA::OPIMM, 0b001, 0b0000000, isa)));
       instructions.push_back(
-          IShiftType32(Token("srli"), RVISA::OPIMM, 0b101, 0b0000000));
+          std::shared_ptr<_Instruction>(new RVInstrIShift32Type<Reg__T>(
+              Token("srli"), RVISA::OPIMM, 0b101, 0b0000000, isa)));
       instructions.push_back(
-          IShiftType32(Token("srai"), RVISA::OPIMM, 0b101, 0b0100000));
+          std::shared_ptr<_Instruction>(new RVInstrIShift32Type<Reg__T>(
+              Token("srai"), RVISA::OPIMM, 0b101, 0b0100000, isa)));
     }
 
-    instructions.push_back(RType(Token("add"), 0b000, 0b0000000));
-    instructions.push_back(RType(Token("sub"), 0b000, 0b0100000));
-    instructions.push_back(RType(Token("sll"), 0b001, 0b0000000));
-    instructions.push_back(RType(Token("slt"), 0b010, 0b0000000));
-    instructions.push_back(RType(Token("sltu"), 0b011, 0b0000000));
-    instructions.push_back(RType(Token("xor"), 0b100, 0b0000000));
-    instructions.push_back(RType(Token("srl"), 0b101, 0b0000000));
-    instructions.push_back(RType(Token("sra"), 0b101, 0b0100000));
-    instructions.push_back(RType(Token("or"), 0b110, 0b0000000));
-    instructions.push_back(RType(Token("and"), 0b111, 0b0000000));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("add"), 0b000, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("sub"), 0b000, 0b0100000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("sll"), 0b001, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("slt"), 0b010, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("sltu"), 0b011, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("xor"), 0b100, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("srl"), 0b101, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("sra"), 0b101, 0b0100000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("or"), 0b110, 0b0000000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrRType<Reg__T>(Token("and"), 0b111, 0b0000000, isa)));
 
-    instructions.push_back(BType(Token("beq"), 0b000));
-    instructions.push_back(BType(Token("bne"), 0b001));
-    instructions.push_back(BType(Token("blt"), 0b100));
-    instructions.push_back(BType(Token("bge"), 0b101));
-    instructions.push_back(BType(Token("bltu"), 0b110));
-    instructions.push_back(BType(Token("bgeu"), 0b111));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrBType<Reg__T>(Token("beq"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrBType<Reg__T>(Token("bne"), 0b001, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrBType<Reg__T>(Token("blt"), 0b100, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrBType<Reg__T>(Token("bge"), 0b101, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrBType<Reg__T>(Token("bltu"), 0b110, isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(
+        new RVInstrBType<Reg__T>(Token("bgeu"), 0b111, isa)));
   }
 };
 
