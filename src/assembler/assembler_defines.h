@@ -16,6 +16,8 @@ namespace Assembler {
 
 /// Type for instruction data. Should encompass all possible instruction widths.
 using Instr_T = uint64_t;
+/// Type for registers. Should encompass all possible register widths.
+using Reg_T = uint64_t;
 
 class Token : public QString {
 public:

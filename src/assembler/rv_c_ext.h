@@ -11,11 +11,10 @@ namespace Ripes {
 namespace Assembler {
 
 /// A base class for all RV-C registers (5-bit and 3-bit)
-template <typename Reg_T>
-struct RVCReg : public RVReg<Reg_T> {
+struct RVCReg : public RVReg {
   RVCReg(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
          unsigned stop, const QString &regsd)
-      : RVReg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
+      : RVReg(isa, tokenIndex, start, stop, regsd) {}
 };
 
 /// A base class for RV-C 3-bit registers
@@ -23,14 +22,13 @@ struct RVCReg : public RVReg<Reg_T> {
 /// Register specialization for RV-C to handle the compressed register notation.
 /// 3 bits are used to represent registers x8-x15, with register x8=0b000,
 /// x15=0b111.
-template <typename Reg_T>
-struct RVCRegCompressed : public RVCReg<Reg_T> {
+struct RVCRegCompressed : public RVCReg {
   RVCRegCompressed(const ISAInfoBase *isa, unsigned tokenIndex, unsigned start,
                    unsigned stop, const QString &regsd)
-      : RVCReg<Reg_T>(isa, tokenIndex, start, stop, regsd) {}
+      : RVCReg(isa, tokenIndex, start, stop, regsd) {}
 
   std::optional<Error> apply(const TokenizedSrcLine &line, Instr_T &instruction,
-                             FieldLinkRequest<Reg_T> &) const override {
+                             FieldLinkRequest &) const override {
     bool success;
     const QString &regToken = line.tokens[this->tokenIndex];
     unsigned reg = this->m_isa->regNumber(regToken, success);
@@ -84,100 +82,79 @@ struct RVCOpPartFunct4 : public RVCOpPart {
   RVCOpPartFunct4(unsigned funct4) : RVCOpPart(funct4, 12, 15) {}
 };
 
-template <typename Reg_T>
 struct RVCInstrCAType;
-template <typename Reg_T>
 struct RVCInstrCINOPType;
 
 /// A RV-C opcode defines the encoding of specific compressed
 /// instructions
-template <typename Reg_T>
-struct RVCOpcode : public RVOpcode<Reg_T> {
+struct RVCOpcode : public RVOpcode {
   /// Construct opcode from parts
   RVCOpcode(const Token &name, const std::vector<OpPart> &opParts)
-      : RVOpcode<Reg_T>(name, opParts) {}
+      : RVOpcode(name, opParts) {}
 
   /// An RV-C opcode with a Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct3 funct3)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
-
-  /// A RV-C NOP opcode
-  RVCOpcode(const Token &name, RVISA::Quadrant quadrant,
-            typename RVCInstrCINOPType<Reg_T>::OpPartNOP nopPart)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
+      : RVOpcode(name, {RVOpPartQuadrant(quadrant), funct3}) {}
 
   /// An RV-C opcode with a Funct4 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct4 funct4)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct4}) {}
-
-  /// An RV-C opcode with Funct2 and Funct6 parts
-  RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
-            typename RVCInstrCAType<Reg_T>::OpPartFunct6 funct6)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
+      : RVOpcode(name, {RVOpPartQuadrant(quadrant), funct4}) {}
 
   /// An RV-C opcode with a Funct3 part
   RVCOpcode(const Token &name, RVISA::Quadrant quadrant, RVCOpPartFunct2 funct2,
             RVCOpPartFunct3 funct3)
-      : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct3}) {}
+      : RVOpcode(name, {RVOpPartQuadrant(quadrant), funct2, funct3}) {}
 };
 
 /// A base class for RV-C instructions
-template <typename Reg_T>
-struct RVCInstruction : public RVInstructionBase<Reg_T> {
-  RVCInstruction(const RVCOpcode<Reg_T> &opcode,
-                 const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
-      : RVInstructionBase<Reg_T>(opcode, fields) {}
+struct RVCInstruction : public RVInstructionBase {
+  RVCInstruction(const RVCOpcode &opcode,
+                 const std::vector<std::shared_ptr<Field>> &fields)
+      : RVInstructionBase(opcode, fields) {}
 };
 
 /// The RV-C Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
-template <typename Reg_T>
-struct RVCRegRs1 : public RVCReg<Reg_T> {
+struct RVCRegRs1 : public RVCReg {
   RVCRegRs1(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rs1") {}
+      : RVCReg(isa, fieldIndex, 7, 11, "rs1") {}
 };
 
 /// The RV-C Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 2-6 of the instruction
-template <typename Reg_T>
-struct RVCRegRs2 : public RVCReg<Reg_T> {
+struct RVCRegRs2 : public RVCReg {
   RVCRegRs2(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCReg<Reg_T>(isa, fieldIndex, 2, 6, "rs2") {}
+      : RVCReg(isa, fieldIndex, 2, 6, "rs2") {}
 };
 
 /// The RV-C Rs1' field contains a source register index.
 /// It is defined as a 3-bit field in bits 7-9 of the instruction
-template <typename Reg_T>
-struct RVCRegRs1Prime : public RVCRegCompressed<Reg_T> {
+struct RVCRegRs1Prime : public RVCRegCompressed {
   RVCRegRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rs1'") {}
+      : RVCRegCompressed(isa, fieldIndex, 7, 9, "rs1'") {}
 };
 
 /// The RV-C Rs2' field contains a source register index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
-template <typename Reg_T>
-struct RVCRegRs2Prime : public RVCRegCompressed<Reg_T> {
+struct RVCRegRs2Prime : public RVCRegCompressed {
   RVCRegRs2Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rs2'") {}
+      : RVCRegCompressed(isa, fieldIndex, 2, 4, "rs2'") {}
 };
 
 /// The RV-C Rd' field contains a destination register
 /// index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
-template <typename Reg_T>
-struct RVCRegRdPrime : public RVCRegCompressed<Reg_T> {
+struct RVCRegRdPrime : public RVCRegCompressed {
   RVCRegRdPrime(const ISAInfoBase *isa, unsigned fieldIndex)
-      : RVCRegCompressed<Reg_T>(isa, fieldIndex, 2, 4, "rd'") {}
+      : RVCRegCompressed(isa, fieldIndex, 2, 4, "rd'") {}
 };
 
 /// A base class for RV-C immediates
-template <typename Reg_T>
-struct RVCImm : public RVImm<Reg_T> {
-  RVCImm(
-      unsigned tokenIndex, unsigned width, typename Imm<Reg_T>::Repr repr,
-      const std::vector<ImmPart> &parts,
-      typename Imm<Reg_T>::SymbolType symbolType = Imm<Reg_T>::SymbolType::None)
-      : RVImm<Reg_T>(tokenIndex, width, repr, parts, symbolType) {}
+struct RVCImm : public RVImm {
+  RVCImm(unsigned tokenIndex, unsigned width, typename Imm::Repr repr,
+         const std::vector<ImmPart> &parts,
+         typename Imm::SymbolType symbolType = Imm::SymbolType::None)
+      : RVImm(tokenIndex, width, repr, parts, symbolType) {}
 };
 
 /// An RV-C immediate field with an input width of 6 bits.
@@ -190,11 +167,9 @@ struct RVCImm : public RVImm<Reg_T> {
 /// It is defined as:
 ///  - Imm[5]   = Inst[12]
 ///  - Imm[4:0] = Inst[6:2]
-template <typename Reg_T>
-struct RVCImmCommon6 : public RVCImm<Reg_T> {
-  RVCImmCommon6(typename Imm<Reg_T>::Repr repr)
-      : RVCImm<Reg_T>(2, 6, repr,
-                      std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
+struct RVCImmCommon6 : public RVCImm {
+  RVCImmCommon6(typename Imm::Repr repr)
+      : RVCImm(2, 6, repr, std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
 };
 
 /// An RV-C immediate field with an input width of 7 bits.
@@ -211,24 +186,22 @@ struct RVCImmCommon6 : public RVCImm<Reg_T> {
 ///  - Imm[5:3] = Inst[12:10]
 ///  - Imm[2]   = Inst[6]
 ///  - Imm[1:0] = 0
-template <typename Reg_T>
-struct RVCImmCommon7 : public RVCImm<Reg_T> {
-  RVCImmCommon7(typename Imm<Reg_T>::Repr repr)
-      : RVCImm<Reg_T>(3, 7, repr,
-                      std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
-                                  ImmPart(2, 6, 6)}) {}
+struct RVCImmCommon7 : public RVCImm {
+  RVCImmCommon7(typename Imm::Repr repr)
+      : RVCImm(3, 7, repr,
+               std::vector{ImmPart(6, 5, 5), ImmPart(3, 10, 12),
+                           ImmPart(2, 6, 6)}) {}
 };
 
 /// A CA-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCAType : public RVCInstruction<Reg_T> {
+struct RVCInstrCAType : public RVCInstruction {
   RVCInstrCAType(const Token &name, unsigned funct2, unsigned funct6,
                  const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, RVISA::Quadrant::QUADRANT1,
+      : RVCInstruction(
+            RVCOpcode(name, {RVOpPartQuadrant(RVISA::Quadrant::QUADRANT1),
                              RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET5),
-                             OpPartFunct6(funct6)),
-            {std::make_shared<RVCRegRs2Prime<Reg_T>>(isa, 2),
+                             OpPartFunct6(funct6)}),
+            {std::make_shared<RVCRegRs2Prime>(isa, 2),
              std::make_shared<RegRdRs1Prime>(isa, 1)}) {}
 
   /// All RV-C Funct6 opcode parts are defined as a 6-bit field in bits 10-15
@@ -240,28 +213,26 @@ struct RVCInstrCAType : public RVCInstruction<Reg_T> {
   /// The RV-C Rd'/Rs1' field contains a source or destination
   /// register index.
   /// It is defined as a 3-bit field in bits 7-9 of the instruction
-  struct RegRdRs1Prime : public RVCRegCompressed<Reg_T> {
+  struct RegRdRs1Prime : public RVCRegCompressed {
     RegRdRs1Prime(const ISAInfoBase *isa, unsigned fieldIndex)
-        : RVCRegCompressed<Reg_T>(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
+        : RVCRegCompressed(isa, fieldIndex, 7, 9, "rd'/rs1'") {}
   };
 };
 
 /// A CI-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCIType : public RVCInstruction<Reg_T> {
+struct RVCInstrCIType : public RVCInstruction {
   RVCInstrCIType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
-                 const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RegRdRs1>(isa, 1),
-             std::make_shared<RVCImm<Reg_T>>(imm)}) {}
+                 const RVCImm &imm, const ISAInfoBase *isa)
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<RegRdRs1>(isa, 1),
+                        std::make_shared<RVCImm>(imm)}) {}
 
   /// The RV-C Rd/Rs1 field contains a source or destination register
   /// index.
   /// It is defined as a 5-bit field in bits 7-11 of the instruction
-  struct RegRdRs1 : public RVCReg<Reg_T> {
+  struct RegRdRs1 : public RVCReg {
     RegRdRs1(const ISAInfoBase *isa, unsigned fieldIndex)
-        : RVCReg<Reg_T>(isa, fieldIndex, 7, 11, "rd/rs1") {}
+        : RVCReg(isa, fieldIndex, 7, 11, "rd/rs1") {}
   };
 
   /// An RV-C unsigned immediate field with an input width of 8 bits.
@@ -272,11 +243,11 @@ struct RVCInstrCIType : public RVCInstruction<Reg_T> {
   ///  - Imm[5]   = Inst[12]
   ///  - Imm[4:2] = Inst[6:4]
   ///  - Imm[1:0] = 0
-  struct ImmLWSP : public RVCImm<Reg_T> {
+  struct ImmLWSP : public RVCImm {
     ImmLWSP()
-        : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
-                        std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
-                                    ImmPart(2, 4, 6)}) {}
+        : RVCImm(2, 8, Imm::Repr::Unsigned,
+                 std::vector{ImmPart(6, 2, 3), ImmPart(5, 12, 12),
+                             ImmPart(2, 4, 6)}) {}
   };
 
   /// An RV-C unsigned immediate field with an input width of 9 bits.
@@ -287,11 +258,11 @@ struct RVCInstrCIType : public RVCInstruction<Reg_T> {
   ///  - Imm[5]   = Inst[12]
   ///  - Imm[4:3] = Inst[6:5]
   ///  - Imm[2:0] = 0
-  struct ImmLDSP : public RVCImm<Reg_T> {
+  struct ImmLDSP : public RVCImm {
     ImmLDSP()
-        : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
-                        std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
-                                    ImmPart(3, 5, 6)}) {}
+        : RVCImm(2, 9, Imm::Repr::Unsigned,
+                 std::vector{ImmPart(6, 2, 4), ImmPart(5, 12, 12),
+                             ImmPart(3, 5, 6)}) {}
   };
 
   /// An RV-C signed immediate field with an input width of 18 bits.
@@ -301,19 +272,18 @@ struct RVCInstrCIType : public RVCInstruction<Reg_T> {
   ///  - Imm[17]    = Inst[12]
   ///  - Imm[16:12] = Inst[6:2]
   ///  - Imm[12:0]  = 0
-  struct ImmLUI : public RVCImm<Reg_T> {
+  struct ImmLUI : public RVCImm {
     ImmLUI()
-        : RVCImm<Reg_T>(2, 18, Imm<Reg_T>::Repr::Signed,
-                        std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
+        : RVCImm(2, 18, Imm::Repr::Signed,
+                 std::vector{ImmPart(17, 12, 12), ImmPart(12, 2, 6)}) {}
   };
 };
 
 /// A CINOP-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCINOPType : public RVCInstruction<Reg_T> {
+struct RVCInstrCINOPType : public RVCInstruction {
   RVCInstrCINOPType(RVISA::Quadrant quadrant, const Token &name)
-      : RVCInstruction<Reg_T>(RVCOpcode<Reg_T>(name, quadrant, OpPartNOP()),
-                              {}) {}
+      : RVCInstruction(
+            RVCOpcode(name, {RVOpPartQuadrant(quadrant), OpPartNOP()}), {}) {}
 
   /// The 14-bit field from bits 2-15 are set to 0 in a compressed NOP
   /// instruction
@@ -323,14 +293,12 @@ struct RVCInstrCINOPType : public RVCInstruction<Reg_T> {
 };
 
 /// A CSS-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCSSType : public RVCInstruction<Reg_T> {
+struct RVCInstrCSSType : public RVCInstruction {
   RVCInstrCSSType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
-                  const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRs2<Reg_T>>(isa, 1),
-             std::make_shared<RVCImm<Reg_T>>(imm)}) {}
+                  const RVCImm &imm, const ISAInfoBase *isa)
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<RVCRegRs2>(isa, 1),
+                        std::make_shared<RVCImm>(imm)}) {}
 
   /// An RV-C unsigned immediate field with an input width of 8 bits.
   /// Used in C.SWSP and C.FSWSP instructions.
@@ -339,10 +307,10 @@ struct RVCInstrCSSType : public RVCInstruction<Reg_T> {
   ///  - Imm[7:6] = Inst[8:7]
   ///  - Imm[5:2] = Inst[12:9]
   ///  - Imm[1:0] = 0
-  struct ImmSWSP : public RVCImm<Reg_T> {
+  struct ImmSWSP : public RVCImm {
     ImmSWSP()
-        : RVCImm<Reg_T>(2, 8, Imm<Reg_T>::Repr::Unsigned,
-                        std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
+        : RVCImm(2, 8, Imm::Repr::Unsigned,
+                 std::vector{ImmPart(6, 7, 8), ImmPart(2, 9, 12)}) {}
   };
 
   /// An RV-C unsigned immediate field with an input width of 9 bits.
@@ -352,23 +320,21 @@ struct RVCInstrCSSType : public RVCInstruction<Reg_T> {
   ///  - Imm[8:6] = Inst[9:7]
   ///  - Imm[5:3] = Inst[12:10]
   ///  - Imm[2:0] = 0
-  struct ImmSDSP : public RVCImm<Reg_T> {
+  struct ImmSDSP : public RVCImm {
     ImmSDSP()
-        : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Unsigned,
-                        std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
+        : RVCImm(2, 9, Imm::Repr::Unsigned,
+                 std::vector{ImmPart(6, 7, 9), ImmPart(3, 10, 12)}) {}
   };
 };
 
 /// A CL-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCLType : public RVCInstruction<Reg_T> {
+struct RVCInstrCLType : public RVCInstruction {
   RVCInstrCLType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
-                 const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
-             std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 2),
-             std::make_shared<RVCImm<Reg_T>>(imm)}) {}
+                 const RVCImm &imm, const ISAInfoBase *isa)
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<RVCRegRdPrime>(isa, 1),
+                        std::make_shared<RVCRegRs1Prime>(isa, 2),
+                        std::make_shared<RVCImm>(imm)}) {}
 
   /// An RV-C signed immediate field with an input width of 8 bits.
   /// Used in C.LD and C.FLD instructions.
@@ -377,33 +343,29 @@ struct RVCInstrCLType : public RVCInstruction<Reg_T> {
   ///  - Imm[7:6] = Inst[6:5]
   ///  - Imm[5:3] = Inst[12:10]
   ///  - Imm[2:0] = 0
-  struct ImmLD : public RVCImm<Reg_T> {
+  struct ImmLD : public RVCImm {
     ImmLD()
-        : RVCImm<Reg_T>(3, 8, Imm<Reg_T>::Repr::Signed,
-                        std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
+        : RVCImm(3, 8, Imm::Repr::Signed,
+                 std::vector{ImmPart(6, 5, 6), ImmPart(3, 10, 12)}) {}
   };
 };
 
 /// A CS-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCSType : public RVCInstruction<Reg_T> {
+struct RVCInstrCSType : public RVCInstruction {
   RVCInstrCSType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                  const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRs2Prime<Reg_T>>(isa, 1),
-             std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 2),
-             std::make_shared<RVCImmCommon7<Reg_T>>(
-                 Imm<Reg_T>::Repr::Unsigned)}) {}
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<RVCRegRs2Prime>(isa, 1),
+                        std::make_shared<RVCRegRs1Prime>(isa, 2),
+                        std::make_shared<RVCImmCommon7>(Imm::Repr::Unsigned)}) {
+  }
 };
 
 /// A CJ-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCJType : public RVCInstruction<Reg_T> {
+struct RVCInstrCJType : public RVCInstruction {
   RVCInstrCJType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<ImmJ>()}) {}
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<ImmJ>()}) {}
 
   /// An RV-C signed immediate field with an input width of 12 bits.
   /// Used in C.J and C.JAL instructions.
@@ -418,48 +380,42 @@ struct RVCInstrCJType : public RVCInstruction<Reg_T> {
   ///  - Imm[4]   = Inst[11]
   ///  - Imm[3:1] = Inst[5:3]
   ///  - Imm[0]   = 0
-  struct ImmJ : public RVCImm<Reg_T> {
+  struct ImmJ : public RVCImm {
     ImmJ()
-        : RVCImm<Reg_T>(1, 12, Imm<Reg_T>::Repr::Signed,
-                        std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),
-                                    ImmPart(8, 9, 10), ImmPart(7, 6, 6),
-                                    ImmPart(6, 7, 7), ImmPart(5, 2, 2),
-                                    ImmPart(4, 11, 11), ImmPart(1, 3, 5)}) {}
+        : RVCImm(1, 12, Imm::Repr::Signed,
+                 std::vector{ImmPart(11, 12, 12), ImmPart(10, 8, 8),
+                             ImmPart(8, 9, 10), ImmPart(7, 6, 6),
+                             ImmPart(6, 7, 7), ImmPart(5, 2, 2),
+                             ImmPart(4, 11, 11), ImmPart(1, 3, 5)}) {}
   };
 };
 
 /// A CR-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCRType : public RVCInstruction<Reg_T> {
+struct RVCInstrCRType : public RVCInstruction {
   RVCInstrCRType(RVISA::Quadrant quadrant, const Token &name, unsigned funct4,
                  const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct4(funct4)),
-            {std::make_shared<RVCRegRs1<Reg_T>>(isa, 1),
-             std::make_shared<RVCRegRs2<Reg_T>>(isa, 2)}) {}
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct4(funct4)),
+                       {std::make_shared<RVCRegRs1>(isa, 1),
+                        std::make_shared<RVCRegRs2>(isa, 2)}) {}
 };
 
 /// A CR2-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCR2Type : public RVCInstruction<Reg_T> {
+struct RVCInstrCR2Type : public RVCInstruction {
   RVCInstrCR2Type(RVISA::Quadrant quadrant, const Token &name, unsigned funct4,
                   const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name,
-                             {RVOpPartQuadrant(quadrant), RVOpPart(0, 2, 6),
-                              RVCOpPartFunct4(funct4)}),
-            {std::make_shared<RVCRegRs1<Reg_T>>(isa, 1)}) {}
+      : RVCInstruction(
+            RVCOpcode(name, {RVOpPartQuadrant(quadrant), RVOpPart(0, 2, 6),
+                             RVCOpPartFunct4(funct4)}),
+            {std::make_shared<RVCRegRs1>(isa, 1)}) {}
 };
 
 /// A CB-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCBType : public RVCInstruction<Reg_T> {
+struct RVCInstrCBType : public RVCInstruction {
   RVCInstrCBType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                  const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 1),
-             std::make_shared<ImmB>()}) {}
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<RVCRegRs1Prime>(isa, 1),
+                        std::make_shared<ImmB>()}) {}
 
   /// An RV-C signed immediate field with an input width of 9 bits.
   /// Used in C.BEQZ and C.BNEZ instructions.
@@ -471,26 +427,25 @@ struct RVCInstrCBType : public RVCInstruction<Reg_T> {
   ///  - Imm[4:3] = Inst[11:10]
   ///  - Imm[2:1] = Inst[4:3]
   ///  - Imm[0]   = 0
-  struct ImmB : public RVCImm<Reg_T> {
+  struct ImmB : public RVCImm {
     ImmB()
-        : RVCImm<Reg_T>(2, 9, Imm<Reg_T>::Repr::Signed,
-                        std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6),
-                                    ImmPart(5, 2, 2), ImmPart(3, 10, 11),
-                                    ImmPart(1, 3, 4)}) {}
+        : RVCImm(2, 9, Imm::Repr::Signed,
+                 std::vector{ImmPart(8, 12, 12), ImmPart(6, 5, 6),
+                             ImmPart(5, 2, 2), ImmPart(3, 10, 11),
+                             ImmPart(1, 3, 4)}) {}
   };
 };
 
 /// A CB2-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCB2Type : public RVCInstruction<Reg_T> {
+struct RVCInstrCB2Type : public RVCInstruction {
   RVCInstrCB2Type(RVISA::Quadrant quadrant, const Token &name, unsigned funct2,
-                  unsigned funct3, typename Imm<Reg_T>::Repr repr,
+                  unsigned funct3, typename Imm::Repr repr,
                   const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant,
-                             RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET10),
-                             RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRs1Prime<Reg_T>>(isa, 1),
+      : RVCInstruction(
+            RVCOpcode(name, quadrant,
+                      RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET10),
+                      RVCOpPartFunct3(funct3)),
+            {std::make_shared<RVCRegRs1Prime>(isa, 1),
              std::make_shared<ImmB2>(repr)}) {}
 
   /// An RV-C immediate field with an input width of 6 bits.
@@ -502,22 +457,20 @@ struct RVCInstrCB2Type : public RVCInstruction<Reg_T> {
   /// It is defined as:
   ///  - Imm[5]   = Inst[12]
   ///  - Imm[4:0] = Inst[6:2]
-  struct ImmB2 : public RVCImm<Reg_T> {
-    ImmB2(typename Imm<Reg_T>::Repr repr)
-        : RVCImm<Reg_T>(2, 6, repr,
-                        std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
+  struct ImmB2 : public RVCImm {
+    ImmB2(typename Imm::Repr repr)
+        : RVCImm(2, 6, repr,
+                 std::vector{ImmPart(5, 12, 12), ImmPart(0, 2, 6)}) {}
   };
 };
 
 /// A CIW-Type RV-C instruction
-template <typename Reg_T>
-struct RVCInstrCIWType : public RVCInstruction<Reg_T> {
+struct RVCInstrCIWType : public RVCInstruction {
   RVCInstrCIWType(RVISA::Quadrant quadrant, const Token &name, unsigned funct3,
                   const ISAInfoBase *isa)
-      : RVCInstruction<Reg_T>(
-            RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
-            {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
-             std::make_shared<ImmIW>()}) {}
+      : RVCInstruction(RVCOpcode(name, quadrant, RVCOpPartFunct3(funct3)),
+                       {std::make_shared<RVCRegRdPrime>(isa, 1),
+                        std::make_shared<ImmIW>()}) {}
 
   /// An RV-C unsigned immediate field with an input width of 10 bits.
   /// Used in the C.ADDI4SPN instruction.
@@ -528,83 +481,77 @@ struct RVCInstrCIWType : public RVCInstruction<Reg_T> {
   ///  - Imm[3]   = Inst[5]
   ///  - Imm[2]   = Inst[6]
   ///  - Imm[1:0] = 0
-  struct ImmIW : public RVCImm<Reg_T> {
+  struct ImmIW : public RVCImm {
     ImmIW()
-        : RVCImm<Reg_T>(2, 10, Imm<Reg_T>::Repr::Unsigned,
-                        std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),
-                                    ImmPart(3, 5, 5), ImmPart(2, 6, 6)}) {}
+        : RVCImm(2, 10, Imm::Repr::Unsigned,
+                 std::vector{ImmPart(6, 7, 10), ImmPart(4, 11, 12),
+                             ImmPart(3, 5, 5), ImmPart(2, 6, 6)}) {}
   };
 };
 
 #define CREBREAKType(opcode, name, funct4)                                     \
-  std::shared_ptr<_Instruction>(new _Instruction(                              \
-      Opcode<Reg__T>(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 11),            \
-                            OpPart(funct4, 12, 15)}),                          \
-      {}))
+  std::shared_ptr<Instruction>(                                                \
+      new Instruction(Opcode(name, {OpPart(opcode, 0, 1), OpPart(0, 2, 11),    \
+                                    OpPart(funct4, 12, 15)}),                  \
+                      {}))
 
 /**
  * Extension enabler.
  * Calling an extension enabler will register the appropriate assemblers
- * and pseudo-op expander functors with the assembler. The extension
- * enablers are templated to allow for sharing implementations between 32-
- * and 64-bit variants.
+ * and pseudo-op expander functors with the assembler.
  */
-template <typename Reg__T>
 struct RV_C {
-  AssemblerTypes(Reg__T);
-  static void enable(const ISAInfoBase *isa, _InstrVec &instructions,
-                     _PseudoInstrVec & /*pseudoInstructions*/) {
+  static void enable(const ISAInfoBase *isa, InstrVec &instructions,
+                     PseudoInstrVec & /*pseudoInstructions*/) {
     // Pseudo-op functors
 
     // Assembler functors
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCAType<Reg__T>(Token("c.sub"), 0b00, 0b100011, isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCAType<Reg__T>(Token("c.xor"), 0b01, 0b100011, isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCAType<Reg__T>(Token("c.or"), 0b10, 0b100011, isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCAType<Reg__T>(Token("c.and"), 0b11, 0b100011, isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCAType<Reg__T>(Token("c.subw"), 0b00, 0b100111, isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCAType<Reg__T>(Token("c.addw"), 0b01, 0b100111, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCAType(Token("c.sub"), 0b00, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCAType(Token("c.xor"), 0b01, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCAType(Token("c.or"), 0b10, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCAType(Token("c.and"), 0b11, 0b100011, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCAType(Token("c.subw"), 0b00, 0b100111, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCAType(Token("c.addw"), 0b01, 0b100111, isa)));
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCIType<Reg__T>(
-            RVISA::Quadrant::QUADRANT2, Token("c.lwsp"), 0b010,
-            typename RVCInstrCIType<Reg__T>::ImmLWSP(), isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.lwsp"), 0b010,
+                           typename RVCInstrCIType::ImmLWSP(), isa)));
 
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(
-          std::shared_ptr<_Instruction>(new RVCInstrCIType<Reg__T>(
-              RVISA::Quadrant::QUADRANT2, Token("c.flwsp"), 0b011,
-              typename RVCInstrCIType<Reg__T>::ImmLWSP(), isa)));
+      instructions.push_back(std::shared_ptr<Instruction>(
+          new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.flwsp"),
+                             0b011, typename RVCInstrCIType::ImmLWSP(), isa)));
     } else // RV64 RV128
     {
-      instructions.push_back(std::shared_ptr<_Instruction>(
+      instructions.push_back(std::shared_ptr<Instruction>(
           new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.ldsp"), 0b011,
-                             typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
-      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
-          RVISA::Quadrant::QUADRANT1, Token("c.addiw"), 0b001,
-          RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
+                             typename RVCInstrCIType::ImmLDSP(), isa)));
+      instructions.push_back(std::shared_ptr<Instruction>(
+          new RVCInstrCIType(RVISA::Quadrant::QUADRANT1, Token("c.addiw"),
+                             0b001, RVCImmCommon6(Imm::Repr::Signed), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
-    instructions.push_back(std::shared_ptr<_Instruction>(
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.fldsp"), 0b001,
-                           typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
+                           typename RVCInstrCIType::ImmLDSP(), isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT2, Token("c.slli"), 0b000,
-                           RVCImmCommon6<Reg__T>(_Imm::Repr::Unsigned), isa)));
+                           RVCImmCommon6(Imm::Repr::Unsigned), isa)));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT1, Token("c.li"), 0b010,
-                           RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
+                           RVCImmCommon6(Imm::Repr::Signed), isa)));
 
-    auto cLuiInstr = std::shared_ptr<_Instruction>(
+    auto cLuiInstr = std::shared_ptr<Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT1, Token("c.lui"), 0b011,
-                           typename RVCInstrCIType<Reg__T>::ImmLUI(), isa));
+                           typename RVCInstrCIType::ImmLUI(), isa));
     cLuiInstr->addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
       return rd != 0 && rd != 2;
@@ -612,123 +559,108 @@ struct RV_C {
 
     instructions.push_back(cLuiInstr);
 
-    auto cAddi16spInstr = std::shared_ptr<_Instruction>(new _Instruction(
-        Opcode<Reg__T>(
-            Token("c.addi16sp"),
-            {OpPart(0b01, 0, 1), OpPart(0b011, 13, 15), OpPart(2, 7, 11)}),
-        {std::make_shared<_Imm>(
-            1, 10, _Imm::Repr::Signed,
-            std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4), ImmPart(6, 5, 5),
-                        ImmPart(5, 2, 2), ImmPart(4, 6, 6)})}));
+    auto cAddi16spInstr = std::shared_ptr<Instruction>(new Instruction(
+        Opcode(Token("c.addi16sp"),
+               {OpPart(0b01, 0, 1), OpPart(0b011, 13, 15), OpPart(2, 7, 11)}),
+        {std::make_shared<Imm>(1, 10, Imm::Repr::Signed,
+                               std::vector{ImmPart(9, 12, 12), ImmPart(7, 3, 4),
+                                           ImmPart(6, 5, 5), ImmPart(5, 2, 2),
+                                           ImmPart(4, 6, 6)})}));
     cAddi16spInstr->addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
       return rd == 2;
     });
     instructions.push_back(cAddi16spInstr);
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCIType(RVISA::Quadrant::QUADRANT1, Token("c.addi"), 0b000,
-                           RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCINOPType<Reg__T>(
-            RVISA::Quadrant::QUADRANT1, Token("c.nop"))));
+                           RVCImmCommon6(Imm::Repr::Signed), isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCINOPType(RVISA::Quadrant::QUADRANT1, Token("c.nop"))));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.swsp"), 0b110,
-                            typename RVCInstrCSSType<Reg__T>::ImmSWSP(), isa)));
+                            typename RVCInstrCSSType::ImmSWSP(), isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+      instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCSSType(
           RVISA::Quadrant::QUADRANT2, Token("c.fswsp"), 0b111,
-          typename RVCInstrCSSType<Reg__T>::ImmSWSP(), isa)));
+          typename RVCInstrCSSType::ImmSWSP(), isa)));
     } else {
-      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+      instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCSSType(
           RVISA::Quadrant::QUADRANT2, Token("c.sdsp"), 0b111,
-          typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
+          typename RVCInstrCSSType::ImmSDSP(), isa)));
     }
-    instructions.push_back(std::shared_ptr<_Instruction>(
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCSSType(RVISA::Quadrant::QUADRANT2, Token("c.fsdsp"), 0b101,
-                            typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
+                            typename RVCInstrCSSType::ImmSDSP(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
-    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
-        RVISA::Quadrant::QUADRANT0, Token("c.lw"), 0b010,
-        RVCImmCommon7<Reg__T>(Imm<Reg__T>::Repr::Signed), isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.lw"), 0b010,
+                           RVCImmCommon7(Imm::Repr::Signed), isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
-          RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
-          RVCImmCommon7<Reg__T>(Imm<Reg__T>::Repr::Signed), isa)));
+      instructions.push_back(std::shared_ptr<Instruction>(
+          new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.flw"), 0b011,
+                             RVCImmCommon7(Imm::Repr::Signed), isa)));
     } else {
-      instructions.push_back(std::shared_ptr<_Instruction>(
+      instructions.push_back(std::shared_ptr<Instruction>(
           new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.ld"), 0b011,
-                             typename RVCInstrCLType<Reg__T>::ImmLD(), isa)));
+                             typename RVCInstrCLType::ImmLD(), isa)));
     }
     // instructions.push_back(CLType(0b00, Token("c.lq"), 0b001));//RV128
-    instructions.push_back(std::shared_ptr<_Instruction>(
+    instructions.push_back(std::shared_ptr<Instruction>(
         new RVCInstrCLType(RVISA::Quadrant::QUADRANT0, Token("c.fld"), 0b001,
-                           typename RVCInstrCLType<Reg__T>::ImmLD(), isa)));
+                           typename RVCInstrCLType::ImmLD(), isa)));
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCSType<Reg__T>(
-            RVISA::Quadrant::QUADRANT0, Token("c.sw"), 0b110, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCSType(
+        RVISA::Quadrant::QUADRANT0, Token("c.sw"), 0b110, isa)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(
-          std::shared_ptr<_Instruction>(new RVCInstrCSType<Reg__T>(
-              RVISA::Quadrant::QUADRANT0, Token("c.fsw"), 0b111, isa)));
+      instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCSType(
+          RVISA::Quadrant::QUADRANT0, Token("c.fsw"), 0b111, isa)));
     } else {
-      instructions.push_back(
-          std::shared_ptr<_Instruction>(new RVCInstrCSType<Reg__T>(
-              RVISA::Quadrant::QUADRANT0, Token("c.sd"), 0b111, isa)));
+      instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCSType(
+          RVISA::Quadrant::QUADRANT0, Token("c.sd"), 0b111, isa)));
     }
     // instructions.push_back(CSType(0b00, Token("c.sq"), 0b101));//RV128
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCSType<Reg__T>(
-            RVISA::Quadrant::QUADRANT0, Token("c.fsd"), 0b101, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCSType(
+        RVISA::Quadrant::QUADRANT0, Token("c.fsd"), 0b101, isa)));
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCJType<Reg__T>(
-            RVISA::Quadrant::QUADRANT1, Token("c.j"), 0b101)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCJType(RVISA::Quadrant::QUADRANT1, Token("c.j"), 0b101)));
     if (isa->isaID() == ISA::RV32I) {
-      instructions.push_back(
-          std::shared_ptr<_Instruction>(new RVCInstrCJType<Reg__T>(
-              RVISA::Quadrant::QUADRANT1, Token("c.jal"), 0b001)));
+      instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCJType(
+          RVISA::Quadrant::QUADRANT1, Token("c.jal"), 0b001)));
     }
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCBType<Reg__T>(
-            RVISA::Quadrant::QUADRANT1, Token("c.beqz"), 0b110, isa)));
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCBType<Reg__T>(
-            RVISA::Quadrant::QUADRANT1, Token("c.bnez"), 0b111, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCBType(
+        RVISA::Quadrant::QUADRANT1, Token("c.beqz"), 0b110, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCBType(
+        RVISA::Quadrant::QUADRANT1, Token("c.bnez"), 0b111, isa)));
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCIWType<Reg__T>(
-            RVISA::Quadrant::QUADRANT0, Token("c.addi4spn"), 0b000, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCIWType(
+        RVISA::Quadrant::QUADRANT0, Token("c.addi4spn"), 0b000, isa)));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCB2Type<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.srli"),
-                                    0b00, 0b100, _Imm::Repr::Unsigned, isa)));
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCB2Type<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.srai"),
-                                    0b01, 0b100, _Imm::Repr::Unsigned, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCB2Type(RVISA::Quadrant::QUADRANT1, Token("c.srli"), 0b00,
+                            0b100, Imm::Repr::Unsigned, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCB2Type(RVISA::Quadrant::QUADRANT1, Token("c.srai"), 0b01,
+                            0b100, Imm::Repr::Unsigned, isa)));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCB2Type<Reg__T>(RVISA::Quadrant::QUADRANT1, Token("c.andi"),
-                                    0b10, 0b100, _Imm::Repr::Signed, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCB2Type(RVISA::Quadrant::QUADRANT1, Token("c.andi"), 0b10,
+                            0b100, Imm::Repr::Signed, isa)));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCRType<Reg__T>(RVISA::Quadrant::QUADRANT2, Token("c.mv"),
-                                   0b1000,
-                                   isa))); // FIXME disassemble erro with c.jr ?
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCRType<Reg__T>(
-            RVISA::Quadrant::QUADRANT2, Token("c.add"), 0b1001, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(
+        new RVCInstrCRType(RVISA::Quadrant::QUADRANT2, Token("c.mv"), 0b1000,
+                           isa))); // FIXME disassemble erro with c.jr ?
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCRType(
+        RVISA::Quadrant::QUADRANT2, Token("c.add"), 0b1001, isa)));
 
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCR2Type<Reg__T>(
-            RVISA::Quadrant::QUADRANT2, Token("c.jr"), 0b1000, isa)));
-    instructions.push_back(
-        std::shared_ptr<_Instruction>(new RVCInstrCR2Type<Reg__T>(
-            RVISA::Quadrant::QUADRANT2, Token("c.jalr"), 0b1001, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCR2Type(
+        RVISA::Quadrant::QUADRANT2, Token("c.jr"), 0b1000, isa)));
+    instructions.push_back(std::shared_ptr<Instruction>(new RVCInstrCR2Type(
+        RVISA::Quadrant::QUADRANT2, Token("c.jalr"), 0b1001, isa)));
 
     // instructions.push_back(CREBREAKType(0b10, Token("c.ebreak"), 0b1001));
     // //FIXME Duplicated terminate called after throwing an instance of

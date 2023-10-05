@@ -399,7 +399,7 @@ void tst_Assembler::tst_matcher() {
       QFAIL(error->toString().toStdString().c_str());
     }
 
-    auto matchInstr = std::get<const RV32I_Assembler::_Instruction *>(match);
+    auto matchInstr = std::get<const Instruction *>(match);
     if (matchInstr->name() != iter.first) {
       QString error = "Incorrect instruction decoded; got '" +
                       matchInstr->name() + "' but expected '" + iter.first +

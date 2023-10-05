@@ -9,7 +9,6 @@
 namespace Ripes {
 namespace Assembler {
 
-template <typename Reg_T>
 class Matcher {
   class MatchNode {
   private:
@@ -21,7 +20,7 @@ class Matcher {
     MatchNode(OpPart _matcher) : matcher(_matcher) {}
     OpPart matcher;
     std::vector<MatchNode> children;
-    std::shared_ptr<Instruction<Reg_T>> instruction;
+    std::shared_ptr<Instruction> instruction;
     void matchOnExtraMatchConds() { m_matchOnExtraMatchConds = true; }
 
     bool matches(const Instr_T &instr) const {
@@ -67,11 +66,11 @@ class Matcher {
   };
 
 public:
-  Matcher(const std::vector<std::shared_ptr<Instruction<Reg_T>>> &instructions)
+  Matcher(const std::vector<std::shared_ptr<Instruction>> &instructions)
       : m_matchRoot(buildMatchTree(instructions, 1)) {}
   void print() const { m_matchRoot.print(); }
 
-  Result<const Instruction<Reg_T> *>
+  Result<const Instruction *>
   matchInstruction(const Instr_T &instruction) const {
     auto match = matchInstructionRec(instruction, m_matchRoot, true);
     if (match == nullptr) {
@@ -81,9 +80,9 @@ public:
   }
 
 private:
-  const Instruction<Reg_T> *matchInstructionRec(const Instr_T &instruction,
-                                                const MatchNode &node,
-                                                bool isRoot) const {
+  const Instruction *matchInstructionRec(const Instr_T &instruction,
+                                         const MatchNode &node,
+                                         bool isRoot) const {
     if (isRoot || node.matches(instruction)) {
       if (node.children.size() > 0) {
         for (const auto &child : node.children) {
@@ -100,10 +99,10 @@ private:
     return nullptr;
   }
 
-  MatchNode buildMatchTree(const InstrVec<Reg_T> &instructions,
+  MatchNode buildMatchTree(const InstrVec &instructions,
                            const unsigned fieldDepth = 1,
                            OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-    std::map<OpPart, InstrVec<Reg_T>> instrsWithEqualOpPart;
+    std::map<OpPart, InstrVec> instrsWithEqualOpPart;
     for (const auto &instr : instructions) {
       if (auto instrRef = instr.get()) {
         const size_t nOpParts = instrRef->getOpcode().opParts.size();

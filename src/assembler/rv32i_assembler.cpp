@@ -14,11 +14,11 @@ namespace Ripes {
 namespace Assembler {
 
 RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I> *isa)
-    : Assembler<Reg_T>(isa) {
+    : Assembler(isa) {
   auto [instrs, pseudos] = initInstructions(isa);
 
   auto directives = gnuDirectives();
-  auto relocations = rvRelocations<Reg_T>();
+  auto relocations = rvRelocations();
   initialize(instrs, pseudos, directives, relocations);
 
   // Initialize segment pointers and monitor settings changes to segment
@@ -40,19 +40,19 @@ RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I> *isa)
   RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
 }
 
-std::tuple<RV32I_Assembler::_InstrVec, RV32I_Assembler::_PseudoInstrVec>
+std::tuple<InstrVec, PseudoInstrVec>
 RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I> *isa) const {
-  _InstrVec instructions;
-  _PseudoInstrVec pseudoInstructions;
+  InstrVec instructions;
+  PseudoInstrVec pseudoInstructions;
 
-  RV_I<Reg_T>::enable(isa, instructions, pseudoInstructions);
+  RV_I::enable(isa, instructions, pseudoInstructions);
   for (const auto &extension : isa->enabledExtensions()) {
     switch (extension.unicode()->toLatin1()) {
     case 'M':
-      RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
+      RV_M::enable(isa, instructions, pseudoInstructions);
       break;
     case 'C':
-      RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
+      RV_C::enable(isa, instructions, pseudoInstructions);
       break;
     default:
       assert(false && "Unhandled ISA extension");

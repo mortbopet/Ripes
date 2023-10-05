@@ -67,23 +67,20 @@ struct OpPart {
   }
 };
 
-template <typename Reg_T>
 struct Field;
 
-template <typename Reg_T>
 struct FieldLinkRequest {
-  Field<Reg_T> const *field = nullptr;
+  Field const *field = nullptr;
   QString symbol = QString();
   QString relocation = QString();
 };
 
-template <typename Reg_T>
 struct Field {
   Field(unsigned _tokenIndex) : tokenIndex(_tokenIndex) {}
   virtual ~Field() = default;
   virtual std::optional<Error>
   apply(const TokenizedSrcLine &line, Instr_T &instruction,
-        FieldLinkRequest<Reg_T> &linksWithSymbol) const = 0;
+        FieldLinkRequest &linksWithSymbol) const = 0;
   virtual std::optional<Error> decode(const Instr_T instruction,
                                       const Reg_T address,
                                       const ReverseSymbolMap &symbolMap,
@@ -99,17 +96,14 @@ struct Field {
  * assembled instruction alongside a flag noting whether the instruction needs
  * additional linkage (ie. for symbol resolution).
  */
-template <typename Reg_T>
 struct InstrRes {
   Instr_T instruction = 0;
-  FieldLinkRequest<Reg_T> linksWithSymbol;
+  FieldLinkRequest linksWithSymbol;
 };
 
-template <typename Reg_T>
-using AssembleRes = Result<InstrRes<Reg_T>>;
+using AssembleRes = Result<InstrRes>;
 
-template <typename Reg_T>
-struct Opcode : public Field<Reg_T> {
+struct Opcode : public Field {
   /**
    * @brief Opcode
    * The opcode is assumed to always be the first token within an assembly
@@ -119,10 +113,10 @@ struct Opcode : public Field<Reg_T> {
    * the opcode.
    */
   Opcode(const Token &_name, const std::vector<OpPart> &_opParts)
-      : Field<Reg_T>(0), name(_name), opParts(_opParts) {}
+      : Field(0), name(_name), opParts(_opParts) {}
 
   std::optional<Error> apply(const TokenizedSrcLine &, Instr_T &instruction,
-                             FieldLinkRequest<Reg_T> &) const override {
+                             FieldLinkRequest &) const override {
     for (const auto &opPart : opParts) {
       instruction |= opPart.range.apply(opPart.value);
     }
@@ -146,8 +140,7 @@ struct Opcode : public Field<Reg_T> {
   const std::vector<OpPart> opParts;
 };
 
-template <typename Reg_T>
-struct Reg : public Field<Reg_T> {
+struct Reg : public Field {
   /**
    * @brief Reg
    * @param tokenIndex: Index within a list of decoded instruction tokens that
@@ -155,19 +148,19 @@ struct Reg : public Field<Reg_T> {
    * @param range: range in instruction field containing register index value
    */
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, const BitRange &range)
-      : Field<Reg_T>(_tokenIndex), m_range(range), m_isa(isa) {}
+      : Field(_tokenIndex), m_range(range), m_isa(isa) {}
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, unsigned _start,
       unsigned _stop)
-      : Field<Reg_T>(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+      : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, const BitRange &range,
       const QString &_regsd)
-      : Field<Reg_T>(_tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+      : Field(_tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, unsigned _start,
       unsigned _stop, const QString &_regsd)
-      : Field<Reg_T>(_tokenIndex), m_range({_start, _stop}), m_isa(isa),
+      : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa),
         regsd(_regsd) {}
   std::optional<Error> apply(const TokenizedSrcLine &line, Instr_T &instruction,
-                             FieldLinkRequest<Reg_T> &) const override {
+                             FieldLinkRequest &) const override {
     bool success;
     const QString &regToken = line.tokens[this->tokenIndex];
     const unsigned reg = m_isa->regNumber(regToken, success);
@@ -212,8 +205,7 @@ struct ImmPart {
   const BitRange range;
 };
 
-template <typename Reg_T>
-struct Imm : public Field<Reg_T> {
+struct Imm : public Field {
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
@@ -245,7 +237,7 @@ struct Imm : public Field<Reg_T> {
       const std::vector<ImmPart> &_parts,
       SymbolType _symbolType = SymbolType::None,
       const std::function<Reg_T(Reg_T)> &_symbolTransformer = {})
-      : Field<Reg_T>(_tokenIndex), parts(_parts), width(_width), repr(_repr),
+      : Field(_tokenIndex), parts(_parts), width(_width), repr(_repr),
         symbolType(_symbolType), symbolTransformer(_symbolTransformer) {}
 
   int64_t getImm(const QString &immToken, bool &success,
@@ -255,9 +247,8 @@ struct Imm : public Field<Reg_T> {
                : getImmediate(immToken, success, &convInfo);
   }
 
-  std::optional<Error>
-  apply(const TokenizedSrcLine &line, Instr_T &instruction,
-        FieldLinkRequest<Reg_T> &linksWithSymbol) const override {
+  std::optional<Error> apply(const TokenizedSrcLine &line, Instr_T &instruction,
+                             FieldLinkRequest &linksWithSymbol) const override {
     bool success;
     const Token &immToken = line.tokens[this->tokenIndex];
     ImmConvInfo convInfo;
@@ -387,23 +378,22 @@ struct Imm : public Field<Reg_T> {
   const std::function<Reg_T(Reg_T)> symbolTransformer;
 };
 
-template <typename Reg_T>
 class Instruction {
 public:
-  Instruction(const Opcode<Reg_T> &opcode,
-              const std::vector<std::shared_ptr<Field<Reg_T>>> &fields)
+  Instruction(const Opcode &opcode,
+              const std::vector<std::shared_ptr<Field>> &fields)
       : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()),
         m_fields(fields) {
     m_assembler = [](const Instruction *_this, const TokenizedSrcLine &line) {
-      InstrRes<Reg_T> res;
+      InstrRes res;
       _this->m_opcode.apply(line, res.instruction, res.linksWithSymbol);
       for (const auto &field : _this->m_fields) {
         auto err = field->apply(line, res.instruction, res.linksWithSymbol);
         if (err) {
-          return AssembleRes<Reg_T>(err.value());
+          return AssembleRes(err.value());
         }
       }
-      return AssembleRes<Reg_T>(res);
+      return AssembleRes(res);
     };
     m_disassembler = [](const Instruction *_this, const Instr_T instruction,
                         const Reg_T address,
@@ -430,13 +420,13 @@ public:
               });
   }
 
-  AssembleRes<Reg_T> assemble(const TokenizedSrcLine &line) const {
+  AssembleRes assemble(const TokenizedSrcLine &line) const {
     QString Hint = "";
 
     for (const auto &field : m_fields) {
-      if (auto *immField = dynamic_cast<Imm<Reg_T> *>(field.get()))
+      if (auto *immField = dynamic_cast<Imm *>(field.get()))
         Hint = Hint + " [Imm(" + QString::number(immField->width) + ")]";
-      else if (auto *regField = dynamic_cast<Reg<Reg_T> *>(field.get())) {
+      else if (auto *regField = dynamic_cast<Reg *>(field.get())) {
         Hint = Hint + " [" + regField->regsd + "]";
       }
     }
@@ -454,7 +444,7 @@ public:
     return m_disassembler(this, instruction, address, symbolMap);
   }
 
-  const Opcode<Reg_T> &getOpcode() const { return m_opcode; }
+  const Opcode &getOpcode() const { return m_opcode; }
   const QString &name() const { return m_opcode.name; }
   /**
    * @brief size
@@ -530,16 +520,15 @@ public:
   }
 
 private:
-  std::function<AssembleRes<Reg_T>(const Instruction<Reg_T> *,
-                                   const TokenizedSrcLine &)>
+  std::function<AssembleRes(const Instruction *, const TokenizedSrcLine &)>
       m_assembler;
-  std::function<Result<LineTokens>(const Instruction<Reg_T> *, const Instr_T,
+  std::function<Result<LineTokens>(const Instruction *, const Instr_T,
                                    const Reg_T, const ReverseSymbolMap &)>
       m_disassembler;
 
-  const Opcode<Reg_T> m_opcode;
+  const Opcode m_opcode;
   const int m_expectedTokens;
-  std::vector<std::shared_ptr<Field<Reg_T>>> m_fields;
+  std::vector<std::shared_ptr<Field>> m_fields;
   unsigned m_byteSize = -1;
 
   /// An optional set of disassembler match conditions, if the default
@@ -547,11 +536,9 @@ private:
   std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
 };
 
-template <typename Reg_T>
-using InstrMap = std::map<QString, std::shared_ptr<Instruction<Reg_T>>>;
+using InstrMap = std::map<QString, std::shared_ptr<Instruction>>;
 
-template <typename Reg_T>
-using InstrVec = std::vector<std::shared_ptr<Instruction<Reg_T>>>;
+using InstrVec = std::vector<std::shared_ptr<Instruction>>;
 
 } // namespace Assembler
 

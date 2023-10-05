@@ -14,10 +14,8 @@ namespace Assembler {
 
 class AssemblerBase;
 
-template <typename Reg_T>
 using HandleRelocationRes = Result<Reg_T>;
 
-template <typename Reg_T>
 class Relocation {
   static_assert(std::numeric_limits<Reg_T>::is_integer,
                 "Register type must be integer");
@@ -25,12 +23,12 @@ class Relocation {
                 "Instruction type must be integer");
 
 public:
-  using RelocationHandler = std::function<HandleRelocationRes<Reg_T>(
+  using RelocationHandler = std::function<HandleRelocationRes(
       const Reg_T value, const Reg_T reloc_pos)>;
   Relocation(const QString &relocation, const RelocationHandler &handler)
       : m_relocation(relocation), m_handler(handler) {}
 
-  HandleRelocationRes<Reg_T> handle(const Reg_T value, const Reg_T reloc_pos) {
+  HandleRelocationRes handle(const Reg_T value, const Reg_T reloc_pos) {
     return m_handler(value, reloc_pos);
   }
   const QString &name() const { return m_relocation; }
@@ -40,11 +38,9 @@ private:
   RelocationHandler m_handler;
 };
 
-template <typename Reg_T>
-using RelocationsMap = std::map<QString, std::shared_ptr<Relocation<Reg_T>>>;
+using RelocationsMap = std::map<QString, std::shared_ptr<Relocation>>;
 
-template <typename Reg_T>
-using RelocationsVec = std::vector<std::shared_ptr<Relocation<Reg_T>>>;
+using RelocationsVec = std::vector<std::shared_ptr<Relocation>>;
 
 } // namespace Assembler
 } // namespace Ripes

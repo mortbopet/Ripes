@@ -56,36 +56,15 @@ namespace Assembler {
     continue;                                                                  \
   }
 
-// Macro for defining type aliases for register/instruction width specific types
-// of the assembler types
-#define AssemblerTypes(_Reg_T)                                                 \
-  using _InstrVec = InstrVec<_Reg_T>;                                          \
-  using _InstrMap = InstrMap<_Reg_T>;                                          \
-  using _PseudoInstrVec = PseudoInstrVec<_Reg_T>;                              \
-  using _PseudoInstrMap = PseudoInstrMap<_Reg_T>;                              \
-  using _Instruction = Instruction<_Reg_T>;                                    \
-  using _PseudoInstruction = PseudoInstruction<_Reg_T>;                        \
-  using _Opcode = Opcode<_Reg_T>;                                              \
-  using _Imm = Imm<_Reg_T>;                                                    \
-  using _Reg = Reg<_Reg_T>;                                                    \
-  using _Matcher = Matcher<_Reg_T>;                                            \
-  using _FieldLinkRequest = FieldLinkRequest<_Reg_T>;                          \
-  using _RelocationsVec = RelocationsVec<_Reg_T>;                              \
-  using _RelocationsMap = RelocationsMap<_Reg_T>;                              \
-  using _AssembleRes = AssembleRes<_Reg_T>;                                    \
-  using _InstrRes = InstrRes<_Reg_T>;
-
 /**
  *  Reg_T: type equal in size to the register width of the target
  *  Instr_T: type equal in size to the instruction width of the target
  */
-template <typename Reg_T>
 class Assembler : public AssemblerBase {
   static_assert(std::numeric_limits<Reg_T>::is_integer,
                 "Register type must be integer");
 
 public:
-  AssemblerTypes(Reg_T);
   explicit Assembler(const ISAInfoBase *isa) : m_isa(isa) {}
 
   AssembleResult
@@ -164,7 +143,7 @@ public:
     }
 
     // Got match, disassemble
-    auto instruction = std::get<const _Instruction *>(match);
+    auto instruction = std::get<const Instruction *>(match);
     auto tokensVar = instruction->disassemble(word, baseAddress, symbols);
     if (auto *error = std::get_if<Error>(&match)) {
       // Error during disassembling
@@ -185,7 +164,7 @@ public:
     return opres;
   }
 
-  const _Matcher &getMatcher() { return *m_matcher; }
+  const Matcher &getMatcher() { return *m_matcher; }
 
   std::set<QString> getOpcodes() const override {
     std::set<QString> opcodes;
@@ -198,7 +177,7 @@ public:
     return opcodes;
   }
 
-  void setRelocations(const _RelocationsVec &relocations) {
+  void setRelocations(const RelocationsVec &relocations) {
     if (m_relocations.size() != 0) {
       throw std::runtime_error("Directives already set");
     }
@@ -224,7 +203,7 @@ protected:
 
     // Reference to the immediate field which resolves the symbol and the
     // requested symbol
-    _FieldLinkRequest fieldRequest;
+    FieldLinkRequest fieldRequest;
   };
 
   Reg_T linkReqAddress(const LinkRequest &req) const {
@@ -403,7 +382,7 @@ protected:
       addr_offset = currentSection->data.size();
       if (!wasDirective) {
         /// Maintain a pointer to the instruction that was assembled.
-        std::shared_ptr<_Instruction> assembledWith;
+        std::shared_ptr<Instruction> assembledWith;
         runOperation(machineCode, assembleInstruction, line, assembledWith);
         assert(assembledWith && "Expected the assembler instruction to be set");
         program.sourceMapping[addr_offset].insert(line.sourceLine());
@@ -498,7 +477,7 @@ protected:
       // Re-apply immediate resolution using the value acquired from the symbol
       // map
       if (auto *immField =
-              dynamic_cast<const _Imm *>(linkRequest.fieldRequest.field)) {
+              dynamic_cast<const Imm *>(linkRequest.fieldRequest.field)) {
         if (auto res = immField->applySymbolResolution(
                 linkRequest, symbolValue, instr, linkReqAddress(linkRequest));
             res.isError()) {
@@ -548,9 +527,9 @@ protected:
     return {res};
   }
 
-  virtual _AssembleRes
+  virtual AssembleRes
   assembleInstruction(const TokenizedSrcLine &line,
-                      std::shared_ptr<_Instruction> &assembledWith) const {
+                      std::shared_ptr<Instruction> &assembledWith) const {
     if (line.tokens.empty()) {
       return {
           Error(line, "Empty source lines should be impossible at this point")};
@@ -564,7 +543,7 @@ protected:
     return assembledWith->assemble(line);
   }
 
-  void setPseudoInstructions(const _PseudoInstrVec &pseudoInstructions) {
+  void setPseudoInstructions(const PseudoInstrVec &pseudoInstructions) {
     if (m_pseudoInstructions.size() != 0) {
       throw std::runtime_error("Pseudoinstructions already set");
     }
@@ -612,18 +591,18 @@ protected:
     return {remainingTokens};
   }
 
-  void initialize(const _InstrVec &instructions,
-                  const _PseudoInstrVec &pseudoinstructions,
+  void initialize(const InstrVec &instructions,
+                  const PseudoInstrVec &pseudoinstructions,
                   const DirectiveVec &directives,
-                  const _RelocationsVec &relocations) {
+                  const RelocationsVec &relocations) {
     setInstructions(instructions);
     setPseudoInstructions(pseudoinstructions);
     setDirectives(directives);
     setRelocations(relocations);
-    m_matcher = std::make_unique<_Matcher>(m_instructions);
+    m_matcher = std::make_unique<Matcher>(m_instructions);
   }
 
-  void setInstructions(const _InstrVec &instructions) {
+  void setInstructions(const InstrVec &instructions) {
     if (m_instructions.size() != 0) {
       throw std::runtime_error("Instructions already set");
     }
@@ -643,8 +622,8 @@ protected:
    * @brief m_instructions is the set of instructions which can be matched from
    * an instruction string as well as be disassembled from a program.
    */
-  _InstrVec m_instructions;
-  _InstrMap m_instructionMap;
+  InstrVec m_instructions;
+  InstrMap m_instructionMap;
 
   /**
    * @brief m_pseudoInstructions is the set of instructions which can be matched
@@ -652,16 +631,16 @@ protected:
    * Typically, pseudoinstructions will expand to one or more non-pseudo
    * instructions.
    */
-  _PseudoInstrVec m_pseudoInstructions;
-  _PseudoInstrMap m_pseudoInstructionMap;
+  PseudoInstrVec m_pseudoInstructions;
+  PseudoInstrMap m_pseudoInstructionMap;
 
   /**
    * @brief m_relocations is the set of supported assembler relocation hints
    */
-  _RelocationsVec m_relocations;
-  _RelocationsMap m_relocationsMap;
+  RelocationsVec m_relocations;
+  RelocationsMap m_relocationsMap;
 
-  std::unique_ptr<_Matcher> m_matcher;
+  std::unique_ptr<Matcher> m_matcher;
 
   const ISAInfoBase *m_isa;
 };
