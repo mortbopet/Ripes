@@ -18,20 +18,30 @@
 namespace Ripes {
 namespace Assembler {
 
+struct BitRangeBase {
+  virtual Instr_T apply(Instr_T value) const = 0;
+  virtual Instr_T decode(Instr_T instruction) const = 0;
+  virtual unsigned start() const = 0;
+  virtual unsigned stop() const = 0;
+  virtual unsigned width() const = 0;
+};
+
 /// start/stop values for bitranges are inclusive..
-struct BitRange {
-  constexpr BitRange(unsigned _start, unsigned _stop, unsigned _N = 32)
-      : start(_start), stop(_stop), N(_N) {
-    assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
-    assert(_start <= _stop && _stop < _N && "invalid range");
-  }
-  constexpr unsigned width() const { return stop - start + 1; }
-  const unsigned start, stop, N;
+template <unsigned _start, unsigned _stop, unsigned _N = 32>
+struct BitRange : public BitRangeBase {
+  static_assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
+  static_assert(_start <= _stop && _stop < _N && "invalid range");
+
+  unsigned start() const override { return _start; }
+  unsigned stop() const override { return _stop; }
+  /*constexpr*/ unsigned width() const override { return _stop - _start + 1; }
   const Instr_T mask = vsrtl::generateBitmask(width());
 
-  Instr_T apply(Instr_T value) const { return (value & mask) << start; }
-  Instr_T decode(Instr_T instruction) const {
-    return (instruction >> start) & mask;
+  Instr_T apply(Instr_T value) const override {
+    return (value & mask) << _start;
+  }
+  Instr_T decode(Instr_T instruction) const override {
+    return (instruction >> _start) & mask;
   }
 
   bool operator==(const BitRange &other) const {
@@ -43,19 +53,36 @@ struct BitRange {
   }
 };
 
+template <typename _BitRange>
+struct OpPart;
+
+struct OpPartBase {
+  template <typename BitRange>
+  OpPartBase(unsigned _value, BitRange _range) : range(_range), value(_value) {}
+  template <typename BitRange>
+  OpPartBase(const OpPart<BitRange> &other)
+      : range(other.range), value(other.value) {}
+  const std::unique_ptr<BitRangeBase> range;
+  const unsigned value;
+  bool matches(Instr_T instruction) const {
+    return range->decode(instruction) == value;
+  }
+};
+
 /** @brief OpPart
  * A segment of an operation-identifying field of an instruction.
  */
-struct OpPart {
+template <typename _BitRange>
+struct OpPart : public OpPartBase {
+  using BitRange = _BitRange;
+
   OpPart(unsigned _value, const BitRange &_range)
-      : value(_value), range(_range) {}
-  OpPart(unsigned _value, unsigned _start, unsigned _stop)
-      : value(_value), range({_start, _stop}) {}
-  bool matches(Instr_T instruction) const {
-    return range.decode(instruction) == value;
-  }
-  const unsigned value;
-  const BitRange range;
+      : OpPartBase(_value, _range) {}
+  //  bool matches(Instr_T instruction) const {
+  //    return getRange().decode(instruction) == value;
+  //  }
+
+  static BitRange getRange() { return BitRange(); }
 
   bool operator==(const OpPart &other) const {
     return this->value == other.value && this->range == other.range;
@@ -67,17 +94,17 @@ struct OpPart {
   }
 };
 
-struct Field;
+struct FieldBase;
 
 struct FieldLinkRequest {
-  Field const *field = nullptr;
+  FieldBase const *field = nullptr;
   QString symbol = QString();
   QString relocation = QString();
 };
 
-struct Field {
-  Field(unsigned _tokenIndex) : tokenIndex(_tokenIndex) {}
-  virtual ~Field() = default;
+struct FieldBase {
+  FieldBase(unsigned _tokenIndex) : tokenIndex(_tokenIndex) {}
+  virtual ~FieldBase() = default;
   virtual std::optional<Error>
   apply(const TokenizedSrcLine &line, Instr_T &instruction,
         FieldLinkRequest &linksWithSymbol) const = 0;
@@ -86,9 +113,14 @@ struct Field {
                                       const ReverseSymbolMap &symbolMap,
                                       LineTokens &line) const = 0;
 
-  /// Return the set of bitranges which constitutes this field.
-  virtual std::vector<BitRange> bitRanges() const = 0;
   const unsigned tokenIndex;
+};
+
+template <typename... BitRanges>
+struct Field : public FieldBase {
+  /// Return the set of bitranges which constitutes this field.
+  //  virtual std::vector<BitRange> bitRanges() const = 0;
+  virtual std::tuple<BitRanges...> bitRanges() const = 0;
 };
 
 /**
@@ -103,7 +135,13 @@ struct InstrRes {
 
 using AssembleRes = Result<InstrRes>;
 
-struct Opcode : public Field {
+struct OpcodeBase {
+  virtual unsigned partCount() const = 0;
+  virtual const std::vector<OpPartBase> &getOpParts() const = 0;
+};
+
+template <typename... OpParts>
+struct Opcode : public OpcodeBase, public Field<typename OpParts::BitRange...> {
   /**
    * @brief Opcode
    * The opcode is assumed to always be the first token within an assembly
@@ -112,13 +150,14 @@ struct Opcode : public Field {
    * @param fields: list of OpParts corresponding to the identifying elements of
    * the opcode.
    */
-  Opcode(const Token &_name, const std::vector<OpPart> &_opParts)
-      : Field(0), name(_name), opParts(_opParts) {}
+  Opcode(const Token &_name, const std::tuple<OpParts...> &_opParts)
+      : Field<typename OpParts::BitRange...>(0), name(_name),
+        opParts(_opParts) {}
 
   std::optional<Error> apply(const TokenizedSrcLine &, Instr_T &instruction,
                              FieldLinkRequest &) const override {
     for (const auto &opPart : opParts) {
-      instruction |= opPart.range.apply(opPart.value);
+      instruction |= opPart.range->apply(opPart.value);
     }
     return std::nullopt;
   }
@@ -129,18 +168,29 @@ struct Opcode : public Field {
     return std::nullopt;
   }
 
-  std::vector<BitRange> bitRanges() const override {
-    std::vector<BitRange> ranges;
+  std::tuple<typename OpParts::BitRange...> bitRanges() const override {
+    std::tuple<typename OpParts::BitRange...> ranges;
     std::transform(opParts.begin(), opParts.end(), std::back_inserter(ranges),
                    [&](auto opPart) { return opPart.range; });
     return ranges;
   }
 
+  template <typename OpPart>
+  inline unsigned one() {
+    return 1;
+  }
+  unsigned partCount() const override { return (one<OpParts>() + ...); }
+
   const Token name;
-  const std::vector<OpPart> opParts;
+  const std::vector<OpPartBase> opParts;
 };
 
-struct Reg : public Field {
+struct RegBase {
+  virtual const QString &getRegsd() const = 0;
+};
+
+template <typename BitRange>
+struct Reg : public RegBase, public Field<BitRange> {
   /**
    * @brief Reg
    * @param tokenIndex: Index within a list of decoded instruction tokens that
@@ -148,16 +198,17 @@ struct Reg : public Field {
    * @param range: range in instruction field containing register index value
    */
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, const BitRange &range)
-      : Field(_tokenIndex), m_range(range), m_isa(isa) {}
+      : Field<BitRange>(_tokenIndex), m_range(range), m_isa(isa) {}
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, unsigned _start,
       unsigned _stop)
-      : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
+      : Field<BitRange>(_tokenIndex), m_range({_start, _stop}), m_isa(isa) {}
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, const BitRange &range,
       const QString &_regsd)
-      : Field(_tokenIndex), m_range(range), m_isa(isa), regsd(_regsd) {}
+      : Field<BitRange>(_tokenIndex), m_range(range), m_isa(isa),
+        regsd(_regsd) {}
   Reg(const ISAInfoBase *isa, unsigned _tokenIndex, unsigned _start,
       unsigned _stop, const QString &_regsd)
-      : Field(_tokenIndex), m_range({_start, _stop}), m_isa(isa),
+      : Field<BitRange>(_tokenIndex), m_range({_start, _stop}), m_isa(isa),
         regsd(_regsd) {}
   std::optional<Error> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                              FieldLinkRequest &) const override {
@@ -185,16 +236,19 @@ struct Reg : public Field {
 
   std::vector<BitRange> bitRanges() const override { return {m_range}; }
 
+  const QString &getRegsd() const override { return regsd; }
+
   const BitRange m_range;
   const ISAInfoBase *m_isa;
   const QString regsd = "reg";
 };
 
+template <typename _BitRange>
 struct ImmPart {
+  using BitRange = _BitRange;
+
   ImmPart(unsigned _offset, const BitRange &_range)
       : offset(_offset), range(_range) {}
-  ImmPart(unsigned _offset, unsigned _start, unsigned _stop)
-      : offset(_offset), range({_start, _stop}) {}
   void apply(const Instr_T value, Instr_T &instruction) const {
     instruction |= range.apply(value >> offset);
   }
@@ -205,7 +259,12 @@ struct ImmPart {
   const BitRange range;
 };
 
-struct Imm : public Field {
+struct ImmBase {
+  virtual unsigned getWidth() const = 0;
+};
+
+template <typename... ImmParts>
+struct Imm : public ImmBase, public Field<typename ImmParts::BitRange...> {
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
@@ -234,11 +293,12 @@ struct Imm : public Field {
    * provided by a symbol value, before the immediate value is applied.
    */
   Imm(unsigned _tokenIndex, unsigned _width, Repr _repr,
-      const std::vector<ImmPart> &_parts,
+      const std::tuple<ImmParts...> &_parts,
       SymbolType _symbolType = SymbolType::None,
       const std::function<Reg_T(Reg_T)> &_symbolTransformer = {})
-      : Field(_tokenIndex), parts(_parts), width(_width), repr(_repr),
-        symbolType(_symbolType), symbolTransformer(_symbolTransformer) {}
+      : Field<typename ImmParts::BitRange...>(_tokenIndex), parts(_parts),
+        width(_width), repr(_repr), symbolType(_symbolType),
+        symbolTransformer(_symbolTransformer) {}
 
   int64_t getImm(const QString &immToken, bool &success,
                  ImmConvInfo &convInfo) const {
@@ -364,24 +424,34 @@ struct Imm : public Field {
     return std::nullopt;
   }
 
-  std::vector<BitRange> bitRanges() const override {
-    std::vector<BitRange> ranges;
+  std::tuple<typename ImmParts::BitRange...> bitRanges() const override {
+    std::tuple<typename ImmParts::BitRange...> ranges;
     std::transform(parts.begin(), parts.end(), std::back_inserter(ranges),
                    [&](auto opPart) { return opPart.range; });
     return ranges;
   }
 
-  const std::vector<ImmPart> parts;
+  unsigned getWidth() const override { return width; }
+
+  const std::tuple<ImmParts...> parts;
   const unsigned width;
   const Repr repr;
   const SymbolType symbolType;
   const std::function<Reg_T(Reg_T)> symbolTransformer;
 };
 
-class Instruction {
+struct InstructionBase {
+  virtual const OpcodeBase &getOpcode() const = 0;
+  virtual bool hasExtraMatchConds() const = 0;
+  virtual bool matchesWithExtras(Instr_T instr) const = 0;
+  virtual const QString &name() const = 0;
+};
+
+template <typename Opcode, typename... Fields>
+class Instruction : public InstructionBase {
 public:
   Instruction(const Opcode &opcode,
-              const std::vector<std::shared_ptr<Field>> &fields)
+              const std::vector<std::shared_ptr<FieldBase>> &fields)
       : m_opcode(opcode), m_expectedTokens(1 /*opcode*/ + fields.size()),
         m_fields(fields) {
     m_assembler = [](const Instruction *_this, const TokenizedSrcLine &line) {
@@ -424,10 +494,10 @@ public:
     QString Hint = "";
 
     for (const auto &field : m_fields) {
-      if (auto *immField = dynamic_cast<Imm *>(field.get()))
-        Hint = Hint + " [Imm(" + QString::number(immField->width) + ")]";
-      else if (auto *regField = dynamic_cast<Reg *>(field.get())) {
-        Hint = Hint + " [" + regField->regsd + "]";
+      if (auto *immField = dynamic_cast<ImmBase *>(field.get()))
+        Hint = Hint + " [Imm(" + QString::number(immField->getWidth()) + ")]";
+      else if (auto *regField = dynamic_cast<RegBase *>(field.get())) {
+        Hint = Hint + " [" + regField->getRegsd() + "]";
       }
     }
     if (line.tokens.size() != m_expectedTokens) {
@@ -444,7 +514,7 @@ public:
     return m_disassembler(this, instruction, address, symbolMap);
   }
 
-  const Opcode &getOpcode() const { return m_opcode; }
+  const OpcodeBase &getOpcode() const { return m_opcode; }
   const QString &name() const { return m_opcode.name; }
   /**
    * @brief size
@@ -470,7 +540,7 @@ public:
                                       "registerred 1:N sequential tokens");
     }
 
-    std::vector<BitRange> bitRanges;
+    std::tuple<typename Fields::BitRange...> bitRanges;
     for (auto &field : m_fields) {
       auto fieldBitRanges = field->bitRanges();
       std::copy(fieldBitRanges.begin(), fieldBitRanges.end(),
@@ -528,7 +598,7 @@ private:
 
   const Opcode m_opcode;
   const int m_expectedTokens;
-  std::vector<std::shared_ptr<Field>> m_fields;
+  std::tuple<Fields...> m_fields;
   unsigned m_byteSize = -1;
 
   /// An optional set of disassembler match conditions, if the default
@@ -536,9 +606,9 @@ private:
   std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
 };
 
-using InstrMap = std::map<QString, std::shared_ptr<Instruction>>;
+using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
 
-using InstrVec = std::vector<std::shared_ptr<Instruction>>;
+using InstrVec = std::vector<std::shared_ptr<InstructionBase>>;
 
 } // namespace Assembler
 

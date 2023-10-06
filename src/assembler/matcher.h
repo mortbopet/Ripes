@@ -17,10 +17,11 @@ class Matcher {
     bool m_matchOnExtraMatchConds = false;
 
   public:
-    MatchNode(OpPart _matcher) : matcher(_matcher) {}
-    OpPart matcher;
+    template <typename BitRange>
+    MatchNode(OpPart<BitRange> _matcher) : matcher(_matcher) {}
+    OpPartBase matcher;
     std::vector<MatchNode> children;
-    std::shared_ptr<Instruction> instruction;
+    std::shared_ptr<InstructionBase> instruction;
     void matchOnExtraMatchConds() { m_matchOnExtraMatchConds = true; }
 
     bool matches(const Instr_T &instr) const {
@@ -37,12 +38,12 @@ class Matcher {
         }
 
         if (!instruction ||
-            (instruction && depth <= instruction->getOpcode().opParts.size())) {
+            (instruction && depth <= instruction->getOpcode().partCount())) {
           QString matchField =
-              QString::number(matcher.range.stop) + "[" +
-              QStringLiteral("%1").arg(matcher.value, matcher.range.width(), 2,
+              QString::number(matcher.range->stop()) + "[" +
+              QStringLiteral("%1").arg(matcher.value, matcher.range->width(), 2,
                                        QLatin1Char('0')) +
-              "]" + QString::number(matcher.range.start);
+              "]" + QString::number(matcher.range->start());
           std::cout << matchField.toStdString();
         } else {
           // Extra match conditions must apply
@@ -66,11 +67,11 @@ class Matcher {
   };
 
 public:
-  Matcher(const std::vector<std::shared_ptr<Instruction>> &instructions)
+  Matcher(const std::vector<std::shared_ptr<InstructionBase>> &instructions)
       : m_matchRoot(buildMatchTree(instructions, 1)) {}
   void print() const { m_matchRoot.print(); }
 
-  Result<const Instruction *>
+  Result<const InstructionBase *>
   matchInstruction(const Instr_T &instruction) const {
     auto match = matchInstructionRec(instruction, m_matchRoot, true);
     if (match == nullptr) {
@@ -80,9 +81,9 @@ public:
   }
 
 private:
-  const Instruction *matchInstructionRec(const Instr_T &instruction,
-                                         const MatchNode &node,
-                                         bool isRoot) const {
+  const InstructionBase *matchInstructionRec(const Instr_T &instruction,
+                                             const MatchNode &node,
+                                             bool isRoot) const {
     if (isRoot || node.matches(instruction)) {
       if (node.children.size() > 0) {
         for (const auto &child : node.children) {
@@ -101,19 +102,20 @@ private:
 
   MatchNode buildMatchTree(const InstrVec &instructions,
                            const unsigned fieldDepth = 1,
-                           OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-    std::map<OpPart, InstrVec> instrsWithEqualOpPart;
+                           const OpPart<BitRange<0, 0, 2>> &matcher =
+                               OpPart(0, BitRange<0, 0, 2>())) {
+    std::map<OpPartBase, InstrVec> instrsWithEqualOpPart;
     for (const auto &instr : instructions) {
       if (auto instrRef = instr.get()) {
-        const size_t nOpParts = instrRef->getOpcode().opParts.size();
+        const size_t nOpParts = instrRef->getOpcode().partCount();
         if (nOpParts < fieldDepth && !instrRef->hasExtraMatchConds()) {
           QString err = "Instruction '" + instr->name() +
                         "' cannot be decoded; aliases with other instruction "
                         "(Needs more discernable parts)\n";
           throw std::runtime_error(err.toStdString().c_str());
         }
-        auto &opParts = instrRef->getOpcode().opParts;
-        const OpPart *opPart = nullptr;
+        auto &opParts = instrRef->getOpcode().getOpParts();
+        const OpPartBase *opPart = nullptr;
         if (fieldDepth > nOpParts)
           opPart = &opParts.back();
         else
