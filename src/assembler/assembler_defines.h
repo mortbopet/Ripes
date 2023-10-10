@@ -9,13 +9,11 @@
 #include <variant>
 
 #include "assemblererror.h"
+#include "isa/isa_defines.h"
 #include "program.h"
 
 namespace Ripes {
 namespace Assembler {
-
-/// Type for instruction data. Should encompass all possible instruction widths.
-using Instr_T = uint64_t;
 
 class Token : public QString {
 public:
@@ -31,6 +29,7 @@ private:
   QString m_relocation;
 };
 using LineTokens = QVector<Token>;
+
 using LineTokensVec = std::vector<LineTokens>;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
