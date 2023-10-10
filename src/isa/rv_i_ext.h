@@ -62,6 +62,10 @@ struct RVIExt {
     using Opcode = typename InstrIType<AddI>::Opcode;
     using Fields = typename InstrIType<AddI>::Fields;
   };
+
+  std::vector<std::unique_ptr<InstructionBase>> instructions;
+
+  RVIExt() { instructions.emplace_back(std::make_unique<AddI>()); }
 };
 
 } // namespace RVISA
