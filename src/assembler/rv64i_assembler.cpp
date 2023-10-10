@@ -18,6 +18,8 @@ namespace Assembler {
 
 RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I> *isa)
     : Assembler<Reg_T>(isa) {
+  RVISA::RVIExt rv_i;
+
   auto [instrs, pseudos] = initInstructions(isa);
 
   auto directives = gnuDirectives();

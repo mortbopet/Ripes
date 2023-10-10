@@ -1,5 +1,8 @@
 #pragma once
 
+#include <bitset>
+#include <iostream>
+
 #include "rvisainfo_common.h"
 
 namespace Ripes {
@@ -65,7 +68,12 @@ struct RVIExt {
 
   std::vector<std::unique_ptr<InstructionBase>> instructions;
 
-  RVIExt() { instructions.emplace_back(std::make_unique<AddI>()); }
+  RVIExt() {
+    std::cout << "Statically looking up a bitfield: "
+              << std::bitset<7>(AddI::Opcode::RVOpcode::value()) << std::endl;
+
+    instructions.emplace_back(std::make_unique<AddI>());
+  }
 };
 
 } // namespace RVISA
