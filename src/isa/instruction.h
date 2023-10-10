@@ -56,6 +56,9 @@ struct BitRangesImpl : public BitRanges... {
   }
 };
 
+/** @brief OpPart
+ * A segment of an operation-identifying field of an instruction.
+ */
 template <unsigned _value, typename _BitRange>
 struct OpPart {
   using BitRange = _BitRange;
@@ -93,6 +96,12 @@ struct FieldsImpl : public Fields... {
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 };
 
+/**
+ * @brief Reg
+ * @param tokenIndex: Index within a list of decoded instruction tokens that
+ * corresponds to the register index
+ * @param BitRange: range in instruction field containing register index value
+ */
 template <unsigned tokenIndex, typename BitRange>
 struct Reg : public Field<tokenIndex, BitRange> {};
 
@@ -114,6 +123,19 @@ typedef Reg_T (*SymbolTransformer)(Reg_T);
 
 Reg_T defaultTransformer(Reg_T reg) { return reg; }
 
+/**
+ * @brief Imm
+ * @param tokenIndex: Index within a list of decoded instruction tokens that
+ * corresponds to the immediate
+ * @param width: bit-width of the immediate
+ * @param repr: Representation of the immediate
+ * @param symbolType: Set if this immediate refers to a relative or absolute
+ * symbol.
+ * @param transformer: Optional function used to process the immediate
+ * provided by a symbol value, before the immediate value is applied.
+ * @param ImmParts: (ordered) list of ranges corresponding to fields of the
+ * immediate
+ */
 template <unsigned tokenIndex, unsigned width, Repr repr, SymbolType symbolType,
           SymbolTransformer transformer, typename ImmParts>
 struct Imm : public Field<tokenIndex, typename ImmParts::BitRanges> {};
