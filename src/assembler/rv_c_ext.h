@@ -98,7 +98,8 @@ struct RVCOpcode : public RVOpcode<Reg_T> {
       : RVOpcode<Reg_T>(name, opParts) {}
 
   /// An RV-C opcode with a Funct3 part
-  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant, RVCOpPartFunct3 funct3)
+  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant,
+            RVCOpPartFunct3 funct3)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct3}) {}
 
   /// A RV-C NOP opcode
@@ -107,17 +108,19 @@ struct RVCOpcode : public RVOpcode<Reg_T> {
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), nopPart}) {}
 
   /// An RV-C opcode with a Funct4 part
-  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant, RVCOpPartFunct4 funct4)
+  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant,
+            RVCOpPartFunct4 funct4)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct4}) {}
 
   /// An RV-C opcode with Funct2 and Funct6 parts
-  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant, RVCOpPartFunct2 funct2,
+  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant,
+            RVCOpPartFunct2 funct2,
             typename RVCInstrCAType<Reg_T>::OpPartFunct6 funct6)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct6}) {}
 
   /// An RV-C opcode with a Funct3 part
-  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant, RVCOpPartFunct2 funct2,
-            RVCOpPartFunct3 funct3)
+  RVCOpcode(const Token &name, RVISA::QuadrantID quadrant,
+            RVCOpPartFunct2 funct2, RVCOpPartFunct3 funct3)
       : RVOpcode<Reg_T>(name, {RVOpPartQuadrant(quadrant), funct2, funct3}) {}
 };
 
@@ -325,8 +328,9 @@ struct RVCInstrCINOPType : public RVCInstruction<Reg_T> {
 /// A CSS-Type RV-C instruction
 template <typename Reg_T>
 struct RVCInstrCSSType : public RVCInstruction<Reg_T> {
-  RVCInstrCSSType(RVISA::QuadrantID quadrant, const Token &name, unsigned funct3,
-                  const RVCImm<Reg_T> &imm, const ISAInfoBase *isa)
+  RVCInstrCSSType(RVISA::QuadrantID quadrant, const Token &name,
+                  unsigned funct3, const RVCImm<Reg_T> &imm,
+                  const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
             {std::make_shared<RVCRegRs2<Reg_T>>(isa, 1),
@@ -442,8 +446,8 @@ struct RVCInstrCRType : public RVCInstruction<Reg_T> {
 /// A CR2-Type RV-C instruction
 template <typename Reg_T>
 struct RVCInstrCR2Type : public RVCInstruction<Reg_T> {
-  RVCInstrCR2Type(RVISA::QuadrantID quadrant, const Token &name, unsigned funct4,
-                  const ISAInfoBase *isa)
+  RVCInstrCR2Type(RVISA::QuadrantID quadrant, const Token &name,
+                  unsigned funct4, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name,
                              {RVOpPartQuadrant(quadrant), RVOpPart(0, 2, 6),
@@ -483,9 +487,9 @@ struct RVCInstrCBType : public RVCInstruction<Reg_T> {
 /// A CB2-Type RV-C instruction
 template <typename Reg_T>
 struct RVCInstrCB2Type : public RVCInstruction<Reg_T> {
-  RVCInstrCB2Type(RVISA::QuadrantID quadrant, const Token &name, unsigned funct2,
-                  unsigned funct3, typename Imm<Reg_T>::Repr repr,
-                  const ISAInfoBase *isa)
+  RVCInstrCB2Type(RVISA::QuadrantID quadrant, const Token &name,
+                  unsigned funct2, unsigned funct3,
+                  typename Imm<Reg_T>::Repr repr, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant,
                              RVCOpPartFunct2(funct2, RVCOpPartFunct2::OFFSET10),
@@ -512,8 +516,8 @@ struct RVCInstrCB2Type : public RVCInstruction<Reg_T> {
 /// A CIW-Type RV-C instruction
 template <typename Reg_T>
 struct RVCInstrCIWType : public RVCInstruction<Reg_T> {
-  RVCInstrCIWType(RVISA::QuadrantID quadrant, const Token &name, unsigned funct3,
-                  const ISAInfoBase *isa)
+  RVCInstrCIWType(RVISA::QuadrantID quadrant, const Token &name,
+                  unsigned funct3, const ISAInfoBase *isa)
       : RVCInstruction<Reg_T>(
             RVCOpcode<Reg_T>(name, quadrant, RVCOpPartFunct3(funct3)),
             {std::make_shared<RVCRegRdPrime<Reg_T>>(isa, 1),
@@ -582,18 +586,18 @@ struct RV_C {
               typename RVCInstrCIType<Reg__T>::ImmLWSP(), isa)));
     } else // RV64 RV128
     {
-      instructions.push_back(std::shared_ptr<_Instruction>(
-          new RVCInstrCIType(RVISA::QuadrantID::QUADRANT2, Token("c.ldsp"), 0b011,
-                             typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
+      instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
+          RVISA::QuadrantID::QUADRANT2, Token("c.ldsp"), 0b011,
+          typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
       instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
           RVISA::QuadrantID::QUADRANT1, Token("c.addiw"), 0b001,
           RVCImmCommon6<Reg__T>(_Imm::Repr::Signed), isa)));
     }
 
     // instructions.push_back(CIType(0b10, Token("c.lqsp"), 0b001));//RV128
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCIType(RVISA::QuadrantID::QUADRANT2, Token("c.fldsp"), 0b001,
-                           typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCIType(
+        RVISA::QuadrantID::QUADRANT2, Token("c.fldsp"), 0b001,
+        typename RVCInstrCIType<Reg__T>::ImmLDSP(), isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVCInstrCIType(RVISA::QuadrantID::QUADRANT2, Token("c.slli"), 0b000,
                            RVCImmCommon6<Reg__T>(_Imm::Repr::Unsigned), isa)));
@@ -633,9 +637,9 @@ struct RV_C {
         std::shared_ptr<_Instruction>(new RVCInstrCINOPType<Reg__T>(
             RVISA::QuadrantID::QUADRANT1, Token("c.nop"))));
 
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCSSType(RVISA::QuadrantID::QUADRANT2, Token("c.swsp"), 0b110,
-                            typename RVCInstrCSSType<Reg__T>::ImmSWSP(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+        RVISA::QuadrantID::QUADRANT2, Token("c.swsp"), 0b110,
+        typename RVCInstrCSSType<Reg__T>::ImmSWSP(), isa)));
     if (isa->isaID() == ISA::RV32I) {
       instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
           RVISA::QuadrantID::QUADRANT2, Token("c.fswsp"), 0b111,
@@ -645,9 +649,9 @@ struct RV_C {
           RVISA::QuadrantID::QUADRANT2, Token("c.sdsp"), 0b111,
           typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
     }
-    instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCSSType(RVISA::QuadrantID::QUADRANT2, Token("c.fsdsp"), 0b101,
-                            typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
+    instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCSSType(
+        RVISA::QuadrantID::QUADRANT2, Token("c.fsdsp"), 0b101,
+        typename RVCInstrCSSType<Reg__T>::ImmSDSP(), isa)));
     // instructions.push_back(CSSType(0b10, Token("c.sqsp"), 0b101));//RV128
 
     instructions.push_back(std::shared_ptr<_Instruction>(new RVCInstrCLType(
@@ -705,15 +709,18 @@ struct RV_C {
             RVISA::QuadrantID::QUADRANT0, Token("c.addi4spn"), 0b000, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCB2Type<Reg__T>(RVISA::QuadrantID::QUADRANT1, Token("c.srli"),
-                                    0b00, 0b100, _Imm::Repr::Unsigned, isa)));
+        new RVCInstrCB2Type<Reg__T>(RVISA::QuadrantID::QUADRANT1,
+                                    Token("c.srli"), 0b00, 0b100,
+                                    _Imm::Repr::Unsigned, isa)));
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCB2Type<Reg__T>(RVISA::QuadrantID::QUADRANT1, Token("c.srai"),
-                                    0b01, 0b100, _Imm::Repr::Unsigned, isa)));
+        new RVCInstrCB2Type<Reg__T>(RVISA::QuadrantID::QUADRANT1,
+                                    Token("c.srai"), 0b01, 0b100,
+                                    _Imm::Repr::Unsigned, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVCInstrCB2Type<Reg__T>(RVISA::QuadrantID::QUADRANT1, Token("c.andi"),
-                                    0b10, 0b100, _Imm::Repr::Signed, isa)));
+        new RVCInstrCB2Type<Reg__T>(RVISA::QuadrantID::QUADRANT1,
+                                    Token("c.andi"), 0b10, 0b100,
+                                    _Imm::Repr::Signed, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVCInstrCRType<Reg__T>(RVISA::QuadrantID::QUADRANT2, Token("c.mv"),
