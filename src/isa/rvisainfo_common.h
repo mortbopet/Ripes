@@ -51,42 +51,42 @@ struct OpPartOpcode : public OpPart<opcode, BitRange<0, 6>> {};
 /// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1 of
 /// the instruction
 template <unsigned quadrant>
-struct Quadrant : public OpPart<quadrant, BitRange<0, 1>> {};
+struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1>> {};
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14 of
 /// the instruction
 template <unsigned funct3>
-struct Funct3 : public OpPart<funct3, BitRange<12, 14>> {};
+struct OpPartFunct3 : public OpPart<funct3, BitRange<12, 14>> {};
 
 /// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31 of
 /// the instruction
 template <unsigned funct6>
-struct Funct6 : public OpPart<funct6, BitRange<26, 31>> {};
+struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
 
 /// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31 of
 /// the instruction
 template <unsigned funct7>
-struct Funct7 : public OpPart<funct7, BitRange<25, 31>> {};
+struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
 
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction
 template <unsigned tokenIndex>
-struct Rs1 : public Reg<tokenIndex, BitRange<15, 19>> {
-  Rs1() : Reg<tokenIndex, BitRange<15, 19>>("rs1") {}
+struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>> {
+  RegRs1() : Reg<tokenIndex, BitRange<15, 19>>("rs1") {}
 };
 
 /// The RISC-V Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 20-24 of the instruction
 template <unsigned tokenIndex>
-struct Rs2 : public Reg<tokenIndex, BitRange<20, 24>> {
-  Rs2() : Reg<tokenIndex, BitRange<20, 24>>("rs2") {}
+struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>> {
+  RegRs2() : Reg<tokenIndex, BitRange<20, 24>>("rs2") {}
 };
 
 /// The RISC-V Rd field contains a destination register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <unsigned tokenIndex>
-struct Rd : public Reg<tokenIndex, BitRange<7, 11>> {
-  Rd() : Reg<tokenIndex, BitRange<7, 11>>("rd") {}
+struct RegRd : public Reg<tokenIndex, BitRange<7, 11>> {
+  RegRd() : Reg<tokenIndex, BitRange<7, 11>>("rd") {}
 };
 
 } // namespace RVISA
