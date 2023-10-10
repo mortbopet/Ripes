@@ -8,6 +8,7 @@
 #include <QByteArray>
 #include <algorithm>
 
+#include "isa/rv_i_ext.h"
 #include "rv_c_ext.h"
 #include "rv_i_ext.h"
 #include "rv_m_ext.h"

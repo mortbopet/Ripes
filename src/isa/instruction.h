@@ -82,7 +82,7 @@ struct OpPart {
 };
 
 template <typename... OpParts>
-struct OpCodeImpl : public OpParts... {
+struct OpcodeImpl : public OpParts... {
   using BitRanges = BitRangesImpl<typename OpParts::BitRanges...>;
 };
 
@@ -124,7 +124,7 @@ enum class SymbolType { None, Relative, Absolute };
 // using SymbolTransformer = const std::function<Reg_T(Reg_T)> &;
 typedef Reg_T (*SymbolTransformer)(Reg_T);
 
-Reg_T defaultTransformer(Reg_T reg) { return reg; }
+inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
 
 /**
  * @brief Imm
@@ -140,7 +140,7 @@ Reg_T defaultTransformer(Reg_T reg) { return reg; }
  * immediate
  */
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
-          SymbolType symbolType, SymbolTransformer transforme>
+          SymbolType symbolType, SymbolTransformer transformer>
 struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {};
 
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
@@ -156,7 +156,7 @@ struct InstructionBase {
   virtual ~InstructionBase() = default;
 };
 
-template <typename Impl>
+template <typename InstrImpl>
 struct Instruction : public InstructionBase {};
 
 } // namespace Ripes

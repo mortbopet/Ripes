@@ -21,7 +21,7 @@ struct RVOpPartOpcode : public RVOpPart {
 /// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1 of
 /// the instruction
 struct RVOpPartQuadrant : public RVOpPart {
-  RVOpPartQuadrant(RVISA::Quadrant quadrant) : RVOpPart(quadrant, 0, 1) {}
+  RVOpPartQuadrant(RVISA::QuadrantID quadrant) : RVOpPart(quadrant, 0, 1) {}
 };
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14 of
