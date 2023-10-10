@@ -21,13 +21,13 @@ public:
 
       // clang-format off
             switch(l7) {
-            case RVISA::Opcode::LUI: return RVInstr::LUI;
-            case RVISA::Opcode::AUIPC: return RVInstr::AUIPC;
-            case RVISA::Opcode::JAL: return RVInstr::JAL;
-            case RVISA::Opcode::JALR: return RVInstr::JALR;
-            case RVISA::Opcode::ECALL: return RVInstr::ECALL;
+            case RVISA::OpcodeID::LUI: return RVInstr::LUI;
+            case RVISA::OpcodeID::AUIPC: return RVInstr::AUIPC;
+            case RVISA::OpcodeID::JAL: return RVInstr::JAL;
+            case RVISA::OpcodeID::JALR: return RVInstr::JALR;
+            case RVISA::OpcodeID::ECALL: return RVInstr::ECALL;
 
-            case RVISA::Opcode::OPIMM: {
+            case RVISA::OpcodeID::OPIMM: {
                 // I-Type
                 const auto fields = RVInstrParser::getParser()->decodeI32Instr(instrValue);
                 switch(fields[2]) {
@@ -49,7 +49,7 @@ public:
                 break;
             }
 
-            case RVISA::Opcode::OPIMM32: {
+            case RVISA::OpcodeID::OPIMM32: {
                 // I-Type (32-bit, in 64-bit ISA)
                 const auto fields = RVInstrParser::getParser()->decodeI32Instr(instrValue);
                 switch(fields[2]) {
@@ -66,7 +66,7 @@ public:
                 break;
             }
 
-            case RVISA::Opcode::OP: {
+            case RVISA::OpcodeID::OP: {
                 // R-Type
                 const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
                 if (fields[0] == 0b0000001) {
@@ -113,7 +113,7 @@ public:
                 break;
             }
 
-            case RVISA::Opcode::OP32: {
+            case RVISA::OpcodeID::OP32: {
                 // R-Type (32-bit, in 64-bit ISA)
                 const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
                 if (fields[0] == 0b0000001) {
@@ -152,7 +152,7 @@ public:
                 break;
             }
 
-            case RVISA::Opcode::LOAD: {
+            case RVISA::OpcodeID::LOAD: {
                 // Load instruction
                 const auto fields = RVInstrParser::getParser()->decodeI32Instr(instrValue);
                 switch (fields[2]) {
@@ -168,7 +168,7 @@ public:
                 break;
             }
 
-            case RVISA::Opcode::STORE: {
+            case RVISA::OpcodeID::STORE: {
                 // Store instructions
                 const auto fields = RVInstrParser::getParser()->decodeS32Instr(instrValue);
                 switch (fields[3]) {
@@ -181,7 +181,7 @@ public:
                 break;
             }
 
-            case RVISA::Opcode::BRANCH: {
+            case RVISA::OpcodeID::BRANCH: {
                 // Branch instruction
                 const auto fields = RVInstrParser::getParser()->decodeB32Instr(instrValue);
                 switch (fields[4]) {

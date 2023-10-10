@@ -268,21 +268,21 @@ struct RV_I {
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
         _Opcode(Token("ecall"),
-                {OpPart(RVISA::Opcode::ECALL, 0, 6), OpPart(0, 7, 31)}),
+                {OpPart(RVISA::OpcodeID::ECALL, 0, 6), OpPart(0, 7, 31)}),
         {})));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVInstrUType<Reg__T>(Token("lui"), RVISA::Opcode::LUI, isa)));
+        new RVInstrUType<Reg__T>(Token("lui"), RVISA::OpcodeID::LUI, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(new _Instruction(
-        _Opcode(Token("auipc"), {OpPart(RVISA::Opcode::AUIPC, 0, 6)}),
+        _Opcode(Token("auipc"), {OpPart(RVISA::OpcodeID::AUIPC, 0, 6)}),
         {std::make_shared<_Reg>(isa, 1, 7, 11, "rd"),
          std::make_shared<_Imm>(2, 32, _Imm::Repr::Hex,
                                 std::vector{ImmPart(0, 12, 31)},
                                 _Imm::SymbolType::Absolute)})));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
-        new RVInstrJType<Reg__T>(Token("jal"), RVISA::Opcode::JAL, isa)));
+        new RVInstrJType<Reg__T>(Token("jal"), RVISA::OpcodeID::JAL, isa)));
 
     instructions.push_back(std::shared_ptr<_Instruction>(
         new RVInstrJALRType<Reg__T>(Token("jalr"), isa)));

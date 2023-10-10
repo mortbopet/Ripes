@@ -1,5 +1,6 @@
 #pragma once
 
+#include "instruction.h"
 #include "isainfo.h"
 
 namespace Ripes {
@@ -20,7 +21,7 @@ namespace RVISA {
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
 extern const QStringList RegDescs;
-enum Opcode {
+enum OpcodeID {
   LUI = 0b0110111,
   JAL = 0b1101111,
   JALR = 0b1100111,
@@ -41,6 +42,11 @@ enum Quadrant {
   QUADRANT2 = 0b10,
   QUADRANT3 = 0b11
 };
+
+/// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
+/// instruction
+template <unsigned opcode>
+struct Opcode : public OpPart<opcode, BitRange<0, 6>> {};
 
 } // namespace RVISA
 
