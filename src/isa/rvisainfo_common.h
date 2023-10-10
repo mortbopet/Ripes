@@ -48,6 +48,57 @@ enum Quadrant {
 template <unsigned opcode>
 struct Opcode : public OpPart<opcode, BitRange<0, 6>> {};
 
+/// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1 of
+/// the instruction
+template <unsigned quadrant>
+struct RVQuadrant : public OpPart<quadrant, BitRange<0, 1>> {};
+
+/// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14 of
+/// the instruction
+template <unsigned funct3>
+struct RVOpPartFunct3 : public OpPart<funct3, BitRange<12, 14>> {};
+
+/// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31 of
+/// the instruction
+template <unsigned funct6>
+struct RVOpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
+
+/// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31 of
+/// the instruction
+template <unsigned funct7>
+struct RVOpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
+
+/// The RISC-V Rs1 field contains a source register index.
+/// It is defined as a 5-bit field in bits 15-19 of the instruction
+template <unsigned tokenIndex>
+struct RVRegRs1 : public Reg<tokenIndex, BitRange<15, 19>> {
+  RVRegRs1() : Reg<tokenIndex, BitRange<15, 19>>("rs1") {}
+};
+
+/// The RISC-V Rs2 field contains a source register index.
+/// It is defined as a 5-bit field in bits 20-24 of the instruction
+template <unsigned tokenIndex>
+struct Rs2 : public Reg<tokenIndex, BitRange<20, 24>> {
+  Rs2() : Reg<tokenIndex, BitRange<20, 24>>("rs2") {}
+};
+
+/// The RISC-V Rd field contains a destination register index.
+/// It is defined as a 5-bit field in bits 7-11 of the instruction
+template <unsigned tokenIndex>
+struct Rd : public Reg<tokenIndex, BitRange<7, 11>> {
+  Rd() : Reg<tokenIndex, BitRange<7, 11>>("rd") {}
+};
+
+/// A RISC-V signed immediate field with a width of 12 bits.
+/// Used in L-Type and I-Type instructions.
+///
+/// It is defined as:
+///  - Imm[31:11] = Inst[31]
+///  - Imm[10:0]  = Inst[30:20]
+template <unsigned tokenIndex>
+struct ImmCommon12 : public Imm<tokenIndex, 12, Repr::Signed,
+                                ImmPartsImpl<ImmPart<0, BitRange<20, 31>>>> {};
+
 } // namespace RVISA
 
 namespace RVABI {

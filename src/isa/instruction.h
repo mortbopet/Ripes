@@ -103,7 +103,10 @@ struct FieldsImpl : public Fields... {
  * @param BitRange: range in instruction field containing register index value
  */
 template <unsigned tokenIndex, typename BitRange>
-struct Reg : public Field<tokenIndex, BitRange> {};
+struct Reg : public Field<tokenIndex, BitRange> {
+  Reg(const QString &_regsd) : regsd(_regsd) {}
+  const QString regsd = "reg";
+};
 
 template <unsigned _offset, typename _BitRange>
 struct ImmPart {
@@ -136,18 +139,18 @@ Reg_T defaultTransformer(Reg_T reg) { return reg; }
  * @param ImmParts: (ordered) list of ranges corresponding to fields of the
  * immediate
  */
-template <unsigned tokenIndex, unsigned width, Repr repr, SymbolType symbolType,
-          SymbolTransformer transformer, typename ImmParts>
-struct Imm : public Field<tokenIndex, typename ImmParts::BitRanges> {};
+template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
+          SymbolType symbolType, SymbolTransformer transforme>
+struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {};
 
-template <unsigned tokenIndex, unsigned width, Repr repr, SymbolType symbolType,
-          typename ImmParts>
-struct Imm<tokenIndex, width, repr, symbolType, defaultTransformer, ImmParts> {
-};
+template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
+          SymbolType symbolType>
+using ImmSym =
+    ImmBase<tokenIndex, width, repr, ImmParts, symbolType, defaultTransformer>;
 
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts>
-struct Imm<tokenIndex, width, repr, SymbolType::None, defaultTransformer,
-           ImmParts> {};
+using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
+                    defaultTransformer>;
 
 struct InstructionBase {
   virtual ~InstructionBase() = default;
