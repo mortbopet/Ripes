@@ -5,7 +5,7 @@
 namespace Ripes {
 
 CSyntaxHighlighter::CSyntaxHighlighter(
-    QTextDocument *parent, std::shared_ptr<Assembler::Errors> errors)
+    QTextDocument *parent, std::shared_ptr<Errors> errors)
     : SyntaxHighlighter(parent, errors) {
   HighlightingRule rule;
 

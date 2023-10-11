@@ -17,10 +17,10 @@ constexpr ISA XLenToRVISA() {
 }
 
 namespace RVISA {
-
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
 extern const QStringList RegDescs;
+
 enum OpcodeID {
   LUI = 0b0110111,
   JAL = 0b1101111,
@@ -43,28 +43,30 @@ enum QuadrantID {
   QUADRANT3 = 0b11
 };
 
+unsigned regNumber(const QString &regToken, bool &success);
+
 /// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
 /// instruction
 template <unsigned opcode>
 struct OpPartOpcode : public OpPart<opcode, BitRange<0, 6>> {};
 
-/// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1 of
-/// the instruction
+/// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1
+/// of the instruction
 template <unsigned quadrant>
 struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1>> {};
 
-/// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14 of
-/// the instruction
+/// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14
+/// of the instruction
 template <unsigned funct3>
 struct OpPartFunct3 : public OpPart<funct3, BitRange<12, 14>> {};
 
-/// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31 of
-/// the instruction
+/// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31
+/// of the instruction
 template <unsigned funct6>
 struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
 
-/// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31 of
-/// the instruction
+/// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31
+/// of the instruction
 template <unsigned funct7>
 struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
 
@@ -88,8 +90,7 @@ template <unsigned tokenIndex>
 struct RegRd : public Reg<tokenIndex, BitRange<7, 11>> {
   RegRd() : Reg<tokenIndex, BitRange<7, 11>>("rd") {}
 };
-
-} // namespace RVISA
+}; // namespace RVISA
 
 namespace RVABI {
 // RISC-V ELF info

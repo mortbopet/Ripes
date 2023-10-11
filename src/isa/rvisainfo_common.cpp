@@ -49,6 +49,19 @@ const QStringList RegDescs = QStringList() << "Hard-Wired zero"
                                          << "Temporary register\nSaver: Caller"
                                          << "Temporary register\nSaver: Caller";
 // clang-format on
+
+unsigned regNumber(const QString &regToken, bool &success) {
+  QString regRes = regToken;
+  success = true;
+  if (regToken[0] == 'x' && (RVISA::RegNames.count(regToken) != 0)) {
+    regRes.remove('x');
+    return regRes.toInt(&success, 10);
+  } else if (RVISA::RegAliases.contains(regToken)) {
+    return RVISA::RegAliases.indexOf(regToken);
+  }
+  success = false;
+  return 0;
+}
 } // namespace RVISA
 
 namespace RVABI {

@@ -4,22 +4,16 @@
 #include <variant>
 
 #include "assembler_defines.h"
-#include "assemblererror.h"
+#include "isa/isa_defines.h"
 #include "radix.h"
 
 namespace Ripes {
 namespace Assembler {
 
-struct ImmConvInfo {
-  bool isUnsigned = false;
-  bool is32bit = false;
-  Radix radix;
-};
-
-int64_t getImmediate(const QString &string, bool &canConvert,
-                     ImmConvInfo *convInfo = nullptr);
-int64_t getImmediateSext32(const QString &string, bool &canConvert,
-                           ImmConvInfo *convInfo = nullptr);
+// int64_t getImmediate(const QString &string, bool &canConvert,
+//                      ImmConvInfo *convInfo = nullptr);
+// int64_t getImmediateSext32(const QString &string, bool &canConvert,
+//                            ImmConvInfo *convInfo = nullptr);
 
 /**
  * @brief joinParentheses takes a number of tokens and merges together tokens

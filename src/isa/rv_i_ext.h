@@ -76,5 +76,11 @@ struct RVIExt {
   }
 };
 
+struct RV32ISA : public RVIExt {
+  Instr_T assemble(const TokenizedSrcLine &tokens) {
+    return this->instructions.at(0)->assemble(tokens);
+  }
+};
+
 } // namespace RVISA
 } // namespace Ripes

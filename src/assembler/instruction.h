@@ -12,6 +12,7 @@
 
 #include "STLExtras.h"
 #include "binutils.h"
+#include "isa/isa_defines.h"
 #include "isa/isainfo.h"
 #include "math.h"
 

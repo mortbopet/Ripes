@@ -5,6 +5,9 @@
 #include <string_view>
 #include <vector>
 
+#include <QList>
+
+#include "binutils.h"
 #include "isa_defines.h"
 
 namespace Ripes {
@@ -64,6 +67,9 @@ struct OpPart {
   using BitRange = _BitRange;
   constexpr static unsigned value() { return _value; }
 
+  constexpr static void apply(Instr_T &instruction) {
+    instruction |= BitRange::apply(value());
+  }
   constexpr static bool matches(Instr_T instruction) {
     return BitRange::decode(instruction) == _value;
   }
@@ -83,7 +89,18 @@ struct OpPart {
 
 template <typename... OpParts>
 struct OpcodeImpl : public OpParts... {
-  using BitRanges = BitRangesImpl<typename OpParts::BitRanges...>;
+  using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
+
+  constexpr static void apply(Instr_T &instruction) {
+    (OpParts::apply(instruction), ...);
+  }
+};
+
+template <typename Field>
+struct FieldLinkRequest {
+  Field const *field = nullptr;
+  QString symbol = QString();
+  QString relocation = QString();
 };
 
 template <unsigned tokenIdx, typename _BitRanges>
@@ -94,7 +111,16 @@ struct Field {
 template <typename... Fields>
 struct FieldsImpl : public Fields... {
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
+
+  constexpr static void apply(const TokenizedSrcLine &tokens,
+                              Instr_T &instruction) {
+    (Fields::apply(tokens, instruction), ...);
+  }
 };
+
+namespace RVISA {
+unsigned regNumber(const QString &regToken, bool &success);
+}
 
 /**
  * @brief Reg
@@ -105,17 +131,41 @@ struct FieldsImpl : public Fields... {
 template <unsigned tokenIndex, typename BitRange>
 struct Reg : public Field<tokenIndex, BitRange> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
+
+  constexpr static bool
+  apply(const TokenizedSrcLine &line,
+        Instr_T &instruction /*, FieldLinkRequest<Reg_T> &*/) {
+    const auto &regToken = line.tokens.at(tokenIndex);
+    bool success = false;
+    unsigned regIndex = RVISA::regNumber(regToken, success);
+    if (!success) {
+      // TODO: Set error in FieldLinkRequest
+      //      return Error(line, "Unknown register '" + regToken + "'");
+      return false;
+    }
+    instruction |= BitRange::apply(regIndex);
+    return true;
+  }
+
   const QString regsd = "reg";
 };
 
 template <unsigned _offset, typename _BitRange>
 struct ImmPart {
   using BitRange = _BitRange;
+
+  constexpr static void apply(const Instr_T value, Instr_T &instruction) {
+    instruction |= BitRange::apply(value >> _offset);
+  }
 };
 
 template <typename... ImmParts>
 struct ImmPartsImpl : public ImmParts... {
   using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
+
+  constexpr static void apply(const Instr_T value, Instr_T &instruction) {
+    (ImmParts::apply(value, instruction), ...);
+  }
 };
 
 enum class Repr { Unsigned, Signed, Hex };
@@ -141,7 +191,85 @@ inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
  */
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType, SymbolTransformer transformer>
-struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {};
+struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
+  using Reg_T_S = typename std::make_signed<Reg_T>::type;
+  using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
+
+  constexpr static int64_t getImm(const QString &immToken, bool &success,
+                                  ImmConvInfo &convInfo) {
+    return repr == Repr::Signed
+               ? getImmediateSext32(immToken, success, &convInfo)
+               : getImmediate(immToken, success, &convInfo);
+  }
+
+  static bool checkFitsInWidth(Reg_T_S value, ImmConvInfo &convInfo,
+                               QString token = QString()) {
+    bool err = false;
+    if (repr != Repr::Signed) {
+      if (!isUInt(width, value)) {
+        err = true;
+        if (token.isEmpty())
+          token = QString::number(static_cast<Reg_T_U>(value));
+      }
+    } else {
+
+      // In case of a bitwize (binary or hex) radix, interpret the value as
+      // legal if it fits in the width of this immediate (equal to an unsigned
+      // immediate check). e.g. a signed immediate value of 12 bits must be able
+      // to accept 0xAFF.
+      bool isBitwize =
+          convInfo.radix == Radix::Hex || convInfo.radix == Radix::Binary;
+      if (isBitwize) {
+        err = !isUInt(width, value);
+      }
+
+      if (!isBitwize || (isBitwize && err)) {
+        // A signed representation using an integer value in assembly OR a
+        // negative bitwize value which is represented in its full length (e.g.
+        // 0xFFFFFFF1).
+        err = !isInt(width, value);
+      }
+
+      if (err)
+        if (token.isEmpty())
+          token = QString::number(static_cast<Reg_T_S>(value));
+    }
+
+    if (err) {
+      //      return Error(sourceLine, "Immediate value '" + token +
+      //                                   "' does not fit in " +
+      //                                   QString::number(width) + " bits");
+      // TODO: Return error to caller
+      return false;
+    }
+
+    return true;
+  }
+
+  constexpr static bool apply(const TokenizedSrcLine &line,
+                              Instr_T &instruction/*,
+                              FieldLinkRequest<Reg_T> &linksWithSymbol*/) {
+    bool success = false;
+    const Token &immToken = line.tokens[tokenIndex];
+    ImmConvInfo convInfo;
+    Reg_T_S value = getImm(immToken, success, convInfo);
+
+    if (!success) {
+      // Could not directly resolve immediate. Register it as a symbol to link
+      // to.
+      //      linksWithSymbol.field = this;
+      //      linksWithSymbol.symbol = immToken;
+      //      linksWithSymbol.relocation = immToken.relocation();
+      return false;
+    }
+
+    if (checkFitsInWidth(value, convInfo, immToken))
+      return false;
+
+    ImmParts::apply(value, instruction);
+    return true;
+  }
+};
 
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType>
@@ -154,9 +282,19 @@ using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
 
 struct InstructionBase {
   virtual ~InstructionBase() = default;
+  virtual Instr_T assemble(const TokenizedSrcLine &tokens) = 0;
 };
 
 template <typename InstrImpl>
-struct Instruction : public InstructionBase {};
+struct Instruction : public InstructionBase {
+  Instr_T assemble(const TokenizedSrcLine &tokens) override {
+    Instr_T instruction = 0;
+
+    InstrImpl::Opcode::Impl::apply(instruction);
+    InstrImpl::Fields::Impl::apply(tokens, instruction);
+
+    return instruction;
+  }
+};
 
 } // namespace Ripes

@@ -7,7 +7,6 @@
 #include <variant>
 
 #include "assembler_defines.h"
-#include "assemblererror.h"
 
 namespace Ripes {
 namespace Assembler {

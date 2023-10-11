@@ -2,6 +2,7 @@
 
 #include "../isa/rvisainfo_common.h"
 #include "assembler.h"
+#include "isa/isa_defines.h"
 
 namespace Ripes {
 namespace Assembler {

@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "assembler.h"
+#include "isa/isa_defines.h"
 #include "rvassembler_common.h"
 
 namespace Ripes {

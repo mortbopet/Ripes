@@ -9,6 +9,7 @@
 #include <set>
 #include <vector>
 
+#include "isa/isa_defines.h"
 #include "ripes_types.h"
 
 namespace Ripes {
@@ -27,43 +28,6 @@ enum SourceType {
 };
 
 #define TEXT_SECTION_NAME ".text"
-
-struct Symbol {
-public:
-  enum Type { Address = 1 << 0, Constant = 1 << 1 };
-  Symbol(){};
-  Symbol(const char *str) : v(str) {}
-  Symbol(const QString &str) : v(str) {}
-  Symbol(const QString &str, const Type _type) : v(str), type(_type) {}
-
-  bool operator==(const Symbol &rhs) const { return this->v == rhs.v; }
-  bool operator<(const Symbol &rhs) const { return this->v < rhs.v; }
-
-  bool is(const Type t) const { return type & t; }
-  bool is(const unsigned t) const { return type & t; }
-
-  // A local symbol is a numerical label.
-  bool isLocal() const {
-    bool ok;
-    (void)v.toUInt(&ok);
-    return ok;
-  }
-
-  /// Returns true if this symbol is legal. An illegal symbal is any symbol that
-  /// starts with a numeric value which is not a number.
-  bool isLegal() const {
-    bool startsWithNum;
-    QString(v.front()).toInt(&startsWithNum);
-    if (startsWithNum && !isLocal())
-      return false;
-    return true;
-  }
-
-  operator const QString &() const { return v; }
-
-  QString v;
-  unsigned type = 0;
-};
 
 using ReverseSymbolMap = std::map<AInt, Symbol>;
 

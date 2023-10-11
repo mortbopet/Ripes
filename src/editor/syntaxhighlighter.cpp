@@ -4,7 +4,7 @@
 
 namespace Ripes {
 SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent,
-                                     std::shared_ptr<Assembler::Errors> errors)
+                                     std::shared_ptr<Errors> errors)
     : QSyntaxHighlighter(parent), m_errors(errors) {
   errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
   errorFormat.setUnderlineColor(Qt::red);

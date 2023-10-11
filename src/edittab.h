@@ -38,7 +38,7 @@ public:
   /// loaded.
   bool loadFile(const LoadFileParams &);
   void loadSourceText(const QString &text);
-  Assembler::Errors *errors();
+  Errors *errors();
 
   /// sets the current source type to whatever is specified by @p params and
   /// calls loadFile(@p params). Returns true if the file loaded successfully.
@@ -90,7 +90,7 @@ private:
   QAction *m_symbolNavigatorAction = nullptr;
 
   Ui::EditTab *m_ui = nullptr;
-  std::shared_ptr<Assembler::Errors> m_sourceErrors;
+  std::shared_ptr<Errors> m_sourceErrors;
 
   SourceType m_currentSourceType = SourceType::Assembly;
 

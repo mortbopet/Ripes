@@ -13,7 +13,7 @@ namespace Ripes {
 class CSyntaxHighlighter : public SyntaxHighlighter {
 public:
   CSyntaxHighlighter(QTextDocument *parent = nullptr,
-                     std::shared_ptr<Assembler::Errors> errors = {});
+                     std::shared_ptr<Errors> errors = {});
   void syntaxHighlightBlock(const QString &text) override;
 
 private:
