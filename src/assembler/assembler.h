@@ -2,12 +2,12 @@
 
 #include <QRegularExpression>
 
+#include "assembler_defines.h"
 #include "isa/instruction.h"
 #include "isa/isainfo.h"
 #include "matcher.h"
 #include "parserutilities.h"
-#include "pseudoinstruction.h"
-#include "relocation.h"
+// #include "pseudoinstruction.h"
 #include "ripes_types.h"
 
 #include <cstdint>
@@ -382,7 +382,7 @@ protected:
       addr_offset = currentSection->data.size();
       if (!wasDirective) {
         /// Maintain a pointer to the instruction that was assembled.
-        std::shared_ptr<_Instruction> assembledWith;
+        std::shared_ptr<InstructionBase> assembledWith;
         runOperation(machineCode, assembleInstruction, line, assembledWith);
         assert(assembledWith && "Expected the assembler instruction to be set");
         program.sourceMapping[addr_offset].insert(line.sourceLine());
@@ -476,19 +476,23 @@ protected:
 
       // Re-apply immediate resolution using the value acquired from the symbol
       // map
-      if (auto *immField =
-              dynamic_cast<const _Imm *>(linkRequest.fieldRequest.field)) {
-        if (auto res = immField->applySymbolResolution(
-                linkRequest, symbolValue, instr, linkReqAddress(linkRequest));
-            res.isError()) {
-          errors.push_back(res.error());
-          continue;
-        }
-      } else {
-        assert(
-            false &&
-            "Something other than an immediate field has requested linkage?");
-      }
+      // TODO: Get imm field from link request
+      //      if (auto *immField =
+      //              dynamic_cast<const Imm *>(linkRequest.fieldRequest.field))
+      //              {
+      //        if (auto res = immField->applySymbolResolution(
+      //                linkRequest, symbolValue, instr,
+      //                linkReqAddress(linkRequest));
+      //            res.isError()) {
+      //          errors.push_back(res.error());
+      //          continue;
+      //        }
+      //      } else {
+      //        assert(
+      //            false &&
+      //            "Something other than an immediate field has requested
+      //            linkage?");
+      //      }
 
       // Finally, overwrite the instruction in the section
       *reinterpret_cast<Instr_T *>(section.data() + linkRequest.offset) = instr;
@@ -527,9 +531,9 @@ protected:
     return {res};
   }
 
-  virtual _AssembleRes
+  virtual AssembleRes
   assembleInstruction(const TokenizedSrcLine &line,
-                      std::shared_ptr<_Instruction> &assembledWith) const {
+                      std::shared_ptr<InstructionBase> &assembledWith) const {
     if (line.tokens.empty()) {
       return {
           Error(line, "Empty source lines should be impossible at this point")};
@@ -543,7 +547,7 @@ protected:
     return assembledWith->assemble(line);
   }
 
-  void setPseudoInstructions(const _PseudoInstrVec &pseudoInstructions) {
+  void setPseudoInstructions(const PseudoInstrVec &pseudoInstructions) {
     if (m_pseudoInstructions.size() != 0) {
       throw std::runtime_error("Pseudoinstructions already set");
     }

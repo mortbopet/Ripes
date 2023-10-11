@@ -139,15 +139,28 @@ private:
       (OpParts::getStruct(), ...)};
 };
 
-template <typename Field>
+struct FieldBase {};
+
 struct FieldLinkRequest {
-  Field const *field = nullptr;
+  FieldBase const *field = nullptr;
   QString symbol = QString();
   QString relocation = QString();
 };
 
+/**
+ * @brief The InstrRes struct is returned by any assembler. Contains the
+ * assembled instruction alongside a flag noting whether the instruction needs
+ * additional linkage (ie. for symbol resolution).
+ */
+struct InstrRes {
+  Instr_T instruction = 0;
+  FieldLinkRequest linksWithSymbol;
+};
+
+using AssembleRes = Result<InstrRes>;
+
 template <unsigned _tokenIndex, typename _BitRanges>
-struct Field {
+struct Field : public FieldBase {
   using BitRanges = _BitRanges;
   constexpr static unsigned tokenIndex() { return _tokenIndex; }
 };
@@ -397,7 +410,7 @@ public:
   virtual Result<LineTokens>
   disassemble(const Instr_T instruction, const Reg_T address,
               const ReverseSymbolMap &symbolMap) const = 0;
-  virtual unsigned numParts() const = 0;
+  virtual unsigned numOpParts() const = 0;
   virtual OpPartStruct getOpPart(unsigned partIndex) const = 0;
 
   const QString &name() { return m_name; }
@@ -447,7 +460,7 @@ struct Instruction : public InstructionBase {
     }
     return Result<LineTokens>(line);
   }
-  unsigned numParts() const override {
+  unsigned numOpParts() const override {
     return InstrImpl::Opcode::Impl::numParts();
   }
   OpPartStruct getOpPart(unsigned partIndex) const override {

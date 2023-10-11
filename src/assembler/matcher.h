@@ -37,7 +37,7 @@ class Matcher {
         }
 
         if (!instruction ||
-            (instruction && depth <= instruction->numParts())) {
+            (instruction && depth <= instruction->numOpParts())) {
           QString matchField =
               QString::number(match.range.stop) + "[" +
               QStringLiteral("%1").arg(match.value, match.range.width(), 2,
