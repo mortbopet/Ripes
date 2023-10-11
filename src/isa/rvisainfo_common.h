@@ -16,80 +16,81 @@ constexpr ISA XLenToRVISA() {
   }
 }
 
-namespace RVISA {
-extern const QStringList RegAliases;
-extern const QStringList RegNames;
-extern const QStringList RegDescs;
+struct RVISA {
+  static const QStringList RegAliases;
+  static const QStringList RegNames;
+  static const QStringList RegDescs;
 
-enum OpcodeID {
-  LUI = 0b0110111,
-  JAL = 0b1101111,
-  JALR = 0b1100111,
-  BRANCH = 0b1100011,
-  LOAD = 0b0000011,
-  STORE = 0b0100011,
-  OPIMM = 0b0010011,
-  OP = 0b0110011,
-  OPIMM32 = 0b0011011,
-  OP32 = 0b0111011,
-  ECALL = 0b1110011,
-  AUIPC = 0b0010111,
-  INVALID = 0b0
-};
-enum QuadrantID {
-  QUADRANT0 = 0b00,
-  QUADRANT1 = 0b01,
-  QUADRANT2 = 0b10,
-  QUADRANT3 = 0b11
-};
+  enum OpcodeID {
+    LUI = 0b0110111,
+    JAL = 0b1101111,
+    JALR = 0b1100111,
+    BRANCH = 0b1100011,
+    LOAD = 0b0000011,
+    STORE = 0b0100011,
+    OPIMM = 0b0010011,
+    OP = 0b0110011,
+    OPIMM32 = 0b0011011,
+    OP32 = 0b0111011,
+    ECALL = 0b1110011,
+    AUIPC = 0b0010111,
+    INVALID = 0b0
+  };
+  enum QuadrantID {
+    QUADRANT0 = 0b00,
+    QUADRANT1 = 0b01,
+    QUADRANT2 = 0b10,
+    QUADRANT3 = 0b11
+  };
 
-unsigned regNumber(const QString &regToken, bool &success);
+  QString regName(unsigned regNumber);
+  unsigned regNumber(const QString &regToken, bool &success);
 
-/// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
-/// instruction
-template <unsigned opcode>
-struct OpPartOpcode : public OpPart<opcode, BitRange<0, 6>> {};
+  /// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
+  /// instruction
+  template <unsigned opcode>
+  struct OpPartOpcode : public OpPart<opcode, BitRange<0, 6>> {};
 
-/// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1
-/// of the instruction
-template <unsigned quadrant>
-struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1>> {};
+  /// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1
+  /// of the instruction
+  template <unsigned quadrant>
+  struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1>> {};
 
-/// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14
-/// of the instruction
-template <unsigned funct3>
-struct OpPartFunct3 : public OpPart<funct3, BitRange<12, 14>> {};
+  /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14
+  /// of the instruction
+  template <unsigned funct3>
+  struct OpPartFunct3 : public OpPart<funct3, BitRange<12, 14>> {};
 
-/// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31
-/// of the instruction
-template <unsigned funct6>
-struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
+  /// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31
+  /// of the instruction
+  template <unsigned funct6>
+  struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
 
-/// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31
-/// of the instruction
-template <unsigned funct7>
-struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
+  /// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31
+  /// of the instruction
+  template <unsigned funct7>
+  struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
 
-/// The RISC-V Rs1 field contains a source register index.
-/// It is defined as a 5-bit field in bits 15-19 of the instruction
-template <unsigned tokenIndex>
-struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>> {
-  RegRs1() : Reg<tokenIndex, BitRange<15, 19>>("rs1") {}
-};
+  /// The RISC-V Rs1 field contains a source register index.
+  /// It is defined as a 5-bit field in bits 15-19 of the instruction
+  template <unsigned tokenIndex>
+  struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>, RVISA> {
+    RegRs1() : Reg<tokenIndex, BitRange<15, 19>, RVISA>("rs1") {}
+  };
 
-/// The RISC-V Rs2 field contains a source register index.
-/// It is defined as a 5-bit field in bits 20-24 of the instruction
-template <unsigned tokenIndex>
-struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>> {
-  RegRs2() : Reg<tokenIndex, BitRange<20, 24>>("rs2") {}
-};
+  /// The RISC-V Rs2 field contains a source register index.
+  /// It is defined as a 5-bit field in bits 20-24 of the instruction
+  template <unsigned tokenIndex>
+  struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RVISA> {
+    RegRs2() : Reg<tokenIndex, BitRange<20, 24>, RVISA>("rs2") {}
+  };
 
-/// The RISC-V Rd field contains a destination register index.
-/// It is defined as a 5-bit field in bits 7-11 of the instruction
-template <unsigned tokenIndex>
-struct RegRd : public Reg<tokenIndex, BitRange<7, 11>> {
-  RegRd() : Reg<tokenIndex, BitRange<7, 11>>("rd") {}
-};
+  /// The RISC-V Rd field contains a destination register index.
+  /// It is defined as a 5-bit field in bits 7-11 of the instruction
+  template <unsigned tokenIndex>
+  struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RVISA> {
+    RegRd() : Reg<tokenIndex, BitRange<7, 11>, RVISA>("rd") {}
+  };
 }; // namespace RVISA
 
 namespace RVABI {

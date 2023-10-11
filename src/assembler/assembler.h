@@ -177,7 +177,7 @@ public:
     return opcodes;
   }
 
-  void setRelocations(const _RelocationsVec &relocations) {
+  void setRelocations(const RelocationsVec &relocations) {
     if (m_relocations.size() != 0) {
       throw std::runtime_error("Directives already set");
     }

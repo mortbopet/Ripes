@@ -9,7 +9,6 @@
 
 #include "binutils.h"
 #include "isa_defines.h"
-#include "processorhandler.h"
 #include <STLExtras.h>
 
 namespace Ripes {
@@ -188,17 +187,13 @@ private:
   }
 };
 
-namespace RVISA {
-unsigned regNumber(const QString &regToken, bool &success);
-}
-
 /**
  * @brief Reg
  * @param tokenIndex: Index within a list of decoded instruction tokens that
  * corresponds to the register index
  * @param BitRange: range in instruction field containing register index value
  */
-template <unsigned tokenIndex, typename BitRange>
+template <unsigned tokenIndex, typename BitRange, typename ISA>
 struct Reg : public Field<tokenIndex, BitRange> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
 
@@ -207,7 +202,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
         Instr_T &instruction /*, FieldLinkRequest<Reg_T> &*/) {
     const auto &regToken = line.tokens.at(tokenIndex);
     bool success = false;
-    unsigned regIndex = RVISA::regNumber(regToken, success);
+    unsigned regIndex = ISA::regNumber(regToken, success);
     if (!success) {
       // TODO: Set error in FieldLinkRequest
       //      return Error(line, "Unknown register '" + regToken + "'");
@@ -219,8 +214,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
   static bool decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::decode(instruction);
-    const Token registerName(
-        ProcessorHandler::currentISA()->regName(regNumber));
+    const Token registerName(ISA::regName(regNumber));
     if (registerName.isEmpty()) {
       //      return Error(0, "Unknown register number '" +
       //      QString::number(regNumber) +
