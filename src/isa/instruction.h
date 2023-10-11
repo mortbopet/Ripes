@@ -72,6 +72,10 @@ struct BitRangesImpl : public BitRanges... {
   constexpr static void apply(Instr_T &instruction) {
     (BitRanges::apply(instruction), ...);
   }
+  constexpr static void
+  retrieveBitRanges(std::vector<BitRangeStruct> &bitRanges) {
+    (bitRanges.push_back(BitRanges::getStruct()), ...);
+  }
 };
 
 struct OpPartStruct {
@@ -126,6 +130,10 @@ public:
     assert(partIndex < OP_PARTS.size());
     return OP_PARTS[partIndex];
   }
+  constexpr static void
+  retrieveBitRanges(std::vector<BitRangeStruct> &bitRanges) {
+    BitRanges::retrieveBitRanges(bitRanges);
+  }
 
 private:
   constexpr static std::array<OpPartStruct, numParts()> OP_PARTS = {
@@ -148,6 +156,8 @@ struct Field {
 template <typename... Fields>
 class FieldsImpl : public Fields... {
 public:
+  static_assert(FieldsImpl::verify());
+
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
   constexpr static void apply(const TokenizedSrcLine &tokens,
@@ -155,20 +165,26 @@ public:
     (Fields::apply(tokens, instruction), ...);
   }
   constexpr static unsigned numFields() { return sizeof...(Fields); }
+  constexpr static void
+  retrieveBitRanges(std::vector<BitRangeStruct> &bitRanges) {
+    BitRanges::retrieveBitRanges(bitRanges);
+  }
 
 private:
   /// Verify that the token indices specified for this operation:
   /// 1. do not overlap
   /// 2. are sequentially ordered, starting from 0
-  constexpr static void verify() {
-    // sanity check the provided token indexes
+  constexpr static bool verify() {
+    // 1. sanity check the provided token indexes
     static_assert((Fields::tokenIndex() != ...), "Duplicate token indices!");
     unsigned indices[numFields()] = {0};
     ((indices[Fields::tokenindex()] += 1), ...);
     for (constexpr auto index : indices) {
+      // 2.
       static_assert(index == 1, "Mismatched token indexes, should have "
                                 "registerred 1:N sequential tokens");
     }
+    return true;
   }
 };
 
@@ -416,7 +432,7 @@ protected:
 
 template <typename InstrImpl>
 struct Instruction : public InstructionBase {
-  Instruction(const QString &name) : InstructionBase(name) {}
+  Instruction(const QString &name) : InstructionBase(name) { verify(); }
 
   Instr_T assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
@@ -449,7 +465,40 @@ struct Instruction : public InstructionBase {
   /// 2. fully defines the instruction (no bits are unaccounted for)
   /// 3. is byte aligned
   /// Using this information, we also set the size of this instruction.
-  void verify() {}
+  void verify() {
+    std::vector<BitRangeStruct> bitRanges;
+    InstrImpl::Opcode::Impl::retrieveBitRanges(bitRanges);
+    InstrImpl::Fields::Impl::retrieveBitRanges(bitRanges);
+
+    // 1.
+    std::set<unsigned> registeredBits;
+    for (auto &range : bitRanges) {
+      for (unsigned i = range.start; i <= range.stop; ++i) {
+        assert(registeredBits.count(i) == 0 &&
+               "Bit already registerred by some other field");
+        registeredBits.insert(i);
+      }
+    }
+
+    // 2.
+    assert(registeredBits.count(0) == 1 && "Expected bit 0 to be in bit-range");
+    // rbegin due to set being sorted.
+    unsigned nBits = registeredBits.size();
+    if ((nBits - 1) != *registeredBits.rbegin()) {
+      std::string err = "Bits '";
+      for (unsigned i = 0; i < nBits; ++i) {
+        if (registeredBits.count(i) == 0) {
+          err += std::to_string(i) + ", ";
+        }
+      }
+      std::cerr << err << "\n";
+      assert(false);
+    }
+
+    // 3.
+    assert(nBits % CHAR_BIT == 0 && "Expected instruction to be byte-aligned");
+    m_byteSize = nBits / CHAR_BIT;
+  }
 };
 
 using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
