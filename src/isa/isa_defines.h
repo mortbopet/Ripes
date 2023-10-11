@@ -142,6 +142,7 @@ public:
   unsigned type = 0;
 };
 
+using ReverseSymbolMap = std::map<AInt, Symbol>;
 using Symbols = std::set<Symbol>;
 using DirectiveLinePair = std::pair<QString, LineTokens>;
 

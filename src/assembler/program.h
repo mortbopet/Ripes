@@ -29,8 +29,6 @@ enum SourceType {
 
 #define TEXT_SECTION_NAME ".text"
 
-using ReverseSymbolMap = std::map<AInt, Symbol>;
-
 struct LoadFileParams {
   QString filepath;
   SourceType type;

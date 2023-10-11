@@ -9,6 +9,8 @@
 
 #include "binutils.h"
 #include "isa_defines.h"
+#include "processorhandler.h"
+#include <STLExtras.h>
 
 namespace Ripes {
 
@@ -25,6 +27,15 @@ constexpr T generateBitmask(T n) {
   return T_U((T_U(1) << n) - 1);
 }
 
+struct BitRangeStruct {
+  unsigned start, stop, N;
+  unsigned width() const { return stop - start + 1; }
+  Instr_T getMask() const { return generateBitmask(width()); }
+  Instr_T decode(Instr_T instruction) const {
+    return (instruction >> start) & getMask();
+  }
+};
+
 /// start/stop values for bitranges are inclusive..
 template <unsigned _start, unsigned _stop, unsigned _N = 32>
 struct BitRange {
@@ -33,6 +44,10 @@ struct BitRange {
   constexpr static unsigned stop() { return _stop; }
   constexpr static unsigned width() { return _stop - _start + 1; }
   constexpr static Instr_T getMask() { return generateBitmask(width()); }
+
+  constexpr static BitRangeStruct getStruct() {
+    return BitRangeStruct{_start, _stop, _N};
+  }
 
   constexpr static Instr_T apply(Instr_T value) {
     return (value & getMask()) << _start;
@@ -59,6 +74,14 @@ struct BitRangesImpl : public BitRanges... {
   }
 };
 
+struct OpPartStruct {
+  unsigned value;
+  BitRangeStruct range;
+  bool matches(Instr_T instruction) const {
+    return range.decode(instruction) == value;
+  }
+};
+
 /** @brief OpPart
  * A segment of an operation-identifying field of an instruction.
  */
@@ -66,6 +89,9 @@ template <unsigned _value, typename _BitRange>
 struct OpPart {
   using BitRange = _BitRange;
   constexpr static unsigned value() { return _value; }
+  constexpr static OpPartStruct getStruct() {
+    return OpPartStruct{_value, BitRange::getStruct()};
+  }
 
   constexpr static void apply(Instr_T &instruction) {
     instruction |= BitRange::apply(value());
@@ -88,12 +114,22 @@ struct OpPart {
 };
 
 template <typename... OpParts>
-struct OpcodeImpl : public OpParts... {
+class OpcodeImpl : public OpParts... {
+public:
   using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
 
   constexpr static void apply(Instr_T &instruction) {
     (OpParts::apply(instruction), ...);
   }
+  constexpr static unsigned numParts() { return sizeof...(OpParts); }
+  constexpr static OpPartStruct getOpPart(unsigned partIndex) {
+    assert(partIndex < OP_PARTS.size());
+    return OP_PARTS[partIndex];
+  }
+
+private:
+  constexpr static std::array<OpPartStruct, numParts()> OP_PARTS = {
+      (OpParts::getStruct(), ...)};
 };
 
 template <typename Field>
@@ -103,18 +139,36 @@ struct FieldLinkRequest {
   QString relocation = QString();
 };
 
-template <unsigned tokenIdx, typename _BitRanges>
+template <unsigned _tokenIndex, typename _BitRanges>
 struct Field {
   using BitRanges = _BitRanges;
+  constexpr static unsigned tokenIndex() { return _tokenIndex; }
 };
 
 template <typename... Fields>
-struct FieldsImpl : public Fields... {
+class FieldsImpl : public Fields... {
+public:
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
   constexpr static void apply(const TokenizedSrcLine &tokens,
                               Instr_T &instruction) {
     (Fields::apply(tokens, instruction), ...);
+  }
+  constexpr static unsigned numFields() { return sizeof...(Fields); }
+
+private:
+  /// Verify that the token indices specified for this operation:
+  /// 1. do not overlap
+  /// 2. are sequentially ordered, starting from 0
+  constexpr static void verify() {
+    // sanity check the provided token indexes
+    static_assert((Fields::tokenIndex() != ...), "Duplicate token indices!");
+    unsigned indices[numFields()] = {0};
+    ((indices[Fields::tokenindex()] += 1), ...);
+    for (constexpr auto index : indices) {
+      static_assert(index == 1, "Mismatched token indexes, should have "
+                                "registerred 1:N sequential tokens");
+    }
   }
 };
 
@@ -146,6 +200,20 @@ struct Reg : public Field<tokenIndex, BitRange> {
     instruction |= BitRange::apply(regIndex);
     return true;
   }
+  static bool decode(const Instr_T instruction, const Reg_T,
+                     const ReverseSymbolMap &, LineTokens &line) {
+    const unsigned regNumber = BitRange::decode(instruction);
+    const Token registerName(
+        ProcessorHandler::currentISA()->regName(regNumber));
+    if (registerName.isEmpty()) {
+      //      return Error(0, "Unknown register number '" +
+      //      QString::number(regNumber) +
+      //                          "'");
+      return false;
+    }
+    line.push_back(registerName);
+    return true;
+  }
 
   const QString regsd = "reg";
 };
@@ -157,6 +225,9 @@ struct ImmPart {
   constexpr static void apply(const Instr_T value, Instr_T &instruction) {
     instruction |= BitRange::apply(value >> _offset);
   }
+  constexpr static void decode(Instr_T &value, const Instr_T instruction) {
+    value |= BitRange::decode(instruction) << _offset;
+  }
 };
 
 template <typename... ImmParts>
@@ -165,6 +236,10 @@ struct ImmPartsImpl : public ImmParts... {
 
   constexpr static void apply(const Instr_T value, Instr_T &instruction) {
     (ImmParts::apply(value, instruction), ...);
+  }
+  constexpr static void decode(const Instr_T &value,
+                               const Instr_T instruction) {
+    (ImmParts::decode(value, instruction), ...);
   }
 };
 
@@ -269,6 +344,30 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     ImmParts::apply(value, instruction);
     return true;
   }
+  constexpr static bool decode(const Instr_T instruction, const Reg_T address,
+                               const ReverseSymbolMap &symbolMap,
+                               LineTokens &line) {
+    Instr_T reconstructed = 0;
+    ImmParts::decode(reconstructed, instruction);
+    if (repr == Repr::Signed) {
+      line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
+    } else if (repr == Repr::Unsigned) {
+      line.push_back(QString::number(reconstructed));
+    } else {
+      line.push_back("0x" + QString::number(reconstructed, 16));
+    }
+
+    if (symbolType != SymbolType::None) {
+      const int value = vsrtl::signextend(reconstructed, width);
+      const Reg_T symbolAddress =
+          value + (symbolType == SymbolType::Absolute ? 0 : address);
+      if (symbolMap.count(symbolAddress)) {
+        line.push_back("<" + symbolMap.at(symbolAddress).v + ">");
+      }
+    }
+
+    return true;
+  }
 };
 
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
@@ -280,13 +379,45 @@ template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts>
 using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
                     defaultTransformer>;
 
-struct InstructionBase {
+class InstructionBase {
+public:
+  InstructionBase(const QString &name) : m_name(name) {}
   virtual ~InstructionBase() = default;
   virtual Instr_T assemble(const TokenizedSrcLine &tokens) = 0;
+  virtual Result<LineTokens>
+  disassemble(const Instr_T instruction, const Reg_T address,
+              const ReverseSymbolMap &symbolMap) const = 0;
+  virtual unsigned numParts() const = 0;
+  virtual OpPartStruct getOpPart(unsigned partIndex) const = 0;
+
+  const QString &name() { return m_name; }
+  /**
+   * @brief size
+   * @return size of assembled instruction, in bytes.
+   */
+  unsigned size() const { return m_byteSize; }
+
+  void addExtraMatchCond(const std::function<bool(Instr_T)> &f) {
+    m_extraMatchConditions.push_back(f);
+  }
+  bool hasExtraMatchConds() const { return !m_extraMatchConditions.empty(); }
+  bool matchesWithExtras(Instr_T instr) const {
+    return llvm::all_of(m_extraMatchConditions,
+                        [&](const auto &f) { return f(instr); });
+  }
+
+protected:
+  /// An optional set of disassembler match conditions, if the default
+  /// opcode-based matching is insufficient.
+  std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
+  const QString m_name;
+  unsigned m_byteSize = -1;
 };
 
 template <typename InstrImpl>
 struct Instruction : public InstructionBase {
+  Instruction(const QString &name) : InstructionBase(name) {}
+
   Instr_T assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
 
@@ -295,6 +426,34 @@ struct Instruction : public InstructionBase {
 
     return instruction;
   }
+  Result<LineTokens>
+  disassemble(const Instr_T instruction, const Reg_T address,
+              const ReverseSymbolMap &symbolMap) const override {
+    LineTokens line;
+    line.push_back(m_name);
+    if (auto error = InstrImpl::Fields::Impl::decode(instruction, address,
+                                                     symbolMap, line)) {
+      return Result<LineTokens>(*error);
+    }
+    return Result<LineTokens>(line);
+  }
+  unsigned numParts() const override {
+    return InstrImpl::Opcode::Impl::numParts();
+  }
+  OpPartStruct getOpPart(unsigned partIndex) const override {
+    return InstrImpl::Opcode::Impl::getOpPart(partIndex);
+  }
+
+  /// Verify that the bitranges specified for this operation:
+  /// 1. do not overlap
+  /// 2. fully defines the instruction (no bits are unaccounted for)
+  /// 3. is byte aligned
+  /// Using this information, we also set the size of this instruction.
+  void verify() {}
 };
+
+using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
+
+using InstrVec = std::vector<std::shared_ptr<InstructionBase>>;
 
 } // namespace Ripes

@@ -68,15 +68,11 @@ struct RVIExt {
 
   std::vector<std::unique_ptr<InstructionBase>> instructions;
 
-  RVIExt() {
-    std::cout << "Statically looking up a bitfield: "
-              << std::bitset<7>(AddI::Opcode::RVOpcode::value()) << std::endl;
-
-    instructions.emplace_back(std::make_unique<AddI>());
-  }
+  RVIExt() { instructions.emplace_back(std::make_unique<AddI>()); }
 };
 
 struct RV32ISA : public RVIExt {
+  // TODO: Link this into the assembler
   Instr_T assemble(const TokenizedSrcLine &tokens) {
     return this->instructions.at(0)->assemble(tokens);
   }
