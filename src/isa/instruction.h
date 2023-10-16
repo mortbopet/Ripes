@@ -80,6 +80,9 @@ struct BitRangesImpl : public BitRanges... {
 struct OpPartStruct {
   unsigned value;
   BitRangeStruct range;
+  bool operator<(const OpPartStruct &other) const {
+    return range.start < other.range.start;
+  }
   bool matches(Instr_T instruction) const {
     return range.decode(instruction) == value;
   }
@@ -166,7 +169,7 @@ struct Field : public FieldBase {
 };
 
 /// Base case for when Fields... is empty
-template <typename... Fields>
+template <typename Field>
 constexpr bool fieldVerifyHelper(unsigned) {
   return true;
 }
@@ -207,7 +210,7 @@ public:
  * corresponds to the register index
  * @param BitRange: range in instruction field containing register index value
  */
-template <unsigned tokenIndex, typename BitRange, typename ISA>
+template <unsigned tokenIndex, typename BitRange, typename ISARegInterface>
 struct Reg : public Field<tokenIndex, BitRange> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
 
@@ -216,7 +219,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
         Instr_T &instruction /*, FieldLinkRequest<Reg_T> &*/) {
     const auto &regToken = line.tokens.at(tokenIndex);
     bool success = false;
-    unsigned regIndex = ISA::regNumber(regToken, success);
+    unsigned regIndex = ISARegInterface::regNumber(regToken, success);
     if (!success) {
       // TODO: Set error in FieldLinkRequest
       //      return Error(line, "Unknown register '" + regToken + "'");
@@ -228,7 +231,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
   static bool decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::decode(instruction);
-    const Token registerName(ISA::regName(regNumber));
+    const Token registerName(ISARegInterface::regName(regNumber));
     if (registerName.isEmpty()) {
       //      return Error(0, "Unknown register number '" +
       //      QString::number(regNumber) +

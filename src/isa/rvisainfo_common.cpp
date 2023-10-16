@@ -50,32 +50,11 @@ const QStringList RegDescs = QStringList() << "Hard-Wired zero"
                                            << "Temporary register\nSaver: Caller";
 // clang-format on
 
-// unsigned RVISAInterface::regNumber(const QString &regToken, bool &success) {
-//   QString regRes = regToken;
-//   success = true;
-//   if (regToken[0] == 'x' && (RVISA::RegNames.count(regToken) != 0)) {
-//     regRes.remove('x');
-//     return regRes.toInt(&success, 10);
-//   } else if (RVISA::RegAliases.contains(regToken)) {
-//     return RVISA::RegAliases.indexOf(regToken);
-//   }
-//   success = false;
-//   return 0;
-// }
-
-// QString RVISAInterface::regName(unsigned regNumber) {
-//   return RVISA::RegNames.size() > static_cast<int>(regNumber)
-//              ? RVISA::RegNames.at(static_cast<int>(regNumber))
-//              : QString();
-// }
 } // namespace RVISA
 
 namespace RVABI {
 const std::map<RVElfFlags, QString> ELFFlagStrings{
     {RVC, "RVC"}, {FloatABI, "Float ABI"}, {RVE, "RVE"}, {TSO, "TSO"}};
 }
-
-const QString RVISAInterface::NAME = RVISAInterface::CCmarch().toUpper();
-static const QStringList SUPPORTED_EXTENSIONS = {"M", "C"};
 
 } // namespace Ripes
