@@ -28,6 +28,99 @@ const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
     {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
     {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
 
+template <typename ISAImpl>
+struct ISAInterface {
+  static const QString &name() { return ISAImpl::NAME; }
+  //  constexpr static ISA isaID();
+
+  /// Returns the number of registers in the instruction set.
+  //  constexpr static unsigned regCnt();
+  /// Returns the canonical name of the i'th register in the ISA.
+  //  static const QString &regName(unsigned i);
+  /// Returns the register index for a register name. If regName is not part of
+  /// the ISA, sets success to false.
+  //  static unsigned regNumber(const QString &regName, bool &success);
+  /// Returns the alias name of the i'th register in the ISA. If no alias is
+  /// present, should return regName(i).
+  //  static QString regAlias(unsigned i);
+  /// Returns additional information about the i'th register, i.e. caller/calle
+  /// saved info, stack register ...
+  //  static QString regInfo(unsigned i);
+  /// Returns if the i'th register is read-only.
+  //  static bool regIsReadOnly(unsigned i);
+  /// Register width, in bits
+  //  constexpr static unsigned bits();
+  /// Register width, in bytes
+  constexpr unsigned bytes() const { return ISAImpl::bits() / CHAR_BIT; }
+  /// Instruction width, in bits
+  //  constexpr static unsigned instrBits();
+  /// Instruction width, in bytes
+  constexpr static unsigned instrBytes() {
+    return ISAImpl::instrBits() / CHAR_BIT;
+  }
+  /// Instruction Alignment, in bytes
+  //  constexpr static unsigned instrByteAlignment();
+  /// Stack pointer
+  //  constexpr static int spReg();
+  /// Global pointer
+  //  constexpr static int gpReg();
+  /// Syscall function register
+  //  constexpr static int syscallReg();
+  /// Mapping between syscall argument # and the corresponding register #
+  /// wherein that argument is passed.
+  //  static int syscallArgReg(unsigned argIdx);
+
+  // GCC Compile command architecture and ABI specification strings
+  //  static QString CCmarch();
+  //  static QString CCmabi();
+  //  constexpr static unsigned elfMachineId();
+
+  /**
+   * @brief elfSupportsFlags
+   * The instructcion set should determine whether the provided @p flags, as
+   * retrieved from an ELF file, are valid flags for the instruction set. If a
+   * mismatch is found, an error message describing the mismatch is returned.
+   * Else, returns an empty QString(), validating the flags.
+   */
+  //  static QString elfSupportsFlags(unsigned flags);
+
+  /**
+   * @brief supportedExtensions/enabledExtensions
+   * An ISA may have a set of (optional) extensions which may be
+   * enabled/disabled for a given processor. SupportedExtensions can be used
+   * when ie. instantiating a processor and enabledExtensions when instantiating
+   * an assembler for a given processor.
+   */
+  static const QStringList &enabledExtensions() {
+    return ISAImpl::ENABLED_EXTENSIONS;
+  }
+  bool extensionEnabled(const QString &ext) const {
+    return enabledExtensions().contains(ext);
+  }
+  static const QStringList &supportedExtensions() {
+    return ISAImpl::SUPPORTED_EXTENSIONS;
+  }
+  static bool supportsExtension(const QString &ext) {
+    return supportedExtensions().contains(ext);
+  }
+  //  static QString extensionDescription(const QString &ext);
+
+  /**
+   * ISA equality is defined as a separate function rather than the == operator,
+   * given that we might need to check for ISA equivalence, without having
+   * instantiated the other ISA. As such, it being uninstantiated does not allow
+   * comparison of extensions.
+   */
+  template <typename OtherISAInterface>
+  bool eq() const {
+    const auto ext1 =
+        QSet(enabledExtensions().begin(), enabledExtensions().end());
+    const auto ext2 = QSet(OtherISAInterface::enabledExtensions().begin(),
+                           OtherISAInterface::enabledExtensions().end());
+    return name() == OtherISAInterface::name() && ext1 == ext2;
+  }
+};
+
 /// The ISAInfoBase class defines an interface for instruction set information.
 class ISAInfoBase {
 public:

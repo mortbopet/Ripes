@@ -43,10 +43,10 @@ enum QuadrantID {
   QUADRANT3 = 0b11
 };
 
-struct RVISAInterface {
-  static QString regName(unsigned regNumber);
-  static unsigned regNumber(const QString &regToken, bool &success);
-};
+// struct RVISAInterface {
+//   static QString regName(unsigned regNumber);
+//   static unsigned regNumber(const QString &regToken, bool &success);
+// };
 
 /// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
 /// instruction
@@ -126,32 +126,39 @@ enum SysCall {
 
 } // namespace RVABI
 
-class RVISAInfoBase : public ISAInfoBase {
-public:
-  unsigned int regCnt() const override { return 32; }
-  QString regName(unsigned i) const override {
+template <typename RVISAImpl>
+struct RVISAInterface : public ISAInterface<RVISAInterface<RVISAImpl>> {
+  static const QString NAME;
+  static const QStringList SUPPORTED_EXTENSIONS;
+
+  constexpr unsigned int regCnt() { return 32; }
+  static QString regName(unsigned i) {
     return RVISA::RegNames.size() > static_cast<int>(i)
                ? RVISA::RegNames.at(static_cast<int>(i))
                : QString();
   }
-  QString regAlias(unsigned i) const override {
+  static QString regAlias(unsigned i) {
     return RVISA::RegAliases.size() > static_cast<int>(i)
                ? RVISA::RegAliases.at(static_cast<int>(i))
                : QString();
   }
-  QString regInfo(unsigned i) const override {
+  static QString regInfo(unsigned i) {
     return RVISA::RegDescs.size() > static_cast<int>(i)
                ? RVISA::RegDescs.at(static_cast<int>(i))
                : QString();
   }
-  QString name() const override { return CCmarch().toUpper(); }
-  bool regIsReadOnly(unsigned i) const override { return i == 0; }
-  int spReg() const override { return 2; }
-  int gpReg() const override { return 3; }
-  int syscallReg() const override { return 17; }
-  unsigned instrBits() const override { return 32; }
-  unsigned elfMachineId() const override { return EM_RISCV; }
-  unsigned int regNumber(const QString &reg, bool &success) const override {
+  static bool regIsReadOnly(unsigned i) { return i == 0; }
+  constexpr static int spReg() { return 2; }
+  constexpr static int gpReg() { return 3; }
+  constexpr static int syscallReg() { return 17; }
+  constexpr static unsigned instrBits() { return 32; }
+  constexpr static unsigned elfMachineId() { return EM_RISCV; }
+  static QString CCmarch() { return RVISAImpl::CCmarch(); }
+  static QString CCmabi() { return RVISAImpl::CCmabi(); }
+  constexpr static unsigned instrByteAlignment() {
+    return RVISAImpl::instrByteAlignment();
+  }
+  unsigned int regNumber(const QString &reg, bool &success) {
     QString regRes = reg;
     success = true;
     if (reg[0] == 'x' && (RVISA::RegNames.count(reg) != 0)) {
@@ -163,12 +170,11 @@ public:
     success = false;
     return 0;
   }
-  virtual int syscallArgReg(unsigned argIdx) const override {
+  static int syscallArgReg(unsigned argIdx) {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
     return argIdx + 10;
   }
-
-  QString elfSupportsFlags(unsigned flags) const override {
+  static QString elfSupportsFlags(unsigned flags) {
     /** We expect no flags for RV32IM compiled RISC-V executables.
      *  Refer to:
      * https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#-elf-object-files
@@ -183,24 +189,13 @@ public:
     }
     return QString();
   }
-
-  const QStringList &supportedExtensions() const override {
-    return m_supportedExtensions;
-  }
-  const QStringList &enabledExtensions() const override {
-    return m_enabledExtensions;
-  }
-  QString extensionDescription(const QString &ext) const override {
+  static QString extensionDescription(const QString &ext) {
     if (ext == "M")
       return "Integer multiplication and division";
     if (ext == "C")
       return "Compressed instructions";
     Q_UNREACHABLE();
   }
-
-protected:
-  QStringList m_enabledExtensions;
-  QStringList m_supportedExtensions = {"M", "C"};
 };
 
 } // namespace Ripes

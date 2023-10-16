@@ -273,8 +273,6 @@ struct Result : public std::variant<Error, T> {
   static T def() { return std::monostate(); }
 };
 
-class AssemblerBase;
-
 using HandleRelocationRes = Result<Reg_T>;
 
 class Relocation {
