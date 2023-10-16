@@ -59,6 +59,7 @@ struct RVIExt {
   };
 
   struct AddI : public InstrIType<AddI> {
+    static QString mnemonic() { return "addi"; }
     constexpr static unsigned funct3() {
       return InstrIType<AddI>::Funct3ID::ADDI;
     }

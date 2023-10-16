@@ -165,10 +165,28 @@ struct Field : public FieldBase {
   constexpr static unsigned tokenIndex() { return _tokenIndex; }
 };
 
+/// Base case for when Fields... is empty
+template <typename... Fields>
+constexpr bool fieldVerifyHelper(unsigned) {
+  return true;
+}
+
+/// Ensure each field has the correct token index
+template <typename Field, typename... OtherFields>
+constexpr bool fieldVerifyHelper(unsigned index) {
+  return (Field::tokenIndex() == index) &&
+         fieldVerifyHelper<OtherFields...>(index + 1);
+}
+
 template <typename... Fields>
 class FieldsImpl : public Fields... {
 public:
-  static_assert(FieldsImpl::verify());
+  /// Verify that the token indices specified for this operation:
+  /// 1. do not overlap
+  static_assert((Fields::tokenIndex() != ...), "Duplicate token indices!");
+  /// 2. are sequentially ordered, starting from 0  // 1. sanity check the
+  /// provided token indexes
+  static_assert(fieldVerifyHelper<Fields...>(0));
 
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
@@ -180,23 +198,6 @@ public:
   constexpr static void
   retrieveBitRanges(std::vector<BitRangeStruct> &bitRanges) {
     BitRanges::retrieveBitRanges(bitRanges);
-  }
-
-private:
-  /// Verify that the token indices specified for this operation:
-  /// 1. do not overlap
-  /// 2. are sequentially ordered, starting from 0
-  constexpr static bool verify() {
-    // 1. sanity check the provided token indexes
-    static_assert((Fields::tokenIndex() != ...), "Duplicate token indices!");
-    unsigned indices[numFields()] = {0};
-    ((indices[Fields::tokenindex()] += 1), ...);
-    for (constexpr auto index : indices) {
-      // 2.
-      static_assert(index == 1, "Mismatched token indexes, should have "
-                                "registerred 1:N sequential tokens");
-    }
-    return true;
   }
 };
 
@@ -404,16 +405,15 @@ using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
 
 class InstructionBase {
 public:
-  InstructionBase(const QString &name) : m_name(name) {}
   virtual ~InstructionBase() = default;
   virtual Instr_T assemble(const TokenizedSrcLine &tokens) = 0;
   virtual Result<LineTokens>
   disassemble(const Instr_T instruction, const Reg_T address,
               const ReverseSymbolMap &symbolMap) const = 0;
-  virtual unsigned numOpParts() const = 0;
   virtual OpPartStruct getOpPart(unsigned partIndex) const = 0;
+  virtual const QString &name() const = 0;
+  virtual unsigned numOpParts() const = 0;
 
-  const QString &name() { return m_name; }
   /**
    * @brief size
    * @return size of assembled instruction, in bytes.
@@ -433,13 +433,13 @@ protected:
   /// An optional set of disassembler match conditions, if the default
   /// opcode-based matching is insufficient.
   std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
-  const QString m_name;
   unsigned m_byteSize = -1;
 };
 
 template <typename InstrImpl>
-struct Instruction : public InstructionBase {
-  Instruction(const QString &name) : InstructionBase(name) { verify(); }
+class Instruction : public InstructionBase {
+public:
+  Instruction() : m_name(InstrImpl::mnemonic()) { verify(); }
 
   Instr_T assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
@@ -453,18 +453,19 @@ struct Instruction : public InstructionBase {
   disassemble(const Instr_T instruction, const Reg_T address,
               const ReverseSymbolMap &symbolMap) const override {
     LineTokens line;
-    line.push_back(m_name);
+    line.push_back(name());
     if (auto error = InstrImpl::Fields::Impl::decode(instruction, address,
                                                      symbolMap, line)) {
       return Result<LineTokens>(*error);
     }
     return Result<LineTokens>(line);
   }
-  unsigned numOpParts() const override {
-    return InstrImpl::Opcode::Impl::numParts();
-  }
   OpPartStruct getOpPart(unsigned partIndex) const override {
     return InstrImpl::Opcode::Impl::getOpPart(partIndex);
+  }
+  const QString &name() const override { return m_name; }
+  unsigned numOpParts() const override {
+    return InstrImpl::Opcode::Impl::numParts();
   }
 
   /// Verify that the bitranges specified for this operation:
@@ -506,6 +507,9 @@ struct Instruction : public InstructionBase {
     assert(nBits % CHAR_BIT == 0 && "Expected instruction to be byte-aligned");
     m_byteSize = nBits / CHAR_BIT;
   }
+
+private:
+  const QString m_name;
 };
 
 using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
