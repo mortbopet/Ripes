@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "instruction.h"
 #include "isa_defines.h"
 #include "symbolmap.h"
 
@@ -19,11 +20,12 @@ using PseudoExpandFunc = std::function<Result<std::vector<LineTokens>>(
 
 template <typename PseudoInstrImpl>
 struct PseudoInstruction : public PseudoInstructionBase {
+  QString name() const override { return PseudoInstrImpl::mnemonic(); }
   Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                          SymbolMap &symbols) override {
     if (line.tokens.length() != PseudoInstrImpl::ExpectedTokens) {
       return Error(line,
-                   "Instruction '" + PseudoInstrImpl::name() + "' expects " +
+                   "Instruction '" + name() + "' expects " +
                        QString::number(PseudoInstrImpl::ExpectedTokens - 1) +
                        " arguments, but got " +
                        QString::number(line.tokens.length() - 1));
@@ -32,6 +34,14 @@ struct PseudoInstruction : public PseudoInstructionBase {
     return PseudoInstrImpl::expander(*this, line, symbols);
   }
 };
+
+template <unsigned index, typename ISAImpl>
+struct PseudoReg : public Reg<index, BitRange<0, 0>, ISAImpl> {
+  PseudoReg() : Reg<index, BitRange<0, 0>, ISAImpl>("rd") {}
+};
+
+template <unsigned index>
+struct PseudoImm : public Imm<index, 0, Repr::Hex, ImmPartsImpl<>> {};
 
 using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstructionBase>>;
 

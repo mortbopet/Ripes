@@ -2,6 +2,7 @@
 
 #include "instruction.h"
 #include "isainfo.h"
+#include "pseudoinstruction.h"
 
 namespace Ripes {
 
@@ -249,6 +250,33 @@ struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RV32I> {
 template <unsigned tokenIndex>
 struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RV32I> {
   RegRd() : Reg<tokenIndex, BitRange<7, 11>, RV32I>("rd") {}
+};
+
+template <typename PseudoInstrImpl>
+struct PseudoInstrLoad
+    : public PseudoInstruction<PseudoInstrLoad<PseudoInstrImpl>> {
+  struct PseudoLoadFields {
+    using Reg = PseudoReg<0, RV32I>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+  using Fields = PseudoLoadFields;
+
+  constexpr static unsigned ExpectedTokens = 1 + Fields::Impl::numFields();
+  static QString mnemonic() { return PseudoInstrImpl::mnemonic(); }
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<PseudoInstrLoad<PseudoInstrImpl>> &,
+           const TokenizedSrcLine &line, const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
+                             << Token(line.tokens.at(2), "%pcrel_hi"));
+    v.push_back(LineTokens()
+                << PseudoInstrImpl::mnemonic() << line.tokens.at(1)
+                << Token(QString("(%1 + 4) ").arg(line.tokens.at(2)),
+                         "%pcrel_lo")
+                << line.tokens.at(1));
+    return v;
+  }
 };
 }; // namespace RVISA
 

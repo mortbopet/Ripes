@@ -3,6 +3,7 @@
 #include <bitset>
 #include <iostream>
 
+#include "pseudoinstruction.h"
 #include "rvisainfo_common.h"
 
 namespace Ripes {
@@ -58,6 +59,16 @@ struct RVIExt {
     using Fields = typename InstrITypeBase<InstrImpl, OpcodeID::OPIMM>::Fields;
   };
 
+  struct Lb : public PseudoInstrLoad<Lb> {
+    static QString mnemonic() { return "lb"; }
+  };
+  struct Lh : public PseudoInstrLoad<Lh> {
+    static QString mnemonic() { return "lh"; }
+  };
+  struct Lw : public PseudoInstrLoad<Lw> {
+    static QString mnemonic() { return "lw"; }
+  };
+
   struct AddI : public InstrIType<AddI> {
     static QString mnemonic() { return "addi"; }
     constexpr static unsigned funct3() {
@@ -68,8 +79,15 @@ struct RVIExt {
   };
 
   std::vector<std::unique_ptr<InstructionBase>> instructions;
+  std::vector<std::unique_ptr<PseudoInstructionBase>> pseudoInstructions;
 
-  RVIExt() { instructions.emplace_back(std::make_unique<AddI>()); }
+  RVIExt() {
+    pseudoInstructions.emplace_back(std::make_unique<Lb>());
+    pseudoInstructions.emplace_back(std::make_unique<Lh>());
+    pseudoInstructions.emplace_back(std::make_unique<Lw>());
+
+    instructions.emplace_back(std::make_unique<AddI>());
+  }
 };
 
 struct RV32ISA : public RVIExt {
