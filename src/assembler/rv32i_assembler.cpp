@@ -13,6 +13,8 @@
 namespace Ripes {
 namespace Assembler {
 
+RV32I_Assembler::RV32I_Assembler() {}
+
 // RV32I_Assembler::RV32I_Assembler(const ISAInfo<ISA::RV32I> *isa)
 //     : Assembler<Reg_T>(isa) {
 //   auto [instrs, pseudos] = initInstructions(isa);

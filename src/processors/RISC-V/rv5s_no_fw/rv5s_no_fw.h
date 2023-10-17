@@ -45,8 +45,7 @@ public:
   RV5S_NO_FW(const QStringList &extensions)
       : RipesVSRTLProcessor(
             "5-Stage RISC-V Processor without forwarding unit") {
-    m_enabledISA =
-        RVISA::constructISA(static_cast<RVISA::RVBase>(XLEN), extensions);
+    m_enabledISA = RVISA::constructISA(XLenToRVISA<XLEN>(), extensions);
     decode->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
 

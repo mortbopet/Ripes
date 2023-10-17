@@ -54,17 +54,16 @@ const QStringList SupportedExtensions = QStringList() << "M" << "C";
 const QStringList DefaultExtensions = QStringList() << "M";
 // clang-format on
 
-std::shared_ptr<ISAInfo> constructISA(RVBase base,
-                                      const QStringList &extensions) {
+std::shared_ptr<ISAInfo> constructISA(ISA base, const QStringList &extensions) {
   // TODO: Figure out better way to get ISA type with specified extensions
   if (extensions.isEmpty()) {
-    return (base == RVBase::RV32) ? RV32I::getStruct() : RV64I::getStruct();
+    return (base == ISA::RV32I) ? RV32I::getStruct() : RV64I::getStruct();
   } else if (extensions.contains("M") && extensions.contains("C")) {
-    return (base == RVBase::RV32) ? RV32IMC::getStruct() : RV64IMC::getStruct();
+    return (base == ISA::RV32I) ? RV32IMC::getStruct() : RV64IMC::getStruct();
   } else if (extensions.contains("M")) {
-    return (base == RVBase::RV32) ? RV32IM::getStruct() : RV64IM::getStruct();
+    return (base == ISA::RV32I) ? RV32IM::getStruct() : RV64IM::getStruct();
   } else if (extensions.contains("C")) {
-    return (base == RVBase::RV32) ? RV32IC::getStruct() : RV64IC::getStruct();
+    return (base == ISA::RV32I) ? RV32IC::getStruct() : RV64IC::getStruct();
   }
   Q_UNREACHABLE();
 }

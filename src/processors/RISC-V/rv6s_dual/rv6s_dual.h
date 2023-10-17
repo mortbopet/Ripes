@@ -51,8 +51,7 @@ public:
   enum Stage { IF, ID, II, EX, MEM, WB, STAGECOUNT };
   RV6S_DUAL(const QStringList &extensions)
       : RipesVSRTLProcessor("6-Stage dual-issue RISC-V Processor") {
-    m_enabledISA =
-        RVISA::constructISA(static_cast<RVISA::RVBase>(XLEN), extensions);
+    m_enabledISA = RVISA::constructISA(XLenToRVISA<XLEN>(), extensions);
     decode_way2->setISA(m_enabledISA);
     decode_way1->setISA(m_enabledISA);
     uncompress_dual->setISA(m_enabledISA);

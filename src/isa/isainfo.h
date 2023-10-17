@@ -13,6 +13,18 @@ namespace Ripes {
 
 /// List of currently supported ISAs.
 enum class ISA { RV32I, RV64I, MIPS32I };
+template <ISA isa>
+inline constexpr unsigned isaToRegWidth() {
+  switch (isa) {
+  case ISA::RV32I:
+  case ISA::MIPS32I:
+    return 32;
+  case ISA::RV64I:
+    return 64;
+  default:
+    return 0;
+  }
+}
 const static std::map<ISA, QString> ISAFamilyNames = {
     {ISA::RV32I, "RISC-V"}, {ISA::RV64I, "RISC-V"}, {ISA::MIPS32I, "MIPS"}};
 enum class RegisterFileType { GPR, FPR, CSR, NoRegisters };

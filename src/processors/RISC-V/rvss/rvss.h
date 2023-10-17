@@ -32,8 +32,7 @@ class RVSS : public RipesVSRTLProcessor {
 public:
   RVSS(const QStringList &extensions)
       : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
-    m_enabledISA =
-        RVISA::constructISA(static_cast<RVISA::RVBase>(XLEN), extensions);
+    m_enabledISA = RVISA::constructISA(XLenToRVISA<XLEN>(), extensions);
     decode->setISA(m_enabledISA);
 
     // -----------------------------------------------------------------------

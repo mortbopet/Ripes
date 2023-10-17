@@ -45,8 +45,7 @@ public:
   enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
   RV5S(const QStringList &extensions)
       : RipesVSRTLProcessor("5-Stage RISC-V Processor") {
-    m_enabledISA =
-        RVISA::constructISA(static_cast<RVISA::RVBase>(XLEN), extensions);
+    m_enabledISA = RVISA::constructISA(XLenToRVISA<XLEN>(), extensions);
     decode->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
 

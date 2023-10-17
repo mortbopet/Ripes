@@ -52,14 +52,13 @@ namespace RVISA {
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
 extern const QStringList RegDescs;
+
+// extern const QStringList FExtRegAliases;
+// extern const QStringList FExtRegNames;
+// extern const QStringList FExtRegDescs;
+
 extern const QStringList SupportedExtensions;
 extern const QStringList DefaultExtensions;
-
-enum class RVBase : unsigned {
-  RV32 = 32,
-  RV64 = 64,
-  //  RV128
-};
 
 enum class Extension { M, A, F, D, C };
 
@@ -85,14 +84,17 @@ template <Extension... Extensions>
 static QStringList EnabledExtensions =
     (QStringList() << ... << QString(extensionName<Extensions>()));
 
-template <RVBase Base, Extension... Extensions>
-struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
-  constexpr static ISA ISAID = (Base == RVBase::RV32) ? ISA::RV32I : ISA::RV64I;
-  constexpr static unsigned Bits = static_cast<unsigned>(Base);
-  constexpr static unsigned InstrBits = 32; // TODO: 16 if RV32E
+template <ISA ISABase, Extension... Extensions>
+struct RVISAInterface : public ISAInterface<RVISAInterface<ISABase>> {
+  static_assert(ISABase == ISA::RV32I || ISABase == ISA::RV64I);
+
+  constexpr static ISA ISAID = ISABase;
+  constexpr static unsigned Bits = isaToRegWidth<ISABase>();
+  constexpr static unsigned InstrBits = 32;
   constexpr static unsigned InstrByteAlignment =
-      RVISAInterface<Base, Extensions...>::extensionEnabled(Extension::C) ? 2
-                                                                          : 4;
+      RVISAInterface<ISABase, Extensions...>::extensionEnabled(Extension::C)
+          ? 2
+          : 4;
   constexpr static unsigned ElfMachineID = EM_RISCV;
   constexpr static unsigned RegCnt = 32; // TODO: Extensions can add registers
   constexpr static int GPReg = 2;
@@ -119,11 +121,11 @@ struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
   static const QStringList &RegDescs() { return RVISA::RegDescs; }
 
   static QString CCmarch() {
-    QString march = (Base == RVBase::RV32) ? "rv32i" : "rv64i";
+    QString march = (ISABase == ISA::RV32I) ? "rv32i" : "rv64i";
     march += EnabledExtensionNames;
     return march;
   }
-  static QString CCmabi() { return (Base == RVBase::RV32) ? "ilp32" : "lp64"; }
+  static QString CCmabi() { return (ISABase == ISA::RV32I) ? "ilp32" : "lp64"; }
 
   constexpr static bool regIsReadOnly(unsigned i) { return i == 0; }
 
@@ -155,29 +157,28 @@ struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
   }
 };
 
-template <RVBase Base>
+template <ISA Base>
 using RVIM = RVISAInterface<Base, Extension::M>;
-template <RVBase Base>
+template <ISA Base>
 using RVIC = RVISAInterface<Base, Extension::C>;
-template <RVBase Base>
+template <ISA Base>
 using RVIMC = RVISAInterface<Base, Extension::M, Extension::C>;
 
-using RV32I = RVISAInterface<RVBase::RV32>;
-using RV32IM = RVIM<RVBase::RV32>;
-using RV32IC = RVIC<RVBase::RV32>;
-using RV32IMC = RVIMC<RVBase::RV32>;
+using RV32I = RVISAInterface<ISA::RV32I>;
+using RV32IM = RVIM<ISA::RV32I>;
+using RV32IC = RVIC<ISA::RV32I>;
+using RV32IMC = RVIMC<ISA::RV32I>;
 
-using RV64I = RVISAInterface<RVBase::RV64>;
-using RV64IM = RVIM<RVBase::RV64>;
-using RV64IC = RVIC<RVBase::RV64>;
-using RV64IMC = RVIMC<RVBase::RV64>;
+using RV64I = RVISAInterface<ISA::RV64I>;
+using RV64IM = RVIM<ISA::RV64I>;
+using RV64IC = RVIC<ISA::RV64I>;
+using RV64IMC = RVIMC<ISA::RV64I>;
 
-std::shared_ptr<ISAInfo> constructISA(RVBase base,
-                                      const QStringList &extensions);
+std::shared_ptr<ISAInfo> constructISA(ISA base, const QStringList &extensions);
 
 template <unsigned XLEN>
 const std::shared_ptr<ISAInfo> ISAStruct =
-    RVISA::RVIMC<static_cast<RVISA::RVBase>(XLEN)>::getStruct();
+    RVISAInterface<XLenToRVISA<XLEN>()>::getStruct();
 
 enum OpcodeID {
   LUI = 0b0110111,
