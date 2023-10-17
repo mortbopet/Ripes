@@ -12,7 +12,7 @@ using namespace vsrtl;
 
 RegisterModel::RegisterModel(RegisterFileType rft, QObject *parent)
     : QAbstractTableModel(parent), m_rft(rft) {
-  m_regBytes = ProcessorHandler::getProcessor()->implementsISA()->bytes();
+  m_regBytes = ProcessorHandler::getProcessor()->implementsISA().bytes();
 }
 
 std::vector<VInt> RegisterModel::gatherRegisterValues() {
@@ -25,7 +25,7 @@ std::vector<VInt> RegisterModel::gatherRegisterValues() {
 int RegisterModel::columnCount(const QModelIndex &) const { return NColumns; }
 
 int RegisterModel::rowCount(const QModelIndex &) const {
-  return ProcessorHandler::currentISA()->regCnt();
+  return ProcessorHandler::currentISA().regCnt;
 }
 
 void RegisterModel::processorWasClocked() {
@@ -129,15 +129,15 @@ void RegisterModel::setRadix(Ripes::Radix r) {
 }
 
 QVariant RegisterModel::nameData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->regName(idx);
+  return ProcessorHandler::currentISA().regName(idx);
 }
 
 QVariant RegisterModel::aliasData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->regAlias(idx);
+  return ProcessorHandler::currentISA().regAlias(idx);
 }
 
 QVariant RegisterModel::tooltipData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->regInfo(idx);
+  return ProcessorHandler::currentISA().regInfo(idx);
 }
 
 VInt RegisterModel::registerData(unsigned idx) const {
@@ -149,7 +149,7 @@ QVariant RegisterModel::valueData(unsigned idx) const {
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex &index) const {
-  const auto def = ProcessorHandler::currentISA()->regIsReadOnly(index.row())
+  const auto def = ProcessorHandler::currentISA().regIsReadOnly(index.row())
                        ? Qt::NoItemFlags
                        : Qt::ItemIsEnabled;
   if (index.column() == Column::Value)

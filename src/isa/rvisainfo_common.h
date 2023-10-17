@@ -51,6 +51,8 @@ namespace RVISA {
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
 extern const QStringList RegDescs;
+extern const QStringList SupportedExtensions;
+extern const QStringList DefaultExtensions;
 
 enum class RVBase : unsigned {
   RV32 = 32,
@@ -73,8 +75,14 @@ constexpr std::string_view extensionName() {
     return "D";
   case Extension::C:
     return "C";
+  default:
+    return "";
   }
 }
+
+template <Extension... Extensions>
+static QStringList EnabledExtensions =
+    (QStringList() << ... << QString(extensionName<Extensions>()));
 
 template <RVBase Base, Extension... Extensions>
 struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
@@ -90,10 +98,17 @@ struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
   constexpr static int SPReg = 3;
   constexpr static int SyscallReg = 17;
 
-  constexpr static std::string_view ExtensionNames =
-      (extensionName<Extensions>() + ...);
-  constexpr static std::array<Extension, sizeof...(Extensions)>
-      EnabledExtensions = {Extensions...};
+  static const QStringList &SupportedExtensions() {
+    return RVISA::SupportedExtensions;
+  }
+  static const QStringList &EnabledExtensions() {
+    return RVISA::EnabledExtensions<Extensions...>;
+  }
+  static const QStringList &DefaultExtensions() {
+    return RVISA::DefaultExtensions;
+  }
+  constexpr static std::string_view EnabledExtensionNames =
+      (extensionName<Extensions>() + ... + "");
   constexpr static bool extensionEnabled(Extension ext) {
     return ((Extensions == ext) || ...);
   }
@@ -104,7 +119,7 @@ struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
 
   static QString CCmarch() {
     QString march = (Base == RVBase::RV32) ? "rv32i" : "rv64i";
-    march += ExtensionNames;
+    march += EnabledExtensionNames;
     return march;
   }
   static QString CCmabi() { return (Base == RVBase::RV32) ? "ilp32" : "lp64"; }
@@ -139,14 +154,29 @@ struct RVISAInterface : public ISAInterface<RVISAInterface<Base>> {
   }
 };
 
-struct RV32IRegInterface {
-  static QString regName(unsigned i) {
-    return RVISAInterface<RVBase::RV32>::regName(i);
-  }
-  static unsigned int regNumber(const QString &reg, bool &success) {
-    return RVISAInterface<RVBase::RV32>::regNumber(reg, success);
-  }
-};
+template <RVBase Base>
+using RVIM = RVISAInterface<Base, Extension::M>;
+template <RVBase Base>
+using RVIC = RVISAInterface<Base, Extension::C>;
+template <RVBase Base>
+using RVIMC = RVISAInterface<Base, Extension::M, Extension::C>;
+
+using RV32I = RVISAInterface<RVBase::RV32>;
+using RV32IM = RVIM<RVBase::RV32>;
+using RV32IC = RVIC<RVBase::RV32>;
+using RV32IMC = RVIMC<RVBase::RV32>;
+
+using RV64I = RVISAInterface<RVBase::RV64>;
+using RV64IM = RVIM<RVBase::RV64>;
+using RV64IC = RVIC<RVBase::RV64>;
+using RV64IMC = RVIMC<RVBase::RV64>;
+
+std::shared_ptr<ISAInfo> constructISA(RVBase base,
+                                      const QStringList &extensions);
+
+template <unsigned XLEN>
+const std::shared_ptr<ISAInfo> ISAStruct =
+    RVISA::RVIMC<static_cast<RVISA::RVBase>(XLEN)>::getStruct();
 
 enum OpcodeID {
   LUI = 0b0110111,
@@ -203,22 +233,22 @@ struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction
 template <unsigned tokenIndex>
-struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>, RV32IRegInterface> {
-  RegRs1() : Reg<tokenIndex, BitRange<15, 19>, RV32IRegInterface>("rs1") {}
+struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>, RV32I> {
+  RegRs1() : Reg<tokenIndex, BitRange<15, 19>, RV32I>("rs1") {}
 };
 
 /// The RISC-V Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 20-24 of the instruction
 template <unsigned tokenIndex>
-struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RV32IRegInterface> {
-  RegRs2() : Reg<tokenIndex, BitRange<20, 24>, RV32IRegInterface>("rs2") {}
+struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RV32I> {
+  RegRs2() : Reg<tokenIndex, BitRange<20, 24>, RV32I>("rs2") {}
 };
 
 /// The RISC-V Rd field contains a destination register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <unsigned tokenIndex>
-struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RV32IRegInterface> {
-  RegRd() : Reg<tokenIndex, BitRange<7, 11>, RV32IRegInterface>("rd") {}
+struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RV32I> {
+  RegRd() : Reg<tokenIndex, BitRange<7, 11>, RV32I>("rd") {}
 };
 }; // namespace RVISA
 

@@ -10,7 +10,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Uncompress : public Component {
 public:
-  void setISA(const std::shared_ptr<ISAInfoBase> &isa) {
+  void setISA(const std::shared_ptr<ISAInfo> &isa) {
     m_isa = isa;
     m_disabled = !m_isa->extensionEnabled("C");
   }
@@ -68,7 +68,7 @@ public:
                       RVISA::OpcodeID::LOAD;
         } break;
         case 0b011:
-          if (m_isa->isaID() == ISA::RV64I) { // c.ld
+          if (m_isa->isaID == ISA::RV64I) { // c.ld
             const auto fields =
                 RVInstrParser::getParser()->decodeCS16Instr(instrValue);
             rd = fields[5] | 0x8;
@@ -97,7 +97,7 @@ public:
                       RVISA::OpcodeID::STORE;
         } break;
         case 0b111:
-          if (m_isa->isaID() == ISA::RV64I) { // c.sd
+          if (m_isa->isaID == ISA::RV64I) { // c.sd
             const auto fields =
                 RVInstrParser::getParser()->decodeCS16Instr(instrValue);
             rs1 = fields[3] | 0x8;
@@ -128,7 +128,7 @@ public:
                       RVISA::OpcodeID::OPIMM;
         } break;
         case 0b001:
-          if (m_isa->isaID() == ISA::RV32I) { // c.jal
+          if (m_isa->isaID == ISA::RV32I) { // c.jal
             const auto fields =
                 RVInstrParser::getParser()->decodeCJ16Instr(instrValue);
             imm = (((fields[2] & 0x040) << 3) | (fields[2] & 0x180) |
@@ -335,7 +335,7 @@ public:
                       (rd << 7) | RVISA::OpcodeID::LOAD;
         } break;
         case 0b011:
-          if (m_isa->isaID() == ISA::RV64I) { // c.ldsp
+          if (m_isa->isaID == ISA::RV64I) { // c.ldsp
             const auto fields =
                 RVInstrParser::getParser()->decodeCI16Instr(instrValue);
             rd = fields[3];
@@ -392,7 +392,7 @@ public:
                       RVISA::OpcodeID::STORE;
         } break;
         case 0b111:
-          if (m_isa->isaID() == ISA::RV64I) { // c.sdsp
+          if (m_isa->isaID == ISA::RV64I) { // c.sdsp
             const auto fields =
                 RVInstrParser::getParser()->decodeCSS16Instr(instrValue);
             rs2 = fields[3];
@@ -419,7 +419,7 @@ public:
   OUTPUTPORT(exp_instr, c_RVInstrWidth);
 
 private:
-  std::shared_ptr<ISAInfoBase> m_isa;
+  std::shared_ptr<ISAInfo> m_isa;
   bool m_disabled = true;
 };
 

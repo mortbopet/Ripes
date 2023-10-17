@@ -2,68 +2,40 @@
 
 #include <optional>
 
-#include "instruction.h"
 #include "isa_defines.h"
+#include "symbolmap.h"
 
 namespace Ripes {
 
-using AbsoluteSymbolMap = std::map<Symbol, VIntS>;
-struct SymbolMap {
-  AbsoluteSymbolMap abs;
-  using RelativeSymbol = int;
-  using SourceLine = unsigned;
-  std::map<RelativeSymbol, std::map<SourceLine, VIntS>> rel;
-
-  void clear() {
-    abs.clear();
-    rel.clear();
-  }
-
-  std::optional<Error> addSymbol(const TokenizedSrcLine &line, const Symbol &s,
-                                 VInt v) {
-    return s.isLocal() ? addRelSymbol(line.sourceLine(), s, v)
-                       : addAbsSymbol(line.sourceLine(), s, v);
-  }
-
-  /// Adds a symbol to the current symbol mapping of this assembler defined at
-  /// the 'line' in the input program.
-  std::optional<Error> addAbsSymbol(const TokenizedSrcLine &line,
-                                    const Symbol &s, VInt v) {
-    return addAbsSymbol(line.sourceLine(), s, v);
-  }
-
-  /// Adds a symbol to the current symbol mapping of this assembler.
-  std::optional<Error> addAbsSymbol(const unsigned &line, const Symbol &s,
-                                    VInt v);
-
-  /// Adds a relative symbol to this symbol map. A relative symbol is unqiued
-  /// based on the tuple <symbol ID, source line>.
-  std::optional<Error> addRelSymbol(const TokenizedSrcLine &line,
-                                    const Symbol &s, VInt v) {
-    return addRelSymbol(line.sourceLine(), s, v);
-  }
-
-  std::optional<Error> addRelSymbol(const unsigned &line, const Symbol &s,
-                                    VInt v);
-
-  /// Returns a copy of this symbol map with relative symbols copied relative to
-  /// 'line'. Relative symbols may be suffixed with additional strings in cases
-  /// of being before/after the provided source line.
-  AbsoluteSymbolMap copyRelativeTo(unsigned line,
-                                   const QString &beforeSuffix = "b",
-                                   const QString &afterSuffix = "f") const;
+struct PseudoInstructionBase {
+  virtual Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
+                                                 SymbolMap &symbols) = 0;
+  virtual QString name() const = 0;
 };
-
-class PseudoInstruction;
 
 using PseudoExpandFunc = std::function<Result<std::vector<LineTokens>>(
-    const PseudoInstruction & /* this */, const TokenizedSrcLine &,
+    const PseudoInstructionBase & /* this */, const TokenizedSrcLine &,
     const SymbolMap &)>;
 
-class PseudoInstruction {
-public:
-private:
-  PseudoExpandFunc m_expander;
+template <typename PseudoInstrImpl>
+struct PseudoInstruction : public PseudoInstructionBase {
+  Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
+                                         SymbolMap &symbols) override {
+    if (line.tokens.length() != PseudoInstrImpl::ExpectedTokens) {
+      return Error(line,
+                   "Instruction '" + PseudoInstrImpl::name() + "' expects " +
+                       QString::number(PseudoInstrImpl::ExpectedTokens - 1) +
+                       " arguments, but got " +
+                       QString::number(line.tokens.length() - 1));
+    }
+
+    return PseudoInstrImpl::expander(*this, line, symbols);
+  }
 };
+
+using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstructionBase>>;
+
+using PseudoInstrMap =
+    std::map<QString, std::shared_ptr<PseudoInstructionBase>>;
 
 } // namespace Ripes

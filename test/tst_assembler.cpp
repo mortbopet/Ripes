@@ -68,8 +68,7 @@ private:
   void testAssemble(const QStringList &program, Expect expect,
                     QByteArray expectData = {}) {
     QString err;
-    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-    auto assembler = RV32I_Assembler(isa.get());
+    auto assembler = RV32I_Assembler();
     auto res = assembler.assemble(program);
     if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
       res.errors.print();
@@ -256,8 +255,7 @@ void tst_Assembler::tst_invalidLabel() {
 }
 
 void tst_Assembler::tst_benchmarkNew() {
-  auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-  auto assembler = RV32I_Assembler(isa.get());
+  auto assembler = RV32I_Assembler();
   auto program = createProgram(1000);
   QBENCHMARK { assembler.assembleRaw(program); }
 }
@@ -379,8 +377,7 @@ void tst_Assembler::tst_relativeLabels() {
 }
 
 void tst_Assembler::tst_matcher() {
-  auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-  auto assembler = RV32I_Assembler(isa.get());
+  auto assembler = RV32I_Assembler();
   assembler.getMatcher().print();
 
   std::vector<std::pair<QString, unsigned>> toMatch = {
@@ -399,7 +396,7 @@ void tst_Assembler::tst_matcher() {
       QFAIL(error->toString().toStdString().c_str());
     }
 
-    auto matchInstr = std::get<const RV32I_Assembler::_Instruction *>(match);
+    auto matchInstr = std::get<const InstructionBase *>(match);
     if (matchInstr->name() != iter.first) {
       QString error = "Incorrect instruction decoded; got '" +
                       matchInstr->name() + "' but expected '" + iter.first +

@@ -11,7 +11,61 @@ constexpr ISA XLenToMIPSISA() {
   return ISA::MIPS32I;
 }
 
+namespace MIPSABI {
+// MIPS ELF info
+// Elf flag masks
+enum MIPSElfFlags { NOREORDER = 0b1, PIC = 0b10, CPIC = 0b100, ARCH = 0b0 };
+extern const std::map<MIPSElfFlags, QString> ELFFlagStrings;
+
+enum SysCall {
+  None = 0,
+  PrintInt = 1,
+  PrintFloat = 2,
+  PrintDouble = 3,
+  PrintStr = 4,
+  ReadInt = 5,
+  ReadFloat = 6,
+  ReadDouble = 7,
+  ReadString = 8,
+  Sbrk = 9,
+  Exit = 10,
+  PrintChar = 11,
+  ReadChar = 12,
+  Open = 13,
+  Read = 14,
+  Write = 15,
+  Close = 16,
+  Exit2 = 17,
+  Time = 30,
+  MIDIout = 31,
+  Sleep = 32,
+  MIDIoutSynchronous = 33,
+  PrintIntHex = 34,
+  PrintIntBinary = 35,
+  PrintIntUnsigned = 36,
+  SetSeed = 40,
+  RandomInt = 41,
+  RandomIntRange = 42,
+  RandomFloat = 43,
+  RandomDouble = 44,
+  ConfirmDialog = 50,
+  InputDialogInt = 51,
+  InputDialogFloat = 52,
+  InputDialogDouble = 53,
+  InutDialogString = 54,
+  MessageDialog = 55,
+  MessageDialogInt = 56,
+  MessageDialogFloat = 57,
+  MessageDialogDouble = 58,
+  MessageDialogString = 59
+
+};
+
+} // namespace MIPSABI
+
 namespace MIPSISA {
+
+enum class MIPSBase : unsigned { MIPS32 = 32, MIPS64 = 64 };
 
 extern const QStringList RegAliases;
 extern const QStringList RegNames;
@@ -82,84 +136,26 @@ enum Function {
 
 } // namespace MIPSISA
 
-namespace MIPSABI {
-// MIPS ELF info
-// Elf flag masks
-enum MIPSElfFlags { NOREORDER = 0b1, PIC = 0b10, CPIC = 0b100, ARCH = 0b0 };
-extern const std::map<MIPSElfFlags, QString> ELFFlagStrings;
+class MIPSISAInterface : public ISAInterface<MIPSISAInterface> {
+  constexpr static ISA ISAID = ISA::MIPS32I; // TODO: Add MIPS64
+  constexpr static unsigned Bits = 32;
+  constexpr static unsigned InstrBits = 32;
+  constexpr static unsigned InstrByteAlignment = 4;
+  constexpr static unsigned ElfMachineID = EM_MIPS;
+  constexpr static unsigned RegCnt = 34;
+  constexpr static int GPReg = 28;
+  constexpr static int SPReg = 29;
+  constexpr static int SyscallReg = 2;
 
-enum SysCall {
-  None = 0,
-  PrintInt = 1,
-  PrintFloat = 2,
-  PrintDouble = 3,
-  PrintStr = 4,
-  ReadInt = 5,
-  ReadFloat = 6,
-  ReadDouble = 7,
-  ReadString = 8,
-  Sbrk = 9,
-  Exit = 10,
-  PrintChar = 11,
-  ReadChar = 12,
-  Open = 13,
-  Read = 14,
-  Write = 15,
-  Close = 16,
-  Exit2 = 17,
-  Time = 30,
-  MIDIout = 31,
-  Sleep = 32,
-  MIDIoutSynchronous = 33,
-  PrintIntHex = 34,
-  PrintIntBinary = 35,
-  PrintIntUnsigned = 36,
-  SetSeed = 40,
-  RandomInt = 41,
-  RandomIntRange = 42,
-  RandomFloat = 43,
-  RandomDouble = 44,
-  ConfirmDialog = 50,
-  InputDialogInt = 51,
-  InputDialogFloat = 52,
-  InputDialogDouble = 53,
-  InutDialogString = 54,
-  MessageDialog = 55,
-  MessageDialogInt = 56,
-  MessageDialogFloat = 57,
-  MessageDialogDouble = 58,
-  MessageDialogString = 59
+  static const QStringList &RegNames() { return MIPSISA::RegNames; }
+  static const QStringList &RegAliases() { return MIPSISA::RegAliases; }
+  static const QStringList &RegDescs() { return MIPSISA::RegDescs; }
 
-};
+  static QString CCmarch() { return "mips32i"; }
+  static QString CCmabi() { return "ilp32"; }
 
-} // namespace MIPSABI
-
-class MIPSISAInfoBase : public ISAInfoBase {
-public:
-  unsigned int regCnt() const override { return 34; }
-  QString regName(unsigned i) const override {
-    return (MIPSISA::RegNames.size() > static_cast<int>(i)
-                ? MIPSISA::RegNames.at(static_cast<int>(i))
-                : QString());
-  }
-  QString regAlias(unsigned i) const override {
-    return MIPSISA::RegAliases.size() > static_cast<int>(i)
-               ? MIPSISA::RegAliases.at(static_cast<int>(i))
-               : QString();
-  }
-  QString regInfo(unsigned i) const override {
-    return MIPSISA::RegDescs.size() > static_cast<int>(i)
-               ? MIPSISA::RegDescs.at(static_cast<int>(i))
-               : QString();
-  }
-  QString name() const override { return CCmarch().toUpper(); }
-  bool regIsReadOnly(unsigned i) const override { return i == 0; }
-  int spReg() const override { return 29; }
-  int gpReg() const override { return 28; }
-  int syscallReg() const override { return 2; }
-  unsigned instrBits() const override { return 32; }
-  unsigned elfMachineId() const override { return EM_MIPS; }
-  unsigned int regNumber(const QString &reg, bool &success) const override {
+  constexpr static bool regIsReadOnly(unsigned i) { return i == 0; }
+  static unsigned int regNumber(const QString &reg, bool &success) {
     QString regRes = reg;
     success = true;
     if (reg[0] != '$') {
@@ -178,12 +174,12 @@ public:
     success = false;
     return 0;
   }
-  virtual int syscallArgReg(unsigned argIdx) const override {
+  static int syscallArgReg(unsigned argIdx) {
     assert(argIdx < 2 && "MIPS only implements argument registers a0-a7");
     return argIdx + 4;
   }
 
-  QString elfSupportsFlags(unsigned flags) const override {
+  static QString elfSupportsFlags(unsigned flags) {
     if (flags == 0)
       return QString();
     for (const auto &flag : MIPSABI::ELFFlagStrings)
@@ -194,18 +190,7 @@ public:
     }
     return QString();
   }
-
-  const QStringList &supportedExtensions() const override {
-    return m_supportedExtensions;
-  }
-  const QStringList &enabledExtensions() const override {
-    return m_enabledExtensions;
-  }
-  QString extensionDescription(const QString &ext) const override { return ""; }
-
-protected:
-  QStringList m_enabledExtensions;
-  QStringList m_supportedExtensions = {""};
+  static QString extensionDescription(const QString &) { return ""; }
 };
 
 } // namespace Ripes

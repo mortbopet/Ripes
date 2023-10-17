@@ -74,7 +74,7 @@ struct RVIExt {
 
 struct RV32ISA : public RVIExt {
   // TODO: Link this into the assembler
-  Instr_T assemble(const TokenizedSrcLine &tokens) {
+  AssembleRes assemble(const TokenizedSrcLine &tokens) {
     return this->instructions.at(0)->assemble(tokens);
   }
 };

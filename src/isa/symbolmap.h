@@ -1,10 +1,9 @@
 #pragma once
 
-#include "assembler_defines.h"
+#include "isa_defines.h"
 #include <optional>
 
 namespace Ripes {
-namespace Assembler {
 
 using AbsoluteSymbolMap = std::map<Symbol, VIntS>;
 struct SymbolMap {
@@ -53,5 +52,4 @@ struct SymbolMap {
                                    const QString &afterSuffix = "f") const;
 };
 
-} // namespace Assembler
 } // namespace Ripes

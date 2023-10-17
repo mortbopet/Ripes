@@ -7,7 +7,7 @@
 
 #include <QList>
 
-#include "binutils.h"
+#include "../binutils.h"
 #include "isa_defines.h"
 #include <STLExtras.h>
 
@@ -168,28 +168,12 @@ struct Field : public FieldBase {
   constexpr static unsigned tokenIndex() { return _tokenIndex; }
 };
 
-/// Base case for when Fields... is empty
-template <typename Field>
-constexpr bool fieldVerifyHelper(unsigned) {
-  return true;
-}
-
-/// Ensure each field has the correct token index
-template <typename Field, typename... OtherFields>
-constexpr bool fieldVerifyHelper(unsigned index) {
-  return (Field::tokenIndex() == index) &&
-         fieldVerifyHelper<OtherFields...>(index + 1);
-}
-
 template <typename... Fields>
 class FieldsImpl : public Fields... {
 public:
   /// Verify that the token indices specified for this operation:
   /// 1. do not overlap
   static_assert((Fields::tokenIndex() != ...), "Duplicate token indices!");
-  /// 2. are sequentially ordered, starting from 0  // 1. sanity check the
-  /// provided token indexes
-  static_assert(fieldVerifyHelper<Fields...>(0));
 
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
@@ -197,11 +181,32 @@ public:
                               Instr_T &instruction) {
     (Fields::apply(tokens, instruction), ...);
   }
+  constexpr static bool decode(const Instr_T instruction, const Reg_T address,
+                               const ReverseSymbolMap &symbolMap,
+                               LineTokens &line) {
+    bool failure = false;
+    ((failure |= !Fields::decode(instruction, address, symbolMap, line)), ...);
+    return !failure;
+  }
   constexpr static unsigned numFields() { return sizeof...(Fields); }
   constexpr static void
   retrieveBitRanges(std::vector<BitRangeStruct> &bitRanges) {
     BitRanges::retrieveBitRanges(bitRanges);
   }
+
+private:
+  /// Verify that the token indices specified for this operation:
+  /// 2. are sequentially ordered, starting from 0  // 1. sanity check the
+  /// provided token indexes
+  template <unsigned fieldIndex, typename InnerField, typename... InnerFields>
+  struct FieldsVerify : FieldsVerify<fieldIndex + 1, InnerFields...> {
+    static_assert(InnerField::tokenIndex() == fieldIndex);
+  };
+  template <unsigned fieldIndex, typename InnerField>
+  struct FieldsVerify<fieldIndex, InnerField> {
+    static_assert(InnerField::tokenIndex() == fieldIndex);
+  };
+  using Verify = FieldsVerify<0, Fields...>;
 };
 
 /**
@@ -264,8 +269,7 @@ struct ImmPartsImpl : public ImmParts... {
   constexpr static void apply(const Instr_T value, Instr_T &instruction) {
     (ImmParts::apply(value, instruction), ...);
   }
-  constexpr static void decode(const Instr_T &value,
-                               const Instr_T instruction) {
+  constexpr static void decodeParts(Instr_T &value, const Instr_T instruction) {
     (ImmParts::decode(value, instruction), ...);
   }
 };
@@ -375,7 +379,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                                const ReverseSymbolMap &symbolMap,
                                LineTokens &line) {
     Instr_T reconstructed = 0;
-    ImmParts::decode(reconstructed, instruction);
+    ImmParts::decodeParts(reconstructed, instruction);
     if (repr == Repr::Signed) {
       line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
     } else if (repr == Repr::Unsigned) {
@@ -409,7 +413,7 @@ using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
 class InstructionBase {
 public:
   virtual ~InstructionBase() = default;
-  virtual Instr_T assemble(const TokenizedSrcLine &tokens) = 0;
+  virtual AssembleRes assemble(const TokenizedSrcLine &tokens) = 0;
   virtual Result<LineTokens>
   disassemble(const Instr_T instruction, const Reg_T address,
               const ReverseSymbolMap &symbolMap) const = 0;
@@ -444,22 +448,24 @@ class Instruction : public InstructionBase {
 public:
   Instruction() : m_name(InstrImpl::mnemonic()) { verify(); }
 
-  Instr_T assemble(const TokenizedSrcLine &tokens) override {
+  AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
 
     InstrImpl::Opcode::Impl::apply(instruction);
     InstrImpl::Fields::Impl::apply(tokens, instruction);
 
-    return instruction;
+    InstrRes res;
+    res.instruction = instruction;
+    return res;
   }
   Result<LineTokens>
   disassemble(const Instr_T instruction, const Reg_T address,
               const ReverseSymbolMap &symbolMap) const override {
     LineTokens line;
     line.push_back(name());
-    if (auto error = InstrImpl::Fields::Impl::decode(instruction, address,
-                                                     symbolMap, line)) {
-      return Result<LineTokens>(*error);
+    if (!InstrImpl::Fields::Impl::decode(instruction, address, symbolMap,
+                                         line)) {
+      return Result<LineTokens>(Error(Location(static_cast<int>(address)), ""));
     }
     return Result<LineTokens>(line);
   }

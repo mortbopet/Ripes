@@ -359,8 +359,8 @@ void CodeEditor::setSourceType(SourceType type,
   // Creates AsmHighlighter object and connects it to the current document
   switch (m_sourceType) {
   case SourceType::Assembly: {
-    auto *isa = ProcessorHandler::currentISA();
-    if (isa->isaID() == ISA::RV32I || isa->isaID() == ISA::RV64I) {
+    auto isa = ProcessorHandler::currentISA();
+    if (isa.isaID == ISA::RV32I || isa.isaID == ISA::RV64I) {
       m_highlighter = std::make_unique<RVSyntaxHighlighter>(
           document(), m_errors, supportedOpcodes);
     } else {

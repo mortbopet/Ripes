@@ -12,7 +12,7 @@ MemoryModel::MemoryModel(QObject *parent) : QAbstractTableModel(parent) {}
 
 int MemoryModel::columnCount(const QModelIndex &) const {
   return FIXED_COLUMNS_CNT +
-         ProcessorHandler::currentISA()->bytes() /* byte columns */;
+         ProcessorHandler::currentISA().bytes() /* byte columns */;
 }
 
 int MemoryModel::rowCount(const QModelIndex &) const { return m_rowsVisible; }
@@ -24,11 +24,11 @@ void MemoryModel::processorWasClocked() {
 }
 
 AInt maxAddress() {
-  return vsrtl::generateBitmask(ProcessorHandler::currentISA()->bits());
+  return vsrtl::generateBitmask(ProcessorHandler::currentISA().bits);
 }
 
 void MemoryModel::setCentralAddress(AInt address) {
-  address = address - (address % ProcessorHandler::currentISA()->bytes());
+  address = address - (address % ProcessorHandler::currentISA().bytes());
   m_centralAddress = address;
   processorWasClocked();
 }
@@ -51,7 +51,7 @@ bool validAddressChange(AInt currentAddress, AInt newAddress) {
 }
 
 void MemoryModel::offsetCentralAddress(int rowOffset) {
-  const int byteOffset = rowOffset * ProcessorHandler::currentISA()->bytes();
+  const int byteOffset = rowOffset * ProcessorHandler::currentISA().bytes();
   const AInt newCenterAddress = m_centralAddress + byteOffset;
   m_centralAddress = validAddressChange(m_centralAddress, newCenterAddress)
                          ? newCenterAddress
@@ -91,7 +91,7 @@ QVariant MemoryModel::data(const QModelIndex &index, int role) const {
     return QFont(Fonts::monospace, 11);
   }
 
-  const auto bytes = ProcessorHandler::currentISA()->bytes();
+  const auto bytes = ProcessorHandler::currentISA().bytes();
   // Calculate the word-aligned address corresponding to the row of the current
   // index. If the central address is at one of its two extrema, based on the
   // address space of the processor, the aligned address is invalid.
@@ -125,7 +125,7 @@ QVariant MemoryModel::data(const QModelIndex &index, int role) const {
       // Assign a brush if one of the byte-indexed address covered by the
       // aligned address has been written to
       QVariant unusedAddressBrush;
-      for (unsigned i = 0; i < ProcessorHandler::currentISA()->bytes(); ++i) {
+      for (unsigned i = 0; i < ProcessorHandler::currentISA().bytes(); ++i) {
         QVariant addressBrush = fgColorData(alignedAddress, i, validAddress);
         if (addressBrush.isNull()) {
           return addressBrush;
@@ -165,7 +165,7 @@ QVariant MemoryModel::addrData(AInt address, bool validAddress) const {
     return "-";
   }
   return encodeRadixValue(address, Radix::Hex,
-                          ProcessorHandler::currentISA()->bytes());
+                          ProcessorHandler::currentISA().bytes());
 }
 
 QVariant MemoryModel::fgColorData(AInt address, AInt byteOffset,
@@ -201,7 +201,7 @@ QVariant MemoryModel::wordData(AInt address, bool validAddress) const {
     // so). Instead, create a "fake" entry in the memory model, containing X's.
     return "X";
   } else {
-    unsigned bytes = ProcessorHandler::currentISA()->bytes();
+    unsigned bytes = ProcessorHandler::currentISA().bytes();
     return encodeRadixValue(
         ProcessorHandler::getMemory().readMemConst(address, bytes), m_radix,
         bytes);

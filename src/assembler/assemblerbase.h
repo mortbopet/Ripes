@@ -7,7 +7,7 @@
 #include "assembler_defines.h"
 #include "directive.h"
 #include "expreval.h"
-#include "symbolmap.h"
+#include "isa/symbolmap.h"
 
 namespace Ripes {
 namespace Assembler {

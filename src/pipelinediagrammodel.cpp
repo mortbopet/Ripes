@@ -9,7 +9,7 @@ namespace Ripes {
 
 static AInt indexToAddress(unsigned index) {
   if (auto spt = ProcessorHandler::getProgram()) {
-    return (index * ProcessorHandler::currentISA()->instrBytes()) +
+    return (index * ProcessorHandler::currentISA().instrBytes()) +
            spt->getSection(TEXT_SECTION_NAME)->address;
   }
   return 0;
@@ -39,7 +39,7 @@ QVariant PipelineDiagramModel::headerData(int section,
 
 int PipelineDiagramModel::rowCount(const QModelIndex &) const {
   return ProcessorHandler::getCurrentProgramSize() /
-         ProcessorHandler::currentISA()->instrBytes();
+         ProcessorHandler::currentISA().instrBytes();
 }
 
 int PipelineDiagramModel::columnCount(const QModelIndex &) const {

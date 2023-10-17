@@ -18,8 +18,7 @@ AddressDialog::AddressDialog(QWidget *parent)
   setISADepRegex(validator);
   m_ui->address->setValidator(validator);
   m_ui->address->setText(
-      "0x" +
-      QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
+      "0x" + QString("0").repeated(ProcessorHandler::currentISA().bytes() * 2));
   setWindowTitle("Ripes");
 
   connect(m_ui->address, &QLineEdit::textChanged, this,
@@ -32,7 +31,7 @@ void AddressDialog::validateTargetAddress(const QString &address) {
   bool ok;
 
   AInt value;
-  const auto isaBytes = ProcessorHandler::currentISA()->bytes();
+  const auto isaBytes = ProcessorHandler::currentISA().bytes();
   if (isaBytes == 2) {
     value = address.toUShort(&ok, 16);
   } else if (isaBytes == 4) {

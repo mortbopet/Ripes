@@ -1,7 +1,6 @@
 #include "symbolmap.h"
 
 namespace Ripes {
-namespace Assembler {
 
 /// Adds a symbol to the current symbol mapping of this assembler.
 std::optional<Error> SymbolMap::addAbsSymbol(const unsigned &line,
@@ -46,5 +45,4 @@ AbsoluteSymbolMap SymbolMap::copyRelativeTo(unsigned line,
   return res;
 }
 
-} // namespace Assembler
 } // namespace Ripes

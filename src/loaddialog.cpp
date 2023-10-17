@@ -50,12 +50,10 @@ LoadDialog::LoadDialog(QWidget *parent)
   setISADepRegex(validator);
   m_ui->binaryLoadAt->setValidator(validator);
   m_ui->binaryLoadAt->setText(
-      "0x" +
-      QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
+      "0x" + QString("0").repeated(ProcessorHandler::currentISA().bytes() * 2));
   m_ui->binaryEntryPoint->setValidator(validator);
   m_ui->binaryEntryPoint->setText(
-      "0x" +
-      QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
+      "0x" + QString("0").repeated(ProcessorHandler::currentISA().bytes() * 2));
 
   connect(m_ui->binaryLoadAt, &QLineEdit::textChanged, this,
           [=] { this->validateCurrentFile(); });
@@ -63,7 +61,7 @@ LoadDialog::LoadDialog(QWidget *parent)
           [=] { this->validateCurrentFile(); });
 
   // ELF page
-  m_ui->currentISA->setText(ProcessorHandler::currentISA()->name());
+  m_ui->currentISA->setText(ProcessorHandler::currentISA().name);
 
   // default selection
   m_fileTypeButtons->button(s_typeIndex)->toggle();
@@ -165,13 +163,12 @@ ELFInfo LoadDialog::validateELFFile(const QFile &file) {
   }
 
   // Is it a compatible machine format?
-  if (reader.get_machine() != ProcessorHandler::currentISA()->elfMachineId()) {
+  if (reader.get_machine() != ProcessorHandler::currentISA().elfMachineId) {
     info.errorMessage =
         "Incompatible ELF machine type (ISA).<br/><br/>Expected machine "
         "type:<br/>'" +
-        QString::number(ProcessorHandler::currentISA()->elfMachineId()) +
-        "' (" +
-        getNameForElfMachine(ProcessorHandler::currentISA()->elfMachineId()) +
+        QString::number(ProcessorHandler::currentISA().elfMachineId) + "' (" +
+        getNameForElfMachine(ProcessorHandler::currentISA().elfMachineId) +
         ")<br/>but file has machine type:<br/>    '" +
         QString::number(reader.get_machine()) + "' (" +
         getNameForElfMachine(reader.get_machine()) + ")";
@@ -181,10 +178,10 @@ ELFInfo LoadDialog::validateELFFile(const QFile &file) {
 
   // Is it a compatible file class?
   elfbits = reader.get_class() == ELFCLASS32 ? 32 : 64;
-  if (elfbits != ProcessorHandler::currentISA()->bits()) {
+  if (elfbits != ProcessorHandler::currentISA().bits) {
     const QString bitSize = elfbits == 32 ? "32" : "64";
     info.errorMessage =
-        "Expected " + QString::number(ProcessorHandler::currentISA()->bits()) +
+        "Expected " + QString::number(ProcessorHandler::currentISA().bits) +
         " bit executable, but input program is " + bitSize + " bit.";
     info.valid = false;
     goto finish;
@@ -202,8 +199,7 @@ ELFInfo LoadDialog::validateELFFile(const QFile &file) {
   }
 
   // Supported flags?
-  flagErr =
-      ProcessorHandler::currentISA()->elfSupportsFlags(reader.get_flags());
+  flagErr = ProcessorHandler::currentISA().elfSupportsFlags(reader.get_flags());
   if (!flagErr.isEmpty()) {
     info.errorMessage = flagErr;
     info.valid = false;

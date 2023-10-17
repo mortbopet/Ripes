@@ -65,11 +65,11 @@ QVariant MemoryMapModel::data(const QModelIndex &index, int role) const {
     case Qt::DisplayRole:
       // Display memory range as (first @ - last @) (exclusive range).
       return encodeRadixValue(memoryMapEntry->first, Radix::Hex,
-                              ProcessorHandler::currentISA()->bytes()) +
+                              ProcessorHandler::currentISA().bytes()) +
              " - " +
              encodeRadixValue(
                  memoryMapEntry->first + memoryMapEntry->second.size - 1,
-                 Radix::Hex, ProcessorHandler::currentISA()->bytes());
+                 Radix::Hex, ProcessorHandler::currentISA().bytes());
     case Qt::FontRole:
       return QFont(Fonts::monospace, 11);
     case Qt::TextAlignmentRole:

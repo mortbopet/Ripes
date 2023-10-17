@@ -39,7 +39,7 @@ ProcessorHandler::ProcessorHandler() {
   if (RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull())
     extensions = ProcessorRegistry::getDescription(m_currentID)
                      .isaInfo()
-                     .isa->supportedExtensions();
+                     .supportedExtensions;
   else
     extensions = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS)
                      .value<QStringList>();
@@ -269,10 +269,10 @@ void ProcessorHandler::_clearBreakpoints() { m_breakpoints.clear(); }
 void ProcessorHandler::createAssemblerForCurrentISA() {
   const auto &ISA = _currentISA();
 
-  if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(ISA)) {
-    m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
-  } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(ISA)) {
-    m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
+  if (ISA.isaID == ISA::RV32I) {
+    m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>();
+  } else if (ISA.isaID == ISA::RV64I) {
+    m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>();
   } else {
     Q_UNREACHABLE();
   }
@@ -311,9 +311,8 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
   // Keep current program if the ISA between the two processors are identical
   const bool keepProgram =
       m_currentProcessor &&
-      (m_currentProcessor->implementsISA()->eq(
-          ProcessorRegistry::getDescription(id).isaInfo().isa.get(),
-          extensions));
+      (m_currentProcessor->implementsISA().eq(
+          ProcessorRegistry::getDescription(id).isaInfo()));
 
   // Processor initializations
   m_currentProcessor =
@@ -400,7 +399,7 @@ AInt ProcessorHandler::_getTextStart() const {
 
 QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
   if (m_program) {
-    const unsigned instrBytes = _currentISA()->instrBytes();
+    const unsigned instrBytes = _currentISA().instrBytes();
     auto disRes = m_currentAssembler->disassemble(
         m_currentProcessor->getMemory().readMem(addr, instrBytes),
         m_program.get()->symbols, addr);
@@ -414,7 +413,7 @@ void ProcessorHandler::syscallTrap() {
   auto futureWatcher = QFutureWatcher<bool>();
   futureWatcher.setFuture(QtConcurrent::run([=] {
     const unsigned int function = m_currentProcessor->getRegister(
-        RegisterFileType::GPR, _currentISA()->syscallReg());
+        RegisterFileType::GPR, _currentISA().syscallReg);
     return m_syscallManager->execute(function);
   }));
 

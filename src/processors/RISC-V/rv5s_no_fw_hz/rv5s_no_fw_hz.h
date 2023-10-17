@@ -42,7 +42,8 @@ public:
   RV5S_NO_FW_HZ(const QStringList &extensions)
       : RipesVSRTLProcessor(
             "5-Stage RISC-V Processor without forwarding or hazard detection") {
-    m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
+    m_enabledISA =
+        RVISA::constructISA(static_cast<RVISA::RVBase>(XLEN), extensions);
     decode->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
 
@@ -435,21 +436,14 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static ProcessorISAInfo supportsISA() {
-    return ProcessorISAInfo{
-        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
-        {"M", "C"},
-        {"M"}};
-  }
-  const ISAInfoBase *implementsISA() const override {
-    return m_enabledISA.get();
-  };
+  static const ISAInfo &supportsISA() { return *RVISA::ISAStruct<XLEN>.get(); }
+  const ISAInfo &implementsISA() const override { return *m_enabledISA.get(); };
 
   const std::set<RegisterFileType> registerFiles() const override {
     std::set<RegisterFileType> rfs;
     rfs.insert(RegisterFileType::GPR);
 
-    if (implementsISA()->extensionEnabled("F")) {
+    if (implementsISA().extensionEnabled("F")) {
       rfs.insert(RegisterFileType::FPR);
     }
     return rfs;
@@ -463,7 +457,7 @@ private:
    * during rewinding.
    */
   long long m_syscallExitCycle = -1;
-  std::shared_ptr<ISAInfoBase> m_enabledISA;
+  std::shared_ptr<ISAInfo> m_enabledISA;
   ProcessorStructure m_structure = {{0, 5}};
 };
 

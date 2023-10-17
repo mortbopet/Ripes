@@ -51,7 +51,8 @@ public:
   enum Stage { IF, ID, II, EX, MEM, WB, STAGECOUNT };
   RV6S_DUAL(const QStringList &extensions)
       : RipesVSRTLProcessor("6-Stage dual-issue RISC-V Processor") {
-    m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
+    m_enabledISA =
+        RVISA::constructISA(static_cast<RVISA::RVBase>(XLEN), extensions);
     decode_way2->setISA(m_enabledISA);
     decode_way1->setISA(m_enabledISA);
     uncompress_dual->setISA(m_enabledISA);
@@ -879,21 +880,14 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static ProcessorISAInfo supportsISA() {
-    return ProcessorISAInfo{
-        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
-        {"M", "C"},
-        {"M"}};
-  }
-  const ISAInfoBase *implementsISA() const override {
-    return m_enabledISA.get();
-  };
+  static const ISAInfo &supportsISA() { return *RVISA::ISAStruct<XLEN>.get(); }
+  const ISAInfo &implementsISA() const override { return *m_enabledISA.get(); };
 
   const std::set<RegisterFileType> registerFiles() const override {
     std::set<RegisterFileType> rfs;
     rfs.insert(RegisterFileType::GPR);
 
-    if (implementsISA()->extensionEnabled("F")) {
+    if (implementsISA().extensionEnabled("F")) {
       rfs.insert(RegisterFileType::FPR);
     }
     return rfs;
@@ -907,7 +901,7 @@ private:
    * call during rewinding.
    */
   long long m_syscallExitCycle = -1;
-  std::shared_ptr<ISAInfoBase> m_enabledISA;
+  std::shared_ptr<ISAInfo> m_enabledISA;
   ProcessorStructure m_structure = {{0, 6}, {1, 6}};
 };
 
