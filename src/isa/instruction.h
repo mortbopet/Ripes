@@ -254,7 +254,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
     if (tokenIndex >= line.tokens.size()) {
       return false;
     }
-    const auto &regToken = line.tokens.at(tokenIndex);
+    const auto &regToken = line.tokens.at(tokenIndex + 1);
     bool success = false;
     unsigned regIndex = RegInfo::RegNumber(regToken, success);
     if (!success) {
@@ -388,10 +388,10 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                               Instr_T &instruction/*,
                               FieldLinkRequest<Reg_T> &linksWithSymbol*/) {
     bool success = false;
-    if (tokenIndex >= line.tokens.size()) {
+    if (tokenIndex + 1 >= line.tokens.size()) {
       return false;
     }
-    const Token &immToken = line.tokens[tokenIndex];
+    const Token &immToken = line.tokens[tokenIndex + 1];
     ImmConvInfo convInfo;
     Reg_T_S value = GetImm(immToken, success, convInfo);
 
@@ -404,7 +404,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
       return false;
     }
 
-    if (CheckFitsInWidth(value, convInfo, immToken))
+    if (!CheckFitsInWidth(value, convInfo, immToken))
       return false;
 
     ImmParts::Apply(value, instruction);
