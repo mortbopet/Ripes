@@ -9,6 +9,9 @@
 namespace Ripes {
 namespace Assembler {
 
+static std::shared_ptr<OpPartBase> BaseMatcher =
+    std::make_shared<OpPart<0, BitRange<0, 0>>>();
+
 class Matcher {
   class MatchNode {
   private:
@@ -17,15 +20,15 @@ class Matcher {
     bool m_matchOnExtraMatchConds = false;
 
   public:
-    MatchNode(OpPartStruct _match) : match(_match) {}
-    OpPartStruct match;
+    MatchNode(const OpPartBase *_match) : match(_match) {}
+    const OpPartBase *match;
     std::vector<MatchNode> children;
     std::shared_ptr<InstructionBase> instruction;
     void matchOnExtraMatchConds() { m_matchOnExtraMatchConds = true; }
 
     bool matches(const Instr_T &instr) const {
       return m_matchOnExtraMatchConds ? instruction->matchesWithExtras(instr)
-                                      : match.matches(instr);
+                                      : match->matches(instr);
     }
 
     void print(unsigned depth = 0) const {
@@ -38,11 +41,11 @@ class Matcher {
 
         if (!instruction ||
             (instruction && depth <= instruction->numOpParts())) {
-          QString matchField =
-              QString::number(match.range.stop) + "[" +
-              QStringLiteral("%1").arg(match.value, match.range.width(), 2,
-                                       QLatin1Char('0')) +
-              "]" + QString::number(match.range.start);
+          QString matchField = QString::number(match->range().stop()) + "[" +
+                               QStringLiteral("%1").arg(
+                                   match->value(), match->range().width(),
+                                   2, QLatin1Char('0')) +
+                               "]" + QString::number(match->range().start());
           std::cout << matchField.toStdString();
         } else {
           // Extra match conditions must apply
@@ -101,10 +104,9 @@ private:
 
   MatchNode buildMatchTree(const InstrVec &instructions,
                            unsigned fieldDepth = 1,
-                           OpPartStruct match = OpPartStruct{
-                               0, BitRangeStruct{0, 0, 2}}) {
+                           const OpPartBase *match = BaseMatcher.get()) {
     // Tuple is defined as (value, start, stop, N)
-    std::map<OpPartStruct, InstrVec> instrsWithEqualOpPart;
+    std::map<const OpPartBase *, InstrVec> instrsWithEqualOpPart;
     for (const auto &instr : instructions) {
       if (auto instrRef = instr.get()) {
         const size_t nOpParts = instrRef->numOpParts();
@@ -114,7 +116,7 @@ private:
                         "(Needs more discernable parts)\n";
           throw std::runtime_error(err.toStdString().c_str());
         }
-        OpPartStruct opPart;
+        const OpPartBase *opPart;
         if (fieldDepth > nOpParts)
           opPart = instrRef->getOpPart(nOpParts - 1);
         else

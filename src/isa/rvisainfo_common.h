@@ -263,7 +263,7 @@ struct PseudoInstrLoad
   };
   using Fields = PseudoLoadFields;
 
-  constexpr static unsigned ExpectedTokens = 1 + Fields::Impl::numFields();
+  constexpr static unsigned ExpectedTokens = 1 + Fields::Impl::NumFields();
   static QString mnemonic() { return PseudoInstrImpl::mnemonic(); }
   static Result<std::vector<LineTokens>>
   expander(const PseudoInstruction<PseudoInstrLoad<PseudoInstrImpl>> &,
