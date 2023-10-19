@@ -41,19 +41,8 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I> *isa) const {
   InstrVec instructions;
   PseudoInstrVec pseudoInstructions;
 
-  //  RV_I<Reg_T>::enable(isa, instructions, pseudoInstructions);
-  //  for (const auto &extension : isa->enabledExtensions()) {
-  //    switch (extension.unicode()->toLatin1()) {
-  //    case 'M':
-  //      RV_M<Reg_T>::enable(isa, instructions, pseudoInstructions);
-  //      break;
-  //    case 'C':
-  //      RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
-  //      break;
-  //    default:
-  //      assert(false && "Unhandled ISA extension");
-  //    }
-  //  }
+  RVISA::RV_I_Ext::enable_I_Ext(isa, instructions, pseudoInstructions);
+
   return {instructions, pseudoInstructions};
 }
 

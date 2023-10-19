@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assembler.h"
+#include "isa/rv_i_ext.h"
 #include "isa/rvisainfo_common.h"
 
 #include <QObject>
@@ -31,6 +32,8 @@ private:
 
 protected:
   QChar commentDelimiter() const override { return '#'; }
+
+  std::unique_ptr<RVISA::RV_I_Ext> m_i_ext = nullptr;
 };
 
 } // namespace Assembler

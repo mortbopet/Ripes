@@ -9,7 +9,7 @@
 namespace Ripes {
 namespace RVISA {
 
-struct RVIExt {
+struct RV_I_Ext {
   /// A RISC-V signed immediate field with a width of 12 bits.
   /// Used in L-Type and I-Type instructions.
   ///
@@ -78,22 +78,13 @@ struct RVIExt {
     using Fields = typename InstrIType<AddI>::Fields;
   };
 
-  std::vector<std::unique_ptr<InstructionBase>> instructions;
-  std::vector<std::unique_ptr<PseudoInstructionBase>> pseudoInstructions;
-
-  RVIExt() {
+  static void enable_I_Ext(const ISAInfoBase *isa, InstrVec &instructions,
+                           PseudoInstrVec &pseudoInstructions) {
     pseudoInstructions.emplace_back(std::make_unique<Lb>());
     pseudoInstructions.emplace_back(std::make_unique<Lh>());
     pseudoInstructions.emplace_back(std::make_unique<Lw>());
 
     instructions.emplace_back(std::make_unique<AddI>());
-  }
-};
-
-struct RV32ISA : public RVIExt {
-  // TODO: Link this into the assembler
-  AssembleRes assemble(const TokenizedSrcLine &tokens) {
-    return this->instructions.at(0)->assemble(tokens);
   }
 };
 

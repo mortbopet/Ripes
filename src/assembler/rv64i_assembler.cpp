@@ -15,8 +15,6 @@ namespace Assembler {
 
 RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I> *isa)
     : Assembler(isa) {
-  RVISA::RVIExt rv_i;
-
   auto [instrs, pseudos] = initInstructions(isa);
 
   auto directives = gnuDirectives();
@@ -47,19 +45,8 @@ RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I> *isa) const {
   InstrVec instructions;
   PseudoInstrVec pseudoInstructions;
 
-  //  enableExtI(isa, instructions, pseudoInstructions);
-  //  for (const auto &extension : isa->enabledExtensions()) {
-  //    switch (extension.unicode()->toLatin1()) {
-  //    case 'M':
-  //      enableExtM(isa, instructions, pseudoInstructions);
-  //      break;
-  //    case 'C':
-  //      RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
-  //      break;
-  //    default:
-  //      assert(false && "Unhandled ISA extension");
-  //    }
-  //  }
+  RVISA::RV_I_Ext::enable_I_Ext(isa, instructions, pseudoInstructions);
+
   return {instructions, pseudoInstructions};
 }
 

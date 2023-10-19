@@ -82,9 +82,25 @@ struct BitRangesImpl : public BitRanges... {
   }
 };
 
+struct OpPartBase;
+
+struct OpPartStruct {
+  unsigned value;
+  unsigned start, stop, N;
+  const OpPartBase *opPart;
+
+  bool operator<(const OpPartStruct &other) const {
+    return start < other.start;
+  }
+};
+
 struct OpPartBase {
   virtual unsigned value() const = 0;
   virtual const BitRangeBase &range() const = 0;
+  OpPartStruct getStruct() const {
+    return OpPartStruct{value(), range().start(), range().stop(), range().n(),
+                        this};
+  }
 
   bool operator<(const OpPartBase &other) const {
     return range().start() < other.range().start();
@@ -94,20 +110,16 @@ struct OpPartBase {
   }
 };
 
-template <typename BitRange>
-static std::shared_ptr<BitRangeBase> OpPartRange = std::make_shared<BitRange>();
-
 /** @brief OpPart
  * A segment of an operation-identifying field of an instruction.
  */
 template <unsigned _value, typename _BitRange>
-struct OpPart : public OpPartBase {
+class OpPart : public OpPartBase {
+public:
   using BitRange = _BitRange;
 
   unsigned value() const override { return _value; }
-  const BitRangeBase &range() const override {
-    return *OpPartRange<BitRange>.get();
-  }
+  const BitRangeBase &range() const override { return *m_range.get(); }
 
   constexpr static unsigned Value() { return _value; }
 
@@ -129,11 +141,15 @@ struct OpPart : public OpPartBase {
       return _value < OtherOpPart::Value();
     return BitRange::template IsLessThan<OtherOpPart>();
   }
+
+private:
+  std::unique_ptr<BitRange> m_range = std::make_unique<BitRange>();
+  ;
 };
 
-template <size_t numParts, typename... OpParts>
-static std::array<std::shared_ptr<OpPartBase>, numParts> OP_PARTS = {
-    (std::make_shared<OpParts>(), ...)};
+template <unsigned numParts, typename... OpParts>
+static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
+    (std::make_unique<OpParts>())...};
 
 template <typename... OpParts>
 class OpcodeImpl : public OpParts... {
@@ -146,6 +162,7 @@ public:
   constexpr static unsigned NumParts() { return sizeof...(OpParts); }
   constexpr static const OpPartBase *GetOpPart(unsigned partIndex) {
     assert(partIndex < NumParts());
+
     return OP_PARTS<NumParts(), OpParts...>[partIndex].get();
   }
   constexpr static void
@@ -234,6 +251,9 @@ struct Reg : public Field<tokenIndex, BitRange> {
   constexpr static bool
   Apply(const TokenizedSrcLine &line,
         Instr_T &instruction /*, FieldLinkRequest<Reg_T> &*/) {
+    if (tokenIndex >= line.tokens.size()) {
+      return false;
+    }
     const auto &regToken = line.tokens.at(tokenIndex);
     bool success = false;
     unsigned regIndex = RegInfo::RegNumber(regToken, success);
@@ -368,6 +388,9 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                               Instr_T &instruction/*,
                               FieldLinkRequest<Reg_T> &linksWithSymbol*/) {
     bool success = false;
+    if (tokenIndex >= line.tokens.size()) {
+      return false;
+    }
     const Token &immToken = line.tokens[tokenIndex];
     ImmConvInfo convInfo;
     Reg_T_S value = GetImm(immToken, success, convInfo);

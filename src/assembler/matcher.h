@@ -41,11 +41,11 @@ class Matcher {
 
         if (!instruction ||
             (instruction && depth <= instruction->numOpParts())) {
-          QString matchField = QString::number(match->range().stop()) + "[" +
-                               QStringLiteral("%1").arg(
-                                   match->value(), match->range().width(),
-                                   2, QLatin1Char('0')) +
-                               "]" + QString::number(match->range().start());
+          QString matchField =
+              QString::number(match->range().stop()) + "[" +
+              QStringLiteral("%1").arg(match->value(), match->range().width(),
+                                       2, QLatin1Char('0')) +
+              "]" + QString::number(match->range().start());
           std::cout << matchField.toStdString();
         } else {
           // Extra match conditions must apply
@@ -105,8 +105,7 @@ private:
   MatchNode buildMatchTree(const InstrVec &instructions,
                            unsigned fieldDepth = 1,
                            const OpPartBase *match = BaseMatcher.get()) {
-    // Tuple is defined as (value, start, stop, N)
-    std::map<const OpPartBase *, InstrVec> instrsWithEqualOpPart;
+    std::map<OpPartStruct, InstrVec> instrsWithEqualOpPart;
     for (const auto &instr : instructions) {
       if (auto instrRef = instr.get()) {
         const size_t nOpParts = instrRef->numOpParts();
@@ -122,16 +121,16 @@ private:
         else
           opPart = instrRef->getOpPart(fieldDepth - 1);
         if (nOpParts == fieldDepth &&
-            instrsWithEqualOpPart.count(opPart) != 0) {
+            instrsWithEqualOpPart.count(opPart->getStruct()) != 0) {
           QString err;
           err += "Instruction cannot be decoded; aliases with other "
                  "instruction (Identical to other "
                  "instruction)\n";
           err += instr->name() + " is equal to " +
-                 instrsWithEqualOpPart.at(opPart).at(0)->name();
+                 instrsWithEqualOpPart.at(opPart->getStruct()).at(0)->name();
           throw std::runtime_error(err.toStdString().c_str());
         }
-        instrsWithEqualOpPart[opPart].push_back(instr);
+        instrsWithEqualOpPart[opPart->getStruct()].push_back(instr);
       }
     }
 
@@ -143,7 +142,7 @@ private:
         const size_t nOpParts = instr->numOpParts();
         if (fieldDepth == nOpParts || instr->hasExtraMatchConds()) {
           // End of opParts, uniquely identifiable instruction
-          MatchNode child(iter.first);
+          MatchNode child(iter.first.opPart);
           // At this point, the opPart at this level for the instruction is
           // invalid, and we must match on extra conditions.
           if (fieldDepth > nOpParts) {
@@ -164,7 +163,7 @@ private:
       if (!isUniqueIdentifiable) {
         // Match branch; recursively continue match tree
         node.children.push_back(
-            buildMatchTree(iter.second, fieldDepth + 1, iter.first));
+            buildMatchTree(iter.second, fieldDepth + 1, iter.first.opPart));
       }
     }
 
