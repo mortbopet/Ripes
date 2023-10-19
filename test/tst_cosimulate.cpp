@@ -99,7 +99,7 @@ private slots:
 void tst_Cosimulate::trapHandler() {
   unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
       RegisterFileType::GPR,
-      ProcessorHandler::get()->getProcessor()->implementsISA().syscallReg);
+      ProcessorHandler::get()->getProcessor()->implementsISA()->syscallReg());
 
   /// @todo: Generalize this by having ISA report exit syscall codes
   if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
@@ -109,7 +109,8 @@ void tst_Cosimulate::trapHandler() {
 
 Registers tst_Cosimulate::dumpRegs() {
   Registers regs;
-  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA().regCnt; i++) {
+  for (unsigned i = 0;
+       i < ProcessorHandler::get()->currentISA()->gprRegInfo()->regCnt(); i++) {
     regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
         RegisterFileType::GPR, i);
   }
@@ -135,7 +136,8 @@ std::optional<std::vector<int>> regNeq(const Registers &lhs,
 std::vector<RegisterChange> registerChange(const Registers &before,
                                            const Registers &after) {
   std::vector<RegisterChange> change;
-  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA().regCnt; i++) {
+  for (unsigned i = 0;
+       i < ProcessorHandler::get()->currentISA()->gprRegInfo()->regCnt(); i++) {
     if (before.at(i) != after.at(i)) {
       change.push_back({i, after.at(i)});
     }

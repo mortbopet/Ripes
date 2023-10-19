@@ -229,10 +229,10 @@ CCManager::createCompileCommand(const QStringList &files,
   cc.bin = QFileInfo(m_currentCC);
 
   // Substitute machine architecture
-  cc.args << (QString("-march=") + currentISA.CCmarch);
+  cc.args << (QString("-march=") + currentISA->CCmarch());
 
   // Substitute machine ABI
-  cc.args << (QString("-mabi=") + currentISA.CCmabi);
+  cc.args << (QString("-mabi=") + currentISA->CCmabi());
 
   // Substitute additional CC arguments
   cc.args << sanitizedArguments(

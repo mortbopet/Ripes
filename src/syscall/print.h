@@ -19,7 +19,7 @@ public:
   void execute() {
     const VIntS arg0 = vsrtl::signextend<VInt, VIntS>(
         BaseSyscall::getArg(RegisterFileType::GPR, 0),
-        ProcessorHandler::currentISA().bits);
+        ProcessorHandler::currentISA()->bits());
     SystemIO::printString(QString::number(arg0));
   }
 };
@@ -90,7 +90,7 @@ public:
     const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
     SystemIO::printString("0x" +
                           QString::number(arg0, 16).rightJustified(
-                              ProcessorHandler::currentISA().bytes(), '0'));
+                              ProcessorHandler::currentISA()->bytes(), '0'));
   }
 };
 
@@ -106,8 +106,9 @@ public:
             {{0, "integer to print"}}) {}
   void execute() {
     const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
-    SystemIO::printString("0b" + QString::number(arg0, 2).rightJustified(
-                                     ProcessorHandler::currentISA().bits, '0'));
+    SystemIO::printString("0b" +
+                          QString::number(arg0, 2).rightJustified(
+                              ProcessorHandler::currentISA()->bits(), '0'));
   }
 };
 

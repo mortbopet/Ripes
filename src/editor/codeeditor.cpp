@@ -360,7 +360,7 @@ void CodeEditor::setSourceType(SourceType type,
   switch (m_sourceType) {
   case SourceType::Assembly: {
     auto isa = ProcessorHandler::currentISA();
-    if (isa.isaID == ISA::RV32I || isa.isaID == ISA::RV64I) {
+    if (isa->isaID() == ISA::RV32I || isa->isaID() == ISA::RV64I) {
       m_highlighter = std::make_unique<RVSyntaxHighlighter>(
           document(), m_errors, supportedOpcodes);
     } else {

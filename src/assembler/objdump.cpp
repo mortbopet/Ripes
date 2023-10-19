@@ -32,8 +32,8 @@ QString stringifyProgram(std::weak_ptr<const Program> program,
     QString out;
     auto dataStream = QDataStream(textSection->data);
     std::vector<char> buffer;
-    const unsigned regBytes = ProcessorHandler::currentISA().bytes();
-    const unsigned instrBytes = ProcessorHandler::currentISA().instrBytes();
+    const unsigned regBytes = ProcessorHandler::currentISA()->bytes();
+    const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
 
     int infoOffsets = 0;
     const QString indent = "    ";
@@ -109,7 +109,7 @@ QString stringifyProgram(std::weak_ptr<const Program> program,
 QString objdump(const std::shared_ptr<const Program> &program,
                 AddrOffsetMap &addrOffsetMap) {
   auto assembler = ProcessorHandler::getAssembler();
-  const unsigned instrBytes = ProcessorHandler::currentISA().instrBytes();
+  const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
   return stringifyProgram(
       program,
       [&program, &assembler, instrBytes](const std::vector<char> &buffer,
@@ -126,7 +126,7 @@ QString objdump(const std::shared_ptr<const Program> &program,
 QString binobjdump(const std::shared_ptr<const Program> &program,
                    AddrOffsetMap &addrOffsetMap) {
   auto assembler = ProcessorHandler::getAssembler();
-  const unsigned instrBytes = ProcessorHandler::currentISA().instrBytes();
+  const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
   return stringifyProgram(
       program,
       [&program, &assembler, instrBytes](const std::vector<char> &buffer,

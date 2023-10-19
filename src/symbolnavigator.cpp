@@ -46,7 +46,7 @@ void SymbolNavigator::addSymbol(const AInt address, const QString &label) {
 
   addrItem->setData(Qt::DisplayRole,
                     encodeRadixValue(address, Radix::Hex,
-                                     ProcessorHandler::currentISA().bytes()));
+                                     ProcessorHandler::currentISA()->bytes()));
   labelItem->setData(Qt::DisplayRole, label);
 
   addrItem->setFlags(addrItem->flags() ^ Qt::ItemIsEditable);

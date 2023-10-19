@@ -169,7 +169,7 @@ public:
    * @brief implementsISA
    * @return ISA (+extensions) which the _instantiated_ processor implements.
    */
-  virtual const ISAInfo &implementsISA() const = 0;
+  virtual const ISAInfoBase *implementsISA() const = 0;
 
   /**
    * @brief structure

@@ -16,6 +16,7 @@
 
 #include "STLExtras.h"
 #include "assemblerbase.h"
+#include "isa/isainfo.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -59,12 +60,13 @@ namespace Assembler {
  *  Reg_T: type equal in size to the register width of the target
  *  Instr_T: type equal in size to the instruction width of the target
  */
-template <typename ISAImpl>
 class Assembler : public AssemblerBase {
   static_assert(std::numeric_limits<Reg_T>::is_integer,
                 "Register type must be integer");
 
 public:
+  explicit Assembler(const ISAInfoBase *isa) : m_isa(isa) {}
+
   AssembleResult
   assemble(const QStringList &programLines, const SymbolMap *symbols = nullptr,
            const QString &sourceHash = QString()) const override {
@@ -397,13 +399,13 @@ protected:
         /// Instructions should always be emitted on an aligned boundary wrt.
         /// their size.
         const unsigned alignmentDiff =
-            addr_offset % (ISAImpl::instrByteAlignment());
+            addr_offset % (m_isa->instrByteAlignment());
         if (alignmentDiff != 0) {
           errors.push_back(
               {line.sourceLine(),
                "Instruction misaligned (" + QString::number(alignmentDiff * 8) +
                    "-bit boundary). This instruction must be aligned on a " +
-                   QString::number((ISAImpl::instrByteAlignment()) * 8) +
+                   QString::number((m_isa->instrByteAlignment()) * 8) +
                    "-bit boundary."});
           break;
         }
@@ -643,6 +645,8 @@ protected:
   RelocationsMap m_relocationsMap;
 
   std::unique_ptr<Matcher> m_matcher;
+
+  const ISAInfoBase *m_isa;
 };
 
 } // namespace Assembler

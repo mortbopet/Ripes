@@ -227,7 +227,7 @@ private:
  * corresponds to the register index
  * @param BitRange: range in instruction field containing register index value
  */
-template <unsigned tokenIndex, typename BitRange, typename ISARegInterface>
+template <unsigned tokenIndex, typename BitRange, typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRange> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
 
@@ -236,7 +236,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
         Instr_T &instruction /*, FieldLinkRequest<Reg_T> &*/) {
     const auto &regToken = line.tokens.at(tokenIndex);
     bool success = false;
-    unsigned regIndex = ISARegInterface::regNumber(regToken, success);
+    unsigned regIndex = RegInfo::RegNumber(regToken, success);
     if (!success) {
       // TODO: Set error in FieldLinkRequest
       //      return Error(line, "Unknown register '" + regToken + "'");
@@ -248,7 +248,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
   static bool Decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::Decode(instruction);
-    const Token registerName(ISARegInterface::regName(regNumber));
+    const Token registerName(RegInfo::RegName(regNumber));
     if (registerName.isEmpty()) {
       //      return Error(0, "Unknown register number '" +
       //      QString::number(regNumber) +

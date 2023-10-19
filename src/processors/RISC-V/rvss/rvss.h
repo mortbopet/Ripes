@@ -32,7 +32,7 @@ class RVSS : public RipesVSRTLProcessor {
 public:
   RVSS(const QStringList &extensions)
       : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
-    m_enabledISA = RVISA::constructISA(XLenToRVISA<XLEN>(), extensions);
+    m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
     decode->setISA(m_enabledISA);
 
     // -----------------------------------------------------------------------
@@ -237,8 +237,16 @@ public:
     m_finished = false;
   }
 
-  static const ISAInfo &supportsISA() { return *RVISA::ISAStruct<XLEN>.get(); }
-  const ISAInfo &implementsISA() const override { return *m_enabledISA.get(); }
+  static ProcessorISAInfo supportsISA() {
+    return ProcessorISAInfo{
+        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
+        {"M", "C"},
+        {"M"}};
+  }
+  const ISAInfoBase *implementsISA() const override {
+    return m_enabledISA.get();
+  }
+
   const std::set<RegisterFileType> registerFiles() const override {
     std::set<RegisterFileType> rfs;
     rfs.insert(RegisterFileType::GPR);
@@ -253,7 +261,7 @@ public:
 private:
   bool m_finishInNextCycle = false;
   bool m_finished = false;
-  std::shared_ptr<ISAInfo> m_enabledISA;
+  std::shared_ptr<ISAInfoBase> m_enabledISA;
   ProcessorStructure m_structure = {{0, 1}};
 };
 

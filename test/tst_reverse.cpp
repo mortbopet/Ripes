@@ -34,7 +34,8 @@ private slots:
 using Registers = std::map<int, VInt>;
 static Registers dumpRegs() {
   Registers regs;
-  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA().regCnt; i++) {
+  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt();
+       i++) {
     regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
         RegisterFileType::GPR, i);
   }

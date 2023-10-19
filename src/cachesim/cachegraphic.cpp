@@ -123,7 +123,7 @@ void CacheGraphic::updateLineReplFields(unsigned lineIdx) {
 
 QString CacheGraphic::addressString() const {
   return "0x" +
-         QString("0").repeated(ProcessorHandler::currentISA().bytes() * 2);
+         QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2);
 }
 
 void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
@@ -143,7 +143,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     simWay = cacheLine->at(wayIdx);
   };
 
-  const unsigned bytes = ProcessorHandler::currentISA().bytes();
+  const unsigned bytes = ProcessorHandler::currentISA()->bytes();
   // ======================== Update block text fields ======================
   if (simWay.valid) {
     for (int i = 0; i < m_cache.getBlocks(); ++i) {
@@ -166,12 +166,12 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
       const auto data =
           ProcessorHandler::getMemory().readMemConst(addressForBlock, bytes);
       const QString text = encodeRadixValue(
-          data, Radix::Hex, ProcessorHandler::currentISA().bytes());
+          data, Radix::Hex, ProcessorHandler::currentISA()->bytes());
       blockTextItem->setText(text);
       QString tooltip =
           "Address: " +
           encodeRadixValue(addressForBlock, Radix::Hex,
-                           ProcessorHandler::currentISA().bytes());
+                           ProcessorHandler::currentISA()->bytes());
       if (simWay.dirtyBlocks.count(i)) {
         tooltip += "\n> Dirty";
       }
@@ -209,7 +209,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
       tagTextItem = way.tag.get();
     }
     const QString tagText = encodeRadixValue(
-        simWay.tag, Radix::Hex, ProcessorHandler::currentISA().bytes());
+        simWay.tag, Radix::Hex, ProcessorHandler::currentISA()->bytes());
     tagTextItem->setText(tagText);
   } else {
     // The way is invalid so no tag text should be present
@@ -353,7 +353,7 @@ void CacheGraphic::drawIndexingItems() {
   };
 
   drawNextBitPos(log2Ceil(
-      ProcessorHandler::currentISA().bytes())); // Account for word indexing
+      ProcessorHandler::currentISA()->bytes())); // Account for word indexing
   if (m_cache.getBlockBits() > 0) {
     m_blockIndexStartPoint = nextBitsPos;
     drawNextBitPos(m_cache.getBlockBits());

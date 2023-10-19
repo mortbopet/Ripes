@@ -45,18 +45,20 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
       processorItem->setFont(ProcessorColumn, font);
       selectedItem = processorItem;
     }
-    const QString &isaFamily = ISAFamilyNames.at(desc.second->isaInfo().isaID);
+    const QString &isaFamily =
+        ISAFamilyNames.at(desc.second->isaInfo().isa->isaID());
     QTreeWidgetItem *familyItem = isaFamilyItems.at(isaFamily);
     auto &regWidthItemsForISA = isaFamilyRegWidthItems.at(familyItem);
     auto isaRegWidthItem =
-        regWidthItemsForISA.find(desc.second->isaInfo().bits);
+        regWidthItemsForISA.find(desc.second->isaInfo().isa->bits());
     if (isaRegWidthItem == regWidthItemsForISA.end()) {
       // Create reg width item
       auto *widthItem = new QTreeWidgetItem(
-          {QString::number(desc.second->isaInfo().bits) + "-bit"});
+          {QString::number(desc.second->isaInfo().isa->bits()) + "-bit"});
       widthItem->setFlags(widthItem->flags() & ~(Qt::ItemIsSelectable));
-      regWidthItemsForISA[desc.second->isaInfo().bits] = widthItem;
-      isaRegWidthItem = regWidthItemsForISA.find(desc.second->isaInfo().bits);
+      regWidthItemsForISA[desc.second->isaInfo().isa->bits()] = widthItem;
+      isaRegWidthItem =
+          regWidthItemsForISA.find(desc.second->isaInfo().isa->bits());
       familyItem->insertChild(familyItem->childCount(), widthItem);
     }
     isaRegWidthItem->second->insertChild(isaRegWidthItem->second->childCount(),
@@ -81,7 +83,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
         desc.second->isaInfo().defaultExtensions;
   }
   m_selectedExtensionsForID[ProcessorHandler::getID()] =
-      ProcessorHandler::currentISA().enabledExtensions;
+      ProcessorHandler::currentISA()->enabledExtensions();
 
   if (selectedItem != nullptr) {
     // Select the processor and layout which is currently active
@@ -138,7 +140,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
   // Update information widgets with the current processor info
   m_selectedID = id;
   m_ui->name->setText(desc->name);
-  m_ui->ISA->setText(isaInfo.name);
+  m_ui->ISA->setText(isaInfo.isa->name());
   m_ui->description->clear();
   m_ui->description->appendHtml(desc->description);
   m_ui->description->moveCursor(QTextCursor::Start);
@@ -160,7 +162,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
 
   for (const auto &ext : std::as_const(isaInfo.supportedExtensions)) {
     auto chkbox = new QCheckBox(ext);
-    chkbox->setToolTip(isaInfo.extensionDescription(ext));
+    chkbox->setToolTip(isaInfo.isa->extensionDescription(ext));
     m_ui->extensions->addWidget(chkbox);
     if (m_selectedExtensionsForID[desc->id].contains(ext)) {
       chkbox->setChecked(true);

@@ -12,7 +12,7 @@ inline uint32_t pcrel_hi20(const uint32_t val, const uint32_t reloc_addr) {
   return ((val - (reloc_addr % 0xFFFFF000) + 0x800) >> 12);
 }
 
-Relocation rv_pcrel_hi() {
+inline Relocation rv_pcrel_hi() {
   return Relocation(
       "%pcrel_hi",
       [](const Reg_T val, const Reg_T reloc_addr) -> HandleRelocationRes {
@@ -21,7 +21,7 @@ Relocation rv_pcrel_hi() {
       });
 }
 
-Relocation rv_pcrel_lo() {
+inline Relocation rv_pcrel_lo() {
   return Relocation(
       "%pcrel_lo",
       [](const Reg_T val, const Reg_T reloc_addr) -> HandleRelocationRes {
@@ -33,7 +33,7 @@ Relocation rv_pcrel_lo() {
       });
 }
 
-Relocation rv_hi() {
+inline Relocation rv_hi() {
   return Relocation(
       "%hi",
       [](const Reg_T val, const Reg_T /*reloc_addr*/) -> HandleRelocationRes {
@@ -41,7 +41,7 @@ Relocation rv_hi() {
       });
 }
 
-Relocation rv_lo() {
+inline Relocation rv_lo() {
   return Relocation(
       "%lo",
       [](const Reg_T val, const Reg_T /*reloc_addr*/) -> HandleRelocationRes {
@@ -53,7 +53,7 @@ Relocation rv_lo() {
  * A collection of RISC-V assembler relocations
  */
 
-RelocationsVec rvRelocations() {
+inline RelocationsVec rvRelocations() {
   RelocationsVec relocations;
 
   relocations.push_back(std::make_shared<Relocation>(rv_pcrel_hi()));

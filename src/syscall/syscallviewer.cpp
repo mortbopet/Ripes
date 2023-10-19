@@ -33,8 +33,8 @@ SyscallViewer::SyscallViewer(QWidget *parent)
   m_ui->syscallList->verticalHeader()->hide();
   m_ui->syscallList->setHorizontalHeaderLabels(
       {"Func. (" +
-           ProcessorHandler::currentISA().regAlias(
-               ProcessorHandler::currentISA().syscallReg) +
+           ProcessorHandler::currentISA()->gprRegInfo()->regAlias(
+               ProcessorHandler::currentISA()->syscallReg()) +
            ")",
        "Name"});
   m_ui->syscallList->horizontalHeader()->setStretchLastSection(true);
@@ -100,9 +100,10 @@ void SyscallViewer::addItemToTable(QTableWidget *table, unsigned int idx,
   QTableWidgetItem *textItem = new QTableWidgetItem();
 
   auto isa = ProcessorHandler::currentISA();
+  auto gpr = isa->gprRegInfo();
 
   idxItem->setData(Qt::EditRole, QString::number(idx));
-  regItem->setData(Qt::EditRole, isa.regAlias(isa.syscallArgReg(idx)));
+  regItem->setData(Qt::EditRole, gpr->regAlias(isa->syscallArgReg(idx)));
   textItem->setData(Qt::DisplayRole, description);
 
   idxItem->setFlags(idxItem->flags() ^ Qt::ItemIsEditable);

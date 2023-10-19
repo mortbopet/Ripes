@@ -4,19 +4,19 @@ namespace Ripes {
 namespace RVISA {
 
 // clang-format off
-const QStringList RegAliases = QStringList() << "zero"
+const QStringList GPRRegAliases = QStringList() << "zero"
                                              << "ra" << "sp" << "gp" << "tp" << "t0" << "t1" << "t2" << "s0" << "s1" << "a0"
                                              << "a1" << "a2" << "a3" << "a4" << "a5" << "a6" << "a7" << "s2" << "s3" << "s4"
                                              << "s5" << "s6" << "s7" << "s8" << "s9" << "s10" << "s11" << "t3" << "t4" << "t5"
                                              << "t6";
 
-const QStringList RegNames = QStringList() << "x0"
+const QStringList GPRRegNames = QStringList() << "x0"
                                            << "x1" << "x2" << "x3" << "x4" << "x5" << "x6" << "x7" << "x8"
                                            << "x9" << "x10" << "x11" << "x12" << "x13" << "x14" << "x15"
                                            << "x16" << "x17" << "x18" << "x19" << "x20" << "x21" << "x22" << "x23"
                                            << "x24" << "x25" << "x26" << "x27" << "x28" << "x29" << "x30" << "x31";
 
-const QStringList RegDescs = QStringList() << "Hard-Wired zero"
+const QStringList GPRRegDescs = QStringList() << "Hard-Wired zero"
                                            << "Return Address \nSaver: Caller"
                                            << "Stack pointer\nSaver: Callee"
                                            << "Global pointer"
@@ -48,25 +48,7 @@ const QStringList RegDescs = QStringList() << "Hard-Wired zero"
                                            << "Temporary register\nSaver: Caller"
                                            << "Temporary register\nSaver: Caller"
                                            << "Temporary register\nSaver: Caller";
-
-// TODO: Add RISC-V extension names here
-const QStringList SupportedExtensions = QStringList() << "M" << "C";
-const QStringList DefaultExtensions = QStringList() << "M";
 // clang-format on
-
-std::shared_ptr<ISAInfo> constructISA(ISA base, const QStringList &extensions) {
-  // TODO: Figure out better way to get ISA type with specified extensions
-  if (extensions.isEmpty()) {
-    return (base == ISA::RV32I) ? RV32I::getStruct() : RV64I::getStruct();
-  } else if (extensions.contains("M") && extensions.contains("C")) {
-    return (base == ISA::RV32I) ? RV32IMC::getStruct() : RV64IMC::getStruct();
-  } else if (extensions.contains("M")) {
-    return (base == ISA::RV32I) ? RV32IM::getStruct() : RV64IM::getStruct();
-  } else if (extensions.contains("C")) {
-    return (base == ISA::RV32I) ? RV32IC::getStruct() : RV64IC::getStruct();
-  }
-  Q_UNREACHABLE();
-}
 
 } // namespace RVISA
 

@@ -9,15 +9,25 @@
 namespace Ripes {
 namespace Assembler {
 
-class RV64I_Assembler : public QObject, public Assembler<RVISA::RV64I> {
+class RV64I_Assembler : public QObject, public Assembler {
   Q_OBJECT
+
+public:
+  RV64I_Assembler(const ISAInfo<ISA::RV64I> *isa);
+
+private:
+  std::tuple<InstrVec, PseudoInstrVec>
+  initInstructions(const ISAInfo<ISA::RV64I> *isa) const;
 
   /**
    * Extension enablers
    * Calling an extension enabler will register the appropriate assemblers and
    * pseudo-op expander functors with the assembler.
    */
-  static void setExtension(RVISA::Extension ext, bool enabled);
+  //  static void enableExtI(const ISAInfoBase *isa, InstrVec &instructions,
+  //                         PseudoInstrVec &pseudoInstructions);
+  //  static void enableExtM(const ISAInfoBase *isa, InstrVec &instructions,
+  //                         PseudoInstrVec &pseudoInstructions);
 
 protected:
   QChar commentDelimiter() const override { return '#'; }

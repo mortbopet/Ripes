@@ -5,7 +5,7 @@
 namespace Ripes {
 
 void setISADepRegex(QRegularExpressionValidator *validator) {
-  const auto isaBytes = ProcessorHandler::currentISA().bytes();
+  const auto isaBytes = ProcessorHandler::currentISA()->bytes();
   if (isaBytes == 2) {
     validator->setRegularExpression(hexRegex16);
   } else if (isaBytes == 4) {

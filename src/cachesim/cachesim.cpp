@@ -23,8 +23,8 @@ void CacheInterface::reverse() {
 }
 
 CacheSim::CacheSim(QObject *parent) : CacheInterface(parent) {
-  m_byteOffset = log2Ceil(ProcessorHandler::currentISA().bytes());
-  m_wordBits = ProcessorHandler::currentISA().bits;
+  m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
+  m_wordBits = ProcessorHandler::currentISA()->bits();
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
     // Given that we are not updating the graphical state of the cache simulator
     // whilst the processor is running, once running is finished, the entirety
@@ -486,8 +486,8 @@ void CacheSim::reset() {
   m_accessTrace.clear();
   m_traceStack.clear();
 
-  m_wordBits = ProcessorHandler::currentISA().bits;
-  m_byteOffset = log2Ceil(ProcessorHandler::currentISA().bytes());
+  m_wordBits = ProcessorHandler::currentISA()->bits();
+  m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
   recalculateMasks();
   m_isResetting = false;
 
@@ -499,7 +499,7 @@ void CacheSim::reset() {
 
 void CacheSim::updateConfiguration() {
   // Recalculate masks
-  m_byteOffset = log2Ceil(ProcessorHandler::currentISA().bytes());
+  m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
   recalculateMasks();
   emit configurationChanged();
 }

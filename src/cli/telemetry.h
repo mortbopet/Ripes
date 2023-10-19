@@ -117,20 +117,22 @@ public:
   QVariant report(bool json) override {
     QVariantMap registerMap;
     auto isa = ProcessorHandler::currentISA();
+    auto gpr = isa->gprRegInfo();
+
     if (json) {
-      for (unsigned i = 0; i < isa.regCnt; i++) {
-        registerMap[isa.regName(i)] = QVariant::fromValue(
+      for (unsigned i = 0; i < gpr->regCnt(); i++) {
+        registerMap[gpr->regName(i)] = QVariant::fromValue(
             ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i));
       }
       return registerMap;
     } else {
       QString outStr;
       QTextStream out(&outStr);
-      for (unsigned i = 0; i < isa.regCnt; i++) {
+      for (unsigned i = 0; i < gpr->regCnt(); i++) {
         auto v = ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i);
-        out << isa.regName(i) << ":\t"
-            << encodeRadixValue(v, Radix::Signed, isa.bytes()) << "\t";
-        out << "(" << encodeRadixValue(v, Radix::Hex, isa.bytes()) << ")\n";
+        out << gpr->regName(i) << ":\t"
+            << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
+        out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
       }
       return outStr;
     }
@@ -152,7 +154,7 @@ public:
   QVariant report(bool /*json*/) override {
     QVariantMap m;
     m["processor"] = enumToString<ProcessorID>(ProcessorHandler::getID());
-    m["ISA extensions"] = ProcessorHandler::currentISA().enabledExtensions;
+    m["ISA extensions"] = ProcessorHandler::currentISA()->enabledExtensions();
     m["source file"] = m_parser->value("src");
     return m;
   }

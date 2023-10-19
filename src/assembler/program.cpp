@@ -73,7 +73,7 @@ const DisassembledProgram &Program::getDisassembled() const {
     auto &symbols = ProcessorHandler::getProgram()->symbols;
 
     // Initialize caching
-    const unsigned instrBytes = ProcessorHandler::currentISA().instrBytes();
+    const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
     const VInt textSectionBaseAddr = textSection->address;
     unsigned line = 0;
     for (AInt addr = 0;

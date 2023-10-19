@@ -9,11 +9,15 @@
 namespace Ripes {
 namespace Assembler {
 
-class RV32I_Assembler : public QObject, public Assembler<RVISA::RV32I> {
+class RV32I_Assembler : public QObject, public Assembler {
   Q_OBJECT
 
 public:
-  RV32I_Assembler();
+  RV32I_Assembler(const ISAInfo<ISA::RV32I> *isa);
+
+private:
+  std::tuple<InstrVec, PseudoInstrVec>
+  initInstructions(const ISAInfo<ISA::RV32I> *isa) const;
 
 protected:
   QChar commentDelimiter() const override { return '#'; }

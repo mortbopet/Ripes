@@ -12,7 +12,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class DecodeRVC : public Component {
 public:
-  void setISA(const std::shared_ptr<ISAInfo> &isa) {
+  void setISA(const std::shared_ptr<ISAInfoBase> &isa) {
     decode->setISA(isa);
     uncompress->setISA(isa);
   }

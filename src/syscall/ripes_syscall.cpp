@@ -10,8 +10,8 @@ bool SyscallManager::execute(SyscallID id) {
       QMessageBox::warning(
           nullptr, "Error",
           "Unknown system call in register '" +
-              ProcessorHandler::currentISA().regAlias(
-                  ProcessorHandler::currentISA().syscallReg) +
+              ProcessorHandler::currentISA()->gprRegInfo()->regAlias(
+                  ProcessorHandler::currentISA()->syscallReg()) +
               "': " + QString::number(id) +
               "\nRefer to \"Help->System calls\" for a list of support system "
               "calls.");

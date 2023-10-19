@@ -54,7 +54,7 @@ public:
   }
 
   /// Returns a pointer to the currently instantiated ISA.
-  static const ISAInfo &currentISA() { return get()->_currentISA(); }
+  static const ISAInfoBase *currentISA() { return get()->_currentISA(); }
 
   /// Returns a reference to the system call manager.
   static const SyscallManager &getSyscallManager() {
@@ -280,7 +280,7 @@ private:
   }
   const ProcessorID &_getID() const { return m_currentID; }
   std::shared_ptr<const Program> _getProgram() const { return m_program; }
-  const ISAInfo &_currentISA() const {
+  const ISAInfoBase *_currentISA() const {
     return m_currentProcessor->implementsISA();
   }
   const SyscallManager &_getSyscallManager() const { return *m_syscallManager; }

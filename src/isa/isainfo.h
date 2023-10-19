@@ -40,138 +40,76 @@ const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
     {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
     {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
 
-struct ISAInfo {
-  const QString name;
-  const QString CCmarch;
-  const QString CCmabi;
-  const QStringList supportedExtensions;
-  const QStringList enabledExtensions;
-  const QStringList defaultExtensions;
-  ISA isaID;
-  unsigned regCnt;
-  unsigned bits;
-  unsigned instrBits;
-  unsigned instrByteAlignment;
-  int spReg;
-  int gpReg;
-  int syscallReg;
-  unsigned elfMachineId;
-  std::function<QString(unsigned)> regName;
-  std::function<unsigned(const QString &, bool &)> regNumber;
-  std::function<QString(unsigned)> regAlias;
-  std::function<QString(unsigned)> regInfo;
-  std::function<int(unsigned)> syscallArgReg;
-  std::function<bool(unsigned)> regIsReadOnly;
-  std::function<bool(const QString &)> extensionEnabled;
-  std::function<QString(unsigned)> elfSupportsFlags;
-  std::function<QString(const QString &)> extensionDescription;
-
-  unsigned bytes() const { return bits / 8; }
-  unsigned instrBytes() const { return instrBits / 8; }
-  bool eq(const ISAInfo &otherISA) const {
-    const auto ext1 = QSet(enabledExtensions.begin(), enabledExtensions.end());
-    const auto ext2 = QSet(otherISA.enabledExtensions.begin(),
-                           otherISA.enabledExtensions.end());
-    return name == otherISA.name && ext1 == ext2;
-  }
-};
-
-template <typename ISAImpl>
-struct ISAInterface {
-  static std::shared_ptr<ISAInfo> getStruct() {
-    return std::make_shared<ISAInfo>(ISAInfo{name(),
-                                             ISAImpl::CCmarch(),
-                                             ISAImpl::CCmabi(),
-                                             supportedExtensions(),
-                                             enabledExtensions(),
-                                             defaultExtensions(),
-                                             isaID(),
-                                             regCnt(),
-                                             bits(),
-                                             instrBits(),
-                                             instrByteAlignment(),
-                                             spReg(),
-                                             gpReg(),
-                                             syscallReg(),
-                                             elfMachineId(),
-                                             regName,
-                                             regNumber,
-                                             regAlias,
-                                             regInfo,
-                                             ISAImpl::syscallArgReg,
-                                             ISAImpl::regIsReadOnly,
-                                             extensionEnabled,
-                                             ISAImpl::elfSupportsFlags,
-                                             ISAImpl::extensionDescription});
-  }
-
-  static QString name() { return ISAImpl::CCmarch().toUpper(); }
-  constexpr static ISA isaID() { return ISAImpl::ISAID; }
-
+struct RegInfoBase {
+  virtual RegisterFileType regFileType() const = 0;
   /// Returns the number of registers in the instruction set.
-  constexpr static unsigned regCnt() { return ISAImpl::RegCnt; }
+  virtual unsigned regCnt() const = 0;
   /// Returns the canonical name of the i'th register in the ISA.
-  static QString regName(unsigned i) {
-    return ISAImpl::RegNames().size() > static_cast<int>(i)
-               ? ISAImpl::RegNames().at(static_cast<int>(i))
-               : QString();
-  }
+  virtual QString regName(unsigned i) const = 0;
   /// Returns the register index for a register name. If regName is not part of
   /// the ISA, sets success to false.
-  static unsigned int regNumber(const QString &reg, bool &success) {
-    QString regRes = reg;
-    success = true;
-    if (reg[0] == 'x' && (ISAImpl::RegNames().count(reg) != 0)) {
-      regRes.remove('x');
-      return regRes.toInt(&success, 10);
-    } else if (ISAImpl::RegAliases().contains(reg)) {
-      return ISAImpl::RegAliases().indexOf(reg);
-    }
-    success = false;
-    return 0;
-  }
+  virtual unsigned regNumber(const QString &regName, bool &success) const = 0;
   /// Returns the alias name of the i'th register in the ISA. If no alias is
   /// present, should return regName(i).
-  static QString regAlias(unsigned i) {
-    return ISAImpl::RegAliases().size() > static_cast<int>(i)
-               ? ISAImpl::RegAliases().at(static_cast<int>(i))
-               : QString();
-  }
+  virtual QString regAlias(unsigned i) const = 0;
   /// Returns additional information about the i'th register, i.e. caller/calle
   /// saved info, stack register ...
-  static QString regInfo(unsigned i) {
-    return ISAImpl::RegDescs().size() > static_cast<int>(i)
-               ? ISAImpl::RegDescs().at(static_cast<int>(i))
-               : QString();
-  }
+  virtual QString regInfo(unsigned i) const = 0;
   /// Returns if the i'th register is read-only.
-  //  static bool regIsReadOnly(unsigned i);
-  /// Register width, in bits
-  constexpr static unsigned bits() { return ISAImpl::Bits; }
-  /// Register width, in bytes
-  constexpr unsigned bytes() const { return bits() / CHAR_BIT; }
-  /// Instruction width, in bits
-  constexpr static unsigned instrBits() { return ISAImpl::InstrBits; }
-  /// Instruction width, in bytes
-  constexpr static unsigned instrBytes() { return instrBits() / CHAR_BIT; }
-  /// Instruction Alignment, in bytes
-  constexpr static unsigned instrByteAlignment() {
-    return ISAImpl::InstrByteAlignment;
+  virtual bool regIsReadOnly(unsigned i) const = 0;
+};
+
+/// The ISAInfoBase class defines an interface for instruction set information.
+class ISAInfoBase {
+public:
+  virtual ~ISAInfoBase(){};
+  virtual QString name() const = 0;
+  virtual ISA isaID() const = 0;
+
+  const RegInfoBase *gprRegInfo() const {
+    auto gprRes = regInfo(RegisterFileType::GPR);
+    assert(gprRes);
+    return *gprRes;
   }
-  /// Stack pointer
-  constexpr static int spReg() { return ISAImpl::SPReg; }
-  /// Global pointer
-  constexpr static int gpReg() { return ISAImpl::GPReg; }
-  /// Syscall function register
-  constexpr static int syscallReg() { return ISAImpl::SyscallReg; }
-  /// Mapping between syscall argument # and the corresponding register #
-  /// wherein that argument is passed.
-  //  static int syscallArgReg(unsigned argIdx);
+  std::optional<const RegInfoBase *>
+  regInfo(RegisterFileType regFileType) const {
+    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
+      return m_regInfos.at(regFileType).get();
+    } else {
+      return {};
+    }
+  }
+  /// Returns the total number of registers in the instruction set.
+  unsigned regCnt() const {
+    unsigned count = 0;
+    for (const auto &pair : m_regInfos) {
+      count += pair.second->regCnt();
+    }
+    return count;
+  }
+
+  virtual unsigned bits() const = 0; // Register width, in bits
+  unsigned bytes() const {
+    return bits() / CHAR_BIT;
+  }                                       // Register width, in bytes
+  virtual unsigned instrBits() const = 0; // Instruction width, in bits
+  unsigned instrBytes() const {
+    return instrBits() / CHAR_BIT;
+  } // Instruction width, in bytes
+  virtual unsigned instrByteAlignment() const {
+    return 0;
+  }                                        // Instruction Alignment, in bytes
+  virtual int spReg() const { return -1; } // Stack pointer
+  virtual int gpReg() const { return -1; } // Global pointer
+  virtual int syscallReg() const { return -1; } // Syscall function register
+  // Mapping between syscall argument # and the corresponding register # wherein
+  // that argument is passed.
+  virtual int syscallArgReg(unsigned /*argIdx*/) const { return -1; }
 
   // GCC Compile command architecture and ABI specification strings
-  //  static QString CCmarch();
-  //  static QString CCmabi();
-  constexpr static unsigned elfMachineId() { return ISAImpl::ElfMachineID; }
+  virtual QString CCmarch() const = 0;
+  virtual QString CCmabi() const = 0;
+  virtual unsigned elfMachineId() const = 0;
 
   /**
    * @brief elfSupportsFlags
@@ -180,7 +118,7 @@ struct ISAInterface {
    * mismatch is found, an error message describing the mismatch is returned.
    * Else, returns an empty QString(), validating the flags.
    */
-  //  static QString elfSupportsFlags(unsigned flags);
+  virtual QString elfSupportsFlags(unsigned flags) const = 0;
 
   /**
    * @brief supportedExtensions/enabledExtensions
@@ -189,22 +127,15 @@ struct ISAInterface {
    * when ie. instantiating a processor and enabledExtensions when instantiating
    * an assembler for a given processor.
    */
-  static const QStringList &enabledExtensions() {
-    return ISAImpl::EnabledExtensions();
+  virtual const QStringList &supportedExtensions() const = 0;
+  virtual const QStringList &enabledExtensions() const = 0;
+  bool extensionEnabled(const QString &ext) const {
+    return enabledExtensions().contains(ext);
   }
-  static bool extensionEnabled(const QString &ext) {
-    return ISAImpl::enabledExtensions().contains(ext);
+  bool supportsExtension(const QString &ext) const {
+    return supportedExtensions().contains(ext);
   }
-  static const QStringList &supportedExtensions() {
-    return ISAImpl::SupportedExtensions();
-  }
-  static bool supportsExtension(const QString &ext) {
-    return ISAImpl::supportedExtensions().contains(ext);
-  }
-  static const QStringList &defaultExtensions() {
-    return ISAImpl::DefaultExtensions();
-  }
-  //  static QString extensionDescription(const QString &ext);
+  virtual QString extensionDescription(const QString &ext) const = 0;
 
   /**
    * ISA equality is defined as a separate function rather than the == operator,
@@ -212,14 +143,26 @@ struct ISAInterface {
    * instantiated the other ISA. As such, it being uninstantiated does not allow
    * comparison of extensions.
    */
-  template <typename OtherISAInterface>
-  bool eq() const {
-    const auto ext1 = QSet(ISAImpl::enabledExtensions().begin(),
-                           ISAImpl::enabledExtensions().end());
-    const auto ext2 = QSet(OtherISAInterface::enabledExtensions().begin(),
-                           OtherISAInterface::enabledExtensions().end());
-    return ISAImpl::name() == OtherISAInterface::name() && ext1 == ext2;
+  bool eq(const ISAInfoBase *other, const QStringList &otherExts) const {
+    const auto ext1 = QSet(this->enabledExtensions().begin(),
+                           this->enabledExtensions().end());
+    const auto ext2 = QSet(otherExts.begin(), otherExts.end());
+    return this->name() == other->name() && ext1 == ext2;
   }
+
+protected:
+  ISAInfoBase() {}
+
+  std::map<RegisterFileType, std::unique_ptr<const RegInfoBase>> m_regInfos;
 };
+
+struct ProcessorISAInfo {
+  std::shared_ptr<ISAInfoBase> isa;
+  QStringList supportedExtensions;
+  QStringList defaultExtensions;
+};
+
+template <ISA isa>
+class ISAInfo : public ISAInfoBase {};
 
 } // namespace Ripes

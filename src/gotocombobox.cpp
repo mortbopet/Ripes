@@ -73,8 +73,9 @@ AInt GoToSectionComboBox::addrForIndex(int i) {
 
 void GoToRegisterComboBox::addTargets() {
   const auto &isa = ProcessorHandler::currentISA();
-  for (unsigned i = 0; i < isa.regCnt; ++i) {
-    addItem(isa.regName(i) + " (" + isa.regAlias(i) + ")",
+  const auto gpr = isa->gprRegInfo();
+  for (unsigned i = 0; i < gpr->regCnt(); ++i) {
+    addItem(gpr->regName(i) + " (" + gpr->regAlias(i) + ")",
             QVariant::fromValue<GoToUserData>({GoToFunction::Custom, i}));
   }
 }

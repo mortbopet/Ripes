@@ -10,7 +10,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Decode : public Component {
 public:
-  void setISA(const std::shared_ptr<ISAInfo> &isa) { m_isa = isa; }
+  void setISA(const std::shared_ptr<ISAInfoBase> &isa) { m_isa = isa; }
 
   Decode(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
@@ -228,7 +228,7 @@ public:
 
 private:
   void unknownInstruction() {}
-  std::shared_ptr<ISAInfo> m_isa;
+  std::shared_ptr<ISAInfoBase> m_isa;
 };
 
 } // namespace core

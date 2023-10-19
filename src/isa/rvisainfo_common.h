@@ -49,91 +49,88 @@ enum SysCall {
 } // namespace RVABI
 
 namespace RVISA {
-extern const QStringList RegAliases;
-extern const QStringList RegNames;
-extern const QStringList RegDescs;
+extern const QStringList GPRRegAliases;
+extern const QStringList GPRRegNames;
+extern const QStringList GPRRegDescs;
 
-// extern const QStringList FExtRegAliases;
-// extern const QStringList FExtRegNames;
-// extern const QStringList FExtRegDescs;
-
-extern const QStringList SupportedExtensions;
-extern const QStringList DefaultExtensions;
-
-enum class Extension { M, A, F, D, C };
-
-template <Extension ext>
-constexpr std::string_view extensionName() {
-  switch (ext) {
-  case Extension::M:
-    return "M";
-  case Extension::A:
-    return "A";
-  case Extension::F:
-    return "F";
-  case Extension::D:
-    return "D";
-  case Extension::C:
-    return "C";
-  default:
-    return "";
+/// Defines information about the general RISC-V register file.
+struct RV_GPRInfo : public RegInfoBase {
+  constexpr static RegisterFileType RegFileType() {
+    return RegisterFileType::GPR;
   }
-}
-
-template <Extension... Extensions>
-static QStringList EnabledExtensions =
-    (QStringList() << ... << QString(extensionName<Extensions>()));
-
-template <ISA ISABase, Extension... Extensions>
-struct RVISAInterface : public ISAInterface<RVISAInterface<ISABase>> {
-  static_assert(ISABase == ISA::RV32I || ISABase == ISA::RV64I);
-
-  constexpr static ISA ISAID = ISABase;
-  constexpr static unsigned Bits = isaToRegWidth<ISABase>();
-  constexpr static unsigned InstrBits = 32;
-  constexpr static unsigned InstrByteAlignment =
-      RVISAInterface<ISABase, Extensions...>::extensionEnabled(Extension::C)
-          ? 2
-          : 4;
-  constexpr static unsigned ElfMachineID = EM_RISCV;
-  constexpr static unsigned RegCnt = 32; // TODO: Extensions can add registers
-  constexpr static int GPReg = 2;
-  constexpr static int SPReg = 3;
-  constexpr static int SyscallReg = 17;
-
-  static const QStringList &SupportedExtensions() {
-    return RVISA::SupportedExtensions;
+  constexpr static unsigned int RegCnt() { return 32; }
+  static QString RegName(unsigned i) {
+    return RVISA::GPRRegNames.size() > static_cast<int>(i)
+               ? RVISA::GPRRegNames.at(static_cast<int>(i))
+               : QString();
   }
-  static const QStringList &EnabledExtensions() {
-    return RVISA::EnabledExtensions<Extensions...>;
+  static QString RegAlias(unsigned i) {
+    return RVISA::GPRRegAliases.size() > static_cast<int>(i)
+               ? RVISA::GPRRegAliases.at(static_cast<int>(i))
+               : QString();
   }
-  static const QStringList &DefaultExtensions() {
-    return RVISA::DefaultExtensions;
+  static QString RegInfo(unsigned i) {
+    return RVISA::GPRRegDescs.size() > static_cast<int>(i)
+               ? RVISA::GPRRegDescs.at(static_cast<int>(i))
+               : QString();
   }
-  constexpr static std::string_view EnabledExtensionNames =
-      (extensionName<Extensions>() + ... + "");
-  constexpr static bool extensionEnabled(Extension ext) {
-    return ((Extensions == ext) || ...);
+  static bool RegIsReadOnly(unsigned i) { return i == 0; }
+  static unsigned int RegNumber(const QString &reg, bool &success) {
+    QString regRes = reg;
+    success = true;
+    if (reg[0] == 'x' && (RVISA::GPRRegNames.count(reg) != 0)) {
+      regRes.remove('x');
+      return regRes.toInt(&success, 10);
+    } else if (RVISA::GPRRegAliases.contains(reg)) {
+      return RVISA::GPRRegAliases.indexOf(reg);
+    }
+    success = false;
+    return 0;
   }
 
-  static const QStringList &RegNames() { return RVISA::RegNames; }
-  static const QStringList &RegAliases() { return RVISA::RegAliases; }
-  static const QStringList &RegDescs() { return RVISA::RegDescs; }
-
-  static QString CCmarch() {
-    QString march = (ISABase == ISA::RV32I) ? "rv32i" : "rv64i";
-    march += EnabledExtensionNames;
-    return march;
+  RegisterFileType regFileType() const override { return RegFileType(); }
+  unsigned int regCnt() const override { return RegCnt(); }
+  QString regName(unsigned i) const override { return RegName(i); }
+  QString regAlias(unsigned i) const override { return RegAlias(i); }
+  QString regInfo(unsigned i) const override { return RegInfo(i); }
+  bool regIsReadOnly(unsigned i) const override { return RegIsReadOnly(i); }
+  unsigned int regNumber(const QString &reg, bool &success) const override {
+    return RegNumber(reg, success);
   }
-  static QString CCmabi() { return (ISABase == ISA::RV32I) ? "ilp32" : "lp64"; }
+};
 
-  constexpr static bool regIsReadOnly(unsigned i) { return i == 0; }
+class RV_ISAInfoBase : public ISAInfoBase {
+public:
+  RV_ISAInfoBase(const QStringList extensions) {
+    // Validate extensions
+    for (const auto &ext : extensions) {
+      if (supportsExtension(ext)) {
+        m_enabledExtensions << ext;
+      } else {
+        assert(false && "Invalid extension specified for ISA");
+      }
+    }
 
-  static int syscallArgReg(unsigned argIdx) {
+    m_regInfos[RegisterFileType::GPR] = std::make_unique<RV_GPRInfo>();
+
+    /** Any registers added by extensions can be applied here
+     * Floating point register: */
+    // if (extensions.contains("F"))
+    //   m_regFileTypes[RegisterFileType::FPR] = std::make_unique<RV_FPRInfo>()
+  }
+
+  QString name() const override { return CCmarch().toUpper(); }
+  int spReg() const override { return 2; }
+  int gpReg() const override { return 3; }
+  int syscallReg() const override { return 17; }
+  unsigned instrBits() const override { return 32; }
+  unsigned elfMachineId() const override { return EM_RISCV; }
+  int syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
     return argIdx + 10;
   }
-  static QString elfSupportsFlags(unsigned flags) {
+
+  QString elfSupportsFlags(unsigned flags) const override {
     /** We expect no flags for RV32IM compiled RISC-V executables.
      *  Refer to:
      * https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#-elf-object-files
@@ -148,37 +145,37 @@ struct RVISAInterface : public ISAInterface<RVISAInterface<ISABase>> {
     }
     return QString();
   }
-  static QString extensionDescription(const QString &ext) {
+
+  const QStringList &supportedExtensions() const override {
+    return m_supportedExtensions;
+  }
+  const QStringList &enabledExtensions() const override {
+    return m_enabledExtensions;
+  }
+  QString extensionDescription(const QString &ext) const override {
     if (ext == "M")
       return "Integer multiplication and division";
     if (ext == "C")
       return "Compressed instructions";
     Q_UNREACHABLE();
   }
+
+protected:
+  QString _CCmarch(QString march) const {
+    // Proceed in canonical order. Canonical ordering is defined in the RISC-V
+    // spec.
+    for (const auto &ext : {"M", "A", "F", "D", "C"}) {
+      if (m_enabledExtensions.contains(ext)) {
+        march += QString(ext).toLower();
+      }
+    }
+
+    return march;
+  }
+
+  QStringList m_enabledExtensions;
+  QStringList m_supportedExtensions = {"M", "C"};
 };
-
-template <ISA Base>
-using RVIM = RVISAInterface<Base, Extension::M>;
-template <ISA Base>
-using RVIC = RVISAInterface<Base, Extension::C>;
-template <ISA Base>
-using RVIMC = RVISAInterface<Base, Extension::M, Extension::C>;
-
-using RV32I = RVISAInterface<ISA::RV32I>;
-using RV32IM = RVIM<ISA::RV32I>;
-using RV32IC = RVIC<ISA::RV32I>;
-using RV32IMC = RVIMC<ISA::RV32I>;
-
-using RV64I = RVISAInterface<ISA::RV64I>;
-using RV64IM = RVIM<ISA::RV64I>;
-using RV64IC = RVIC<ISA::RV64I>;
-using RV64IMC = RVIMC<ISA::RV64I>;
-
-std::shared_ptr<ISAInfo> constructISA(ISA base, const QStringList &extensions);
-
-template <unsigned XLEN>
-const std::shared_ptr<ISAInfo> ISAStruct =
-    RVISAInterface<XLenToRVISA<XLEN>()>::getStruct();
 
 enum OpcodeID {
   LUI = 0b0110111,
@@ -201,11 +198,6 @@ enum QuadrantID {
   QUADRANT2 = 0b10,
   QUADRANT3 = 0b11
 };
-
-// struct RVISAInterface {
-//   static QString regName(unsigned regNumber);
-//   static unsigned regNumber(const QString &regToken, bool &success);
-// };
 
 /// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
 /// instruction
@@ -235,29 +227,29 @@ struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction
 template <unsigned tokenIndex>
-struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>, RV32I> {
-  RegRs1() : Reg<tokenIndex, BitRange<15, 19>, RV32I>("rs1") {}
+struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>, RV_GPRInfo> {
+  RegRs1() : Reg<tokenIndex, BitRange<15, 19>, RV_GPRInfo>("rs1") {}
 };
 
 /// The RISC-V Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 20-24 of the instruction
 template <unsigned tokenIndex>
-struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RV32I> {
-  RegRs2() : Reg<tokenIndex, BitRange<20, 24>, RV32I>("rs2") {}
+struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RV_GPRInfo> {
+  RegRs2() : Reg<tokenIndex, BitRange<20, 24>, RV_GPRInfo>("rs2") {}
 };
 
 /// The RISC-V Rd field contains a destination register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <unsigned tokenIndex>
-struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RV32I> {
-  RegRd() : Reg<tokenIndex, BitRange<7, 11>, RV32I>("rd") {}
+struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RV_GPRInfo> {
+  RegRd() : Reg<tokenIndex, BitRange<7, 11>, RV_GPRInfo>("rd") {}
 };
 
 template <typename PseudoInstrImpl>
 struct PseudoInstrLoad
     : public PseudoInstruction<PseudoInstrLoad<PseudoInstrImpl>> {
   struct PseudoLoadFields {
-    using Reg = PseudoReg<0, RV32I>;
+    using Reg = PseudoReg<0, RV_GPRInfo>;
     using Imm = PseudoImm<1>;
     using Impl = FieldsImpl<Reg, Imm>;
   };

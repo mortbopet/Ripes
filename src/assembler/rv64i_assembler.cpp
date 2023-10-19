@@ -9,62 +9,59 @@
 #include <algorithm>
 
 #include "isa/rv_i_ext.h"
-#include "rv_c_ext.h"
-#include "rv_i_ext.h"
-#include "rv_m_ext.h"
 
 namespace Ripes {
 namespace Assembler {
 
-// RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I> *isa)
-//     : Assembler<Reg_T>(isa) {
-//   RVISA::RVIExt rv_i;
+RV64I_Assembler::RV64I_Assembler(const ISAInfo<ISA::RV64I> *isa)
+    : Assembler(isa) {
+  RVISA::RVIExt rv_i;
 
-//  auto [instrs, pseudos] = initInstructions(isa);
+  auto [instrs, pseudos] = initInstructions(isa);
 
-//  auto directives = gnuDirectives();
-//  auto relocations = rvRelocations<Reg_T>();
-//  initialize(instrs, pseudos, directives, relocations);
+  auto directives = gnuDirectives();
+  auto relocations = rvRelocations();
+  initialize(instrs, pseudos, directives, relocations);
 
-//  // Initialize segment pointers and monitor settings changes to segment
-//  // pointers
-//  connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
-//          &SettingObserver::modified, this, [this](const QVariant &value) {
-//            setSegmentBase(".text", value.toULongLong());
-//          });
-//  RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART)->trigger();
-//  connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART),
-//          &SettingObserver::modified, this, [this](const QVariant &value) {
-//            setSegmentBase(".data", value.toULongLong());
-//          });
-//  RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART)->trigger();
-//  connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART),
-//          &SettingObserver::modified, this, [this](const QVariant &value) {
-//            setSegmentBase(".bss", value.toULongLong());
-//          });
-//  RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
-//}
+  // Initialize segment pointers and monitor settings changes to segment
+  // pointers
+  connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            setSegmentBase(".text", value.toULongLong());
+          });
+  RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART)->trigger();
+  connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART),
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            setSegmentBase(".data", value.toULongLong());
+          });
+  RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART)->trigger();
+  connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART),
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            setSegmentBase(".bss", value.toULongLong());
+          });
+  RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
+}
 
-// std::tuple<RV64I_Assembler::_InstrVec, RV64I_Assembler::_PseudoInstrVec>
-// RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I> *isa) const {
-//   _InstrVec instructions;
-//   _PseudoInstrVec pseudoInstructions;
+std::tuple<InstrVec, PseudoInstrVec>
+RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I> *isa) const {
+  InstrVec instructions;
+  PseudoInstrVec pseudoInstructions;
 
-//  enableExtI(isa, instructions, pseudoInstructions);
-//  for (const auto &extension : isa->enabledExtensions()) {
-//    switch (extension.unicode()->toLatin1()) {
-//    case 'M':
-//      enableExtM(isa, instructions, pseudoInstructions);
-//      break;
-//    case 'C':
-//      RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
-//      break;
-//    default:
-//      assert(false && "Unhandled ISA extension");
-//    }
-//  }
-//  return {instructions, pseudoInstructions};
-//}
+  //  enableExtI(isa, instructions, pseudoInstructions);
+  //  for (const auto &extension : isa->enabledExtensions()) {
+  //    switch (extension.unicode()->toLatin1()) {
+  //    case 'M':
+  //      enableExtM(isa, instructions, pseudoInstructions);
+  //      break;
+  //    case 'C':
+  //      RV_C<Reg_T>::enable(isa, instructions, pseudoInstructions);
+  //      break;
+  //    default:
+  //      assert(false && "Unhandled ISA extension");
+  //    }
+  //  }
+  return {instructions, pseudoInstructions};
+}
 
 // void RV64I_Assembler::enableExtI(const ISAInfoBase *isa,
 //                                  _InstrVec &instructions,
@@ -139,8 +136,6 @@ namespace Assembler {
 //  instructions.push_back(std::shared_ptr<_Instruction>(
 //      new RVInstrR32Type<Reg_T>(Token("remuw"), 0b111, 0b0000001, isa)));
 //}
-
-void RV64I_Assembler::setExtension(RVISA::Extension ext, bool enabled) {}
 
 } // namespace Assembler
 } // namespace Ripes

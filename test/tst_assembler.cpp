@@ -68,7 +68,8 @@ private:
   void testAssemble(const QStringList &program, Expect expect,
                     QByteArray expectData = {}) {
     QString err;
-    auto assembler = RV32I_Assembler();
+    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+    auto assembler = RV32I_Assembler(isa.get());
     auto res = assembler.assemble(program);
     if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
       res.errors.print();
@@ -255,7 +256,8 @@ void tst_Assembler::tst_invalidLabel() {
 }
 
 void tst_Assembler::tst_benchmarkNew() {
-  auto assembler = RV32I_Assembler();
+  auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+  auto assembler = RV32I_Assembler(isa.get());
   auto program = createProgram(1000);
   QBENCHMARK { assembler.assembleRaw(program); }
 }
@@ -377,7 +379,8 @@ void tst_Assembler::tst_relativeLabels() {
 }
 
 void tst_Assembler::tst_matcher() {
-  auto assembler = RV32I_Assembler();
+  auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
+  auto assembler = RV32I_Assembler(isa.get());
   assembler.getMatcher().print();
 
   std::vector<std::pair<QString, unsigned>> toMatch = {

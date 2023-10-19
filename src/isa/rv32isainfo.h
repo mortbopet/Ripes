@@ -5,33 +5,26 @@
 
 namespace Ripes {
 
-// template <typename RVExtensions>
-// struct RV32ISAInterface
-//     : public RVISAInterface<RV32ISAInterface<RVExtensions>> {
-//   constexpr static ISA ISA_ID = ISA::RV32I;
-//   constexpr static unsigned BITS = 32;
+template <>
+class ISAInfo<ISA::RV32I> : public RVISA::RV_ISAInfoBase {
+public:
+  ISAInfo<ISA::RV32I>(const QStringList extensions)
+      : RV_ISAInfoBase(extensions) {}
 
-//  constexpr static unsigned int bits() { return 32; }
-//  constexpr static unsigned elfMachineId() { return EM_RISCV; }
-//  constexpr static std::string_view CC_MARCH = "rv32i" +
-//  RVExtensions::names(); static QString CCmarch() {
-//    QString march = "rv32i";
+  ISA isaID() const override { return ISA::RV32I; }
 
-//    // Proceed in canonical order. Canonical ordering is defined in the RISC-V
-//    // spec.
-//    for (const auto &ext : {"M", "A", "F", "D", "C"}) {
-//      if (RV32ISAInterface::supportedExtensions().contains(ext)) {
-//        march += QString(ext).toLower();
-//      }
-//    }
+  unsigned int bits() const override { return 32; }
+  unsigned elfMachineId() const override { return EM_RISCV; }
+  QString CCmarch() const override {
+    QString march = "rv32i";
 
-//    return march;
-//  }
-//  static QString CCmabi() { return "ilp32"; }
+    return _CCmarch(march);
+  }
+  QString CCmabi() const override { return "ilp32"; }
 
-//  unsigned instrByteAlignment() {
-//    return RVExtensions::extensionEnabled("C") ? 2 : 4;
-//  };
-//};
+  unsigned instrByteAlignment() const override {
+    return extensionEnabled("C") ? 2 : 4;
+  };
+};
 
 } // namespace Ripes
