@@ -34,9 +34,7 @@ public:
   void rehighlight();
   void onSave();
 
-  void setErrors(const std::shared_ptr<Errors> &errors) {
-    m_errors = errors;
-  }
+  void setErrors(const std::shared_ptr<Errors> &errors) { m_errors = errors; }
 
 signals:
   /**
