@@ -54,9 +54,6 @@ struct RV_I_Ext {
       SRLI = 0b101,
       SRAI = 0b101
     };
-
-    using Opcode = typename InstrITypeBase<InstrImpl, OpcodeID::OPIMM>::Opcode;
-    using Fields = typename InstrITypeBase<InstrImpl, OpcodeID::OPIMM>::Fields;
   };
 
   struct Lb : public PseudoInstrLoad<Lb> {
@@ -74,8 +71,6 @@ struct RV_I_Ext {
     constexpr static unsigned funct3() {
       return InstrIType<AddI>::Funct3ID::ADDI;
     }
-    using Opcode = typename InstrIType<AddI>::Opcode;
-    using Fields = typename InstrIType<AddI>::Fields;
   };
 
   struct AndI : public InstrIType<AndI> {
@@ -83,8 +78,6 @@ struct RV_I_Ext {
     constexpr static unsigned funct3() {
       return InstrIType<AndI>::Funct3ID::ANDI;
     }
-    using Opcode = typename InstrIType<AndI>::Opcode;
-    using Fields = typename InstrIType<AndI>::Fields;
   };
 
   static void enable_I_Ext(const ISAInfoBase *isa, InstrVec &instructions,
