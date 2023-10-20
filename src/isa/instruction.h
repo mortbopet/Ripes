@@ -210,10 +210,18 @@ public:
 
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
-  constexpr static void Apply(const TokenizedSrcLine &tokens,
-                              Instr_T &instruction,
-                              FieldLinkRequest &linksWithSymbol) {
-    (Fields::Apply(tokens, instruction, linksWithSymbol), ...);
+  static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
+                        FieldLinkRequest &linksWithSymbol) {
+    Result<> res = std::monostate();
+    (
+        [&] {
+          if (auto err = Fields::Apply(tokens, instruction, linksWithSymbol);
+              err.isError() && !res.isError()) {
+            res = std::get<Error>(err);
+          }
+        }(),
+        ...);
+    return res;
   }
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
@@ -253,8 +261,8 @@ template <unsigned tokenIndex, typename BitRange, typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRange> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
 
-  static std::optional<Error> Apply(const TokenizedSrcLine &line,
-                                    Instr_T &instruction, FieldLinkRequest &) {
+  static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
+                        FieldLinkRequest &) {
     if (tokenIndex + 1 >= line.tokens.size()) {
       // TODO: Make register name static so it can be used in error messages
       //      return Error(line, "Required field '" + regsd + "' not provided"
@@ -269,7 +277,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
       return Error(line, "Unknown register '" + regToken + "'");
     }
     instruction |= BitRange::Apply(regIndex);
-    return std::nullopt;
+    return std::monostate();
   }
   static bool Decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
@@ -414,9 +422,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     return Result<>::def();
   }
 
-  static std::optional<Error> Apply(const TokenizedSrcLine &line,
-                                    Instr_T &instruction,
-                                    FieldLinkRequest &linksWithSymbol) {
+  static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
+                        FieldLinkRequest &linksWithSymbol) {
     if (tokenIndex + 1 >= line.tokens.size()) {
       return Error(line, "Required immediate with field index '" +
                              QString::number(tokenIndex) + "' not provided");
@@ -432,7 +439,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
       linksWithSymbol.resolveSymbol = ApplySymbolResolution;
       linksWithSymbol.symbol = immToken;
       linksWithSymbol.relocation = immToken.relocation();
-      return {};
+      return Error(line, "Could not resolve immediate");
     }
 
     if (auto res = CheckFitsInWidth(value, line, convInfo, immToken);
@@ -440,7 +447,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
       return res.error();
 
     ImmParts::Apply(value, instruction);
-    return std::nullopt;
+    return std::monostate();
   }
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
@@ -520,7 +527,11 @@ public:
     FieldLinkRequest linksWithSymbol;
 
     InstrImpl::Opcode::Impl::Apply(instruction, linksWithSymbol);
-    InstrImpl::Fields::Impl::Apply(tokens, instruction, linksWithSymbol);
+    if (auto fieldRes = InstrImpl::Fields::Impl::Apply(tokens, instruction,
+                                                       linksWithSymbol);
+        fieldRes.isError()) {
+      return std::get<Error>(fieldRes);
+    }
 
     InstrRes res;
     res.linksWithSymbol = linksWithSymbol;
