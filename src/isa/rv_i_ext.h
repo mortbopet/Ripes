@@ -41,7 +41,7 @@ struct Base : public Instruction<InstrImpl> {
   using Fields = ITypeFields;
 };
 
-enum ITypeFunct3 : unsigned {
+enum class ITypeFunct3 : unsigned {
   ADDI = 0b000,
   SLTI = 0b010,
   SLTIU = 0b011,
@@ -55,14 +55,31 @@ enum ITypeFunct3 : unsigned {
 
 /// A I-Type RISC-V instruction
 template <typename InstrImpl, ITypeFunct3 funct3>
-struct Instr : public Base<InstrImpl, OpcodeID::OPIMM, funct3> {};
+struct Instr
+    : public Base<InstrImpl, OpcodeID::OPIMM, static_cast<unsigned>(funct3)> {};
 
-struct AddI : public Instr<AddI, ITypeFunct3::ADDI> {
+struct Addi : public Instr<Addi, ITypeFunct3::ADDI> {
   static QString mnemonic() { return "addi"; }
 };
 
-struct AndI : public Instr<AndI, ITypeFunct3::ANDI> {
+struct Andi : public Instr<Andi, ITypeFunct3::ANDI> {
   static QString mnemonic() { return "andi"; }
+};
+
+struct Slti : public Instr<Slti, ITypeFunct3::SLTI> {
+  static QString mnemonic() { return "slti"; }
+};
+
+struct Sltiu : public Instr<Sltiu, ITypeFunct3::SLTIU> {
+  static QString mnemonic() { return "sltiu"; }
+};
+
+struct Xori : public Instr<Xori, ITypeFunct3::XORI> {
+  static QString mnemonic() { return "xori"; }
+};
+
+struct Ori : public Instr<Ori, ITypeFunct3::ORI> {
+  static QString mnemonic() { return "ori"; }
 };
 
 } // namespace TypeI

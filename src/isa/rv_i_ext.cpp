@@ -9,7 +9,7 @@ using namespace TypeI;
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions) {
   enablePseudoInstructions<Lb, Lh, Lw>(pseudoInstructions);
-  enableInstructions<AddI, AndI>(instructions);
+  enableInstructions<Addi, Andi, Slti, Sltiu, Xori, Ori>(instructions);
 }
 
 } // namespace ExtI
