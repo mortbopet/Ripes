@@ -39,6 +39,9 @@ struct BitRangeBase {
 /// start/stop values for bitranges are inclusive..
 template <unsigned _start, unsigned _stop, unsigned _N = 32>
 struct BitRange : public BitRangeBase {
+  static_assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
+  static_assert(_start <= _stop && _stop < _N && "invalid range");
+
   constexpr static unsigned N() { return _N; }
   constexpr static unsigned Start() { return _start; }
   constexpr static unsigned Stop() { return _stop; }
@@ -147,6 +150,15 @@ private:
   ;
 };
 
+using ResolveSymbolFunc =
+    std::function<Result<>(const Location &, Reg_T, Instr_T &, Reg_T)>;
+
+struct FieldLinkRequest {
+  ResolveSymbolFunc resolveSymbol;
+  QString symbol = QString();
+  QString relocation = QString();
+};
+
 template <unsigned numParts, typename... OpParts>
 static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
     (std::make_unique<OpParts>())...};
@@ -156,7 +168,7 @@ class OpcodeImpl : public OpParts... {
 public:
   using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
 
-  constexpr static void Apply(Instr_T &instruction) {
+  constexpr static void Apply(Instr_T &instruction, FieldLinkRequest &) {
     (OpParts::Apply(instruction), ...);
   }
   constexpr static unsigned NumParts() { return sizeof...(OpParts); }
@@ -169,14 +181,6 @@ public:
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     BitRanges::RetrieveBitRanges(bitRanges);
   }
-};
-
-struct FieldBase {};
-
-struct FieldLinkRequest {
-  FieldBase const *field = nullptr;
-  QString symbol = QString();
-  QString relocation = QString();
 };
 
 /**
@@ -192,7 +196,7 @@ struct InstrRes {
 using AssembleRes = Result<InstrRes>;
 
 template <unsigned _tokenIndex, typename _BitRanges>
-struct Field : public FieldBase {
+struct Field {
   using BitRanges = _BitRanges;
   constexpr static unsigned TokenIndex() { return _tokenIndex; }
 };
@@ -207,8 +211,9 @@ public:
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
   constexpr static void Apply(const TokenizedSrcLine &tokens,
-                              Instr_T &instruction) {
-    (Fields::Apply(tokens, instruction), ...);
+                              Instr_T &instruction,
+                              FieldLinkRequest &linksWithSymbol) {
+    (Fields::Apply(tokens, instruction, linksWithSymbol), ...);
   }
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
@@ -248,31 +253,29 @@ template <unsigned tokenIndex, typename BitRange, typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRange> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
 
-  constexpr static bool
-  Apply(const TokenizedSrcLine &line,
-        Instr_T &instruction /*, FieldLinkRequest<Reg_T> &*/) {
-    if (tokenIndex >= line.tokens.size()) {
-      return false;
+  static std::optional<Error> Apply(const TokenizedSrcLine &line,
+                                    Instr_T &instruction, FieldLinkRequest &) {
+    if (tokenIndex + 1 >= line.tokens.size()) {
+      // TODO: Make register name static so it can be used in error messages
+      //      return Error(line, "Required field '" + regsd + "' not provided"
+      //      );
+      return Error(line, "Required field index '" +
+                             QString::number(tokenIndex) + "' not provided");
     }
     const auto &regToken = line.tokens.at(tokenIndex + 1);
     bool success = false;
     unsigned regIndex = RegInfo::RegNumber(regToken, success);
     if (!success) {
-      // TODO: Set error in FieldLinkRequest
-      //      return Error(line, "Unknown register '" + regToken + "'");
-      return false;
+      return Error(line, "Unknown register '" + regToken + "'");
     }
     instruction |= BitRange::Apply(regIndex);
-    return true;
+    return std::nullopt;
   }
   static bool Decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::Decode(instruction);
     const Token registerName(RegInfo::RegName(regNumber));
     if (registerName.isEmpty()) {
-      //      return Error(0, "Unknown register number '" +
-      //      QString::number(regNumber) +
-      //                          "'");
       return false;
     }
     line.push_back(registerName);
@@ -309,7 +312,16 @@ struct ImmPartsImpl : public ImmParts... {
 enum class Repr { Unsigned, Signed, Hex };
 enum class SymbolType { None, Relative, Absolute };
 
-// using SymbolTransformer = const std::function<Reg_T(Reg_T)> &;
+static inline Radix reprToRadix(Repr repr) {
+  if (repr == Repr::Unsigned)
+    return Radix::Unsigned;
+  if (repr == Repr::Signed)
+    return Radix::Signed;
+  if (repr == Repr::Hex)
+    return Radix::Hex;
+  return Radix::Unsigned;
+}
+
 typedef Reg_T (*SymbolTransformer)(Reg_T);
 
 inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
@@ -340,8 +352,9 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                : getImmediate(immToken, success, &convInfo);
   }
 
-  static bool CheckFitsInWidth(Reg_T_S value, ImmConvInfo &convInfo,
-                               QString token = QString()) {
+  static Result<> CheckFitsInWidth(Reg_T_S value, const Location &sourceLine,
+                                   ImmConvInfo &convInfo,
+                                   QString token = QString()) {
     bool err = false;
     if (repr != Repr::Signed) {
       if (!isUInt(width, value)) {
@@ -374,23 +387,41 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     }
 
     if (err) {
-      //      return Error(sourceLine, "Immediate value '" + token +
-      //                                   "' does not fit in " +
-      //                                   QString::number(width) + " bits");
-      // TODO: Return error to caller
-      return false;
+      return Error(sourceLine, "Immediate value '" + token +
+                                   "' does not fit in " +
+                                   QString::number(width) + " bits");
     }
 
-    return true;
+    return Result<>::def();
   }
 
-  constexpr static bool Apply(const TokenizedSrcLine &line,
-                              Instr_T &instruction/*,
-                              FieldLinkRequest<Reg_T> &linksWithSymbol*/) {
-    bool success = false;
+  static Result<> ApplySymbolResolution(const Location &loc, Reg_T symbolValue,
+                                        Instr_T &instruction, Reg_T address) {
+    ImmConvInfo convInfo;
+    convInfo.radix = reprToRadix(repr);
+    Reg_T adjustedValue = symbolValue;
+    if (symbolType == SymbolType::Relative)
+      adjustedValue -= address;
+
+    adjustedValue = transformer(adjustedValue);
+
+    if (auto res = CheckFitsInWidth(adjustedValue, loc, convInfo);
+        res.isError())
+      return res.error();
+
+    ImmParts::Apply(adjustedValue, instruction);
+
+    return Result<>::def();
+  }
+
+  static std::optional<Error> Apply(const TokenizedSrcLine &line,
+                                    Instr_T &instruction,
+                                    FieldLinkRequest &linksWithSymbol) {
     if (tokenIndex + 1 >= line.tokens.size()) {
-      return false;
+      return Error(line, "Required immediate with field index '" +
+                             QString::number(tokenIndex) + "' not provided");
     }
+    bool success = false;
     const Token &immToken = line.tokens[tokenIndex + 1];
     ImmConvInfo convInfo;
     Reg_T_S value = GetImm(immToken, success, convInfo);
@@ -398,17 +429,18 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     if (!success) {
       // Could not directly resolve immediate. Register it as a symbol to link
       // to.
-      //      linksWithSymbol.field = this;
-      //      linksWithSymbol.symbol = immToken;
-      //      linksWithSymbol.relocation = immToken.relocation();
-      return false;
+      linksWithSymbol.resolveSymbol = ApplySymbolResolution;
+      linksWithSymbol.symbol = immToken;
+      linksWithSymbol.relocation = immToken.relocation();
+      return {};
     }
 
-    if (!CheckFitsInWidth(value, convInfo, immToken))
-      return false;
+    if (auto res = CheckFitsInWidth(value, line, convInfo, immToken);
+        res.isError())
+      return res.error();
 
     ImmParts::Apply(value, instruction);
-    return true;
+    return std::nullopt;
   }
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
@@ -485,11 +517,13 @@ public:
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
+    FieldLinkRequest linksWithSymbol;
 
-    InstrImpl::Opcode::Impl::Apply(instruction);
-    InstrImpl::Fields::Impl::Apply(tokens, instruction);
+    InstrImpl::Opcode::Impl::Apply(instruction, linksWithSymbol);
+    InstrImpl::Fields::Impl::Apply(tokens, instruction, linksWithSymbol);
 
     InstrRes res;
+    res.linksWithSymbol = linksWithSymbol;
     res.instruction = instruction;
     return res;
   }
@@ -500,9 +534,9 @@ public:
     line.push_back(name());
     if (!InstrImpl::Fields::Impl::Decode(instruction, address, symbolMap,
                                          line)) {
-      return Result<LineTokens>(Error(Location(static_cast<int>(address)), ""));
+      return Error(Location(static_cast<int>(address)), "");
     }
-    return Result<LineTokens>(line);
+    return line;
   }
   const OpPartBase *getOpPart(unsigned partIndex) const override {
     return InstrImpl::Opcode::Impl::GetOpPart(partIndex);

@@ -145,7 +145,7 @@ public:
     // Got match, disassemble
     auto instruction = std::get<const InstructionBase *>(match);
     auto tokensVar = instruction->disassemble(word, baseAddress, symbols);
-    if (auto *error = std::get_if<Error>(&match)) {
+    if (auto *error = std::get_if<Error>(&tokensVar)) {
       // Error during disassembling
       opres.repr = "Invalid instruction";
       opres.err = *error;
@@ -476,23 +476,14 @@ protected:
 
       // Re-apply immediate resolution using the value acquired from the symbol
       // map
-      // TODO: Get imm field from link request
-      //      if (auto *immField =
-      //              dynamic_cast<const Imm *>(linkRequest.fieldRequest.field))
-      //              {
-      //        if (auto res = immField->applySymbolResolution(
-      //                linkRequest, symbolValue, instr,
-      //                linkReqAddress(linkRequest));
-      //            res.isError()) {
-      //          errors.push_back(res.error());
-      //          continue;
-      //        }
-      //      } else {
-      //        assert(
-      //            false &&
-      //            "Something other than an immediate field has requested
-      //            linkage?");
-      //      }
+      assert(linkRequest.fieldRequest.resolveSymbol &&
+             "Something other than an immediate field has requested linkage?");
+      if (auto res = linkRequest.fieldRequest.resolveSymbol(
+              linkRequest, symbolValue, instr, linkReqAddress(linkRequest));
+          res.isError()) {
+        errors.push_back(res.error());
+        continue;
+      }
 
       // Finally, overwrite the instruction in the section
       *reinterpret_cast<Instr_T *>(section.data() + linkRequest.offset) = instr;
@@ -518,10 +509,11 @@ protected:
     if (auto *error = std::get_if<Error>(&res)) {
       Q_UNUSED(error);
       if (m_instructionMap.count(opcode) != 0) {
-        // If this pseudo-instruction aliases with an instruction but threw an
-        // error (could arise if ie. arguments provided were intended for the
-        // normal instruction and not the pseudoinstruction), then return as if
-        // not a pseudo-instruction, falling to normal instruction handling
+        // If this pseudo-instruction aliases with an instruction but
+        // threw an error (could arise if ie. arguments provided were
+        // intended for the normal instruction and not the
+        // pseudoinstruction), then return as if not a pseudo-instruction,
+        // falling to normal instruction handling
         return Error(line, "");
       }
     }

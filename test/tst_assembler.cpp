@@ -1,12 +1,10 @@
 #include <QtTest/QTest>
 
-#include "assembler/instruction.h"
 #include "assembler/matcher.h"
 #include "isa/isainfo.h"
 #include "isa/rv32isainfo.h"
 
 #include "assembler/rv32i_assembler.h"
-#include "assembler/rv64i_assembler.h"
 
 #include "processorhandler.h"
 

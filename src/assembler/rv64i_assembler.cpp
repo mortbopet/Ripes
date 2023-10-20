@@ -1,8 +1,6 @@
 #include "rv64i_assembler.h"
 #include "gnudirectives.h"
 #include "ripessettings.h"
-#include "rv32i_assembler.h"
-#include "rvassembler_common.h"
 #include "rvrelocations.h"
 
 #include <QByteArray>
