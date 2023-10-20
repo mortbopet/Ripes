@@ -43,7 +43,7 @@ RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I> *isa) const {
   InstrVec instructions;
   PseudoInstrVec pseudoInstructions;
 
-  RVISA::RV_I_Ext::enable_I_Ext(isa, instructions, pseudoInstructions);
+  RVISA::ExtI::enableExt(isa, instructions, pseudoInstructions);
 
   return {instructions, pseudoInstructions};
 }

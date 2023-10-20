@@ -1,1 +1,1 @@
-create_ripes_lib(assembler LINK_TO_RIPES_LIB)
+create_ripes_lib(assembler LINK_TO_RIPES_LIB LINK_ISA_LIB)

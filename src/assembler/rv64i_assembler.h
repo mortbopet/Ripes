@@ -32,8 +32,6 @@ private:
 
 protected:
   QChar commentDelimiter() const override { return '#'; }
-
-  std::unique_ptr<RVISA::RV_I_Ext> m_i_ext = nullptr;
 };
 
 } // namespace Assembler

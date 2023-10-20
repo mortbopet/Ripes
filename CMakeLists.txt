@@ -107,6 +107,7 @@ add_subdirectory(external)
 
 # Fix the name of the ripes library.
 set(RIPES_LIB ripes_lib)
+set(ISA_LIB isa_lib)
 add_subdirectory(src)
 
 option(RIPES_BUILD_TESTS "Build Ripes tests" OFF)
