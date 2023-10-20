@@ -78,6 +78,15 @@ struct RV_I_Ext {
     using Fields = typename InstrIType<AddI>::Fields;
   };
 
+  struct AndI : public InstrIType<AndI> {
+    static QString mnemonic() { return "andi"; }
+    constexpr static unsigned funct3() {
+      return InstrIType<AndI>::Funct3ID::ANDI;
+    }
+    using Opcode = typename InstrIType<AndI>::Opcode;
+    using Fields = typename InstrIType<AndI>::Fields;
+  };
+
   static void enable_I_Ext(const ISAInfoBase *isa, InstrVec &instructions,
                            PseudoInstrVec &pseudoInstructions) {
     pseudoInstructions.emplace_back(std::make_unique<Lb>());
@@ -85,6 +94,7 @@ struct RV_I_Ext {
     pseudoInstructions.emplace_back(std::make_unique<Lw>());
 
     instructions.emplace_back(std::make_unique<AddI>());
+    instructions.emplace_back(std::make_unique<AndI>());
   }
 };
 

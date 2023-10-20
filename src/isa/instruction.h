@@ -34,6 +34,14 @@ struct BitRangeBase {
   virtual Instr_T getMask() const = 0;
   virtual Instr_T apply(Instr_T value) const = 0;
   virtual Instr_T decode(Instr_T instruction) const = 0;
+
+  bool operator==(const BitRangeBase &other) const {
+    return start() == other.start() && stop() == other.stop();
+  }
+  bool operator<(const BitRangeBase &other) const {
+    return (start() == other.start()) ? stop() < other.stop()
+                                      : start() < other.start();
+  }
 };
 
 /// start/stop values for bitranges are inclusive..
@@ -92,7 +100,12 @@ struct OpPartStruct {
   unsigned start, stop, N;
   const OpPartBase *opPart;
 
+  bool operator==(const OpPartStruct &other) const {
+    return value == other.value && start == other.start && stop == other.stop;
+  }
   bool operator<(const OpPartStruct &other) const {
+    if (start == other.start && stop == other.stop)
+      return value < other.value;
     return start < other.start;
   }
 };
@@ -106,7 +119,9 @@ struct OpPartBase {
   }
 
   bool operator<(const OpPartBase &other) const {
-    return range().start() < other.range().start();
+    if (range() == other.range())
+      return value() < other.value();
+    return range() < other.range();
   }
   bool matches(Instr_T instruction) const {
     return range().decode(instruction) == value();
