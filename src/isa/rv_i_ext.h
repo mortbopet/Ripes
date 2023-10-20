@@ -20,12 +20,14 @@ template <unsigned tokenIndex>
 struct ImmCommon12 : public Imm<tokenIndex, 12, Repr::Signed,
                                 ImmPartsImpl<ImmPart<0, BitRange<20, 31>>>> {};
 
+namespace TypeI {
+
 /// A base I-Type RISC-V instruction
-template <typename InstrImpl, unsigned RVOpcodeID>
-struct InstrITypeBase : public Instruction<InstrImpl> {
+template <typename InstrImpl, unsigned OpcodeID, unsigned Funct3>
+struct Base : public Instruction<InstrImpl> {
   struct ITypeOpcode {
-    using RVOpcode = OpPartOpcode<RVOpcodeID>;
-    using RVFunct3 = OpPartFunct3<InstrImpl::funct3()>;
+    using RVOpcode = OpPartOpcode<OpcodeID>;
+    using RVFunct3 = OpPartFunct3<Funct3>;
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
   struct ITypeFields {
@@ -39,21 +41,31 @@ struct InstrITypeBase : public Instruction<InstrImpl> {
   using Fields = ITypeFields;
 };
 
-/// A I-Type RISC-V instruction
-template <typename InstrImpl>
-struct InstrIType : public InstrITypeBase<InstrImpl, OpcodeID::OPIMM> {
-  enum Funct3ID {
-    ADDI = 0b000,
-    SLTI = 0b010,
-    SLTIU = 0b011,
-    XORI = 0b100,
-    ORI = 0b110,
-    ANDI = 0b111,
-    SLLI = 0b001,
-    SRLI = 0b101,
-    SRAI = 0b101
-  };
+enum ITypeFunct3 : unsigned {
+  ADDI = 0b000,
+  SLTI = 0b010,
+  SLTIU = 0b011,
+  XORI = 0b100,
+  ORI = 0b110,
+  ANDI = 0b111,
+  SLLI = 0b001,
+  SRLI = 0b101,
+  SRAI = 0b101
 };
+
+/// A I-Type RISC-V instruction
+template <typename InstrImpl, ITypeFunct3 funct3>
+struct Instr : public Base<InstrImpl, OpcodeID::OPIMM, funct3> {};
+
+struct AddI : public Instr<AddI, ITypeFunct3::ADDI> {
+  static QString mnemonic() { return "addi"; }
+};
+
+struct AndI : public Instr<AndI, ITypeFunct3::ANDI> {
+  static QString mnemonic() { return "andi"; }
+};
+
+} // namespace TypeI
 
 struct Lb : public PseudoInstrLoad<Lb> {
   static QString mnemonic() { return "lb"; }
@@ -63,20 +75,6 @@ struct Lh : public PseudoInstrLoad<Lh> {
 };
 struct Lw : public PseudoInstrLoad<Lw> {
   static QString mnemonic() { return "lw"; }
-};
-
-struct AddI : public InstrIType<AddI> {
-  static QString mnemonic() { return "addi"; }
-  constexpr static unsigned funct3() {
-    return InstrIType<AddI>::Funct3ID::ADDI;
-  }
-};
-
-struct AndI : public InstrIType<AndI> {
-  static QString mnemonic() { return "andi"; }
-  constexpr static unsigned funct3() {
-    return InstrIType<AndI>::Funct3ID::ANDI;
-  }
 };
 
 template <typename InstrVecType, typename... Instructions>

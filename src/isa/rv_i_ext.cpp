@@ -4,6 +4,8 @@ namespace Ripes {
 namespace RVISA {
 namespace ExtI {
 
+using namespace TypeI;
+
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions) {
   enablePseudoInstructions<Lb, Lh, Lw>(pseudoInstructions);
