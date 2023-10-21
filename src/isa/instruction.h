@@ -123,7 +123,6 @@ private:
     enum { nonOverlapping = true, equalWidth = true };
   };
 
-  // TODO: Display BitRanges in error message
   static_assert(Verify<BitRanges...>::nonOverlapping,
                 "BitRanges overlap with each other");
   static_assert(Verify<BitRanges...>::equalWidth,
@@ -171,9 +170,6 @@ struct OpPartBase {
 template <unsigned _value, typename _BitRange>
 class OpPart : public OpPartBase {
 public:
-  // TODO: Assertions
-  // * Ensure value is not too large to fit in BitRange
-
   using BitRange = _BitRange;
 
   unsigned value() const override { return _value; }
@@ -202,7 +198,10 @@ public:
 
 private:
   std::unique_ptr<BitRange> m_range = std::make_unique<BitRange>();
-  ;
+
+  // Ensure value is not too large to fit in BitRange
+  static_assert(isUInt<BitRange::Stop() - BitRange::Start() + 1>(_value),
+                "OpPart value is too large to fit in BitRange.");
 };
 
 using ResolveSymbolFunc =

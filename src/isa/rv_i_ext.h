@@ -164,8 +164,15 @@ inline static void enablePseudoInstructions(PseudoInstrVec &instructions) {
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
 }
 
+enum class Options {
+  shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
+                      // the 64-bit RISC-V ISA
+  LI64BitVariant      // Modifies LI to be able to emit 64-bit constants
+};
+
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
-               PseudoInstrVec &pseudoInstructions);
+               PseudoInstrVec &pseudoInstructions,
+               const std::set<Options> &options = {});
 
 }; // namespace ExtI
 
