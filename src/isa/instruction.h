@@ -127,6 +127,10 @@ private:
                 "BitRanges overlap with each other");
   static_assert(Verify<BitRanges...>::equalWidth,
                 "BitRanges do not have an equal width");
+
+public:
+  constexpr static bool IsVerified = (Verify<BitRanges...>::nonOverlapping &&
+                                      Verify<BitRanges...>::equalWidth);
 };
 
 struct OpPartBase;
@@ -258,8 +262,6 @@ struct Field {
 template <typename... Fields>
 class FieldsImpl : public Fields... {
 public:
-  using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
-
   static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
     Result<> res = std::monostate();
@@ -281,10 +283,10 @@ public:
     return !failure;
   }
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
-  constexpr static void
-  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
-    BitRanges::RetrieveBitRanges(bitRanges);
-  }
+  //  constexpr static void
+  //  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
+  //    BitRanges::RetrieveBitRanges(bitRanges);
+  //  }
 
 private:
   // TODO: Verify that:
@@ -366,6 +368,8 @@ struct ImmPart {
   using BitRange = _BitRange;
   using BitRanges = BitRangesImpl<BitRange>;
 
+  constexpr static unsigned Offset() { return _offset; }
+
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
     instruction |= BitRange::Apply(value >> _offset);
   }
@@ -381,10 +385,6 @@ private:
 
 template <typename... ImmParts>
 struct ImmPartsImpl : public ImmParts... {
-  // TODO: Assertions
-  // * Apply all offsets to ensure each part does not overlap in the final
-  // immediate
-
   using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
 
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
@@ -393,6 +393,33 @@ struct ImmPartsImpl : public ImmParts... {
   constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
     (ImmParts::Decode(value, instruction), ...);
   }
+
+private:
+  template <typename FirstPart, typename... OtherParts>
+  struct Verify {};
+  template <typename FirstPart, typename SecondPart, typename... OtherParts>
+  struct Verify<FirstPart, SecondPart, OtherParts...> {
+    /// Returns true if FirstPart and SecondPart are not overlapping
+    constexpr static bool IsNotOverlapping() {
+      return (FirstPart::Offset() >
+                  (SecondPart::Offset() + SecondPart::BitRange::Width()) ||
+              SecondPart::Offset() >
+                  (FirstPart::Offset() + FirstPart::BitRange::Width()));
+    }
+    enum {
+      nonOverlapping = (IsNotOverlapping() &&
+                        Verify<FirstPart, OtherParts...>::nonOverlapping &&
+                        Verify<SecondPart, OtherParts...>::nonOverlapping)
+    };
+  };
+  template <typename FirstPart>
+  struct Verify<FirstPart> {
+    enum { nonOverlapping = true };
+  };
+
+  static_assert(Verify<ImmParts...>::nonOverlapping,
+                "Combined ImmParts overlap with each other");
+  static_assert(BitRanges::IsVerified, "Could not verify ImmParts BitRanges");
 };
 
 enum class Repr { Unsigned, Signed, Hex };
@@ -651,7 +678,7 @@ public:
   void verify() {
     std::vector<std::shared_ptr<BitRangeBase>> bitRanges;
     InstrImpl::Opcode::Impl::RetrieveBitRanges(bitRanges);
-    InstrImpl::Fields::Impl::RetrieveBitRanges(bitRanges);
+    //    InstrImpl::Fields::Impl::RetrieveBitRanges(bitRanges);
 
     // 1.
     std::set<unsigned> registeredBits;
