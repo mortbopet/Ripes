@@ -363,10 +363,6 @@ struct Reg : public Field<tokenIndex, BitRange> {
 
 template <unsigned _offset, typename _BitRange>
 struct ImmPart {
-  // TODO: Assertions
-  // * Offset does not push past end of range --
-  //    assert(BitRange.stop + offset < BitRange.N)
-
   using BitRange = _BitRange;
   using BitRanges = BitRangesImpl<BitRange>;
 
@@ -376,6 +372,11 @@ struct ImmPart {
   constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
     value |= BitRange::Decode(instruction) << _offset;
   }
+
+private:
+  static_assert(BitRange::Width() + _offset < BitRange::N(),
+                "ImmPart does not fit in BitRange size. Check ImmPart offset"
+                " and BitRange width");
 };
 
 template <typename... ImmParts>

@@ -17,8 +17,8 @@ namespace ExtI {
 ///  - Imm[31:11] = Inst[31]
 ///  - Imm[10:0]  = Inst[30:20]
 template <unsigned tokenIndex>
-struct ImmCommon12 : public Imm<tokenIndex, 12, Repr::Signed,
-                                ImmPartsImpl<ImmPart<0, BitRange<20, 31>>>> {};
+struct ImmCommon12
+    : public Imm<tokenIndex, 12, Repr::Signed, ImmPart<0, BitRange<20, 31>>> {};
 
 namespace TypeI {
 
