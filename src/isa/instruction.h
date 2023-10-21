@@ -84,6 +84,10 @@ struct BitRange : public BitRangeBase {
 
 template <typename... BitRanges>
 struct BitRangesImpl : public BitRanges... {
+  // TODO: Assertions
+  // * Bitranges should not overlap
+  // * Bitranges should all have the same size (N)
+
   constexpr static void Apply(Instr_T &instruction) {
     (BitRanges::Apply(instruction), ...);
   }
@@ -134,6 +138,9 @@ struct OpPartBase {
 template <unsigned _value, typename _BitRange>
 class OpPart : public OpPartBase {
 public:
+  // TODO: Assertions
+  // * Ensure value is not too large to fit in BitRange
+
   using BitRange = _BitRange;
 
   unsigned value() const override { return _value; }
@@ -223,6 +230,7 @@ public:
   // * Field indices are not duplicated
   // * Field indices are not skipped
   // * Field indices are ordered from 0-(N-1) where N is the number of fields
+  // * Registers are not duplicated?? (might be difficult to verify)
 
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
@@ -297,6 +305,10 @@ struct Reg : public Field<tokenIndex, BitRange> {
 
 template <unsigned _offset, typename _BitRange>
 struct ImmPart {
+  // TODO: Assertions
+  // * Offset does not push past end of range --
+  //    assert(BitRange.stop + offset < BitRange.N)
+
   using BitRange = _BitRange;
   using BitRanges = BitRangesImpl<BitRange>;
 
@@ -310,6 +322,10 @@ struct ImmPart {
 
 template <typename... ImmParts>
 struct ImmPartsImpl : public ImmParts... {
+  // TODO: Assertions
+  // * Apply all offsets to ensure each part does not overlap in the final
+  // immediate
+
   using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
 
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
@@ -353,6 +369,9 @@ inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType, SymbolTransformer transformer>
 struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
+  // TODO: Assertions
+  // * width should equal the combined width of ImmParts
+
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
@@ -523,6 +542,11 @@ protected:
 template <typename InstrImpl>
 class Instruction : public InstructionBase {
 public:
+  // TODO: Assertions
+  // * Opcode bitranges should not overlap with Fields bitranges
+  // * No bits are unaccounted for
+  // * Instruction is byte aligned
+
   Instruction() : m_name(InstrImpl::mnemonic()) { verify(); }
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {

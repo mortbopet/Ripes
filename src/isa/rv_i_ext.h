@@ -154,11 +154,13 @@ inline static void _enableInstructions(InstrVecType &instructions) {
 
 template <typename... Instructions>
 inline static void enableInstructions(InstrVec &instructions) {
+  // TODO: Ensure no duplicate instruction definitions
   return _enableInstructions<InstrVec, Instructions...>(instructions);
 }
 
 template <typename... Instructions>
 inline static void enablePseudoInstructions(PseudoInstrVec &instructions) {
+  // TODO: Ensure no duplicate pseudo-instruction definitions
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
 }
 
