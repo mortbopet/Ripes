@@ -94,7 +94,7 @@ struct BitRangesImpl : public BitRanges... {
   }
 
 private:
-  // Compile-time verification using recursive templates and static_assert
+  /// Compile-time verification using recursive templates and static_assert
   template <typename FirstRange, typename... OtherRanges>
   struct Verify {};
   template <typename FirstRange, typename SecondRange, typename... OtherRanges>
@@ -258,12 +258,6 @@ struct Field {
 template <typename... Fields>
 class FieldsImpl : public Fields... {
 public:
-  // TODO: Verify that:
-  // * Field indices are not duplicated
-  // * Field indices are not skipped
-  // * Field indices are ordered from 0-(N-1) where N is the number of fields
-  // * Registers are not duplicated?? (might be difficult to verify)
-
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
   static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
@@ -291,6 +285,38 @@ public:
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     BitRanges::RetrieveBitRanges(bitRanges);
   }
+
+private:
+  // TODO: Verify that:
+  // * Registers are not duplicated?? (might be difficult to verify)
+  template <typename FirstField, typename... OtherFields>
+  struct Verify {};
+  template <typename FirstField, typename SecondField, typename... OtherFields>
+  struct Verify<FirstField, SecondField, OtherFields...> {
+    /// Returns true if SecondField has an index that is directly after
+    /// FirstField's index
+    constexpr static bool IsInOrder() {
+      return (FirstField::TokenIndex() + 1 == SecondField::TokenIndex());
+    }
+    enum {
+      hasSequentialIndices =
+          (IsInOrder() &&
+           Verify<SecondField, OtherFields...>::hasSequentialIndices),
+    };
+  };
+  template <typename FirstField>
+  struct Verify<FirstField> {
+    enum { hasSequentialIndices = true };
+  };
+  template <typename FirstField, typename...>
+  struct VerifyFirstIndex {
+    enum { indexStartsAtZero = (FirstField::TokenIndex() == 0) };
+  };
+
+  static_assert(VerifyFirstIndex<Fields...>::indexStartsAtZero,
+                "First field' index is not 0");
+  static_assert(Verify<Fields...>::hasSequentialIndices,
+                "Fields have duplicate indices");
 };
 
 /**
