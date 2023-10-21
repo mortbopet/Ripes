@@ -84,9 +84,6 @@ struct BitRange : public BitRangeBase {
 
 template <typename... BitRanges>
 struct BitRangesImpl : public BitRanges... {
-  // TODO: Assertions
-  // * Bitranges should not overlap
-  // * Bitranges should all have the same size (N)
 
   constexpr static void Apply(Instr_T &instruction) {
     (BitRanges::Apply(instruction), ...);
@@ -95,6 +92,42 @@ struct BitRangesImpl : public BitRanges... {
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     (bitRanges.push_back(std::make_shared<BitRanges>()), ...);
   }
+
+private:
+  // Compile-time verification using recursive templates and static_assert
+  template <typename FirstRange, typename... OtherRanges>
+  struct Verify {};
+  template <typename FirstRange, typename SecondRange, typename... OtherRanges>
+  struct Verify<FirstRange, SecondRange, OtherRanges...> {
+    /// Returns true if FirstRange and SecondRange are not overlapping
+    constexpr static bool IsNotOverlapping() {
+      return (FirstRange::Start() > SecondRange::Stop() ||
+              FirstRange::Stop() < SecondRange::Start());
+    }
+    /// Returns true if FirstRange and SecondRange have an equal width
+    constexpr static bool HasEqualWidth() {
+      return (FirstRange::N() == SecondRange::N());
+    }
+    enum {
+      // Set to true if all BitRanges have been verified
+      nonOverlapping = (IsNotOverlapping() &&
+                        Verify<FirstRange, OtherRanges...>::nonOverlapping &&
+                        Verify<SecondRange, OtherRanges...>::nonOverlapping),
+      equalWidth =
+          (HasEqualWidth() && Verify<FirstRange, OtherRanges...>::equalWidth &&
+           Verify<SecondRange, OtherRanges...>::equalWidth)
+    };
+  };
+  template <typename FirstRange>
+  struct Verify<FirstRange> {
+    enum { nonOverlapping = true, equalWidth = true };
+  };
+
+  // TODO: Display BitRanges in error message
+  static_assert(Verify<BitRanges...>::nonOverlapping,
+                "BitRanges overlap with each other");
+  static_assert(Verify<BitRanges...>::equalWidth,
+                "BitRanges do not have an equal width");
 };
 
 struct OpPartBase;
