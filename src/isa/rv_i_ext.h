@@ -135,6 +135,18 @@ struct Srai : public Instr32<Srai, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
   static QString mnemonic() { return "srai"; }
 };
 
+struct Slliw : public Instr64<Slliw, Funct3::SLLI, Funct7::LEFT_SHIFT> {
+  static QString mnemonic() { return "slliw"; }
+};
+
+struct Srliw : public Instr64<Srliw, Funct3::SRLI, Funct7::LEFT_SHIFT> {
+  static QString mnemonic() { return "srliw"; }
+};
+
+struct Sraiw : public Instr64<Sraiw, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
+  static QString mnemonic() { return "sraiw"; }
+};
+
 } // namespace TypeIShift
 
 struct Lb : public PseudoInstrLoad<Lb> {

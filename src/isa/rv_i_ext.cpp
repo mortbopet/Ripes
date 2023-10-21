@@ -15,6 +15,7 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
 
   if (options.count(Options::shifts64BitVariant)) {
     // 64-bit shift instructions
+    enableInstructions<Slliw, Srliw, Sraiw>(instructions);
   } else {
     // 32-bit shift instructions
     enableInstructions<Slli, Srli, Srai>(instructions);
