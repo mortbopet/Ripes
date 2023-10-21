@@ -219,9 +219,10 @@ struct Field {
 template <typename... Fields>
 class FieldsImpl : public Fields... {
 public:
-  /// Verify that the token indices specified for this operation:
-  /// 1. do not overlap
-  static_assert((Fields::TokenIndex() != ...), "Duplicate token indices!");
+  // TODO: Verify that:
+  // * Field indices are not duplicated
+  // * Field indices are not skipped
+  // * Field indices are ordered from 0-(N-1) where N is the number of fields
 
   using BitRanges = BitRangesImpl<typename Fields::BitRanges...>;
 
@@ -250,20 +251,6 @@ public:
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     BitRanges::RetrieveBitRanges(bitRanges);
   }
-
-private:
-  /// Verify that the token indices specified for this operation:
-  /// 2. are sequentially ordered, starting from 0  // 1. sanity check the
-  /// provided token indexes
-  template <unsigned fieldIndex, typename InnerField, typename... InnerFields>
-  struct FieldsVerify : FieldsVerify<fieldIndex + 1, InnerFields...> {
-    static_assert(InnerField::TokenIndex() == fieldIndex);
-  };
-  template <unsigned fieldIndex, typename InnerField>
-  struct FieldsVerify<fieldIndex, InnerField> {
-    static_assert(InnerField::TokenIndex() == fieldIndex);
-  };
-  using Verify = FieldsVerify<0, Fields...>;
 };
 
 /**
@@ -311,6 +298,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
 template <unsigned _offset, typename _BitRange>
 struct ImmPart {
   using BitRange = _BitRange;
+  using BitRanges = BitRangesImpl<BitRange>;
 
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
     instruction |= BitRange::Apply(value >> _offset);
@@ -327,7 +315,7 @@ struct ImmPartsImpl : public ImmParts... {
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
     (ImmParts::Apply(value, instruction), ...);
   }
-  constexpr static void DecodeParts(Instr_T &value, const Instr_T instruction) {
+  constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
     (ImmParts::Decode(value, instruction), ...);
   }
 };
@@ -468,7 +456,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                                const ReverseSymbolMap &symbolMap,
                                LineTokens &line) {
     Instr_T reconstructed = 0;
-    ImmParts::DecodeParts(reconstructed, instruction);
+    ImmParts::Decode(reconstructed, instruction);
     if (repr == Repr::Signed) {
       line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
     } else if (repr == Repr::Unsigned) {
