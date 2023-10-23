@@ -235,6 +235,47 @@ struct Ecall : public Instr<Ecall, Funct12::ECALL> {
 
 } // namespace TypeSystem
 
+namespace TypeU {
+
+/// A RISC-V immediate field with an input width of 32 bits.
+/// Used in U-Type instructions.
+///
+/// It is defined as:
+///  - Imm[31:12] = Inst[31:12]
+///  - Imm[11:0]  = 0
+template <SymbolType symbolType>
+struct ImmU : public ImmSym<1, 32, Repr::Hex, ImmPart<0, BitRange<12, 31>>,
+                            symbolType> {};
+
+/// A U-Type RISC-V instruction
+template <typename InstrImpl, RVISA::OpcodeID opcode,
+          SymbolType symbolType = SymbolType::None>
+struct Instr : public RV_Instruction<InstrImpl> {
+  struct UTypeOpcode {
+    using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcode)>;
+    using Impl = OpcodeImpl<RVOpcode>;
+  };
+  struct UTypeFields {
+    using Rd = RegRd<0>;
+    using Imm = ImmU<symbolType>;
+    using Impl = FieldsImpl<Rd, ImmU<symbolType>>;
+  };
+
+  using Opcode = UTypeOpcode;
+  using Fields = UTypeFields;
+};
+
+struct Auipc
+    : public Instr<Auipc, RVISA::OpcodeID::AUIPC, SymbolType::Absolute> {
+  constexpr static std::string_view Name = "auipc";
+};
+
+struct Lui : public Instr<Lui, RVISA::OpcodeID::LUI> {
+  constexpr static std::string_view Name = "lui";
+};
+
+} // namespace TypeU
+
 namespace TypePseudo {
 
 struct Lb : public PseudoInstrLoad<Lb> {
