@@ -33,7 +33,7 @@ enum class Funct3 : unsigned {
 
 /// An I-Type RISC-V instruction
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3>
-struct Instr : public Instruction<InstrImpl> {
+struct Instr : public RV_Instruction<InstrImpl> {
   struct ITypeOpcode {
     using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcodeID)>;
     using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
@@ -100,7 +100,7 @@ struct ImmIShift32 : public Imm<ImmTokenIndex, 5, Repr::Unsigned,
 
 /// An IShift-Type RISC-V instruction
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3, Funct7 funct7>
-struct Instr : public Instruction<InstrImpl> {
+struct Instr : public RV_Instruction<InstrImpl> {
   struct IShiftTypeOpcode {
     using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcodeID)>;
     using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
@@ -160,19 +160,24 @@ struct Lw : public PseudoInstrLoad<Lw> {
 };
 
 template <typename InstrVecType, typename... Instructions>
-inline static void _enableInstructions(InstrVecType &instructions) {
+constexpr inline static void _enableInstructions(InstrVecType &instructions) {
   (instructions.emplace_back(std::make_unique<Instructions>()), ...);
 }
 
 template <typename... Instructions>
-inline static void enableInstructions(InstrVec &instructions) {
+constexpr inline static void enableInstructions(InstrVec &instructions) {
+  static_assert((InstrVerify<Instructions>::IsVerified && ...),
+                "Could not verify instruction");
   // TODO: Ensure no duplicate instruction definitions
   return _enableInstructions<InstrVec, Instructions...>(instructions);
 }
 
 template <typename... Instructions>
-inline static void enablePseudoInstructions(PseudoInstrVec &instructions) {
+constexpr inline static void
+enablePseudoInstructions(PseudoInstrVec &instructions) {
   // TODO: Ensure no duplicate pseudo-instruction definitions
+  // TODO: Verify pseudoinstructions
+  // TODO: Verify instructions generated from pseudoinstructions
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
 }
 

@@ -53,6 +53,13 @@ extern const QStringList GPRRegAliases;
 extern const QStringList GPRRegNames;
 extern const QStringList GPRRegDescs;
 
+constexpr unsigned INSTR_BITS = 32;
+
+template <typename InstrImpl>
+struct RV_Instruction : public Instruction<InstrImpl> {
+  constexpr static unsigned InstrBits() { return INSTR_BITS; }
+};
+
 /// Defines information about the general RISC-V register file.
 struct RV_GPRInfo : public RegInfoBase {
   constexpr static RegisterFileType RegFileType() {
@@ -123,7 +130,7 @@ public:
   int spReg() const override { return 2; }
   int gpReg() const override { return 3; }
   int syscallReg() const override { return 17; }
-  unsigned instrBits() const override { return 32; }
+  unsigned instrBits() const override { return INSTR_BITS; }
   unsigned elfMachineId() const override { return EM_RISCV; }
   int syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");

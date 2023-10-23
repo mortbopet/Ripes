@@ -667,22 +667,28 @@ protected:
   unsigned m_byteSize = -1;
 };
 
+/// Verifications for a full instruction
+/// These are
+template <typename InstrImpl>
+struct InstrVerify {
+  // TODO: Assert instruction is byte aligned. This requires compile-time
+  // knowledge of the register width, which currently does not exist.
+  // See enableInstructions() for the static assertion that verifies
+  // instructions with this struct
+  using BitRanges =
+      typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
+          typename InstrImpl::Fields::Impl::BitRanges>;
+  static_assert(BitRanges::IsVerified,
+                "Could not verify combined bitranges from Opcode and Fields");
+  static_assert(BitRanges::Width() == InstrImpl::InstrBits(),
+                "Not all bits are utilized in instruction");
+  constexpr static bool IsVerified =
+      (BitRanges::IsVerified && BitRanges::Width() == InstrImpl::InstrBits());
+};
+
 template <typename InstrImpl>
 class Instruction : public InstructionBase {
 public:
-  // TODO: Assertions
-  // * Opcode bitranges should not overlap with Fields bitranges
-  // * No bits are unaccounted for
-  // * Instruction is byte aligned
-  struct Verify {
-    using BitRanges =
-        typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
-            InstrImpl::Fields::Impl::BitRanges>;
-    static_assert(InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
-                      InstrImpl::Fields::Impl::BitRanges>::IsVerified,
-                  "Could not verify combined bitranges from Opcode and Fields");
-  };
-
   Instruction() : m_name(InstrImpl::mnemonic()) { verify(); }
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
@@ -720,6 +726,7 @@ public:
     return InstrImpl::Opcode::Impl::NumParts();
   }
 
+  // TODO: Remove this once all verifications are done at compile-time
   /// Verify that the bitranges specified for this operation:
   /// 1. do not overlap
   /// 2. fully defines the instruction (no bits are unaccounted for)
