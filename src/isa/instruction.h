@@ -92,6 +92,8 @@ struct BitRangesImpl {
   using CombineWith =
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
+  constexpr static unsigned Width() { return (BitRanges::Width() + ...); }
+
   constexpr static void Apply(Instr_T &instruction) {
     (BitRanges::Apply(instruction), ...);
   }
@@ -489,11 +491,14 @@ inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
  * @param ImmParts: (ordered) list of ranges corresponding to fields of the
  * immediate
  */
+// TODO: Maybe remove width as a template parameter since it can be retrieved
+// from ImmParts::BitRanges::Width()
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType, SymbolTransformer transformer>
 struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
-  // TODO: Assertions
-  // * width should equal the combined width of ImmParts
+  static_assert(
+      width == ImmParts::BitRanges::Width(),
+      "Immediate's width does not match the combined width of its BitRanges");
 
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
