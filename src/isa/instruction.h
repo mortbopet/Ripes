@@ -417,7 +417,7 @@ struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
 };
 
 template <unsigned _offset, typename _BitRange>
-struct ImmPart {
+struct ImmPartBase {
   using BitRange = _BitRange;
   // Declaration of BitRanges allows ImmPart to be compatible with ImmPartsImpl
   using BitRanges = BitRangesImpl<BitRange>;
@@ -437,6 +437,9 @@ private:
                 " and BitRange width");
 };
 
+template <unsigned offset, unsigned start, unsigned stop, unsigned N = 32>
+using ImmPart = ImmPartBase<offset, BitRange<start, stop, N>>;
+
 template <typename... ImmParts>
 struct ImmPartsImpl {
   using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
@@ -455,9 +458,9 @@ private:
   struct Verify<FirstPart, SecondPart, OtherParts...> {
     /// Returns true if FirstPart and SecondPart are not overlapping
     constexpr static bool IsNotOverlapping() {
-      return (FirstPart::Offset() >
+      return (FirstPart::Offset() >=
                   (SecondPart::Offset() + SecondPart::BitRange::Width()) ||
-              SecondPart::Offset() >
+              SecondPart::Offset() >=
                   (FirstPart::Offset() + FirstPart::BitRange::Width()));
     }
     enum {

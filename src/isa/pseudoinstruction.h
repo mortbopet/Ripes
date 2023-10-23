@@ -44,8 +44,7 @@ struct PseudoReg : public Reg<PseudoReg<index, ISAImpl>, index,
 };
 
 template <unsigned index>
-struct PseudoImm
-    : public Imm<index, 1, Repr::Hex, ImmPart<0, BitRange<index, index>>> {};
+struct PseudoImm : public Imm<index, 1, Repr::Hex, ImmPart<0, index, index>> {};
 
 using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstructionBase>>;
 

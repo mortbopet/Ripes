@@ -18,7 +18,7 @@ namespace ExtI {
 ///  - Imm[10:0]  = Inst[30:20]
 template <unsigned tokenIndex>
 struct ImmCommon12
-    : public Imm<tokenIndex, 12, Repr::Signed, ImmPart<0, BitRange<20, 31>>> {};
+    : public Imm<tokenIndex, 12, Repr::Signed, ImmPart<0, 20, 31>> {};
 
 namespace TypeI {
 
@@ -95,8 +95,8 @@ enum class Funct7 : unsigned {
 /// It is defined as:
 ///  - Imm[4:0] = Inst[24:20]
 constexpr static unsigned ImmTokenIndex = 2;
-struct ImmIShift32 : public Imm<ImmTokenIndex, 5, Repr::Unsigned,
-                                ImmPart<0, BitRange<20, 24>>> {};
+struct ImmIShift32
+    : public Imm<ImmTokenIndex, 5, Repr::Unsigned, ImmPart<0, 20, 24>> {};
 
 /// An IShift-Type RISC-V instruction
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3, Funct7 funct7>
@@ -244,8 +244,8 @@ namespace TypeU {
 ///  - Imm[31:12] = Inst[31:12]
 ///  - Imm[11:0]  = 0
 template <SymbolType symbolType>
-struct ImmU : public ImmSym<1, 32, Repr::Hex, ImmPart<0, BitRange<12, 31>>,
-                            symbolType> {};
+struct ImmU : public ImmSym<1, 32, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
+};
 
 /// A U-Type RISC-V instruction
 template <typename InstrImpl, RVISA::OpcodeID opcode,
@@ -258,7 +258,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
   struct UTypeFields {
     using Rd = RegRd<0>;
     using Imm = ImmU<symbolType>;
-    using Impl = FieldsImpl<Rd, ImmU<symbolType>>;
+    using Impl = FieldsImpl<Rd, Imm>;
   };
 
   using Opcode = UTypeOpcode;
@@ -275,6 +275,43 @@ struct Lui : public Instr<Lui, RVISA::OpcodeID::LUI> {
 };
 
 } // namespace TypeU
+
+namespace TypeJ {
+
+/// A RISC-V signed immediate field with an input width of 21 bits.
+/// Used in J-Type instructions.
+///
+/// It is defined as:
+///  - Imm[31:20] = Inst[31]
+///  - Imm[19:12] = Inst[19:12]
+///  - Imm[11]    = Inst[20]
+///  - Imm[10:5]  = Inst[30:25]
+///  - Imm[4:1]   = Inst[24:21]
+///  - Imm[0]     = 0
+struct ImmJ
+    : public ImmSym<1, 21, Repr::Signed,
+                    ImmPartsImpl<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
+                                 ImmPart<11, 20, 20>, ImmPart<1, 21, 30>>,
+                    SymbolType::Relative> {};
+
+struct Jal : public RV_Instruction<Jal> {
+  struct JTypeOpcode {
+    using RVOpcode = OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::JAL)>;
+    using Impl = OpcodeImpl<RVOpcode>;
+  };
+  struct JTypeFields {
+    using Rd = RegRd<0>;
+    using Imm = ImmJ;
+    using Impl = FieldsImpl<Rd, Imm>;
+  };
+
+  using Opcode = JTypeOpcode;
+  using Fields = JTypeFields;
+
+  constexpr static std::string_view Name = "jal";
+};
+
+} // namespace TypeJ
 
 namespace TypePseudo {
 
