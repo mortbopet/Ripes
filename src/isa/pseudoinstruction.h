@@ -36,13 +36,13 @@ struct PseudoInstruction : public PseudoInstructionBase {
 };
 
 template <unsigned index, typename ISAImpl>
-struct PseudoReg : public Reg<index, BitRange<0, 0>, ISAImpl> {
-  PseudoReg() : Reg<index, BitRange<0, 0>, ISAImpl>("rd") {}
+struct PseudoReg : public Reg<index, BitRange<index, index>, ISAImpl> {
+  PseudoReg() : Reg<index, BitRange<index, index>, ISAImpl>("rd") {}
 };
 
 template <unsigned index>
-struct PseudoImm : public Imm<index, 0, Repr::Hex, ImmPart<0, BitRange<0, 0>>> {
-};
+struct PseudoImm
+    : public Imm<index, 0, Repr::Hex, ImmPart<0, BitRange<index, index>>> {};
 
 using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstructionBase>>;
 

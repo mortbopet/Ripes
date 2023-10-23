@@ -83,7 +83,14 @@ struct BitRange : public BitRangeBase {
 };
 
 template <typename... BitRanges>
-struct BitRangesImpl : public BitRanges... {
+struct BitRangesImpl {
+  // Combine this type with a set of more BitRanges
+  template <typename... OtherBitRanges>
+  using CombinedBitRanges = BitRangesImpl<BitRanges..., OtherBitRanges...>;
+  // Combine this type with another BitRangesImpl
+  template <typename OtherBitRangeImpl>
+  using CombineWith =
+      typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
   constexpr static void Apply(Instr_T &instruction) {
     (BitRanges::Apply(instruction), ...);
@@ -129,6 +136,10 @@ private:
                 "BitRanges do not have an equal width");
 
 public:
+  // NOTE: If a BitRangesImpl type is declared but not used, the verifications
+  // may not run.
+  // Use this variable in a static assertion in cases where the
+  // type may be discarded. See ImmPartsImpl for an example.
   constexpr static bool IsVerified = (Verify<BitRanges...>::nonOverlapping &&
                                       Verify<BitRanges...>::equalWidth);
 };
@@ -222,7 +233,7 @@ static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
     (std::make_unique<OpParts>())...};
 
 template <typename... OpParts>
-class OpcodeImpl : public OpParts... {
+class OpcodeImpl {
 public:
   using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
 
@@ -260,8 +271,33 @@ struct Field {
 };
 
 template <typename... Fields>
-class FieldsImpl : public Fields... {
+class FieldsImpl {
+private:
+  /// Structs for combining BitRanges from each field
+  template <typename... OtherFields>
+  struct FieldRanges {};
+  template <typename FirstField, typename SecondField, typename... OtherFields>
+  struct FieldRanges<FirstField, SecondField, OtherFields...> {
+    // Combined BitRanges from all fields
+    using BitRanges = typename FirstField::BitRanges::template CombineWith<
+        typename SecondField::BitRanges>::
+        template CombineWith<typename FieldRanges<OtherFields...>::BitRanges>;
+  };
+  template <typename FirstField, typename SecondField>
+  struct FieldRanges<FirstField, SecondField> {
+    // Combined BitRanges from two fields
+    using BitRanges = typename FirstField::BitRanges::template CombineWith<
+        typename SecondField::BitRanges>;
+  };
+  template <typename FirstField>
+  struct FieldRanges<FirstField> {
+    using BitRanges = typename FirstField::BitRanges;
+  };
+
 public:
+  /// Combined BitRanges from each field
+  using BitRanges = typename FieldRanges<Fields...>::BitRanges;
+
   static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
     Result<> res = std::monostate();
@@ -283,10 +319,10 @@ public:
     return !failure;
   }
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
-  //  constexpr static void
-  //  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
-  //    BitRanges::RetrieveBitRanges(bitRanges);
-  //  }
+  constexpr static void
+  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
+    BitRanges::RetrieveBitRanges(bitRanges);
+  }
 
 private:
   // TODO: Verify that:
@@ -328,7 +364,7 @@ private:
  * @param BitRange: range in instruction field containing register index value
  */
 template <unsigned tokenIndex, typename BitRange, typename RegInfo>
-struct Reg : public Field<tokenIndex, BitRange> {
+struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
   Reg(const QString &_regsd) : regsd(_regsd) {}
 
   static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
@@ -366,6 +402,7 @@ struct Reg : public Field<tokenIndex, BitRange> {
 template <unsigned _offset, typename _BitRange>
 struct ImmPart {
   using BitRange = _BitRange;
+  // Declaration of BitRanges allows ImmPart to be compatible with ImmPartsImpl
   using BitRanges = BitRangesImpl<BitRange>;
 
   constexpr static unsigned Offset() { return _offset; }
@@ -384,7 +421,7 @@ private:
 };
 
 template <typename... ImmParts>
-struct ImmPartsImpl : public ImmParts... {
+struct ImmPartsImpl {
   using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
 
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
@@ -632,6 +669,14 @@ public:
   // * Opcode bitranges should not overlap with Fields bitranges
   // * No bits are unaccounted for
   // * Instruction is byte aligned
+  struct Verify {
+    using BitRanges =
+        typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
+            InstrImpl::Fields::Impl::BitRanges>;
+    static_assert(InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
+                      InstrImpl::Fields::Impl::BitRanges>::IsVerified,
+                  "Could not verify combined bitranges from Opcode and Fields");
+  };
 
   Instruction() : m_name(InstrImpl::mnemonic()) { verify(); }
 
@@ -678,7 +723,7 @@ public:
   void verify() {
     std::vector<std::shared_ptr<BitRangeBase>> bitRanges;
     InstrImpl::Opcode::Impl::RetrieveBitRanges(bitRanges);
-    //    InstrImpl::Fields::Impl::RetrieveBitRanges(bitRanges);
+    InstrImpl::Fields::Impl::RetrieveBitRanges(bitRanges);
 
     // 1.
     std::set<unsigned> registeredBits;
