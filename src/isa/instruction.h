@@ -365,9 +365,10 @@ private:
  * corresponds to the register index
  * @param BitRange: range in instruction field containing register index value
  */
-template <unsigned tokenIndex, typename BitRange, typename RegInfo>
+template <typename RegImpl, unsigned tokenIndex, typename BitRange,
+          typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
-  Reg(const QString &_regsd) : regsd(_regsd) {}
+  Reg() : regsd(RegImpl::Name.data()) {}
 
   static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &) {
@@ -689,7 +690,7 @@ struct InstrVerify {
 template <typename InstrImpl>
 class Instruction : public InstructionBase {
 public:
-  Instruction() : m_name(InstrImpl::mnemonic()) { verify(); }
+  Instruction() : m_name(InstrImpl::Name.data()) { verify(); }
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;

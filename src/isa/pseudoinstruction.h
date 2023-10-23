@@ -10,7 +10,7 @@ namespace Ripes {
 
 struct PseudoInstructionBase {
   virtual Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
-                                                 SymbolMap &symbols) = 0;
+                                                 SymbolMap &symbols) const = 0;
   virtual QString name() const = 0;
 };
 
@@ -20,9 +20,11 @@ using PseudoExpandFunc = std::function<Result<std::vector<LineTokens>>(
 
 template <typename PseudoInstrImpl>
 struct PseudoInstruction : public PseudoInstructionBase {
-  QString name() const override { return PseudoInstrImpl::mnemonic(); }
+  QString name() const override {
+    return QString(PseudoInstrImpl::Name.data());
+  }
   Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
-                                         SymbolMap &symbols) override {
+                                         SymbolMap &symbols) const override {
     if (line.tokens.length() != PseudoInstrImpl::ExpectedTokens) {
       return Error(line,
                    "Instruction '" + name() + "' expects " +
@@ -36,8 +38,9 @@ struct PseudoInstruction : public PseudoInstructionBase {
 };
 
 template <unsigned index, typename ISAImpl>
-struct PseudoReg : public Reg<index, BitRange<index, index>, ISAImpl> {
-  PseudoReg() : Reg<index, BitRange<index, index>, ISAImpl>("rd") {}
+struct PseudoReg : public Reg<PseudoReg<index, ISAImpl>, index,
+                              BitRange<index, index>, ISAImpl> {
+  constexpr static std::string_view Name = "rd";
 };
 
 template <unsigned index>

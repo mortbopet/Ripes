@@ -56,27 +56,27 @@ template <typename InstrImpl, Funct3 funct3>
 using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3>;
 
 struct Addi : public Instr32<Addi, Funct3::ADDI> {
-  static QString mnemonic() { return "addi"; }
+  constexpr static std::string_view Name = "addi";
 };
 
 struct Andi : public Instr32<Andi, Funct3::ANDI> {
-  static QString mnemonic() { return "andi"; }
+  constexpr static std::string_view Name = "andi";
 };
 
 struct Slti : public Instr32<Slti, Funct3::SLTI> {
-  static QString mnemonic() { return "slti"; }
+  constexpr static std::string_view Name = "slti";
 };
 
 struct Sltiu : public Instr32<Sltiu, Funct3::SLTIU> {
-  static QString mnemonic() { return "sltiu"; }
+  constexpr static std::string_view Name = "sltiu";
 };
 
 struct Xori : public Instr32<Xori, Funct3::XORI> {
-  static QString mnemonic() { return "xori"; }
+  constexpr static std::string_view Name = "xori";
 };
 
 struct Ori : public Instr32<Ori, Funct3::ORI> {
-  static QString mnemonic() { return "ori"; }
+  constexpr static std::string_view Name = "ori";
 };
 
 } // namespace TypeI
@@ -124,39 +124,39 @@ template <typename InstrImpl, Funct3 funct3, Funct7 funct7>
 using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3, funct7>;
 
 struct Slli : public Instr32<Slli, Funct3::SLLI, Funct7::LEFT_SHIFT> {
-  static QString mnemonic() { return "slli"; }
+  constexpr static std::string_view Name = "slli";
 };
 
 struct Srli : public Instr32<Srli, Funct3::SRLI, Funct7::LEFT_SHIFT> {
-  static QString mnemonic() { return "srli"; }
+  constexpr static std::string_view Name = "srli";
 };
 
 struct Srai : public Instr32<Srai, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
-  static QString mnemonic() { return "srai"; }
+  constexpr static std::string_view Name = "srai";
 };
 
 struct Slliw : public Instr64<Slliw, Funct3::SLLI, Funct7::LEFT_SHIFT> {
-  static QString mnemonic() { return "slliw"; }
+  constexpr static std::string_view Name = "slliw";
 };
 
 struct Srliw : public Instr64<Srliw, Funct3::SRLI, Funct7::LEFT_SHIFT> {
-  static QString mnemonic() { return "srliw"; }
+  constexpr static std::string_view Name = "srliw";
 };
 
 struct Sraiw : public Instr64<Sraiw, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
-  static QString mnemonic() { return "sraiw"; }
+  constexpr static std::string_view Name = "sraiw";
 };
 
 } // namespace TypeIShift
 
 struct Lb : public PseudoInstrLoad<Lb> {
-  static QString mnemonic() { return "lb"; }
+  constexpr static std::string_view Name = "lb";
 };
 struct Lh : public PseudoInstrLoad<Lh> {
-  static QString mnemonic() { return "lh"; }
+  constexpr static std::string_view Name = "lh";
 };
 struct Lw : public PseudoInstrLoad<Lw> {
-  static QString mnemonic() { return "lw"; }
+  constexpr static std::string_view Name = "lw";
 };
 
 template <typename InstrVecType, typename... Instructions>

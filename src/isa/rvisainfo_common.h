@@ -231,30 +231,34 @@ struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
 template <unsigned funct7>
 struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
 
+template <typename RegImpl, unsigned tokenIndex, typename Range>
+struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
+
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction
 template <unsigned tokenIndex>
-struct RegRs1 : public Reg<tokenIndex, BitRange<15, 19>, RV_GPRInfo> {
-  RegRs1() : Reg<tokenIndex, BitRange<15, 19>, RV_GPRInfo>("rs1") {}
+struct RegRs1
+    : public GPR_Reg<RegRs1<tokenIndex>, tokenIndex, BitRange<15, 19>> {
+  constexpr static std::string_view Name = "rs1";
 };
 
 /// The RISC-V Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 20-24 of the instruction
 template <unsigned tokenIndex>
-struct RegRs2 : public Reg<tokenIndex, BitRange<20, 24>, RV_GPRInfo> {
-  RegRs2() : Reg<tokenIndex, BitRange<20, 24>, RV_GPRInfo>("rs2") {}
+struct RegRs2
+    : public GPR_Reg<RegRs2<tokenIndex>, tokenIndex, BitRange<20, 24>> {
+  constexpr static std::string_view Name = "rs2";
 };
 
 /// The RISC-V Rd field contains a destination register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <unsigned tokenIndex>
-struct RegRd : public Reg<tokenIndex, BitRange<7, 11>, RV_GPRInfo> {
-  RegRd() : Reg<tokenIndex, BitRange<7, 11>, RV_GPRInfo>("rd") {}
+struct RegRd : public GPR_Reg<RegRd<tokenIndex>, tokenIndex, BitRange<7, 11>> {
+  constexpr static std::string_view Name = "rd";
 };
 
 template <typename PseudoInstrImpl>
-struct PseudoInstrLoad
-    : public PseudoInstruction<PseudoInstrLoad<PseudoInstrImpl>> {
+struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
   struct PseudoLoadFields {
     using Reg = PseudoReg<0, RV_GPRInfo>;
     using Imm = PseudoImm<1>;
@@ -263,15 +267,14 @@ struct PseudoInstrLoad
   using Fields = PseudoLoadFields;
 
   constexpr static unsigned ExpectedTokens = 1 + Fields::Impl::NumFields();
-  static QString mnemonic() { return PseudoInstrImpl::mnemonic(); }
   static Result<std::vector<LineTokens>>
-  expander(const PseudoInstruction<PseudoInstrLoad<PseudoInstrImpl>> &,
+  expander(const PseudoInstruction<PseudoInstrImpl> &,
            const TokenizedSrcLine &line, const SymbolMap &) {
     LineTokensVec v;
     v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
                              << Token(line.tokens.at(2), "%pcrel_hi"));
     v.push_back(LineTokens()
-                << PseudoInstrImpl::mnemonic() << line.tokens.at(1)
+                << QString(PseudoInstrImpl::Name.data()) << line.tokens.at(1)
                 << Token(QString("(%1 + 4) ").arg(line.tokens.at(2)),
                          "%pcrel_lo")
                 << line.tokens.at(1));
