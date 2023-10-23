@@ -149,6 +149,59 @@ struct Sraiw : public Instr64<Sraiw, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
 
 } // namespace TypeIShift
 
+namespace TypeL {
+
+enum class Funct3 : unsigned {
+  LB = 0b000,
+  LH = 0b001,
+  LW = 0b010,
+  LBU = 0b100,
+  LHU = 0b101
+};
+
+/// An I-Type RISC-V instruction
+template <typename InstrImpl, Funct3 funct3>
+struct Instr : public RV_Instruction<InstrImpl> {
+  struct ITypeOpcode {
+    using RVOpcode = OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::LOAD)>;
+    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
+    using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
+  };
+  struct ITypeFields {
+    using Rd = RegRd<0>;
+    using Rs1 = RegRs1<1>;
+    using Imm = ImmCommon12<2>;
+    using Impl = FieldsImpl<Rd, Rs1, Imm>;
+  };
+
+  using Opcode = ITypeOpcode;
+  using Fields = ITypeFields;
+};
+
+struct Lb : public Instr<Lb, Funct3::LB> {
+  constexpr static std::string_view Name = "lb";
+};
+
+struct Lh : public Instr<Lh, Funct3::LH> {
+  constexpr static std::string_view Name = "lh";
+};
+
+struct Lw : public Instr<Lw, Funct3::LW> {
+  constexpr static std::string_view Name = "lw";
+};
+
+struct Lbu : public Instr<Lbu, Funct3::LBU> {
+  constexpr static std::string_view Name = "lbu";
+};
+
+struct Lhu : public Instr<Lhu, Funct3::LHU> {
+  constexpr static std::string_view Name = "lhu";
+};
+
+} // namespace TypeL
+
+namespace TypePseudo {
+
 struct Lb : public PseudoInstrLoad<Lb> {
   constexpr static std::string_view Name = "lb";
 };
@@ -158,6 +211,8 @@ struct Lh : public PseudoInstrLoad<Lh> {
 struct Lw : public PseudoInstrLoad<Lw> {
   constexpr static std::string_view Name = "lw";
 };
+
+} // namespace TypePseudo
 
 template <typename InstrVecType, typename... Instructions>
 constexpr inline static void _enableInstructions(InstrVecType &instructions) {

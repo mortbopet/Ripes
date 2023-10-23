@@ -4,14 +4,25 @@ namespace Ripes {
 namespace RVISA {
 namespace ExtI {
 
-using namespace TypeI;
-using namespace TypeIShift;
+static void _enableExtPseudo(const ISAInfoBase *,
+                             PseudoInstrVec &pseudoInstructions,
+                             const std::set<Options> &) {
+  using namespace TypePseudo;
+
+  enablePseudoInstructions<Lb, Lh, Lw>(pseudoInstructions);
+}
 
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions,
                const std::set<Options> &options) {
-  enablePseudoInstructions<Lb, Lh, Lw>(pseudoInstructions);
-  enableInstructions<Addi, Andi, Slti, Sltiu, Xori, Ori>(instructions);
+  _enableExtPseudo(isa, pseudoInstructions, options);
+
+  using namespace TypeI;
+  using namespace TypeIShift;
+  using namespace TypeL;
+
+  enableInstructions<Addi, Andi, Slti, Sltiu, Xori, Ori, Lb, Lh, Lw, Lbu, Lhu>(
+      instructions);
 
   if (options.count(Options::shifts64BitVariant)) {
     // 64-bit shift instructions
