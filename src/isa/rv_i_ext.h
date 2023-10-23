@@ -159,23 +159,23 @@ enum class Funct3 : unsigned {
   LHU = 0b101
 };
 
-/// An I-Type RISC-V instruction
+/// An L-Type RISC-V instruction
 template <typename InstrImpl, Funct3 funct3>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct ITypeOpcode {
+  struct LTypeOpcode {
     using RVOpcode = OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::LOAD)>;
     using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
-  struct ITypeFields {
+  struct LTypeFields {
     using Rd = RegRd<0>;
     using Rs1 = RegRs1<1>;
     using Imm = ImmCommon12<2>;
     using Impl = FieldsImpl<Rd, Rs1, Imm>;
   };
 
-  using Opcode = ITypeOpcode;
-  using Fields = ITypeFields;
+  using Opcode = LTypeOpcode;
+  using Fields = LTypeFields;
 };
 
 struct Lb : public Instr<Lb, Funct3::LB> {
@@ -199,6 +199,41 @@ struct Lhu : public Instr<Lhu, Funct3::LHU> {
 };
 
 } // namespace TypeL
+
+namespace TypeSystem {
+
+enum class Funct12 { ECALL = 0x000, EBREAK = 0b001 };
+
+/// All RISC-V Funct12 opcode parts are defined as a 12-bit field in bits 20-31
+/// of the instruction
+template <unsigned funct12>
+struct OpPartFunct12 : public OpPart<funct12, BitRange<20, 31>> {};
+
+/// A System-Type RISC-V instruction (ECALL and EBREAK)
+template <typename InstrImpl, Funct12 funct12>
+struct Instr : public RV_Instruction<InstrImpl> {
+  struct SystemTypeOpcode {
+    using RVOpcode =
+        OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::SYSTEM)>;
+    using Rd = OpPartZeroes<7, 11>;
+    using RVFunct3 = OpPartFunct3<0>;
+    using Rs1 = OpPartZeroes<15, 19>;
+    using RVFunct12 = OpPartFunct12<static_cast<unsigned>(funct12)>;
+    using Impl = OpcodeImpl<RVOpcode, Rd, RVFunct3, Rs1, RVFunct12>;
+  };
+  struct SystemTypeFields {
+    using Impl = FieldsImpl<>;
+  };
+
+  using Opcode = SystemTypeOpcode;
+  using Fields = SystemTypeFields;
+};
+
+struct Ecall : public Instr<Ecall, Funct12::ECALL> {
+  constexpr static std::string_view Name = "ecall";
+};
+
+} // namespace TypeSystem
 
 namespace TypePseudo {
 

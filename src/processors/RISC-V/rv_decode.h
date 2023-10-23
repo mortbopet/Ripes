@@ -25,7 +25,7 @@ public:
             case RVISA::OpcodeID::AUIPC: return RVInstr::AUIPC;
             case RVISA::OpcodeID::JAL: return RVInstr::JAL;
             case RVISA::OpcodeID::JALR: return RVInstr::JALR;
-            case RVISA::OpcodeID::ECALL: return RVInstr::ECALL;
+            case RVISA::OpcodeID::SYSTEM: return RVInstr::ECALL;
 
             case RVISA::OpcodeID::OPIMM: {
                 // I-Type

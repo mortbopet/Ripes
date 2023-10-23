@@ -92,7 +92,7 @@ struct BitRangesImpl {
   using CombineWith =
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
-  constexpr static unsigned Width() { return (BitRanges::Width() + ...); }
+  constexpr static unsigned Width() { return (BitRanges::Width() + ... + 0); }
 
   constexpr static void Apply(Instr_T &instruction) {
     (BitRanges::Apply(instruction), ...);
@@ -104,8 +104,10 @@ struct BitRangesImpl {
 
 private:
   /// Compile-time verification using recursive templates and static_assert
-  template <typename FirstRange, typename... OtherRanges>
-  struct Verify {};
+  template <typename...>
+  struct Verify {
+    enum { nonOverlapping = true, equalWidth = true };
+  };
   template <typename FirstRange, typename SecondRange, typename... OtherRanges>
   struct Verify<FirstRange, SecondRange, OtherRanges...> {
     /// Returns true if FirstRange and SecondRange are not overlapping
@@ -221,6 +223,10 @@ private:
                 "OpPart value is too large to fit in BitRange.");
 };
 
+/// A part for declaring BitRanges of unused zeros
+template <unsigned start, unsigned stop>
+struct OpPartZeroes : public OpPart<0, BitRange<start, stop>> {};
+
 using ResolveSymbolFunc =
     std::function<Result<>(const Location &, Reg_T, Instr_T &, Reg_T)>;
 
@@ -277,7 +283,9 @@ class FieldsImpl {
 private:
   /// Structs for combining BitRanges from each field
   template <typename... OtherFields>
-  struct FieldRanges {};
+  struct FieldRanges {
+    using BitRanges = BitRangesImpl<>;
+  };
   template <typename FirstField, typename SecondField, typename... OtherFields>
   struct FieldRanges<FirstField, SecondField, OtherFields...> {
     // Combined BitRanges from all fields
@@ -329,8 +337,10 @@ public:
 private:
   // TODO: Verify that:
   // * Registers are not duplicated?? (might be difficult to verify)
-  template <typename FirstField, typename... OtherFields>
-  struct Verify {};
+  template <typename...>
+  struct Verify {
+    enum { hasSequentialIndices = true };
+  };
   template <typename FirstField, typename SecondField, typename... OtherFields>
   struct Verify<FirstField, SecondField, OtherFields...> {
     /// Returns true if SecondField has an index that is directly after
@@ -348,8 +358,12 @@ private:
   struct Verify<FirstField> {
     enum { hasSequentialIndices = true };
   };
-  template <typename FirstField, typename...>
+  template <typename...>
   struct VerifyFirstIndex {
+    enum { indexStartsAtZero = true };
+  };
+  template <typename FirstField, typename... OtherFields>
+  struct VerifyFirstIndex<FirstField, OtherFields...> {
     enum { indexStartsAtZero = (FirstField::TokenIndex() == 0) };
   };
 

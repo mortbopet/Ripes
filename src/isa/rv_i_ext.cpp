@@ -20,9 +20,10 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
   using namespace TypeI;
   using namespace TypeIShift;
   using namespace TypeL;
+  using namespace TypeSystem;
 
-  enableInstructions<Addi, Andi, Slti, Sltiu, Xori, Ori, Lb, Lh, Lw, Lbu, Lhu>(
-      instructions);
+  enableInstructions<Addi, Andi, Slti, Sltiu, Xori, Ori, Lb, Lh, Lw, Lbu, Lhu,
+                     Ecall>(instructions);
 
   if (options.count(Options::shifts64BitVariant)) {
     // 64-bit shift instructions
