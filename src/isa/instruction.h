@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits>
+#include <experimental/type_traits>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -47,15 +48,14 @@ struct BitRangeBase {
 /// start/stop values for bitranges are inclusive..
 template <unsigned _start, unsigned _stop, unsigned _N = 32>
 struct BitRange : public BitRangeBase {
-  static_assert(isPowerOf2(_N) && "Bitrange N must be power of 2");
-  static_assert(_start <= _stop && _stop < _N && "invalid range");
+  static_assert(isPowerOf2(_N), "Bitrange N must be power of 2");
+  static_assert(_start <= _stop && _stop < _N, "invalid range");
 
   constexpr static unsigned N() { return _N; }
   constexpr static unsigned Start() { return _start; }
   constexpr static unsigned Stop() { return _stop; }
   constexpr static unsigned Width() { return _stop - _start + 1; }
   constexpr static Instr_T Mask() { return generateBitmask(Width()); }
-
   constexpr static Instr_T Apply(Instr_T value) {
     return (value & Mask()) << _start;
   }
@@ -70,24 +70,14 @@ struct BitRange : public BitRangeBase {
   Instr_T getMask() const { return Mask(); }
   Instr_T apply(Instr_T value) const { return Apply(value); }
   Instr_T decode(Instr_T instruction) const { return Decode(instruction); }
-
-  template <typename OtherBitRange>
-  constexpr static bool isEqualTo() {
-    return _start == OtherBitRange::Start() && _stop == OtherBitRange::Stop();
-  }
-  template <typename OtherBitRange>
-  constexpr static bool isLessThan() {
-    return (_start == OtherBitRange::Start()) ? _stop < OtherBitRange::Stop()
-                                              : _start < OtherBitRange::Start();
-  }
 };
 
 template <typename... BitRanges>
 struct BitRangesImpl {
-  // Combine this type with a set of more BitRanges
+  /// Combine this type with a set of more BitRanges
   template <typename... OtherBitRanges>
   using CombinedBitRanges = BitRangesImpl<BitRanges..., OtherBitRanges...>;
-  // Combine this type with another BitRangesImpl
+  /// Combine this type with another BitRangesImpl
   template <typename OtherBitRangeImpl>
   using CombineWith =
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
@@ -138,6 +128,19 @@ private:
                 "BitRanges overlap with each other");
   static_assert(Verify<BitRanges...>::equalWidth,
                 "BitRanges do not have an equal width");
+
+  /// Ensure that the template parameters for BitRangesImpl are always the
+  /// BitRange type
+  template <typename... T>
+  using IsBitRanges = decltype((
+      ((T::N() + T::Start() + T::Stop() + T::Width()), T::Apply(T::Mask()),
+       T::Decode(T::Mask()),
+       std::declval<T>().n() + std::declval<T>().start() +
+           std::declval<T>().stop() + std::declval<T>().width(),
+       std::declval<T>().apply(T::Mask()), std::declval<T>().decode(T::Mask())),
+      ...));
+  static_assert(std::experimental::is_detected_v<IsBitRanges, BitRanges...>,
+                "BitRangesImpl can only contain BitRanges");
 
 public:
   // NOTE: If a BitRangesImpl type is declared but not used, the verifications
