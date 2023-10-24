@@ -904,4 +904,17 @@ using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
 
 using InstrVec = std::vector<std::shared_ptr<InstructionBase>>;
 
+template <typename InstrVecType, typename... Instructions>
+constexpr inline static void _enableInstructions(InstrVecType &instructions) {
+  (instructions.emplace_back(std::make_unique<Instructions>()), ...);
+}
+
+template <typename... Instructions>
+constexpr inline static void enableInstructions(InstrVec &instructions) {
+  static_assert((InstrVerify<Instructions>::IsVerified && ...),
+                "Could not verify instruction");
+  // TODO: Ensure no duplicate instruction definitions
+  return _enableInstructions<InstrVec, Instructions...>(instructions);
+}
+
 } // namespace Ripes

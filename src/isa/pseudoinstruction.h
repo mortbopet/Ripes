@@ -53,4 +53,13 @@ using PseudoInstrVec = std::vector<std::shared_ptr<PseudoInstructionBase>>;
 using PseudoInstrMap =
     std::map<QString, std::shared_ptr<PseudoInstructionBase>>;
 
+template <typename... Instructions>
+constexpr inline static void
+enablePseudoInstructions(PseudoInstrVec &instructions) {
+  // TODO: Ensure no duplicate pseudo-instruction definitions
+  // TODO: Verify pseudoinstructions
+  // TODO: Verify instructions generated from pseudoinstructions
+  return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
+}
+
 } // namespace Ripes

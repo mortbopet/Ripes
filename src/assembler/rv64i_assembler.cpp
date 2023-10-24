@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "isa/rv_i_ext.h"
+#include "isa/rv_m_ext.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -46,6 +47,12 @@ RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I> *isa) const {
   RVISA::ExtI::enableExt(isa, instructions, pseudoInstructions,
                          {RVISA::ExtI::Options::shifts64BitVariant,
                           RVISA::ExtI::Options::LI64BitVariant});
+  for (const auto &extension : isa->enabledExtensions()) {
+    switch (extension.unicode()->toLatin1()) {
+    case 'M':
+      RVISA::ExtM::enableExt(isa, instructions, pseudoInstructions);
+    }
+  }
 
   return {instructions, pseudoInstructions};
 }

@@ -476,10 +476,14 @@ enum class Funct3 {
   OR = 0b110,
   AND = 0b111
 };
-enum class Funct7 { DEFAULT = 0b0000000, SUB_SRA = 0b0100000 };
+enum class Funct7 {
+  DEFAULT = 0b0000000,
+  SUB_SRA = 0b0100000,
+  M_EXT = 0b0000001
+};
 
-template <typename InstrImpl, RVISA::OpcodeID opcode, Funct3 funct3,
-          Funct7 funct7>
+template <typename InstrImpl, RVISA::OpcodeID opcode, typename Funct3Type,
+          Funct3Type funct3, Funct7 funct7>
 struct Instr : public RV_Instruction<InstrImpl> {
   struct RTypeOpcode {
     using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcode)>;
@@ -499,9 +503,9 @@ struct Instr : public RV_Instruction<InstrImpl> {
 };
 
 template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::DEFAULT>
-using Instr32 = Instr<InstrImpl, OpcodeID::OP, funct3, funct7>;
+using Instr32 = Instr<InstrImpl, OpcodeID::OP, Funct3, funct3, funct7>;
 template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::DEFAULT>
-using Instr64 = Instr<InstrImpl, OpcodeID::OP32, funct3, funct7>;
+using Instr64 = Instr<InstrImpl, OpcodeID::OP32, Funct3, funct3, funct7>;
 
 struct Add : public Instr32<Add, Funct3::ADD> {
   constexpr static std::string_view Name = "add";
@@ -1270,28 +1274,6 @@ struct SextW : public PseudoInstruction<SextW> {
 };
 
 } // namespace TypePseudo
-
-template <typename InstrVecType, typename... Instructions>
-constexpr inline static void _enableInstructions(InstrVecType &instructions) {
-  (instructions.emplace_back(std::make_unique<Instructions>()), ...);
-}
-
-template <typename... Instructions>
-constexpr inline static void enableInstructions(InstrVec &instructions) {
-  static_assert((InstrVerify<Instructions>::IsVerified && ...),
-                "Could not verify instruction");
-  // TODO: Ensure no duplicate instruction definitions
-  return _enableInstructions<InstrVec, Instructions...>(instructions);
-}
-
-template <typename... Instructions>
-constexpr inline static void
-enablePseudoInstructions(PseudoInstrVec &instructions) {
-  // TODO: Ensure no duplicate pseudo-instruction definitions
-  // TODO: Verify pseudoinstructions
-  // TODO: Verify instructions generated from pseudoinstructions
-  return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
-}
 
 }; // namespace ExtI
 
