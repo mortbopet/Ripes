@@ -105,7 +105,7 @@ private:
   MatchNode buildMatchTree(const InstrVec &instructions,
                            unsigned fieldDepth = 1,
                            const OpPartBase *match = BaseMatcher.get()) {
-    std::map<OpPartStruct, InstrVec> instrsWithEqualOpPart;
+    std::map<OpPartMatcher, InstrVec> instrsWithEqualOpPart;
     for (const auto &instr : instructions) {
       if (auto instrRef = instr.get()) {
         const size_t nOpParts = instrRef->numOpParts();
@@ -121,16 +121,16 @@ private:
         else
           opPart = instrRef->getOpPart(fieldDepth - 1);
         if (nOpParts == fieldDepth &&
-            instrsWithEqualOpPart.count(opPart->getStruct()) != 0) {
+            instrsWithEqualOpPart.count(opPart->getMatcher()) != 0) {
           QString err;
           err += "Instruction cannot be decoded; aliases with other "
                  "instruction (Identical to other "
                  "instruction)\n";
           err += instr->name() + " is equal to " +
-                 instrsWithEqualOpPart.at(opPart->getStruct()).at(0)->name();
+                 instrsWithEqualOpPart.at(opPart->getMatcher()).at(0)->name();
           throw std::runtime_error(err.toStdString().c_str());
         }
-        instrsWithEqualOpPart[opPart->getStruct()].push_back(instr);
+        instrsWithEqualOpPart[opPart->getMatcher()].push_back(instr);
       }
     }
 

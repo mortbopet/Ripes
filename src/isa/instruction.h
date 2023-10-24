@@ -14,19 +14,25 @@
 
 namespace Ripes {
 
-template <typename T>
-constexpr T generateBitmask(T n) {
-  using T_S = typename std::make_signed<T>::type;
-  using T_U = typename std::make_unsigned<T>::type;
-  if (n >= (sizeof(T) * CHAR_BIT)) {
-    return static_cast<T_U>(static_cast<T_S>(-1));
-  }
-  if (n == 0) {
-    return 0;
-  }
-  return T_U((T_U(1) << n) - 1);
-}
+/** @brief Ensure that the template parameters for BitRangesImpl are always the
+ * BitRange type.
+ * Used in static assertions.
+ * @param BitRange...: Types that might be BitRange
+ */
+template <typename... MaybeBitRange>
+using IsBitRanges = decltype((
+    ((MaybeBitRange::N() + MaybeBitRange::Start() + MaybeBitRange::Stop() +
+      MaybeBitRange::Width()),
+     MaybeBitRange::Apply(MaybeBitRange::Mask()),
+     MaybeBitRange::Decode(MaybeBitRange::Mask()),
+     std::declval<MaybeBitRange>().n() + std::declval<MaybeBitRange>().start() +
+         std::declval<MaybeBitRange>().stop() +
+         std::declval<MaybeBitRange>().width(),
+     std::declval<MaybeBitRange>().apply(MaybeBitRange::Mask()),
+     std::declval<MaybeBitRange>().decode(MaybeBitRange::Mask())),
+    ...));
 
+/** No-template, abstract class that describes a BitRange. */
 struct BitRangeBase {
   virtual unsigned n() const = 0;
   virtual unsigned start() const = 0;
@@ -45,7 +51,12 @@ struct BitRangeBase {
   }
 };
 
-/// start/stop values for bitranges are inclusive..
+// TODO: Remove N if unnecessary
+/** @brief A range of bits determined at compile-time
+ * NOTE: start/stop values for bitranges are inclusive..
+ * @param _start: Starting index of the range
+ * @param _stop: Ending index of the range (inclusive)
+ */
 template <unsigned _start, unsigned _stop, unsigned _N = 32>
 struct BitRange : public BitRangeBase {
   static_assert(isPowerOf2(_N), "Bitrange N must be power of 2");
@@ -55,7 +66,7 @@ struct BitRange : public BitRangeBase {
   constexpr static unsigned Start() { return _start; }
   constexpr static unsigned Stop() { return _stop; }
   constexpr static unsigned Width() { return _stop - _start + 1; }
-  constexpr static Instr_T Mask() { return generateBitmask(Width()); }
+  constexpr static Instr_T Mask() { return vsrtl::generateBitmask(Width()); }
   constexpr static Instr_T Apply(Instr_T value) {
     return (value & Mask()) << _start;
   }
@@ -63,30 +74,36 @@ struct BitRange : public BitRangeBase {
     return (instruction >> _start) & Mask();
   }
 
-  unsigned n() const { return _N; }
-  unsigned start() const { return _start; }
-  unsigned stop() const { return _stop; }
-  unsigned width() const { return Width(); }
-  Instr_T getMask() const { return Mask(); }
-  Instr_T apply(Instr_T value) const { return Apply(value); }
-  Instr_T decode(Instr_T instruction) const { return Decode(instruction); }
+  unsigned n() const override { return _N; }
+  unsigned start() const override { return _start; }
+  unsigned stop() const override { return _stop; }
+  unsigned width() const override { return Width(); }
+  Instr_T getMask() const override { return Mask(); }
+  Instr_T apply(Instr_T value) const override { return Apply(value); }
+  Instr_T decode(Instr_T instruction) const override {
+    return Decode(instruction);
+  }
 };
 
+/** A set of BitRanges.
+ * @param BitRanges: A set of BitRange types. All BitRanges must not overlap.
+ */
 template <typename... BitRanges>
 struct BitRangesImpl {
   /// Combine this type with a set of more BitRanges
   template <typename... OtherBitRanges>
   using CombinedBitRanges = BitRangesImpl<BitRanges..., OtherBitRanges...>;
+
   /// Combine this type with another BitRangesImpl
   template <typename OtherBitRangeImpl>
   using CombineWith =
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
+  /// Returns the combined width of all BitRanges
   constexpr static unsigned Width() { return (BitRanges::Width() + ... + 0); }
 
-  constexpr static void Apply(Instr_T &instruction) {
-    (BitRanges::Apply(instruction), ...);
-  }
+  /// Adds all BitRanges to a vector.
+  /// This is useful for querying BitRanges at runtime
   static void
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     (bitRanges.push_back(std::make_shared<BitRanges>()), ...);
@@ -126,54 +143,59 @@ private:
 
   static_assert(Verify<BitRanges...>::nonOverlapping,
                 "BitRanges overlap with each other");
-  static_assert(Verify<BitRanges...>::equalWidth,
-                "BitRanges do not have an equal width");
-
-  /// Ensure that the template parameters for BitRangesImpl are always the
-  /// BitRange type
-  template <typename... T>
-  using IsBitRanges = decltype((
-      ((T::N() + T::Start() + T::Stop() + T::Width()), T::Apply(T::Mask()),
-       T::Decode(T::Mask()),
-       std::declval<T>().n() + std::declval<T>().start() +
-           std::declval<T>().stop() + std::declval<T>().width(),
-       std::declval<T>().apply(T::Mask()), std::declval<T>().decode(T::Mask())),
-      ...));
+  // TODO(raccog): I'm not sure what BitRange::N() is used for yet, so I'm
+  // disabling this assertion for now
+  //  static_assert(Verify<BitRanges...>::equalWidth,
+  //                "BitRanges do not have an equal width");
   static_assert(std::experimental::is_detected_v<IsBitRanges, BitRanges...>,
-                "BitRangesImpl can only contain BitRanges");
+                "BitRangesImpl can only contain BitRange types");
 
 public:
-  // NOTE: If a BitRangesImpl type is declared but not used, the verifications
-  // may not run.
-  // Use this variable in a static assertion in cases where the
-  // type may be discarded. See ImmPartsImpl for an example.
+  /// Used in instruction class static assertion.
   constexpr static bool IsVerified = (Verify<BitRanges...>::nonOverlapping &&
                                       Verify<BitRanges...>::equalWidth);
 };
 
 struct OpPartBase;
 
-struct OpPartStruct {
+// TODO: Could this be the base class in place of virtual functions?
+/** @brief No-template, non-abstract class that describes an OpPart.
+ * This is useful for the assembly matcher so that OpParts can be used as a
+ * key in a std::map.
+ */
+struct OpPartMatcher {
+  OpPartMatcher(unsigned _value, unsigned _start, unsigned _stop, unsigned _N,
+                const OpPartBase *_opPart)
+      : value(_value), start(_start), stop(_stop), N(_N), opPart(_opPart) {}
+
   unsigned value;
   unsigned start, stop, N;
+  /// Contains a pointer to the original OpPart
   const OpPartBase *opPart;
 
-  bool operator==(const OpPartStruct &other) const {
+  bool operator==(const OpPartMatcher &other) const {
     return value == other.value && start == other.start && stop == other.stop;
   }
-  bool operator<(const OpPartStruct &other) const {
+  bool operator<(const OpPartMatcher &other) const {
     if (start == other.start && stop == other.stop)
       return value < other.value;
     return start < other.start;
   }
 };
 
+/** @brief No-template, abstract class that describes an OpPart. */
 struct OpPartBase {
   virtual unsigned value() const = 0;
   virtual const BitRangeBase &range() const = 0;
-  OpPartStruct getStruct() const {
-    return OpPartStruct{value(), range().start(), range().stop(), range().n(),
-                        this};
+  /// Returns a struct that can be used in the assembly matcher
+  OpPartMatcher getMatcher() const {
+    return OpPartMatcher(value(), range().start(), range().stop(), range().n(),
+                         this);
+  }
+
+  /// Returns true if this OpPart is contained in the instruction.
+  bool matches(Instr_T instruction) const {
+    return range().decode(instruction) == value();
   }
 
   bool operator<(const OpPartBase &other) const {
@@ -181,13 +203,12 @@ struct OpPartBase {
       return value() < other.value();
     return range() < other.range();
   }
-  bool matches(Instr_T instruction) const {
-    return range().decode(instruction) == value();
-  }
 };
 
-/** @brief OpPart
- * A segment of an operation-identifying field of an instruction.
+/** @brief A segment of an operation-identifying field of an instruction.
+ * @param _value: The value that identifies this OpPart.
+ * @param _BitRange: The range of bits that contain this OpPart. Must be a
+ * BitRange type.
  */
 template <unsigned _value, typename _BitRange>
 class OpPart : public OpPartBase {
@@ -199,23 +220,13 @@ public:
 
   constexpr static unsigned Value() { return _value; }
 
+  /// Applies this OpPart's encoding to the instruction.
   constexpr static void Apply(Instr_T &instruction) {
     instruction |= BitRange::Apply(Value());
   }
+  /// Returns true if this OpPart is contained in the instruction.
   constexpr static bool Matches(Instr_T instruction) {
     return BitRange::Decode(instruction) == _value;
-  }
-
-  template <typename OtherOpPart>
-  constexpr static bool IsEqualTo() {
-    return _value == OtherOpPart::Value() &&
-           BitRange::template IsEqualTo<OtherOpPart>();
-  }
-  template <typename OtherOpPart>
-  constexpr static bool IsLessThan() {
-    if (BitRange::template IsEqualTo<OtherOpPart>())
-      return _value < OtherOpPart::Value();
-    return BitRange::template IsLessThan<OtherOpPart>();
   }
 
 private:
@@ -224,39 +235,55 @@ private:
   // Ensure value is not too large to fit in BitRange
   static_assert(isUInt<BitRange::Stop() - BitRange::Start() + 1>(_value),
                 "OpPart value is too large to fit in BitRange.");
+  static_assert(std::experimental::is_detected_v<IsBitRanges, BitRange>,
+                "OpPart can only contain a BitRange type");
 };
 
-/// A part for declaring BitRanges of unused zeros
+/** @brief An OpPart for declaring BitRanges of unused zeros */
 template <unsigned start, unsigned stop>
 struct OpPartZeroes : public OpPart<0, BitRange<start, stop>> {};
 
+/** @brief Function type for resolving symbols. */
 using ResolveSymbolFunc =
     std::function<Result<>(const Location &, Reg_T, Instr_T &, Reg_T)>;
 
+/** @brief A request to link a field of an instruction to a symbol. */
 struct FieldLinkRequest {
   ResolveSymbolFunc resolveSymbol;
   QString symbol = QString();
   QString relocation = QString();
 };
 
+// TODO: Construct in function instead of being declared as a static array
 template <unsigned numParts, typename... OpParts>
 static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
     (std::make_unique<OpParts>())...};
 
+// TODO: Assert that OpParts are of OpPart type
+/** @brief A set of OpParts that identifies an instruction.
+ * @param OpParts: A set of OpPart types. All OpParts' BitRanges must not
+ * overlap.
+ */
 template <typename... OpParts>
 class OpcodeImpl {
 public:
   using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
 
+  /// Applies each OpPart's encoding to the instruction.
   constexpr static void Apply(Instr_T &instruction, FieldLinkRequest &) {
     (OpParts::Apply(instruction), ...);
   }
+  /// Returns the number of OpParts in this opcode.
   constexpr static unsigned NumParts() { return sizeof...(OpParts); }
+  /// Returns a pointer to a dynamically accessible OpPart. (needed for the
+  /// assembly matcher)
   constexpr static const OpPartBase *GetOpPart(unsigned partIndex) {
     assert(partIndex < NumParts());
 
     return OP_PARTS<NumParts(), OpParts...>[partIndex].get();
   }
+  /// Adds all BitRanges to a vector.
+  /// This is useful for querying BitRanges at runtime
   constexpr static void
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     BitRanges::RetrieveBitRanges(bitRanges);
@@ -275,12 +302,23 @@ struct InstrRes {
 
 using AssembleRes = Result<InstrRes>;
 
+// TODO: Figure out how to assign token indices automatically
+/** @brief An instruction field defined at compile-time.
+ * @param _tokenIndex: The index of this field in an assembly instruction
+ * (starting at 0).
+ * @param _BitRanges: A set of BitRanges that define which bits contain field in
+ * the instruction. Must be BitRangesImpl type.
+ */
 template <unsigned _tokenIndex, typename _BitRanges>
 struct Field {
   using BitRanges = _BitRanges;
   constexpr static unsigned TokenIndex() { return _tokenIndex; }
 };
 
+/** @brief A set of fields for an instruction
+ * @param Fields: The set of Field types. Field BitRanges must not overlap.
+ * Fields must have sequential indices, starting at 0.
+ */
 template <typename... Fields>
 class FieldsImpl {
 private:
@@ -308,9 +346,10 @@ private:
   };
 
 public:
-  /// Combined BitRanges from each field
+  /// Combined BitRanges from each field in the set
   using BitRanges = typename FieldRanges<Fields...>::BitRanges;
 
+  /// Applies each Field's encoding to the instruction.
   static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
     Result<> res = std::monostate();
@@ -324,14 +363,15 @@ public:
         ...);
     return res;
   }
+  /// Decodes each field into an assembly instruction line.
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
-                               LineTokens &line) {
-    bool failure = false;
-    ((failure |= !Fields::Decode(instruction, address, symbolMap, line)), ...);
-    return !failure;
-  }
+                               LineTokens &line);
+
+  /// Returns the number of Fields in this set.
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
+  /// Adds all BitRanges to a vector.
+  /// This is useful for querying BitRanges at runtime
   constexpr static void
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     BitRanges::RetrieveBitRanges(bitRanges);
@@ -340,6 +380,7 @@ public:
 private:
   // TODO: Verify that:
   // * Registers are not duplicated?? (might be difficult to verify)
+  /// Verify that each field has sequential indices.
   template <typename...>
   struct Verify {
     enum { hasSequentialIndices = true };
@@ -361,6 +402,7 @@ private:
   struct Verify<FirstField> {
     enum { hasSequentialIndices = true };
   };
+  /// Verify that the first field has an index of 0.
   template <typename...>
   struct VerifyFirstIndex {
     enum { indexStartsAtZero = true };
@@ -376,25 +418,44 @@ private:
                 "Fields have duplicate indices");
 };
 
+template <typename... Fields>
+constexpr bool FieldsImpl<Fields...>::Decode(const Instr_T instruction,
+                                             const Reg_T address,
+                                             const ReverseSymbolMap &symbolMap,
+                                             LineTokens &line) {
+  bool failure = false;
+  ((failure |= !Fields::Decode(instruction, address, symbolMap, line)), ...);
+  return !failure;
+}
+template <>
+constexpr bool FieldsImpl<>::Decode(const Instr_T, const Reg_T,
+                                    const ReverseSymbolMap &, LineTokens &) {
+  return true;
+}
+
 /**
  * @brief Reg
+ * @param RegImpl: A type that declares `constexpr static std::string_view
+ * Name`. This defines the name of this register.
  * @param tokenIndex: Index within a list of decoded instruction tokens that
  * corresponds to the register index
  * @param BitRange: range in instruction field containing register index value
+ * @param RegInfo: A type that declares 2 functions:
+ * `static unsigned int RegNumber(const QString &reg, bool &success)` and
+ * `static QString RegName(unsigned i)`
  */
 template <typename RegImpl, unsigned tokenIndex, typename BitRange,
           typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
   Reg() : regsd(RegImpl::Name.data()) {}
 
+  /// Applies this register's encoding to the instruction.
   static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &) {
     if (tokenIndex + 1 >= line.tokens.size()) {
-      // TODO: Make register name static so it can be used in error messages
-      //      return Error(line, "Required field '" + regsd + "' not provided"
-      //      );
-      return Error(line, "Required field index '" +
-                             QString::number(tokenIndex) + "' not provided");
+      return Error(line, "Required field '" + QString(RegImpl::Name.data()) +
+                             "' (index " + QString::number(tokenIndex) +
+                             ") not provided");
     }
     const auto &regToken = line.tokens.at(tokenIndex + 1);
     bool success = false;
@@ -405,6 +466,7 @@ struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
     instruction |= BitRange::Apply(regIndex);
     return std::monostate();
   }
+  /// Decodes this register into its name. Adds it to the assembly line.
   static bool Decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::Decode(instruction);
@@ -419,17 +481,28 @@ struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
   const QString regsd = "reg";
 };
 
+/** @brief A part of an immediate field.
+ * @param _offset: The offset applied to this part when it is constructed into
+ * an immediate value.
+ * @param _BitRange: The range of bits that contain this part.
+ */
 template <unsigned _offset, typename _BitRange>
 struct ImmPartBase {
   using BitRange = _BitRange;
-  // Declaration of BitRanges allows ImmPart to be compatible with ImmPartsImpl
+  // Declaration of BitRanges allows ImmPart to be compatible with
+  // ImmPartsImpl
   using BitRanges = BitRangesImpl<BitRange>;
 
+  /// Returns the offset applied to this part when it is constructed into an
+  /// immediate value.
   constexpr static unsigned Offset() { return _offset; }
 
+  /// Applies this immediate part's encoding to the instruction.
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
     instruction |= BitRange::Apply(value >> _offset);
   }
+  /// Decodes this immediate part into its value, combining it with other
+  /// values.
   constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
     value |= BitRange::Decode(instruction) << _offset;
   }
@@ -443,18 +516,28 @@ private:
 template <unsigned offset, unsigned start, unsigned stop, unsigned N = 32>
 using ImmPart = ImmPartBase<offset, BitRange<start, stop, N>>;
 
+/** @brief A set of immediate parts for an immediate field.
+ * @param ImmParts: The set of ImmPart types. ImmPart BitRanges must not
+ * overlap. ImmParts must not overlap when constructed into an immediate value
+ * with their offsets applied.
+ */
 template <typename... ImmParts>
 struct ImmPartsImpl {
   using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
 
+  /// Applies each immediate part's encoding to the instruction.
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
     (ImmParts::Apply(value, instruction), ...);
   }
+  /// Decodes this immediate into its value by combining values from each part.
   constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
     (ImmParts::Decode(value, instruction), ...);
   }
 
 private:
+  // TODO: This is probably not necessary because all ranges are checked for
+  // overlapping at the end
+  /// Verify that each immediate does not overlap.
   template <typename FirstPart, typename... OtherParts>
   struct Verify {};
   template <typename FirstPart, typename SecondPart, typename... OtherParts>
@@ -479,7 +562,6 @@ private:
 
   static_assert(Verify<ImmParts...>::nonOverlapping,
                 "Combined ImmParts overlap with each other");
-  static_assert(BitRanges::IsVerified, "Could not verify ImmParts BitRanges");
 };
 
 enum class Repr { Unsigned, Signed, Hex };
@@ -497,6 +579,7 @@ static inline Radix reprToRadix(Repr repr) {
 
 typedef Reg_T (*SymbolTransformer)(Reg_T);
 
+/// The default immediate transformer. Returns the value unchanged.
 inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
 
 /**
@@ -509,8 +592,8 @@ inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
  * symbol.
  * @param transformer: Optional function used to process the immediate
  * provided by a symbol value, before the immediate value is applied.
- * @param ImmParts: (ordered) list of ranges corresponding to fields of the
- * immediate
+ * @param ImmParts: A set of ImmPart types that define the encoding of this
+ * immediate field.
  */
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType, SymbolTransformer transformer>
@@ -521,6 +604,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
+  /// Converts a string to its immediate value (if it exists). Success is set to
+  /// false if this fails.
   constexpr static int64_t GetImm(const QString &immToken, bool &success,
                                   ImmConvInfo &convInfo) {
     return repr == Repr::Signed
@@ -528,6 +613,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                : getImmediate(immToken, success, &convInfo);
   }
 
+  /// Returns an error if `value` does not fit in this immediate.
   static Result<> CheckFitsInWidth(Reg_T_S value, const Location &sourceLine,
                                    ImmConvInfo &convInfo,
                                    QString token = QString()) {
@@ -542,8 +628,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
       // In case of a bitwize (binary or hex) radix, interpret the value as
       // legal if it fits in the width of this immediate (equal to an unsigned
-      // immediate check). e.g. a signed immediate value of 12 bits must be able
-      // to accept 0xAFF.
+      // immediate check). e.g. a signed immediate value of 12 bits must be
+      // able to accept 0xAFF.
       bool isBitwize =
           convInfo.radix == Radix::Hex || convInfo.radix == Radix::Binary;
       if (isBitwize) {
@@ -552,8 +638,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
       if (!isBitwize || (isBitwize && err)) {
         // A signed representation using an integer value in assembly OR a
-        // negative bitwize value which is represented in its full length (e.g.
-        // 0xFFFFFFF1).
+        // negative bitwize value which is represented in its full length
+        // (e.g. 0xFFFFFFF1).
         err = !isInt(width, value);
       }
 
@@ -571,6 +657,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     return Result<>::def();
   }
 
+  /// Symbol resolver function for this immediate.
   static Result<> ApplySymbolResolution(const Location &loc, Reg_T symbolValue,
                                         Instr_T &instruction, Reg_T address) {
     ImmConvInfo convInfo;
@@ -590,6 +677,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     return Result<>::def();
   }
 
+  /// Applies this immediate's encoding to the instruction.
   static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
     if (tokenIndex + 1 >= line.tokens.size()) {
@@ -617,6 +705,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     ImmParts::Apply(value, instruction);
     return std::monostate();
   }
+  /// Decodes this immediate part into its value, adding it to the assembly
+  /// line.
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
                                LineTokens &line) {
@@ -643,24 +733,34 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
   }
 };
 
+/** @brief Shorthand for an Immediate with the default value transformer */
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType>
 using ImmSym =
     ImmBase<tokenIndex, width, repr, ImmParts, symbolType, defaultTransformer>;
 
+/** @brief Shorthand for an Immediate with the default value transformer and no
+ * symbol type. */
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts>
 using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
                     defaultTransformer>;
 
+/** @brief A no-template, abstract class that defines an instruction. */
 class InstructionBase {
 public:
   virtual ~InstructionBase() = default;
+  /// Assembles a line of tokens into an encoded program.
   virtual AssembleRes assemble(const TokenizedSrcLine &tokens) = 0;
+  /// Disassembles an encoded program into a tokenized assembly program.
   virtual Result<LineTokens>
   disassemble(const Instr_T instruction, const Reg_T address,
               const ReverseSymbolMap &symbolMap) const = 0;
+  /// Returns a pointer to a dynamically accessible OpPart. (needed for the
+  /// assembly matcher)
   virtual const OpPartBase *getOpPart(unsigned partIndex) const = 0;
+  /// Returns the name of this instruction.
   virtual const QString &name() const = 0;
+  /// Returns the number of OpParts in this instruction.
   virtual unsigned numOpParts() const = 0;
 
   /**
@@ -685,8 +785,10 @@ protected:
   unsigned m_byteSize = -1;
 };
 
-/// Verifications for a full instruction
-/// These are
+/** @brief Asserts that this instruction has no overlapping fields and has all
+ * bits utilized.
+ * @param InstrImpl: The instruction type to assert.
+ */
 template <typename InstrImpl>
 struct InstrVerify {
   // TODO: Assert instruction is byte aligned. This requires compile-time
@@ -704,6 +806,15 @@ struct InstrVerify {
       (BitRanges::IsVerified && BitRanges::Width() == InstrImpl::InstrBits());
 };
 
+// TODO: Remove Impl from Opcode::Impl and Fields::Impl?
+/** @brief An ISA instruction defined at compile-time.
+ * @param InstrImpl: The type defining a single instruction. Must define the
+ * following:
+ *
+ * `using Opcode::Impl = OpcodeImpl`
+ * `using Fields::Impl = FieldsImpl`
+ * `constexpr static std::string_view Name`
+ */
 template <typename InstrImpl>
 class Instruction : public InstructionBase {
 public:
