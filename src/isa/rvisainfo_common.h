@@ -257,16 +257,18 @@ struct RegRd : public GPR_Reg<RegRd<tokenIndex>, tokenIndex, BitRange<7, 11>> {
   constexpr static std::string_view Name = "rd";
 };
 
+template <unsigned tokenIndex>
+struct PseudoReg : public Ripes::PseudoReg<tokenIndex, RV_GPRInfo> {};
+
 template <typename PseudoInstrImpl>
 struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
   struct PseudoLoadFields {
-    using Reg = PseudoReg<0, RV_GPRInfo>;
+    using Reg = PseudoReg<0>;
     using Imm = PseudoImm<1>;
     using Impl = FieldsImpl<Reg, Imm>;
   };
   using Fields = PseudoLoadFields;
 
-  constexpr static unsigned ExpectedTokens = 1 + Fields::Impl::NumFields();
   static Result<std::vector<LineTokens>>
   expander(const PseudoInstruction<PseudoInstrImpl> &,
            const TokenizedSrcLine &line, const SymbolMap &) {
@@ -281,6 +283,7 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
     return v;
   }
 };
+
 }; // namespace RVISA
 
 } // namespace Ripes

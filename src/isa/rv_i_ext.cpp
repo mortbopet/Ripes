@@ -4,12 +4,21 @@ namespace Ripes {
 namespace RVISA {
 namespace ExtI {
 
-static void _enableExtPseudo(const ISAInfoBase *,
+static void _enableExtPseudo(const ISAInfoBase *isa,
                              PseudoInstrVec &pseudoInstructions,
                              const std::set<Options> &) {
   using namespace TypePseudo;
 
-  enablePseudoInstructions<Lb, Lh, Lw>(pseudoInstructions);
+  enablePseudoInstructions<Lb, Lh, Lw, La, Call, Tail, J, Jr, Jalr, Ret, Jal,
+                           Nop, Mv, Not, Neg, Seqz, Snez, Sltz, Sgtz, Beqz,
+                           Bnez, Blez, Bgez, Bltz, Bgtz, Bgt, Ble, Bgtu, Bleu>(
+      pseudoInstructions);
+
+  if (isa->bits() == 64) {
+    enablePseudoInstructions<Li64>(pseudoInstructions);
+  } else {
+    enablePseudoInstructions<Li32>(pseudoInstructions);
+  }
 }
 
 // Enable 64-bit extensions

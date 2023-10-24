@@ -10,6 +10,17 @@ namespace Ripes {
 namespace RVISA {
 
 namespace ExtI {
+
+enum class Options {
+  shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
+                      // the 64-bit RISC-V ISA
+  LI64BitVariant      // Modifies LI to be able to emit 64-bit constants
+};
+
+void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
+               PseudoInstrVec &pseudoInstructions,
+               const std::set<Options> &options = {});
+
 /// A RISC-V signed immediate field with a width of 12 bits.
 /// Used in L-Type and I-Type instructions.
 ///
@@ -632,6 +643,576 @@ struct Lw : public PseudoInstrLoad<Lw> {
   constexpr static std::string_view Name = "lw";
 };
 
+struct La : public PseudoInstruction<La> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>> expander(const PseudoInstruction<La> &,
+                                                  const TokenizedSrcLine &line,
+                                                  const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
+                             << Token(line.tokens.at(2), "%pcrel_hi"));
+    v.push_back(LineTokens()
+                << Token("addi") << line.tokens.at(1) << line.tokens.at(1)
+                << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
+                         "%pcrel_lo"));
+    return v;
+  }
+  constexpr static std::string_view Name = "la";
+};
+
+struct Call : public PseudoInstruction<Call> {
+  struct Fields {
+    using Imm = PseudoImm<0>;
+    using Impl = FieldsImpl<Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Call> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << Token("x1")
+                             << Token(line.tokens.at(1), "%pcrel_hi"));
+    v.push_back(LineTokens()
+                << Token("jalr") << Token("x1") << Token("x1")
+                << Token(QString("(%1 + 4)").arg(line.tokens.at(1)),
+                         "%pcrel_lo"));
+    return v;
+  }
+  constexpr static std::string_view Name = "call";
+};
+
+struct Tail : public PseudoInstruction<Tail> {
+  struct Fields {
+    using Imm = PseudoImm<0>;
+    using Impl = FieldsImpl<Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Tail> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << Token("x6")
+                             << Token(line.tokens.at(1), "%pcrel_hi"));
+    v.push_back(LineTokens()
+                << Token("jalr") << Token("x0") << Token("x6")
+                << Token(QString("(%1 + 4)").arg(line.tokens.at(1)),
+                         "%pcrel_lo"));
+    return v;
+  }
+  constexpr static std::string_view Name = "tail";
+};
+
+struct J : public PseudoInstruction<J> {
+  struct Fields {
+    using Imm = PseudoImm<0>;
+    using Impl = FieldsImpl<Imm>;
+  };
+
+  static Result<std::vector<LineTokens>> expander(const PseudoInstruction<J> &,
+                                                  const TokenizedSrcLine &line,
+                                                  const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens()
+                << Token("jal") << Token("x0") << line.tokens.at(1));
+    return v;
+  }
+  constexpr static std::string_view Name = "j";
+};
+
+struct Jr : public PseudoInstruction<Jr> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Impl = FieldsImpl<Reg>;
+  };
+
+  static Result<std::vector<LineTokens>> expander(const PseudoInstruction<Jr> &,
+                                                  const TokenizedSrcLine &line,
+                                                  const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("jalr") << Token("x0")
+                             << line.tokens.at(1) << Token("0"));
+    return v;
+  }
+  constexpr static std::string_view Name = "jr";
+};
+
+struct Jalr : public PseudoInstruction<Jalr> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Impl = FieldsImpl<Reg>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Jalr> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("jalr") << Token("x1")
+                             << line.tokens.at(1) << Token("0"));
+    return v;
+  }
+  constexpr static std::string_view Name = "jalr";
+};
+
+struct Ret : public PseudoInstruction<Ret> {
+  struct Fields {
+    using Impl = FieldsImpl<>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Ret> &, const TokenizedSrcLine &,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens()
+                << Token("jalr") << Token("x0") << Token("x1") << Token("0"));
+    return v;
+  }
+  constexpr static std::string_view Name = "ret";
+};
+
+struct Jal : public PseudoInstruction<Jal> {
+  struct Fields {
+    using Imm = PseudoImm<0>;
+    using Impl = FieldsImpl<Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Jal> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens()
+                << Token("jal") << Token("x1") << line.tokens.at(1));
+    return v;
+  }
+  constexpr static std::string_view Name = "jal";
+};
+
+struct Nop : public PseudoInstruction<Nop> {
+  struct Fields {
+    using Impl = FieldsImpl<>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Nop> &, const TokenizedSrcLine &,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens()
+                << Token("addi") << Token("x0") << Token("x0") << Token("0"));
+    return v;
+  }
+  constexpr static std::string_view Name = "nop";
+};
+
+struct Mv : public PseudoInstruction<Mv> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>> expander(const PseudoInstruction<Mv> &,
+                                                  const TokenizedSrcLine &line,
+                                                  const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("addi"), line.tokens.at(1), line.tokens.at(2),
+                           Token("0")});
+    return v;
+  }
+  constexpr static std::string_view Name = "mv";
+};
+
+struct Not : public PseudoInstruction<Not> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Not> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("xori"), line.tokens.at(1), line.tokens.at(2),
+                           Token("-1")});
+    return v;
+  }
+  constexpr static std::string_view Name = "not";
+};
+
+struct Neg : public PseudoInstruction<Neg> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Neg> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("sub"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "neg";
+};
+
+struct Seqz : public PseudoInstruction<Seqz> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Seqz> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("sltiu"), line.tokens.at(1), line.tokens.at(2),
+                           Token("1")});
+    return v;
+  }
+  constexpr static std::string_view Name = "seqz";
+};
+
+struct Snez : public PseudoInstruction<Snez> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Snez> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("sltu"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "snez";
+};
+
+struct Sltz : public PseudoInstruction<Sltz> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Sltz> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("slt"), line.tokens.at(1), line.tokens.at(2),
+                           Token("x0")});
+    return v;
+  }
+  constexpr static std::string_view Name = "sltz";
+};
+
+struct Sgtz : public PseudoInstruction<Sgtz> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Sgtz> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("slt"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "sgtz";
+};
+
+struct Beqz : public PseudoInstruction<Beqz> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Beqz> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("beq"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "beqz";
+};
+
+struct Bnez : public PseudoInstruction<Bnez> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bnez> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("bne"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bnez";
+};
+
+struct Blez : public PseudoInstruction<Blez> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Blez> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("bge"), Token("x0"), line.tokens.at(1),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "blez";
+};
+
+struct Bgez : public PseudoInstruction<Bgez> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bgez> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("bge"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bgez";
+};
+
+struct Bltz : public PseudoInstruction<Bltz> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bltz> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("blt"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bltz";
+};
+
+struct Bgtz : public PseudoInstruction<Bgtz> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bgtz> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("blt"), Token("x0"), line.tokens.at(1),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bgtz";
+};
+
+struct Bgt : public PseudoInstruction<Bgt> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Imm = PseudoImm<2>;
+    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bgt> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("blt"), line.tokens.at(2), line.tokens.at(1),
+                           line.tokens.at(3)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bgt";
+};
+
+struct Ble : public PseudoInstruction<Ble> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Imm = PseudoImm<2>;
+    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Ble> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("bge"), line.tokens.at(2), line.tokens.at(1),
+                           line.tokens.at(3)});
+    return v;
+  }
+  constexpr static std::string_view Name = "ble";
+};
+
+struct Bgtu : public PseudoInstruction<Bgtu> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Imm = PseudoImm<2>;
+    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bgtu> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("bltu"), line.tokens.at(2), line.tokens.at(1),
+                           line.tokens.at(3)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bgtu";
+};
+
+struct Bleu : public PseudoInstruction<Bleu> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Imm = PseudoImm<2>;
+    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Bleu> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("bgeu"), line.tokens.at(2), line.tokens.at(1),
+                           line.tokens.at(3)});
+    return v;
+  }
+  constexpr static std::string_view Name = "bleu";
+};
+
+template <bool isRV64>
+struct Li : public PseudoInstruction<Li<isRV64>> {
+  struct Fields {
+    using Reg = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Impl = FieldsImpl<Reg, Imm>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Li<isRV64>> &, const TokenizedSrcLine &line,
+           const SymbolMap &symbols) {
+    LineTokensVec res;
+    // Get an integer representation of the immediate, which might have
+    // been a symbol.
+    bool canConvert;
+    bool liveDstReg = false;
+    bool unsignedFitErr = false;
+    int64_t immediate = getImmediateSext32(line.tokens.at(2), canConvert);
+
+    if (!canConvert) {
+      auto absSymbols = symbols.copyRelativeTo(line.sourceLine());
+      // Check if the immediate has been made available in the symbol set
+      // at this point...
+      auto it = absSymbols.find(line.tokens.at(2));
+      if (it != absSymbols.end()) {
+        immediate = it->second;
+      } else {
+        if (unsignedFitErr) {
+          return Result<std::vector<LineTokens>>{
+              Error(line, QString("Invalid immediate '%1'; can't emit "
+                                  ">32-bit imm for non-RV64 target")
+                              .arg(line.tokens.at(2)))};
+        } else {
+          return Result<std::vector<LineTokens>>{Error(
+              line, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
+        }
+      }
+    }
+
+    /* The load-immediate pseudo instructions follows the LLVM
+     * implementation, as seen here.
+     * https://llvm.org/docs/doxygen/RISCVMatInt_8cpp_source.html
+     * For more insight, please refer to there, since their comments have
+     * been left out of this source code.
+     */
+    std::function<Result<std::vector<LineTokens>>(int64_t)> genInstrSeq =
+        [&](int64_t val) {
+          if (isInt<32>(val) || (!isRV64 && isUInt<32>(val))) {
+            int64_t Hi20 = ((val + 0x800) >> 12) & 0xFFFFF;
+            int64_t Lo12 = vsrtl::signextend<12>(val);
+            if (Hi20) {
+              res.push_back(LineTokens() << Token("lui") << line.tokens.at(1)
+                                         << QString::number(Hi20));
+              liveDstReg = true;
+            }
+            if (Lo12 || Hi20 == 0) {
+              QString addiOpc = isRV64 && Hi20 != 0 ? "addiw" : "addi";
+              res.push_back(LineTokens()
+                            << Token(addiOpc) << line.tokens.at(1)
+                            << (liveDstReg ? line.tokens.at(1) : Token("x0"))
+                            << QString::number(Lo12));
+              liveDstReg = true;
+            }
+            return Result<std::vector<LineTokens>>{res};
+          }
+          if (!isRV64) {
+            return Result<std::vector<LineTokens>>{
+                Error(line, QString("Invalid immediate '%1'; can't emit "
+                                    ">32-bit imm for non-RV64 target")
+                                .arg(line.tokens.at(2)))};
+          }
+          int64_t Lo12 = vsrtl::signextend<12>(val);
+          int64_t Hi52 = ((VInt)val + 0x800ull) >> 12;
+          int ShiftAmount = 12 + firstSetBitIdx(Hi52);
+          Hi52 = vsrtl::signextend<int64_t>(Hi52 >> (ShiftAmount - 12),
+                                            64 - ShiftAmount);
+          genInstrSeq(Hi52);
+          res.push_back(LineTokens()
+                        << Token("slli") << line.tokens.at(1)
+                        << line.tokens.at(1) << QString::number(ShiftAmount));
+          if (Lo12) {
+            res.push_back(LineTokens()
+                          << Token("addi") << line.tokens.at(1)
+                          << line.tokens.at(1) << QString::number(Lo12));
+          }
+          return Result<std::vector<LineTokens>>{res};
+        };
+    auto instrSeq = genInstrSeq(immediate);
+    return instrSeq;
+  }
+  constexpr static std::string_view Name = "li";
+};
+
+using Li32 = Li<false>;
+using Li64 = Li<true>;
+
 } // namespace TypePseudo
 
 template <typename InstrVecType, typename... Instructions>
@@ -655,16 +1236,6 @@ enablePseudoInstructions(PseudoInstrVec &instructions) {
   // TODO: Verify instructions generated from pseudoinstructions
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
 }
-
-enum class Options {
-  shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
-                      // the 64-bit RISC-V ISA
-  LI64BitVariant      // Modifies LI to be able to emit 64-bit constants
-};
-
-void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
-               PseudoInstrVec &pseudoInstructions,
-               const std::set<Options> &options = {});
 
 }; // namespace ExtI
 
