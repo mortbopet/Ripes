@@ -695,7 +695,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
       linksWithSymbol.resolveSymbol = ApplySymbolResolution;
       linksWithSymbol.symbol = immToken;
       linksWithSymbol.relocation = immToken.relocation();
-      return Error(line, "Could not resolve immediate");
+      return std::monostate();
     }
 
     if (auto res = CheckFitsInWidth(value, line, convInfo, immToken);

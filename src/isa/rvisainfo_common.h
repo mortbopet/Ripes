@@ -284,6 +284,37 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
   }
 };
 
+template <typename PseudoInstrImpl>
+struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
+  struct PseudoStoreFields {
+    using Reg0 = PseudoReg<0>;
+    using Imm = PseudoImm<1>;
+    using Reg1 = PseudoReg<2>;
+    using Impl = FieldsImpl<Reg0, Imm, Reg1>;
+  };
+  using Fields = PseudoStoreFields;
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<PseudoInstrImpl> &,
+           const TokenizedSrcLine &line, const SymbolMap &) {
+    bool canConvert;
+    getImmediate(line.tokens.at(2), canConvert);
+    if (canConvert) {
+      return Result<std::vector<LineTokens>>(
+          Error(0, "Unused; will fallback to non-pseudo op sw"));
+    }
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
+                             << Token(line.tokens.at(2), "%pcrel_hi"));
+    v.push_back(LineTokens()
+                << QString(PseudoInstrImpl::Name.data()) << line.tokens.at(1)
+                << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
+                         "%pcrel_lo")
+                << line.tokens.at(3));
+    return Result<std::vector<LineTokens>>(v);
+  }
+};
+
 }; // namespace RVISA
 
 } // namespace Ripes

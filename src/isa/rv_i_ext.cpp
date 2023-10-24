@@ -9,13 +9,13 @@ static void _enableExtPseudo(const ISAInfoBase *isa,
                              const std::set<Options> &) {
   using namespace TypePseudo;
 
-  enablePseudoInstructions<Lb, Lh, Lw, La, Call, Tail, J, Jr, Jalr, Ret, Jal,
-                           Nop, Mv, Not, Neg, Seqz, Snez, Sltz, Sgtz, Beqz,
-                           Bnez, Blez, Bgez, Bltz, Bgtz, Bgt, Ble, Bgtu, Bleu>(
-      pseudoInstructions);
+  enablePseudoInstructions<Lb, Lh, Lw, La, Sb, Sh, Sw, Call, Tail, J, Jr, Jalr,
+                           Ret, Jal, Nop, Mv, Not, Neg, Seqz, Snez, Sltz, Sgtz,
+                           Beqz, Bnez, Blez, Bgez, Bltz, Bgtz, Bgt, Ble, Bgtu,
+                           Bleu>(pseudoInstructions);
 
   if (isa->bits() == 64) {
-    enablePseudoInstructions<Li64>(pseudoInstructions);
+    enablePseudoInstructions<Li64, Sd, Ld, Negw, SextW>(pseudoInstructions);
   } else {
     enablePseudoInstructions<Li32>(pseudoInstructions);
   }
@@ -24,13 +24,14 @@ static void _enableExtPseudo(const ISAInfoBase *isa,
 // Enable 64-bit extensions
 static void _enableExt64(const ISAInfoBase *, InstrVec &instructions,
                          const std::set<Options> &) {
+  using namespace TypeI;
   using namespace TypeL;
   using namespace TypeR;
   using namespace TypeS;
   using namespace TypeIShift64;
 
-  enableInstructions<Addw, Subw, Sllw, Srlw, Sraw, Slli, Srli, Srai, Lwu, Ld,
-                     Sd>(instructions);
+  enableInstructions<Addiw, Addw, Subw, Sllw, Srlw, Sraw, Slli, Srli, Srai, Lwu,
+                     Ld, Sd>(instructions);
 }
 
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,

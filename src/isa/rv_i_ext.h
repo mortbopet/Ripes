@@ -109,6 +109,10 @@ struct Jalr : public RV_Instruction<Jalr> {
   constexpr static std::string_view Name = "jalr";
 };
 
+struct Addiw : public Instr64<Addiw, Funct3::ADDI> {
+  constexpr static std::string_view Name = "addiw";
+};
+
 } // namespace TypeI
 
 namespace TypeIShift {
@@ -254,9 +258,9 @@ struct Instr : public RV_Instruction<InstrImpl> {
   };
   struct LTypeFields {
     using Rd = RegRd<0>;
-    using Rs1 = RegRs1<1>;
-    using Imm = ImmCommon12<2>;
-    using Impl = FieldsImpl<Rd, Rs1, Imm>;
+    using Imm = ImmCommon12<1>;
+    using Rs1 = RegRs1<2>;
+    using Impl = FieldsImpl<Rd, Imm, Rs1>;
   };
 
   using Opcode = LTypeOpcode;
@@ -642,6 +646,22 @@ struct Lh : public PseudoInstrLoad<Lh> {
 struct Lw : public PseudoInstrLoad<Lw> {
   constexpr static std::string_view Name = "lw";
 };
+struct Ld : public PseudoInstrLoad<Ld> {
+  constexpr static std::string_view Name = "ld";
+};
+
+struct Sb : public PseudoInstrStore<Sb> {
+  constexpr static std::string_view Name = "sb";
+};
+struct Sh : public PseudoInstrStore<Sh> {
+  constexpr static std::string_view Name = "sh";
+};
+struct Sw : public PseudoInstrStore<Sw> {
+  constexpr static std::string_view Name = "sw";
+};
+struct Sd : public PseudoInstrStore<Sd> {
+  constexpr static std::string_view Name = "sd";
+};
 
 struct La : public PseudoInstruction<La> {
   struct Fields {
@@ -859,6 +879,24 @@ struct Neg : public PseudoInstruction<Neg> {
     return v;
   }
   constexpr static std::string_view Name = "neg";
+};
+
+struct Negw : public PseudoInstruction<Negw> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Negw> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("subw"), line.tokens.at(1), Token("x0"),
+                           line.tokens.at(2)});
+    return v;
+  }
+  constexpr static std::string_view Name = "negw";
 };
 
 struct Seqz : public PseudoInstruction<Seqz> {
@@ -1212,6 +1250,24 @@ struct Li : public PseudoInstruction<Li<isRV64>> {
 
 using Li32 = Li<false>;
 using Li64 = Li<true>;
+
+struct SextW : public PseudoInstruction<SextW> {
+  struct Fields {
+    using Reg0 = PseudoReg<0>;
+    using Reg1 = PseudoReg<1>;
+    using Impl = FieldsImpl<Reg0, Reg1>;
+  };
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<SextW> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens{Token("addiw"), line.tokens.at(1), line.tokens.at(2),
+                           Token("0x0")});
+    return v;
+  }
+  constexpr static std::string_view Name = "sext.w";
+};
 
 } // namespace TypePseudo
 
