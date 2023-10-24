@@ -186,7 +186,7 @@ struct Sraiw : public Instr64<Sraiw, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
 namespace TypeIShift64 {
 
 enum class Funct3 { SLLI = 0b001, SRLI = 0b101, SRAI = 0b101 };
-enum class Funct6 { LEFT_SHIFT = 0b0000000, RIGHT_SHIFT = 0b0100000 };
+enum class Funct6 { LEFT_SHIFT = 0b000000, RIGHT_SHIFT = 0b010000 };
 
 /// A RISC-V unsigned immediate field with an input width of 6 bits.
 /// Used in IShift64-Type instructions.
