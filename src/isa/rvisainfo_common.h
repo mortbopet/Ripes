@@ -213,8 +213,8 @@ struct OpPartOpcode : public OpPart<opcode, BitRange<0, 6>> {};
 
 /// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1
 /// of the instruction
-template <unsigned quadrant>
-struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1>> {};
+template <unsigned quadrant, unsigned N = 32>
+struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1, N>> {};
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14
 /// of the instruction

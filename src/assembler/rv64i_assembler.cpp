@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <algorithm>
 
+#include "isa/rv_c_ext.h"
 #include "isa/rv_i_ext.h"
 #include "isa/rv_m_ext.h"
 
@@ -51,6 +52,10 @@ RV64I_Assembler::initInstructions(const ISAInfo<ISA::RV64I> *isa) const {
     switch (extension.unicode()->toLatin1()) {
     case 'M':
       RVISA::ExtM::enableExt(isa, instructions, pseudoInstructions);
+      break;
+    case 'C':
+      RVISA::ExtC::enableExt(isa, instructions, pseudoInstructions);
+      break;
     }
   }
 

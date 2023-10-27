@@ -1,6 +1,7 @@
 #include "rv32i_assembler.h"
 #include "gnudirectives.h"
 #include "ripessettings.h"
+#include "rv_c_ext.h"
 #include "rv_m_ext.h"
 #include "rvrelocations.h"
 
@@ -47,6 +48,10 @@ RV32I_Assembler::initInstructions(const ISAInfo<ISA::RV32I> *isa) const {
     switch (extension.unicode()->toLatin1()) {
     case 'M':
       RVISA::ExtM::enableExt(isa, instructions, pseudoInstructions);
+      break;
+    case 'C':
+      RVISA::ExtC::enableExt(isa, instructions, pseudoInstructions);
+      break;
     }
   }
 
