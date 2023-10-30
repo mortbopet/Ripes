@@ -21,7 +21,6 @@ struct RVC_Instruction : public Instruction<InstrImpl> {
 
 enum class Funct2Offset { OFFSET5 = 5, OFFSET10 = 10 };
 
-// TODO(raccog): Split this into 2 classes?
 /// All RISC-V Funct2 opcode parts are defined as a 2-bit field in bits 5-6 or
 /// 10-11 of the instruction
 template <unsigned funct2, Funct2Offset offset = Funct2Offset::OFFSET5>
@@ -64,8 +63,8 @@ template <typename InstrImpl, Funct2 funct2, Funct6 funct6 = Funct6::DEFAULT>
 struct Instr : public RVC_Instruction<InstrImpl> {
   struct Opcode
       : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT1, INSTR_BITS>,
-                          OpPartFunct2<static_cast<unsigned>(funct2)>,
-                          OpPartFunct6<funct6>> {};
+                         OpPartFunct2<static_cast<unsigned>(funct2)>,
+                         OpPartFunct6<funct6>> {};
   struct Fields : public FieldSet<RegRdRs1Prime, RegRs2Prime> {};
 };
 

@@ -25,9 +25,9 @@ using IsBitRange =
               MaybeBitRange::Stop() + MaybeBitRange::Width()),
              MaybeBitRange::Apply(MaybeBitRange::Mask()),
              MaybeBitRange::Decode(MaybeBitRange::Mask()),
-             std::declval<MaybeBitRange>().n() +
-                 std::declval<MaybeBitRange>().start() +
-                 std::declval<MaybeBitRange>().stop() +
+             std::declval<MaybeBitRange>().n +
+                 std::declval<MaybeBitRange>().start +
+                 std::declval<MaybeBitRange>().stop +
                  std::declval<MaybeBitRange>().width(),
              std::declval<MaybeBitRange>().apply(MaybeBitRange::Mask()),
              std::declval<MaybeBitRange>().decode(MaybeBitRange::Mask()));
@@ -38,20 +38,27 @@ constexpr bool VerifyBitRange =
 
 /** No-template, abstract class that describes a BitRange. */
 struct BitRangeBase {
-  virtual unsigned n() const = 0;
-  virtual unsigned start() const = 0;
-  virtual unsigned stop() const = 0;
-  virtual unsigned width() const = 0;
-  virtual Instr_T getMask() const = 0;
-  virtual Instr_T apply(Instr_T value) const = 0;
-  virtual Instr_T decode(Instr_T instruction) const = 0;
+  constexpr BitRangeBase(unsigned _start, unsigned _stop, unsigned _N)
+      : start(_start), stop(_stop), n(_N) {}
 
-  bool operator==(const BitRangeBase &other) const {
-    return start() == other.start() && stop() == other.stop();
+  const unsigned start, stop, n;
+
+  virtual unsigned width() const { return stop - start + 1; }
+  virtual Instr_T getMask() const { return vsrtl::generateBitmask(width()); }
+  virtual Instr_T apply(Instr_T value) const {
+    return (value & getMask()) << start;
   }
-  bool operator<(const BitRangeBase &other) const {
-    return (start() == other.start()) ? stop() < other.stop()
-                                      : start() < other.start();
+  virtual Instr_T decode(Instr_T instruction) const {
+    return (instruction >> start) & getMask();
+  }
+
+  virtual bool operator==(const BitRangeBase &other) const {
+    return n == other.n && start == other.start && stop == other.stop;
+  }
+  virtual bool operator<(const BitRangeBase &other) const {
+    if (n != other.n)
+      return (n < other.n);
+    return (start == other.start) ? stop < other.stop : start < other.start;
   }
 };
 
@@ -65,6 +72,8 @@ struct BitRange : public BitRangeBase {
   static_assert(isPowerOf2(_N), "Bitrange N must be power of 2");
   static_assert(_start <= _stop && _stop < _N, "invalid range");
 
+  constexpr BitRange() : BitRangeBase(_start, _stop, _N) {}
+
   constexpr static unsigned N() { return _N; }
   constexpr static unsigned Start() { return _start; }
   constexpr static unsigned Stop() { return _stop; }
@@ -77,9 +86,7 @@ struct BitRange : public BitRangeBase {
     return (instruction >> _start) & Mask();
   }
 
-  unsigned n() const override { return _N; }
-  unsigned start() const override { return _start; }
-  unsigned stop() const override { return _stop; }
+  /// Override dynamic functions with constexpr functions
   unsigned width() const override { return Width(); }
   Instr_T getMask() const override { return Mask(); }
   Instr_T apply(Instr_T value) const override { return Apply(value); }
@@ -92,10 +99,10 @@ struct BitRange : public BitRangeBase {
  * @param BitRanges: A set of BitRange types. All BitRanges must not overlap.
  */
 template <typename... BitRanges>
-struct BitRangesImpl {
+struct BitRangeSet {
   /// Combine this type with a set of more BitRanges
   template <typename... OtherBitRanges>
-  using CombinedBitRanges = BitRangesImpl<BitRanges..., OtherBitRanges...>;
+  using CombinedBitRanges = BitRangeSet<BitRanges..., OtherBitRanges...>;
 
   /// Combine this type with another BitRangesImpl
   template <typename OtherBitRangeImpl>
@@ -105,6 +112,7 @@ struct BitRangesImpl {
   /// Returns the combined width of all BitRanges
   constexpr static unsigned Width() { return (BitRanges::Width() + ... + 0); }
 
+  // TODO(raccog): Change this to a vector member variable
   /// Adds all BitRanges to a vector.
   /// This is useful for querying BitRanges at runtime
   static void
@@ -140,56 +148,29 @@ private:
   constexpr static Verify<BitRanges...> VerifyAll{};
 };
 
-struct OpPartBase;
-
-// TODO(raccog): Try again to make this the base class in place of OpPartBase
 /** @brief No-template, non-abstract class that describes an OpPart.
  * This is useful for the assembly matcher so that OpParts can be used as a
  * key in a std::map.
  */
-struct OpPartMatcher {
-  OpPartMatcher(unsigned _value, unsigned _start, unsigned _stop, unsigned _N,
-                const OpPartBase *_opPart)
-      : value(_value), start(_start), stop(_stop), N(_N), opPart(_opPart) {}
-
-  unsigned value;
-  unsigned start, stop, N;
-  /// Contains a pointer to the original OpPart
-  const OpPartBase *opPart;
-
-  // TODO(raccog): Add `N` to these expressions. This may be causing compressed
-  // instruction assembler problems
-  bool operator==(const OpPartMatcher &other) const {
-    return value == other.value && start == other.start && stop == other.stop;
-  }
-  bool operator<(const OpPartMatcher &other) const {
-    if (start == other.start && stop == other.stop)
-      return value < other.value;
-    return start < other.start;
-  }
-};
-
-/** @brief No-template, abstract class that describes an OpPart. */
 struct OpPartBase {
-  virtual unsigned value() const = 0;
-  virtual const BitRangeBase &range() const = 0;
-  /// Returns a struct that can be used in the assembly matcher
-  OpPartMatcher getMatcher() const {
-    return OpPartMatcher(value(), range().start(), range().stop(), range().n(),
-                         this);
+  constexpr OpPartBase(unsigned _value, BitRangeBase _range)
+      : value(_value), range(_range) {}
+
+  const unsigned value;
+  const BitRangeBase range;
+
+  bool operator==(const OpPartBase &other) const {
+    return value == other.value && range == other.range;
+  }
+  bool operator<(const OpPartBase &other) const {
+    if (range == other.range)
+      return value < other.value;
+    return range < other.range;
   }
 
   /// Returns true if this OpPart is contained in the instruction.
   bool matches(Instr_T instruction) const {
-    return range().decode(instruction) == value();
-  }
-
-  // TODO(raccog): Add `N` to these expressions. This may be causing compressed
-  // instruction assembler problems
-  bool operator<(const OpPartBase &other) const {
-    if (range() == other.range())
-      return value() < other.value();
-    return range() < other.range();
+    return range.decode(instruction) == value;
   }
 };
 
@@ -208,8 +189,7 @@ public:
   static_assert(VerifyBitRange<BitRange>,
                 "OpPart can only contain a BitRange type");
 
-  unsigned value() const override { return _value; }
-  const BitRangeBase &range() const override { return *m_range.get(); }
+  constexpr OpPart() : OpPartBase(_value, BitRange()) {}
 
   constexpr static unsigned Value() { return _value; }
 
@@ -221,9 +201,6 @@ public:
   constexpr static bool Matches(Instr_T instruction) {
     return BitRange::Decode(instruction) == _value;
   }
-
-private:
-  std::unique_ptr<BitRange> m_range = std::make_unique<BitRange>();
 };
 
 /** @brief An OpPart for declaring BitRanges of unused zeros */
@@ -241,11 +218,21 @@ struct FieldLinkRequest {
   QString relocation = QString();
 };
 
-// TODO(raccog): Construct in function instead of being declared as a static
-// array
-template <unsigned numParts, typename... OpParts>
-static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
-    (std::make_unique<OpParts>())...};
+template <typename... AllOpParts>
+struct IndexedOpPart {
+  static std::unique_ptr<OpPartBase> GetOpPart(unsigned) {
+    assert(false);
+    return nullptr;
+  }
+};
+template <typename OpPart, typename... NextOpParts>
+struct IndexedOpPart<OpPart, NextOpParts...> {
+  static std::unique_ptr<OpPartBase> GetOpPart(unsigned partIndex) {
+    if (partIndex == 0)
+      return std::unique_ptr<OpPartBase>(std::make_unique<OpPart>());
+    return IndexedOpPart<NextOpParts...>::GetOpPart(partIndex - 1);
+  }
+};
 
 // TODO(raccog): Assert that OpParts are of OpPart type
 /** @brief A set of OpParts that identifies an instruction.
@@ -254,8 +241,11 @@ static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
  */
 template <typename... OpParts>
 class OpcodeSet {
+
 public:
-  using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
+  using BitRanges = BitRangeSet<typename OpParts::BitRange...>;
+
+  static_assert(sizeof...(OpParts) > 0, "No opcode provided");
 
   /// Applies each OpPart's encoding to the instruction.
   constexpr static void Apply(Instr_T &instruction, FieldLinkRequest &) {
@@ -265,11 +255,12 @@ public:
   constexpr static unsigned NumParts() { return sizeof...(OpParts); }
   /// Returns a pointer to a dynamically accessible OpPart. (needed for the
   /// assembly matcher)
-  constexpr static const OpPartBase *GetOpPart(unsigned partIndex) {
+  static std::unique_ptr<OpPartBase> GetOpPart(unsigned partIndex) {
     assert(partIndex < NumParts());
 
-    return OP_PARTS<NumParts(), OpParts...>[partIndex].get();
+    return IndexedOpPart<OpParts...>::GetOpPart(partIndex);
   }
+  // TODO(raccog): Change this to a vector member variable
   /// Adds all BitRanges to a vector.
   /// This is useful for querying BitRanges at runtime
   constexpr static void
@@ -302,6 +293,8 @@ template <unsigned _tokenIndex, typename _BitRanges>
 struct Field {
   using BitRanges = _BitRanges;
   constexpr static unsigned TokenIndex() { return _tokenIndex; }
+
+  constexpr static BitRanges Ranges{};
 };
 
 /** @brief A set of fields for an instruction
@@ -314,7 +307,7 @@ private:
   /// Structs used to combine BitFields and assign token indices
   template <unsigned, template <unsigned> typename... AllFields>
   struct IndexedFieldSet {
-    using BitRanges = BitRangesImpl<>;
+    using BitRanges = BitRangeSet<>;
     static Result<> Apply(const TokenizedSrcLine &, Instr_T &,
                           FieldLinkRequest &) {
       return std::monostate();
@@ -386,6 +379,7 @@ public:
   /// Returns the number of Fields in this set.
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
 
+  // TODO(raccog): Change this to a vector member variable
   /// Adds all BitRanges to a vector.
   /// This is useful for querying BitRanges at runtime
   constexpr static void
@@ -410,7 +404,7 @@ public:
  */
 template <typename RegImpl, unsigned tokenIndex, typename BitRange,
           typename RegInfo>
-struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
+struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
   static_assert(VerifyBitRange<BitRange>, "Invalid BitRange type");
 
   Reg() : regsd(RegImpl::Name.data()) {}
@@ -457,7 +451,7 @@ struct ImmPartBase {
   using BitRange = _BitRange;
   // Declaration of BitRanges allows ImmPart to be compatible with
   // ImmPartsImpl
-  using BitRanges = BitRangesImpl<BitRange>;
+  using BitRanges = BitRangeSet<BitRange>;
 
   static_assert(BitRange::Width() + _offset < BitRange::N(),
                 "ImmPart does not fit in BitRange size. Check ImmPart offset"
@@ -488,7 +482,7 @@ using ImmPart = ImmPartBase<offset, BitRange<start, stop, N>>;
  */
 template <typename... ImmParts>
 struct ImmPartsImpl {
-  using BitRanges = BitRangesImpl<typename ImmParts::BitRange...>;
+  using BitRanges = BitRangeSet<typename ImmParts::BitRange...>;
 
   /// Applies each immediate part's encoding to the instruction.
   constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
@@ -713,7 +707,7 @@ public:
               const ReverseSymbolMap &symbolMap) const = 0;
   /// Returns a pointer to a dynamically accessible OpPart. (needed for the
   /// assembly matcher)
-  virtual const OpPartBase *getOpPart(unsigned partIndex) const = 0;
+  virtual std::unique_ptr<OpPartBase> getOpPart(unsigned partIndex) const = 0;
   /// Returns the name of this instruction.
   virtual const QString &name() const = 0;
   /// Returns the number of OpParts in this instruction.
@@ -800,7 +794,7 @@ public:
     }
     return line;
   }
-  const OpPartBase *getOpPart(unsigned partIndex) const override {
+  std::unique_ptr<OpPartBase> getOpPart(unsigned partIndex) const override {
     return InstrImpl::Opcode::GetOpPart(partIndex);
   }
   const QString &name() const override { return m_name; }
