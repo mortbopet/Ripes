@@ -57,7 +57,6 @@ template <typename... Instructions>
 constexpr inline static void
 enablePseudoInstructions(PseudoInstrVec &instructions) {
   // TODO(raccog): Ensure no duplicate pseudo-instruction definitions
-  // TODO(raccog): Verify pseudoinstructions
   // TODO(raccog): Verify instructions generated from pseudoinstructions
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
 }

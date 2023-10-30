@@ -48,8 +48,6 @@ template <Funct6 funct6>
 struct OpPartFunct6 : public OpPart<static_cast<unsigned>(funct6),
                                     BitRange<10, 15, INSTR_BITS>> {};
 
-// TODO(raccog): Maybe make a base class for RVC registers to add extra
-// verifications to ensure only the available registers are used
 /// The RV-C Rd'/Rs1' field contains a source or destination
 /// register index.
 /// It is defined as a 3-bit field in bits 7-9 of the instruction
