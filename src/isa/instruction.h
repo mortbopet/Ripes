@@ -51,7 +51,6 @@ struct BitRangeBase {
   }
 };
 
-// TODO: Remove N if unnecessary
 /** @brief A range of bits determined at compile-time
  * NOTE: start/stop values for bitranges are inclusive..
  * @param _start: Starting index of the range
@@ -158,7 +157,6 @@ public:
 
 struct OpPartBase;
 
-// TODO: Could this be the base class in place of virtual functions?
 /** @brief No-template, non-abstract class that describes an OpPart.
  * This is useful for the assembly matcher so that OpParts can be used as a
  * key in a std::map.
@@ -254,12 +252,13 @@ struct FieldLinkRequest {
   QString relocation = QString();
 };
 
-// TODO: Construct in function instead of being declared as a static array
+// TODO(raccog): Construct in function instead of being declared as a static
+// array
 template <unsigned numParts, typename... OpParts>
 static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
     (std::make_unique<OpParts>())...};
 
-// TODO: Assert that OpParts are of OpPart type
+// TODO(raccog): Assert that OpParts are of OpPart type
 /** @brief A set of OpParts that identifies an instruction.
  * @param OpParts: A set of OpPart types. All OpParts' BitRanges must not
  * overlap.
@@ -302,7 +301,7 @@ struct InstrRes {
 
 using AssembleRes = Result<InstrRes>;
 
-// TODO: Figure out how to assign token indices automatically
+// TODO(raccog): Figure out how to assign token indices automatically
 /** @brief An instruction field defined at compile-time.
  * @param _tokenIndex: The index of this field in an assembly instruction
  * (starting at 0).
@@ -378,8 +377,7 @@ public:
   }
 
 private:
-  // TODO: Verify that:
-  // * Registers are not duplicated?? (might be difficult to verify)
+  // TODO(raccog): Verify that registers are not duplicated
   /// Verify that each field has sequential indices.
   template <typename...>
   struct Verify {
@@ -535,8 +533,8 @@ struct ImmPartsImpl {
   }
 
 private:
-  // TODO: This is probably not necessary because all ranges are checked for
-  // overlapping at the end
+  // TODO(raccog): This is probably not necessary because all ranges are checked
+  // for overlapping at the end (see InstrVerify)
   /// Verify that each immediate does not overlap.
   template <typename FirstPart, typename... OtherParts>
   struct Verify {};
@@ -791,9 +789,9 @@ protected:
  */
 template <typename InstrImpl>
 struct InstrVerify {
-  // TODO: Assert instruction is byte aligned. This requires compile-time
-  // knowledge of the register width, which currently does not exist.
-  // See enableInstructions() for the static assertion that verifies
+  // TODO(raccog): Assert instruction is byte aligned. This requires
+  // compile-time knowledge of the register width, which currently does not
+  // exist. See enableInstructions() for the static assertion that verifies
   // instructions with this struct
   using BitRanges =
       typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
@@ -806,7 +804,7 @@ struct InstrVerify {
       (BitRanges::IsVerified && BitRanges::Width() == InstrImpl::InstrBits());
 };
 
-// TODO: Remove Impl from Opcode::Impl and Fields::Impl?
+// TODO(raccog): Remove Impl from Opcode::Impl and Fields::Impl?
 /** @brief An ISA instruction defined at compile-time.
  * @param InstrImpl: The type defining a single instruction. Must define the
  * following:
@@ -855,7 +853,7 @@ public:
     return InstrImpl::Opcode::Impl::NumParts();
   }
 
-  // TODO: Remove this once all verifications are done at compile-time
+  // TODO(raccog): Remove this once all verifications are done at compile-time
   /// Verify that the bitranges specified for this operation:
   /// 1. do not overlap
   /// 2. fully defines the instruction (no bits are unaccounted for)
@@ -913,7 +911,8 @@ template <typename... Instructions>
 constexpr inline static void enableInstructions(InstrVec &instructions) {
   static_assert((InstrVerify<Instructions>::IsVerified && ...),
                 "Could not verify instruction");
-  // TODO: Ensure no duplicate instruction definitions
+  // TODO(raccog): Ensure no duplicate instruction definitions (will be
+  // difficult, since enableInstructions can be called multiple times)
   return _enableInstructions<InstrVec, Instructions...>(instructions);
 }
 

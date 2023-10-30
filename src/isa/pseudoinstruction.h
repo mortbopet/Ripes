@@ -56,9 +56,9 @@ using PseudoInstrMap =
 template <typename... Instructions>
 constexpr inline static void
 enablePseudoInstructions(PseudoInstrVec &instructions) {
-  // TODO: Ensure no duplicate pseudo-instruction definitions
-  // TODO: Verify pseudoinstructions
-  // TODO: Verify instructions generated from pseudoinstructions
+  // TODO(raccog): Ensure no duplicate pseudo-instruction definitions
+  // TODO(raccog): Verify pseudoinstructions
+  // TODO(raccog): Verify instructions generated from pseudoinstructions
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);
 }
 
