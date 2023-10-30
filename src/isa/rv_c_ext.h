@@ -71,9 +71,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVQuadrant, RVFunct2, RVFunct6>;
   };
   struct CATypeFields {
-    using Reg0 = RegRdRs1Prime<0>;
-    using Reg1 = RegRs2Prime<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<RegRdRs1Prime, RegRs2Prime>;
   };
 
   using Opcode = CATypeOpcode;

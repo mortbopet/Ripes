@@ -263,9 +263,9 @@ struct PseudoReg : public Ripes::PseudoReg<tokenIndex, RV_GPRInfo> {};
 template <typename PseudoInstrImpl>
 struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
   struct PseudoLoadFields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    //    using Reg = PseudoReg<0>;
+    //    using Imm = PseudoImm<1>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
   using Fields = PseudoLoadFields;
 
@@ -287,10 +287,10 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
 template <typename PseudoInstrImpl>
 struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
   struct PseudoStoreFields {
-    using Reg0 = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Reg1 = PseudoReg<2>;
-    using Impl = FieldsImpl<Reg0, Imm, Reg1>;
+    //    using Reg0 = PseudoReg<0>;
+    //    using Imm = PseudoImm<1>;
+    //    using Reg1 = PseudoReg<2>;
+    using Impl = FieldSet<PseudoReg, PseudoImm, PseudoReg>;
   };
   using Fields = PseudoStoreFields;
 

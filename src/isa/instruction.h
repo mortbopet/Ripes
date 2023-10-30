@@ -307,54 +307,79 @@ struct Field {
  * @param Fields: The set of Field types. Field BitRanges must not overlap.
  * Fields must have sequential indices, starting at 0.
  */
-template <typename... Fields>
-class FieldsImpl {
+template <template <unsigned> typename... Fields>
+class FieldSet {
 private:
-  /// Structs for combining BitRanges from each field
-  template <typename... OtherFields>
-  struct FieldRanges {
+  template <unsigned, template <unsigned> typename... AllFields>
+  struct IndexedFieldSet {
     using BitRanges = BitRangesImpl<>;
+    static Result<> Apply(const TokenizedSrcLine &, Instr_T &,
+                          FieldLinkRequest &) {
+      return std::monostate();
+    }
+    constexpr static bool Decode(const Instr_T, const Reg_T,
+                                 const ReverseSymbolMap &, LineTokens &) {
+      return true;
+    }
   };
-  template <typename FirstField, typename SecondField, typename... OtherFields>
-  struct FieldRanges<FirstField, SecondField, OtherFields...> {
-    // Combined BitRanges from all fields
-    using BitRanges = typename FirstField::BitRanges::template CombineWith<
-        typename SecondField::BitRanges>::
-        template CombineWith<typename FieldRanges<OtherFields...>::BitRanges>;
+  template <unsigned TokenIndex, template <unsigned> typename FirstField,
+            template <unsigned> typename... NextFields>
+  struct IndexedFieldSet<TokenIndex, FirstField, NextFields...> {
+    using IndexedField = FirstField<TokenIndex>;
+    using NextIndexedFieldSet = IndexedFieldSet<TokenIndex + 1, NextFields...>;
+    using BitRanges = typename IndexedField::BitRanges::template CombineWith<
+        typename NextIndexedFieldSet::BitRanges>;
+
+    static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
+                          FieldLinkRequest &linksWithSymbol) {
+      if (auto err = IndexedField::Apply(tokens, instruction, linksWithSymbol);
+          err.isError()) {
+        return err;
+      }
+      return NextIndexedFieldSet::Apply(tokens, instruction, linksWithSymbol);
+    }
+    constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
+                                 const ReverseSymbolMap &symbolMap,
+                                 LineTokens &line) {
+      if (!IndexedField::Decode(instruction, address, symbolMap, line)) {
+        return false;
+      }
+      return NextIndexedFieldSet::Decode(instruction, address, symbolMap, line);
+    }
   };
-  template <typename FirstField, typename SecondField>
-  struct FieldRanges<FirstField, SecondField> {
-    // Combined BitRanges from two fields
-    using BitRanges = typename FirstField::BitRanges::template CombineWith<
-        typename SecondField::BitRanges>;
+  template <unsigned TokenIndex, template <unsigned> typename LastField>
+  struct IndexedFieldSet<TokenIndex, LastField> {
+    using IndexedField = LastField<TokenIndex>;
+    using BitRanges = typename IndexedField::BitRanges;
+
+    static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
+                          FieldLinkRequest &linksWithSymbol) {
+      return IndexedField::Apply(tokens, instruction, linksWithSymbol);
+    }
+    constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
+                                 const ReverseSymbolMap &symbolMap,
+                                 LineTokens &line) {
+      return IndexedField::Decode(instruction, address, symbolMap, line);
+    }
   };
-  template <typename FirstField>
-  struct FieldRanges<FirstField> {
-    using BitRanges = typename FirstField::BitRanges;
-  };
+
+  using IndexedFields = IndexedFieldSet<0, Fields...>;
 
 public:
   /// Combined BitRanges from each field in the set
-  using BitRanges = typename FieldRanges<Fields...>::BitRanges;
+  using BitRanges = typename IndexedFields::BitRanges;
 
   /// Applies each Field's encoding to the instruction.
   static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
-    Result<> res = std::monostate();
-    (
-        [&] {
-          if (auto err = Fields::Apply(tokens, instruction, linksWithSymbol);
-              err.isError() && !res.isError()) {
-            res = std::get<Error>(err);
-          }
-        }(),
-        ...);
-    return res;
+    return IndexedFields::Apply(tokens, instruction, linksWithSymbol);
   }
   /// Decodes each field into an assembly instruction line.
   constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
-                               LineTokens &line);
+                               LineTokens &line) {
+    return IndexedFields::Decode(instruction, address, symbolMap, line);
+  }
 
   /// Returns the number of Fields in this set.
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
@@ -365,47 +390,8 @@ public:
     BitRanges::RetrieveBitRanges(bitRanges);
   }
 
-private:
   // TODO(raccog): Verify that registers are not duplicated
-  /// Verify that all fields has sequential indices.
-  template <typename...>
-  struct Verify {};
-  template <typename FirstField, typename SecondField, typename... OtherFields>
-  struct Verify<FirstField, SecondField, OtherFields...> {
-    /// Assert that fields from left to right have sequential indices
-    static_assert((FirstField::TokenIndex() + 1 == SecondField::TokenIndex()),
-                  "Fields do not have sequential indices");
-
-    /// Verify the other fields
-    constexpr static Verify<SecondField, OtherFields...> VerifyRest{};
-  };
-  /// Verify that the first field has an index of 0.
-  template <typename...>
-  struct VerifyFirstIndex {};
-  template <typename FirstField, typename... OtherFields>
-  struct VerifyFirstIndex<FirstField, OtherFields...> {
-    static_assert((FirstField::TokenIndex() == 0),
-                  "First field does not have an index of 0");
-  };
-
-  constexpr static VerifyFirstIndex<Fields...> Verify0{};
-  constexpr static Verify<Fields...> Verify1{};
 };
-
-template <typename... Fields>
-constexpr bool FieldsImpl<Fields...>::Decode(const Instr_T instruction,
-                                             const Reg_T address,
-                                             const ReverseSymbolMap &symbolMap,
-                                             LineTokens &line) {
-  bool failure = false;
-  ((failure |= !Fields::Decode(instruction, address, symbolMap, line)), ...);
-  return !failure;
-}
-template <>
-constexpr bool FieldsImpl<>::Decode(const Instr_T, const Reg_T,
-                                    const ReverseSymbolMap &, LineTokens &) {
-  return true;
-}
 
 /**
  * @brief Reg

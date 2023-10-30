@@ -51,10 +51,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
   struct ITypeFields {
-    using Rd = RegRd<0>;
-    using Rs1 = RegRs1<1>;
-    using Imm = ImmCommon12<2>;
-    using Impl = FieldsImpl<Rd, Rs1, Imm>;
+    using Impl = FieldSet<RegRd, RegRs1, ImmCommon12>;
   };
 
   using Opcode = ITypeOpcode;
@@ -97,10 +94,7 @@ struct Jalr : public RV_Instruction<Jalr> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
   struct JalrTypeFields {
-    using Rd = RegRd<0>;
-    using Rs1 = RegRs1<1>;
-    using Imm = ImmCommon12<2>;
-    using Impl = FieldsImpl<Rd, Rs1, Imm>;
+    using Impl = FieldSet<RegRd, RegRs1, ImmCommon12>;
   };
 
   using Opcode = JalrTypeOpcode;
@@ -128,9 +122,12 @@ enum class Funct7 : unsigned {
 ///
 /// It is defined as:
 ///  - Imm[4:0] = Inst[24:20]
-constexpr static unsigned ImmTokenIndex = 2;
+constexpr static unsigned ValidTokenIndex = 2;
+template <unsigned TokenIndex>
 struct ImmIShift32
-    : public Imm<ImmTokenIndex, 5, Repr::Unsigned, ImmPart<0, 20, 24>> {};
+    : public Imm<TokenIndex, 5, Repr::Unsigned, ImmPart<0, 20, 24>> {
+  static_assert(TokenIndex == ValidTokenIndex, "Invalid token index");
+};
 
 /// An IShift-Type RISC-V instruction
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3, Funct7 funct7>
@@ -142,10 +139,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3, RVFunct7>;
   };
   struct IShiftTypeFields {
-    using Rd = RegRd<0>;
-    using Rs1 = RegRs1<1>;
-    using Imm = ImmIShift32;
-    using Impl = FieldsImpl<Rd, Rs1, Imm>;
+    using Impl = FieldSet<RegRd, RegRs1, ImmIShift32>;
   };
 
   using Opcode = IShiftTypeOpcode;
@@ -193,9 +187,12 @@ enum class Funct6 { LEFT_SHIFT = 0b000000, RIGHT_SHIFT = 0b010000 };
 ///
 /// It is defined as:
 ///  - Imm[5:0] = Inst[25:20]
-constexpr static unsigned ImmTokenIndex = 2;
+constexpr static unsigned ValidTokenIndex = 2;
+template <unsigned TokenIndex>
 struct ImmIShift64
-    : public Imm<ImmTokenIndex, 6, Repr::Unsigned, ImmPart<0, 20, 25>> {};
+    : public Imm<TokenIndex, 6, Repr::Unsigned, ImmPart<0, 20, 25>> {
+  static_assert(TokenIndex == ValidTokenIndex, "Invalid token index");
+};
 
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3,
           Funct6 funct6 = Funct6::LEFT_SHIFT>
@@ -207,10 +204,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3, RVFunct6>;
   };
   struct IShiftTypeFields {
-    using Rd = RegRd<0>;
-    using Rs1 = RegRs1<1>;
-    using Imm = ImmIShift64;
-    using Impl = FieldsImpl<Rd, Rs1, Imm>;
+    using Impl = FieldSet<RegRd, RegRs1, ImmIShift64>;
   };
 
   using Opcode = IShiftTypeOpcode;
@@ -257,10 +251,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
   struct LTypeFields {
-    using Rd = RegRd<0>;
-    using Imm = ImmCommon12<1>;
-    using Rs1 = RegRs1<2>;
-    using Impl = FieldsImpl<Rd, Imm, Rs1>;
+    using Impl = FieldSet<RegRd, ImmCommon12, RegRs1>;
   };
 
   using Opcode = LTypeOpcode;
@@ -319,7 +310,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, Rd, RVFunct3, Rs1, RVFunct12>;
   };
   struct SystemTypeFields {
-    using Impl = FieldsImpl<>;
+    using Impl = FieldSet<>;
   };
 
   using Opcode = SystemTypeOpcode;
@@ -340,8 +331,11 @@ namespace TypeU {
 /// It is defined as:
 ///  - Imm[31:12] = Inst[31:12]
 ///  - Imm[11:0]  = 0
-template <SymbolType symbolType>
-struct ImmU : public ImmSym<1, 32, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
+constexpr static unsigned ValidTokenIndex = 1;
+template <unsigned index, SymbolType symbolType>
+struct ImmU
+    : public ImmSym<index, 32, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
+  static_assert(index == ValidTokenIndex, "Invalid token index");
 };
 
 /// A U-Type RISC-V instruction
@@ -353,9 +347,9 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode>;
   };
   struct UTypeFields {
-    using Rd = RegRd<0>;
-    using Imm = ImmU<symbolType>;
-    using Impl = FieldsImpl<Rd, Imm>;
+    template <unsigned index>
+    using Imm = ImmU<index, symbolType>;
+    using Impl = FieldSet<RegRd, Imm>;
   };
 
   using Opcode = UTypeOpcode;
@@ -385,11 +379,15 @@ namespace TypeJ {
 ///  - Imm[10:5]  = Inst[30:25]
 ///  - Imm[4:1]   = Inst[24:21]
 ///  - Imm[0]     = 0
+constexpr static unsigned ValidTokenIndex = 1;
+template <unsigned index>
 struct ImmJ
-    : public ImmSym<1, 21, Repr::Signed,
+    : public ImmSym<index, 21, Repr::Signed,
                     ImmPartsImpl<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
                                  ImmPart<11, 20, 20>, ImmPart<1, 21, 30>>,
-                    SymbolType::Relative> {};
+                    SymbolType::Relative> {
+  static_assert(index == ValidTokenIndex, "Invalid token index");
+};
 
 struct Jal : public RV_Instruction<Jal> {
   struct JTypeOpcode {
@@ -397,9 +395,7 @@ struct Jal : public RV_Instruction<Jal> {
     using Impl = OpcodeImpl<RVOpcode>;
   };
   struct JTypeFields {
-    using Rd = RegRd<0>;
-    using Imm = ImmJ;
-    using Impl = FieldsImpl<Rd, Imm>;
+    using Impl = FieldSet<RegRd, ImmJ>;
   };
 
   using Opcode = JTypeOpcode;
@@ -421,8 +417,11 @@ enum class Funct3 { SB = 0b000, SH = 0b001, SW = 0b010, SD = 0b011 };
 ///  - Imm[31:11] = Inst[31]
 ///  - Imm[10:5]  = Inst[30:25]
 ///  - Imm[4:0]   = Inst[11:7]
-struct ImmS : public Imm<1, 12, Repr::Signed,
+constexpr static unsigned ValidTokenIndex = 1;
+template <unsigned index>
+struct ImmS : public Imm<index, 12, Repr::Signed,
                          ImmPartsImpl<ImmPart<5, 25, 31>, ImmPart<0, 7, 11>>> {
+  static_assert(index == ValidTokenIndex, "Invalid token index");
 };
 
 template <typename InstrImpl, Funct3 funct3>
@@ -434,10 +433,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
   struct STypeFields {
-    using Rs2 = RegRs2<0>;
-    using Imm = ImmS;
-    using Rs1 = RegRs1<2>;
-    using Impl = FieldsImpl<Rs2, Imm, Rs1>;
+    using Impl = FieldSet<RegRs2, ImmS, RegRs1>;
   };
 
   using Opcode = STypeOpcode;
@@ -492,10 +488,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3, RVFunct7>;
   };
   struct RTypeFields {
-    using Rd = RegRd<0>;
-    using Rs1 = RegRs1<1>;
-    using Rs2 = RegRs2<2>;
-    using Impl = FieldsImpl<Rd, Rs1, Rs2>;
+    using Impl = FieldSet<RegRd, RegRs1, RegRs2>;
   };
 
   using Opcode = RTypeOpcode;
@@ -589,10 +582,14 @@ enum class Funct3 {
 ///  - Imm[10:5]  = Inst[30:25]
 ///  - Imm[4:1]   = Inst[11:8]
 ///  - Imm[0]     = 0
-struct ImmB : public ImmSym<2, 13, Repr::Signed,
+constexpr static unsigned ValidTokenIndex = 2;
+template <unsigned index>
+struct ImmB : public ImmSym<index, 13, Repr::Signed,
                             ImmPartsImpl<ImmPart<12, 31, 31>, ImmPart<11, 7, 7>,
                                          ImmPart<5, 25, 30>, ImmPart<1, 8, 11>>,
-                            SymbolType::Relative> {};
+                            SymbolType::Relative> {
+  static_assert(index == ValidTokenIndex, "Invalid token index");
+};
 
 template <typename InstrImpl, Funct3 funct3>
 struct Instr : public RV_Instruction<InstrImpl> {
@@ -603,10 +600,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
     using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
   };
   struct BTypeFields {
-    using Rs1 = RegRs1<0>;
-    using Rs2 = RegRs2<1>;
-    using Imm = ImmB;
-    using Impl = FieldsImpl<Rs1, Rs2, ImmB>;
+    using Impl = FieldSet<RegRs1, RegRs2, ImmB>;
   };
 
   using Opcode = BTypeOpcode;
@@ -669,9 +663,7 @@ struct Sd : public PseudoInstrStore<Sd> {
 
 struct La : public PseudoInstruction<La> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>> expander(const PseudoInstruction<La> &,
@@ -691,8 +683,7 @@ struct La : public PseudoInstruction<La> {
 
 struct Call : public PseudoInstruction<Call> {
   struct Fields {
-    using Imm = PseudoImm<0>;
-    using Impl = FieldsImpl<Imm>;
+    using Impl = FieldSet<PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -712,8 +703,7 @@ struct Call : public PseudoInstruction<Call> {
 
 struct Tail : public PseudoInstruction<Tail> {
   struct Fields {
-    using Imm = PseudoImm<0>;
-    using Impl = FieldsImpl<Imm>;
+    using Impl = FieldSet<PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -733,8 +723,7 @@ struct Tail : public PseudoInstruction<Tail> {
 
 struct J : public PseudoInstruction<J> {
   struct Fields {
-    using Imm = PseudoImm<0>;
-    using Impl = FieldsImpl<Imm>;
+    using Impl = FieldSet<PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>> expander(const PseudoInstruction<J> &,
@@ -750,8 +739,7 @@ struct J : public PseudoInstruction<J> {
 
 struct Jr : public PseudoInstruction<Jr> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Impl = FieldsImpl<Reg>;
+    using Impl = FieldSet<PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>> expander(const PseudoInstruction<Jr> &,
@@ -767,8 +755,7 @@ struct Jr : public PseudoInstruction<Jr> {
 
 struct Jalr : public PseudoInstruction<Jalr> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Impl = FieldsImpl<Reg>;
+    using Impl = FieldSet<PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -784,7 +771,7 @@ struct Jalr : public PseudoInstruction<Jalr> {
 
 struct Ret : public PseudoInstruction<Ret> {
   struct Fields {
-    using Impl = FieldsImpl<>;
+    using Impl = FieldSet<>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -800,8 +787,7 @@ struct Ret : public PseudoInstruction<Ret> {
 
 struct Jal : public PseudoInstruction<Jal> {
   struct Fields {
-    using Imm = PseudoImm<0>;
-    using Impl = FieldsImpl<Imm>;
+    using Impl = FieldSet<PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -817,7 +803,7 @@ struct Jal : public PseudoInstruction<Jal> {
 
 struct Nop : public PseudoInstruction<Nop> {
   struct Fields {
-    using Impl = FieldsImpl<>;
+    using Impl = FieldSet<>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -833,9 +819,7 @@ struct Nop : public PseudoInstruction<Nop> {
 
 struct Mv : public PseudoInstruction<Mv> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>> expander(const PseudoInstruction<Mv> &,
@@ -851,9 +835,7 @@ struct Mv : public PseudoInstruction<Mv> {
 
 struct Not : public PseudoInstruction<Not> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -869,9 +851,7 @@ struct Not : public PseudoInstruction<Not> {
 
 struct Neg : public PseudoInstruction<Neg> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -887,9 +867,7 @@ struct Neg : public PseudoInstruction<Neg> {
 
 struct Negw : public PseudoInstruction<Negw> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -905,9 +883,7 @@ struct Negw : public PseudoInstruction<Negw> {
 
 struct Seqz : public PseudoInstruction<Seqz> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -923,9 +899,7 @@ struct Seqz : public PseudoInstruction<Seqz> {
 
 struct Snez : public PseudoInstruction<Snez> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -941,9 +915,7 @@ struct Snez : public PseudoInstruction<Snez> {
 
 struct Sltz : public PseudoInstruction<Sltz> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -959,9 +931,7 @@ struct Sltz : public PseudoInstruction<Sltz> {
 
 struct Sgtz : public PseudoInstruction<Sgtz> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -977,9 +947,7 @@ struct Sgtz : public PseudoInstruction<Sgtz> {
 
 struct Beqz : public PseudoInstruction<Beqz> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -995,9 +963,7 @@ struct Beqz : public PseudoInstruction<Beqz> {
 
 struct Bnez : public PseudoInstruction<Bnez> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1013,9 +979,7 @@ struct Bnez : public PseudoInstruction<Bnez> {
 
 struct Blez : public PseudoInstruction<Blez> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1031,9 +995,7 @@ struct Blez : public PseudoInstruction<Blez> {
 
 struct Bgez : public PseudoInstruction<Bgez> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1049,9 +1011,7 @@ struct Bgez : public PseudoInstruction<Bgez> {
 
 struct Bltz : public PseudoInstruction<Bltz> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1067,9 +1027,7 @@ struct Bltz : public PseudoInstruction<Bltz> {
 
 struct Bgtz : public PseudoInstruction<Bgtz> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1085,10 +1043,7 @@ struct Bgtz : public PseudoInstruction<Bgtz> {
 
 struct Bgt : public PseudoInstruction<Bgt> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Imm = PseudoImm<2>;
-    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1104,10 +1059,7 @@ struct Bgt : public PseudoInstruction<Bgt> {
 
 struct Ble : public PseudoInstruction<Ble> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Imm = PseudoImm<2>;
-    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1123,10 +1075,7 @@ struct Ble : public PseudoInstruction<Ble> {
 
 struct Bgtu : public PseudoInstruction<Bgtu> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Imm = PseudoImm<2>;
-    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1142,10 +1091,7 @@ struct Bgtu : public PseudoInstruction<Bgtu> {
 
 struct Bleu : public PseudoInstruction<Bleu> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Imm = PseudoImm<2>;
-    using Impl = FieldsImpl<Reg0, Reg1, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1162,9 +1108,7 @@ struct Bleu : public PseudoInstruction<Bleu> {
 template <bool isRV64>
 struct Li : public PseudoInstruction<Li<isRV64>> {
   struct Fields {
-    using Reg = PseudoReg<0>;
-    using Imm = PseudoImm<1>;
-    using Impl = FieldsImpl<Reg, Imm>;
+    using Impl = FieldSet<PseudoReg, PseudoImm>;
   };
 
   static Result<std::vector<LineTokens>>
@@ -1257,9 +1201,7 @@ using Li64 = Li<true>;
 
 struct SextW : public PseudoInstruction<SextW> {
   struct Fields {
-    using Reg0 = PseudoReg<0>;
-    using Reg1 = PseudoReg<1>;
-    using Impl = FieldsImpl<Reg0, Reg1>;
+    using Impl = FieldSet<PseudoReg, PseudoReg>;
   };
 
   static Result<std::vector<LineTokens>>
