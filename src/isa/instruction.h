@@ -32,9 +32,22 @@ using IsBitRange =
              std::declval<MaybeBitRange>().apply(MaybeBitRange::Mask()),
              std::declval<MaybeBitRange>().decode(MaybeBitRange::Mask()));
 
+template <typename MaybeOpPart>
+using IsOpPart =
+    decltype(MaybeOpPart::Value(),
+             MaybeOpPart::Apply(std::declval<Instr_T &>()),
+             MaybeOpPart::Matches(0), std::declval<MaybeOpPart>().value,
+             std::declval<MaybeOpPart>().range,
+             std::declval<MaybeOpPart>() == std::declval<MaybeOpPart>(),
+             std::declval<MaybeOpPart>() < std::declval<MaybeOpPart>(),
+             std::declval<MaybeOpPart>().matches(0));
+
 template <typename MaybeBitRange>
 constexpr bool VerifyBitRange =
     std::experimental::is_detected_v<IsBitRange, MaybeBitRange>;
+template <typename MaybeOpPart>
+constexpr bool VerifyOpPart =
+    std::experimental::is_detected_v<IsOpPart, MaybeOpPart>;
 
 /** No-template, abstract class that describes a BitRange. */
 struct BitRangeBase {
@@ -234,15 +247,12 @@ struct IndexedOpPart<OpPart, NextOpParts...> {
   }
 };
 
-// TODO(raccog): Assert that OpParts are of OpPart type
 /** @brief A set of OpParts that identifies an instruction.
  * @param OpParts: A set of OpPart types. All OpParts' BitRanges must not
  * overlap.
  */
 template <typename... OpParts>
-class OpcodeSet {
-
-public:
+struct OpcodeSet {
   using BitRanges = BitRangeSet<typename OpParts::BitRange...>;
 
   static_assert(sizeof...(OpParts) > 0, "No opcode provided");
@@ -269,6 +279,18 @@ public:
   }
 
   constexpr static BitRanges Ranges{};
+
+private:
+  template <typename...>
+  struct Verify {};
+  template <typename OpPart, typename... NextOpParts>
+  struct Verify<OpPart, NextOpParts...> {
+    static_assert(VerifyOpPart<OpPart>, "Invalid OpPart type");
+
+    constexpr static Verify<NextOpParts...> VerifyRest{};
+  };
+
+  constexpr static Verify<OpParts...> VerifyAll{};
 };
 
 /**
