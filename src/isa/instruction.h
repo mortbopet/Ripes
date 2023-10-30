@@ -42,12 +42,34 @@ using IsOpPart =
              std::declval<MaybeOpPart>() < std::declval<MaybeOpPart>(),
              std::declval<MaybeOpPart>().matches(0));
 
+struct FieldLinkRequest;
+
+template <typename MaybeField>
+using IsField =
+    decltype(MaybeField::TokenIndex(), MaybeField::Ranges,
+             MaybeField::Apply(std::declval<const TokenizedSrcLine &>(),
+                               std::declval<Instr_T &>(),
+                               std::declval<FieldLinkRequest &>()),
+             MaybeField::Decode(std::declval<const Instr_T>(),
+                                std::declval<const Reg_T>(),
+                                std::declval<const ReverseSymbolMap &>(),
+                                std::declval<LineTokens &>()));
+
 template <typename MaybeBitRange>
 constexpr bool VerifyBitRange =
     std::experimental::is_detected_v<IsBitRange, MaybeBitRange>;
-template <typename MaybeOpPart>
-constexpr bool VerifyOpPart =
-    std::experimental::is_detected_v<IsOpPart, MaybeOpPart>;
+template <typename MaybeField>
+constexpr bool VerifyField =
+    std::experimental::is_detected_v<IsField, MaybeField>;
+
+template <template <typename...> class Op, typename...>
+struct VerifyValidTypes {};
+template <template <typename...> class Op, typename Type, typename... NextTypes>
+struct VerifyValidTypes<Op, Type, NextTypes...> {
+  static_assert(std::experimental::is_detected_v<Op, Type>, "Invalid type");
+
+  constexpr static VerifyValidTypes<Op, NextTypes...> VerifyRest{};
+};
 
 /** No-template, abstract class that describes a BitRange. */
 struct BitRangeBase {
@@ -152,12 +174,8 @@ private:
     constexpr static Verify<FirstRange, OtherRanges...> NextVerify0{};
     constexpr static Verify<SecondRange, OtherRanges...> NextVerify1{};
   };
-  template <typename MaybeBitRange>
-  struct Verify<MaybeBitRange> {
-    /// Assert each template parameter is a subtype of BitRange
-    static_assert(VerifyBitRange<MaybeBitRange>, "Invalid BitRange type");
-  };
 
+  constexpr static VerifyValidTypes<IsBitRange, BitRanges...> VerifyTypes{};
   constexpr static Verify<BitRanges...> VerifyAll{};
 };
 
@@ -197,7 +215,7 @@ class OpPart : public OpPartBase {
 public:
   using BitRange = _BitRange;
 
-  static_assert(isUInt<BitRange::Stop() - BitRange::Start() + 1>(_value),
+  static_assert(isUInt<BitRange::Width()>(_value),
                 "OpPart value is too large to fit in BitRange.");
   static_assert(VerifyBitRange<BitRange>,
                 "OpPart can only contain a BitRange type");
@@ -281,16 +299,7 @@ struct OpcodeSet {
   constexpr static BitRanges Ranges{};
 
 private:
-  template <typename...>
-  struct Verify {};
-  template <typename OpPart, typename... NextOpParts>
-  struct Verify<OpPart, NextOpParts...> {
-    static_assert(VerifyOpPart<OpPart>, "Invalid OpPart type");
-
-    constexpr static Verify<NextOpParts...> VerifyRest{};
-  };
-
-  constexpr static Verify<OpParts...> VerifyAll{};
+  constexpr static VerifyValidTypes<IsOpPart, OpParts...> VerifyTypes{};
 };
 
 /**
@@ -347,6 +356,8 @@ private:
     using BitRanges = typename IndexedField::BitRanges::template CombineWith<
         typename NextIndexedFieldSet::BitRanges>;
 
+    static_assert(VerifyField<IndexedField>, "Invalid Field type");
+
     static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                           FieldLinkRequest &linksWithSymbol) {
       if (auto err = IndexedField::Apply(tokens, instruction, linksWithSymbol);
@@ -368,6 +379,8 @@ private:
   struct IndexedFieldSet<TokenIndex, LastField> {
     using IndexedField = LastField<TokenIndex>;
     using BitRanges = typename IndexedField::BitRanges;
+
+    static_assert(VerifyField<IndexedField>, "Invalid Field type");
 
     static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                           FieldLinkRequest &linksWithSymbol) {
