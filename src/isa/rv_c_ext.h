@@ -70,12 +70,9 @@ struct Instr : public RVC_Instruction<InstrImpl> {
     using RVFunct6 = OpPartFunct6<funct6>;
     using Impl = OpcodeImpl<RVQuadrant, RVFunct2, RVFunct6>;
   };
-  struct CATypeFields {
-    using Impl = FieldSet<RegRdRs1Prime, RegRs2Prime>;
-  };
+  struct Fields : public FieldSet<RegRdRs1Prime, RegRs2Prime> {};
 
   using Opcode = CATypeOpcode;
-  using Fields = CATypeFields;
 };
 
 struct CSub : Instr<CSub, Funct2::SUB> {

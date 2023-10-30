@@ -310,6 +310,7 @@ struct Field {
 template <template <unsigned> typename... Fields>
 class FieldSet {
 private:
+  /// Structs used to combine BitFields and assign token indices
   template <unsigned, template <unsigned> typename... AllFields>
   struct IndexedFieldSet {
     using BitRanges = BitRangesImpl<>;
@@ -383,6 +384,7 @@ public:
 
   /// Returns the number of Fields in this set.
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
+
   /// Adds all BitRanges to a vector.
   /// This is useful for querying BitRanges at runtime
   constexpr static void
@@ -390,7 +392,8 @@ public:
     BitRanges::RetrieveBitRanges(bitRanges);
   }
 
-  // TODO(raccog): Verify that registers are not duplicated
+  /// This calls all BitRanges' static assertions
+  constexpr static BitRanges Ranges{};
 };
 
 /**
@@ -745,7 +748,7 @@ template <typename InstrImpl>
 struct InstrVerify : std::true_type {
   using BitRanges =
       typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
-          typename InstrImpl::Fields::Impl::BitRanges>;
+          typename InstrImpl::Fields::BitRanges>;
 
   static_assert(BitRanges::Width() == InstrImpl::InstrBits(),
                 "Instruction does not utilize all bits");
@@ -777,8 +780,8 @@ public:
     FieldLinkRequest linksWithSymbol;
 
     InstrImpl::Opcode::Impl::Apply(instruction, linksWithSymbol);
-    if (auto fieldRes = InstrImpl::Fields::Impl::Apply(tokens, instruction,
-                                                       linksWithSymbol);
+    if (auto fieldRes =
+            InstrImpl::Fields::Apply(tokens, instruction, linksWithSymbol);
         fieldRes.isError()) {
       return std::get<Error>(fieldRes);
     }
@@ -793,8 +796,7 @@ public:
               const ReverseSymbolMap &symbolMap) const override {
     LineTokens line;
     line.push_back(name());
-    if (!InstrImpl::Fields::Impl::Decode(instruction, address, symbolMap,
-                                         line)) {
+    if (!InstrImpl::Fields::Decode(instruction, address, symbolMap, line)) {
       return Error(Location(static_cast<int>(address)), "");
     }
     return line;

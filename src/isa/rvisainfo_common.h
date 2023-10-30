@@ -262,12 +262,7 @@ struct PseudoReg : public Ripes::PseudoReg<tokenIndex, RV_GPRInfo> {};
 
 template <typename PseudoInstrImpl>
 struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
-  struct PseudoLoadFields {
-    //    using Reg = PseudoReg<0>;
-    //    using Imm = PseudoImm<1>;
-    using Impl = FieldSet<PseudoReg, PseudoImm>;
-  };
-  using Fields = PseudoLoadFields;
+  struct Fields : public FieldSet<PseudoReg, PseudoImm> {};
 
   static Result<std::vector<LineTokens>>
   expander(const PseudoInstruction<PseudoInstrImpl> &,
@@ -286,13 +281,7 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
 
 template <typename PseudoInstrImpl>
 struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
-  struct PseudoStoreFields {
-    //    using Reg0 = PseudoReg<0>;
-    //    using Imm = PseudoImm<1>;
-    //    using Reg1 = PseudoReg<2>;
-    using Impl = FieldSet<PseudoReg, PseudoImm, PseudoReg>;
-  };
-  using Fields = PseudoStoreFields;
+  struct Fields : public FieldSet<PseudoReg, PseudoImm, PseudoReg> {};
 
   static Result<std::vector<LineTokens>>
   expander(const PseudoInstruction<PseudoInstrImpl> &,
