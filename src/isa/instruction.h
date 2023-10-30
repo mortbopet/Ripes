@@ -147,14 +147,6 @@ struct BitRangeSet {
   /// Returns the combined width of all BitRanges
   constexpr static unsigned Width() { return (BitRanges::Width() + ... + 0); }
 
-  // TODO(raccog): Change this to a vector member variable
-  /// Adds all BitRanges to a vector.
-  /// This is useful for querying BitRanges at runtime
-  static void
-  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
-    (bitRanges.push_back(std::make_shared<BitRanges>()), ...);
-  }
-
 private:
   /// Compile-time verification using recursive templates and static_assert
   template <typename...>
@@ -288,13 +280,6 @@ struct OpcodeSet {
 
     return IndexedOpPart<OpParts...>::GetOpPart(partIndex);
   }
-  // TODO(raccog): Change this to a vector member variable
-  /// Adds all BitRanges to a vector.
-  /// This is useful for querying BitRanges at runtime
-  constexpr static void
-  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
-    BitRanges::RetrieveBitRanges(bitRanges);
-  }
 
   constexpr static BitRanges Ranges{};
 
@@ -413,14 +398,6 @@ public:
 
   /// Returns the number of Fields in this set.
   constexpr static unsigned NumFields() { return sizeof...(Fields); }
-
-  // TODO(raccog): Change this to a vector member variable
-  /// Adds all BitRanges to a vector.
-  /// This is useful for querying BitRanges at runtime
-  constexpr static void
-  RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
-    BitRanges::RetrieveBitRanges(bitRanges);
-  }
 
   /// This calls all BitRanges' static assertions
   constexpr static BitRanges Ranges{};
