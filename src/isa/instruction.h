@@ -142,10 +142,8 @@ private:
 
   static_assert(Verify<BitRanges...>::nonOverlapping,
                 "BitRanges overlap with each other");
-  // TODO(raccog): I'm not sure what BitRange::N() is used for yet, so I'm
-  // disabling this assertion for now
-  //  static_assert(Verify<BitRanges...>::equalWidth,
-  //                "BitRanges do not have an equal width");
+  static_assert(Verify<BitRanges...>::equalWidth,
+                "BitRanges do not have an equal width");
   static_assert(std::experimental::is_detected_v<IsBitRanges, BitRanges...>,
                 "BitRangesImpl can only contain BitRange types");
 
@@ -746,6 +744,7 @@ using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
 /** @brief A no-template, abstract class that defines an instruction. */
 class InstructionBase {
 public:
+  InstructionBase(unsigned byteSize) : m_byteSize(byteSize) {}
   virtual ~InstructionBase() = default;
   /// Assembles a line of tokens into an encoded program.
   virtual AssembleRes assemble(const TokenizedSrcLine &tokens) = 0;
@@ -780,28 +779,33 @@ protected:
   /// An optional set of disassembler match conditions, if the default
   /// opcode-based matching is insufficient.
   std::vector<std::function<bool(Instr_T)>> m_extraMatchConditions;
-  unsigned m_byteSize = -1;
+  unsigned m_byteSize;
 };
 
-/** @brief Asserts that this instruction has no overlapping fields and has all
- * bits utilized.
+/** @brief Asserts that this instruction has no overlapping fields, has all
+ * bits utilized, and is byte-aligned.
  * @param InstrImpl: The instruction type to assert.
  */
 template <typename InstrImpl>
 struct InstrVerify {
-  // TODO(raccog): Assert instruction is byte aligned. This requires
-  // compile-time knowledge of the register width, which currently does not
-  // exist. See enableInstructions() for the static assertion that verifies
-  // instructions with this struct
   using BitRanges =
       typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
           typename InstrImpl::Fields::Impl::BitRanges>;
-  static_assert(BitRanges::IsVerified,
+  enum {
+    AllBitsUtilized = (BitRanges::Width() == InstrImpl::InstrBits()),
+    IsByteAligned = (BitRanges::Width() % CHAR_BIT == 0),
+    VerifiedBitRanges = BitRanges::IsVerified
+  };
+  static_assert(VerifiedBitRanges,
                 "Could not verify combined bitranges from Opcode and Fields");
-  static_assert(BitRanges::Width() == InstrImpl::InstrBits(),
-                "Not all bits are utilized in instruction");
+  static_assert(AllBitsUtilized, "Not all bits are utilized in instruction");
+  static_assert(IsByteAligned, "Instruction width is not byte aligned");
+
   constexpr static bool IsVerified =
-      (BitRanges::IsVerified && BitRanges::Width() == InstrImpl::InstrBits());
+      (VerifiedBitRanges && AllBitsUtilized && IsByteAligned);
+
+  // TODO(raccog): Move this out of verification class
+  constexpr static unsigned ByteSize = BitRanges::Width() / CHAR_BIT;
 };
 
 // TODO(raccog): Remove Impl from Opcode::Impl and Fields::Impl?
@@ -816,7 +820,9 @@ struct InstrVerify {
 template <typename InstrImpl>
 class Instruction : public InstructionBase {
 public:
-  Instruction() : m_name(InstrImpl::Name.data()) { verify(); }
+  Instruction()
+      : InstructionBase(InstrVerify<InstrImpl>::ByteSize),
+        m_name(InstrImpl::Name.data()) {}
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
@@ -851,47 +857,6 @@ public:
   const QString &name() const override { return m_name; }
   unsigned numOpParts() const override {
     return InstrImpl::Opcode::Impl::NumParts();
-  }
-
-  // TODO(raccog): Remove this once all verifications are done at compile-time
-  /// Verify that the bitranges specified for this operation:
-  /// 1. do not overlap
-  /// 2. fully defines the instruction (no bits are unaccounted for)
-  /// 3. is byte aligned
-  /// Using this information, we also set the size of this instruction.
-  void verify() {
-    std::vector<std::shared_ptr<BitRangeBase>> bitRanges;
-    InstrImpl::Opcode::Impl::RetrieveBitRanges(bitRanges);
-    InstrImpl::Fields::Impl::RetrieveBitRanges(bitRanges);
-
-    // 1.
-    std::set<unsigned> registeredBits;
-    for (auto &range : bitRanges) {
-      for (unsigned i = range->start(); i <= range->stop(); ++i) {
-        assert(registeredBits.count(i) == 0 &&
-               "Bit already registerred by some other field");
-        registeredBits.insert(i);
-      }
-    }
-
-    // 2.
-    assert(registeredBits.count(0) == 1 && "Expected bit 0 to be in bit-range");
-    // rbegin due to set being sorted.
-    unsigned nBits = registeredBits.size();
-    if ((nBits - 1) != *registeredBits.rbegin()) {
-      std::string err = "Bits '";
-      for (unsigned i = 0; i < nBits; ++i) {
-        if (registeredBits.count(i) == 0) {
-          err += std::to_string(i) + ", ";
-        }
-      }
-      std::cerr << err << "\n";
-      assert(false);
-    }
-
-    // 3.
-    assert(nBits % CHAR_BIT == 0 && "Expected instruction to be byte-aligned");
-    m_byteSize = nBits / CHAR_BIT;
   }
 
 private:
