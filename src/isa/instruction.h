@@ -19,18 +19,22 @@ namespace Ripes {
  * Used in static assertions.
  * @param BitRange...: Types that might be BitRange
  */
-template <typename... MaybeBitRange>
-using IsBitRanges = decltype((
-    ((MaybeBitRange::N() + MaybeBitRange::Start() + MaybeBitRange::Stop() +
-      MaybeBitRange::Width()),
-     MaybeBitRange::Apply(MaybeBitRange::Mask()),
-     MaybeBitRange::Decode(MaybeBitRange::Mask()),
-     std::declval<MaybeBitRange>().n() + std::declval<MaybeBitRange>().start() +
-         std::declval<MaybeBitRange>().stop() +
-         std::declval<MaybeBitRange>().width(),
-     std::declval<MaybeBitRange>().apply(MaybeBitRange::Mask()),
-     std::declval<MaybeBitRange>().decode(MaybeBitRange::Mask())),
-    ...));
+template <typename MaybeBitRange>
+using IsBitRange =
+    decltype((MaybeBitRange::N() + MaybeBitRange::Start() +
+              MaybeBitRange::Stop() + MaybeBitRange::Width()),
+             MaybeBitRange::Apply(MaybeBitRange::Mask()),
+             MaybeBitRange::Decode(MaybeBitRange::Mask()),
+             std::declval<MaybeBitRange>().n() +
+                 std::declval<MaybeBitRange>().start() +
+                 std::declval<MaybeBitRange>().stop() +
+                 std::declval<MaybeBitRange>().width(),
+             std::declval<MaybeBitRange>().apply(MaybeBitRange::Mask()),
+             std::declval<MaybeBitRange>().decode(MaybeBitRange::Mask()));
+
+template <typename MaybeBitRange>
+constexpr bool VerifyBitRange =
+    std::experimental::is_detected_v<IsBitRange, MaybeBitRange>;
 
 /** No-template, abstract class that describes a BitRange. */
 struct BitRangeBase {
@@ -111,50 +115,34 @@ struct BitRangesImpl {
 private:
   /// Compile-time verification using recursive templates and static_assert
   template <typename...>
-  struct Verify {
-    enum { nonOverlapping = true, equalWidth = true };
-  };
+  struct Verify {};
   template <typename FirstRange, typename SecondRange, typename... OtherRanges>
   struct Verify<FirstRange, SecondRange, OtherRanges...> {
-    /// Returns true if FirstRange and SecondRange are not overlapping
-    constexpr static bool IsNotOverlapping() {
-      return (FirstRange::Start() > SecondRange::Stop() ||
-              FirstRange::Stop() < SecondRange::Start());
-    }
-    /// Returns true if FirstRange and SecondRange have an equal width
-    constexpr static bool HasEqualWidth() {
-      return (FirstRange::N() == SecondRange::N());
-    }
-    enum {
-      // Set to true if all BitRanges have been verified
-      nonOverlapping = (IsNotOverlapping() &&
-                        Verify<FirstRange, OtherRanges...>::nonOverlapping &&
-                        Verify<SecondRange, OtherRanges...>::nonOverlapping),
-      equalWidth =
-          (HasEqualWidth() && Verify<FirstRange, OtherRanges...>::equalWidth &&
-           Verify<SecondRange, OtherRanges...>::equalWidth)
-    };
+    /// Assert that all BitRanges do not overlap with each other
+    static_assert((FirstRange::Start() > SecondRange::Stop() ||
+                   FirstRange::Stop() < SecondRange::Start()),
+                  "BitRanges overlap with each other");
+
+    /// Assert that all BitRanges have equal sizes
+    static_assert((FirstRange::N() == SecondRange::N()),
+                  "BitRanges do not have equal sizes");
+
+    /// Verify all combinations of ranges to ensure they don't overlap
+    constexpr static Verify<FirstRange, OtherRanges...> NextVerify0{};
+    constexpr static Verify<SecondRange, OtherRanges...> NextVerify1{};
   };
-  template <typename FirstRange>
-  struct Verify<FirstRange> {
-    enum { nonOverlapping = true, equalWidth = true };
+  template <typename MaybeBitRange>
+  struct Verify<MaybeBitRange> {
+    /// Assert each template parameter is a subtype of BitRange
+    static_assert(VerifyBitRange<MaybeBitRange>, "Invalid BitRange type");
   };
 
-  static_assert(Verify<BitRanges...>::nonOverlapping,
-                "BitRanges overlap with each other");
-  static_assert(Verify<BitRanges...>::equalWidth,
-                "BitRanges do not have an equal width");
-  static_assert(std::experimental::is_detected_v<IsBitRanges, BitRanges...>,
-                "BitRangesImpl can only contain BitRange types");
-
-public:
-  /// Used in instruction class static assertion.
-  constexpr static bool IsVerified = (Verify<BitRanges...>::nonOverlapping &&
-                                      Verify<BitRanges...>::equalWidth);
+  constexpr static Verify<BitRanges...> VerifyAll{};
 };
 
 struct OpPartBase;
 
+// TODO(raccog): Try again to make this the base class in place of OpPartBase
 /** @brief No-template, non-abstract class that describes an OpPart.
  * This is useful for the assembly matcher so that OpParts can be used as a
  * key in a std::map.
@@ -169,6 +157,8 @@ struct OpPartMatcher {
   /// Contains a pointer to the original OpPart
   const OpPartBase *opPart;
 
+  // TODO(raccog): Add `N` to these expressions. This may be causing compressed
+  // instruction assembler problems
   bool operator==(const OpPartMatcher &other) const {
     return value == other.value && start == other.start && stop == other.stop;
   }
@@ -194,6 +184,8 @@ struct OpPartBase {
     return range().decode(instruction) == value();
   }
 
+  // TODO(raccog): Add `N` to these expressions. This may be causing compressed
+  // instruction assembler problems
   bool operator<(const OpPartBase &other) const {
     if (range() == other.range())
       return value() < other.value();
@@ -211,6 +203,11 @@ class OpPart : public OpPartBase {
 public:
   using BitRange = _BitRange;
 
+  static_assert(isUInt<BitRange::Stop() - BitRange::Start() + 1>(_value),
+                "OpPart value is too large to fit in BitRange.");
+  static_assert(VerifyBitRange<BitRange>,
+                "OpPart can only contain a BitRange type");
+
   unsigned value() const override { return _value; }
   const BitRangeBase &range() const override { return *m_range.get(); }
 
@@ -227,17 +224,11 @@ public:
 
 private:
   std::unique_ptr<BitRange> m_range = std::make_unique<BitRange>();
-
-  // Ensure value is not too large to fit in BitRange
-  static_assert(isUInt<BitRange::Stop() - BitRange::Start() + 1>(_value),
-                "OpPart value is too large to fit in BitRange.");
-  static_assert(std::experimental::is_detected_v<IsBitRanges, BitRange>,
-                "OpPart can only contain a BitRange type");
 };
 
 /** @brief An OpPart for declaring BitRanges of unused zeros */
-template <unsigned start, unsigned stop>
-struct OpPartZeroes : public OpPart<0, BitRange<start, stop>> {};
+template <unsigned start, unsigned stop, unsigned N = 32>
+struct OpPartZeroes : public OpPart<0, BitRange<start, stop, N>> {};
 
 /** @brief Function type for resolving symbols. */
 using ResolveSymbolFunc =
@@ -376,42 +367,29 @@ public:
 
 private:
   // TODO(raccog): Verify that registers are not duplicated
-  /// Verify that each field has sequential indices.
+  /// Verify that all fields has sequential indices.
   template <typename...>
-  struct Verify {
-    enum { hasSequentialIndices = true };
-  };
+  struct Verify {};
   template <typename FirstField, typename SecondField, typename... OtherFields>
   struct Verify<FirstField, SecondField, OtherFields...> {
-    /// Returns true if SecondField has an index that is directly after
-    /// FirstField's index
-    constexpr static bool IsInOrder() {
-      return (FirstField::TokenIndex() + 1 == SecondField::TokenIndex());
-    }
-    enum {
-      hasSequentialIndices =
-          (IsInOrder() &&
-           Verify<SecondField, OtherFields...>::hasSequentialIndices),
-    };
-  };
-  template <typename FirstField>
-  struct Verify<FirstField> {
-    enum { hasSequentialIndices = true };
+    /// Assert that fields from left to right have sequential indices
+    static_assert((FirstField::TokenIndex() + 1 == SecondField::TokenIndex()),
+                  "Fields do not have sequential indices");
+
+    /// Verify the other fields
+    constexpr static Verify<SecondField, OtherFields...> VerifyRest{};
   };
   /// Verify that the first field has an index of 0.
   template <typename...>
-  struct VerifyFirstIndex {
-    enum { indexStartsAtZero = true };
-  };
+  struct VerifyFirstIndex {};
   template <typename FirstField, typename... OtherFields>
   struct VerifyFirstIndex<FirstField, OtherFields...> {
-    enum { indexStartsAtZero = (FirstField::TokenIndex() == 0) };
+    static_assert((FirstField::TokenIndex() == 0),
+                  "First field does not have an index of 0");
   };
 
-  static_assert(VerifyFirstIndex<Fields...>::indexStartsAtZero,
-                "First field' index is not 0");
-  static_assert(Verify<Fields...>::hasSequentialIndices,
-                "Fields have duplicate indices");
+  constexpr static VerifyFirstIndex<Fields...> Verify0{};
+  constexpr static Verify<Fields...> Verify1{};
 };
 
 template <typename... Fields>
@@ -443,6 +421,8 @@ constexpr bool FieldsImpl<>::Decode(const Instr_T, const Reg_T,
 template <typename RegImpl, unsigned tokenIndex, typename BitRange,
           typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRangesImpl<BitRange>> {
+  static_assert(VerifyBitRange<BitRange>, "Invalid BitRange type");
+
   Reg() : regsd(RegImpl::Name.data()) {}
 
   /// Applies this register's encoding to the instruction.
@@ -489,6 +469,10 @@ struct ImmPartBase {
   // ImmPartsImpl
   using BitRanges = BitRangesImpl<BitRange>;
 
+  static_assert(BitRange::Width() + _offset < BitRange::N(),
+                "ImmPart does not fit in BitRange size. Check ImmPart offset"
+                " and BitRange width");
+
   /// Returns the offset applied to this part when it is constructed into an
   /// immediate value.
   constexpr static unsigned Offset() { return _offset; }
@@ -502,11 +486,6 @@ struct ImmPartBase {
   constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
     value |= BitRange::Decode(instruction) << _offset;
   }
-
-private:
-  static_assert(BitRange::Width() + _offset < BitRange::N(),
-                "ImmPart does not fit in BitRange size. Check ImmPart offset"
-                " and BitRange width");
 };
 
 template <unsigned offset, unsigned start, unsigned stop, unsigned N = 32>
@@ -531,33 +510,23 @@ struct ImmPartsImpl {
   }
 
 private:
-  // TODO(raccog): This is probably not necessary because all ranges are checked
-  // for overlapping at the end (see InstrVerify)
   /// Verify that each immediate does not overlap.
   template <typename FirstPart, typename... OtherParts>
   struct Verify {};
   template <typename FirstPart, typename SecondPart, typename... OtherParts>
   struct Verify<FirstPart, SecondPart, OtherParts...> {
-    /// Returns true if FirstPart and SecondPart are not overlapping
-    constexpr static bool IsNotOverlapping() {
-      return (FirstPart::Offset() >=
-                  (SecondPart::Offset() + SecondPart::BitRange::Width()) ||
-              SecondPart::Offset() >=
-                  (FirstPart::Offset() + FirstPart::BitRange::Width()));
-    }
-    enum {
-      nonOverlapping = (IsNotOverlapping() &&
-                        Verify<FirstPart, OtherParts...>::nonOverlapping &&
-                        Verify<SecondPart, OtherParts...>::nonOverlapping)
-    };
-  };
-  template <typename FirstPart>
-  struct Verify<FirstPart> {
-    enum { nonOverlapping = true };
+    /// Asserts that FirstPart and SecondPart are not overlapping
+    static_assert((FirstPart::Offset() >=
+                       (SecondPart::Offset() + SecondPart::BitRange::Width()) ||
+                   SecondPart::Offset() >=
+                       (FirstPart::Offset() + FirstPart::BitRange::Width())),
+                  "Immediate has parts with overlapping offsets");
+
+    constexpr static Verify<FirstPart, OtherParts...> Verify0{};
+    constexpr static Verify<SecondPart, OtherParts...> Verify1{};
   };
 
-  static_assert(Verify<ImmParts...>::nonOverlapping,
-                "Combined ImmParts overlap with each other");
+  constexpr static Verify<ImmParts...> VerifyAll{};
 };
 
 enum class Repr { Unsigned, Signed, Hex };
@@ -787,22 +756,15 @@ protected:
  * @param InstrImpl: The instruction type to assert.
  */
 template <typename InstrImpl>
-struct InstrVerify {
+struct InstrVerify : std::true_type {
   using BitRanges =
       typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
           typename InstrImpl::Fields::Impl::BitRanges>;
-  enum {
-    AllBitsUtilized = (BitRanges::Width() == InstrImpl::InstrBits()),
-    IsByteAligned = (BitRanges::Width() % CHAR_BIT == 0),
-    VerifiedBitRanges = BitRanges::IsVerified
-  };
-  static_assert(VerifiedBitRanges,
-                "Could not verify combined bitranges from Opcode and Fields");
-  static_assert(AllBitsUtilized, "Not all bits are utilized in instruction");
-  static_assert(IsByteAligned, "Instruction width is not byte aligned");
 
-  constexpr static bool IsVerified =
-      (VerifiedBitRanges && AllBitsUtilized && IsByteAligned);
+  static_assert(BitRanges::Width() == InstrImpl::InstrBits(),
+                "Instruction does not utilize all bits");
+  static_assert((BitRanges::Width() % CHAR_BIT == 0),
+                "Instruction width is not byte aligned");
 
   // TODO(raccog): Move this out of verification class
   constexpr static unsigned ByteSize = BitRanges::Width() / CHAR_BIT;
@@ -874,8 +836,12 @@ constexpr inline static void _enableInstructions(InstrVecType &instructions) {
 
 template <typename... Instructions>
 constexpr inline static void enableInstructions(InstrVec &instructions) {
-  static_assert((InstrVerify<Instructions>::IsVerified && ...),
-                "Could not verify instruction");
+  (
+      [&] {
+        static_assert((InstrVerify<Instructions>::value),
+                      "Could not verify instruction");
+      }(),
+      ...);
   // TODO(raccog): Ensure no duplicate instruction definitions (will be
   // difficult, since enableInstructions can be called multiple times)
   return _enableInstructions<InstrVec, Instructions...>(instructions);
