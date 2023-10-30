@@ -208,13 +208,15 @@ enum QuadrantID {
 
 /// All RISC-V opcodes are defined as a 7-bit field in bits 0-7 of the
 /// instruction
-template <unsigned opcode>
-struct OpPartOpcode : public OpPart<opcode, BitRange<0, 6>> {};
+template <OpcodeID opcode>
+struct OpPartOpcode
+    : public OpPart<static_cast<unsigned>(opcode), BitRange<0, 6>> {};
 
 /// All RISC-V instruction quadrants are defined as a 2-bit field in bits 0-1
 /// of the instruction
-template <unsigned quadrant, unsigned N = 32>
-struct OpPartQuadrant : public OpPart<quadrant, BitRange<0, 1, N>> {};
+template <QuadrantID quadrant, unsigned N = 32>
+struct OpPartQuadrant
+    : public OpPart<static_cast<unsigned>(quadrant), BitRange<0, 1, N>> {};
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14
 /// of the instruction

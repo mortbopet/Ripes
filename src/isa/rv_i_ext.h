@@ -45,14 +45,10 @@ enum class Funct3 : unsigned {
 /// An I-Type RISC-V instruction
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct ITypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcodeID)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<opcodeID>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRd, RegRs1, ImmCommon12> {};
-
-  using Opcode = ITypeOpcode;
 };
 
 template <typename InstrImpl, Funct3 funct3>
@@ -85,14 +81,10 @@ struct Ori : public Instr32<Ori, Funct3::ORI> {
 };
 
 struct Jalr : public RV_Instruction<Jalr> {
-  struct JalrTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::JALR)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(0b000)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
+  struct Opcode : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::JALR>,
+                                   OpPartFunct3<static_cast<unsigned>(0b000)>> {
   };
   struct Fields : public FieldSet<RegRd, RegRs1, ImmCommon12> {};
-
-  using Opcode = JalrTypeOpcode;
 
   constexpr static std::string_view Name = "jalr";
 };
@@ -126,15 +118,11 @@ struct ImmIShift32
 /// An IShift-Type RISC-V instruction
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3, Funct7 funct7>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct IShiftTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcodeID)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using RVFunct7 = OpPartFunct7<static_cast<unsigned>(funct7)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3, RVFunct7>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<opcodeID>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>,
+                         OpPartFunct7<static_cast<unsigned>(funct7)>> {};
   struct Fields : public FieldSet<RegRd, RegRs1, ImmIShift32> {};
-
-  using Opcode = IShiftTypeOpcode;
 };
 
 template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::LEFT_SHIFT>
@@ -188,15 +176,11 @@ struct ImmIShift64
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3,
           Funct6 funct6 = Funct6::LEFT_SHIFT>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct IShiftTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcodeID)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using RVFunct6 = OpPartFunct6<static_cast<unsigned>(funct6)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3, RVFunct6>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<opcodeID>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>,
+                         OpPartFunct6<static_cast<unsigned>(funct6)>> {};
   struct Fields : public FieldSet<RegRd, RegRs1, ImmIShift64> {};
-
-  using Opcode = IShiftTypeOpcode;
 };
 
 template <typename InstrImpl, Funct3 funct3, Funct6 funct6 = Funct6::LEFT_SHIFT>
@@ -233,14 +217,10 @@ enum class Funct3 : unsigned {
 /// An L-Type RISC-V instruction
 template <typename InstrImpl, Funct3 funct3>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct LTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::LOAD)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::LOAD>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRd, ImmCommon12, RegRs1> {};
-
-  using Opcode = LTypeOpcode;
 };
 
 struct Lb : public Instr<Lb, Funct3::LB> {
@@ -285,18 +265,12 @@ struct OpPartFunct12 : public OpPart<funct12, BitRange<20, 31>> {};
 /// A System-Type RISC-V instruction (ECALL and EBREAK)
 template <typename InstrImpl, Funct12 funct12>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct SystemTypeOpcode {
-    using RVOpcode =
-        OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::SYSTEM)>;
-    using Rd = OpPartZeroes<7, 11>;
-    using RVFunct3 = OpPartFunct3<0>;
-    using Rs1 = OpPartZeroes<15, 19>;
-    using RVFunct12 = OpPartFunct12<static_cast<unsigned>(funct12)>;
-    using Impl = OpcodeImpl<RVOpcode, Rd, RVFunct3, Rs1, RVFunct12>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::SYSTEM>,
+                         OpPartZeroes<7, 11>, OpPartFunct3<0>,
+                         OpPartZeroes<15, 19>,
+                         OpPartFunct12<static_cast<unsigned>(funct12)>> {};
   struct Fields : public FieldSet<> {};
-
-  using Opcode = SystemTypeOpcode;
 };
 
 struct Ecall : public Instr<Ecall, Funct12::ECALL> {
@@ -321,19 +295,15 @@ struct ImmU
 };
 
 /// A U-Type RISC-V instruction
-template <typename InstrImpl, RVISA::OpcodeID opcode,
+template <typename InstrImpl, RVISA::OpcodeID opcodeID,
           SymbolType symbolType = SymbolType::None>
-struct Instr : public RV_Instruction<InstrImpl> {
-  struct UTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcode)>;
-    using Impl = OpcodeImpl<RVOpcode>;
-  };
-
+class Instr : public RV_Instruction<InstrImpl> {
   template <unsigned index>
   using Imm = ImmU<index, symbolType>;
-  struct Fields : public FieldSet<RegRd, Imm> {};
 
-  using Opcode = UTypeOpcode;
+public:
+  struct Opcode : public OpcodeSet<OpPartOpcode<opcodeID>> {};
+  struct Fields : public FieldSet<RegRd, Imm> {};
 };
 
 struct Auipc
@@ -370,13 +340,8 @@ struct ImmJ
 };
 
 struct Jal : public RV_Instruction<Jal> {
-  struct JTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::JAL)>;
-    using Impl = OpcodeImpl<RVOpcode>;
-  };
+  struct Opcode : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::JAL>> {};
   struct Fields : public FieldSet<RegRd, ImmJ> {};
-
-  using Opcode = JTypeOpcode;
 
   constexpr static std::string_view Name = "jal";
 };
@@ -403,15 +368,10 @@ struct ImmS : public Imm<index, 12, Repr::Signed,
 
 template <typename InstrImpl, Funct3 funct3>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct STypeOpcode {
-    using RVOpcode =
-        OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::STORE)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::STORE>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRs2, ImmS, RegRs1> {};
-
-  using Opcode = STypeOpcode;
 };
 
 struct Sb : public Instr<Sb, Funct3::SB> {
@@ -452,18 +412,14 @@ enum class Funct7 {
   M_EXT = 0b0000001
 };
 
-template <typename InstrImpl, RVISA::OpcodeID opcode, typename Funct3Type,
+template <typename InstrImpl, RVISA::OpcodeID opcodeID, typename Funct3Type,
           Funct3Type funct3, Funct7 funct7>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct RTypeOpcode {
-    using RVOpcode = OpPartOpcode<static_cast<unsigned>(opcode)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using RVFunct7 = OpPartFunct7<static_cast<unsigned>(funct7)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3, RVFunct7>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<opcodeID>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>,
+                         OpPartFunct7<static_cast<unsigned>(funct7)>> {};
   struct Fields : public FieldSet<RegRd, RegRs1, RegRs2> {};
-
-  using Opcode = RTypeOpcode;
 };
 
 template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::DEFAULT>
@@ -564,15 +520,10 @@ struct ImmB : public ImmSym<index, 13, Repr::Signed,
 
 template <typename InstrImpl, Funct3 funct3>
 struct Instr : public RV_Instruction<InstrImpl> {
-  struct BTypeOpcode {
-    using RVOpcode =
-        OpPartOpcode<static_cast<unsigned>(RVISA::OpcodeID::BRANCH)>;
-    using RVFunct3 = OpPartFunct3<static_cast<unsigned>(funct3)>;
-    using Impl = OpcodeImpl<RVOpcode, RVFunct3>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::BRANCH>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRs1, RegRs2, ImmB> {};
-
-  using Opcode = BTypeOpcode;
 };
 
 struct Beq : public Instr<Beq, Funct3::BEQ> {

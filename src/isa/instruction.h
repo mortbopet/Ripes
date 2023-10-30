@@ -253,7 +253,7 @@ static std::array<std::unique_ptr<OpPartBase>, numParts> OP_PARTS = {
  * overlap.
  */
 template <typename... OpParts>
-class OpcodeImpl {
+class OpcodeSet {
 public:
   using BitRanges = BitRangesImpl<typename OpParts::BitRange...>;
 
@@ -276,6 +276,8 @@ public:
   RetrieveBitRanges(std::vector<std::shared_ptr<BitRangeBase>> &bitRanges) {
     BitRanges::RetrieveBitRanges(bitRanges);
   }
+
+  constexpr static BitRanges Ranges{};
 };
 
 /**
@@ -290,7 +292,6 @@ struct InstrRes {
 
 using AssembleRes = Result<InstrRes>;
 
-// TODO(raccog): Figure out how to assign token indices automatically
 /** @brief An instruction field defined at compile-time.
  * @param _tokenIndex: The index of this field in an assembly instruction
  * (starting at 0).
@@ -746,9 +747,8 @@ protected:
  */
 template <typename InstrImpl>
 struct InstrVerify : std::true_type {
-  using BitRanges =
-      typename InstrImpl::Opcode::Impl::BitRanges::template CombineWith<
-          typename InstrImpl::Fields::BitRanges>;
+  using BitRanges = typename InstrImpl::Opcode::BitRanges::template CombineWith<
+      typename InstrImpl::Fields::BitRanges>;
 
   static_assert(BitRanges::Width() == InstrImpl::InstrBits(),
                 "Instruction does not utilize all bits");
@@ -759,13 +759,12 @@ struct InstrVerify : std::true_type {
   constexpr static unsigned ByteSize = BitRanges::Width() / CHAR_BIT;
 };
 
-// TODO(raccog): Remove Impl from Opcode::Impl and Fields::Impl?
 /** @brief An ISA instruction defined at compile-time.
  * @param InstrImpl: The type defining a single instruction. Must define the
  * following:
  *
- * `using Opcode::Impl = OpcodeImpl`
- * `using Fields::Impl = FieldsImpl`
+ * `struct Opcode : public OpPartSet;`
+ * `struct Fields : public FieldSet;`
  * `constexpr static std::string_view Name`
  */
 template <typename InstrImpl>
@@ -779,7 +778,7 @@ public:
     Instr_T instruction = 0;
     FieldLinkRequest linksWithSymbol;
 
-    InstrImpl::Opcode::Impl::Apply(instruction, linksWithSymbol);
+    InstrImpl::Opcode::Apply(instruction, linksWithSymbol);
     if (auto fieldRes =
             InstrImpl::Fields::Apply(tokens, instruction, linksWithSymbol);
         fieldRes.isError()) {
@@ -802,12 +801,10 @@ public:
     return line;
   }
   const OpPartBase *getOpPart(unsigned partIndex) const override {
-    return InstrImpl::Opcode::Impl::GetOpPart(partIndex);
+    return InstrImpl::Opcode::GetOpPart(partIndex);
   }
   const QString &name() const override { return m_name; }
-  unsigned numOpParts() const override {
-    return InstrImpl::Opcode::Impl::NumParts();
-  }
+  unsigned numOpParts() const override { return InstrImpl::Opcode::NumParts(); }
 
 private:
   const QString m_name;

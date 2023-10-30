@@ -62,17 +62,11 @@ struct RegRdRs1Prime : public GPR_Reg<RegRdRs1Prime<tokenIndex>, tokenIndex,
 
 template <typename InstrImpl, Funct2 funct2, Funct6 funct6 = Funct6::DEFAULT>
 struct Instr : public RVC_Instruction<InstrImpl> {
-  struct CATypeOpcode {
-    using RVQuadrant =
-        OpPartQuadrant<static_cast<unsigned>(QuadrantID::QUADRANT1),
-                       INSTR_BITS>;
-    using RVFunct2 = OpPartFunct2<static_cast<unsigned>(funct2)>;
-    using RVFunct6 = OpPartFunct6<funct6>;
-    using Impl = OpcodeImpl<RVQuadrant, RVFunct2, RVFunct6>;
-  };
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT1, INSTR_BITS>,
+                          OpPartFunct2<static_cast<unsigned>(funct2)>,
+                          OpPartFunct6<funct6>> {};
   struct Fields : public FieldSet<RegRdRs1Prime, RegRs2Prime> {};
-
-  using Opcode = CATypeOpcode;
 };
 
 struct CSub : Instr<CSub, Funct2::SUB> {
