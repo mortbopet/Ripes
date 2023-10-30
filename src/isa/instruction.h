@@ -748,8 +748,13 @@ struct InstrVerify : std::true_type {
                 "Instruction does not utilize all bits");
   static_assert((BitRanges::Width() % CHAR_BIT == 0),
                 "Instruction width is not byte aligned");
+};
 
-  // TODO(raccog): Move this out of verification class
+template <typename InstrImpl>
+struct InstrByteSize {
+  using BitRanges = typename InstrImpl::Opcode::BitRanges::template CombineWith<
+      typename InstrImpl::Fields::BitRanges>;
+
   constexpr static unsigned ByteSize = BitRanges::Width() / CHAR_BIT;
 };
 
@@ -762,10 +767,9 @@ struct InstrVerify : std::true_type {
  * `constexpr static std::string_view Name`
  */
 template <typename InstrImpl>
-class Instruction : public InstructionBase {
-public:
+struct Instruction : public InstructionBase {
   Instruction()
-      : InstructionBase(InstrVerify<InstrImpl>::ByteSize),
+      : InstructionBase(InstrByteSize<InstrImpl>::ByteSize),
         m_name(InstrImpl::Name.data()) {}
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
