@@ -665,8 +665,6 @@ namespace TypeCR {
 
 enum class Funct4 { MV = 0b1000, ADD = 0b1001 };
 
-constexpr static unsigned ValidTokenIndex = 1;
-
 template <typename InstrImpl, Funct4 funct4>
 struct Instr : public RVC_Instruction<InstrImpl> {
   struct Opcode
@@ -675,6 +673,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
   struct Fields : public FieldSet<RegRs1, RegRs2> {};
 };
 
+// FIXME disassemble erro with c.jr ?
 struct CMv : public Instr<CMv, Funct4::MV> {
   constexpr static std::string_view Name = "c.mv";
 };
@@ -684,6 +683,29 @@ struct CAdd : public Instr<CAdd, Funct4::ADD> {
 };
 
 } // namespace TypeCR
+
+namespace TypeCR2 {
+
+enum class Funct4 { JR = 0b1000, JALR = 0b1001 };
+
+template <typename InstrImpl, Funct4 funct4>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT2>,
+                         OpPartZeroes<2, 6, INSTR_BITS>,
+                         OpPartFunct4<static_cast<unsigned>(funct4)>> {};
+  struct Fields : public FieldSet<RegRs1> {};
+};
+
+struct CJr : public Instr<CJr, Funct4::JR> {
+  constexpr static std::string_view Name = "c.jr";
+};
+
+struct CJalr : public Instr<CJalr, Funct4::JALR> {
+  constexpr static std::string_view Name = "c.jalr";
+};
+
+} // namespace TypeCR2
 
 } // namespace ExtC
 
