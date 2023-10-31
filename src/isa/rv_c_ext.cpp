@@ -21,7 +21,7 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
   enableInstructions<CSub, CXor, COr, CAnd, CLwsp, CFldsp, CSlli, CLi, CLui,
                      CAddi16Sp, CAddi, CNop, CSwsp, CFsdsp, CLw, CSw, CFsd, CJ,
                      CBeqz, CBnez, CSrli, CSrai, CAndi, CAddi4spn, CMv, CAdd,
-                     CJr, CJalr>(instructions);
+                     CJr, CJalr, CEbreak>(instructions);
 
   if (isa->bits() == 32) {
     enableInstructions<CFlwsp, CFswsp, CFlw, CFsw, CJal>(instructions);

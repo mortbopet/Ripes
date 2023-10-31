@@ -702,10 +702,35 @@ struct CJr : public Instr<CJr, Funct4::JR> {
 };
 
 struct CJalr : public Instr<CJalr, Funct4::JALR> {
+  CJalr() {
+    addExtraMatchCond([](Instr_T instr) {
+      unsigned rd = (instr >> 7) & 0b11111;
+      return rd != 0;
+    });
+  }
+
+  AssembleRes assemble(const TokenizedSrcLine &line) override {
+    if (line.tokens.size() >= 2 && line.tokens.at(1) == "x0") {
+      return Error(line, "c.jalr cannot use register x0");
+    }
+    return Instr::assemble(line);
+  }
+
   constexpr static std::string_view Name = "c.jalr";
 };
 
 } // namespace TypeCR2
+
+struct CEbreak : public RVC_Instruction<CEbreak> {
+  constexpr static unsigned Funct4 = 0b1001;
+
+  struct Opcode : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT2>,
+                                   OpPartZeroes<2, 11, INSTR_BITS>,
+                                   OpPartFunct4<Funct4>> {};
+  struct Fields : public FieldSet<> {};
+
+  constexpr static std::string_view Name = "c.ebreak";
+};
 
 } // namespace ExtC
 
