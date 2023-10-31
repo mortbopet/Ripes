@@ -479,7 +479,7 @@ struct CFsd : public Instr<CFsd, Funct3::FSD> {
 
 } // namespace TypeCS
 
-namespace TypeJ {
+namespace TypeCJ {
 
 enum class Funct3 { J = 0b101, JAL = 0b001 };
 
@@ -525,7 +525,50 @@ struct CJal : public Instr<CJal, Funct3::JAL> {
   constexpr static std::string_view Name = "c.jal";
 };
 
-} // namespace TypeJ
+} // namespace TypeCJ
+
+namespace TypeCB {
+
+enum class Funct3 { BEQZ = 0b110, BNEZ = 0b111 };
+
+constexpr static unsigned ValidTokenIndex = 1;
+
+template <typename InstrImpl, Funct3 funct3>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  /// An RV-C signed immediate field with an input width of 9 bits.
+  /// Used in C.BEQZ and C.BNEZ instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[8]   = Inst[12]
+  ///  - Imm[7:6] = Inst[6:5]
+  ///  - Imm[5]   = Inst[2]
+  ///  - Imm[4:3] = Inst[11:10]
+  ///  - Imm[2:1] = Inst[4:3]
+  ///  - Imm[0]   = 0
+  template <unsigned tokenIndex>
+  struct Imm
+      : public Ripes::Imm<
+            tokenIndex, 9, Repr::Signed,
+            ImmPartsImpl<ImmPart<8, 12, 12>, ImmPart<6, 5, 6>, ImmPart<5, 2, 2>,
+                         ImmPart<3, 10, 11>, ImmPart<1, 3, 4>>> {
+    static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+  };
+
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT1>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
+  struct Fields : public FieldSet<RegRs1Prime, Imm> {};
+};
+
+struct CBeqz : public Instr<CBeqz, Funct3::BEQZ> {
+  constexpr static std::string_view Name = "c.beqz";
+};
+
+struct CBnez : public Instr<CBnez, Funct3::BNEZ> {
+  constexpr static std::string_view Name = "c.bnez";
+};
+
+} // namespace TypeCB
 
 } // namespace ExtC
 

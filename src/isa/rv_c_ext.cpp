@@ -11,11 +11,12 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
   using namespace TypeCSS;
   using namespace TypeCL;
   using namespace TypeCS;
-  using namespace TypeJ;
+  using namespace TypeCJ;
+  using namespace TypeCB;
 
   enableInstructions<CSub, CXor, COr, CAnd, CLwsp, CFldsp, CSlli, CLi, CLui,
-                     CAddi16Sp, CAddi, CNop, CSwsp, CFsdsp, CLw, CSw, CFsd, CJ>(
-      instructions);
+                     CAddi16Sp, CAddi, CNop, CSwsp, CFsdsp, CLw, CSw, CFsd, CJ,
+                     CBeqz, CBnez>(instructions);
 
   if (isa->bits() == 32) {
     enableInstructions<CFlwsp, CFswsp, CFlw, CFsw, CJal>(instructions);
