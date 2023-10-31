@@ -39,6 +39,13 @@ struct OpPartFunct2
                     BitRange<static_cast<unsigned>(offset),
                              static_cast<unsigned>(offset) + 1>> {};
 
+/// The RV-C Rs2 field contains a source register index.
+/// It is defined as a 5-bit field in bits 2-6 of the instruction
+template <unsigned tokenIndex>
+struct RegRs2 : public GPR_Reg<RegRs2<tokenIndex>, tokenIndex, BitRange<2, 6>> {
+  constexpr static std::string_view Name = "rs2";
+};
+
 /// The RV-C Rs2' field contains a source register index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
 template <unsigned tokenIndex>
@@ -291,6 +298,66 @@ struct CNop : public RVC_Instruction<CNop> {
 };
 
 } // namespace TypeCI
+
+namespace TypeCSS {
+
+enum class Funct3 { SWSP = 0b110, FSWSP = 0b111, SDSP = 0b111, FSDSP = 0b101 };
+
+constexpr static unsigned ValidTokenIndex = 1;
+
+template <typename InstrImpl, Funct3 funct3,
+          template <unsigned> typename ImmType>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT2>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
+  struct Fields : public FieldSet<RegRs2, ImmType> {};
+};
+
+/// An RV-C unsigned immediate field with an input width of 8 bits.
+/// Used in C.SWSP and C.FSWSP instructions.
+///
+/// It is defined as:
+///  - Imm[7:6] = Inst[8:7]
+///  - Imm[5:2] = Inst[12:9]
+///  - Imm[1:0] = 0
+template <unsigned tokenIndex>
+struct ImmSwsp : public Imm<tokenIndex, 8, Repr::Unsigned,
+                            ImmPartsImpl<ImmPart<6, 7, 8>, ImmPart<2, 9, 12>>> {
+  static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+};
+
+struct CSwsp : public Instr<CSwsp, Funct3::SWSP, ImmSwsp> {
+  constexpr static std::string_view Name = "c.swsp";
+};
+
+struct CFswsp : public Instr<CFswsp, Funct3::FSWSP, ImmSwsp> {
+  constexpr static std::string_view Name = "c.fswsp";
+};
+
+/// An RV-C unsigned immediate field with an input width of 9 bits.
+/// Used in C.SDSP and C.FSDSP instructions.
+///
+/// It is defined as:
+///  - Imm[8:6] = Inst[9:7]
+///  - Imm[5:3] = Inst[12:10]
+///  - Imm[2:0] = 0
+template <unsigned tokenIndex>
+struct ImmSdsp
+    : public Imm<tokenIndex, 9, Repr::Unsigned,
+                 ImmPartsImpl<ImmPart<6, 7, 9>, ImmPart<3, 10, 12>>> {
+  static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+};
+
+struct CSdsp : public Instr<CSdsp, Funct3::SDSP, ImmSdsp> {
+  constexpr static std::string_view Name = "c.sdsp";
+};
+
+struct CFsdsp : public Instr<CFsdsp, Funct3::FSDSP, ImmSdsp> {
+  constexpr static std::string_view Name = "c.fsdsp";
+};
+
+} // namespace TypeCSS
 
 } // namespace ExtC
 
