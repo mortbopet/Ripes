@@ -39,6 +39,20 @@ struct OpPartFunct2
                     BitRange<static_cast<unsigned>(offset),
                              static_cast<unsigned>(offset) + 1>> {};
 
+/// All RISC-V Funct4 opcode parts are defined as a 4-bit field in bits 12-15 of
+/// the instruction
+template <unsigned funct4>
+struct OpPartFunct4
+    : public OpPart<static_cast<unsigned>(funct4), BitRange<12, 15>> {};
+
+/// The RV-C Rs1 field contains a source register index.
+/// It is defined as a 5-bit field in bits 7-11 of the instruction
+template <unsigned tokenIndex>
+struct RegRs1
+    : public GPR_Reg<RegRs1<tokenIndex>, tokenIndex, BitRange<7, 11>> {
+  constexpr static std::string_view Name = "rs1";
+};
+
 /// The RV-C Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 2-6 of the instruction
 template <unsigned tokenIndex>
@@ -646,6 +660,30 @@ struct CAddi4spn : public RVC_Instruction<CAddi4spn> {
 };
 
 } // namespace TypeCIW
+
+namespace TypeCR {
+
+enum class Funct4 { MV = 0b1000, ADD = 0b1001 };
+
+constexpr static unsigned ValidTokenIndex = 1;
+
+template <typename InstrImpl, Funct4 funct4>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT2>,
+                         OpPartFunct4<static_cast<unsigned>(funct4)>> {};
+  struct Fields : public FieldSet<RegRs1, RegRs2> {};
+};
+
+struct CMv : public Instr<CMv, Funct4::MV> {
+  constexpr static std::string_view Name = "c.mv";
+};
+
+struct CAdd : public Instr<CAdd, Funct4::ADD> {
+  constexpr static std::string_view Name = "c.add";
+};
+
+} // namespace TypeCR
 
 } // namespace ExtC
 
