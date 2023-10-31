@@ -278,6 +278,18 @@ struct CAddi
   constexpr static std::string_view Name = "c.addi";
 };
 
+struct CNop : public RVC_Instruction<CNop> {
+  /// The 14-bit field from bits 2-15 are set to 0 in a compressed NOP
+  /// instruction
+  struct OpPart : OpPartZeroes<2, 15, INSTR_BITS> {};
+
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT1>, OpPart> {};
+  struct Fields : public FieldSet<> {};
+
+  constexpr static std::string_view Name = "c.nop";
+};
+
 } // namespace TypeCI
 
 } // namespace ExtC

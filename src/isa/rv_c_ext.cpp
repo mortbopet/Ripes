@@ -10,7 +10,7 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
   using namespace TypeCI;
 
   enableInstructions<CSub, CXor, COr, CAnd, CLwsp, CFldsp, CSlli, CLi, CLui,
-                     CAddi16Sp, CAddi>(instructions);
+                     CAddi16Sp, CAddi, CNop>(instructions);
 
   if (isa->bits() == 32) {
     enableInstructions<CFlwsp>(instructions);
