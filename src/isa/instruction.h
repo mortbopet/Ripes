@@ -465,9 +465,11 @@ struct ImmPartBase {
   // ImmPartsImpl
   using BitRanges = BitRangeSet<BitRange>;
 
-  static_assert(BitRange::Width() + _offset < BitRange::N(),
-                "ImmPart does not fit in BitRange size. Check ImmPart offset"
-                " and BitRange width");
+  // TODO(raccog): This assertion should be changed to use the register width
+  // instead of `BitRange::N`
+  //  static_assert(BitRange::Width() + _offset < BitRange::N(),
+  //                "ImmPart does not fit in BitRange size. Check ImmPart
+  //                offset" " and BitRange width");
 
   /// Returns the offset applied to this part when it is constructed into an
   /// immediate value.

@@ -220,18 +220,18 @@ struct OpPartQuadrant
 
 /// All RISC-V Funct3 opcode parts are defined as a 3-bit field in bits 12-14
 /// of the instruction
-template <unsigned funct3>
-struct OpPartFunct3 : public OpPart<funct3, BitRange<12, 14>> {};
+template <unsigned funct3, unsigned N = 32>
+struct OpPartFunct3 : public OpPart<funct3, BitRange<12, 14, N>> {};
 
 /// All RISC-V Funct6 opcode parts are defined as a 6-bit field in bits 26-31
 /// of the instruction
-template <unsigned funct6>
-struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31>> {};
+template <unsigned funct6, unsigned N = 32>
+struct OpPartFunct6 : public OpPart<funct6, BitRange<26, 31, N>> {};
 
 /// All RISC-V Funct7 opcode parts are defined as a 7-bit field in bits 25-31
 /// of the instruction
-template <unsigned funct7>
-struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31>> {};
+template <unsigned funct7, unsigned N = 32>
+struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31, N>> {};
 
 template <typename RegImpl, unsigned tokenIndex, typename Range>
 struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
