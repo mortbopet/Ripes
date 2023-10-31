@@ -199,7 +199,8 @@ protected:
     LinkRequest(const Location &location) : Location(location) {}
     Reg_T
         offset; // Offset of instruction in segment which needs link resolution
-    Section section; // Section which instruction was emitted in
+    Section section;         // Section which instruction was emitted in
+    unsigned instrAlignment; // Alignment of instruction in bytes
 
     // Reference to the immediate field which resolves the symbol and the
     // requested symbol
@@ -392,6 +393,7 @@ protected:
           req.offset = addr_offset;
           req.fieldRequest = machineCode.linksWithSymbol;
           req.section = m_currentSection;
+          req.instrAlignment = m_isa->instrByteAlignment();
           needsLinkage.push_back(req);
         }
 
@@ -469,7 +471,7 @@ protected:
 
       // Decode instruction at link-request position
       assert(static_cast<unsigned>(section.size()) >=
-                 (linkRequest.offset + 4) &&
+                 (linkRequest.offset + linkRequest.instrAlignment) &&
              "Error: position of link request is not within program");
       Instr_T instr =
           *reinterpret_cast<Instr_T *>(section.data() + linkRequest.offset);
