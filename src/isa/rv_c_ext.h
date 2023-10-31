@@ -479,6 +479,54 @@ struct CFsd : public Instr<CFsd, Funct3::FSD> {
 
 } // namespace TypeCS
 
+namespace TypeJ {
+
+enum class Funct3 { J = 0b101, JAL = 0b001 };
+
+constexpr static unsigned ValidTokenIndex = 0;
+
+template <typename InstrImpl, Funct3 funct3>
+struct Instr : public RVC_Instruction<InstrImpl> {
+
+  /// An RV-C signed immediate field with an input width of 12 bits.
+  /// Used in C.J and C.JAL instructions.
+  ///
+  /// It is defined as:
+  ///  - Imm[11]  = Inst[12]
+  ///  - Imm[10]  = Inst[8]
+  ///  - Imm[9:8] = Inst[10:9]
+  ///  - Imm[7]   = Inst[6]
+  ///  - Imm[6]   = Inst[7]
+  ///  - Imm[5]   = Inst[2]
+  ///  - Imm[4]   = Inst[11]
+  ///  - Imm[3:1] = Inst[5:3]
+  ///  - Imm[0]   = 0
+  template <unsigned tokenIndex>
+  struct Imm
+      : public Ripes::Imm<tokenIndex, 12, Repr::Signed,
+                          ImmPartsImpl<ImmPart<11, 12, 12>, ImmPart<10, 8, 8>,
+                                       ImmPart<8, 9, 10>, ImmPart<7, 6, 6>,
+                                       ImmPart<6, 7, 7>, ImmPart<5, 2, 2>,
+                                       ImmPart<4, 11, 11>, ImmPart<1, 3, 5>>> {
+    static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+  };
+
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT1>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
+  struct Fields : public FieldSet<Imm> {};
+};
+
+struct CJ : public Instr<CJ, Funct3::J> {
+  constexpr static std::string_view Name = "c.j";
+};
+
+struct CJal : public Instr<CJal, Funct3::JAL> {
+  constexpr static std::string_view Name = "c.jal";
+};
+
+} // namespace TypeJ
+
 } // namespace ExtC
 
 } // namespace RVISA
