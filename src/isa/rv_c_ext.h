@@ -449,6 +449,36 @@ struct CFld : public Instr<CFld, Funct3::FLD, ImmLd> {
 
 } // namespace TypeCL
 
+namespace TypeCS {
+
+enum class Funct3 { SW = 0b110, FSW = 0b111, SD = 0b111, FSD = 0b101 };
+
+template <typename InstrImpl, Funct3 funct3>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT0>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
+  struct Fields : public FieldSet<RegRs2Prime, RegRs1Prime, ImmCommon7_U> {};
+};
+
+struct CSw : public Instr<CSw, Funct3::SW> {
+  constexpr static std::string_view Name = "c.sw";
+};
+
+struct CFsw : public Instr<CFsw, Funct3::FSW> {
+  constexpr static std::string_view Name = "c.fsw";
+};
+
+struct CSd : public Instr<CSd, Funct3::SD> {
+  constexpr static std::string_view Name = "c.sd";
+};
+
+struct CFsd : public Instr<CFsd, Funct3::FSD> {
+  constexpr static std::string_view Name = "c.fsd";
+};
+
+} // namespace TypeCS
+
 } // namespace ExtC
 
 } // namespace RVISA
