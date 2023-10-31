@@ -9,14 +9,15 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
   using namespace TypeCA;
   using namespace TypeCI;
   using namespace TypeCSS;
+  using namespace TypeCL;
 
   enableInstructions<CSub, CXor, COr, CAnd, CLwsp, CFldsp, CSlli, CLi, CLui,
-                     CAddi16Sp, CAddi, CNop, CSwsp, CFsdsp>(instructions);
+                     CAddi16Sp, CAddi, CNop, CSwsp, CFsdsp, CLw>(instructions);
 
   if (isa->bits() == 32) {
-    enableInstructions<CFlwsp, CFswsp>(instructions);
+    enableInstructions<CFlwsp, CFswsp, CFlw>(instructions);
   } else {
-    enableInstructions<CLdsp, CAddiw, CSdsp>(instructions);
+    enableInstructions<CLdsp, CAddiw, CSdsp, CLd>(instructions);
   }
 
   if (isa->bits() == 64) {

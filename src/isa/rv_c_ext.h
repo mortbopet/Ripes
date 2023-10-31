@@ -46,12 +46,29 @@ struct RegRs2 : public GPR_Reg<RegRs2<tokenIndex>, tokenIndex, BitRange<2, 6>> {
   constexpr static std::string_view Name = "rs2";
 };
 
+/// The RV-C Rs1' field contains a source register index.
+/// It is defined as a 3-bit field in bits 7-9 of the instruction
+template <unsigned tokenIndex>
+struct RegRs1Prime
+    : public GPR_Reg<RegRs1Prime<tokenIndex>, tokenIndex, BitRange<7, 9>> {
+  constexpr static std::string_view Name = "rs1'";
+};
+
 /// The RV-C Rs2' field contains a source register index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
 template <unsigned tokenIndex>
 struct RegRs2Prime
     : public GPR_Reg<RegRs2Prime<tokenIndex>, tokenIndex, BitRange<2, 4>> {
   constexpr static std::string_view Name = "rs2'";
+};
+
+/// The RV-C Rd' field contains a destination register
+/// index.
+/// It is defined as a 3-bit field in bits 2-4 of the instruction
+template <unsigned tokenIndex>
+struct RegRdPrime
+    : public GPR_Reg<RegRdPrime<tokenIndex>, tokenIndex, BitRange<2, 4>> {
+  constexpr static std::string_view Name = "rd'";
 };
 
 /// An RV-C immediate field with an input width of 6 bits.
@@ -75,6 +92,33 @@ template <unsigned tokenIndex>
 using ImmCommon6_S = ImmCommon6<tokenIndex, Repr::Signed>;
 template <unsigned tokenIndex>
 using ImmCommon6_U = ImmCommon6<tokenIndex, Repr::Unsigned>;
+
+/// An RV-C immediate field with an input width of 7 bits.
+/// Used in the following instructions:
+///  - C.LW
+///  - C.FLW
+///  - C.SW
+///  - C.FSW
+///  - C.SD
+///  - C.FSD
+///
+/// It is defined as:
+///  - Imm[6]   = Inst[5]
+///  - Imm[5:3] = Inst[12:10]
+///  - Imm[2]   = Inst[6]
+///  - Imm[1:0] = 0
+template <unsigned tokenIndex, Repr repr>
+struct ImmCommon7
+    : public Imm<tokenIndex, 7, repr,
+                 ImmPartsImpl<ImmPart<6, 5, 5>, ImmPart<3, 10, 12>,
+                              ImmPart<2, 6, 6>>> {
+  constexpr static unsigned ValidTokenIndex = 2;
+  static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+};
+template <unsigned tokenIndex>
+using ImmCommon7_S = ImmCommon7<tokenIndex, Repr::Signed>;
+template <unsigned tokenIndex>
+using ImmCommon7_U = ImmCommon7<tokenIndex, Repr::Unsigned>;
 
 namespace TypeCA {
 
@@ -358,6 +402,52 @@ struct CFsdsp : public Instr<CFsdsp, Funct3::FSDSP, ImmSdsp> {
 };
 
 } // namespace TypeCSS
+
+namespace TypeCL {
+
+enum class Funct3 { LW = 0b010, FLW = 0b011, LD = 0b011, FLD = 0b001 };
+
+constexpr static unsigned ValidTokenIndex = 2;
+
+template <typename InstrImpl, Funct3 funct3,
+          template <unsigned> typename ImmType>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  struct Opcode
+      : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT0>,
+                         OpPartFunct3<static_cast<unsigned>(funct3)>> {};
+  struct Fields : public FieldSet<RegRdPrime, RegRs1Prime, ImmType> {};
+};
+
+/// An RV-C signed immediate field with an input width of 8 bits.
+/// Used in C.LD and C.FLD instructions.
+///
+/// It is defined as:
+///  - Imm[7:6] = Inst[6:5]
+///  - Imm[5:3] = Inst[12:10]
+///  - Imm[2:0] = 0
+template <unsigned tokenIndex>
+struct ImmLd : public Imm<tokenIndex, 8, Repr::Signed,
+                          ImmPartsImpl<ImmPart<6, 5, 6>, ImmPart<3, 10, 12>>> {
+  static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+};
+
+struct CLw : public Instr<CLw, Funct3::LW, ImmCommon7_S> {
+  constexpr static std::string_view Name = "c.lw";
+};
+
+struct CFlw : public Instr<CFlw, Funct3::FLW, ImmCommon7_S> {
+  constexpr static std::string_view Name = "c.flw";
+};
+
+struct CLd : public Instr<CLd, Funct3::LD, ImmLd> {
+  constexpr static std::string_view Name = "c.ld";
+};
+
+struct CFld : public Instr<CFld, Funct3::FLD, ImmLd> {
+  constexpr static std::string_view Name = "c.fld";
+};
+
+} // namespace TypeCL
 
 } // namespace ExtC
 
