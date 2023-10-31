@@ -570,6 +570,83 @@ struct CBnez : public Instr<CBnez, Funct3::BNEZ> {
 
 } // namespace TypeCB
 
+namespace TypeCB2 {
+
+enum class Funct2 { SRLI = 0b00, SRAI = 0b01, ANDI = 0b10 };
+
+constexpr static unsigned ValidTokenIndex = 1;
+
+template <typename InstrImpl, Funct2 funct2, Repr repr>
+struct Instr : public RVC_Instruction<InstrImpl> {
+  /// An RV-C immediate field with an input width of 6 bits.
+  /// Used in the following instructions:
+  ///  - C.SRLI (unsigned)
+  ///  - C.SRAI (unsigned)
+  ///  - C.ANDI (signed)
+  ///
+  /// It is defined as:
+  ///  - Imm[5]   = Inst[12]
+  ///  - Imm[4:0] = Inst[6:2]
+  template <unsigned tokenIndex>
+  struct Imm
+      : public Ripes::Imm<tokenIndex, 6, repr,
+                          ImmPartsImpl<ImmPart<5, 12, 12>, ImmPart<0, 2, 6>>> {
+    static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+  };
+
+  struct Opcode
+      : public OpcodeSet<
+            OpPartQuadrant<QuadrantID::QUADRANT1>,
+            OpPartFunct2<static_cast<unsigned>(funct2), Funct2Offset::OFFSET10>,
+            OpPartFunct3<0b100>> {};
+  struct Fields : public FieldSet<RegRs1Prime, Imm> {};
+};
+
+struct CSrli : public Instr<CSrli, Funct2::SRLI, Repr::Unsigned> {
+  constexpr static std::string_view Name = "c.srli";
+};
+
+struct CSrai : public Instr<CSrai, Funct2::SRAI, Repr::Unsigned> {
+  constexpr static std::string_view Name = "c.srai";
+};
+
+struct CAndi : public Instr<CAndi, Funct2::ANDI, Repr::Signed> {
+  constexpr static std::string_view Name = "c.andi";
+};
+
+} // namespace TypeCB2
+
+namespace TypeCIW {
+
+constexpr static unsigned ValidTokenIndex = 1;
+
+struct CAddi4spn : public RVC_Instruction<CAddi4spn> {
+  /// An RV-C unsigned immediate field with an input width of 10 bits.
+  /// Used in the C.ADDI4SPN instruction.
+  ///
+  /// It is defined as:
+  ///  - Imm[9:6] = Inst[10:7]
+  ///  - Imm[5:4] = Inst[12:11]
+  ///  - Imm[3]   = Inst[5]
+  ///  - Imm[2]   = Inst[6]
+  ///  - Imm[1:0] = 0
+  template <unsigned tokenIndex>
+  struct Imm
+      : public Ripes::Imm<tokenIndex, 10, Repr::Unsigned,
+                          ImmPartsImpl<ImmPart<6, 7, 10>, ImmPart<4, 11, 12>,
+                                       ImmPart<3, 5, 5>, ImmPart<2, 6, 6>>> {
+    static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
+  };
+
+  struct Opcode : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT0>,
+                                   OpPartFunct3<0b000>> {};
+  struct Fields : public FieldSet<RegRdPrime, Imm> {};
+
+  constexpr static std::string_view Name = "c.addi4spn";
+};
+
+} // namespace TypeCIW
+
 } // namespace ExtC
 
 } // namespace RVISA
