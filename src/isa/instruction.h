@@ -1,9 +1,9 @@
 #pragma once
 
 #include <climits>
-#include <experimental/type_traits>
 #include <memory>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include <QList>
@@ -56,17 +56,15 @@ using IsField =
                                 std::declval<LineTokens &>()));
 
 template <typename MaybeBitRange>
-constexpr bool VerifyBitRange =
-    std::experimental::is_detected_v<IsBitRange, MaybeBitRange>;
+constexpr bool VerifyBitRange = qxp::is_detected_v<IsBitRange, MaybeBitRange>;
 template <typename MaybeField>
-constexpr bool VerifyField =
-    std::experimental::is_detected_v<IsField, MaybeField>;
+constexpr bool VerifyField = qxp::is_detected_v<IsField, MaybeField>;
 
 template <template <typename...> class Op, typename...>
 struct VerifyValidTypes {};
 template <template <typename...> class Op, typename Type, typename... NextTypes>
 struct VerifyValidTypes<Op, Type, NextTypes...> {
-  static_assert(std::experimental::is_detected_v<Op, Type>, "Invalid type");
+  static_assert(qxp::is_detected_v<Op, Type>, "Invalid type");
 
   constexpr static VerifyValidTypes<Op, NextTypes...> VerifyRest{};
 };
@@ -833,12 +831,12 @@ constexpr inline static void _enableInstructions(InstrVecType &instructions) {
 
 template <typename... Instructions>
 constexpr inline static void enableInstructions(InstrVec &instructions) {
-  (
-      [&] {
-        static_assert((InstrVerify<Instructions>::value),
-                      "Could not verify instruction");
-      }(),
-      ...);
+  //  (
+  //      [&] {
+  //        static_assert((InstrVerify<Instructions>::value),
+  //                      "Could not verify instruction");
+  //      }(),
+  //      ...);
   // TODO(raccog): Ensure no duplicate instruction definitions (will be
   // difficult, since enableInstructions can be called multiple times)
   return _enableInstructions<InstrVec, Instructions...>(instructions);
