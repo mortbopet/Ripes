@@ -259,53 +259,6 @@ struct RegRd : public GPR_Reg<RegRd<tokenIndex>, tokenIndex, BitRange<7, 11>> {
   constexpr static std::string_view Name = "rd";
 };
 
-template <unsigned tokenIndex>
-struct PseudoReg : public Ripes::PseudoReg<tokenIndex, RV_GPRInfo> {};
-
-template <typename PseudoInstrImpl>
-struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
-  struct Fields : public FieldSet<PseudoReg, PseudoImm> {};
-
-  static Result<std::vector<LineTokens>>
-  expander(const PseudoInstruction<PseudoInstrImpl> &,
-           const TokenizedSrcLine &line, const SymbolMap &) {
-    LineTokensVec v;
-    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
-                             << Token(line.tokens.at(2), "%pcrel_hi"));
-    v.push_back(LineTokens()
-                << QString(PseudoInstrImpl::Name.data()) << line.tokens.at(1)
-                << Token(QString("(%1 + 4) ").arg(line.tokens.at(2)),
-                         "%pcrel_lo")
-                << line.tokens.at(1));
-    return v;
-  }
-};
-
-template <typename PseudoInstrImpl>
-struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
-  struct Fields : public FieldSet<PseudoReg, PseudoImm, PseudoReg> {};
-
-  static Result<std::vector<LineTokens>>
-  expander(const PseudoInstruction<PseudoInstrImpl> &,
-           const TokenizedSrcLine &line, const SymbolMap &) {
-    bool canConvert;
-    getImmediate(line.tokens.at(2), canConvert);
-    if (canConvert) {
-      return Result<std::vector<LineTokens>>(
-          Error(0, "Unused; will fallback to non-pseudo op sw"));
-    }
-    LineTokensVec v;
-    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
-                             << Token(line.tokens.at(2), "%pcrel_hi"));
-    v.push_back(LineTokens()
-                << QString(PseudoInstrImpl::Name.data()) << line.tokens.at(1)
-                << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
-                         "%pcrel_lo")
-                << line.tokens.at(3));
-    return Result<std::vector<LineTokens>>(v);
-  }
-};
-
 }; // namespace RVISA
 
 } // namespace Ripes

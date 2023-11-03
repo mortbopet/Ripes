@@ -20,19 +20,19 @@ using PseudoExpandFunc = std::function<Result<std::vector<LineTokens>>(
 
 template <typename PseudoInstrImpl>
 struct PseudoInstruction : public PseudoInstructionBase {
-  constexpr static unsigned ExpectedTokens =
-      1 + PseudoInstrImpl::Fields::NumFields();
+  constexpr static unsigned ExpectedTokens() {
+    return 1 + PseudoInstrImpl::Fields::NumFields();
+  }
   QString name() const override {
     return QString(PseudoInstrImpl::Name.data());
   }
   Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                          SymbolMap &symbols) const override {
-    if (line.tokens.length() != PseudoInstrImpl::ExpectedTokens) {
-      return Error(line,
-                   "Instruction '" + name() + "' expects " +
-                       QString::number(PseudoInstrImpl::ExpectedTokens - 1) +
-                       " arguments, but got " +
-                       QString::number(line.tokens.length() - 1));
+    if (line.tokens.length() != ExpectedTokens()) {
+      return Error(line, "Instruction '" + name() + "' expects " +
+                             QString::number(ExpectedTokens() - 1) +
+                             " arguments, but got " +
+                             QString::number(line.tokens.length() - 1));
     }
 
     return PseudoInstrImpl::expander(*this, line, symbols);

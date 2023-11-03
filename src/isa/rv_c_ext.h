@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pseudoinstruction.h"
-#include "rv_i_ext.h"
 #include "rvisainfo_common.h"
 
 namespace Ripes {
