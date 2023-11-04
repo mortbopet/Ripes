@@ -311,11 +311,21 @@ QWidget *SettingsDialog::createSimulatorPage() {
   appendToLayout({rewindLabel, rewindSpinbox}, pageLayout,
                  "Maximum cycles that the simulator is able to undo.");
 
+  // Setting: RIPES_SETTING_PERIPHERALS_START
   appendToLayout(createSettingsWidgets<HexSpinBox>(
                      RIPES_SETTING_PERIPHERALS_START, "I/O start address:"),
                  pageLayout,
                  "Start address in the address space where peripherals will be "
                  "allocated from, growing upwards");
+
+  // Setting: RIPES_SETTING_VCD_TRACE
+  auto [vcdEnableLabel, vcdEnable] = createSettingsWidgets<QCheckBox>(
+      RIPES_SETTING_VCD_TRACE, "Enable simulation VCD traces.");
+  auto [vcdTraceFileLabel, vcdTraceFile] = createSettingsWidgets<QLineEdit>(
+      RIPES_SETTING_VCD_TRACE_FILE, "VCD trace file:");
+
+  appendToLayout({vcdEnableLabel, vcdEnable}, pageLayout);
+  appendToLayout({vcdTraceFileLabel, vcdTraceFile}, pageLayout);
 
   return pageWidget;
 }

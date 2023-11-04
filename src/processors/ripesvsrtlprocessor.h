@@ -30,6 +30,10 @@ public:
 
   virtual void reverseProcessor() override { reverse(); }
 
+  virtual void vcdTrace(bool enable, const QString &filename) override {
+    vsrtl::core::Design::vcdTrace(enable, filename.toStdString());
+  }
+
   long long getInstructionsRetired() const override {
     return m_instructionsRetired;
   }

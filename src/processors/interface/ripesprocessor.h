@@ -262,6 +262,12 @@ public:
    */
   virtual void resetProcessor() = 0;
 
+  /*
+   * @brief vcdTrace
+   * Enables VCD tracing of the processor model, if supported by the simulator.
+   */
+  virtual void vcdTrace(bool enable, const QString &filename){};
+
   /**
    * @brief clock
    * Clocks the processor.
