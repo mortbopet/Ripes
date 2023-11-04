@@ -320,7 +320,7 @@ QWidget *SettingsDialog::createSimulatorPage() {
 
   // Setting: RIPES_SETTING_VCD_TRACE
   auto [vcdEnableLabel, vcdEnable] = createSettingsWidgets<QCheckBox>(
-      RIPES_SETTING_VCD_TRACE, "Enable simulation VCD traces.");
+      RIPES_SETTING_VCD_TRACE, "Enable simulation VCD traces:");
   auto [vcdTraceFileLabel, vcdTraceFile] = createSettingsWidgets<QLineEdit>(
       RIPES_SETTING_VCD_TRACE_FILE, "VCD trace file:");
 
