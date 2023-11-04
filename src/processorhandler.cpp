@@ -88,6 +88,23 @@ ProcessorHandler::ProcessorHandler() {
   m_currentProcessor->setMaxReverseCycles(
       RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toInt());
 
+  connect(RipesSettings::getObserver(RIPES_SETTING_VCD_TRACE),
+          &SettingObserver::modified, this, [=](const auto &enabled) {
+            m_currentProcessor->vcdTrace(
+                enabled.toBool(),
+                RipesSettings::value(RIPES_SETTING_VCD_TRACE_FILE).toString());
+          });
+
+  connect(RipesSettings::getObserver(RIPES_SETTING_VCD_TRACE_FILE),
+          &SettingObserver::modified, this, [=](const auto &file) {
+            m_currentProcessor->vcdTrace(
+                RipesSettings::value(RIPES_SETTING_VCD_TRACE).toBool(),
+                file.toString());
+          });
+
+  // Reset VCD trace status.
+  RipesSettings::getObserver(RIPES_SETTING_VCD_TRACE_FILE)->trigger();
+
   // Reset request handling
   connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET),
           &SettingObserver::modified, this, &ProcessorHandler::_reset);
