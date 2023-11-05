@@ -21,6 +21,11 @@ int64_t getImmediate(const QString &string, bool &canConvert,
 int64_t getImmediateSext32(const QString &string, bool &canConvert,
                            ImmConvInfo *convInfo = nullptr);
 
+// Parses the given string as a double, and returns the result. If the string
+// cannot be parsed as a double, the canConvert flag is set to false, and the
+// return value is undefined.
+double getDouble(const QString &string, bool &canConvert);
+
 /**
  * @brief joinParentheses takes a number of tokens and merges together tokens
  * contained within top-level parentheses. For example: [lw, x10, (B, +,

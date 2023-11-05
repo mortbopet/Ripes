@@ -6,6 +6,7 @@
 #include "assembler_defines.h"
 #include "binutils.h"
 #include "parserutilities.h"
+#include "typeswitch.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -19,109 +20,88 @@ const QString s_exprTokens QStringLiteral("()+-*/%@");
   if (auto *boundVar = std::get_if<TExpr>(expr.get())) {
 #define FiExpr }
 
-struct Expr;
-
 struct Printable {
   virtual ~Printable(){};
   virtual void print(std::ostream &str) const = 0;
+
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const std::shared_ptr<Printable> &expr) {
+    expr->print(os);
+    return os;
+  }
 };
 
-struct Nothing : Printable {
+struct Expr : public Printable {
+  virtual ~Expr(){};
+  void print(std::ostream &) const override{};
+};
+
+struct Nothing : public Expr {
   Nothing() {}
   void print(std::ostream &str) const override;
 };
 
-struct Literal : Printable {
+struct Literal : public Expr {
   explicit Literal(const QString &_v) : v(_v) {}
   QString v;
   void print(std::ostream &str) const override;
 };
 
-struct Add : Printable {
+struct Add : public Expr {
   Add(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct Sub : Printable {
+struct Sub : public Expr {
   Sub(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct Mul : Printable {
+struct Mul : public Expr {
   Mul(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct Div : Printable {
+struct Div : public Expr {
   Div(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct Mod : Printable {
+struct Mod : public Expr {
   Mod(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct And : Printable {
+struct And : public Expr {
   And(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct Or : Printable {
+struct Or : public Expr {
   Or(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
 };
 
-struct SignExtend : Printable {
+struct SignExtend : public Expr {
   SignExtend(const std::shared_ptr<Expr> &_lhs,
              const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
   void print(std::ostream &str) const override;
-};
-
-struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing,
-                           SignExtend> {
-  using variant::variant;
-
-  /**
-   * @brief operator <<
-   * This also seem quite dumb, same issue as with evaluate (see comment)
-   */
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const std::shared_ptr<Expr> &expr) {
-#define tryPrint(type)                                                         \
-  IfExpr(type, v) {                                                            \
-    v->print(os);                                                              \
-    return os;                                                                 \
-  }                                                                            \
-  FiExpr;
-
-    tryPrint(Add);
-    tryPrint(Div);
-    tryPrint(Mul);
-    tryPrint(Sub);
-    tryPrint(Literal);
-    tryPrint(Mod);
-    tryPrint(Nothing);
-    tryPrint(SignExtend);
-
-    return os;
-  };
 };
 
 // clang-format off
@@ -167,11 +147,10 @@ ExprRes rightRec(const Location &loc, const std::shared_ptr<Expr> &lhs,
   if (auto *err = std::get_if<Error>(&rhs)) {
     return {*err};
   }
-  return {
-      std::make_shared<Expr>(BinOp{lhs, std::get<std::shared_ptr<Expr>>(rhs)})};
+  return {std::make_shared<BinOp>(lhs, rhs.value())};
 }
 
-#define Token(lhs) std::make_shared<Expr>(Literal{lhs})
+#define Token(lhs) std::shared_ptr<Expr>(std::make_shared<Literal>(lhs))
 
 ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth);
 ExprRes parseRight(const Location &loc, const QString &s, int &pos,
@@ -188,7 +167,7 @@ ExprRes parseRight(const Location &loc, const QString &s, int &pos,
             case '/': { return rightRec<Div>(loc, Token(lhs), s, pos, depth);}
             case '*': { return rightRec<Mul>(loc, Token(lhs), s, pos, depth);}
             case '-': {
-                auto lhsToken = lhs.isEmpty() ? std::make_shared<Expr>(Nothing()) : Token(lhs); // Allow unary '-'
+                auto lhsToken = lhs.isEmpty() ? std::make_shared<Nothing>() : Token(lhs); // Allow unary '-'
                 return rightRec<Sub>(loc, lhsToken, s, pos, depth);}
             case '%': { return rightRec<Mod>(loc, Token(lhs), s, pos, depth);}
             case '|': { return rightRec<Or>(loc, Token(lhs), s, pos, depth);}
@@ -207,7 +186,7 @@ ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth) {
     return {*err};
   }
 
-  const auto &res = std::get<std::shared_ptr<Expr>>(left);
+  const auto &res = left.value();
   if (pos < s.length()) {
     auto &ch = s.at(pos);
     pos++;
@@ -230,72 +209,130 @@ ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth) {
   }
 }
 
-VIntS evaluate(const std::shared_ptr<Expr> &expr,
-               const AbsoluteSymbolMap *variables) {
-  // There is a bug in GCC for variant visitors on incomplete variant types
-  // (recursive), So instead we'll macro our way towards something that looks
-  // like a pattern match for the variant type.
-  IfExpr(Add, v) {
-    return evaluate(v->lhs, variables) + evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Div, v) {
-    return evaluate(v->lhs, variables) / evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Mul, v) {
-    return evaluate(v->lhs, variables) * evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Sub, v) {
-    return evaluate(v->lhs, variables) - evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Mod, v) {
-    return evaluate(v->lhs, variables) % evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(And, v) {
-    return evaluate(v->lhs, variables) & evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Or, v) {
-    return evaluate(v->lhs, variables) | evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(SignExtend, v) {
-    return vsrtl::signextend(evaluate(v->lhs, variables),
-                             evaluate(v->rhs, variables));
-  }
-  FiExpr;
-  IfExpr(Nothing, v) {
-    Q_UNUSED(v);
-    return 0;
-  }
-  FiExpr;
-  IfExpr(Literal, v) {
-    bool ok = false;
-    auto value = getImmediate(v->v, ok);
-    if (!ok) {
-      if (variables != nullptr) {
-        auto it = variables->find(v->v);
-        if (it != variables->end()) {
-          value = it->second;
-          ok = true;
+// A template for generating arithmetic expression evaluators that can
+// dispatch (and error check) for both integer or double contexts.
+template <typename TExpr, typename IntFunc, typename DoubleFunc>
+std::function<ExprEvalRes(const TExpr &, const AbsoluteSymbolMap *)>
+genEvaluateArithExprF(IntFunc intFunc, DoubleFunc doubleFunc,
+                      bool disableDouble = false) {
+  return [&](const TExpr &v,
+             const AbsoluteSymbolMap *variables) -> ExprEvalRes {
+    ExprEvalRes lhsRes = evaluate(v.lhs, variables);
+    ExprEvalRes rhsRes = evaluate(v.rhs, variables);
+    // If either result errored, return the error.
+    if (failed(lhsRes))
+      return lhsRes.error();
+    if (failed(rhsRes))
+      return rhsRes.error();
+
+    // Check if they are of the same implementing type - for now, we
+    // restrict expression evaluation on the same types...
+    if (typeid(*lhsRes) != typeid(*rhsRes)) {
+      return ExprEvalRes(Error(-1, "Cannot compute on different types"));
+    }
+
+    auto resPtr =
+        Ripes::TypeSwitch<ExprValue, ExprEvalRes>(lhsRes->get())
+            .template Case<IntRes>([&](const auto &lhs) {
+              return ExprEvalRes{std::make_shared<IntRes>(intFunc(
+                  lhs.v, static_cast<IntRes *>(rhsRes.value().get())->v))};
+            })
+            .template Case<DoubleRes>([&](const auto &lhs) {
+              if (disableDouble) {
+                return ExprEvalRes(Error(
+                    -1, "Unsupported expression for floating point values"));
+              }
+
+              return ExprEvalRes{std::make_shared<DoubleRes>(doubleFunc(
+                  lhs.v, static_cast<DoubleRes *>(rhsRes.value().get())->v))};
+            });
+    return resPtr;
+  };
+}
+
+template <typename TExpr, typename IntFunc>
+std::function<ExprEvalRes(const TExpr &, const AbsoluteSymbolMap *)>
+genIntegeronlyEvaluateArithExprF(IntFunc intFunc) {
+  auto dummyDoubleF = [](double, double) {
+    assert(false);
+    return 0.0;
+  };
+
+  return genEvaluateArithExprF<TExpr>(intFunc, dummyDoubleF, true);
+}
+
+ExprEvalRes evaluate(const std::shared_ptr<Expr> &expr,
+                     const AbsoluteSymbolMap *variables) {
+  return Ripes::TypeSwitch<Expr, ExprEvalRes>(expr.get())
+      .Case<Add>([&](const auto &v) {
+        return genEvaluateArithExprF<Add>(std::plus<int64_t>(),
+                                          std::plus<double>())(v, variables);
+      })
+      .Case<Div>([&](const auto &v) {
+        return genEvaluateArithExprF<Div>(std::divides<int64_t>(),
+                                          std::divides<double>())(v, variables);
+      })
+      .Case<Mul>([&](const auto &v) {
+        return genEvaluateArithExprF<Mul>(std::multiplies<int64_t>(),
+                                          std::multiplies<double>())(v,
+                                                                     variables);
+      })
+      .Case<Sub>([&](const auto &v) {
+        return genEvaluateArithExprF<Sub>(std::minus<int64_t>(),
+                                          std::minus<double>())(v, variables);
+      })
+      .Case<Mod>([&](const auto &v) {
+        return genEvaluateArithExprF<Mod>(std::modulus<int64_t>(),
+                                          [](double lhs, double rhs) {
+                                            return std::fmod(lhs, rhs);
+                                          })(v, variables);
+      })
+      .Case<And>([&](const auto &v) {
+        return genIntegeronlyEvaluateArithExprF<And>(std::bit_and<int64_t>())(
+            v, variables);
+      })
+      .Case<Or>([&](const auto &v) {
+        return genIntegeronlyEvaluateArithExprF<Or>(std::bit_or<int64_t>())(
+            v, variables);
+      })
+      .Case<SignExtend>([&](const auto &v) {
+        return genIntegeronlyEvaluateArithExprF<SignExtend>(
+            [](int64_t lhs, int64_t rhs) {
+              return vsrtl::signextend(lhs, rhs);
+            })(v, variables);
+      })
+      .Case<Nothing>([&](const auto &) {
+        return ExprEvalRes{std::make_shared<IntRes>(0)};
+      })
+      .Case<Literal>([&](const auto &v) -> ExprEvalRes {
+        // Try to decode as an immediate
+        bool ok = false;
+        int64_t ivalue = getImmediate(v.v, ok);
+        if (ok)
+          return {std::make_shared<IntRes>(ivalue)};
+
+        // Try to decode as a double
+        double dvalue = getDouble(v.v, ok);
+        if (ok)
+          return {std::make_shared<DoubleRes>(dvalue)};
+
+        if (!ok) {
+          if (variables != nullptr) {
+            auto it = variables->find(v.v);
+            if (it != variables->end()) {
+              return {std::make_shared<IntRes>(it->second)};
+            }
+          }
         }
-      }
-    }
 
-    if (!ok) {
-      throw std::runtime_error(
-          QString("Unknown symbol '%1'").arg(v->v).toStdString());
-    }
-
-    return value;
-  }
-  FiExpr;
-
-  Q_UNREACHABLE();
+        return ExprEvalRes(
+            Error(Location::unknown(), "Unknown symbol '" + v.v + "'"));
+      })
+      .Default([](const auto &v) {
+        std::cout << "Unhandled expression type: " << typeid(v).name() << v
+                  << std::endl;
+        return ExprEvalRes({});
+      });
 }
 
 ExprEvalRes evaluate(const Location &loc, const QString &s,
@@ -308,7 +345,7 @@ ExprEvalRes evaluate(const Location &loc, const QString &s,
   if (auto *err = std::get_if<Error>(&exprTree)) {
     return *err;
   }
-  const auto exprTreeRes = std::get<std::shared_ptr<Expr>>(exprTree);
+  const auto exprTreeRes = exprTree.value();
   try {
     return {evaluate(exprTreeRes, variables)};
   } catch (const std::runtime_error &e) {

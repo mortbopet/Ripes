@@ -6,6 +6,11 @@
 namespace Ripes {
 namespace Assembler {
 
+double getDouble(const QString &string, bool &canConvert) {
+  canConvert = false;
+  return string.toDouble(&canConvert);
+}
+
 int64_t getImmediate(const QString &string, bool &canConvert,
                      ImmConvInfo *convInfo) {
   QString upperString = string.toUpper();

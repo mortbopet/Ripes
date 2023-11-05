@@ -99,12 +99,25 @@ struct Result : public std::variant<Error, T> {
     return std::get<Error>(*this); // Make compiler happy
   }
 
+  const T &operator*() { return value(); }
+  const T *operator->() { return &value(); }
+
   bool isError() const { return std::holds_alternative<Error>(*this); }
   bool isResult() const { return std::holds_alternative<T>(*this); }
 
   // Convenience function for a default constructed value of T.
   static T def() { return std::monostate(); }
 };
+
+// Free functions for determining whether a Result is an error or not.
+template <typename T>
+static bool failed(const Result<T> &res) {
+  return res.isError();
+}
+template <typename T>
+static bool succeeded(const Result<T> &res) {
+  return res.isResult();
+}
 
 } // namespace Assembler
 } // namespace Ripes

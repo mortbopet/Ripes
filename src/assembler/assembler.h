@@ -472,7 +472,10 @@ protected:
         errors.push_back(*err);
         continue;
       } else {
-        symbolValue = std::get<ExprEvalVT>(exprRes);
+        auto valuePtr = dynamic_cast<IntRes *>(exprRes->get());
+        assert(valuePtr &&
+               "Expected integer result from expression evaluation");
+        symbolValue = valuePtr->v;
       }
 
       if (!linkRequest.fieldRequest.relocation.isEmpty()) {

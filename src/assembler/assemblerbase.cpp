@@ -44,7 +44,7 @@ ExprEvalRes AssemblerBase::evalExpr(const Location &location,
 
   auto symbolValue = relativeMap.find(expr);
   if (symbolValue != relativeMap.end()) {
-    return symbolValue->second;
+    return ExprEvalRes(std::make_shared<IntRes>(symbolValue->second));
   } else {
     return evaluate(location, expr, &relativeMap);
   }
