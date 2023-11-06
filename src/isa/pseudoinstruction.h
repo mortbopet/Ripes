@@ -20,17 +20,17 @@ using PseudoExpandFunc = std::function<Result<std::vector<LineTokens>>(
 
 template <typename PseudoInstrImpl>
 struct PseudoInstruction : public PseudoInstructionBase {
-  constexpr static unsigned ExpectedTokens() {
+  constexpr static unsigned expectedTokens() {
     return 1 + PseudoInstrImpl::Fields::numFields();
   }
   QString name() const override {
-    return QString(PseudoInstrImpl::Name.data());
+    return QString(PseudoInstrImpl::NAME.data());
   }
   Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                          SymbolMap &symbols) const override {
-    if (line.tokens.length() != ExpectedTokens()) {
+    if (line.tokens.length() != expectedTokens()) {
       return Error(line, "Instruction '" + name() + "' expects " +
-                             QString::number(ExpectedTokens() - 1) +
+                             QString::number(expectedTokens() - 1) +
                              " arguments, but got " +
                              QString::number(line.tokens.length() - 1));
     }
@@ -42,7 +42,7 @@ struct PseudoInstruction : public PseudoInstructionBase {
 template <unsigned index, typename ISAImpl>
 struct PseudoReg : public Reg<PseudoReg<index, ISAImpl>, index,
                               BitRange<index, index>, ISAImpl> {
-  constexpr static std::string_view Name = "rd";
+  constexpr static std::string_view NAME = "rd";
 };
 
 template <unsigned index>

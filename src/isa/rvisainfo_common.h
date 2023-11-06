@@ -2,7 +2,6 @@
 
 #include "instruction.h"
 #include "isainfo.h"
-#include "pseudoinstruction.h"
 
 namespace Ripes {
 
@@ -57,7 +56,7 @@ constexpr unsigned INSTR_BITS = 32;
 
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
-  constexpr static unsigned InstrBits() { return INSTR_BITS; }
+  constexpr static unsigned instrBits() { return INSTR_BITS; }
 };
 
 /// Defines information about the general RISC-V register file.
@@ -241,7 +240,7 @@ struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
 template <unsigned tokenIndex>
 struct RegRs1
     : public GPR_Reg<RegRs1<tokenIndex>, tokenIndex, BitRange<15, 19>> {
-  constexpr static std::string_view Name = "rs1";
+  constexpr static std::string_view NAME = "rs1";
 };
 
 /// The RISC-V Rs2 field contains a source register index.
@@ -249,14 +248,14 @@ struct RegRs1
 template <unsigned tokenIndex>
 struct RegRs2
     : public GPR_Reg<RegRs2<tokenIndex>, tokenIndex, BitRange<20, 24>> {
-  constexpr static std::string_view Name = "rs2";
+  constexpr static std::string_view NAME = "rs2";
 };
 
 /// The RISC-V Rd field contains a destination register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction
 template <unsigned tokenIndex>
 struct RegRd : public GPR_Reg<RegRd<tokenIndex>, tokenIndex, BitRange<7, 11>> {
-  constexpr static std::string_view Name = "rd";
+  constexpr static std::string_view NAME = "rd";
 };
 
 }; // namespace RVISA

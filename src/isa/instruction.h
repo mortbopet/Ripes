@@ -55,17 +55,21 @@ using IsField =
                                 std::declval<LineTokens &>()));
 
 template <typename MaybeBitRange>
-constexpr bool VerifyBitRange = qxp::is_detected_v<IsBitRange, MaybeBitRange>;
+constexpr bool verifyBitRange() {
+  return qxp::is_detected_v<IsBitRange, MaybeBitRange>;
+}
 template <typename MaybeField>
-constexpr bool VerifyField = qxp::is_detected_v<IsField, MaybeField>;
+constexpr bool verifyField() {
+  return qxp::is_detected_v<IsField, MaybeField>;
+}
 
 template <template <typename...> class Op, typename...>
-struct VerifyValidTypes {};
+class VerifyValidTypes {};
 template <template <typename...> class Op, typename Type, typename... NextTypes>
-struct VerifyValidTypes<Op, Type, NextTypes...> {
+class VerifyValidTypes<Op, Type, NextTypes...> {
   static_assert(qxp::is_detected_v<Op, Type>, "Invalid type");
 
-  constexpr static VerifyValidTypes<Op, NextTypes...> VerifyRest{};
+  constexpr static VerifyValidTypes<Op, NextTypes...> verifyRest{};
 };
 
 /** @brief A range of bits determined at run-time
@@ -206,7 +210,7 @@ public:
 
   static_assert(isUInt<BitRange::getInstance().width()>(value),
                 "OpPart value is too large to fit in BitRange.");
-  static_assert(VerifyBitRange<BitRange>,
+  static_assert(verifyBitRange<BitRange>(),
                 "OpPart can only contain a BitRange type");
 
   constexpr OpPart() : OpPartBase(value, BitRange::getInstance()) {}
@@ -326,7 +330,7 @@ private:
     using BitRanges = typename IndexedField::BitRanges::template CombineWith<
         typename NextIndexedFieldSet::BitRanges>;
 
-    static_assert(VerifyField<IndexedField>, "Invalid Field type");
+    static_assert(verifyField<IndexedField>(), "Invalid Field type");
 
     static Result<> apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                           FieldLinkRequest &linksWithSymbol) {
@@ -403,15 +407,15 @@ private:
 template <typename RegImpl, unsigned tokenIndex, typename BitRange,
           typename RegInfo>
 struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
-  static_assert(VerifyBitRange<BitRange>, "Invalid BitRange type");
+  static_assert(verifyBitRange<BitRange>(), "Invalid BitRange type");
 
-  Reg() : regsd(RegImpl::Name.data()) {}
+  Reg() : regsd(RegImpl::NAME.data()) {}
 
   /// Applies this register's encoding to the instruction.
   static Result<> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &) {
     if (tokenIndex + 1 >= line.tokens.size()) {
-      return Error(line, "Required field '" + QString(RegImpl::Name.data()) +
+      return Error(line, "Required field '" + QString(RegImpl::NAME.data()) +
                              "' (index " + QString::number(tokenIndex) +
                              ") not provided");
     }
@@ -745,7 +749,7 @@ struct InstrVerify : std::true_type {
   using BitRanges = typename InstrImpl::Opcode::BitRanges::template CombineWith<
       typename InstrImpl::Fields::BitRanges>;
 
-  static_assert(BitRanges::width() == InstrImpl::InstrBits(),
+  static_assert(BitRanges::width() == InstrImpl::instrBits(),
                 "Instruction does not utilize all bits");
   static_assert((BitRanges::width() % CHAR_BIT == 0),
                 "Instruction width is not byte aligned");
@@ -756,7 +760,7 @@ struct InstrByteSize {
   using BitRanges = typename InstrImpl::Opcode::BitRanges::template CombineWith<
       typename InstrImpl::Fields::BitRanges>;
 
-  constexpr static unsigned ByteSize = BitRanges::width() / CHAR_BIT;
+  constexpr static unsigned byteSize = BitRanges::width() / CHAR_BIT;
 };
 
 /** @brief An ISA instruction defined at compile-time.
@@ -765,13 +769,13 @@ struct InstrByteSize {
  *
  * `struct Opcode : public OpPartSet;`
  * `struct Fields : public FieldSet;`
- * `constexpr static std::string_view Name`
+ * `constexpr static std::string_view NAME`
  */
 template <typename InstrImpl>
 struct Instruction : public InstructionBase {
   Instruction()
-      : InstructionBase(InstrByteSize<InstrImpl>::ByteSize),
-        m_name(InstrImpl::Name.data()) {}
+      : InstructionBase(InstrByteSize<InstrImpl>::byteSize),
+        m_name(InstrImpl::NAME.data()) {}
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;

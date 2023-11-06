@@ -57,27 +57,27 @@ template <typename InstrImpl, Funct3 funct3>
 using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3>;
 
 struct Addi : public Instr32<Addi, Funct3::ADDI> {
-  constexpr static std::string_view Name = "addi";
+  constexpr static std::string_view NAME = "addi";
 };
 
 struct Andi : public Instr32<Andi, Funct3::ANDI> {
-  constexpr static std::string_view Name = "andi";
+  constexpr static std::string_view NAME = "andi";
 };
 
 struct Slti : public Instr32<Slti, Funct3::SLTI> {
-  constexpr static std::string_view Name = "slti";
+  constexpr static std::string_view NAME = "slti";
 };
 
 struct Sltiu : public Instr32<Sltiu, Funct3::SLTIU> {
-  constexpr static std::string_view Name = "sltiu";
+  constexpr static std::string_view NAME = "sltiu";
 };
 
 struct Xori : public Instr32<Xori, Funct3::XORI> {
-  constexpr static std::string_view Name = "xori";
+  constexpr static std::string_view NAME = "xori";
 };
 
 struct Ori : public Instr32<Ori, Funct3::ORI> {
-  constexpr static std::string_view Name = "ori";
+  constexpr static std::string_view NAME = "ori";
 };
 
 struct Jalr : public RV_Instruction<Jalr> {
@@ -86,11 +86,11 @@ struct Jalr : public RV_Instruction<Jalr> {
   };
   struct Fields : public FieldSet<RegRd, RegRs1, ImmCommon12> {};
 
-  constexpr static std::string_view Name = "jalr";
+  constexpr static std::string_view NAME = "jalr";
 };
 
 struct Addiw : public Instr64<Addiw, Funct3::ADDI> {
-  constexpr static std::string_view Name = "addiw";
+  constexpr static std::string_view NAME = "addiw";
 };
 
 } // namespace TypeI
@@ -108,11 +108,11 @@ enum class Funct7 : unsigned {
 ///
 /// It is defined as:
 ///  - Imm[4:0] = Inst[24:20]
-constexpr static unsigned ValidTokenIndex = 2;
-template <unsigned TokenIndex>
+constexpr static unsigned VALID_INDEX = 2;
+template <unsigned tokenIndex>
 struct ImmIShift32
-    : public Imm<TokenIndex, 5, Repr::Unsigned, ImmPart<0, 20, 24>> {
-  static_assert(TokenIndex == ValidTokenIndex, "Invalid token index");
+    : public Imm<tokenIndex, 5, Repr::Unsigned, ImmPart<0, 20, 24>> {
+  static_assert(tokenIndex == VALID_INDEX, "Invalid token index");
 };
 
 /// An IShift-Type RISC-V instruction
@@ -131,27 +131,27 @@ template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::LEFT_SHIFT>
 using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3, funct7>;
 
 struct Slli : public Instr32<Slli, Funct3::SLLI> {
-  constexpr static std::string_view Name = "slli";
+  constexpr static std::string_view NAME = "slli";
 };
 
 struct Srli : public Instr32<Srli, Funct3::SRLI> {
-  constexpr static std::string_view Name = "srli";
+  constexpr static std::string_view NAME = "srli";
 };
 
 struct Srai : public Instr32<Srai, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
-  constexpr static std::string_view Name = "srai";
+  constexpr static std::string_view NAME = "srai";
 };
 
 struct Slliw : public Instr64<Slliw, Funct3::SLLI> {
-  constexpr static std::string_view Name = "slliw";
+  constexpr static std::string_view NAME = "slliw";
 };
 
 struct Srliw : public Instr64<Srliw, Funct3::SRLI> {
-  constexpr static std::string_view Name = "srliw";
+  constexpr static std::string_view NAME = "srliw";
 };
 
 struct Sraiw : public Instr64<Sraiw, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
-  constexpr static std::string_view Name = "sraiw";
+  constexpr static std::string_view NAME = "sraiw";
 };
 
 } // namespace TypeIShift
@@ -166,11 +166,11 @@ enum class Funct6 { LEFT_SHIFT = 0b000000, RIGHT_SHIFT = 0b010000 };
 ///
 /// It is defined as:
 ///  - Imm[5:0] = Inst[25:20]
-constexpr static unsigned ValidTokenIndex = 2;
-template <unsigned TokenIndex>
+constexpr static unsigned VALID_INDEX = 2;
+template <unsigned tokenIndex>
 struct ImmIShift64
-    : public Imm<TokenIndex, 6, Repr::Unsigned, ImmPart<0, 20, 25>> {
-  static_assert(TokenIndex == ValidTokenIndex, "Invalid token index");
+    : public Imm<tokenIndex, 6, Repr::Unsigned, ImmPart<0, 20, 25>> {
+  static_assert(tokenIndex == VALID_INDEX, "Invalid token index");
 };
 
 template <typename InstrImpl, OpcodeID opcodeID, Funct3 funct3,
@@ -189,15 +189,15 @@ template <typename InstrImpl, Funct3 funct3, Funct6 funct6 = Funct6::LEFT_SHIFT>
 using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3, funct6>;
 
 struct Slli : public Instr32<Slli, Funct3::SLLI> {
-  constexpr static std::string_view Name = "slli";
+  constexpr static std::string_view NAME = "slli";
 };
 
 struct Srli : public Instr32<Srli, Funct3::SRLI> {
-  constexpr static std::string_view Name = "srli";
+  constexpr static std::string_view NAME = "srli";
 };
 
 struct Srai : public Instr32<Srai, Funct3::SRAI, Funct6::RIGHT_SHIFT> {
-  constexpr static std::string_view Name = "srai";
+  constexpr static std::string_view NAME = "srai";
 };
 
 } // namespace TypeIShift64
@@ -224,31 +224,31 @@ struct Instr : public RV_Instruction<InstrImpl> {
 };
 
 struct Lb : public Instr<Lb, Funct3::LB> {
-  constexpr static std::string_view Name = "lb";
+  constexpr static std::string_view NAME = "lb";
 };
 
 struct Lh : public Instr<Lh, Funct3::LH> {
-  constexpr static std::string_view Name = "lh";
+  constexpr static std::string_view NAME = "lh";
 };
 
 struct Lw : public Instr<Lw, Funct3::LW> {
-  constexpr static std::string_view Name = "lw";
+  constexpr static std::string_view NAME = "lw";
 };
 
 struct Lbu : public Instr<Lbu, Funct3::LBU> {
-  constexpr static std::string_view Name = "lbu";
+  constexpr static std::string_view NAME = "lbu";
 };
 
 struct Lhu : public Instr<Lhu, Funct3::LHU> {
-  constexpr static std::string_view Name = "lhu";
+  constexpr static std::string_view NAME = "lhu";
 };
 
 struct Lwu : public Instr<Lwu, Funct3::LWU> {
-  constexpr static std::string_view Name = "lwu";
+  constexpr static std::string_view NAME = "lwu";
 };
 
 struct Ld : public Instr<Ld, Funct3::LD> {
-  constexpr static std::string_view Name = "ld";
+  constexpr static std::string_view NAME = "ld";
 };
 
 } // namespace TypeL
@@ -274,7 +274,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
 };
 
 struct Ecall : public Instr<Ecall, Funct12::ECALL> {
-  constexpr static std::string_view Name = "ecall";
+  constexpr static std::string_view NAME = "ecall";
 };
 
 } // namespace TypeSystem
@@ -287,11 +287,11 @@ namespace TypeU {
 /// It is defined as:
 ///  - Imm[31:12] = Inst[31:12]
 ///  - Imm[11:0]  = 0
-constexpr static unsigned ValidTokenIndex = 1;
+constexpr static unsigned VALID_INDEX = 1;
 template <unsigned index, SymbolType symbolType>
 struct ImmU
     : public ImmSym<index, 32, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
-  static_assert(index == ValidTokenIndex, "Invalid token index");
+  static_assert(index == VALID_INDEX, "Invalid token index");
 };
 
 /// A U-Type RISC-V instruction
@@ -308,11 +308,11 @@ public:
 
 struct Auipc
     : public Instr<Auipc, RVISA::OpcodeID::AUIPC, SymbolType::Absolute> {
-  constexpr static std::string_view Name = "auipc";
+  constexpr static std::string_view NAME = "auipc";
 };
 
 struct Lui : public Instr<Lui, RVISA::OpcodeID::LUI> {
-  constexpr static std::string_view Name = "lui";
+  constexpr static std::string_view NAME = "lui";
 };
 
 } // namespace TypeU
@@ -329,21 +329,20 @@ namespace TypeJ {
 ///  - Imm[10:5]  = Inst[30:25]
 ///  - Imm[4:1]   = Inst[24:21]
 ///  - Imm[0]     = 0
-constexpr static unsigned ValidTokenIndex = 1;
+constexpr static unsigned VALID_INDEX = 1;
 template <unsigned index>
-struct ImmJ
-    : public ImmSym<index, 21, Repr::Signed,
-                    ImmPartSet<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
-                                 ImmPart<11, 20, 20>, ImmPart<1, 21, 30>>,
-                    SymbolType::Relative> {
-  static_assert(index == ValidTokenIndex, "Invalid token index");
+struct ImmJ : public ImmSym<index, 21, Repr::Signed,
+                            ImmPartSet<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
+                                       ImmPart<11, 20, 20>, ImmPart<1, 21, 30>>,
+                            SymbolType::Relative> {
+  static_assert(index == VALID_INDEX, "Invalid token index");
 };
 
 struct Jal : public RV_Instruction<Jal> {
   struct Opcode : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::JAL>> {};
   struct Fields : public FieldSet<RegRd, ImmJ> {};
 
-  constexpr static std::string_view Name = "jal";
+  constexpr static std::string_view NAME = "jal";
 };
 
 } // namespace TypeJ
@@ -359,11 +358,11 @@ enum class Funct3 { SB = 0b000, SH = 0b001, SW = 0b010, SD = 0b011 };
 ///  - Imm[31:11] = Inst[31]
 ///  - Imm[10:5]  = Inst[30:25]
 ///  - Imm[4:0]   = Inst[11:7]
-constexpr static unsigned ValidTokenIndex = 1;
+constexpr static unsigned VALID_INDEX = 1;
 template <unsigned index>
 struct ImmS : public Imm<index, 12, Repr::Signed,
                          ImmPartSet<ImmPart<5, 25, 31>, ImmPart<0, 7, 11>>> {
-  static_assert(index == ValidTokenIndex, "Invalid token index");
+  static_assert(index == VALID_INDEX, "Invalid token index");
 };
 
 template <typename InstrImpl, Funct3 funct3>
@@ -375,19 +374,19 @@ struct Instr : public RV_Instruction<InstrImpl> {
 };
 
 struct Sb : public Instr<Sb, Funct3::SB> {
-  constexpr static std::string_view Name = "sb";
+  constexpr static std::string_view NAME = "sb";
 };
 
 struct Sw : public Instr<Sw, Funct3::SW> {
-  constexpr static std::string_view Name = "sw";
+  constexpr static std::string_view NAME = "sw";
 };
 
 struct Sh : public Instr<Sh, Funct3::SH> {
-  constexpr static std::string_view Name = "sh";
+  constexpr static std::string_view NAME = "sh";
 };
 
 struct Sd : public Instr<Sd, Funct3::SD> {
-  constexpr static std::string_view Name = "sd";
+  constexpr static std::string_view NAME = "sd";
 };
 
 } // namespace TypeS
@@ -428,63 +427,63 @@ template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::DEFAULT>
 using Instr64 = Instr<InstrImpl, OpcodeID::OP32, Funct3, funct3, funct7>;
 
 struct Add : public Instr32<Add, Funct3::ADD> {
-  constexpr static std::string_view Name = "add";
+  constexpr static std::string_view NAME = "add";
 };
 
 struct Sub : public Instr32<Sub, Funct3::SUB, Funct7::SUB_SRA> {
-  constexpr static std::string_view Name = "sub";
+  constexpr static std::string_view NAME = "sub";
 };
 
 struct Sll : public Instr32<Sll, Funct3::SLL> {
-  constexpr static std::string_view Name = "sll";
+  constexpr static std::string_view NAME = "sll";
 };
 
 struct Slt : public Instr32<Slt, Funct3::SLT> {
-  constexpr static std::string_view Name = "slt";
+  constexpr static std::string_view NAME = "slt";
 };
 
 struct Sltu : public Instr32<Sltu, Funct3::SLTU> {
-  constexpr static std::string_view Name = "sltu";
+  constexpr static std::string_view NAME = "sltu";
 };
 
 struct Xor : public Instr32<Xor, Funct3::XOR> {
-  constexpr static std::string_view Name = "xor";
+  constexpr static std::string_view NAME = "xor";
 };
 
 struct Srl : public Instr32<Srl, Funct3::SRL> {
-  constexpr static std::string_view Name = "srl";
+  constexpr static std::string_view NAME = "srl";
 };
 
 struct Sra : public Instr32<Sra, Funct3::SRA, Funct7::SUB_SRA> {
-  constexpr static std::string_view Name = "sra";
+  constexpr static std::string_view NAME = "sra";
 };
 
 struct Or : public Instr32<Or, Funct3::OR> {
-  constexpr static std::string_view Name = "or";
+  constexpr static std::string_view NAME = "or";
 };
 
 struct And : public Instr32<And, Funct3::AND> {
-  constexpr static std::string_view Name = "and";
+  constexpr static std::string_view NAME = "and";
 };
 
 struct Addw : public Instr64<Addw, Funct3::ADD> {
-  constexpr static std::string_view Name = "addw";
+  constexpr static std::string_view NAME = "addw";
 };
 
 struct Subw : public Instr64<Subw, Funct3::SUB, Funct7::SUB_SRA> {
-  constexpr static std::string_view Name = "subw";
+  constexpr static std::string_view NAME = "subw";
 };
 
 struct Sllw : public Instr64<Sllw, Funct3::SLL> {
-  constexpr static std::string_view Name = "sllw";
+  constexpr static std::string_view NAME = "sllw";
 };
 
 struct Srlw : public Instr64<Srlw, Funct3::SRL> {
-  constexpr static std::string_view Name = "srlw";
+  constexpr static std::string_view NAME = "srlw";
 };
 
 struct Sraw : public Instr64<Sraw, Funct3::SRA, Funct7::SUB_SRA> {
-  constexpr static std::string_view Name = "sraw";
+  constexpr static std::string_view NAME = "sraw";
 };
 
 } // namespace TypeR
@@ -509,13 +508,13 @@ enum class Funct3 {
 ///  - Imm[10:5]  = Inst[30:25]
 ///  - Imm[4:1]   = Inst[11:8]
 ///  - Imm[0]     = 0
-constexpr static unsigned ValidTokenIndex = 2;
+constexpr static unsigned VALID_INDEX = 2;
 template <unsigned index>
 struct ImmB : public ImmSym<index, 13, Repr::Signed,
                             ImmPartSet<ImmPart<12, 31, 31>, ImmPart<11, 7, 7>,
-                                         ImmPart<5, 25, 30>, ImmPart<1, 8, 11>>,
+                                       ImmPart<5, 25, 30>, ImmPart<1, 8, 11>>,
                             SymbolType::Relative> {
-  static_assert(index == ValidTokenIndex, "Invalid token index");
+  static_assert(index == VALID_INDEX, "Invalid token index");
 };
 
 template <typename InstrImpl, Funct3 funct3>
@@ -527,27 +526,27 @@ struct Instr : public RV_Instruction<InstrImpl> {
 };
 
 struct Beq : public Instr<Beq, Funct3::BEQ> {
-  constexpr static std::string_view Name = "beq";
+  constexpr static std::string_view NAME = "beq";
 };
 
 struct Bne : public Instr<Bne, Funct3::BNE> {
-  constexpr static std::string_view Name = "bne";
+  constexpr static std::string_view NAME = "bne";
 };
 
 struct Blt : public Instr<Blt, Funct3::BLT> {
-  constexpr static std::string_view Name = "blt";
+  constexpr static std::string_view NAME = "blt";
 };
 
 struct Bge : public Instr<Bge, Funct3::BGE> {
-  constexpr static std::string_view Name = "bge";
+  constexpr static std::string_view NAME = "bge";
 };
 
 struct Bltu : public Instr<Bltu, Funct3::BLTU> {
-  constexpr static std::string_view Name = "bltu";
+  constexpr static std::string_view NAME = "bltu";
 };
 
 struct Bgeu : public Instr<Bgeu, Funct3::BGEU> {
-  constexpr static std::string_view Name = "bgeu";
+  constexpr static std::string_view NAME = "bgeu";
 };
 
 } // namespace TypeB
@@ -568,7 +567,7 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
     v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
                              << Token(line.tokens.at(2), "%pcrel_hi"));
     v.push_back(LineTokens()
-                << QString(PseudoInstrImpl::Name.data()) << line.tokens.at(1)
+                << QString(PseudoInstrImpl::NAME.data()) << line.tokens.at(1)
                 << Token(QString("(%1 + 4) ").arg(line.tokens.at(2)),
                          "%pcrel_lo")
                 << line.tokens.at(1));
@@ -593,7 +592,7 @@ struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
     v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
                              << Token(line.tokens.at(2), "%pcrel_hi"));
     v.push_back(LineTokens()
-                << QString(PseudoInstrImpl::Name.data()) << line.tokens.at(1)
+                << QString(PseudoInstrImpl::NAME.data()) << line.tokens.at(1)
                 << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
                          "%pcrel_lo")
                 << line.tokens.at(3));
@@ -602,29 +601,29 @@ struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
 };
 
 struct Lb : public PseudoInstrLoad<Lb> {
-  constexpr static std::string_view Name = "lb";
+  constexpr static std::string_view NAME = "lb";
 };
 struct Lh : public PseudoInstrLoad<Lh> {
-  constexpr static std::string_view Name = "lh";
+  constexpr static std::string_view NAME = "lh";
 };
 struct Lw : public PseudoInstrLoad<Lw> {
-  constexpr static std::string_view Name = "lw";
+  constexpr static std::string_view NAME = "lw";
 };
 struct Ld : public PseudoInstrLoad<Ld> {
-  constexpr static std::string_view Name = "ld";
+  constexpr static std::string_view NAME = "ld";
 };
 
 struct Sb : public PseudoInstrStore<Sb> {
-  constexpr static std::string_view Name = "sb";
+  constexpr static std::string_view NAME = "sb";
 };
 struct Sh : public PseudoInstrStore<Sh> {
-  constexpr static std::string_view Name = "sh";
+  constexpr static std::string_view NAME = "sh";
 };
 struct Sw : public PseudoInstrStore<Sw> {
-  constexpr static std::string_view Name = "sw";
+  constexpr static std::string_view NAME = "sw";
 };
 struct Sd : public PseudoInstrStore<Sd> {
-  constexpr static std::string_view Name = "sd";
+  constexpr static std::string_view NAME = "sd";
 };
 
 struct La : public PseudoInstruction<La> {
@@ -642,7 +641,7 @@ struct La : public PseudoInstruction<La> {
                          "%pcrel_lo"));
     return v;
   }
-  constexpr static std::string_view Name = "la";
+  constexpr static std::string_view NAME = "la";
 };
 
 struct Call : public PseudoInstruction<Call> {
@@ -660,7 +659,7 @@ struct Call : public PseudoInstruction<Call> {
                          "%pcrel_lo"));
     return v;
   }
-  constexpr static std::string_view Name = "call";
+  constexpr static std::string_view NAME = "call";
 };
 
 struct Tail : public PseudoInstruction<Tail> {
@@ -678,7 +677,7 @@ struct Tail : public PseudoInstruction<Tail> {
                          "%pcrel_lo"));
     return v;
   }
-  constexpr static std::string_view Name = "tail";
+  constexpr static std::string_view NAME = "tail";
 };
 
 struct J : public PseudoInstruction<J> {
@@ -692,7 +691,7 @@ struct J : public PseudoInstruction<J> {
                 << Token("jal") << Token("x0") << line.tokens.at(1));
     return v;
   }
-  constexpr static std::string_view Name = "j";
+  constexpr static std::string_view NAME = "j";
 };
 
 struct Jr : public PseudoInstruction<Jr> {
@@ -706,7 +705,7 @@ struct Jr : public PseudoInstruction<Jr> {
                              << line.tokens.at(1) << Token("0"));
     return v;
   }
-  constexpr static std::string_view Name = "jr";
+  constexpr static std::string_view NAME = "jr";
 };
 
 struct Jalr : public PseudoInstruction<Jalr> {
@@ -720,7 +719,7 @@ struct Jalr : public PseudoInstruction<Jalr> {
                              << line.tokens.at(1) << Token("0"));
     return v;
   }
-  constexpr static std::string_view Name = "jalr";
+  constexpr static std::string_view NAME = "jalr";
 };
 
 struct Ret : public PseudoInstruction<Ret> {
@@ -734,7 +733,7 @@ struct Ret : public PseudoInstruction<Ret> {
                 << Token("jalr") << Token("x0") << Token("x1") << Token("0"));
     return v;
   }
-  constexpr static std::string_view Name = "ret";
+  constexpr static std::string_view NAME = "ret";
 };
 
 struct Jal : public PseudoInstruction<Jal> {
@@ -748,7 +747,7 @@ struct Jal : public PseudoInstruction<Jal> {
                 << Token("jal") << Token("x1") << line.tokens.at(1));
     return v;
   }
-  constexpr static std::string_view Name = "jal";
+  constexpr static std::string_view NAME = "jal";
 };
 
 struct Nop : public PseudoInstruction<Nop> {
@@ -762,7 +761,7 @@ struct Nop : public PseudoInstruction<Nop> {
                 << Token("addi") << Token("x0") << Token("x0") << Token("0"));
     return v;
   }
-  constexpr static std::string_view Name = "nop";
+  constexpr static std::string_view NAME = "nop";
 };
 
 struct Mv : public PseudoInstruction<Mv> {
@@ -776,7 +775,7 @@ struct Mv : public PseudoInstruction<Mv> {
                            Token("0")});
     return v;
   }
-  constexpr static std::string_view Name = "mv";
+  constexpr static std::string_view NAME = "mv";
 };
 
 struct Not : public PseudoInstruction<Not> {
@@ -790,7 +789,7 @@ struct Not : public PseudoInstruction<Not> {
                            Token("-1")});
     return v;
   }
-  constexpr static std::string_view Name = "not";
+  constexpr static std::string_view NAME = "not";
 };
 
 struct Neg : public PseudoInstruction<Neg> {
@@ -804,7 +803,7 @@ struct Neg : public PseudoInstruction<Neg> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "neg";
+  constexpr static std::string_view NAME = "neg";
 };
 
 struct Negw : public PseudoInstruction<Negw> {
@@ -818,7 +817,7 @@ struct Negw : public PseudoInstruction<Negw> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "negw";
+  constexpr static std::string_view NAME = "negw";
 };
 
 struct Seqz : public PseudoInstruction<Seqz> {
@@ -832,7 +831,7 @@ struct Seqz : public PseudoInstruction<Seqz> {
                            Token("1")});
     return v;
   }
-  constexpr static std::string_view Name = "seqz";
+  constexpr static std::string_view NAME = "seqz";
 };
 
 struct Snez : public PseudoInstruction<Snez> {
@@ -846,7 +845,7 @@ struct Snez : public PseudoInstruction<Snez> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "snez";
+  constexpr static std::string_view NAME = "snez";
 };
 
 struct Sltz : public PseudoInstruction<Sltz> {
@@ -860,7 +859,7 @@ struct Sltz : public PseudoInstruction<Sltz> {
                            Token("x0")});
     return v;
   }
-  constexpr static std::string_view Name = "sltz";
+  constexpr static std::string_view NAME = "sltz";
 };
 
 struct Sgtz : public PseudoInstruction<Sgtz> {
@@ -874,7 +873,7 @@ struct Sgtz : public PseudoInstruction<Sgtz> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "sgtz";
+  constexpr static std::string_view NAME = "sgtz";
 };
 
 struct Beqz : public PseudoInstruction<Beqz> {
@@ -888,7 +887,7 @@ struct Beqz : public PseudoInstruction<Beqz> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "beqz";
+  constexpr static std::string_view NAME = "beqz";
 };
 
 struct Bnez : public PseudoInstruction<Bnez> {
@@ -902,7 +901,7 @@ struct Bnez : public PseudoInstruction<Bnez> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "bnez";
+  constexpr static std::string_view NAME = "bnez";
 };
 
 struct Blez : public PseudoInstruction<Blez> {
@@ -916,7 +915,7 @@ struct Blez : public PseudoInstruction<Blez> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "blez";
+  constexpr static std::string_view NAME = "blez";
 };
 
 struct Bgez : public PseudoInstruction<Bgez> {
@@ -930,7 +929,7 @@ struct Bgez : public PseudoInstruction<Bgez> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "bgez";
+  constexpr static std::string_view NAME = "bgez";
 };
 
 struct Bltz : public PseudoInstruction<Bltz> {
@@ -944,7 +943,7 @@ struct Bltz : public PseudoInstruction<Bltz> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "bltz";
+  constexpr static std::string_view NAME = "bltz";
 };
 
 struct Bgtz : public PseudoInstruction<Bgtz> {
@@ -958,7 +957,7 @@ struct Bgtz : public PseudoInstruction<Bgtz> {
                            line.tokens.at(2)});
     return v;
   }
-  constexpr static std::string_view Name = "bgtz";
+  constexpr static std::string_view NAME = "bgtz";
 };
 
 struct Bgt : public PseudoInstruction<Bgt> {
@@ -972,7 +971,7 @@ struct Bgt : public PseudoInstruction<Bgt> {
                            line.tokens.at(3)});
     return v;
   }
-  constexpr static std::string_view Name = "bgt";
+  constexpr static std::string_view NAME = "bgt";
 };
 
 struct Ble : public PseudoInstruction<Ble> {
@@ -986,7 +985,7 @@ struct Ble : public PseudoInstruction<Ble> {
                            line.tokens.at(3)});
     return v;
   }
-  constexpr static std::string_view Name = "ble";
+  constexpr static std::string_view NAME = "ble";
 };
 
 struct Bgtu : public PseudoInstruction<Bgtu> {
@@ -1000,7 +999,7 @@ struct Bgtu : public PseudoInstruction<Bgtu> {
                            line.tokens.at(3)});
     return v;
   }
-  constexpr static std::string_view Name = "bgtu";
+  constexpr static std::string_view NAME = "bgtu";
 };
 
 struct Bleu : public PseudoInstruction<Bleu> {
@@ -1014,7 +1013,7 @@ struct Bleu : public PseudoInstruction<Bleu> {
                            line.tokens.at(3)});
     return v;
   }
-  constexpr static std::string_view Name = "bleu";
+  constexpr static std::string_view NAME = "bleu";
 };
 
 template <bool isRV64>
@@ -1103,7 +1102,7 @@ struct Li : public PseudoInstruction<Li<isRV64>> {
     auto instrSeq = genInstrSeq(immediate);
     return instrSeq;
   }
-  constexpr static std::string_view Name = "li";
+  constexpr static std::string_view NAME = "li";
 };
 
 using Li32 = Li<false>;
@@ -1120,7 +1119,7 @@ struct SextW : public PseudoInstruction<SextW> {
                            Token("0x0")});
     return v;
   }
-  constexpr static std::string_view Name = "sext.w";
+  constexpr static std::string_view NAME = "sext.w";
 };
 
 } // namespace TypePseudo
