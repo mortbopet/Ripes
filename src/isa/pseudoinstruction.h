@@ -21,7 +21,7 @@ using PseudoExpandFunc = std::function<Result<std::vector<LineTokens>>(
 template <typename PseudoInstrImpl>
 struct PseudoInstruction : public PseudoInstructionBase {
   constexpr static unsigned ExpectedTokens() {
-    return 1 + PseudoInstrImpl::Fields::NumFields();
+    return 1 + PseudoInstrImpl::Fields::numFields();
   }
   QString name() const override {
     return QString(PseudoInstrImpl::Name.data());

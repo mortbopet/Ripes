@@ -46,11 +46,10 @@ struct FieldLinkRequest;
 
 template <typename MaybeField>
 using IsField =
-    decltype(MaybeField::TokenIndex(), MaybeField::Ranges,
-             MaybeField::Apply(std::declval<const TokenizedSrcLine &>(),
+    decltype(MaybeField::apply(std::declval<const TokenizedSrcLine &>(),
                                std::declval<Instr_T &>(),
                                std::declval<FieldLinkRequest &>()),
-             MaybeField::Decode(std::declval<const Instr_T>(),
+             MaybeField::decode(std::declval<const Instr_T>(),
                                 std::declval<const Reg_T>(),
                                 std::declval<const ReverseSymbolMap &>(),
                                 std::declval<LineTokens &>()));
@@ -244,6 +243,7 @@ struct IndexedOpPart {
       return IndexedOpPart<NextOpParts...>::getOpPart(partIndex - 1);
     }
 
+    // The assertion above should make this line unreachable
     Q_UNREACHABLE();
   }
 };
@@ -300,9 +300,10 @@ using AssembleRes = Result<InstrRes>;
 template <unsigned _tokenIndex, typename _BitRanges>
 struct Field {
   using BitRanges = _BitRanges;
-  constexpr static unsigned TokenIndex() { return _tokenIndex; }
 
-  constexpr static BitRanges Ranges{};
+private:
+  /// Run verifications for all BitRanges
+  constexpr static BitRanges ranges{};
 };
 
 /** @brief A set of fields for an instruction
@@ -313,17 +314,9 @@ template <template <unsigned> typename... Fields>
 class FieldSet {
 private:
   /// Structs used to combine BitFields and assign token indices
-  template <unsigned, template <unsigned> typename... AllFields>
+  template <unsigned, template <unsigned> typename...>
   struct IndexedFieldSet {
     using BitRanges = BitRangeSet<>;
-    static Result<> Apply(const TokenizedSrcLine &, Instr_T &,
-                          FieldLinkRequest &) {
-      return std::monostate();
-    }
-    constexpr static bool Decode(const Instr_T, const Reg_T,
-                                 const ReverseSymbolMap &, LineTokens &) {
-      return true;
-    }
   };
   template <unsigned TokenIndex, template <unsigned> typename FirstField,
             template <unsigned> typename... NextFields>
@@ -335,38 +328,32 @@ private:
 
     static_assert(VerifyField<IndexedField>, "Invalid Field type");
 
-    static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
+    static Result<> apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                           FieldLinkRequest &linksWithSymbol) {
-      if (auto err = IndexedField::Apply(tokens, instruction, linksWithSymbol);
+      // Apply this field
+      if (auto err = IndexedField::apply(tokens, instruction, linksWithSymbol);
           err.isError()) {
         return err;
       }
-      return NextIndexedFieldSet::Apply(tokens, instruction, linksWithSymbol);
+      // Apply further fields if they exist
+      if constexpr (sizeof...(NextFields) > 0)
+        return NextIndexedFieldSet::apply(tokens, instruction, linksWithSymbol);
+      else
+        return Result<>::def();
     }
-    constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
+    constexpr static bool decode(const Instr_T instruction, const Reg_T address,
                                  const ReverseSymbolMap &symbolMap,
                                  LineTokens &line) {
-      if (!IndexedField::Decode(instruction, address, symbolMap, line)) {
+      // Decode this field
+      if (!IndexedField::decode(instruction, address, symbolMap, line)) {
         return false;
       }
-      return NextIndexedFieldSet::Decode(instruction, address, symbolMap, line);
-    }
-  };
-  template <unsigned TokenIndex, template <unsigned> typename LastField>
-  struct IndexedFieldSet<TokenIndex, LastField> {
-    using IndexedField = LastField<TokenIndex>;
-    using BitRanges = typename IndexedField::BitRanges;
-
-    static_assert(VerifyField<IndexedField>, "Invalid Field type");
-
-    static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
-                          FieldLinkRequest &linksWithSymbol) {
-      return IndexedField::Apply(tokens, instruction, linksWithSymbol);
-    }
-    constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
-                                 const ReverseSymbolMap &symbolMap,
-                                 LineTokens &line) {
-      return IndexedField::Decode(instruction, address, symbolMap, line);
+      // Decode further fields if they exist
+      if constexpr (sizeof...(NextFields) > 0)
+        return NextIndexedFieldSet::decode(instruction, address, symbolMap,
+                                           line);
+      else
+        return true;
     }
   };
 
@@ -377,20 +364,27 @@ public:
   using BitRanges = typename IndexedFields::BitRanges;
 
   /// Applies each Field's encoding to the instruction.
-  static Result<> Apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
+  static Result<> apply(const TokenizedSrcLine &tokens, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
-    return IndexedFields::Apply(tokens, instruction, linksWithSymbol);
+    if constexpr (sizeof...(Fields) > 0)
+      return IndexedFields::apply(tokens, instruction, linksWithSymbol);
+    else
+      return Result<>::def();
   }
   /// Decodes each field into an assembly instruction line.
-  constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
+  constexpr static bool decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
                                LineTokens &line) {
-    return IndexedFields::Decode(instruction, address, symbolMap, line);
+    if constexpr (sizeof...(Fields) > 0)
+      return IndexedFields::decode(instruction, address, symbolMap, line);
+    else
+      return true;
   }
 
   /// Returns the number of Fields in this set.
-  constexpr static unsigned NumFields() { return sizeof...(Fields); }
+  constexpr static unsigned numFields() { return sizeof...(Fields); }
 
+private:
   /// This calls all BitRanges' static assertions
   constexpr static BitRanges Ranges{};
 };
@@ -414,7 +408,7 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
   Reg() : regsd(RegImpl::Name.data()) {}
 
   /// Applies this register's encoding to the instruction.
-  static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
+  static Result<> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &) {
     if (tokenIndex + 1 >= line.tokens.size()) {
       return Error(line, "Required field '" + QString(RegImpl::Name.data()) +
@@ -428,10 +422,10 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
       return Error(line, "Unknown register '" + regToken + "'");
     }
     instruction |= BitRange::getInstance().apply(regIndex);
-    return std::monostate();
+    return Result<>::def();
   }
   /// Decodes this register into its name. Adds it to the assembly line.
-  static bool Decode(const Instr_T instruction, const Reg_T,
+  static bool decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::getInstance().decode(instruction);
     const Token registerName(RegInfo::RegName(regNumber));
@@ -559,7 +553,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
   /// Converts a string to its immediate value (if it exists). Success is set to
   /// false if this fails.
-  constexpr static int64_t GetImm(const QString &immToken, bool &success,
+  constexpr static int64_t getImm(const QString &immToken, bool &success,
                                   ImmConvInfo &convInfo) {
     return repr == Repr::Signed
                ? getImmediateSext32(immToken, success, &convInfo)
@@ -567,7 +561,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
   }
 
   /// Returns an error if `value` does not fit in this immediate.
-  static Result<> CheckFitsInWidth(Reg_T_S value, const Location &sourceLine,
+  static Result<> checkFitsInWidth(Reg_T_S value, const Location &sourceLine,
                                    ImmConvInfo &convInfo,
                                    QString token = QString()) {
     bool err = false;
@@ -611,7 +605,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
   }
 
   /// Symbol resolver function for this immediate.
-  static Result<> ApplySymbolResolution(const Location &loc, Reg_T symbolValue,
+  static Result<> applySymbolResolution(const Location &loc, Reg_T symbolValue,
                                         Instr_T &instruction, Reg_T address) {
     ImmConvInfo convInfo;
     convInfo.radix = reprToRadix(repr);
@@ -621,7 +615,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
     adjustedValue = transformer(adjustedValue);
 
-    if (auto res = CheckFitsInWidth(adjustedValue, loc, convInfo);
+    if (auto res = checkFitsInWidth(adjustedValue, loc, convInfo);
         res.isError())
       return res.error();
 
@@ -631,7 +625,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
   }
 
   /// Applies this immediate's encoding to the instruction.
-  static Result<> Apply(const TokenizedSrcLine &line, Instr_T &instruction,
+  static Result<> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &linksWithSymbol) {
     if (tokenIndex + 1 >= line.tokens.size()) {
       return Error(line, "Required immediate with field index '" +
@@ -640,27 +634,27 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     bool success = false;
     const Token &immToken = line.tokens[tokenIndex + 1];
     ImmConvInfo convInfo;
-    Reg_T_S value = GetImm(immToken, success, convInfo);
+    Reg_T_S value = getImm(immToken, success, convInfo);
 
     if (!success) {
       // Could not directly resolve immediate. Register it as a symbol to link
       // to.
-      linksWithSymbol.resolveSymbol = ApplySymbolResolution;
+      linksWithSymbol.resolveSymbol = applySymbolResolution;
       linksWithSymbol.symbol = immToken;
       linksWithSymbol.relocation = immToken.relocation();
-      return std::monostate();
+      return Result<>::def();
     }
 
-    if (auto res = CheckFitsInWidth(value, line, convInfo, immToken);
+    if (auto res = checkFitsInWidth(value, line, convInfo, immToken);
         res.isError())
       return res.error();
 
     ImmParts::Apply(value, instruction);
-    return std::monostate();
+    return Result<>::def();
   }
   /// Decodes this immediate part into its value, adding it to the assembly
   /// line.
-  constexpr static bool Decode(const Instr_T instruction, const Reg_T address,
+  constexpr static bool decode(const Instr_T instruction, const Reg_T address,
                                const ReverseSymbolMap &symbolMap,
                                LineTokens &line) {
     Instr_T reconstructed = 0;
@@ -782,7 +776,7 @@ struct Instruction : public InstructionBase {
 
     InstrImpl::Opcode::apply(instruction, linksWithSymbol);
     if (auto fieldRes =
-            InstrImpl::Fields::Apply(tokens, instruction, linksWithSymbol);
+            InstrImpl::Fields::apply(tokens, instruction, linksWithSymbol);
         fieldRes.isError()) {
       return std::get<Error>(fieldRes);
     }
@@ -797,7 +791,7 @@ struct Instruction : public InstructionBase {
               const ReverseSymbolMap &symbolMap) const override {
     LineTokens line;
     line.push_back(name());
-    if (!InstrImpl::Fields::Decode(instruction, address, symbolMap, line)) {
+    if (!InstrImpl::Fields::decode(instruction, address, symbolMap, line)) {
       return Error(Location(static_cast<int>(address)), "");
     }
     return line;
