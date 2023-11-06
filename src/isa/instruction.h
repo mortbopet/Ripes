@@ -463,11 +463,8 @@ struct ImmPartBase {
   // ImmPartsImpl
   using BitRanges = BitRangeSet<BitRange>;
 
-  // TODO(raccog): This assertion should be changed to use the register width
-  // instead of `BitRange::N`
-  //  static_assert(BitRange::Width() + _offset < BitRange::N(),
-  //                "ImmPart does not fit in BitRange size. Check ImmPart
-  //                offset" " and BitRange width");
+  // TODO(raccog): Assert that the BitRange's width added to the offset is not
+  // larger than the ISA's register width
 
   /// Returns the offset applied to this part when it is constructed into an
   /// immediate value.
@@ -831,12 +828,8 @@ constexpr inline static void _enableInstructions(InstrVecType &instructions) {
 
 template <typename... Instructions>
 constexpr inline static void enableInstructions(InstrVec &instructions) {
-  //  (
-  //      [&] {
-  //        static_assert((InstrVerify<Instructions>::value),
-  //                      "Could not verify instruction");
-  //      }(),
-  //      ...);
+  // TODO(raccog): Combine instructions into a struct that can be used for
+  // compile-time validation
   // TODO(raccog): Ensure no duplicate instruction definitions (will be
   // difficult, since enableInstructions can be called multiple times)
   return _enableInstructions<InstrVec, Instructions...>(instructions);
