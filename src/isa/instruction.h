@@ -132,7 +132,7 @@ struct BitRangeSet {
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
   /// Returns the combined width of all BitRanges
-  constexpr static unsigned Width() {
+  constexpr static unsigned width() {
     return (BitRanges::getInstance().width() + ... + 0);
   }
 
@@ -152,12 +152,14 @@ private:
                   "BitRanges do not have equal sizes");
 
     /// Verify all combinations of ranges to ensure they don't overlap
-    constexpr static Verify<FirstRange, OtherRanges...> NextVerify0{};
-    constexpr static Verify<SecondRange, OtherRanges...> NextVerify1{};
+    constexpr static Verify<FirstRange, OtherRanges...> nextVerify0{};
+    constexpr static Verify<SecondRange, OtherRanges...> nextVerify1{};
   };
 
-  constexpr static VerifyValidTypes<IsBitRange, BitRanges...> VerifyTypes{};
-  constexpr static Verify<BitRanges...> VerifyAll{};
+  /// Ensure that no ranges in the set overlap with each other
+  constexpr static VerifyValidTypes<IsBitRange, BitRanges...> verifyTypes{};
+  /// Ensure all template parameters are subtypes of BitRange
+  constexpr static Verify<BitRanges...> verifyAll{};
 };
 
 /** @brief No-template, non-abstract class that describes an OpPart.
@@ -550,7 +552,7 @@ inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
           SymbolType symbolType, SymbolTransformer transformer>
 struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
-  static_assert(width >= ImmParts::BitRanges::Width(),
+  static_assert(width >= ImmParts::BitRanges::width(),
                 "An immediate's combined parts are larger than its width");
 
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
@@ -747,9 +749,9 @@ struct InstrVerify : std::true_type {
   using BitRanges = typename InstrImpl::Opcode::BitRanges::template CombineWith<
       typename InstrImpl::Fields::BitRanges>;
 
-  static_assert(BitRanges::Width() == InstrImpl::InstrBits(),
+  static_assert(BitRanges::width() == InstrImpl::InstrBits(),
                 "Instruction does not utilize all bits");
-  static_assert((BitRanges::Width() % CHAR_BIT == 0),
+  static_assert((BitRanges::width() % CHAR_BIT == 0),
                 "Instruction width is not byte aligned");
 };
 
@@ -758,7 +760,7 @@ struct InstrByteSize {
   using BitRanges = typename InstrImpl::Opcode::BitRanges::template CombineWith<
       typename InstrImpl::Fields::BitRanges>;
 
-  constexpr static unsigned ByteSize = BitRanges::Width() / CHAR_BIT;
+  constexpr static unsigned ByteSize = BitRanges::width() / CHAR_BIT;
 };
 
 /** @brief An ISA instruction defined at compile-time.
