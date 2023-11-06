@@ -97,7 +97,7 @@ struct RegRdPrime
 template <unsigned tokenIndex, Repr repr>
 struct ImmCommon6
     : public Imm<tokenIndex, 6, repr,
-                 ImmPartsImpl<ImmPart<5, 12, 12>, ImmPart<0, 2, 6>>> {
+                 ImmPartSet<ImmPart<5, 12, 12>, ImmPart<0, 2, 6>>> {
   constexpr static unsigned ValidTokenIndex = 1;
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
@@ -123,7 +123,7 @@ using ImmCommon6_U = ImmCommon6<tokenIndex, Repr::Unsigned>;
 template <unsigned tokenIndex, Repr repr>
 struct ImmCommon7
     : public Imm<tokenIndex, 7, repr,
-                 ImmPartsImpl<ImmPart<6, 5, 5>, ImmPart<3, 10, 12>,
+                 ImmPartSet<ImmPart<6, 5, 5>, ImmPart<3, 10, 12>,
                               ImmPart<2, 6, 6>>> {
   constexpr static unsigned ValidTokenIndex = 2;
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
@@ -232,7 +232,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 ///  - Imm[1:0] = 0
 template <unsigned tokenIndex>
 struct ImmLwsp : public Imm<tokenIndex, 8, Repr::Unsigned,
-                            ImmPartsImpl<ImmPart<6, 2, 3>, ImmPart<5, 12, 12>,
+                            ImmPartSet<ImmPart<6, 2, 3>, ImmPart<5, 12, 12>,
                                          ImmPart<2, 4, 6>>> {
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
@@ -257,7 +257,7 @@ struct CFlwsp
 ///  - Imm[2:0] = 0
 template <unsigned tokenIndex>
 struct ImmLdsp : public Imm<tokenIndex, 9, Repr::Unsigned,
-                            ImmPartsImpl<ImmPart<6, 2, 4>, ImmPart<5, 12, 12>,
+                            ImmPartSet<ImmPart<6, 2, 4>, ImmPart<5, 12, 12>,
                                          ImmPart<3, 5, 6>>> {
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
@@ -297,7 +297,7 @@ struct CLi
 template <unsigned tokenIndex>
 struct ImmLui
     : public Imm<tokenIndex, 18, Repr::Signed,
-                 ImmPartsImpl<ImmPart<17, 12, 12>, ImmPart<12, 2, 6>>> {
+                 ImmPartSet<ImmPart<17, 12, 12>, ImmPart<12, 2, 6>>> {
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
 
@@ -316,7 +316,7 @@ struct CAddi16Sp : public RVC_Instruction<CAddi16Sp> {
   struct Imm
       : public Ripes::Imm<
             tokenIndex, 10, Repr::Signed,
-            ImmPartsImpl<ImmPart<9, 12, 12>, ImmPart<7, 3, 4>, ImmPart<5, 2, 2>,
+            ImmPartSet<ImmPart<9, 12, 12>, ImmPart<7, 3, 4>, ImmPart<5, 2, 2>,
                          ImmPart<4, 6, 6>, ImmPart<6, 5, 5>>> {
     constexpr static unsigned ValidTokenIndex = 0;
     static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
@@ -380,7 +380,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 ///  - Imm[1:0] = 0
 template <unsigned tokenIndex>
 struct ImmSwsp : public Imm<tokenIndex, 8, Repr::Unsigned,
-                            ImmPartsImpl<ImmPart<6, 7, 8>, ImmPart<2, 9, 12>>> {
+                            ImmPartSet<ImmPart<6, 7, 8>, ImmPart<2, 9, 12>>> {
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
 
@@ -402,7 +402,7 @@ struct CFswsp : public Instr<CFswsp, Funct3::FSWSP, ImmSwsp> {
 template <unsigned tokenIndex>
 struct ImmSdsp
     : public Imm<tokenIndex, 9, Repr::Unsigned,
-                 ImmPartsImpl<ImmPart<6, 7, 9>, ImmPart<3, 10, 12>>> {
+                 ImmPartSet<ImmPart<6, 7, 9>, ImmPart<3, 10, 12>>> {
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
 
@@ -440,7 +440,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 ///  - Imm[2:0] = 0
 template <unsigned tokenIndex>
 struct ImmLd : public Imm<tokenIndex, 8, Repr::Signed,
-                          ImmPartsImpl<ImmPart<6, 5, 6>, ImmPart<3, 10, 12>>> {
+                          ImmPartSet<ImmPart<6, 5, 6>, ImmPart<3, 10, 12>>> {
   static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
 };
 
@@ -517,7 +517,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
   template <unsigned tokenIndex>
   struct Imm
       : public Ripes::Imm<tokenIndex, 12, Repr::Signed,
-                          ImmPartsImpl<ImmPart<11, 12, 12>, ImmPart<10, 8, 8>,
+                          ImmPartSet<ImmPart<11, 12, 12>, ImmPart<10, 8, 8>,
                                        ImmPart<8, 9, 10>, ImmPart<7, 6, 6>,
                                        ImmPart<6, 7, 7>, ImmPart<5, 2, 2>,
                                        ImmPart<4, 11, 11>, ImmPart<1, 3, 5>>> {
@@ -562,7 +562,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
   struct Imm
       : public Ripes::Imm<
             tokenIndex, 9, Repr::Signed,
-            ImmPartsImpl<ImmPart<8, 12, 12>, ImmPart<6, 5, 6>, ImmPart<5, 2, 2>,
+            ImmPartSet<ImmPart<8, 12, 12>, ImmPart<6, 5, 6>, ImmPart<5, 2, 2>,
                          ImmPart<3, 10, 11>, ImmPart<1, 3, 4>>> {
     static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
   };
@@ -603,7 +603,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
   template <unsigned tokenIndex>
   struct Imm
       : public Ripes::Imm<tokenIndex, 6, repr,
-                          ImmPartsImpl<ImmPart<5, 12, 12>, ImmPart<0, 2, 6>>> {
+                          ImmPartSet<ImmPart<5, 12, 12>, ImmPart<0, 2, 6>>> {
     static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
   };
 
@@ -646,7 +646,7 @@ struct CAddi4spn : public RVC_Instruction<CAddi4spn> {
   template <unsigned tokenIndex>
   struct Imm
       : public Ripes::Imm<tokenIndex, 10, Repr::Unsigned,
-                          ImmPartsImpl<ImmPart<6, 7, 10>, ImmPart<4, 11, 12>,
+                          ImmPartSet<ImmPart<6, 7, 10>, ImmPart<4, 11, 12>,
                                        ImmPart<3, 5, 5>, ImmPart<2, 6, 6>>> {
     static_assert(tokenIndex == ValidTokenIndex, "Invalid token index");
   };

@@ -155,9 +155,9 @@ private:
     constexpr static Verify<SecondRange, OtherRanges...> nextVerify1{};
   };
 
-  /// Ensure that no ranges in the set overlap with each other
-  constexpr static VerifyValidTypes<IsBitRange, BitRanges...> verifyTypes{};
   /// Ensure all template parameters are subtypes of BitRange
+  constexpr static VerifyValidTypes<IsBitRange, BitRanges...> verifyTypes{};
+  /// Ensure that no ranges in the set overlap with each other
   constexpr static Verify<BitRanges...> verifyAll{};
 };
 
@@ -318,11 +318,11 @@ private:
   struct IndexedFieldSet {
     using BitRanges = BitRangeSet<>;
   };
-  template <unsigned TokenIndex, template <unsigned> typename FirstField,
+  template <unsigned tokenIndex, template <unsigned> typename FirstField,
             template <unsigned> typename... NextFields>
-  struct IndexedFieldSet<TokenIndex, FirstField, NextFields...> {
-    using IndexedField = FirstField<TokenIndex>;
-    using NextIndexedFieldSet = IndexedFieldSet<TokenIndex + 1, NextFields...>;
+  struct IndexedFieldSet<tokenIndex, FirstField, NextFields...> {
+    using IndexedField = FirstField<tokenIndex>;
+    using NextIndexedFieldSet = IndexedFieldSet<tokenIndex + 1, NextFields...>;
     using BitRanges = typename IndexedField::BitRanges::template CombineWith<
         typename NextIndexedFieldSet::BitRanges>;
 
@@ -386,7 +386,7 @@ public:
 
 private:
   /// This calls all BitRanges' static assertions
-  constexpr static BitRanges Ranges{};
+  constexpr static BitRanges ranges{};
 };
 
 /**
@@ -456,15 +456,15 @@ struct ImmPartBase {
 
   /// Returns the offset applied to this part when it is constructed into an
   /// immediate value.
-  constexpr static unsigned Offset() { return _offset; }
+  constexpr static unsigned offset = _offset;
 
   /// Applies this immediate part's encoding to the instruction.
-  constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
+  constexpr static void apply(const Instr_T value, Instr_T &instruction) {
     instruction |= BitRange::getInstance().apply(value >> _offset);
   }
   /// Decodes this immediate part into its value, combining it with other
   /// values.
-  constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
+  constexpr static void decode(Instr_T &value, const Instr_T instruction) {
     value |= BitRange::getInstance().decode(instruction) << _offset;
   }
 };
@@ -478,16 +478,16 @@ using ImmPart = ImmPartBase<offset, BitRange<start, stop, N>>;
  * with their offsets applied.
  */
 template <typename... ImmParts>
-struct ImmPartsImpl {
+struct ImmPartSet {
   using BitRanges = BitRangeSet<typename ImmParts::BitRange...>;
 
   /// Applies each immediate part's encoding to the instruction.
-  constexpr static void Apply(const Instr_T value, Instr_T &instruction) {
-    (ImmParts::Apply(value, instruction), ...);
+  constexpr static void apply(const Instr_T value, Instr_T &instruction) {
+    (ImmParts::apply(value, instruction), ...);
   }
   /// Decodes this immediate into its value by combining values from each part.
-  constexpr static void Decode(Instr_T &value, const Instr_T instruction) {
-    (ImmParts::Decode(value, instruction), ...);
+  constexpr static void decode(Instr_T &value, const Instr_T instruction) {
+    (ImmParts::decode(value, instruction), ...);
   }
 
 private:
@@ -498,17 +498,19 @@ private:
   struct Verify<FirstPart, SecondPart, OtherParts...> {
     /// Asserts that FirstPart and SecondPart are not overlapping
     static_assert(
-        (FirstPart::Offset() >= (SecondPart::Offset() +
-                                 SecondPart::BitRange::getInstance().width()) ||
-         SecondPart::Offset() >= (FirstPart::Offset() +
-                                  FirstPart::BitRange::getInstance().width())),
+        (FirstPart::offset >= (SecondPart::offset +
+                               SecondPart::BitRange::getInstance().width()) ||
+         SecondPart::offset >=
+             (FirstPart::offset + FirstPart::BitRange::getInstance().width())),
         "Immediate has parts with overlapping offsets");
 
-    constexpr static Verify<FirstPart, OtherParts...> Verify0{};
-    constexpr static Verify<SecondPart, OtherParts...> Verify1{};
+    /// Verify all combinations of immediates to ensure they don't overlap
+    constexpr static Verify<FirstPart, OtherParts...> verify0{};
+    constexpr static Verify<SecondPart, OtherParts...> verify1{};
   };
 
-  constexpr static Verify<ImmParts...> VerifyAll{};
+  /// Ensure that no immediates in the set overlap with each other
+  constexpr static Verify<ImmParts...> verifyAll{};
 };
 
 enum class Repr { Unsigned, Signed, Hex };
@@ -524,6 +526,7 @@ static inline Radix reprToRadix(Repr repr) {
   return Radix::Unsigned;
 }
 
+/// Function type for symbol transformers
 typedef Reg_T (*SymbolTransformer)(Reg_T);
 
 /// The default immediate transformer. Returns the value unchanged.
@@ -619,7 +622,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
         res.isError())
       return res.error();
 
-    ImmParts::Apply(adjustedValue, instruction);
+    ImmParts::apply(adjustedValue, instruction);
 
     return Result<>::def();
   }
@@ -649,7 +652,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
         res.isError())
       return res.error();
 
-    ImmParts::Apply(value, instruction);
+    ImmParts::apply(value, instruction);
     return Result<>::def();
   }
   /// Decodes this immediate part into its value, adding it to the assembly
@@ -658,7 +661,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
                                const ReverseSymbolMap &symbolMap,
                                LineTokens &line) {
     Instr_T reconstructed = 0;
-    ImmParts::Decode(reconstructed, instruction);
+    ImmParts::decode(reconstructed, instruction);
     if (repr == Repr::Signed) {
       line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
     } else if (repr == Repr::Unsigned) {

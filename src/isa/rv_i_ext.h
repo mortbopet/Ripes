@@ -333,7 +333,7 @@ constexpr static unsigned ValidTokenIndex = 1;
 template <unsigned index>
 struct ImmJ
     : public ImmSym<index, 21, Repr::Signed,
-                    ImmPartsImpl<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
+                    ImmPartSet<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
                                  ImmPart<11, 20, 20>, ImmPart<1, 21, 30>>,
                     SymbolType::Relative> {
   static_assert(index == ValidTokenIndex, "Invalid token index");
@@ -362,7 +362,7 @@ enum class Funct3 { SB = 0b000, SH = 0b001, SW = 0b010, SD = 0b011 };
 constexpr static unsigned ValidTokenIndex = 1;
 template <unsigned index>
 struct ImmS : public Imm<index, 12, Repr::Signed,
-                         ImmPartsImpl<ImmPart<5, 25, 31>, ImmPart<0, 7, 11>>> {
+                         ImmPartSet<ImmPart<5, 25, 31>, ImmPart<0, 7, 11>>> {
   static_assert(index == ValidTokenIndex, "Invalid token index");
 };
 
@@ -512,7 +512,7 @@ enum class Funct3 {
 constexpr static unsigned ValidTokenIndex = 2;
 template <unsigned index>
 struct ImmB : public ImmSym<index, 13, Repr::Signed,
-                            ImmPartsImpl<ImmPart<12, 31, 31>, ImmPart<11, 7, 7>,
+                            ImmPartSet<ImmPart<12, 31, 31>, ImmPart<11, 7, 7>,
                                          ImmPart<5, 25, 30>, ImmPart<1, 8, 11>>,
                             SymbolType::Relative> {
   static_assert(index == ValidTokenIndex, "Invalid token index");
