@@ -277,7 +277,7 @@ struct OpcodeSet {
   /// Returns a pointer to a dynamically accessible OpPart. (needed for the
   /// assembly matcher)
   static std::unique_ptr<OpPartBase> GetOpPart(unsigned partIndex) {
-    assert(partIndex < NumParts());
+    assert(partIndex < NumParts() && "OpPart index out of range");
 
     return IndexedOpPart<OpParts...>::GetOpPart(partIndex);
   }
