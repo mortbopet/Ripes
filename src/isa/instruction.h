@@ -240,19 +240,21 @@ struct FieldLinkRequest {
   QString relocation = QString();
 };
 
-template <typename... AllOpParts>
-struct IndexedOpPart {
-  static std::unique_ptr<OpPartBase> GetOpPart(unsigned) {
-    assert(false);
-    return nullptr;
-  }
-};
+/// Struct used to dynamically index OpParts
 template <typename OpPart, typename... NextOpParts>
-struct IndexedOpPart<OpPart, NextOpParts...> {
+struct IndexedOpPart {
   static std::unique_ptr<OpPartBase> GetOpPart(unsigned partIndex) {
-    if (partIndex == 0)
+    assert(partIndex < sizeof...(NextOpParts) + 1 &&
+           "OpPart index out of range");
+    if (partIndex == 0) {
+      // OpPart found
       return std::unique_ptr<OpPartBase>(std::make_unique<OpPart>());
-    return IndexedOpPart<NextOpParts...>::GetOpPart(partIndex - 1);
+    } else if constexpr (sizeof...(NextOpParts) > 0) {
+      // Check next OpPart
+      return IndexedOpPart<NextOpParts...>::GetOpPart(partIndex - 1);
+    }
+
+    Q_UNREACHABLE();
   }
 };
 
