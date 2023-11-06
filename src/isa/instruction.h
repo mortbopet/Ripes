@@ -99,6 +99,7 @@ struct BitRangeBase {
  * NOTE: start/stop values for bitranges are inclusive..
  * @param _start: Starting index of the range
  * @param _stop: Ending index of the range (inclusive)
+ * @param _N: Number of bits in the range (should be power of 2)
  */
 template <unsigned _start, unsigned _stop, unsigned _N = 32>
 struct BitRange : public BitRangeBase {
