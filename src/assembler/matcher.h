@@ -9,6 +9,7 @@
 namespace Ripes {
 namespace Assembler {
 
+/// Used in buildMatchTree() as the base of the match tree.
 constexpr OpPartBase BaseMatcher = OpPart<0, BitRange<0, 0>>();
 
 class Matcher {
