@@ -34,13 +34,13 @@ using IsBitRange =
 
 template <typename MaybeOpPart>
 using IsOpPart =
-    decltype(MaybeOpPart::Value(),
-             MaybeOpPart::Apply(std::declval<Instr_T &>()),
-             MaybeOpPart::Matches(0), std::declval<MaybeOpPart>().value,
+    decltype(MaybeOpPart::value, MaybeOpPart::getInstance(),
+             std::declval<MaybeOpPart>().apply(std::declval<Instr_T &>()),
+             std::declval<MaybeOpPart>().matches(std::declval<Instr_T>()),
+             std::declval<MaybeOpPart>().value,
              std::declval<MaybeOpPart>().range,
              std::declval<MaybeOpPart>() == std::declval<MaybeOpPart>(),
-             std::declval<MaybeOpPart>() < std::declval<MaybeOpPart>(),
-             std::declval<MaybeOpPart>().matches(0));
+             std::declval<MaybeOpPart>() < std::declval<MaybeOpPart>());
 
 struct FieldLinkRequest;
 
@@ -162,9 +162,9 @@ private:
   constexpr static Verify<BitRanges...> verifyAll{};
 };
 
-/** @brief No-template, non-abstract class that describes an OpPart.
- * This is useful for the assembly matcher so that OpParts can be used as a
- * key in a std::map.
+/** @brief A segment of an operation-identifying field of an instruction created
+ * at run-time.
+ * Usually created by OpPart::getInstance()
  */
 struct OpPartBase {
   constexpr OpPartBase(unsigned _value, BitRangeBase _range)
@@ -173,22 +173,27 @@ struct OpPartBase {
   const unsigned value;
   const BitRangeBase range;
 
-  bool operator==(const OpPartBase &other) const {
+  constexpr bool operator==(const OpPartBase &other) const {
     return value == other.value && range == other.range;
   }
-  bool operator<(const OpPartBase &other) const {
+  constexpr bool operator<(const OpPartBase &other) const {
     if (range == other.range)
       return value < other.value;
     return range < other.range;
   }
 
+  /// Applies this OpPart's encoding to the instruction.
+  constexpr void apply(Instr_T &instruction) const {
+    instruction |= range.apply(value);
+  }
   /// Returns true if this OpPart is contained in the instruction.
-  bool matches(Instr_T instruction) const {
+  constexpr bool matches(Instr_T instruction) const {
     return range.decode(instruction) == value;
   }
 };
 
-/** @brief A segment of an operation-identifying field of an instruction.
+/** @brief A segment of an operation-identifying field of an instruction created
+ * at compile-time.
  * @param _value: The value that identifies this OpPart.
  * @param _BitRange: The range of bits that contain this OpPart. Must be a
  * BitRange type.
@@ -198,23 +203,16 @@ class OpPart : public OpPartBase {
 public:
   using BitRange = _BitRange;
 
-  static_assert(isUInt<BitRange::getInstance().width()>(_value),
+  constexpr static unsigned value = _value;
+
+  static_assert(isUInt<BitRange::getInstance().width()>(value),
                 "OpPart value is too large to fit in BitRange.");
   static_assert(VerifyBitRange<BitRange>,
                 "OpPart can only contain a BitRange type");
 
-  constexpr OpPart() : OpPartBase(_value, BitRange()) {}
+  constexpr OpPart() : OpPartBase(value, BitRange::getInstance()) {}
 
-  constexpr static unsigned Value() { return _value; }
-
-  /// Applies this OpPart's encoding to the instruction.
-  constexpr static void Apply(Instr_T &instruction) {
-    instruction |= BitRange::getInstance().apply(Value());
-  }
-  /// Returns true if this OpPart is contained in the instruction.
-  constexpr static bool Matches(Instr_T instruction) {
-    return BitRange::getInstance().decode(instruction) == _value;
-  }
+  constexpr static OpPart getInstance() { return OpPart(); }
 };
 
 /** @brief An OpPart for declaring BitRanges of unused zeros */
@@ -235,15 +233,15 @@ struct FieldLinkRequest {
 /// Struct used to dynamically index OpParts
 template <typename OpPart, typename... NextOpParts>
 struct IndexedOpPart {
-  static std::unique_ptr<OpPartBase> GetOpPart(unsigned partIndex) {
+  constexpr static OpPartBase getOpPart(unsigned partIndex) {
     assert(partIndex < sizeof...(NextOpParts) + 1 &&
            "OpPart index out of range");
     if (partIndex == 0) {
       // OpPart found
-      return std::unique_ptr<OpPartBase>(std::make_unique<OpPart>());
+      return OpPart::getInstance();
     } else if constexpr (sizeof...(NextOpParts) > 0) {
       // Check next OpPart
-      return IndexedOpPart<NextOpParts...>::GetOpPart(partIndex - 1);
+      return IndexedOpPart<NextOpParts...>::getOpPart(partIndex - 1);
     }
 
     Q_UNREACHABLE();
@@ -261,23 +259,24 @@ struct OpcodeSet {
   static_assert(sizeof...(OpParts) > 0, "No opcode provided");
 
   /// Applies each OpPart's encoding to the instruction.
-  constexpr static void Apply(Instr_T &instruction, FieldLinkRequest &) {
-    (OpParts::Apply(instruction), ...);
+  constexpr static void apply(Instr_T &instruction, FieldLinkRequest &) {
+    (OpParts::getInstance().apply(instruction), ...);
   }
   /// Returns the number of OpParts in this opcode.
-  constexpr static unsigned NumParts() { return sizeof...(OpParts); }
+  constexpr static unsigned numParts() { return sizeof...(OpParts); }
   /// Returns a pointer to a dynamically accessible OpPart. (needed for the
   /// assembly matcher)
-  static std::unique_ptr<OpPartBase> GetOpPart(unsigned partIndex) {
-    assert(partIndex < NumParts() && "OpPart index out of range");
+  constexpr static OpPartBase getOpPart(unsigned partIndex) {
+    assert(partIndex < numParts() && "OpPart index out of range");
 
-    return IndexedOpPart<OpParts...>::GetOpPart(partIndex);
+    return IndexedOpPart<OpParts...>::getOpPart(partIndex);
   }
 
-  constexpr static BitRanges Ranges{};
-
 private:
-  constexpr static VerifyValidTypes<IsOpPart, OpParts...> VerifyTypes{};
+  /// Run verifications for all BitRanges
+  constexpr static BitRanges ranges{};
+  /// Verify all template parameters are subtypes of OpPart
+  constexpr static VerifyValidTypes<IsOpPart, OpParts...> verifyTypes{};
 };
 
 /**
@@ -712,7 +711,7 @@ public:
               const ReverseSymbolMap &symbolMap) const = 0;
   /// Returns a pointer to a dynamically accessible OpPart. (needed for the
   /// assembly matcher)
-  virtual std::unique_ptr<OpPartBase> getOpPart(unsigned partIndex) const = 0;
+  virtual OpPartBase getOpPart(unsigned partIndex) const = 0;
   /// Returns the name of this instruction.
   virtual const QString &name() const = 0;
   /// Returns the number of OpParts in this instruction.
@@ -781,7 +780,7 @@ struct Instruction : public InstructionBase {
     Instr_T instruction = 0;
     FieldLinkRequest linksWithSymbol;
 
-    InstrImpl::Opcode::Apply(instruction, linksWithSymbol);
+    InstrImpl::Opcode::apply(instruction, linksWithSymbol);
     if (auto fieldRes =
             InstrImpl::Fields::Apply(tokens, instruction, linksWithSymbol);
         fieldRes.isError()) {
@@ -803,11 +802,11 @@ struct Instruction : public InstructionBase {
     }
     return line;
   }
-  std::unique_ptr<OpPartBase> getOpPart(unsigned partIndex) const override {
-    return InstrImpl::Opcode::GetOpPart(partIndex);
+  OpPartBase getOpPart(unsigned partIndex) const override {
+    return InstrImpl::Opcode::getOpPart(partIndex);
   }
   const QString &name() const override { return m_name; }
-  unsigned numOpParts() const override { return InstrImpl::Opcode::NumParts(); }
+  unsigned numOpParts() const override { return InstrImpl::Opcode::numParts(); }
 
 private:
   const QString m_name;

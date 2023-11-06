@@ -115,22 +115,19 @@ private:
                         "(Needs more discernable parts)\n";
           throw std::runtime_error(err.toStdString().c_str());
         }
-        std::unique_ptr<OpPartBase> opPart;
-        if (fieldDepth > nOpParts)
-          opPart = instrRef->getOpPart(nOpParts - 1);
-        else
-          opPart = instrRef->getOpPart(fieldDepth - 1);
+        unsigned depth = (fieldDepth > nOpParts) ? nOpParts : fieldDepth;
+        OpPartBase opPart = instrRef->getOpPart(depth - 1);
         if (nOpParts == fieldDepth &&
-            instrsWithEqualOpPart.count(*opPart) != 0) {
+            instrsWithEqualOpPart.count(opPart) != 0) {
           QString err;
           err += "Instruction cannot be decoded; aliases with other "
                  "instruction (Identical to other "
                  "instruction)\n";
           err += instr->name() + " is equal to " +
-                 instrsWithEqualOpPart.at(*opPart).at(0)->name();
+                 instrsWithEqualOpPart.at(opPart).at(0)->name();
           throw std::runtime_error(err.toStdString().c_str());
         }
-        instrsWithEqualOpPart[*opPart].push_back(instr);
+        instrsWithEqualOpPart[opPart].push_back(instr);
       }
     }
 
