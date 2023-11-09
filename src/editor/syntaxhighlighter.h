@@ -3,7 +3,7 @@
 #include <QSyntaxHighlighter>
 #include <memory>
 
-#include "assembler/assemblererror.h"
+#include "isa/isa_defines.h"
 
 namespace Ripes {
 
@@ -12,7 +12,7 @@ class SyntaxHighlighter : public QSyntaxHighlighter {
 
 public:
   SyntaxHighlighter(QTextDocument *parent = nullptr,
-                    std::shared_ptr<Assembler::Errors> errors = {});
+                    std::shared_ptr<Errors> errors = {});
 
   /**
    * @brief highlightBlock
@@ -33,7 +33,7 @@ protected:
    * current text document. These tooltips will be displayed by the codeeditor
    * when a relevant tooltip event occurs.
    */
-  std::shared_ptr<Assembler::Errors> m_errors;
+  std::shared_ptr<Errors> m_errors;
   QTextCharFormat errorFormat;
 };
 } // namespace Ripes

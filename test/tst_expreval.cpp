@@ -2,6 +2,7 @@
 
 #include "assembler/expreval.h"
 
+using namespace Ripes;
 using namespace Ripes::Assembler;
 
 class tst_ExprEval : public QObject {

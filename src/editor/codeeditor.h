@@ -34,9 +34,7 @@ public:
   void rehighlight();
   void onSave();
 
-  void setErrors(const std::shared_ptr<Assembler::Errors> &errors) {
-    m_errors = errors;
-  }
+  void setErrors(const std::shared_ptr<Errors> &errors) { m_errors = errors; }
 
 signals:
   /**
@@ -66,7 +64,7 @@ private:
 
   bool m_breakpointAreaEnabled = false;
   SourceType m_sourceType = SourceType::Assembly;
-  std::shared_ptr<Assembler::Errors> m_errors;
+  std::shared_ptr<Errors> m_errors;
 
   QFont m_font;
 

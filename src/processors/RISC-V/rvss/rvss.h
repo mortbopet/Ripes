@@ -246,6 +246,7 @@ public:
   const ISAInfoBase *implementsISA() const override {
     return m_enabledISA.get();
   }
+
   const std::set<RegisterFileType> registerFiles() const override {
     std::set<RegisterFileType> rfs;
     rfs.insert(RegisterFileType::GPR);

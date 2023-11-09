@@ -6,7 +6,7 @@
 namespace Ripes {
 
 template <>
-class ISAInfo<ISA::MIPS32I> : public MIPSISAInfoBase {
+class ISAInfo<ISA::MIPS32I> : public MIPS_ISAInfoBase {
 public:
   ISAInfo<ISA::MIPS32I>(const QStringList extensions) {
     // Validate extensions

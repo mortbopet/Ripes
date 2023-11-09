@@ -27,12 +27,13 @@ void RegisterSelectionComboBox::showPopup() {
   const auto &procisa = ProcessorRegistry::getAvailableProcessors()
                             .at(m_parent->m_currentID)
                             ->isaInfo();
+  const auto regInfo = procisa.isa->regInfo().value();
   const auto &initializations =
       m_parent->m_initializations.at(m_parent->m_currentID);
 
   std::set<unsigned> regOptions;
-  for (unsigned i = 0; i < procisa.isa->regCnt(); ++i) {
-    if (!procisa.isa->regIsReadOnly(i)) {
+  for (unsigned i = 0; i < regInfo->regCnt(); ++i) {
+    if (!regInfo->regIsReadOnly(i)) {
       regOptions.insert(i);
     }
   }
@@ -42,7 +43,7 @@ void RegisterSelectionComboBox::showPopup() {
   }
 
   for (const auto &i : regOptions) {
-    addItem(procisa.isa->regName(i) + " (" + procisa.isa->regAlias(i) + ")", i);
+    addItem(regInfo->regName(i) + " (" + regInfo->regAlias(i) + ")", i);
   }
   QComboBox::showPopup();
 }
@@ -98,13 +99,14 @@ void RegisterInitializationWidget::updateAddButtonState() {
 int RegisterInitializationWidget::getNonInitializedRegIdx() {
   const auto &currentISA =
       ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
+  const auto regInfo = currentISA.isa->regInfo().value();
   const auto &currentInitForProc = m_initializations.at(m_currentID);
   unsigned id = 0;
-  while (currentInitForProc.count(id) || currentISA.isa->regIsReadOnly(id)) {
+  while (currentInitForProc.count(id) || regInfo->regIsReadOnly(id)) {
     id++;
   }
 
-  return id < currentISA.isa->regCnt() ? id : -1;
+  return id < regInfo->regCnt() ? id : -1;
 }
 
 RegisterInitializationWidget::RegInitWidgets *
@@ -118,6 +120,7 @@ RegisterInitializationWidget::addRegisterInitialization(unsigned regIdx) {
   const auto &regLayout = m_ui->regInitLayout;
   const auto &procisa =
       ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
+  const auto regInfo = procisa.isa->regInfo().value();
 
   auto &w =
       m_currentRegInitWidgets.emplace_back(std::make_unique<RegInitWidgets>());
@@ -127,8 +130,8 @@ RegisterInitializationWidget::addRegisterInitialization(unsigned regIdx) {
   w->value = new QLineEdit(this);
   w->remove = new QPushButton(this);
 
-  w->name->addItem(procisa.isa->regName(regIdx) + " (" +
-                       procisa.isa->regAlias(regIdx) + ")",
+  w->name->addItem(regInfo->regName(regIdx) + " (" + regInfo->regAlias(regIdx) +
+                       ")",
                    regIdx);
 
   connect(w->name, &RegisterSelectionComboBox::regIndexChanged, this,

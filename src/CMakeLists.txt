@@ -10,7 +10,7 @@ endfunction()
 # will be linked to the newly defined library.
 function(create_ripes_lib NAME)
     cmake_parse_arguments(OPTIONS
-        "LINK_TO_RIPES_LIB;FIXED_NAME;EXCLUDE_SRC_INC" # options
+        "LINK_TO_RIPES_LIB;LINK_ISA_LIB;FIXED_NAME;EXCLUDE_SRC_INC" # options
         ""                             # 1-valued keywords
         ""                             # multi-valued keywords
         ${ARGN})
@@ -39,6 +39,10 @@ function(create_ripes_lib NAME)
 
     if(OPTIONS_LINK_TO_RIPES_LIB)
         target_link_libraries(${RIPES_LIB} PUBLIC ${LIB_NAME})
+    endif()
+
+    if(OPTIONS_LINK_ISA_LIB)
+        target_link_libraries(${LIB_NAME} PUBLIC ${ISA_LIB})
     endif()
 endfunction()
 

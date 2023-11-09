@@ -5,7 +5,7 @@
 namespace Ripes {
 
 RVSyntaxHighlighter::RVSyntaxHighlighter(
-    QTextDocument *parent, std::shared_ptr<Assembler::Errors> errors,
+    QTextDocument *parent, std::shared_ptr<Errors> errors,
     const std::set<QString> &supportedOpcodes)
     : SyntaxHighlighter(parent, errors) {
   HighlightingRule rule;

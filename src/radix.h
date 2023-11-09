@@ -8,11 +8,11 @@
 #include <climits>
 #include <map>
 
+#include "isa/isa_defines.h"
 #include "ripes_types.h"
 
 namespace Ripes {
 
-enum class Radix { Hex, Binary, Unsigned, Signed, ASCII, Float };
 const static std::map<Radix, QString> s_radixName = {
     {Radix::Hex, "Hex"},           {Radix::Binary, "Binary"},
     {Radix::Unsigned, "Unsigned"}, {Radix::Signed, "Signed"},

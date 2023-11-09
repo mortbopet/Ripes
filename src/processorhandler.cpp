@@ -39,7 +39,7 @@ ProcessorHandler::ProcessorHandler() {
   if (RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull())
     extensions = ProcessorRegistry::getDescription(m_currentID)
                      .isaInfo()
-                     .isa->supportedExtensions();
+                     .supportedExtensions;
   else
     extensions = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS)
                      .value<QStringList>();
@@ -267,11 +267,11 @@ void ProcessorHandler::_toggleBreakpoint(const AInt address) {
 void ProcessorHandler::_clearBreakpoints() { m_breakpoints.clear(); }
 
 void ProcessorHandler::createAssemblerForCurrentISA() {
-  const auto &ISA = _currentISA();
+  const auto &isa = _currentISA();
 
-  if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(ISA)) {
+  if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(isa)) {
     m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
-  } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(ISA)) {
+  } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(isa)) {
     m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
   } else {
     Q_UNREACHABLE();

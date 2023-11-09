@@ -28,13 +28,8 @@ const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
     {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
     {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
 
-/// The ISAInfoBase class defines an interface for instruction set information.
-class ISAInfoBase {
-public:
-  virtual ~ISAInfoBase(){};
-  virtual QString name() const = 0;
-  virtual ISA isaID() const = 0;
-
+struct RegInfoBase {
+  virtual RegisterFileType regFileType() const = 0;
   /// Returns the number of registers in the instruction set.
   virtual unsigned regCnt() const = 0;
   /// Returns the canonical name of the i'th register in the ISA.
@@ -50,6 +45,32 @@ public:
   virtual QString regInfo(unsigned i) const = 0;
   /// Returns if the i'th register is read-only.
   virtual bool regIsReadOnly(unsigned i) const = 0;
+};
+
+/// The ISAInfoBase class defines an interface for instruction set information.
+class ISAInfoBase {
+public:
+  virtual ~ISAInfoBase(){};
+  virtual QString name() const = 0;
+  virtual ISA isaID() const = 0;
+
+  std::optional<const RegInfoBase *>
+  regInfo(RegisterFileType regFileType = RegisterFileType::GPR) const {
+    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
+      return m_regInfos.at(regFileType).get();
+    } else {
+      return {};
+    }
+  }
+  /// Returns the total number of registers in the instruction set.
+  unsigned regCnt() const {
+    unsigned count = 0;
+    for (const auto &pair : m_regInfos) {
+      count += pair.second->regCnt();
+    }
+    return count;
+  }
+
   virtual unsigned bits() const = 0; // Register width, in bits
   unsigned bytes() const {
     return bits() / CHAR_BIT;
@@ -114,9 +135,10 @@ public:
 
 protected:
   ISAInfoBase() {}
+
+  std::map<RegisterFileType, std::unique_ptr<const RegInfoBase>> m_regInfos;
 };
 
-// Shallow ISA info used to drive ISA construction and UI representation.
 struct ProcessorISAInfo {
   std::shared_ptr<ISAInfoBase> isa;
   QStringList supportedExtensions;

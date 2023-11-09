@@ -1,12 +1,10 @@
 #include <QtTest/QTest>
 
-#include "assembler/instruction.h"
 #include "assembler/matcher.h"
 #include "isa/isainfo.h"
 #include "isa/rv32isainfo.h"
 
 #include "assembler/rv32i_assembler.h"
-#include "assembler/rv64i_assembler.h"
 
 #include "processorhandler.h"
 
@@ -399,7 +397,7 @@ void tst_Assembler::tst_matcher() {
       QFAIL(error->toString().toStdString().c_str());
     }
 
-    auto matchInstr = std::get<const RV32I_Assembler::_Instruction *>(match);
+    auto matchInstr = std::get<const InstructionBase *>(match);
     if (matchInstr->name() != iter.first) {
       QString error = "Incorrect instruction decoded; got '" +
                       matchInstr->name() + "' but expected '" + iter.first +

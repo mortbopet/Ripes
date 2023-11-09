@@ -28,7 +28,7 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
   m_ui->setupUi(this);
 
-  m_sourceErrors = std::make_shared<Assembler::Errors>();
+  m_sourceErrors = std::make_shared<Errors>();
   m_ui->codeEditor->setErrors(m_sourceErrors);
 
   m_symbolNavigatorAction = new QAction(this);
@@ -236,7 +236,7 @@ void EditTab::updateProgramViewerHighlighting() {
   }
 }
 
-Assembler::Errors *EditTab::errors() {
+Errors *EditTab::errors() {
   if (m_sourceErrors->empty())
     return nullptr;
   return m_sourceErrors.get();

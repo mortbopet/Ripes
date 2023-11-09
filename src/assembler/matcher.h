@@ -4,12 +4,14 @@
 #include <memory>
 #include <numeric>
 
-#include "instruction.h"
+#include "isa/instruction.h"
 
 namespace Ripes {
 namespace Assembler {
 
-template <typename Reg_T>
+/// Used in buildMatchTree() as the base of the match tree.
+constexpr OpPartBase BaseMatcher = OpPart<0, BitRange<0, 0>>();
+
 class Matcher {
   class MatchNode {
   private:
@@ -18,15 +20,15 @@ class Matcher {
     bool m_matchOnExtraMatchConds = false;
 
   public:
-    MatchNode(OpPart _matcher) : matcher(_matcher) {}
-    OpPart matcher;
+    MatchNode(OpPartBase _match) : match(_match) {}
+    OpPartBase match;
     std::vector<MatchNode> children;
-    std::shared_ptr<Instruction<Reg_T>> instruction;
+    std::shared_ptr<InstructionBase> instruction;
     void matchOnExtraMatchConds() { m_matchOnExtraMatchConds = true; }
 
     bool matches(const Instr_T &instr) const {
       return m_matchOnExtraMatchConds ? instruction->matchesWithExtras(instr)
-                                      : matcher.matches(instr);
+                                      : match.matches(instr);
     }
 
     void print(unsigned depth = 0) const {
@@ -38,12 +40,12 @@ class Matcher {
         }
 
         if (!instruction ||
-            (instruction && depth <= instruction->getOpcode().opParts.size())) {
+            (instruction && depth <= instruction->numOpParts())) {
           QString matchField =
-              QString::number(matcher.range.stop) + "[" +
-              QStringLiteral("%1").arg(matcher.value, matcher.range.width(), 2,
+              QString::number(match.range.stop) + "[" +
+              QStringLiteral("%1").arg(match.value, match.range.width(), 2,
                                        QLatin1Char('0')) +
-              "]" + QString::number(matcher.range.start);
+              "]" + QString::number(match.range.start);
           std::cout << matchField.toStdString();
         } else {
           // Extra match conditions must apply
@@ -67,11 +69,11 @@ class Matcher {
   };
 
 public:
-  Matcher(const std::vector<std::shared_ptr<Instruction<Reg_T>>> &instructions)
-      : m_matchRoot(buildMatchTree(instructions, 1)) {}
+  Matcher(const std::vector<std::shared_ptr<InstructionBase>> &instructions)
+      : m_matchRoot(buildMatchTree(instructions)) {}
   void print() const { m_matchRoot.print(); }
 
-  Result<const Instruction<Reg_T> *>
+  Result<const InstructionBase *>
   matchInstruction(const Instr_T &instruction) const {
     auto match = matchInstructionRec(instruction, m_matchRoot, true);
     if (match == nullptr) {
@@ -81,9 +83,9 @@ public:
   }
 
 private:
-  const Instruction<Reg_T> *matchInstructionRec(const Instr_T &instruction,
-                                                const MatchNode &node,
-                                                bool isRoot) const {
+  const InstructionBase *matchInstructionRec(const Instr_T &instruction,
+                                             const MatchNode &node,
+                                             bool isRoot) const {
     if (isRoot || node.matches(instruction)) {
       if (node.children.size() > 0) {
         for (const auto &child : node.children) {
@@ -100,45 +102,41 @@ private:
     return nullptr;
   }
 
-  MatchNode buildMatchTree(const InstrVec<Reg_T> &instructions,
-                           const unsigned fieldDepth = 1,
-                           OpPart matcher = OpPart(0, BitRange(0, 0, 2))) {
-    std::map<OpPart, InstrVec<Reg_T>> instrsWithEqualOpPart;
+  MatchNode buildMatchTree(const InstrVec &instructions,
+                           unsigned fieldDepth = 1,
+                           OpPartBase match = BaseMatcher) {
+    std::map<OpPartBase, InstrVec> instrsWithEqualOpPart;
     for (const auto &instr : instructions) {
       if (auto instrRef = instr.get()) {
-        const size_t nOpParts = instrRef->getOpcode().opParts.size();
+        const size_t nOpParts = instrRef->numOpParts();
         if (nOpParts < fieldDepth && !instrRef->hasExtraMatchConds()) {
           QString err = "Instruction '" + instr->name() +
                         "' cannot be decoded; aliases with other instruction "
                         "(Needs more discernable parts)\n";
           throw std::runtime_error(err.toStdString().c_str());
         }
-        auto &opParts = instrRef->getOpcode().opParts;
-        const OpPart *opPart = nullptr;
-        if (fieldDepth > nOpParts)
-          opPart = &opParts.back();
-        else
-          opPart = &opParts[fieldDepth - 1];
+        unsigned depth = (fieldDepth > nOpParts) ? nOpParts : fieldDepth;
+        OpPartBase opPart = instrRef->getOpPart(depth - 1);
         if (nOpParts == fieldDepth &&
-            instrsWithEqualOpPart.count(*opPart) != 0) {
+            instrsWithEqualOpPart.count(opPart) != 0) {
           QString err;
           err += "Instruction cannot be decoded; aliases with other "
                  "instruction (Identical to other "
                  "instruction)\n";
           err += instr->name() + " is equal to " +
-                 instrsWithEqualOpPart.at(*opPart).at(0)->name();
+                 instrsWithEqualOpPart.at(opPart).at(0)->name();
           throw std::runtime_error(err.toStdString().c_str());
         }
-        instrsWithEqualOpPart[*opPart].push_back(instr);
+        instrsWithEqualOpPart[opPart].push_back(instr);
       }
     }
 
-    MatchNode node(matcher);
+    MatchNode node(match);
     for (const auto &iter : instrsWithEqualOpPart) {
       bool isUniqueIdentifiable = false;
       if (iter.second.size() == 1) {
         auto &instr = iter.second[0];
-        const size_t nOpParts = instr->getOpcode().opParts.size();
+        const size_t nOpParts = instr->numOpParts();
         if (fieldDepth == nOpParts || instr->hasExtraMatchConds()) {
           // End of opParts, uniquely identifiable instruction
           MatchNode child(iter.first);

@@ -6,18 +6,10 @@
 namespace Ripes {
 
 template <>
-class ISAInfo<ISA::RV64I> : public RVISAInfoBase {
+class ISAInfo<ISA::RV64I> : public RVISA::RV_ISAInfoBase {
 public:
-  ISAInfo<ISA::RV64I>(const QStringList extensions) {
-    // Validate extensions
-    for (const auto &ext : extensions) {
-      if (supportsExtension(ext)) {
-        m_enabledExtensions << ext;
-      } else {
-        assert(false && "Invalid extension specified for ISA");
-      }
-    }
-  }
+  ISAInfo<ISA::RV64I>(const QStringList extensions)
+      : RV_ISAInfoBase(extensions) {}
 
   ISA isaID() const override { return ISA::RV64I; }
 
@@ -25,14 +17,7 @@ public:
   QString CCmarch() const override {
     QString march = "rv64i";
 
-    // Proceed in canonical order
-    for (const auto &ext : {"M", "A", "F", "D", "C"}) {
-      if (m_enabledExtensions.contains(ext)) {
-        march += QString(ext).toLower();
-      }
-    }
-
-    return march;
+    return _CCmarch(march);
   }
   QString CCmabi() const override { return "lp64"; }
 

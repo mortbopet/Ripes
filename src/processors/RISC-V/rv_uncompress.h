@@ -52,7 +52,7 @@ public:
                    << 2;
             // addi rd ′ , x2, nzuimm[9:2]
             new_instr = (uimm << 20) | (0b00010 << 15) | (0b000 << 12) |
-                        (rd << 7) | RVISA::Opcode::OPIMM;
+                        (rd << 7) | RVISA::OpcodeID::OPIMM;
           }
         } break;
         // case 0b001: c.fld  RV32DC/RV64DC-only
@@ -65,7 +65,7 @@ public:
                  ((fields[4] & 0x02) << 1);
           // lw rd ′ , offset[6:2](rs1 ′ )
           new_instr = (uimm << 20) | (rs1 << 15) | (0b010 << 12) | (rd << 7) |
-                      RVISA::Opcode::LOAD;
+                      RVISA::OpcodeID::LOAD;
         } break;
         case 0b011:
           if (m_isa->isaID() == ISA::RV64I) { // c.ld
@@ -76,7 +76,7 @@ public:
             uimm = (fields[4] << 6) | (fields[2] << 3);
             // ld rd ′ , offset[7:3](rs1 ′ )
             new_instr = (uimm << 20) | (rs1 << 15) | (0b011 << 12) | (rd << 7) |
-                        RVISA::Opcode::LOAD;
+                        RVISA::OpcodeID::LOAD;
           }
           // else{// c.flw RV32FC-only }
           break;
@@ -94,7 +94,7 @@ public:
           // sw rs2 ′ ,offset[6:2](rs1 ′ )
           new_instr = (((uimm & 0xFE0) >> 5) << 25) | (rs2 << 20) |
                       (rs1 << 15) | (0b010 << 12) | ((uimm & 0x1F) << 7) |
-                      RVISA::Opcode::STORE;
+                      RVISA::OpcodeID::STORE;
         } break;
         case 0b111:
           if (m_isa->isaID() == ISA::RV64I) { // c.sd
@@ -106,7 +106,7 @@ public:
             // sd rs2 ′ ,offset[7:3](rs1 ′ )
             new_instr = (((uimm & 0xFE0) >> 5) << 25) | (rs2 << 20) |
                         (rs1 << 15) | (0b011 << 12) | ((uimm & 0x1F) << 7) |
-                        RVISA::Opcode::STORE;
+                        RVISA::OpcodeID::STORE;
           }
           // else { c.fsw RV32FC-only}
           break;
@@ -125,7 +125,7 @@ public:
           }
           // addi rd, rd, nzimm[5:0]
           new_instr = (imm << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) |
-                      RVISA::Opcode::OPIMM;
+                      RVISA::OpcodeID::OPIMM;
         } break;
         case 0b001:
           if (m_isa->isaID() == ISA::RV32I) { // c.jal
@@ -142,7 +142,7 @@ public:
             new_instr = ((((imm & 0x003FF) << 9) | ((imm & 0x00400) >> 2) |
                           ((imm & 0x7F800) >> 11) | (imm & 0x80000))
                          << 12) |
-                        (0b00001 << 7) | RVISA::Opcode::JAL;
+                        (0b00001 << 7) | RVISA::OpcodeID::JAL;
           } else { // c.addiw;
             const auto fields =
                 RVInstrParser::getParser()->decodeCI16Instr(instrValue);
@@ -153,7 +153,7 @@ public:
             }
             // addiw rd, rd, imm[5:0]
             new_instr = (imm << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) |
-                        RVISA::Opcode::OPIMM32;
+                        RVISA::OpcodeID::OPIMM32;
           }
           break;
         case 0b010: // C.LI
@@ -166,7 +166,7 @@ public:
           if (fields[2]) { // test for negative
             imm = imm | 0xFFFFFFE0;
           }
-          new_instr = (imm << 20) | (rd << 7) | RVISA::Opcode::OPIMM;
+          new_instr = (imm << 20) | (rd << 7) | RVISA::OpcodeID::OPIMM;
           break;
         }
         case 0b011: {
@@ -182,14 +182,14 @@ public:
             }
             // addi x2, x2,nzimm[9:4]
             new_instr = (imm << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) |
-                        RVISA::Opcode::OPIMM;
+                        RVISA::OpcodeID::OPIMM;
           } else { // c.lui
             imm = fields[4];
             if (fields[2]) {
               imm = 0xFFFE0 | imm;
             }
             // lui rd, nzimm[17:12]
-            new_instr = (imm << 12) | (rd << 7) | RVISA::Opcode::LUI;
+            new_instr = (imm << 12) | (rd << 7) | RVISA::OpcodeID::LUI;
           }
         } break;
         case 0b100: // MISC-ALU
@@ -205,7 +205,7 @@ public:
             uimm = (fieldscb[2] << 6) | fieldscb[5];
             // srli rd ′ ,rd ′ , shamt[5:0]
             new_instr = (uimm << 20) | (rd << 15) | (0b101 << 12) | (rd << 7) |
-                        RVISA::Opcode::OPIMM;
+                        RVISA::OpcodeID::OPIMM;
           } break;
           case 0b01: { // c.srai
             const auto fieldscb =
@@ -213,7 +213,7 @@ public:
             uimm = (fieldscb[2] << 6) | fieldscb[5];
             // srai rd ′ , rd ′ , shamt[5:0]
             new_instr = (0b0100000 << 25) | (uimm << 20) | (rd << 15) |
-                        (0b101 << 12) | (rd << 7) | RVISA::Opcode::OPIMM;
+                        (0b101 << 12) | (rd << 7) | RVISA::OpcodeID::OPIMM;
           } break;
           case 0b10: { // c.andi
             const auto fieldscb =
@@ -224,33 +224,33 @@ public:
             }
             // andi rd ′ ,rd ′ , imm[5:0]
             new_instr = (imm << 20) | (rd << 15) | (0b111 << 12) | (rd << 7) |
-                        RVISA::Opcode::OPIMM;
+                        RVISA::OpcodeID::OPIMM;
           } break;
           case 0b11:
             switch (fields[2] << 2 | fields[5]) {
             case 0b000: // c.sub
               new_instr = (0b0100000 << 25) | (rs2 << 20) | (rd << 15) |
-                          (0b000 << 12) | (rd << 7) | RVISA::Opcode::OP;
+                          (0b000 << 12) | (rd << 7) | RVISA::OpcodeID::OP;
               break;
             case 0b001: // c.xor
               new_instr = (rs2 << 20) | (rd << 15) | (0b100 << 12) | (rd << 7) |
-                          RVISA::Opcode::OP;
+                          RVISA::OpcodeID::OP;
               break;
             case 0b010: // c.or
               new_instr = (rs2 << 20) | (rd << 15) | (0b110 << 12) | (rd << 7) |
-                          RVISA::Opcode::OP;
+                          RVISA::OpcodeID::OP;
               break;
             case 0b011: // c.and
               new_instr = (rs2 << 20) | (rd << 15) | (0b111 << 12) | (rd << 7) |
-                          RVISA::Opcode::OP;
+                          RVISA::OpcodeID::OP;
               break;
             case 0b100: // c.subw RV64C/RV128C-only
               new_instr = (0b0100000 << 25) | (rs2 << 20) | (rd << 15) |
-                          (0b000 << 12) | (rd << 7) | RVISA::Opcode::OP32;
+                          (0b000 << 12) | (rd << 7) | RVISA::OpcodeID::OP32;
               break;
             case 0b101: // c.addw RV64C/RV128C-only
               new_instr = (rs2 << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) |
-                          RVISA::Opcode::OP32;
+                          RVISA::OpcodeID::OP32;
               break;
               // case 0b110:  // RESERVED
               //    break;
@@ -275,7 +275,7 @@ public:
           new_instr = ((((imm & 0x003FF) << 9) | ((imm & 0x00400) >> 2) |
                         ((imm & 0x7F800) >> 11) | (imm & 0x80000))
                        << 12) |
-                      (0b00000 << 7) | RVISA::Opcode::JAL;
+                      (0b00000 << 7) | RVISA::OpcodeID::JAL;
         } break;
         case 0b110: { // c.beqz
           const auto fields =
@@ -290,7 +290,7 @@ public:
           new_instr = ((((imm & 0x0800) >> 5) | ((imm & 0x03F0) >> 4)) << 25) |
                       (0b00 << 20) | (rs1 << 15) | (0b000 << 12) |
                       ((((imm & 0x000F) << 1) | ((imm & 0x0400) >> 10)) << 7) |
-                      RVISA::Opcode::BRANCH;
+                      RVISA::OpcodeID::BRANCH;
         } break;
         case 0b111: { // c.bnez
           const auto fields =
@@ -305,7 +305,7 @@ public:
           new_instr = ((((imm & 0x0800) >> 5) | ((imm & 0x03F0) >> 4)) << 25) |
                       (0b00 << 20) | (rs1 << 15) | (0b001 << 12) |
                       ((((imm & 0x000F) << 1) | ((imm & 0x0400) >> 10)) << 7) |
-                      RVISA::Opcode::BRANCH;
+                      RVISA::OpcodeID::BRANCH;
         } break;
         }
         break;
@@ -320,7 +320,7 @@ public:
             uimm = fields[4];
             // slli rd, rd, shamt[4:0]
             new_instr = (uimm << 20) | (rd << 15) | (0b001 << 12) | (rd << 7) |
-                        RVISA::Opcode::OPIMM;
+                        RVISA::OpcodeID::OPIMM;
           }
         } break;
         // case 0b001: c.fldsp RV32DC/RV64DC-only
@@ -332,7 +332,7 @@ public:
               ((fields[4] & 0x03) << 6) | (fields[2] << 5) | (fields[4] & 0x1C);
           // lw rd,offset[7:2](x2)
           new_instr = (uimm << 20) | (0b0010 << 15) | (0b010 << 12) |
-                      (rd << 7) | RVISA::Opcode::LOAD;
+                      (rd << 7) | RVISA::OpcodeID::LOAD;
         } break;
         case 0b011:
           if (m_isa->isaID() == ISA::RV64I) { // c.ldsp
@@ -343,7 +343,7 @@ public:
                    (fields[4] & 0x18);
             // ld rd,offset[8:3](x2)
             new_instr = (uimm << 20) | (0b0010 << 15) | (0b011 << 12) |
-                        (rd << 7) | RVISA::Opcode::LOAD;
+                        (rd << 7) | RVISA::OpcodeID::LOAD;
           }
           // else{// c.flwsp RV32FC-only}
           break;
@@ -356,12 +356,12 @@ public:
             if (rs2) { // c.add
               // add rd, rd, rs2
               new_instr = (rs2 << 20) | (rd << 15) | (0b000 << 12) | (rd << 7) |
-                          RVISA::Opcode::OP;
+                          RVISA::OpcodeID::OP;
             } else {
               if (rd) { // c.jarl
                 // jalr x1, 0(rs1)
                 new_instr = (0b0 << 20) | (rd << 15) | (0b000 << 12) |
-                            (0b00001 << 7) | RVISA::Opcode::JALR;
+                            (0b00001 << 7) | RVISA::OpcodeID::JALR;
               }
               // else{
               // c.ebreak  -> ebreak  Not implemented in Ripes
@@ -371,11 +371,11 @@ public:
             if (rs2) { // c.mv
                        // add rd, x0, rs2
               new_instr = (rs2 << 20) | (0b0 << 15) | (0b000 << 12) |
-                          (rd << 7) | RVISA::Opcode::OP;
+                          (rd << 7) | RVISA::OpcodeID::OP;
             } else { // c.jr
               // jalr x0, 0(rs1)
               new_instr = (0b0 << 20) | (rd << 15) | (0b000 << 12) |
-                          (0b00000 << 7) | RVISA::Opcode::JALR;
+                          (0b00000 << 7) | RVISA::OpcodeID::JALR;
             }
           }
         } break;
@@ -389,7 +389,7 @@ public:
           // sw rs2,offset[7:2](x2)
           new_instr = (((uimm & 0xFE0) >> 5) << 25) | (rs2 << 20) |
                       (0b00010 << 15) | (0b010 << 12) | ((uimm & 0x1F) << 7) |
-                      RVISA::Opcode::STORE;
+                      RVISA::OpcodeID::STORE;
         } break;
         case 0b111:
           if (m_isa->isaID() == ISA::RV64I) { // c.sdsp
@@ -400,7 +400,7 @@ public:
             // sd rs2,offset[8:3](x2)
             new_instr = (((uimm & 0xFE0) >> 5) << 25) | (rs2 << 20) |
                         (0b00010 << 15) | (0b011 << 12) | ((uimm & 0x1F) << 7) |
-                        RVISA::Opcode::STORE;
+                        RVISA::OpcodeID::STORE;
           }
           // else{// c.fswsp RV32FC-only}
           break;

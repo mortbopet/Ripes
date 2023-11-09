@@ -1,8 +1,7 @@
 #pragma once
 
 #include "assembler_defines.h"
-#include "assemblererror.h"
-#include "symbolmap.h"
+#include "isa/symbolmap.h"
 #include <QRegularExpression>
 #include <variant>
 

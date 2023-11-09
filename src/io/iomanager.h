@@ -1,9 +1,9 @@
 #pragma once
 
 #include "assembler/assembler_defines.h"
-#include "assembler/symbolmap.h"
 #include "iobase.h"
 #include "ioregistry.h"
+#include "isa/symbolmap.h"
 
 #include <QFile>
 
@@ -54,9 +54,7 @@ public:
    * @returns as cSymbols, but as a map which can be directly loaded into the
    * assembler.
    */
-  const Assembler::SymbolMap &assemblerSymbols() const {
-    return m_assemblerSymbols;
-  }
+  const SymbolMap &assemblerSymbols() const { return m_assemblerSymbols; }
   std::vector<std::pair<Symbol, AInt>>
   assemblerSymbolsForPeriph(IOBase *peripheral) const;
 
@@ -112,7 +110,7 @@ private:
   MemoryMap m_memoryMap;
   std::map<IOBase *, MemoryMapEntry> m_periphMMappings;
   std::set<IOBase *> m_peripherals;
-  Assembler::SymbolMap m_assemblerSymbols;
+  SymbolMap m_assemblerSymbols;
   std::unique_ptr<QFile> m_symbolsHeaderFile;
 };
 
