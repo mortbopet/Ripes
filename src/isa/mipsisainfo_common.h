@@ -133,47 +133,9 @@ enum Function {
 };
 
 struct MIPS_GPRInfo : public RegInfoBase {
-  constexpr static RegisterFileType RegFileType() {
+  RegisterFileType regFileType() const override {
     return RegisterFileType::GPR;
   }
-  constexpr static unsigned int RegCnt() { return 34; }
-  static QString RegName(unsigned i) {
-    return (MIPSISA::RegNames.size() > static_cast<int>(i)
-                ? MIPSISA::RegNames.at(static_cast<int>(i))
-                : QString());
-  }
-  static QString RegAlias(unsigned i) {
-    return MIPSISA::RegAliases.size() > static_cast<int>(i)
-               ? MIPSISA::RegAliases.at(static_cast<int>(i))
-               : QString();
-  }
-  static QString RegInfo(unsigned i) {
-    return MIPSISA::RegDescs.size() > static_cast<int>(i)
-               ? MIPSISA::RegDescs.at(static_cast<int>(i))
-               : QString();
-  }
-  static bool RegIsReadOnly(unsigned i) { return i == 0; }
-  static unsigned int RegNumber(const QString &reg, bool &success) {
-    QString regRes = reg;
-    success = true;
-    if (reg[0] != '$') {
-      success = false;
-      return 0;
-    }
-
-    QString regNoDollar = regRes.remove('$');
-
-    if (MIPSISA::RegNames.count(reg) != 0) {
-      regRes.remove('$');
-      return regRes.toInt(&success, 10);
-    } else if (int idx = MIPSISA::RegAliases.indexOf(regNoDollar); idx != -1) {
-      return idx;
-    }
-    success = false;
-    return 0;
-  }
-
-  RegisterFileType regFileType() const override { return RegFileType(); }
   unsigned int regCnt() const override { return 34; }
   QString regName(unsigned i) const override {
     return (MIPSISA::RegNames.size() > static_cast<int>(i)
@@ -250,7 +212,7 @@ public:
   const QStringList &enabledExtensions() const override {
     return m_enabledExtensions;
   }
-  QString extensionDescription(const QString &ext) const override { return ""; }
+  QString extensionDescription(const QString &) const override { return ""; }
 
 protected:
   QStringList m_enabledExtensions;

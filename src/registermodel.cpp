@@ -129,15 +129,15 @@ void RegisterModel::setRadix(Ripes::Radix r) {
 }
 
 QVariant RegisterModel::nameData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->gprRegInfo()->regName(idx);
+  return ProcessorHandler::currentISA()->regInfo().value()->regName(idx);
 }
 
 QVariant RegisterModel::aliasData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->gprRegInfo()->regAlias(idx);
+  return ProcessorHandler::currentISA()->regInfo().value()->regAlias(idx);
 }
 
 QVariant RegisterModel::tooltipData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->gprRegInfo()->regInfo(idx);
+  return ProcessorHandler::currentISA()->regInfo().value()->regInfo(idx);
 }
 
 VInt RegisterModel::registerData(unsigned idx) const {
@@ -150,7 +150,8 @@ QVariant RegisterModel::valueData(unsigned idx) const {
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex &index) const {
   const auto def =
-      ProcessorHandler::currentISA()->gprRegInfo()->regIsReadOnly(index.row())
+      ProcessorHandler::currentISA()->regInfo().value()->regIsReadOnly(
+          index.row())
           ? Qt::NoItemFlags
           : Qt::ItemIsEnabled;
   if (index.column() == Column::Value)

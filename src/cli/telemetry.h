@@ -117,20 +117,20 @@ public:
   QVariant report(bool json) override {
     QVariantMap registerMap;
     auto isa = ProcessorHandler::currentISA();
-    auto gpr = isa->gprRegInfo();
+    auto regInfo = isa->regInfo().value();
 
     if (json) {
-      for (unsigned i = 0; i < gpr->regCnt(); i++) {
-        registerMap[gpr->regName(i)] = QVariant::fromValue(
+      for (unsigned i = 0; i < regInfo->regCnt(); i++) {
+        registerMap[regInfo->regName(i)] = QVariant::fromValue(
             ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i));
       }
       return registerMap;
     } else {
       QString outStr;
       QTextStream out(&outStr);
-      for (unsigned i = 0; i < gpr->regCnt(); i++) {
+      for (unsigned i = 0; i < regInfo->regCnt(); i++) {
         auto v = ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i);
-        out << gpr->regName(i) << ":\t"
+        out << regInfo->regName(i) << ":\t"
             << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
         out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
       }

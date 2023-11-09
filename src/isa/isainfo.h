@@ -54,13 +54,8 @@ public:
   virtual QString name() const = 0;
   virtual ISA isaID() const = 0;
 
-  const RegInfoBase *gprRegInfo() const {
-    auto gprRes = regInfo(RegisterFileType::GPR);
-    assert(gprRes);
-    return *gprRes;
-  }
   std::optional<const RegInfoBase *>
-  regInfo(RegisterFileType regFileType) const {
+  regInfo(RegisterFileType regFileType = RegisterFileType::GPR) const {
     if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
       return m_regInfos.at(regFileType).get();
     } else {

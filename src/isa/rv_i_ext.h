@@ -554,7 +554,7 @@ struct Bgeu : public Instr<Bgeu, Funct3::BGEU> {
 namespace TypePseudo {
 
 template <unsigned tokenIndex>
-struct PseudoReg : public Ripes::PseudoReg<tokenIndex, RV_GPRInfo> {};
+struct PseudoReg : public Ripes::PseudoReg<tokenIndex, RV_RegInfo> {};
 
 template <typename PseudoInstrImpl>
 struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {

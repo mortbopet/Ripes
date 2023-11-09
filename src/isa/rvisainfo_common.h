@@ -54,34 +54,39 @@ extern const QStringList GPRRegDescs;
 
 constexpr unsigned INSTR_BITS = 32;
 
+/// RISC-V extensions currently supported
+static QStringList getSupportedExtensions() { return {"M", "C"}; }
+
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
 };
 
+// TODO(raccog): This will be split into multiple classes; one for each register
+// file. Currently, this class describes all registers in RISC-V.
 /// Defines information about the general RISC-V register file.
-struct RV_GPRInfo : public RegInfoBase {
-  constexpr static RegisterFileType RegFileType() {
+struct RV_RegInfo : public RegInfoBase {
+  RegisterFileType regFileType() const override {
     return RegisterFileType::GPR;
   }
-  constexpr static unsigned int RegCnt() { return 32; }
-  static QString RegName(unsigned i) {
+  unsigned int regCnt() const override { return 32; }
+  QString regName(unsigned i) const override {
     return RVISA::GPRRegNames.size() > static_cast<int>(i)
                ? RVISA::GPRRegNames.at(static_cast<int>(i))
                : QString();
   }
-  static QString RegAlias(unsigned i) {
+  QString regAlias(unsigned i) const override {
     return RVISA::GPRRegAliases.size() > static_cast<int>(i)
                ? RVISA::GPRRegAliases.at(static_cast<int>(i))
                : QString();
   }
-  static QString RegInfo(unsigned i) {
+  QString regInfo(unsigned i) const override {
     return RVISA::GPRRegDescs.size() > static_cast<int>(i)
                ? RVISA::GPRRegDescs.at(static_cast<int>(i))
                : QString();
   }
-  static bool RegIsReadOnly(unsigned i) { return i == 0; }
-  static unsigned int RegNumber(const QString &reg, bool &success) {
+  bool regIsReadOnly(unsigned i) const override { return i == 0; }
+  unsigned int regNumber(const QString &reg, bool &success) const override {
     QString regRes = reg;
     success = true;
     if (reg[0] == 'x' && (RVISA::GPRRegNames.count(reg) != 0)) {
@@ -92,16 +97,6 @@ struct RV_GPRInfo : public RegInfoBase {
     }
     success = false;
     return 0;
-  }
-
-  RegisterFileType regFileType() const override { return RegFileType(); }
-  unsigned int regCnt() const override { return RegCnt(); }
-  QString regName(unsigned i) const override { return RegName(i); }
-  QString regAlias(unsigned i) const override { return RegAlias(i); }
-  QString regInfo(unsigned i) const override { return RegInfo(i); }
-  bool regIsReadOnly(unsigned i) const override { return RegIsReadOnly(i); }
-  unsigned int regNumber(const QString &reg, bool &success) const override {
-    return RegNumber(reg, success);
   }
 };
 
@@ -117,12 +112,9 @@ public:
       }
     }
 
-    m_regInfos[RegisterFileType::GPR] = std::make_unique<RV_GPRInfo>();
-
-    /** Any registers added by extensions can be applied here
-     * Floating point register: */
-    // if (extensions.contains("F"))
-    //   m_regFileTypes[RegisterFileType::FPR] = std::make_unique<RV_FPRInfo>()
+    // TODO(raccog): This map will contain more entries when register info is
+    // split between classes
+    m_regInfos[RegisterFileType::GPR] = std::make_unique<RV_RegInfo>();
   }
 
   QString name() const override { return CCmarch().toUpper(); }
@@ -180,7 +172,7 @@ protected:
   }
 
   QStringList m_enabledExtensions;
-  QStringList m_supportedExtensions = {"M", "C"};
+  QStringList m_supportedExtensions = getSupportedExtensions();
 };
 
 enum OpcodeID {
@@ -233,7 +225,7 @@ template <unsigned funct7, unsigned N = 32>
 struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31, N>> {};
 
 template <typename RegImpl, unsigned tokenIndex, typename Range>
-struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
+struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_RegInfo> {};
 
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction

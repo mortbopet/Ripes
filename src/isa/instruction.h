@@ -421,7 +421,7 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
     }
     const auto &regToken = line.tokens.at(tokenIndex + 1);
     bool success = false;
-    unsigned regIndex = RegInfo::RegNumber(regToken, success);
+    unsigned regIndex = RegInfo().regNumber(regToken, success);
     if (!success) {
       return Error(line, "Unknown register '" + regToken + "'");
     }
@@ -432,7 +432,7 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
   static bool decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
     const unsigned regNumber = BitRange::getInstance().decode(instruction);
-    const Token registerName(RegInfo::RegName(regNumber));
+    const Token registerName(RegInfo().regName(regNumber));
     if (registerName.isEmpty()) {
       return false;
     }
