@@ -82,6 +82,7 @@ struct BitRangeBase {
   const unsigned start, stop, N;
 
   constexpr unsigned width() const { return stop - start + 1; }
+  // TODO(raccog): Decouple from vsrtl library
   constexpr Instr_T getMask() const { return vsrtl::generateBitmask(width()); }
   constexpr Instr_T apply(Instr_T value) const {
     return (value & getMask()) << start;
@@ -667,6 +668,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
     Instr_T reconstructed = 0;
     ImmParts::decode(reconstructed, instruction);
     if (repr == Repr::Signed) {
+      // TODO(raccog): Decouple from vsrtl library and check for other uses of
+      // vsrtl::signextend
       line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
     } else if (repr == Repr::Unsigned) {
       line.push_back(QString::number(reconstructed));
