@@ -179,7 +179,7 @@ struct MIPS_RegInfo : public RegInfoBase {
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   MIPS_ISAInfoBase() {
-    m_regInfos[RegisterFileType::GPR] =
+    m_regInfoSet[RegisterFileType::GPR] =
         std::make_unique<MIPSISA::MIPS_RegInfo>();
   }
 

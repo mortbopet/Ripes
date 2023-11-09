@@ -109,8 +109,7 @@ void tst_Cosimulate::trapHandler() {
 
 Registers tst_Cosimulate::dumpRegs() {
   Registers regs;
-  for (unsigned i = 0;
-       i < ProcessorHandler::get()->currentISA()->regInfo().value()->regCnt();
+  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt();
        i++) {
     regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
         RegisterFileType::GPR, i);
@@ -137,8 +136,7 @@ std::optional<std::vector<int>> regNeq(const Registers &lhs,
 std::vector<RegisterChange> registerChange(const Registers &before,
                                            const Registers &after) {
   std::vector<RegisterChange> change;
-  for (unsigned i = 0;
-       i < ProcessorHandler::get()->currentISA()->regInfo().value()->regCnt();
+  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt();
        i++) {
     if (before.at(i) != after.at(i)) {
       change.push_back({i, after.at(i)});

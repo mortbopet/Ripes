@@ -28,8 +28,8 @@ const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
     {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
     {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
 
-struct RegInfoBase {
-  virtual RegisterFileType regFileType() const = 0;
+/// Description of an interface into one or more register information structs
+struct RegInfoInterface {
   /// Returns the number of registers in the instruction set.
   virtual unsigned regCnt() const = 0;
   /// Returns the canonical name of the i'th register in the ISA.
@@ -47,28 +47,111 @@ struct RegInfoBase {
   virtual bool regIsReadOnly(unsigned i) const = 0;
 };
 
+/// Description of an interface into a single register information struct
+struct RegInfoBase : public RegInfoInterface {
+  virtual RegisterFileType regFileType() const = 0;
+};
+
+using RegisterInfoMap =
+    std::map<RegisterFileType, std::shared_ptr<const RegInfoBase>>;
+
+/// A set of all the registers' information in an ISA
+struct RegInfoSet : public RegInfoInterface {
+  RegisterInfoMap map;
+
+  std::shared_ptr<const RegInfoBase> &operator[](const RegisterFileType key) {
+    return map[key];
+  }
+
+  unsigned regCnt() const {
+    unsigned count = 0;
+    for (const auto &reg : map) {
+      count += reg.second->regCnt();
+    }
+    return count;
+  }
+  QString regName(unsigned i) const {
+    if (i < regCnt())
+      return getIndexedInfo(i)->regName(i);
+    else
+      return QString();
+  }
+  unsigned regNumber(const QString &regName, bool &success) const {
+    unsigned count = 0;
+    for (const auto &reg : map) {
+      bool innerSuccess = false;
+      if (unsigned regNum = reg.second->regNumber(regName, innerSuccess);
+          innerSuccess) {
+        success = true;
+        return regNum + count;
+      }
+      count += reg.second->regCnt();
+    }
+    success = false;
+    return 0;
+  }
+  QString regAlias(unsigned i) const {
+    if (i < regCnt())
+      return getIndexedInfo(i)->regAlias(i);
+    else
+      return QString();
+  }
+  QString regInfo(unsigned i) const {
+    if (i < regCnt())
+      return getIndexedInfo(i)->regInfo(i);
+    else
+      return QString();
+  }
+  bool regIsReadOnly(unsigned i) const {
+    if (i < regCnt())
+      return getIndexedInfo(i)->regIsReadOnly(i);
+    else
+      return false;
+  }
+
+private:
+  const RegInfoBase *getIndexedInfo(unsigned i) const {
+    assert(i < regCnt() && "Register index out of range");
+    unsigned count = 0;
+    for (const auto &reg : map) {
+      if (i < count + reg.second->regCnt()) {
+        return reg.second.get();
+      }
+      count += reg.second->regCnt();
+    }
+
+    Q_UNREACHABLE();
+  }
+};
+
 /// The ISAInfoBase class defines an interface for instruction set information.
-class ISAInfoBase {
+class ISAInfoBase : public RegInfoInterface {
 public:
   virtual ~ISAInfoBase(){};
   virtual QString name() const = 0;
   virtual ISA isaID() const = 0;
 
+  QString regName(unsigned i) const override { return m_regInfoSet.regName(i); }
+  unsigned regNumber(const QString &regName, bool &success) const override {
+    return m_regInfoSet.regNumber(regName, success);
+  }
+  QString regAlias(unsigned i) const override {
+    return m_regInfoSet.regAlias(i);
+  }
+  QString regInfo(unsigned i) const override { return m_regInfoSet.regInfo(i); }
+  bool regIsReadOnly(unsigned i) const override {
+    return m_regInfoSet.regIsReadOnly(i);
+  }
+  unsigned regCnt() const override { return m_regInfoSet.regCnt(); }
+
   std::optional<const RegInfoBase *>
-  regInfo(RegisterFileType regFileType = RegisterFileType::GPR) const {
-    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
-      return m_regInfos.at(regFileType).get();
+  regInfo(RegisterFileType regFileType) const {
+    if (auto match = m_regInfoSet.map.find(regFileType);
+        match != m_regInfoSet.map.end()) {
+      return m_regInfoSet.map.at(regFileType).get();
     } else {
       return {};
     }
-  }
-  /// Returns the total number of registers in the instruction set.
-  unsigned regCnt() const {
-    unsigned count = 0;
-    for (const auto &pair : m_regInfos) {
-      count += pair.second->regCnt();
-    }
-    return count;
   }
 
   virtual unsigned bits() const = 0; // Register width, in bits
@@ -136,7 +219,7 @@ public:
 protected:
   ISAInfoBase() {}
 
-  std::map<RegisterFileType, std::unique_ptr<const RegInfoBase>> m_regInfos;
+  RegInfoSet m_regInfoSet;
 };
 
 struct ProcessorISAInfo {
