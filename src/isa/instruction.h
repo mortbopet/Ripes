@@ -22,7 +22,7 @@ namespace Ripes {
 template <typename MaybeBitRange>
 using IsBitRange =
     decltype((MaybeBitRange::N + MaybeBitRange::start + MaybeBitRange::stop),
-             MaybeBitRange::getInstance(),
+             MaybeBitRange(),
              std::declval<MaybeBitRange>().N +
                  std::declval<MaybeBitRange>().start +
                  std::declval<MaybeBitRange>().stop +
@@ -34,7 +34,7 @@ using IsBitRange =
 
 template <typename MaybeOpPart>
 using IsOpPart =
-    decltype(MaybeOpPart::value, MaybeOpPart::getInstance(),
+    decltype(MaybeOpPart::value, MaybeOpPart(),
              std::declval<MaybeOpPart>().apply(std::declval<Instr_T &>()),
              std::declval<MaybeOpPart>().matches(std::declval<Instr_T>()),
              std::declval<MaybeOpPart>().value,
@@ -73,7 +73,7 @@ class VerifyValidTypes<Op, Type, NextTypes...> {
 };
 
 /** @brief A range of bits determined at run-time
- *  Usually created from BitRange::getInstance()
+ *  Usually created from BitRange constructor
  */
 struct BitRangeBase {
   constexpr BitRangeBase(unsigned _start, unsigned _stop, unsigned _N)
@@ -117,8 +117,6 @@ struct BitRange : public BitRangeBase {
   constexpr static unsigned start = _start;
   constexpr static unsigned stop = _stop;
   constexpr static unsigned N = _N;
-
-  constexpr static BitRange getInstance() { return BitRange(); }
 };
 
 /** A set of BitRanges.
@@ -136,9 +134,7 @@ struct BitRangeSet {
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
   /// Returns the combined width of all BitRanges
-  constexpr static unsigned width() {
-    return (BitRanges::getInstance().width() + ... + 0);
-  }
+  constexpr static unsigned width() { return (BitRanges().width() + ... + 0); }
 
 private:
   /// Compile-time verification using recursive templates and static_assert
@@ -168,7 +164,7 @@ private:
 
 /** @brief A segment of an operation-identifying field of an instruction created
  * at run-time.
- * Usually created by OpPart::getInstance()
+ * Usually created by OpPart constructor
  */
 struct OpPartBase {
   constexpr OpPartBase(unsigned _value, BitRangeBase _range)
@@ -209,14 +205,12 @@ public:
 
   constexpr static unsigned value = _value;
 
-  static_assert(isUInt<BitRange::getInstance().width()>(value),
+  static_assert(isUInt<BitRange().width()>(value),
                 "OpPart value is too large to fit in BitRange.");
   static_assert(verifyBitRange<BitRange>(),
                 "OpPart can only contain a BitRange type");
 
-  constexpr OpPart() : OpPartBase(value, BitRange::getInstance()) {}
-
-  constexpr static OpPart getInstance() { return OpPart(); }
+  constexpr OpPart() : OpPartBase(value, BitRange()) {}
 };
 
 /** @brief An OpPart for declaring BitRanges of unused zeros */
@@ -242,7 +236,7 @@ struct IndexedOpPart {
            "OpPart index out of range");
     if (partIndex == 0) {
       // OpPart found
-      return OpPart::getInstance();
+      return OpPart();
     } else if constexpr (sizeof...(NextOpParts) > 0) {
       // Check next OpPart
       return IndexedOpPart<NextOpParts...>::getOpPart(partIndex - 1);
@@ -265,7 +259,7 @@ struct OpcodeSet {
 
   /// Applies each OpPart's encoding to the instruction.
   constexpr static void apply(Instr_T &instruction, FieldLinkRequest &) {
-    (OpParts::getInstance().apply(instruction), ...);
+    (OpParts().apply(instruction), ...);
   }
   /// Returns the number of OpParts in this opcode.
   constexpr static unsigned numParts() { return sizeof...(OpParts); }
@@ -426,13 +420,13 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
     if (!success) {
       return Error(line, "Unknown register '" + regToken + "'");
     }
-    instruction |= BitRange::getInstance().apply(regIndex);
+    instruction |= BitRange().apply(regIndex);
     return Result<>::def();
   }
   /// Decodes this register into its name. Adds it to the assembly line.
   static bool decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
-    const unsigned regNumber = BitRange::getInstance().decode(instruction);
+    const unsigned regNumber = BitRange().decode(instruction);
     const Token registerName(RegInfo().regName(regNumber));
     if (registerName.isEmpty()) {
       return false;
@@ -465,12 +459,12 @@ struct ImmPartBase {
 
   /// Applies this immediate part's encoding to the instruction.
   constexpr static void apply(const Instr_T value, Instr_T &instruction) {
-    instruction |= BitRange::getInstance().apply(value >> _offset);
+    instruction |= BitRange().apply(value >> _offset);
   }
   /// Decodes this immediate part into its value, combining it with other
   /// values.
   constexpr static void decode(Instr_T &value, const Instr_T instruction) {
-    value |= BitRange::getInstance().decode(instruction) << _offset;
+    value |= BitRange().decode(instruction) << _offset;
   }
 };
 
@@ -503,10 +497,10 @@ private:
   struct Verify<FirstPart, SecondPart, OtherParts...> {
     /// Asserts that FirstPart and SecondPart are not overlapping
     static_assert(
-        (FirstPart::offset >= (SecondPart::offset +
-                               SecondPart::BitRange::getInstance().width()) ||
+        (FirstPart::offset >=
+             (SecondPart::offset + typename SecondPart::BitRange().width()) ||
          SecondPart::offset >=
-             (FirstPart::offset + FirstPart::BitRange::getInstance().width())),
+             (FirstPart::offset + typename FirstPart::BitRange().width())),
         "Immediate has parts with overlapping offsets");
 
     /// Verify all combinations of immediates to ensure they don't overlap
