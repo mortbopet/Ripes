@@ -12,6 +12,7 @@
 #include "ripessettings.h"
 #include "savedialog.h"
 #include "settingsdialog.h"
+#include "sliderulestab.h"
 #include "syscall/syscallviewer.h"
 #include "syscall/systemio.h"
 #include "version/version.h"
@@ -91,12 +92,19 @@ MainWindow::MainWindow(QWidget *parent)
   m_stackedTabs->insertWidget(IOTabID, IOTab);
   m_tabWidgets[IOTabID] = {IOTab, IOToolbar};
 
+  auto *sliderulesToolbar = addToolBar("Sliderules");
+  sliderulesToolbar->setVisible(false);
+  auto *sliderulesTab = new SliderulesTab(sliderulesToolbar, this);
+  m_stackedTabs->insertWidget(SliderulesTabID, sliderulesTab);
+  m_tabWidgets[SliderulesTabID] = {sliderulesTab, sliderulesToolbar};
+
   // Setup tab bar
   m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
+  m_ui->tabbar->addFancyTab(QIcon(":/icons/notepad.svg"), "Sliderules");
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this,
           &MainWindow::tabChanged);
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs,
