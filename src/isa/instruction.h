@@ -81,6 +81,10 @@ struct BitRangeBase {
 
   const unsigned start, stop, N;
 
+  /// Returns true if the index is within the start/stop range
+  constexpr bool isWithinRange(unsigned idx) const {
+    return (idx >= start && idx <= stop);
+  }
   constexpr unsigned width() const { return stop - start + 1; }
   // TODO(raccog): Decouple from vsrtl library
   constexpr Instr_T getMask() const { return vsrtl::generateBitmask(width()); }
@@ -185,6 +189,11 @@ struct OpPartBase {
     return range < other.range;
   }
 
+  /// Returns true if the i'th bit is set in this OpPart
+  constexpr bool bitIsSet(unsigned i) const {
+    return ((range.apply(value) >> i) & 1) == 1;
+  }
+
   /// Applies this OpPart's encoding to the instruction.
   constexpr void apply(Instr_T &instruction) const {
     instruction |= range.apply(value);
@@ -275,7 +284,7 @@ struct OpcodeSet {
   }
 
   /// Returns all OpParts in this set as a vector that can be read at runtime
-  std::vector<OpPartBase> getParts() const { return {(OpParts(), ...)}; }
+  static std::vector<OpPartBase> getParts() { return {OpParts()...}; }
 
 private:
   /// Run verifications for all BitRanges
@@ -776,7 +785,29 @@ public:
                         [&](const auto &f) { return f(instr); });
   }
 
-  virtual std::vector<std::shared_ptr<FieldBase>> getFields() const = 0;
+  virtual const std::vector<std::shared_ptr<FieldBase>> &getFields() const = 0;
+  virtual const std::vector<OpPartBase> &getOpParts() const = 0;
+
+  bool opPartBitIsSet(unsigned idx) const {
+    auto opParts = getOpParts();
+    // Check each OpPart to see if this bit is set
+    for (const auto &part : opParts) {
+      if (part.bitIsSet(idx)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  bool opPartInRange(unsigned idx) const {
+    auto opParts = getOpParts();
+    // Check each OpPart to see if this bit is set
+    for (const auto &part : opParts) {
+      if (part.range.isWithinRange(idx)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
 protected:
   /// An optional set of disassembler match conditions, if the default
@@ -820,7 +851,9 @@ template <typename InstrImpl>
 struct Instruction : public InstructionBase {
   Instruction()
       : InstructionBase(InstrByteSize<InstrImpl>::byteSize),
-        m_name(InstrImpl::NAME.data()) {}
+        m_name(InstrImpl::NAME.data()),
+        m_fields(InstrImpl::Fields::getFields()),
+        m_opParts(InstrImpl::Opcode::getParts()) {}
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
@@ -854,12 +887,17 @@ struct Instruction : public InstructionBase {
   const QString &name() const override { return m_name; }
   unsigned numOpParts() const override { return InstrImpl::Opcode::numParts(); }
 
-  std::vector<std::shared_ptr<FieldBase>> getFields() const override {
-    return InstrImpl::Fields::getFields();
+  const std::vector<std::shared_ptr<FieldBase>> &getFields() const override {
+    return m_fields;
+  }
+  const std::vector<OpPartBase> &getOpParts() const override {
+    return m_opParts;
   }
 
 private:
   const QString m_name;
+  const std::vector<std::shared_ptr<FieldBase>> m_fields;
+  const std::vector<OpPartBase> m_opParts;
 };
 
 using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;

@@ -111,6 +111,7 @@ EncodingModel::EncodingModel(
 
 QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
                                   int role) const {
+  unsigned bitIdx = columnCount() - col - 1;
   switch (role) {
   case Qt::DisplayRole: {
     if (col == 0) {
@@ -123,9 +124,10 @@ QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
       return "EXPLANATION";
     } else if (col == 6) {
       return instr->name();
-    } else if (col >= 7 && col < EXTRA_COLS) {
+    } else if (col == 7) {
       auto fields = instr->getFields();
       QString names;
+      // Add each field's name to the table
       for (auto field = fields.begin(); field != fields.end();) {
         names += (*field)->fieldType();
         ++field;
@@ -135,7 +137,18 @@ QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
       }
       return names;
     } else if (col >= EXTRA_COLS) {
-      return QString::number(0);
+      return QString::number((instr->opPartBitIsSet(bitIdx)) ? 1 : 0);
+    } else {
+      return QVariant();
+    }
+  }
+  case Qt::BackgroundRole: {
+    if (col >= EXTRA_COLS) {
+      if (instr->opPartInRange(bitIdx)) {
+        return QBrush(Qt::red);
+      } else {
+        return QVariant();
+      }
     } else {
       return QVariant();
     }
