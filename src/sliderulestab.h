@@ -7,6 +7,7 @@
 #include "ripestab.h"
 
 #include <QHeaderView>
+#include <QTableView>
 #include <QWidget>
 
 namespace Ripes {
@@ -36,27 +37,28 @@ protected:
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
 };
 
-class SliderulesEncodingModel final : public SliderulesModel {
+class EncodingModel final : public SliderulesModel {
   Q_OBJECT
 public:
-  SliderulesEncodingModel(
-      const ISAInfoBase *isa,
-      const std::shared_ptr<const InstrVec> instructions,
-      const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
-      QObject *parent = nullptr);
+  EncodingModel(const ISAInfoBase *isa,
+                const std::shared_ptr<const InstrVec> instructions,
+                const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
+                QObject *parent = nullptr);
 
   QVariant data(const QModelIndex &index,
                 int role = Qt::DisplayRole) const override;
+
+private:
+  QVariant instrData(size_t col, const InstructionBase *instr, int role) const;
 };
 
-class SliderulesDecodingModel final : public SliderulesModel {
+class DecodingModel final : public SliderulesModel {
   Q_OBJECT
 public:
-  SliderulesDecodingModel(
-      const ISAInfoBase *isa,
-      const std::shared_ptr<const InstrVec> instructions,
-      const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
-      QObject *parent = nullptr);
+  DecodingModel(const ISAInfoBase *isa,
+                const std::shared_ptr<const InstrVec> instructions,
+                const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
+                QObject *parent = nullptr);
 
   QVariant data(const QModelIndex &index,
                 int role = Qt::DisplayRole) const override;
@@ -66,6 +68,11 @@ class SliderulesTab : public RipesTab {
   Q_OBJECT
 
 public:
+  static constexpr const int ROW_SIZE = 30;
+  static constexpr const QSize MIN_CELL_SIZE = QSize(10, ROW_SIZE);
+  static constexpr const QSize TYPE_CELL_SIZE = QSize(25, ROW_SIZE);
+  static constexpr const QSize DESC_CELL_SIZE = QSize(100, ROW_SIZE);
+
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
 
@@ -77,12 +84,14 @@ public slots:
   void onProcessorChanged();
 
 private:
+  void updateTable(QTableView *table, SliderulesModel *model);
+
   Ui::SliderulesTab *ui;
   const ISAInfoBase *m_isa;
   std::shared_ptr<const InstrVec> m_instructions;
   std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
-  std::unique_ptr<SliderulesDecodingModel> m_decodingModel;
-  std::unique_ptr<SliderulesEncodingModel> m_encodingModel;
+  std::unique_ptr<DecodingModel> m_decodingModel;
+  std::unique_ptr<EncodingModel> m_encodingModel;
 };
 
 } // namespace Ripes

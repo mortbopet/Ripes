@@ -5,6 +5,8 @@
 
 namespace Ripes {
 
+static constexpr const size_t EXTRA_COLS = 10;
+
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab),
       m_isa(ProcessorHandler::currentISA()),
@@ -12,10 +14,10 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
           ProcessorHandler::getAssembler()->getInstructionSet())),
       m_pseudoInstructions(std::make_shared<const PseudoInstrVec>(
           ProcessorHandler::getAssembler()->getPseudoInstructionSet())),
-      m_decodingModel(std::make_unique<SliderulesDecodingModel>(
+      m_decodingModel(std::make_unique<DecodingModel>(
           ProcessorHandler::currentISA(), m_instructions,
           m_pseudoInstructions)),
-      m_encodingModel(std::make_unique<SliderulesEncodingModel>(
+      m_encodingModel(std::make_unique<EncodingModel>(
           ProcessorHandler::currentISA(), m_instructions,
           m_pseudoInstructions)) {
   ui->setupUi(this);
@@ -42,19 +44,27 @@ void SliderulesTab::setData(const ISAInfoBase *isa, InstrVec instructions,
   m_pseudoInstructions =
       std::make_shared<const PseudoInstrVec>(pseudoInstructions);
 
-  m_decodingModel = std::make_unique<SliderulesDecodingModel>(
-      m_isa, m_instructions, m_pseudoInstructions);
-  m_encodingModel = std::make_unique<SliderulesEncodingModel>(
-      m_isa, m_instructions, m_pseudoInstructions);
+  m_decodingModel = std::make_unique<DecodingModel>(m_isa, m_instructions,
+                                                    m_pseudoInstructions);
+  m_encodingModel = std::make_unique<EncodingModel>(m_isa, m_instructions,
+                                                    m_pseudoInstructions);
 
   updateTables();
 }
 
+void SliderulesTab::updateTable(QTableView *table, SliderulesModel *model) {
+  table->setModel(model);
+  table->horizontalHeader()->setMinimumSectionSize(MIN_CELL_SIZE.width());
+  table->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::ResizeMode::Stretch);
+  table->resizeColumnsToContents();
+  table->verticalHeader()->hide();
+  table->show();
+}
+
 void SliderulesTab::updateTables() {
-  ui->decodingTable->setModel(m_decodingModel.get());
-  ui->decodingTable->show();
-  ui->encodingTable->setModel(m_encodingModel.get());
-  ui->encodingTable->show();
+  updateTable(ui->decodingTable, m_decodingModel.get());
+  updateTable(ui->encodingTable, m_encodingModel.get());
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
@@ -73,33 +83,60 @@ int SliderulesModel::rowCount(const QModelIndex &) const {
 }
 
 int SliderulesModel::columnCount(const QModelIndex &) const {
-  return m_isa->instrBits() + 10;
+  return m_isa->instrBits() + EXTRA_COLS;
 }
 
-SliderulesEncodingModel::SliderulesEncodingModel(
+EncodingModel::EncodingModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : SliderulesModel(isa, instructions, pseudoInstructions, parent) {}
 
-QVariant SliderulesEncodingModel::data(const QModelIndex &index,
-                                       int role) const {
+QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
+                                  int role) const {
+  switch (role) {
+  case Qt::DisplayRole: {
+    if (col == 0) {
+      return instr->extensionOrigin();
+    } else if (col == 1) {
+      return "TYPE";
+    } else if (col == 2) {
+      return "DESCRIPTION";
+    } else if (col == 3) {
+      // Pseudo expanded ops
+      return "";
+    } else if (col == 4 || col == 5) {
+      return "EXPLANATION";
+    } else if (col == 6) {
+      return instr->name();
+    } else if (col >= 7 && col < EXTRA_COLS) {
+      return "FIELDS";
+    } else if (col >= EXTRA_COLS) {
+      return QString::number(0);
+    } else {
+      return QVariant();
+    }
+  }
+  case Qt::TextAlignmentRole:
+    return Qt::AlignCenter;
+  default:
+    return QVariant();
+  }
+}
+
+QVariant EncodingModel::data(const QModelIndex &index, int role) const {
   size_t row = static_cast<size_t>(index.row());
   size_t col = static_cast<size_t>(index.column());
-  if (role == Qt::DisplayRole) {
-    assert(row < m_instructions->size() + m_pseudoInstructions->size() &&
-           "Cannot index past sliderule encoding model");
-    if (row < m_instructions->size()) {
-      auto instr = m_instructions->at(row);
-      if (col == 0) {
-        return instr->extensionOrigin();
-      } else {
-        return instr->name();
-      }
-    } else {
+  assert(row < m_instructions->size() + m_pseudoInstructions->size() &&
+         "Cannot index past sliderule encoding model");
+  if (row < m_instructions->size()) {
+    auto instr = m_instructions->at(row);
+    return instrData(col, instr.get(), role);
+  } else {
+    if (role == Qt::DisplayRole) {
       if (col == 0) {
         return "PSEUDO";
-      } else {
+      } else if (col == 6) {
         return m_pseudoInstructions->at(index.row() - m_instructions->size())
             ->name();
       }
@@ -108,14 +145,13 @@ QVariant SliderulesEncodingModel::data(const QModelIndex &index,
   return QVariant();
 }
 
-SliderulesDecodingModel::SliderulesDecodingModel(
+DecodingModel::DecodingModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : SliderulesModel(isa, instructions, pseudoInstructions, parent) {}
 
-QVariant SliderulesDecodingModel::data(const QModelIndex &index,
-                                       int role) const {
+QVariant DecodingModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole) {
   }
   return QVariant();
