@@ -25,10 +25,8 @@ public:
       QObject *parent = nullptr);
   ~SliderulesModel();
 
-  virtual int
-  rowCount(const QModelIndex &parent = QModelIndex()) const override = 0;
-  virtual int
-  columnCount(const QModelIndex &parent = QModelIndex()) const override = 0;
+  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   virtual QVariant data(const QModelIndex &index,
                         int role = Qt::DisplayRole) const override = 0;
 
@@ -36,6 +34,19 @@ protected:
   const ISAInfoBase *m_isa;
   const std::shared_ptr<const InstrVec> m_instructions;
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
+};
+
+class SliderulesEncodingModel final : public SliderulesModel {
+  Q_OBJECT
+public:
+  SliderulesEncodingModel(
+      const ISAInfoBase *isa,
+      const std::shared_ptr<const InstrVec> instructions,
+      const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
+      QObject *parent = nullptr);
+
+  QVariant data(const QModelIndex &index,
+                int role = Qt::DisplayRole) const override;
 };
 
 class SliderulesDecodingModel final : public SliderulesModel {
@@ -47,8 +58,6 @@ public:
       const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
       QObject *parent = nullptr);
 
-  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index,
                 int role = Qt::DisplayRole) const override;
 };
@@ -73,6 +82,7 @@ private:
   std::shared_ptr<const InstrVec> m_instructions;
   std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
   std::unique_ptr<SliderulesDecodingModel> m_decodingModel;
+  std::unique_ptr<SliderulesEncodingModel> m_encodingModel;
 };
 
 } // namespace Ripes

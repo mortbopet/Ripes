@@ -14,6 +14,9 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
           ProcessorHandler::getAssembler()->getPseudoInstructionSet())),
       m_decodingModel(std::make_unique<SliderulesDecodingModel>(
           ProcessorHandler::currentISA(), m_instructions,
+          m_pseudoInstructions)),
+      m_encodingModel(std::make_unique<SliderulesEncodingModel>(
+          ProcessorHandler::currentISA(), m_instructions,
           m_pseudoInstructions)) {
   ui->setupUi(this);
 
@@ -41,6 +44,8 @@ void SliderulesTab::setData(const ISAInfoBase *isa, InstrVec instructions,
 
   m_decodingModel = std::make_unique<SliderulesDecodingModel>(
       m_isa, m_instructions, m_pseudoInstructions);
+  m_encodingModel = std::make_unique<SliderulesEncodingModel>(
+      m_isa, m_instructions, m_pseudoInstructions);
 
   updateTables();
 }
@@ -48,6 +53,8 @@ void SliderulesTab::setData(const ISAInfoBase *isa, InstrVec instructions,
 void SliderulesTab::updateTables() {
   ui->decodingTable->setModel(m_decodingModel.get());
   ui->decodingTable->show();
+  ui->encodingTable->setModel(m_encodingModel.get());
+  ui->encodingTable->show();
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
@@ -61,27 +68,27 @@ SliderulesModel::SliderulesModel(
 
 SliderulesModel::~SliderulesModel() {}
 
-SliderulesDecodingModel::SliderulesDecodingModel(
+int SliderulesModel::rowCount(const QModelIndex &) const {
+  return m_instructions->size() + m_pseudoInstructions->size();
+}
+
+int SliderulesModel::columnCount(const QModelIndex &) const {
+  return m_isa->instrBits() + 10;
+}
+
+SliderulesEncodingModel::SliderulesEncodingModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : SliderulesModel(isa, instructions, pseudoInstructions, parent) {}
 
-int SliderulesDecodingModel::rowCount(const QModelIndex &) const {
-  return m_instructions->size() + m_pseudoInstructions->size();
-}
-
-int SliderulesDecodingModel::columnCount(const QModelIndex &) const {
-  return m_isa->instrBits() + 5;
-}
-
-QVariant SliderulesDecodingModel::data(const QModelIndex &index,
+QVariant SliderulesEncodingModel::data(const QModelIndex &index,
                                        int role) const {
   if (role == Qt::DisplayRole) {
     if (index.column() == 0) {
       assert(static_cast<size_t>(index.row()) <
                  m_instructions->size() + m_pseudoInstructions->size() &&
-             "Cannot index past sliderule decoding model");
+             "Cannot index past sliderule encoding model");
       return (static_cast<size_t>(index.row()) < m_instructions->size())
                  ? m_instructions->at(index.row())->name()
                  : m_pseudoInstructions
@@ -89,6 +96,19 @@ QVariant SliderulesDecodingModel::data(const QModelIndex &index,
                        ->name();
     }
     return QString::number(index.row()) + " " + QString::number(index.column());
+  }
+  return QVariant();
+}
+
+SliderulesDecodingModel::SliderulesDecodingModel(
+    const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
+    const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
+    QObject *parent)
+    : SliderulesModel(isa, instructions, pseudoInstructions, parent) {}
+
+QVariant SliderulesDecodingModel::data(const QModelIndex &index,
+                                       int role) const {
+  if (role == Qt::DisplayRole) {
   }
   return QVariant();
 }
