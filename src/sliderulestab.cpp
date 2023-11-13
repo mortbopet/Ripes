@@ -21,6 +21,8 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
           ProcessorHandler::currentISA(), m_instructions,
           m_pseudoInstructions)) {
   ui->setupUi(this);
+  // TODO(raccog): Enable filtering of instructions
+  ui->instrFilterInput->setReadOnly(true);
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
           &SliderulesTab::onProcessorChanged);
@@ -52,12 +54,12 @@ void SliderulesTab::setData(const ISAInfoBase *isa, InstrVec instructions,
   updateTables();
 }
 
-void SliderulesTab::updateTable(QTableView *table, SliderulesModel *model) {
+void SliderulesTab::updateTable(QTableView *table, ISAModel *model) {
   table->setModel(model);
   table->horizontalHeader()->setMinimumSectionSize(MIN_CELL_SIZE.width());
+  table->resizeColumnsToContents();
   table->horizontalHeader()->setSectionResizeMode(
       QHeaderView::ResizeMode::Stretch);
-  table->resizeColumnsToContents();
   table->verticalHeader()->hide();
   table->show();
 }
@@ -69,20 +71,20 @@ void SliderulesTab::updateTables() {
 
 SliderulesTab::~SliderulesTab() { delete ui; }
 
-SliderulesModel::SliderulesModel(
+ISAModel::ISAModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : QAbstractTableModel(parent), m_isa(isa), m_instructions(instructions),
       m_pseudoInstructions(pseudoInstructions) {}
 
-SliderulesModel::~SliderulesModel() {}
+ISAModel::~ISAModel() {}
 
-int SliderulesModel::rowCount(const QModelIndex &) const {
+int ISAModel::rowCount(const QModelIndex &) const {
   return m_instructions->size() + m_pseudoInstructions->size();
 }
 
-int SliderulesModel::columnCount(const QModelIndex &) const {
+int ISAModel::columnCount(const QModelIndex &) const {
   return m_isa->instrBits() + EXTRA_COLS;
 }
 
@@ -90,7 +92,7 @@ EncodingModel::EncodingModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
-    : SliderulesModel(isa, instructions, pseudoInstructions, parent) {}
+    : ISAModel(isa, instructions, pseudoInstructions, parent) {}
 
 QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
                                   int role) const {
@@ -149,7 +151,7 @@ DecodingModel::DecodingModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
-    : SliderulesModel(isa, instructions, pseudoInstructions, parent) {}
+    : ISAModel(isa, instructions, pseudoInstructions, parent) {}
 
 QVariant DecodingModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole) {

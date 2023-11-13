@@ -2,7 +2,6 @@
 
 #include "instruction.h"
 #include "isainfo.h"
-#include "processorhandler.h"
 #include "pseudoinstruction.h"
 #include "ripestab.h"
 
@@ -16,15 +15,14 @@ namespace Ui {
 class SliderulesTab;
 }
 
-class SliderulesModel : public QAbstractTableModel {
+class ISAModel : public QAbstractTableModel {
   Q_OBJECT
 public:
-  SliderulesModel(
-      const ISAInfoBase *isa,
-      const std::shared_ptr<const InstrVec> instructions,
-      const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
-      QObject *parent = nullptr);
-  ~SliderulesModel();
+  ISAModel(const ISAInfoBase *isa,
+           const std::shared_ptr<const InstrVec> instructions,
+           const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
+           QObject *parent = nullptr);
+  ~ISAModel();
 
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -37,7 +35,7 @@ protected:
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
 };
 
-class EncodingModel final : public SliderulesModel {
+class EncodingModel final : public ISAModel {
   Q_OBJECT
 public:
   EncodingModel(const ISAInfoBase *isa,
@@ -52,7 +50,7 @@ private:
   QVariant instrData(size_t col, const InstructionBase *instr, int role) const;
 };
 
-class DecodingModel final : public SliderulesModel {
+class DecodingModel final : public ISAModel {
   Q_OBJECT
 public:
   DecodingModel(const ISAInfoBase *isa,
@@ -68,10 +66,7 @@ class SliderulesTab : public RipesTab {
   Q_OBJECT
 
 public:
-  static constexpr const int ROW_SIZE = 30;
-  static constexpr const QSize MIN_CELL_SIZE = QSize(10, ROW_SIZE);
-  static constexpr const QSize TYPE_CELL_SIZE = QSize(25, ROW_SIZE);
-  static constexpr const QSize DESC_CELL_SIZE = QSize(100, ROW_SIZE);
+  static constexpr const QSize MIN_CELL_SIZE = QSize(10, 30);
 
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
@@ -84,7 +79,7 @@ public slots:
   void onProcessorChanged();
 
 private:
-  void updateTable(QTableView *table, SliderulesModel *model);
+  void updateTable(QTableView *table, ISAModel *model);
 
   Ui::SliderulesTab *ui;
   const ISAInfoBase *m_isa;
