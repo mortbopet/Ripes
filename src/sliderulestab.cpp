@@ -59,7 +59,7 @@ void SliderulesTab::updateTable(QTableView *table, ISAModel *model) {
   table->horizontalHeader()->setMinimumSectionSize(MIN_CELL_SIZE.width());
   table->resizeColumnsToContents();
   table->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::ResizeMode::Stretch);
+      QHeaderView::ResizeMode::Fixed);
   table->verticalHeader()->hide();
   table->show();
 }
@@ -67,6 +67,18 @@ void SliderulesTab::updateTable(QTableView *table, ISAModel *model) {
 void SliderulesTab::updateTables() {
   updateTable(ui->decodingTable, m_decodingModel.get());
   updateTable(ui->encodingTable, m_encodingModel.get());
+
+  ui->decodingTable->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::ResizeMode::Stretch);
+
+  for (const auto i : {2, 4}) {
+    ui->encodingTable->horizontalHeader()->setSectionResizeMode(
+        i, QHeaderView::ResizeMode::Stretch);
+  }
+  for (size_t i = 0; i < m_instructions->size(); ++i) {
+    // Set span of 2 columns for encoding explanation
+    ui->encodingTable->setSpan(i, 3, 1, 3);
+  }
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
@@ -81,7 +93,8 @@ ISAModel::ISAModel(
 ISAModel::~ISAModel() {}
 
 int ISAModel::rowCount(const QModelIndex &) const {
-  return m_instructions->size() + m_pseudoInstructions->size();
+  // TODO: Add pseudo instructions
+  return m_instructions->size() /*+ m_pseudoInstructions->size()*/;
 }
 
 int ISAModel::columnCount(const QModelIndex &) const {
@@ -105,9 +118,6 @@ QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
     } else if (col == 2) {
       return "DESCRIPTION";
     } else if (col == 3) {
-      // Pseudo expanded ops
-      return "";
-    } else if (col == 4 || col == 5) {
       return "EXPLANATION";
     } else if (col == 6) {
       return instr->name();
@@ -117,6 +127,16 @@ QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
       return QString::number(0);
     } else {
       return QVariant();
+    }
+  }
+  case Qt::SizeHintRole: {
+    constexpr int ROW_SIZE = 30;
+    if (col < 2 || col == 3) {
+      return QSize(35, ROW_SIZE);
+    } else if (col >= EXTRA_COLS) {
+      return QSize(20, ROW_SIZE);
+    } else {
+      return QSize(80, ROW_SIZE);
     }
   }
   case Qt::TextAlignmentRole:
