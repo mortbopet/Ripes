@@ -133,6 +133,9 @@ struct BitRangeSet {
   using CombineWith =
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
+  /// Returns all BitRanges in this set as a vector that can be read at runtime
+  static std::vector<BitRangeBase> getRanges() { return {(BitRanges(), ...)}; }
+
   /// Returns the combined width of all BitRanges
   constexpr static unsigned width() { return (BitRanges().width() + ... + 0); }
 
@@ -271,6 +274,9 @@ struct OpcodeSet {
     return IndexedOpPart<OpParts...>::getOpPart(partIndex);
   }
 
+  /// Returns all OpParts in this set as a vector that can be read at runtime
+  std::vector<OpPartBase> getParts() const { return {(OpParts(), ...)}; }
+
 private:
   /// Run verifications for all BitRanges
   constexpr static BitRanges ranges{};
@@ -290,6 +296,16 @@ struct InstrRes {
 
 using AssembleRes = Result<InstrRes>;
 
+struct FieldBase {
+  FieldBase(unsigned _tokenIndex, std::vector<BitRangeBase> _ranges)
+      : tokenIndex(_tokenIndex), ranges(_ranges) {}
+
+  const unsigned tokenIndex;
+  const std::vector<BitRangeBase> ranges;
+
+  virtual QString fieldType() const { return "UNKNOWN"; }
+};
+
 /** @brief An instruction field defined at compile-time.
  * @param _tokenIndex: The index of this field in an assembly instruction
  * (starting at 0).
@@ -297,8 +313,10 @@ using AssembleRes = Result<InstrRes>;
  * the instruction. Must be BitRangesImpl type.
  */
 template <unsigned _tokenIndex, typename _BitRanges>
-struct Field {
+struct Field : public FieldBase {
   using BitRanges = _BitRanges;
+
+  Field() : FieldBase(_tokenIndex, BitRanges::getRanges()) {}
 
 private:
   /// Run verifications for all BitRanges
@@ -316,6 +334,7 @@ private:
   template <unsigned, template <unsigned> typename...>
   struct IndexedFieldSet {
     using BitRanges = BitRangeSet<>;
+    static std::vector<std::shared_ptr<FieldBase>> getFields() { return {}; }
   };
   template <unsigned tokenIndex, template <unsigned> typename FirstField,
             template <unsigned> typename... NextFields>
@@ -354,6 +373,19 @@ private:
       else
         return true;
     }
+
+    /// Returns all Fields in this set as a vector that can be read at runtime
+    static std::vector<std::shared_ptr<FieldBase>> getFields() {
+      auto field = std::make_shared<IndexedField>();
+      if constexpr (tokenIndex < sizeof...(Fields)) {
+        std::vector<std::shared_ptr<FieldBase>> vec =
+            NextIndexedFieldSet::getFields();
+        vec.insert(vec.begin(), field);
+        return vec;
+      } else {
+        return {field};
+      }
+    }
   };
 
   using IndexedFields = IndexedFieldSet<0, Fields...>;
@@ -382,6 +414,14 @@ public:
 
   /// Returns the number of Fields in this set.
   constexpr static unsigned numFields() { return sizeof...(Fields); }
+
+  /// Returns all Fields in this set as a vector that can be read at runtime
+  static std::vector<std::shared_ptr<FieldBase>> getFields() {
+    if constexpr (sizeof...(Fields) == 0) {
+      return {};
+    }
+    return IndexedFields::getFields();
+  }
 
 private:
   /// This calls all BitRanges' static assertions
@@ -434,6 +474,8 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
     line.push_back(registerName);
     return true;
   }
+
+  QString fieldType() const override { return regsd; }
 
   const QString regsd = "reg";
 };
@@ -552,6 +594,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
+
+  QString fieldType() const override { return "imm"; }
 
   /// Converts a string to its immediate value (if it exists). Success is set to
   /// false if this fails.
@@ -732,6 +776,8 @@ public:
                         [&](const auto &f) { return f(instr); });
   }
 
+  virtual std::vector<std::shared_ptr<FieldBase>> getFields() const = 0;
+
 protected:
   /// An optional set of disassembler match conditions, if the default
   /// opcode-based matching is insufficient.
@@ -807,6 +853,10 @@ struct Instruction : public InstructionBase {
   }
   const QString &name() const override { return m_name; }
   unsigned numOpParts() const override { return InstrImpl::Opcode::numParts(); }
+
+  std::vector<std::shared_ptr<FieldBase>> getFields() const override {
+    return InstrImpl::Fields::getFields();
+  }
 
 private:
   const QString m_name;

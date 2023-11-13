@@ -76,8 +76,10 @@ void SliderulesTab::updateTables() {
         i, QHeaderView::ResizeMode::Stretch);
   }
   for (size_t i = 0; i < m_instructions->size(); ++i) {
-    // Set span of 2 columns for encoding explanation
+    // Set span of 3 columns for encoding explanation
     ui->encodingTable->setSpan(i, 3, 1, 3);
+    // Set span of 3 columns for encoding fields
+    ui->encodingTable->setSpan(i, 7, 1, 3);
   }
 }
 
@@ -122,7 +124,16 @@ QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
     } else if (col == 6) {
       return instr->name();
     } else if (col >= 7 && col < EXTRA_COLS) {
-      return "FIELDS";
+      auto fields = instr->getFields();
+      QString names;
+      for (auto field = fields.begin(); field != fields.end();) {
+        names += (*field)->fieldType();
+        ++field;
+        if (field != fields.end()) {
+          names += ", ";
+        }
+      }
+      return names;
     } else if (col >= EXTRA_COLS) {
       return QString::number(0);
     } else {
