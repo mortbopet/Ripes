@@ -59,6 +59,7 @@ constexpr unsigned INSTR_BITS = 32;
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
+  QString extensionOrigin() const override { return "I"; }
 };
 
 constexpr std::string_view GPR = "gpr";

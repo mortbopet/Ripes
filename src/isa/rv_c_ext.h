@@ -23,6 +23,7 @@ struct OpPartFunct3 : public OpPart<funct3, BitRange<13, 15>> {};
 template <typename InstrImpl>
 struct RVC_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
+  QString extensionOrigin() const override { return "C"; }
 };
 
 enum class Funct2Offset { OFFSET5 = 5, OFFSET10 = 10 };

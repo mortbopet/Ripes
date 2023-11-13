@@ -409,6 +409,10 @@ struct Instr : public RV_Instruction<InstrImpl> {
                          OpPartFunct3<static_cast<unsigned>(funct3)>,
                          OpPartFunct7<static_cast<unsigned>(funct7)>> {};
   struct Fields : public FieldSet<RegRd, RegRs1, RegRs2> {};
+
+  QString extensionOrigin() const override {
+    return (funct7 == Funct7::M_EXT) ? "M" : "I";
+  }
 };
 
 template <typename InstrImpl, Funct3 funct3, Funct7 funct7 = Funct7::DEFAULT>

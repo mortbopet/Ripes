@@ -714,6 +714,8 @@ public:
   virtual const QString &name() const = 0;
   /// Returns the number of OpParts in this instruction.
   virtual unsigned numOpParts() const = 0;
+  /// Returns the name of the extension that this instruction came from.
+  virtual QString extensionOrigin() const = 0;
 
   /**
    * @brief size

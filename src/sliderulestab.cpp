@@ -84,18 +84,26 @@ SliderulesEncodingModel::SliderulesEncodingModel(
 
 QVariant SliderulesEncodingModel::data(const QModelIndex &index,
                                        int role) const {
+  size_t row = static_cast<size_t>(index.row());
+  size_t col = static_cast<size_t>(index.column());
   if (role == Qt::DisplayRole) {
-    if (index.column() == 0) {
-      assert(static_cast<size_t>(index.row()) <
-                 m_instructions->size() + m_pseudoInstructions->size() &&
-             "Cannot index past sliderule encoding model");
-      return (static_cast<size_t>(index.row()) < m_instructions->size())
-                 ? m_instructions->at(index.row())->name()
-                 : m_pseudoInstructions
-                       ->at(index.row() - m_instructions->size())
-                       ->name();
+    assert(row < m_instructions->size() + m_pseudoInstructions->size() &&
+           "Cannot index past sliderule encoding model");
+    if (row < m_instructions->size()) {
+      auto instr = m_instructions->at(row);
+      if (col == 0) {
+        return instr->extensionOrigin();
+      } else {
+        return instr->name();
+      }
+    } else {
+      if (col == 0) {
+        return "PSEUDO";
+      } else {
+        return m_pseudoInstructions->at(index.row() - m_instructions->size())
+            ->name();
+      }
     }
-    return QString::number(index.row()) + " " + QString::number(index.column());
   }
   return QVariant();
 }
