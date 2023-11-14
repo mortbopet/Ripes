@@ -15,6 +15,8 @@ public:
         m_enabledExtensions << ext;
       }
     }
+
+    // TODO: Setup MIPS instructions here
   }
 
   ISA isaID() const override { return ISA::MIPS32I; }
