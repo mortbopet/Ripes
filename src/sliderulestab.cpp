@@ -268,6 +268,8 @@ void SliderulesTab::updateTables() {
     ui->encodingTable->horizontalHeader()->setSectionResizeMode(
         i, QHeaderView::ResizeMode::Stretch);
   }
+
+  ui->encodingTable->clearSpans();
   for (size_t i = 0; i < m_instructions->size(); ++i) {
     // Set span of 3 columns for encoding explanation
     ui->encodingTable->setSpan(i, 3, 1, 3);
@@ -279,15 +281,18 @@ void SliderulesTab::updateTables() {
     auto fields = instr->getFields();
     for (const auto &field : fields) {
       for (const auto &range : field->ranges) {
-        unsigned start = m_encodingModel->columnCount() - range.stop - 1;
-        ui->encodingTable->setSpan(i, start, 1, range.width());
+        if (range.width() > 1) {
+          unsigned start = m_encodingModel->columnCount() - range.stop - 1;
+          ui->encodingTable->setSpan(i, start, 1, range.width());
+        }
       }
     }
 
-    // Span unused bits
-    if (instr->size() < m_isa->instrBytes()) {
+    // Span multiple unused bits
+    auto instrBits = instr->size() * 8;
+    if (instrBits < m_isa->instrBits() - 1) {
       ui->encodingTable->setSpan(i, TEXT_COLS, 1,
-                                 m_isa->instrBits() - (instr->size() * 8));
+                                 m_isa->instrBits() - instrBits);
     }
   }
 }
