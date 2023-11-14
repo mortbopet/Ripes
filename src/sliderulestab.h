@@ -99,7 +99,7 @@ private:
 namespace Cells {
 
 static constexpr size_t ROW_SIZE = 30;
-static constexpr QSize BIT_SIZE = QSize(20, ROW_SIZE);
+static constexpr QSize BIT_SIZE = QSize(25, ROW_SIZE);
 static constexpr QSize SMALL_SIZE = QSize(35, ROW_SIZE);
 static constexpr QSize LARGE_SIZE = QSize(80, ROW_SIZE);
 

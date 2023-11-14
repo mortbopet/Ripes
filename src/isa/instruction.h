@@ -306,9 +306,12 @@ struct InstrRes {
 using AssembleRes = Result<InstrRes>;
 
 struct FieldBase {
-  FieldBase(unsigned _tokenIndex, std::vector<BitRangeBase> _ranges)
-      : tokenIndex(_tokenIndex), ranges(_ranges) {}
+  enum class Type { Reg, Immediate };
 
+  FieldBase(Type _type, unsigned _tokenIndex, std::vector<BitRangeBase> _ranges)
+      : type(_type), tokenIndex(_tokenIndex), ranges(_ranges) {}
+
+  const Type type;
   const unsigned tokenIndex;
   const std::vector<BitRangeBase> ranges;
 
@@ -325,7 +328,7 @@ template <unsigned _tokenIndex, typename _BitRanges>
 struct Field : public FieldBase {
   using BitRanges = _BitRanges;
 
-  Field() : FieldBase(_tokenIndex, BitRanges::getRanges()) {}
+  Field(Type type) : FieldBase(type, _tokenIndex, BitRanges::getRanges()) {}
 
 private:
   /// Run verifications for all BitRanges
@@ -453,7 +456,9 @@ template <typename RegImpl, unsigned tokenIndex, typename BitRange,
 struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
   static_assert(verifyBitRange<BitRange>(), "Invalid BitRange type");
 
-  Reg() : regsd(RegImpl::NAME.data()) {}
+  Reg()
+      : Field<tokenIndex, BitRangeSet<BitRange>>(FieldBase::Type::Reg),
+        regsd(RegImpl::NAME.data()) {}
 
   /// Applies this register's encoding to the instruction.
   static Result<> apply(const TokenizedSrcLine &line, Instr_T &instruction,
@@ -603,6 +608,10 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
+
+  ImmBase()
+      : Field<tokenIndex, typename ImmParts::BitRanges>(
+            FieldBase::Type::Immediate) {}
 
   QString fieldType() const override { return "imm"; }
 

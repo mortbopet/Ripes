@@ -116,20 +116,42 @@ struct Bits final : public CellStructure {
       if (instr->opPartBitIsSet(bitIdx())) {
         return QString::number(1);
       }
-      // TODO(raccog): Properly set immediates
       // Set bitfield info
       for (const auto &field : instr->getFields()) {
+        size_t rangeIdx = 1;
         for (const auto &range : field->ranges) {
           unsigned start = m_columnCount - range.stop - 1;
           unsigned stop = m_columnCount - range.start - 1;
           if (start == m_columnIndex) {
-            // Return the field name for the first column in a span
-            return field->fieldType();
+            if (range.width() == 1) {
+              QChar c;
+              switch (field->type) {
+              case FieldBase::Type::Reg:
+                c = 'r';
+                break;
+              case FieldBase::Type::Immediate:
+                c = 'm';
+                break;
+              default:
+                c = field->fieldType().front();
+              }
+
+              // Return a shortened name
+              return QString(c) + QString::number(rangeIdx);
+            } else {
+              // Return the field name for the first column in a span
+              QString name = field->fieldType();
+              if (field->ranges.size() > 1) {
+                name += QString::number(rangeIdx);
+              }
+              return name;
+            }
           } else if (m_columnIndex >= start && m_columnIndex <= stop) {
             // Return nothing if within range so that the field name does not
             // intersect
             return QVariant();
           }
+          ++rangeIdx;
         }
       }
       return QString::number(0);
