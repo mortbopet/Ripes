@@ -121,8 +121,14 @@ struct Bits final : public CellStructure {
       for (const auto &field : instr->getFields()) {
         for (const auto &range : field->ranges) {
           unsigned start = m_columnCount - range.stop - 1;
+          unsigned stop = m_columnCount - range.start - 1;
           if (start == m_columnIndex) {
+            // Return the field name for the first column in a span
             return field->fieldType();
+          } else if (m_columnIndex >= start && m_columnIndex <= stop) {
+            // Return nothing if within range so that the field name does not
+            // intersect
+            return QVariant();
           }
         }
       }
