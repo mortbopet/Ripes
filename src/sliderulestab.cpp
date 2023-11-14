@@ -202,17 +202,14 @@ void encodingStructure(
 
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab),
-      m_isa(ProcessorHandler::currentISA()),
-      m_instructions(std::make_shared<const InstrVec>(
-          ProcessorHandler::getAssembler()->getInstructionSet())),
-      m_pseudoInstructions(std::make_shared<const PseudoInstrVec>(
-          ProcessorHandler::getAssembler()->getPseudoInstructionSet())),
+      m_isa(ProcessorHandler::fullISA()),
+      m_instructions(std::make_shared<const InstrVec>(m_isa->instructions())),
+      m_pseudoInstructions(
+          std::make_shared<const PseudoInstrVec>(m_isa->pseudoInstructions())),
       m_decodingModel(std::make_unique<DecodingModel>(
-          ProcessorHandler::currentISA(), m_instructions,
-          m_pseudoInstructions)),
+          ProcessorHandler::fullISA(), m_instructions, m_pseudoInstructions)),
       m_encodingModel(std::make_unique<EncodingModel>(
-          ProcessorHandler::currentISA(), m_instructions,
-          m_pseudoInstructions)) {
+          ProcessorHandler::fullISA(), m_instructions, m_pseudoInstructions)) {
   ui->setupUi(this);
   // TODO(raccog): Enable filtering of instructions
   ui->instrFilterInput->setReadOnly(true);
@@ -226,9 +223,9 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
 void SliderulesTab::onProcessorChanged() {
   const std::shared_ptr<Assembler::AssemblerBase> assembler =
       ProcessorHandler::getAssembler();
-  const ISAInfoBase *isa = ProcessorHandler::currentISA();
-  InstrVec instructions = assembler->getInstructionSet();
-  PseudoInstrVec pseudoInstructions = assembler->getPseudoInstructionSet();
+  const ISAInfoBase *isa = ProcessorHandler::fullISA();
+  InstrVec instructions = isa->instructions();
+  PseudoInstrVec pseudoInstructions = isa->pseudoInstructions();
   setData(isa, instructions, pseudoInstructions);
 }
 
