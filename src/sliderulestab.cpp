@@ -106,19 +106,26 @@ struct Fields final : public CellStructure {
   }
 };
 struct Bits final : public CellStructure {
-  Bits(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {
+  Bits(size_t columnIndex, size_t columnCount, const ISAInfoBase *isa)
+      : CellStructure(columnIndex, columnCount), m_isa(isa) {
     m_sizeHint = BIT_SIZE;
   }
   QVariant getVariant(const InstructionBase *instr, int role) const override {
     switch (role) {
-    case Qt::DisplayRole:
+    case Qt::DisplayRole: {
+      auto bits = instr->size() * 8;
+      if (bits < m_isa->instrBits() && m_columnIndex >= TEXT_COLS &&
+          m_columnIndex < m_columnCount - bits) {
+        // This bit is not included in the instruction
+        return QVariant();
+      }
       if (instr->opPartBitIsSet(bitIdx())) {
+        // This bit is set in the instruction's opcode
         return QString::number(1);
       }
-      // Set bitfield info
       for (const auto &field : instr->getFields()) {
         size_t rangeIdx = 1;
+        // Label instruction fields
         for (const auto &range : field->ranges) {
           unsigned start = m_columnCount - range.stop - 1;
           unsigned stop = m_columnCount - range.start - 1;
@@ -155,16 +162,27 @@ struct Bits final : public CellStructure {
         }
       }
       return QString::number(0);
-    case Qt::BackgroundRole:
+    }
+    case Qt::BackgroundRole: {
+      // TODO(raccog): Add second row if instruction is larger than instrBits
+      auto bits = instr->size() * 8;
+      if (bits < m_isa->instrBits() && m_columnIndex >= TEXT_COLS &&
+          m_columnIndex < m_columnCount - bits) {
+        return QBrush(Qt::black);
+      }
       if (instr->opPartInRange(bitIdx())) {
         return QBrush(Qt::red);
       } else {
         return QVariant();
       }
+    }
     default:
       return CellStructure::getVariant(instr, role);
     }
   }
+
+private:
+  const ISAInfoBase *m_isa;
 };
 
 template <typename... Structures>
@@ -256,14 +274,20 @@ void SliderulesTab::updateTables() {
     // Set span of 3 columns for encoding fields
     ui->encodingTable->setSpan(i, 7, 1, 3);
 
-    // TODO(raccog): Properly span immediates
     // Span all fields
-    auto fields = m_instructions->at(i)->getFields();
+    auto instr = m_instructions->at(i);
+    auto fields = instr->getFields();
     for (const auto &field : fields) {
       for (const auto &range : field->ranges) {
         unsigned start = m_encodingModel->columnCount() - range.stop - 1;
         ui->encodingTable->setSpan(i, start, 1, range.width());
       }
+    }
+
+    // Span unused bits
+    if (instr->size() < m_isa->instrBytes()) {
+      ui->encodingTable->setSpan(i, TEXT_COLS, 1,
+                                 m_isa->instrBits() - (instr->size() * 8));
     }
   }
 }
@@ -287,7 +311,7 @@ void ISAModel::update() {
       m_encodingColumnStructure, cols);
   for (unsigned i = 0; i < m_isa->instrBits(); ++i) {
     m_encodingColumnStructure.emplace_back(
-        std::make_unique<Bits>(TEXT_COLS + i, cols));
+        std::make_unique<Bits>(TEXT_COLS + i, cols, m_isa));
   }
 }
 
