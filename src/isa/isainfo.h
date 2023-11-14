@@ -11,6 +11,9 @@
 #include "instruction.h"
 #include "pseudoinstruction.h"
 
+#include "instruction.h"
+#include "pseudoinstruction.h"
+
 namespace Ripes {
 
 /// List of currently supported ISAs.
@@ -160,8 +163,21 @@ public:
     return this->name() == other->name() && ext1 == ext2;
   }
 
+  const InstrVec &instructions() const { return m_instructions; }
+
+  const PseudoInstrVec &pseudoInstructions() const {
+    return m_pseudoInstructions;
+  }
+
+  const RelocationsVec &relocations() const { return m_relocations; }
+
 protected:
   ISAInfoBase() {}
+
+  std::map<RegisterFileType, std::unique_ptr<const RegInfoBase>> m_regInfos;
+  InstrVec m_instructions;
+  PseudoInstrVec m_pseudoInstructions;
+  RelocationsVec m_relocations;
 };
 
 struct ProcessorISAInfo {
