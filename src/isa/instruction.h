@@ -138,7 +138,7 @@ struct BitRangeSet {
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
   /// Returns all BitRanges in this set as a vector that can be read at runtime
-  static std::vector<BitRangeBase> getRanges() { return {(BitRanges(), ...)}; }
+  static std::vector<BitRangeBase> getRanges() { return {BitRanges()...}; }
 
   /// Returns the combined width of all BitRanges
   constexpr static unsigned width() { return (BitRanges().width() + ... + 0); }
