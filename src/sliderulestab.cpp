@@ -5,7 +5,140 @@
 
 namespace Ripes {
 
-static constexpr const size_t EXTRA_COLS = 10;
+static constexpr const size_t TEXT_COLS = 10;
+
+namespace Cells {
+
+struct Extension final : public CellStructure {
+  Extension(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {
+    m_sizeHint = SMALL_SIZE;
+  }
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole:
+      return instr->extensionOrigin();
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+struct Type final : public CellStructure {
+  Type(size_t columnIndex, size_t columnCount) : CellStructure(1, columnCount) {
+    m_sizeHint = SMALL_SIZE;
+  }
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole:
+      // TODO(raccog): Get type from instruction
+      return "TYPE";
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+struct Description final : public CellStructure {
+  Description(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {
+    m_sizeHint = LARGE_SIZE;
+  }
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole:
+      // TODO(raccog): Get description from instruction
+      return "DESCRIPTION";
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+struct Explanation final : public CellStructure {
+  Explanation(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {
+    m_sizeHint = (columnIndex == 3) ? SMALL_SIZE : LARGE_SIZE;
+  }
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole:
+      // TODO(raccog): Get explanation from instruction
+      return "EXPLANATION";
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+struct Mnemonic final : public CellStructure {
+  Mnemonic(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {
+    m_sizeHint = LARGE_SIZE;
+  }
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole:
+      return instr->name();
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+struct Fields final : public CellStructure {
+  constexpr Fields(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {}
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole: {
+      auto fields = instr->getFields();
+      QString names;
+      // Add each field's name to the table
+      for (auto field = fields.begin(); field != fields.end();) {
+        names += (*field)->fieldType();
+        ++field;
+        if (field != fields.end()) {
+          names += ", ";
+        }
+      }
+      return names;
+    }
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+struct Bits final : public CellStructure {
+  Bits(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {
+    m_sizeHint = BIT_SIZE;
+  }
+  QVariant getVariant(const InstructionBase *instr, int role) const override {
+    switch (role) {
+    case Qt::DisplayRole:
+      return QString::number((instr->opPartBitIsSet(bitIdx())) ? 1 : 0);
+    case Qt::BackgroundRole:
+      if (instr->opPartInRange(bitIdx())) {
+        return QBrush(Qt::red);
+      } else {
+        return QVariant();
+      }
+    default:
+      return CellStructure::getVariant(instr, role);
+    }
+  }
+};
+
+template <typename... Structures>
+void encodingStructure(
+    std::vector<std::unique_ptr<Cells::CellStructure>> &encodingColumnStructure,
+    size_t cols) {
+  size_t i = 0;
+  (
+      [&] {
+        encodingColumnStructure.emplace_back(
+            std::make_unique<Structures>(i++, cols));
+      }(),
+      ...);
+}
+
+} // namespace Cells
 
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab),
@@ -94,80 +227,39 @@ ISAModel::ISAModel(
 
 ISAModel::~ISAModel() {}
 
+void ISAModel::update() {
+  using namespace Cells;
+  size_t cols = this->columnCount();
+  encodingStructure<Extension, Type, Description, Explanation, Explanation,
+                    Explanation, Mnemonic, Fields, Fields, Fields>(
+      m_encodingColumnStructure, cols);
+  for (unsigned i = 0; i < m_isa->instrBits(); ++i) {
+    m_encodingColumnStructure.emplace_back(
+        std::make_unique<Bits>(TEXT_COLS + i, cols));
+  }
+}
+
 int ISAModel::rowCount(const QModelIndex &) const {
   // TODO: Add pseudo instructions
   return m_instructions->size() /*+ m_pseudoInstructions->size()*/;
 }
 
 int ISAModel::columnCount(const QModelIndex &) const {
-  return m_isa->instrBits() + EXTRA_COLS;
+  return m_isa->instrBits() + TEXT_COLS;
 }
 
 EncodingModel::EncodingModel(
     const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
-    : ISAModel(isa, instructions, pseudoInstructions, parent) {}
+    : ISAModel(isa, instructions, pseudoInstructions, parent) {
+  update();
+}
 
 QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
                                   int role) const {
-  unsigned bitIdx = columnCount() - col - 1;
-  switch (role) {
-  case Qt::DisplayRole: {
-    if (col == 0) {
-      return instr->extensionOrigin();
-    } else if (col == 1) {
-      return "TYPE";
-    } else if (col == 2) {
-      return "DESCRIPTION";
-    } else if (col == 3) {
-      return "EXPLANATION";
-    } else if (col == 6) {
-      return instr->name();
-    } else if (col == 7) {
-      auto fields = instr->getFields();
-      QString names;
-      // Add each field's name to the table
-      for (auto field = fields.begin(); field != fields.end();) {
-        names += (*field)->fieldType();
-        ++field;
-        if (field != fields.end()) {
-          names += ", ";
-        }
-      }
-      return names;
-    } else if (col >= EXTRA_COLS) {
-      return QString::number((instr->opPartBitIsSet(bitIdx)) ? 1 : 0);
-    } else {
-      return QVariant();
-    }
-  }
-  case Qt::BackgroundRole: {
-    if (col >= EXTRA_COLS) {
-      if (instr->opPartInRange(bitIdx)) {
-        return QBrush(Qt::red);
-      } else {
-        return QVariant();
-      }
-    } else {
-      return QVariant();
-    }
-  }
-  case Qt::SizeHintRole: {
-    constexpr int ROW_SIZE = 30;
-    if (col < 2 || col == 3) {
-      return QSize(35, ROW_SIZE);
-    } else if (col >= EXTRA_COLS) {
-      return QSize(20, ROW_SIZE);
-    } else {
-      return QSize(80, ROW_SIZE);
-    }
-  }
-  case Qt::TextAlignmentRole:
-    return Qt::AlignCenter;
-  default:
-    return QVariant();
-  }
+  assert(col < m_encodingColumnStructure.size() && "Invalid column index");
+  return m_encodingColumnStructure.at(col)->getVariant(instr, role);
 }
 
 QVariant EncodingModel::data(const QModelIndex &index, int role) const {
