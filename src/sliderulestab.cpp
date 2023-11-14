@@ -24,7 +24,8 @@ struct Extension final : public CellStructure {
   }
 };
 struct Type final : public CellStructure {
-  Type(size_t columnIndex, size_t columnCount) : CellStructure(1, columnCount) {
+  Type(size_t columnIndex, size_t columnCount)
+      : CellStructure(columnIndex, columnCount) {
     m_sizeHint = SMALL_SIZE;
   }
   QVariant getVariant(const InstructionBase *instr, int role) const override {
@@ -112,7 +113,20 @@ struct Bits final : public CellStructure {
   QVariant getVariant(const InstructionBase *instr, int role) const override {
     switch (role) {
     case Qt::DisplayRole:
-      return QString::number((instr->opPartBitIsSet(bitIdx())) ? 1 : 0);
+      if (instr->opPartBitIsSet(bitIdx())) {
+        return QString::number(1);
+      }
+      // TODO(raccog): Properly set immediates
+      // Set bitfield info
+      for (const auto &field : instr->getFields()) {
+        for (const auto &range : field->ranges) {
+          unsigned start = m_columnCount - range.stop - 1;
+          if (start == m_columnIndex) {
+            return field->fieldType();
+          }
+        }
+      }
+      return QString::number(0);
     case Qt::BackgroundRole:
       if (instr->opPartInRange(bitIdx())) {
         return QBrush(Qt::red);
@@ -213,6 +227,16 @@ void SliderulesTab::updateTables() {
     ui->encodingTable->setSpan(i, 3, 1, 3);
     // Set span of 3 columns for encoding fields
     ui->encodingTable->setSpan(i, 7, 1, 3);
+
+    // TODO(raccog): Properly span immediates
+    // Span all fields
+    auto fields = m_instructions->at(i)->getFields();
+    for (const auto &field : fields) {
+      for (const auto &range : field->ranges) {
+        unsigned start = m_encodingModel->columnCount() - range.stop - 1;
+        ui->encodingTable->setSpan(i, start, 1, range.width());
+      }
+    }
   }
 }
 
