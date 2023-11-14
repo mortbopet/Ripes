@@ -132,7 +132,7 @@ enum Function {
   SYSCALL = 0b001100
 };
 
-struct MIPS_RegInfo : public RegInfoBase {
+struct MIPS_GPRInfo : public RegInfoBase {
   RegisterFileType regFileType() const override {
     return RegisterFileType::GPR;
   }
@@ -180,7 +180,7 @@ class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   MIPS_ISAInfoBase() {
     m_regInfoSet[RegisterFileType::GPR] =
-        std::make_unique<MIPSISA::MIPS_RegInfo>();
+        std::make_unique<MIPSISA::MIPS_GPRInfo>();
   }
 
   QString name() const override { return CCmarch().toUpper(); }
