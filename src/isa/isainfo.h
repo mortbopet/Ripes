@@ -65,26 +65,29 @@ public:
   virtual ~ISAInfoBase(){};
   virtual QString name() const = 0;
   virtual ISA isaID() const = 0;
+  virtual const RegInfoMap &regInfoMap() const = 0;
 
   RegInfoVec regInfos() const {
     RegInfoVec regVec;
-    for (const auto &regInfo : m_regInfos) {
+    for (const auto &regInfo : regInfoMap()) {
       regVec.emplace_back(regInfo.second);
     }
     return regVec;
   }
   std::optional<const RegFileInfoInterface *>
   regInfo(RegisterFileType regFileType) const {
-    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
-      return m_regInfos.at(regFileType).get();
+    if (auto match = regInfoMap().find(regFileType);
+        match != regInfoMap().end()) {
+      return regInfoMap().at(regFileType).get();
     } else {
       return {};
     }
   }
   std::optional<std::shared_ptr<const RegFileInfoInterface>>
   regInfoShared(RegisterFileType regFileType) const {
-    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
-      return m_regInfos.at(regFileType);
+    if (auto match = regInfoMap().find(regFileType);
+        match != regInfoMap().end()) {
+      return regInfoMap().at(regFileType);
     } else {
       return {};
     }
@@ -158,8 +161,6 @@ public:
 
 protected:
   ISAInfoBase() {}
-
-  RegInfoMap m_regInfos;
 };
 
 struct ProcessorISAInfo {

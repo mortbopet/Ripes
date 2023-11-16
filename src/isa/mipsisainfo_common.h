@@ -183,6 +183,8 @@ public:
         std::make_unique<MIPSISA::MIPS_GPRInfo>();
   }
 
+  const RegInfoMap &regInfoMap() const override { return m_regInfos; }
+
   QString name() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
     return RegIndex{m_regInfos.at(RegisterFileType::GPR), 29};
@@ -224,6 +226,7 @@ public:
 protected:
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = {""};
+  RegInfoMap m_regInfos;
 };
 
 } // namespace Ripes

@@ -133,6 +133,8 @@ public:
     }
   }
 
+  const RegInfoMap &regInfoMap() const override { return m_regInfos; }
+
   QString name() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
     return RegIndex{m_regInfos.at(RegisterFileType::GPR), 2};
@@ -195,6 +197,7 @@ protected:
 
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = getSupportedExtensions();
+  RegInfoMap m_regInfos;
 };
 
 enum OpcodeID {
