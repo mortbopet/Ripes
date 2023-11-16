@@ -63,7 +63,7 @@ struct RV_Instruction : public Instruction<InstrImpl> {
 };
 
 /// Defines information about the general RISC-V register file.
-struct RV_GPRInfo : public RegInfoBase {
+struct RV_GPRInfo : public RegFileInfoInterface {
   RegisterFileType regFileType() const override {
     return RegisterFileType::GPR;
   }
@@ -99,7 +99,7 @@ struct RV_GPRInfo : public RegInfoBase {
 };
 
 /// Defines information about the floating-point RISC-V register file.
-struct RV_FPRInfo : public RegInfoBase {
+struct RV_FPRInfo : public RegFileInfoInterface {
   RegisterFileType regFileType() const override {
     return RegisterFileType::FPR;
   }
@@ -127,21 +127,27 @@ public:
       }
     }
 
-    m_regInfoSet[RegisterFileType::GPR] = std::make_unique<RV_GPRInfo>();
+    m_regInfos[RegisterFileType::GPR] = std::make_unique<RV_GPRInfo>();
     if (supportsExtension("F")) {
-      m_regInfoSet[RegisterFileType::FPR] = std::make_unique<RV_FPRInfo>();
+      m_regInfos[RegisterFileType::FPR] = std::make_unique<RV_FPRInfo>();
     }
   }
 
   QString name() const override { return CCmarch().toUpper(); }
-  int spReg() const override { return 2; }
-  int gpReg() const override { return 3; }
-  int syscallReg() const override { return 17; }
+  std::optional<RegIndex> spReg() const override {
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 2};
+  }
+  std::optional<RegIndex> gpReg() const override {
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 3};
+  }
+  std::optional<RegIndex> syscallReg() const override {
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 17};
+  }
   unsigned instrBits() const override { return INSTR_BITS; }
   unsigned elfMachineId() const override { return EM_RISCV; }
-  int syscallArgReg(unsigned argIdx) const override {
+  std::optional<RegIndex> syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
-    return argIdx + 10;
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), argIdx + 10};
   }
 
   QString elfSupportsFlags(unsigned flags) const override {

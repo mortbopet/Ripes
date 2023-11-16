@@ -32,9 +32,11 @@ void RegisterSelectionComboBox::showPopup() {
       m_parent->m_initializations.at(m_parent->m_currentID);
 
   std::set<unsigned> regOptions;
-  for (unsigned i = 0; i < isa->regCnt(); ++i) {
-    if (!isa->regIsReadOnly(i)) {
-      regOptions.insert(i);
+  for (const auto &regFile : isa->regInfos()) {
+    for (unsigned i = 0; i < regFile->regCnt(); ++i) {
+      if (!regFile->regIsReadOnly(i)) {
+        regOptions.insert(i);
+      }
     }
   }
 

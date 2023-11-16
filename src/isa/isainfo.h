@@ -28,8 +28,10 @@ const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
     {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
     {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
 
-/// Description of an interface into one or more register information structs
-struct RegInfoInterface {
+/// An interface into a register file.
+struct RegFileInfoInterface {
+  /// Returns this register file's type.
+  virtual RegisterFileType regFileType() const = 0;
   /// Returns the number of registers in the instruction set.
   virtual unsigned regCnt() const = 0;
   /// Returns the canonical name of the i'th register in the ISA.
@@ -47,108 +49,33 @@ struct RegInfoInterface {
   virtual bool regIsReadOnly(unsigned i) const = 0;
 };
 
-/// Description of an interface into a single register information struct
-struct RegInfoBase : public RegInfoInterface {
-  virtual RegisterFileType regFileType() const = 0;
+/// An index into a single register.
+struct RegIndex {
+  const std::shared_ptr<const RegFileInfoInterface> file;
+  const unsigned index;
 };
 
-using RegisterInfoMap =
-    std::map<RegisterFileType, std::shared_ptr<const RegInfoBase>>;
-
-/// A set of all the registers' information in an ISA
-struct RegInfoSet : public RegInfoInterface {
-  RegisterInfoMap map;
-
-  std::shared_ptr<const RegInfoBase> &operator[](const RegisterFileType key) {
-    return map[key];
-  }
-
-  unsigned regCnt() const {
-    unsigned count = 0;
-    for (const auto &reg : map) {
-      count += reg.second->regCnt();
-    }
-    return count;
-  }
-  QString regName(unsigned i) const {
-    if (i < regCnt())
-      return getIndexedInfo(i)->regName(i);
-    else
-      return QString();
-  }
-  unsigned regNumber(const QString &regName, bool &success) const {
-    unsigned count = 0;
-    for (const auto &reg : map) {
-      bool innerSuccess = false;
-      if (unsigned regNum = reg.second->regNumber(regName, innerSuccess);
-          innerSuccess) {
-        success = true;
-        return regNum + count;
-      }
-      count += reg.second->regCnt();
-    }
-    success = false;
-    return 0;
-  }
-  QString regAlias(unsigned i) const {
-    if (i < regCnt())
-      return getIndexedInfo(i)->regAlias(i);
-    else
-      return QString();
-  }
-  QString regInfo(unsigned i) const {
-    if (i < regCnt())
-      return getIndexedInfo(i)->regInfo(i);
-    else
-      return QString();
-  }
-  bool regIsReadOnly(unsigned i) const {
-    if (i < regCnt())
-      return getIndexedInfo(i)->regIsReadOnly(i);
-    else
-      return false;
-  }
-
-private:
-  const RegInfoBase *getIndexedInfo(unsigned i) const {
-    assert(i < regCnt() && "Register index out of range");
-    unsigned count = 0;
-    for (const auto &reg : map) {
-      if (i < count + reg.second->regCnt()) {
-        return reg.second.get();
-      }
-      count += reg.second->regCnt();
-    }
-
-    Q_UNREACHABLE();
-  }
-};
+using RegInfoVec = std::vector<std::shared_ptr<const RegFileInfoInterface>>;
+using RegInfoMap =
+    std::map<RegisterFileType, std::shared_ptr<const RegFileInfoInterface>>;
 
 /// The ISAInfoBase class defines an interface for instruction set information.
-class ISAInfoBase : public RegInfoInterface {
+class ISAInfoBase {
 public:
   virtual ~ISAInfoBase(){};
   virtual QString name() const = 0;
   virtual ISA isaID() const = 0;
 
-  QString regName(unsigned i) const override { return m_regInfoSet.regName(i); }
-  unsigned regNumber(const QString &regName, bool &success) const override {
-    return m_regInfoSet.regNumber(regName, success);
+  RegInfoVec regInfos() const {
+    RegInfoVec regInfos;
+    std::transform(m_regInfos.begin(), m_regInfos.end(), regInfos.end(),
+                   [](const auto &regInfo) { return regInfo.second; });
+    return regInfos;
   }
-  QString regAlias(unsigned i) const override {
-    return m_regInfoSet.regAlias(i);
-  }
-  QString regInfo(unsigned i) const override { return m_regInfoSet.regInfo(i); }
-  bool regIsReadOnly(unsigned i) const override {
-    return m_regInfoSet.regIsReadOnly(i);
-  }
-  unsigned regCnt() const override { return m_regInfoSet.regCnt(); }
-
-  std::optional<const RegInfoBase *>
+  std::optional<const RegFileInfoInterface *>
   regInfo(RegisterFileType regFileType) const {
-    if (auto match = m_regInfoSet.map.find(regFileType);
-        match != m_regInfoSet.map.end()) {
-      return m_regInfoSet.map.at(regFileType).get();
+    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
+      return m_regInfos.at(regFileType).get();
     } else {
       return {};
     }
@@ -164,13 +91,17 @@ public:
   } // Instruction width, in bytes
   virtual unsigned instrByteAlignment() const {
     return 0;
-  }                                        // Instruction Alignment, in bytes
-  virtual int spReg() const { return -1; } // Stack pointer
-  virtual int gpReg() const { return -1; } // Global pointer
-  virtual int syscallReg() const { return -1; } // Syscall function register
+  } // Instruction Alignment, in bytes
+  virtual std::optional<RegIndex> spReg() const { return {}; } // Stack pointer
+  virtual std::optional<RegIndex> gpReg() const { return {}; } // Global pointer
+  virtual std::optional<RegIndex> syscallReg() const {
+    return {};
+  } // Syscall function register
   // Mapping between syscall argument # and the corresponding register # wherein
   // that argument is passed.
-  virtual int syscallArgReg(unsigned /*argIdx*/) const { return -1; }
+  virtual std::optional<RegIndex> syscallArgReg(unsigned /*argIdx*/) const {
+    return {};
+  }
 
   // GCC Compile command architecture and ABI specification strings
   virtual QString CCmarch() const = 0;
@@ -219,7 +150,7 @@ public:
 protected:
   ISAInfoBase() {}
 
-  RegInfoSet m_regInfoSet;
+  RegInfoMap m_regInfos;
 };
 
 struct ProcessorISAInfo {

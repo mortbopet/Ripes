@@ -132,7 +132,7 @@ enum Function {
   SYSCALL = 0b001100
 };
 
-struct MIPS_GPRInfo : public RegInfoBase {
+struct MIPS_GPRInfo : public RegFileInfoInterface {
   RegisterFileType regFileType() const override {
     return RegisterFileType::GPR;
   }
@@ -179,19 +179,26 @@ struct MIPS_GPRInfo : public RegInfoBase {
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   MIPS_ISAInfoBase() {
-    m_regInfoSet[RegisterFileType::GPR] =
+    m_regInfos[RegisterFileType::GPR] =
         std::make_unique<MIPSISA::MIPS_GPRInfo>();
   }
 
   QString name() const override { return CCmarch().toUpper(); }
-  int spReg() const override { return 29; }
-  int gpReg() const override { return 28; }
-  int syscallReg() const override { return 2; }
+  std::optional<RegIndex> spReg() const override {
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 29};
+  }
+  std::optional<RegIndex> gpReg() const override {
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 28};
+  }
+  std::optional<RegIndex> syscallReg() const override {
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 2};
+  }
   unsigned instrBits() const override { return 32; }
   unsigned elfMachineId() const override { return EM_MIPS; }
-  virtual int syscallArgReg(unsigned argIdx) const override {
+  virtual std::optional<RegIndex>
+  syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 2 && "MIPS only implements argument registers a0-a7");
-    return argIdx + 4;
+    return RegIndex{m_regInfos.at(RegisterFileType::GPR), argIdx + 4};
   }
 
   QString elfSupportsFlags(unsigned flags) const override {

@@ -7,14 +7,16 @@ namespace Ripes {
 bool SyscallManager::execute(SyscallID id) {
   if (m_syscalls.count(id) == 0) {
     postToGUIThread([=] {
-      QMessageBox::warning(
-          nullptr, "Error",
-          "Unknown system call in register '" +
-              ProcessorHandler::currentISA()->regAlias(
-                  ProcessorHandler::currentISA()->syscallReg()) +
-              "': " + QString::number(id) +
-              "\nRefer to \"Help->System calls\" for a list of support system "
-              "calls.");
+      if (auto reg = ProcessorHandler::currentISA()->syscallReg();
+          reg.has_value()) {
+        QMessageBox::warning(nullptr, "Error",
+                             "Unknown system call in register '" +
+                                 reg->file->regAlias(reg->index) +
+                                 "': " + QString::number(id) +
+                                 "\nRefer to \"Help->System calls\" for a list "
+                                 "of support system "
+                                 "calls.");
+      }
     });
     return false;
   } else {

@@ -31,12 +31,11 @@ SyscallViewer::SyscallViewer(QWidget *parent)
   }
   m_ui->syscallList->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_ui->syscallList->verticalHeader()->hide();
-  m_ui->syscallList->setHorizontalHeaderLabels(
-      {"Func. (" +
-           ProcessorHandler::currentISA()->regAlias(
-               ProcessorHandler::currentISA()->syscallReg()) +
-           ")",
-       "Name"});
+  if (auto reg = ProcessorHandler::currentISA()->syscallReg();
+      reg.has_value()) {
+    m_ui->syscallList->setHorizontalHeaderLabels(
+        {"Func. (" + reg->file->regAlias(reg->index) + ")", "Name"});
+  }
   m_ui->syscallList->horizontalHeader()->setStretchLastSection(true);
   connect(m_ui->syscallList, &QTableWidget::currentItemChanged, this,
           &SyscallViewer::handleItemChanged);
@@ -102,7 +101,9 @@ void SyscallViewer::addItemToTable(QTableWidget *table, unsigned int idx,
   auto isa = ProcessorHandler::currentISA();
 
   idxItem->setData(Qt::EditRole, QString::number(idx));
-  regItem->setData(Qt::EditRole, isa->regAlias(isa->syscallArgReg(idx)));
+  if (auto reg = isa->syscallArgReg(idx); reg.has_value()) {
+    regItem->setData(Qt::EditRole, reg->file->regAlias(reg->index));
+  }
   textItem->setData(Qt::DisplayRole, description);
 
   idxItem->setFlags(idxItem->flags() ^ Qt::ItemIsEditable);
