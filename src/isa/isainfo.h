@@ -6,6 +6,7 @@
 #include <QString>
 #include <memory>
 #include <set>
+#include <vector>
 
 #include "elfio/elf_types.hpp"
 

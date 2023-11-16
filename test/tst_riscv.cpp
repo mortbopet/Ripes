@@ -115,11 +115,14 @@ QString tst_RISCV::dumpRegs() {
              ProcessorHandler::getProcessor()->getPcForStage({0, 0}), 16) +
          "\n";
   const auto isa = ProcessorHandler::currentISA();
-  for (unsigned i = 0; i < isa->regCnt(); i++) {
-    const auto value =
-        ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, i);
-    str += "\t" + isa->regName(i) + ":" + isa->regAlias(i) + ":\t" +
-           QString::number(value) + " (0x" + QString::number(value, 16) + ")\n";
+  for (const auto &regFile : isa->regInfos()) {
+    for (unsigned i = 0; i < regFile->regCnt(); i++) {
+      const auto value = ProcessorHandler::getProcessor()->getRegister(
+          regFile->regFileType(), i);
+      str += "\t" + regFile->regName(i) + ":" + regFile->regAlias(i) + ":\t" +
+             QString::number(value) + " (0x" + QString::number(value, 16) +
+             ")\n";
+    }
   }
   return str;
 }

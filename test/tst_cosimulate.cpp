@@ -26,6 +26,7 @@
 using namespace Ripes;
 using namespace vsrtl::core;
 struct RegisterChange {
+  RegisterFileType type;
   unsigned index;
   VInt newValue;
 };
@@ -97,22 +98,29 @@ private slots:
 };
 
 void tst_Cosimulate::trapHandler() {
-  unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
-      RegisterFileType::GPR,
-      ProcessorHandler::get()->getProcessor()->implementsISA()->syscallReg());
+  if (auto reg = ProcessorHandler::get()
+                     ->getProcessor()
+                     ->implementsISA()
+                     ->syscallReg();
+      reg.has_value()) {
+    unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
+        reg->file->regFileType(), reg->index);
 
-  /// @todo: Generalize this by having ISA report exit syscall codes
-  if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
-    m_stop = true;
+    /// @todo: Generalize this by having ISA report exit syscall codes
+    if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
+      m_stop = true;
+    }
   }
 }
 
 Registers tst_Cosimulate::dumpRegs() {
   Registers regs;
-  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt();
-       i++) {
-    regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
-        RegisterFileType::GPR, i);
+  for (const auto &regFile :
+       ProcessorHandler::get()->currentISA()->regInfos()) {
+    for (unsigned i = 0; i < regFile->regCnt(); i++) {
+      regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
+          regFile->regFileType(), i);
+    }
   }
   return regs;
 }
@@ -136,10 +144,12 @@ std::optional<std::vector<int>> regNeq(const Registers &lhs,
 std::vector<RegisterChange> registerChange(const Registers &before,
                                            const Registers &after) {
   std::vector<RegisterChange> change;
-  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt();
-       i++) {
-    if (before.at(i) != after.at(i)) {
-      change.push_back({i, after.at(i)});
+  for (const auto &regFile :
+       ProcessorHandler::get()->currentISA()->regInfos()) {
+    for (unsigned i = 0; i < regFile->regCnt(); i++) {
+      if (before.at(i) != after.at(i)) {
+        change.push_back({regFile->regFileType(), i, after.at(i)});
+      }
     }
   }
   return change;
@@ -151,8 +161,15 @@ QString tst_Cosimulate::generateErrorReport(const RegisterChange &change,
   QString err;
   err += "\nRegister change discrepancy detected while executing test: " +
          m_currentTest.filepath;
-  err += "\nUnexpected change was: x" + QString::number(change.index) +
-         " -> 0x" + QString::number(change.newValue, 16) + "\n";
+  err += "\nUnexpected change was: ";
+  if (auto regInfo =
+          ProcessorHandler::get()->currentISA()->regInfo(change.type);
+      regInfo.has_value()) {
+    err += (*regInfo)->regName(change.index);
+  } else {
+    err += "x" + QString::number(change.index);
+  }
+  err += " -> 0x" + QString::number(change.newValue, 16) + "\n";
   err += "\nTest processor state: \t\tPC: 0x" + QString::number(lhs.pc, 16) +
          "\t Cycle #: " + QString::number(lhs.cycle);
   err += "\nReference processor state: \tPC: 0x" + QString::number(rhs.pc, 16) +
