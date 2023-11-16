@@ -67,15 +67,24 @@ public:
   virtual ISA isaID() const = 0;
 
   RegInfoVec regInfos() const {
-    RegInfoVec regInfos;
-    std::transform(m_regInfos.begin(), m_regInfos.end(), regInfos.end(),
-                   [](const auto &regInfo) { return regInfo.second; });
-    return regInfos;
+    RegInfoVec regVec;
+    for (const auto &regInfo : m_regInfos) {
+      regVec.emplace_back(regInfo.second);
+    }
+    return regVec;
   }
   std::optional<const RegFileInfoInterface *>
   regInfo(RegisterFileType regFileType) const {
     if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
       return m_regInfos.at(regFileType).get();
+    } else {
+      return {};
+    }
+  }
+  std::optional<std::shared_ptr<const RegFileInfoInterface>>
+  regInfoShared(RegisterFileType regFileType) const {
+    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
+      return m_regInfos.at(regFileType);
     } else {
       return {};
     }

@@ -31,21 +31,34 @@ void RegisterSelectionComboBox::showPopup() {
   const auto &initializations =
       m_parent->m_initializations.at(m_parent->m_currentID);
 
-  std::set<unsigned> regOptions;
+  std::map<RegisterFileType, std::set<unsigned>> regOptions;
   for (const auto &regFile : isa->regInfos()) {
     for (unsigned i = 0; i < regFile->regCnt(); ++i) {
       if (!regFile->regIsReadOnly(i)) {
-        regOptions.insert(i);
+        if (regOptions.count(regFile->regFileType()) == 0) {
+          regOptions[regFile->regFileType()] = {i};
+        } else {
+          regOptions[regFile->regFileType()].insert(i);
+        }
       }
     }
   }
 
-  for (const auto &init : initializations) {
-    regOptions.erase(init.first);
+  for (const auto &regFileInit : initializations) {
+    if (regOptions.count(regFileInit.first) > 0) {
+      for (const auto &regInit : regFileInit.second) {
+        regOptions.at(regFileInit.first).erase(regInit.first);
+      }
+    }
   }
 
-  for (const auto &i : regOptions) {
-    addItem(isa->regName(i) + " (" + isa->regAlias(i) + ")", i);
+  for (const auto &regFileInit : regOptions) {
+    for (const auto &i : regFileInit.second) {
+      if (auto regInfo = isa->regInfo(regFileInit.first); regInfo.has_value()) {
+        addItem((*regInfo)->regName(i) + " (" + (*regInfo)->regAlias(i) + ")",
+                i);
+      }
+    }
   }
   QComboBox::showPopup();
 }
@@ -59,8 +72,11 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget *parent)
 
   const QIcon addIcon = QIcon(":/icons/plus.svg");
   m_ui->addInitButton->setIcon(addIcon);
-  connect(m_ui->addInitButton, &QPushButton::clicked, this,
-          [=] { this->addRegisterInitialization(getNonInitializedRegIdx()); });
+  connect(m_ui->addInitButton, &QPushButton::clicked, this, [=] {
+    if (auto regIdx = getNonInitializedRegIdx(); regIdx.has_value())
+      this->addRegisterInitialization(regIdx->file->regFileType(),
+                                      regIdx->index);
+  });
 
   // Initialize initializations for all available processors
   for (const auto &desc : ProcessorRegistry::getAvailableProcessors()) {
@@ -79,8 +95,10 @@ void RegisterInitializationWidget::processorSelectionChanged(ProcessorID id) {
   m_currentRegInitWidgets.clear();
   m_currentID = id;
 
-  for (const auto &init : m_initializations.at(id)) {
-    addRegisterInitialization(init.first);
+  for (const auto &regFileInit : m_initializations.at(id)) {
+    for (const auto &regInit : regFileInit.second) {
+      addRegisterInitialization(regFileInit.first, regInit.first);
+    }
   }
 
   updateAddButtonState();
@@ -91,54 +109,74 @@ RegisterInitializationWidget::~RegisterInitializationWidget() { delete m_ui; }
 void RegisterInitializationWidget::updateAddButtonState() {
   // Disable add button if we have exhausted the number of registers to
   // initialize for the given processor
-  if (getNonInitializedRegIdx() != -1) {
+  if (getNonInitializedRegIdx().has_value()) {
     m_ui->addInitButton->setEnabled(true);
   } else {
     m_ui->addInitButton->setEnabled(false);
   }
 }
 
-int RegisterInitializationWidget::getNonInitializedRegIdx() {
+std::optional<RegIndex>
+RegisterInitializationWidget::getNonInitializedRegIdx() {
   const auto &currentISA =
       ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
   const auto isa = currentISA.isa;
   const auto &currentInitForProc = m_initializations.at(m_currentID);
-  unsigned id = 0;
-  while (currentInitForProc.count(id) || isa->regIsReadOnly(id)) {
-    id++;
+  for (const auto &regFileInit : currentInitForProc) {
+    unsigned id = 0;
+    auto regInfo = isa->regInfo(regFileInit.first);
+    if (regInfo.has_value()) {
+      while (regFileInit.second.count(id) || (*regInfo)->regIsReadOnly(id)) {
+        id++;
+      }
+      if (id < (*regInfo)->regCnt()) {
+        return RegIndex{*isa->regInfoShared(regFileInit.first), id};
+      }
+    }
   }
 
-  return id < isa->regCnt() ? id : -1;
+  return {};
 }
 
-RegisterInitializationWidget::RegInitWidgets *
-RegisterInitializationWidget::addRegisterInitialization(unsigned regIdx) {
+void RegisterInitializationWidget::addRegisterInitialization(
+    RegisterFileType regFileType, unsigned regIdx) {
   constexpr unsigned s_defaultval = 0;
-  if (!m_initializations.at(m_currentID).count(regIdx)) {
-    // No default value of the register initialization exists.
-    m_initializations.at(m_currentID)[regIdx] = s_defaultval;
-  }
-
-  const auto &regLayout = m_ui->regInitLayout;
   const auto &procisa =
       ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
   const auto isa = procisa.isa;
+  auto maybeRegInfo = isa->regInfo(regFileType);
+  if (!maybeRegInfo.has_value()) {
+    return;
+  }
+  auto regInfo = *maybeRegInfo;
+
+  if (!m_initializations.at(m_currentID).count(regFileType)) {
+    m_initializations.at(m_currentID)[regFileType] = {};
+  }
+  if (!m_initializations.at(m_currentID).at(regFileType).count(regIdx)) {
+    // No default value of the register initialization exists.
+    m_initializations.at(m_currentID).at(regFileType)[regIdx] = s_defaultval;
+  }
+
+  const auto &regLayout = m_ui->regInitLayout;
 
   auto &w =
       m_currentRegInitWidgets.emplace_back(std::make_unique<RegInitWidgets>());
   auto *w_ptr = w.get();
 
+  w->regFileType = regFileType;
   w->name = new RegisterSelectionComboBox(this);
   w->value = new QLineEdit(this);
   w->remove = new QPushButton(this);
 
-  w->name->addItem(isa->regName(regIdx) + " (" + isa->regAlias(regIdx) + ")",
+  w->name->addItem(regInfo->regName(regIdx) + " (" + regInfo->regAlias(regIdx) +
+                       ")",
                    regIdx);
 
   connect(w->name, &RegisterSelectionComboBox::regIndexChanged, this,
-          [this, w_ptr](int oldIdx, int newIdx) {
-            m_initializations.at(m_currentID).erase(oldIdx);
-            m_initializations.at(m_currentID)[newIdx];
+          [this, w_ptr, regFileType](int oldIdx, int newIdx) {
+            m_initializations.at(m_currentID).at(regFileType).erase(oldIdx);
+            m_initializations.at(m_currentID).at(regFileType)[newIdx];
             emit w_ptr->value->textChanged(w_ptr->value->text());
           });
 
@@ -147,10 +185,13 @@ RegisterInitializationWidget::addRegisterInitialization(unsigned regIdx) {
 
   w->value->setValidator(m_hexValidator);
   w->value->setText(
-      "0x" + QString::number(m_initializations.at(m_currentID).at(regIdx), 16));
+      "0x" +
+      QString::number(
+          m_initializations.at(m_currentID).at(regFileType).at(regIdx), 16));
   connect(w->value, &QLineEdit::textChanged, this,
-          [this, w_ptr](const QString &text) {
+          [this, w_ptr, regFileType](const QString &text) {
             this->m_initializations.at(this->m_currentID)
+                .at(regFileType)
                 .at(w_ptr->name->currentData().toUInt()) =
                 text.toUInt(nullptr, 16);
           });
@@ -163,7 +204,6 @@ RegisterInitializationWidget::addRegisterInitialization(unsigned regIdx) {
           [this, w_ptr] { this->removeRegInitWidget(w_ptr); });
 
   updateAddButtonState();
-  return w.get();
 }
 
 void RegisterInitializationWidget::removeRegInitWidget(
@@ -175,7 +215,7 @@ void RegisterInitializationWidget::removeRegInitWidget(
 
   // Current register index stored in the combobox of the regInitWidgets
   const unsigned regIdx = w->name->itemData(0).toUInt();
-  m_initializations.at(m_currentID).erase(regIdx);
+  m_initializations.at(m_currentID).at(w->regFileType).erase(regIdx);
 
   m_currentRegInitWidgets.erase(iter);
   updateAddButtonState();

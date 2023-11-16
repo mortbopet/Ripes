@@ -27,9 +27,10 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   parser.addOption(QCommandLineOption(
       "reginit",
       "Comma-separated list of register initialization values. The register "
-      "value may be specified in signed, hex, or boolean notation. Format:\n"
-      "<register idx>=<value>,<register idx>=<value>",
-      "[rid:v]"));
+      "value may be specified in signed, hex, or boolean notation. Can be used "
+      "multiple times to initialize more than one register file type. Format:\n"
+      "<register file>:<register idx>=<value>,<register idx>=<value>",
+      "regfile:[rid=v]"));
   parser.addOption(QCommandLineOption(
       "timeout",
       "Simulation timeout in milliseconds. If simulation does not finish "
@@ -136,44 +137,70 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
 
   // Validate register initializations
   if (parser.isSet("reginit")) {
-    QStringList regInitList = parser.value("reginit").split(",");
-    for (auto &regInit : regInitList) {
-      QStringList regInitParts = regInit.split("=");
-      if (regInitParts.size() != 2) {
-        errorMessage = "Invalid register initialization '" + regInit +
-                       "' specified (--reginit).";
+    for (const auto &regFileInit : parser.values("reginit")) {
+      if (!regFileInit.contains(':')) {
+        errorMessage = "Cannot find register file type (--reginit).";
         return false;
       }
-      bool ok;
-      int regIdx = regInitParts[0].toInt(&ok);
-      if (!ok) {
-        errorMessage = "Invalid register index '" + regInitParts[0] +
-                       "' specified (--reginit).";
-        return false;
+      auto regFileSplit = regFileInit.indexOf(':');
+      QString regFile = regFileInit.mid(0, regFileSplit);
+
+      QStringList regInitList = regFileInit.mid(regFileSplit + 1).split(",");
+      for (auto &regInit : regInitList) {
+        QStringList regInitParts = regInit.split("=");
+        if (regInitParts.size() != 2) {
+          errorMessage = "Invalid register initialization '" + regInit +
+                         "' specified (--reginit).";
+          return false;
+        }
+        bool ok;
+        int regIdx = regInitParts[0].toInt(&ok);
+        if (!ok) {
+          errorMessage = "Invalid register index '" + regInitParts[0] +
+                         "' specified (--reginit).";
+          return false;
+        }
+
+        auto &vstr = regInitParts[1];
+        VInt regVal;
+        if (vstr.startsWith("0x"))
+          regVal = decodeRadixValue(vstr, Radix::Hex, &ok);
+        else if (vstr.startsWith("0b"))
+          regVal = decodeRadixValue(vstr, Radix::Binary, &ok);
+        else
+          regVal = decodeRadixValue(vstr, Radix::Signed, &ok);
+
+        if (!ok) {
+          errorMessage =
+              "Invalid register value '" + vstr + "' specified (--reginit).";
+          return false;
+        }
+
+        RegisterFileType regFileType;
+        if (regFile.startsWith("gpr", Qt::CaseInsensitive)) {
+          regFileType = RegisterFileType::GPR;
+        } else if (regFile.startsWith("fpr", Qt::CaseInsensitive)) {
+          regFileType = RegisterFileType::FPR;
+        } else if (regFile.startsWith("csr", Qt::CaseInsensitive)) {
+          regFileType = RegisterFileType::CSR;
+        } else {
+          errorMessage = "Invalid register file type " + regFile +
+                         " specified (--reginit).";
+          return false;
+        }
+
+        if (options.regInit.count(regFileType) == 0) {
+          options.regInit[regFileType] = {{regIdx, regVal}};
+        } else {
+          if (options.regInit.at(regFileType).count(regIdx) > 0) {
+            errorMessage = "Duplicate register initialization for register " +
+                           QString::number(regIdx) + " specified (--reginit).";
+            return false;
+          }
+
+          options.regInit[regFileType][regIdx] = regVal;
+        }
       }
-
-      auto &vstr = regInitParts[1];
-      VInt regVal;
-      if (vstr.startsWith("0x"))
-        regVal = decodeRadixValue(vstr, Radix::Hex, &ok);
-      else if (vstr.startsWith("0b"))
-        regVal = decodeRadixValue(vstr, Radix::Binary, &ok);
-      else
-        regVal = decodeRadixValue(vstr, Radix::Signed, &ok);
-
-      if (!ok) {
-        errorMessage =
-            "Invalid register value '" + vstr + "' specified (--reginit).";
-        return false;
-      }
-
-      if (options.regInit.count(regIdx) > 0) {
-        errorMessage = "Duplicate register initialization for register " +
-                       QString::number(regIdx) + " specified (--reginit).";
-        return false;
-      }
-
-      options.regInit[regIdx] = regVal;
     }
   }
 

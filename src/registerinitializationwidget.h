@@ -25,6 +25,7 @@ class RegisterInitializationWidget : public QWidget {
     RegisterSelectionComboBox *name = nullptr;
     QLineEdit *value = nullptr;
     QPushButton *remove = nullptr;
+    RegisterFileType regFileType = RegisterFileType::GPR;
 
     ~RegInitWidgets() { clear(); }
     void clear();
@@ -39,12 +40,11 @@ public:
   void processorSelectionChanged(ProcessorID id);
 
 private slots:
-  RegisterInitializationWidget::RegInitWidgets *
-  addRegisterInitialization(unsigned regIdx);
+  void addRegisterInitialization(RegisterFileType regFile, unsigned regIdx);
 
 private:
   void updateAddButtonState();
-  int getNonInitializedRegIdx();
+  std::optional<RegIndex> getNonInitializedRegIdx();
   void removeRegInitWidget(RegInitWidgets *w);
 
   Ui::RegisterInitializationWidget *m_ui = nullptr;
