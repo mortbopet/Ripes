@@ -6,8 +6,8 @@
 #include "VSRTL/core/vsrtl_design.h"
 #include <map>
 
+#include "../../isa/isa_types.h"
 #include "../../isa/isainfo.h"
-#include "../../ripes_types.h"
 
 namespace Ripes {
 
@@ -154,7 +154,7 @@ public:
    * @return the set of register file types exposed by this processor, under
    * inclusion of the ISA which the processor has been instantiated with.
    */
-  virtual const std::set<RegisterFileType> registerFiles() const = 0;
+  virtual const std::set<std::string_view> registerFiles() const = 0;
 
   /**
    * @brief supportsISA
@@ -234,7 +234,7 @@ public:
    * @param i: register index
    * @return value currently present in register @p i
    */
-  virtual VInt getRegister(RegisterFileType rfid, unsigned i) const = 0;
+  virtual VInt getRegister(const std::string_view &rfid, unsigned i) const = 0;
 
   /**
    * @brief setRegister
@@ -242,7 +242,8 @@ public:
    * @param i: register index
    * Set the value of register @param i to @param v.
    */
-  virtual void setRegister(RegisterFileType rfid, unsigned i, VInt v) = 0;
+  virtual void setRegister(const std::string_view &rfid, unsigned i,
+                           VInt v) = 0;
 
   /**
    * @brief setProgramCounter

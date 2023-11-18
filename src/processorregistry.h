@@ -39,7 +39,7 @@ Q_ENUM_NS(ProcessorID); // Register with the metaobject system
 // ============================================================================
 
 using RegisterInitialization =
-    std::map<RegisterFileType, std::map<unsigned, VInt>>;
+    std::map<std::string_view, std::map<unsigned, VInt>>;
 struct Layout {
   QString name;
   QString file;

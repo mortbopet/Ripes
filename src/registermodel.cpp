@@ -10,7 +10,7 @@ namespace Ripes {
 
 using namespace vsrtl;
 
-RegisterModel::RegisterModel(RegisterFileType rft, QObject *parent)
+RegisterModel::RegisterModel(const std::string_view &rft, QObject *parent)
     : QAbstractTableModel(parent), m_rft(rft) {
   m_regBytes = ProcessorHandler::getProcessor()->implementsISA()->bytes();
 }

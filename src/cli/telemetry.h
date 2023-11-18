@@ -122,7 +122,7 @@ public:
       for (const auto &regFile : isa->regInfos()) {
         for (unsigned i = 0; i < regFile->regCnt(); i++) {
           registerMap[regFile->regName(i)] = QVariant::fromValue(
-              ProcessorHandler::getRegisterValue(regFile->regFileType(), i));
+              ProcessorHandler::getRegisterValue(regFile->regFileName(), i));
         }
       }
       return registerMap;
@@ -132,7 +132,7 @@ public:
       for (const auto &regFile : isa->regInfos()) {
         for (unsigned i = 0; i < regFile->regCnt(); i++) {
           auto v =
-              ProcessorHandler::getRegisterValue(regFile->regFileType(), i);
+              ProcessorHandler::getRegisterValue(regFile->regFileName(), i);
           out << regFile->regName(i) << ":\t"
               << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
           out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";

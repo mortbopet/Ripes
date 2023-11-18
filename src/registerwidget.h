@@ -15,7 +15,7 @@ class RegisterWidget : public QWidget {
   Q_OBJECT
 
 public:
-  explicit RegisterWidget(const RegisterFileType regFileID,
+  explicit RegisterWidget(const std::string_view &regFileID,
                           QWidget *parent = nullptr);
   ~RegisterWidget();
 
@@ -29,6 +29,6 @@ private:
   void showContextMenu(const QPoint &pos);
   Ui::RegisterWidget *m_ui = nullptr;
   RegisterModel *m_model = nullptr;
-  const RegisterFileType m_regFileID;
+  const std::string_view m_regFileName;
 };
 } // namespace Ripes

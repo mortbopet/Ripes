@@ -21,12 +21,14 @@ RegisterContainerWidget::~RegisterContainerWidget() { delete m_ui; }
 void RegisterContainerWidget::initialize() {
   m_ui->tabWidget->clear();
 
-  for (const auto &rfid : ProcessorHandler::getProcessor()->registerFiles()) {
+  for (const auto &regFile :
+       ProcessorHandler::getProcessor()->implementsISA()->regInfoMap()) {
+    auto rfid = regFile.second->regFileName();
+    auto regDesc = regFile.second->regFileDesc();
     auto registerWidget = new RegisterWidget(rfid, this);
     const unsigned tabIdx = m_ui->tabWidget->count();
-    m_ui->tabWidget->insertTab(tabIdx, registerWidget,
-                               s_RegsterFileName.at(rfid).shortName);
-    m_ui->tabWidget->setTabToolTip(tabIdx, s_RegsterFileName.at(rfid).longName);
+    m_ui->tabWidget->insertTab(tabIdx, registerWidget, QString(rfid.data()));
+    m_ui->tabWidget->setTabToolTip(tabIdx, QString(regDesc.data()));
     registerWidget->initialize();
   }
   updateView();

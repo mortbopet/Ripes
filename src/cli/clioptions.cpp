@@ -5,6 +5,8 @@
 #include <QFile>
 #include <QMetaEnum>
 
+#include "isa/rv64isainfo.h"
+
 namespace Ripes {
 
 void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
@@ -137,6 +139,8 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
 
   // Validate register initializations
   if (parser.isSet("reginit")) {
+    const auto isa =
+        ProcessorRegistry::getDescription(options.proc).isaInfo().isa;
     for (const auto &regFileInit : parser.values("reginit")) {
       if (!regFileInit.contains(':')) {
         errorMessage = "Cannot find register file type (--reginit).";
@@ -176,29 +180,49 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
           return false;
         }
 
-        RegisterFileType regFileType;
-        if (regFile.startsWith("gpr", Qt::CaseInsensitive)) {
-          regFileType = RegisterFileType::GPR;
-        } else if (regFile.startsWith("fpr", Qt::CaseInsensitive)) {
-          regFileType = RegisterFileType::FPR;
-        } else if (regFile.startsWith("csr", Qt::CaseInsensitive)) {
-          regFileType = RegisterFileType::CSR;
-        } else {
-          errorMessage = "Invalid register file type " + regFile +
-                         " specified (--reginit).";
+        std::string_view rfid = "";
+        auto fileNames = isa->regFileNames();
+        for (const auto &regFileName : fileNames) {
+          if (regFile.startsWith(QString(regFileName.data()),
+                                 Qt::CaseInsensitive)) {
+            rfid = regFileName;
+            break;
+          }
+        }
+        if (rfid.empty()) {
+          errorMessage = "Invalid register file type '" + regFile +
+                         "' specified (--reginit). Valid types for '" +
+                         parser.value("proc") + "' with extensions [";
+          for (auto iter = options.isaExtensions.begin();
+               iter != options.isaExtensions.end();) {
+            errorMessage += *iter;
+            ++iter;
+            if (iter != options.isaExtensions.end()) {
+              errorMessage += ", ";
+            }
+          }
+          errorMessage += "]: [";
+          for (auto iter = fileNames.begin(); iter != fileNames.end();) {
+            errorMessage += *iter;
+            ++iter;
+            if (iter != fileNames.end()) {
+              errorMessage += ", ";
+            }
+          }
+          errorMessage += "]";
           return false;
         }
 
-        if (options.regInit.count(regFileType) == 0) {
-          options.regInit[regFileType] = {{regIdx, regVal}};
+        if (options.regInit.count(rfid) == 0) {
+          options.regInit[rfid] = {{regIdx, regVal}};
         } else {
-          if (options.regInit.at(regFileType).count(regIdx) > 0) {
+          if (options.regInit.at(rfid).count(regIdx) > 0) {
             errorMessage = "Duplicate register initialization for register " +
                            QString::number(regIdx) + " specified (--reginit).";
             return false;
           }
 
-          options.regInit[regFileType][regIdx] = regVal;
+          options.regInit[rfid][regIdx] = regVal;
         }
       }
     }

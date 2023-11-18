@@ -3,7 +3,7 @@
 #include <QComboBox>
 #include <QMetaType>
 
-#include "ripes_types.h"
+#include "isa/isa_types.h"
 
 namespace Ripes {
 
@@ -11,6 +11,10 @@ enum class GoToFunction { Select, Address, Custom };
 struct GoToUserData {
   GoToFunction func;
   unsigned arg;
+};
+
+struct GoToRegisterValue : public GoToUserData {
+  std::string_view regFileName;
 };
 
 class GoToComboBox : public QComboBox {

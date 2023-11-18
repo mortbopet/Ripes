@@ -132,10 +132,12 @@ enum Function {
   SYSCALL = 0b001100
 };
 
+constexpr std::string_view GPR = "gpr";
+constexpr std::string_view GPR_DESC = "General purpose registers";
+
 struct MIPS_GPRInfo : public RegFileInfoInterface {
-  RegisterFileType regFileType() const override {
-    return RegisterFileType::GPR;
-  }
+  std::string_view regFileName() const override { return GPR; }
+  std::string_view regFileDesc() const override { return GPR_DESC; }
   unsigned int regCnt() const override { return 34; }
   QString regName(unsigned i) const override {
     return (MIPSISA::RegNames.size() > static_cast<int>(i)
@@ -179,28 +181,27 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   MIPS_ISAInfoBase() {
-    m_regInfos[RegisterFileType::GPR] =
-        std::make_unique<MIPSISA::MIPS_GPRInfo>();
+    m_regInfos[MIPSISA::GPR] = std::make_unique<MIPSISA::MIPS_GPRInfo>();
   }
 
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
 
   QString name() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 29};
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), 29};
   }
   std::optional<RegIndex> gpReg() const override {
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 28};
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), 28};
   }
   std::optional<RegIndex> syscallReg() const override {
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 2};
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), 2};
   }
   unsigned instrBits() const override { return 32; }
   unsigned elfMachineId() const override { return EM_MIPS; }
   virtual std::optional<RegIndex>
   syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 2 && "MIPS only implements argument registers a0-a7");
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), argIdx + 4};
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), argIdx + 4};
   }
 
   QString elfSupportsFlags(unsigned flags) const override {

@@ -7,7 +7,7 @@
 #include "isa/isa_defines.h"
 #include "isa/pseudoinstruction.h"
 #include "matcher.h"
-#include "ripes_types.h"
+#include "isa/isa_types.h"
 
 #include <cstdint>
 #include <numeric>

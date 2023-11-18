@@ -417,7 +417,7 @@ void ProcessorHandler::syscallTrap() {
   futureWatcher.setFuture(QtConcurrent::run([=] {
     if (auto reg = _currentISA()->syscallReg(); reg.has_value()) {
       const unsigned int function =
-          m_currentProcessor->getRegister(reg->file->regFileType(), reg->index);
+          m_currentProcessor->getRegister(reg->file->regFileName(), reg->index);
       return m_syscallManager->execute(function);
     } else {
       return false;
@@ -465,12 +465,12 @@ bool ProcessorHandler::_isExecutableAddress(AInt address) const {
   return false;
 }
 
-void ProcessorHandler::_setRegisterValue(RegisterFileType rfid,
+void ProcessorHandler::_setRegisterValue(const std::string_view &rfid,
                                          const unsigned idx, VInt value) {
   m_currentProcessor->setRegister(rfid, idx, value);
 }
 
-VInt ProcessorHandler::_getRegisterValue(RegisterFileType rfid,
+VInt ProcessorHandler::_getRegisterValue(const std::string_view &rfid,
                                          const unsigned idx) const {
   return m_currentProcessor->getRegister(rfid, idx);
 }

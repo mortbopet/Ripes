@@ -15,9 +15,9 @@
 
 namespace Ripes {
 
-RegisterWidget::RegisterWidget(const RegisterFileType regFileID,
+RegisterWidget::RegisterWidget(const std::string_view &regFileID,
                                QWidget *parent)
-    : QWidget(parent), m_ui(new Ui::RegisterWidget), m_regFileID(regFileID) {
+    : QWidget(parent), m_ui(new Ui::RegisterWidget), m_regFileName(regFileID) {
   m_ui->setupUi(this);
 }
 
@@ -28,7 +28,7 @@ void RegisterWidget::initialize() {
     m_model->deleteLater();
   }
 
-  m_model = new RegisterModel(m_regFileID, this);
+  m_model = new RegisterModel(m_regFileName, this);
   m_ui->registerView->setModel(m_model);
 
   // Add custom right click menu to register view

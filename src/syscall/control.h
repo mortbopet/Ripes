@@ -32,7 +32,7 @@ public:
   void execute() {
     SystemIO::printString(
         "\nProgram exited with code: " +
-        QString::number(BaseSyscall::getArg(RegisterFileType::GPR, 0)) + "\n");
+        QString::number(BaseSyscall::getArg(BaseSyscall::REG_FILE, 0)) + "\n");
     ProcessorHandler::getProcessorNonConst()->finalize(
         RipesProcessor::FinalizeReason::exitSyscall);
   }
@@ -58,7 +58,7 @@ public:
     // Nothing to do - at the moment we allow infinite growth of the heap.
     // @todo: Add checks to ensure that the heap doesn't grow into the stack
     // segment...!
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, 0);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, 0);
   }
 };
 

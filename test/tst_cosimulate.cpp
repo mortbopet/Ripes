@@ -26,7 +26,7 @@
 using namespace Ripes;
 using namespace vsrtl::core;
 struct RegisterChange {
-  RegisterFileType type;
+  std::string_view fileName;
   unsigned index;
   VInt newValue;
 };
@@ -104,7 +104,7 @@ void tst_Cosimulate::trapHandler() {
                      ->syscallReg();
       reg.has_value()) {
     unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
-        reg->file->regFileType(), reg->index);
+        reg->file->regFileName(), reg->index);
 
     /// @todo: Generalize this by having ISA report exit syscall codes
     if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
@@ -119,7 +119,7 @@ Registers tst_Cosimulate::dumpRegs() {
        ProcessorHandler::get()->currentISA()->regInfos()) {
     for (unsigned i = 0; i < regFile->regCnt(); i++) {
       regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
-          regFile->regFileType(), i);
+          regFile->regFileName(), i);
     }
   }
   return regs;
@@ -148,7 +148,7 @@ std::vector<RegisterChange> registerChange(const Registers &before,
        ProcessorHandler::get()->currentISA()->regInfos()) {
     for (unsigned i = 0; i < regFile->regCnt(); i++) {
       if (before.at(i) != after.at(i)) {
-        change.push_back({regFile->regFileType(), i, after.at(i)});
+        change.push_back({regFile->regFileName(), i, after.at(i)});
       }
     }
   }
@@ -163,7 +163,7 @@ QString tst_Cosimulate::generateErrorReport(const RegisterChange &change,
          m_currentTest.filepath;
   err += "\nUnexpected change was: ";
   if (auto regInfo =
-          ProcessorHandler::get()->currentISA()->regInfo(change.type);
+          ProcessorHandler::get()->currentISA()->regInfo(change.fileName);
       regInfo.has_value()) {
     err += (*regInfo)->regName(change.index);
   } else {

@@ -16,23 +16,17 @@ namespace Ripes {
 enum class ISA { RV32I, RV64I, MIPS32I };
 const static std::map<ISA, QString> ISAFamilyNames = {
     {ISA::RV32I, "RISC-V"}, {ISA::RV64I, "RISC-V"}, {ISA::MIPS32I, "MIPS"}};
-enum class RegisterFileType { GPR, FPR, CSR };
 struct RegisterFileName {
   QString shortName;
   QString longName;
 };
 
-/// Maintain a mapping between register file enum's and their string
-/// representation.
-const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
-    {RegisterFileType::GPR, {"GPR", "General purpose registers"}},
-    {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
-    {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
-
 /// An interface into a register file.
 struct RegFileInfoInterface {
   /// Returns this register file's type.
-  virtual RegisterFileType regFileType() const = 0;
+  virtual std::string_view regFileName() const = 0;
+  /// Returns this register file's description.
+  virtual std::string_view regFileDesc() const = 0;
   /// Returns the number of registers in the instruction set.
   virtual unsigned regCnt() const = 0;
   /// Returns the canonical name of the i'th register in the ISA.
@@ -58,7 +52,7 @@ struct RegIndex {
 
 using RegInfoVec = std::vector<std::shared_ptr<const RegFileInfoInterface>>;
 using RegInfoMap =
-    std::map<RegisterFileType, std::shared_ptr<const RegFileInfoInterface>>;
+    std::map<std::string_view, std::shared_ptr<const RegFileInfoInterface>>;
 
 /// The ISAInfoBase class defines an interface for instruction set information.
 class ISAInfoBase {
@@ -68,6 +62,13 @@ public:
   virtual ISA isaID() const = 0;
   virtual const RegInfoMap &regInfoMap() const = 0;
 
+  const std::set<std::string_view> regFileNames() const {
+    std::set<std::string_view> names;
+    for (const auto &regInfo : regInfoMap()) {
+      names.insert(regInfo.second->regFileName());
+    }
+    return names;
+  }
   RegInfoVec regInfos() const {
     RegInfoVec regVec;
     for (const auto &regInfo : regInfoMap()) {
@@ -76,19 +77,10 @@ public:
     return regVec;
   }
   std::optional<const RegFileInfoInterface *>
-  regInfo(RegisterFileType regFileType) const {
-    if (auto match = regInfoMap().find(regFileType);
+  regInfo(const std::string_view &regFileName) const {
+    if (auto match = regInfoMap().find(regFileName);
         match != regInfoMap().end()) {
-      return regInfoMap().at(regFileType).get();
-    } else {
-      return {};
-    }
-  }
-  std::optional<std::shared_ptr<const RegFileInfoInterface>>
-  regInfoShared(RegisterFileType regFileType) const {
-    if (auto match = regInfoMap().find(regFileType);
-        match != regInfoMap().end()) {
-      return regInfoMap().at(regFileType);
+      return {regInfoMap().at(regFileName).get()};
     } else {
       return {};
     }

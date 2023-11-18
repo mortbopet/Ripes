@@ -76,14 +76,15 @@ void GoToRegisterComboBox::addTargets() {
   for (const auto &regInfo : isa->regInfos()) {
     for (unsigned i = 0; i < regInfo->regCnt(); ++i) {
       addItem(regInfo->regName(i) + " (" + regInfo->regAlias(i) + ")",
-              QVariant::fromValue<GoToUserData>({GoToFunction::Custom, i}));
+              QVariant::fromValue<GoToRegisterValue>(
+                  {{GoToFunction::Custom, i}, regInfo->regFileName()}));
     }
   }
 }
 
 AInt GoToRegisterComboBox::addrForIndex(int i) {
-  const auto &regIdx = qvariant_cast<GoToUserData>(itemData(i));
-  return ProcessorHandler::getRegisterValue(RegisterFileType::GPR, regIdx.arg);
+  const auto &regIdx = qvariant_cast<GoToRegisterValue>(itemData(i));
+  return ProcessorHandler::getRegisterValue(regIdx.regFileName, regIdx.arg);
 }
 
 } // namespace Ripes

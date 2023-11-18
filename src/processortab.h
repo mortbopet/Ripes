@@ -7,7 +7,7 @@
 #include <QWidget>
 
 #include "processors/interface/ripesprocessor.h"
-#include "ripes_types.h"
+#include "isa/isa_types.h"
 #include "ripestab.h"
 
 namespace vsrtl {

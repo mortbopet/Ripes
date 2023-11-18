@@ -62,11 +62,18 @@ struct RV_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
 };
 
+constexpr std::string_view GPR = "gpr";
+constexpr std::string_view FPR = "fpr";
+constexpr std::string_view CSR = "csr";
+
+constexpr std::string_view GPR_DESC = "General purpose registers";
+constexpr std::string_view FPR_DESC = "Floating-point registers";
+constexpr std::string_view CSR_DESC = "Control and status registers";
+
 /// Defines information about the general RISC-V register file.
 struct RV_GPRInfo : public RegFileInfoInterface {
-  RegisterFileType regFileType() const override {
-    return RegisterFileType::GPR;
-  }
+  std::string_view regFileName() const override { return GPR; }
+  std::string_view regFileDesc() const override { return GPR_DESC; }
   unsigned int regCnt() const override { return 32; }
   QString regName(unsigned i) const override {
     return RVISA::GPRRegNames.size() > static_cast<int>(i)
@@ -100,9 +107,8 @@ struct RV_GPRInfo : public RegFileInfoInterface {
 
 /// Defines information about the floating-point RISC-V register file.
 struct RV_FPRInfo : public RegFileInfoInterface {
-  RegisterFileType regFileType() const override {
-    return RegisterFileType::FPR;
-  }
+  std::string_view regFileName() const override { return FPR; }
+  std::string_view regFileDesc() const override { return FPR_DESC; }
   // TODO: Fill out RISC-V floating point register info
   unsigned int regCnt() const override { return 0; }
   QString regName(unsigned) const override { return QString(); }
@@ -127,9 +133,9 @@ public:
       }
     }
 
-    m_regInfos[RegisterFileType::GPR] = std::make_unique<RV_GPRInfo>();
+    m_regInfos[GPR] = std::make_unique<RV_GPRInfo>();
     if (supportsExtension("F")) {
-      m_regInfos[RegisterFileType::FPR] = std::make_unique<RV_FPRInfo>();
+      m_regInfos[FPR] = std::make_unique<RV_FPRInfo>();
     }
   }
 
@@ -137,19 +143,19 @@ public:
 
   QString name() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 2};
+    return RegIndex{m_regInfos.at(GPR), 2};
   }
   std::optional<RegIndex> gpReg() const override {
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 3};
+    return RegIndex{m_regInfos.at(GPR), 3};
   }
   std::optional<RegIndex> syscallReg() const override {
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), 17};
+    return RegIndex{m_regInfos.at(GPR), 17};
   }
   unsigned instrBits() const override { return INSTR_BITS; }
   unsigned elfMachineId() const override { return EM_RISCV; }
   std::optional<RegIndex> syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
-    return RegIndex{m_regInfos.at(RegisterFileType::GPR), argIdx + 10};
+    return RegIndex{m_regInfos.at(GPR), argIdx + 10};
   }
 
   QString elfSupportsFlags(unsigned flags) const override {
