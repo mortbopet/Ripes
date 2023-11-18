@@ -31,8 +31,13 @@ void GoToComboBox::showPopup() {
 void GoToComboBox::signalFilter(int index) {
   const auto &value = itemData(index);
 
-  const auto f = qvariant_cast<GoToUserData>(value);
-  switch (f.func) {
+  GoToUserData data;
+  if (value.metaType() == QMetaType::fromType<GoToRegisterValue>()) {
+    data = qvariant_cast<GoToRegisterValue>(value);
+  } else {
+    data = qvariant_cast<GoToUserData>(value);
+  }
+  switch (data.func) {
   case GoToFunction::Select:
     break;
   case GoToFunction::Address: {

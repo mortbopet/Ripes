@@ -54,3 +54,4 @@ private:
 } // namespace Ripes
 
 Q_DECLARE_METATYPE(Ripes::GoToUserData);
+Q_DECLARE_METATYPE(Ripes::GoToRegisterValue);
