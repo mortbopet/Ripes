@@ -5,9 +5,9 @@
 #include "assembler_defines.h"
 #include "isa/instruction.h"
 #include "isa/isa_defines.h"
+#include "isa/isa_types.h"
 #include "isa/pseudoinstruction.h"
 #include "matcher.h"
-#include "isa/isa_types.h"
 
 #include <cstdint>
 #include <numeric>

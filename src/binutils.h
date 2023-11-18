@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "VSRTL/interface/vsrtl_binutils.h"
-#include "limits.h"
 #include "isa/isa_types.h"
+#include "limits.h"
 
 /// Most of the code in this file originates from LLVM MathExtras.h
 
