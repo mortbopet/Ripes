@@ -98,18 +98,16 @@ private slots:
 };
 
 void tst_Cosimulate::trapHandler() {
-  if (auto reg = ProcessorHandler::get()
-                     ->getProcessor()
-                     ->implementsISA()
-                     ->syscallReg();
-      reg.has_value()) {
-    unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
-        reg->file->regFileName(), reg->index);
+  auto reg =
+      ProcessorHandler::get()->getProcessor()->implementsISA()->syscallReg();
+  assert(reg.has_value());
 
-    /// @todo: Generalize this by having ISA report exit syscall codes
-    if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
-      m_stop = true;
-    }
+  unsigned status = ProcessorHandler::get()->getProcessor()->getRegister(
+      reg->file->regFileName(), reg->index);
+
+  /// @todo: Generalize this by having ISA report exit syscall codes
+  if (status == RVABI::SysCall::Exit || status == RVABI::SysCall::Exit2) {
+    m_stop = true;
   }
 }
 
