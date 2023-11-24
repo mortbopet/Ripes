@@ -5,6 +5,9 @@
 #include <QFile>
 #include <QMetaEnum>
 
+#include <sstream>
+#include <string>
+
 #include "STLExtras.h"
 
 namespace Ripes {
