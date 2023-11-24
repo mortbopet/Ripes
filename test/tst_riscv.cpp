@@ -114,7 +114,7 @@ QString tst_RISCV::dumpRegs() {
          QString::number(
              ProcessorHandler::getProcessor()->getPcForStage({0, 0}), 16) +
          "\n";
-  const auto isa = ProcessorHandler::currentISA();
+  const auto *isa = ProcessorHandler::currentISA();
   for (const auto &regFile : isa->regInfos()) {
     for (unsigned i = 0; i < regFile->regCnt(); i++) {
       const auto value = ProcessorHandler::getProcessor()->getRegister(

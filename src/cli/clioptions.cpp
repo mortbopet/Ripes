@@ -142,8 +142,9 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
 
   // Validate register initializations
   if (parser.isSet("reginit")) {
-    const auto isa =
-        ProcessorRegistry::getDescription(options.proc).isaInfo().isa;
+    const auto &procisa =
+        ProcessorRegistry::getAvailableProcessors().at(options.proc)->isaInfo();
+    const auto *isa = procisa.isa.get();
     for (const auto &regFileInit : parser.values("reginit")) {
       if (!regFileInit.contains(':')) {
         errorMessage = "Cannot find register file type (--reginit).";

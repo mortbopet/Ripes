@@ -27,7 +27,7 @@ void RegisterSelectionComboBox::showPopup() {
   const auto &procisa = ProcessorRegistry::getAvailableProcessors()
                             .at(m_parent->m_currentID)
                             ->isaInfo();
-  const auto isa = procisa.isa;
+  const auto *isa = procisa.isa.get();
   const auto &initializations =
       m_parent->m_initializations.at(m_parent->m_currentID);
 
@@ -120,7 +120,7 @@ std::optional<RegIndex>
 RegisterInitializationWidget::getNonInitializedRegIdx() {
   const auto &currentISA =
       ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
-  const auto isa = currentISA.isa;
+  const auto *isa = currentISA.isa.get();
   const auto &currentInitForProc = m_initializations.at(m_currentID);
   for (const auto &regFileInit : currentInitForProc) {
     unsigned id = 0;
@@ -143,7 +143,7 @@ void RegisterInitializationWidget::addRegisterInitialization(
   constexpr unsigned s_defaultval = 0;
   const auto &procisa =
       ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
-  const auto isa = procisa.isa;
+  const auto *isa = procisa.isa.get();
   auto maybeRegInfo = isa->regInfo(regFileName);
   if (!maybeRegInfo.has_value()) {
     return;
