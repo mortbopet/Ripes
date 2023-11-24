@@ -55,7 +55,7 @@ bool RegisterModel::setData(const QModelIndex &index, const QVariant &value,
   const int i = index.row();
   if (index.column() == Column::Value) {
     bool ok;
-    VInt v = decodeRadixValue(value.toString(), m_radix, &ok);
+    VInt v = decodeRadixValue(value.toString(), &ok);
     if (ok) {
       ProcessorHandler::setRegisterValue(m_rft, i, v);
       emit dataChanged(index, index);

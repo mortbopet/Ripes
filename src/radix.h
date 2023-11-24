@@ -25,10 +25,11 @@ static const auto hexRegex64 = QRegularExpression("0[xX][0-9a-fA-F]{0,16}");
 static const auto binRegex = QRegularExpression("0[bB][0-1]+");
 static const auto unsignedRegex = QRegularExpression("[0-9]+");
 static const auto signedRegex = QRegularExpression("[-]*[0-9]+");
+static const auto floatRegex = QRegularExpression("[-]*[0-9]+\\.[0-9]+");
 
 void setISADepRegex(QRegularExpressionValidator *validator);
 QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth);
-VInt decodeRadixValue(QString value, const Radix type, bool *ok = nullptr);
+VInt decodeRadixValue(QString value, bool *ok = nullptr);
 
 } // namespace Ripes
 

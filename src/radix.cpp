@@ -60,41 +60,41 @@ QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth) {
   Q_UNREACHABLE();
 }
 
-VInt decodeRadixValue(QString value, const Radix type, bool *ok) {
-  switch (type) {
-  case Radix::Hex: {
+VInt decodeRadixValue(QString value, bool *ok) {
+  if (hexRegex.match(value).hasMatch()) {
     return value.toUInt(ok, 16);
-  }
-  case Radix::Binary: {
+  } else if (binRegex.match(value).hasMatch()) {
     // Qt doesn't support 0b[0-1]* conversion, so remove any possible 0b prefix
-    if (value.startsWith("0b")) {
-      value.remove(0, 2);
-    }
+    value.remove(0, 2);
     return value.toUInt(ok, 2);
-  }
-  case Radix::Unsigned: {
+  } else if (unsignedRegex.match(value).hasMatch()) {
     return value.toUInt(ok, 10);
-  }
-  case Radix::Signed: {
+  } else if (signedRegex.match(value).hasMatch()) {
     return value.toInt(ok, 10);
-  }
-  case Radix::Float: {
+  } else if (floatRegex.match(value).hasMatch()) {
     return value.toFloat(ok);
   }
-  case Radix::ASCII: {
-    QString valueRev;
-    for (const auto &c : value) {
-      valueRev.prepend(c);
+
+  // Decode ASCII
+  if (static_cast<size_t>(value.length()) > sizeof(VInt)) {
+    // ASCII string is too large to be encoded in a VInt
+    if (ok) {
+      *ok = false;
     }
-    uint32_t v = 0;
-    for (int i = 0; i < valueRev.length(); ++i) {
-      v |= (valueRev[i].toLatin1() & 0xFF) << (i * 8);
-    }
+    return 0;
+  }
+  QString valueRev;
+  for (const auto &c : qAsConst(value)) {
+    valueRev.prepend(c);
+  }
+  VInt v = 0;
+  for (int i = 0; i < valueRev.length(); ++i) {
+    v |= (valueRev[i].toLatin1() & 0xFF) << (i * 8);
+  }
+  if (ok) {
     *ok = true;
-    return v;
   }
-  }
-  Q_UNREACHABLE();
+  return v;
 }
 
 } // namespace Ripes

@@ -166,13 +166,7 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
         }
 
         auto &vstr = regInitParts[1];
-        VInt regVal;
-        if (vstr.startsWith("0x"))
-          regVal = decodeRadixValue(vstr, Radix::Hex, &ok);
-        else if (vstr.startsWith("0b"))
-          regVal = decodeRadixValue(vstr, Radix::Binary, &ok);
-        else
-          regVal = decodeRadixValue(vstr, Radix::Signed, &ok);
+        VInt regVal = decodeRadixValue(vstr, &ok);
 
         if (!ok) {
           errorMessage =
