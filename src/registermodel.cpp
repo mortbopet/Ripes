@@ -28,9 +28,8 @@ int RegisterModel::rowCount(const QModelIndex &) const {
   if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
       regInfo.has_value()) {
     return (*regInfo)->regCnt();
-  } else {
-    return 0;
   }
+  return 0;
 }
 
 void RegisterModel::processorWasClocked() {
@@ -137,9 +136,8 @@ QVariant RegisterModel::nameData(unsigned idx) const {
   if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
       regInfo.has_value()) {
     return (*regInfo)->regName(idx);
-  } else {
-    return QVariant();
   }
+  return QVariant();
 }
 
 QVariant RegisterModel::aliasData(unsigned idx) const {

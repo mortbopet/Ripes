@@ -81,9 +81,8 @@ public:
     if (auto match = regInfoMap().find(regFileName);
         match != regInfoMap().end()) {
       return {regInfoMap().at(regFileName).get()};
-    } else {
-      return {};
     }
+    return {};
   }
 
   virtual unsigned bits() const = 0; // Register width, in bits
