@@ -5,7 +5,7 @@
 #include <QFile>
 #include <QMetaEnum>
 
-#include "isa/rv64isainfo.h"
+#include "STLExtras.h"
 
 namespace Ripes {
 
@@ -186,23 +186,14 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
           errorMessage = "Invalid register file type '" + regFile +
                          "' specified (--reginit). Valid types for '" +
                          parser.value("proc") + "' with extensions [";
-          for (auto iter = options.isaExtensions.begin();
-               iter != options.isaExtensions.end();) {
-            errorMessage += *iter;
-            ++iter;
-            if (iter != options.isaExtensions.end()) {
-              errorMessage += ", ";
-            }
-          }
-          errorMessage += "]: [";
-          for (auto iter = fileNames.begin(); iter != fileNames.end();) {
-            errorMessage += *iter;
-            ++iter;
-            if (iter != fileNames.end()) {
-              errorMessage += ", ";
-            }
-          }
-          errorMessage += "]";
+          std::stringstream extInfo;
+          std::string isaExtensions =
+              options.isaExtensions.join("").toStdString();
+          llvm::interleaveComma(isaExtensions, extInfo);
+          extInfo << "]: [";
+          llvm::interleaveComma(fileNames, extInfo);
+          extInfo << "]";
+          errorMessage += extInfo.str();
           return false;
         }
 
