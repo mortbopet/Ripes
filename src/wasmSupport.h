@@ -6,11 +6,14 @@ namespace Ripes {
 
 // Disable a widget if we are running in a wasm environment.
 template <typename T>
-inline void disableIfWasm(T *widget) {
 #ifdef __EMSCRIPTEN__
+inline void disableIfWasm(T *widget) {
   widget->setEnabled(false);
-#endif
 }
+#else
+inline void disableIfWasm(T *) {
+}
+#endif
 
 // Disables a list of widgets if we are running in a wasm environment.
 template <typename TList>

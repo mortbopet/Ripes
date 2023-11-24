@@ -176,7 +176,8 @@ void FancyTabBar::paintEvent(QPaintEvent *event) {
  */
 void FancyTabBar::mousePressEvent(QMouseEvent *event) {
   if (event->button() == Qt::LeftButton) {
-    qint32 ret = getTabIndexByPoint(event->x(), event->y());
+    qint32 ret =
+        getTabIndexByPoint(event->position().x(), event->position().y());
 
     // If non of the tabs is clicked dont change the curent activeIndex.
     if (ret != -1)
@@ -196,7 +197,7 @@ void FancyTabBar::mousePressEvent(QMouseEvent *event) {
  */
 void FancyTabBar::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
-  hower = getTabIndexByPoint(event->x(), event->y());
+  hower = getTabIndexByPoint(event->position().x(), event->position().y());
   update();
 }
 
@@ -207,7 +208,8 @@ void FancyTabBar::mouseMoveEvent(QMouseEvent *event) {
  */
 void FancyTabBar::enterEvent(QEnterEvent *event) {
   QEnterEvent *enterEvent = static_cast<QEnterEvent *>(event);
-  hower = getTabIndexByPoint(enterEvent->x(), enterEvent->y());
+  hower = getTabIndexByPoint(enterEvent->position().x(),
+                             enterEvent->position().y());
   update();
 }
 
