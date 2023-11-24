@@ -62,7 +62,7 @@ public:
   virtual ISA isaID() const = 0;
   virtual const RegInfoMap &regInfoMap() const = 0;
 
-  const std::set<std::string_view> regFileNames() const {
+  std::set<std::string_view> regFileNames() const {
     std::set<std::string_view> names;
     for (const auto &regInfo : regInfoMap()) {
       names.insert(regInfo.second->regFileName());
