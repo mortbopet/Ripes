@@ -62,13 +62,18 @@ struct RV_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
 };
 
-// TODO(raccog): This will be split into multiple classes; one for each register
-// file. Currently, this class describes all registers in RISC-V.
+constexpr std::string_view GPR = "gpr";
+constexpr std::string_view FPR = "fpr";
+constexpr std::string_view CSR = "csr";
+
+constexpr std::string_view GPR_DESC = "General purpose registers";
+constexpr std::string_view FPR_DESC = "Floating-point registers";
+constexpr std::string_view CSR_DESC = "Control and status registers";
+
 /// Defines information about the general RISC-V register file.
-struct RV_RegInfo : public RegInfoBase {
-  RegisterFileType regFileType() const override {
-    return RegisterFileType::GPR;
-  }
+struct RV_GPRInfo : public RegFileInfoInterface {
+  std::string_view regFileName() const override { return GPR; }
+  std::string_view regFileDesc() const override { return GPR_DESC; }
   unsigned int regCnt() const override { return 32; }
   QString regName(unsigned i) const override {
     return RVISA::GPRRegNames.size() > static_cast<int>(i)
@@ -100,6 +105,22 @@ struct RV_RegInfo : public RegInfoBase {
   }
 };
 
+/// Defines information about the floating-point RISC-V register file.
+struct RV_FPRInfo : public RegFileInfoInterface {
+  std::string_view regFileName() const override { return FPR; }
+  std::string_view regFileDesc() const override { return FPR_DESC; }
+  // TODO: Fill out RISC-V floating point register info
+  unsigned int regCnt() const override { return 0; }
+  QString regName(unsigned) const override { return QString(); }
+  QString regAlias(unsigned) const override { return QString(); }
+  QString regInfo(unsigned) const override { return QString(); }
+  bool regIsReadOnly(unsigned) const override { return false; }
+  unsigned int regNumber(const QString &, bool &success) const override {
+    success = false;
+    return 0;
+  }
+};
+
 class RV_ISAInfoBase : public ISAInfoBase {
 public:
   RV_ISAInfoBase(const QStringList extensions) {
@@ -112,20 +133,29 @@ public:
       }
     }
 
-    // TODO(raccog): This map will contain more entries when register info is
-    // split between classes
-    m_regInfos[RegisterFileType::GPR] = std::make_unique<RV_RegInfo>();
+    m_regInfos[GPR] = std::make_unique<RV_GPRInfo>();
+    if (supportsExtension("F")) {
+      m_regInfos[FPR] = std::make_unique<RV_FPRInfo>();
+    }
   }
 
+  const RegInfoMap &regInfoMap() const override { return m_regInfos; }
+
   QString name() const override { return CCmarch().toUpper(); }
-  int spReg() const override { return 2; }
-  int gpReg() const override { return 3; }
-  int syscallReg() const override { return 17; }
+  std::optional<RegIndex> spReg() const override {
+    return RegIndex{m_regInfos.at(GPR), 2};
+  }
+  std::optional<RegIndex> gpReg() const override {
+    return RegIndex{m_regInfos.at(GPR), 3};
+  }
+  std::optional<RegIndex> syscallReg() const override {
+    return RegIndex{m_regInfos.at(GPR), 17};
+  }
   unsigned instrBits() const override { return INSTR_BITS; }
   unsigned elfMachineId() const override { return EM_RISCV; }
-  int syscallArgReg(unsigned argIdx) const override {
+  std::optional<RegIndex> syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
-    return argIdx + 10;
+    return RegIndex{m_regInfos.at(GPR), argIdx + 10};
   }
 
   QString elfSupportsFlags(unsigned flags) const override {
@@ -173,6 +203,7 @@ protected:
 
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = getSupportedExtensions();
+  RegInfoMap m_regInfos;
 };
 
 enum OpcodeID {
@@ -225,7 +256,7 @@ template <unsigned funct7, unsigned N = 32>
 struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31, N>> {};
 
 template <typename RegImpl, unsigned tokenIndex, typename Range>
-struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_RegInfo> {};
+struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
 
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction

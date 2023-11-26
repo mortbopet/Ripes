@@ -114,12 +114,15 @@ QString tst_RISCV::dumpRegs() {
          QString::number(
              ProcessorHandler::getProcessor()->getPcForStage({0, 0}), 16) +
          "\n";
-  const auto regInfo = ProcessorHandler::currentISA()->regInfo().value();
-  for (unsigned i = 0; i < regInfo->regCnt(); i++) {
-    const auto value =
-        ProcessorHandler::getProcessor()->getRegister(RegisterFileType::GPR, i);
-    str += "\t" + regInfo->regName(i) + ":" + regInfo->regAlias(i) + ":\t" +
-           QString::number(value) + " (0x" + QString::number(value, 16) + ")\n";
+  const auto *isa = ProcessorHandler::currentISA();
+  for (const auto &regFile : isa->regInfos()) {
+    for (unsigned i = 0; i < regFile->regCnt(); i++) {
+      const auto value = ProcessorHandler::getProcessor()->getRegister(
+          regFile->regFileName(), i);
+      str += "\t" + regFile->regName(i) + ":" + regFile->regAlias(i) + ":\t" +
+             QString::number(value) + " (0x" + QString::number(value, 16) +
+             ")\n";
+    }
   }
   return str;
 }
@@ -141,13 +144,13 @@ void tst_RISCV::loadBinaryToSimulator(const QString &binFile) {
 }
 
 void tst_RISCV::trapHandler() {
-  unsigned status = ProcessorHandler::getProcessor()->getRegister(
-      RegisterFileType::GPR, s_ecallreg);
+  unsigned status =
+      ProcessorHandler::getProcessor()->getRegister(RVISA::GPR, s_ecallreg);
   if (status != s_success) {
     m_err = "Test: '" + m_currentTest +
             "' failed: Internal test error.\n\t test number: " +
             QString::number(ProcessorHandler::getProcessor()->getRegister(
-                RegisterFileType::GPR, s_statusreg));
+                RVISA::GPR, s_statusreg));
     m_err += dumpRegs();
   }
   m_stop |= true;
@@ -171,7 +174,7 @@ QString tst_RISCV::executeSimulator() {
     m_err = "Test: '" + m_currentTest +
             "' failed: Maximum cycle count reached\n\t test number: " +
             QString::number(ProcessorHandler::getProcessor()->getRegister(
-                RegisterFileType::GPR, s_statusreg));
+                RVISA::GPR, s_statusreg));
     m_err += dumpRegs();
   }
 

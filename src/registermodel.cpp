@@ -10,7 +10,7 @@ namespace Ripes {
 
 using namespace vsrtl;
 
-RegisterModel::RegisterModel(RegisterFileType rft, QObject *parent)
+RegisterModel::RegisterModel(const std::string_view &rft, QObject *parent)
     : QAbstractTableModel(parent), m_rft(rft) {
   m_regBytes = ProcessorHandler::getProcessor()->implementsISA()->bytes();
 }
@@ -25,7 +25,11 @@ std::vector<VInt> RegisterModel::gatherRegisterValues() {
 int RegisterModel::columnCount(const QModelIndex &) const { return NColumns; }
 
 int RegisterModel::rowCount(const QModelIndex &) const {
-  return ProcessorHandler::currentISA()->regCnt();
+  if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
+      regInfo.has_value()) {
+    return (*regInfo)->regCnt();
+  }
+  return 0;
 }
 
 void RegisterModel::processorWasClocked() {
@@ -50,7 +54,7 @@ bool RegisterModel::setData(const QModelIndex &index, const QVariant &value,
   const int i = index.row();
   if (index.column() == Column::Value) {
     bool ok;
-    VInt v = decodeRadixValue(value.toString(), m_radix, &ok);
+    VInt v = decodeRadixValue(value.toString(), &ok);
     if (ok) {
       ProcessorHandler::setRegisterValue(m_rft, i, v);
       emit dataChanged(index, index);
@@ -129,15 +133,29 @@ void RegisterModel::setRadix(Ripes::Radix r) {
 }
 
 QVariant RegisterModel::nameData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->regInfo().value()->regName(idx);
+  if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
+      regInfo.has_value()) {
+    return (*regInfo)->regName(idx);
+  }
+  return QVariant();
 }
 
 QVariant RegisterModel::aliasData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->regInfo().value()->regAlias(idx);
+  if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
+      regInfo.has_value()) {
+    return (*regInfo)->regAlias(idx);
+  } else {
+    return QVariant();
+  }
 }
 
 QVariant RegisterModel::tooltipData(unsigned idx) const {
-  return ProcessorHandler::currentISA()->regInfo().value()->regInfo(idx);
+  if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
+      regInfo.has_value()) {
+    return (*regInfo)->regInfo(idx);
+  } else {
+    return QVariant();
+  }
 }
 
 VInt RegisterModel::registerData(unsigned idx) const {
@@ -149,13 +167,15 @@ QVariant RegisterModel::valueData(unsigned idx) const {
 }
 
 Qt::ItemFlags RegisterModel::flags(const QModelIndex &index) const {
-  const auto def =
-      ProcessorHandler::currentISA()->regInfo().value()->regIsReadOnly(
-          index.row())
-          ? Qt::NoItemFlags
-          : Qt::ItemIsEnabled;
-  if (index.column() == Column::Value)
-    return Qt::ItemIsEditable | def;
-  return def;
+  if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
+      regInfo.has_value()) {
+    const auto def = (*regInfo)->regIsReadOnly(index.row()) ? Qt::NoItemFlags
+                                                            : Qt::ItemIsEnabled;
+    if (index.column() == Column::Value)
+      return Qt::ItemIsEditable | def;
+    return def;
+  } else {
+    return Qt::NoItemFlags;
+  }
 }
 } // namespace Ripes

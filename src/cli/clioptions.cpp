@@ -5,6 +5,11 @@
 #include <QFile>
 #include <QMetaEnum>
 
+#include <sstream>
+#include <string>
+
+#include "STLExtras.h"
+
 namespace Ripes {
 
 void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
@@ -27,9 +32,10 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   parser.addOption(QCommandLineOption(
       "reginit",
       "Comma-separated list of register initialization values. The register "
-      "value may be specified in signed, hex, or boolean notation. Format:\n"
-      "<register idx>=<value>,<register idx>=<value>",
-      "[rid:v]"));
+      "value may be specified in signed, hex, or boolean notation. Can be used "
+      "multiple times to initialize more than one register file type. Format:\n"
+      "<register file>:<register idx>=<value>,<register idx>=<value>",
+      "regfile:[rid=v]"));
   parser.addOption(QCommandLineOption(
       "timeout",
       "Simulation timeout in milliseconds. If simulation does not finish "
@@ -136,44 +142,77 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
 
   // Validate register initializations
   if (parser.isSet("reginit")) {
-    QStringList regInitList = parser.value("reginit").split(",");
-    for (auto &regInit : regInitList) {
-      QStringList regInitParts = regInit.split("=");
-      if (regInitParts.size() != 2) {
-        errorMessage = "Invalid register initialization '" + regInit +
-                       "' specified (--reginit).";
+    const auto &procisa =
+        ProcessorRegistry::getAvailableProcessors().at(options.proc)->isaInfo();
+    const auto *isa = procisa.isa.get();
+    for (const auto &regFileInit : parser.values("reginit")) {
+      if (!regFileInit.contains(':')) {
+        errorMessage = "Cannot find register file type (--reginit).";
         return false;
       }
-      bool ok;
-      int regIdx = regInitParts[0].toInt(&ok);
-      if (!ok) {
-        errorMessage = "Invalid register index '" + regInitParts[0] +
-                       "' specified (--reginit).";
-        return false;
+      auto regFileSplit = regFileInit.indexOf(':');
+      QString regFile = regFileInit.mid(0, regFileSplit);
+
+      QStringList regInitList = regFileInit.mid(regFileSplit + 1).split(",");
+      for (auto &regInit : regInitList) {
+        QStringList regInitParts = regInit.split("=");
+        if (regInitParts.size() != 2) {
+          errorMessage = "Invalid register initialization '" + regInit +
+                         "' specified (--reginit).";
+          return false;
+        }
+        bool ok;
+        int regIdx = regInitParts[0].toInt(&ok);
+        if (!ok) {
+          errorMessage = "Invalid register index '" + regInitParts[0] +
+                         "' specified (--reginit).";
+          return false;
+        }
+
+        auto &vstr = regInitParts[1];
+        VInt regVal = decodeRadixValue(vstr, &ok);
+
+        if (!ok) {
+          errorMessage =
+              "Invalid register value '" + vstr + "' specified (--reginit).";
+          return false;
+        }
+
+        std::string_view rfid = "";
+        auto fileNames = isa->regFileNames();
+        for (const auto &regFileName : fileNames) {
+          if (regFile == QString(regFileName.data())) {
+            rfid = regFileName;
+            break;
+          }
+        }
+        if (rfid.empty()) {
+          errorMessage = "Invalid register file type '" + regFile +
+                         "' specified (--reginit). Valid types for '" +
+                         parser.value("proc") + "' with extensions [";
+          std::stringstream extInfo;
+          std::string isaExtensions =
+              options.isaExtensions.join("").toStdString();
+          llvm::interleaveComma(isaExtensions, extInfo);
+          extInfo << "]: [";
+          llvm::interleaveComma(fileNames, extInfo);
+          extInfo << "]";
+          errorMessage += extInfo.str();
+          return false;
+        }
+
+        if (options.regInit.count(rfid) == 0) {
+          options.regInit[rfid] = {{regIdx, regVal}};
+        } else {
+          if (options.regInit.at(rfid).count(regIdx) > 0) {
+            errorMessage = "Duplicate register initialization for register " +
+                           QString::number(regIdx) + " specified (--reginit).";
+            return false;
+          }
+
+          options.regInit[rfid][regIdx] = regVal;
+        }
       }
-
-      auto &vstr = regInitParts[1];
-      VInt regVal;
-      if (vstr.startsWith("0x"))
-        regVal = decodeRadixValue(vstr, Radix::Hex, &ok);
-      else if (vstr.startsWith("0b"))
-        regVal = decodeRadixValue(vstr, Radix::Binary, &ok);
-      else
-        regVal = decodeRadixValue(vstr, Radix::Signed, &ok);
-
-      if (!ok) {
-        errorMessage =
-            "Invalid register value '" + vstr + "' specified (--reginit).";
-        return false;
-      }
-
-      if (options.regInit.count(regIdx) > 0) {
-        errorMessage = "Duplicate register initialization for register " +
-                       QString::number(regIdx) + " specified (--reginit).";
-        return false;
-      }
-
-      options.regInit[regIdx] = regVal;
     }
   }
 

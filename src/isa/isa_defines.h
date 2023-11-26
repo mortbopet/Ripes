@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <iostream>
 #include <map>
 #include <set>
@@ -10,7 +9,7 @@
 #include <QString>
 #include <QTextStream>
 
-#include "ripes_types.h"
+#include "isa_types.h"
 
 namespace Ripes {
 

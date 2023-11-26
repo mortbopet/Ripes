@@ -132,10 +132,12 @@ enum Function {
   SYSCALL = 0b001100
 };
 
-struct MIPS_RegInfo : public RegInfoBase {
-  RegisterFileType regFileType() const override {
-    return RegisterFileType::GPR;
-  }
+constexpr std::string_view GPR = "gpr";
+constexpr std::string_view GPR_DESC = "General purpose registers";
+
+struct MIPS_GPRInfo : public RegFileInfoInterface {
+  std::string_view regFileName() const override { return GPR; }
+  std::string_view regFileDesc() const override { return GPR_DESC; }
   unsigned int regCnt() const override { return 34; }
   QString regName(unsigned i) const override {
     return (MIPSISA::RegNames.size() > static_cast<int>(i)
@@ -179,19 +181,27 @@ struct MIPS_RegInfo : public RegInfoBase {
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   MIPS_ISAInfoBase() {
-    m_regInfos[RegisterFileType::GPR] =
-        std::make_unique<MIPSISA::MIPS_RegInfo>();
+    m_regInfos[MIPSISA::GPR] = std::make_unique<MIPSISA::MIPS_GPRInfo>();
   }
 
+  const RegInfoMap &regInfoMap() const override { return m_regInfos; }
+
   QString name() const override { return CCmarch().toUpper(); }
-  int spReg() const override { return 29; }
-  int gpReg() const override { return 28; }
-  int syscallReg() const override { return 2; }
+  std::optional<RegIndex> spReg() const override {
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), 29};
+  }
+  std::optional<RegIndex> gpReg() const override {
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), 28};
+  }
+  std::optional<RegIndex> syscallReg() const override {
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), 2};
+  }
   unsigned instrBits() const override { return 32; }
   unsigned elfMachineId() const override { return EM_MIPS; }
-  virtual int syscallArgReg(unsigned argIdx) const override {
+  virtual std::optional<RegIndex>
+  syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 2 && "MIPS only implements argument registers a0-a7");
-    return argIdx + 4;
+    return RegIndex{m_regInfos.at(MIPSISA::GPR), argIdx + 4};
   }
 
   QString elfSupportsFlags(unsigned flags) const override {
@@ -217,6 +227,7 @@ public:
 protected:
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = {""};
+  RegInfoMap m_regInfos;
 };
 
 } // namespace Ripes

@@ -11,7 +11,7 @@
 #include <memory>
 
 #include "../isa/isainfo.h"
-#include "ripes_types.h"
+#include "isa/isa_types.h"
 #include "statusmanager.h"
 
 namespace Ripes {
@@ -51,13 +51,14 @@ public:
    * @returns value of the specified argument register.
    */
 
-  virtual VInt getArg(RegisterFileType rfid, ArgIdx i) const = 0;
+  virtual VInt getArg(const std::string_view &rfid, ArgIdx i) const = 0;
   /**
    * @brief setRet
    * ABI specific specialization of setting an argument register return value.
    * Argument index @p i is in range [0; max arg. registers] for the given ABI.
    */
-  virtual void setRet(RegisterFileType rfid, ArgIdx i, VInt value) const = 0;
+  virtual void setRet(const std::string_view &rfid, ArgIdx i,
+                      VInt value) const = 0;
 
 protected:
   const QString m_name;

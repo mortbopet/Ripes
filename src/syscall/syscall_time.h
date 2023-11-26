@@ -21,8 +21,8 @@ public:
                      {1, "high 32 bits of cycles elapsed"}}) {}
   void execute() {
     long long cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, cycleCount & 0xFFFFFFFF);
-    BaseSyscall::setRet(RegisterFileType::GPR, 1,
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, cycleCount & 0xFFFFFFFF);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 1,
                         (cycleCount >> 32) & 0xFFFFFFFF);
   }
 };
@@ -41,8 +41,8 @@ public:
                      {1, "high 32 bits of milliseconds since epoch"}}) {}
   void execute() {
     long long ms = QDateTime::currentMSecsSinceEpoch();
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, ms & 0xFFFFFFFF);
-    BaseSyscall::setRet(RegisterFileType::GPR, 1, (ms >> 32) & 0xFFFFFFFF);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, ms & 0xFFFFFFFF);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 1, (ms >> 32) & 0xFFFFFFFF);
   }
 };
 

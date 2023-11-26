@@ -438,7 +438,7 @@ public:
     pc_reg->setInitValue(address);
   }
   AddressSpaceMM &getMemory() override { return *m_memory; }
-  VInt getRegister(RegisterFileType, unsigned i) const override {
+  VInt getRegister(const std::string_view &, unsigned i) const override {
     return registerFile->getRegister(i);
   }
   void finalize(FinalizeReason fr) override {
@@ -476,7 +476,7 @@ public:
     return allStagesInvalid;
   }
 
-  void setRegister(RegisterFileType, unsigned i, VInt v) override {
+  void setRegister(const std::string_view &, unsigned i, VInt v) override {
     setSynchronousValue(registerFile->_wr_mem, i, v);
   }
 
@@ -521,12 +521,12 @@ public:
     return m_enabledISA.get();
   }
 
-  const std::set<RegisterFileType> registerFiles() const override {
-    std::set<RegisterFileType> rfs;
-    rfs.insert(RegisterFileType::GPR);
+  const std::set<std::string_view> registerFiles() const override {
+    std::set<std::string_view> rfs;
+    rfs.insert(RVISA::GPR);
 
     if (implementsISA()->extensionEnabled("F")) {
-      rfs.insert(RegisterFileType::FPR);
+      rfs.insert(RVISA::FPR);
     }
     return rfs;
   }

@@ -19,8 +19,8 @@ public:
                      {1, "flags"}},
                     {{0, "the file decriptor or -1 if an error occurred"}}) {}
   void execute() {
-    const AInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
-    const AInt arg1 = BaseSyscall::getArg(RegisterFileType::GPR, 1);
+    const AInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
+    const AInt arg1 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
     QByteArray string;
     char byte;
     unsigned int address = arg0;
@@ -32,7 +32,7 @@ public:
 
     int ret = SystemIO::openFile(QString::fromUtf8(string), arg1);
 
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, ret);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, ret);
   }
 };
 
@@ -45,7 +45,7 @@ public:
       : BaseSyscall("Close", "Close a file",
                     {{0, "the file descriptor to close"}}) {}
   void execute() {
-    const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+    const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     SystemIO::closeFile(arg0);
   }
 };
@@ -64,10 +64,10 @@ public:
                     {{0, "the selected position from the beginning of the file "
                          "or -1 if an error occurred"}}) {}
   void execute() {
-    int result = SystemIO::seek(BaseSyscall::getArg(RegisterFileType::GPR, 0),
-                                BaseSyscall::getArg(RegisterFileType::GPR, 1),
-                                BaseSyscall::getArg(RegisterFileType::GPR, 2));
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, result);
+    int result = SystemIO::seek(BaseSyscall::getArg(BaseSyscall::REG_FILE, 0),
+                                BaseSyscall::getArg(BaseSyscall::REG_FILE, 1),
+                                BaseSyscall::getArg(BaseSyscall::REG_FILE, 2));
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, result);
   }
 };
 
@@ -83,14 +83,14 @@ public:
                      {2, "maximum number of bytes to read"}},
                     {{0, "number of read bytes or -1 if an error occurred"}}) {}
   void execute() {
-    const int fd = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+    const int fd = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     int byteAddress = BaseSyscall::getArg(
-        RegisterFileType::GPR, 1); // destination of characters read from file
-    const int length = BaseSyscall::getArg(RegisterFileType::GPR, 2);
+        BaseSyscall::REG_FILE, 1); // destination of characters read from file
+    const int length = BaseSyscall::getArg(BaseSyscall::REG_FILE, 2);
     QByteArray buffer;
 
     int retLength = SystemIO::readFromFile(fd, buffer, length);
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, retLength);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, retLength);
 
     if (retLength != -1) {
       // copy bytes from returned buffer into memory
@@ -118,11 +118,11 @@ public:
                     {{0, "the number of bytes written"}}) {}
   void execute() {
     const int byteAddress = BaseSyscall::getArg(
-        RegisterFileType::GPR, 1); // source of characters to write to file
+        BaseSyscall::REG_FILE, 1); // source of characters to write to file
     const int reqLength =
-        BaseSyscall::getArg(RegisterFileType::GPR, 2); // user-requested length
+        BaseSyscall::getArg(BaseSyscall::REG_FILE, 2); // user-requested length
     if (reqLength < 0) {
-      BaseSyscall::setRet(RegisterFileType::GPR, 0, -1);
+      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1);
       return;
     }
     int index = 0;
@@ -135,8 +135,8 @@ public:
     } while (index < reqLength);
 
     const int retValue = SystemIO::writeToFile(
-        BaseSyscall::getArg(RegisterFileType::GPR, 0), myBuffer, reqLength);
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, retValue);
+        BaseSyscall::getArg(BaseSyscall::REG_FILE, 0), myBuffer, reqLength);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, retValue);
   }
 };
 
@@ -154,17 +154,17 @@ public:
             {{0, "-1 if the path is longer than the buffer"}}) {}
   void execute() {
     const int byteAddress = BaseSyscall::getArg(
-        RegisterFileType::GPR, 0); // destination of characters read from file
+        BaseSyscall::REG_FILE, 0); // destination of characters read from file
     int index = 0;
-    const int bufferSize = BaseSyscall::getArg(RegisterFileType::GPR, 1);
+    const int bufferSize = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
 
     const QString pwd = QDir::currentPath();
 
     if (pwd.length() > bufferSize) {
-      BaseSyscall::setRet(RegisterFileType::GPR, 0, -1);
+      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1);
       return;
     } else {
-      BaseSyscall::setRet(RegisterFileType::GPR, 0, pwd.length());
+      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, pwd.length());
     }
 
     // copy bytes from returned buffer into memory
@@ -192,7 +192,7 @@ public:
     /// syscall's seems to execute fine with just null-values in the fstat
     /// return struct - this is ofcourse not a valid mode of execution, but for
     /// the current state of development, it'll have to do.
-    BaseSyscall::setRet(RegisterFileType::GPR, 0, 0);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, 0);
   }
 };
 } // namespace Ripes

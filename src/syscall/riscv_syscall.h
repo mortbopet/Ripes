@@ -1,5 +1,6 @@
 #pragma once
 
+#include "isa/rvisainfo_common.h"
 #include "processorhandler.h"
 #include "ripes_syscall.h"
 
@@ -13,6 +14,8 @@ namespace Ripes {
 
 class RISCVSyscall : public Syscall {
 public:
+  constexpr static std::string_view REG_FILE = RVISA::GPR;
+
   RISCVSyscall(const QString &name, const QString &description = QString(),
                const std::map<ArgIdx, QString> &argumentDescriptions =
                    std::map<ArgIdx, QString>(),
@@ -21,14 +24,15 @@ public:
       : Syscall(name, description, argumentDescriptions, returnDescriptions) {}
   ~RISCVSyscall() override {}
 
-  VInt getArg(RegisterFileType rfid, ArgIdx i) const override {
+  VInt getArg(const std::string_view &rfid, ArgIdx i) const override {
     // RISC-V arguments range from a0-a6
     assert(i < 7);
     const int regIdx = 10 + i; // a0 = x10
     return ProcessorHandler::getRegisterValue(rfid, regIdx);
   }
 
-  void setRet(RegisterFileType rfid, ArgIdx i, VInt value) const override {
+  void setRet(const std::string_view &rfid, ArgIdx i,
+              VInt value) const override {
     // RISC-V arguments range from a0-a6
     assert(i < 7);
     const int regIdx = 10 + i; // a0 = x10

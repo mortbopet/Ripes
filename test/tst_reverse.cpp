@@ -34,10 +34,12 @@ private slots:
 using Registers = std::map<int, VInt>;
 static Registers dumpRegs() {
   Registers regs;
-  for (unsigned i = 0; i < ProcessorHandler::get()->currentISA()->regCnt();
-       i++) {
-    regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
-        RegisterFileType::GPR, i);
+  for (const auto &regFile :
+       ProcessorHandler::get()->currentISA()->regInfos()) {
+    for (unsigned i = 0; i < regFile->regCnt(); i++) {
+      regs[i] = ProcessorHandler::get()->getProcessor()->getRegister(
+          regFile->regFileName(), i);
+    }
   }
   return regs;
 }
@@ -86,8 +88,7 @@ void tst_reverse::tst_reverse_regs() {
                                         << "addi x10 x10 1"
                                         << "addi x10 x10 1";
     run_test(processor, program, 3, 6, 6, true);
-    unsigned val =
-        ProcessorHandler::get()->getRegisterValue(RegisterFileType::GPR, 10);
+    unsigned val = ProcessorHandler::get()->getRegisterValue(RVISA::GPR, 10);
     QCOMPARE(val, 5);
   }
 }
@@ -103,8 +104,7 @@ void tst_reverse::tst_reverse_mem() {
                                         << "sw a1 0 a0"
                                         << "lw x10 0 a0";
     run_test(processor, program, 3, 10, 10, true);
-    unsigned val =
-        ProcessorHandler::get()->getRegisterValue(RegisterFileType::GPR, 10);
+    unsigned val = ProcessorHandler::get()->getRegisterValue(RVISA::GPR, 10);
     QCOMPARE(val, 43);
   }
 }

@@ -117,22 +117,26 @@ public:
   QVariant report(bool json) override {
     QVariantMap registerMap;
     auto isa = ProcessorHandler::currentISA();
-    auto regInfo = isa->regInfo().value();
 
     if (json) {
-      for (unsigned i = 0; i < regInfo->regCnt(); i++) {
-        registerMap[regInfo->regName(i)] = QVariant::fromValue(
-            ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i));
+      for (const auto &regFile : isa->regInfos()) {
+        for (unsigned i = 0; i < regFile->regCnt(); i++) {
+          registerMap[regFile->regName(i)] = QVariant::fromValue(
+              ProcessorHandler::getRegisterValue(regFile->regFileName(), i));
+        }
       }
       return registerMap;
     } else {
       QString outStr;
       QTextStream out(&outStr);
-      for (unsigned i = 0; i < regInfo->regCnt(); i++) {
-        auto v = ProcessorHandler::getRegisterValue(RegisterFileType::GPR, i);
-        out << regInfo->regName(i) << ":\t"
-            << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
-        out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
+      for (const auto &regFile : isa->regInfos()) {
+        for (unsigned i = 0; i < regFile->regCnt(); i++) {
+          auto v =
+              ProcessorHandler::getRegisterValue(regFile->regFileName(), i);
+          out << regFile->regName(i) << ":\t"
+              << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
+          out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
+        }
       }
       return outStr;
     }

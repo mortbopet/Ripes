@@ -14,7 +14,7 @@ class RegisterModel : public QAbstractTableModel {
   Q_OBJECT
 public:
   enum Column { Name, Alias, Value, NColumns };
-  RegisterModel(RegisterFileType rft, QObject *parent = nullptr);
+  RegisterModel(const std::string_view &rft, QObject *parent = nullptr);
 
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -52,7 +52,7 @@ private:
 
   Radix m_radix = Radix::Hex;
   unsigned m_regBytes;
-  RegisterFileType m_rft;
+  std::string_view m_rft;
 
   int m_mostRecentlyModifiedReg = -1;
   std::vector<VInt> m_regValues;

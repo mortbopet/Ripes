@@ -53,7 +53,7 @@ ProcessorRegistry::ProcessorRegistry() {
              {"Extended",
               ":/layouts/RISC-V/rvss/rv_ss_extended_layout.json",
               {{{0, 0}, QPointF{0.5, 0}}}}};
-  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RVSS<uint32_t>>(
       ProcessorID::RV32_SS, "Single-cycle processor",
       "A single cycle processor", layouts, defRegVals));
@@ -77,7 +77,7 @@ ProcessorRegistry::ProcessorRegistry() {
         {{0, 2}, QPointF{0.56, 0.0}},
         {{0, 3}, QPointF{0.76, 0.0}},
         {{0, 4}, QPointF{0.9, 0.0}}}}};
-  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW_HZ<uint32_t>>(
       ProcessorID::RV32_5S_NO_FW_HZ,
       "5-stage processor w/o forwarding or hazard detection",
@@ -102,7 +102,7 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 2}, QPointF{0.53, 0}},
                {{0, 3}, QPointF{0.78, 0}},
                {{0, 4}, QPointF{0.9, 0}}}}};
-  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_HZ<uint32_t>>(
       ProcessorID::RV32_5S_NO_HZ, "5-stage processor w/o hazard detection",
       rv5s_no_hz_desc, layouts, defRegVals));
@@ -125,7 +125,7 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 2}, QPointF{0.53, 0}},
                {{0, 3}, QPointF{0.78, 0}},
                {{0, 4}, QPointF{0.9, 0}}}}};
-  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_NO_FW<uint32_t>>(
       ProcessorID::RV32_5S_NO_FW, "5-Stage processor w/o forwarding unit",
       rv5s_no_fw_desc, layouts, defRegVals));
@@ -148,7 +148,7 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 2}, QPointF{0.54, 0}},
                {{0, 3}, QPointF{0.78, 0}},
                {{0, 4}, QPointF{0.9, 0}}}}};
-  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint32_t>>(
       ProcessorID::RV32_5S, "5-stage processor", rv5s_desc, layouts,
       defRegVals));
@@ -171,7 +171,7 @@ ProcessorRegistry::ProcessorRegistry() {
                 {{1, 4}, QPointF{0.80, 1}},
                 {{0, 5}, QPointF{0.90, 0}},
                 {{1, 5}, QPointF{0.90, 1}}}}}};
-  defRegVals = {{2, 0x7ffffff0}, {3, 0x10000000}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV6S_DUAL<uint32_t>>(
       ProcessorID::RV32_6S_DUAL, "6-stage dual-issue processor", rv6s_desc,
       layouts, defRegVals));

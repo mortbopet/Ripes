@@ -31,8 +31,13 @@ void GoToComboBox::showPopup() {
 void GoToComboBox::signalFilter(int index) {
   const auto &value = itemData(index);
 
-  const auto f = qvariant_cast<GoToUserData>(value);
-  switch (f.func) {
+  GoToUserData data;
+  if (value.metaType() == QMetaType::fromType<GoToRegisterValue>()) {
+    data = qvariant_cast<GoToRegisterValue>(value);
+  } else {
+    data = qvariant_cast<GoToUserData>(value);
+  }
+  switch (data.func) {
   case GoToFunction::Select:
     break;
   case GoToFunction::Address: {
@@ -73,16 +78,18 @@ AInt GoToSectionComboBox::addrForIndex(int i) {
 
 void GoToRegisterComboBox::addTargets() {
   const auto &isa = ProcessorHandler::currentISA();
-  const auto regInfo = isa->regInfo().value();
-  for (unsigned i = 0; i < regInfo->regCnt(); ++i) {
-    addItem(regInfo->regName(i) + " (" + regInfo->regAlias(i) + ")",
-            QVariant::fromValue<GoToUserData>({GoToFunction::Custom, i}));
+  for (const auto &regInfo : isa->regInfos()) {
+    for (unsigned i = 0; i < regInfo->regCnt(); ++i) {
+      addItem(regInfo->regName(i) + " (" + regInfo->regAlias(i) + ")",
+              QVariant::fromValue<GoToRegisterValue>(
+                  {{GoToFunction::Custom, i}, regInfo->regFileName()}));
+    }
   }
 }
 
 AInt GoToRegisterComboBox::addrForIndex(int i) {
-  const auto &regIdx = qvariant_cast<GoToUserData>(itemData(i));
-  return ProcessorHandler::getRegisterValue(RegisterFileType::GPR, regIdx.arg);
+  const auto &regIdx = qvariant_cast<GoToRegisterValue>(itemData(i));
+  return ProcessorHandler::getRegisterValue(regIdx.regFileName, regIdx.arg);
 }
 
 } // namespace Ripes

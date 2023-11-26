@@ -6,8 +6,8 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include "isa/isa_types.h"
 #include "processors/interface/ripesprocessor.h"
-#include "ripes_types.h"
 #include "ripestab.h"
 
 namespace vsrtl {

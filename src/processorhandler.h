@@ -133,7 +133,7 @@ public:
    * @brief setRegisterValue
    * Set the value of register @param idx to @param value.
    */
-  static void setRegisterValue(RegisterFileType rfid, const unsigned idx,
+  static void setRegisterValue(const std::string_view &rfid, const unsigned idx,
                                VInt value) {
     get()->_setRegisterValue(rfid, idx, value);
   }
@@ -150,7 +150,8 @@ public:
    * @brief getRegisterValue
    * @returns value of register @param idx
    */
-  static VInt getRegisterValue(RegisterFileType rfid, const unsigned idx) {
+  static VInt getRegisterValue(const std::string_view &rfid,
+                               const unsigned idx) {
     return get()->_getRegisterValue(rfid, idx);
   }
 
@@ -295,9 +296,11 @@ private:
   QString _disassembleInstr(const AInt address) const;
   vsrtl::core::AddressSpaceMM &_getMemory();
   const vsrtl::core::AddressSpace &_getRegisters() const;
-  void _setRegisterValue(RegisterFileType rfid, const unsigned idx, VInt value);
+  void _setRegisterValue(const std::string_view &rfid, const unsigned idx,
+                         VInt value);
   void _writeMem(AInt address, VInt value, int size = sizeof(VInt));
-  VInt _getRegisterValue(RegisterFileType rfid, const unsigned idx) const;
+  VInt _getRegisterValue(const std::string_view &rfid,
+                         const unsigned idx) const;
   bool _checkBreakpoint();
   void _setBreakpoint(const AInt address, bool enabled);
   void _toggleBreakpoint(const AInt address);

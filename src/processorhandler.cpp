@@ -287,8 +287,10 @@ void ProcessorHandler::_reset() {
   getProcessorNonConst()->resetProcessor();
 
   // Rewrite register initializations
-  for (const auto &kv : m_currentRegInits) {
-    _setRegisterValue(RegisterFileType::GPR, kv.first, kv.second);
+  for (const auto &regFileInit : m_currentRegInits) {
+    for (const auto &kv : regFileInit.second) {
+      _setRegisterValue(regFileInit.first, kv.first, kv.second);
+    }
   }
 
   // Reset IO devices.
@@ -413,9 +415,13 @@ QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
 void ProcessorHandler::syscallTrap() {
   auto futureWatcher = QFutureWatcher<bool>();
   futureWatcher.setFuture(QtConcurrent::run([=] {
-    const unsigned int function = m_currentProcessor->getRegister(
-        RegisterFileType::GPR, _currentISA()->syscallReg());
-    return m_syscallManager->execute(function);
+    if (auto reg = _currentISA()->syscallReg(); reg.has_value()) {
+      const unsigned int function =
+          m_currentProcessor->getRegister(reg->file->regFileName(), reg->index);
+      return m_syscallManager->execute(function);
+    } else {
+      return false;
+    }
   }));
 
   futureWatcher.waitForFinished();
@@ -459,12 +465,12 @@ bool ProcessorHandler::_isExecutableAddress(AInt address) const {
   return false;
 }
 
-void ProcessorHandler::_setRegisterValue(RegisterFileType rfid,
+void ProcessorHandler::_setRegisterValue(const std::string_view &rfid,
                                          const unsigned idx, VInt value) {
   m_currentProcessor->setRegister(rfid, idx, value);
 }
 
-VInt ProcessorHandler::_getRegisterValue(RegisterFileType rfid,
+VInt ProcessorHandler::_getRegisterValue(const std::string_view &rfid,
                                          const unsigned idx) const {
   return m_currentProcessor->getRegister(rfid, idx);
 }

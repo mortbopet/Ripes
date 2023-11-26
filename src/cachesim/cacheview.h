@@ -2,7 +2,7 @@
 
 #include <QGraphicsView>
 
-#include "ripes_types.h"
+#include "isa/isa_types.h"
 
 namespace Ripes {
 

@@ -6,6 +6,7 @@
 #include <QString>
 #include <memory>
 #include <set>
+#include <vector>
 
 #include "elfio/elf_types.hpp"
 
@@ -15,21 +16,17 @@ namespace Ripes {
 enum class ISA { RV32I, RV64I, MIPS32I };
 const static std::map<ISA, QString> ISAFamilyNames = {
     {ISA::RV32I, "RISC-V"}, {ISA::RV64I, "RISC-V"}, {ISA::MIPS32I, "MIPS"}};
-enum class RegisterFileType { GPR, FPR, CSR };
 struct RegisterFileName {
   QString shortName;
   QString longName;
 };
 
-/// Maintain a mapping between register file enum's and their string
-/// representation.
-const static std::map<RegisterFileType, RegisterFileName> s_RegsterFileName = {
-    {RegisterFileType::GPR, {"GPR", "General purpose registers"}},
-    {RegisterFileType::FPR, {"FPR", "Floating-point registers"}},
-    {RegisterFileType::CSR, {"CSR", "Control and status registers"}}};
-
-struct RegInfoBase {
-  virtual RegisterFileType regFileType() const = 0;
+/// An interface into a register file.
+struct RegFileInfoInterface {
+  /// Returns this register file's type.
+  virtual std::string_view regFileName() const = 0;
+  /// Returns this register file's description.
+  virtual std::string_view regFileDesc() const = 0;
   /// Returns the number of registers in the instruction set.
   virtual unsigned regCnt() const = 0;
   /// Returns the canonical name of the i'th register in the ISA.
@@ -47,28 +44,45 @@ struct RegInfoBase {
   virtual bool regIsReadOnly(unsigned i) const = 0;
 };
 
+/// An index into a single register.
+struct RegIndex {
+  const std::shared_ptr<const RegFileInfoInterface> file;
+  const unsigned index;
+};
+
+using RegInfoVec = std::vector<std::shared_ptr<const RegFileInfoInterface>>;
+using RegInfoMap =
+    std::map<std::string_view, std::shared_ptr<const RegFileInfoInterface>>;
+
 /// The ISAInfoBase class defines an interface for instruction set information.
 class ISAInfoBase {
 public:
   virtual ~ISAInfoBase(){};
   virtual QString name() const = 0;
   virtual ISA isaID() const = 0;
+  virtual const RegInfoMap &regInfoMap() const = 0;
 
-  std::optional<const RegInfoBase *>
-  regInfo(RegisterFileType regFileType = RegisterFileType::GPR) const {
-    if (auto match = m_regInfos.find(regFileType); match != m_regInfos.end()) {
-      return m_regInfos.at(regFileType).get();
-    } else {
-      return {};
+  std::set<std::string_view> regFileNames() const {
+    std::set<std::string_view> names;
+    for (const auto &regInfo : regInfoMap()) {
+      names.insert(regInfo.second->regFileName());
     }
+    return names;
   }
-  /// Returns the total number of registers in the instruction set.
-  unsigned regCnt() const {
-    unsigned count = 0;
-    for (const auto &pair : m_regInfos) {
-      count += pair.second->regCnt();
+  RegInfoVec regInfos() const {
+    RegInfoVec regVec;
+    for (const auto &regInfo : regInfoMap()) {
+      regVec.emplace_back(regInfo.second);
     }
-    return count;
+    return regVec;
+  }
+  std::optional<const RegFileInfoInterface *>
+  regInfo(const std::string_view &regFileName) const {
+    if (auto match = regInfoMap().find(regFileName);
+        match != regInfoMap().end()) {
+      return {regInfoMap().at(regFileName).get()};
+    }
+    return {};
   }
 
   virtual unsigned bits() const = 0; // Register width, in bits
@@ -81,13 +95,17 @@ public:
   } // Instruction width, in bytes
   virtual unsigned instrByteAlignment() const {
     return 0;
-  }                                        // Instruction Alignment, in bytes
-  virtual int spReg() const { return -1; } // Stack pointer
-  virtual int gpReg() const { return -1; } // Global pointer
-  virtual int syscallReg() const { return -1; } // Syscall function register
+  } // Instruction Alignment, in bytes
+  virtual std::optional<RegIndex> spReg() const { return {}; } // Stack pointer
+  virtual std::optional<RegIndex> gpReg() const { return {}; } // Global pointer
+  virtual std::optional<RegIndex> syscallReg() const {
+    return {};
+  } // Syscall function register
   // Mapping between syscall argument # and the corresponding register # wherein
   // that argument is passed.
-  virtual int syscallArgReg(unsigned /*argIdx*/) const { return -1; }
+  virtual std::optional<RegIndex> syscallArgReg(unsigned /*argIdx*/) const {
+    return {};
+  }
 
   // GCC Compile command architecture and ABI specification strings
   virtual QString CCmarch() const = 0;
@@ -135,8 +153,6 @@ public:
 
 protected:
   ISAInfoBase() {}
-
-  std::map<RegisterFileType, std::unique_ptr<const RegInfoBase>> m_regInfos;
 };
 
 struct ProcessorISAInfo {
