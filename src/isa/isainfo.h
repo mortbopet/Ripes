@@ -8,7 +8,8 @@
 #include <set>
 #include <vector>
 
-#include "elfio/elf_types.hpp"
+#include "instruction.h"
+#include "pseudoinstruction.h"
 
 namespace Ripes {
 
@@ -138,6 +139,13 @@ public:
   }
   virtual QString extensionDescription(const QString &ext) const = 0;
 
+  /// Returns the set of instructions for this ISA
+  virtual const InstrVec &instructions() const = 0;
+  /// Returns the set of pseudoinstructions for this ISA
+  virtual const PseudoInstrVec &pseudoInstructions() const = 0;
+  /// Returns the set of relocations for this ISA
+  virtual const RelocationsVec &relocations() const = 0;
+
   /**
    * ISA equality is defined as a separate function rather than the == operator,
    * given that we might need to check for ISA equivalence, without having
@@ -163,5 +171,39 @@ struct ProcessorISAInfo {
 
 template <ISA isa>
 class ISAInfo : public ISAInfoBase {};
+
+using ISAInfoMap =
+    std::map<std::pair<ISA, QStringList>, std::shared_ptr<ISAInfoBase>>;
+
+struct ISAInfoRegistry {
+  template <ISA isa>
+  static const std::shared_ptr<ISAInfoBase> &
+  getISA(const QStringList &extensions) {
+    return instance().supportedISA<isa>(extensions);
+  }
+
+  template <ISA isa>
+  static const std::shared_ptr<ISAInfoBase> &getSupportedISA() {
+    return instance().supportedISA<isa>();
+  }
+
+private:
+  static ISAInfoRegistry &instance() {
+    static ISAInfoRegistry r;
+    return r;
+  }
+
+  template <ISA isa>
+  const std::shared_ptr<ISAInfoBase> &supportedISA(
+      const QStringList &extensions = ISAInfo<isa>::getSupportedExtensions()) {
+    auto key = std::pair(isa, extensions);
+    if (supportedISAMap.count(key) == 0) {
+      supportedISAMap[key] = std::make_shared<ISAInfo<isa>>(extensions);
+    }
+    return supportedISAMap.at(key);
+  }
+
+  ISAInfoMap supportedISAMap;
+};
 
 } // namespace Ripes

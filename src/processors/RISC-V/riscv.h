@@ -14,6 +14,23 @@
 
 namespace Ripes {
 
+namespace RVISA {
+
+template <unsigned XLEN>
+ProcessorISAInfo supportsISA() {
+  using RVISAInfo = ISAInfo<XLenToRVISA<XLEN>()>;
+  return ProcessorISAInfo{std::make_shared<RVISAInfo>(QStringList()),
+                          RVISAInfo::getSupportedExtensions(),
+                          RVISAInfo::getDefaultExtensions()};
+}
+
+template <unsigned XLEN>
+std::shared_ptr<const ISAInfoBase> fullISA() {
+  return ISAInfoRegistry::getSupportedISA<XLenToRVISA<XLEN>()>();
+}
+
+} // namespace RVISA
+
 constexpr int c_RVInstrWidth = 32; // Width of instructions
 constexpr int c_RVRegs = 32;       // Number of registers
 constexpr int c_RVRegsBits =

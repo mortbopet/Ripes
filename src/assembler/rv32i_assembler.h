@@ -4,7 +4,6 @@
 #include <functional>
 
 #include "assembler.h"
-#include "isa/rv_i_ext.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -13,11 +12,7 @@ class RV32I_Assembler : public QObject, public Assembler {
   Q_OBJECT
 
 public:
-  RV32I_Assembler(const ISAInfo<ISA::RV32I> *isa);
-
-private:
-  std::tuple<InstrVec, PseudoInstrVec>
-  initInstructions(const ISAInfo<ISA::RV32I> *isa) const;
+  RV32I_Assembler(const std::shared_ptr<const ISAInfo<ISA::RV32I>> &isa);
 
 protected:
   QChar commentDelimiter() const override { return '#'; }

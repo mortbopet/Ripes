@@ -65,7 +65,8 @@ class Assembler : public AssemblerBase {
                 "Register type must be integer");
 
 public:
-  explicit Assembler(const ISAInfoBase *isa) : m_isa(isa) {}
+  explicit Assembler(std::shared_ptr<const ISAInfoBase> isa)
+      : m_isa(isa) {}
 
   AssembleResult
   assemble(const QStringList &programLines, const SymbolMap *symbols = nullptr,
@@ -177,19 +178,25 @@ public:
     return opcodes;
   }
 
-  void setRelocations(const RelocationsVec &relocations) {
-    if (m_relocations.size() != 0) {
-      throw std::runtime_error("Directives already set");
-    }
-    m_relocations = relocations;
-    for (const auto &iter : m_relocations) {
-      const auto relocation = iter.get()->name();
-      if (m_relocationsMap.count(relocation) != 0) {
-        throw std::runtime_error("Error: relocation " +
-                                 relocation.toStdString() +
-                                 " has already been registerred.");
+  const InstrVec &getInstructionSet() const override {
+    return m_isa->instructions();
+  }
+
+  const PseudoInstrVec &getPseudoInstructionSet() const override {
+    return m_isa->pseudoInstructions();
+  }
+
+  void setRelocations() {
+    if (m_relocationsMap.size() == 0) {
+      for (const auto &iter : m_isa->relocations()) {
+        const auto relocation = iter.get()->name();
+        if (m_relocationsMap.count(relocation) != 0) {
+          throw std::runtime_error("Error: relocation " +
+                                   relocation.toStdString() +
+                                   " has already been registerred.");
+        }
+        m_relocationsMap[relocation] = iter;
       }
-      m_relocationsMap[relocation] = iter;
     }
   }
 
@@ -541,20 +548,31 @@ protected:
     return assembledWith->assemble(line);
   }
 
-  void setPseudoInstructions(const PseudoInstrVec &pseudoInstructions) {
-    if (m_pseudoInstructions.size() != 0) {
-      throw std::runtime_error("Pseudoinstructions already set");
-    }
-    m_pseudoInstructions = pseudoInstructions;
-
-    for (const auto &iter : m_pseudoInstructions) {
-      const auto instr_name = iter.get()->name();
-      if (m_pseudoInstructionMap.count(instr_name) != 0) {
-        throw std::runtime_error("Error: pseudo-instruction with opcode '" +
-                                 instr_name.toStdString() +
-                                 "' has already been registerred.");
+  void setPseudoInstructions() {
+    if (m_pseudoInstructionMap.size() == 0) {
+      for (const auto &iter : m_isa->pseudoInstructions()) {
+        const auto instr_name = iter.get()->name();
+        if (m_pseudoInstructionMap.count(instr_name) != 0) {
+          throw std::runtime_error("Error: pseudo-instruction with opcode '" +
+                                   instr_name.toStdString() +
+                                   "' has already been registerred.");
+        }
+        m_pseudoInstructionMap[instr_name] = iter;
       }
-      m_pseudoInstructionMap[instr_name] = iter;
+    }
+  }
+
+  void setInstructions() {
+    if (m_instructionMap.size() == 0) {
+      for (const auto &iter : m_isa->instructions()) {
+        const auto instr_name = iter.get()->name();
+        if (m_instructionMap.count(instr_name) != 0) {
+          throw std::runtime_error("Error: instruction with opcode '" +
+                                   instr_name.toStdString() +
+                                   "' has already been registerred.");
+        }
+        m_instructionMap[instr_name] = iter;
+      }
     }
   }
 
@@ -589,58 +607,38 @@ protected:
     return {remainingTokens};
   }
 
-  void initialize(const InstrVec &instructions,
-                  const PseudoInstrVec &pseudoinstructions,
-                  const DirectiveVec &directives,
-                  const RelocationsVec &relocations) {
-    setInstructions(instructions);
-    setPseudoInstructions(pseudoinstructions);
+  void initialize(const DirectiveVec &directives) {
+    setInstructions();
+    setPseudoInstructions();
     setDirectives(directives);
-    setRelocations(relocations);
-    m_matcher = std::make_unique<Matcher>(m_instructions);
-  }
-
-  void setInstructions(const InstrVec &instructions) {
-    if (m_instructions.size() != 0) {
-      throw std::runtime_error("Instructions already set");
-    }
-    m_instructions = instructions;
-    for (const auto &iter : m_instructions) {
-      const auto instr_name = iter.get()->name();
-      if (m_instructionMap.count(instr_name) != 0) {
-        throw std::runtime_error("Error: instruction with opcode '" +
-                                 instr_name.toStdString() +
-                                 "' has already been registerred.");
-      }
-      m_instructionMap[instr_name] = iter;
-    }
+    setRelocations();
+    m_matcher = std::make_unique<Matcher>(m_isa->instructions());
   }
 
   /**
-   * @brief m_instructions is the set of instructions which can be matched from
-   * an instruction string as well as be disassembled from a program.
+   * @brief m_instructionMap contains the set of instructions which can be
+   * matched from an instruction string as well as be disassembled from a
+   * program.
    */
-  InstrVec m_instructions;
   InstrMap m_instructionMap;
 
   /**
-   * @brief m_pseudoInstructions is the set of instructions which can be matched
-   * from an instruction string but cannot be disassembled from a program.
-   * Typically, pseudoinstructions will expand to one or more non-pseudo
-   * instructions.
+   * @brief m_pseudoInstructionMap contains the set of instructions which can be
+   * matched from an instruction string but cannot be disassembled from a
+   * program. Typically, pseudoinstructions will expand to one or more
+   * non-pseudo instructions.
    */
-  PseudoInstrVec m_pseudoInstructions;
   PseudoInstrMap m_pseudoInstructionMap;
 
   /**
-   * @brief m_relocations is the set of supported assembler relocation hints
+   * @brief m_relocationMap contains the set of supported assembler relocation
+   * hints
    */
-  RelocationsVec m_relocations;
   RelocationsMap m_relocationsMap;
 
   std::unique_ptr<Matcher> m_matcher;
 
-  const ISAInfoBase *m_isa;
+  std::shared_ptr<const ISAInfoBase> m_isa;
 };
 
 } // namespace Assembler

@@ -7,6 +7,8 @@
 #include "assembler_defines.h"
 #include "directive.h"
 #include "expreval.h"
+#include "isa/instruction.h"
+#include "isa/pseudoinstruction.h"
 #include "isa/symbolmap.h"
 
 namespace Ripes {
@@ -56,6 +58,12 @@ public:
   /// Returns the set of opcodes (as strings) which are supported by this
   /// assembler.
   virtual std::set<QString> getOpcodes() const = 0;
+
+  /// Returns the map of instructions supported by this assembler.
+  virtual const InstrVec &getInstructionSet() const = 0;
+
+  /// Returns the map of pseudo-instructions supported by this assembler.
+  virtual const PseudoInstrVec &getPseudoInstructionSet() const = 0;
 
   /// Resolves an expression through either the built-in symbol map, or through
   /// the expression evaluator.

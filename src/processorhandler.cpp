@@ -267,11 +267,13 @@ void ProcessorHandler::_toggleBreakpoint(const AInt address) {
 void ProcessorHandler::_clearBreakpoints() { m_breakpoints.clear(); }
 
 void ProcessorHandler::createAssemblerForCurrentISA() {
-  const auto &isa = _currentISA();
+  const auto &isa = m_currentProcessor->fullISA();
 
-  if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(isa)) {
+  if (auto rv32isa =
+          std::dynamic_pointer_cast<const ISAInfo<ISA::RV32I>>(isa)) {
     m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
-  } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(isa)) {
+  } else if (auto rv64isa =
+                 std::dynamic_pointer_cast<const ISAInfo<ISA::RV64I>>(isa)) {
     m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
   } else {
     Q_UNREACHABLE();

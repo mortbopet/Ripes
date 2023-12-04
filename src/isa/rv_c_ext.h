@@ -8,9 +8,6 @@ namespace RVISA {
 
 namespace ExtC {
 
-void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
-               PseudoInstrVec &pseudoInstructions);
-
 constexpr unsigned INSTR_BITS = 16;
 
 template <unsigned offset, unsigned start, unsigned stop>

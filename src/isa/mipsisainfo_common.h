@@ -1,6 +1,8 @@
 #pragma once
 
+#include "elfio/elf_types.hpp"
 #include "isainfo.h"
+
 #include <QDebug>
 
 namespace Ripes {
@@ -180,8 +182,19 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
 
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
+  static const QStringList &getSupportedExtensions() {
+    static const QStringList ext = {""};
+    return ext;
+  }
+  static const QStringList &getDefaultExtensions() {
+    static const QStringList ext = {""};
+    return ext;
+  }
+
   MIPS_ISAInfoBase() {
     m_regInfos[MIPSISA::GPR] = std::make_unique<MIPSISA::MIPS_GPRInfo>();
+
+    // TODO: Setup MIPS instructions here
   }
 
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
@@ -224,10 +237,20 @@ public:
   }
   QString extensionDescription(const QString &) const override { return ""; }
 
+  const InstrVec &instructions() const override { return m_instructions; }
+  const PseudoInstrVec &pseudoInstructions() const override {
+    return m_pseudoInstructions;
+  }
+  const RelocationsVec &relocations() const override { return m_relocations; }
+
 protected:
   QStringList m_enabledExtensions;
-  QStringList m_supportedExtensions = {""};
+  QStringList m_supportedExtensions = getSupportedExtensions();
   RegInfoMap m_regInfos;
+
+  InstrVec m_instructions;
+  PseudoInstrVec m_pseudoInstructions;
+  RelocationsVec m_relocations;
 };
 
 } // namespace Ripes
