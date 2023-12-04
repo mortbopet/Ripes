@@ -186,16 +186,17 @@ public:
   }
 
   void setRelocations() {
-    if (m_relocationsMap.size() == 0) {
-      for (const auto &iter : m_isa->relocations()) {
-        const auto relocation = iter.get()->name();
-        if (m_relocationsMap.count(relocation) != 0) {
-          throw std::runtime_error("Error: relocation " +
-                                   relocation.toStdString() +
-                                   " has already been registerred.");
-        }
-        m_relocationsMap[relocation] = iter;
+    if (m_relocationsMap.size() != 0) {
+      throw std::runtime_error("Directives already set");
+    }
+    for (const auto &iter : m_isa->relocations()) {
+      const auto relocation = iter.get()->name();
+      if (m_relocationsMap.count(relocation) != 0) {
+        throw std::runtime_error("Error: relocation " +
+                                 relocation.toStdString() +
+                                 " has already been registerred.");
       }
+      m_relocationsMap[relocation] = iter;
     }
   }
 
@@ -548,30 +549,32 @@ protected:
   }
 
   void setPseudoInstructions() {
-    if (m_pseudoInstructionMap.size() == 0) {
-      for (const auto &iter : m_isa->pseudoInstructions()) {
-        const auto instr_name = iter.get()->name();
-        if (m_pseudoInstructionMap.count(instr_name) != 0) {
-          throw std::runtime_error("Error: pseudo-instruction with opcode '" +
-                                   instr_name.toStdString() +
-                                   "' has already been registerred.");
-        }
-        m_pseudoInstructionMap[instr_name] = iter;
+    if (m_pseudoInstructionMap.size() != 0) {
+      throw std::runtime_error("Pseudoinstructions already set");
+    }
+    for (const auto &iter : m_isa->pseudoInstructions()) {
+      const auto instr_name = iter.get()->name();
+      if (m_pseudoInstructionMap.count(instr_name) != 0) {
+        throw std::runtime_error("Error: pseudo-instruction with opcode '" +
+                                 instr_name.toStdString() +
+                                 "' has already been registerred.");
       }
+      m_pseudoInstructionMap[instr_name] = iter;
     }
   }
 
   void setInstructions() {
-    if (m_instructionMap.size() == 0) {
-      for (const auto &iter : m_isa->instructions()) {
-        const auto instr_name = iter.get()->name();
-        if (m_instructionMap.count(instr_name) != 0) {
-          throw std::runtime_error("Error: instruction with opcode '" +
-                                   instr_name.toStdString() +
-                                   "' has already been registerred.");
-        }
-        m_instructionMap[instr_name] = iter;
+    if (m_instructionMap.size() != 0) {
+      throw std::runtime_error("Instructions already set");
+    }
+    for (const auto &iter : m_isa->instructions()) {
+      const auto instr_name = iter.get()->name();
+      if (m_instructionMap.count(instr_name) != 0) {
+        throw std::runtime_error("Error: instruction with opcode '" +
+                                 instr_name.toStdString() +
+                                 "' has already been registerred.");
       }
+      m_instructionMap[instr_name] = iter;
     }
   }
 
