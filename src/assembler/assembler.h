@@ -65,8 +65,7 @@ class Assembler : public AssemblerBase {
                 "Register type must be integer");
 
 public:
-  explicit Assembler(std::shared_ptr<const ISAInfoBase> isa)
-      : m_isa(isa) {}
+  explicit Assembler(std::shared_ptr<const ISAInfoBase> isa) : m_isa(isa) {}
 
   AssembleResult
   assemble(const QStringList &programLines, const SymbolMap *symbols = nullptr,
