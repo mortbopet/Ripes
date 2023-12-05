@@ -58,6 +58,9 @@ void ChartLineMarker::move(const QPointF &center) {
 
     // Note: we assume that the points are in a sorted order!
     const auto &points = m_series->points();
+    if (points.size() == 0) {
+      return;
+    }
     const QPointF chartPos = m_chart->mapToValue(center);
     auto iter =
         std::lower_bound(points.begin(), points.end(), chartPos.x(),
