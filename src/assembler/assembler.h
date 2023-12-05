@@ -684,6 +684,8 @@ protected:
   QChar commentDelimiter() const override { return '#'; }
 };
 
+/// Returns an assembler for isa
+/// Throws a runtime error if the isa does not have a matching assembler
 std::shared_ptr<AssemblerBase>
 constructAssemblerDynamic(const std::shared_ptr<const ISAInfoBase> &isa);
 

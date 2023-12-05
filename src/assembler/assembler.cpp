@@ -13,7 +13,9 @@ constructAssemblerDynamic(const std::shared_ptr<const ISAInfoBase> &isa) {
     return std::make_shared<ISA_Assembler<ISA::RV64I>>(rv64isa);
   }
 
-  Q_UNREACHABLE();
+  throw std::runtime_error(
+      std::string("Cannot dynamically construct assembler for isa: ") +
+      isa->name().toStdString());
 }
 
 } // namespace Assembler
