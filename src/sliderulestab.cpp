@@ -47,6 +47,8 @@ struct Description final : public CellStructure {
     switch (role) {
     case Qt::DisplayRole:
       return instr->description();
+    case Qt::ToolTipRole:
+      return instr->longDescription();
     default:
       return CellStructure::getVariant(instr, role);
     }
