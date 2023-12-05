@@ -46,8 +46,7 @@ struct Description final : public CellStructure {
   QVariant getVariant(const InstructionBase *instr, int role) const override {
     switch (role) {
     case Qt::DisplayRole:
-      // TODO(raccog): Get description from instruction
-      return "DESCRIPTION";
+      return instr->description();
     default:
       return CellStructure::getVariant(instr, role);
     }

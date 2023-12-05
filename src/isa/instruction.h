@@ -774,6 +774,8 @@ public:
   virtual OpPartBase getOpPart(unsigned partIndex) const = 0;
   /// Returns the name of this instruction.
   virtual const QString &name() const = 0;
+  /// Returns a description of this instruction.
+  virtual const QString &description() const = 0;
   /// Returns the number of OpParts in this instruction.
   virtual unsigned numOpParts() const = 0;
   /// Returns the name of the extension that this instruction came from.
@@ -860,9 +862,12 @@ template <typename InstrImpl>
 struct Instruction : public InstructionBase {
   Instruction()
       : InstructionBase(InstrByteSize<InstrImpl>::byteSize),
-        m_name(InstrImpl::NAME.data()),
+        m_name(InstrImpl::NAME.data()), m_description(InstrImpl::DESC.data()),
         m_fields(InstrImpl::Fields::getFields()),
         m_opParts(InstrImpl::Opcode::getParts()) {}
+
+  constexpr static std::string_view DESC = "TODO: DESCRIPTION";
+  constexpr static std::string_view LONG_DESC = "TODO: LONG DESCRIPTION";
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
@@ -894,6 +899,7 @@ struct Instruction : public InstructionBase {
     return InstrImpl::Opcode::getOpPart(partIndex);
   }
   const QString &name() const override { return m_name; }
+  const QString &description() const override { return m_description; }
   unsigned numOpParts() const override { return InstrImpl::Opcode::numParts(); }
 
   const std::vector<std::shared_ptr<FieldBase>> &getFields() const override {
@@ -905,6 +911,7 @@ struct Instruction : public InstructionBase {
 
 private:
   const QString m_name;
+  const QString m_description;
   const std::vector<std::shared_ptr<FieldBase>> m_fields;
   const std::vector<OpPartBase> m_opParts;
 };

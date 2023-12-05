@@ -46,28 +46,63 @@ using Instr32 = Instr<InstrImpl, OpcodeID::OPIMM, funct3>;
 template <typename InstrImpl, Funct3 funct3>
 using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3>;
 
+// NOTE: Descriptions are taken from The RISC-V Instruction Set Manual Volume I.
+//       It can be found here: https://riscv.org/technical/specifications/
+
 struct Addi : public Instr32<Addi, Funct3::ADDI> {
   constexpr static std::string_view NAME = "addi";
+  constexpr static std::string_view DESC = "Add Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "ADDI adds the sign-extended 12-bit immediate to register rs1. "
+      "Arithmetic overflow is ignored and the result is simply the low XLEN "
+      "bits of the result. ADDI rd, rs1, 0 is used to implement the MV"
+      "rd, rs1 assembler pseudoinstruction.";
 };
 
 struct Andi : public Instr32<Andi, Funct3::ANDI> {
   constexpr static std::string_view NAME = "andi";
+  constexpr static std::string_view DESC = "And Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "ANDI is a logical operation that performs bitwise AND on register rs1 "
+      "and the sign-extended 12-bit immediate and place the result in rd.";
 };
 
 struct Slti : public Instr32<Slti, Funct3::SLTI> {
   constexpr static std::string_view NAME = "slti";
+  constexpr static std::string_view DESC = "Set Less Than Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "SLTI (set less than immediate) places the value 1 in register rd if "
+      "register rs1 is less than the sign-extended immediate when both are "
+      "treated as signed numbers, else 0 is written to rd.";
 };
 
 struct Sltiu : public Instr32<Sltiu, Funct3::SLTIU> {
   constexpr static std::string_view NAME = "sltiu";
+  constexpr static std::string_view DESC = "Set Less Than Immediate Unsigned";
+  constexpr static std::string_view LONG_DESC =
+      "SLTIU is similar but compares the values as unsigned numbers (i.e., the "
+      "immediate is first sign-extended to XLEN bits then treated as an "
+      "unsigned number). Note, SLTIU rd, rs1, 1 sets rd to 1 if rs1 "
+      "equals zero, otherwise sets rd to 0 (assembler pseudoinstruction SEQZ "
+      "rd, rs).";
 };
 
 struct Xori : public Instr32<Xori, Funct3::XORI> {
   constexpr static std::string_view NAME = "xori";
+  constexpr static std::string_view DESC = "Xor Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "XORI is a logical operation that performs bitwise XOR on register rs1 "
+      "and the sign-extended 12-bit immediate and place the result in rd. "
+      "Note, XORI rd, rs1, -1 performs a bitwise logical inversion of register "
+      "rs1 (assembler pseudoinstruction NOT rd, rs).";
 };
 
 struct Ori : public Instr32<Ori, Funct3::ORI> {
   constexpr static std::string_view NAME = "ori";
+  constexpr static std::string_view DESC = "Or Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "ORI is a logical operation that performs bitwise OR on register rs1 "
+      "and the sign-extended 12-bit immediate and place the result in rd.";
 };
 
 struct Jalr : public RV_Instruction<Jalr> {
@@ -77,10 +112,20 @@ struct Jalr : public RV_Instruction<Jalr> {
   struct Fields : public FieldSet<RegRd, RegRs1, ImmCommon12> {};
 
   constexpr static std::string_view NAME = "jalr";
+  constexpr static std::string_view DESC = "Jump and Link Register";
+  constexpr static std::string_view LONG_DESC =
+      "JALR (jump and link register). The target address is obtained by adding "
+      "the sign-extended 12-bit I-immediate to the register rs1, then setting "
+      "the least-significant bit of the result to zero. The address of the "
+      "instruction following the jump (pc+4) is written to register rd. "
+      "Register x0 can be used as the destination if the result is not "
+      "required. Will generate an instruction-address-misaligned exception if "
+      "the target address is not aligned to a four-byte boundary.";
 };
 
 struct Addiw : public Instr64<Addiw, Funct3::ADDI> {
   constexpr static std::string_view NAME = "addiw";
+  constexpr static std::string_view DESC = "Add Immediate Wide";
 };
 
 } // namespace TypeI
@@ -122,26 +167,40 @@ using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3, funct7>;
 
 struct Slli : public Instr32<Slli, Funct3::SLLI> {
   constexpr static std::string_view NAME = "slli";
+  constexpr static std::string_view DESC = "Shift Left Logical Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "SLLI is a logical left shift (zeros are shifted into the lower bits).";
 };
 
 struct Srli : public Instr32<Srli, Funct3::SRLI> {
   constexpr static std::string_view NAME = "srli";
+  constexpr static std::string_view DESC = "Shift Right Logical Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "SRLI is a logical right shift (zeros are shifted into the upper bits).";
 };
 
 struct Srai : public Instr32<Srai, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
   constexpr static std::string_view NAME = "srai";
+  constexpr static std::string_view DESC = "Shift Right Arithmetic Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "SRAI is an arithmetic right shift (the original sign bit is copied into "
+      "the vacated upper bits).";
 };
 
 struct Slliw : public Instr64<Slliw, Funct3::SLLI> {
   constexpr static std::string_view NAME = "slliw";
+  constexpr static std::string_view DESC = "Shift Left Logical Immediate Wide";
 };
 
 struct Srliw : public Instr64<Srliw, Funct3::SRLI> {
   constexpr static std::string_view NAME = "srliw";
+  constexpr static std::string_view DESC = "Shift Right Logical Immediate Wide";
 };
 
 struct Sraiw : public Instr64<Sraiw, Funct3::SRAI, Funct7::RIGHT_SHIFT> {
   constexpr static std::string_view NAME = "sraiw";
+  constexpr static std::string_view DESC =
+      "Shift Right Arithmetic Immediate Wide";
 };
 
 } // namespace TypeIShift
@@ -180,14 +239,17 @@ using Instr64 = Instr<InstrImpl, OpcodeID::OPIMM32, funct3, funct6>;
 
 struct Slli : public Instr32<Slli, Funct3::SLLI> {
   constexpr static std::string_view NAME = "slli";
+  constexpr static std::string_view DESC = "Shift Left Logical Immediate";
 };
 
 struct Srli : public Instr32<Srli, Funct3::SRLI> {
   constexpr static std::string_view NAME = "srli";
+  constexpr static std::string_view DESC = "Shift Right Logical Immediate";
 };
 
 struct Srai : public Instr32<Srai, Funct3::SRAI, Funct6::RIGHT_SHIFT> {
   constexpr static std::string_view NAME = "srai";
+  constexpr static std::string_view DESC = "Shift Right Arithmetic Immediate";
 };
 
 } // namespace TypeIShift64
@@ -215,30 +277,37 @@ struct Instr : public RV_Instruction<InstrImpl> {
 
 struct Lb : public Instr<Lb, Funct3::LB> {
   constexpr static std::string_view NAME = "lb";
+  constexpr static std::string_view DESC = "Load Byte";
 };
 
 struct Lh : public Instr<Lh, Funct3::LH> {
   constexpr static std::string_view NAME = "lh";
+  constexpr static std::string_view DESC = "Load Half-Word";
 };
 
 struct Lw : public Instr<Lw, Funct3::LW> {
   constexpr static std::string_view NAME = "lw";
+  constexpr static std::string_view DESC = "Load Word";
 };
 
 struct Lbu : public Instr<Lbu, Funct3::LBU> {
   constexpr static std::string_view NAME = "lbu";
+  constexpr static std::string_view DESC = "Load Byte Unsigned";
 };
 
 struct Lhu : public Instr<Lhu, Funct3::LHU> {
   constexpr static std::string_view NAME = "lhu";
+  constexpr static std::string_view DESC = "Load Half-Word Unsigned";
 };
 
 struct Lwu : public Instr<Lwu, Funct3::LWU> {
   constexpr static std::string_view NAME = "lwu";
+  constexpr static std::string_view DESC = "Load Word Unsigned";
 };
 
 struct Ld : public Instr<Ld, Funct3::LD> {
   constexpr static std::string_view NAME = "ld";
+  constexpr static std::string_view DESC = "Load Double-Word";
 };
 
 } // namespace TypeL
@@ -265,6 +334,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
 
 struct Ecall : public Instr<Ecall, Funct12::ECALL> {
   constexpr static std::string_view NAME = "ecall";
+  constexpr static std::string_view DESC = "Environment Call";
 };
 
 } // namespace TypeSystem
@@ -299,10 +369,22 @@ public:
 struct Auipc
     : public Instr<Auipc, RVISA::OpcodeID::AUIPC, SymbolType::Absolute> {
   constexpr static std::string_view NAME = "auipc";
+  constexpr static std::string_view DESC = "Add Upper Immediate to PC";
+  constexpr static std::string_view LONG_DESC =
+      "AUIPC (add upper immediate to pc) is used to build pc-relative "
+      "addresses. AUIPC forms a 32-bit offset from the 20-bit U-immediate, "
+      "filling in the lowest 12 bits with zeros, adds this offset to the "
+      "address of the AUIPC instruction, then places the result in register "
+      "rd.";
 };
 
 struct Lui : public Instr<Lui, RVISA::OpcodeID::LUI> {
   constexpr static std::string_view NAME = "lui";
+  constexpr static std::string_view DESC = "Load Upper Immediate";
+  constexpr static std::string_view LONG_DESC =
+      "LUI (load upper immediate) is used to build 32-bit constants. LUI "
+      "places the U-immediate value in the top 20 bits of the destination "
+      "register rd, filling in the lowest 12 bits with zeros.";
 };
 
 } // namespace TypeU
@@ -333,6 +415,19 @@ struct Jal : public RV_Instruction<Jal> {
   struct Fields : public FieldSet<RegRd, ImmJ> {};
 
   constexpr static std::string_view NAME = "jal";
+  constexpr static std::string_view DESC = "Jump and Link";
+  constexpr static std::string_view LONG_DESC =
+      "Jump and link (JAL). The J-immediate encodes a signed offset in "
+      "multiples of 2 bytes. The offset "
+      "is sign-extended and added to the address of the jump instruction to "
+      "form the jump target address. Jumps can therefore target a ±1 MiB "
+      "range. JAL stores the address of the instruction following the jump "
+      "(pc+4) into register rd. The standard software calling convention uses "
+      "x1 as the return address register and x5 as an alternate link register. "
+      "Plain unconditional jumps (assembler pseudoinstruction J) are encoded "
+      "as a JAL with rd=x0. Will generate an instruction-address-misaligned "
+      "exception if the target address is not aligned to a four-byte boundary.";
+  ;
 };
 
 } // namespace TypeJ
@@ -365,18 +460,22 @@ struct Instr : public RV_Instruction<InstrImpl> {
 
 struct Sb : public Instr<Sb, Funct3::SB> {
   constexpr static std::string_view NAME = "sb";
+  constexpr static std::string_view DESC = "Store Byte";
 };
 
 struct Sw : public Instr<Sw, Funct3::SW> {
   constexpr static std::string_view NAME = "sw";
+  constexpr static std::string_view DESC = "Store Word";
 };
 
 struct Sh : public Instr<Sh, Funct3::SH> {
   constexpr static std::string_view NAME = "sh";
+  constexpr static std::string_view DESC = "Store Half-Word";
 };
 
 struct Sd : public Instr<Sd, Funct3::SD> {
   constexpr static std::string_view NAME = "sd";
+  constexpr static std::string_view DESC = "Store Double-Word";
 };
 
 } // namespace TypeS
@@ -422,62 +521,109 @@ using Instr64 = Instr<InstrImpl, OpcodeID::OP32, Funct3, funct3, funct7>;
 
 struct Add : public Instr32<Add, Funct3::ADD> {
   constexpr static std::string_view NAME = "add";
+  constexpr static std::string_view DESC = "Add";
+  constexpr static std::string_view LONG_DESC =
+      "ADD performs the addition of rs1 and rs2. Overflows are ignored and "
+      "the low XLEN bits of results are written to the destination rd.";
 };
 
 struct Sub : public Instr32<Sub, Funct3::SUB, Funct7::SUB_SRA> {
   constexpr static std::string_view NAME = "sub";
+  constexpr static std::string_view DESC = "Subtract";
+  constexpr static std::string_view LONG_DESC =
+      "SUB performs the subtraction of rs2 from rs1. Overflows are ignored and "
+      "the low XLEN bits of results are written to the destination rd.";
 };
 
 struct Sll : public Instr32<Sll, Funct3::SLL> {
   constexpr static std::string_view NAME = "sll";
+  constexpr static std::string_view DESC = "Shift Logical Left";
+  constexpr static std::string_view LONG_DESC =
+      "Performs logical left shifts on the value in register rs1 by the shift "
+      "amount held in the lower 5 bits of register rs2.";
 };
 
 struct Slt : public Instr32<Slt, Funct3::SLT> {
   constexpr static std::string_view NAME = "slt";
+  constexpr static std::string_view DESC = "Set Less Than";
+  constexpr static std::string_view LONG_DESC =
+      "SLT performs signed compares, writing 1 to rd if rs1 < rs2, 0 "
+      "otherwise.";
 };
 
 struct Sltu : public Instr32<Sltu, Funct3::SLTU> {
   constexpr static std::string_view NAME = "sltu";
+  constexpr static std::string_view DESC = "Set Less Than Unsigned";
+  constexpr static std::string_view LONG_DESC =
+      "SLTU performs unsigned compares, writing 1 to rd if rs1 < rs2, 0 "
+      "otherwise. Note: SLTU rd, x0, rs2 sets rd to 1 if rs2 is not equal to "
+      "zero, otherwise sets rd to zero (assembler pseudoinstruction SNEZ rd, "
+      "rs).";
 };
 
 struct Xor : public Instr32<Xor, Funct3::XOR> {
   constexpr static std::string_view NAME = "xor";
+  constexpr static std::string_view DESC = "Xor";
+  constexpr static std::string_view LONG_DESC =
+      "XOR performs bitwise logical XOR on rs1 and rs2, putting the result in "
+      "rd.";
 };
 
 struct Srl : public Instr32<Srl, Funct3::SRL> {
   constexpr static std::string_view NAME = "srl";
+  constexpr static std::string_view DESC = "Shift Right Logical";
+  constexpr static std::string_view LONG_DESC =
+      "Performs logical right shifts on the value in register rs1 by the shift "
+      "amount held in the lower 5 bits of register rs2.";
 };
 
 struct Sra : public Instr32<Sra, Funct3::SRA, Funct7::SUB_SRA> {
   constexpr static std::string_view NAME = "sra";
+  constexpr static std::string_view DESC = "Shift Right Arithmetic";
+  constexpr static std::string_view LONG_DESC =
+      "Performs arithmetic right shifts on the value in register rs1 by the "
+      "shift amount held in the lower 5 bits of register rs2.";
 };
 
 struct Or : public Instr32<Or, Funct3::OR> {
   constexpr static std::string_view NAME = "or";
+  constexpr static std::string_view DESC = "Or";
+  constexpr static std::string_view LONG_DESC =
+      "OR performs bitwise logical OR on rs1 and rs2, putting the result in "
+      "rd.";
 };
 
 struct And : public Instr32<And, Funct3::AND> {
   constexpr static std::string_view NAME = "and";
+  constexpr static std::string_view DESC = "And";
+  constexpr static std::string_view LONG_DESC =
+      "AND performs bitwise logical AND on rs1 and rs2, putting the result in "
+      "rd.";
 };
 
 struct Addw : public Instr64<Addw, Funct3::ADD> {
   constexpr static std::string_view NAME = "addw";
+  constexpr static std::string_view DESC = "Add Wide";
 };
 
 struct Subw : public Instr64<Subw, Funct3::SUB, Funct7::SUB_SRA> {
   constexpr static std::string_view NAME = "subw";
+  constexpr static std::string_view DESC = "Subtract Wide";
 };
 
 struct Sllw : public Instr64<Sllw, Funct3::SLL> {
   constexpr static std::string_view NAME = "sllw";
+  constexpr static std::string_view DESC = "Shift Left Logical Wide";
 };
 
 struct Srlw : public Instr64<Srlw, Funct3::SRL> {
   constexpr static std::string_view NAME = "srlw";
+  constexpr static std::string_view DESC = "Shift Right Logical Wide";
 };
 
 struct Sraw : public Instr64<Sraw, Funct3::SRA, Funct7::SUB_SRA> {
   constexpr static std::string_view NAME = "sraw";
+  constexpr static std::string_view DESC = "Shift Right Arithmetic Wide";
 };
 
 } // namespace TypeR
@@ -521,26 +667,33 @@ struct Instr : public RV_Instruction<InstrImpl> {
 
 struct Beq : public Instr<Beq, Funct3::BEQ> {
   constexpr static std::string_view NAME = "beq";
+  constexpr static std::string_view DESC = "Branch if Equal";
 };
 
 struct Bne : public Instr<Bne, Funct3::BNE> {
   constexpr static std::string_view NAME = "bne";
+  constexpr static std::string_view DESC = "Branch if Not Equal";
 };
 
 struct Blt : public Instr<Blt, Funct3::BLT> {
   constexpr static std::string_view NAME = "blt";
+  constexpr static std::string_view DESC = "Branch if Less Than";
 };
 
 struct Bge : public Instr<Bge, Funct3::BGE> {
   constexpr static std::string_view NAME = "bge";
+  constexpr static std::string_view DESC = "Branch if Greater Than or Equal";
 };
 
 struct Bltu : public Instr<Bltu, Funct3::BLTU> {
   constexpr static std::string_view NAME = "bltu";
+  constexpr static std::string_view DESC = "Branch if Unsigned is Less Than";
 };
 
 struct Bgeu : public Instr<Bgeu, Funct3::BGEU> {
   constexpr static std::string_view NAME = "bgeu";
+  constexpr static std::string_view DESC =
+      "Branch if Unsigned is Greater Than or Equal";
 };
 
 } // namespace TypeB
