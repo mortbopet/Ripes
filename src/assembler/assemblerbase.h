@@ -8,6 +8,7 @@
 #include "directive.h"
 #include "expreval.h"
 #include "isa/instruction.h"
+#include "isa/isainfo.h"
 #include "isa/pseudoinstruction.h"
 #include "isa/symbolmap.h"
 
@@ -33,6 +34,9 @@ public:
 
   /// Sets the base pointer of seg to the provided 'base' value.
   void setSegmentBase(Section seg, AInt base);
+
+  /// Returns the ISA that this assembler is used for.
+  virtual ISA getISA() const = 0;
 
   /// Assembles an input program (represented as a list of strings). Optionally,
   /// a set of predefined symbols may be provided to the assemble call. If

@@ -2,21 +2,22 @@
 
 #include <QRegularExpression>
 
-#include "assembler_defines.h"
-#include "isa/instruction.h"
-#include "isa/isa_defines.h"
-#include "isa/isa_types.h"
-#include "isa/pseudoinstruction.h"
-#include "matcher.h"
-
 #include <cstdint>
 #include <numeric>
 #include <set>
 #include <variant>
 
 #include "STLExtras.h"
+#include "assembler_defines.h"
 #include "assemblerbase.h"
+#include "gnudirectives.h"
+#include "isa/instruction.h"
+#include "isa/isa_defines.h"
+#include "isa/isa_types.h"
 #include "isa/isainfo.h"
+#include "isa/pseudoinstruction.h"
+#include "matcher.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -642,6 +643,49 @@ protected:
 
   std::shared_ptr<const ISAInfoBase> m_isa;
 };
+
+/// An Assembler and QObject (workaround because QObject cannot be directly
+/// subclassed by ISA_Assembler)
+class QAssembler : public QObject, public Assembler {
+  Q_OBJECT
+public:
+  QAssembler(std::shared_ptr<const ISAInfoBase> isaInfo) : Assembler(isaInfo) {
+    // Initialize segment pointers and monitor settings changes to segment
+    // pointers
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
+            &SettingObserver::modified, this, [this](const QVariant &value) {
+              setSegmentBase(".text", value.toULongLong());
+            });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART),
+            &SettingObserver::modified, this, [this](const QVariant &value) {
+              setSegmentBase(".data", value.toULongLong());
+            });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART),
+            &SettingObserver::modified, this, [this](const QVariant &value) {
+              setSegmentBase(".bss", value.toULongLong());
+            });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
+  }
+};
+
+/// An ISA-specific assembler
+template <ISA isa>
+struct ISA_Assembler : public QAssembler {
+  ISA_Assembler(std::shared_ptr<const ISAInfo<isa>> isaInfo)
+      : QAssembler(isaInfo) {
+    initialize(gnuDirectives());
+  }
+
+  ISA getISA() const override { return isa; }
+
+protected:
+  QChar commentDelimiter() const override { return '#'; }
+};
+
+std::shared_ptr<AssemblerBase>
+constructAssemblerDynamic(const std::shared_ptr<const ISAInfoBase> &isa);
 
 } // namespace Assembler
 

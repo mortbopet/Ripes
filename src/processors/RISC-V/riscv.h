@@ -3,13 +3,9 @@
 #include <functional>
 
 #include "VSRTL/core/vsrtl_enum.h"
-#include "VSRTL/interface/vsrtl_binutils.h"
-#include "VSRTL/interface/vsrtl_interface.h"
 
 #include "rv_instrparser.h"
 
-#include "../../isa/rv32isainfo.h"
-#include "../../isa/rv64isainfo.h"
 #include "../../isa/rvisainfo_common.h"
 
 namespace Ripes {
