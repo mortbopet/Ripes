@@ -146,12 +146,15 @@ private:
       files.emplace(fd, filename);
 
       const auto flags = fileFlags[fd];
-      const auto qtOpenFlags = // Translate from stdlib file flags to Qt flags
-          (flags & O_RDONLY ? QIODevice::ReadOnly : QIODevice::NotOpen) |
+      auto qtOpenFlags = // Translate from stdlib file flags to Qt flags
+          (flags == O_RDONLY ? QIODevice::ReadOnly : QIODevice::NotOpen) |
           (flags & O_WRONLY ? QIODevice::WriteOnly : QIODevice::NotOpen) |
           (flags & O_RDWR ? QIODevice::ReadWrite : QIODevice::NotOpen) |
-          (flags & O_TRUNC ? QIODevice::Truncate : QIODevice::Append) |
           (flags & O_EXCL ? QIODevice::NewOnly : QIODevice::NotOpen);
+      if (flags & O_WRONLY || flags & O_RDWR) {
+        qtOpenFlags |=
+            (flags & O_TRUNC ? QIODevice::Truncate : QIODevice::Append);
+      }
 
       // Try to open file with the given flags
       files[fd].open(qtOpenFlags);
