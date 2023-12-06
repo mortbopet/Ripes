@@ -2,21 +2,22 @@
 
 #include <QRegularExpression>
 
-#include "assembler_defines.h"
-#include "isa/instruction.h"
-#include "isa/isa_defines.h"
-#include "isa/isa_types.h"
-#include "isa/pseudoinstruction.h"
-#include "matcher.h"
-
 #include <cstdint>
 #include <numeric>
 #include <set>
 #include <variant>
 
 #include "STLExtras.h"
+#include "assembler_defines.h"
 #include "assemblerbase.h"
+#include "gnudirectives.h"
+#include "isa/instruction.h"
+#include "isa/isa_defines.h"
+#include "isa/isa_types.h"
 #include "isa/isainfo.h"
+#include "isa/pseudoinstruction.h"
+#include "matcher.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -65,7 +66,7 @@ class Assembler : public AssemblerBase {
                 "Register type must be integer");
 
 public:
-  explicit Assembler(const ISAInfoBase *isa) : m_isa(isa) {}
+  explicit Assembler(std::shared_ptr<const ISAInfoBase> isa) : m_isa(isa) {}
 
   AssembleResult
   assemble(const QStringList &programLines, const SymbolMap *symbols = nullptr,
@@ -177,12 +178,19 @@ public:
     return opcodes;
   }
 
-  void setRelocations(const RelocationsVec &relocations) {
-    if (m_relocations.size() != 0) {
+  const InstrVec &getInstructionSet() const override {
+    return m_isa->instructions();
+  }
+
+  const PseudoInstrVec &getPseudoInstructionSet() const override {
+    return m_isa->pseudoInstructions();
+  }
+
+  void setRelocations() {
+    if (m_relocationsMap.size() != 0) {
       throw std::runtime_error("Directives already set");
     }
-    m_relocations = relocations;
-    for (const auto &iter : m_relocations) {
+    for (const auto &iter : m_isa->relocations()) {
       const auto relocation = iter.get()->name();
       if (m_relocationsMap.count(relocation) != 0) {
         throw std::runtime_error("Error: relocation " +
@@ -541,13 +549,11 @@ protected:
     return assembledWith->assemble(line);
   }
 
-  void setPseudoInstructions(const PseudoInstrVec &pseudoInstructions) {
-    if (m_pseudoInstructions.size() != 0) {
+  void setPseudoInstructions() {
+    if (m_pseudoInstructionMap.size() != 0) {
       throw std::runtime_error("Pseudoinstructions already set");
     }
-    m_pseudoInstructions = pseudoInstructions;
-
-    for (const auto &iter : m_pseudoInstructions) {
+    for (const auto &iter : m_isa->pseudoInstructions()) {
       const auto instr_name = iter.get()->name();
       if (m_pseudoInstructionMap.count(instr_name) != 0) {
         throw std::runtime_error("Error: pseudo-instruction with opcode '" +
@@ -555,6 +561,21 @@ protected:
                                  "' has already been registerred.");
       }
       m_pseudoInstructionMap[instr_name] = iter;
+    }
+  }
+
+  void setInstructions() {
+    if (m_instructionMap.size() != 0) {
+      throw std::runtime_error("Instructions already set");
+    }
+    for (const auto &iter : m_isa->instructions()) {
+      const auto instr_name = iter.get()->name();
+      if (m_instructionMap.count(instr_name) != 0) {
+        throw std::runtime_error("Error: instruction with opcode '" +
+                                 instr_name.toStdString() +
+                                 "' has already been registerred.");
+      }
+      m_instructionMap[instr_name] = iter;
     }
   }
 
@@ -589,59 +610,84 @@ protected:
     return {remainingTokens};
   }
 
-  void initialize(const InstrVec &instructions,
-                  const PseudoInstrVec &pseudoinstructions,
-                  const DirectiveVec &directives,
-                  const RelocationsVec &relocations) {
-    setInstructions(instructions);
-    setPseudoInstructions(pseudoinstructions);
+  void initialize(const DirectiveVec &directives) {
+    setInstructions();
+    setPseudoInstructions();
     setDirectives(directives);
-    setRelocations(relocations);
-    m_matcher = std::make_unique<Matcher>(m_instructions);
-  }
-
-  void setInstructions(const InstrVec &instructions) {
-    if (m_instructions.size() != 0) {
-      throw std::runtime_error("Instructions already set");
-    }
-    m_instructions = instructions;
-    for (const auto &iter : m_instructions) {
-      const auto instr_name = iter.get()->name();
-      if (m_instructionMap.count(instr_name) != 0) {
-        throw std::runtime_error("Error: instruction with opcode '" +
-                                 instr_name.toStdString() +
-                                 "' has already been registerred.");
-      }
-      m_instructionMap[instr_name] = iter;
-    }
+    setRelocations();
+    m_matcher = std::make_unique<Matcher>(m_isa->instructions());
   }
 
   /**
-   * @brief m_instructions is the set of instructions which can be matched from
-   * an instruction string as well as be disassembled from a program.
+   * @brief m_instructionMap contains the set of instructions which can be
+   * matched from an instruction string as well as be disassembled from a
+   * program.
    */
-  InstrVec m_instructions;
   InstrMap m_instructionMap;
 
   /**
-   * @brief m_pseudoInstructions is the set of instructions which can be matched
-   * from an instruction string but cannot be disassembled from a program.
-   * Typically, pseudoinstructions will expand to one or more non-pseudo
-   * instructions.
+   * @brief m_pseudoInstructionMap contains the set of instructions which can be
+   * matched from an instruction string but cannot be disassembled from a
+   * program. Typically, pseudoinstructions will expand to one or more
+   * non-pseudo instructions.
    */
-  PseudoInstrVec m_pseudoInstructions;
   PseudoInstrMap m_pseudoInstructionMap;
 
   /**
-   * @brief m_relocations is the set of supported assembler relocation hints
+   * @brief m_relocationMap contains the set of supported assembler relocation
+   * hints
    */
-  RelocationsVec m_relocations;
   RelocationsMap m_relocationsMap;
 
   std::unique_ptr<Matcher> m_matcher;
 
-  const ISAInfoBase *m_isa;
+  std::shared_ptr<const ISAInfoBase> m_isa;
 };
+
+/// An Assembler and QObject (workaround because QObject cannot be directly
+/// subclassed by ISA_Assembler)
+class QAssembler : public QObject, public Assembler {
+  Q_OBJECT
+public:
+  QAssembler(std::shared_ptr<const ISAInfoBase> isaInfo) : Assembler(isaInfo) {
+    // Initialize segment pointers and monitor settings changes to segment
+    // pointers
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
+            &SettingObserver::modified, this, [this](const QVariant &value) {
+              setSegmentBase(".text", value.toULongLong());
+            });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART),
+            &SettingObserver::modified, this, [this](const QVariant &value) {
+              setSegmentBase(".data", value.toULongLong());
+            });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART)->trigger();
+    connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART),
+            &SettingObserver::modified, this, [this](const QVariant &value) {
+              setSegmentBase(".bss", value.toULongLong());
+            });
+    RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
+  }
+};
+
+/// An ISA-specific assembler
+template <ISA isa>
+struct ISA_Assembler : public QAssembler {
+  ISA_Assembler(std::shared_ptr<const ISAInfo<isa>> isaInfo)
+      : QAssembler(isaInfo) {
+    initialize(gnuDirectives());
+  }
+
+  ISA getISA() const override { return isa; }
+
+protected:
+  QChar commentDelimiter() const override { return '#'; }
+};
+
+/// Returns an assembler for isa
+/// Throws a runtime error if the isa does not have a matching assembler
+std::shared_ptr<AssemblerBase>
+constructAssemblerDynamic(const std::shared_ptr<const ISAInfoBase> &isa);
 
 } // namespace Assembler
 

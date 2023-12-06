@@ -9,7 +9,10 @@ template <>
 class ISAInfo<ISA::RV64I> : public RVISA::RV_ISAInfoBase {
 public:
   ISAInfo<ISA::RV64I>(const QStringList extensions)
-      : RV_ISAInfoBase(extensions) {}
+      : RV_ISAInfoBase(extensions) {
+    initialize(
+        {RVISA::Option::shifts64BitVariant, RVISA::Option::LI64BitVariant});
+  }
 
   ISA isaID() const override { return ISA::RV64I; }
 

@@ -56,6 +56,12 @@ public:
   /// Returns a pointer to the currently instantiated ISA.
   static const ISAInfoBase *currentISA() { return get()->_currentISA(); }
 
+  /// Returns a pointer to the current ISA with all its supported extensions
+  /// enabled.
+  static std::shared_ptr<const ISAInfoBase> fullISA() {
+    return get()->_fullISA();
+  }
+
   /// Returns a reference to the system call manager.
   static const SyscallManager &getSyscallManager() {
     return get()->_getSyscallManager();
@@ -283,6 +289,9 @@ private:
   std::shared_ptr<const Program> _getProgram() const { return m_program; }
   const ISAInfoBase *_currentISA() const {
     return m_currentProcessor->implementsISA();
+  }
+  std::shared_ptr<const ISAInfoBase> _fullISA() const {
+    return m_currentProcessor->fullISA();
   }
   const SyscallManager &_getSyscallManager() const { return *m_syscallManager; }
   void _loadProcessorToWidget(vsrtl::VSRTLWidget *widget,

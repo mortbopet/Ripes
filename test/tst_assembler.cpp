@@ -4,7 +4,7 @@
 #include "isa/isainfo.h"
 #include "isa/rv32isainfo.h"
 
-#include "assembler/rv32i_assembler.h"
+#include "assembler/assembler.h"
 
 #include "processorhandler.h"
 
@@ -66,8 +66,8 @@ private:
   void testAssemble(const QStringList &program, Expect expect,
                     QByteArray expectData = {}) {
     QString err;
-    auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-    auto assembler = RV32I_Assembler(isa.get());
+    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+    auto assembler = ISA_Assembler<ISA::RV32I>(isa);
     auto res = assembler.assemble(program);
     if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
       res.errors.print();
@@ -254,8 +254,8 @@ void tst_Assembler::tst_invalidLabel() {
 }
 
 void tst_Assembler::tst_benchmarkNew() {
-  auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-  auto assembler = RV32I_Assembler(isa.get());
+  auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+  auto assembler = ISA_Assembler<ISA::RV32I>(isa);
   auto program = createProgram(1000);
   QBENCHMARK { assembler.assembleRaw(program); }
 }
@@ -377,8 +377,8 @@ void tst_Assembler::tst_relativeLabels() {
 }
 
 void tst_Assembler::tst_matcher() {
-  auto isa = std::make_unique<ISAInfo<ISA::RV32I>>(QStringList());
-  auto assembler = RV32I_Assembler(isa.get());
+  auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+  auto assembler = ISA_Assembler<ISA::RV32I>(isa);
   assembler.getMatcher().print();
 
   std::vector<std::pair<QString, unsigned>> toMatch = {

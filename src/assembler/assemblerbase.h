@@ -7,6 +7,9 @@
 #include "assembler_defines.h"
 #include "directive.h"
 #include "expreval.h"
+#include "isa/instruction.h"
+#include "isa/isainfo.h"
+#include "isa/pseudoinstruction.h"
 #include "isa/symbolmap.h"
 
 namespace Ripes {
@@ -32,6 +35,9 @@ public:
   /// Sets the base pointer of seg to the provided 'base' value.
   void setSegmentBase(Section seg, AInt base);
 
+  /// Returns the ISA that this assembler is used for.
+  virtual ISA getISA() const = 0;
+
   /// Assembles an input program (represented as a list of strings). Optionally,
   /// a set of predefined symbols may be provided to the assemble call. If
   /// programLines does not represent the source program directly (possibly due
@@ -56,6 +62,12 @@ public:
   /// Returns the set of opcodes (as strings) which are supported by this
   /// assembler.
   virtual std::set<QString> getOpcodes() const = 0;
+
+  /// Returns the map of instructions supported by this assembler.
+  virtual const InstrVec &getInstructionSet() const = 0;
+
+  /// Returns the map of pseudo-instructions supported by this assembler.
+  virtual const PseudoInstrVec &getPseudoInstructionSet() const = 0;
 
   /// Resolves an expression through either the built-in symbol map, or through
   /// the expression evaluator.

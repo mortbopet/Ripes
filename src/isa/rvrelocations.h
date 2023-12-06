@@ -4,7 +4,6 @@
 #include "isa/isa_defines.h"
 
 namespace Ripes {
-namespace Assembler {
 
 // pcrel_lo/hi are restricted to 32-bit absolute addresses, so keep computations
 // in this base.
@@ -63,5 +62,4 @@ inline RelocationsVec rvRelocations() {
 
   return relocations;
 }
-} // namespace Assembler
 } // namespace Ripes

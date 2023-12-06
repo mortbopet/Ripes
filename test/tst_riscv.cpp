@@ -6,8 +6,7 @@
 #include "processorhandler.h"
 #include "processorregistry.h"
 #include "ripessettings.h"
-
-#include "assembler/rv32i_assembler.h"
+#include "rvisainfo_common.h"
 
 #if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) ||                \
     !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR)

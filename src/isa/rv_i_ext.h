@@ -11,16 +11,6 @@ namespace RVISA {
 
 namespace ExtI {
 
-enum class Options {
-  shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
-                      // the 64-bit RISC-V ISA
-  LI64BitVariant      // Modifies LI to be able to emit 64-bit constants
-};
-
-void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
-               PseudoInstrVec &pseudoInstructions,
-               const std::set<Options> &options = {});
-
 /// A RISC-V signed immediate field with a width of 12 bits.
 /// Used in L-Type and I-Type instructions.
 ///

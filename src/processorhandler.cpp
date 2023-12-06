@@ -5,9 +5,8 @@
 #include "ripessettings.h"
 #include "statusmanager.h"
 
+#include "assembler/assembler.h"
 #include "assembler/program.h"
-#include "assembler/rv32i_assembler.h"
-#include "assembler/rv64i_assembler.h"
 #include "io/iomanager.h"
 
 #include "syscall/riscv_syscall.h"
@@ -267,14 +266,9 @@ void ProcessorHandler::_toggleBreakpoint(const AInt address) {
 void ProcessorHandler::_clearBreakpoints() { m_breakpoints.clear(); }
 
 void ProcessorHandler::createAssemblerForCurrentISA() {
-  const auto &isa = _currentISA();
-
-  if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(isa)) {
-    m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
-  } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(isa)) {
-    m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
-  } else {
-    Q_UNREACHABLE();
+  const auto &isa = m_currentProcessor->fullISA();
+  if (!m_currentAssembler || m_currentAssembler->getISA() != isa->isaID()) {
+    m_currentAssembler = Assembler::constructAssemblerDynamic(isa);
   }
 }
 

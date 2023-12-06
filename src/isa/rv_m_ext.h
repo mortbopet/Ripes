@@ -85,9 +85,6 @@ struct Remuw : public Instr64<Remuw, Funct3::REMU> {
 
 } // namespace TypeR
 
-void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
-               PseudoInstrVec &pseudoInstructions);
-
 } // namespace ExtM
 
 } // namespace RVISA

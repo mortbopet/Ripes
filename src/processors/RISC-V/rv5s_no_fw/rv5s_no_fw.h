@@ -45,7 +45,7 @@ public:
   RV5S_NO_FW(const QStringList &extensions)
       : RipesVSRTLProcessor(
             "5-Stage RISC-V Processor without forwarding unit") {
-    m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
+    m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
 
@@ -485,14 +485,12 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static ProcessorISAInfo supportsISA() {
-    return ProcessorISAInfo{
-        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
-        {"M", "C"},
-        {"M"}};
-  }
+  static ProcessorISAInfo supportsISA() { return RVISA::supportsISA<XLEN>(); }
   const ISAInfoBase *implementsISA() const override {
     return m_enabledISA.get();
+  }
+  std::shared_ptr<const ISAInfoBase> fullISA() const override {
+    return RVISA::fullISA<XLEN>();
   }
 
   const std::set<std::string_view> registerFiles() const override {

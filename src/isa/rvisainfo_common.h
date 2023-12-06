@@ -1,7 +1,9 @@
 #pragma once
 
+#include "elfio/elf_types.hpp"
 #include "instruction.h"
 #include "isainfo.h"
+#include "rvrelocations.h"
 
 namespace Ripes {
 
@@ -53,9 +55,6 @@ extern const QStringList GPRRegNames;
 extern const QStringList GPRRegDescs;
 
 constexpr unsigned INSTR_BITS = 32;
-
-/// RISC-V extensions currently supported
-static QStringList getSupportedExtensions() { return {"M", "C"}; }
 
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
@@ -121,8 +120,39 @@ struct RV_FPRInfo : public RegFileInfoInterface {
   }
 };
 
+enum class Option {
+  shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
+                      // the 64-bit RISC-V ISA
+  LI64BitVariant      // Modifies LI to be able to emit 64-bit constants
+};
+
+namespace ExtI {
+void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
+               PseudoInstrVec &pseudoInstructions,
+               const std::set<Option> &options = {});
+}
+
+namespace ExtM {
+void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
+               PseudoInstrVec &pseudoInstructions);
+}
+
+namespace ExtC {
+void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
+               PseudoInstrVec &pseudoInstructions);
+}
+
 class RV_ISAInfoBase : public ISAInfoBase {
 public:
+  static const QStringList &getSupportedExtensions() {
+    static const QStringList ext = {"M", "C"};
+    return ext;
+  }
+  static const QStringList &getDefaultExtensions() {
+    static const QStringList ext = {"M"};
+    return ext;
+  }
+
   RV_ISAInfoBase(const QStringList extensions) {
     // Validate extensions
     for (const auto &ext : extensions) {
@@ -137,6 +167,9 @@ public:
     if (supportsExtension("F")) {
       m_regInfos[FPR] = std::make_unique<RV_FPRInfo>();
     }
+
+    // Setup relocations
+    m_relocations = rvRelocations();
   }
 
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
@@ -188,7 +221,28 @@ public:
     Q_UNREACHABLE();
   }
 
+  const InstrVec &instructions() const override { return m_instructions; }
+  const PseudoInstrVec &pseudoInstructions() const override {
+    return m_pseudoInstructions;
+  }
+  const RelocationsVec &relocations() const override { return m_relocations; }
+
 protected:
+  /// Make sure to call this in any child class's constructor
+  void initialize(const std::set<Option> &options = {}) {
+    RVISA::ExtI::enableExt(this, m_instructions, m_pseudoInstructions, options);
+    for (const auto &extension : m_enabledExtensions) {
+      switch (extension.unicode()->toLatin1()) {
+      case 'M':
+        RVISA::ExtM::enableExt(this, m_instructions, m_pseudoInstructions);
+        break;
+      case 'C':
+        RVISA::ExtC::enableExt(this, m_instructions, m_pseudoInstructions);
+        break;
+      }
+    }
+  }
+
   QString _CCmarch(QString march) const {
     // Proceed in canonical order. Canonical ordering is defined in the RISC-V
     // spec.
@@ -203,7 +257,11 @@ protected:
 
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = getSupportedExtensions();
+
   RegInfoMap m_regInfos;
+  InstrVec m_instructions;
+  PseudoInstrVec m_pseudoInstructions;
+  RelocationsVec m_relocations;
 };
 
 enum OpcodeID {

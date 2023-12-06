@@ -6,7 +6,7 @@ namespace ExtI {
 
 static void _enableExtPseudo(const ISAInfoBase *isa,
                              PseudoInstrVec &pseudoInstructions,
-                             const std::set<Options> &) {
+                             const std::set<Option> &) {
   using namespace TypePseudo;
 
   enablePseudoInstructions<Lb, Lh, Lw, La, Sb, Sh, Sw, Call, Tail, J, Jr, Jalr,
@@ -23,7 +23,7 @@ static void _enableExtPseudo(const ISAInfoBase *isa,
 
 // Enable 64-bit extensions
 static void _enableExt64(const ISAInfoBase *, InstrVec &instructions,
-                         const std::set<Options> &) {
+                         const std::set<Option> &) {
   using namespace TypeI;
   using namespace TypeL;
   using namespace TypeR;
@@ -36,7 +36,7 @@ static void _enableExt64(const ISAInfoBase *, InstrVec &instructions,
 
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions,
-               const std::set<Options> &options) {
+               const std::set<Option> &options) {
   _enableExtPseudo(isa, pseudoInstructions, options);
 
   using namespace TypeI;
@@ -54,7 +54,7 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                      Slt, Sltu, Xor, Srl, Sra, Or, And, Beq, Bne, Blt, Bge,
                      Bltu, Bgeu>(instructions);
 
-  if (options.count(Options::shifts64BitVariant)) {
+  if (options.count(Option::shifts64BitVariant)) {
     // 64-bit shift instructions
     enableInstructions<Slliw, Srliw, Sraiw>(instructions);
   } else {

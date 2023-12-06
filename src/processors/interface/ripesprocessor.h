@@ -172,6 +172,12 @@ public:
   virtual const ISAInfoBase *implementsISA() const = 0;
 
   /**
+   * @brief fullISA
+   * @return ISA with all the extensions that it supports.
+   */
+  virtual std::shared_ptr<const ISAInfoBase> fullISA() const = 0;
+
+  /**
    * @brief structure
    * @return a datastructure describing the structural layout of the processor.
    */

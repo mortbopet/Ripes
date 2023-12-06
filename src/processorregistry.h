@@ -6,6 +6,8 @@
 #include <map>
 #include <memory>
 
+#include "isa/rv32isainfo.h"
+#include "isa/rv64isainfo.h"
 #include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
