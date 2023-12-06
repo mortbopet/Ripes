@@ -107,7 +107,8 @@ struct Fields final : public CellStructure {
   }
 };
 struct Bits final : public CellStructure {
-  Bits(size_t columnIndex, size_t columnCount, const ISAInfoBase *isa)
+  Bits(size_t columnIndex, size_t columnCount,
+       const std::shared_ptr<const ISAInfoBase> isa)
       : CellStructure(columnIndex, columnCount), m_isa(isa) {
     m_sizeHint = BIT_SIZE;
   }
@@ -183,7 +184,7 @@ struct Bits final : public CellStructure {
   }
 
 private:
-  const ISAInfoBase *m_isa;
+  const std::shared_ptr<const ISAInfoBase> m_isa;
 };
 
 template <typename... Structures>
@@ -224,13 +225,14 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
 void SliderulesTab::onProcessorChanged() {
   const std::shared_ptr<Assembler::AssemblerBase> assembler =
       ProcessorHandler::getAssembler();
-  const ISAInfoBase *isa = ProcessorHandler::fullISA();
+  auto isa = ProcessorHandler::fullISA();
   InstrVec instructions = isa->instructions();
   PseudoInstrVec pseudoInstructions = isa->pseudoInstructions();
   setData(isa, instructions, pseudoInstructions);
 }
 
-void SliderulesTab::setData(const ISAInfoBase *isa, InstrVec instructions,
+void SliderulesTab::setData(std::shared_ptr<const ISAInfoBase> isa,
+                            InstrVec instructions,
                             PseudoInstrVec pseudoInstructions) {
   m_isa = isa;
   m_instructions = std::make_shared<const InstrVec>(instructions);
@@ -298,7 +300,8 @@ void SliderulesTab::updateTables() {
 SliderulesTab::~SliderulesTab() { delete ui; }
 
 ISAModel::ISAModel(
-    const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
+    const std::shared_ptr<const ISAInfoBase> isa,
+    const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : QAbstractTableModel(parent), m_isa(isa), m_instructions(instructions),
@@ -328,7 +331,8 @@ int ISAModel::columnCount(const QModelIndex &) const {
 }
 
 EncodingModel::EncodingModel(
-    const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
+    const std::shared_ptr<const ISAInfoBase> isa,
+    const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : ISAModel(isa, instructions, pseudoInstructions, parent) {
@@ -363,7 +367,8 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
 }
 
 DecodingModel::DecodingModel(
-    const ISAInfoBase *isa, const std::shared_ptr<const InstrVec> instructions,
+    const std::shared_ptr<const ISAInfoBase> isa,
+    const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
     : ISAModel(isa, instructions, pseudoInstructions, parent) {}

@@ -22,7 +22,7 @@ struct CellStructure;
 class ISAModel : public QAbstractTableModel {
   Q_OBJECT
 public:
-  ISAModel(const ISAInfoBase *isa,
+  ISAModel(const std::shared_ptr<const ISAInfoBase> isa,
            const std::shared_ptr<const InstrVec> instructions,
            const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
            QObject *parent = nullptr);
@@ -36,7 +36,7 @@ public:
 protected:
   void update();
 
-  const ISAInfoBase *m_isa;
+  const std::shared_ptr<const ISAInfoBase> m_isa;
   const std::shared_ptr<const InstrVec> m_instructions;
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
   std::vector<std::unique_ptr<Cells::CellStructure>> m_encodingColumnStructure;
@@ -45,7 +45,7 @@ protected:
 class EncodingModel final : public ISAModel {
   Q_OBJECT
 public:
-  EncodingModel(const ISAInfoBase *isa,
+  EncodingModel(const std::shared_ptr<const ISAInfoBase> isa,
                 const std::shared_ptr<const InstrVec> instructions,
                 const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
                 QObject *parent = nullptr);
@@ -60,7 +60,7 @@ private:
 class DecodingModel final : public ISAModel {
   Q_OBJECT
 public:
-  DecodingModel(const ISAInfoBase *isa,
+  DecodingModel(const std::shared_ptr<const ISAInfoBase> isa,
                 const std::shared_ptr<const InstrVec> instructions,
                 const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
                 QObject *parent = nullptr);
@@ -78,7 +78,7 @@ public:
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
 
-  void setData(const ISAInfoBase *isa, InstrVec instructions,
+  void setData(std::shared_ptr<const ISAInfoBase> isa, InstrVec instructions,
                PseudoInstrVec pseudoInstructions);
   void updateTables();
 
@@ -89,7 +89,7 @@ private:
   void updateTable(QTableView *table, ISAModel *model);
 
   Ui::SliderulesTab *ui;
-  const ISAInfoBase *m_isa;
+  std::shared_ptr<const ISAInfoBase> m_isa;
   std::shared_ptr<const InstrVec> m_instructions;
   std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
   std::unique_ptr<DecodingModel> m_decodingModel;
