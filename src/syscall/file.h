@@ -14,10 +14,11 @@ class OpenSyscall : public BaseSyscall {
 
 public:
   OpenSyscall()
-      : BaseSyscall("Open", "Opens a file from a path",
-                    {{0, "Pointer to null terminated string for the path"},
-                     {1, "flags"}},
-                    {{0, "the file decriptor or -1 if an error occurred"}}) {}
+      : BaseSyscall(
+            "Open", "Opens a file from a path",
+            {{0, "Pointer to null terminated string for the path"},
+             {1, "flags" /* TODO(raccog): Add descriptions for each flag */}},
+            {{0, "the file decriptor or -1 if an error occurred"}}) {}
   void execute() {
     const AInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     const AInt arg1 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
