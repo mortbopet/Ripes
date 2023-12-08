@@ -84,6 +84,11 @@ private:
   static constexpr int O_TRUNC = 0x00000400; // 1024
   static constexpr int O_EXCL = 0x00000800;  // 2048
 
+  enum Permission {
+      WRITE_PERMS,
+      READ_PERMS,
+  };
+
   // //////////////////////////////////////////////////////////////////////////////
   // Maintain information on files in use. The index to the arrays is the "file
   // descriptor."
@@ -184,18 +189,16 @@ private:
       });
     }
 
-    // Determine whether a given fd is already in use with the given flag.
-    static bool fdInUse(int fd, int flag) {
+    // Determine whether a given fd is already in use with either Read or Write permissions
+    static bool fdInUse(int fd, Permission perm) {
       if (fd < 0 || fd >= SYSCALL_MAXFILES) {
         return false;
       } else if (fileNames[fd].isEmpty()) {
         return false;
-      } else if ((fileFlags[fd] & flag) ==
-                 static_cast<unsigned>(
-                     flag) /* also compares ie. O_RDONLY (0x0) */) {
-        return true;
+      } else if (perm == READ_PERMS) {
+        return (fileFlags[fd] + 1) & 1; // LSB is 1 if the fd has read perms
       }
-      return false;
+      return (fileFlags[fd] + 1) & 2; // 2nd LSB is 1 if the fd has write perms
     }
 
     // Close the file with file descriptor fd. No errors are recoverable -- if
@@ -289,7 +292,7 @@ public:
    */
   static int seek(int fd, int offset, int base) {
     SystemIO::get();                 // Ensure that SystemIO is constructed
-    if (!FileIOData::fdInUse(fd, 0)) // Check the existence of the "read" fd
+    if (!FileIOData::fdInUse(fd, READ_PERMS)) // Check the existence of the "read" fd
     {
       s_fileErrorString =
           "File descriptor " + QString::number(fd) + " is not open for reading";
@@ -331,7 +334,7 @@ public:
     /// Read from STDIN file descriptor while using IDE - get input from
     /// Messages pane.
     if (!FileIOData::fdInUse(fd,
-                             O_RDONLY)) // Check the existence of the "read" fd
+                             READ_PERMS)) // Check the existence of the "read" fd
     {
       s_fileErrorString =
           "File descriptor " + QString::number(fd) + " is not open for reading";
@@ -406,7 +409,7 @@ public:
     }
 
     if (!FileIOData::fdInUse(
-            fd, O_WRONLY | O_RDWR)) // Check the existence of the "write" fd
+            fd, WRITE_PERMS)) // Check the existence of the "write" fd
     {
       s_fileErrorString =
           "File descriptor " + QString::number(fd) + " is not open for writing";
