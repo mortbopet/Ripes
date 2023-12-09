@@ -92,8 +92,8 @@ STRLEN: .word 2
 AA: .string "AA"
 BB: .string "BB"
 
-# Temporary file name to use for this test
-FILENAME: .string "/tmp/test.txt"
+# File name to use for this test
+FILENAME: .string "./test.txt"
 
 # Error messages
 OPEN_FAILED: .string "Failed to open file"

@@ -186,7 +186,7 @@ QString tst_RISCV::executeSimulator() {
 
 void tst_RISCV::runTests(const ProcessorID &id, const QStringList &extensions,
                          const QStringList &testDirs) {
-  for (auto testDir : testDirs) {
+  for (const auto &testDir : testDirs) {
     const auto dir = QDir(testDir);
     const auto testFiles = dir.entryList({"*.s"});
     ProcessorHandler::selectProcessor(id, extensions);
