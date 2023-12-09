@@ -30,6 +30,8 @@ public:
           ProcessorHandler::getMemory().readMemConst(address++, 1) & 0xFF);
       string.append(byte);
     } while (byte != '\0');
+    if (string.endsWith('\0'))
+      string.removeLast(); // Remove null-byte
 
     int ret = SystemIO::openFile(QString::fromUtf8(string), arg1);
 

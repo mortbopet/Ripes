@@ -12,15 +12,17 @@ namespace Ripes {
 
 /**
  * @brief postToGUIThread
- * Schedules the execution of @param fun in the GUI thread.
+ * Schedules the execution of @param fun in the GUI thread if it exists.
  * @param connection type.
  */
 template <typename F>
 static void postToGUIThread(F &&fun,
                             Qt::ConnectionType type = Qt::QueuedConnection) {
-  auto *obj = QAbstractEventDispatcher::instance(qApp->thread());
-  Q_ASSERT(obj);
-  QMetaObject::invokeMethod(obj, std::forward<F>(fun), type);
+  if (qApp) {
+    auto *obj = QAbstractEventDispatcher::instance(qApp->thread());
+    Q_ASSERT(obj);
+    QMetaObject::invokeMethod(obj, std::forward<F>(fun), type);
+  }
 }
 
 class StatusEmitter : public QObject {

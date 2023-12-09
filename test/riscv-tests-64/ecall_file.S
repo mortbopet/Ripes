@@ -1,0 +1,1 @@
+../riscv-tests/ecall_file.s

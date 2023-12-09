@@ -62,9 +62,14 @@ public:
     return get()->_fullISA();
   }
 
-  /// Returns a reference to the system call manager.
+  /// Returns a const reference to the system call manager.
   static const SyscallManager &getSyscallManager() {
     return get()->_getSyscallManager();
+  }
+
+  /// Returns a non-const reference to the system call manager.
+  static SyscallManager &getSyscallManagerNonConst() {
+    return get()->_getSyscallManagerNonConst();
   }
 
   /// Sets the program p as the currently instantiated program.
@@ -294,6 +299,9 @@ private:
     return m_currentProcessor->fullISA();
   }
   const SyscallManager &_getSyscallManager() const { return *m_syscallManager; }
+  SyscallManager &_getSyscallManagerNonConst() const {
+    return *m_syscallManager;
+  }
   void _loadProcessorToWidget(vsrtl::VSRTLWidget *widget,
                               bool doPlaceAndRoute = false);
   void _selectProcessor(
