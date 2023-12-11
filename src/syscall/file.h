@@ -14,10 +14,19 @@ class OpenSyscall : public BaseSyscall {
 
 public:
   OpenSyscall()
-      : BaseSyscall("Open", "Opens a file from a path",
+      : BaseSyscall("Open", "The open system call is used to open files in the file system. It allows you to create new files or open existing ones for reading, writing, or both. The call returns a file descriptor that represents the opened file, which is later used for performing various operations on the file.",
                     {{0, "Pointer to null terminated string for the path"},
                      {1, "flags"}},
-                    {{0, "the file decriptor or -1 if an error occurred"}}) {}
+                    {{0, "the file decriptor or -1 if an error occurred"}}) {
+    // flag descriptions
+    addFlagDescription("O_RDONLY", "Open the file for reading data only. You cannot modify the file's content.");
+    addFlagDescription("O_WRONLY", "Open the file for writing data only. You cannot read from the file.");
+    addFlagDescription("O_RDWR", "Open the file for both reading and writing. You can read from and write to the file.");
+    addFlagDescription("O_APPEND", "When writing to the file, add the data to the end of the file instead of overwriting it. This flag is useful when you want to keep existing data in the file and append new data at the end.");
+    addFlagDescription("O_CREAT", "Create a new file if it does not exist. You can also specify additional file permissions using this flag.");
+    addFlagDescription("O_TRUNC", "If the file already exists and it's opened for writing, clear its content before writing new data. This flag is useful when you want to start writing from the beginning of the file, overwriting any existing data.");
+    addFlagDescription("O_EXCL", "Used together with O_CREAT. If the file already exists, the open operation will fail. This flag is useful when you want to ensure that the file is created exclusively and does not overwrite an existing file.");
+  }
   void execute() {
     const AInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     const AInt arg1 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
