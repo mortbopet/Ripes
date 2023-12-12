@@ -10,6 +10,7 @@
 #include <QTextStream>
 #include <QWaitCondition>
 
+#include <set>
 #include <stdexcept>
 #include <sys/stat.h>
 
@@ -76,13 +77,17 @@ private:
   // Maximum number of files that can be open
   static constexpr int SYSCALL_MAXFILES = 32;
 
-  static constexpr int O_RDONLY = 0x00000000;
-  static constexpr int O_WRONLY = 0x00000001;
-  static constexpr int O_RDWR = 0x00000002;
-  static constexpr int O_APPEND = 0x00000008;
-  static constexpr int O_CREAT = 0x00000200; // 512
-  static constexpr int O_TRUNC = 0x00000400; // 1024
-  static constexpr int O_EXCL = 0x00000800;  // 2048
+  /// Flags used in the open syscall
+  enum Flags : unsigned {
+    O_RDONLY = 0x00000000,
+    O_WRONLY = 0x00000001,
+    O_RDWR = 0x00000002,
+    O_ACCMODE = 0x00000003,
+    O_CREAT = 0x00000100,
+    O_EXCL = 0x00000200,
+    O_TRUNC = 0x00001000,
+    O_APPEND = 0x00002000
+  };
 
   // //////////////////////////////////////////////////////////////////////////////
   // Maintain information on files in use. The index to the arrays is the "file
@@ -91,8 +96,7 @@ private:
   struct FileIOData {
     // The filenames in use. Null if file descriptor i is not in use.
     static std::map<int, QString> fileNames;
-    // The flags of this file, 0=READ, 1=WRITE. Invalid if this file descriptor
-    // is not in use.
+    // The flags of this file. Invalid if this file descriptor is not in use.
     static std::map<int, unsigned> fileFlags;
     // The streams in use, associated with the filenames
     static std::map<int, QTextStream> streams;
@@ -143,31 +147,37 @@ private:
 
     // Open a file stream assigned to the given file descriptor
     static void openFilestream(int fd, const QString &filename) {
-      files.emplace(fd, filename);
-
+      // Ensure flags are valid
       const auto flags = fileFlags[fd];
-      const auto qtOpenFlags = // Translate from stdlib file flags to Qt flags
-          (flags & O_RDONLY ? QIODevice::ReadOnly : QIODevice::NotOpen) |
+      if ((flags & O_ACCMODE) == O_ACCMODE) {
+        throw std::runtime_error(
+            "Tried to open file with incompatible read/write mode flags");
+      }
+
+      // Translate from stdlib file flags to Qt flags
+      auto qtOpenFlags =
+          ((flags & O_RDONLY) == O_RDONLY ? QIODevice::ReadOnly
+                                          : QIODevice::NotOpen) |
           (flags & O_WRONLY ? QIODevice::WriteOnly : QIODevice::NotOpen) |
           (flags & O_RDWR ? QIODevice::ReadWrite : QIODevice::NotOpen) |
-          (flags & O_TRUNC ? QIODevice::Truncate : QIODevice::Append) |
-          (flags & O_EXCL ? QIODevice::NewOnly : QIODevice::NotOpen);
+          (flags & O_EXCL ? QIODevice::NewOnly : QIODevice::NotOpen) |
+          (flags & O_TRUNC ? QIODevice::Truncate : QIODevice::NotOpen) |
+          (flags & O_APPEND ? QIODevice::Append : QIODevice::NotOpen);
 
       // Try to open file with the given flags
-      files[fd].open(qtOpenFlags);
+      files.emplace(fd, filename);
+      auto &file = files[fd];
+      file.open(qtOpenFlags);
 
-      if (!files[fd].exists() && flags & O_CREAT) {
-        files.erase(fd);
+      if (!file.exists() && flags & O_CREAT) {
         throw std::runtime_error("Could not create file");
       }
 
-      if (!files[fd].exists()) {
-        files.erase(fd);
+      if (!file.exists()) {
         throw std::runtime_error("File not found");
       }
 
-      if (!files[fd].isOpen()) {
-        files.erase(fd);
+      if (!file.isOpen()) {
         throw std::runtime_error("File could not be opened");
       }
 
@@ -185,14 +195,13 @@ private:
     }
 
     // Determine whether a given fd is already in use with the given flag.
-    static bool fdInUse(int fd, int flag) {
+    static bool fdInUse(int fd, unsigned flag) {
       if (fd < 0 || fd >= SYSCALL_MAXFILES) {
         return false;
       } else if (fileNames[fd].isEmpty()) {
         return false;
-      } else if ((fileFlags[fd] & flag) ==
-                 static_cast<unsigned>(
-                     flag) /* also compares ie. O_RDONLY (0x0) */) {
+      } else if ((flag == O_RDONLY) ? (fileFlags[fd] & O_ACCMODE) == flag
+                                    : (fileFlags[fd] & flag) == flag) {
         return true;
       }
       return false;
@@ -205,7 +214,7 @@ private:
       if (fd < STDIO_END || fd >= SYSCALL_MAXFILES)
         return;
 
-      fileFlags[fd] = -1;
+      fileFlags[fd] = O_ACCMODE; // set flag to invalid read/write mode
       files[fd].close();
       streams.erase(fd);
       files.erase(fd);
@@ -216,7 +225,7 @@ private:
     // available file descriptor. Check that filename is not in use, flag is
     // reasonable, and there is an available file descriptor. Return: file
     // descriptor in 0...(SYSCALL_MAXFILES-1), or -1 if error
-    static int nowOpening(const QString &filename, int flag) {
+    static int nowOpening(const QString &filename, unsigned flag) {
       int i = 0;
       if (filenameInUse(filename)) {
         s_fileErrorString = "File name " + filename + " is already open.";
@@ -248,11 +257,11 @@ public:
    * Open a file for either reading or writing.
    *
    * @param filename string containing filename
-   * @param  flags    0 for read, 1 for write
-   * @return file descriptor in the range 0 to SYSCALL_MAXFILES-1, or -1 if
+   * @param  flags  see SystemIO::Flags enum for all possible flags
+   * @return file descriptor in the range 0 to SYSCALL_MAXFILES-1, or if
    * error
    */
-  static int openFile(QString filename, int flags) {
+  static int openFile(QString filename, unsigned flags) {
     SystemIO::get(); // Ensure that SystemIO is constructed
     // Internally, a "file descriptor" is an index into a table
     // of the filename, flag, and the File???putStream associated with
@@ -270,8 +279,10 @@ public:
 
     try {
       FileIOData::openFilestream(fdToUse, filename);
-    } catch (int) {
-      s_fileErrorString = "File " + filename + " could not be opened.";
+    } catch (const std::runtime_error &error) {
+      FileIOData::files.erase(fdToUse);
+      s_fileErrorString =
+          "File " + filename + " could not be opened: " + error.what();
       retValue = -1;
     }
 
@@ -288,8 +299,10 @@ public:
    * @return -1 on error
    */
   static int seek(int fd, int offset, int base) {
-    SystemIO::get();                 // Ensure that SystemIO is constructed
-    if (!FileIOData::fdInUse(fd, 0)) // Check the existence of the "read" fd
+    SystemIO::get(); // Ensure that SystemIO is constructed
+    if (!(FileIOData::fdInUse(fd, O_RDONLY) ||
+          FileIOData::fdInUse(fd,
+                              O_RDWR))) // Check the existence of the "read" fd
     {
       s_fileErrorString =
           "File descriptor " + QString::number(fd) + " is not open for reading";
@@ -330,8 +343,9 @@ public:
     /////////////////////////////////////////////////////
     /// Read from STDIN file descriptor while using IDE - get input from
     /// Messages pane.
-    if (!FileIOData::fdInUse(fd,
-                             O_RDONLY)) // Check the existence of the "read" fd
+    if (!(FileIOData::fdInUse(fd, O_RDONLY) ||
+          FileIOData::fdInUse(fd,
+                              O_RDWR))) // Check the existence of the "read" fd
     {
       s_fileErrorString =
           "File descriptor " + QString::number(fd) + " is not open for reading";
@@ -405,8 +419,9 @@ public:
       return myBuffer.size();
     }
 
-    if (!FileIOData::fdInUse(
-            fd, O_WRONLY | O_RDWR)) // Check the existence of the "write" fd
+    if (!(FileIOData::fdInUse(fd, O_WRONLY) ||
+          FileIOData::fdInUse(fd,
+                              O_RDWR))) // Check the existence of the "write" fd
     {
       s_fileErrorString =
           "File descriptor " + QString::number(fd) + " is not open for writing";

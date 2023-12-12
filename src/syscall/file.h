@@ -14,10 +14,11 @@ class OpenSyscall : public BaseSyscall {
 
 public:
   OpenSyscall()
-      : BaseSyscall("Open", "Opens a file from a path",
-                    {{0, "Pointer to null terminated string for the path"},
-                     {1, "flags"}},
-                    {{0, "the file decriptor or -1 if an error occurred"}}) {}
+      : BaseSyscall(
+            "Open", "Opens a file from a path",
+            {{0, "Pointer to null terminated string for the path"},
+             {1, "flags" /* TODO(raccog): Add descriptions for each flag */}},
+            {{0, "the file decriptor or -1 if an error occurred"}}) {}
   void execute() {
     const AInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     const AInt arg1 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
@@ -29,6 +30,8 @@ public:
           ProcessorHandler::getMemory().readMemConst(address++, 1) & 0xFF);
       string.append(byte);
     } while (byte != '\0');
+    if (string.endsWith('\0'))
+      string.removeLast(); // Remove null-byte
 
     int ret = SystemIO::openFile(QString::fromUtf8(string), arg1);
 

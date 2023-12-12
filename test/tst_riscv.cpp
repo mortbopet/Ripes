@@ -7,6 +7,7 @@
 #include "processorregistry.h"
 #include "ripessettings.h"
 #include "rvisainfo_common.h"
+#include "systemio.h"
 
 #if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) ||                \
     !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR)
@@ -33,6 +34,8 @@ static constexpr unsigned s_success = 42;
 static constexpr unsigned s_statusreg =
     3; // Current test stored in the gp(3) register
 static constexpr unsigned s_ecallreg = 10; // a0
+// Register containing the ecall operation
+static constexpr unsigned s_ecallopreg = 17; // a7
 
 // Maximum cycle count
 static constexpr unsigned s_maxCycles = 10000;
@@ -183,7 +186,7 @@ QString tst_RISCV::executeSimulator() {
 
 void tst_RISCV::runTests(const ProcessorID &id, const QStringList &extensions,
                          const QStringList &testDirs) {
-  for (auto testDir : testDirs) {
+  for (const auto &testDir : testDirs) {
     const auto dir = QDir(testDir);
     const auto testFiles = dir.entryList({"*.s"});
     ProcessorHandler::selectProcessor(id, extensions);
@@ -211,10 +214,18 @@ void tst_RISCV::runTests(const ProcessorID &id, const QStringList &extensions,
       }
       auto spProgram = std::make_shared<Program>(program.program);
 
-      // Override the ProcessorHandler's ECALL handling. In doing so, we verify
-      // whether the correct test value was reached.
+      // Override the ProcessorHandler's ECALL Exit2 handling. In doing so, we
+      // verify whether the correct test value was reached.
       ProcessorHandler::getProcessorNonConst()->trapHandler = [=] {
-        trapHandler();
+        if (ProcessorHandler::getProcessor()->getRegister(
+                RVISA::GPR, s_ecallopreg) == RVABI::Exit2) {
+          trapHandler();
+        } else {
+          const unsigned int function =
+              ProcessorHandler::getProcessor()->getRegister(RVISA::GPR,
+                                                            s_ecallopreg);
+          ProcessorHandler::getSyscallManagerNonConst().execute(function);
+        }
       };
       ProcessorHandler::get()->loadProgram(spProgram);
       RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
@@ -225,6 +236,8 @@ void tst_RISCV::runTests(const ProcessorID &id, const QStringList &extensions,
       }
 
       qInfo() << "Test '" << m_currentTest << "' succeeded.";
+
+      SystemIO::reset(); // Close open files in between tests
     }
   }
 }
