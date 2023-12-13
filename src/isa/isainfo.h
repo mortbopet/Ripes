@@ -17,9 +17,16 @@
 namespace Ripes {
 
 /// List of currently supported ISAs.
+enum class ISAFamily { RISCV, MIPS };
 enum class ISA { RV32I, RV64I, MIPS32I };
-const static std::map<ISA, QString> ISAFamilyNames = {
-    {ISA::RV32I, "RISC-V"}, {ISA::RV64I, "RISC-V"}, {ISA::MIPS32I, "MIPS"}};
+const static std::map<ISA, ISAFamily> ISAFamilies = {
+    {ISA::RV32I, ISAFamily::RISCV},
+    {ISA::RV64I, ISAFamily::RISCV},
+    {ISA::MIPS32I, ISAFamily::MIPS}};
+const static std::map<ISAFamily, QString> ISAFamilyNames = {
+    {ISAFamily::RISCV, "RISC-V"}, {ISAFamily::MIPS, "MIPS"}};
+const static std::map<ISA, QString> ISANames = {
+    {ISA::RV32I, "RV32"}, {ISA::RV64I, "RV64"}, {ISA::MIPS32I, "MIPS32"}};
 struct RegisterFileName {
   QString shortName;
   QString longName;

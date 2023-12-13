@@ -106,8 +106,16 @@ public:
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
 
-protected:
+public slots:
+  void isaChanged();
+
+private slots:
+  void updateRegWidth();
+
 private:
+  void updateISA(bool forceUpdate = false);
+
+  ISA m_selectedISA;
   Ui::SliderulesTab *ui;
 };
 

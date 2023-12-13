@@ -2,14 +2,55 @@
 #include "processorhandler.h"
 #include "ui_sliderulestab.h"
 
-#include "isa/rv32isainfo.h"
 #include "rv_i_ext.h"
 
 namespace Ripes {
 
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
-    : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab) {
+    : RipesTab(toolbar, parent), m_selectedISA(ISA::RV32I),
+      ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
+
+  for (const auto &isaFamily : ISAFamilyNames) {
+    ui->isaSelector->addItem(isaFamily.second);
+  }
+
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
+          &SliderulesTab::isaChanged);
+  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
+          &SliderulesTab::updateRegWidth);
+
+  updateISA(true);
+}
+
+void SliderulesTab::isaChanged() { updateISA(); }
+
+void SliderulesTab::updateISA(bool forceUpdate) {
+  if (auto isaId = ProcessorHandler::currentISA()->isaID();
+      forceUpdate || isaId != m_selectedISA) {
+    m_selectedISA = isaId;
+
+    emit ui->isaSelector->currentIndexChanged(
+        static_cast<int>(ISAFamilies.at(m_selectedISA)));
+  }
+}
+
+void SliderulesTab::updateRegWidth() {
+  ui->regWidthSelector->clear();
+  bool isaChanged = false;
+  for (const auto &name : ISANames) {
+    if (static_cast<int>(ISAFamilies.at(name.first)) ==
+        ui->isaSelector->currentIndex()) {
+      ui->regWidthSelector->addItem(name.second);
+      if (!isaChanged) {
+        m_selectedISA = name.first;
+        isaChanged = true;
+      }
+    }
+  }
+
+  emit ui->regWidthSelector->currentIndexChanged(
+      static_cast<int>(m_selectedISA));
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
