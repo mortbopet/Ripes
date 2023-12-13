@@ -143,6 +143,8 @@ void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
 void EncodingView::updateView() {
   verticalHeader()->setVisible(false);
   horizontalHeader()->setMinimumSectionSize(30);
+  horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
+                                           QHeaderView::ResizeMode::Stretch);
   size_t row = 0;
   clearSpans();
   for (const auto &instr : *m_model->m_instructions) {
