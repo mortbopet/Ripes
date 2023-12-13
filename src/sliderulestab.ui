@@ -33,20 +33,6 @@
       <enum>QLayout::SetMinimumSize</enum>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Filter Instructions</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="instrFilterInput"/>
-       </item>
-      </layout>
-     </item>
-     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -73,13 +59,13 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QGridLayout" name="gridLayout_2">
        <property name="sizeConstraint">
         <enum>QLayout::SetDefaultConstraint</enum>
        </property>
        <item row="1" column="0">
-        <widget class="QTableView" name="encodingTable"/>
+        <widget class="EncodingView" name="encodingTable"/>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_2">
@@ -90,7 +76,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0">
         <widget class="QLabel" name="label_3">
@@ -100,7 +86,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QTableView" name="decodingTable"/>
+        <widget class="DecodingView" name="decodingTable"/>
        </item>
       </layout>
      </widget>
@@ -108,6 +94,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>EncodingView</class>
+   <extends>QTableView</extends>
+   <header>sliderulestab.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DecodingView</class>
+   <extends>QTableView</extends>
+   <header>sliderulestab.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

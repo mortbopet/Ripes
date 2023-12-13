@@ -1,305 +1,23 @@
 #include "sliderulestab.h"
+#include "processorhandler.h"
 #include "ui_sliderulestab.h"
 
-#include "processorhandler.h"
+#include "isa/rv32isainfo.h"
+#include "rv_i_ext.h"
 
 namespace Ripes {
 
-static constexpr const size_t TEXT_COLS = 10;
-
-namespace Cells {
-
-struct Extension final : public CellStructure {
-  Extension(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {
-    m_sizeHint = SMALL_SIZE;
-  }
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole:
-      return instr->extensionOrigin();
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-};
-struct Type final : public CellStructure {
-  Type(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {
-    m_sizeHint = SMALL_SIZE;
-  }
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole:
-      // TODO(raccog): Get type from instruction
-      return "TYPE";
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-};
-struct Description final : public CellStructure {
-  Description(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {
-    m_sizeHint = LARGE_SIZE;
-  }
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole:
-      return instr->description();
-    case Qt::ToolTipRole:
-      return instr->longDescription();
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-};
-struct Explanation final : public CellStructure {
-  Explanation(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {
-    m_sizeHint = (columnIndex == 3) ? SMALL_SIZE : LARGE_SIZE;
-  }
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole:
-      // TODO(raccog): Get explanation from instruction
-      return "EXPLANATION";
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-};
-struct Mnemonic final : public CellStructure {
-  Mnemonic(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {
-    m_sizeHint = LARGE_SIZE;
-  }
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole:
-      return instr->name();
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-};
-struct Fields final : public CellStructure {
-  constexpr Fields(size_t columnIndex, size_t columnCount)
-      : CellStructure(columnIndex, columnCount) {}
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole: {
-      auto fields = instr->getFields();
-      QString names;
-      // Add each field's name to the table
-      for (auto field = fields.begin(); field != fields.end();) {
-        names += (*field)->fieldType();
-        ++field;
-        if (field != fields.end()) {
-          names += ", ";
-        }
-      }
-      return names;
-    }
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-};
-struct Bits final : public CellStructure {
-  Bits(size_t columnIndex, size_t columnCount,
-       const std::shared_ptr<const ISAInfoBase> isa)
-      : CellStructure(columnIndex, columnCount), m_isa(isa) {
-    m_sizeHint = BIT_SIZE;
-  }
-  QVariant getVariant(const InstructionBase *instr, int role) const override {
-    switch (role) {
-    case Qt::DisplayRole: {
-      auto bits = instr->size() * 8;
-      if (bits < m_isa->instrBits() && m_columnIndex >= TEXT_COLS &&
-          m_columnIndex < m_columnCount - bits) {
-        // This bit is not included in the instruction
-        return QVariant();
-      }
-      if (instr->opPartBitIsSet(bitIdx())) {
-        // This bit is set in the instruction's opcode
-        return QString::number(1);
-      }
-      for (const auto &field : instr->getFields()) {
-        size_t rangeIdx = 1;
-        // Label instruction fields
-        for (const auto &range : field->ranges) {
-          unsigned start = m_columnCount - range.stop - 1;
-          unsigned stop = m_columnCount - range.start - 1;
-          if (start == m_columnIndex) {
-            if (range.width() == 1) {
-              QChar c;
-              switch (field->type) {
-              case FieldBase::Type::Reg:
-                c = 'r';
-                break;
-              case FieldBase::Type::Immediate:
-                c = 'm';
-                break;
-              default:
-                c = field->fieldType().front();
-              }
-
-              // Return a shortened name
-              return QString(c) + QString::number(rangeIdx);
-            } else {
-              // Return the field name for the first column in a span
-              QString name = field->fieldType();
-              if (field->ranges.size() > 1) {
-                name += QString::number(rangeIdx);
-              }
-              return name;
-            }
-          } else if (m_columnIndex >= start && m_columnIndex <= stop) {
-            // Return nothing if within range so that the field name does not
-            // intersect
-            return QVariant();
-          }
-          ++rangeIdx;
-        }
-      }
-      return QString::number(0);
-    }
-    case Qt::BackgroundRole: {
-      // TODO(raccog): Add second row if instruction is larger than instrBits
-      auto bits = instr->size() * 8;
-      if (bits < m_isa->instrBits() && m_columnIndex >= TEXT_COLS &&
-          m_columnIndex < m_columnCount - bits) {
-        return QBrush(Qt::black);
-      }
-      if (instr->opPartInRange(bitIdx())) {
-        return QBrush(Qt::red);
-      } else {
-        return QVariant();
-      }
-    }
-    default:
-      return CellStructure::getVariant(instr, role);
-    }
-  }
-
-private:
-  const std::shared_ptr<const ISAInfoBase> m_isa;
-};
-
-template <typename... Structures>
-void encodingStructure(
-    std::vector<std::unique_ptr<Cells::CellStructure>> &encodingColumnStructure,
-    size_t cols) {
-  size_t i = 0;
-  (
-      [&] {
-        encodingColumnStructure.emplace_back(
-            std::make_unique<Structures>(i++, cols));
-      }(),
-      ...);
-}
-
-} // namespace Cells
-
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
-    : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab),
-      m_isa(ProcessorHandler::fullISA()),
-      m_instructions(std::make_shared<const InstrVec>(m_isa->instructions())),
-      m_pseudoInstructions(
-          std::make_shared<const PseudoInstrVec>(m_isa->pseudoInstructions())),
-      m_decodingModel(std::make_unique<DecodingModel>(
-          ProcessorHandler::fullISA(), m_instructions, m_pseudoInstructions)),
-      m_encodingModel(std::make_unique<EncodingModel>(
-          ProcessorHandler::fullISA(), m_instructions, m_pseudoInstructions)) {
+    : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
-  // TODO(raccog): Enable filtering of instructions
-  ui->instrFilterInput->setReadOnly(true);
 
-  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
-          &SliderulesTab::onProcessorChanged);
-
-  updateTables();
-}
-
-void SliderulesTab::onProcessorChanged() {
-  const std::shared_ptr<Assembler::AssemblerBase> assembler =
-      ProcessorHandler::getAssembler();
-  auto isa = ProcessorHandler::fullISA();
-  InstrVec instructions = isa->instructions();
-  PseudoInstrVec pseudoInstructions = isa->pseudoInstructions();
-  setData(isa, instructions, pseudoInstructions);
-}
-
-void SliderulesTab::setData(std::shared_ptr<const ISAInfoBase> isa,
-                            InstrVec instructions,
-                            PseudoInstrVec pseudoInstructions) {
-  m_isa = isa;
-  m_instructions = std::make_shared<const InstrVec>(instructions);
-  m_pseudoInstructions =
-      std::make_shared<const PseudoInstrVec>(pseudoInstructions);
-
-  m_decodingModel = std::make_unique<DecodingModel>(m_isa, m_instructions,
-                                                    m_pseudoInstructions);
-  m_encodingModel = std::make_unique<EncodingModel>(m_isa, m_instructions,
-                                                    m_pseudoInstructions);
-
-  updateTables();
-}
-
-void SliderulesTab::updateTable(QTableView *table, ISAModel *model) {
-  table->setModel(model);
-  table->horizontalHeader()->setMinimumSectionSize(MIN_CELL_SIZE.width());
-  table->resizeColumnsToContents();
-  table->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::ResizeMode::Fixed);
-  table->verticalHeader()->hide();
-  table->show();
-}
-
-void SliderulesTab::updateTables() {
-  updateTable(ui->decodingTable, m_decodingModel.get());
-  updateTable(ui->encodingTable, m_encodingModel.get());
-
-  ui->decodingTable->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::ResizeMode::Stretch);
-
-  for (const auto i : {2, 4}) {
-    ui->encodingTable->horizontalHeader()->setSectionResizeMode(
-        i, QHeaderView::ResizeMode::Stretch);
-  }
-
-  ui->encodingTable->clearSpans();
-  for (size_t i = 0; i < m_instructions->size(); ++i) {
-    // Set span of 3 columns for encoding explanation
-    ui->encodingTable->setSpan(i, 3, 1, 3);
-    // Set span of 3 columns for encoding fields
-    ui->encodingTable->setSpan(i, 7, 1, 3);
-
-    // Span all fields
-    auto instr = m_instructions->at(i);
-    auto fields = instr->getFields();
-    for (const auto &field : fields) {
-      for (const auto &range : field->ranges) {
-        if (range.width() > 1) {
-          unsigned start = m_encodingModel->columnCount() - range.stop - 1;
-          ui->encodingTable->setSpan(i, start, 1, range.width());
-        }
-      }
-    }
-
-    // Span multiple unused bits
-    auto instrBits = instr->size() * 8;
-    if (instrBits < m_isa->instrBits() - 1) {
-      ui->encodingTable->setSpan(i, TEXT_COLS, 1,
-                                 m_isa->instrBits() - instrBits);
-    }
-  }
+  //  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
+  //  this, &SliderulesTab::onProcessorChanged);
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
 
-ISAModel::ISAModel(
+EncodingModel::EncodingModel(
     const std::shared_ptr<const ISAInfoBase> isa,
     const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
@@ -307,76 +25,157 @@ ISAModel::ISAModel(
     : QAbstractTableModel(parent), m_isa(isa), m_instructions(instructions),
       m_pseudoInstructions(pseudoInstructions) {}
 
-ISAModel::~ISAModel() {}
+int EncodingModel::rowCount(const QModelIndex &) const {
+  return m_instructions->size();
+}
+int EncodingModel::columnCount(const QModelIndex &) const { return BIT_END; }
 
-void ISAModel::update() {
-  using namespace Cells;
-  size_t cols = this->columnCount();
-  encodingStructure<Extension, Type, Description, Explanation, Explanation,
-                    Explanation, Mnemonic, Fields, Fields, Fields>(
-      m_encodingColumnStructure, cols);
-  for (unsigned i = 0; i < m_isa->instrBits(); ++i) {
-    m_encodingColumnStructure.emplace_back(
-        std::make_unique<Bits>(TEXT_COLS + i, cols, m_isa));
+QVariant EncodingModel::headerData(int section, Qt::Orientation orientation,
+                                   int role) const {
+  if (orientation == Qt::Horizontal) {
+    switch (role) {
+    case Qt::DisplayRole: {
+      switch (section) {
+      case EXTENSION:
+        return QString("Extension");
+      case TYPE:
+        return QString("Type");
+      case DESCRIPTION:
+        return QString("Description");
+      case EXPLANATION:
+        return QString("Explanation");
+      case OPCODE:
+        return QString("Assembly");
+      }
+      if (section >= BIT_START && section < BIT_END) {
+        return QString::number(BIT_END - section - 1);
+      }
+    }
+    }
   }
+
+  return QVariant();
 }
 
-int ISAModel::rowCount(const QModelIndex &) const {
-  // TODO: Add pseudo instructions
-  return m_instructions->size() /*+ m_pseudoInstructions->size()*/;
-}
-
-int ISAModel::columnCount(const QModelIndex &) const {
-  return m_isa->instrBits() + TEXT_COLS;
-}
-
-EncodingModel::EncodingModel(
-    const std::shared_ptr<const ISAInfoBase> isa,
-    const std::shared_ptr<const InstrVec> instructions,
-    const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
-    QObject *parent)
-    : ISAModel(isa, instructions, pseudoInstructions, parent) {
-  update();
-}
-
-QVariant EncodingModel::instrData(size_t col, const InstructionBase *instr,
-                                  int role) const {
-  assert(col < m_encodingColumnStructure.size() && "Invalid column index");
-  return m_encodingColumnStructure.at(col)->getVariant(instr, role);
+QVariant fieldDisplay(const std::vector<std::shared_ptr<FieldBase>> &fields,
+                      size_t idx) {
+  if (fields.size() >= idx + 1)
+    return QString(fields.at(idx)->fieldType());
+  return QVariant();
 }
 
 QVariant EncodingModel::data(const QModelIndex &index, int role) const {
-  size_t row = static_cast<size_t>(index.row());
-  size_t col = static_cast<size_t>(index.column());
-  assert(row < m_instructions->size() + m_pseudoInstructions->size() &&
-         "Cannot index past sliderule encoding model");
-  if (row < m_instructions->size()) {
-    auto instr = m_instructions->at(row);
-    return instrData(col, instr.get(), role);
-  } else {
-    if (role == Qt::DisplayRole) {
-      if (col == 0) {
-        return "PSEUDO";
-      } else if (col == 6) {
-        return m_pseudoInstructions->at(index.row() - m_instructions->size())
-            ->name();
+  if (index.row() < 0 ||
+      static_cast<size_t>(index.row()) >= m_instructions->size()) {
+    return QVariant();
+  }
+
+  auto &instr = *m_instructions->at(index.row()).get();
+  auto fields = instr.getFields();
+
+  switch (role) {
+  case Qt::DisplayRole: {
+    auto col = index.column();
+    switch (col) {
+    case EXTENSION:
+      return QString(instr.extensionOrigin());
+    case TYPE:
+      return "TODO: Type";
+    case DESCRIPTION:
+      return QString(instr.description());
+    case EXPLANATION:
+      return QString("TODO: Explanation");
+    case OPCODE:
+      return QString(instr.name());
+    case FIELD0:
+      return fieldDisplay(fields, 0);
+    case FIELD1:
+      return fieldDisplay(fields, 1);
+    case FIELD2:
+      return fieldDisplay(fields, 2);
+    }
+
+    if (col >= BIT_START && col < BIT_END) {
+      unsigned bit = static_cast<unsigned>(BIT_END - col - 1);
+      for (const auto &field : instr.getFields()) {
+        for (const auto &range : field->ranges) {
+          if (range.stop == bit) {
+            return field->fieldType();
+          }
+        }
+      }
+      for (const auto &opPart : instr.getOpParts()) {
+        if (opPart.range.isWithinRange(bit)) {
+          return QString(opPart.bitIsSet(bit) ? "1" : "0");
+        }
       }
     }
+    break;
   }
+  case Qt::TextAlignmentRole:
+    return Qt::AlignCenter;
+  }
+
   return QVariant();
 }
 
-DecodingModel::DecodingModel(
-    const std::shared_ptr<const ISAInfoBase> isa,
-    const std::shared_ptr<const InstrVec> instructions,
-    const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
-    QObject *parent)
-    : ISAModel(isa, instructions, pseudoInstructions, parent) {}
+EncodingView::EncodingView(QWidget *parent) : QTableView(parent) {
+  auto isa = ProcessorHandler::fullISA();
+  updateModel(isa);
+  updateView();
 
-QVariant DecodingModel::data(const QModelIndex &index, int role) const {
-  if (role == Qt::DisplayRole) {
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
+          &EncodingView::isaChanged);
+}
+
+void EncodingView::isaChanged() {
+  updateModel(ProcessorHandler::fullISA());
+  updateView();
+}
+
+void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
+  m_model = std::make_unique<EncodingModel>(
+      isa, std::make_shared<const InstrVec>(isa->instructions()),
+      std::make_shared<const PseudoInstrVec>(isa->pseudoInstructions()));
+  setModel(m_model.get());
+}
+
+void EncodingView::updateView() {
+  verticalHeader()->setVisible(false);
+  horizontalHeader()->setMinimumSectionSize(30);
+  size_t row = 0;
+  clearSpans();
+  for (const auto &instr : *m_model->m_instructions) {
+    for (const auto &field : instr->getFields()) {
+      for (const auto &range : field->ranges) {
+        if (range.width() > 1) {
+          setSpan(row, EncodingModel::BIT_END - range.stop - 1, 1,
+                  range.width());
+        }
+      }
+    }
+    ++row;
   }
+  resizeColumnsToContents();
+}
+
+DecodingModel::DecodingModel(const std::shared_ptr<const ISAInfoBase> isa,
+                             const std::shared_ptr<const InstrVec> instructions,
+                             QObject *parent)
+    : QAbstractTableModel(parent), m_isa(isa), m_instructions(instructions) {}
+
+int DecodingModel::rowCount(const QModelIndex &) const { return 0; }
+int DecodingModel::columnCount(const QModelIndex &) const { return 0; }
+QVariant DecodingModel::data(const QModelIndex &index, int role) const {
   return QVariant();
+}
+
+DecodingView::DecodingView(QWidget *parent) : QTableView(parent) {
+  auto isa = ISAInfoRegistry::getISA<ISA::RV32I>(QStringList("M"));
+  auto instructions = std::make_shared<InstrVec>();
+  instructions->emplace_back(std::make_shared<RVISA::ExtI::TypeI::Addi>());
+  m_model = std::make_unique<DecodingModel>(isa, instructions);
+  setModel(m_model.get());
 }
 
 } // namespace Ripes
