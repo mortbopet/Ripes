@@ -25,17 +25,21 @@ public:
                 const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
                 QObject *parent = nullptr);
 
+  constexpr static size_t BIT_COLUMNS = 32;
+
   enum Column {
     EXTENSION = 0,
     TYPE = 1,
     DESCRIPTION = 2,
     EXPLANATION = 3,
     OPCODE = 4,
+    // NOTE: The field columns should be variable based on the maximum number of
+    // fields
     FIELD0 = 5,
     FIELD1 = 6,
     FIELD2 = 7,
     BIT_START = 8,
-    BIT_END = BIT_START + 32
+    BIT_END = BIT_START + BIT_COLUMNS
   };
 
   virtual int rowCount(const QModelIndex &) const override;

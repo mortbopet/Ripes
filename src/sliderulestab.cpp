@@ -10,9 +10,6 @@ namespace Ripes {
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
-
-  //  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
-  //  this, &SliderulesTab::onProcessorChanged);
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
@@ -41,6 +38,7 @@ EncodingModel::EncodingModel(
     if (hasImmediate) {
       ++row;
     }
+    // TODO(raccog): Add rows if instruction is larger than 32-bits
   }
   m_rows = row;
 }
@@ -63,7 +61,7 @@ QVariant EncodingModel::headerData(int section, Qt::Orientation orientation,
       case EXPLANATION:
         return QString("Explanation");
       case OPCODE:
-        return QString("Assembly");
+        return QString("Opcode");
       case FIELD0:
       case FIELD1:
       case FIELD2:
@@ -76,13 +74,6 @@ QVariant EncodingModel::headerData(int section, Qt::Orientation orientation,
     }
   }
 
-  return QVariant();
-}
-
-QVariant fieldDisplay(const std::vector<std::shared_ptr<FieldBase>> &fields,
-                      size_t idx) {
-  if (fields.size() >= idx + 1)
-    return QString(fields.at(idx)->fieldType());
   return QVariant();
 }
 
@@ -103,6 +94,7 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
   auto fields = instr->getFields();
 
   if (isImmediateRow) {
+    // TODO(raccog): Show encoding for constructed immediate here
   } else {
     switch (role) {
     case Qt::DisplayRole: {
@@ -110,17 +102,21 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
       case EXTENSION:
         return QString(instr->extensionOrigin());
       case TYPE:
-        return "TODO: Type";
+        // TODO(raccog): Include an instruction's type in isainfo
+        return "TODO";
       case DESCRIPTION:
         return QString(instr->description());
       case EXPLANATION:
-        return QString("TODO: Explanation");
+        // TODO(raccog): Include an instruction's pseudocode in isainfo
+        return QString("TODO");
       case OPCODE:
         return QString(instr->name());
       case FIELD0:
       case FIELD1:
       case FIELD2:
-        return fieldDisplay(fields, col - FIELD0);
+        if (fields.size() >= static_cast<size_t>(col - FIELD0) + 1)
+          return QString(fields.at(col - FIELD0)->fieldType());
+        break;
       }
 
       if (col >= BIT_START && col < BIT_END) {
