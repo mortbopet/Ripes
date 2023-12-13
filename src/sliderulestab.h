@@ -48,9 +48,13 @@ public:
 protected:
   friend class EncodingView;
 
+  size_t m_rows;
+
   const std::shared_ptr<const ISAInfoBase> m_isa;
   const std::shared_ptr<const InstrVec> m_instructions;
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
+
+  std::map<size_t, const InstructionBase *> m_rowInstrMap;
 };
 
 class EncodingView : public QTableView {
