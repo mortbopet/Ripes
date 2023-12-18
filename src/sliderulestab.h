@@ -50,6 +50,7 @@ public:
                               int role = Qt::DisplayRole) const override;
 
   const std::shared_ptr<const ISAInfoBase> isa;
+  std::map<size_t, const InstructionBase *> rowInstrMap;
 
 protected:
   friend class EncodingView;
@@ -58,8 +59,6 @@ protected:
 
   const std::shared_ptr<const InstrVec> m_instructions;
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
-
-  std::map<size_t, const InstructionBase *> m_rowInstrMap;
 };
 
 class EncodingView : public QTableView {

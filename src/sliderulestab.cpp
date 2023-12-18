@@ -34,8 +34,30 @@ void SliderulesTab::isaSelectorChanged() {
   auto isa = ui->encodingTable->model->isa;
   auto exts = QStringList();
   auto text = ui->mainExtensionSelector->currentText();
-  if (!text.isEmpty() && isa->supportsExtension(text))
-    exts = QStringList() << text;
+  if (!text.isEmpty()) {
+    bool hideRows = true;
+    if (isa->supportsExtension(text)) {
+      exts = QStringList() << text;
+    } else {
+      hideRows = false;
+    }
+    // Hide base extension
+    for (const auto &instr : ui->encodingTable->model->rowInstrMap) {
+      if (instr.second->extensionOrigin() == isa->baseExtension()) {
+        ui->encodingTable->setRowHidden(instr.first, hideRows);
+        bool hasImmediate = false;
+        for (const auto &field : instr.second->getFields()) {
+          if (field->fieldType() == "imm") {
+            hasImmediate = true;
+            break;
+          }
+        }
+        if (hasImmediate) {
+          ui->encodingTable->setRowHidden(instr.first + 1, hideRows);
+        }
+      }
+    }
+  }
   ui->encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
 }
 
@@ -88,7 +110,7 @@ EncodingModel::EncodingModel(
   // Map instructions to their row index
   size_t row = 0;
   for (const auto &instr : *m_instructions) {
-    m_rowInstrMap[row] = instr.get();
+    rowInstrMap[row] = instr.get();
     ++row;
     bool hasImmediate = false;
     for (const auto &field : instr->getFields()) {
@@ -148,13 +170,13 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
   }
 
   bool isImmediateRow = false;
-  if (m_rowInstrMap.count(row) == 0) {
-    assert(m_rowInstrMap.count(row - 1) == 1 &&
+  if (rowInstrMap.count(row) == 0) {
+    assert(rowInstrMap.count(row - 1) == 1 &&
            "No matching instruction for row in encoding table");
     isImmediateRow = true;
   }
   auto col = index.column();
-  auto &instr = m_rowInstrMap.at(isImmediateRow ? row - 1 : row);
+  auto &instr = rowInstrMap.at(isImmediateRow ? row - 1 : row);
   auto fields = instr->getFields();
 
   if (isImmediateRow) {
@@ -255,7 +277,7 @@ void EncodingView::updateView() {
   horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
                                            QHeaderView::ResizeMode::Stretch);
   clearSpans();
-  for (const auto &pair : model->m_rowInstrMap) {
+  for (const auto &pair : model->rowInstrMap) {
     int row = static_cast<int>(pair.first);
     const auto &instr = pair.second;
     size_t fieldIdx = 0;
