@@ -17,22 +17,29 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   }
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
-          &SliderulesTab::isaChanged);
+          &SliderulesTab::processorChanged);
   connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
           &SliderulesTab::updateRegWidthSelector);
   connect(ui->regWidthSelector, &QComboBox::currentIndexChanged, this,
           &SliderulesTab::isaSelectorChanged);
   connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
           &SliderulesTab::isaSelectorChanged);
+  connect(ui->mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+          &SliderulesTab::isaSelectorChanged);
 
   updateISASelector(true);
 }
 
 void SliderulesTab::isaSelectorChanged() {
-  ui->encodingTable->updateISA(ui->regWidthSelector->currentText());
+  auto isa = ui->encodingTable->model->isa;
+  auto exts = QStringList();
+  auto text = ui->mainExtensionSelector->currentText();
+  if (!text.isEmpty() && isa->supportsExtension(text))
+    exts = QStringList() << text;
+  ui->encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
 }
 
-void SliderulesTab::isaChanged() { updateISASelector(); }
+void SliderulesTab::processorChanged() { updateISASelector(); }
 
 void SliderulesTab::updateISASelector(bool forceUpdate) {
   if (auto isaId = ProcessorHandler::currentISA()->isaID();
@@ -58,6 +65,13 @@ void SliderulesTab::updateRegWidthSelector() {
     }
   }
 
+  auto isa = ui->encodingTable->model->isa;
+  ui->mainExtensionSelector->clear();
+  ui->mainExtensionSelector->addItem(isa->baseExtension());
+  for (const auto &ext : isa->supportedExtensions()) {
+    ui->mainExtensionSelector->addItem(ext);
+  }
+
   emit ui->regWidthSelector->currentIndexChanged(
       static_cast<int>(m_selectedISA));
 }
@@ -69,7 +83,7 @@ EncodingModel::EncodingModel(
     const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
-    : QAbstractTableModel(parent), m_isa(isa), m_instructions(instructions),
+    : QAbstractTableModel(parent), isa(isa), m_instructions(instructions),
       m_pseudoInstructions(pseudoInstructions) {
   // Map instructions to their row index
   size_t row = 0;
@@ -210,10 +224,11 @@ void EncodingView::processorChanged() {
   updateView();
 }
 
-void EncodingView::updateISA(const QString &isaName) {
+void EncodingView::updateISA(const QString &isaName,
+                             const QStringList &extensions) {
   for (const auto &isa : ISANames) {
     if (isa.second == isaName) {
-      updateModel(ISAConstructors.at(isa.first)(QStringList()));
+      updateModel(ISAConstructors.at(isa.first)(extensions));
       updateView();
       return;
     }
@@ -221,11 +236,11 @@ void EncodingView::updateISA(const QString &isaName) {
 }
 
 void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
-  if (!m_model || !m_model->m_isa->eq(isa.get(), isa->enabledExtensions())) {
-    m_model = std::make_unique<EncodingModel>(
+  if (!model || !model->isa->eq(isa.get(), isa->enabledExtensions())) {
+    model = std::make_unique<EncodingModel>(
         isa, std::make_shared<const InstrVec>(isa->instructions()),
         std::make_shared<const PseudoInstrVec>(isa->pseudoInstructions()));
-    setModel(m_model.get());
+    setModel(model.get());
   }
 }
 
@@ -240,7 +255,7 @@ void EncodingView::updateView() {
   horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
                                            QHeaderView::ResizeMode::Stretch);
   clearSpans();
-  for (const auto &pair : m_model->m_rowInstrMap) {
+  for (const auto &pair : model->m_rowInstrMap) {
     int row = static_cast<int>(pair.first);
     const auto &instr = pair.second;
     size_t fieldIdx = 0;

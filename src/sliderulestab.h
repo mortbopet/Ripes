@@ -49,12 +49,13 @@ public:
   virtual QVariant headerData(int section, Qt::Orientation orientation,
                               int role = Qt::DisplayRole) const override;
 
+  const std::shared_ptr<const ISAInfoBase> isa;
+
 protected:
   friend class EncodingView;
 
   size_t m_rows;
 
-  const std::shared_ptr<const ISAInfoBase> m_isa;
   const std::shared_ptr<const InstrVec> m_instructions;
   const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
 
@@ -66,7 +67,10 @@ class EncodingView : public QTableView {
 public:
   EncodingView(QWidget *parent = nullptr);
 
-  void updateISA(const QString &isaName);
+  void updateISA(const QString &isaName,
+                 const QStringList &extensions = QStringList());
+
+  std::unique_ptr<EncodingModel> model;
 
 public slots:
   void processorChanged();
@@ -74,8 +78,6 @@ public slots:
 protected:
   void updateModel(std::shared_ptr<const ISAInfoBase> isa);
   void updateView();
-
-  std::unique_ptr<EncodingModel> m_model;
 };
 
 struct DecodingModel : public QAbstractTableModel {
@@ -109,7 +111,7 @@ public:
   ~SliderulesTab();
 
 public slots:
-  void isaChanged();
+  void processorChanged();
   void isaSelectorChanged();
 
 private slots:

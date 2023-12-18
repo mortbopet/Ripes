@@ -229,6 +229,8 @@ public:
     return QString();
   }
 
+  QString baseExtension() const override { return "I"; }
+
   const QStringList &supportedExtensions() const override {
     return m_supportedExtensions;
   }

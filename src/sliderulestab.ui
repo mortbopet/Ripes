@@ -112,6 +112,20 @@
             </item>
            </layout>
           </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Main Extension</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="mainExtensionSelector"/>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>

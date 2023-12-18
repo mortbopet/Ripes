@@ -141,6 +141,9 @@ public:
    */
   virtual QString elfSupportsFlags(unsigned flags) const = 0;
 
+  /// The name of the base extension for this ISA
+  virtual QString baseExtension() const = 0;
+
   /**
    * @brief supportedExtensions/enabledExtensions
    * An ISA may have a set of (optional) extensions which may be
