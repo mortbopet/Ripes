@@ -7,6 +7,7 @@
 namespace Ripes {
 
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
+    // TODO(raccog): Initialize default selected ISA using cached settings
     : RipesTab(toolbar, parent), m_selectedISA(ISA::RV32I),
       ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
@@ -18,14 +19,22 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
           &SliderulesTab::isaChanged);
   connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
-          &SliderulesTab::updateRegWidth);
+          &SliderulesTab::updateRegWidthSelector);
+  connect(ui->regWidthSelector, &QComboBox::currentIndexChanged, this,
+          &SliderulesTab::isaSelectorChanged);
+  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
+          &SliderulesTab::isaSelectorChanged);
 
-  updateISA(true);
+  updateISASelector(true);
 }
 
-void SliderulesTab::isaChanged() { updateISA(); }
+void SliderulesTab::isaSelectorChanged() {
+  ui->encodingTable->updateISA(ui->regWidthSelector->currentText());
+}
 
-void SliderulesTab::updateISA(bool forceUpdate) {
+void SliderulesTab::isaChanged() { updateISASelector(); }
+
+void SliderulesTab::updateISASelector(bool forceUpdate) {
   if (auto isaId = ProcessorHandler::currentISA()->isaID();
       forceUpdate || isaId != m_selectedISA) {
     m_selectedISA = isaId;
@@ -35,7 +44,7 @@ void SliderulesTab::updateISA(bool forceUpdate) {
   }
 }
 
-void SliderulesTab::updateRegWidth() {
+void SliderulesTab::updateRegWidthSelector() {
   ui->regWidthSelector->clear();
   bool isaChanged = false;
   for (const auto &name : ISANames) {
@@ -193,19 +202,31 @@ EncodingView::EncodingView(QWidget *parent) : QTableView(parent) {
   updateView();
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
-          &EncodingView::isaChanged);
+          &EncodingView::processorChanged);
 }
 
-void EncodingView::isaChanged() {
+void EncodingView::processorChanged() {
   updateModel(ProcessorHandler::fullISA());
   updateView();
 }
 
+void EncodingView::updateISA(const QString &isaName) {
+  for (const auto &isa : ISANames) {
+    if (isa.second == isaName) {
+      updateModel(ISAConstructors.at(isa.first)(QStringList()));
+      updateView();
+      return;
+    }
+  }
+}
+
 void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
-  m_model = std::make_unique<EncodingModel>(
-      isa, std::make_shared<const InstrVec>(isa->instructions()),
-      std::make_shared<const PseudoInstrVec>(isa->pseudoInstructions()));
-  setModel(m_model.get());
+  if (!m_model || !m_model->m_isa->eq(isa.get(), isa->enabledExtensions())) {
+    m_model = std::make_unique<EncodingModel>(
+        isa, std::make_shared<const InstrVec>(isa->instructions()),
+        std::make_shared<const PseudoInstrVec>(isa->pseudoInstructions()));
+    setModel(m_model.get());
+  }
 }
 
 void EncodingView::updateView() {
@@ -230,6 +251,7 @@ void EncodingView::updateView() {
                   range.width());
         }
       }
+      // TODO(raccog): Better way of detecting immediate field
       if (field->fieldType() == "imm") {
         setSpan(row, EncodingModel::FIELD0 + fieldIdx, 2, 1);
       }

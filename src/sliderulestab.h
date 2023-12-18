@@ -66,8 +66,10 @@ class EncodingView : public QTableView {
 public:
   EncodingView(QWidget *parent = nullptr);
 
+  void updateISA(const QString &isaName);
+
 public slots:
-  void isaChanged();
+  void processorChanged();
 
 protected:
   void updateModel(std::shared_ptr<const ISAInfoBase> isa);
@@ -108,12 +110,13 @@ public:
 
 public slots:
   void isaChanged();
+  void isaSelectorChanged();
 
 private slots:
-  void updateRegWidth();
+  void updateRegWidthSelector();
 
 private:
-  void updateISA(bool forceUpdate = false);
+  void updateISASelector(bool forceUpdate = false);
 
   ISA m_selectedISA;
   Ui::SliderulesTab *ui;

@@ -10,7 +10,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class Uncompress : public Component {
 public:
-  void setISA(const std::shared_ptr<ISAInfoBase> &isa) {
+  void setISA(const std::shared_ptr<const ISAInfoBase> &isa) {
     m_isa = isa;
     m_disabled = !m_isa->extensionEnabled("C");
   }
@@ -419,7 +419,7 @@ public:
   OUTPUTPORT(exp_instr, c_RVInstrWidth);
 
 private:
-  std::shared_ptr<ISAInfoBase> m_isa;
+  std::shared_ptr<const ISAInfoBase> m_isa;
   bool m_disabled = true;
 };
 
