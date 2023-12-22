@@ -169,7 +169,7 @@ private:
       auto &file = files[fd];
       file.open(qtOpenFlags);
 
-      if (!file.exists() && flags & O_CREAT) {
+      if (!file.exists() && !(flags & O_CREAT)) {
         throw std::runtime_error("Could not create file");
       }
 
