@@ -24,6 +24,7 @@ struct RegisterFileName {
 
 /// An interface into a register file.
 struct RegFileInfoInterface {
+  virtual ~RegFileInfoInterface(){};
   /// Returns this register file's type.
   virtual std::string_view regFileName() const = 0;
   /// Returns this register file's description.
