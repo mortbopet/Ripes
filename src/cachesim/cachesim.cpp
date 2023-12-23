@@ -115,13 +115,19 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
   std::pair<unsigned, CacheSim::CacheWay *> ew;
   ew.first = s_invalidIndex;
   ew.second = nullptr;
-
   // Locate a new way based on replacement policy.
   if (m_replPolicy == ReplPolicy::Random) {
     // Select a random way
     ew.first = std::rand() % getWays();
     ew.second = &cacheLine[ew.first];
-  } else if (m_replPolicy == ReplPolicy::LRU) {
+  } 
+    else if (m_replPolicy == ReplPolicy::FIFO){
+        ew.first = CacheSim::counter;
+        ew.second = &cacheLine[ew.first];
+        CacheSim::counter += 1;
+	CacheSim::counter %= getWays();
+   }
+    else if (m_replPolicy == ReplPolicy::LRU) {
     if (getWays() == 1) {
       // Nothing to do if we are in LRU and only have 1 set.
       ew.first = 0;

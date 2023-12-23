@@ -16,7 +16,7 @@ class CacheSim;
 
 enum WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
 enum WritePolicy { WriteThrough, WriteBack };
-enum ReplPolicy { Random, LRU };
+enum ReplPolicy { Random, LRU, FIFO};
 
 struct CachePreset {
   QString name;
@@ -91,7 +91,7 @@ class CacheSim : public CacheInterface {
   Q_OBJECT
 public:
   static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
-
+  int counter = 0;
   struct CacheSize {
     unsigned bits = 0;
     std::vector<QString> components;
@@ -329,7 +329,7 @@ private:
 };
 
 const static std::map<ReplPolicy, QString> s_cacheReplPolicyStrings{
-    {ReplPolicy::Random, "Random"}, {ReplPolicy::LRU, "LRU"}};
+    {ReplPolicy::Random, "Random"}, {ReplPolicy::LRU, "LRU"}, {ReplPolicy::FIFO, "FIFO"}};
 const static std::map<WriteAllocPolicy, QString> s_cacheWriteAllocateStrings{
     {WriteAllocPolicy::WriteAllocate, "Write allocate"},
     {WriteAllocPolicy::NoWriteAllocate, "No write allocate"}};
