@@ -374,7 +374,7 @@ void CacheSim::undo() {
     Q_ASSERT(m_cacheLines.at(lineIdx).count(wayIdx) != 0);
     way = CacheWay();
   }
-  // Case 2: A miss occured on a valid entry. In this case, we have to restore
+  // Case 2: A miss occurred on a valid entry. In this case, we have to restore
   // the old way, which was evicted
   // - Restore the old entry which was evicted
   else if (!trace.transaction.isHit) {
