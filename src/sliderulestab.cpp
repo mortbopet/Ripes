@@ -269,11 +269,7 @@ void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
 void EncodingView::updateView() {
   verticalHeader()->setVisible(false);
   horizontalHeader()->setMinimumSectionSize(30);
-  for (const auto &col :
-       {EncodingModel::FIELD0, EncodingModel::FIELD1, EncodingModel::FIELD2}) {
-    horizontalHeader()->setSectionResizeMode(
-        col, QHeaderView::ResizeMode::ResizeToContents);
-  }
+  resizeColumnsToContents();
   horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
                                            QHeaderView::ResizeMode::Stretch);
   clearSpans();
@@ -295,7 +291,6 @@ void EncodingView::updateView() {
       ++fieldIdx;
     }
   }
-  resizeColumnsToContents();
 }
 
 DecodingModel::DecodingModel(const std::shared_ptr<const ISAInfoBase> isa,
