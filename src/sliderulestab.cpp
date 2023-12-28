@@ -40,6 +40,11 @@ void SliderulesTab::isaSelectorChanged() {
     return;
   }
 
+  // Set all rows to visible
+  for (int i = 0; i < ui->encodingTable->model->rowCount(QModelIndex()); ++i) {
+    ui->encodingTable->setRowHidden(i, false);
+  }
+
   // Check if base extension should be hidden and get selected extensions
   bool hideBaseExt = false;
   if (isa->supportsExtension(mainExt)) {
