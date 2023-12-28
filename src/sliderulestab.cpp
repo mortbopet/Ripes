@@ -33,18 +33,30 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
 void SliderulesTab::isaSelectorChanged() {
   auto isa = ui->encodingTable->model->isa;
   auto exts = QStringList();
-  auto text = ui->mainExtensionSelector->currentText();
-  if (!text.isEmpty()) {
-    bool hideRows = true;
-    if (isa->supportsExtension(text)) {
-      exts = QStringList() << text;
-    } else {
-      hideRows = false;
-    }
-    // Hide base extension
+
+  // Get name of main extension; exit early if it has not been filled in yet
+  auto mainExt = ui->mainExtensionSelector->currentText();
+  if (mainExt.isEmpty()) {
+    return;
+  }
+
+  // Check if base extension should be hidden and get selected extensions
+  bool hideBaseExt = false;
+  if (isa->supportsExtension(mainExt)) {
+    exts = QStringList() << mainExt;
+    hideBaseExt = true;
+  }
+
+  // Update tables with new ISA
+  ui->encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
+
+  // Hide base extension instruction rows in encoding table if necessary
+  if (hideBaseExt) {
     for (const auto &instr : ui->encodingTable->model->rowInstrMap) {
       if (instr.second->extensionOrigin() == isa->baseExtension()) {
-        ui->encodingTable->setRowHidden(instr.first, hideRows);
+        ui->encodingTable->setRowHidden(instr.first, true);
+
+        // Hide immediate encoding if it exists
         bool hasImmediate = false;
         for (const auto &field : instr.second->getFields()) {
           if (field->fieldType() == "imm") {
@@ -53,12 +65,11 @@ void SliderulesTab::isaSelectorChanged() {
           }
         }
         if (hasImmediate) {
-          ui->encodingTable->setRowHidden(instr.first + 1, hideRows);
+          ui->encodingTable->setRowHidden(instr.first + 1, true);
         }
       }
     }
   }
-  ui->encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
 }
 
 void SliderulesTab::processorChanged() { updateISASelector(); }
@@ -248,11 +259,13 @@ void EncodingView::processorChanged() {
 
 void EncodingView::updateISA(const QString &isaName,
                              const QStringList &extensions) {
-  for (const auto &isa : ISANames) {
-    if (isa.second == isaName) {
-      updateModel(ISAConstructors.at(isa.first)(extensions));
-      updateView();
-      return;
+  if (isaName != model->isa->name()) {
+    for (const auto &isa : ISANames) {
+      if (isa.second == isaName) {
+        updateModel(ISAConstructors.at(isa.first)(extensions));
+        updateView();
+        return;
+      }
     }
   }
 }
