@@ -16,7 +16,7 @@ class CacheSim;
 
 enum WriteAllocPolicy { WriteAllocate, NoWriteAllocate };
 enum WritePolicy { WriteThrough, WriteBack };
-enum ReplPolicy { Random, LRU, FIFO};
+enum ReplPolicy { Random, LRU, FIFO };
 
 struct CachePreset {
   QString name;
@@ -91,7 +91,8 @@ class CacheSim : public CacheInterface {
   Q_OBJECT
 public:
   static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
-  int counter = 0;
+  unsigned m_fifoIndexCounter = 0;
+  bool m_fifoflag = false;
   struct CacheSize {
     unsigned bits = 0;
     std::vector<QString> components;
@@ -106,6 +107,7 @@ public:
     // LRU algorithm relies on invalid cache ways to have an initial high value.
     // -1 ensures maximum value for all way sizes.
     unsigned lru = -1;
+    int fifo = 0;
   };
 
   struct CacheIndex {
