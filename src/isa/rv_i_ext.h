@@ -271,7 +271,7 @@ struct Ecall : public Instr<Ecall, Funct12::ECALL> {
 
 namespace TypeU {
 
-/// A RISC-V immediate field with an input width of 32 bits.
+/// A RISC-V immediate field with an input width of 20 bits.
 /// Used in U-Type instructions.
 ///
 /// It is defined as:
@@ -280,7 +280,7 @@ namespace TypeU {
 constexpr static unsigned VALID_INDEX = 1;
 template <unsigned index, SymbolType symbolType>
 struct ImmU
-    : public ImmSym<index, 32, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
+    : public ImmSym<index, 20, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
   static_assert(index == VALID_INDEX, "Invalid token index");
 };
 
