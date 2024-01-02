@@ -91,7 +91,7 @@ class CacheSim : public CacheInterface {
   Q_OBJECT
 public:
   static constexpr unsigned s_invalidIndex = static_cast<unsigned>(-1);
-  int counter = 0;
+  unsigned m_fifoIndexCounter = 0;
   struct CacheSize {
     unsigned bits = 0;
     std::vector<QString> components;

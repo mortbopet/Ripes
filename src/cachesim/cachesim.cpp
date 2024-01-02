@@ -122,10 +122,10 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
     ew.second = &cacheLine[ew.first];
   } 
     else if (m_replPolicy == ReplPolicy::FIFO){
-        ew.first = CacheSim::counter;
+        ew.first = m_fifoIndexCounter;
         ew.second = &cacheLine[ew.first];
-        CacheSim::counter += 1;
-	CacheSim::counter %= getWays();
+        m_fifoIndexCounter += 1;
+	m_fifoIndexCounter %= getWays();
    }
     else if (m_replPolicy == ReplPolicy::LRU) {
     if (getWays() == 1) {
