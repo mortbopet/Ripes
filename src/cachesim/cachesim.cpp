@@ -52,6 +52,15 @@ void CacheSim::updateCacheLineReplFields(CacheLine &line, unsigned wayIdx) {
     // Upgrade @p lruIdx to the most recently used
     line[wayIdx].lru = 0;
   }
+
+  if (getReplacementPolicy() == ReplPolicy::FIFO) {
+    for(auto &set : line){
+      if(m_fifoflag && set.second.valid){
+        set.second.fifo ++;
+      }
+    }
+    m_fifoflag = false;
+  }
 }
 
 void CacheSim::revertCacheLineReplFields(CacheLine &line,
@@ -68,6 +77,15 @@ void CacheSim::revertCacheLineReplFields(CacheLine &line,
 
     // Revert the oldWay LRU
     line[wayIdx].lru = oldWay.lru;
+  }
+
+  if (getReplacementPolicy() == ReplPolicy::FIFO) {
+
+    for(auto &set : line){
+      if(set.second.valid && m_fifoflag) set.second.fifo--;
+    }
+    m_fifoflag = false;
+    line[wayIdx].fifo = oldWay.fifo;
   }
 }
 
@@ -92,6 +110,13 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
     // LRU bits
     componentBits = getWaysBits() * entries;
     size.components.push_back("LRU bits: " + QString::number(componentBits));
+    size.bits += componentBits;
+  }
+
+  if (m_replPolicy == ReplPolicy::FIFO) {
+    // FIFO bits
+    componentBits = getWaysBits() * entries;
+    size.components.push_back("FIFO bits: " + QString::number(componentBits));
     size.bits += componentBits;
   }
 
@@ -121,13 +146,42 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
     ew.first = std::rand() % getWays();
     ew.second = &cacheLine[ew.first];
   } 
-    else if (m_replPolicy == ReplPolicy::FIFO){
-        ew.first = m_fifoIndexCounter;
-        ew.second = &cacheLine[ew.first];
-        m_fifoIndexCounter += 1;
-	m_fifoIndexCounter %= getWays();
+  else if (m_replPolicy == ReplPolicy::FIFO){
+//        ew.first = m_fifoIndexCounter;
+//        ew.second = &cacheLine[ew.first];
+//        m_fifoIndexCounter += 1;
+//	m_fifoIndexCounter %= getWays();
+   if (getWays() == 1) {
+      // Nothing to do if we are in LRU and only have 1 set.
+      ew.first = 0;
+      ew.second = &cacheLine[ew.first];
+    } else {
+      // Lazily initialize all ways in the cacheline before starting to iterate.
+      for (int i = 0; i < getWays(); ++i)
+        cacheLine[i];
+
+      // If there is an invalid cache line, select that.
+      auto it =
+          std::find_if(cacheLine.begin(), cacheLine.end(),
+                       [=](const auto &way) { return !way.second.valid; });
+      if (it != cacheLine.end()) {
+        ew.first = it->first;
+        ew.second = &it->second;
+        m_fifoflag = true;
+      }
+      if (ew.second == nullptr) {
+        for (auto &way : cacheLine) {
+          if (static_cast<long>(way.second.fifo) == getWays()){
+            ew.first = way.first;
+            ew.second = &way.second;
+            m_fifoflag = true;
+            break;
+          }
+        }
+      }
    }
-    else if (m_replPolicy == ReplPolicy::LRU) {
+  }
+  else if (m_replPolicy == ReplPolicy::LRU) {
     if (getWays() == 1) {
       // Nothing to do if we are in LRU and only have 1 set.
       ew.first = 0;
@@ -156,8 +210,7 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
         }
       }
     }
-  }
-
+   }
   Q_ASSERT(ew.first != s_invalidIndex && "Unable to locate way for eviction");
   Q_ASSERT(ew.second != nullptr && "Unable to locate way for eviction");
   return ew;
@@ -384,6 +437,10 @@ void CacheSim::undo() {
   // the old way, which was evicted
   // - Restore the old entry which was evicted
   else if (!trace.transaction.isHit) {
+    way = oldWay;
+  }
+  if (!trace.transaction.isHit && getReplacementPolicy() == ReplPolicy::FIFO) {
+    m_fifoflag = true;
     way = oldWay;
   }
   // Case 3: Else, it was a cache hit; Revert replacement fields and dirty
