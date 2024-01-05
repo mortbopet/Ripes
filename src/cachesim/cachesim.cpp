@@ -41,7 +41,7 @@ void CacheSim::updateCacheLineReplFields(CacheLine &line, unsigned wayIdx) {
     // Find previous LRU value for the updated index
     const unsigned preLRU = line[wayIdx].lru;
 
-    // All indicies which are curently more recent than preLRU shall be
+    // All indicies which are currently more recent than preLRU shall be
     // incremented
     for (auto &set : line) {
       if (set.second.valid && set.second.lru < preLRU) {
@@ -67,7 +67,7 @@ void CacheSim::revertCacheLineReplFields(CacheLine &line,
                                          const CacheWay &oldWay,
                                          unsigned wayIdx) {
   if (getReplacementPolicy() == ReplPolicy::LRU) {
-    // All indicies which are curently less than or equal to the old LRU shall
+    // All indicies which are currently less than or equal to the old LRU shall
     // be decremented
     for (auto &set : line) {
       if (set.second.valid && set.second.lru <= oldWay.lru) {
@@ -301,7 +301,7 @@ void CacheSim::analyzeCacheAccess(CacheTransaction &transaction) const {
 
 void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
   // Access traces are pushed in sorted order into the access trace map; indexed
-  // by a key corresponding to the cycle of the acces.
+  // by a key corresponding to the cycle of the access.
   const unsigned currentCycle =
       ProcessorHandler::getProcessor()->getCycleCount();
 
@@ -433,7 +433,7 @@ void CacheSim::undo() {
     Q_ASSERT(m_cacheLines.at(lineIdx).count(wayIdx) != 0);
     way = CacheWay();
   }
-  // Case 2: A miss occured on a valid entry. In this case, we have to restore
+  // Case 2: A miss occurred on a valid entry. In this case, we have to restore
   // the old way, which was evicted
   // - Restore the old entry which was evicted
   else if (!trace.transaction.isHit) {

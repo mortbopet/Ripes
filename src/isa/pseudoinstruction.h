@@ -9,6 +9,7 @@
 namespace Ripes {
 
 struct PseudoInstructionBase {
+  virtual ~PseudoInstructionBase() {}
   virtual Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                                  SymbolMap &symbols) const = 0;
   virtual QString name() const = 0;

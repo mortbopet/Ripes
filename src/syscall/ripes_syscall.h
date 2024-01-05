@@ -72,7 +72,7 @@ protected:
  *
  * It is expected that the syscallManager can be called outside of the main GUI
  * thread. As such, all syscalls who require GUI interaction must handle this
- * explicitely.
+ * explicitly.
  */
 class SyscallManager {
 public:
