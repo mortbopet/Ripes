@@ -26,7 +26,7 @@
       <enum>Qt::Vertical</enum>
      </property>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="encodingLayout">
        <property name="sizeConstraint">
         <enum>QLayout::SetDefaultConstraint</enum>
        </property>
@@ -143,9 +143,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <widget class="EncodingView" name="encodingTable"/>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="layoutWidget">
@@ -167,11 +164,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>EncodingView</class>
-   <extends>QTableView</extends>
-   <header>sliderulestab.h</header>
-  </customwidget>
   <customwidget>
    <class>DecodingView</class>
    <extends>QTableView</extends>

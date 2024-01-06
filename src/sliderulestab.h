@@ -3,6 +3,8 @@
 #include "instruction.h"
 #include "isainfo.h"
 #include "pseudoinstruction.h"
+#include "qcombobox.h"
+#include "qlayoutitem.h"
 #include "ripestab.h"
 
 #include <QHeaderView>
@@ -56,26 +58,25 @@ public:
 protected:
   friend class EncodingView;
 
-  /// A set of all the row numbers that represent immediate encodings
+  /// A set of all the row numbers that represent immediate encodings.
   std::set<int> m_immediateRows;
 };
 
 class EncodingView : public QTableView {
   Q_OBJECT
 public:
-  EncodingView(QWidget *parent = nullptr);
+  EncodingView(QComboBox &isaFamilySelector, QWidget *parent = nullptr);
 
   void updateISA(const QString &isaName,
                  const QStringList &extensions = QStringList());
 
   std::unique_ptr<EncodingModel> model;
 
-public slots:
-  void processorChanged();
-
 protected:
   void updateModel(std::shared_ptr<const ISAInfoBase> isa);
   void updateView();
+
+  QComboBox &m_isaFamilySelector;
 };
 
 struct DecodingModel : public QAbstractTableModel {
@@ -108,18 +109,21 @@ public:
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
 
-public slots:
+private slots:
   void processorChanged();
   void isaSelectorChanged();
-
-private slots:
   void updateRegWidthSelector();
 
 private:
   void updateISASelector(bool forceUpdate = false);
 
   ISA m_selectedISA;
+
   Ui::SliderulesTab *ui;
+
+  // These pointers are owned by the Qt layout and should not be deleted in the
+  // destructor.
+  EncodingView *m_encodingTable;
 };
 
 } // namespace Ripes

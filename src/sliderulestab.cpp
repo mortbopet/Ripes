@@ -12,9 +12,9 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
       ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
 
-  for (const auto &isaFamily : ISAFamilyNames) {
-    ui->isaSelector->addItem(isaFamily.second);
-  }
+  // Create encoding table and transfer ownership to UI layout.
+  m_encodingTable = new EncodingView(*ui->isaSelector);
+  ui->encodingLayout->addWidget(m_encodingTable);
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
           &SliderulesTab::processorChanged);
@@ -31,7 +31,7 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
 }
 
 void SliderulesTab::isaSelectorChanged() {
-  auto isa = ui->encodingTable->model->isa;
+  auto isa = m_encodingTable->model->isa;
   auto exts = QStringList();
 
   // Get name of main extension; exit early if it has not been filled in yet
@@ -41,8 +41,8 @@ void SliderulesTab::isaSelectorChanged() {
   }
 
   // Set all rows to visible
-  for (int i = 0; i < ui->encodingTable->model->rowCount(QModelIndex()); ++i) {
-    ui->encodingTable->setRowHidden(i, false);
+  for (int i = 0; i < m_encodingTable->model->rowCount(QModelIndex()); ++i) {
+    m_encodingTable->setRowHidden(i, false);
   }
 
   // Check if base extension should be hidden and get selected extensions
@@ -53,7 +53,7 @@ void SliderulesTab::isaSelectorChanged() {
   }
 
   // Update tables with new ISA
-  ui->encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
+  m_encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
 
   // Hide base extension instruction rows in encoding table if necessary
   //  if (hideBaseExt) {
@@ -103,7 +103,7 @@ void SliderulesTab::updateRegWidthSelector() {
     }
   }
 
-  auto isa = ui->encodingTable->model->isa;
+  auto isa = m_encodingTable->model->isa;
   ui->mainExtensionSelector->clear();
   ui->mainExtensionSelector->addItem(isa->baseExtension());
   for (const auto &ext : isa->supportedExtensions()) {
@@ -244,17 +244,15 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
   return QVariant();
 }
 
-EncodingView::EncodingView(QWidget *parent) : QTableView(parent) {
+EncodingView::EncodingView(QComboBox &isaFamilySelector, QWidget *parent)
+    : QTableView(parent), m_isaFamilySelector(isaFamilySelector) {
+  // Add all supported ISA families into the ISA family selector.
+  for (const auto &isaFamily : ISAFamilyNames) {
+    m_isaFamilySelector.addItem(isaFamily.second);
+  }
+
   auto isa = ProcessorHandler::fullISA();
   updateModel(isa);
-  updateView();
-
-  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
-          &EncodingView::processorChanged);
-}
-
-void EncodingView::processorChanged() {
-  updateModel(ProcessorHandler::fullISA());
   updateView();
 }
 
