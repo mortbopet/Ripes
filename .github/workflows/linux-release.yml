@@ -78,7 +78,7 @@ jobs:
 
     - name: continuous release
       uses: softprops/action-gh-release@v1
-      if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release'
+      if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release' && github.repository == 'mortbopet/Ripes'
       with:
         prerelease: true
         files: Ripes*.AppImage*
@@ -86,7 +86,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release')
+    - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release') && (github.repository == 'mortbopet/Ripes')
       name: tagged release
       uses: softprops/action-gh-release@v1
       with:
