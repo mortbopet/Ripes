@@ -160,8 +160,6 @@ QVariant EncodingModel::headerData(int section, Qt::Orientation orientation,
         return QString("Type");
       case DESCRIPTION:
         return QString("Description");
-      case EXPLANATION:
-        return QString("Explanation");
       case OPCODE:
         return QString("Opcode");
       case FIELD0:
@@ -208,9 +206,6 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
         return "TODO";
       case DESCRIPTION:
         return QString(instr->description());
-      case EXPLANATION:
-        // TODO(raccog): Include an instruction's pseudocode in isainfo
-        return QString("TODO");
       case OPCODE:
         return QString(instr->name());
       case FIELD0:

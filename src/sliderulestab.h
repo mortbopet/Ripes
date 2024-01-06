@@ -29,16 +29,15 @@ public:
 
   enum Column {
     EXTENSION = 0,
-    TYPE = 1,
-    DESCRIPTION = 2,
-    EXPLANATION = 3,
-    OPCODE = 4,
-    // NOTE: The field columns should be variable based on the maximum number of
-    // fields
-    FIELD0 = 5,
-    FIELD1 = 6,
-    FIELD2 = 7,
-    BIT_START = 8,
+    TYPE,
+    DESCRIPTION,
+    OPCODE,
+    // TODO(raccog): The field columns should be variable based on the maximum
+    // number of fields
+    FIELD0,
+    FIELD1,
+    FIELD2,
+    BIT_START,
     BIT_END = BIT_START + BIT_COLUMNS
   };
 
