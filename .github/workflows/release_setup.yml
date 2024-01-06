@@ -7,6 +7,7 @@ on:
 
 jobs:
   release-setup:
+    if: github.repository == 'mortbopet/Ripes'
     runs-on: ubuntu-latest
     steps:
 
