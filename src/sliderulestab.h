@@ -25,6 +25,7 @@ public:
                 const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
                 QObject *parent = nullptr);
 
+  // TODO(raccog): This could be a variable that is controlable in the UI.
   constexpr static size_t BIT_COLUMNS = 32;
 
   enum Column {
@@ -49,15 +50,14 @@ public:
                               int role = Qt::DisplayRole) const override;
 
   const std::shared_ptr<const ISAInfoBase> isa;
-  std::map<size_t, const InstructionBase *> rowInstrMap;
+  const std::shared_ptr<const InstrVec> instructions;
+  const std::shared_ptr<const PseudoInstrVec> pseudoInstructions;
 
 protected:
   friend class EncodingView;
 
-  size_t m_rows;
-
-  const std::shared_ptr<const InstrVec> m_instructions;
-  const std::shared_ptr<const PseudoInstrVec> m_pseudoInstructions;
+  /// A set of all the row numbers that represent immediate encodings
+  std::set<int> m_immediateRows;
 };
 
 class EncodingView : public QTableView {

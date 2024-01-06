@@ -56,25 +56,25 @@ void SliderulesTab::isaSelectorChanged() {
   ui->encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
 
   // Hide base extension instruction rows in encoding table if necessary
-  if (hideBaseExt) {
-    for (const auto &instr : ui->encodingTable->model->rowInstrMap) {
-      if (instr.second->extensionOrigin() == isa->baseExtension()) {
-        ui->encodingTable->setRowHidden(instr.first, true);
+  //  if (hideBaseExt) {
+  //    for (const auto &instr : *ui->encodingTable->model->instructions) {
+  //      if (instr.second->extensionOrigin() == isa->baseExtension()) {
+  //        ui->encodingTable->setRowHidden(instr.first, true);
 
-        // Hide immediate encoding if it exists
-        bool hasImmediate = false;
-        for (const auto &field : instr.second->getFields()) {
-          if (field->fieldType() == "imm") {
-            hasImmediate = true;
-            break;
-          }
-        }
-        if (hasImmediate) {
-          ui->encodingTable->setRowHidden(instr.first + 1, true);
-        }
-      }
-    }
-  }
+  //        // Hide immediate encoding if it exists
+  //        bool hasImmediate = false;
+  //        for (const auto &field : instr.second->getFields()) {
+  //          if (field->fieldType() == "imm") {
+  //            hasImmediate = true;
+  //            break;
+  //          }
+  //        }
+  //        if (hasImmediate) {
+  //          ui->encodingTable->setRowHidden(instr.first + 1, true);
+  //        }
+  //      }
+  //    }
+  //  }
 }
 
 void SliderulesTab::processorChanged() { updateISASelector(); }
@@ -121,81 +121,79 @@ EncodingModel::EncodingModel(
     const std::shared_ptr<const InstrVec> instructions,
     const std::shared_ptr<const PseudoInstrVec> pseudoInstructions,
     QObject *parent)
-    : QAbstractTableModel(parent), isa(isa), m_instructions(instructions),
-      m_pseudoInstructions(pseudoInstructions) {
-  // Map instructions to their row index
-  size_t row = 0;
-  for (const auto &instr : *m_instructions) {
-    rowInstrMap[row] = instr.get();
-    ++row;
-    bool hasImmediate = false;
-    for (const auto &field : instr->getFields()) {
-      // TODO(raccog): Better way of detecting immediate field
-      if (field->fieldType() == "imm") {
-        hasImmediate = true;
-        break;
-      }
-    }
-    // Add second row if instruction has immediates
-    if (hasImmediate) {
-      ++row;
-    }
-    // TODO(raccog): Add rows if instruction is larger than 32-bits
-  }
-  m_rows = row;
-}
+    : QAbstractTableModel(parent), isa(isa), instructions(instructions),
+      pseudoInstructions(pseudoInstructions) {}
 
-int EncodingModel::rowCount(const QModelIndex &) const { return m_rows; }
+int EncodingModel::rowCount(const QModelIndex &) const {
+  return instructions->size();
+}
 int EncodingModel::columnCount(const QModelIndex &) const { return BIT_END; }
 
 QVariant EncodingModel::headerData(int section, Qt::Orientation orientation,
                                    int role) const {
-  if (orientation == Qt::Horizontal) {
-    switch (role) {
-    case Qt::DisplayRole: {
-      switch (section) {
-      case EXTENSION:
-        return QString("Extension");
-      case TYPE:
-        return QString("Type");
-      case DESCRIPTION:
-        return QString("Description");
-      case OPCODE:
-        return QString("Opcode");
-      case FIELD0:
-      case FIELD1:
-      case FIELD2:
-        return QString("Field ") + QString::number(section - FIELD0);
-      }
-      if (section >= BIT_START && section < BIT_END) {
-        return QString::number(BIT_END - section - 1);
-      }
+  // Hide vertical header
+  if (orientation != Qt::Horizontal) {
+    return QVariant();
+  }
+
+  switch (role) {
+  case Qt::DisplayRole: {
+    switch (section) {
+    case EXTENSION:
+      return QString("Extension");
+    case TYPE:
+      return QString("Type");
+    case DESCRIPTION:
+      return QString("Description");
+    case OPCODE:
+      return QString("Opcode");
+    case FIELD0:
+    case FIELD1:
+    case FIELD2:
+      return QString("Field ") + QString::number(section - FIELD0);
     }
+
+    if (section >= BIT_START && section < BIT_END) {
+      return QString::number(BIT_END - section - 1);
     }
+  }
   }
 
   return QVariant();
 }
 
 QVariant EncodingModel::data(const QModelIndex &index, int role) const {
-  size_t row = static_cast<size_t>(index.row());
-  if (index.row() < 0 || row >= m_rows) {
+  if (!index.isValid() ||
+      static_cast<size_t>(index.row()) >= instructions->size()) {
     return QVariant();
   }
 
-  bool isImmediateRow = false;
-  if (rowInstrMap.count(row) == 0) {
-    assert(rowInstrMap.count(row - 1) == 1 &&
-           "No matching instruction for row in encoding table");
-    isImmediateRow = true;
-  }
+  auto row = index.row();
   auto col = index.column();
-  auto &instr = rowInstrMap.at(isImmediateRow ? row - 1 : row);
-  auto fields = instr->getFields();
+
+  if (col > BIT_END) {
+    return QVariant();
+  }
+
+  // Check if this row contains an immediate field encoding
+  auto immIdxIter = m_immediateRows.find(row);
+  bool isImmediateRow = immIdxIter != m_immediateRows.end();
 
   if (isImmediateRow) {
+    // This row contains an immediate field encoding.
     // TODO(raccog): Show encoding for constructed immediate here
   } else {
+    // This row contains an instruction encoding.
+
+    // Count how many rows before this one contain an immediate field encoding.
+    auto prevImmediateIter = m_immediateRows.lower_bound(row);
+    int prevImmediateRows =
+        prevImmediateIter != m_immediateRows.end()
+            ? std::distance(m_immediateRows.begin(), prevImmediateIter)
+            : 0;
+
+    auto &instr = instructions->at(row - prevImmediateRows);
+    auto fields = instr->getFields();
     switch (role) {
     case Qt::DisplayRole: {
       switch (col) {
@@ -218,6 +216,7 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
 
       if (col >= BIT_START && col < BIT_END) {
         unsigned bit = static_cast<unsigned>(BIT_END - col - 1);
+        // Check if bit is used in a field.
         for (const auto &field : instr->getFields()) {
           for (const auto &range : field->ranges) {
             if (range.stop == bit) {
@@ -225,6 +224,7 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
             }
           }
         }
+        // Check if bit is used in an opcode part.
         for (const auto &opPart : instr->getOpParts()) {
           if (opPart.range.isWithinRange(bit)) {
             return QString(opPart.bitIsSet(bit) ? "1" : "0");
@@ -235,6 +235,7 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
     }
     }
   }
+
   switch (role) {
   case Qt::TextAlignmentRole:
     return Qt::AlignCenter;
@@ -259,6 +260,8 @@ void EncodingView::processorChanged() {
 
 void EncodingView::updateISA(const QString &isaName,
                              const QStringList &extensions) {
+  // FIX(raccog): The name matching does not work, Qt UI uses "RV32",
+  // while the ISAInfo class uses "RV32I".
   if (isaName != model->isa->name()) {
     for (const auto &isa : ISANames) {
       if (isa.second == isaName) {
@@ -286,10 +289,8 @@ void EncodingView::updateView() {
   horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
                                            QHeaderView::ResizeMode::Stretch);
   clearSpans();
-  for (const auto &pair : model->rowInstrMap) {
-    int row = static_cast<int>(pair.first);
-    const auto &instr = pair.second;
-    size_t fieldIdx = 0;
+  int row = 0;
+  for (const auto &instr : *model->instructions) {
     for (const auto &field : instr->getFields()) {
       for (const auto &range : field->ranges) {
         if (range.width() > 1) {
@@ -297,12 +298,8 @@ void EncodingView::updateView() {
                   range.width());
         }
       }
-      // TODO(raccog): Better way of detecting immediate field
-      if (field->fieldType() == "imm") {
-        setSpan(row, EncodingModel::FIELD0 + fieldIdx, 2, 1);
-      }
-      ++fieldIdx;
     }
+    ++row;
   }
 }
 
