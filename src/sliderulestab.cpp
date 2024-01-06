@@ -13,25 +13,29 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   ui->setupUi(this);
 
   // Create encoding table and transfer ownership to UI layout.
-  m_encodingTable = new EncodingView(*ui->isaSelector);
+  m_encodingTable = new EncodingView(*ui->isaSelector, *ui->regWidthSelector,
+                                     *ui->mainExtensionSelector);
   ui->encodingLayout->addWidget(m_encodingTable);
 
-  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
-          &SliderulesTab::processorChanged);
-  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
-          &SliderulesTab::updateRegWidthSelector);
-  connect(ui->regWidthSelector, &QComboBox::currentIndexChanged, this,
-          &SliderulesTab::isaSelectorChanged);
-  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
-          &SliderulesTab::isaSelectorChanged);
-  connect(ui->mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-          &SliderulesTab::isaSelectorChanged);
+  m_encodingTable->processorChanged();
 
-  updateISASelector(true);
+  //  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
+  //  this,
+  //          &SliderulesTab::processorChanged);
+  //  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
+  //          &SliderulesTab::updateRegWidthSelector);
+  //  connect(ui->regWidthSelector, &QComboBox::currentIndexChanged, this,
+  //          &SliderulesTab::isaSelectorChanged);
+  //  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
+  //          &SliderulesTab::isaSelectorChanged);
+  //  connect(ui->mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+  //          &SliderulesTab::isaSelectorChanged);
+
+  //  updateISASelector(true);
 }
 
 void SliderulesTab::isaSelectorChanged() {
-  auto isa = m_encodingTable->model->isa;
+  auto isa = m_encodingTable->m_model->isa;
   auto exts = QStringList();
 
   // Get name of main extension; exit early if it has not been filled in yet
@@ -41,7 +45,7 @@ void SliderulesTab::isaSelectorChanged() {
   }
 
   // Set all rows to visible
-  for (int i = 0; i < m_encodingTable->model->rowCount(QModelIndex()); ++i) {
+  for (int i = 0; i < m_encodingTable->m_model->rowCount(QModelIndex()); ++i) {
     m_encodingTable->setRowHidden(i, false);
   }
 
@@ -53,7 +57,7 @@ void SliderulesTab::isaSelectorChanged() {
   }
 
   // Update tables with new ISA
-  m_encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
+  //  m_encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
 
   // Hide base extension instruction rows in encoding table if necessary
   //  if (hideBaseExt) {
@@ -103,7 +107,7 @@ void SliderulesTab::updateRegWidthSelector() {
     }
   }
 
-  auto isa = m_encodingTable->model->isa;
+  auto isa = m_encodingTable->m_model->isa;
   ui->mainExtensionSelector->clear();
   ui->mainExtensionSelector->addItem(isa->baseExtension());
   for (const auto &ext : isa->supportedExtensions()) {
@@ -244,39 +248,89 @@ QVariant EncodingModel::data(const QModelIndex &index, int role) const {
   return QVariant();
 }
 
-EncodingView::EncodingView(QComboBox &isaFamilySelector, QWidget *parent)
-    : QTableView(parent), m_isaFamilySelector(isaFamilySelector) {
+EncodingView::EncodingView(QComboBox &isaFamilySelector,
+                           QComboBox &regWidthSelector,
+                           QComboBox &mainExtensionSelector, QWidget *parent)
+    : QTableView(parent), m_isaFamilySelector(isaFamilySelector),
+      m_regWidthSelector(regWidthSelector),
+      m_mainExtensionSelector(mainExtensionSelector) {
   // Add all supported ISA families into the ISA family selector.
   for (const auto &isaFamily : ISAFamilyNames) {
     m_isaFamilySelector.addItem(isaFamily.second);
   }
 
-  auto isa = ProcessorHandler::fullISA();
-  updateModel(isa);
-  updateView();
+  connect(&m_isaFamilySelector, &QComboBox::currentIndexChanged, this,
+          &EncodingView::isaFamilyChanged);
+  connect(&m_regWidthSelector, &QComboBox::currentIndexChanged, this,
+          &EncodingView::regWidthChanged);
+  connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+          [] {});
+
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
+          &EncodingView::processorChanged);
 }
 
-void EncodingView::updateISA(const QString &isaName,
-                             const QStringList &extensions) {
-  // FIX(raccog): The name matching does not work, Qt UI uses "RV32",
-  // while the ISAInfo class uses "RV32I".
-  if (isaName != model->isa->name()) {
-    for (const auto &isa : ISANames) {
-      if (isa.second == isaName) {
-        updateModel(ISAConstructors.at(isa.first)(extensions));
-        updateView();
-        return;
-      }
-    }
+void EncodingView::processorChanged() {
+  auto isaInfo = ProcessorHandler::currentISA();
+  ISAFamily isaFamily = ISAFamilies.at(isaInfo->isaID());
+  emit m_isaFamilySelector.currentIndexChanged(static_cast<int>(isaFamily));
+
+  ISA isa = isaInfo->isaID();
+  auto familySet = ISAFamilySets.at(isaFamily);
+  auto isaResult = familySet.find(isa);
+  assert(isaResult != familySet.end() && "Could not find ISA in ISAFamilySets");
+  int idx = std::distance(familySet.begin(), isaResult);
+  m_regWidthSelector.setCurrentIndex(idx);
+}
+
+void EncodingView::isaFamilyChanged(int index) {
+  if (index < 0) {
+    return;
+  }
+
+  ISAFamily isaFamily = static_cast<ISAFamily>(index);
+
+  // Add ISA register width options to selector.
+  if (m_regWidthSelector.count() > 0) {
+    m_regWidthSelector.clear();
+  }
+  for (const auto &isa : ISAFamilySets.at(isaFamily)) {
+    auto isaName = ISANames.at(isa);
+    m_regWidthSelector.addItem(isaName);
+  }
+}
+
+void EncodingView::regWidthChanged(int index) {
+  if (index < 0) {
+    return;
+  }
+
+  auto vec = ISAFamilySets.at(
+      static_cast<ISAFamily>(m_isaFamilySelector.currentIndex()));
+  auto iter = vec.begin();
+  std::advance(iter, index);
+  assert(iter != vec.end() && "Could not find ISA in ISAFamilySets");
+  ISA isa = *iter;
+
+  auto isaInfo = ISAInfoRegistry::getISA(isa, QStringList());
+  updateModel(isaInfo);
+
+  if (m_mainExtensionSelector.count() > 0) {
+    m_mainExtensionSelector.clear();
+  }
+  m_mainExtensionSelector.addItem(isaInfo->baseExtension());
+  for (const auto &extName : isaInfo->supportedExtensions()) {
+    m_mainExtensionSelector.addItem(extName);
   }
 }
 
 void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
-  if (!model || !model->isa->eq(isa.get(), isa->enabledExtensions())) {
-    model = std::make_unique<EncodingModel>(
+  if (!m_model || !m_model->isa->eq(isa.get(), isa->enabledExtensions())) {
+    m_model = std::make_unique<EncodingModel>(
         isa, std::make_shared<const InstrVec>(isa->instructions()),
         std::make_shared<const PseudoInstrVec>(isa->pseudoInstructions()));
-    setModel(model.get());
+    setModel(m_model.get());
+    updateView();
   }
 }
 
@@ -288,7 +342,7 @@ void EncodingView::updateView() {
                                            QHeaderView::ResizeMode::Stretch);
   clearSpans();
   int row = 0;
-  for (const auto &instr : *model->instructions) {
+  for (const auto &instr : *m_model->instructions) {
     for (const auto &field : instr->getFields()) {
       for (const auto &range : field->ranges) {
         if (range.width() > 1) {

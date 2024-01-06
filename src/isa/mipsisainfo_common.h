@@ -199,7 +199,7 @@ public:
 
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
 
-  QString name() const override { return CCmarch().toUpper(); }
+  QString fullName() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
     return RegIndex{m_regInfos.at(MIPSISA::GPR), 29};
   }

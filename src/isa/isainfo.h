@@ -24,6 +24,11 @@ class ISAInfoBase;
 template <ISA>
 class ISAInfo;
 
+// TODO(raccog): This should be changed to not be hardcoded.
+const static std::map<ISAFamily, std::set<ISA>> ISAFamilySets = {
+    {ISAFamily::RISCV, {ISA::RV32I, ISA::RV64I}},
+    {ISAFamily::MIPS, {ISA::MIPS32I}},
+};
 const static std::map<ISA, ISAFamily> ISAFamilies = {
     {ISA::RV32I, ISAFamily::RISCV},
     {ISA::RV64I, ISAFamily::RISCV},
@@ -32,6 +37,7 @@ const static std::map<ISAFamily, QString> ISAFamilyNames = {
     {ISAFamily::RISCV, "RISC-V"}, {ISAFamily::MIPS, "MIPS"}};
 const static std::map<ISA, QString> ISANames = {
     {ISA::RV32I, "RV32"}, {ISA::RV64I, "RV64"}, {ISA::MIPS32I, "MIPS32"}};
+
 const static std::map<
     ISA, std::function<std::shared_ptr<const ISAInfoBase>(const QStringList &)>>
     ISAConstructors = constructConstructors();
@@ -78,7 +84,12 @@ using RegInfoMap =
 class ISAInfoBase {
 public:
   virtual ~ISAInfoBase(){};
-  virtual QString name() const = 0;
+  virtual QString baseName() const {
+    auto name = ISANames.find(isaID());
+    assert(name != ISANames.end() && "Add this ISA to 'ISANames'");
+    return name->second;
+  }
+  virtual QString fullName() const = 0;
   virtual ISA isaID() const = 0;
   virtual const RegInfoMap &regInfoMap() const = 0;
 
@@ -178,7 +189,7 @@ public:
     const auto ext1 = QSet(this->enabledExtensions().begin(),
                            this->enabledExtensions().end());
     const auto ext2 = QSet(otherExts.begin(), otherExts.end());
-    return this->name() == other->name() && ext1 == ext2;
+    return this->fullName() == other->fullName() && ext1 == ext2;
   }
 
 protected:

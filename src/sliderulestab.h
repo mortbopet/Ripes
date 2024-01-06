@@ -65,18 +65,26 @@ protected:
 class EncodingView : public QTableView {
   Q_OBJECT
 public:
-  EncodingView(QComboBox &isaFamilySelector, QWidget *parent = nullptr);
+  EncodingView(QComboBox &isaFamilySelector, QComboBox &regWidthSelector,
+               QComboBox &mainExtensionSelector, QWidget *parent = nullptr);
 
-  void updateISA(const QString &isaName,
-                 const QStringList &extensions = QStringList());
+  // TODO(raccog): Make this protected.
+  std::unique_ptr<EncodingModel> m_model;
 
-  std::unique_ptr<EncodingModel> model;
+public slots:
+  void processorChanged();
+
+private slots:
+  void isaFamilyChanged(int index);
+  void regWidthChanged(int index);
 
 protected:
   void updateModel(std::shared_ptr<const ISAInfoBase> isa);
   void updateView();
 
   QComboBox &m_isaFamilySelector;
+  QComboBox &m_regWidthSelector;
+  QComboBox &m_mainExtensionSelector;
 };
 
 struct DecodingModel : public QAbstractTableModel {
