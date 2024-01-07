@@ -212,16 +212,23 @@ void EncodingView::regWidthChanged(int index) {
   std::advance(iter, index);
   assert(iter != vec.end() && "Could not find ISA in ISAFamilySets");
   ISA isa = *iter;
-
   auto isaInfo = ISAInfoRegistry::getISA(isa, QStringList());
-  updateModel(isaInfo);
 
+  disconnect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+             &EncodingView::mainExtensionChanged);
   if (m_mainExtensionSelector.count() > 0) {
     m_mainExtensionSelector.clear();
   }
   m_mainExtensionSelector.addItem(isaInfo->baseExtension());
   for (const auto &extName : isaInfo->supportedExtensions()) {
     m_mainExtensionSelector.addItem(extName);
+  }
+  m_mainExtensionSelector.setCurrentIndex(0);
+  connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+          &EncodingView::mainExtensionChanged);
+
+  if (!m_model || m_model->isa->isaID() != isa) {
+    updateModel(isaInfo);
   }
 }
 
@@ -256,7 +263,9 @@ void EncodingView::updateView() {
                                            QHeaderView::ResizeMode::Stretch);
   clearSpans();
   int row = 0;
+  const auto &mainSelectedExtension = m_mainExtensionSelector.currentText();
   for (const auto &instr : *m_model->instructions) {
+    setRowHidden(row, false);
     for (const auto &field : instr->getFields()) {
       for (const auto &range : field->ranges) {
         if (range.width() > 1) {
@@ -264,6 +273,10 @@ void EncodingView::updateView() {
                   range.width());
         }
       }
+    }
+    if (mainSelectedExtension != m_model->isa->baseExtension() &&
+        m_model->isa->baseExtension() == instr->extensionOrigin()) {
+      setRowHidden(row, true);
     }
     ++row;
   }
