@@ -77,6 +77,7 @@ public slots:
 private slots:
   void isaFamilyChanged(int index);
   void regWidthChanged(int index);
+  void mainExtensionChanged(int index);
 
 protected:
   void updateModel(std::shared_ptr<const ISAInfoBase> isa);

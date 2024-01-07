@@ -264,7 +264,7 @@ EncodingView::EncodingView(QComboBox &isaFamilySelector,
   connect(&m_regWidthSelector, &QComboBox::currentIndexChanged, this,
           &EncodingView::regWidthChanged);
   connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-          [] {});
+          &EncodingView::mainExtensionChanged);
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
           &EncodingView::processorChanged);
@@ -322,6 +322,19 @@ void EncodingView::regWidthChanged(int index) {
   for (const auto &extName : isaInfo->supportedExtensions()) {
     m_mainExtensionSelector.addItem(extName);
   }
+}
+
+void EncodingView::mainExtensionChanged(int index) {
+  if (index < 0) {
+    return;
+  }
+
+  auto selectedExtension = m_mainExtensionSelector.currentText();
+  auto extensions = m_model->isa->baseExtension() != selectedExtension
+                        ? QStringList(selectedExtension)
+                        : QStringList();
+  auto isaInfo = ISAInfoRegistry::getISA(m_model->isa->isaID(), extensions);
+  updateModel(isaInfo);
 }
 
 void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
