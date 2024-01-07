@@ -118,16 +118,7 @@ public:
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
 
-private slots:
-  void processorChanged();
-  void isaSelectorChanged();
-  void updateRegWidthSelector();
-
 private:
-  void updateISASelector(bool forceUpdate = false);
-
-  ISA m_selectedISA;
-
   Ui::SliderulesTab *ui;
 
   // These pointers are owned by the Qt layout and should not be deleted in the

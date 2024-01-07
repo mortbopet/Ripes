@@ -8,8 +8,7 @@ namespace Ripes {
 
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     // TODO(raccog): Initialize default selected ISA using cached settings
-    : RipesTab(toolbar, parent), m_selectedISA(ISA::RV32I),
-      ui(new Ui::SliderulesTab) {
+    : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
 
   // Create encoding table and transfer ownership to UI layout.
@@ -18,104 +17,6 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   ui->encodingLayout->addWidget(m_encodingTable);
 
   m_encodingTable->processorChanged();
-
-  //  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
-  //  this,
-  //          &SliderulesTab::processorChanged);
-  //  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
-  //          &SliderulesTab::updateRegWidthSelector);
-  //  connect(ui->regWidthSelector, &QComboBox::currentIndexChanged, this,
-  //          &SliderulesTab::isaSelectorChanged);
-  //  connect(ui->isaSelector, &QComboBox::currentIndexChanged, this,
-  //          &SliderulesTab::isaSelectorChanged);
-  //  connect(ui->mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-  //          &SliderulesTab::isaSelectorChanged);
-
-  //  updateISASelector(true);
-}
-
-void SliderulesTab::isaSelectorChanged() {
-  auto isa = m_encodingTable->m_model->isa;
-  auto exts = QStringList();
-
-  // Get name of main extension; exit early if it has not been filled in yet
-  auto mainExt = ui->mainExtensionSelector->currentText();
-  if (mainExt.isEmpty()) {
-    return;
-  }
-
-  // Set all rows to visible
-  for (int i = 0; i < m_encodingTable->m_model->rowCount(QModelIndex()); ++i) {
-    m_encodingTable->setRowHidden(i, false);
-  }
-
-  // Check if base extension should be hidden and get selected extensions
-  bool hideBaseExt = false;
-  if (isa->supportsExtension(mainExt)) {
-    exts = QStringList() << mainExt;
-    hideBaseExt = true;
-  }
-
-  // Update tables with new ISA
-  //  m_encodingTable->updateISA(ui->regWidthSelector->currentText(), exts);
-
-  // Hide base extension instruction rows in encoding table if necessary
-  //  if (hideBaseExt) {
-  //    for (const auto &instr : *ui->encodingTable->model->instructions) {
-  //      if (instr.second->extensionOrigin() == isa->baseExtension()) {
-  //        ui->encodingTable->setRowHidden(instr.first, true);
-
-  //        // Hide immediate encoding if it exists
-  //        bool hasImmediate = false;
-  //        for (const auto &field : instr.second->getFields()) {
-  //          if (field->fieldType() == "imm") {
-  //            hasImmediate = true;
-  //            break;
-  //          }
-  //        }
-  //        if (hasImmediate) {
-  //          ui->encodingTable->setRowHidden(instr.first + 1, true);
-  //        }
-  //      }
-  //    }
-  //  }
-}
-
-void SliderulesTab::processorChanged() { updateISASelector(); }
-
-void SliderulesTab::updateISASelector(bool forceUpdate) {
-  if (auto isaId = ProcessorHandler::currentISA()->isaID();
-      forceUpdate || isaId != m_selectedISA) {
-    m_selectedISA = isaId;
-
-    emit ui->isaSelector->currentIndexChanged(
-        static_cast<int>(ISAFamilies.at(m_selectedISA)));
-  }
-}
-
-void SliderulesTab::updateRegWidthSelector() {
-  ui->regWidthSelector->clear();
-  bool isaChanged = false;
-  for (const auto &name : ISANames) {
-    if (static_cast<int>(ISAFamilies.at(name.first)) ==
-        ui->isaSelector->currentIndex()) {
-      ui->regWidthSelector->addItem(name.second);
-      if (!isaChanged) {
-        m_selectedISA = name.first;
-        isaChanged = true;
-      }
-    }
-  }
-
-  auto isa = m_encodingTable->m_model->isa;
-  ui->mainExtensionSelector->clear();
-  ui->mainExtensionSelector->addItem(isa->baseExtension());
-  for (const auto &ext : isa->supportedExtensions()) {
-    ui->mainExtensionSelector->addItem(ext);
-  }
-
-  emit ui->regWidthSelector->currentIndexChanged(
-      static_cast<int>(m_selectedISA));
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
