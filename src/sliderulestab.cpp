@@ -218,26 +218,33 @@ void EncodingView::regWidthChanged(int index) {
     return;
   }
 
-  auto vec = ISAFamilySets.at(
-      static_cast<ISAFamily>(m_isaFamilySelector.currentIndex()));
+  ISAFamily family = static_cast<ISAFamily>(m_isaFamilySelector.currentIndex());
+  auto vec = ISAFamilySets.at(family);
   auto iter = vec.begin();
   std::advance(iter, index);
   assert(iter != vec.end() && "Could not find ISA in ISAFamilySets");
   ISA isa = *iter;
-  auto isaInfo = ISAInfoRegistry::getISA(isa, QStringList());
+  auto selectedExtension = m_mainExtensionSelector.currentText();
+  auto extensions =
+      (m_model && m_model->isa->baseExtension() != selectedExtension)
+          ? QStringList(selectedExtension)
+          : QStringList();
+  auto isaInfo = ISAInfoRegistry::getISA(isa, extensions);
 
-  disconnect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-             &EncodingView::mainExtensionChanged);
-  if (m_mainExtensionSelector.count() > 0) {
-    m_mainExtensionSelector.clear();
+  if (!m_model || family != ISAFamilies.at(m_model->isa->isaID())) {
+    disconnect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+               &EncodingView::mainExtensionChanged);
+    if (m_mainExtensionSelector.count() > 0) {
+      m_mainExtensionSelector.clear();
+    }
+    m_mainExtensionSelector.addItem(isaInfo->baseExtension());
+    for (const auto &extName : isaInfo->supportedExtensions()) {
+      m_mainExtensionSelector.addItem(extName);
+    }
+    m_mainExtensionSelector.setCurrentIndex(0);
+    connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+            &EncodingView::mainExtensionChanged);
   }
-  m_mainExtensionSelector.addItem(isaInfo->baseExtension());
-  for (const auto &extName : isaInfo->supportedExtensions()) {
-    m_mainExtensionSelector.addItem(extName);
-  }
-  m_mainExtensionSelector.setCurrentIndex(0);
-  connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-          &EncodingView::mainExtensionChanged);
 
   if (!m_model || m_model->isa->isaID() != isa) {
     updateModel(isaInfo);
