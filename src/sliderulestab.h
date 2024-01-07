@@ -3,13 +3,14 @@
 #include "instruction.h"
 #include "isainfo.h"
 #include "pseudoinstruction.h"
-#include "qcombobox.h"
-#include "qlayoutitem.h"
 #include "ripestab.h"
 
+#include <QComboBox>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QTableView>
 #include <QWidget>
+#include <QWidgetItem>
 
 namespace Ripes {
 
@@ -66,10 +67,15 @@ class EncodingView : public QTableView {
   Q_OBJECT
 public:
   EncodingView(QComboBox &isaFamilySelector, QComboBox &regWidthSelector,
-               QComboBox &mainExtensionSelector, QWidget *parent = nullptr);
+               QComboBox &mainExtensionSelector,
+               QGridLayout &additionalExtensionSelectors,
+               QWidget *parent = nullptr);
 
   // TODO(raccog): Make this protected.
   std::unique_ptr<EncodingModel> m_model;
+
+signals:
+  void modelUpdated(const ISAInfoBase &isa);
 
 public slots:
   void processorChanged();
@@ -78,14 +84,15 @@ private slots:
   void isaFamilyChanged(int index);
   void regWidthChanged(int index);
   void mainExtensionChanged(int index);
+  void updateView(const ISAInfoBase &isa);
 
 protected:
   void updateModel(std::shared_ptr<const ISAInfoBase> isa);
-  void updateView();
 
   QComboBox &m_isaFamilySelector;
   QComboBox &m_regWidthSelector;
   QComboBox &m_mainExtensionSelector;
+  QGridLayout &m_additionalExtensionSelectors;
 };
 
 struct DecodingModel : public QAbstractTableModel {
