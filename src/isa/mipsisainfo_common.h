@@ -183,11 +183,11 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   static const QStringList &getSupportedExtensions() {
-    static const QStringList ext = {""};
+    static const QStringList ext = QStringList();
     return ext;
   }
   static const QStringList &getDefaultExtensions() {
-    static const QStringList ext = {""};
+    static const QStringList ext = QStringList();
     return ext;
   }
 
