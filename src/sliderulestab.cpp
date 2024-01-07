@@ -13,9 +13,9 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   ui->setupUi(this);
 
   // Create encoding table and transfer ownership to UI layout.
-  m_encodingTable =
-      new EncodingView(*ui->isaSelector, *ui->regWidthSelector,
-                       *ui->mainExtensionSelector, *ui->extensionCheckboxGrid);
+  m_encodingTable = new EncodingView(*ui->isaSelector, *ui->regWidthSelector,
+                                     *ui->mainExtensionSelector,
+                                     *ui->extensionCheckboxGrid, *ui->title);
   ui->encodingLayout->addWidget(m_encodingTable);
 
   m_encodingTable->processorChanged();
@@ -155,11 +155,12 @@ EncodingView::EncodingView(QComboBox &isaFamilySelector,
                            QComboBox &regWidthSelector,
                            QComboBox &mainExtensionSelector,
                            QGridLayout &additionalExtensionSelectors,
-                           QWidget *parent)
+                           QLabel &title, QWidget *parent)
     : QTableView(parent), m_isaFamilySelector(isaFamilySelector),
       m_regWidthSelector(regWidthSelector),
       m_mainExtensionSelector(mainExtensionSelector),
-      m_additionalExtensionSelectors(additionalExtensionSelectors) {
+      m_additionalExtensionSelectors(additionalExtensionSelectors),
+      m_title(title) {
   // Add all supported ISA families into the ISA family selector.
   for (const auto &isaFamily : ISAFamilyNames) {
     m_isaFamilySelector.addItem(isaFamily.second);
@@ -275,6 +276,7 @@ void EncodingView::updateView(const ISAInfoBase &isa) {
   clearSpans();
   int row = 0;
   const auto &mainSelectedExtension = m_mainExtensionSelector.currentText();
+  auto filteredInstructions = 0;
   for (const auto &instr : isa.instructions()) {
     setRowHidden(row, false);
     for (const auto &field : instr->getFields()) {
@@ -288,6 +290,7 @@ void EncodingView::updateView(const ISAInfoBase &isa) {
     if (mainSelectedExtension != isa.baseExtension() &&
         isa.baseExtension() == instr->extensionOrigin()) {
       setRowHidden(row, true);
+      ++filteredInstructions;
     }
     ++row;
   }
@@ -323,6 +326,12 @@ void EncodingView::updateView(const ISAInfoBase &isa) {
       ++extRow;
     }
   }
+
+  m_title.setText(
+      QString("Encoding Table (%1 instructions shown %2 instructions filtered)")
+          .arg(
+              QString::number(isa.instructions().size() - filteredInstructions),
+              QString::number(filteredInstructions)));
 }
 
 DecodingModel::DecodingModel(const std::shared_ptr<const ISAInfoBase> isa,
@@ -332,7 +341,7 @@ DecodingModel::DecodingModel(const std::shared_ptr<const ISAInfoBase> isa,
 
 int DecodingModel::rowCount(const QModelIndex &) const { return 0; }
 int DecodingModel::columnCount(const QModelIndex &) const { return 0; }
-QVariant DecodingModel::data(const QModelIndex &index, int role) const {
+QVariant DecodingModel::data(const QModelIndex &, int) const {
   return QVariant();
 }
 

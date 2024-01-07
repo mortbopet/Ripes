@@ -8,6 +8,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QHeaderView>
+#include <QLabel>
 #include <QTableView>
 #include <QWidget>
 #include <QWidgetItem>
@@ -68,7 +69,7 @@ class EncodingView : public QTableView {
 public:
   EncodingView(QComboBox &isaFamilySelector, QComboBox &regWidthSelector,
                QComboBox &mainExtensionSelector,
-               QGridLayout &additionalExtensionSelectors,
+               QGridLayout &additionalExtensionSelectors, QLabel &title,
                QWidget *parent = nullptr);
 
   // TODO(raccog): Make this protected.
@@ -93,6 +94,7 @@ protected:
   QComboBox &m_regWidthSelector;
   QComboBox &m_mainExtensionSelector;
   QGridLayout &m_additionalExtensionSelectors;
+  QLabel &m_title;
 };
 
 struct DecodingModel : public QAbstractTableModel {
