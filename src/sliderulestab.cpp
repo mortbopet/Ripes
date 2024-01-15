@@ -17,8 +17,6 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
                                      *ui->mainExtensionSelector,
                                      *ui->extensionCheckboxGrid, *ui->title);
   ui->encodingLayout->addWidget(m_encodingTable);
-
-  m_encodingTable->processorChanged();
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
@@ -163,17 +161,20 @@ EncodingView::EncodingView(QComboBox &isaFamilySelector,
       m_title(title) {
   // Add all supported ISA families into the ISA family selector.
   for (const auto &isaFamily : ISAFamilyNames) {
-    m_isaFamilySelector.addItem(isaFamily.second);
+    m_isaFamilySelector.addItem(isaFamily.second,
+                                QVariant(static_cast<int>(isaFamily.first)));
   }
 
   connect(this, &EncodingView::modelUpdated, this, &EncodingView::updateView);
 
-  connect(&m_isaFamilySelector, &QComboBox::currentIndexChanged, this,
+  connect(&m_isaFamilySelector, &QComboBox::activated, this,
           &EncodingView::isaFamilyChanged);
-  connect(&m_regWidthSelector, &QComboBox::currentIndexChanged, this,
+  connect(&m_regWidthSelector, &QComboBox::activated, this,
           &EncodingView::regWidthChanged);
-  connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
+  connect(&m_mainExtensionSelector, &QComboBox::activated, this,
           &EncodingView::mainExtensionChanged);
+
+  processorChanged();
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged, this,
           &EncodingView::processorChanged);
@@ -181,19 +182,8 @@ EncodingView::EncodingView(QComboBox &isaFamilySelector,
 
 void EncodingView::processorChanged() {
   auto isaInfo = ProcessorHandler::currentISA();
-  ISAFamily isaFamily = ISAFamilies.at(isaInfo->isaID());
-  int familyIdx = static_cast<int>(isaFamily);
-  m_isaFamilySelector.setCurrentIndex(familyIdx);
-  if (m_isaFamilySelector.currentIndex() == familyIdx) {
-    emit m_isaFamilySelector.currentIndexChanged(familyIdx);
-  }
-
-  ISA isa = isaInfo->isaID();
-  auto familySet = ISAFamilySets.at(isaFamily);
-  auto isaResult = familySet.find(isa);
-  assert(isaResult != familySet.end() && "Could not find ISA in ISAFamilySets");
-  int idx = std::distance(familySet.begin(), isaResult);
-  m_regWidthSelector.setCurrentIndex(idx);
+  updateModel(
+      ISAInfoRegistry::getISA(isaInfo->isaID(), isaInfo->enabledExtensions()));
 }
 
 void EncodingView::isaFamilyChanged(int index) {
@@ -202,15 +192,9 @@ void EncodingView::isaFamilyChanged(int index) {
   }
 
   ISAFamily isaFamily = static_cast<ISAFamily>(index);
-
-  // Add ISA register width options to selector.
-  if (m_regWidthSelector.count() > 0) {
-    m_regWidthSelector.clear();
-  }
-  for (const auto &isa : ISAFamilySets.at(isaFamily)) {
-    auto isaName = ISANames.at(isa);
-    m_regWidthSelector.addItem(isaName);
-  }
+  ISA isa = *ISAFamilySets.at(isaFamily).begin();
+  auto isaInfo = ISAInfoRegistry::getISA(isa, QStringList());
+  updateModel(isaInfo);
 }
 
 void EncodingView::regWidthChanged(int index) {
@@ -218,37 +202,12 @@ void EncodingView::regWidthChanged(int index) {
     return;
   }
 
-  ISAFamily family = static_cast<ISAFamily>(m_isaFamilySelector.currentIndex());
-  auto vec = ISAFamilySets.at(family);
-  auto iter = vec.begin();
-  std::advance(iter, index);
-  assert(iter != vec.end() && "Could not find ISA in ISAFamilySets");
-  ISA isa = *iter;
-  auto selectedExtension = m_mainExtensionSelector.currentText();
-  auto extensions =
-      (m_model && m_model->isa->baseExtension() != selectedExtension)
-          ? QStringList(selectedExtension)
-          : QStringList();
-  auto isaInfo = ISAInfoRegistry::getISA(isa, extensions);
-
-  if (!m_model || family != ISAFamilies.at(m_model->isa->isaID())) {
-    disconnect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-               &EncodingView::mainExtensionChanged);
-    if (m_mainExtensionSelector.count() > 0) {
-      m_mainExtensionSelector.clear();
-    }
-    m_mainExtensionSelector.addItem(isaInfo->baseExtension());
-    for (const auto &extName : isaInfo->supportedExtensions()) {
-      m_mainExtensionSelector.addItem(extName);
-    }
-    m_mainExtensionSelector.setCurrentIndex(0);
-    connect(&m_mainExtensionSelector, &QComboBox::currentIndexChanged, this,
-            &EncodingView::mainExtensionChanged);
-  }
-
-  if (!m_model || m_model->isa->isaID() != isa) {
-    updateModel(isaInfo);
-  }
+  bool ok;
+  auto isaInfo = ISAInfoRegistry::getISA(
+      static_cast<ISA>(m_regWidthSelector.itemData(index).toInt(&ok)),
+      QStringList());
+  assert(ok && "ISA register width filter has an invalid ISA QVariant");
+  updateModel(isaInfo);
 }
 
 void EncodingView::mainExtensionChanged(int index) {
@@ -260,31 +219,104 @@ void EncodingView::mainExtensionChanged(int index) {
   auto extensions = m_model->isa->baseExtension() != selectedExtension
                         ? QStringList(selectedExtension)
                         : QStringList();
-  auto isaInfo = ISAInfoRegistry::getISA(m_model->isa->isaID(), extensions);
-  updateModel(isaInfo);
+  auto isa = ISAInfoRegistry::getISA(m_model->isa->isaID(), extensions);
+  if (m_model->isa->eq(isa.get(), isa->enabledExtensions())) {
+    updateView(*isa.get());
+  } else {
+    updateModel(isa);
+  }
 }
 
 void EncodingView::updateModel(std::shared_ptr<const ISAInfoBase> isa) {
   if (!m_model || !m_model->isa->eq(isa.get(), isa->enabledExtensions())) {
-    m_model = std::make_unique<EncodingModel>(
+    auto model = std::make_unique<EncodingModel>(
         isa, std::make_shared<const InstrVec>(isa->instructions()),
         std::make_shared<const PseudoInstrVec>(isa->pseudoInstructions()));
-    setModel(m_model.get());
-    emit modelUpdated(*m_model->isa.get());
+    setModel(model.get());
+    emit modelUpdated(*model->isa.get());
+    m_model.swap(model);
   }
 }
 
-void EncodingView::updateView(const ISAInfoBase &isa) {
-  verticalHeader()->setVisible(false);
-  horizontalHeader()->setMinimumSectionSize(30);
-  resizeColumnsToContents();
-  horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
-                                           QHeaderView::ResizeMode::Stretch);
+void EncodingView::updateView(const ISAInfoBase &isaInfo) {
+  // Note that `isaInfo` is the updated ISA, while `m_model->isa` contains
+  // the previous ISA. This can be used to compare differences between the two
+  // to see what UI needs to be updated.
+  //
+  // Further note that `m_model` will be NULL the first time this function is
+  // called. Ensure that it is only dereferenced if it is known to not be NULL.
+
+  ISAFamily isaFamily = ISAFamilies.at(isaInfo.isaID());
+  int familyIdx = static_cast<int>(isaFamily);
+
+  if (!m_model || m_model->isa->isaID() != isaInfo.isaID()) {
+    // Setup main extension filter
+    m_mainExtensionSelector.clear();
+    m_mainExtensionSelector.addItem(isaInfo.baseExtension());
+    m_mainExtensionSelector.addItems(isaInfo.supportedExtensions());
+
+    // Setup additional extension filters
+    QLayoutItem *item;
+    while ((item = m_additionalExtensionSelectors.takeAt(0)) != nullptr) {
+      QWidget *widget = item->widget();
+      if (widget) {
+        delete widget;
+      }
+      delete item;
+    }
+    auto baseCheckbox = new QCheckBox(isaInfo.baseExtension());
+    m_additionalExtensionSelectors.addWidget(baseCheckbox, 0, 0);
+    int extCol = 1;
+    int extRow = 0;
+    const int MAX_COL = 3;
+    for (const auto &extName : isaInfo.supportedExtensions()) {
+      auto extCheckbox = new QCheckBox(extName);
+      m_additionalExtensionSelectors.addWidget(extCheckbox, extRow, extCol);
+      ++extCol;
+      if (extCol >= MAX_COL) {
+        extCol = 0;
+        ++extRow;
+      }
+    }
+  }
+
+  // Update checkboxes to display the current ISA's extensions
+  for (int i = 0; i < m_additionalExtensionSelectors.count(); ++i) {
+    const auto &checkbox = reinterpret_cast<QCheckBox *>(
+        m_additionalExtensionSelectors.itemAt(i)->widget());
+    if (m_mainExtensionSelector.currentText() == checkbox->text()) {
+      checkbox->setChecked(true);
+      checkbox->setEnabled(false);
+    } else {
+      checkbox->setEnabled(true);
+      checkbox->setChecked(isaInfo.baseExtension() == checkbox->text() ||
+                           isaInfo.extensionEnabled(checkbox->text()));
+    }
+  }
+
+  // Setup ISA family and register width selectors
+  if (m_regWidthSelector.count() == 0 || !m_model ||
+      m_model->isa->isaFamily() != isaFamily) {
+    m_regWidthSelector.clear();
+    int regWidthIdx = 0;
+    for (auto isa : ISAFamilySets.at(isaFamily)) {
+      auto isaName = ISANames.at(isa);
+      m_regWidthSelector.addItem(isaName, QVariant(static_cast<int>(isa)));
+      if (isaInfo.isaID() == isa) {
+        m_regWidthSelector.setCurrentIndex(regWidthIdx);
+      }
+      ++regWidthIdx;
+    }
+
+    m_isaFamilySelector.setCurrentIndex(familyIdx);
+  }
+
+  // Setup spans for fields and opcodes
   clearSpans();
   int row = 0;
   const auto &mainSelectedExtension = m_mainExtensionSelector.currentText();
   auto filteredInstructions = 0;
-  for (const auto &instr : isa.instructions()) {
+  for (const auto &instr : isaInfo.instructions()) {
     setRowHidden(row, false);
     for (const auto &field : instr->getFields()) {
       for (const auto &range : field->ranges) {
@@ -294,51 +326,28 @@ void EncodingView::updateView(const ISAInfoBase &isa) {
         }
       }
     }
-    if (mainSelectedExtension != isa.baseExtension() &&
-        isa.baseExtension() == instr->extensionOrigin()) {
+    // Hide instructions that are filtered out
+    if (mainSelectedExtension != isaInfo.baseExtension() &&
+        isaInfo.baseExtension() == instr->extensionOrigin()) {
       setRowHidden(row, true);
       ++filteredInstructions;
     }
     ++row;
   }
 
-  // Remove all current checkboxes
-  QLayoutItem *item;
-  while ((item = m_additionalExtensionSelectors.takeAt(0)) != nullptr) {
-    QWidget *widget = item->widget();
-    if (widget) {
-      delete widget;
-    }
-    delete item;
-  }
-  auto baseCheckbox = new QCheckBox(isa.baseExtension());
-  m_additionalExtensionSelectors.addWidget(baseCheckbox, 0, 0);
-  if (m_mainExtensionSelector.currentText() == isa.baseExtension()) {
-    baseCheckbox->setChecked(true);
-    baseCheckbox->setEnabled(false);
-  }
-  int extCol = 1;
-  int extRow = 0;
-  const int MAX_COL = 3;
-  for (const auto &extName : isa.supportedExtensions()) {
-    auto extCheckbox = new QCheckBox(extName);
-    if (m_mainExtensionSelector.currentText() == extName) {
-      extCheckbox->setChecked(true);
-      extCheckbox->setEnabled(false);
-    }
-    m_additionalExtensionSelectors.addWidget(extCheckbox, extRow, extCol);
-    ++extCol;
-    if (extCol >= MAX_COL) {
-      extCol = 0;
-      ++extRow;
-    }
-  }
-
+  // Update title with table details
   m_title.setText(
       QString("Encoding Table (%1 instructions shown %2 instructions filtered)")
-          .arg(
-              QString::number(isa.instructions().size() - filteredInstructions),
-              QString::number(filteredInstructions)));
+          .arg(QString::number(isaInfo.instructions().size() -
+                               filteredInstructions),
+               QString::number(filteredInstructions)));
+
+  // Encoding table properties
+  verticalHeader()->setVisible(false);
+  horizontalHeader()->setMinimumSectionSize(30);
+  resizeColumnsToContents();
+  horizontalHeader()->setSectionResizeMode(EncodingModel::DESCRIPTION,
+                                           QHeaderView::ResizeMode::Stretch);
 }
 
 DecodingModel::DecodingModel(const std::shared_ptr<const ISAInfoBase> isa,

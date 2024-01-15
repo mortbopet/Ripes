@@ -197,6 +197,7 @@ public:
     // TODO: Setup MIPS instructions here
   }
 
+  ISAFamily isaFamily() const override { return ISAFamily::MIPS; }
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
 
   QString fullName() const override { return CCmarch().toUpper(); }

@@ -173,6 +173,7 @@ public:
     m_relocations = rvRelocations();
   }
 
+  ISAFamily isaFamily() const override { return ISAFamily::RISCV; }
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
 
   QString fullName() const override { return CCmarch().toUpper(); }

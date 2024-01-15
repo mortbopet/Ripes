@@ -78,13 +78,17 @@ public:
 signals:
   void modelUpdated(const ISAInfoBase &isa);
 
-public slots:
+private slots:
+  /// Get ISA from processor and update model.
   void processorChanged();
 
-private slots:
+  /// These slots are called when the encoding filters are changed. Each one
+  /// updates the model according to the filters.
   void isaFamilyChanged(int index);
   void regWidthChanged(int index);
   void mainExtensionChanged(int index);
+
+  /// This slot uses the new model to update the encoding table.
   void updateView(const ISAInfoBase &isa);
 
 protected:

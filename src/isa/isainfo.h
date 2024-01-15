@@ -90,6 +90,7 @@ public:
     return name->second;
   }
   virtual QString fullName() const = 0;
+  virtual ISAFamily isaFamily() const = 0;
   virtual ISA isaID() const = 0;
   virtual const RegInfoMap &regInfoMap() const = 0;
 
