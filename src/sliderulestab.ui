@@ -45,12 +45,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
@@ -69,12 +63,12 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>ISA</string>
+               <string>ISA Family</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="isaSelector">
+             <widget class="ISAFamilySelector" name="isaFamilySelector">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -101,7 +95,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="regWidthSelector">
+             <widget class="QComboBox" name="isaSelector">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -143,6 +137,9 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="ISAEncodingTableView" name="encodingTable"/>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="layoutWidget">
@@ -155,7 +152,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="DecodingView" name="decodingTable"/>
+        <widget class="QTableView" name="decodingTable"/>
        </item>
       </layout>
      </widget>
@@ -165,8 +162,13 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>DecodingView</class>
+   <class>ISAEncodingTableView</class>
    <extends>QTableView</extends>
+   <header>sliderulestab.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ISAFamilySelector</class>
+   <extends>QComboBox</extends>
    <header>sliderulestab.h</header>
   </customwidget>
  </customwidgets>
