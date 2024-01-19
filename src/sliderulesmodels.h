@@ -43,10 +43,13 @@ public slots:
   /// in `Activated`. Can also be `connect()`ed to
   /// `ProcessorHandler::processorChanged()`.
   void setFamily(ISAFamily family);
+  void setISA(ISA isa);
 
 signals:
   /// Called when the ISA family of the model changes. Use this to update UI.
   void familyChanged(ISAFamily family);
+  /// Called when the ISA of the model changes. Use this to update UI.
+  void isaChanged(ISA isa);
 
 protected:
   std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;

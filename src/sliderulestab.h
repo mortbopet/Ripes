@@ -18,12 +18,12 @@ namespace Ui {
 class SliderulesTab;
 }
 
-class ISAFamilySelector : public QComboBox {
+class ISAFamilyComboBox : public QComboBox {
   Q_OBJECT
 public:
-  ISAFamilySelector(QWidget *parent = nullptr);
+  ISAFamilyComboBox(QWidget *parent = nullptr);
 
-  ISAFamily currentFamily() const;
+  ISAFamily currentFamily() const { return currentData().value<ISAFamily>(); }
 
 public slots:
   /// Updates the UI and emits `familyChanged()` signal.
@@ -32,9 +32,30 @@ public slots:
 signals:
   /// Called when the family is changed in the UI directly by the user.
   void familyActivated(ISAFamily family);
-  /// Called when any time the ISA family is changed, including during
+  /// Called when any time the family is changed, including during
   /// `setFamily()`.
   void familyChanged(ISAFamily family);
+};
+
+class ISAComboBox : public QComboBox {
+  Q_OBJECT
+public:
+  ISAComboBox(QWidget *parent = nullptr);
+
+  ISA currentISA() const { return currentData().value<ISA>(); }
+
+public slots:
+  /// Updates the UI and emits `isaChanged()` signal.
+  void setISA(ISA isa);
+  /// Updates the UI using the new family and emits `isaChanged()` signal.
+  void setFamily(ISAFamily family);
+
+signals:
+  /// Called when the isa is changed in the UI directly by the user.
+  void isaActivated(ISA isa);
+  /// Called when any time the isa is changed, including during
+  /// `setFamily()`.
+  void isaChanged(ISA isa);
 };
 
 class ISAEncodingTableView : public QTableView {

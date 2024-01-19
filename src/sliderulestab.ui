@@ -68,7 +68,7 @@
              </widget>
             </item>
             <item>
-             <widget class="ISAFamilySelector" name="isaFamilySelector">
+             <widget class="ISAFamilyComboBox" name="isaFamilySelector">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -95,7 +95,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="isaSelector">
+             <widget class="ISAComboBox" name="isaSelector">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -167,7 +167,12 @@
    <header>sliderulestab.h</header>
   </customwidget>
   <customwidget>
-   <class>ISAFamilySelector</class>
+   <class>ISAFamilyComboBox</class>
+   <extends>QComboBox</extends>
+   <header>sliderulestab.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ISAComboBox</class>
    <extends>QComboBox</extends>
    <header>sliderulestab.h</header>
   </customwidget>
