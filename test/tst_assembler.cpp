@@ -270,12 +270,12 @@ void tst_Assembler::tst_immBitRange() {
   testAssemble(QStringList() << "lui   a0 0x100000", Expect::Fail);
   testAssemble(QStringList() << "auipc a0 0x0FFFFF", Expect::Success);
   testAssemble(QStringList() << "auipc a0 0x100000", Expect::Fail);
-  // J-type: 21 bits imm (ImmJ)
-  testAssemble(QStringList() << "jal   x0 0x1FFFFF", Expect::Success);
-  testAssemble(QStringList() << "jal   x0 0x200000", Expect::Fail);
-  // B-type: 13 bits imm (ImmB)
-  testAssemble(QStringList() << "beq   a0 x0 0x1FFF", Expect::Success);
-  testAssemble(QStringList() << "beq   a0 x0 0x2000", Expect::Fail);
+  // J-type: 20 bits imm (ImmJ)
+  testAssemble(QStringList() << "jal   x0 0x0FFFFF", Expect::Success);
+  testAssemble(QStringList() << "jal   x0 0x100000", Expect::Fail);
+  // B-type: 12 bits imm (ImmB)
+  testAssemble(QStringList() << "beq   a0 x0 0x0FFF", Expect::Success);
+  testAssemble(QStringList() << "beq   a0 x0 0x1000", Expect::Fail);
   // pseudo: 32 bits imm
   testAssemble(QStringList() << "li    a0 0xFFFFFFFF", Expect::Success);
   testAssemble(QStringList() << "li    a0 0x100000000", Expect::Fail);
