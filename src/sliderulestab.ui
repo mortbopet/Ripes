@@ -38,7 +38,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QFrame" name="frame">
+        <widget class="ISAEncodingFilters" name="encodingFilters">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -51,90 +51,7 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>ISA Family</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ISAFamilyComboBox" name="isaFamilySelector">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>ISA Register Width</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ISAComboBox" name="isaSelector">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Main Extension</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="mainExtensionSelector"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>All Extensions</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QGridLayout" name="extensionCheckboxGrid"/>
-            </item>
-           </layout>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
         </widget>
        </item>
        <item>
@@ -167,14 +84,10 @@
    <header>sliderulestab.h</header>
   </customwidget>
   <customwidget>
-   <class>ISAFamilyComboBox</class>
-   <extends>QComboBox</extends>
+   <class>ISAEncodingFilters</class>
+   <extends>QFrame</extends>
    <header>sliderulestab.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ISAComboBox</class>
-   <extends>QComboBox</extends>
-   <header>sliderulestab.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

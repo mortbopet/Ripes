@@ -18,44 +18,21 @@ namespace Ui {
 class SliderulesTab;
 }
 
-class ISAFamilyComboBox : public QComboBox {
+class ISAEncodingFilters : public QFrame {
   Q_OBJECT
 public:
-  ISAFamilyComboBox(QWidget *parent = nullptr);
+  ISAEncodingFilters(QWidget *parent = nullptr);
 
-  ISAFamily currentFamily() const { return currentData().value<ISAFamily>(); }
-
-public slots:
-  /// Updates the UI and emits `familyChanged()` signal.
-  void setFamily(ISAFamily family);
+  QComboBox *isaFamilyBox;
+  QComboBox *isaBox;
+  QComboBox *mainExtBox;
 
 signals:
-  /// Called when the family is changed in the UI directly by the user.
-  void familyActivated(ISAFamily family);
-  /// Called when any time the family is changed, including during
-  /// `setFamily()`.
-  void familyChanged(ISAFamily family);
-};
-
-class ISAComboBox : public QComboBox {
-  Q_OBJECT
-public:
-  ISAComboBox(QWidget *parent = nullptr);
-
-  ISA currentISA() const { return currentData().value<ISA>(); }
+  void isaFamilyChanged(ISAFamily isaFamily);
 
 public slots:
-  /// Updates the UI and emits `isaChanged()` signal.
-  void setISA(ISA isa);
-  /// Updates the UI using the new family and emits `isaChanged()` signal.
-  void setFamily(ISAFamily family);
-
-signals:
-  /// Called when the isa is changed in the UI directly by the user.
-  void isaActivated(ISA isa);
-  /// Called when any time the isa is changed, including during
-  /// `setFamily()`.
-  void isaChanged(ISA isa);
+  void initializeView(const ISAInfoBase &isaInfo);
+  void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
 };
 
 class ISAEncodingTableView : public QTableView {
@@ -64,13 +41,8 @@ public:
   ISAEncodingTableView(QWidget *parent = nullptr);
 
 public slots:
-  /// Updates the UI and emits `familyChanged()` signal.
-  void setFamily(ISAFamily family);
-  //  void setISA(ISA isa);
-  //  void setExtension(QString ext, bool enabled);
-
-signals:
-  void familyChanged(ISAFamily family);
+  void initializeView(const ISAInfoBase &isaInfo);
+  void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
 };
 
 class SliderulesTab : public RipesTab {
@@ -78,6 +50,10 @@ class SliderulesTab : public RipesTab {
 public:
   explicit SliderulesTab(QToolBar *toolbar, QWidget *parent = nullptr);
   ~SliderulesTab();
+
+public slots:
+  void initializeView(const ISAInfoBase &isaInfo);
+  void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
 
 private:
   Ui::SliderulesTab *ui;

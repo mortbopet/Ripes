@@ -36,23 +36,17 @@ public:
   //                              int role = Qt::DisplayRole) const override;
 
 public slots:
-  /// Updates the Model and emits `familyChanged()` signal if the model's ISA
-  /// family has changed.
-  ///
-  /// This should only be `connect()`ed to UI signals whose function names end
-  /// in `Activated`. Can also be `connect()`ed to
-  /// `ProcessorHandler::processorChanged()`.
-  void setFamily(ISAFamily family);
-  void setISA(ISA isa);
+  void setISAInfo(std::shared_ptr<const ISAInfoBase> isaInfo);
+  void setISAFamily(ISAFamily isaFamily);
 
 signals:
-  /// Called when the ISA family of the model changes. Use this to update UI.
-  void familyChanged(ISAFamily family);
-  /// Called when the ISA of the model changes. Use this to update UI.
-  void isaChanged(ISA isa);
+  void isaInfoInitialized(const ISAInfoBase &isaInfo);
+  void isaInfoChanged(const ISAInfoBase &isaInfo,
+                      const ISAInfoBase &prevISAInfo);
 
 protected:
   std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;
+  std::shared_ptr<const ISAInfoBase> m_prevIsaInfo = nullptr;
 };
 
 } // namespace Ripes

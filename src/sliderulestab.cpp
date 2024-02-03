@@ -6,95 +6,131 @@
 
 namespace Ripes {
 
-ISAFamilyComboBox::ISAFamilyComboBox(QWidget *parent) : QComboBox(parent) {
-  for (const auto &p : ISAFamilyNames) {
-    addItem(p.second, QVariant::fromValue(p.first));
+ISAEncodingFilters::ISAEncodingFilters(QWidget *parent) : QFrame(parent) {
+  setLayout(new QHBoxLayout(this));
+
+  auto *isaFamilyFilter = new QFrame(this);
+  isaFamilyFilter->setLayout(new QVBoxLayout(isaFamilyFilter));
+  isaFamilyFilter->layout()->addWidget(new QLabel("ISA Family"));
+  isaFamilyBox = new QComboBox();
+  for (const auto &familyName : ISAFamilyNames) {
+    isaFamilyBox->addItem(familyName.second,
+                          QVariant(static_cast<int>(familyName.first)));
+  }
+  isaFamilyFilter->layout()->addWidget(isaFamilyBox);
+  layout()->addWidget(isaFamilyFilter);
+  connect(isaFamilyBox, &QComboBox::activated, this, [=] {
+    emit isaFamilyChanged(
+        static_cast<ISAFamily>(isaFamilyBox->currentData().toInt()));
+  });
+
+  auto *isaFilter = new QFrame(this);
+  isaFilter->setLayout(new QVBoxLayout(isaFilter));
+  isaFilter->layout()->addWidget(new QLabel("ISA"));
+  isaBox = new QComboBox();
+  isaFilter->layout()->addWidget(isaBox);
+  layout()->addWidget(isaFilter);
+
+  auto *mainExtFilter = new QFrame(this);
+  mainExtFilter->setLayout(new QVBoxLayout(mainExtFilter));
+  mainExtFilter->layout()->addWidget(new QLabel("Main Extension"));
+  mainExtBox = new QComboBox();
+  mainExtFilter->layout()->addWidget(mainExtBox);
+  layout()->addWidget(mainExtFilter);
+}
+
+void ISAEncodingFilters::initializeView(const ISAInfoBase &isaInfo) {
+  isaBox->clear();
+  for (const auto &isa : ISAFamilySets.at(isaInfo.isaFamily())) {
+    isaBox->addItem(ISANames.at(isa), QVariant(static_cast<int>(isa)));
+  }
+  isaBox->setCurrentIndex(
+      isaBox->findData(QVariant(static_cast<int>(isaInfo.isaID()))));
+
+  mainExtBox->clear();
+  for (const auto &ext :
+       QStringList(isaInfo.baseExtension()) + isaInfo.supportedExtensions()) {
+    mainExtBox->addItem(ext, ext);
   }
 }
 
-void ISAFamilyComboBox::setFamily(ISAFamily family) {
-  setCurrentIndex(findData(QVariant::fromValue(family)));
-  emit familyChanged(family);
-}
+void ISAEncodingFilters::updateView(const ISAInfoBase &isaInfo,
+                                    const ISAInfoBase &prevISAInfo) {
+  if (isaInfo.isaFamily() != prevISAInfo.isaFamily()) {
+    isaFamilyBox->setCurrentIndex(isaFamilyBox->findData(
+        QVariant(static_cast<int>(isaInfo.isaFamily()))));
 
-ISAComboBox::ISAComboBox(QWidget *parent) : QComboBox(parent) {}
-
-void ISAComboBox::setFamily(ISAFamily family) {
-  ISA prevISA = currentData().value<ISA>();
-  clear();
-  for (const auto isa : ISAFamilySets.at(family)) {
-    addItem(ISANames.at(isa), QVariant::fromValue(isa));
+    isaBox->clear();
+    for (const auto &isa : ISAFamilySets.at(isaInfo.isaFamily())) {
+      isaBox->addItem(ISANames.at(isa), QVariant(static_cast<int>(isa)));
+    }
   }
-  ISA isa = currentData().value<ISA>();
-  if (prevISA != isa) {
-    emit isaChanged(isa);
-  }
-}
 
-void ISAComboBox::setISA(ISA isa) {
-  setCurrentIndex(findData(QVariant::fromValue(isa)));
-  emit isaChanged(isa);
+  if (isaInfo.isaID() != prevISAInfo.isaID()) {
+    isaBox->setCurrentIndex(
+        isaBox->findData(QVariant(static_cast<int>(isaInfo.isaID()))));
+  }
+
+  mainExtBox->clear();
+  for (const auto &ext :
+       QStringList(isaInfo.baseExtension()) + isaInfo.supportedExtensions()) {
+    mainExtBox->addItem(ext, ext);
+  }
 }
 
 ISAEncodingTableView::ISAEncodingTableView(QWidget *parent)
     : QTableView(parent) {}
 
-void ISAEncodingTableView::setFamily(ISAFamily family) {
-  emit familyChanged(family);
-}
+void ISAEncodingTableView::updateView(const ISAInfoBase &isaInfo,
+                                      const ISAInfoBase &prevISAInfo) {}
+
+void ISAEncodingTableView::initializeView(const ISAInfoBase &isaInfo) {}
 
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
 
-  // Set initial model
   m_encodingModel = std::make_unique<ISAEncodingTableModel>();
-  ui->encodingTable->setModel(m_encodingModel.get());
+  auto setISAFromProcessor = [=] {
+    const auto *currentISA = ProcessorHandler::currentISA();
+    auto isaInfo = ISAInfoRegistry::getISA(currentISA->isaID(),
+                                           currentISA->enabledExtensions());
+    m_encodingModel->setISAInfo(isaInfo);
+  };
 
-  // Helper signals
-  connect(ui->isaFamilySelector, &QComboBox::activated, ui->isaFamilySelector,
-          [=](int index) {
-            emit ui->isaFamilySelector->familyActivated(
-                static_cast<ISAFamily>(index));
-          });
-  connect(ui->isaSelector, &QComboBox::activated, ui->isaSelector,
-          [=](int index) {
-            emit ui->isaSelector->isaActivated(static_cast<ISA>(index));
-          });
+  // Initialize the views when the model is initialized
+  connect(m_encodingModel.get(), &ISAEncodingTableModel::isaInfoInitialized,
+          this, &SliderulesTab::initializeView);
 
-  // UI -> Model signals
-  connect(ui->isaFamilySelector, &ISAFamilyComboBox::familyActivated,
-          m_encodingModel.get(), &ISAEncodingTableModel::setFamily);
-  connect(ui->isaSelector, &ISAComboBox::isaActivated, m_encodingModel.get(),
-          &ISAEncodingTableModel::setISA);
+  // Update the views when the model changes
+  connect(m_encodingModel.get(), &ISAEncodingTableModel::isaInfoChanged, this,
+          &SliderulesTab::updateView);
 
-  // Model -> UI signals
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::familyChanged,
-          ui->encodingTable, &ISAEncodingTableView::setFamily);
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::familyChanged,
-          ui->isaFamilySelector, &ISAFamilyComboBox::setFamily);
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::familyChanged,
-          ui->isaSelector, &ISAComboBox::setFamily);
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::isaChanged,
-          ui->isaSelector, &ISAComboBox::setISA);
-
-  // Model data changed
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::familyChanged,
-          m_encodingModel.get(),
-          [=] { emit m_encodingModel->layoutChanged(); });
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::isaChanged,
-          m_encodingModel.get(),
-          [=] { emit m_encodingModel->layoutChanged(); });
-
-  // Processor changed signal
+  // Update the model when the processor is changed
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
-          m_encodingModel.get(), [=] {
-            m_encodingModel->setFamily(
-                ProcessorHandler::currentISA()->isaFamily());
-          });
+          m_encodingModel.get(), setISAFromProcessor);
 
-  m_encodingModel->setFamily(ProcessorHandler::currentISA()->isaFamily());
+  // Update the model when the user changes the filters
+  connect(ui->encodingFilters, &ISAEncodingFilters::isaFamilyChanged,
+          m_encodingModel.get(), &ISAEncodingTableModel::setISAFamily);
+
+  // Initialize model
+  setISAFromProcessor();
+
+  ui->encodingTable->setModel(m_encodingModel.get());
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
+
+void SliderulesTab::initializeView(const ISAInfoBase &isaInfo) {
+  ui->encodingFilters->initializeView(isaInfo);
+  ui->encodingTable->initializeView(isaInfo);
+}
+
+void SliderulesTab::updateView(const ISAInfoBase &isaInfo,
+                               const ISAInfoBase &prevISAInfo) {
+  ui->encodingFilters->updateView(isaInfo, prevISAInfo);
+  ui->encodingTable->updateView(isaInfo, prevISAInfo);
+}
+
 } // namespace Ripes

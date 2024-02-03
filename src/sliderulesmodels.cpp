@@ -7,27 +7,6 @@ namespace Ripes {
 ISAEncodingTableModel::ISAEncodingTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
 
-void ISAEncodingTableModel::setFamily(ISAFamily family) {
-  if (!m_isaInfo || m_isaInfo->isaFamily() != family) {
-    m_isaInfo = ISAInfoRegistry::getISA(*ISAFamilySets.at(family).begin(),
-                                        QStringList());
-    emit familyChanged(family);
-  }
-}
-
-void ISAEncodingTableModel::setISA(ISA isa) {
-  if (!m_isaInfo || m_isaInfo->isaID() != isa) {
-    auto extensions = QStringList();
-    // NOTE: This assumes that all ISAs within a single family have the same
-    // supported extensions. Change this logic if that statement is not true.
-    if (m_isaInfo && m_isaInfo->isaFamily() == ISAFamilies.at(isa)) {
-      extensions = m_isaInfo->enabledExtensions();
-    }
-    m_isaInfo = ISAInfoRegistry::getISA(isa, extensions);
-    emit isaChanged(isa);
-  }
-}
-
 int ISAEncodingTableModel::rowCount(const QModelIndex &) const { return 1; }
 
 int ISAEncodingTableModel::columnCount(const QModelIndex &) const { return 1; }
@@ -42,6 +21,25 @@ QVariant ISAEncodingTableModel::data(const QModelIndex &index, int role) const {
            ISANames.at(m_isaInfo->isaID());
   }
   return QVariant();
+}
+
+void ISAEncodingTableModel::setISAInfo(
+    std::shared_ptr<const ISAInfoBase> isaInfo) {
+  bool initialize = m_isaInfo == nullptr;
+  m_prevIsaInfo = initialize ? isaInfo : m_isaInfo;
+  m_isaInfo = isaInfo;
+  if (initialize) {
+    emit isaInfoInitialized(*m_isaInfo.get());
+  } else {
+    emit isaInfoChanged(*m_isaInfo.get(), *m_prevIsaInfo.get());
+  }
+}
+
+void ISAEncodingTableModel::setISAFamily(ISAFamily isaFamily) {
+  if (m_isaInfo->isaFamily() != isaFamily) {
+    setISAInfo(ISAInfoRegistry::getISA(*ISAFamilySets.at(isaFamily).begin(),
+                                       QStringList()));
+  }
 }
 
 } // namespace Ripes
