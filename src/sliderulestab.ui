@@ -38,7 +38,7 @@
         </widget>
        </item>
        <item>
-        <widget class="ISAEncodingFilters" name="encodingFilters">
+        <widget class="QFrame" name="encodingFilters">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -51,11 +51,87 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Filters</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>ISA Family</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="isaFamilyBox"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>ISA</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="isaBox"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Main Extension</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="mainExtBox"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Enabled Extensions</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QGridLayout" name="enabledExtGrid">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="baseExtCheckBox">
+                  <property name="text">
+                   <string>Base Extension</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <widget class="ISAEncodingTableView" name="encodingTable"/>
+        <widget class="QTableView" name="encodingTable"/>
        </item>
       </layout>
      </widget>
@@ -64,7 +140,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Decodings</string>
+          <string>Decoding Table</string>
          </property>
         </widget>
        </item>
@@ -77,19 +153,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ISAEncodingTableView</class>
-   <extends>QTableView</extends>
-   <header>sliderulestab.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ISAEncodingFilters</class>
-   <extends>QFrame</extends>
-   <header>sliderulestab.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

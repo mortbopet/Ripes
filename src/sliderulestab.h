@@ -2,7 +2,6 @@
 
 #include "isainfo.h"
 #include "ripestab.h"
-#include "sliderulesmodels.h"
 
 #include <QComboBox>
 #include <QGridLayout>
@@ -18,31 +17,43 @@ namespace Ui {
 class SliderulesTab;
 }
 
-class ISAEncodingFilters : public QFrame {
+class ISAEncodingTableModel : public QAbstractTableModel {
   Q_OBJECT
 public:
-  ISAEncodingFilters(QWidget *parent = nullptr);
+  ISAEncodingTableModel(QObject *parent = nullptr);
 
-  QComboBox *isaFamilyBox;
-  QComboBox *isaBox;
-  QComboBox *mainExtBox;
+  // TODO(raccog): This could be a variable that is controlable in the UI.
+  constexpr static size_t BIT_COLUMNS = 32;
 
-signals:
-  void isaFamilyChanged(ISAFamily isaFamily);
+  enum Column {
+    EXTENSION = 0,
+    TYPE,
+    DESCRIPTION,
+    OPCODE,
+    // TODO(raccog): The field columns should be variable based on the maximum
+    // number of fields
+    FIELD0,
+    FIELD1,
+    FIELD2,
+    BIT_START,
+    BIT_END = BIT_START + BIT_COLUMNS
+  };
+
+  virtual int rowCount(const QModelIndex &) const override;
+  virtual int columnCount(const QModelIndex &) const override;
+  virtual QVariant data(const QModelIndex &index,
+                        int role = Qt::DisplayRole) const override;
+  //  virtual QVariant headerData(int section, Qt::Orientation orientation,
+  //                              int role = Qt::DisplayRole) const override;
 
 public slots:
-  void initializeView(const ISAInfoBase &isaInfo);
-  void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
-};
+  void change(const QString &s);
 
-class ISAEncodingTableView : public QTableView {
-  Q_OBJECT
-public:
-  ISAEncodingTableView(QWidget *parent = nullptr);
+protected:
+  std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;
+  std::shared_ptr<const ISAInfoBase> m_prevIsaInfo = nullptr;
 
-public slots:
-  void initializeView(const ISAInfoBase &isaInfo);
-  void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
+  QStringList tmp;
 };
 
 class SliderulesTab : public RipesTab {
@@ -56,7 +67,12 @@ public slots:
   void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
 
 private:
-  Ui::SliderulesTab *ui;
+  Ui::SliderulesTab *ui = nullptr;
+
+  QComboBox *isaFamilyBox = nullptr;
+  QComboBox *isaBox = nullptr;
+  QComboBox *mainExtBox = nullptr;
+
   std::unique_ptr<ISAEncodingTableModel> m_encodingModel = nullptr;
 };
 
