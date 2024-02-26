@@ -3,6 +3,7 @@
 #include "isainfo.h"
 #include "ripestab.h"
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QHeaderView>
@@ -46,14 +47,22 @@ public:
   //  virtual QVariant headerData(int section, Qt::Orientation orientation,
   //                              int role = Qt::DisplayRole) const override;
 
+  const ISAInfoBase *isaInfo() const;
+  const ISAInfoBase *prevISAInfo() const;
+
+signals:
+  void isaInfoChanged(const ISAInfoBase &isaInfo);
+
 public slots:
-  void change(const QString &s);
+  void changeISAFamily(ISAFamily isaFamily);
+  void changeISA(ISA isa);
+  void changeISAInfo(const ISAInfoBase &isaInfo);
 
 protected:
+  void modelChanged();
+
   std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;
   std::shared_ptr<const ISAInfoBase> m_prevIsaInfo = nullptr;
-
-  QStringList tmp;
 };
 
 class SliderulesTab : public RipesTab {
@@ -63,8 +72,7 @@ public:
   ~SliderulesTab();
 
 public slots:
-  void initializeView(const ISAInfoBase &isaInfo);
-  void updateView(const ISAInfoBase &isaInfo, const ISAInfoBase &prevISAInfo);
+  void updateView(const ISAInfoBase &isaInfo);
 
 private:
   Ui::SliderulesTab *ui = nullptr;
@@ -72,6 +80,7 @@ private:
   QComboBox *isaFamilyBox = nullptr;
   QComboBox *isaBox = nullptr;
   QComboBox *mainExtBox = nullptr;
+  QCheckBox *baseExtCheckBox = nullptr;
 
   std::unique_ptr<ISAEncodingTableModel> m_encodingModel = nullptr;
 };
