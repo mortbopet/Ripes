@@ -8,6 +8,7 @@
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QStandardItemModel>
 #include <QTableView>
 #include <QWidget>
 #include <QWidgetItem>
@@ -18,10 +19,11 @@ namespace Ui {
 class SliderulesTab;
 }
 
-class ISAEncodingTableModel : public QAbstractTableModel {
+class ISAInstructionsModel : public QStandardItemModel {
   Q_OBJECT
 public:
-  ISAEncodingTableModel(QObject *parent = nullptr);
+  ISAInstructionsModel(QObject *parent = nullptr);
+  ~ISAInstructionsModel() = default;
 
   // TODO(raccog): This could be a variable that is controlable in the UI.
   constexpr static size_t BIT_COLUMNS = 32;
@@ -44,8 +46,8 @@ public:
   virtual int columnCount(const QModelIndex &) const override;
   virtual QVariant data(const QModelIndex &index,
                         int role = Qt::DisplayRole) const override;
-  //  virtual QVariant headerData(int section, Qt::Orientation orientation,
-  //                              int role = Qt::DisplayRole) const override;
+  virtual QVariant headerData(int section, Qt::Orientation orientation,
+                              int role = Qt::DisplayRole) const override;
 
   const ISAInfoBase *isaInfo() const;
   const ISAInfoBase *prevISAInfo() const;
@@ -82,7 +84,7 @@ private:
   QComboBox *mainExtBox = nullptr;
   QCheckBox *baseExtCheckBox = nullptr;
 
-  std::unique_ptr<ISAEncodingTableModel> m_encodingModel = nullptr;
+  std::unique_ptr<ISAInstructionsModel> m_encodingModel = nullptr;
 };
 
 } // namespace Ripes

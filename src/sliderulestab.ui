@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1052</width>
-    <height>539</height>
+    <height>553</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -131,7 +131,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QTableView" name="encodingTable"/>
+        <widget class="QTreeView" name="encodingTable"/>
        </item>
       </layout>
      </widget>

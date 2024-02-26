@@ -5,10 +5,11 @@
 
 namespace Ripes {
 
-ISAEncodingTableModel::ISAEncodingTableModel(QObject *parent)
-    : m_isaInfo(ProcessorHandler::fullISA()) {}
+ISAInstructionsModel::ISAInstructionsModel(QObject *parent) {
+  changeISAInfo(*ProcessorHandler::currentISA());
+}
 
-int ISAEncodingTableModel::rowCount(const QModelIndex &) const {
+int ISAInstructionsModel::rowCount(const QModelIndex &) const {
   if (!m_isaInfo) {
     return 0;
   }
@@ -16,9 +17,9 @@ int ISAEncodingTableModel::rowCount(const QModelIndex &) const {
   return m_isaInfo->instructions().size();
 }
 
-int ISAEncodingTableModel::columnCount(const QModelIndex &) const { return 1; }
+int ISAInstructionsModel::columnCount(const QModelIndex &) const { return 2; }
 
-QVariant ISAEncodingTableModel::data(const QModelIndex &index, int role) const {
+QVariant ISAInstructionsModel::data(const QModelIndex &index, int role) const {
   if (!m_isaInfo || index.row() >= rowCount(QModelIndex())) {
     return QVariant();
   }
@@ -29,21 +30,28 @@ QVariant ISAEncodingTableModel::data(const QModelIndex &index, int role) const {
 
   return QVariant();
 }
-const ISAInfoBase *ISAEncodingTableModel::isaInfo() const {
+
+QVariant ISAInstructionsModel::headerData(int section,
+                                          Qt::Orientation orientation,
+                                          int role) const {
+  return {};
+}
+
+const ISAInfoBase *ISAInstructionsModel::isaInfo() const {
   return m_isaInfo.get();
 }
 
-const ISAInfoBase *ISAEncodingTableModel::prevISAInfo() const {
+const ISAInfoBase *ISAInstructionsModel::prevISAInfo() const {
   return m_prevIsaInfo.get();
 }
 
-void ISAEncodingTableModel::changeISAFamily(ISAFamily isaFamily) {
+void ISAInstructionsModel::changeISAFamily(ISAFamily isaFamily) {
   if (!m_isaInfo || m_isaInfo->isaFamily() != isaFamily) {
     changeISA(*ISAFamilySets.at(isaFamily).begin());
   }
 }
 
-void ISAEncodingTableModel::changeISA(ISA isa) {
+void ISAInstructionsModel::changeISA(ISA isa) {
   if (!m_isaInfo || m_isaInfo->isaID() != isa) {
     beginResetModel();
     m_prevIsaInfo = m_isaInfo;
@@ -52,7 +60,7 @@ void ISAEncodingTableModel::changeISA(ISA isa) {
   }
 }
 
-void ISAEncodingTableModel::changeISAInfo(const ISAInfoBase &isaInfo) {
+void ISAInstructionsModel::changeISAInfo(const ISAInfoBase &isaInfo) {
   if (!m_isaInfo || m_isaInfo->eq(&isaInfo, isaInfo.enabledExtensions())) {
     beginResetModel();
     m_prevIsaInfo = m_isaInfo;
@@ -61,7 +69,7 @@ void ISAEncodingTableModel::changeISAInfo(const ISAInfoBase &isaInfo) {
   }
 }
 
-void ISAEncodingTableModel::modelChanged() {
+void ISAInstructionsModel::modelChanged() {
   endResetModel();
   emit isaInfoChanged(*m_isaInfo);
 }
@@ -80,7 +88,7 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
                           QVariant(static_cast<int>(familyName.first)));
   }
 
-  m_encodingModel = std::make_unique<ISAEncodingTableModel>();
+  m_encodingModel = std::make_unique<ISAInstructionsModel>();
   ui->encodingTable->setModel(m_encodingModel.get());
 
   connect(isaFamilyBox, &QComboBox::activated, this, [=](int index) {
@@ -102,7 +110,7 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     }
   });
 
-  connect(m_encodingModel.get(), &ISAEncodingTableModel::isaInfoChanged, this,
+  connect(m_encodingModel.get(), &ISAInstructionsModel::isaInfoChanged, this,
           &SliderulesTab::updateView);
 
   updateView(*m_encodingModel->isaInfo());
