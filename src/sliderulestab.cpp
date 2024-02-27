@@ -23,16 +23,23 @@ InstructionItem *InstructionItem::parent() { return m_parent; }
 bool InstructionItem::hasParent() const { return m_parent; }
 
 ISAInstructionsModel::ISAInstructionsModel(QObject *parent) {
-  for (const auto &instr : ProcessorHandler::currentISA()->instructions()) {
-    m_instrItems.push_back(std::make_unique<InstructionItem>(*instr.get()));
-  }
+  changeISAInfo(*ProcessorHandler::currentISA());
 }
 
 int ISAInstructionsModel::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return parent.parent().isValid() ? 0 : 1;
+  if (!parent.isValid()) {
+    // Number of instruction rows
+    return m_instrItems.size();
   }
-  return m_instrItems.size();
+
+  if (parent.parent().isValid()) {
+    // Tree is only one layer deep
+    return 0;
+  }
+
+  // TODO(raccog): Extra rows for 64-bit instructions and immediate formats
+  // Number of extra rows for a single instruction
+  return 1;
 }
 
 int ISAInstructionsModel::columnCount(const QModelIndex &) const { return 1; }
@@ -89,6 +96,24 @@ QModelIndex ISAInstructionsModel::parent(const QModelIndex &index) const {
   return parent ? createIndex(0, 0, parent) : QModelIndex{};
 }
 
+const ISAInfoBase *ISAInstructionsModel::isaInfo() const {
+  return m_isaInfo.get();
+}
+
+void ISAInstructionsModel::changeISAInfo(const ISAInfoBase &isaInfo) {
+  if (!m_isaInfo || !m_isaInfo->eq(&isaInfo, isaInfo.enabledExtensions())) {
+    beginResetModel();
+    m_isaInfo =
+        ISAInfoRegistry::getISA(isaInfo.isaID(), isaInfo.enabledExtensions());
+    m_instrItems.clear();
+    for (const auto &instr : m_isaInfo->instructions()) {
+      m_instrItems.push_back(std::make_unique<InstructionItem>(*instr));
+    }
+    endResetModel();
+    emit isaInfoChanged(*m_isaInfo);
+  }
+}
+
 SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), ui(new Ui::SliderulesTab) {
   ui->setupUi(this);
@@ -127,6 +152,10 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   baseExtCheckBox->setText(isaInfo.baseExtension());
   baseExtCheckBox->setChecked(true);
   baseExtCheckBox->setEnabled(false);
+
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
+          m_isaModel.get(),
+          [=] { m_isaModel->changeISAInfo(*ProcessorHandler::currentISA()); });
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }

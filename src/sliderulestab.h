@@ -53,19 +53,19 @@ public:
                             const QModelIndex &parent = {}) const override;
   virtual QModelIndex parent(const QModelIndex &index) const override;
 
-  //   const ISAInfoBase *isaInfo() const;
+  const ISAInfoBase *isaInfo() const;
   //   const ISAInfoBase *prevISAInfo() const;
 
-  // signals:
-  //   void isaInfoChanged(const ISAInfoBase &isaInfo);
+signals:
+  void isaInfoChanged(const ISAInfoBase &isaInfo);
 
-  // public slots:
+public slots:
   //   void changeISAFamily(ISAFamily isaFamily);
   //   void changeISA(ISA isa);
-  //   void changeISAInfo(const ISAInfoBase &isaInfo);
+  void changeISAInfo(const ISAInfoBase &isaInfo);
 
 protected:
-  // std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;
+  std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;
   // std::shared_ptr<const ISAInfoBase> m_prevIsaInfo = nullptr;
 
   std::vector<std::unique_ptr<InstructionItem>> m_instrItems;
