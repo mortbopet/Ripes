@@ -80,9 +80,11 @@ public:
 public slots:
   // void updateView(const ISAInfoBase &isaInfo);
 
-private:
+private slots:
   void resetISAFilter(const ISAInfoBase &isaInfo);
+  void resetExtensionFilters(const ISAInfoBase &isaInfo);
 
+private:
   Ui::SliderulesTab *ui = nullptr;
 
   QComboBox *isaFamilyBox = nullptr;

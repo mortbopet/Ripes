@@ -158,15 +158,7 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   isaBox->setCurrentIndex(
       isaBox->findData(QVariant(static_cast<int>(isaInfo.isaID()))));
 
-  mainExtBox->clear();
-  for (const auto &ext :
-       QStringList(isaInfo.baseExtension()) + isaInfo.supportedExtensions()) {
-    mainExtBox->addItem(ext, ext);
-  }
-
-  baseExtCheckBox->setText(isaInfo.baseExtension());
-  baseExtCheckBox->setChecked(true);
-  baseExtCheckBox->setEnabled(false);
+  resetExtensionFilters(isaInfo);
 
   // Update model when the processor is changed
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
@@ -196,6 +188,12 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
             isaBox->setCurrentIndex(
                 isaBox->findData(QVariant(static_cast<int>(isaInfo.isaID()))));
           });
+  connect(m_isaModel.get(), &ISAInstructionsModel::isaInfoChanged, this,
+          [=](const ISAInfoBase &isaInfo) {
+            if (isaInfo.isaID() != m_isaModel->prevISAInfo()->isaID()) {
+              resetExtensionFilters(isaInfo);
+            }
+          });
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
@@ -205,6 +203,28 @@ void SliderulesTab::resetISAFilter(const ISAInfoBase &isaInfo) {
   for (const auto &isa : ISAFamilySets.at(isaInfo.isaFamily())) {
     isaBox->addItem(ISANames.at(isa), QVariant(static_cast<int>(isa)));
   }
+}
+
+void SliderulesTab::resetExtensionFilters(const ISAInfoBase &isaInfo) {
+  mainExtBox->clear();
+  for (const auto &ext :
+       QStringList(isaInfo.baseExtension()) + isaInfo.supportedExtensions()) {
+    mainExtBox->addItem(ext, ext);
+  }
+
+  QLayoutItem *child;
+  while ((child = ui->enabledExtGrid->takeAt(1)) != nullptr) {
+    delete child->widget();
+    delete child;
+  }
+  for (const auto &ext : isaInfo.supportedExtensions()) {
+    auto count = ui->enabledExtGrid->count();
+    ui->enabledExtGrid->addWidget(new QCheckBox(ext), count % 2, count / 2);
+  }
+
+  baseExtCheckBox->setText(isaInfo.baseExtension());
+  baseExtCheckBox->setChecked(true);
+  baseExtCheckBox->setEnabled(false);
 }
 
 } // namespace Ripes
