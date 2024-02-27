@@ -100,11 +100,30 @@ const ISAInfoBase *ISAInstructionsModel::isaInfo() const {
   return m_isaInfo.get();
 }
 
+const ISAInfoBase *ISAInstructionsModel::prevISAInfo() const {
+  return m_prevIsaInfo.get();
+}
+
+void ISAInstructionsModel::changeISAFamily(ISAFamily isaFamily) {
+  if (m_isaInfo->isaFamily() != isaFamily) {
+    changeISAInfo(*ISAInfoRegistry::getISA(*ISAFamilySets.at(isaFamily).begin(),
+                                           QStringList()));
+  }
+}
+
+void ISAInstructionsModel::changeISA(ISA isa) {
+  if (m_isaInfo->isaID() != isa) {
+    changeISAInfo(*ISAInfoRegistry::getISA(isa, QStringList()));
+  }
+}
+
 void ISAInstructionsModel::changeISAInfo(const ISAInfoBase &isaInfo) {
   if (!m_isaInfo || !m_isaInfo->eq(&isaInfo, isaInfo.enabledExtensions())) {
     beginResetModel();
-    m_isaInfo =
+    auto newIsaInfo =
         ISAInfoRegistry::getISA(isaInfo.isaID(), isaInfo.enabledExtensions());
+    m_prevIsaInfo = m_isaInfo ? m_isaInfo : newIsaInfo;
+    m_isaInfo = newIsaInfo;
     m_instrItems.clear();
     for (const auto &instr : m_isaInfo->instructions()) {
       m_instrItems.push_back(std::make_unique<InstructionItem>(*instr));
@@ -135,11 +154,7 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   isaFamilyBox->setCurrentIndex(
       isaFamilyBox->findData(QVariant(static_cast<int>(isaInfo.isaFamily()))));
 
-  isaBox->clear();
-  for (const auto &isa : ISAFamilySets.at(isaInfo.isaFamily())) {
-    isaBox->addItem(ISANames.at(isa), QVariant(static_cast<int>(isa)));
-  }
-
+  resetISAFilter(isaInfo);
   isaBox->setCurrentIndex(
       isaBox->findData(QVariant(static_cast<int>(isaInfo.isaID()))));
 
@@ -153,11 +168,43 @@ SliderulesTab::SliderulesTab(QToolBar *toolbar, QWidget *parent)
   baseExtCheckBox->setChecked(true);
   baseExtCheckBox->setEnabled(false);
 
+  // Update model when the processor is changed
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
           m_isaModel.get(),
           [=] { m_isaModel->changeISAInfo(*ProcessorHandler::currentISA()); });
+
+  // Update model when user changes the filters
+  connect(isaFamilyBox, &QComboBox::activated, m_isaModel.get(), [=] {
+    m_isaModel->changeISAFamily(
+        static_cast<ISAFamily>(isaFamilyBox->currentData().toInt()));
+  });
+  connect(isaBox, &QComboBox::activated, m_isaModel.get(), [=] {
+    m_isaModel->changeISA(static_cast<ISA>(isaBox->currentData().toInt()));
+  });
+
+  // Update UI when model updates
+  connect(m_isaModel.get(), &ISAInstructionsModel::isaInfoChanged, isaFamilyBox,
+          [=](const ISAInfoBase &isaInfo) {
+            isaFamilyBox->setCurrentIndex(isaFamilyBox->findData(
+                QVariant(static_cast<int>(isaInfo.isaFamily()))));
+          });
+  connect(m_isaModel.get(), &ISAInstructionsModel::isaInfoChanged, isaBox,
+          [=](const ISAInfoBase &isaInfo) {
+            if (isaInfo.isaFamily() != m_isaModel->prevISAInfo()->isaFamily()) {
+              resetISAFilter(isaInfo);
+            }
+            isaBox->setCurrentIndex(
+                isaBox->findData(QVariant(static_cast<int>(isaInfo.isaID()))));
+          });
 }
 
 SliderulesTab::~SliderulesTab() { delete ui; }
+
+void SliderulesTab::resetISAFilter(const ISAInfoBase &isaInfo) {
+  isaBox->clear();
+  for (const auto &isa : ISAFamilySets.at(isaInfo.isaFamily())) {
+    isaBox->addItem(ISANames.at(isa), QVariant(static_cast<int>(isa)));
+  }
+}
 
 } // namespace Ripes

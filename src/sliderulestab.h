@@ -54,19 +54,19 @@ public:
   virtual QModelIndex parent(const QModelIndex &index) const override;
 
   const ISAInfoBase *isaInfo() const;
-  //   const ISAInfoBase *prevISAInfo() const;
+  const ISAInfoBase *prevISAInfo() const;
 
 signals:
   void isaInfoChanged(const ISAInfoBase &isaInfo);
 
 public slots:
-  //   void changeISAFamily(ISAFamily isaFamily);
-  //   void changeISA(ISA isa);
+  void changeISAFamily(ISAFamily isaFamily);
+  void changeISA(ISA isa);
   void changeISAInfo(const ISAInfoBase &isaInfo);
 
 protected:
   std::shared_ptr<const ISAInfoBase> m_isaInfo = nullptr;
-  // std::shared_ptr<const ISAInfoBase> m_prevIsaInfo = nullptr;
+  std::shared_ptr<const ISAInfoBase> m_prevIsaInfo = nullptr;
 
   std::vector<std::unique_ptr<InstructionItem>> m_instrItems;
 };
@@ -81,6 +81,8 @@ public slots:
   // void updateView(const ISAInfoBase &isaInfo);
 
 private:
+  void resetISAFilter(const ISAInfoBase &isaInfo);
+
   Ui::SliderulesTab *ui = nullptr;
 
   QComboBox *isaFamilyBox = nullptr;
