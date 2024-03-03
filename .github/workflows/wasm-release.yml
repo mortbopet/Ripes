@@ -2,7 +2,7 @@ name: WASM / Qt 6.6.0
 on:
   push:
     branches:
-      - '*'
+      - '**'
 
 jobs:
   buildUbuntuXenial:
@@ -103,5 +103,6 @@ jobs:
     # Dispatch the publish.yml workflow over at mortbopet.github.io
     - run: |
         gh workflow run publish.yml -R mortbopet/mortbopet.github.io --ref master
+      if: github.repository == 'mortbopet/Ripes'
       env:
         GH_TOKEN: ${{ secrets.MORTBOPET_GITHUB_IO_TOKEN }}
