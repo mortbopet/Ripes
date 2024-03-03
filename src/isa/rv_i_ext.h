@@ -271,7 +271,7 @@ struct Ecall : public Instr<Ecall, Funct12::ECALL> {
 
 namespace TypeU {
 
-/// A RISC-V immediate field with an input width of 32 bits.
+/// A RISC-V immediate field with an input width of 20 bits.
 /// Used in U-Type instructions.
 ///
 /// It is defined as:
@@ -280,7 +280,7 @@ namespace TypeU {
 constexpr static unsigned VALID_INDEX = 1;
 template <unsigned index, SymbolType symbolType>
 struct ImmU
-    : public ImmSym<index, 32, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
+    : public ImmSym<index, 20, Repr::Hex, ImmPart<0, 12, 31>, symbolType> {
   static_assert(index == VALID_INDEX, "Invalid token index");
 };
 
@@ -309,7 +309,7 @@ struct Lui : public Instr<Lui, RVISA::OpcodeID::LUI> {
 
 namespace TypeJ {
 
-/// A RISC-V signed immediate field with an input width of 21 bits.
+/// A RISC-V signed immediate field with an input width of 20 bits.
 /// Used in J-Type instructions.
 ///
 /// It is defined as:
@@ -321,7 +321,7 @@ namespace TypeJ {
 ///  - Imm[0]     = 0
 constexpr static unsigned VALID_INDEX = 1;
 template <unsigned index>
-struct ImmJ : public ImmSym<index, 21, Repr::Signed,
+struct ImmJ : public ImmSym<index, 20, Repr::Signed,
                             ImmPartSet<ImmPart<20, 31, 31>, ImmPart<12, 12, 19>,
                                        ImmPart<11, 20, 20>, ImmPart<1, 21, 30>>,
                             SymbolType::Relative> {
@@ -489,7 +489,7 @@ enum class Funct3 {
   BGEU = 0b111
 };
 
-/// A RISC-V signed immediate field with an input width of 13 bits.
+/// A RISC-V signed immediate field with an input width of 12 bits.
 /// Used in B-Type instructions.
 ///
 /// It is defined as:
@@ -500,7 +500,7 @@ enum class Funct3 {
 ///  - Imm[0]     = 0
 constexpr static unsigned VALID_INDEX = 2;
 template <unsigned index>
-struct ImmB : public ImmSym<index, 13, Repr::Signed,
+struct ImmB : public ImmSym<index, 12, Repr::Signed,
                             ImmPartSet<ImmPart<12, 31, 31>, ImmPart<11, 7, 7>,
                                        ImmPart<5, 25, 30>, ImmPart<1, 8, 11>>,
                             SymbolType::Relative> {
