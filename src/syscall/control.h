@@ -60,13 +60,15 @@ public:
     // Retrieves the argument of the brk syscall, the new program break
     uint64_t newBreak = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     // Retrieve the current stack pointer from the processor handler
-    uint64_t stackPointer = ProcessorHandler::getProcessor()->getRegister(BaseSyscall::REG_FILE, 2);
+    uint64_t stackPointer =
+        ProcessorHandler::getProcessor()->getRegister(BaseSyscall::REG_FILE, 2);
     if (newBreak >= stackPointer) {
-        SystemIO::printString("Error: Attempted to allocate memory overlapping stack segment\n");
-        BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1); // Syscall error code
-        return;
+      SystemIO::printString(
+          "Error: Attempted to allocate memory overlapping stack segment\n");
+      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1); // Syscall error code
+      return;
     }
-    
+
     BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, 0);
   }
 };
