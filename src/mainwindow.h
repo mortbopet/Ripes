@@ -37,6 +37,7 @@ class MainWindow : public QMainWindow {
     CacheTabID,
     MemoryTabID,
     IOTabID,
+    SliderulesTabID,
     NTabsID
   };
 
