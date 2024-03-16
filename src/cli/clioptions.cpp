@@ -15,7 +15,7 @@ namespace Ripes {
 void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   parser.addOption(QCommandLineOption("src", "Path to source file.", "path"));
   parser.addOption(QCommandLineOption(
-      "t", "Source file type. Options: [c, asm, bin]", "type", "asm"));
+      "t", "Source file type. Options: [c, asm, bin, elf]", "type", "asm"));
 
   // Processor models. Generate information from processor registry.
   QStringList processorOptions;
