@@ -11,3 +11,8 @@ def main_page():
 @app.route("/task/<task_id>")
 def task(task_id):
     return render_template("task.html", task_id=task_id)
+
+
+@app.route("/user/<user_id>")
+def user_summary(user_id):
+    return render_template("summary.html", user_id=user_id)
