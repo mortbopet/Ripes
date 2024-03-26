@@ -3,7 +3,7 @@
 #include <climits>
 #include <memory>
 #include <string_view>
-#include <type_traits>
+#include <experimental/type_traits>
 #include <vector>
 
 #include <QList>
@@ -56,18 +56,18 @@ using IsField =
 
 template <typename MaybeBitRange>
 constexpr bool verifyBitRange() {
-  return qxp::is_detected_v<IsBitRange, MaybeBitRange>;
+  return std::experimental::is_detected_v<IsBitRange, MaybeBitRange>;
 }
 template <typename MaybeField>
 constexpr bool verifyField() {
-  return qxp::is_detected_v<IsField, MaybeField>;
+  return std::experimental::is_detected_v<IsField, MaybeField>;
 }
 
 template <template <typename...> class Op, typename...>
 class VerifyValidTypes {};
 template <template <typename...> class Op, typename Type, typename... NextTypes>
 class VerifyValidTypes<Op, Type, NextTypes...> {
-  static_assert(qxp::is_detected_v<Op, Type>, "Invalid type");
+  static_assert(std::experimental::is_detected_v<Op, Type>, "Invalid type");
 
   constexpr static VerifyValidTypes<Op, NextTypes...> verifyRest{};
 };

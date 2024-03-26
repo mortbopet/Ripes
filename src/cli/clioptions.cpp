@@ -197,7 +197,7 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
           extInfo << "]: [";
           llvm::interleaveComma(fileNames, extInfo);
           extInfo << "]";
-          errorMessage += extInfo.str();
+          errorMessage += extInfo.str().c_str();
           return false;
         }
 

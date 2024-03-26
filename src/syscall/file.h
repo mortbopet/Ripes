@@ -31,7 +31,7 @@ public:
       string.append(byte);
     } while (byte != '\0');
     if (string.endsWith('\0'))
-      string.removeLast(); // Remove null-byte
+      string.remove(string.size() - 1, 1); // Remove null-byte
 
     int ret = SystemIO::openFile(QString::fromUtf8(string), arg1);
 
