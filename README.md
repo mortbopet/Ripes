@@ -81,7 +81,7 @@ Configuring the External Tool it is done through received editing rights then ad
 </p>
 Add name, URL and select LTI version.
 <p align="center">
-    <img src="https://github.com/moevm/mse1h2024-ripes/tree/master/resources/images/nameurl.jpg" />
+    <img src="https://github.com/moevm/mse1h2024-ripes/blob/master/resources/images/nameurl.jpg" />
 </p>
 That’s it.
 <p align="center">
