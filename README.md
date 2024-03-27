@@ -85,7 +85,7 @@ Add name, URL and select LTI version.
 </p>
 That’s it.
 <p align="center">
-    <img src="https://github.com/moevm/mse1h2024-ripes/tree/master/resources/images/reslti.jpg" />
+    <img src="https://github.com/moevm/mse1h2024-ripes/blob/master/resources/images/reslti.jpg" />
 </p>
 
 
