@@ -18,7 +18,7 @@ That’s it.
  - Настроен moodle для подключения ripes 
  - Создана инструкция для настройки подключения moodle к ripes
  - Создан UI для отображения условия заданий в ripes*  
- - Реализован выбор заданий в ripes**
+ - Реализован выбор заданий в ripes
  - Реализованна проверка заданий на синтаксические ошибки
    
 #### Задачи в процессе решения:
@@ -27,7 +27,4 @@ That’s it.
  - Первый прототит
 
 *Пример отображения заданий
-![example1](https://github.com/moevm/mse1h2024-ripes/blob/master/resources/images/example1.jpeg)
-
-**Пример выбора и валидации задания
 ![example2](https://github.com/moevm/mse1h2024-ripes/blob/master/resources/images/example2.jpeg)
