@@ -21,6 +21,7 @@ class CacheTab;
 class IOTab;
 class ProcessorHandler;
 class RipesTab;
+class TaskTab;
 struct LoadFileParams;
 
 struct TabWidgets {
@@ -37,6 +38,7 @@ class MainWindow : public QMainWindow {
     CacheTabID,
     MemoryTabID,
     IOTabID,
+    TaskTabID,
     NTabsID
   };
 

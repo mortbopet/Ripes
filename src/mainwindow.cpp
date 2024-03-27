@@ -8,6 +8,7 @@
 #include "memorytab.h"
 #include "processorhandler.h"
 #include "processortab.h"
+#include "taskcheck/tasktab.h"
 #include "registerwidget.h"
 #include "ripessettings.h"
 #include "savedialog.h"
@@ -90,6 +91,12 @@ MainWindow::MainWindow(QWidget *parent)
   auto *IOTab = new class IOTab(IOToolbar, this);
   m_stackedTabs->insertWidget(IOTabID, IOTab);
   m_tabWidgets[IOTabID] = {IOTab, IOToolbar};
+  
+  auto *taskToolbar = addToolBar("Task");
+  taskToolbar->setVisible(false);
+  auto *taskTab = new TaskTab(taskToolbar, editTab, this);
+  m_stackedTabs->insertWidget(TaskTabID, taskTab);
+  m_tabWidgets[TaskTabID] = {taskTab, taskToolbar};
 
   // Setup tab bar
   m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
@@ -97,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
+  m_ui->tabbar->addFancyTab(QIcon(":/icons/task.svg"), "Task");
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this,
           &MainWindow::tabChanged);
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs,

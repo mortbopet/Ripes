@@ -39,5 +39,6 @@
         <file>tile.svg</file>
         <file>crosshair_blue.svg</file>
         <file>crosshair_gold.svg</file>
+        <file>task.svg</file>
     </qresource>
 </RCC>
