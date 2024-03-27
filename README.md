@@ -77,7 +77,7 @@ In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen.
 ### Implementation of moodle with ripes interaction, configuration of connection to service from moodle side.
 Configuring the External Tool it is done through received editing rights then add an external tool for subsequent configuration.
 <p align="center">
-    ![image](https://github.com/moevm/mse1h2024-ripes/blob/master/resources/images/externaltool.jpg)
+	<img src="[https://github.com/moevm/mse1h2024-ripes/tree/master/resources/images/nameurl.jpg?raw=true](https://github.com/moevm/mse1h2024-ripes/blob/master/resources/images/externaltool.jpg)" />
 </p>
 Add name, URL and select LTI version.
 <p align="center">
