@@ -24,6 +24,11 @@ QString loadFlatBinaryFile(Program &program, const QString &filepath,
 }
 
 using namespace ELFIO;
+/**
+ * @brief The ELFIODwarfLoader class provides
+ * a loader implementation for Dwarf sections
+ * using the ELFIO library.
+ */
 class ELFIODwarfLoader : public ::dwarf::loader {
 public:
   ELFIODwarfLoader(elfio &reader) : reader(reader) {}
@@ -40,14 +45,26 @@ private:
   elfio &reader;
 };
 
-std::shared_ptr<ELFIODwarfLoader> createDwarfLoader(elfio &reader) {
+/**
+ * @brief createDwarfLoader
+ * Creates a Dwarf loader for the provided elfio reader.
+ * @param reader The elfio reader to create the Dwarf loader for.
+ * @return A shared pointer to the newly created Dwarf loader.
+ */
+static std::shared_ptr<ELFIODwarfLoader> createDwarfLoader(elfio &reader) {
   return std::make_shared<ELFIODwarfLoader>(reader);
 }
 
+/**
+ * @brief isInternalSourceFile
+ * Determines if the given filename is likely originated from within the Ripes
+ * editor. These files are typically temporary files like /.../Ripes.abc123.c.
+ *
+ * @param filename A string containing the filename to check.
+ * @return True if the filename is likely originated from within the Ripes
+ * editor, otherwise false.
+ */
 static bool isInternalSourceFile(const QString &filename) {
-  // Returns true if we have reason to believe that this file originated from
-  // within the Ripes editor. These will be temporary files like
-  // /.../Ripes.abc123.c
   static QRegularExpression re("Ripes.[a-zA-Z0-9]+.c");
   return re.match(filename).hasMatch();
 }
