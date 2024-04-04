@@ -1,5 +1,7 @@
 #include "clirunner.h"
+#include "ccmanager.h"
 #include "io/iomanager.h"
+#include "loaddialog.h"
 #include "processorhandler.h"
 #include "programutilities.h"
 #include "syscall/systemio.h"
@@ -92,6 +94,59 @@ int CLIRunner::processInput() {
       return 1;
     }
     ProcessorHandler::loadProgram(std::make_shared<Program>(p));
+    break;
+  }
+  case SourceType::InternalELF:
+  case SourceType::ExternalELF: {
+    // Combining cases for InternalELF and ExternalELF because they share the
+    // same actions
+    info("Loading elf file '" + m_options.src + "'");
+    Program p;
+    QFile file(m_options.src);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      error("Could not open file " + file.fileName());
+      return 1;
+    }
+    auto info = LoadDialog::validateELFFile(
+        file); // Checking the validity of the ELF file.
+    if (!info.valid) {
+      error(info.errorMessage);
+      return 1;
+    }
+    if (!loadElfFile(p, file)) {
+      error("Error while loading ELF file: '" + m_options.src + "'");
+      return 1;
+    }
+    ProcessorHandler::loadProgram(std::make_shared<Program>(p));
+    break;
+  }
+  case SourceType::C: {
+    // For SourceType::C:
+    // - Compile the C file, disabling graphical components.
+    // - Treat the compiled file as an ExternalELF and process it.
+    // - Display error output if compilation fails.
+    info("Loading C file '" + m_options.src + "'");
+    if (!CCManager::get().hasValidCC()) {
+      error("No C compiler set.");
+      return 1;
+    }
+    QFile file(m_options.src);
+    if (!file.open(QIODevice::ReadOnly)) {
+      error("Could not open file " + file.fileName());
+      return 1;
+    }
+    QString fileContent = file.readAll();
+    file.close();
+    auto res = CCManager::get().compileRaw(fileContent, QString(),
+                                           /* enableGUI = */ false);
+    if (res.success) {
+      m_options.src = res.outFile;
+      m_options.srcType = SourceType::ExternalELF;
+      processInput();
+    } else if (!res.aborted) {
+      error("Compilation failed. Error output was: " + CCManager::getError());
+    }
+    res.clean();
     break;
   }
   default:

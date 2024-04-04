@@ -79,7 +79,6 @@ private:
 
   void updateProgramViewer();
   bool loadSourceFile(Program &program, QFile &file);
-  bool loadElfFile(Program &program, QFile &file);
 
   void setupActions();
   void enableEditor();
