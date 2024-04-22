@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <!--Set visual viewport size for mobile devices to the device size,
+        witch results in a scale of 1 and a 1:1 mapping between CSS pixels
+        and Qt device independent pixels. -->
+    <meta name="viewport" content="width=device-width, height=device-height, user-scalable=0"/>
+    <script src="enable-threads.js"></script>
+
+    <!-- add link icon -->
+    <link rel="icon" href="logo.png" type="image/x-icon">
+
+    <!-- Google analytics tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SH0BWVGNBK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-SH0BWVGNBK');
+    </script>
+
+    <title>Ripes</title>
+    <style>
+      /* Make the html body cover the entire (visual) viewport with no scroll bars. */
+      html, body { padding: 0; margin: 0; overflow: hidden; height: 100% }
+      #screen { width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body onload="init()">
+    <figure style="overflow:visible;" id="qtspinner">
+      <center style="margin-top:1.5em; line-height:150%">
+        <img src="logo.png" width="400" height="400" style="display:block"></img>
+        <strong>Ripes (Qt for WebAssembly)</strong>
+        <div id="qtstatus"></div>
+        <noscript>JavaScript is disabled. Please enable JavaScript to use this application.</noscript>
+      </center>
+    </figure>
+    <div id="screen"></div>
+
+    <script type="text/javascript">
+        async function init()
+        {
+            const spinner = document.querySelector('#qtspinner');
+            const screen = document.querySelector('#screen');
+            const status = document.querySelector('#qtstatus');
+
+            const showUi = (ui) => {
+                [spinner, screen].forEach(element => element.style.display = 'none');
+                if (screen === ui)
+                    screen.style.position = 'default';
+                ui.style.display = 'block';
+            }
+
+            try {
+                showUi(spinner);
+                status.innerHTML = 'Loading...';
+
+                const instance = await qtLoad({
+                    qt: {
+                        onLoaded: () => showUi(screen),
+                        onExit: exitData =>
+                        {
+                            status.innerHTML = 'Application exit';
+                            status.innerHTML +=
+                                exitData.code !== undefined ? ` with code ` : '';
+                            status.innerHTML +=
+                                exitData.text !== undefined ? ` ()` : '';
+                            showUi(spinner);
+                        },
+                        entryFunction: window.createQtAppInstance,
+                        containerElements: [screen],
+
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+                console.error(e.stack);
+                status.innerHTML = e.message;
+                showUi(spinner);
+            }
+        }
+    </script>
+    <script src="Ripes.js"></script>
+    <script type="text/javascript" src="qtloader.js"></script>
+  </body>
+</html>
