@@ -6,34 +6,38 @@ app = Flask(
     template_folder="../templates",
     static_url_path='',
     static_folder='../static',
-    )
+)
 CORS(app)
+
 
 @app.route("/", methods=["GET", "POST"])
 @cross_origin()
 def main_page():
     return render_template("ripes.html")
 
+
 @app.route('/<task_id>/send/solution/', methods=['GET'])
 def send_solution(task_id):
     user = check_auth()
     answer = int(request.args.get('answer', 0))
     solution_id = str(uuid4())
-    add_solution(solution_id=solution_id, username=session['session_id'], task_id=task_id, score=answer/10,
-        passback_params=user['tasks'].get(task_id)['passback_params'])
+    add_solution(solution_id=solution_id,
+                 username=session['session_id'],
+                 task_id=task_id,
+                 score=answer / 10,
+                 passback_params=user['tasks'].get(task_id)['passback_params'])
 
     return redirect(url_for('get_user_solution', solution_id=solution_id))
+
 
 @app.route('/lti', methods=['POST'])
 def lti_route():
     params = request.form
     consumer_secret = get_secret(params.get('oauth_consumer_key', ''))
-    request_info = dict(
-        headers=dict(request.headers),
-        data=params,
-        url=request.url,
-        secret=consumer_secret
-    )
+    request_info = dict(headers=dict(request.headers),
+                        data=params,
+                        url=request.url,
+                        secret=consumer_secret)
 
     if check_request(request_info):
         # request is ok, let's start working!
