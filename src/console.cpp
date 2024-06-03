@@ -77,37 +77,34 @@ void Console::keyPressEvent(QKeyEvent *e) {
   case Qt::Key_Down:
     QPlainTextEdit::keyPressEvent(e);
     break;
+
+  case Qt::Key_Return:
+  case Qt::Key_Enter:
+    // Return is interpreted as \n instead of the default \r (\n)
+    m_buffer += "\n";
+
+    // Flush buffer to output
+    emit sendData(m_buffer.toLocal8Bit());
+    m_buffer.clear();
+
+    if (m_localEchoEnabled)
+      putData("\r");
+    break;
+
+  case Qt::Key_Backspace:
+    if (!m_buffer.isEmpty()) {
+      // Remove the last character from the buffer
+      m_buffer.chop(1);
+      if (m_localEchoEnabled)
+        backspace();
+    }
+    break;
+
   default:
     if (!e->text().isEmpty()) {
-      bool backspacedBuffer = false;
-      const QString text = e->text();
-      // Buffer managing
-      if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
-        // Return is interpreted as \n instead of the default \r
-        m_buffer += "\n";
-
-        // Flush buffer to output
-        emit sendData(m_buffer.toLocal8Bit());
-        m_buffer.clear();
-      } else if (e->key() == Qt::Key_Backspace) {
-        if (!m_buffer.isEmpty()) {
-          m_buffer.chop(1);
-          backspacedBuffer = true;
-        }
-      } else {
-        m_buffer += text;
-      }
-
-      // Console echoing
-      if (m_localEchoEnabled) {
-        if (e->key() == Qt::Key_Backspace) {
-          if (backspacedBuffer) {
-            backspace();
-          }
-        } else {
-          putData(text.toUtf8());
-        }
-      }
+      m_buffer += e->text();
+      if (m_localEchoEnabled)
+        putData(e->text().toUtf8());
     }
   }
 }
