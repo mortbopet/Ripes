@@ -15,7 +15,7 @@ constructAssemblerDynamic(const std::shared_ptr<const ISAInfoBase> &isa) {
 
   throw std::runtime_error(
       std::string("Cannot dynamically construct assembler for isa: ") +
-      isa->name().toStdString());
+      isa->fullName().toStdString());
 }
 
 } // namespace Assembler

@@ -63,7 +63,7 @@ LoadDialog::LoadDialog(QWidget *parent)
           [=] { this->validateCurrentFile(); });
 
   // ELF page
-  m_ui->currentISA->setText(ProcessorHandler::currentISA()->name());
+  m_ui->currentISA->setText(ProcessorHandler::currentISA()->fullName());
 
   // default selection
   m_fileTypeButtons->button(s_typeIndex)->toggle();

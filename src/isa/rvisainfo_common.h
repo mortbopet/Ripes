@@ -59,6 +59,7 @@ constexpr unsigned INSTR_BITS = 32;
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
+  QString extensionOrigin() const override { return "I"; }
 };
 
 constexpr std::string_view GPR = "gpr";
@@ -172,9 +173,10 @@ public:
     m_relocations = rvRelocations();
   }
 
+  ISAFamily isaFamily() const override { return ISAFamily::RISCV; }
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
 
-  QString name() const override { return CCmarch().toUpper(); }
+  QString fullName() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
     return RegIndex{m_regInfos.at(GPR), 2};
   }
@@ -206,6 +208,8 @@ public:
     }
     return QString();
   }
+
+  QString baseExtension() const override { return "I"; }
 
   const QStringList &supportedExtensions() const override {
     return m_supportedExtensions;
