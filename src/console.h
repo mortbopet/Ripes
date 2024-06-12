@@ -20,6 +20,8 @@ public:
 
 protected:
   void keyPressEvent(QKeyEvent *e) override;
+  void resizeEvent(QResizeEvent *) override;
+  void moveEvent(QMoveEvent *) override;
 
 private:
   void backspace();
@@ -27,6 +29,10 @@ private:
   bool m_localEchoEnabled = false;
   QFont m_font;
   QString m_buffer;
+
+  // window size & state.
+  QVariant m_savedSize;
+  Qt::WindowStates m_savedState;
 };
 
 } // namespace Ripes
