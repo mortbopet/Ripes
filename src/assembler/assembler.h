@@ -370,12 +370,12 @@ protected:
     for (const auto &line : tokenizedLines) {
       // Get offset of currently emitting position in memory relative to section
       // position
-      VInt addr_offset = currentSection->data.size();
+      VInt rel_addr_offset = currentSection->data.size();
       for (const auto &s : line.symbols) {
         // Record symbol position as its absolute address in memory
         auto res = m_symbolMap.addSymbol(
             line, s,
-            addr_offset + program.sections.at(m_currentSection).address);
+            rel_addr_offset + program.sections.at(m_currentSection).address);
         if (res) {
           errors.push_back(res.value());
           continue;
@@ -388,17 +388,21 @@ protected:
       // Currently emitting segment may have changed during the assembler
       // directive; refresh state
       currentSection = &program.sections.at(m_currentSection);
-      addr_offset = currentSection->data.size();
+      rel_addr_offset = currentSection->data.size();
       if (!wasDirective) {
         /// Maintain a pointer to the instruction that was assembled.
         std::shared_ptr<InstructionBase> assembledWith;
         runOperation(machineCode, assembleInstruction, line, assembledWith);
         assert(assembledWith && "Expected the assembler instruction to be set");
-        program.sourceMapping[addr_offset].insert(line.sourceLine());
+
+        // Update source mapping - this uses the absolute address of the
+        // instruction.
+        VInt abs_addr_offset = rel_addr_offset + currentSection->address;
+        program.sourceMapping[abs_addr_offset].insert(line.sourceLine());
 
         if (!machineCode.linksWithSymbol.symbol.isEmpty()) {
           LinkRequest req(line.sourceLine());
-          req.offset = addr_offset;
+          req.offset = rel_addr_offset;
           req.fieldRequest = machineCode.linksWithSymbol;
           req.section = m_currentSection;
           req.instrAlignment = m_isa->instrByteAlignment();
@@ -409,7 +413,7 @@ protected:
         /// Instructions should always be emitted on an aligned boundary wrt.
         /// their size.
         const unsigned alignmentDiff =
-            addr_offset % (m_isa->instrByteAlignment());
+            rel_addr_offset % (m_isa->instrByteAlignment());
         if (alignmentDiff != 0) {
           errors.push_back(
               {line.sourceLine(),
