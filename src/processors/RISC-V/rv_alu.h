@@ -101,15 +101,6 @@ public:
         } else {
           return op1.uValue() % op2.uValue();
         }
-
-        if (op2.sValue() == 0) {
-          return VT_U(-1);
-        } else if (op1.sValue() == overflow && op2.sValue() == -1) {
-          // Overflow
-          return VT_U(overflow);
-        } else {
-          return VT_U(op1.sValue() / op2.sValue());
-        }
       }
 
       case ALUOp::AND:
