@@ -81,6 +81,10 @@ struct BitRangeBase {
 
   const unsigned start, stop, N;
 
+  /// Returns true if the index is within the start/stop range
+  constexpr bool isWithinRange(unsigned idx) const {
+    return (idx >= start && idx <= stop);
+  }
   constexpr unsigned width() const { return stop - start + 1; }
   // TODO(raccog): Decouple from vsrtl library
   constexpr Instr_T getMask() const { return vsrtl::generateBitmask(width()); }
@@ -133,6 +137,9 @@ struct BitRangeSet {
   using CombineWith =
       typename OtherBitRangeImpl::template CombinedBitRanges<BitRanges...>;
 
+  /// Returns all BitRanges in this set as a vector that can be read at runtime
+  static std::vector<BitRangeBase> getRanges() { return {BitRanges()...}; }
+
   /// Returns the combined width of all BitRanges
   constexpr static unsigned width() { return (BitRanges().width() + ... + 0); }
 
@@ -180,6 +187,11 @@ struct OpPartBase {
     if (range == other.range)
       return value < other.value;
     return range < other.range;
+  }
+
+  /// Returns true if the i'th bit is set in this OpPart
+  constexpr bool bitIsSet(unsigned i) const {
+    return ((range.apply(value) >> i) & 1) == 1;
   }
 
   /// Applies this OpPart's encoding to the instruction.
@@ -271,6 +283,9 @@ struct OpcodeSet {
     return IndexedOpPart<OpParts...>::getOpPart(partIndex);
   }
 
+  /// Returns all OpParts in this set as a vector that can be read at runtime
+  static std::vector<OpPartBase> getParts() { return {OpParts()...}; }
+
 private:
   /// Run verifications for all BitRanges
   constexpr static BitRanges ranges{};
@@ -290,6 +305,19 @@ struct InstrRes {
 
 using AssembleRes = Result<InstrRes>;
 
+struct FieldBase {
+  enum class Type { Reg, Immediate };
+
+  FieldBase(Type _type, unsigned _tokenIndex, std::vector<BitRangeBase> _ranges)
+      : type(_type), tokenIndex(_tokenIndex), ranges(_ranges) {}
+
+  const Type type;
+  const unsigned tokenIndex;
+  const std::vector<BitRangeBase> ranges;
+
+  virtual QString fieldType() const { return "UNKNOWN"; }
+};
+
 /** @brief An instruction field defined at compile-time.
  * @param _tokenIndex: The index of this field in an assembly instruction
  * (starting at 0).
@@ -297,8 +325,10 @@ using AssembleRes = Result<InstrRes>;
  * the instruction. Must be BitRangesImpl type.
  */
 template <unsigned _tokenIndex, typename _BitRanges>
-struct Field {
+struct Field : public FieldBase {
   using BitRanges = _BitRanges;
+
+  Field(Type type) : FieldBase(type, _tokenIndex, BitRanges::getRanges()) {}
 
 private:
   /// Run verifications for all BitRanges
@@ -316,6 +346,7 @@ private:
   template <unsigned, template <unsigned> typename...>
   struct IndexedFieldSet {
     using BitRanges = BitRangeSet<>;
+    static std::vector<std::shared_ptr<FieldBase>> getFields() { return {}; }
   };
   template <unsigned tokenIndex, template <unsigned> typename FirstField,
             template <unsigned> typename... NextFields>
@@ -354,6 +385,19 @@ private:
       else
         return true;
     }
+
+    /// Returns all Fields in this set as a vector that can be read at runtime
+    static std::vector<std::shared_ptr<FieldBase>> getFields() {
+      auto field = std::make_shared<IndexedField>();
+      if constexpr (tokenIndex < sizeof...(Fields)) {
+        std::vector<std::shared_ptr<FieldBase>> vec =
+            NextIndexedFieldSet::getFields();
+        vec.insert(vec.begin(), field);
+        return vec;
+      } else {
+        return {field};
+      }
+    }
   };
 
   using IndexedFields = IndexedFieldSet<0, Fields...>;
@@ -383,6 +427,14 @@ public:
   /// Returns the number of Fields in this set.
   constexpr static unsigned numFields() { return sizeof...(Fields); }
 
+  /// Returns all Fields in this set as a vector that can be read at runtime
+  static std::vector<std::shared_ptr<FieldBase>> getFields() {
+    if constexpr (sizeof...(Fields) == 0) {
+      return {};
+    }
+    return IndexedFields::getFields();
+  }
+
 private:
   /// This calls all BitRanges' static assertions
   constexpr static BitRanges ranges{};
@@ -404,7 +456,9 @@ template <typename RegImpl, unsigned tokenIndex, typename BitRange,
 struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
   static_assert(verifyBitRange<BitRange>(), "Invalid BitRange type");
 
-  Reg() : regsd(RegImpl::NAME.data()) {}
+  Reg()
+      : Field<tokenIndex, BitRangeSet<BitRange>>(FieldBase::Type::Reg),
+        regsd(RegImpl::NAME.data()) {}
 
   /// Applies this register's encoding to the instruction.
   static Result<> apply(const TokenizedSrcLine &line, Instr_T &instruction,
@@ -434,6 +488,8 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
     line.push_back(registerName);
     return true;
   }
+
+  QString fieldType() const override { return regsd; }
 
   const QString regsd = "reg";
 };
@@ -552,6 +608,12 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
+
+  ImmBase()
+      : Field<tokenIndex, typename ImmParts::BitRanges>(
+            FieldBase::Type::Immediate) {}
+
+  QString fieldType() const override { return "imm"; }
 
   /// Converts a string to its immediate value (if it exists). Success is set to
   /// false if this fails.
@@ -712,8 +774,14 @@ public:
   virtual OpPartBase getOpPart(unsigned partIndex) const = 0;
   /// Returns the name of this instruction.
   virtual const QString &name() const = 0;
+  /// Returns a description of this instruction.
+  virtual const QString &description() const = 0;
+  /// Returns a long description of this instruction.
+  virtual const QString &longDescription() const = 0;
   /// Returns the number of OpParts in this instruction.
   virtual unsigned numOpParts() const = 0;
+  /// Returns the name of the extension that this instruction came from.
+  virtual QString extensionOrigin() const = 0;
 
   /**
    * @brief size
@@ -728,6 +796,30 @@ public:
   bool matchesWithExtras(Instr_T instr) const {
     return llvm::all_of(m_extraMatchConditions,
                         [&](const auto &f) { return f(instr); });
+  }
+
+  virtual const std::vector<std::shared_ptr<FieldBase>> &getFields() const = 0;
+  virtual const std::vector<OpPartBase> &getOpParts() const = 0;
+
+  bool opPartBitIsSet(unsigned idx) const {
+    auto opParts = getOpParts();
+    // Check each OpPart to see if this bit is set
+    for (const auto &part : opParts) {
+      if (part.bitIsSet(idx)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  bool opPartInRange(unsigned idx) const {
+    auto opParts = getOpParts();
+    // Check each OpPart to see if this bit is set
+    for (const auto &part : opParts) {
+      if (part.range.isWithinRange(idx)) {
+        return true;
+      }
+    }
+    return false;
   }
 
 protected:
@@ -772,7 +864,13 @@ template <typename InstrImpl>
 struct Instruction : public InstructionBase {
   Instruction()
       : InstructionBase(InstrByteSize<InstrImpl>::byteSize),
-        m_name(InstrImpl::NAME.data()) {}
+        m_name(InstrImpl::NAME.data()), m_description(InstrImpl::DESC.data()),
+        m_longDescription(InstrImpl::LONG_DESC.data()),
+        m_fields(InstrImpl::Fields::getFields()),
+        m_opParts(InstrImpl::Opcode::getParts()) {}
+
+  constexpr static std::string_view DESC = "TODO: DESCRIPTION";
+  constexpr static std::string_view LONG_DESC = "TODO: LONG DESCRIPTION";
 
   AssembleRes assemble(const TokenizedSrcLine &tokens) override {
     Instr_T instruction = 0;
@@ -804,10 +902,23 @@ struct Instruction : public InstructionBase {
     return InstrImpl::Opcode::getOpPart(partIndex);
   }
   const QString &name() const override { return m_name; }
+  const QString &description() const override { return m_description; }
+  const QString &longDescription() const override { return m_longDescription; }
   unsigned numOpParts() const override { return InstrImpl::Opcode::numParts(); }
+
+  const std::vector<std::shared_ptr<FieldBase>> &getFields() const override {
+    return m_fields;
+  }
+  const std::vector<OpPartBase> &getOpParts() const override {
+    return m_opParts;
+  }
 
 private:
   const QString m_name;
+  const QString m_description;
+  const QString m_longDescription;
+  const std::vector<std::shared_ptr<FieldBase>> m_fields;
+  const std::vector<OpPartBase> m_opParts;
 };
 
 using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;

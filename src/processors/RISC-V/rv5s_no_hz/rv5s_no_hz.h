@@ -496,7 +496,7 @@ private:
    * during rewinding.
    */
   long long m_syscallExitCycle = -1;
-  std::shared_ptr<ISAInfoBase> m_enabledISA;
+  std::shared_ptr<const ISAInfoBase> m_enabledISA;
   ProcessorStructure m_structure = {{0, 5}};
 };
 

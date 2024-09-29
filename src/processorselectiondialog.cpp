@@ -20,11 +20,12 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
   std::map<QString, QTreeWidgetItem *> isaFamilyItems;
   std::map<QTreeWidgetItem *, std::map<unsigned, QTreeWidgetItem *>>
       isaFamilyRegWidthItems;
-  for (const auto &isa : ISAFamilyNames) {
-    if (isaFamilyItems.count(isa.second) == 0) {
-      isaFamilyItems[isa.second] = new QTreeWidgetItem({isa.second});
+  for (auto isa : ISAFamilies) {
+    const QString &isaName = ISAFamilyNames.at(isa.second);
+    if (isaFamilyItems.count(isaName) == 0) {
+      isaFamilyItems[isaName] = new QTreeWidgetItem({isaName});
     }
-    auto *isaItem = isaFamilyItems.at(isa.second);
+    auto *isaItem = isaFamilyItems.at(isaName);
     isaFamilyRegWidthItems[isaItem] = {};
     isaItem->setFlags(isaItem->flags() & ~(Qt::ItemIsSelectable));
     m_ui->processors->insertTopLevelItem(m_ui->processors->topLevelItemCount(),
@@ -45,9 +46,9 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
       processorItem->setFont(ProcessorColumn, font);
       selectedItem = processorItem;
     }
-    const QString &isaFamily =
-        ISAFamilyNames.at(desc.second->isaInfo().isa->isaID());
-    QTreeWidgetItem *familyItem = isaFamilyItems.at(isaFamily);
+    auto isaFamily = ISAFamilies.at(desc.second->isaInfo().isa->isaID());
+    const QString &isaFamilyName = ISAFamilyNames.at(isaFamily);
+    QTreeWidgetItem *familyItem = isaFamilyItems.at(isaFamilyName);
     auto &regWidthItemsForISA = isaFamilyRegWidthItems.at(familyItem);
     auto isaRegWidthItem =
         regWidthItemsForISA.find(desc.second->isaInfo().isa->bits());
@@ -140,7 +141,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
   // Update information widgets with the current processor info
   m_selectedID = id;
   m_ui->name->setText(desc->name);
-  m_ui->ISA->setText(isaInfo.isa->name());
+  m_ui->ISA->setText(isaInfo.isa->fullName());
   m_ui->description->clear();
   m_ui->description->appendHtml(desc->description);
   m_ui->description->moveCursor(QTextCursor::Start);
