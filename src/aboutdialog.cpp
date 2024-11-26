@@ -17,6 +17,8 @@ AboutDialog::AboutDialog(QWidget *parent)
 
   m_ui->setupUi(this);
   m_ui->infoLabel->setText(info);
+  m_ui->infoLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  m_ui->infoLabel->setOpenExternalLinks(true);
 
   setWindowTitle("About");
 }
