@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>About</class>
- <widget class="QDialog" name="About">
+ <class>Ripes::AboutDialog</class>
+ <widget class="QDialog" name="Ripes::AboutDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -92,7 +92,7 @@ $link</string>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>About</receiver>
+   <receiver>Ripes::AboutDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -108,7 +108,7 @@ $link</string>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>About</receiver>
+   <receiver>Ripes::AboutDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "aboutdialog.h"
 #include "ui_mainwindow.h"
 
 #include "cachetab.h"
@@ -366,9 +367,11 @@ void MainWindow::wiki() {
       "https://github.com/mortbopet/Ripes/blob/master/docs/README.md")));
 }
 
+// MODIFIED
 void MainWindow::version() {
-  QMessageBox aboutDialog(this);
-  aboutDialog.setText("Ripes version: " + getRipesVersion());
+  //QMessageBox aboutDialog(this);
+  //aboutDialog.setText("Ripes version: " + getRipesVersion());
+  AboutDialog aboutDialog;
   aboutDialog.exec();
 }
 
