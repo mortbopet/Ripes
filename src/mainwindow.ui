@@ -87,7 +87,7 @@
   </action>
   <action name="actionVersion">
    <property name="text">
-    <string>Version</string>
+    <string>About Ripes</string>
    </property>
   </action>
   <action name="actionSettings">

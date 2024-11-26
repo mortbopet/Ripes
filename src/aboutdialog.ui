@@ -76,10 +76,7 @@
    <item row="0" column="1" rowspan="3">
     <widget class="QLabel" name="infoLabel">
      <property name="text">
-      <string>Ripes
-$version
-
-$link</string>
+      <string>&lt;b&gt;Ripes&lt;/b&gt;&lt;br/&gt;$version</string>
      </property>
     </widget>
    </item>
