@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/text">
+    <file>gen_contributors.html</file>
+  </qresource>
+</RCC>

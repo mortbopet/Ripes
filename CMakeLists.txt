@@ -66,6 +66,7 @@ qt6_add_resources(ICONS_SRC ${CMAKE_SOURCE_DIR}/resources/icons/icons.qrc)
 qt6_add_resources(EXAMPLES_SRC ${CMAKE_SOURCE_DIR}/examples/examples.qrc)
 qt6_add_resources(LAYOUTS_SRC ${CMAKE_SOURCE_DIR}/src/processors/layouts.qrc)
 qt6_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
+qt6_add_resources(TEXT_SRC ${CMAKE_SOURCE_DIR}/resources/text/text.qrc)
 
 ######################################################################
 ## Library setup
@@ -101,6 +102,7 @@ add_subdirectory(external)
 set(RIPES_LIB ripes_lib)
 set(ISA_LIB isa_lib)
 add_subdirectory(src)
+add_subdirectory(resources/text)
 
 option(RIPES_BUILD_TESTS "Build Ripes tests" OFF)
 if(RIPES_BUILD_TESTS)
@@ -108,7 +110,7 @@ if(RIPES_BUILD_TESTS)
 endif()
 
 set(APP_NAME Ripes)
-qt_add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUTS_SRC} ${FONTS_SRC} main.cpp)
+qt_add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUTS_SRC} ${FONTS_SRC} ${TEXT_SRC} main.cpp)
 
 # Link Qt libraries
 target_link_libraries(${APP_NAME} PUBLIC Qt6::Core Qt6::Widgets)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>384</width>
-    <height>256</height>
+    <height>264</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,13 @@
     <number>16</number>
    </property>
    <item row="7" column="0" colspan="2">
-    <widget class="QTextBrowser" name="creditsBrowser"/>
+    <widget class="QTextBrowser" name="creditsBrowser">
+     <property name="source">
+      <url>
+       <string>qrc:/text/gen_contributors.html</string>
+      </url>
+     </property>
+    </widget>
    </item>
    <item row="0" column="0" rowspan="3">
     <widget class="QLabel" name="iconLabel">
@@ -84,6 +90,7 @@
  </widget>
  <resources>
   <include location="../resources/icons/icons.qrc"/>
+  <include location="../resources/text/text.qrc"/>
  </resources>
  <connections>
   <connection>
