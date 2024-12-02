@@ -11,6 +11,7 @@ RUN apt-get update -q \
     libpthread-stubs0-dev \
     python3 \
     python3-pip \
+    python3-dev \
     libegl1 libegl1-mesa-dev \
     libgl1-mesa-dev libglib2.0-dev \
     libxkbcommon-x11-0 libpulse-dev libfontconfig1-dev libfreetype6-dev \
