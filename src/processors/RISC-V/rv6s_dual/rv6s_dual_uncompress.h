@@ -25,7 +25,7 @@ public:
 template <unsigned XLEN>
 class UncompressDual : public Component {
 public:
-  void setISA(const std::shared_ptr<ISAInfoBase> &isa) {
+  void setISA(const std::shared_ptr<const ISAInfoBase> &isa) {
     uncompress1->setISA(isa);
     uncompress2->setISA(isa);
   }
