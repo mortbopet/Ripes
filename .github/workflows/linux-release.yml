@@ -71,7 +71,7 @@ jobs:
         ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract-and-run appdir/usr/share/applications/*.desktop \
           -appimage -verbose=2 -extra-plugins=iconengines
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.build-type }}_executable
         path: Ripes*.AppImage*

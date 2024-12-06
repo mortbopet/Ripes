@@ -29,7 +29,7 @@ jobs:
         echo "Clang-format found no formatting problems"
         exit 0
     - name: Upload clang-format patch
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: ${{ failure() }}
       # Unfortunately, artifact uploads are always zips :(
       with:
