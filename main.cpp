@@ -18,7 +18,7 @@ void initParser(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
       "\n"
       "program on an arbitrary processor model and subsequent reporting of \n"
       "execution telemetry.\nCommand line mode is enabled when the '--mode "
-      "sh' argument is provided.";
+      "cli' argument is provided.";
 
   helpText.prepend("Ripes command line interface.\n");
   parser.setApplicationDescription(helpText);
