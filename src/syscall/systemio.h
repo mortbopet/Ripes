@@ -436,13 +436,12 @@ public:
 
   } // end writeToFile
 
-  
   /**
    * Redirects the stream associated with STDIN to the standard input (stdin).
-   * The method ensures that the STDIN stream is reset (erasing the existing mapping) 
-   * and explicitly maps it to the standard input stream (stdin).
+   * The method ensures that the STDIN stream is reset (erasing the existing
+   * mapping) and explicitly maps it to the standard input stream (stdin).
    */
-  static void setCLIInput(){
+  static void setCLIInput() {
     FileIOData::streams.erase(STDIN);
     FileIOData::streams.emplace(STDIN, stdin);
   }
