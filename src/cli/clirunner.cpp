@@ -11,8 +11,13 @@
 
 namespace Ripes {
 
-// An extended QVariant-to-string convertion method which handles a few special
-// cases.
+/**
+ * An extended QVariant-to-string convertion method which handles a special
+ * cases such as QVariantMap and QStringList.
+ * 
+ * @param v The QVariant to convert to a string.
+ * @returns A string representation of the QVariant.
+ */
 static QString qVariantToString(QVariant &v) {
   QString def = v.toString();
   if (!def.isEmpty())
@@ -34,6 +39,14 @@ static QString qVariantToString(QVariant &v) {
   return def;
 }
 
+/**
+ * Constructor for the CLIRunner class.
+ * Initializes the CLI runner for Ripes. 
+ * It configures the environment based on the provided options and prepares the 
+ * SystemIO streams for input and output redirection.
+ * 
+ * @param options A struct containing the CLI options for Ripes.
+ */
 CLIRunner::CLIRunner(const CLIModeOptions &options)
     : QObject(), m_options(options) {
   info("Ripes CLI mode", false, true);
@@ -46,9 +59,18 @@ CLIRunner::CLIRunner(const CLIModeOptions &options)
     std::flush(std::cout);
   });
 
-  // TODO: how to handle system input?
+  // Handle systemIO input in stdin
+  SystemIO::setCLIInput();
 }
 
+/**
+ * Main execution method for the CLI runner.
+ * Runs the CLI process in three phases: process input, run model, and post-run.
+ * Checks after each phase that the execution was successful, and returns 1 if an
+ * error occurs during any phase.
+ * 
+ * @return 0 on success, or 1 if an error occurs during any phase.
+ */
 int CLIRunner::run() {
   if (processInput())
     return 1;
@@ -62,6 +84,13 @@ int CLIRunner::run() {
   return 0;
 }
 
+/**
+ * Processes the input file based on the file source type in the provided CLI options.
+ * The method prepares the program for the execution by assembling, compiling, 
+ * or loading the input file (based on the source type).
+ * 
+ * @return 0 on success, or 1 if an error occurs during input file processing.
+ */
 int CLIRunner::processInput() {
   info("Processing input file", false, true);
 
@@ -157,11 +186,15 @@ int CLIRunner::processInput() {
   return 0;
 }
 
+/**
+ * Runs the processor model for the loaded program until the program is 
+ * finished (so ProcessorHandler::runFinished signal is emitted)
+ * 
+ * @return 0 on success, or 1 if an error occurs during model execution.
+ */
 int CLIRunner::runModel() {
   info("Running model", false, true);
 
-  // Wait until receiving ProcessorHandler::runFinished signal
-  // before proceeding.
   QEventLoop loop;
   QObject::connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
                    &loop, &QEventLoop::quit);
@@ -212,6 +245,13 @@ int CLIRunner::runModel() {
   return 0;
 }
 
+/**
+ * Handles post-execution tasks. 
+ * Open output file (if specified) or defaults to stdout and prints telemetry 
+ * data in either JSON or unstructured format.
+ * 
+ * @return 0 on success, or 1 if an error occurs during post run tasks.
+ */
 int CLIRunner::postRun() {
   info("Post-run", false, true);
 
@@ -256,6 +296,15 @@ int CLIRunner::postRun() {
   return 0;
 }
 
+/**
+ * Outputs an informational message to the standard output.
+ * For formatting purposes the message can include a header or a specified prefix.
+ * 
+ * @param msg The QString message to print.
+ * @param alwaysPrint If true, the message is printed regardless if the verbose option is disabled.
+ * @param header If true, the message is surrounded by a decorative header.
+ * @param prefix The prefix for the message, added only if "header" is false.
+ */
 void CLIRunner::info(QString msg, bool alwaysPrint, bool header,
                      const QString &prefix) {
 
@@ -276,6 +325,11 @@ void CLIRunner::info(QString msg, bool alwaysPrint, bool header,
   }
 }
 
+/**
+ * Prints an error message to stdout with an "ERROR" prefix.
+ * 
+ * @param msg The error message to print.
+ */
 void CLIRunner::error(const QString &msg) { info(msg, true, false, "ERROR"); }
 
 } // namespace Ripes
