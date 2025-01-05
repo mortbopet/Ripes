@@ -43,7 +43,7 @@ jobs:
       # MacOS
     - if: contains( matrix.os, 'macos')
       name: Prepare macos container for build
-      run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp
+      run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp ninja
 
       # Windows
     - if: contains( matrix.os, 'windows')
