@@ -34,9 +34,7 @@ jobs:
         libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
         libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
         libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 \
-        
-        echo "CC=gcc-9" >> $GITHUB_ENV
-        echo "CXX=g++-9" >> $GITHUB_ENV
+        ninja-build
 
         # Dummy display server for CI tests
         Xvfb :99 &
@@ -76,8 +74,8 @@ jobs:
     - if: "!contains(matrix.os, 'windows')"
       name: build Ripes
       run: |
-        cmake -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .
-        make -j $(nproc)
+        cmake -GNinja -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .
+        ninja
 
     - if: contains(matrix.os, 'windows')
       name: build Ripes (Windows)
