@@ -7,9 +7,6 @@ on:
 jobs:
   buildUbuntuXenial:
     runs-on: ubuntu-20.04
-    env:
-      CC: gcc-9
-      CXX: g++-9
 
     strategy:
       matrix:
