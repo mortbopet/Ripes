@@ -371,7 +371,7 @@ public:
           postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
           return -1;
         }
-        auto readData = InputStream.read(lengthRequested).toUtf8();
+        auto readData = InputStream.read(1).toUtf8();
         myBuffer.append(readData);
         lengthRequested -= readData.length();
 
@@ -435,6 +435,16 @@ public:
     return lengthRequested;
 
   } // end writeToFile
+
+  /**
+   * Redirects the stream associated with STDIN to the standard input (stdin).
+   * The method ensures that the STDIN stream is reset (erasing the existing
+   * mapping) and explicitly maps it to the standard input stream (stdin).
+   */
+  static void setCLIInput() {
+    FileIOData::streams.erase(STDIN);
+    FileIOData::streams.emplace(STDIN, stdin);
+  }
 
   /**
    * Close the file with specified file descriptor
