@@ -74,7 +74,9 @@ add_subdirectory(cli)
 # Also link Qt and VSRTL libraries.
 target_link_libraries(${RIPES_LIB} PUBLIC
     fancytabbar_lib
-    ${VSRTL_GRAPHICS_LIB}
+    elfio::elfio
+    vsrtl::vsrtl
     Qt6::Charts
-    dwarf++)
+    dwarf++
+)
 

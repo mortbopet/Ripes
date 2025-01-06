@@ -5,3 +5,5 @@ target_sources(isa_lib
     mipsisainfo_common.h mipsisainfo_common.cpp
     mips32isainfo.h
 )
+
+target_link_libraries(isa_lib PUBLIC elfio::elfio vsrtl::vsrtl Signals::Signals)

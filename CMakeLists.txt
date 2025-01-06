@@ -71,14 +71,6 @@ qt6_add_resources(FONTS_SRC ${CMAKE_SOURCE_DIR}/resources/fonts/fonts.qrc)
 ## Library setup
 ######################################################################
 
-# Header-only libraries used in the project must be included from top CMakeLists.txt file
-include_directories(${RIPES_LIB} SYSTEM PUBLIC external/VSRTL/external/cereal/include)
-include_directories(${RIPES_LIB} PUBLIC external/VSRTL/external)
-include_directories(SYSTEM external/ELFIO)
-include_directories(SYSTEM external/VSRTL/external/Signals)
-include_directories(external/libelfin_cmake)
-include_directories(external)
-
 option(RIPES_BUILD_VERILATOR_PROCESSORS "Build verilator processors" OFF)
 if(RIPES_BUILD_VERILATOR_PROCESSORS)
     if(NOT DEFINED ENV{VERILATOR_ROOT})
@@ -102,6 +94,13 @@ if(${APPLE})
 elseif(${WIN32})
     set(SYSTEM_FLAGS WIN32)
 endif()
+
+
+include(FetchContent)
+
+# libelfin
+
+
 
 add_subdirectory(external)
 

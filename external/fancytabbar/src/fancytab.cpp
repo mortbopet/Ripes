@@ -1,4 +1,4 @@
-#include "fancytab.h"
+#include "fancytabbar/fancytab.h"
 
 #include <QDebug>
 

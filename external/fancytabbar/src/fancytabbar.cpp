@@ -1,4 +1,4 @@
-#include "fancytabbar.h"
+#include "fancytabbar/fancytabbar.h"
 
 #include <QDebug>
 #include <QLinearGradient>
