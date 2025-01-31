@@ -8,8 +8,14 @@ add_custom_target(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/text.qrc
 )
 
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    set(PYTHON_COMMAND python3)
+else()
+    set(PYTHON_COMMAND python.exe)
+endif()
+
 execute_process(
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/get_contributors.py
+    COMMAND ${PYTHON_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}/get_contributors.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-	#COMMAND_ERROR_IS_FATAL ANY
+    #COMMAND_ERROR_IS_FATAL ANY
 )
