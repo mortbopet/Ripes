@@ -9,7 +9,7 @@ add_custom_target(
 )
 
 execute_process(
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/get_contributors.sh
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/get_contributors.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 	#COMMAND_ERROR_IS_FATAL ANY
 )
