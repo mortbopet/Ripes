@@ -240,7 +240,13 @@ VIntS evaluate(const std::shared_ptr<Expr> &expr,
   }
   FiExpr;
   IfExpr(Div, v) {
-    return evaluate(v->lhs, variables) / evaluate(v->rhs, variables);
+    auto rhs_value = evaluate(v->rhs, variables);
+    if (rhs_value == 0) {
+      throw std::runtime_error(
+          "Division by zero error in expression evaluation.");
+    }
+
+    return evaluate(v->lhs, variables) / rhs_value;
   }
   FiExpr;
   IfExpr(Mul, v) {
@@ -252,7 +258,13 @@ VIntS evaluate(const std::shared_ptr<Expr> &expr,
   }
   FiExpr;
   IfExpr(Mod, v) {
-    return evaluate(v->lhs, variables) % evaluate(v->rhs, variables);
+    auto rhs_value = evaluate(v->rhs, variables);
+    if (rhs_value == 0) {
+      throw std::runtime_error(
+          "Modulo by zero error in expression evaluation.");
+    }
+
+    return evaluate(v->lhs, variables) % rhs_value;
   }
   FiExpr;
   IfExpr(And, v) {
