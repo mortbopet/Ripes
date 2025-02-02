@@ -9,14 +9,38 @@
 #include <vector>
 
 #include "instruction.h"
+#include "isaconstructor.h"
 #include "pseudoinstruction.h"
 
 namespace Ripes {
 
 /// List of currently supported ISAs.
+enum class ISAFamily { RISCV, MIPS };
+/// NOTE: Ensure that every ISA is included in the
+/// `_constructConstructors<...>()` template in `isaconstructor.cpp`
 enum class ISA { RV32I, RV64I, MIPS32I };
-const static std::map<ISA, QString> ISAFamilyNames = {
-    {ISA::RV32I, "RISC-V"}, {ISA::RV64I, "RISC-V"}, {ISA::MIPS32I, "MIPS"}};
+
+class ISAInfoBase;
+template <ISA>
+class ISAInfo;
+
+// TODO(raccog): This should be changed to not be hardcoded.
+const static std::map<ISAFamily, std::set<ISA>> ISAFamilySets = {
+    {ISAFamily::RISCV, {ISA::RV32I, ISA::RV64I}},
+    {ISAFamily::MIPS, {ISA::MIPS32I}},
+};
+const static std::map<ISA, ISAFamily> ISAFamilies = {
+    {ISA::RV32I, ISAFamily::RISCV},
+    {ISA::RV64I, ISAFamily::RISCV},
+    {ISA::MIPS32I, ISAFamily::MIPS}};
+const static std::map<ISAFamily, QString> ISAFamilyNames = {
+    {ISAFamily::RISCV, "RISC-V"}, {ISAFamily::MIPS, "MIPS"}};
+const static std::map<ISA, QString> ISANames = {
+    {ISA::RV32I, "RV32"}, {ISA::RV64I, "RV64"}, {ISA::MIPS32I, "MIPS32"}};
+
+const static std::map<
+    ISA, std::function<std::shared_ptr<const ISAInfoBase>(const QStringList &)>>
+    ISAConstructors = constructConstructors();
 struct RegisterFileName {
   QString shortName;
   QString longName;
@@ -60,7 +84,13 @@ using RegInfoMap =
 class ISAInfoBase {
 public:
   virtual ~ISAInfoBase(){};
-  virtual QString name() const = 0;
+  virtual QString baseName() const {
+    auto name = ISANames.find(isaID());
+    assert(name != ISANames.end() && "Add this ISA to 'ISANames'");
+    return name->second;
+  }
+  virtual QString fullName() const = 0;
+  virtual ISAFamily isaFamily() const = 0;
   virtual ISA isaID() const = 0;
   virtual const RegInfoMap &regInfoMap() const = 0;
 
@@ -123,6 +153,9 @@ public:
    */
   virtual QString elfSupportsFlags(unsigned flags) const = 0;
 
+  /// The name of the base extension for this ISA
+  virtual QString baseExtension() const = 0;
+
   /**
    * @brief supportedExtensions/enabledExtensions
    * An ISA may have a set of (optional) extensions which may be
@@ -157,7 +190,7 @@ public:
     const auto ext1 = QSet(this->enabledExtensions().begin(),
                            this->enabledExtensions().end());
     const auto ext2 = QSet(otherExts.begin(), otherExts.end());
-    return this->name() == other->name() && ext1 == ext2;
+    return this->fullName() == other->fullName() && ext1 == ext2;
   }
 
 protected:
@@ -165,7 +198,7 @@ protected:
 };
 
 struct ProcessorISAInfo {
-  std::shared_ptr<ISAInfoBase> isa;
+  std::shared_ptr<const ISAInfoBase> isa;
   QStringList supportedExtensions;
   QStringList defaultExtensions;
 };
@@ -174,17 +207,22 @@ template <ISA isa>
 class ISAInfo : public ISAInfoBase {};
 
 using ISAInfoMap =
-    std::map<std::pair<ISA, QStringList>, std::shared_ptr<ISAInfoBase>>;
+    std::map<std::pair<ISA, QStringList>, std::shared_ptr<const ISAInfoBase>>;
 
 struct ISAInfoRegistry {
+  static std::shared_ptr<const ISAInfoBase>
+  getISA(ISA isa, const QStringList &extensions) {
+    return instance().supportedISA(isa, extensions);
+  }
+
   template <ISA isa>
-  static const std::shared_ptr<ISAInfoBase> &
+  static std::shared_ptr<const ISAInfoBase>
   getISA(const QStringList &extensions) {
     return instance().supportedISA<isa>(extensions);
   }
 
   template <ISA isa>
-  static const std::shared_ptr<ISAInfoBase> &getSupportedISA() {
+  static std::shared_ptr<const ISAInfoBase> getSupportedISA() {
     return instance().supportedISA<isa>();
   }
 
@@ -195,11 +233,16 @@ private:
   }
 
   template <ISA isa>
-  const std::shared_ptr<ISAInfoBase> &supportedISA(
+  std::shared_ptr<const ISAInfoBase> supportedISA(
       const QStringList &extensions = ISAInfo<isa>::getSupportedExtensions()) {
+    return supportedISA(isa, extensions);
+  }
+
+  std::shared_ptr<const ISAInfoBase>
+  supportedISA(ISA isa, const QStringList &extensions) {
     auto key = std::pair(isa, extensions);
     if (supportedISAMap.count(key) == 0) {
-      supportedISAMap[key] = std::make_shared<ISAInfo<isa>>(extensions);
+      supportedISAMap[key] = ISAConstructors.at(isa)(extensions);
     }
     return supportedISAMap.at(key);
   }

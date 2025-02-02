@@ -183,11 +183,11 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
   static const QStringList &getSupportedExtensions() {
-    static const QStringList ext = {""};
+    static const QStringList ext = QStringList();
     return ext;
   }
   static const QStringList &getDefaultExtensions() {
-    static const QStringList ext = {""};
+    static const QStringList ext = QStringList();
     return ext;
   }
 
@@ -197,9 +197,10 @@ public:
     // TODO: Setup MIPS instructions here
   }
 
+  ISAFamily isaFamily() const override { return ISAFamily::MIPS; }
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
 
-  QString name() const override { return CCmarch().toUpper(); }
+  QString fullName() const override { return CCmarch().toUpper(); }
   std::optional<RegIndex> spReg() const override {
     return RegIndex{m_regInfos.at(MIPSISA::GPR), 29};
   }
@@ -228,6 +229,8 @@ public:
     }
     return QString();
   }
+
+  QString baseExtension() const override { return "I"; }
 
   const QStringList &supportedExtensions() const override {
     return m_supportedExtensions;

@@ -23,6 +23,7 @@ struct OpPartFunct3 : public OpPart<funct3, BitRange<13, 15>> {};
 template <typename InstrImpl>
 struct RVC_Instruction : public Instruction<InstrImpl> {
   constexpr static unsigned instrBits() { return INSTR_BITS; }
+  QString extensionOrigin() const override { return "C"; }
 };
 
 enum class Funct2Offset { OFFSET5 = 5, OFFSET10 = 10 };
@@ -160,26 +161,32 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 
 struct CSub : Instr<CSub, Funct2::SUB> {
   constexpr static std::string_view NAME = "c.sub";
+  constexpr static std::string_view DESC = "Compressed Subtract";
 };
 
 struct CXor : Instr<CXor, Funct2::XOR_ADD> {
   constexpr static std::string_view NAME = "c.xor";
+  constexpr static std::string_view DESC = "Compressed Xor";
 };
 
 struct COr : Instr<COr, Funct2::OR> {
   constexpr static std::string_view NAME = "c.or";
+  constexpr static std::string_view DESC = "Compressed Or";
 };
 
 struct CAnd : Instr<CAnd, Funct2::AND> {
   constexpr static std::string_view NAME = "c.and";
+  constexpr static std::string_view DESC = "Compressed And";
 };
 
 struct CSubw : Instr<CSubw, Funct2::SUB, Funct6::WIDE> {
   constexpr static std::string_view NAME = "c.subw";
+  constexpr static std::string_view DESC = "Compressed Subtract Wide";
 };
 
 struct CAddw : Instr<CAddw, Funct2::XOR_ADD, Funct6::WIDE> {
   constexpr static std::string_view NAME = "c.addw";
+  constexpr static std::string_view DESC = "Compressed Add Wide";
 };
 
 } // namespace TypeCA
@@ -238,11 +245,14 @@ struct ImmLwsp
 struct CLwsp
     : public Instr<CLwsp, QuadrantID::QUADRANT2, Funct3::LWSP, ImmLwsp> {
   constexpr static std::string_view NAME = "c.lwsp";
+  constexpr static std::string_view DESC = "Compressed Load Word from SP";
 };
 
 struct CFlwsp
     : public Instr<CFlwsp, QuadrantID::QUADRANT2, Funct3::FLWSP, ImmLwsp> {
   constexpr static std::string_view NAME = "c.flwsp";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Load Word from SP";
 };
 
 /// An RV-C unsigned immediate field with an input width of 9 bits.
@@ -264,26 +274,34 @@ struct ImmLdsp
 struct CLdsp
     : public Instr<CLdsp, QuadrantID::QUADRANT2, Funct3::LDSP, ImmLdsp> {
   constexpr static std::string_view NAME = "c.ldsp";
+  constexpr static std::string_view DESC =
+      "Compressed Load Double-Word from SP";
 };
 
 struct CAddiw
     : public Instr<CAddiw, QuadrantID::QUADRANT1, Funct3::ADDIW, ImmCommon6_S> {
   constexpr static std::string_view NAME = "c.addiw";
+  constexpr static std::string_view DESC = "Compressed Add Immediate Wide";
 };
 
 struct CFldsp
     : public Instr<CFldsp, QuadrantID::QUADRANT2, Funct3::FLDSP, ImmLdsp> {
   constexpr static std::string_view NAME = "c.fldsp";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Double-Word from SP";
 };
 
 struct CSlli
     : public Instr<CSlli, QuadrantID::QUADRANT2, Funct3::SLLI, ImmCommon6_U> {
   constexpr static std::string_view NAME = "c.slli";
+  constexpr static std::string_view DESC =
+      "Compressed Shift Left Logical Immediate";
 };
 
 struct CLi
     : public Instr<CLi, QuadrantID::QUADRANT1, Funct3::LI, ImmCommon6_S> {
   constexpr static std::string_view NAME = "c.li";
+  constexpr static std::string_view DESC = "Compressed Load Immediate";
 };
 
 /// An RV-C signed immediate field with an input width of 18 bits.
@@ -301,6 +319,7 @@ struct ImmLui : public Imm<tokenIndex, 18, Repr::Signed,
 
 struct CLui : public Instr<CLui, QuadrantID::QUADRANT1, Funct3::LUI, ImmLui> {
   constexpr static std::string_view NAME = "c.lui";
+  constexpr static std::string_view DESC = "Compressed Load Upper Immediate";
   CLui() {
     addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
@@ -327,6 +346,8 @@ struct CAddi16Sp : public RVC_Instruction<CAddi16Sp> {
                          ConstantOpPart> {};
   struct Fields : public FieldSet<Imm> {};
   constexpr static std::string_view NAME = "c.addi16sp";
+  constexpr static std::string_view DESC =
+      "Compressed Add (SP + Immediate * 16)";
   CAddi16Sp() {
     addExtraMatchCond([](Instr_T instr) {
       unsigned rd = (instr >> 7) & 0b11111;
@@ -338,6 +359,7 @@ struct CAddi16Sp : public RVC_Instruction<CAddi16Sp> {
 struct CAddi
     : public Instr<CAddi, QuadrantID::QUADRANT1, Funct3::ADDI, ImmCommon6_S> {
   constexpr static std::string_view NAME = "c.addi";
+  constexpr static std::string_view DESC = "Compressed Add Immediate";
 };
 
 struct CNop : public RVC_Instruction<CNop> {
@@ -350,6 +372,7 @@ struct CNop : public RVC_Instruction<CNop> {
   struct Fields : public FieldSet<> {};
 
   constexpr static std::string_view NAME = "c.nop";
+  constexpr static std::string_view DESC = "Compressed No Operation";
 };
 
 } // namespace TypeCI
@@ -384,10 +407,13 @@ struct ImmSwsp : public Imm<tokenIndex, 8, Repr::Unsigned,
 
 struct CSwsp : public Instr<CSwsp, Funct3::SWSP, ImmSwsp> {
   constexpr static std::string_view NAME = "c.swsp";
+  constexpr static std::string_view DESC = "Compressed Store Word to SP";
 };
 
 struct CFswsp : public Instr<CFswsp, Funct3::FSWSP, ImmSwsp> {
   constexpr static std::string_view NAME = "c.fswsp";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Store Word to SP";
 };
 
 /// An RV-C unsigned immediate field with an input width of 9 bits.
@@ -405,10 +431,13 @@ struct ImmSdsp : public Imm<tokenIndex, 9, Repr::Unsigned,
 
 struct CSdsp : public Instr<CSdsp, Funct3::SDSP, ImmSdsp> {
   constexpr static std::string_view NAME = "c.sdsp";
+  constexpr static std::string_view DESC = "Compressed Store Double-Word to SP";
 };
 
 struct CFsdsp : public Instr<CFsdsp, Funct3::FSDSP, ImmSdsp> {
   constexpr static std::string_view NAME = "c.fsdsp";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Store Double-Word to SP";
 };
 
 } // namespace TypeCSS
@@ -443,18 +472,24 @@ struct ImmLd : public Imm<tokenIndex, 8, Repr::Signed,
 
 struct CLw : public Instr<CLw, Funct3::LW, ImmCommon7_S> {
   constexpr static std::string_view NAME = "c.lw";
+  constexpr static std::string_view DESC = "Compressed Load Word";
 };
 
 struct CFlw : public Instr<CFlw, Funct3::FLW, ImmCommon7_S> {
   constexpr static std::string_view NAME = "c.flw";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Load Word";
 };
 
 struct CLd : public Instr<CLd, Funct3::LD, ImmLd> {
   constexpr static std::string_view NAME = "c.ld";
+  constexpr static std::string_view DESC = "Compressed Load Double-Word";
 };
 
 struct CFld : public Instr<CFld, Funct3::FLD, ImmLd> {
   constexpr static std::string_view NAME = "c.fld";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Load Double-Word";
 };
 
 } // namespace TypeCL
@@ -473,18 +508,24 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 
 struct CSw : public Instr<CSw, Funct3::SW> {
   constexpr static std::string_view NAME = "c.sw";
+  constexpr static std::string_view DESC = "Compressed Store Word";
 };
 
 struct CFsw : public Instr<CFsw, Funct3::FSW> {
   constexpr static std::string_view NAME = "c.fsw";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Store Word";
 };
 
 struct CSd : public Instr<CSd, Funct3::SD> {
   constexpr static std::string_view NAME = "c.sd";
+  constexpr static std::string_view DESC = "Compressed Store Double-Word";
 };
 
 struct CFsd : public Instr<CFsd, Funct3::FSD> {
   constexpr static std::string_view NAME = "c.fsd";
+  constexpr static std::string_view DESC =
+      "Compressed Floating-Point Store Double-Word";
 };
 
 } // namespace TypeCS
@@ -529,10 +570,12 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 
 struct CJ : public Instr<CJ, Funct3::J> {
   constexpr static std::string_view NAME = "c.j";
+  constexpr static std::string_view DESC = "Compressed Jump";
 };
 
 struct CJal : public Instr<CJal, Funct3::JAL> {
   constexpr static std::string_view NAME = "c.jal";
+  constexpr static std::string_view DESC = "Compressed Jump and Link";
 };
 
 } // namespace TypeCJ
@@ -572,10 +615,13 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 
 struct CBeqz : public Instr<CBeqz, Funct3::BEQZ> {
   constexpr static std::string_view NAME = "c.beqz";
+  constexpr static std::string_view DESC = "Compressed Branch if Equal to Zero";
 };
 
 struct CBnez : public Instr<CBnez, Funct3::BNEZ> {
   constexpr static std::string_view NAME = "c.bnez";
+  constexpr static std::string_view DESC =
+      "Compressed Branch if Not Equal to Zero";
 };
 
 } // namespace TypeCB
@@ -614,14 +660,19 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 
 struct CSrli : public Instr<CSrli, Funct2::SRLI, Repr::Unsigned> {
   constexpr static std::string_view NAME = "c.srli";
+  constexpr static std::string_view DESC =
+      "Compressed Shift Right Logical Immediate";
 };
 
 struct CSrai : public Instr<CSrai, Funct2::SRAI, Repr::Unsigned> {
   constexpr static std::string_view NAME = "c.srai";
+  constexpr static std::string_view DESC =
+      "Compressed Shift Right Arithmetic Immediate";
 };
 
 struct CAndi : public Instr<CAndi, Funct2::ANDI, Repr::Signed> {
   constexpr static std::string_view NAME = "c.andi";
+  constexpr static std::string_view DESC = "Compressed And Immediate";
 };
 
 } // namespace TypeCB2
@@ -653,6 +704,8 @@ struct CAddi4spn : public RVC_Instruction<CAddi4spn> {
   struct Fields : public FieldSet<RegRdPrime, Imm> {};
 
   constexpr static std::string_view NAME = "c.addi4spn";
+  constexpr static std::string_view DESC =
+      "Compressed Add (Immediate * 4) to SP";
 };
 
 } // namespace TypeCIW
@@ -672,10 +725,12 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 // FIXME disassemble erro with c.jr ?
 struct CMv : public Instr<CMv, Funct4::MV> {
   constexpr static std::string_view NAME = "c.mv";
+  constexpr static std::string_view DESC = "Compressed Move";
 };
 
 struct CAdd : public Instr<CAdd, Funct4::ADD> {
   constexpr static std::string_view NAME = "c.add";
+  constexpr static std::string_view DESC = "Compressed Add";
 };
 
 } // namespace TypeCR
@@ -695,6 +750,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
 
 struct CJr : public Instr<CJr, Funct4::JR> {
   constexpr static std::string_view NAME = "c.jr";
+  constexpr static std::string_view DESC = "Compressed Jump Register";
 };
 
 struct CJalr : public Instr<CJalr, Funct4::JALR> {
@@ -713,6 +769,7 @@ struct CJalr : public Instr<CJalr, Funct4::JALR> {
   }
 
   constexpr static std::string_view NAME = "c.jalr";
+  constexpr static std::string_view DESC = "Compressed Jump and Link Register";
 };
 
 } // namespace TypeCR2
@@ -726,6 +783,7 @@ struct CEbreak : public RVC_Instruction<CEbreak> {
   struct Fields : public FieldSet<> {};
 
   constexpr static std::string_view NAME = "c.ebreak";
+  constexpr static std::string_view DESC = "Compressed Environment Break";
 };
 
 } // namespace ExtC
