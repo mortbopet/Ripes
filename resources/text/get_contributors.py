@@ -6,9 +6,10 @@ git_output = subprocess.run(
 lines = git_output.stdout.splitlines()
 names = [line.partition("\t")[-1] for line in lines]
 
-text = ""
+text = '<p align="center" style="margin: 0">'
 for name in names:
-    text = text + '<p align="center" style="margin: 0">' + name + "</p>\n"
+    text = text + name + "<br/>\n"
+text = text + "</p>"
 
 file = open("gen_contributors.html", "w")
 file.write(text)
