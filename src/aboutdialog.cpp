@@ -12,8 +12,8 @@ AboutDialog::AboutDialog(QWidget *parent)
   const QString url = "https://github.com/mortbopet/Ripes";
 
   QString info = QString();
-  info.append("<b>" + name + "</b><br/>" + getRipesVersion());
-  info.append("<br/><br/><a href=\"" + url + "\">" + url + "</a>");
+  info.append("<p><b>" + name + "</b><br/>" + getRipesVersion() + "</p>");
+  info.append("<p><a href=\"" + url + "\">" + url + "</a></p>");
 
   m_ui->setupUi(this);
   m_ui->infoLabel->setText(info);
