@@ -13,6 +13,9 @@ moc_*
 ui_*
 qrc_*
 
+# Contributors list
+gen_contributors.html
+
 # Executables & libraries
 Ripes
 RipesTest
