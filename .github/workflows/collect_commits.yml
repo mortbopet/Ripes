@@ -1,0 +1,16 @@
+name: Collect Commits
+on:
+  push:
+
+jobs:
+  collect-commits:
+    runs-on: [self-hosted, mse] 
+    steps:
+      - name: Collect info
+        run: |
+          cd /data/
+          mkdir -p '${{github.repository}}'
+
+          echo '${{ toJson(github) }}' > "./run.json"
+
+          python3 get_info.py
