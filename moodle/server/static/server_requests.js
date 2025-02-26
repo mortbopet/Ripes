@@ -5,8 +5,9 @@ function server_get_request() {
     }).then((res) => {
         if (res.ok) {
             alert('GET-запрос успешно обработан')
+        } else {
+            alert('При обработке GET-запроса произошла ошибка')
         }
-        alert('При обработке GET-запроса произошла ошибка')
     })
 }
 
@@ -17,7 +18,8 @@ function server_post_request() {
     }).then((res) => {
         if (res.ok) {
             alert('POST-запрос успешно обработан')
+        } else {
+            alert('При обработке POST-запроса произошла ошибка')
         }
-        alert('При обработке POST-запроса произошла ошибка')
     })
 }
