@@ -17,3 +17,6 @@ qrc_*
 Ripes
 RipesTest
 libRipesLib.a
+
+# IDE
+.idea/*
