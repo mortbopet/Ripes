@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <script src="../static/handlers.js"></script>
     <script src="../static/server_requests.js"></script>
     <title>Ripes</title>
+    <script src="static/server_requests.js"></script>
+    <script src="static/handlers.js"></script>
 </head>
+
 <body>
     <h1>Index page</h1>
-
     <button onclick="hello_handler()">Print Hello</button>
     <br><br>
-    <button onclick="server_get_request()">GET</button>
-    <button onclick="server_post_request()">POST</button>
+    <button onclick="server_get_request()">Send GET Request</button>
+    <button onclick="server_post_request()">Send POST Request</button>
+    <button onclick="hello_handler()">Click Me</button>
 </body>
+
 </html>
