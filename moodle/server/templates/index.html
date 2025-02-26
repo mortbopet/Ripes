@@ -6,17 +6,23 @@
     <script src="../static/handlers.js"></script>
     <script src="../static/server_requests.js"></script>
     <title>Ripes</title>
-    <script src="static/server_requests.js"></script>
-    <script src="static/handlers.js"></script>
+    <link rel="stylesheet" href="../static/styles.css">
 </head>
 
 <body>
-    <h1>Index page</h1>
-    <button onclick="hello_handler()">Print Hello</button>
-    <br><br>
-    <button onclick="server_get_request()">Send GET Request</button>
-    <button onclick="server_post_request()">Send POST Request</button>
-    <button onclick="hello_handler()">Click Me</button>
+    <div class="main">
+        <h1>Index page</h1>
+        <div class="buttons">
+            <button onclick="hello_handler()" class="button hello-button">Print Hello</button>
+            <div class="buttons-list">
+                <button onclick="server_get_request()" class="button get-button">GET</button>
+                <button onclick="server_post_request()" class="button post-button">POST</button>
+            </div>
+        </div>
+        <div class="ripes-window">
+            <div class="ripes-window__text"><h2>Ripes window</h2></div>
+        </div>
+    </div>
 </body>
 
 </html>
