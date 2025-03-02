@@ -5,6 +5,9 @@
 
 #include <QScrollBar>
 
+#include <QClipboard>
+#include <QGuiApplication>
+
 namespace Ripes {
 
 Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
@@ -70,6 +73,27 @@ void Console::backspace() {
 }
 
 void Console::keyPressEvent(QKeyEvent *e) {
+  QClipboard *clipboard = QGuiApplication::clipboard();
+
+  if (e->modifiers() & Qt::ControlModifier) {
+    switch (e->key()) {
+    case Qt::Key_C:
+      if (textCursor().hasSelection()) {
+        clipboard->setText(textCursor().selectedText());
+      }
+      return;
+
+    case Qt::Key_V:
+      QString clipboardText = clipboard->text();
+      if (!clipboardText.isEmpty()) {
+        m_buffer += clipboardText;
+        if (m_localEchoEnabled)
+          putData(clipboardText.toUtf8());
+      }
+      return;
+    }
+  }
+
   switch (e->key()) {
   case Qt::Key_Left:
   case Qt::Key_Right:
