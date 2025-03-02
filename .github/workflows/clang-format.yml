@@ -16,10 +16,11 @@ jobs:
     - name: clang-format
       run: |
         # Run clang-format
+        apt-get install -y clang-format-15
         CHANGED_FILES=`git diff --name-only -r HEAD~ --diff-filter=d | grep -E '.(c|cpp|h|hpp)$' | xargs`
         echo "Changed files: $CHANGED_FILES"
         [ -z "$CHANGED_FILES" ] && exit 0
-        clang-format -i $CHANGED_FILES
+        clang-format-15 -i $CHANGED_FILES
         git diff > clang-format.patch
         if [ -s clang-format.patch ]; then
           echo "Clang-format found formatting problems in the following files. See diff in the clang-format.patch artifact."
