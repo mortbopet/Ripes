@@ -204,6 +204,7 @@ bool EditTab::loadFile(const LoadFileParams &fileParams) {
     // editor is disabled
     disableEditor();
     // Intentional fallthrough to InternalELF case for shared actions.
+    [[fallthrough]];
   }
   case SourceType::InternalELF: {
     success &= loadElfFile(*loadedProgram, file);

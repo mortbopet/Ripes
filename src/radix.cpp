@@ -84,7 +84,7 @@ VInt decodeRadixValue(QString value, bool *ok) {
     return 0;
   }
   QString valueRev;
-  for (const auto &c : qAsConst(value)) {
+  for (const auto &c : std::as_const(value)) {
     valueRev.prepend(c);
   }
   VInt v = 0;

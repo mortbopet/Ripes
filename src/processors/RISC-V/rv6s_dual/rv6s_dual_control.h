@@ -9,7 +9,7 @@ namespace core {
 using namespace Ripes;
 
 class Control_DUAL : public Component {
-  static VSRTL_VT_U do_reg_wr_src_ctrl_dual(const VSRTL_VT_U &opc) {
+  static RegWrSrcDual do_reg_wr_src_ctrl_dual(const VSRTL_VT_U &opc) {
     switch (magic_enum::enum_value<RVInstr>(opc)) {
     // Jump instructions
     case RVInstr::JALR:
@@ -21,7 +21,7 @@ class Control_DUAL : public Component {
     }
   }
 
-  static VSRTL_VT_U do_reg_wr_src_ctrl_data(const VSRTL_VT_U &opc) {
+  static RegWrSrcDataDual do_reg_wr_src_ctrl_data(const VSRTL_VT_U &opc) {
     if (Control::do_mem_ctrl(opc) != MemOp::NOP) {
       return RegWrSrcDataDual::MEM;
     } else {
