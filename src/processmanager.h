@@ -154,8 +154,7 @@ public:
   static bool hasValidProgram() { return false; }
   static const QString &program() { return get().m_programPath; }
   static QString getError() { return QString(); }
-  static ProcessResult run(const QStringList &,
-                           bool = false) {
+  static ProcessResult run(const QStringList &, bool = false) {
     return ProcessResult();
   }
 
