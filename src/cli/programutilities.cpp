@@ -1,6 +1,6 @@
 #include "programutilities.h"
+#include "dwarf/dwarf++.hh"
 #include "elfio/elfio.hpp"
-#include "libelfin/dwarf/dwarf++.hh"
 #include "statusmanager.h"
 
 #include <QRegularExpression>

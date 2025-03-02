@@ -14,7 +14,7 @@ public:
       : Component(name, parent) {
     // clang-format off
         res << [=] {
-            switch(comp_op.uValue()){
+            switch(comp_op.eValue<CompOp>()){
                 case CompOp::NOP: return false;
                 case CompOp::EQ: return op1.uValue() == op2.uValue();
                 case CompOp::NE: return op1.uValue() != op2.uValue();

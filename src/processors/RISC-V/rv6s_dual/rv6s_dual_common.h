@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../riscv.h"
+#include "processors/RISC-V/riscv.h"
 
 namespace Ripes {
-Enum(RegWrSrcDual, ALURES, PC4);
-Enum(RegWrSrcDataDual, ALURES, MEM);
-Enum(PcSrcDual, PC4, PC8);
-Enum(WaySrc, WAY1, WAY2);
+enum class RegWrSrcDual { ALURES, PC4 };
+enum class RegWrSrcDataDual { ALURES, MEM };
+enum class PcSrcDual { PC4, PC8 };
+enum class WaySrc { WAY1, WAY2 };
 } // namespace Ripes

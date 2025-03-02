@@ -4,8 +4,8 @@
 #include "VSRTL/core/vsrtl_memory.h"
 #include "VSRTL/core/vsrtl_wire.h"
 
-#include "../riscv.h"
-#include "../rv_registerfile.h"
+#include "processors/RISC-V/riscv.h"
+#include "processors/RISC-V/rv_registerfile.h"
 
 namespace vsrtl {
 namespace core {

@@ -10,7 +10,7 @@ using namespace Ripes;
 class Control : public Component {
 public:
   /* clang-format off */
-    static CompOp do_comp_ctrl(const VSRTL_VT_U& opc) {
+    static CompOp do_comp_ctrl(RVInstr opc) {
         switch(opc){
             case RVInstr::BEQ: return CompOp::EQ;
             case RVInstr::BNE: return CompOp::NE;
@@ -22,7 +22,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_branch_ctrl(const VSRTL_VT_U& opc) {
+    static VSRTL_VT_U do_branch_ctrl(RVInstr opc) {
         switch(opc){
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
             case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
@@ -32,7 +32,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_jump_ctrl(const VSRTL_VT_U& opc) {
+    static VSRTL_VT_U do_jump_ctrl(RVInstr opc) {
         switch(opc){
             case RVInstr::JAL: case RVInstr::JALR:
                 return 1;
@@ -41,7 +41,7 @@ public:
         }
     }
 
-    static MemOp do_mem_ctrl(const VSRTL_VT_U& opc) {
+    static MemOp do_mem_ctrl(RVInstr opc) {
         switch(opc){
             case RVInstr::SB: return MemOp::SB;
             case RVInstr::SH: return MemOp::SH;
@@ -59,7 +59,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_reg_do_write_ctrl(const VSRTL_VT_U& opc) {
+    static VSRTL_VT_U do_reg_do_write_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::LUI:
             case RVInstr::AUIPC:
@@ -91,7 +91,7 @@ public:
         }
     }
 
-    static RegWrSrc do_reg_wr_src_ctrl(const VSRTL_VT_U& opc) {
+    static RegWrSrc do_reg_wr_src_ctrl(RVInstr opc) {
         switch(opc){
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
@@ -108,7 +108,7 @@ public:
         }
     }
 
-    static AluSrc1 do_alu_op1_ctrl(const VSRTL_VT_U& opc) {
+    static AluSrc1 do_alu_op1_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::AUIPC: case RVInstr::JAL:
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    static AluSrc2 do_alu_op2_ctrl(const VSRTL_VT_U& opc) {
+    static AluSrc2 do_alu_op2_ctrl(RVInstr opc) {
         switch(opc) {
         case RVInstr::LUI:
         case RVInstr::AUIPC:
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    static ALUOp do_alu_ctrl(const VSRTL_VT_U& opc) {
+    static ALUOp do_alu_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
             case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
@@ -220,7 +220,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_do_mem_write_ctrl(const VSRTL_VT_U& opc) {
+    static VSRTL_VT_U do_do_mem_write_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::SD:
                 return 1;
@@ -228,7 +228,7 @@ public:
         }
     }
 
-    static VSRTL_VT_U do_do_read_ctrl(const VSRTL_VT_U& opc) {
+    static VSRTL_VT_U do_do_read_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
             case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:

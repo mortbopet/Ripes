@@ -12,5 +12,6 @@ file(GLOB LIB_SOURCES src/*.cpp)
 file(GLOB LIB_HEADERS include/fancytabbar/*.h)
 
 add_library(fancytabbar STATIC ${LIB_SOURCES})
+add_library(fancytabbar::fancytabbar ALIAS fancytabbar)
 target_link_libraries(fancytabbar Qt6::Core Qt6::Widgets)
 target_include_directories(fancytabbar PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -3,7 +3,7 @@
 #include "VSRTL/core/vsrtl_component.h"
 #include "VSRTL/core/vsrtl_register.h"
 
-#include "../riscv.h"
+#include "processors/RISC-V/riscv.h"
 
 namespace vsrtl {
 namespace core {

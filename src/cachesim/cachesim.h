@@ -7,7 +7,7 @@
 #include <QDataStream>
 #include <QObject>
 
-#include "../external/VSRTL/core/vsrtl_register.h"
+#include "VSRTL/core/vsrtl_register.h"
 #include "processors/RISC-V/rv_memory.h"
 #include "processors/interface/ripesprocessor.h"
 

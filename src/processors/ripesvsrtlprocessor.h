@@ -53,7 +53,7 @@ protected:
   MemoryAccess
   memToAccessInfo(const vsrtl::core::BaseMemory<true> *memory) const {
     MemoryAccess access;
-    switch (memory->opSig()) {
+    switch (magic_enum::enum_value<MemOp>(memory->opSig())) {
     case MemOp::SB: {
       access.bytes = 1;
       access.type = MemoryAccess::Write;

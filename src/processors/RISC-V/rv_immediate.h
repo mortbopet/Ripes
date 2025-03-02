@@ -17,7 +17,7 @@ public:
       : Component(name, parent) {
     setDescription("Immediate value decoder");
     imm << [=] {
-      Switch(opcode, RVInstr) {
+      switch (opcode.eValue<RVInstr>()) {
       case RVInstr::LUI:
       case RVInstr::AUIPC:
         return VT_U(signextend<32>(instr.uValue() & 0xfffff000));

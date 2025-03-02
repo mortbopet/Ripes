@@ -95,13 +95,6 @@ elseif(${WIN32})
     set(SYSTEM_FLAGS WIN32)
 endif()
 
-
-include(FetchContent)
-
-# libelfin
-
-
-
 add_subdirectory(external)
 
 # Fix the name of the ripes library.

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../rv_control.h"
 #include "VSRTL/core/vsrtl_component.h"
+#include "processors/RISC-V/rv_control.h"
 #include "rv6s_dual_common.h"
 
 namespace vsrtl {
@@ -10,7 +10,7 @@ using namespace Ripes;
 
 class Control_DUAL : public Component {
   static VSRTL_VT_U do_reg_wr_src_ctrl_dual(const VSRTL_VT_U &opc) {
-    switch (opc) {
+    switch (magic_enum::enum_value<RVInstr>(opc)) {
     // Jump instructions
     case RVInstr::JALR:
     case RVInstr::JAL:
@@ -22,7 +22,7 @@ class Control_DUAL : public Component {
   }
 
   static VSRTL_VT_U do_reg_wr_src_ctrl_data(const VSRTL_VT_U &opc) {
-    if (Control::do_mem_ctrl(opc) != +MemOp::NOP) {
+    if (Control::do_mem_ctrl(opc) != MemOp::NOP) {
       return RegWrSrcDataDual::MEM;
     } else {
       return RegWrSrcDataDual::ALURES;
@@ -34,7 +34,7 @@ public:
       : Component(name, parent) {
     comp_ctrl << [=] {
       return exec_valid.uValue() ? Control::do_comp_ctrl(opcode_exec.uValue())
-                                 : +CompOp::NOP;
+                                 : CompOp::NOP;
     };
     do_branch << [=] {
       return exec_valid.uValue() ? Control::do_branch_ctrl(opcode_exec.uValue())
@@ -46,7 +46,7 @@ public:
     };
     mem_ctrl << [=] {
       return data_valid.uValue() ? Control::do_mem_ctrl(opcode_data.uValue())
-                                 : +MemOp::NOP;
+                                 : MemOp::NOP;
     };
 
     reg_do_write_ctrl_exec << [=] {
@@ -66,26 +66,26 @@ public:
     alu_op1_ctrl_exec << [=] {
       return exec_valid.uValue()
                  ? Control::do_alu_op1_ctrl(opcode_exec.uValue())
-                 : +AluSrc1::REG1;
+                 : AluSrc1::REG1;
     };
     alu_op2_ctrl_exec << [=] {
       return exec_valid.uValue()
                  ? Control::do_alu_op2_ctrl(opcode_exec.uValue())
-                 : +AluSrc2::REG2;
+                 : AluSrc2::REG2;
     };
     alu_ctrl_exec << [=] {
       return exec_valid.uValue() ? Control::do_alu_ctrl(opcode_exec.uValue())
-                                 : +ALUOp::NOP;
+                                 : ALUOp::NOP;
     };
 
     alu_op2_ctrl_data << [=] {
       return data_valid.uValue()
                  ? Control::do_alu_op2_ctrl(opcode_data.uValue())
-                 : +AluSrc2::REG2;
+                 : AluSrc2::REG2;
     };
     alu_ctrl_data << [=] {
       return data_valid.uValue() ? Control::do_alu_ctrl(opcode_data.uValue())
-                                 : +ALUOp::NOP;
+                                 : ALUOp::NOP;
     };
 
     mem_do_write_ctrl <<

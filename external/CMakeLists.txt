@@ -10,17 +10,12 @@ add_subdirectory(fancytabbar)
 # VSRTL
 set(VSRTL_BUILD_APP OFF)
 set(VSRTL_BUILD_TESTS OFF)
-FetchContent_Declare(
-  VSRTL
-  GIT_REPOSITORY https://github.com/mortbopet/VSRTL.git
-  GIT_TAG        master
-)
-
-FetchContent_MakeAvailable(VSRTL)
+add_subdirectory(VSRTL)
 
 # libelfin
 FetchContent_Declare(
     libelfin
+    SYSTEM
     GIT_REPOSITORY https://github.com/mortbopet/libelfin.git
     GIT_TAG        93a424940dc6e721818c5634b1876c8800e3f980
 )
@@ -34,6 +29,7 @@ set_property(SOURCE "${libelfin_src}/dwarf_to_string.cc" PROPERTY SKIP_AUTOGEN O
 # ELFIO
 FetchContent_Declare(
     ELFIO
+    SYSTEM
     GIT_REPOSITORY https://github.com/serge1/ELFIO.git
     GIT_TAG 79fcd11595d0793dec593e9072e36c7923c57c1a
 )

@@ -9,16 +9,16 @@
 #include "../../ripesvsrtlprocessor.h"
 
 // Functional units
-#include "../riscv.h"
-#include "../rv_alu.h"
-#include "../rv_branch.h"
-#include "../rv_control.h"
-#include "../rv_decode.h"
-#include "../rv_ecallchecker.h"
-#include "../rv_immediate.h"
-#include "../rv_memory.h"
-#include "../rv_registerfile.h"
-#include "../rv_uncompress.h"
+#include "processors/RISC-V/riscv.h"
+#include "processors/RISC-V/rv_alu.h"
+#include "processors/RISC-V/rv_branch.h"
+#include "processors/RISC-V/rv_control.h"
+#include "processors/RISC-V/rv_decode.h"
+#include "processors/RISC-V/rv_ecallchecker.h"
+#include "processors/RISC-V/rv_immediate.h"
+#include "processors/RISC-V/rv_memory.h"
+#include "processors/RISC-V/rv_registerfile.h"
+#include "processors/RISC-V/rv_uncompress.h"
 
 // Stage separating registers
 #include "rv5s_no_fw_hz_exmem.h"

@@ -20,7 +20,7 @@ public:
   SetGraphicsType(ALU);
   ALU(const std::string &name, SimComponent *parent) : Component(name, parent) {
     res << [=] {
-      switch (ctrl.uValue()) {
+      switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
         return op1.uValue() + op2.uValue();
       case ALUOp::SUB:
@@ -49,8 +49,8 @@ public:
       case ALUOp::DIVW:
       case ALUOp::DIV: {
         const VSRTL_VT_S overflow =
-            (ctrl.uValue() == ALUOp::DIVW) ||
-                    (ctrl.uValue() == ALUOp::DIV && XLEN == 32)
+            (ctrl.eValue<ALUOp>() == ALUOp::DIVW) ||
+                    (ctrl.eValue<ALUOp>() == ALUOp::DIV && XLEN == 32)
                 ? div_overflow32
                 : div_overflow64;
         if (op2.sValue() == 0) {
@@ -75,8 +75,8 @@ public:
       case ALUOp::REMW:
       case ALUOp::REM: {
         const VSRTL_VT_S overflow =
-            (ctrl.uValue() == ALUOp::REMW) ||
-                    (ctrl.uValue() == ALUOp::REM && XLEN == 32)
+            (ctrl.eValue<ALUOp>() == ALUOp::REMW) ||
+                    (ctrl.eValue<ALUOp>() == ALUOp::REM && XLEN == 32)
                 ? div_overflow32
                 : div_overflow64;
         if (op2.sValue() == 0) {
@@ -92,8 +92,8 @@ public:
       case ALUOp::REMUW:
       case ALUOp::REMU: {
         const VSRTL_VT_S overflow =
-            (ctrl.uValue() == ALUOp::REMUW) ||
-                    (ctrl.uValue() == ALUOp::REMU && XLEN == 32)
+            (ctrl.eValue<ALUOp>() == ALUOp::REMUW) ||
+                    (ctrl.eValue<ALUOp>() == ALUOp::REMU && XLEN == 32)
                 ? div_overflow32
                 : div_overflow64;
         if (op2.uValue() == 0) {

@@ -4,11 +4,11 @@
 #include <QWidget>
 #include <set>
 
-#include "../assembler/program.h"
+#include "assembler/program.h"
 #include "binutils.h"
 #include "serializers.h"
 
-#include "VSRTL/external/cereal/include/cereal/cereal.hpp"
+#include "cereal/cereal.hpp"
 
 namespace Ripes {
 
