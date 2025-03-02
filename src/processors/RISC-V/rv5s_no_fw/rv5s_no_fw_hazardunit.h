@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../riscv.h"
+#include "processors/RISC-V/riscv.h"
 
 #include "VSRTL/core/vsrtl_component.h"
 
@@ -78,7 +78,7 @@ private:
     // register file must be performed before handling the ecall. Hence, the
     // front-end of the pipeline shall be stalled until the remainder of the
     // pipeline has been cleared and there are no more outstanding writes.
-    const bool isEcall = ex_opcode.uValue() == RVInstr::ECALL;
+    const bool isEcall = ex_opcode.eValue<RVInstr>() == RVInstr::ECALL;
     return isEcall && (mem_do_reg_write.uValue() || wb_do_reg_write.uValue());
   }
 
@@ -99,7 +99,7 @@ private:
   bool hasDataHazard(unsigned writeIdx, bool regWrite) const {
     const unsigned idx1 = id_reg1_idx.uValue();
     const unsigned idx2 = id_reg2_idx.uValue();
-    const bool idx2isReg = id_alu_op_ctrl_2.uValue() == AluSrc2::REG2;
+    const bool idx2isReg = id_alu_op_ctrl_2.eValue<AluSrc2>() == AluSrc2::REG2;
 
     // Get branch information (when branch, idx2isReg must be ignored, because
     // it is IMM)

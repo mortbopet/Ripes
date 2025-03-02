@@ -26,8 +26,8 @@ public:
 
   REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write_data, 1);
-  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_dual, RegWrSrcDual::width());
-  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_data, RegWrSrcDataDual::width());
+  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_dual, enumBitWidth<RegWrSrcDual>());
+  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl_data, enumBitWidth<RegWrSrcDataDual>());
   REGISTERED_CLEN_INPUT(pc_data, XLEN);
 
   REGISTERED_CLEN_INPUT(alures_data, XLEN);

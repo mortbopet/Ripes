@@ -12,7 +12,7 @@ function(create_ripes_lib NAME)
     cmake_parse_arguments(OPTIONS
         "LINK_TO_RIPES_LIB;LINK_ISA_LIB;FIXED_NAME;EXCLUDE_SRC_INC" # options
         ""                             # 1-valued keywords
-        ""                             # multi-valued keywords
+        "LINK_LIBS"                    # multi-valued keywords
         ${ARGN})
 
     file(GLOB LIB_SOURCES *.cpp)
@@ -32,7 +32,11 @@ function(create_ripes_lib NAME)
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
-    target_link_libraries(${LIB_NAME} PUBLIC Qt6::Gui)
+    target_link_libraries(${LIB_NAME} PUBLIC
+        Qt6::Gui
+        vsrtl::vsrtl
+        elfio::elfio
+    )
     if(NOT OPTIONS_EXCLUDE_SRC_INC)
         target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
     endif()
@@ -43,6 +47,10 @@ function(create_ripes_lib NAME)
 
     if(OPTIONS_LINK_ISA_LIB)
         target_link_libraries(${LIB_NAME} PUBLIC ${ISA_LIB})
+    endif()
+
+    if(OPTIONS_LINK_LIBS)
+        target_link_libraries(${LIB_NAME} PUBLIC ${OPTIONS_LINK_LIBS})
     endif()
 endfunction()
 
@@ -73,8 +81,9 @@ add_subdirectory(cli)
 
 # Also link Qt and VSRTL libraries.
 target_link_libraries(${RIPES_LIB} PUBLIC
-    fancytabbar_lib
-    ${VSRTL_GRAPHICS_LIB}
+    fancytabbar::fancytabbar
+    elfio::elfio
+    vsrtl::vsrtl
     Qt6::Charts
-    dwarf++)
-
+    dwarf++
+)

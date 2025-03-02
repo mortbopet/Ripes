@@ -8,7 +8,7 @@
 
 #include <QList>
 
-#include "../binutils.h"
+#include "binutils.h"
 #include "isa_defines.h"
 #include <STLExtras.h>
 

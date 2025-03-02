@@ -12,7 +12,7 @@ template <unsigned XLEN>
 class Branch_DUAL : public Component {
   /* clang-format off */
     bool branch_taken() const {
-        switch(comp_op.uValue()){
+        switch(comp_op.eValue<CompOp>()){
             case CompOp::NOP: return false;
             case CompOp::EQ: return op1.uValue() == op2.uValue();
             case CompOp::NE: return op1.uValue() != op2.uValue();

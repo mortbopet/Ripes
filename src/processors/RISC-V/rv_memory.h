@@ -20,7 +20,7 @@ public:
 
     wr_width->setSensitiveTo(&op);
     wr_width->out << [=] {
-      switch (op.uValue()) {
+      switch (op.eValue<MemOp>()) {
       case MemOp::SB:
         return 1;
       case MemOp::SH:
@@ -37,7 +37,7 @@ public:
 
     data_out << [=] {
       const auto &value = mem->data_out.uValue();
-      switch (op.uValue()) {
+      switch (op.eValue<MemOp>()) {
       case MemOp::LB:
         return VT_U(signextend<8>(value & 0xFFUL));
       case MemOp::LBU:

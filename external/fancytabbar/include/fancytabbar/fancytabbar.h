@@ -5,7 +5,7 @@
 #include <QVector>
 #include <QWidget>
 
-#include "fancytab.h"
+#include "fancytabbar/fancytab.h"
 
 /*!
  * \brief Goal of this class is TabBar similar to QtCreator left TabBarr.

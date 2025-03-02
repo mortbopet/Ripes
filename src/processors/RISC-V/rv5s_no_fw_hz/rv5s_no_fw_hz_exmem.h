@@ -37,12 +37,12 @@ public:
   REGISTERED_CLEN_INPUT(r2, XLEN);
 
   // Control
-  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
+  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, enumBitWidth<RegWrSrc>());
   REGISTERED_CLEN_INPUT(wr_reg_idx, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_do_read, 1);
-  REGISTERED_CLEN_INPUT(mem_op, MemOp::width());
+  REGISTERED_CLEN_INPUT(mem_op, enumBitWidth<MemOp>());
 
   // Register bank controls
   INPUTPORT(enable, 1);

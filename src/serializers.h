@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VSRTL/external/cereal/include/cereal/cereal.hpp"
+#include "cereal/cereal.hpp"
 
 #include <QDataStream>
 #include <QIODevice>

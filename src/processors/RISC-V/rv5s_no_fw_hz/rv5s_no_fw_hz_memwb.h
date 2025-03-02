@@ -3,7 +3,7 @@
 #include "VSRTL/core/vsrtl_component.h"
 #include "VSRTL/core/vsrtl_register.h"
 
-#include "../riscv.h"
+#include "processors/RISC-V/riscv.h"
 
 namespace vsrtl {
 namespace core {
@@ -34,7 +34,7 @@ public:
   REGISTERED_INPUT(mem_read, XLEN);
 
   // Control
-  REGISTERED_INPUT(reg_wr_src_ctrl, RegWrSrc::width());
+  REGISTERED_INPUT(reg_wr_src_ctrl, enumBitWidth<RegWrSrc>());
   REGISTERED_INPUT(wr_reg_idx, c_RVRegsBits);
   REGISTERED_INPUT(reg_do_write, 1);
 

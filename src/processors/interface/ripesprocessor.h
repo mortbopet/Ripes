@@ -2,12 +2,12 @@
 
 #include <QString>
 
-#include "Signals/Signal.h"
+#include "Signal.h"
 #include "VSRTL/core/vsrtl_design.h"
 #include <map>
 
-#include "../../isa/isa_types.h"
-#include "../../isa/isainfo.h"
+#include "../isa/isa_types.h"
+#include "../isa/isainfo.h"
 
 namespace Ripes {
 

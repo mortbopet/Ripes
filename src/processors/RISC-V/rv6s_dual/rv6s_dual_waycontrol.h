@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../rv_control.h"
 #include "VSRTL/core/vsrtl_component.h"
+#include "processors/RISC-V/rv_control.h"
 #include "rv6s_dual_common.h"
 
 namespace vsrtl {
@@ -12,16 +12,16 @@ class WayControl : public Component {
 private:
   enum class WayClass { Data, Controlflow, Arithmetic, Ecall };
 
-  static bool isControlflow(const VSRTL_VT_U &opcode) {
+  static bool isControlflow(RVInstr opcode) {
     return Control::do_jump_ctrl(opcode) || Control::do_branch_ctrl(opcode);
   }
 
-  static bool isLoadStore(const VSRTL_VT_U &opcode) {
-    return Control::do_mem_ctrl(opcode) != +MemOp::NOP;
+  static bool isLoadStore(RVInstr opcode) {
+    return Control::do_mem_ctrl(opcode) != MemOp::NOP;
   }
 
   // clang-format off
-    static bool isWriteRegInstr(const VSRTL_VT_U& opcode) {
+    static bool isWriteRegInstr(RVInstr opcode) {
         switch(opcode) {
             case RVInstr::LUI:
             case RVInstr::AUIPC:
@@ -78,16 +78,16 @@ private:
     // way1 write => way 2 read?
     const bool hazard_1 = (wridx_1 != 0) &&
                           (wridx_1 == idx1_2 || wridx_1 == idx2_2) &&
-                          isWriteRegInstr(opcode_way1.uValue());
+                          isWriteRegInstr(opcode_way1.eValue<RVInstr>());
     // way2 write => way 1 read?
     const bool hazard_2 = (wridx_2 != 0) &&
                           (wridx_2 == idx1_1 || wridx_2 == idx2_1) &&
-                          isWriteRegInstr(opcode_way2.uValue());
+                          isWriteRegInstr(opcode_way2.eValue<RVInstr>());
 
     return hazard_1 || hazard_2;
   }
 
-  WayClass instrType(const VSRTL_VT_U opcode) const {
+  WayClass instrType(RVInstr opcode) const {
     if (isLoadStore(opcode)) {
       return WayClass ::Data;
     } else if (isControlflow(opcode)) {
@@ -100,7 +100,7 @@ private:
   }
 
   WaySrc otherWay(const WaySrc way) const {
-    return way == +WaySrc::WAY1 ? WaySrc::WAY2 : WaySrc::WAY1;
+    return way == WaySrc::WAY1 ? WaySrc::WAY2 : WaySrc::WAY1;
   }
 
   /**
@@ -113,8 +113,8 @@ private:
       return;
 
     // Default assignments
-    const WayClass way1Type = instrType(opcode_way1.uValue());
-    const WayClass way2Type = instrType(opcode_way2.uValue());
+    const WayClass way1Type = instrType(opcode_way1.eValue<RVInstr>());
+    const WayClass way2Type = instrType(opcode_way2.eValue<RVInstr>());
 
     const bool stallNow = stall_in.uValue();
     if (stallNow) {

@@ -5,8 +5,13 @@
 #include "VSRTL/core/vsrtl_component.h"
 
 namespace Ripes {
-Enum(ForwardingSrcDual, IdStage, MemStageExec, MemStageMem, WbStageExec,
-     WbStageMem);
+enum class ForwardingSrcDual {
+  IdStage,
+  MemStageExec,
+  MemStageMem,
+  WbStageExec,
+  WbStageMem
+};
 }
 
 namespace vsrtl {
@@ -22,7 +27,7 @@ class ForwardingUnit_DUAL : public Component {
       return ForwardingSrcDual::MemStageExec;
     } else if (readidx == mem_reg_wr_idx_data.uValue() &&
                mem_reg_wr_en_data.uValue() &&
-               mem_reg_mem_op.uValue() == MemOp::NOP) {
+               mem_reg_mem_op.eValue<MemOp>() == MemOp::NOP) {
       return ForwardingSrcDual::MemStageMem;
     } else if (readidx == wb_reg_wr_idx_exec.uValue() &&
                wb_reg_wr_en_exec.uValue()) {

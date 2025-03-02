@@ -4,7 +4,7 @@
 #include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_register.h"
 
-#include "../riscv.h"
+#include "processors/RISC-V/riscv.h"
 
 #include "../rv5s_no_fw_hz/rv5s_no_fw_hz_idex.h"
 
@@ -29,7 +29,7 @@ public:
     CONNECT_REGISTERED_CLEN_INPUT(stalled, 0, 1);
   }
 
-  REGISTERED_CLEN_INPUT(opcode, RVInstr::width());
+  REGISTERED_CLEN_INPUT(opcode, enumBitWidth<RVInstr>());
   REGISTERED_CLEN_INPUT(stalled, 1);
 };
 

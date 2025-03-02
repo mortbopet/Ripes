@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Signals/Signal.h"
+#include "Signal.h"
 #include "VSRTL/core/vsrtl_component.h"
 
 #include "riscv.h"
@@ -14,8 +14,8 @@ public:
   EcallChecker(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     dummy << [=] {
-      if (opcode.uValue() == RVInstr::ECALL && !stallEcallHandling.uValue() &&
-          !handlingEcall) {
+      if (opcode.eValue<RVInstr>() == RVInstr::ECALL &&
+          !stallEcallHandling.uValue() && !handlingEcall) {
         assert(m_callback != nullptr && "No syscall callback was set!");
         handlingEcall = true;
         (*m_callback)();

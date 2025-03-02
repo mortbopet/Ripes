@@ -2,11 +2,9 @@
 
 #include <functional>
 
-#include "VSRTL/core/vsrtl_enum.h"
-
 #include "rv_instrparser.h"
 
-#include "../../isa/rvisainfo_common.h"
+#include "isa/rvisainfo_common.h"
 
 namespace Ripes {
 
@@ -30,38 +28,127 @@ std::shared_ptr<const ISAInfoBase> fullISA() {
 constexpr int c_RVInstrWidth = 32; // Width of instructions
 constexpr int c_RVRegs = 32;       // Number of registers
 constexpr int c_RVRegsBits =
-    ceillog2(c_RVRegs); // Width of operand to index into registers
+    vsrtl::ceillog2(c_RVRegs); // Width of operand to index into registers
 
 /** Instruction set enumerations */
-Enum(RVInstrType, R, I, S, B, U, J);
+enum class RVInstrType { R, I, S, B, U, J };
 
-Enum(RVInstr, NOP,
-     /* RV32I Base Instruction Set */
-     LUI, AUIPC, JAL, JALR, BEQ, BNE, BLT, BGE, BLTU, BGEU, LB, LH, LW, LBU,
-     LHU, SB, SH, SW, ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI, ADD,
-     SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND, ECALL,
+enum class RVInstr {
+  NOP,
+  /* RV32I Base Instruction Set */
+  LUI,
+  AUIPC,
+  JAL,
+  JALR,
+  BEQ,
+  BNE,
+  BLT,
+  BGE,
+  BLTU,
+  BGEU,
+  LB,
+  LH,
+  LW,
+  LBU,
+  LHU,
+  SB,
+  SH,
+  SW,
+  ADDI,
+  SLTI,
+  SLTIU,
+  XORI,
+  ORI,
+  ANDI,
+  SLLI,
+  SRLI,
+  SRAI,
+  ADD,
+  SUB,
+  SLL,
+  SLT,
+  SLTU,
+  XOR,
+  SRL,
+  SRA,
+  OR,
+  AND,
+  ECALL,
 
-     /* RV32M Standard Extension */
-     MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU,
+  /* RV32M Standard Extension */
+  MUL,
+  MULH,
+  MULHSU,
+  MULHU,
+  DIV,
+  DIVU,
+  REM,
+  REMU,
 
-     /* RV64I Base Instruction Set */
-     ADDIW, SLLIW, SRLIW, SRAIW, ADDW, SUBW, SLLW, SRLW, SRAW, LWU, LD, SD,
+  /* RV64I Base Instruction Set */
+  ADDIW,
+  SLLIW,
+  SRLIW,
+  SRAIW,
+  ADDW,
+  SUBW,
+  SLLW,
+  SRLW,
+  SRAW,
+  LWU,
+  LD,
+  SD,
 
-     /* RV64M Standard Extension */
-     MULW, DIVW, DIVUW, REMW, REMUW);
+  /* RV64M Standard Extension */
+  MULW,
+  DIVW,
+  DIVUW,
+  REMW,
+  REMUW
+};
 
 /** Datapath enumerations */
-Enum(ALUOp, NOP, ADD, SUB, MUL, DIV, AND, OR, XOR, SL, SRA, SRL, LUI, LT, LTU,
-     EQ, MULH, MULHU, MULHSU, DIVU, REM, REMU, SLW, SRLW, SRAW, ADDW, SUBW,
-     MULW, DIVW, DIVUW, REMW, REMUW);
-Enum(RegWrSrc, MEMREAD, ALURES, PC4);
-Enum(AluSrc1, REG1, PC);
-Enum(AluSrc2, REG2, IMM);
-Enum(CompOp, NOP, EQ, NE, LT, LTU, GE, GEU);
-Enum(MemOp, NOP, LB, LH, LW, LBU, LHU, SB, SH, SW, LWU, LD, SD);
-Enum(ECALL, none, print_int = 1, print_char = 2, print_string = 4, exit = 10);
-Enum(PcSrc, PC4 = 0, ALU = 1);
-Enum(PcInc, INC2 = 0, INC4 = 1);
+enum class ALUOp {
+  NOP,
+  ADD,
+  SUB,
+  MUL,
+  DIV,
+  AND,
+  OR,
+  XOR,
+  SL,
+  SRA,
+  SRL,
+  LUI,
+  LT,
+  LTU,
+  EQ,
+  MULH,
+  MULHU,
+  MULHSU,
+  DIVU,
+  REM,
+  REMU,
+  SLW,
+  SRLW,
+  SRAW,
+  ADDW,
+  SUBW,
+  MULW,
+  DIVW,
+  DIVUW,
+  REMW,
+  REMUW
+};
+enum class RegWrSrc { MEMREAD, ALURES, PC4 };
+enum class AluSrc1 { REG1, PC };
+enum class AluSrc2 { REG2, IMM };
+enum class CompOp { NOP, EQ, NE, LT, LTU, GE, GEU };
+enum class MemOp { NOP, LB, LH, LW, LBU, LHU, SB, SH, SW, LWU, LD, SD };
+enum ECALL { none, print_int = 1, print_char = 2, print_string = 4, exit = 10 };
+enum PcSrc { PC4 = 0, ALU = 1 };
+enum PcInc { INC2 = 0, INC4 = 1 };
 
 /** Instruction field parser */
 class RVInstrParser {

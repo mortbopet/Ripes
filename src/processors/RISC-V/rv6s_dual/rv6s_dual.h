@@ -8,13 +8,13 @@
 
 #include "../../ripesvsrtlprocessor.h"
 
-#include "../riscv.h"
-#include "../rv_alu.h"
-#include "../rv_control.h"
-#include "../rv_decode.h"
-#include "../rv_ecallchecker.h"
-#include "../rv_immediate.h"
-#include "../rv_memory.h"
+#include "processors/RISC-V/riscv.h"
+#include "processors/RISC-V/rv_alu.h"
+#include "processors/RISC-V/rv_control.h"
+#include "processors/RISC-V/rv_decode.h"
+#include "processors/RISC-V/rv_ecallchecker.h"
+#include "processors/RISC-V/rv_immediate.h"
+#include "processors/RISC-V/rv_memory.h"
 
 // Specialized dual-issue components
 #include "rv6s_dual_control.h"
@@ -567,7 +567,7 @@ public:
 
   SUBCOMPONENT(data_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
   SUBCOMPONENT(data_way_opcode,
-               TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
+               TYPE(EnumMultiplexer<WaySrc, enumBitWidth<RVInstr>()>));
   SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, c_RVInstrWidth>));
   SUBCOMPONENT(data_way_wr_reg_idx,
                TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
@@ -578,7 +578,7 @@ public:
 
   SUBCOMPONENT(exec_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
   SUBCOMPONENT(exec_way_opcode,
-               TYPE(EnumMultiplexer<WaySrc, RVInstr::width()>));
+               TYPE(EnumMultiplexer<WaySrc, enumBitWidth<RVInstr>()>));
   SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, c_RVInstrWidth>));
   SUBCOMPONENT(exec_way_wr_reg_idx,
                TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));

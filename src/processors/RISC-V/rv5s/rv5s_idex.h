@@ -4,7 +4,7 @@
 #include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_register.h"
 
-#include "../riscv.h"
+#include "processors/RISC-V/riscv.h"
 
 #include "../rv5s_no_fw_hz/rv5s_no_fw_hz_idex.h"
 
@@ -34,7 +34,7 @@ public:
 
   REGISTERED_CLEN_INPUT(rd_reg1_idx, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(rd_reg2_idx, c_RVRegsBits);
-  REGISTERED_CLEN_INPUT(opcode, RVInstr::width());
+  REGISTERED_CLEN_INPUT(opcode, enumBitWidth<RVInstr>());
 
   REGISTERED_CLEN_INPUT(stalled, 1);
 };

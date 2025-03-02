@@ -1,6 +1,6 @@
 #include "objdump.h"
 
-#include "../processorhandler.h"
+#include "processorhandler.h"
 #include <QDataStream>
 
 namespace Ripes {
