@@ -34,7 +34,7 @@ public:
 
   REGISTERED_CLEN_INPUT(rd_reg1_idx, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(rd_reg2_idx, c_RVRegsBits);
-  REGISTERED_CLEN_INPUT(opcode, ceillog2(magic_enum::enum_count<RVInstr>()));
+  REGISTERED_CLEN_INPUT(opcode, enumBitWidth<RVInstr>());
 
   REGISTERED_CLEN_INPUT(stalled, 1);
 };

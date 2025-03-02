@@ -45,19 +45,16 @@ public:
   REGISTERED_CLEN_INPUT(imm, XLEN);
 
   // Control
-  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl,
-                        ceillog2(magic_enum::enum_count<RegWrSrc>()));
+  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, enumBitWidth<RegWrSrc>());
   REGISTERED_CLEN_INPUT(wr_reg_idx, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write, 1);
-  REGISTERED_CLEN_INPUT(alu_op1_ctrl,
-                        ceillog2(magic_enum::enum_count<AluSrc1>()));
-  REGISTERED_CLEN_INPUT(alu_op2_ctrl,
-                        ceillog2(magic_enum::enum_count<AluSrc2>()));
-  REGISTERED_CLEN_INPUT(alu_ctrl, ceillog2(magic_enum::enum_count<ALUOp>()));
+  REGISTERED_CLEN_INPUT(alu_op1_ctrl, enumBitWidth<AluSrc1>());
+  REGISTERED_CLEN_INPUT(alu_op2_ctrl, enumBitWidth<AluSrc2>());
+  REGISTERED_CLEN_INPUT(alu_ctrl, enumBitWidth<ALUOp>());
   REGISTERED_CLEN_INPUT(mem_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_do_read, 1);
-  REGISTERED_CLEN_INPUT(mem_op, ceillog2(magic_enum::enum_count<MemOp>()));
-  REGISTERED_CLEN_INPUT(br_op, ceillog2(magic_enum::enum_count<CompOp>()));
+  REGISTERED_CLEN_INPUT(mem_op, enumBitWidth<MemOp>());
+  REGISTERED_CLEN_INPUT(br_op, enumBitWidth<CompOp>());
   REGISTERED_CLEN_INPUT(do_br, 1);
   REGISTERED_CLEN_INPUT(do_jmp, 1);
 

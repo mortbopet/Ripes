@@ -34,8 +34,7 @@ public:
   REGISTERED_INPUT(mem_read, XLEN);
 
   // Control
-  REGISTERED_INPUT(reg_wr_src_ctrl,
-                   ceillog2(magic_enum::enum_count<RegWrSrc>()));
+  REGISTERED_INPUT(reg_wr_src_ctrl, enumBitWidth<RegWrSrc>());
   REGISTERED_INPUT(wr_reg_idx, c_RVRegsBits);
   REGISTERED_INPUT(reg_do_write, 1);
 

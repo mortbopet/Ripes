@@ -567,8 +567,7 @@ public:
 
   SUBCOMPONENT(data_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
   SUBCOMPONENT(data_way_opcode,
-               TYPE(EnumMultiplexer<
-                    WaySrc, ceillog2(magic_enum::enum_count<RVInstr>())>));
+               TYPE(EnumMultiplexer<WaySrc, enumBitWidth<RVInstr>()>));
   SUBCOMPONENT(data_way_instr, TYPE(EnumMultiplexer<WaySrc, c_RVInstrWidth>));
   SUBCOMPONENT(data_way_wr_reg_idx,
                TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));
@@ -579,8 +578,7 @@ public:
 
   SUBCOMPONENT(exec_way_pc, TYPE(EnumMultiplexer<WaySrc, XLEN>));
   SUBCOMPONENT(exec_way_opcode,
-               TYPE(EnumMultiplexer<
-                    WaySrc, ceillog2(magic_enum::enum_count<RVInstr>())>));
+               TYPE(EnumMultiplexer<WaySrc, enumBitWidth<RVInstr>()>));
   SUBCOMPONENT(exec_way_instr, TYPE(EnumMultiplexer<WaySrc, c_RVInstrWidth>));
   SUBCOMPONENT(exec_way_wr_reg_idx,
                TYPE(EnumMultiplexer<WaySrc, c_RVRegsBits>));

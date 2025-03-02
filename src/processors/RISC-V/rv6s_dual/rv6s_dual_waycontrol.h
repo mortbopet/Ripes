@@ -87,19 +87,20 @@ private:
     return hazard_1 || hazard_2;
   }
 
-  WayClass instrType(const VSRTL_VT_U opcode) const {
+  WayClass instrType(RVInstr opcode) const {
     if (isLoadStore(opcode)) {
       return WayClass ::Data;
     } else if (isControlflow(opcode)) {
       return WayClass::Controlflow;
     } else if (opcode == RVInstr::ECALL) {
       return WayClass::Ecall;
+    } else {
+      return WayClass::Arithmetic;
     }
-    return WayClass::Arithmetic;
   }
 
   WaySrc otherWay(const WaySrc way) const {
-    return way == +WaySrc::WAY1 ? WaySrc::WAY2 : WaySrc::WAY1;
+    return way == WaySrc::WAY1 ? WaySrc::WAY2 : WaySrc::WAY1;
   }
 
   /**
@@ -112,8 +113,8 @@ private:
       return;
 
     // Default assignments
-    const WayClass way1Type = instrType(opcode_way1.uValue());
-    const WayClass way2Type = instrType(opcode_way2.uValue());
+    const WayClass way1Type = instrType(opcode_way1.eValue<RVInstr>());
+    const WayClass way2Type = instrType(opcode_way2.eValue<RVInstr>());
 
     const bool stallNow = stall_in.uValue();
     if (stallNow) {

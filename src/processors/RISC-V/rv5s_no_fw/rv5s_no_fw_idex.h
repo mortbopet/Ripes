@@ -29,7 +29,7 @@ public:
     CONNECT_REGISTERED_CLEN_INPUT(stalled, 0, 1);
   }
 
-  REGISTERED_CLEN_INPUT(opcode, ceillog2(magic_enum::enum_count<RVInstr>()));
+  REGISTERED_CLEN_INPUT(opcode, enumBitWidth<RVInstr>());
   REGISTERED_CLEN_INPUT(stalled, 1);
 };
 

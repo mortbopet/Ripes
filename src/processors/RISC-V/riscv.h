@@ -141,7 +141,7 @@ enum class ALUOp {
   REMW,
   REMUW
 };
-enum class RegWrSrc { MEMREAD, ALURES, PC4, N };
+enum class RegWrSrc { MEMREAD, ALURES, PC4 };
 enum class AluSrc1 { REG1, PC };
 enum class AluSrc2 { REG2, IMM };
 enum class CompOp { NOP, EQ, NE, LT, LTU, GE, GEU };

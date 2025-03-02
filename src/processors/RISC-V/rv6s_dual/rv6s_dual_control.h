@@ -9,8 +9,8 @@ namespace core {
 using namespace Ripes;
 
 class Control_DUAL : public Component {
-  static RegWrSrcDual do_reg_wr_src_ctrl_dual(const VSRTL_VT_U &opc) {
-    switch (magic_enum::enum_value<RVInstr>(opc)) {
+  static RegWrSrcDual do_reg_wr_src_ctrl_dual(RVInstr opc) {
+    switch (opc) {
     // Jump instructions
     case RVInstr::JALR:
     case RVInstr::JAL:
@@ -21,7 +21,7 @@ class Control_DUAL : public Component {
     }
   }
 
-  static RegWrSrcDataDual do_reg_wr_src_ctrl_data(const VSRTL_VT_U &opc) {
+  static RegWrSrcDataDual do_reg_wr_src_ctrl_data(RVInstr opc) {
     if (Control::do_mem_ctrl(opc) != MemOp::NOP) {
       return RegWrSrcDataDual::MEM;
     } else {
@@ -33,65 +33,72 @@ public:
   Control_DUAL(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     comp_ctrl << [=] {
-      return exec_valid.uValue() ? Control::do_comp_ctrl(opcode_exec.uValue())
-                                 : CompOp::NOP;
+      return exec_valid.uValue()
+                 ? Control::do_comp_ctrl(opcode_exec.eValue<RVInstr>())
+                 : CompOp::NOP;
     };
     do_branch << [=] {
-      return exec_valid.uValue() ? Control::do_branch_ctrl(opcode_exec.uValue())
-                                 : 0;
+      return exec_valid.uValue()
+                 ? Control::do_branch_ctrl(opcode_exec.eValue<RVInstr>())
+                 : 0;
     };
     do_jump << [=] {
-      return exec_valid.uValue() ? Control::do_jump_ctrl(opcode_exec.uValue())
-                                 : 0;
+      return exec_valid.uValue()
+                 ? Control::do_jump_ctrl(opcode_exec.eValue<RVInstr>())
+                 : 0;
     };
     mem_ctrl << [=] {
-      return data_valid.uValue() ? Control::do_mem_ctrl(opcode_data.uValue())
-                                 : MemOp::NOP;
+      return data_valid.uValue()
+                 ? Control::do_mem_ctrl(opcode_data.eValue<RVInstr>())
+                 : MemOp::NOP;
     };
 
     reg_do_write_ctrl_exec << [=] {
       return exec_valid.uValue() &&
-             Control::do_reg_do_write_ctrl(opcode_exec.uValue());
+             Control::do_reg_do_write_ctrl(opcode_exec.eValue<RVInstr>());
     };
     reg_do_write_ctrl_data << [=] {
       return data_valid.uValue() &&
-             Control::do_reg_do_write_ctrl(opcode_data.uValue());
+             Control::do_reg_do_write_ctrl(opcode_data.eValue<RVInstr>());
     };
 
     reg_wr_src_ctrl <<
-        [=] { return do_reg_wr_src_ctrl_dual(opcode_exec.uValue()); };
+        [=] { return do_reg_wr_src_ctrl_dual(opcode_exec.eValue<RVInstr>()); };
     reg_wr_src_data_ctrl <<
-        [=] { return do_reg_wr_src_ctrl_data(opcode_data.uValue()); };
+        [=] { return do_reg_wr_src_ctrl_data(opcode_data.eValue<RVInstr>()); };
 
     alu_op1_ctrl_exec << [=] {
       return exec_valid.uValue()
-                 ? Control::do_alu_op1_ctrl(opcode_exec.uValue())
+                 ? Control::do_alu_op1_ctrl(opcode_exec.eValue<RVInstr>())
                  : AluSrc1::REG1;
     };
     alu_op2_ctrl_exec << [=] {
       return exec_valid.uValue()
-                 ? Control::do_alu_op2_ctrl(opcode_exec.uValue())
+                 ? Control::do_alu_op2_ctrl(opcode_exec.eValue<RVInstr>())
                  : AluSrc2::REG2;
     };
     alu_ctrl_exec << [=] {
-      return exec_valid.uValue() ? Control::do_alu_ctrl(opcode_exec.uValue())
-                                 : ALUOp::NOP;
+      return exec_valid.uValue()
+                 ? Control::do_alu_ctrl(opcode_exec.eValue<RVInstr>())
+                 : ALUOp::NOP;
     };
 
     alu_op2_ctrl_data << [=] {
       return data_valid.uValue()
-                 ? Control::do_alu_op2_ctrl(opcode_data.uValue())
+                 ? Control::do_alu_op2_ctrl(opcode_data.eValue<RVInstr>())
                  : AluSrc2::REG2;
     };
     alu_ctrl_data << [=] {
-      return data_valid.uValue() ? Control::do_alu_ctrl(opcode_data.uValue())
-                                 : ALUOp::NOP;
+      return data_valid.uValue()
+                 ? Control::do_alu_ctrl(opcode_data.eValue<RVInstr>())
+                 : ALUOp::NOP;
     };
 
-    mem_do_write_ctrl <<
-        [=] { return Control::do_do_mem_write_ctrl(opcode_data.uValue()); };
+    mem_do_write_ctrl << [=] {
+      return Control::do_do_mem_write_ctrl(opcode_data.eValue<RVInstr>());
+    };
     mem_do_read_ctrl <<
-        [=] { return Control::do_do_read_ctrl(opcode_data.uValue()); };
+        [=] { return Control::do_do_read_ctrl(opcode_data.eValue<RVInstr>()); };
   }
 
   INPUTPORT_ENUM(opcode_exec, RVInstr);

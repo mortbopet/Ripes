@@ -3,7 +3,7 @@
 #include "VSRTL/core/vsrtl_component.h"
 #include "VSRTL/core/vsrtl_register.h"
 
-#include "processors/RISC-V/riscv.h"
+#include "../riscv.h"
 
 namespace vsrtl {
 namespace core {
@@ -37,13 +37,12 @@ public:
   REGISTERED_CLEN_INPUT(r2, XLEN);
 
   // Control
-  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl,
-                        ceillog2(magic_enum::enum_count<RegWrSrc>()));
+  REGISTERED_CLEN_INPUT(reg_wr_src_ctrl, enumBitWidth<RegWrSrc>());
   REGISTERED_CLEN_INPUT(wr_reg_idx, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_do_read, 1);
-  REGISTERED_CLEN_INPUT(mem_op, ceillog2(magic_enum::enum_count<MemOp>()));
+  REGISTERED_CLEN_INPUT(mem_op, enumBitWidth<MemOp>());
 
   // Register bank controls
   INPUTPORT(enable, 1);

@@ -26,10 +26,8 @@ public:
 
   REGISTERED_INPUT(wr_reg_idx_data, c_RVRegsBits);
   REGISTERED_INPUT(reg_do_write_data, 1);
-  REGISTERED_INPUT(reg_wr_src_ctrl_dual,
-                   ceillog2(magic_enum::enum_count<RegWrSrcDual>()));
-  REGISTERED_INPUT(reg_wr_src_ctrl_data,
-                   ceillog2(magic_enum::enum_count<RegWrSrcDataDual>()));
+  REGISTERED_INPUT(reg_wr_src_ctrl_dual, enumBitWidth<RegWrSrcDual>());
+  REGISTERED_INPUT(reg_wr_src_ctrl_data, enumBitWidth<RegWrSrcDataDual>());
   REGISTERED_INPUT(pc_data, XLEN);
   REGISTERED_INPUT(alures_data, XLEN);
 

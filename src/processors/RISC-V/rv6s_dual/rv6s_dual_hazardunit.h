@@ -76,7 +76,7 @@ private:
     // register file must be performed before handling the ecall. Hence, the
     // front-end of the pipeline shall be stalled until the remainder of the
     // pipeline has been cleared and there are no more outstanding writes.
-    const bool isEcall = opcode.uValue() == RVInstr::ECALL;
+    const bool isEcall = opcode.eValue<RVInstr>() == RVInstr::ECALL;
     return isEcall &&
            (mem_do_reg_write_exec.uValue() || mem_do_reg_write_data.uValue() ||
             wb_do_reg_write_data.uValue() || wb_do_reg_write_exec.uValue());

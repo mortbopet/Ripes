@@ -58,14 +58,12 @@ public:
 
   REGISTERED_CLEN_INPUT(rd_reg1_idx_exec, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(rd_reg2_idx_exec, c_RVRegsBits);
-  REGISTERED_CLEN_INPUT(opcode_exec,
-                        ceillog2(magic_enum::enum_count<RVInstr>()));
+  REGISTERED_CLEN_INPUT(opcode_exec, enumBitWidth<RVInstr>());
   REGISTERED_CLEN_INPUT(wr_reg_idx_exec, c_RVRegsBits);
 
   REGISTERED_CLEN_INPUT(rd_reg1_idx_data, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(rd_reg2_idx_data, c_RVRegsBits);
-  REGISTERED_CLEN_INPUT(opcode_data,
-                        ceillog2(magic_enum::enum_count<RVInstr>()));
+  REGISTERED_CLEN_INPUT(opcode_data, enumBitWidth<RVInstr>());
   REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);
 
   REGISTERED_CLEN_INPUT(way_stall, 1);
