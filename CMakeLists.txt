@@ -121,6 +121,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     target_link_options(${APP_NAME} PUBLIC -sASYNCIFY -Os)
 endif()
 
+if(MSVC)
+	target_link_libraries(${APP_NAME} PUBLIC ws2_32)
+endif()
+
 
 if(UNIX AND NOT APPLE) #Define the LINUX variable before testing it
     set(LINUX TRUE)
