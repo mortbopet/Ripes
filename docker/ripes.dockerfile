@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CACHEBUST=1 
 
 RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends \
@@ -20,22 +21,33 @@ RUN apt-get update -q \
     libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
     libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
     libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 \
+	dlocate \
     && apt-get -y autoremove \
     && apt-get -y autoclean \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install aqtinstall
 
-# from https://ddalcino.github.io/aqt-list-server/
-RUN aqt install-qt linux desktop 6.5.0 gcc_64 -m qtcharts
+COPY ./docker/docker_extra/* .
+
+RUN mv settings.ini ./usr/local/lib/python3.8/dist-packages/aqt/settings.ini \
+    && aqt install-qt linux desktop 6.5.0 gcc_64 -m qtcharts \
+	&& chmod +x script.sh \
+	&& ./script.sh \
+	&& export QT_DEBUG_PLUGINS=1
 
 ARG GIT_SSL_NO_VERIFY=true
 ENV LC_ALL=C.UTF-8 SHELL=/bin/bash
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/6.5.0/gcc_64/lib"
+ENV LD_LIBRARY_PATH="/6.5.0/gcc_64/lib"
 
 ARG BRANCH=master
-RUN git clone --recursive --branch ${BRANCH} https://github.com/mortbopet/Ripes.git /tmp/ripes \
-    && cmake -S /tmp/ripes/ \
+RUN git clone --recursive --branch ${BRANCH} https://github.com/moevm/mse1h2025-ripes.git /tmp/ripes \
+	&& rm -rf /tmp/ripes/src/* /tmp/ripes/resources/*
+
+COPY ./src /tmp/ripes/src
+COPY ./resources /tmp/ripes/resources
+
+RUN cmake -S /tmp/ripes/ \
         -B /tmp/ripes/build \
         -Wno-dev            \
         -DRIPES_BUILD_TESTS=ON \
