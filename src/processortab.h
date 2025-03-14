@@ -81,6 +81,7 @@ private:
   QAction *m_clockAction = nullptr;
   QAction *m_autoClockAction = nullptr;
   QAction *m_runAction = nullptr;
+  QAction *m_moodleAction = nullptr;
   QAction *m_displayValuesAction = nullptr;
   QAction *m_pipelineDiagramAction = nullptr;
   QAction *m_reverseAction = nullptr;
