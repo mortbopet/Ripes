@@ -269,8 +269,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
 
   const QIcon moodleIcon = QIcon(":/icons/moodle.svg");
   m_moodleAction = new QAction(moodleIcon, "Moodle button", this);
-  m_moodleAction->setChecked(true);
-  m_moodleAction->setToolTip("Push it to send task result to Moodle");
+  m_moodleAction->setToolTip("Send task result to Moodle");
   connect(m_moodleAction, &QAction::toggled, this, &ProcessorTab::run);
   controlToolbar->addAction(m_moodleAction);
 
