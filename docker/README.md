@@ -7,7 +7,7 @@ To build latest version of Ripes from `master` branch issue the command
 docker build --rm --tag ripes -f ripes.dockerfile .
 
 # Ripes from current directory (start from root directory)
-docker build --rm --tag ripes -f ./docker/ripes.dockerfile .
+docker build --rm --tag ripes -f ./docker/ripes_new.dockerfile .
 ```
 
 Or to build from specific branch
