@@ -8,5 +8,6 @@ COPY /moodle/server .
 
 EXPOSE 5000
 
-ENTRYPOINT [ "python3" ]
-CMD [ "app.py" ]
+ENV FLASK_APP=app.py
+ENTRYPOINT [ "flask" ]
+CMD ["run", "--host=0.0.0.0"]
