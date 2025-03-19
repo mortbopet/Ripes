@@ -1,2 +1,4 @@
 Flask==3.1.0
 requests==2.32.3
+python-dotenv==1.0.1
+oauthlib==3.2.2

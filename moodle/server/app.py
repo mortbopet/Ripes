@@ -1,18 +1,21 @@
+import os
 import uuid
 from uuid import uuid4
-from xml.etree import ElementTree as ET
 
 import requests
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for
+from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
 
+load_dotenv()
 app = Flask(
     __name__,
     template_folder="templates",
     static_folder="static"
 )
 
-# need to make a database for this or something else BUT NOT A DICT!!!!!!!!!!!!!
+# TODO (Kirill Karpunin): need to make a database for this or something else BUT NOT A DICT!!!!!!!!!!!!!
 sessions_dict: dict = {}
 
 
@@ -24,6 +27,7 @@ def lti_request() -> str:
 
     :return: A template rendering the page with Ripes.
     """
+
     lti_data = request.form
 
     user_id = lti_data.get('user_id', 'No user ID')
@@ -32,7 +36,7 @@ def lti_request() -> str:
     course_title = lti_data.get('context_title', 'No course title')
     roles = lti_data.get('roles', 'No user roles')
 
-    # maybe change this later
+    # TODO (Kirill Karpunin): maybe change this later
     session_id = uuid4()
 
     print(f"Session ID: {session_id}")
@@ -50,48 +54,80 @@ def lti_request() -> str:
     return redirect(url_for("main_page"))
 
 
-# GET method here is only for testing. DON'T FORGET TO REMOVE IT!!!!!!!!!!!!!!!!!!!!
+# TODO (Kirill Karpunin): GET method here is only for testing. DON'T FORGET TO REMOVE IT!!!!!!!!!!!!!!!!!!!!
 @app.route('/ripes/<session_id_str>/<grade_str>', methods=["GET", "POST"])
 def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
-        return f"invalid uuid: {session_id_str}"  # need to make error page
+        print(f"invalid uuid: {session_id_str}")
+        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+
+    try:
+        float(grade_str)
+    except ValueError:
+        print(f"invalid grade: {grade_str}")
+        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
 
     if session_id not in sessions_dict:
-        return f"invalid session id: {session_id}"  # need to make error page
+        print(f"invalid session id: {session_id}")
+        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
 
     lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
 
-    root = ET.Element('imsx_POXEnvelopeRequest', xmlns='http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0')
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+        <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
+          <imsx_POXHeader>
+            <imsx_POXRequestHeaderInfo>
+              <imsx_version>V1.0</imsx_version>
+              <imsx_messageIdentifier>{uuid.uuid4()}</imsx_messageIdentifier>
+            </imsx_POXRequestHeaderInfo>
+          </imsx_POXHeader>
+          <imsx_POXBody>
+            <replaceResultRequest>
+              <resultRecord>
+                <sourcedGUID>
+                  <sourcedId>{lis_result_sourcedid}</sourcedId>
+                </sourcedGUID>
+                <result>
+                  <resultScore>
+                    <language>en</language>
+                    <textString>{grade_str}</textString>
+                  </resultScore>
+                </result>
+              </resultRecord>
+            </replaceResultRequest>
+          </imsx_POXBody>
+        </imsx_POXEnvelopeRequest>"""
 
-    header = ET.SubElement(root, 'imsx_POXHeader')
-    header_info = ET.SubElement(header, 'imsx_POXRequestHeaderInfo')
-    ET.SubElement(header_info, 'imsx_version').text = 'V1.2'
-    ET.SubElement(header_info, 'imsx_messageIdentifier').text = str(uuid4())
+    LTI_KEY = os.getenv("LTI_KEY")
+    LTI_SECRET = os.getenv("LTI_SECRET")
 
-    body = ET.SubElement(root, 'imsx_POXBody')
-    replace_result = ET.SubElement(body, 'replaceResultRequest')
-    result_record = ET.SubElement(replace_result, 'resultRecord')
-    ET.SubElement(result_record, 'sourcedGUID').text = lis_result_sourcedid
-    result = ET.SubElement(result_record, 'result')
-    ET.SubElement(result, 'resultScore').text = grade_str
-    ET.SubElement(result, 'language').text = 'en'
+    if LTI_KEY is None or LTI_SECRET is None:
+        print("LTI consumer key or LTI shared secret are not set")
+        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
 
-    xml_payload = ET.tostring(root, encoding='utf-8', method='xml')
+    client = Client(LTI_KEY, LTI_SECRET)
+    uri, headers, body = client.sign(
+        lis_outcome_service_url,
+        http_method='POST',
+        body=xml,
+        headers={'Content-Type': 'application/xml'}
+    )
 
-    headers = {'Content-Type': 'application/xml'}
     try:
-        response = requests.post(lis_outcome_service_url, data=xml_payload, headers=headers)
+        response = requests.post(lis_outcome_service_url, data=body, headers=headers)
     except MissingSchema:
-        return f"invalid URL: {lis_outcome_service_url}"  # need to make error page
+        print(f"invalid URL: {lis_outcome_service_url}")
+        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
     except ConnectionError:
-        return f"unable to connect: {lis_outcome_service_url}"  # need to make error page
+        print(f"unable to connect: {lis_outcome_service_url}")
+        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
 
     if response.status_code == 200:
-        print("Grade successfully sent to Moodle!")
+        print("grade successfully sent to Moodle!")
     else:
-        print(f"Failed to send grade. Status code: {response.status_code}")
+        print(f"failed to send grade. Status code: {response.status_code}")
 
     return redirect(url_for("main_page"))
 
