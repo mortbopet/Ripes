@@ -57,6 +57,14 @@ def lti_request() -> str:
 # TODO (Kirill Karpunin): GET method here is only for testing. DON'T FORGET TO REMOVE IT!!!!!!!!!!!!!!!!!!!!
 @app.route('/ripes/<session_id_str>/<grade_str>', methods=["GET", "POST"])
 def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
+    """
+    Method for sending a grade to Moodle.
+    Uses session ID to get a specific connection ID to set a grade for a correct student.
+
+    :param session_id_str: String containing session ID.
+    :param grade_str: String containing grade.
+    :return: An error message if something went wrong, else a template rendering the page with Ripes.
+    """
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
