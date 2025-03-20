@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for
 from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
+from werkzeug.exceptions import HTTPException
 
 load_dotenv()
 app = Flask(
@@ -145,9 +146,30 @@ def main_page() -> str:
     if request.method == 'POST':
         print('пришел POST')
         return render_template("index.html")
-    else:
+    elif request.method == 'GET':
         print('пришел GET')
         return render_template("index.html")
+    else:
+        print('пришел не GET и не POST')
+        return render_error('Invalid request')
+
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """
+    Return JSON instead of HTML for HTTP errors
+    """
+    response = e.get_response()
+    return render_template("error.html")
+
+@app.errorhandler(404)
+def page_not_found():
+    return render_error('404 Not found')
+
+def render_error(error_message) -> str:
+    """
+    Show error page with error_message
+    """
+    return render_template('error.html', error_message=error_message)
 
 
 if __name__ == '__main__':
