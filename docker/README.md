@@ -7,7 +7,7 @@ To build latest version of Ripes from `master` branch issue the command
 docker build --rm --tag ripes -f ripes.dockerfile .
 
 # Ripes from current directory (start from root directory)
-docker build --rm --tag ripes -f ./docker/ripes_new.dockerfile .
+docker build --rm --tag ripes:latest -f ./docker/ripes_new.dockerfile .
 ```
 
 Or to build from specific branch
@@ -35,10 +35,10 @@ docker run --rm -it --net=host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-u
 
 In current service postgres db and pdAdmin are allowed:
 
-To run docker compose type the command
+To run docker compose type the command in project root directory
 
 ```bash
-docker compose up
+docker compose -f docker/docker-compose.yaml up
 ```
 
 You need to create .env file in docker directory to run compose. 

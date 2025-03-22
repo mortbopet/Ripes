@@ -31,6 +31,35 @@ services:
     networks:
       - service_net
 
+  server:
+    container_name: server
+    image: server:latest
+    build:
+      context: .
+      dockerfile: server.dockerfile
+    restart: always
+    networks:
+      - service_net
+
+  ripes:
+    container_name: ripes
+    image: ripes:latest
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    tty: true
+    stdin_open: true
+    environment:
+      - DISPLAY=${DISPLAY}
+    build:
+      context: .
+      dockerfile: ripes_new.dockerfile
+    networks:
+      - service_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+
 volumes:
   service_db:
   pgadmin-data:
@@ -38,4 +67,3 @@ volumes:
 networks:
   service_net:
     driver: bridge
-
