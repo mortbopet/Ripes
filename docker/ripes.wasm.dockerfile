@@ -52,7 +52,12 @@ ENV CXX em++
 
 # Clone Ripes repository (inside the container)
 WORKDIR /opt/Ripes
-RUN git clone --recursive https://github.com/mortbopet/Ripes.git .
+ARG BRANCH=master
+RUN git clone --recursive --branch ${BRANCH} https://github.com/moevm/mse1h2025-ripes . \
+    && rm -rf ./src/* ./resources/*
+
+COPY ./src ./src
+COPY ./resources ./resources
 
 # Set QT_HOST_PATH
 ENV QT_HOST_PATH /opt/Qt/6.6.0/gcc_64
@@ -78,4 +83,3 @@ RUN echo ". /opt/emsdk/emsdk_env.sh" >> ~/.bashrc && \
       -DEMSCRIPTEN_FORCE_COMPILERS=ON \
       .. && \
     make -j$(nproc)
-
