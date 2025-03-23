@@ -5,6 +5,7 @@
 Makefile
 build*
 .vscode
+.env
 
 
 # Qt generated files
