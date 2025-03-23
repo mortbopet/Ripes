@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for
 from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
+from werkzeug.exceptions import HTTPException
 
 load_dotenv()
 app = Flask(
@@ -68,18 +69,21 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
-        print(f"invalid uuid: {session_id_str}")
-        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+        err_message = f"invalid uuid: {session_id_str}"
+        print(err_message)
+        return render_error(err_message)
 
     try:
         float(grade_str)
     except ValueError:
-        print(f"invalid grade: {grade_str}")
-        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+        err_message = f"invalid grade: {grade_str}"
+        print(err_message)
+        return render_error(err_message)
 
     if session_id not in sessions_dict:
-        print(f"invalid session id: {session_id}")
-        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+        err_message = f"invalid session id: {session_id}"
+        print(err_message)
+        return render_error(err_message)
 
     lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
 
@@ -112,8 +116,9 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
     LTI_SECRET = os.getenv("LTI_SECRET")
 
     if LTI_KEY is None or LTI_SECRET is None:
-        print("LTI consumer key or LTI shared secret are not set")
-        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+        err_message = 'LTI consumer key or LTI shared secret are not set'
+        print(err_message)
+        return render_error(err_message)
 
     client = Client(LTI_KEY, LTI_SECRET)
     uri, headers, body = client.sign(
@@ -126,11 +131,13 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
     try:
         response = requests.post(lis_outcome_service_url, data=body, headers=headers)
     except MissingSchema:
-        print(f"invalid URL: {lis_outcome_service_url}")
-        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+        err_message = f"invalid URL: {lis_outcome_service_url}"
+        print(err_message)
+        return render_error(err_message)
     except ConnectionError:
-        print(f"unable to connect: {lis_outcome_service_url}")
-        return "Something went wrong"  # TODO (Kirill Karpunin): need to make error page
+        err_message = f"unable to connect: {lis_outcome_service_url}"
+        print(err_message)
+        return render_error(err_message)
 
     if response.status_code == 200:
         print("grade successfully sent to Moodle!")
@@ -145,9 +152,30 @@ def main_page() -> str:
     if request.method == 'POST':
         print('пришел POST')
         return render_template("index.html")
-    else:
+    elif request.method == 'GET':
         print('пришел GET')
         return render_template("index.html")
+    else:
+        print('пришел не GET и не POST')
+        return render_error('Invalid request')
+
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """
+    Return JSON instead of HTML for HTTP errors
+    """
+    response = e.get_response()
+    return render_template("error.html")
+
+@app.errorhandler(404)
+def page_not_found():
+    return render_error('404 Not found')
+
+def render_error(error_message) -> str:
+    """
+    Show error page with error_message
+    """
+    return render_template('error.html', error_message=error_message)
 
 
 if __name__ == '__main__':
