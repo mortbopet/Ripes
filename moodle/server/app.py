@@ -177,6 +177,14 @@ def render_error(error_message) -> str:
     """
     return render_template('error.html', error_message=error_message)
 
+@app.after_request
+def after_request(response):
+    # Required headers for SharedArrayBuffer
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    return response
+
+
 
 if __name__ == '__main__':
     app.run(debug=False)
