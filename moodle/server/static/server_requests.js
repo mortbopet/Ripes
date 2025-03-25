@@ -36,7 +36,7 @@ function send_grade_to_moodle(session_id) {
         method: 'POST'
     }).then((res) => {
         if (res.ok) {
-            alert('Оценка успешно отправлена')
+            alert('Оценка отправлена')
         } else {
             alert('Отправить оценку не удалось')
         }
