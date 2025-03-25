@@ -168,7 +168,7 @@ def handle_exception(e):
     return render_template("error.html")
 
 @app.errorhandler(404)
-def page_not_found():
+def page_not_found(e):
     return render_error('404 Not found')
 
 def render_error(error_message) -> str:
@@ -176,6 +176,14 @@ def render_error(error_message) -> str:
     Show error page with error_message
     """
     return render_template('error.html', error_message=error_message)
+
+@app.after_request
+def after_request(response):
+    # Required headers for SharedArrayBuffer
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    return response
+
 
 
 if __name__ == '__main__':
