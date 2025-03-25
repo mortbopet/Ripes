@@ -146,6 +146,83 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     return redirect(url_for("main_page"))
 
 
+@app.route('/ripes/<session_id_str>/delete', methods=['DELETE'])
+def erase_grade_from_moodle(session_id_str: str) -> str | Response:
+    """
+    Method for erasing a grade from Moodle.
+    Uses session ID to get a specific connection ID to erase a grade for a correct student.
+
+    :param session_id_str: String containing session ID.
+    :return: An error message if something went wrong, else a template rendering the page with Ripes.
+    """
+    try:
+        session_id = uuid.UUID(session_id_str)
+    except ValueError:
+        err_message = f"invalid uuid: {session_id_str}"
+        print(err_message)
+        return render_error(err_message)
+
+    if session_id not in sessions_dict:
+        err_message = f"invalid session id: {session_id}"
+        print(err_message)
+        return render_error(err_message)
+
+    lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+        <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
+            <imsx_POXHeader>
+                <imsx_POXRequestHeaderInfo>
+                    <imsx_version>V1.0</imsx_version>
+                    <imsx_messageIdentifier>{uuid.uuid4()}</imsx_messageIdentifier>
+                </imsx_POXRequestHeaderInfo>
+            </imsx_POXHeader>
+            <imsx_POXBody>
+                <deleteResultRequest>
+                    <resultRecord>
+                        <sourcedGUID>
+                            <sourcedId>{lis_result_sourcedid}</sourcedId>
+                        </sourcedGUID>
+                    </resultRecord>
+                </deleteResultRequest>
+            </imsx_POXBody>
+        </imsx_POXEnvelopeRequest>"""
+
+    LTI_KEY = os.getenv("LTI_KEY")
+    LTI_SECRET = os.getenv("LTI_SECRET")
+
+    if LTI_KEY is None or LTI_SECRET is None:
+        err_message = 'LTI consumer key or LTI shared secret are not set'
+        print(err_message)
+        return render_error(err_message)
+
+    client = Client(LTI_KEY, LTI_SECRET)
+    uri, headers, body = client.sign(
+        lis_outcome_service_url,
+        http_method='POST',
+        body=xml,
+        headers={'Content-Type': 'application/xml'}
+    )
+
+    try:
+        response = requests.post(lis_outcome_service_url, data=body, headers=headers)
+    except MissingSchema:
+        err_message = f"invalid URL: {lis_outcome_service_url}"
+        print(err_message)
+        return render_error(err_message)
+    except ConnectionError:
+        err_message = f"unable to connect: {lis_outcome_service_url}"
+        print(err_message)
+        return render_error(err_message)
+
+    if response.status_code == 200:
+        print("grade successfully deleted from Moodle!")
+    else:
+        print(f"failed to delete grade. Status code: {response.status_code}")
+
+    return redirect(url_for("main_page"))
+
+
 @app.route('/', methods=['GET', 'POST'])
 def main_page() -> str:
     session_id = request.args.get("session_id")
