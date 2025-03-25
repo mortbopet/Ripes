@@ -36,9 +36,28 @@ function send_grade_to_moodle(session_id) {
         method: 'POST'
     }).then((res) => {
         if (res.ok) {
-            alert('Оценка успешно отправлена')
+            alert('Оценка отправлена')
         } else {
             alert('Отправить оценку не удалось')
+        }
+    })
+}
+
+function delete_grade_from_moodle(session_id) {
+    if (session_id === 'None') {
+        alert('Вы не авторизовались через Moodle')
+        return
+    }
+
+    const grade = document.getElementById("slider_value").textContent
+
+    fetch('/ripes/' + session_id + '/delete', {
+        method: 'DELETE'
+    }).then((res) => {
+        if (res.ok) {
+            alert('Оценка удалена')
+        } else {
+            alert('Удалить оценку не удалось')
         }
     })
 }
