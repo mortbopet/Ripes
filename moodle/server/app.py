@@ -167,7 +167,7 @@ def handle_exception(e):
     response = e.get_response()
     return render_template("error.html")
 
-@app.errorhandler(404)
+@app.errorhandler('e')
 def page_not_found():
     return render_error('404 Not found')
 
