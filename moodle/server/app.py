@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, Response
 from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
 from werkzeug.exceptions import HTTPException
@@ -21,7 +21,7 @@ sessions_dict: dict = {}
 
 
 @app.route('/lti', methods=['POST'])
-def lti_request() -> str:
+def lti_request() -> str | Response:
     """
     A method that processes a request from Moodle.
     Retrieves user data from the request and prints it to the console.
@@ -52,12 +52,11 @@ def lti_request() -> str:
 
     sessions_dict[session_id] = (lis_outcome_service_url, lis_result_sourcedid)
 
-    return redirect(url_for("main_page"))
+    return redirect(url_for("main_page", session_id=session_id))
 
 
-# TODO (Kirill Karpunin): GET method here is only for testing. DON'T FORGET TO REMOVE IT!!!!!!!!!!!!!!!!!!!!
-@app.route('/ripes/<session_id_str>/<grade_str>', methods=["GET", "POST"])
-def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
+@app.route('/ripes/<session_id_str>/<grade_str>', methods=["POST"])
+def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     """
     Method for sending a grade to Moodle.
     Uses session ID to get a specific connection ID to set a grade for a correct student.
@@ -149,15 +148,17 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str:
 
 @app.route('/', methods=['GET', 'POST'])
 def main_page() -> str:
+    session_id = request.args.get("session_id")
     if request.method == 'POST':
         print('пришел POST')
-        return render_template("index.html")
+        return render_template("index.html", session_id=session_id)
     elif request.method == 'GET':
         print('пришел GET')
-        return render_template("index.html")
+        return render_template("index.html", session_id=session_id)
     else:
         print('пришел не GET и не POST')
         return render_error('Invalid request')
+
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
@@ -167,9 +168,11 @@ def handle_exception(e):
     response = e.get_response()
     return render_template("error.html")
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_error('404 Not found')
+
 
 def render_error(error_message) -> str:
     """
@@ -177,13 +180,13 @@ def render_error(error_message) -> str:
     """
     return render_template('error.html', error_message=error_message)
 
+
 @app.after_request
 def after_request(response):
     # Required headers for SharedArrayBuffer
     response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
     response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
     return response
-
 
 
 if __name__ == '__main__':

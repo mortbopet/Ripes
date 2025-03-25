@@ -17,8 +17,13 @@
             <div class="buttons-list">
                 <button onclick="server_get_request()" class="button get-button">GET</button>
                 <button onclick="server_post_request()" class="button post-button">POST</button>
+                <button onclick="send_grade_to_moodle('{{ session_id }}')" class="button get-button">Send grade</button>
             </div>
         </div>
+        <label for="grade_slider">Grade:</label>
+        <input type="range" id="grade_slider" min="0" max="10" step="1" value="5" style="width: 250px"
+               oninput="update_slider_value(this.value)">
+        <div id="slider_value">0.5</div>
         <iframe src="../static/ripes/Ripes.html" width="1300px" height="470px"></iframe>
     </div>
 </body>
