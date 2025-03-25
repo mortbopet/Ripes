@@ -23,3 +23,27 @@ function server_post_request() {
         }
     })
 }
+
+function send_grade_to_moodle(session_id) {
+    if (session_id === 'None') {
+        alert('Вы не авторизовались через Moodle')
+        return
+    }
+
+    const grade = document.getElementById("slider_value").textContent
+
+    fetch('/ripes/' + session_id + '/' + grade, {
+        method: 'POST'
+    }).then((res) => {
+        if (res.ok) {
+            alert('Оценка успешно отправлена')
+        } else {
+            alert('Отправить оценку не удалось')
+        }
+    })
+}
+
+function update_slider_value(value) {
+    const float_value = value / 10
+    document.getElementById("slider_value").textContent = float_value.toFixed(1);
+}
