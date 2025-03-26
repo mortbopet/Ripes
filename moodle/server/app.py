@@ -3,6 +3,7 @@ import uuid
 from uuid import uuid4
 
 import requests
+import logging
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, Response
 from oauthlib.oauth1 import Client
@@ -15,6 +16,7 @@ app = Flask(
     template_folder="templates",
     static_folder="static"
 )
+app.logger.setLevel(logging.INFO)
 
 # TODO (Kirill Karpunin): need to make a database for this or something else BUT NOT A DICT!!!!!!!!!!!!!
 sessions_dict: dict = {}
@@ -40,12 +42,12 @@ def lti_request() -> str | Response:
     # TODO (Kirill Karpunin): maybe change this later
     session_id = uuid4()
 
-    print(f"Session ID: {session_id}")
-    print(f"User ID: {user_id}")
-    print(f"Full Name: {full_name}")
-    print(f"Email: {email}")
-    print(f"Course Title: {course_title}")
-    print(f"Roles: {roles}")
+    app.logger.info(f"Session ID: {session_id}")
+    app.logger.info(f"User ID: {user_id}")
+    app.logger.info(f"Full Name: {full_name}")
+    app.logger.info(f"Email: {email}")
+    app.logger.info(f"Course Title: {course_title}")
+    app.logger.info(f"Roles: {roles}")
 
     lis_outcome_service_url = lti_data.get('lis_outcome_service_url')
     lis_result_sourcedid = lti_data.get('lis_result_sourcedid')
@@ -69,19 +71,19 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
         err_message = f"invalid uuid: {session_id_str}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     try:
         float(grade_str)
     except ValueError:
         err_message = f"invalid grade: {grade_str}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     if session_id not in sessions_dict:
         err_message = f"invalid session id: {session_id}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
@@ -116,7 +118,7 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
 
     if LTI_KEY is None or LTI_SECRET is None:
         err_message = 'LTI consumer key or LTI shared secret are not set'
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     client = Client(LTI_KEY, LTI_SECRET)
@@ -131,17 +133,17 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
         response = requests.post(lis_outcome_service_url, data=body, headers=headers)
     except MissingSchema:
         err_message = f"invalid URL: {lis_outcome_service_url}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
     except ConnectionError:
         err_message = f"unable to connect: {lis_outcome_service_url}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     if response.status_code == 200:
-        print("grade successfully sent to Moodle!")
+        app.logger.info("grade successfully sent to Moodle!")
     else:
-        print(f"failed to send grade. Status code: {response.status_code}")
+        app.logger.info(f"failed to send grade. Status code: {response.status_code}")
 
     return redirect(url_for("main_page"))
 
@@ -159,12 +161,12 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
         err_message = f"invalid uuid: {session_id_str}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     if session_id not in sessions_dict:
         err_message = f"invalid session id: {session_id}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
@@ -193,7 +195,7 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
 
     if LTI_KEY is None or LTI_SECRET is None:
         err_message = 'LTI consumer key or LTI shared secret are not set'
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     client = Client(LTI_KEY, LTI_SECRET)
@@ -208,17 +210,17 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
         response = requests.post(lis_outcome_service_url, data=body, headers=headers)
     except MissingSchema:
         err_message = f"invalid URL: {lis_outcome_service_url}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
     except ConnectionError:
         err_message = f"unable to connect: {lis_outcome_service_url}"
-        print(err_message)
+        app.logger.info(err_message)
         return render_error(err_message)
 
     if response.status_code == 200:
-        print("grade successfully deleted from Moodle!")
+        app.logger.info("grade successfully deleted from Moodle!")
     else:
-        print(f"failed to delete grade. Status code: {response.status_code}")
+        app.logger.info(f"failed to delete grade. Status code: {response.status_code}")
 
     return redirect(url_for("main_page"))
 
@@ -227,13 +229,13 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
 def main_page() -> str:
     session_id = request.args.get("session_id")
     if request.method == 'POST':
-        print('пришел POST')
+        app.logger.info('пришел POST')
         return render_template("index.html", session_id=session_id)
     elif request.method == 'GET':
-        print('пришел GET')
+        app.logger.info('пришел GET')
         return render_template("index.html", session_id=session_id)
     else:
-        print('пришел не GET и не POST')
+        app.logger.info('пришел не GET и не POST')
         return render_error('Invalid request')
 
 
@@ -267,4 +269,4 @@ def after_request(response):
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
