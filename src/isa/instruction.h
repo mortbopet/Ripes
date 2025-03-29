@@ -420,9 +420,21 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
     if (!success) {
       return Error(line, "Unknown register '" + regToken + "'");
     }
+
+    // Allow implementations to hook into verification.
+    if (auto res = RegImpl::verifyApply(line, regIndex); res.isError()) {
+      return res;
+    }
+
     instruction |= BitRange().apply(regIndex);
     return Result<>::def();
   }
+
+  // Implementation-specific hook for verification of apply-time register index.
+  static Result<> verifyApply(const TokenizedSrcLine &, unsigned) {
+    return Result<>::def();
+  }
+
   /// Decodes this register into its name. Adds it to the assembly line.
   static bool decode(const Instr_T instruction, const Reg_T,
                      const ReverseSymbolMap &, LineTokens &line) {
@@ -484,7 +496,8 @@ struct ImmPartSet {
   constexpr static void apply(const Instr_T value, Instr_T &instruction) {
     (ImmParts::apply(value, instruction), ...);
   }
-  /// Decodes this immediate into its value by combining values from each part.
+  /// Decodes this immediate into its value by combining values from each
+  /// part.
   constexpr static void decode(Instr_T &value, const Instr_T instruction) {
     (ImmParts::decode(value, instruction), ...);
   }
@@ -553,8 +566,8 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
-  /// Converts a string to its immediate value (if it exists). Success is set to
-  /// false if this fails.
+  /// Converts a string to its immediate value (if it exists). Success is set
+  /// to false if this fails.
   constexpr static int64_t getImm(const QString &immToken, bool &success,
                                   ImmConvInfo &convInfo) {
     return repr == Repr::Signed
@@ -690,8 +703,8 @@ template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts,
 using ImmSym =
     ImmBase<tokenIndex, width, repr, ImmParts, symbolType, defaultTransformer>;
 
-/** @brief Shorthand for an Immediate with the default value transformer and no
- * symbol type. */
+/** @brief Shorthand for an Immediate with the default value transformer and
+ * no symbol type. */
 template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts>
 using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
                     defaultTransformer>;
