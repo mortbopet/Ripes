@@ -404,15 +404,15 @@ template <typename RegImpl, unsigned tokenIndex, typename BitRange,
 struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
   static_assert(verifyBitRange<BitRange>(), "Invalid BitRange type");
 
-  Reg() : regsd(RegImpl::NAME.data()) {}
+  Reg() : regsd(RegImpl::getName().data()) {}
 
   /// Applies this register's encoding to the instruction.
   static Result<> apply(const TokenizedSrcLine &line, Instr_T &instruction,
                         FieldLinkRequest &) {
     if (tokenIndex + 1 >= line.tokens.size()) {
-      return Error(line, "Required field '" + QString(RegImpl::NAME.data()) +
-                             "' (index " + QString::number(tokenIndex) +
-                             ") not provided");
+      return Error(line, "Required field '" +
+                             QString(RegImpl::getName().data()) + "' (index " +
+                             QString::number(tokenIndex) + ") not provided");
     }
     const auto &regToken = line.tokens.at(tokenIndex + 1);
     bool success = false;

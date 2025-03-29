@@ -43,7 +43,7 @@ struct PseudoInstruction : public PseudoInstructionBase {
 template <unsigned index, typename ISAImpl>
 struct PseudoReg : public Reg<PseudoReg<index, ISAImpl>, index,
                               BitRange<index, index>, ISAImpl> {
-  constexpr static std::string_view NAME = "rd";
+  constexpr static std::string_view getName() { return "rd"; }
 };
 
 template <unsigned index>
