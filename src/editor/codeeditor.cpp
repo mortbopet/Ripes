@@ -282,9 +282,13 @@ void CodeEditor::keyPressEvent(QKeyEvent *e) {
 }
 
 bool CodeEditor::eventFilter(QObject * /*observed*/, QEvent *event) {
-  // Event filter for catching ctrl+Scroll events, for text resizing
-  if (event->type() == QEvent::Wheel &&
-      QApplication::keyboardModifiers() == Qt::ControlModifier) {
+  // Only filter wheel events, pass everything else through immediately
+  if (event->type() != QEvent::Wheel) {
+    return false;
+  }
+
+  // Now check for Ctrl+Wheel for text resizing
+  if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
     auto wheelEvent = static_cast<QWheelEvent *>(event);
     // Since multiple wheelevents are issued on a scroll,
     // start a timer to only catch the first one
