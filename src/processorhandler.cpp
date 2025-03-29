@@ -266,10 +266,8 @@ void ProcessorHandler::_toggleBreakpoint(const AInt address) {
 void ProcessorHandler::_clearBreakpoints() { m_breakpoints.clear(); }
 
 void ProcessorHandler::createAssemblerForCurrentISA() {
-  const auto &isa = m_currentProcessor->fullISA();
-  if (!m_currentAssembler || m_currentAssembler->getISA() != isa->isaID()) {
-    m_currentAssembler = Assembler::constructAssemblerDynamic(isa);
-  }
+  m_currentAssembler =
+      Assembler::constructAssemblerDynamic(m_currentProcessor->implementsISA());
 }
 
 void ProcessorHandler::_reset() {
