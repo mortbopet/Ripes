@@ -14,7 +14,7 @@
 Для сборки Ripes в консоли введите:
 
 ```bash
-docker build --rm --tag ripes-wasm:latest -f ./docker/ripes_new.dockerfile .
+docker build --rm --tag ripes-wasm:latest -f ./docker/ripes.wasm.dockerfile .
 ```
 
 ### Сборка сервера
