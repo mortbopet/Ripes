@@ -3,31 +3,30 @@
 
 #include <QDir>
 #include <QFontMetrics>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QTemporaryFile>
-#include <QJsonObject>
-#include <QJsonDocument>
 #include <string_view>
 
-#include "mainwindow.h"
-#include "edittab.h"
 #include "consolewidget.h"
+#include "edittab.h"
 #include "instructionmodel.h"
+#include "isa/isainfo.h"
+#include "mainwindow.h"
 #include "pipelinediagrammodel.h"
 #include "pipelinediagramwidget.h"
 #include "processorhandler.h"
 #include "processorregistry.h"
+#include "processors/interface/ripesprocessor.h"
 #include "processorselectiondialog.h"
 #include "registercontainerwidget.h"
 #include "registermodel.h"
 #include "ripessettings.h"
 #include "syscall/systemio.h"
-#include "processorhandler.h"
-#include "processors/interface/ripesprocessor.h"
-#include "isa/isainfo.h"
 
 #include "VSRTL/graphics/vsrtl_widget.h"
 
@@ -280,7 +279,8 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   const QIcon moodleIcon = QIcon(":/icons/moodle.svg");
   m_moodleAction = new QAction(moodleIcon, "Moodle button", this);
   m_moodleAction->setToolTip("Send task result to Moodle");
-  connect(m_moodleAction, &QAction::triggered, this, &ProcessorTab::sendToMoodleBackend);
+  connect(m_moodleAction, &QAction::triggered, this,
+          &ProcessorTab::sendToMoodleBackend);
   controlToolbar->addAction(m_moodleAction);
 
   // Setup processor-tab only actions
@@ -610,59 +610,86 @@ void ProcessorTab::showPipelineDiagram() {
 }
 
 #ifdef __EMSCRIPTEN__
-EM_JS(void, sendDataToFlask, (const char* apiPathBasePtr, const char* codePtr, const char* outputPtr, const char* registersJsonPtr), {
-    // Convert C strings to JS strings
-    const apiPathBase = UTF8ToString(apiPathBasePtr);
-    const code_str = UTF8ToString(codePtr);
-    const output_str = UTF8ToString(outputPtr);
-    const registers_json_str = UTF8ToString(registersJsonPtr); // Get registers JSON string
+EM_JS(void, sendDataToFlask,
+      (const char *apiPathBasePtr, const char *codePtr, const char *outputPtr,
+       const char *registersJsonPtr),
+      {
+        // Convert C strings to JS strings
+        const apiPathBase = UTF8ToString(apiPathBasePtr);
+        const code_str = UTF8ToString(codePtr);
+        const output_str = UTF8ToString(outputPtr);
+        const registers_json_str =
+            UTF8ToString(registersJsonPtr);
 
-    console.log("[Ripes Send JS] Preparing POST request...");
+        console.log("[Ripes Send JS] Preparing POST request...");
 
-    // Get session_id from URL query parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session_id');
+        // Get session_id from URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
 
-    if (!sessionId) {
-        console.error("[Ripes Send JS] Critical Error: Could not find 'session_id'.");
-        alert("Error: Session ID not found in the page URL.");
-        return; // Stop execution if no session ID
-    }
+        if (!sessionId) {
+          console.error(
+              "[Ripes Send JS] Critical Error: Could not find 'session_id'.");
+          alert("Error: Session ID not found in the page URL.");
+          return;
+        }
 
-    // Construct the full target URL
-    const targetUrl = window.location.origin + apiPathBase + encodeURIComponent(sessionId);
-    console.log("[Ripes Send JS] Sending POST request to:", targetUrl);
+        // Construct the full target URL
+        const targetUrl = window.location.origin + apiPathBase +
+                          encodeURIComponent(sessionId);
+        console.log("[Ripes Send JS] Sending POST request to:", targetUrl);
 
-    // Prepare JSON payload
-    let registersObj = {}; // Default to empty object
-    try {
-        // Parse the registers JSON string received from C++
-        registersObj = JSON.parse(registers_json_str);
-    } catch (e) {
-        console.error("[Ripes Send JS] Error parsing registers JSON:", e, "\nJSON string was:", registers_json_str);
-        alert("Warning: Could not parse register data. Sending without registers.");
-    }
+        // Prepare JSON payload
+        let registersObj = {};
+        try {
+          // Parse the registers JSON string received from C++
+          registersObj = JSON.parse(registers_json_str);
+        } catch (e) {
+          console.error("[Ripes Send JS] Error parsing registers JSON:", e,
+                        "\nJSON string was:", registers_json_str);
+          alert("Warning: Could not parse register data. Sending without "
+                "registers.");
+        }
 
-    // Include code, output, and the parsed registers object
-    const dataToSend = {
-        code: code_str,
-        output: output_str,
-        registers: registersObj // Add the registers object
-    };
+        // Include code, output, and the parsed registers object
+        const dataToSend = {
+          code : code_str,
+          output : output_str,
+          registers : registersObj
+        };
 
-    // Perform the fetch request
-    fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend) // Send the combined payload
-    })
-    .then(response => {
-        if (!response.ok) { return response.text().then(text => { throw new Error('Network response error: ' + response.status + ' ' + response.statusText + ' | Server: ' + text); }); }
-        return response.json();
-    })
-    .then(data => { console.log('[Ripes Send JS] Success response from server:', data); alert('Data sent successfully! Server message: ' + (data.message || JSON.stringify(data))); })
-    .catch(error => { console.error('[Ripes Send JS] Error sending data:', error); alert('Error sending data: ' + error.message + '\\n(Check browser console)'); });
-});
+        // Perform the fetch request
+        fetch(targetUrl, {
+          method : 'POST',
+          headers : {'Content-Type' : 'application/json'},
+          body : JSON.stringify(dataToSend)
+        })
+            .then(response =>
+                             {
+                               if (!response.ok) {
+                                 return response.text().then(text => {
+                                   throw new Error('Network response error: ' +
+                                                   response.status + ' ' +
+                                                   response.statusText +
+                                                   ' | Server: ' + text);
+                                 });
+                               }
+                               return response.json();
+                             })
+            .then(data =>
+                         {
+                           console.log(
+                               '[Ripes Send JS] Success response from server:',
+                               data);
+                           alert('Data sent successfully! Server message: ' +
+                                 (data.message || JSON.stringify(data)));
+                         })
+            .catch(error => {
+              console.error('[Ripes Send JS] Error sending data:', error);
+              alert('Error sending data: ' + error.message +
+                    '\\n(Check browser console)');
+            });
+      });
 #endif // __EMSCRIPTEN__
 
 void ProcessorTab::sendToMoodleBackend() {
@@ -671,88 +698,100 @@ void ProcessorTab::sendToMoodleBackend() {
   QWidget *topLevelWindow = this->window();
 
   // Cast to the main window class
-  MainWindow* mainWindow = qobject_cast<MainWindow *>(topLevelWindow);
+  MainWindow *mainWindow = qobject_cast<MainWindow *>(topLevelWindow);
 
   if (mainWindow) {
     // Use the getter method we added to MainWindow
-    EditTab* editTab = mainWindow->getEditTab();
+    EditTab *editTab = mainWindow->getEditTab();
 
     if (editTab) {
       // Get RISC-V code
       sourceCode = editTab->getAssemblyText();
     } else {
-      QMessageBox::warning(this, "Error", "Could not find the Editor tab instance.");
+      QMessageBox::warning(this, "Error",
+                           "Could not find the Editor tab instance.");
     }
   } else {
-      QMessageBox::critical(this, "Internal Error", "Cannot determine the main application window.");
+    QMessageBox::critical(this, "Internal Error",
+                          "Cannot determine the main application window.");
   }
 
   // 2. Console output
   QString consoleOutput = "";
-  ConsoleWidget* consoleContainer = m_ui->console;
+  ConsoleWidget *consoleContainer = m_ui->console;
   if (consoleContainer) {
     consoleOutput = consoleContainer->getText();
   }
 
   // 3. Registers
   QJsonObject registersJsonObj; // This will hold ALL registers from all files
-  const auto* processor = Ripes::ProcessorHandler::getProcessor();
+  const auto *processor = Ripes::ProcessorHandler::getProcessor();
 
   if (processor) {
-      qInfo() << "Retrieving ALL register states...";
-      const Ripes::ISAInfoBase* isa = processor->implementsISA();
-      if (isa) {
-          const Ripes::RegInfoMap& regFileMap = isa->regInfoMap();
-          const unsigned int regBytes = isa->bytes();
+    qInfo() << "Retrieving ALL register states...";
+    const Ripes::ISAInfoBase *isa = processor->implementsISA();
+    if (isa) {
+      const Ripes::RegInfoMap &regFileMap = isa->regInfoMap();
+      const unsigned int regBytes = isa->bytes();
 
-          if (regFileMap.empty()) {
-              qWarning() << "ISAInfo reports no register files (regInfoMap is empty).";
-          } else {
-              // Iterate through each register file provided by the ISA
-              for (const auto& pair : regFileMap) {
-                  const std::string_view& fileId = pair.first;
-                  const std::shared_ptr<const Ripes::RegFileInfoInterface>& fileInfo = pair.second;
+      if (regFileMap.empty()) {
+        qWarning()
+            << "ISAInfo reports no register files (regInfoMap is empty).";
+      } else {
+        // Iterate through each register file provided by the ISA
+        for (const auto &pair : regFileMap) {
+          const std::string_view &fileId = pair.first;
+          const std::shared_ptr<const Ripes::RegFileInfoInterface> &fileInfo =
+              pair.second;
 
-                  qInfo() << "Processing register file:" << QString::fromStdString(std::string(fileId));
-                  const unsigned int numRegsInFile = fileInfo->regCnt();
+          qInfo() << "Processing register file:"
+                  << QString::fromStdString(std::string(fileId));
+          const unsigned int numRegsInFile = fileInfo->regCnt();
 
-                  // Iterate through each register within this specific file
-                  for (unsigned int i = 0; i < numRegsInFile; ++i) {
-                      QString regNameQt = fileInfo->regName(i);
-                      if (regNameQt.isEmpty()) {
-                           qWarning() << "  Skipping empty name for index" << i << "in file" << QString::fromStdString(std::string(fileId));
-                           continue;
-                      }
+          // Iterate through each register within this specific file
+          for (unsigned int i = 0; i < numRegsInFile; ++i) {
+            QString regNameQt = fileInfo->regName(i);
+            if (regNameQt.isEmpty()) {
+              qWarning() << "  Skipping empty name for index" << i << "in file"
+                         << QString::fromStdString(std::string(fileId));
+              continue;
+            }
 
-                      // Get the register value using the file's ID and the index
-                      VInt value = processor->getRegister(fileId, i);
+            // Get the register value using the file's ID and the index
+            VInt value = processor->getRegister(fileId, i);
 
-                      // Format value as hex string (using default ISA width)
-                      QString valueHex = QString("0x%1").arg(static_cast<qulonglong>(value), regBytes * 2, 16, QChar('0'));
+            // Format value as hex string (using default ISA width)
+            QString valueHex = QString("0x%1").arg(
+                static_cast<qulonglong>(value), regBytes * 2, 16, QChar('0'));
 
-                      // Add to JSON object using the register's canonical name as the key
-                      registersJsonObj[regNameQt] = valueHex;
-                  }
-              }
-              qInfo() << "Finished retrieving states for all register files.";
+            // Add to JSON object using the register's canonical name as the key
+            registersJsonObj[regNameQt] = valueHex;
           }
-      } else { qWarning() << "Could not get ISA information."; }
-  } else { qWarning() << "Could not get processor instance."; }
+        }
+        qInfo() << "Finished retrieving states for all register files.";
+      }
+    } else {
+      qWarning() << "Could not get ISA information.";
+    }
+  } else {
+    qWarning() << "Could not get processor instance.";
+  }
 
   QJsonDocument doc(registersJsonObj);
   QString registersJsonString = doc.toJson(QJsonDocument::Compact);
 
   // POST query
 #ifdef __EMSCRIPTEN__
-    std::string codeStd = sourceCode.toStdString();
-    std::string outputStd = consoleOutput.toStdString();
-    std::string registersStd = registersJsonString.toStdString();
-    const char* flaskApiPathBase = "/api/capture_ripes_data/";
+  std::string codeStd = sourceCode.toStdString();
+  std::string outputStd = consoleOutput.toStdString();
+  std::string registersStd = registersJsonString.toStdString();
+  const char *flaskApiPathBase = "/api/capture_ripes_data/";
 
-    // Call JS function
-    sendDataToFlask(flaskApiPathBase, codeStd.c_str(), outputStd.c_str(), registersStd.c_str());
+  // Call JS function
+  sendDataToFlask(flaskApiPathBase, codeStd.c_str(), outputStd.c_str(),
+                  registersStd.c_str());
 
-    qInfo() << "Call to 'sendDataToFlask' completed.";
+  qInfo() << "Call to 'sendDataToFlask' completed.";
 #endif // __EMSCRIPTEN__
 }
 } // namespace Ripes
