@@ -9,6 +9,8 @@
 #include <QSpinBox>
 #include <QTemporaryFile>
 
+#include "mainwindow.h"
+#include "edittab.h"
 #include "consolewidget.h"
 #include "instructionmodel.h"
 #include "pipelinediagrammodel.h"
@@ -24,6 +26,10 @@
 #include "VSRTL/graphics/vsrtl_widget.h"
 
 #include "processors/interface/ripesprocessor.h"
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 namespace Ripes {
 
@@ -270,7 +276,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   const QIcon moodleIcon = QIcon(":/icons/moodle.svg");
   m_moodleAction = new QAction(moodleIcon, "Moodle button", this);
   m_moodleAction->setToolTip("Send task result to Moodle");
-  connect(m_moodleAction, &QAction::toggled, this, &ProcessorTab::run);
+  connect(m_moodleAction, &QAction::triggered, this, &ProcessorTab::sendToMoodleBackend);
   controlToolbar->addAction(m_moodleAction);
 
   // Setup processor-tab only actions
@@ -597,5 +603,114 @@ void ProcessorTab::reverse() {
 void ProcessorTab::showPipelineDiagram() {
   auto w = PipelineDiagramWidget(m_stageModel);
   w.exec();
+}
+
+#ifdef __EMSCRIPTEN__
+EM_JS(void, sendDataToFlask, (const char* apiPathBasePtr, const char* codePtr, const char* outputPtr), {
+    // Convert C strings to JS strings
+    const apiPathBase = UTF8ToString(apiPathBasePtr);
+    const code_str = UTF8ToString(codePtr);
+    const output_str = UTF8ToString(outputPtr);
+
+    console.log("[Ripes Send JS] Preparing POST request...");
+    console.log("[Ripes Send JS] Base Path:", apiPathBase);
+
+    // Get session_id from URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+
+    if (!sessionId) {
+        console.error("[Ripes Send JS] Critical Error: Could not find 'session_id' in URL query parameters.");
+        alert("Error: Session ID not found in the page URL.\nMake sure you launched Ripes via the correct LTI link.\nData cannot be sent.");
+        return;
+    }
+
+    // Construct the full target URL
+    const targetUrl = window.location.origin + apiPathBase + encodeURIComponent(sessionId);
+    console.log("[Ripes Send JS] Sending POST request to:", targetUrl);
+
+    // Prepare JSON payload
+    const dataToSend = {
+        code: code_str,
+        output: output_str
+    };
+
+    // Perform the fetch request
+    fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dataToSend)
+    })
+    .then(response => {
+        // Check response status
+        if (!response.ok) {
+            // Try to get error details from response body
+            return response.text().then(text => {
+                throw new Error('Network response error: ' + response.status + ' ' + response.statusText + ' | Server: ' + text);
+            });
+        }
+        // Parse JSON if response is OK
+        return response.json();
+    })
+    .then(data => {
+        // Handle success
+        console.log('[Ripes Send JS] Success response from server:', data);
+        alert('Data sent successfully! Server message: ' + (data.message || JSON.stringify(data)));
+    })
+    .catch(error => {
+        // Handle errors
+        console.error('[Ripes Send JS] Error sending data:', error);
+        alert('Error sending data: ' + error.message + '\\n(Check browser console and ensure Flask server is running)');
+    });
+});
+#endif // __EMSCRIPTEN__
+
+void ProcessorTab::sendToMoodleBackend() {
+  qInfo() << "Moodle button clicked - retrieving data...";
+
+  // Get Source code from `codeeditor` widget
+  QString sourceCode = "";
+  QWidget *topLevelWindow = this->window();
+
+  // Cast to the main window class
+  MainWindow* mainWindow = qobject_cast<MainWindow *>(topLevelWindow);
+
+  if (mainWindow) {
+    // Use the getter method we added to MainWindow
+    EditTab* editTab = mainWindow->getEditTab();
+
+    if (editTab) {
+      // Get RISC-V code
+      sourceCode = editTab->getAssemblyText();
+      qInfo() << "Source code retrieved successfully using editTab->getAssemblyText().";
+    } else {
+      qWarning() << "sendToMoodleBackend: mainWindow->getEditTab() returned null.";
+      QMessageBox::warning(this, "Error", "Could not find the Editor tab instance.");
+    }
+  } else {
+      qWarning() << "sendToMoodleBackend: Could not cast window() to Ripes::MainWindow*.";
+      QMessageBox::critical(this, "Internal Error", "Cannot determine the main application window.");
+  }
+
+  // Console output
+  QString consoleOutput = "";
+  ConsoleWidget* consoleContainer = m_ui->console;
+  if (consoleContainer) {
+    consoleOutput = consoleContainer->getText();
+  }
+
+  // POST query
+  #ifdef __EMSCRIPTEN__
+    qInfo() << "Calling EM_JS function 'sendDataToFlask'...";
+
+    std::string codeStd = sourceCode.toStdString();
+    std::string outputStd = consoleOutput.toStdString();
+    const char* flaskApiPathBase = "/api/capture_ripes_data/";
+
+    // Call the C function 'sendDataToFlask' which triggers the embedded JS
+    sendDataToFlask(flaskApiPathBase, codeStd.c_str(), outputStd.c_str());
+  #endif // __EMSCRIPTEN__
 }
 } // namespace Ripes
