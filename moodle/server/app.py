@@ -1,11 +1,12 @@
 import os
 import uuid
+import time
 from uuid import uuid4
 
 import requests
 import logging
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, Response
+from flask import Flask, render_template, request, redirect, url_for, Response, jsonify
 from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
 from werkzeug.exceptions import HTTPException
@@ -52,7 +53,16 @@ def lti_request() -> str | Response:
     lis_outcome_service_url = lti_data.get('lis_outcome_service_url')
     lis_result_sourcedid = lti_data.get('lis_result_sourcedid')
 
-    sessions_dict[session_id] = (lis_outcome_service_url, lis_result_sourcedid)
+    sessions_dict[session_id] = {
+        'lis_outcome_service_url': lis_outcome_service_url,
+        'lis_result_sourcedid': lis_result_sourcedid,
+        'user_id': user_id,
+        'full_name': full_name,
+        'email': email,
+        'course_title': course_title,
+        'roles': roles,
+        'ripes_data': None
+    }
 
     return redirect(url_for("main_page", session_id=session_id))
 
@@ -224,6 +234,58 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
 
     return redirect(url_for("main_page"))
 
+@app.route('/api/capture_ripes_data/<session_id_str>', methods=['POST'])
+def capture_ripes_data(session_id_str: str):
+    try:
+        app.logger.info(f"Received data capture request for session: {session_id_str}")
+        try:
+            session_id = uuid.UUID(session_id_str)
+        except ValueError:
+            app.logger.error(f"Invalid session ID format received: {session_id_str}")
+            return jsonify({"status": "error", "message": "Invalid session ID format"}), 400
+
+        if session_id not in sessions_dict:
+            app.logger.error(f"Session ID not found in active sessions: {session_id_str}")
+            return jsonify({"status": "error", "message": "Session ID not found"}), 404
+
+        if not request.is_json:
+            app.logger.error("Request from Ripes client is not JSON")
+            return jsonify({"status": "error", "message": "Request must be JSON"}), 415
+
+        data = request.get_json()
+        if data is None:
+             app.logger.error("Failed to parse JSON data")
+             return jsonify({"status": "error", "message": "Could not parse JSON data"}), 400
+
+        code = data.get('code')
+        output = data.get('output')
+
+        if code is None or output is None:
+            app.logger.error("Missing 'code' or 'output' key in JSON data from Ripes")
+            return jsonify({"status": "error", "message": "Missing 'code' or 'output' key"}), 400
+
+        # --- Log the data ---
+        app.logger.info(f"--- Captured Ripes Data (Session: {session_id_str}) ---")
+        app.logger.info("Source Code:")
+        app.logger.info(f"\n{code}\n")
+        app.logger.info("Console Output:")
+        app.logger.info(f"\n{output}\n")
+        app.logger.info("--- End Captured Data ---")
+
+        # --- Store data (This should now work) ---
+        sessions_dict[session_id]['ripes_data'] = {
+            'code': code,
+            'output': output,
+            'timestamp': time.time()
+        }
+        app.logger.info(f"Stored captured data for session {session_id_str}")
+
+        return jsonify({"status": "success", "message": "Data received and logged"}), 200
+
+    except Exception as e:
+        app.logger.exception(f"Unexpected error in capture_ripes_data for session {session_id_str}: {e}")
+        # This should now work as long as jsonify is imported
+        return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/', methods=['GET', 'POST'])
 def main_page() -> str:
