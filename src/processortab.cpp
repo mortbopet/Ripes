@@ -610,6 +610,7 @@ void ProcessorTab::showPipelineDiagram() {
 }
 
 #ifdef __EMSCRIPTEN__
+// clang-format off
 EM_JS(void, sendDataToFlask,
       (const char *apiPathBasePtr, const char *codePtr, const char *outputPtr,
        const char *registersJsonPtr),
@@ -690,6 +691,7 @@ EM_JS(void, sendDataToFlask,
                     '\\n(Check browser console)');
             });
       });
+// clang-format on
 #endif // __EMSCRIPTEN__
 
 void ProcessorTab::sendToMoodleBackend() {
