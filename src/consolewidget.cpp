@@ -35,4 +35,13 @@ void ConsoleWidget::putData(const QByteArray &d) { m_ui->console->putData(d); }
 
 void ConsoleWidget::clearConsole() { m_ui->console->clearConsole(); }
 
+QString ConsoleWidget::getText() const
+{
+  if (m_ui && m_ui->console) {
+    return m_ui->console->toPlainText();
+  }
+  qWarning("ConsoleWidget::getText() called but UI or console pointer is null.");
+  return QString();
+}
+
 } // namespace Ripes
