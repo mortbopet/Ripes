@@ -236,20 +236,21 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
 
 @app.route('/api/capture_ripes_data/<session_id_str>', methods=['POST'])
 def capture_ripes_data(session_id_str: str):
+    """ Receives code, output, and registers data from Ripes client. """
     try:
         app.logger.info(f"Received data capture request for session: {session_id_str}")
         try:
             session_id = uuid.UUID(session_id_str)
         except ValueError:
-            app.logger.error(f"Invalid session ID format received: {session_id_str}")
+            app.logger.error(f"Invalid session ID format: {session_id_str}")
             return jsonify({"status": "error", "message": "Invalid session ID format"}), 400
 
         if session_id not in sessions_dict:
-            app.logger.error(f"Session ID not found in active sessions: {session_id_str}")
+            app.logger.error(f"Session ID not found: {session_id_str}")
             return jsonify({"status": "error", "message": "Session ID not found"}), 404
 
         if not request.is_json:
-            app.logger.error("Request from Ripes client is not JSON")
+            app.logger.error("Request is not JSON")
             return jsonify({"status": "error", "message": "Request must be JSON"}), 415
 
         data = request.get_json()
@@ -259,10 +260,20 @@ def capture_ripes_data(session_id_str: str):
 
         code = data.get('code')
         output = data.get('output')
+        registers = data.get('registers') # <-- Get the registers dictionary
 
-        if code is None or output is None:
-            app.logger.error("Missing 'code' or 'output' key in JSON data from Ripes")
-            return jsonify({"status": "error", "message": "Missing 'code' or 'output' key"}), 400
+        # --- Validate all required fields ---
+        missing_keys = [k for k, v in {'code': code, 'output': output, 'registers': registers}.items() if v is None]
+        if missing_keys:
+            error_msg = f"Missing key(s) in JSON data: {', '.join(missing_keys)}"
+            app.logger.error(error_msg)
+            return jsonify({"status": "error", "message": error_msg}), 400
+
+        # --- Optional: Validate registers format ---
+        if not isinstance(registers, dict):
+             error_msg = f"Expected 'registers' to be a dictionary, got {type(registers)}"
+             app.logger.error(error_msg)
+             return jsonify({"status": "error", "message": error_msg}), 400
 
         # --- Log the data ---
         app.logger.info(f"--- Captured Ripes Data (Session: {session_id_str}) ---")
@@ -270,12 +281,16 @@ def capture_ripes_data(session_id_str: str):
         app.logger.info(f"\n{code}\n")
         app.logger.info("Console Output:")
         app.logger.info(f"\n{output}\n")
+        app.logger.info("Register States:")
+        for reg, value in registers.items(): # Log registers nicely
+             app.logger.info(f"  {reg}: {value}")
         app.logger.info("--- End Captured Data ---")
 
-        # --- Store data (This should now work) ---
+        # --- Store data ---
         sessions_dict[session_id]['ripes_data'] = {
             'code': code,
             'output': output,
+            'registers': registers, # <-- Store registers
             'timestamp': time.time()
         }
         app.logger.info(f"Stored captured data for session {session_id_str}")
@@ -284,7 +299,6 @@ def capture_ripes_data(session_id_str: str):
 
     except Exception as e:
         app.logger.exception(f"Unexpected error in capture_ripes_data for session {session_id_str}: {e}")
-        # This should now work as long as jsonify is imported
         return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/', methods=['GET', 'POST'])
