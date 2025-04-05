@@ -489,12 +489,13 @@ void MainWindow::newProgramTriggered() {
   static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)->newProgram();
 }
 
-EditTab* MainWindow::getEditTab() const {
+EditTab *MainWindow::getEditTab() const {
   if (m_tabWidgets.count(EditTabID)) {
-      return static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab);
+    return static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab);
   }
-  
-  qWarning() << "MainWindow::getEditTab() called but EditTab could not be found!";
+
+  qWarning()
+      << "MainWindow::getEditTab() called but EditTab could not be found!";
   return nullptr;
 }
 

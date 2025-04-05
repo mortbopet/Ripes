@@ -47,7 +47,7 @@ public:
   void closeEvent(QCloseEvent *event) override;
   void fitToView();
 
-  EditTab* getEditTab() const;
+  EditTab *getEditTab() const;
 
 signals:
   void prepareSave();
