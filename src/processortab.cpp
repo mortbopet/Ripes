@@ -648,8 +648,7 @@ EM_JS(void, sendDataToFlask,
         } catch (e) {
           console.error("[Ripes Send JS] Error parsing registers JSON:", e,
                         "\nJSON string was:", registers_json_str);
-          alert("Warning: Could not parse register data. Sending without "
-                "registers.");
+          alert("Warning: Could not parse register data. Sending without registers.");
         }
 
         // Include code, output, and the parsed registers object
