@@ -99,6 +99,10 @@ private slots:
     runTests(ProcessorID::RV32_6S_DUAL, {"M", "C"},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
+  void testRV32_5MultiCycle() {
+    runTests(ProcessorID::RV32_5MC, {"M"},
+             {RISCV32_TEST_DIR});
+  }
 };
 
 bool tst_RISCV::skipTest(const QString &test) {
