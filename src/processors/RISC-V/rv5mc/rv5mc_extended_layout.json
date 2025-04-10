@@ -1,7 +1,7 @@
 {
     "m_layoutVersion": 1,
     "ComponentGraphic": {
-        "Top name": "Single Cycle RISC-V Processor",
+        "Top name": "Multicycle RISC-V Processor",
         "Expanded": true,
         "Rect": {
             "x": 0,
@@ -111,7 +111,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -341,7 +341,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -679,7 +679,7 @@
                 "PortWidthVisible": true
             },
             "res_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -772,7 +772,7 @@
                 ]
             },
             "zero_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -821,7 +821,7 @@
                 ]
             },
             "sign_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -859,7 +859,7 @@
                 ]
             },
             "carry_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -1104,7 +1104,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -1358,7 +1358,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -1499,7 +1499,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -1710,7 +1710,7 @@
                 "PortWidthVisible": false
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -2724,7 +2724,7 @@
                 "Indicators": []
             },
             "stateOutPort_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -2773,7 +2773,7 @@
                 ]
             },
             "RIWrite_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -2811,7 +2811,7 @@
                 ]
             },
             "pc_old_w_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -2849,7 +2849,7 @@
                 ]
             },
             "ecall_ctr_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -2898,7 +2898,7 @@
                 ]
             },
             "pc_scr_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -2947,7 +2947,7 @@
                 ]
             },
             "pc_out_scr_crtl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3007,7 +3007,7 @@
                 ]
             },
             "pc_old_in_scr_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3045,7 +3045,7 @@
                 ]
             },
             "reg_do_write_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3083,7 +3083,7 @@
                 ]
             },
             "mem_do_write_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3121,7 +3121,7 @@
                 ]
             },
             "do_branch_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3147,7 +3147,7 @@
                 ]
             },
             "do_write_pc_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3196,7 +3196,7 @@
                 ]
             },
             "read_men_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3245,7 +3245,7 @@
                 ]
             },
             "comp_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3271,7 +3271,7 @@
                 ]
             },
             "reg_wr_src_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3309,7 +3309,7 @@
                 ]
             },
             "mem_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3358,7 +3358,7 @@
                 ]
             },
             "alu_op1_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3396,7 +3396,7 @@
                 ]
             },
             "alu_op2_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3434,7 +3434,7 @@
                 ]
             },
             "alu_ctrl_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3623,7 +3623,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -3800,7 +3800,7 @@
                 "PortWidthVisible": false
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -5165,7 +5165,7 @@
                 "Indicators": []
             },
             "data_out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6520,7 +6520,7 @@
                 "Indicators": []
             },
             "r2_reg_idx_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6546,7 +6546,7 @@
                 ]
             },
             "Pc_Inc_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6595,7 +6595,7 @@
                 ]
             },
             "exp_instr_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6644,7 +6644,7 @@
                 ]
             },
             "opcode_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6726,7 +6726,7 @@
                 ]
             },
             "wr_reg_idx_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6752,7 +6752,7 @@
                 ]
             },
             "r1_reg_idx_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6967,7 +6967,7 @@
                 "PortWidthVisible": false
             },
             "dummy_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -6980,7 +6980,7 @@
                 "wires": []
             },
             "syscallExit_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -7149,7 +7149,7 @@
                 "PortWidthVisible": true
             },
             "imm_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -7313,7 +7313,7 @@
                 "PortWidthVisible": true
             },
             "data_out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -9099,7 +9099,7 @@
                 "Indicators": []
             },
             "res_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -9252,7 +9252,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -9470,7 +9470,7 @@
                 "PortWidthVisible": false
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -9700,7 +9700,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -10217,7 +10217,7 @@
                 "Indicators": []
             },
             "pc_out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -10437,7 +10437,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -11021,7 +11021,7 @@
                 "Indicators": []
             },
             "pc_out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -11319,7 +11319,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -11607,7 +11607,7 @@
                 "PortWidthVisible": true
             },
             "out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -12787,7 +12787,7 @@
                 "Indicators": []
             },
             "r1_out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
@@ -12825,7 +12825,7 @@
                 ]
             },
             "r2_out_out_wire": {
-                "Parent": "Single Cycle RISC-V Processor",
+                "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [

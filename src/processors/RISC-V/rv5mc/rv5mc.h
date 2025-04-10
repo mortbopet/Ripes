@@ -38,7 +38,7 @@ class RV5MC : public RipesVSRTLProcessor {
 public:
   enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
   RV5MC(const QStringList &extensions)
-      : RipesVSRTLProcessor("Single Cycle RISC-V Processor") {
+      : RipesVSRTLProcessor("Multicycle RISC-V Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
 
