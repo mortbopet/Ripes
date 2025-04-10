@@ -508,23 +508,6 @@ return ALUOp::SLW;
     }
   }
 
-  static VSRTL_VT_U do_pc_old_w_ctrl (FSMState state) {
-    switch (state) {
-    case FSMState::EXJAL: case FSMState::MEMJALR:
-    case FSMState::EXCJE: case FSMState::EXCJNE:
-    case FSMState::EXCJGE: case FSMState::EXCJLT:
-    case FSMState::EXCJLTU: case FSMState::EXCJGEU:
-    case FSMState::EXAUIP: case FSMState::MEMALINS:
-    case FSMState::MEMSB: case FSMState::MEMSH:
-    case FSMState::MEMSW: case FSMState::MEMSD:
-    case FSMState::WB: case FSMState::WBMEMLOAD:
-    case FSMState::EXECALL:
-      return 1;
-    default:
-      return 0;
-    }
-  }
-
   static PCOutscr do_pc_out_scr_ctrl (FSMState state) {
     switch (state) {
     case FSMState::IF: case FSMState::EXJAL: case FSMState::MEMJALR:
@@ -599,7 +582,6 @@ public:
     RIWrite << [=] { return do_RIWrite( stateIntPort.eValue<FSMState>());};
 
     pc_scr_ctrl << [=] { return do_pc_scr_ctrl( stateIntPort.eValue<FSMState>());};
-    pc_old_w << [=] {return do_pc_old_w_ctrl( stateIntPort.eValue<FSMState>());};
     pc_out_scr_crtl << [=] {return do_pc_out_scr_ctrl( stateIntPort.eValue<FSMState>());};
 
     pc_old_in_scr_ctrl << [=] {return do_pc_old_in_scr_ctrl( stateIntPort.eValue<FSMState>());};
@@ -632,7 +614,6 @@ public:
   INPUTPORT_ENUM(opcode, RVInstr);
 
   OUTPUTPORT(RIWrite, 1);
-  OUTPUTPORT(pc_old_w,1);
 
   OUTPUTPORT(ecall_ctr,1);
 

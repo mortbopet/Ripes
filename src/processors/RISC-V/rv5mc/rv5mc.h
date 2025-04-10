@@ -51,7 +51,7 @@ public:
     pc_src->out >> pc_old_in_scr->get(PCOldInscr::PCin);
     pc_reg->pc_out >> pc_old_in_scr->get(PCOldInscr::PCout);
 
-    control->pc_old_w >> pc_old_reg->enable;
+    control->RIWrite >> pc_old_reg->enable;
 
     br_and->out >> *controlflow_old_pc_o->in[0];
     control->pc_old_in_scr_ctrl >> *controlflow_old_pc_o->in[1];
@@ -316,7 +316,6 @@ public:
   }
 
   void clockProcessor() override {
-    // Single cycle processor; 1 instruction retired per cycle!
     if (control->do_finish_this_cycle())
       m_instructionsRetired++;
 
