@@ -9,13 +9,11 @@
 #include "processors/ripesvsrtlprocessor.h"
 
 #include "processors/RISC-V/riscv.h"
-#include "processors/RISC-V/rv_branch.h"
 
 
 #include "rv5mc_jump_unit.h"
 
 #include "rv5mc_control.h"
-#include "rv5mc_pc.h"
 #include "rv5mc_alu.h"
 
 #include "processors/RISC-V/rv_ecallchecker.h"
@@ -44,31 +42,21 @@ public:
 
     // -----------------------------------------------------------------------
     // Program counter
-    //pc_reg->pc_out >> pc_4->op1;
-    //pc_inc->out >> pc_4->op2;
+    pc_src->out >> pc_reg->in;
+    0 >> pc_reg->clear;
+    controlflow_or->out >> pc_reg->enable;
 
-    pc_src->out >> pc_reg->pc_in;
-
+    pc_reg->out >> pc_old_reg->in;
+    0 >> pc_old_reg->clear;
     control->RIWrite >> pc_old_reg->enable;
-
-    pc_reg->pc_out >> pc_old_reg->pc_in;
-
 
     2 >> pc_inc->get(PcInc::INC2);
     4 >> pc_inc->get(PcInc::INC4);
     decode->Pc_Inc >> pc_inc->select;
 
-
-    // Note: pc_src works uses the PcSrc enum, but is selected by the boolean
-    // signal from the controlflow OR gate. PcSrc enum values must adhere to the
-    // boolean 0/1 values.
-
-
-
-
     // -----------------------------------------------------------------------
     // Instruction memory
-    pc_reg->pc_out >> instr_mem->addr;
+    pc_reg->out >> instr_mem->addr;
     instr_mem->setMemory(m_memory);
 
     // -----------------------------------------------------------------------
@@ -96,7 +84,7 @@ public:
     data_mem->data_out >> men_out->in;
     men_out->out >> reg_wr_src->get(RegWrSrc::MEMREAD);
     ALU_out->out >> reg_wr_src->get(RegWrSrc::ALURES);
-    pc_reg->pc_out >> reg_wr_src->get(RegWrSrc::PC4); // TODO: FIXME
+    pc_reg->out >> reg_wr_src->get(RegWrSrc::PC4); // TODO: FIXME
     control->reg_wr_src_ctrl >> reg_wr_src->select;
     control->read_men_ctrl >> data_mem->r;
 
@@ -113,8 +101,6 @@ public:
       br_and->out >> *controlflow_or->in[0];
       control->do_write_pc >> *controlflow_or->in[1];
 
-      controlflow_or->out >> pc_reg->enable;
-
     alu->sign >> jumcrv->sign;
     alu->zero >> jumcrv->zero;
     alu->carry >> jumcrv->carry;
@@ -125,8 +111,8 @@ public:
     // ALU
     registerFile->r1_out >> a->in;
     a->out >> alu_op1_src->get(AluSrc1MC::REG1);
-    pc_reg->pc_out >> alu_op1_src->get(AluSrc1MC::PC);
-    pc_old_reg->pc_out >> alu_op1_src->get(AluSrc1MC::PCOLD);
+    pc_reg->out >> alu_op1_src->get(AluSrc1MC::PC);
+    pc_old_reg->out >> alu_op1_src->get(AluSrc1MC::PCOLD);
     control->alu_op1_ctrl >> alu_op1_src->select;
 
     registerFile->r2_out >> b->in;
@@ -174,8 +160,8 @@ public:
   SUBCOMPONENT(jumcrv, TYPE(JURVMC<XLEN>));
 
   // Registers
-  SUBCOMPONENT(pc_old_reg, RVMCPC<XLEN>);
-  SUBCOMPONENT(pc_reg, RVMCPC<XLEN>);
+  SUBCOMPONENT(pc_old_reg, RegisterClEn<XLEN>);
+  SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
   SUBCOMPONENT(a,Register<XLEN>);
   SUBCOMPONENT(b,Register<XLEN>);
   SUBCOMPONENT(ALU_out,Register<XLEN>);
@@ -207,9 +193,9 @@ public:
   unsigned int getPcForStage(StageIndex stage) const override {
     switch (stage.index()) {
     case EX: case MEM:
-      return pc_old_reg->pc_out.uValue();
+      return pc_old_reg->out.uValue();
     default:
-      return pc_reg->pc_out.uValue();
+      return pc_reg->out.uValue();
     }
   }
   AInt nextFetchedAddress() const override {
@@ -261,11 +247,12 @@ public:
                       state});
   }
   void setProgramCounter(AInt address) override {
-    pc_reg->pc_reg->forceValue(0,address);
+    pc_reg->forceValue(0,address);
+    // FIXME: set also current state to IF?
     propagateDesign();
   }
   void setPCInitialValue(AInt address) override {
-    pc_reg->pc_reg->setInitValue(address);
+    pc_reg->setInitValue(address);
   }
   AddressSpaceMM &getMemory() override { return *m_memory; }
   VInt getRegister(const std::string_view &, unsigned i) const override {
@@ -278,7 +265,7 @@ public:
     }
   }
   bool finished() const override {
-    return m_finished || ((!isExecutableAddress(pc_reg->pc_out.uValue()) && !isExecutableAddress(pc_reg->pc_in.uValue())) && control->do_finish_this_cycle());
+    return m_finished || ((!isExecutableAddress(pc_reg->out.uValue()) && !isExecutableAddress(pc_reg->in.uValue())) && control->do_finish_this_cycle());
 
   }
   const std::vector<StageIndex> breakpointTriggeringStages() const override {

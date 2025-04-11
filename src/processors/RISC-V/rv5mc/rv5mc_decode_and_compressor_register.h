@@ -1,9 +1,10 @@
 ﻿#pragma once
 
+#include "VSRTL/core/vsrtl_component.h"
+#include "VSRTL/core/vsrtl_register.h"
 #include "processors/RISC-V/riscv.h"
 #include "processors/RISC-V/rv_decode.h"
 #include "processors/RISC-V/rv_uncompress.h"
-#include "VSRTL/core/vsrtl_component.h"
 
 namespace vsrtl {
 namespace core {
