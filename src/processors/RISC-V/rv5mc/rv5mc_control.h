@@ -11,8 +11,6 @@ using namespace Ripes;
 
 enum class AluSrc1MC { REG1, PC, PCOLD };
 enum class AluSrc2MC { REG2, IMM, INPC };
-enum class PCOutscr { PCOld, PC };
-enum class PCOldInscr { PCout, PCin };
 
 enum class FSMState {
      IF, ID, //States common to all operations
@@ -283,7 +281,7 @@ return ALUOp::SLW;
     }
   }
 
-  static VSRTL_VT_U do_do_mem_write_ctrl(FSMState opc) {
+  static VSRTL_VT_U do_write_mem_fn(FSMState opc) {
     switch(opc) {
     case FSMState::MEMSB: case FSMState::MEMSH:
     case FSMState::MEMSW: case FSMState::MEMSD:
@@ -492,7 +490,7 @@ return ALUOp::SLW;
     return FSMState::IF;
   }
 
-  static VSRTL_VT_U do_RIWrite(FSMState state) {
+  static VSRTL_VT_U do_write_ir_fn(FSMState state) {
     switch (state) {
     case FSMState::IF:
       return 1;
@@ -511,7 +509,7 @@ return ALUOp::SLW;
     }
   }
 
-  static VSRTL_VT_U do_read_men_ctrl (FSMState state) {
+  static VSRTL_VT_U do_read_mem_fn (FSMState state) {
     switch (state) {
     case FSMState::MEMLB: case FSMState::MEMLH:
     case FSMState::MEMLW: case FSMState::MEMLBU:
@@ -554,29 +552,29 @@ public:
   RVMCControl(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     comp_ctrl << [=] { return do_comp_ctrl(opcode.eValue<RVInstr>()); };
-    do_branch << [=] { return do_branch_ctrl( stateIntPort.eValue<FSMState>()); };
-    do_write_pc << [=] { return do_write_pc_ctrl( stateIntPort.eValue<FSMState>()); };
-    mem_ctrl << [=] { return do_mem_ctrl(stateIntPort.eValue<FSMState>()); };
-    reg_do_write_ctrl << [=] { return do_reg_do_write_ctrl(stateIntPort.eValue<FSMState>()); };
-    reg_wr_src_ctrl << [=] { return do_reg_wr_src_ctrl(stateIntPort.eValue<FSMState>()); };
-    alu_op1_ctrl << [=] { return do_alu_op1_ctrl(stateIntPort.eValue<FSMState>()); };
-    alu_op2_ctrl << [=] { return do_alu_op2_ctrl( stateIntPort.eValue<FSMState>()); };
-    alu_ctrl << [=] { return do_alu_ctrl( stateIntPort.eValue<FSMState>()); };
-    mem_do_write_ctrl << [=] { return do_do_mem_write_ctrl(stateIntPort.eValue<FSMState>()); };
+    do_branch << [=] { return do_branch_ctrl( stateInPort.eValue<FSMState>()); };
+    do_write_pc << [=] { return do_write_pc_ctrl( stateInPort.eValue<FSMState>()); };
+    mem_ctrl << [=] { return do_mem_ctrl(stateInPort.eValue<FSMState>()); };
+    reg_do_write_ctrl << [=] { return do_reg_do_write_ctrl(stateInPort.eValue<FSMState>()); };
+    reg_wr_src_ctrl << [=] { return do_reg_wr_src_ctrl(stateInPort.eValue<FSMState>()); };
+    alu_op1_ctrl << [=] { return do_alu_op1_ctrl(stateInPort.eValue<FSMState>()); };
+    alu_op2_ctrl << [=] { return do_alu_op2_ctrl( stateInPort.eValue<FSMState>()); };
+    alu_ctrl << [=] { return do_alu_ctrl( stateInPort.eValue<FSMState>()); };
+    do_write_mem << [=] { return do_write_mem_fn(stateInPort.eValue<FSMState>()); };
 
-    RIWrite << [=] { return do_RIWrite( stateIntPort.eValue<FSMState>());};
+    do_write_ir << [=] { return do_write_ir_fn( stateInPort.eValue<FSMState>());};
 
-    pc_scr_ctrl << [=] { return do_pc_scr_ctrl( stateIntPort.eValue<FSMState>());};
+    pc_scr_ctrl << [=] { return do_pc_scr_ctrl( stateInPort.eValue<FSMState>());};
 
-    stateOutPort << [=] { return do_statePort( opcode.eValue<RVInstr>(), stateIntPort.eValue<FSMState>());};
+    stateOutPort << [=] { return do_statePort( opcode.eValue<RVInstr>(), stateInPort.eValue<FSMState>());};
 
-    read_men_ctrl << [=] {return do_read_men_ctrl( stateIntPort.eValue<FSMState>());};
+    do_read_mem << [=] {return do_read_mem_fn( stateInPort.eValue<FSMState>());};
 
-    ecall_ctr << [=] {return do_ecall_ctr(stateIntPort.eValue<FSMState>());};
+    ecall_ctr << [=] {return do_ecall_ctr(stateInPort.eValue<FSMState>());};
 
     stateOutPort >> stateRegCtr->in;
 
-    stateRegCtr->out >> stateIntPort;
+    stateRegCtr->out >> stateInPort;
 
   }
 
@@ -589,23 +587,23 @@ public:
   ///Internals
 
   OUTPUTPORT_ENUM(stateOutPort,FSMState);
-  INPUTPORT_ENUM(stateIntPort,FSMState);
+  INPUTPORT_ENUM(stateInPort,FSMState);
 
   ///Externals
 
   INPUTPORT_ENUM(opcode, RVInstr);
 
-  OUTPUTPORT(RIWrite, 1);
+  OUTPUTPORT(do_write_ir, 1);
 
   OUTPUTPORT(ecall_ctr,1);
 
   OUTPUTPORT_ENUM(pc_scr_ctrl,PcSrc);
 
   OUTPUTPORT(reg_do_write_ctrl, 1);
-  OUTPUTPORT(mem_do_write_ctrl, 1);
+  OUTPUTPORT(do_write_mem, 1);
   OUTPUTPORT(do_branch, 1);
   OUTPUTPORT(do_write_pc, 1);
-  OUTPUTPORT(read_men_ctrl,1);
+  OUTPUTPORT(do_read_mem,1);
   OUTPUTPORT_ENUM(comp_ctrl, CompOp);
   OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
   OUTPUTPORT_ENUM(mem_ctrl, MemOp);

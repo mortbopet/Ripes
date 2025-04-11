@@ -48,7 +48,7 @@ public:
 
     pc_reg->out >> pc_old_reg->in;
     0 >> pc_old_reg->clear;
-    control->RIWrite >> pc_old_reg->enable;
+    control->do_write_ir >> pc_old_reg->enable;
 
     2 >> pc_inc->get(PcInc::INC2);
     4 >> pc_inc->get(PcInc::INC4);
@@ -62,7 +62,7 @@ public:
     // -----------------------------------------------------------------------
     // Decode
     instr_mem->data_out >> decode->instr;
-    control->RIWrite >> decode->enable;
+    control->do_write_ir >> decode->enable;
 
     // -----------------------------------------------------------------------
     // Control signals
@@ -86,7 +86,7 @@ public:
     ALU_out->out >> reg_wr_src->get(RegWrSrc::ALURES);
     pc_reg->out >> reg_wr_src->get(RegWrSrc::PC4); // TODO: FIXME
     control->reg_wr_src_ctrl >> reg_wr_src->select;
-    control->read_men_ctrl >> data_mem->r;
+    control->do_read_mem >> data_mem->r;
 
     registerFile->setMemory(m_regMem);
 
@@ -138,7 +138,7 @@ public:
     // -----------------------------------------------------------------------
     // Data memory
     ALU_out->out >> data_mem->addr;
-    control->mem_do_write_ctrl >> data_mem->wr_en;
+    control->do_write_mem >> data_mem->wr_en;
     b->out >> data_mem->data_in;
     control->mem_ctrl >> data_mem->op;
     data_mem->mem->setMemory(m_memory);
@@ -301,7 +301,7 @@ public:
   }
 
   void reverse() override {
-    if(control->stateIntPort.eValue<FSMState>()==FSMState::IF) m_instructionsRetired--;
+    if(control->stateInPort.eValue<FSMState>()==FSMState::IF) m_instructionsRetired--;
 
     Design::reverse();
     // Ensure that reverses performed when we expected to finish in the
