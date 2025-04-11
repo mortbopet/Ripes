@@ -169,7 +169,7 @@ public:
    * @brief implementsISA
    * @return ISA (+extensions) which the _instantiated_ processor implements.
    */
-  virtual const ISAInfoBase *implementsISA() const = 0;
+  virtual std::shared_ptr<ISAInfoBase> implementsISA() const = 0;
 
   /**
    * @brief fullISA

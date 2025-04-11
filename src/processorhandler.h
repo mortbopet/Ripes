@@ -54,7 +54,9 @@ public:
   }
 
   /// Returns a pointer to the currently instantiated ISA.
-  static const ISAInfoBase *currentISA() { return get()->_currentISA(); }
+  static std::shared_ptr<ISAInfoBase> currentISA() {
+    return get()->_currentISA();
+  }
 
   /// Returns a pointer to the current ISA with all its supported extensions
   /// enabled.
@@ -292,7 +294,7 @@ private:
   }
   const ProcessorID &_getID() const { return m_currentID; }
   std::shared_ptr<const Program> _getProgram() const { return m_program; }
-  const ISAInfoBase *_currentISA() const {
+  std::shared_ptr<ISAInfoBase> _currentISA() const {
     return m_currentProcessor->implementsISA();
   }
   std::shared_ptr<const ISAInfoBase> _fullISA() const {

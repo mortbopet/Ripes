@@ -512,8 +512,8 @@ public:
   }
 
   static ProcessorISAInfo supportsISA() { return RVISA::supportsISA<XLEN>(); }
-  const ISAInfoBase *implementsISA() const override {
-    return m_enabledISA.get();
+  std::shared_ptr<ISAInfoBase> implementsISA() const override {
+    return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
     return RVISA::fullISA<XLEN>();

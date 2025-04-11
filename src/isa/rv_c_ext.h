@@ -46,30 +46,53 @@ struct OpPartFunct4
 template <unsigned tokenIndex>
 struct RegRs1
     : public GPR_Reg<RegRs1<tokenIndex>, tokenIndex, BitRange<7, 11>> {
-  constexpr static std::string_view NAME = "rs1";
+  constexpr static std::string_view getName() { return "rs1"; }
 };
 
 /// The RV-C Rs2 field contains a source register index.
 /// It is defined as a 5-bit field in bits 2-6 of the instruction
 template <unsigned tokenIndex>
 struct RegRs2 : public GPR_Reg<RegRs2<tokenIndex>, tokenIndex, BitRange<2, 6>> {
-  constexpr static std::string_view NAME = "rs2";
+  constexpr static std::string_view getName() { return "rs2"; }
+};
+
+// A prime bitrange represents rd', rs1', rs2' in compressed instructions, where
+// the bit range represents registers offset by 8.
+template <unsigned start, unsigned stop>
+struct PrimeBitRange : public BitRange<start, stop> {
+  constexpr Instr_T decode(Instr_T instruction) const {
+    return BitRange<start, stop>::decode(instruction) + 8;
+  }
+};
+
+template <typename TImpl, unsigned tokenIndex, typename Range>
+struct RegPrime : public GPR_Reg<TImpl, tokenIndex, Range> {
+
+  // Only accept registers x8-x15
+  static Result<> verifyApply(const TokenizedSrcLine &line, unsigned regIndex) {
+    if (regIndex < 8 || regIndex > 15) {
+      return Error(line, "Invalid register index for prime register: " +
+                             QString::number(regIndex) +
+                             " (valid range: x8-x15)");
+    }
+    return Result<>::def();
+  }
 };
 
 /// The RV-C Rs1' field contains a source register index.
 /// It is defined as a 3-bit field in bits 7-9 of the instruction
 template <unsigned tokenIndex>
-struct RegRs1Prime
-    : public GPR_Reg<RegRs1Prime<tokenIndex>, tokenIndex, BitRange<7, 9>> {
-  constexpr static std::string_view NAME = "rs1'";
+struct RegRs1Prime : public RegPrime<RegRs1Prime<tokenIndex>, tokenIndex,
+                                     PrimeBitRange<7, 9>> {
+  constexpr static std::string_view getName() { return "rs1'"; }
 };
 
 /// The RV-C Rs2' field contains a source register index.
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
 template <unsigned tokenIndex>
-struct RegRs2Prime
-    : public GPR_Reg<RegRs2Prime<tokenIndex>, tokenIndex, BitRange<2, 4>> {
-  constexpr static std::string_view NAME = "rs2'";
+struct RegRs2Prime : public RegPrime<RegRs2Prime<tokenIndex>, tokenIndex,
+                                     PrimeBitRange<2, 4>> {
+  constexpr static std::string_view getName() { return "rs2'"; }
 };
 
 /// The RV-C Rd' field contains a destination register
@@ -77,8 +100,8 @@ struct RegRs2Prime
 /// It is defined as a 3-bit field in bits 2-4 of the instruction
 template <unsigned tokenIndex>
 struct RegRdPrime
-    : public GPR_Reg<RegRdPrime<tokenIndex>, tokenIndex, BitRange<2, 4>> {
-  constexpr static std::string_view NAME = "rd'";
+    : public RegPrime<RegRdPrime<tokenIndex>, tokenIndex, PrimeBitRange<2, 4>> {
+  constexpr static std::string_view getName() { return "rd'"; }
 };
 
 /// An RV-C immediate field with an input width of 6 bits.
@@ -147,7 +170,7 @@ struct OpPartFunct6
 template <unsigned tokenIndex>
 struct RegRdRs1Prime
     : public GPR_Reg<RegRdRs1Prime<tokenIndex>, tokenIndex, BitRange<7, 9>> {
-  constexpr static std::string_view NAME = "rd'/rs1'";
+  constexpr static std::string_view getName() { return "rd'/rs1'"; }
 };
 
 template <typename InstrImpl, Funct2 funct2, Funct6 funct6 = Funct6::DEFAULT>
@@ -205,7 +228,7 @@ enum class Funct3 {
 template <unsigned tokenIndex>
 struct RegRdRs1
     : public GPR_Reg<RegRdRs1<tokenIndex>, tokenIndex, BitRange<7, 11>> {
-  constexpr static std::string_view NAME = "rd/rs1'";
+  constexpr static std::string_view getName() { return "rd/rs1'"; }
 };
 
 constexpr static unsigned VALID_INDEX = 1;

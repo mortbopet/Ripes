@@ -66,7 +66,7 @@ class Assembler : public AssemblerBase {
                 "Register type must be integer");
 
 public:
-  explicit Assembler(std::shared_ptr<const ISAInfoBase> isa) : m_isa(isa) {}
+  explicit Assembler(std::shared_ptr<ISAInfoBase> isa) : m_isa(isa) {}
 
   AssembleResult
   assemble(const QStringList &programLines, const SymbolMap *symbols = nullptr,
@@ -645,7 +645,7 @@ protected:
 
   std::unique_ptr<Matcher> m_matcher;
 
-  std::shared_ptr<const ISAInfoBase> m_isa;
+  std::shared_ptr<ISAInfoBase> m_isa;
 };
 
 /// An Assembler and QObject (workaround because QObject cannot be directly
@@ -653,7 +653,7 @@ protected:
 class QAssembler : public QObject, public Assembler {
   Q_OBJECT
 public:
-  QAssembler(std::shared_ptr<const ISAInfoBase> isaInfo) : Assembler(isaInfo) {
+  QAssembler(std::shared_ptr<ISAInfoBase> isaInfo) : Assembler(isaInfo) {
     // Initialize segment pointers and monitor settings changes to segment
     // pointers
     connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
@@ -677,8 +677,7 @@ public:
 /// An ISA-specific assembler
 template <ISA isa>
 struct ISA_Assembler : public QAssembler {
-  ISA_Assembler(std::shared_ptr<const ISAInfo<isa>> isaInfo)
-      : QAssembler(isaInfo) {
+  ISA_Assembler(std::shared_ptr<ISAInfoBase> isaInfo) : QAssembler(isaInfo) {
     initialize(gnuDirectives());
   }
 
@@ -691,7 +690,7 @@ protected:
 /// Returns an assembler for isa
 /// Throws a runtime error if the isa does not have a matching assembler
 std::shared_ptr<AssemblerBase>
-constructAssemblerDynamic(const std::shared_ptr<const ISAInfoBase> &isa);
+constructAssemblerDynamic(std::shared_ptr<ISAInfoBase> isa);
 
 } // namespace Assembler
 
