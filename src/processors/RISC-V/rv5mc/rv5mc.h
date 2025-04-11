@@ -48,23 +48,10 @@ public:
     //pc_inc->out >> pc_4->op2;
 
     pc_src->out >> pc_reg->pc_in;
-    pc_src->out >> pc_old_in_scr->get(PCOldInscr::PCin);
-    pc_reg->pc_out >> pc_old_in_scr->get(PCOldInscr::PCout);
 
     control->RIWrite >> pc_old_reg->enable;
 
-    br_and->out >> *controlflow_old_pc_o->in[0];
-    control->pc_old_in_scr_ctrl >> *controlflow_old_pc_o->in[1];
-    controlflow_old_pc_o->out >> pc_old_in_scr->select;
-
-
-    pc_old_in_scr->out >> pc_old_reg->pc_in;
-
-
-    pc_reg->pc_out >> pc_out_scr->get(PCOutscr::PC);
-    pc_old_reg->pc_out >> pc_out_scr->get(PCOutscr::PCOld);
-    control->pc_out_scr_crtl >> pc_out_scr->select;
-
+    pc_reg->pc_out >> pc_old_reg->pc_in;
 
 
     2 >> pc_inc->get(PcInc::INC2);
@@ -109,7 +96,7 @@ public:
     data_mem->data_out >> men_out->in;
     men_out->out >> reg_wr_src->get(RegWrSrc::MEMREAD);
     ALU_out->out >> reg_wr_src->get(RegWrSrc::ALURES);
-    pc_out_scr->out >> reg_wr_src->get(RegWrSrc::PC4);
+    pc_reg->pc_out >> reg_wr_src->get(RegWrSrc::PC4); // TODO: FIXME
     control->reg_wr_src_ctrl >> reg_wr_src->select;
     control->read_men_ctrl >> data_mem->r;
 
@@ -137,8 +124,9 @@ public:
     // -----------------------------------------------------------------------
     // ALU
     registerFile->r1_out >> a->in;
-    a->out >> alu_op1_src->get(AluSrc1::REG1);
-    pc_out_scr->out >> alu_op1_src->get(AluSrc1::PC);
+    a->out >> alu_op1_src->get(AluSrc1MC::REG1);
+    pc_reg->pc_out >> alu_op1_src->get(AluSrc1MC::PC);
+    pc_old_reg->pc_out >> alu_op1_src->get(AluSrc1MC::PCOLD);
     control->alu_op1_ctrl >> alu_op1_src->select;
 
     registerFile->r2_out >> b->in;
@@ -196,13 +184,9 @@ public:
   // Multiplexers
   SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
   SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
-  SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
+  SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1MC, XLEN>));
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2MC, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
-
-  SUBCOMPONENT(pc_out_scr, TYPE(EnumMultiplexer<PCOutscr, XLEN>));
-  SUBCOMPONENT(pc_old_in_scr, TYPE(EnumMultiplexer<PCOldInscr, XLEN>));
-
 
   // Memories
   SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
@@ -211,7 +195,6 @@ public:
   // Gates
   SUBCOMPONENT(br_and, TYPE(And<1, 2>));
   SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
-  SUBCOMPONENT(controlflow_old_pc_o, TYPE(Or<1, 2>));
 
   // Address spaces
   ADDRESSSPACEMM(m_memory);
@@ -226,7 +209,7 @@ public:
     case EX: case MEM:
       return pc_old_reg->pc_out.uValue();
     default:
-      return pc_out_scr->out.uValue();
+      return pc_reg->pc_out.uValue();
     }
   }
   AInt nextFetchedAddress() const override {

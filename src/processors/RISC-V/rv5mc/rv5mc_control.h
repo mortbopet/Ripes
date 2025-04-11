@@ -9,6 +9,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+enum class AluSrc1MC { REG1, PC, PCOLD };
 enum class AluSrc2MC { REG2, IMM, INPC };
 enum class PCOutscr { PCOld, PC };
 enum class PCOldInscr { PCout, PCin };
@@ -157,10 +158,12 @@ public:
     }
   }
 
-  static AluSrc1 do_alu_op1_ctrl(FSMState state) {
+  static AluSrc1MC do_alu_op1_ctrl(FSMState state) {
     switch (state) {
-    case FSMState::IF: case FSMState::ID:
-      return AluSrc1::PC;
+    case FSMState::IF:
+      return AluSrc1MC::PC;
+    case FSMState::ID:
+      return AluSrc1MC::PCOLD;
     case FSMState::EXJALR: case FSMState::EXCJE: case FSMState::EXCJNE: case FSMState::EXCJGE:
     case FSMState::EXCJLT: case FSMState::EXCJLTU: case FSMState::EXCJGEU: case FSMState::EXADD:
     case FSMState::EXSUB: case FSMState::EXSLT: case FSMState::EXSLTU: case FSMState::EXAND:
@@ -171,11 +174,11 @@ public:
     case FSMState::EXMULH: case FSMState::EXMULHSU: case FSMState::EXMULHU: case FSMState::EXDIV:
     case FSMState::EXDIVU: case FSMState::EXREM: case FSMState::EXREMU: case FSMState::EXMULW:
     case FSMState::EXDIVW: case FSMState::EXDIVUW: case FSMState::EXREMW: case FSMState::EXREMUW:
-case FSMState::EXADDW: case FSMState::EXSUBW: case FSMState::EXSLLW: case FSMState::EXSRLW:
-case FSMState::EXSRLIW: case FSMState::EXSRAW:
+    case FSMState::EXADDW: case FSMState::EXSUBW: case FSMState::EXSLLW: case FSMState::EXSRLW:
+    case FSMState::EXSRLIW: case FSMState::EXSRAW:
     case FSMState::EXADDIW: case FSMState::EXSLLIW: case FSMState::EXSRAIW: case FSMState::EXMEMOP:
     default:
-      return AluSrc1::REG1;
+      return AluSrc1MC::REG1;
     }
   }
 
@@ -508,24 +511,6 @@ return ALUOp::SLW;
     }
   }
 
-  static PCOutscr do_pc_out_scr_ctrl (FSMState state) {
-    switch (state) {
-    case FSMState::IF: case FSMState::EXJAL: case FSMState::MEMJALR:
-      return PCOutscr::PC;
-    default:
-      return PCOutscr::PCOld;
-    }
-  }
-
-  static PCOldInscr do_pc_old_in_scr_ctrl (FSMState state) {
-    switch (state) {
-    case FSMState::EXJAL: case FSMState::MEMJALR:
-      return PCOldInscr::PCin;
-    default:
-      return PCOldInscr::PCout;
-    }
-  }
-
   static VSRTL_VT_U do_read_men_ctrl (FSMState state) {
     switch (state) {
     case FSMState::MEMLB: case FSMState::MEMLH:
@@ -582,9 +567,6 @@ public:
     RIWrite << [=] { return do_RIWrite( stateIntPort.eValue<FSMState>());};
 
     pc_scr_ctrl << [=] { return do_pc_scr_ctrl( stateIntPort.eValue<FSMState>());};
-    pc_out_scr_crtl << [=] {return do_pc_out_scr_ctrl( stateIntPort.eValue<FSMState>());};
-
-    pc_old_in_scr_ctrl << [=] {return do_pc_old_in_scr_ctrl( stateIntPort.eValue<FSMState>());};
 
     stateOutPort << [=] { return do_statePort( opcode.eValue<RVInstr>(), stateIntPort.eValue<FSMState>());};
 
@@ -618,8 +600,6 @@ public:
   OUTPUTPORT(ecall_ctr,1);
 
   OUTPUTPORT_ENUM(pc_scr_ctrl,PcSrc);
-  OUTPUTPORT_ENUM(pc_out_scr_crtl,PCOutscr);
-  OUTPUTPORT_ENUM(pc_old_in_scr_ctrl,PCOldInscr);
 
   OUTPUTPORT(reg_do_write_ctrl, 1);
   OUTPUTPORT(mem_do_write_ctrl, 1);
@@ -629,7 +609,7 @@ public:
   OUTPUTPORT_ENUM(comp_ctrl, CompOp);
   OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
   OUTPUTPORT_ENUM(mem_ctrl, MemOp);
-  OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
+  OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1MC);
   OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2MC);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
 
