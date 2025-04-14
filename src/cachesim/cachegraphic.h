@@ -62,6 +62,7 @@ private:
     std::map<unsigned, std::unique_ptr<QGraphicsSimpleTextItem>> blocks;
     std::unique_ptr<QGraphicsSimpleTextItem> tag = nullptr;
     QGraphicsSimpleTextItem *lru = nullptr;
+    QGraphicsSimpleTextItem *fifo = nullptr;
     QGraphicsSimpleTextItem *valid = nullptr;
     QGraphicsSimpleTextItem *dirty = nullptr;
     std::map<unsigned, std::unique_ptr<QGraphicsRectItem>> dirtyBlocks;
@@ -113,9 +114,10 @@ private:
   qreal m_widthBeforeBlocks = 0;
   qreal m_widthBeforeTag = 0;
   qreal m_widthBeforeLRU = 0;
+  qreal m_widthBeforefifo = 0;
   qreal m_widthBeforeDirty = 0;
   qreal m_lruWidth = 0;
-
+  qreal m_fifoWidth = 0;
   static constexpr qreal z_grid = 0;
   static constexpr qreal z_wires = -1;
 
