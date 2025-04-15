@@ -3,74 +3,106 @@
 #include "VSRTL/core/vsrtl_component.h"
 #include "VSRTL/core/vsrtl_register.h"
 #include "processors/RISC-V/riscv.h"
+#include <magic_enum/magic_enum.hpp>
 
 
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-enum class AluSrc1MC { REG1, PC, PCOLD };
-enum class AluSrc2MC { REG2, IMM, INPC };
+namespace rv5mc {
+  enum class AluSrc1 { REG1, PC, PCOLD };
+  enum class AluSrc2 { REG2, IMM, INPC };
+  enum class ALUControl { ADD, SUB, INSTRUCTION_DEPENDENT };
 
-enum class FSMState {
-     IF, ID, //States common to all operations
-     EX, //Generic execution state
-//Specific States by Execution Type
-//Jump operations
-     EXJAL, EXJALR,
-     EXCJE, EXCJNE, EXCJGE, EXCJLT,
-     EXCJLTU, EXCJGEU,
+  enum class FSMState {
+    IF, ID, //States common to all operations
+    EX, //Generic execution state
+    //Specific States by Execution Type
+    //Jump operations
+    EXJAL, EXJALR,
+    EXCJE, EXCJNE, EXCJGE, EXCJLT,
+    EXCJLTU, EXCJGEU,
 
-//R-Type
-//Arimethic
-     EXADD, EXSUB, EXSLT, EXSLTU,
-     EXAND, EXOR, EXXOR, EXSLL,
-     EXSRL, EXSRA, EXMUL, EXMULH,
-     EXMULHSU, EXMULHU, EXDIV, EXDIVU,
-     EXREM, EXREMU, EXMULW, EXDIVW,
-     EXDIVUW, EXREMW, EXREMUW, EXADDW,
-     EXSUBW, EXSLLW, EXSRLW, EXSRAW,
+    //R-Type
+    //Arimethic
+    EXADD, EXSUB, EXSLT, EXSLTU,
+    EXAND, EXOR, EXXOR, EXSLL,
+    EXSRL, EXSRA, EXMUL, EXMULH,
+    EXMULHSU, EXMULHU, EXDIV, EXDIVU,
+    EXREM, EXREMU, EXMULW, EXDIVW,
+    EXDIVUW, EXREMW, EXREMUW, EXADDW,
+    EXSUBW, EXSLLW, EXSRLW, EXSRAW,
 
-//I-Type
-//Arimethic
-     EXADDI, EXSLTI,
-     EXSLTIU, EXANDI, EXORI, EXXORI,
-     EXSLLI, EXSRLI, EXSRAI, EXLUI,
-     EXAUIP, EXADDIW, EXSLLIW, EXSRLIW,
-     EXSRAIW,
+    //I-Type
+    //Arimethic
+    EXADDI, EXSLTI,
+    EXSLTIU, EXANDI, EXORI, EXXORI,
+    EXSLLI, EXSRLI, EXSRAI, EXLUI,
+    EXAUIP, EXADDIW, EXSLLIW, EXSRLIW,
+    EXSRAIW,
 
-//Ecall
-     EXECALL,
-//Memory load
-     EXMEMOP,
+    //Ecall
+    EXECALL,
+    //Memory load
+    EXMEMOP,
 
-     MEM, //Generic memory state
-//Concrete states of memory
+    MEM, //Generic memory state
+    //Concrete states of memory
 
-     MEMJALR,
+    MEMJALR,
 
-//R-Type
-//Arimethic
-     MEMALINS,
+    //R-Type
+    //Arimethic
+    MEMALINS,
 
-//I-Type
-//Memory Load
-     MEMLB, MEMLH, MEMLW, MEMLBU,
-     MEMLHU, MEMLWU, MEMLD,
-//Memory Store
-     MEMSB, MEMSH, MEMSW, MEMSD,
-     WB,//Generic Write Back state
-//Specific Write Back states
-//I-Type
-//Memory Load
-     WBMEMLOAD,
-};
+    //I-Type
+    //Memory Load
+    MEMLB, MEMLH, MEMLW, MEMLBU,
+    MEMLHU, MEMLWU, MEMLD,
+    //Memory Store
+    MEMSB, MEMSH, MEMSW, MEMSD,
+    WB,//Generic Write Back state
+    //Specific Write Back states
+    //I-Type
+    //Memory Load
+    WBMEMLOAD,
+
+    //Invalid
+    INVALID
+  };
+  struct StateSignals {
+    bool write_ir = false;
+    bool write_pc = false;
+    bool branch = false;
+    PcSrc pc_src = PcSrc::ALU;
+    bool write_reg = false;
+    bool read_mem = false;
+    bool write_mem = false;
+    MemOp mem_op = MemOp::LB;
+    bool ecall = false;
+    CompOp comp_op = CompOp::EQ;
+    RegWrSrc reg_wr_src = RegWrSrc::ALURES;
+    AluSrc1 alu_op1_src = AluSrc1::PC;
+    AluSrc2 alu_op2_src = AluSrc2::IMM;
+    ALUControl alu_control = ALUControl::ADD;
+  };
+  typedef FSMState (*TransitionFunc)(RVInstr);
+
+  struct StateInfo {
+    StateSignals outs;
+    TransitionFunc transitions;
+  };
+}
+
+using namespace rv5mc;
 
 class RVMCControl : public Component {
 public:
   /* clang-format off */
+  std::vector<StateInfo> states;
 
-  static CompOp do_comp_ctrl(RVInstr opc) {
+  static CompOp do_comp_ctrl(RVInstr opc) { // TODO: rename?
     switch(opc){
     case RVInstr::BEQ: return CompOp::EQ;
     case RVInstr::BNE: return CompOp::NE;
@@ -82,214 +114,62 @@ public:
     }
   }
 
-  static VSRTL_VT_U do_branch_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::EXCJE: case FSMState::EXCJNE: case FSMState::EXCJGE:
-    case FSMState::EXCJLT: case FSMState::EXCJLTU: case FSMState::EXCJGEU:
-      return 1;
-    default:
-      return 0;
-
-    }
-  }
-
-  static VSRTL_VT_U do_write_pc_ctrl(FSMState state) {
-
-    switch (state) {
-    case FSMState::IF: case FSMState::EXJAL: case FSMState::MEMJALR:
-      return 1;
-    default:
-      return 0;
-    }
-  }
-
-  static MemOp do_mem_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::MEMLB:
-      return MemOp::LB;
-    case FSMState::MEMLH:
-      return MemOp::LH;
-    case FSMState::MEMLW:
-      return MemOp::LW;
-    case FSMState::MEMLBU:
-      return MemOp::LBU;
-    case FSMState::MEMLHU:
-      return MemOp::LHU;
-    case FSMState::MEMLWU:
-      return MemOp::LWU;
-    case FSMState::MEMLD:
-      return MemOp::LD;
-    case FSMState::MEMSB:
-      return MemOp::SB;
-    case FSMState::MEMSH:
-      return MemOp::SH;
-    case FSMState::MEMSW:
-      return MemOp::SW;
-    case FSMState::MEMSD:
-      return MemOp::SD;
-    default:
-      return MemOp::NOP;
-    }
-  }
-
-  static VSRTL_VT_U do_reg_do_write_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::EXJAL: case FSMState::MEMJALR:
-    case FSMState::MEMALINS: case FSMState::EXAUIP:
-    case FSMState::WBMEMLOAD:
-      return 1;
-    default:
-      return 0;
-    }
-  }
-
-  static RegWrSrc do_reg_wr_src_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::WBMEMLOAD:
-      return RegWrSrc::MEMREAD;
-    case FSMState::EXJAL: case FSMState::MEMJALR:
-      return RegWrSrc::PC4;
-    case FSMState::MEMALINS:
-    case FSMState::EXAUIP:
-    default:
-      return RegWrSrc::ALURES;
-    }
-  }
-
-  static AluSrc1MC do_alu_op1_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::IF:
-      return AluSrc1MC::PC;
-    case FSMState::ID:
-      return AluSrc1MC::PCOLD;
-    case FSMState::EXJALR: case FSMState::EXCJE: case FSMState::EXCJNE: case FSMState::EXCJGE:
-    case FSMState::EXCJLT: case FSMState::EXCJLTU: case FSMState::EXCJGEU: case FSMState::EXADD:
-    case FSMState::EXSUB: case FSMState::EXSLT: case FSMState::EXSLTU: case FSMState::EXAND:
-    case FSMState::EXOR: case FSMState::EXXOR: case FSMState::EXSLL: case FSMState::EXSRL:
-    case FSMState::EXSRA: case FSMState::EXADDI: case FSMState::EXSLTI: case FSMState::EXSLTIU:
-    case FSMState::EXANDI: case FSMState::EXORI: case FSMState::EXXORI: case FSMState::EXSLLI:
-    case FSMState::EXSRLI: case FSMState::EXSRAI: case FSMState::EXLUI: case FSMState::EXMUL:
-    case FSMState::EXMULH: case FSMState::EXMULHSU: case FSMState::EXMULHU: case FSMState::EXDIV:
-    case FSMState::EXDIVU: case FSMState::EXREM: case FSMState::EXREMU: case FSMState::EXMULW:
-    case FSMState::EXDIVW: case FSMState::EXDIVUW: case FSMState::EXREMW: case FSMState::EXREMUW:
-    case FSMState::EXADDW: case FSMState::EXSUBW: case FSMState::EXSLLW: case FSMState::EXSRLW:
-    case FSMState::EXSRLIW: case FSMState::EXSRAW:
-    case FSMState::EXADDIW: case FSMState::EXSLLIW: case FSMState::EXSRAIW: case FSMState::EXMEMOP:
-    default:
-      return AluSrc1MC::REG1;
-    }
-  }
-
-  static AluSrc2MC do_alu_op2_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::IF:
-      return AluSrc2MC::INPC;
-    case FSMState::ID: case FSMState::EXJALR: case FSMState::EXADDI:
-    case FSMState::EXSLTI: case FSMState::EXSLTIU: case FSMState::EXANDI:
-    case FSMState::EXORI: case FSMState::EXXORI: case FSMState::EXSLLI:
-    case FSMState::EXSRLI: case FSMState::EXSRAI: case FSMState::EXLUI:
-    case FSMState::EXADDIW: case FSMState::EXSLLIW: case FSMState::EXSRAIW:
-    case FSMState::EXMEMOP: case FSMState::EXSRLIW:
-      return AluSrc2MC::IMM;
-    case FSMState::EXCJE: case FSMState::EXCJNE: case FSMState::EXCJGE:
-    case FSMState::EXCJLT: case FSMState::EXCJLTU: case FSMState::EXCJGEU:
-    case FSMState::EXADD: case FSMState::EXSUB: case FSMState::EXSLT:
-    case FSMState::EXSLTU: case FSMState::EXAND: case FSMState::EXOR:
-    case FSMState::EXXOR: case FSMState::EXSLL: case FSMState::EXSRL:
-    case FSMState::EXSRA: case FSMState::EXMUL: case FSMState::EXMULH:
-    case FSMState::EXMULHSU: case FSMState::EXMULHU: case FSMState::EXDIV:
-    case FSMState::EXDIVU: case FSMState::EXREM: case FSMState::EXREMU:
-    case FSMState::EXMULW: case FSMState::EXDIVW: case FSMState::EXDIVUW:
-    case FSMState::EXREMW: case FSMState::EXREMUW: case FSMState::EXADDW:
-case FSMState::EXSUBW: case FSMState::EXSLLW: case FSMState::EXSRLW:
-    case FSMState::EXSRAW:
-    default:
-      return AluSrc2MC::REG2;
-    }
-  }
-
-  static ALUOp do_alu_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::IF: case FSMState::ID: case FSMState::EXJALR: case FSMState::EXADD:
-    case FSMState::EXADDI: case FSMState::EXMEMOP:
-      return ALUOp::ADD;
-    case FSMState::EXCJE: case FSMState::EXCJNE: case FSMState::EXCJGE: case FSMState::EXCJLT:
-    case FSMState::EXCJLTU: case FSMState::EXCJGEU: case FSMState::EXSUB:
-      return ALUOp::SUB;
-    case FSMState::EXSLT: case FSMState::EXSLTI:
-      return ALUOp::LT;
-    case FSMState::EXSLTU: case FSMState::EXSLTIU:
-      return ALUOp::LTU;
-    case FSMState::EXAND: case FSMState::EXANDI:
-      return ALUOp::AND;
-    case FSMState::EXOR: case FSMState::EXORI:
-      return ALUOp::OR;
-    case FSMState::EXXOR: case FSMState::EXXORI:
-      return ALUOp::XOR;
-    case FSMState::EXSLL: case FSMState::EXSLLI:
-      return ALUOp::SL;
-    case FSMState::EXSRL: case FSMState::EXSRLI:
-      return ALUOp::SRL;
-    case FSMState::EXSRA: case FSMState::EXSRAI:
-      return ALUOp::SRA;
-    case FSMState::EXLUI:
+  static ALUOp do_alu_ctrl(RVInstr opc) { // TODO: rename?
+    switch(opc) {
+    case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
+    case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
+    case RVInstr::SD:
+      return ALUOp::ADD; // not used (alu_control)
+    case RVInstr::LUI:
       return ALUOp::LUI;
-    case FSMState::EXMUL:
-      return ALUOp::MUL;
-    case FSMState::EXMULH:
-      return ALUOp::MULH;
-    case FSMState::EXMULHSU:
-      return ALUOp::MULHSU;
-    case FSMState::EXMULHU:
-      return ALUOp::MULHU;
-    case FSMState::EXDIV:
-      return ALUOp::DIV;
-    case FSMState::EXDIVU:
-      return ALUOp::DIVU;
-    case FSMState::EXREM:
-      return ALUOp::REM;
-    case FSMState::EXREMU:
-      return ALUOp::REMU;
-    case FSMState::EXMULW:
-      return ALUOp::MULW;
-    case FSMState::EXDIVW:
-      return ALUOp::DIVW;
-    case FSMState::EXDIVUW:
-      return ALUOp::DIVUW;
-    case FSMState::EXREMW:
-      return ALUOp::REMW;
-    case FSMState::EXREMUW:
-      return ALUOp::REMUW;
-    case FSMState::EXADDW:
-      return ALUOp::ADDW;
-    case FSMState::EXSUBW:
-      return ALUOp::SUBW;
-    case FSMState::EXSRLW:
-    case FSMState::EXSRLIW:
-      return ALUOp::SRLW;
-case FSMState::EXSLLW:
-return ALUOp::SLW;
-    case FSMState::EXSRAW:
-      return ALUOp::SRAW;
-    case FSMState::EXADDIW:
-      return ALUOp::ADDW;
-    case FSMState::EXSLLIW:
-      return ALUOp::SLW;
-    case FSMState::EXSRAIW:
-      return ALUOp::SRAW;
+    case RVInstr::JAL: case RVInstr::JALR: case RVInstr::AUIPC:
+    case RVInstr::ADD: case RVInstr::ADDI:
+    case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
+    case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
+      return ALUOp::ADD;
+    case RVInstr::SUB: return ALUOp::SUB;
+    case RVInstr::SLT: case RVInstr::SLTI:
+      return ALUOp::LT;
+    case RVInstr::SLTU: case RVInstr::SLTIU:
+      return ALUOp::LTU;
+    case RVInstr::XOR: case RVInstr::XORI:
+      return ALUOp::XOR;
+    case RVInstr::OR: case RVInstr::ORI:
+      return ALUOp::OR;
+    case RVInstr::AND: case RVInstr::ANDI:
+      return ALUOp::AND;
+    case RVInstr::SLL: case RVInstr::SLLI:
+      return ALUOp::SL;
+    case RVInstr::SRL: case RVInstr::SRLI:
+      return ALUOp::SRL;
+    case RVInstr::SRA: case RVInstr::SRAI:
+      return ALUOp::SRA;
+    case RVInstr::MUL   : return ALUOp::MUL;
+    case RVInstr::MULH  : return ALUOp::MULH;
+    case RVInstr::MULHU : return ALUOp::MULHU;
+    case RVInstr::MULHSU: return ALUOp::MULHSU;
+    case RVInstr::DIV   : return ALUOp::DIV;
+    case RVInstr::DIVU  : return ALUOp::DIVU;
+    case RVInstr::REM   : return ALUOp::REM;
+    case RVInstr::REMU  : return ALUOp::REMU;
+    case RVInstr::ADDIW : return ALUOp::ADDW;
+    case RVInstr::SLLIW : return ALUOp::SLW;
+    case RVInstr::SRLIW : return ALUOp::SRLW;
+    case RVInstr::SRAIW : return ALUOp::SRAW;
+    case RVInstr::ADDW  : return ALUOp::ADDW ;
+    case RVInstr::SUBW  : return ALUOp::SUBW ;
+    case RVInstr::SLLW  : return ALUOp::SLW ;
+    case RVInstr::SRLW  : return ALUOp::SRLW ;
+    case RVInstr::SRAW  : return ALUOp::SRAW ;
+    case RVInstr::MULW  : return ALUOp::MULW ;
+    case RVInstr::DIVW  : return ALUOp::DIVW ;
+    case RVInstr::DIVUW : return ALUOp::DIVUW;
+    case RVInstr::REMW  : return ALUOp::REMW ;
+    case RVInstr::REMUW : return ALUOp::REMUW;
+
     default: return ALUOp::NOP;
     }
   }
-
-  static VSRTL_VT_U do_write_mem_fn(FSMState opc) {
-    switch(opc) {
-    case FSMState::MEMSB: case FSMState::MEMSH:
-    case FSMState::MEMSW: case FSMState::MEMSD:
-      return 1;
-    default: return 0;
-    }
-  }
-
 
   static FSMState do_EX_stateFromOPC(RVInstr opc) {
     switch(opc){
@@ -440,6 +320,8 @@ return ALUOp::SLW;
 
   static FSMState do_statePort(RVInstr opc, FSMState state) {
     switch(state) {
+    case FSMState::INVALID:
+      return FSMState::INVALID;
     case FSMState::IF:
       return FSMState::ID;
     case FSMState::ID:
@@ -490,46 +372,6 @@ return ALUOp::SLW;
     return FSMState::IF;
   }
 
-  static VSRTL_VT_U do_write_ir_fn(FSMState state) {
-    switch (state) {
-    case FSMState::IF:
-      return 1;
-    default:
-      return 0;
-    }
-  }
-
-  static VSRTL_VT_U do_pc_scr_ctrl(FSMState state) {
-    switch (state) {
-    case FSMState::EXJAL: case FSMState::MEMJALR: case FSMState::EXCJE: case FSMState::EXCJNE:
-    case FSMState::EXCJGE: case FSMState::EXCJLT: case FSMState::EXCJLTU: case FSMState::EXCJGEU:
-      return PcSrc::ALU;
-    case FSMState::IF: default:
-      return PcSrc::PC4;
-    }
-  }
-
-  static VSRTL_VT_U do_read_mem_fn (FSMState state) {
-    switch (state) {
-    case FSMState::MEMLB: case FSMState::MEMLH:
-    case FSMState::MEMLW: case FSMState::MEMLBU:
-    case FSMState::MEMLHU: case FSMState::MEMLWU:
-    case FSMState::MEMLD:
-      return 1;
-    default:
-      return 0;
-    }
-  }
-
-  static VSRTL_VT_U do_ecall_ctr (FSMState state) {
-    switch (state) {
-    case FSMState::EXECALL:
-      return 0;
-    default:
-      return 1;
-    }
-  }
-
   bool do_finish_this_cycle(){
     switch (stateRegCtr->out.eValue<FSMState>()){
     case FSMState::EXJAL: case FSMState::MEMJALR:
@@ -547,30 +389,459 @@ return ALUOp::SLW;
     }
   }
   /* clang-format on */
+  RVInstr getCurrentOpcode() {
+    return opcode.eValue<RVInstr>();
+  }
+
+  FSMState getCurrentState() {
+    return stateInPort.eValue<FSMState>();
+  }
+
+  void addState(FSMState s, StateSignals o, TransitionFunc t) {
+    auto idx = static_cast<int>(s);
+    states.at(idx) = {o, t};
+  }
+
+  const StateInfo& getStateInfo(FSMState s) {
+    auto idx = static_cast<int>(s);
+    return states[idx];
+  }
+
+  const StateInfo& getCurrentStateInfo() {
+    return getStateInfo(getCurrentState());
+  }
+
 
 public:
   RVMCControl(const std::string &name, SimComponent *parent)
-      : Component(name, parent) {
-    comp_ctrl << [=] { return do_comp_ctrl(opcode.eValue<RVInstr>()); };
-    do_branch << [=] { return do_branch_ctrl( stateInPort.eValue<FSMState>()); };
-    do_write_pc << [=] { return do_write_pc_ctrl( stateInPort.eValue<FSMState>()); };
-    mem_ctrl << [=] { return do_mem_ctrl(stateInPort.eValue<FSMState>()); };
-    reg_do_write_ctrl << [=] { return do_reg_do_write_ctrl(stateInPort.eValue<FSMState>()); };
-    reg_wr_src_ctrl << [=] { return do_reg_wr_src_ctrl(stateInPort.eValue<FSMState>()); };
-    alu_op1_ctrl << [=] { return do_alu_op1_ctrl(stateInPort.eValue<FSMState>()); };
-    alu_op2_ctrl << [=] { return do_alu_op2_ctrl( stateInPort.eValue<FSMState>()); };
-    alu_ctrl << [=] { return do_alu_ctrl( stateInPort.eValue<FSMState>()); };
-    do_write_mem << [=] { return do_write_mem_fn(stateInPort.eValue<FSMState>()); };
+  : Component(name, parent) {
+    assert (states.empty());
+    states.resize(magic_enum::enum_count<FSMState>());
 
-    do_write_ir << [=] { return do_write_ir_fn( stateInPort.eValue<FSMState>());};
+#define to(x) [](RVInstr i){ ((void)i); return FSMState::x; }
 
-    pc_scr_ctrl << [=] { return do_pc_scr_ctrl( stateInPort.eValue<FSMState>());};
+    //States common to all operations
+    addState(FSMState::IF, {
+        .write_ir = true,
+        .write_pc = true,
+        .pc_src = PcSrc::PC4,
+        .read_mem = true,
+        .alu_op1_src = AluSrc1::PC,
+        .alu_op2_src = AluSrc2::INPC,
+        .alu_control = ALUControl::ADD,
+    }, to(ID));
 
-    stateOutPort << [=] { return do_statePort( opcode.eValue<RVInstr>(), stateInPort.eValue<FSMState>());};
+    addState(FSMState::ID, {
+        .alu_op1_src = AluSrc1::PCOLD,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::ADD,
+      }, do_EX_stateFromOPC); // TODO
 
-    do_read_mem << [=] {return do_read_mem_fn( stateInPort.eValue<FSMState>());};
+    //Generic execution state
+    addState(FSMState::EX, {
 
-    ecall_ctr << [=] {return do_ecall_ctr(stateInPort.eValue<FSMState>());};
+      }, to(MEM));
+
+    //Specific States by Execution Type
+    //Jump operations
+    addState(FSMState::EXJAL, {
+        .write_pc = true,
+        .pc_src = PcSrc::ALU,
+        .write_reg = true,
+        .reg_wr_src = RegWrSrc::PC4,
+      }, to(IF));
+    addState(FSMState::EXJALR, {
+        // TODO: no .write_reg = true, nor .write_pc = true,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::ADD,
+      }, to(MEMJALR));
+
+    //Branches
+    addState(FSMState::EXCJE, {
+        .branch = true,
+        .pc_src = PcSrc::ALU,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::SUB,
+      }, to(IF));
+    addState(FSMState::EXCJNE, {
+        .branch = true,
+        .pc_src = PcSrc::ALU,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::SUB,
+      }, to(IF));
+    addState(FSMState::EXCJGE, {
+        .branch = true,
+        .pc_src = PcSrc::ALU,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::SUB,
+      }, to(IF));
+    addState(FSMState::EXCJLT, {
+        .branch = true,
+        .pc_src = PcSrc::ALU,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::SUB,
+      }, to(IF));
+    addState(FSMState::EXCJLTU, {
+        .branch = true,
+        .pc_src = PcSrc::ALU,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::SUB,
+      }, to(IF));
+    addState(FSMState::EXCJGEU, {
+        .branch = true,
+        .pc_src = PcSrc::ALU,
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::SUB,
+      }, to(IF));
+
+    //R-Type
+    //Arimethic
+    addState(FSMState::EXADD, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSUB, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLT, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLTU, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXAND, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXOR, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXXOR, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLL, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRL, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRA, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXMUL, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXMULH, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXMULHSU, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXMULHU, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXDIV, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXDIVU, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXREM, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXREMU, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXMULW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXDIVW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXDIVUW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXREMW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXREMUW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXADDW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSUBW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLLW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRLW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRAW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::REG2,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+
+    //I-Type
+    //Arimethic
+    addState(FSMState::EXADDI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLTI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLTIU, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXANDI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXORI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXXORI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLLI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRLI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRAI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXLUI, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXADDIW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSLLIW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRLIW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+    addState(FSMState::EXSRAIW, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::INSTRUCTION_DEPENDENT,
+      }, to(MEMALINS));
+
+    //Ecall
+    addState(FSMState::EXECALL, {
+        .ecall = true,
+      }, to(IF));
+
+    //Memory load
+    addState(FSMState::EXMEMOP, {
+        .alu_op1_src = AluSrc1::REG1,
+        .alu_op2_src = AluSrc2::IMM,
+        .alu_control = ALUControl::ADD,
+      }, do_MEM_stateFromOPC); // TODO
+
+    //Generic memory state
+    addState(FSMState::MEM, {
+
+      }, to(WB));
+
+    //Memory states
+    addState(FSMState::MEMJALR, { // TODO:rename to WBJALR, or use generic WB
+        .write_pc = true,
+        .pc_src = PcSrc::ALU,
+        .write_reg = true,
+        .reg_wr_src = RegWrSrc::PC4,
+      }, to(IF));
+
+    //I-Type
+    //Memory Load
+    addState(FSMState::MEMLB, {
+        .read_mem = true,
+        .mem_op = MemOp::LB,
+      }, to(WBMEMLOAD));
+    addState(FSMState::MEMLH, {
+        .read_mem = true,
+        .mem_op = MemOp::LH,
+      }, to(WBMEMLOAD));
+    addState(FSMState::MEMLW, {
+        .read_mem = true,
+        .mem_op = MemOp::LW,
+      }, to(WBMEMLOAD));
+    addState(FSMState::MEMLBU, {
+        .read_mem = true,
+        .mem_op = MemOp::LBU,
+      }, to(WBMEMLOAD));
+    addState(FSMState::MEMLHU, {
+        .read_mem = true,
+        .mem_op = MemOp::LHU,
+      }, to(WBMEMLOAD));
+    addState(FSMState::MEMLWU, {
+        .read_mem = true,
+        .mem_op = MemOp::LWU,
+      }, to(WBMEMLOAD));
+    addState(FSMState::MEMLD, {
+        .read_mem = true,
+        .mem_op = MemOp::LD,
+      }, to(WBMEMLOAD));
+
+    //Memory Store
+    addState(FSMState::MEMSB, {
+        .write_mem = true,
+        .mem_op = MemOp::SB,
+      }, to(IF));
+    addState(FSMState::MEMSH, {
+        .write_mem = true,
+        .mem_op = MemOp::SH,
+      }, to(IF));
+    addState(FSMState::MEMSW, {
+        .write_mem = true,
+        .mem_op = MemOp::SW,
+      }, to(IF));
+    addState(FSMState::MEMSD, {
+        .write_mem = true,
+        .mem_op = MemOp::SD,
+      }, to(IF));
+
+    //Generic Write Back state
+    addState(FSMState::WB, {
+
+      }, to(IF));
+
+    //Specific Write Back states
+    //R-Type
+    //Arimethic
+    addState(FSMState::MEMALINS, { // TODO: rename to WBALU
+        .write_reg = true,
+        .reg_wr_src = RegWrSrc::ALURES,
+      }, to(IF));
+
+    //I-Type
+    //Memory Load
+    addState(FSMState::WBMEMLOAD, {
+        .write_reg = true,
+        .reg_wr_src = RegWrSrc::MEMREAD,
+      }, to(IF));
+
+    addState(FSMState::EXAUIP, { // TODO: RENAME WBAUIP
+        .write_reg = true,
+        .reg_wr_src = RegWrSrc::ALURES,
+      }, to(IF));
+
+    addState(FSMState::INVALID, {}, to(INVALID));
+#undef to
+
+    comp_ctrl << [=] { return do_comp_ctrl(getCurrentOpcode()); };
+    do_branch << [=] { return getCurrentStateInfo().outs.branch; };
+    do_write_pc << [=] { return getCurrentStateInfo().outs.write_pc; };
+    mem_ctrl << [=] { return getCurrentStateInfo().outs.mem_op; };
+    reg_do_write_ctrl << [=] { return getCurrentStateInfo().outs.write_reg; };
+    reg_wr_src_ctrl << [=] { return getCurrentStateInfo().outs.reg_wr_src; };
+    alu_op1_ctrl << [=] { return getCurrentStateInfo().outs.alu_op1_src; };
+    alu_op2_ctrl << [=] { return getCurrentStateInfo().outs.alu_op2_src; };
+    alu_ctrl << [=] {
+      auto c = getCurrentStateInfo().outs.alu_control;
+      return c == ALUControl::INSTRUCTION_DEPENDENT ? do_alu_ctrl(getCurrentOpcode())
+        : c == ALUControl::ADD ? ALUOp::ADD
+        : (assert(c == ALUControl::SUB), ALUOp::SUB);
+    };
+    do_write_mem << [=] { return getCurrentStateInfo().outs.write_mem; };
+    do_write_ir << [=] { return getCurrentStateInfo().outs.write_ir; };
+    pc_scr_ctrl << [=] { return getCurrentStateInfo().outs.pc_src; };
+    do_read_mem << [=] { return getCurrentStateInfo().outs.read_mem; };
+
+    // ecall signal is inverted
+    ecall_ctr << [=] { return !getCurrentStateInfo().outs.ecall; };
+
+    stateOutPort << [=] { return getCurrentStateInfo().transitions(opcode.eValue<RVInstr>()); };
 
     stateOutPort >> stateRegCtr->in;
 
@@ -607,8 +878,8 @@ public:
   OUTPUTPORT_ENUM(comp_ctrl, CompOp);
   OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
   OUTPUTPORT_ENUM(mem_ctrl, MemOp);
-  OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1MC);
-  OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2MC);
+  OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
+  OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
 
 

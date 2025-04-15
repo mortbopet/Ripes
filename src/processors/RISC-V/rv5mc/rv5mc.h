@@ -110,16 +110,16 @@ public:
     // -----------------------------------------------------------------------
     // ALU
     registerFile->r1_out >> a->in;
-    a->out >> alu_op1_src->get(AluSrc1MC::REG1);
-    pc_reg->out >> alu_op1_src->get(AluSrc1MC::PC);
-    pc_old_reg->out >> alu_op1_src->get(AluSrc1MC::PCOLD);
+    a->out >> alu_op1_src->get(AluSrc1::REG1);
+    pc_reg->out >> alu_op1_src->get(AluSrc1::PC);
+    pc_old_reg->out >> alu_op1_src->get(AluSrc1::PCOLD);
     control->alu_op1_ctrl >> alu_op1_src->select;
 
     registerFile->r2_out >> b->in;
-    b->out >> alu_op2_src->get(AluSrc2MC::REG2);
-    immediate->imm >> alu_op2_src->get(AluSrc2MC::IMM);
+    b->out >> alu_op2_src->get(AluSrc2::REG2);
+    immediate->imm >> alu_op2_src->get(AluSrc2::IMM);
 
-    pc_inc->out >> alu_op2_src->get(AluSrc2MC::INPC);
+    pc_inc->out >> alu_op2_src->get(AluSrc2::INPC);
 
     control->alu_op2_ctrl >> alu_op2_src->select;
 
@@ -170,8 +170,8 @@ public:
   // Multiplexers
   SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
   SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
-  SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1MC, XLEN>));
-  SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2MC, XLEN>));
+  SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
+  SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
 
   // Memories
@@ -192,10 +192,10 @@ public:
   const ProcessorStructure &structure() const override { return m_structure; }
   unsigned int getPcForStage(StageIndex stage) const override {
     switch (stage.index()) {
-    case EX: case MEM:
-      return pc_old_reg->out.uValue();
-    default:
+    case IF:
       return pc_reg->out.uValue();
+    default:
+      return pc_old_reg->out.uValue();
     }
   }
   AInt nextFetchedAddress() const override {
