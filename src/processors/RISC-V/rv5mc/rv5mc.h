@@ -265,7 +265,7 @@ public:
     }
   }
   bool finished() const override {
-    return m_finished || ((!isExecutableAddress(pc_reg->out.uValue()) && !isExecutableAddress(pc_reg->in.uValue())) && control->do_finish_this_cycle());
+    return m_finished || ((!isExecutableAddress(pc_reg->out.uValue()) && !isExecutableAddress(pc_reg->in.uValue())) && control->inLastState());
 
   }
   const std::vector<StageIndex> breakpointTriggeringStages() const override {
@@ -286,9 +286,8 @@ public:
   }
 
   void clockProcessor() override {
-    if (control->do_finish_this_cycle())
+    if (control->inLastState())
       m_instructionsRetired++;
-
 
     // m_finishInNextCycle may be set during Design::clock(). Store the value
     // before clocking the processor, and emit finished if this was the final
@@ -301,7 +300,7 @@ public:
   }
 
   void reverse() override {
-    if(control->stateInPort.eValue<FSMState>()==FSMState::IF) m_instructionsRetired--;
+    if(control->inFirstState()) m_instructionsRetired--;
 
     Design::reverse();
     // Ensure that reverses performed when we expected to finish in the

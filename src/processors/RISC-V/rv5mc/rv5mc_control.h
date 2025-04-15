@@ -372,29 +372,12 @@ public:
     return FSMState::IF;
   }
 
-  bool do_finish_this_cycle(){
-    switch (stateRegCtr->out.eValue<FSMState>()){
-    case FSMState::EXJAL: case FSMState::MEMJALR:
-    case FSMState::EXCJE: case FSMState::EXCJNE:
-    case FSMState::EXCJGE: case FSMState::EXCJLT:
-    case FSMState::EXCJLTU: case FSMState::EXCJGEU:
-    case FSMState::EXAUIP: case FSMState::MEMALINS:
-    case FSMState::MEMSB: case FSMState::MEMSH:
-    case FSMState::MEMSW: case FSMState::MEMSD:
-    case FSMState::WB: case FSMState::WBMEMLOAD:
-    case FSMState::EXECALL:
-      return true;
-    default:
-      return false;
-    }
-  }
-  /* clang-format on */
-  RVInstr getCurrentOpcode() {
+  RVInstr getCurrentOpcode() const {
     return opcode.eValue<RVInstr>();
   }
 
-  FSMState getCurrentState() {
-    return stateInPort.eValue<FSMState>();
+  FSMState getCurrentState() const {
+    return stateRegCtr->out.eValue<FSMState>();
   }
 
   void addState(FSMState s, StateSignals o, TransitionFunc t) {
@@ -402,15 +385,18 @@ public:
     states.at(idx) = {o, t};
   }
 
-  const StateInfo& getStateInfo(FSMState s) {
+  const StateInfo& getStateInfo(FSMState s) const {
     auto idx = static_cast<int>(s);
     return states[idx];
   }
 
-  const StateInfo& getCurrentStateInfo() {
+  const StateInfo& getCurrentStateInfo() const {
     return getStateInfo(getCurrentState());
   }
 
+  FSMState getNextState() const {
+    return getCurrentStateInfo().transitions(getCurrentOpcode());
+  }
 
 public:
   RVMCControl(const std::string &name, SimComponent *parent)
@@ -841,12 +827,17 @@ public:
     // ecall signal is inverted
     ecall_ctr << [=] { return !getCurrentStateInfo().outs.ecall; };
 
-    stateOutPort << [=] { return getCurrentStateInfo().transitions(opcode.eValue<RVInstr>()); };
+    stateOutPort << [=] { return getNextState(); };
 
     stateOutPort >> stateRegCtr->in;
+  }
 
-    stateRegCtr->out >> stateInPort;
+  bool inFirstState() const {
+    return getCurrentState() == FSMState::IF;
+  }
 
+  bool inLastState() const {
+    return getNextState() == FSMState::IF;
   }
 
   ///Subcomponents
@@ -855,21 +846,13 @@ public:
 
   ///Ports
 
-  ///Internals
-
+  /// May be useful for debug, should be hidden
   OUTPUTPORT_ENUM(stateOutPort,FSMState);
-  INPUTPORT_ENUM(stateInPort,FSMState);
-
-  ///Externals
 
   INPUTPORT_ENUM(opcode, RVInstr);
-
   OUTPUTPORT(do_write_ir, 1);
-
   OUTPUTPORT(ecall_ctr,1);
-
   OUTPUTPORT_ENUM(pc_scr_ctrl,PcSrc);
-
   OUTPUTPORT(reg_do_write_ctrl, 1);
   OUTPUTPORT(do_write_mem, 1);
   OUTPUTPORT(do_branch, 1);
@@ -881,8 +864,6 @@ public:
   OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
   OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
-
-
 };
 
 } // namespace core
