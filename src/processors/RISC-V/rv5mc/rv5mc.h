@@ -34,7 +34,12 @@ class RV5MC : public RipesVSRTLProcessor {
   static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
-  enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
+  enum class Stage { IF = 0, ID, EX, MEM, WB, STAGECOUNT };
+  static Stage StageFromIndex(int i) {
+    assert(0 <= i && i <= static_cast<int>(Stage::STAGECOUNT));
+    return static_cast<Stage>(i);
+  }
+
   RV5MC(const QStringList &extensions)
       : RipesVSRTLProcessor("Multicycle RISC-V Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
@@ -191,8 +196,8 @@ public:
   // Ripes interface compliance
   const ProcessorStructure &structure() const override { return m_structure; }
   unsigned int getPcForStage(StageIndex stage) const override {
-    switch (stage.index()) {
-    case IF:
+    switch (StageFromIndex(stage.index())) {
+      case Stage::IF:
       return pc_reg->out.uValue();
     default:
       return pc_old_reg->out.uValue();
@@ -203,12 +208,12 @@ public:
   }
   QString stageName(StageIndex stage) const override {
     // clang-format off
-        switch (stage.index()) {
-            case IF: return "IF";
-            case ID: return "ID";
-            case EX: return "EX";
-            case MEM: return "MEM";
-            case WB: return "WB";
+        switch (StageFromIndex(stage.index())) {
+            case Stage::IF: return "IF";
+            case Stage::ID: return "ID";
+            case Stage::EX: return "EX";
+            case Stage::MEM: return "MEM";
+            case Stage::WB: return "WB";
             default: assert(false && "Processor does not contain stage");
         }
         Q_UNREACHABLE();
@@ -220,20 +225,20 @@ public:
         stageValid &= stage.index() <= m_cycleCount;
 
         //State valid
-        switch (stage.index()) {
-        case IF:
+        switch (StageFromIndex(stage.index())) {
+        case Stage::IF:
           stageValid &= (control->stateRegCtr->out.eValue<FSMState>() == FSMState::IF);
           break;
-        case ID:
+        case Stage::ID:
           stageValid &= (control->stateRegCtr->out.eValue<FSMState>() == FSMState::ID);
           break;
-        case EX:
+        case Stage::EX:
           stageValid &= (control->stateRegCtr->out.eValue<FSMState>() >= FSMState::EX && control->stateRegCtr->out.eValue<FSMState>() < FSMState::MEM);
           break;
-        case MEM:
+        case Stage::MEM:
           stageValid &= (control->stateRegCtr->out.eValue<FSMState>() >= FSMState::MEM && control->stateRegCtr->out.eValue<FSMState>() < FSMState::WB);
           break;
-        case WB:
+        case Stage::WB:
           stageValid &= (control->stateRegCtr->out.eValue<FSMState>() >= FSMState::WB);
           break;
         default: break;
@@ -242,9 +247,9 @@ public:
         // Gather stage state info
         StageInfo::State state = StageInfo ::State::None;
 
-    return StageInfo({getPcForStage(stage),
-                      stageValid,
-                      state});
+    return StageInfo{getPcForStage(stage),
+                     stageValid,
+                     state};
   }
   void setProgramCounter(AInt address) override {
     pc_reg->forceValue(0,address);
