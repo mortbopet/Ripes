@@ -83,7 +83,6 @@ namespace rv5mc {
     ALUControl alu_control = ALUControl::ADD;
     bool mem_read = false;
     bool mem_write = false;
-    MemOp mem_op = MemOp::LB; // TODO: remove
     bool ecall = false;
   };
   typedef FSMState (*TransitionFunc)(RVInstr);
@@ -167,6 +166,24 @@ public:
     case RVInstr::REMUW : return ALUOp::REMUW;
 
     default: return ALUOp::NOP;
+    }
+  }
+
+  static MemOp do_mem_ctrl(RVInstr opc) {
+    switch(opc){
+      case RVInstr::SB: return MemOp::SB;
+      case RVInstr::SH: return MemOp::SH;
+      case RVInstr::SW: return MemOp::SW;
+      case RVInstr::SD: return MemOp::SD;
+      case RVInstr::LB: return MemOp::LB;
+      case RVInstr::LH: return MemOp::LH;
+      case RVInstr::LW: return MemOp::LW;
+      case RVInstr::LD: return MemOp::LD;
+      case RVInstr::LBU: return MemOp::LBU;
+      case RVInstr::LHU: return MemOp::LHU;
+      case RVInstr::LWU: return MemOp::LWU;
+      default:
+        return MemOp::NOP;
     }
   }
 
@@ -731,49 +748,38 @@ public:
     //Memory Load
     addState(FSMState::MEMLB, {
         .mem_read = true,
-        .mem_op = MemOp::LB,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLH, {
         .mem_read = true,
-        .mem_op = MemOp::LH,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLW, {
         .mem_read = true,
-        .mem_op = MemOp::LW,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLBU, {
         .mem_read = true,
-        .mem_op = MemOp::LBU,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLHU, {
         .mem_read = true,
-        .mem_op = MemOp::LHU,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLWU, {
         .mem_read = true,
-        .mem_op = MemOp::LWU,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLD, {
         .mem_read = true,
-        .mem_op = MemOp::LD,
       }, to(WBMEMLOAD));
 
     //Memory Store
     addState(FSMState::MEMSB, {
         .mem_write = true,
-        .mem_op = MemOp::SB,
       }, to(IF));
     addState(FSMState::MEMSH, {
         .mem_write = true,
-        .mem_op = MemOp::SH,
       }, to(IF));
     addState(FSMState::MEMSW, {
         .mem_write = true,
-        .mem_op = MemOp::SW,
       }, to(IF));
     addState(FSMState::MEMSD, {
         .mem_write = true,
-        .mem_op = MemOp::SD,
       }, to(IF));
 
     //Generic Write Back state
@@ -821,7 +827,7 @@ public:
     mem_read << [=] { return getCurrentStateInfo().outs.mem_read; };
     mem_write << [=] { return getCurrentStateInfo().outs.mem_write; };
 
-    mem_ctrl << [=] { return getCurrentStateInfo().outs.mem_op; };
+    mem_ctrl << [=] { return do_mem_ctrl(getCurrentOpcode());};
     comp_ctrl << [=] { return do_comp_ctrl(getCurrentOpcode()); };
 
     // ecall signal is inverted
