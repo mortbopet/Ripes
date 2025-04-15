@@ -72,20 +72,19 @@ namespace rv5mc {
     INVALID
   };
   struct StateSignals {
-    bool write_ir = false;
-    bool write_pc = false;
+    bool ir_write = false;
+    bool pc_write = false;
     bool branch = false;
     PcSrc pc_src = PcSrc::ALU;
-    bool write_reg = false;
-    bool read_mem = false;
-    bool write_mem = false;
-    MemOp mem_op = MemOp::LB;
-    bool ecall = false;
-    CompOp comp_op = CompOp::EQ;
-    RegWrSrc reg_wr_src = RegWrSrc::ALURES;
+    bool reg_write = false;
+    RegWrSrc reg_src = RegWrSrc::ALURES;
     AluSrc1 alu_op1_src = AluSrc1::PC;
     AluSrc2 alu_op2_src = AluSrc2::IMM;
     ALUControl alu_control = ALUControl::ADD;
+    bool mem_read = false;
+    bool mem_write = false;
+    MemOp mem_op = MemOp::LB; // TODO: remove
+    bool ecall = false;
   };
   typedef FSMState (*TransitionFunc)(RVInstr);
 
@@ -408,13 +407,13 @@ public:
 
     //States common to all operations
     addState(FSMState::IF, {
-        .write_ir = true,
-        .write_pc = true,
+        .ir_write = true,
+        .pc_write = true,
         .pc_src = PcSrc::PC4,
-        .read_mem = true,
         .alu_op1_src = AluSrc1::PC,
         .alu_op2_src = AluSrc2::INPC,
         .alu_control = ALUControl::ADD,
+        .mem_read = true,
     }, to(ID));
 
     addState(FSMState::ID, {
@@ -431,10 +430,10 @@ public:
     //Specific States by Execution Type
     //Jump operations
     addState(FSMState::EXJAL, {
-        .write_pc = true,
+        .pc_write = true,
         .pc_src = PcSrc::ALU,
-        .write_reg = true,
-        .reg_wr_src = RegWrSrc::PC4,
+        .reg_write = true,
+        .reg_src = RegWrSrc::PC4,
       }, to(IF));
     addState(FSMState::EXJALR, {
         // TODO: no .write_reg = true, nor .write_pc = true,
@@ -722,58 +721,58 @@ public:
 
     //Memory states
     addState(FSMState::MEMJALR, { // TODO:rename to WBJALR, or use generic WB
-        .write_pc = true,
+        .pc_write = true,
         .pc_src = PcSrc::ALU,
-        .write_reg = true,
-        .reg_wr_src = RegWrSrc::PC4,
+        .reg_write = true,
+        .reg_src = RegWrSrc::PC4,
       }, to(IF));
 
     //I-Type
     //Memory Load
     addState(FSMState::MEMLB, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LB,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLH, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LH,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLW, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LW,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLBU, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LBU,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLHU, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LHU,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLWU, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LWU,
       }, to(WBMEMLOAD));
     addState(FSMState::MEMLD, {
-        .read_mem = true,
+        .mem_read = true,
         .mem_op = MemOp::LD,
       }, to(WBMEMLOAD));
 
     //Memory Store
     addState(FSMState::MEMSB, {
-        .write_mem = true,
+        .mem_write = true,
         .mem_op = MemOp::SB,
       }, to(IF));
     addState(FSMState::MEMSH, {
-        .write_mem = true,
+        .mem_write = true,
         .mem_op = MemOp::SH,
       }, to(IF));
     addState(FSMState::MEMSW, {
-        .write_mem = true,
+        .mem_write = true,
         .mem_op = MemOp::SW,
       }, to(IF));
     addState(FSMState::MEMSD, {
-        .write_mem = true,
+        .mem_write = true,
         .mem_op = MemOp::SD,
       }, to(IF));
 
@@ -786,46 +785,47 @@ public:
     //R-Type
     //Arimethic
     addState(FSMState::MEMALINS, { // TODO: rename to WBALU
-        .write_reg = true,
-        .reg_wr_src = RegWrSrc::ALURES,
+        .reg_write = true,
+        .reg_src = RegWrSrc::ALURES,
       }, to(IF));
 
     //I-Type
     //Memory Load
     addState(FSMState::WBMEMLOAD, {
-        .write_reg = true,
-        .reg_wr_src = RegWrSrc::MEMREAD,
+        .reg_write = true,
+        .reg_src = RegWrSrc::MEMREAD,
       }, to(IF));
 
     addState(FSMState::EXAUIP, { // TODO: RENAME WBAUIP
-        .write_reg = true,
-        .reg_wr_src = RegWrSrc::ALURES,
+        .reg_write = true,
+        .reg_src = RegWrSrc::ALURES,
       }, to(IF));
 
     addState(FSMState::INVALID, {}, to(INVALID));
 #undef to
 
-    comp_ctrl << [=] { return do_comp_ctrl(getCurrentOpcode()); };
-    do_branch << [=] { return getCurrentStateInfo().outs.branch; };
-    do_write_pc << [=] { return getCurrentStateInfo().outs.write_pc; };
-    mem_ctrl << [=] { return getCurrentStateInfo().outs.mem_op; };
-    reg_do_write_ctrl << [=] { return getCurrentStateInfo().outs.write_reg; };
-    reg_wr_src_ctrl << [=] { return getCurrentStateInfo().outs.reg_wr_src; };
-    alu_op1_ctrl << [=] { return getCurrentStateInfo().outs.alu_op1_src; };
-    alu_op2_ctrl << [=] { return getCurrentStateInfo().outs.alu_op2_src; };
+    ir_write << [=] { return getCurrentStateInfo().outs.ir_write; };
+    pc_write << [=] { return getCurrentStateInfo().outs.pc_write; };
+    branch << [=] { return getCurrentStateInfo().outs.branch; };
+    pc_src << [=] { return getCurrentStateInfo().outs.pc_src; };
+    reg_write << [=] { return getCurrentStateInfo().outs.reg_write; };
+    reg_src << [=] { return getCurrentStateInfo().outs.reg_src; };
+    alu_op1_src << [=] { return getCurrentStateInfo().outs.alu_op1_src; };
+    alu_op2_src << [=] { return getCurrentStateInfo().outs.alu_op2_src; };
     alu_ctrl << [=] {
       auto c = getCurrentStateInfo().outs.alu_control;
       return c == ALUControl::INSTRUCTION_DEPENDENT ? do_alu_ctrl(getCurrentOpcode())
-        : c == ALUControl::ADD ? ALUOp::ADD
-        : (assert(c == ALUControl::SUB), ALUOp::SUB);
+      : c == ALUControl::ADD ? ALUOp::ADD
+      : (assert(c == ALUControl::SUB), ALUOp::SUB);
     };
-    do_write_mem << [=] { return getCurrentStateInfo().outs.write_mem; };
-    do_write_ir << [=] { return getCurrentStateInfo().outs.write_ir; };
-    pc_scr_ctrl << [=] { return getCurrentStateInfo().outs.pc_src; };
-    do_read_mem << [=] { return getCurrentStateInfo().outs.read_mem; };
+    mem_read << [=] { return getCurrentStateInfo().outs.mem_read; };
+    mem_write << [=] { return getCurrentStateInfo().outs.mem_write; };
+
+    mem_ctrl << [=] { return getCurrentStateInfo().outs.mem_op; };
+    comp_ctrl << [=] { return do_comp_ctrl(getCurrentOpcode()); };
 
     // ecall signal is inverted
-    ecall_ctr << [=] { return !getCurrentStateInfo().outs.ecall; };
+    ecall << [=] { return !getCurrentStateInfo().outs.ecall; };
 
     stateOutPort << [=] { return getNextState(); };
 
@@ -850,20 +850,20 @@ public:
   OUTPUTPORT_ENUM(stateOutPort,FSMState);
 
   INPUTPORT_ENUM(opcode, RVInstr);
-  OUTPUTPORT(do_write_ir, 1);
-  OUTPUTPORT(ecall_ctr,1);
-  OUTPUTPORT_ENUM(pc_scr_ctrl,PcSrc);
-  OUTPUTPORT(reg_do_write_ctrl, 1);
-  OUTPUTPORT(do_write_mem, 1);
-  OUTPUTPORT(do_branch, 1);
-  OUTPUTPORT(do_write_pc, 1);
-  OUTPUTPORT(do_read_mem,1);
-  OUTPUTPORT_ENUM(comp_ctrl, CompOp);
-  OUTPUTPORT_ENUM(reg_wr_src_ctrl, RegWrSrc);
-  OUTPUTPORT_ENUM(mem_ctrl, MemOp);
-  OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
-  OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
+  OUTPUTPORT(ir_write, 1);
+  OUTPUTPORT(pc_write, 1);
+  OUTPUTPORT(branch, 1);
+  OUTPUTPORT_ENUM(pc_src,PcSrc);
+  OUTPUTPORT(reg_write, 1);
+  OUTPUTPORT_ENUM(reg_src, RegWrSrc);
+  OUTPUTPORT_ENUM(alu_op1_src, AluSrc1);
+  OUTPUTPORT_ENUM(alu_op2_src, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
+  OUTPUTPORT(mem_read,1);
+  OUTPUTPORT(mem_write, 1);
+  OUTPUTPORT_ENUM(mem_ctrl, MemOp);
+  OUTPUTPORT_ENUM(comp_ctrl, CompOp);
+  OUTPUTPORT(ecall,1);
 };
 
 } // namespace core

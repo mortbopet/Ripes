@@ -48,7 +48,7 @@ public:
 
     pc_reg->out >> pc_old_reg->in;
     0 >> pc_old_reg->clear;
-    control->do_write_ir >> pc_old_reg->enable;
+    control->ir_write >> pc_old_reg->enable;
 
     2 >> pc_inc->get(PcInc::INC2);
     4 >> pc_inc->get(PcInc::INC4);
@@ -62,7 +62,7 @@ public:
     // -----------------------------------------------------------------------
     // Decode
     instr_mem->data_out >> decode->instr;
-    control->do_write_ir >> decode->enable;
+    control->ir_write >> decode->enable;
 
     // -----------------------------------------------------------------------
     // Control signals
@@ -78,15 +78,15 @@ public:
     decode->wr_reg_idx >> registerFile->wr_addr;
     decode->r1_reg_idx >> registerFile->r1_addr;
     decode->r2_reg_idx >> registerFile->r2_addr;
-    control->reg_do_write_ctrl >> registerFile->wr_en;
+    control->reg_write >> registerFile->wr_en;
     reg_wr_src->out >> registerFile->data_in;
 
     data_mem->data_out >> men_out->in;
     men_out->out >> reg_wr_src->get(RegWrSrc::MEMREAD);
     ALU_out->out >> reg_wr_src->get(RegWrSrc::ALURES);
     pc_reg->out >> reg_wr_src->get(RegWrSrc::PC4); // TODO: FIXME
-    control->reg_wr_src_ctrl >> reg_wr_src->select;
-    control->do_read_mem >> data_mem->r;
+    control->reg_src >> reg_wr_src->select;
+    control->mem_read >> data_mem->r;
 
     registerFile->setMemory(m_regMem);
 
@@ -97,9 +97,9 @@ public:
 //    registerFile->r2_out >> branch->op2;
 //
 //    branch->res >> *br_and->in[0];
-      control->do_branch >> *br_and->in[1];
+      control->branch >> *br_and->in[1];
       br_and->out >> *controlflow_or->in[0];
-      control->do_write_pc >> *controlflow_or->in[1];
+      control->pc_write >> *controlflow_or->in[1];
 
     alu->sign >> jumcrv->sign;
     alu->zero >> jumcrv->zero;
@@ -113,7 +113,7 @@ public:
     a->out >> alu_op1_src->get(AluSrc1::REG1);
     pc_reg->out >> alu_op1_src->get(AluSrc1::PC);
     pc_old_reg->out >> alu_op1_src->get(AluSrc1::PCOLD);
-    control->alu_op1_ctrl >> alu_op1_src->select;
+    control->alu_op1_src >> alu_op1_src->select;
 
     registerFile->r2_out >> b->in;
     b->out >> alu_op2_src->get(AluSrc2::REG2);
@@ -121,7 +121,7 @@ public:
 
     pc_inc->out >> alu_op2_src->get(AluSrc2::INPC);
 
-    control->alu_op2_ctrl >> alu_op2_src->select;
+    control->alu_op2_src >> alu_op2_src->select;
 
     alu_op1_src->out >> alu->op1;
     alu_op2_src->out >> alu->op2;
@@ -133,12 +133,12 @@ public:
     ALU_out->out >> pc_src->get(PcSrc::ALU);
     alu->res >> pc_src->get(PcSrc::PC4);
 
-    control->pc_scr_ctrl >> pc_src->select;
+    control->pc_src >> pc_src->select;
 
     // -----------------------------------------------------------------------
     // Data memory
     ALU_out->out >> data_mem->addr;
-    control->do_write_mem >> data_mem->wr_en;
+    control->mem_write >> data_mem->wr_en;
     b->out >> data_mem->data_in;
     control->mem_ctrl >> data_mem->op;
     data_mem->mem->setMemory(m_memory);
@@ -147,7 +147,7 @@ public:
     // Ecall checker
     decode->opcode >> ecallChecker->opcode;
     ecallChecker->setSyscallCallback(&trapHandler);
-    control->ecall_ctr >> ecallChecker->stallEcallHandling;
+    control->ecall >> ecallChecker->stallEcallHandling;
   }
 
   // Design subcomponents
