@@ -11,14 +11,14 @@ namespace core {
 using namespace Ripes;
 
 template <unsigned XLEN>
-class DecodeRVMC : public Component {
+class DecodeUncompress : public Component {
 public:
   void setISA(const std::shared_ptr<ISAInfoBase> &isa) {
     decode->setISA(isa);
     uncompress->setISA(isa);
   }
 
-  DecodeRVMC(std::string name, SimComponent *parent) : Component(name, parent) {
+  DecodeUncompress(std::string name, SimComponent *parent) : Component(name, parent) {
     instr >> regIntr->in;
     0 >> regIntr->clear;
     enable >> regIntr->enable;

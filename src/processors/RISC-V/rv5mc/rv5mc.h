@@ -11,7 +11,7 @@
 #include "processors/RISC-V/riscv.h"
 
 
-#include "rv5mc_jump_unit.h"
+#include "rv5mc_branch.h"
 
 #include "rv5mc_control.h"
 #include "rv5mc_alu.h"
@@ -20,7 +20,7 @@
 #include "processors/RISC-V/rv_immediate.h"
 #include "rv5mc_memory.h"
 #include "processors/RISC-V/rv_registerfile.h"
-#include "rv5mc_decode_and_compressor_register.h"
+#include "rv5mc_decode_and_umcompress.h"
 
 namespace vsrtl {
 namespace core {
@@ -84,33 +84,26 @@ public:
     decode->r1_reg_idx >> registerFile->r1_addr;
     decode->r2_reg_idx >> registerFile->r2_addr;
     control->reg_write >> registerFile->wr_en;
-    reg_wr_src->out >> registerFile->data_in;
+    reg_src->out >> registerFile->data_in;
 
-    data_mem->data_out >> men_out->in;
-    men_out->out >> reg_wr_src->get(RegWrSrc::MEMREAD);
-    ALU_out->out >> reg_wr_src->get(RegWrSrc::ALURES);
-    pc_reg->out >> reg_wr_src->get(RegWrSrc::PC4); // TODO: FIXME
-    control->reg_src >> reg_wr_src->select;
+    data_mem->data_out >> mem_out->in;
+    mem_out->out >> reg_src->get(RegWrSrc::MEMREAD);
+    ALU_out->out >> reg_src->get(RegWrSrc::ALURES);
+    pc_reg->out >> reg_src->get(RegWrSrc::PC4); // TODO: FIXME
+    control->reg_src >> reg_src->select;
     control->mem_read >> data_mem->r;
 
     registerFile->setMemory(m_regMem);
 
-    // -----------------------------------------------------------------------
-    // Branch
-//    control->comp_ctrl >> branch->comp_op;
-//    registerFile->r1_out >> branch->op1;
-//    registerFile->r2_out >> branch->op2;
-//
-//    branch->res >> *br_and->in[0];
-      control->branch >> *br_and->in[1];
-      br_and->out >> *controlflow_or->in[0];
-      control->pc_write >> *controlflow_or->in[1];
+    control->branch >> *br_and->in[1];
+    br_and->out >> *controlflow_or->in[0];
+    control->pc_write >> *controlflow_or->in[1];
 
-    alu->sign >> jumcrv->sign;
-    alu->zero >> jumcrv->zero;
-    alu->carry >> jumcrv->carry;
-    control->comp_ctrl >> jumcrv->comp_op;
-    jumcrv->res >> *br_and->in[0];
+    alu->sign >> branch_unit->sign;
+    alu->zero >> branch_unit->zero;
+    alu->carry >> branch_unit->carry;
+    control->comp_ctrl >> branch_unit->comp_op;
+    branch_unit->res >> *br_and->in[0];
 
     // -----------------------------------------------------------------------
     // ALU
@@ -160,20 +153,19 @@ public:
   SUBCOMPONENT(alu, TYPE(RVMCALU<XLEN>));
   SUBCOMPONENT(control, RVMCControl);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
-  SUBCOMPONENT(decode, TYPE(DecodeRVMC<XLEN>));
-
-  SUBCOMPONENT(jumcrv, TYPE(JURVMC<XLEN>));
+  SUBCOMPONENT(decode, TYPE(DecodeUncompress<XLEN>));
+  SUBCOMPONENT(branch_unit, TYPE(BranchSimple<XLEN>));
 
   // Registers
-  SUBCOMPONENT(pc_old_reg, RegisterClEn<XLEN>);
   SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
+  SUBCOMPONENT(pc_old_reg, RegisterClEn<XLEN>);
   SUBCOMPONENT(a,Register<XLEN>);
   SUBCOMPONENT(b,Register<XLEN>);
   SUBCOMPONENT(ALU_out,Register<XLEN>);
-  SUBCOMPONENT(men_out,Register<XLEN>);
+  SUBCOMPONENT(mem_out,Register<XLEN>);
 
   // Multiplexers
-  SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
+  SUBCOMPONENT(reg_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
   SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
   SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));

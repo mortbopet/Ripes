@@ -11,9 +11,9 @@ namespace core {
 using namespace Ripes;
 
 template <unsigned XLEN>
-class JURVMC : public Component {
+class BranchSimple : public Component {
 public:
-  JURVMC(std::string name, SimComponent *parent) : Component(name, parent) {
+  BranchSimple(std::string name, SimComponent *parent) : Component(name, parent) {
     comp_op >> multplexer->select;
 
     sign >> *not_sign->in[0];
