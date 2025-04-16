@@ -49,7 +49,6 @@ namespace rv5mc {
     AluSrc1 alu_op1_src = AluSrc1::PC;
     AluSrc2 alu_op2_src = AluSrc2::IMM;
     ALUControl alu_control = ALUControl::ADD;
-    bool mem_read = false;
     bool mem_write = false;
     bool ecall = false;
   };
@@ -197,7 +196,6 @@ public:
         .alu_op1_src = AluSrc1::PC,
         .alu_op2_src = AluSrc2::INPC,
         .alu_control = ALUControl::ADD,
-        .mem_read = true,
     }, to(ID));
 
     addState(FSMState::ID, {
@@ -291,7 +289,7 @@ public:
 
     //Memory states
     addState(FSMState::MEMLOAD, {
-        .mem_read = true,
+        //.mem_read = true, // the memory reads every cycle from the addres in ALU_out
       }, to(WBMEMLOAD));
 
     addState(FSMState::MEMSTORE, {
@@ -332,7 +330,6 @@ public:
       : c == ALUControl::ADD ? ALUOp::ADD
       : (assert(c == ALUControl::SUB), ALUOp::SUB);
     };
-    mem_read << [=] { return getCurrentStateInfo().outs.mem_read; };
     mem_write << [=] { return getCurrentStateInfo().outs.mem_write; };
 
     mem_ctrl << [=] { return do_mem_ctrl(getCurrentOpcode());};
@@ -373,7 +370,6 @@ public:
   OUTPUTPORT_ENUM(alu_op1_src, AluSrc1);
   OUTPUTPORT_ENUM(alu_op2_src, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
-  OUTPUTPORT(mem_read,1);
   OUTPUTPORT(mem_write, 1);
   OUTPUTPORT_ENUM(mem_ctrl, MemOp);
   OUTPUTPORT_ENUM(comp_ctrl, CompOp);

@@ -10,17 +10,15 @@
 
 #include "processors/RISC-V/riscv.h"
 
-
-#include "rv5mc_branch.h"
-
 #include "rv5mc_control.h"
+#include "rv5mc_branch.h"
+#include "rv5mc_decode_and_umcompress.h"
 #include "rv5mc_alu.h"
 
 #include "processors/RISC-V/rv_ecallchecker.h"
 #include "processors/RISC-V/rv_immediate.h"
-#include "rv5mc_memory.h"
+#include "processors/RISC-V/rv_memory.h"
 #include "processors/RISC-V/rv_registerfile.h"
-#include "rv5mc_decode_and_umcompress.h"
 
 namespace vsrtl {
 namespace core {
@@ -91,7 +89,6 @@ public:
     ALU_out->out >> reg_src->get(RegWrSrc::ALURES);
     pc_reg->out >> reg_src->get(RegWrSrc::PC4); // TODO: FIXME
     control->reg_src >> reg_src->select;
-    control->mem_read >> data_mem->r;
 
     registerFile->setMemory(m_regMem);
 
@@ -173,7 +170,7 @@ public:
 
   // Memories
   SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
-  SUBCOMPONENT(data_mem, TYPE(RVMCMemory<XLEN, XLEN>));
+  SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
 
   // Gates
   SUBCOMPONENT(br_and, TYPE(And<1, 2>));
