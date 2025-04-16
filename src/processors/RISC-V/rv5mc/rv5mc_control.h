@@ -12,7 +12,7 @@ using namespace Ripes;
 
 namespace rv5mc {
   enum class AluSrc1 { REG1, PC, PCOLD };
-  enum class AluSrc2 { REG2, IMM, INPC };
+  enum class AluSrc2 { REG2, IMM, PC_INC };
   enum class ALUControl { ADD, SUB, INSTRUCTION_DEPENDENT };
 
   enum class FSMState {
@@ -194,7 +194,7 @@ public:
         .pc_write = true,
         .pc_src = PcSrc::PC4,
         .alu_op1_src = AluSrc1::PC,
-        .alu_op2_src = AluSrc2::INPC,
+        .alu_op2_src = AluSrc2::PC_INC,
         .alu_control = ALUControl::ADD,
     }, to(ID));
 

@@ -114,7 +114,7 @@ public:
     b->out >> alu_op2_src->get(AluSrc2::REG2);
     immediate->imm >> alu_op2_src->get(AluSrc2::IMM);
 
-    pc_inc->out >> alu_op2_src->get(AluSrc2::INPC);
+    pc_inc->out >> alu_op2_src->get(AluSrc2::PC_INC);
 
     control->alu_op2_src >> alu_op2_src->select;
 
