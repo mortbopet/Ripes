@@ -210,23 +210,23 @@ public:
   }
   StageInfo stageInfo(StageIndex stage) const override {
         bool stageValid = true;
-
+        auto fsmState = control->getCurrentState();
         //State valid
         switch (StageFromIndex(stage.index())) {
         case Stage::IF:
-          stageValid &= (control->state_reg->out.eValue<FSMState>() == FSMState::IF);
+          stageValid &= (fsmState == FSMState::IF);
           break;
         case Stage::ID:
-          stageValid &= (control->state_reg->out.eValue<FSMState>() == FSMState::ID);
+          stageValid &= (fsmState == FSMState::ID);
           break;
         case Stage::EX:
-          stageValid &= (control->state_reg->out.eValue<FSMState>() >= FSMState::EX && control->state_reg->out.eValue<FSMState>() < FSMState::MEM);
+          stageValid &= (fsmState >= FSMState::EX && fsmState < FSMState::MEM);
           break;
         case Stage::MEM:
-          stageValid &= (control->state_reg->out.eValue<FSMState>() >= FSMState::MEM && control->state_reg->out.eValue<FSMState>() < FSMState::WB);
+          stageValid &= (fsmState >= FSMState::MEM && fsmState < FSMState::WB);
           break;
         case Stage::WB:
-          stageValid &= (control->state_reg->out.eValue<FSMState>() >= FSMState::WB);
+          stageValid &= (fsmState >= FSMState::WB);
           break;
         default: break;
         }
