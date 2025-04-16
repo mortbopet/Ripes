@@ -159,7 +159,7 @@ public:
   }
 
   FSMState getCurrentState() const {
-    return stateRegCtr->out.eValue<FSMState>();
+    return state_reg->out.eValue<FSMState>();
   }
 
   void addState(FSMState s, StateSignals o, TransitionFunc t) {
@@ -338,9 +338,10 @@ public:
     // ecall signal is inverted
     ecall << [=] { return !getCurrentStateInfo().outs.ecall; };
 
-    stateOutPort << [=] { return getNextState(); };
+    next_state << [=] { return getNextState(); };
+    current_state << [=] { return getCurrentState(); };
 
-    stateOutPort >> stateRegCtr->in;
+    next_state >> state_reg->in;
   }
 
   bool inFirstState() const {
@@ -353,12 +354,13 @@ public:
 
   ///Subcomponents
 
-  SUBCOMPONENT(stateRegCtr, Register<enumBitWidth<FSMState>()>);
+  SUBCOMPONENT(state_reg, Register<enumBitWidth<FSMState>()>);
 
   ///Ports
 
   /// May be useful for debug, should be hidden
-  OUTPUTPORT_ENUM(stateOutPort,FSMState);
+  OUTPUTPORT_ENUM(next_state,FSMState);
+  OUTPUTPORT_ENUM(current_state,FSMState);
 
   INPUTPORT_ENUM(opcode, RVInstr);
   OUTPUTPORT(ir_write, 1);

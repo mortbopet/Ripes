@@ -210,25 +210,23 @@ public:
   }
   StageInfo stageInfo(StageIndex stage) const override {
         bool stageValid = true;
-        // Has the pipeline stage been filled?
-        stageValid &= stage.index() <= m_cycleCount;
 
         //State valid
         switch (StageFromIndex(stage.index())) {
         case Stage::IF:
-          stageValid &= (control->stateRegCtr->out.eValue<FSMState>() == FSMState::IF);
+          stageValid &= (control->state_reg->out.eValue<FSMState>() == FSMState::IF);
           break;
         case Stage::ID:
-          stageValid &= (control->stateRegCtr->out.eValue<FSMState>() == FSMState::ID);
+          stageValid &= (control->state_reg->out.eValue<FSMState>() == FSMState::ID);
           break;
         case Stage::EX:
-          stageValid &= (control->stateRegCtr->out.eValue<FSMState>() >= FSMState::EX && control->stateRegCtr->out.eValue<FSMState>() < FSMState::MEM);
+          stageValid &= (control->state_reg->out.eValue<FSMState>() >= FSMState::EX && control->state_reg->out.eValue<FSMState>() < FSMState::MEM);
           break;
         case Stage::MEM:
-          stageValid &= (control->stateRegCtr->out.eValue<FSMState>() >= FSMState::MEM && control->stateRegCtr->out.eValue<FSMState>() < FSMState::WB);
+          stageValid &= (control->state_reg->out.eValue<FSMState>() >= FSMState::MEM && control->state_reg->out.eValue<FSMState>() < FSMState::WB);
           break;
         case Stage::WB:
-          stageValid &= (control->stateRegCtr->out.eValue<FSMState>() >= FSMState::WB);
+          stageValid &= (control->state_reg->out.eValue<FSMState>() >= FSMState::WB);
           break;
         default: break;
         }
