@@ -9,6 +9,7 @@
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
 #include "processors/RISC-V/rv5mc/rv5mc.h"
+#include "processors/RISC-V/rv5mc_1m/rv5mc_1m.h"
 
 namespace Ripes {
 
@@ -83,6 +84,29 @@ ProcessorRegistry::ProcessorRegistry() {
       "A 5 stage multicycle processor", layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5MC<uint64_t>>(
       ProcessorID::RV64_5MC, "Multi-cycle processor",
+      "A 5 stage multicycle processor", layouts, defRegVals));
+
+  // RISC-V multicycle, one memory
+  layouts = {{"Standard",
+      ":/layouts/RISC-V/rv5mc_1m/rv5mc_1m_standard_layout.json", // TODO
+      {{{0, 0}, QPointF{0.08, 0}},
+      {{0, 1}, QPointF{0.29, 0}},
+      {{0, 2}, QPointF{0.55, 0}},
+      {{0, 3}, QPointF{0.75, 0}},
+      {{0, 4}, QPointF{0.87, 0}}}},
+      {"Extended",
+          ":/layouts/RISC-V/rv5mc_1m/rv5mc_1m_extended_layout.json", // TODO
+          {{{0, 0}, QPointF{0.08, 0}},
+          {{0, 1}, QPointF{0.28, 0}},
+          {{0, 2}, QPointF{0.54, 0}},
+          {{0, 3}, QPointF{0.78, 0}},
+          {{0, 4}, QPointF{0.9, 0}}}}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RV5MC1M<uint32_t>>(
+      ProcessorID::RV32_5MC_1M, "Multi-cycle processor with one memory",
+      "A 5 stage multicycle processor", layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RV5MC1M<uint64_t>>(
+      ProcessorID::RV64_5MC_1M, "Multi-cycle processor with one memory",
       "A 5 stage multicycle processor", layouts, defRegVals));
 
   // RISC-V 5-stage without forwarding or hazard detection

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "VSRTL/core/vsrtl_adder.h"
-#include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_design.h"
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
@@ -10,30 +8,34 @@
 
 #include "processors/RISC-V/riscv.h"
 
-#include "rv5mc_control.h"
-#include "rv5mc_branch.h"
-#include "rv5mc_decode_and_umcompress.h"
-#include "rv5mc_alu.h"
+#include "rv5mc_1m_control.h"
+#include "rv5mc_bitselect.h"
+#include "processors/RISC-V/rv5mc/rv5mc_branch.h"
+#include "processors/RISC-V/rv5mc/rv5mc_decode_and_umcompress.h"
+#include "processors/RISC-V/rv5mc/rv5mc_alu.h"
 
 #include "processors/RISC-V/rv_ecallchecker.h"
 #include "processors/RISC-V/rv_immediate.h"
 #include "processors/RISC-V/rv_memory.h"
 #include "processors/RISC-V/rv_registerfile.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
 template <typename XLEN_T>
-class RV5MC : public RipesVSRTLProcessor {
+class RV5MC1M : public RipesVSRTLProcessor {
   static_assert(std::is_same<uint32_t, XLEN_T>::value ||
                     std::is_same<uint64_t, XLEN_T>::value,
                 "Only supports 32- and 64-bit variants");
-  using FSMState = rv5mc::FSMState;
-  using RVMCControl = rv5mc::RVMCControl;
-  using AluSrc1 = rv5mc::AluSrc1;
-  using AluSrc2 = rv5mc::AluSrc2;
-  using ALUControl = rv5mc::ALUControl;
+  using FSMState = rv5mc1m::FSMState;
+  using RVMC1MControl = rv5mc1m::RVMC1MControl;
+  using AluSrc1 = rv5mc1m::AluSrc1;
+  using AluSrc2 = rv5mc1m::AluSrc2;
+  using ALUControl = rv5mc1m::ALUControl;
+  using MemAddrSrc = rv5mc1m::MemAddrSrc;
+
   static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
@@ -43,7 +45,7 @@ public:
     return static_cast<Stage>(i);
   }
 
-  RV5MC(const QStringList &extensions)
+  RV5MC1M(const QStringList &extensions)
       : RipesVSRTLProcessor("Multicycle RISC-V Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
@@ -63,13 +65,23 @@ public:
     decode->Pc_Inc >> pc_inc->select;
 
     // -----------------------------------------------------------------------
-    // Instruction memory
-    pc_reg->out >> instr_mem->addr;
-    instr_mem->setMemory(m_memory);
+    // memory
+    pc_reg->out >> mem_addr_src->get(MemAddrSrc::PC);
+    ALU_out->out >> mem_addr_src->get(MemAddrSrc::ALUOUT);
+    control->mem_addr_src >> mem_addr_src->select;
+    mem_addr_src->out >> memory->addr;
+    memory->data_out >> mem_out->in;
+    mem_out->out >> reg_src->get(RegWrSrc::MEMREAD);
+    control->mem_write >> memory->wr_en;
+    b->out >> memory->data_in;
+    control->mem_ctrl >> memory->op;
+    memory->setMemory(m_memory);
 
     // -----------------------------------------------------------------------
     // Decode
-    instr_mem->data_out >> decode->instr;
+    memory->data_out >> ir_bitselect->in;
+    ir_bitselect->out >> decode->instr;
+    decode->instr <<  [=] { return memory->data_out.uValue(); };
     control->ir_write >> decode->enable;
 
     // -----------------------------------------------------------------------
@@ -89,8 +101,6 @@ public:
     control->reg_write >> registerFile->wr_en;
     reg_src->out >> registerFile->data_in;
 
-    data_mem->data_out >> mem_out->in;
-    mem_out->out >> reg_src->get(RegWrSrc::MEMREAD);
     ALU_out->out >> reg_src->get(RegWrSrc::ALURES);
     pc_reg->out >> reg_src->get(RegWrSrc::PC4); // TODO: FIXME
     control->reg_src >> reg_src->select;
@@ -136,14 +146,6 @@ public:
     control->pc_src >> pc_src->select;
 
     // -----------------------------------------------------------------------
-    // Data memory
-    ALU_out->out >> data_mem->addr;
-    control->mem_write >> data_mem->wr_en;
-    b->out >> data_mem->data_in;
-    control->mem_ctrl >> data_mem->op;
-    data_mem->setMemory(m_memory);
-
-    // -----------------------------------------------------------------------
     // Ecall checker
     decode->opcode >> ecallChecker->opcode;
     ecallChecker->setSyscallCallback(&trapHandler);
@@ -153,7 +155,7 @@ public:
   // Design subcomponents
   SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, false>));
   SUBCOMPONENT(alu, TYPE(RVMCALU<XLEN>));
-  SUBCOMPONENT(control, RVMCControl);
+  SUBCOMPONENT(control, RVMC1MControl);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
   SUBCOMPONENT(decode, TYPE(DecodeUncompress<XLEN>));
   SUBCOMPONENT(branch_unit, TYPE(BranchSimple<XLEN>));
@@ -172,10 +174,11 @@ public:
   SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
+  SUBCOMPONENT(mem_addr_src, TYPE(EnumMultiplexer<MemAddrSrc, XLEN>));
+  SUBCOMPONENT(ir_bitselect, TYPE(BitSelectLSBs<XLEN, c_RVInstrWidth>));
 
   // Memories
-  SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
-  SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
+  SUBCOMPONENT(memory, TYPE(RVMemory<XLEN, XLEN>));
 
   // Gates
   SUBCOMPONENT(br_and, TYPE(And<1, 2>));
@@ -270,10 +273,10 @@ public:
   }
 
   MemoryAccess dataMemAccess() const override {
-    return memToAccessInfo(data_mem);
+    return memToAccessInfo(memory);
   }
   MemoryAccess instrMemAccess() const override {
-    auto instrAccess = memToAccessInfo(instr_mem);
+    auto instrAccess = memToAccessInfo(memory);
     instrAccess.type = MemoryAccess::Read;
     return instrAccess;
   }
