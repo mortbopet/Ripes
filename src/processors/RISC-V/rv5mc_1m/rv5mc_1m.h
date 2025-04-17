@@ -9,7 +9,7 @@
 #include "processors/RISC-V/riscv.h"
 
 #include "rv5mc_1m_control.h"
-#include "rv5mc_bitselect.h"
+#include "rv5mc_widthadjust.h"
 #include "processors/RISC-V/rv5mc/rv5mc_branch.h"
 #include "processors/RISC-V/rv5mc/rv5mc_decode_and_umcompress.h"
 #include "processors/RISC-V/rv5mc/rv5mc_alu.h"
@@ -79,8 +79,8 @@ public:
 
     // -----------------------------------------------------------------------
     // Decode
-    memory->data_out >> ir_bitselect->in;
-    ir_bitselect->out >> decode->instr;
+    memory->data_out >> ir_widthadjust->in;
+    ir_widthadjust->out >> decode->instr;
     decode->instr <<  [=] { return memory->data_out.uValue(); };
     control->ir_write >> decode->enable;
 
@@ -175,7 +175,7 @@ public:
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
   SUBCOMPONENT(mem_addr_src, TYPE(EnumMultiplexer<MemAddrSrc, XLEN>));
-  SUBCOMPONENT(ir_bitselect, TYPE(BitSelectLSBs<XLEN, c_RVInstrWidth>));
+  SUBCOMPONENT(ir_widthadjust, TYPE(WidthAdjust<XLEN, c_RVInstrWidth>));
 
   // Memories
   SUBCOMPONENT(memory, TYPE(RVMemory<XLEN, XLEN>));

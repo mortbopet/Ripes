@@ -7110,8 +7110,8 @@
             },
             "Indicators": []
         },
-        "ir_bitselect": {
-            "Top name": "ir_bitselect",
+        "ir_widthadjust": {
+            "Top name": "ir_widthadjust",
             "Rect": {
                 "x": 0,
                 "y": 0,
@@ -7215,7 +7215,7 @@
                     "first": 0,
                     "second": [
                         "out",
-                        "ir_bitselect"
+                        "ir_widthadjust"
                     ]
                 },
                 "To ports": [
@@ -7241,7 +7241,7 @@
                 "Italic": false,
                 "PtSize": 12,
                 "Text": {
-                    "str": "ir_bitselect"
+                    "str": "ir_widthadjust"
                 },
                 "Pos": {
                     "x": -14.3046875,
@@ -8940,7 +8940,7 @@
                         "key": 2,
                         "value": [
                             "in",
-                            "ir_bitselect"
+                            "ir_widthadjust"
                         ]
                     }
                 ],
