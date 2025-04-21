@@ -228,7 +228,8 @@ public:
         case RVInstr::AUIPC:
           return FSMState::WBALU;
         default:
-          assert(false);
+          // Illegal instruction
+          return FSMState::IF; // skip. TODO: exception
       }});
 
     //Specific States by Execution Type
