@@ -3426,14 +3426,14 @@
             },
             "Name label": {
                 "Visible": true,
-                "Bold": false,
+                "Bold": true,
                 "Italic": false,
                 "PtSize": 12,
                 "Text": {
                     "str": "Branch\nUnit"
                 },
                 "Pos": {
-                    "x": 0.9517402107514172,
+                    "x": 0.94,
                     "y": -5.243148879299255
                 },
                 "Alignment": 1
