@@ -34,14 +34,18 @@ COPY --from=wasm /opt/Ripes/build/Ripes.html ./static/ripes/Ripes.html
 
 ARG RIPES_TESTER_VERSION=2.2.6
 
+WORKDIR /app/tester
+
+COPY ./docker/docker_extra/create-display.sh ./create-display.sh
+
 RUN wget -O Ripes.AppImage https://github.com/mortbopet/Ripes/releases/download/v${RIPES_TESTER_VERSION}/Ripes-v${RIPES_TESTER_VERSION}-linux-x86_64.AppImage && \
     chmod +x Ripes.AppImage 
+
+WORKDIR /app
 
 ENV APPIMAGE_EXTRACT_AND_RUN=1
 ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 ENV RUNLEVEL=3
-
-COPY ./docker/docker_extra/create-display.sh ./create-display.sh
 
 EXPOSE 5000
 
