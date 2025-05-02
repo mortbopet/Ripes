@@ -39,7 +39,7 @@ regs_dict = {
 
 
 class Tester:
-    def __init__(self, path="app/tester", code_file="input.s", code_file_type='s', proc='RV32_5S', timeout=1000,
+    def __init__(self, path=".", code_file="test.s", code_file_type='asm', proc='RV32_5S', timeout=1000,
                  **kwargs) -> None:
         if timeout <= 0:
             raise ValueError("Timeout cannot be negative")
@@ -53,7 +53,7 @@ class Tester:
         # }
 
         self.test_run_strings = [
-            f"{path}/create-display.sh",
+            # f"{path}/create-display.sh",
             f"{path}/Ripes.AppImage",
             f"--appimage-extract-and-run",
             f"--mode cli",
@@ -100,37 +100,33 @@ class Tester:
             if key == "reginit":
                 self.__set_reginit(value)
 
-    def __run(self, reginit: str | dict = None, run_input: str = None) -> CompletedProcess:
+    def __run(self,  run_input: str = None, reginit: str | dict = None) -> CompletedProcess:
         if reginit is not None:
             tmp = self.test_run_strings[self.reginit_index] if self.reginit_index != -1 else None
             self.__set_reginit(reginit)
-            res = run(self.test_run_strings, capture_output=True, text=True, input=run_input)
+            res = run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True)
             self.__set_reginit(tmp)
             return res
-        return run(self.test_run_strings, capture_output=True, text=True, input=run_input)
+        return run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True)
 
-    def run(self, reginit: str | dict = None, run_input: str = None) -> CompletedProcess | (CompletedProcess, dict):
-        res = self.__run(reginit, run_input)
-        if "Program exited with code: 0\n" not in res.stdout:
-            if "ERROR" in res.stdout:
-                raise Exception(res.stdout)
+    def run(self, run_input: str = None, reginit: str | dict = None) -> dict:
+        run_res = self.__run(reginit, run_input)
+        if "Program exited with code: 0\n" not in run_res.stdout:
+            if "ERROR" in run_res.stdout:
+                raise Exception(run_res.stdout)
             raise ValueError("Program haven't exited or got non-zero exit code")
-        if self.has_report:
-            return res, self.__get_report(res)
-        return self.__run(reginit, run_input)
 
-    def __get_report(self, proc: CompletedProcess | str = None) -> dict:
-        if self.output is None:
-            if proc is None:
-                raise ValueError("Haven't provided a process or a stdout string to ger report from")
-            if isinstance(proc, CompletedProcess):
-                return json.loads(proc.stdout.split("Program exited with code: 0\n")[1])
-            if isinstance(proc, str):
-                return json.loads(proc.split("Program exited with code: 0\n")[1])
-            raise TypeError("Invalid proc type")
-        with open(self.output, 'r') as file:
-            report = json.load(file)
-        return report
+        return self.__parse_output(run_res)
+
+    def __parse_output(self, proc: CompletedProcess) -> dict:
+        res = {"output": proc.stdout.split("Program exited with code: 0\n")[0].strip()}
+        if self.has_report:
+            if self.output is None:
+                res['report'] = json.loads(proc.stdout.split("Program exited with code: 0\n")[1])
+                return res
+            with open(self.output, 'r') as file:
+                res['report'] = json.load(file)
+        return res
 
     def __set_reginit(self, reginit) -> None:
         if reginit is None and self.reginit_index != -1:
