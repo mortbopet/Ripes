@@ -39,7 +39,7 @@ regs_dict = {
 
 
 class Tester:
-    def __init__(self, path=".", code_file="test.s", code_file_type='asm', proc='RV32_5S', timeout=1000,
+    def __init__(self, path="/app/tester", code_file="test.s", code_file_type='asm', proc='RV32_5S', timeout=1000,
                  **kwargs) -> None:
         if timeout <= 0:
             raise ValueError("Timeout cannot be negative")
@@ -53,11 +53,11 @@ class Tester:
         # }
 
         self.test_run_strings = [
-            # f"{path}/create-display.sh",
+            f"{path}/create-display.sh",
             f"{path}/Ripes.AppImage",
             f"--appimage-extract-and-run",
             f"--mode cli",
-            f"--src {code_file}",
+            f"--src {path}/{code_file}",
             f"-t {code_file_type}",
             f"--proc {proc}",
             f"--timeout {timeout}",
