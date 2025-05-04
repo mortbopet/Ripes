@@ -184,7 +184,7 @@ AssemblerBase::splitDirectivesFromLine(const Location &location,
       if (directivesStillAllowed) {
         directives.push_back(token);
       } else {
-        return {Error(location, QStringLiteral("Stray '.' in line"))};
+        remainingTokens.push_back(token); // may be a label
       }
     } else {
       remainingTokens.push_back(token);
