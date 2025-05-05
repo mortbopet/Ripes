@@ -59,7 +59,6 @@ public:
   }
 
   void setMemory(AddressSpace *addressSpace) {
-    setMemory(addressSpace);
     mem->setMemory(addressSpace);
   }
 
