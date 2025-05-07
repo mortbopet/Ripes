@@ -32,7 +32,7 @@ void CacheConfigWidget::setCache(const std::shared_ptr<CacheSim> &cache) {
   setupEnumCombobox(m_ui->wrHit, s_cacheWritePolicyStrings);
   setupEnumCombobox(m_ui->wrMiss, s_cacheWriteAllocateStrings);
 
-  m_ui->ways->setValue(m_cache->getWaysBits());
+  m_ui->ways->setValue(m_cache->getWays());
   m_ui->lines->setValue(m_cache->getLineBits());
   m_ui->blocks->setValue(m_cache->getBlockBits());
 
@@ -153,7 +153,7 @@ void CacheConfigWidget::handleConfigurationChanged() {
   std::for_each(m_configItems.begin(), m_configItems.end(),
                 [](QObject *o) { o->blockSignals(true); });
 
-  m_ui->ways->setValue(m_cache->getWaysBits());
+  m_ui->ways->setValue(m_cache->getWays());
   m_ui->lines->setValue(m_cache->getLineBits());
   m_ui->blocks->setValue(m_cache->getBlockBits());
   setEnumIndex(m_ui->wrHit, m_cache->getWritePolicy());

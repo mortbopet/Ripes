@@ -90,7 +90,7 @@ CacheSim::CacheSize CacheSim::getCacheSize() const {
 
   if (m_replPolicy == ReplPolicy::LRU) {
     // LRU bits
-    componentBits = getWaysBits() * entries;
+    componentBits = vsrtl::ceillog2(getWays()) * entries;
     size.components.push_back("LRU bits: " + QString::number(componentBits));
     size.bits += componentBits;
   }
