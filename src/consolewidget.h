@@ -17,6 +17,7 @@ public:
 
   void putData(const QByteArray &data);
   void clearConsole();
+  QString getText() const;
 
 private:
   Ui::ConsoleWidget *m_ui;

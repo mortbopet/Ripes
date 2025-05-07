@@ -16,7 +16,7 @@ RUN apt-get update && \
     libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
     libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libegl1 libegl1-mesa-dev \
     python3 python3-pip && \
-    rm -rf /var/lib/apt/lists/*  # Clean up apt cache
+    rm -rf /var/lib/apt/lists/*
 
 # Install aqt (for Qt installation)
 RUN python3 -m pip install aqtinstall==3.1.* py7zr>=0.20.2
@@ -50,6 +50,12 @@ ENV PATH $EMSDK:$EMSDK/upstream/emscripten:$EMSDK/node/14.18.2_64bit/bin:$PATH
 ENV CC emcc
 ENV CXX em++
 
+# Install CMake 3.21 (or later) from Kitware's repository
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+    && apt-get update \
+    && apt-get install cmake -y
+
 # Clone Ripes repository (inside the container)
 WORKDIR /opt/Ripes
 ARG BRANCH=master
@@ -65,12 +71,6 @@ ENV QT_HOST_PATH /opt/Qt/6.6.0/gcc_64
 # Create build directory
 WORKDIR /opt/Ripes/build
 
-# Install CMake 3.21 (or later) from Kitware's repository
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
-    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-    && apt-get update \
-    && apt-get install cmake -y
-
 # Run CMake and Make
 RUN echo ". /opt/emsdk/emsdk_env.sh" >> ~/.bashrc && \
     cmake \
@@ -78,6 +78,7 @@ RUN echo ". /opt/emsdk/emsdk_env.sh" >> ~/.bashrc && \
       -DRIPES_WITH_QPROCESS=OFF \
       -DEMSCRIPTEN=1 \
       -DQT_HOST_PATH="$QT_HOST_PATH" \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
       -DCMAKE_TOOLCHAIN_FILE=/opt/Qt/6.6.0/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
       -DCMAKE_PREFIX_PATH=/opt/Qt/6.6.0/wasm_multithread \
       -DEMSCRIPTEN_FORCE_COMPILERS=ON \

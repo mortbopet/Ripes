@@ -57,6 +57,7 @@ private slots:
   void autoClockTimeout();
   void setInstructionViewCenterRow(int row);
   void showPipelineDiagram();
+  void sendToMoodleBackend();
 
 private:
   void setupSimulatorActions(QToolBar *controlToolbar);
