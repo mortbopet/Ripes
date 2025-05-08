@@ -53,7 +53,7 @@ class Tester:
         # }
 
         self.test_run_strings = [
-            f"{path}/create-display.sh",
+            # f"{path}/create-display.sh",
             f"{path}/Ripes.AppImage",
             f"--appimage-extract-and-run",
             f"--mode cli",
@@ -110,7 +110,7 @@ class Tester:
         return run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True)
 
     def run(self, run_input: str = None, reginit: str | dict = None) -> dict:
-        run_res = self.__run(reginit, run_input)
+        run_res = self.__run(run_input=run_input, reginit=reginit)
         if "Program exited with code: 0\n" not in run_res.stdout:
             if "ERROR" in run_res.stdout:
                 raise RuntimeError(run_res.stdout)
