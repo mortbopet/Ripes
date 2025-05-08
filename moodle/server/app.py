@@ -10,7 +10,7 @@ from flask import Flask, render_template, request, redirect, url_for, Response, 
 from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
 from werkzeug.exceptions import HTTPException
-from tester.task import Task
+from tester.task1 import Task1
 
 load_dotenv()
 app = Flask(
@@ -301,17 +301,21 @@ def capture_ripes_data(session_id_str: str):
             f.write(code)
 
         # TODO: Create function to get Task object by session id from db and put it instead of Task()
-        task = Task(code_file="/tmp/{session_id_str}.s")
+        task = Task1(code_file=f"/tmp/{session_id_str}.s")
+        message = "Success run"
         try:
+            app.logger.info(f"start check")
             grade = task.run()
-            app.logger.info(f"Succes check run for {session_id_str}")
+            app.logger.info(f"Success check run for {session_id_str} with grade {grade}")
+            message = f"{message} grade: {grade}"
         except RuntimeError as e:
             app.logger.exception(f"Error during check run for session {session_id_str}: {e}")
             grade = 0
+            message = "Error during run {e}"
+            return jsonify({"status": "error", "message": message}), 500
         # TODO: Put info about task solving attempt into db
-        send_grade_to_moodle(session_id_str, grade)
 
-        return jsonify({"status": "success", "message": "Data received and logged"}), 200
+        return jsonify({"status": "success", "message": message}), 200
 
     except Exception as e:
         app.logger.exception(f"Unexpected error in capture_ripes_data for session {session_id_str}: {e}")
