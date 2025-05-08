@@ -1,4 +1,4 @@
-from ripes_tester import Tester
+from tester.ripes_tester import Tester
 
 
 class Task:

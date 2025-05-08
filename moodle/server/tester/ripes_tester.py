@@ -113,8 +113,8 @@ class Tester:
         run_res = self.__run(reginit, run_input)
         if "Program exited with code: 0\n" not in run_res.stdout:
             if "ERROR" in run_res.stdout:
-                raise Exception(run_res.stdout)
-            raise ValueError("Program haven't exited or got non-zero exit code")
+                raise RuntimeError(run_res.stdout)
+            raise RuntimeError("Program haven't exited or got non-zero exit code")
 
         return self.__parse_output(run_res)
 

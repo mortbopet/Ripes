@@ -1,4 +1,4 @@
-from task import Task
+from tester.task import Task
 import random
 
 
