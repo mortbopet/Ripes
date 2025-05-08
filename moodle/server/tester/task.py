@@ -2,8 +2,8 @@ from ripes_tester import Tester
 
 
 class Task:
-    def __init__(self, **kwargs) -> None:
-        self.tester = Tester(**kwargs)
+    def __init__(self, code_file, **kwargs) -> None:
+        self.tester = Tester(code_file=code_file, **kwargs)
         self.tests = self.__generate_tests()
 
     def __generate_tests(self) -> list[dict]:

@@ -57,7 +57,7 @@ class Tester:
             f"{path}/Ripes.AppImage",
             f"--appimage-extract-and-run",
             f"--mode cli",
-            f"--src {path}/{code_file}",
+            f"--src {code_file}",
             f"-t {code_file_type}",
             f"--proc {proc}",
             f"--timeout {timeout}",

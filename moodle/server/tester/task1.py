@@ -3,8 +3,8 @@ import random
 
 
 class Task1(Task):
-    def __init__(self):
-        super().__init__(regs=True)
+    def __init__(self, code_file):
+        super().__init__(code_file, regs=True)
 
     def __generate_tests(self) -> list[dict]:
         tests = []
