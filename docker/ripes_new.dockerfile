@@ -28,7 +28,7 @@ RUN apt-get update -q \
 
 RUN python3 -m pip install aqtinstall
 
-COPY ./docker/docker_extra/* .
+COPY ./docker/docker_extra/settings.ini .
 
 RUN mv settings.ini ./usr/local/lib/python3.8/dist-packages/aqt/settings.ini \
     && aqt install-qt linux desktop 6.5.0 gcc_64 -m qtcharts
