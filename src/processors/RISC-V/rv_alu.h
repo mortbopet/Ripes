@@ -91,11 +91,6 @@ public:
 
       case ALUOp::REMUW:
       case ALUOp::REMU: {
-        const VSRTL_VT_S overflow =
-            (ctrl.eValue<ALUOp>() == ALUOp::REMUW) ||
-                    (ctrl.eValue<ALUOp>() == ALUOp::REMU && XLEN == 32)
-                ? div_overflow32
-                : div_overflow64;
         if (op2.uValue() == 0) {
           return op1.uValue();
         } else {

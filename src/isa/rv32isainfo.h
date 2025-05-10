@@ -8,7 +8,7 @@ namespace Ripes {
 template <>
 class ISAInfo<ISA::RV32I> : public RVISA::RV_ISAInfoBase {
 public:
-  ISAInfo<ISA::RV32I>(const QStringList extensions)
+  ISAInfo(const QStringList extensions)
       : RV_ISAInfoBase(extensions) {
     initialize();
   }
