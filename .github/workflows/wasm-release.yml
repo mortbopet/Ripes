@@ -5,8 +5,8 @@ on:
       - '**'
 
 jobs:
-  buildUbuntuXenial:
-    runs-on: ubuntu-20.04
+  buildUbuntu:
+    runs-on: ubuntu-22.04
     env:
       CC: emcc
       CXX: em++
