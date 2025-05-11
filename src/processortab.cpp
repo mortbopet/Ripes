@@ -683,6 +683,18 @@ EM_JS(void, sendDataToFlask,
                                data);
                            alert('Data sent successfully! Server message: ' +
                                  (data.message || JSON.stringify(data)));
+                           if (data.send_grade_address) {
+                             fetch(data.send_grade_address, {
+                               method: 'POST'
+                             })
+                                .then((res) => {
+                                                if (res.ok) {
+                                                  alert('Оценка отправлена')
+                                                } else {
+                                                  alert('Отправить оценку не удалось')
+                                                }
+                                });
+                           }
                          })
             .catch(error => {
               console.error('[Ripes Send JS] Error sending data:', error);
