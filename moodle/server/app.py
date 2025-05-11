@@ -10,7 +10,7 @@ from flask import Flask, render_template, request, redirect, url_for, Response, 
 from oauthlib.oauth1 import Client
 from requests.exceptions import MissingSchema, ConnectionError
 from werkzeug.exceptions import HTTPException
-from tester.task1 import Task1
+from tester.all_tasks import get_task_by_id
 
 load_dotenv()
 app = Flask(
@@ -300,8 +300,9 @@ def capture_ripes_data(session_id_str: str):
         with open(f"/tmp/{session_id_str}.s", mode="w") as f:
             f.write(code)
 
-        # TODO: Create function to get Task object by session id from db and put it instead of Task()
-        task = Task1(code_file=f"/tmp/{session_id_str}.s")
+        # TODO: Replace task_id placeholder with real task_id from server
+        task_id = 0
+        task = get_task_by_id[task_id](code_file=f"/tmp/{session_id_str}.s")
         message = "Success run"
         try:
             app.logger.info(f"start check")
