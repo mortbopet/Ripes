@@ -11,6 +11,7 @@ from oauthlib.oauth1 import Client
 from peewee import *
 from requests.exceptions import MissingSchema, ConnectionError
 from werkzeug.exceptions import HTTPException
+from tester.all_tasks import get_task_by_id
 
 load_dotenv()
 app = Flask(
@@ -341,7 +342,27 @@ def capture_ripes_data(session_id_str: str):
         }
         app.logger.info(f"Stored captured data for session {session_id_str}")
 
-        return jsonify({"status": "success", "message": "Data received and logged"}), 200
+        # --- Run task checks ---
+        with open(f"/tmp/{session_id_str}.s", mode="w") as f:
+            f.write(code)
+
+        # TODO: Replace task_id placeholder with real task_id from server
+        task_id = 0
+        task = get_task_by_id[task_id](code_file=f"/tmp/{session_id_str}.s")
+        message = "Success run"
+        try:
+            app.logger.info(f"start check")
+            grade = task.run()
+            app.logger.info(f"Success check run for {session_id_str} with grade {grade}")
+            message = f"{message} grade: {grade}"
+        except RuntimeError as e:
+            app.logger.exception(f"Error during check run for session {session_id_str}: {e}")
+            grade = 0
+            message = "Error during run {e}"
+            return jsonify({"status": "error", "message": message}), 500
+        # TODO: Put info about task solving attempt into db
+
+        return jsonify({"status": "success", "message": message}), 200
 
     except Exception as e:
         app.logger.exception(f"Unexpected error in capture_ripes_data for session {session_id_str}: {e}")
