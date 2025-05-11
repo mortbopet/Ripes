@@ -1,0 +1,54 @@
+name: Build compose with postgres and backend server
+on: [ push, pull_request ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out to the branch
+        uses: actions/checkout@v3
+      - name: Setting up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Installing package list
+        run: apt list --installed
+      - name: Removing previous chrome instances on runner
+        run: sudo apt purge google-chrome-stable
+
+      - name: Installing all necessary packages
+
+        run: |
+          pip install -r ./moodle/tests/requirements.txt
+          pip install chromedriver-autoinstaller selenium pyvirtualdisplay beautifulsoup4 mysql-connector
+      - name: Install utils
+        run: sudo apt-get install xvfb unzip
+      - name: install chrome
+        run: |
+          sudo apt update
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb
+          sudo apt-get install -f
+          google-chrome --version
+          whereis chromium
+      - name: Install drivers
+        run: |
+          wget https://storage.googleapis.com/chrome-for-testing-public/135.0.7049.0/linux64/chromedriver-linux64.zip
+          unzip chromedriver-linux64.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/bin/chromedriver
+          sudo chown root:root /usr/bin/chromedriver
+          sudo chmod +x /usr/bin/chromedriver
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: prepare envs
+        run: |
+          cp ./docker/.env.example ./docker/.env
+          cp ./moodle/server/.env.example ./moodle/server/.env
+      - name: Run the python and composer
+        run: |
+          cd  docker
+          docker compose build
+          docker compose up -d
+          docker compose ps
+          cd ../moodle/tests
+          pytest
