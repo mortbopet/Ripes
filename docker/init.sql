@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS statistics (
     statistics_id SERIAL PRIMARY KEY,
     session_id UUID NOT NULL,
     grade NUMERIC(3,2) DEFAULT 0.00,
-    send_timestamp TIMESTAMPZ
+    send_timestamp TIMESTAMP
 );
