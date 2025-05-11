@@ -1,12 +1,12 @@
-name: Ubuntu 20.04 / Qt 6.5.0
+name: Ubuntu 22.04 / Qt 6.5.0
 on:
   workflow_run:
     workflows: ["Release setup"]
     types: [completed]
 
 jobs:
-  buildUbuntuXenial:
-    runs-on: ubuntu-20.04
+  buildUbuntu:
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:

@@ -67,7 +67,7 @@ The benefits are clear - by inserting a processor model into the Ripes environme
 
 Preliminary work has been done to integrate the [PicoRV32](https://github.com/cliffordwolf/picorv32) core into Ripes. The work is available on [this](https://github.com/mortbopet/Ripes/tree/picorv32/src/processors/PicoRV32) branch. While a simple core, it demonstrates the process of using a Verilator-generated processor model in Ripes. Hopefully, this work can be a foundation/guide to include more complex multi-stage processors.
 
-The following steps were taken to integrate the model into Ripes. This has **only** been tested on Linux (Ubunbtu 20.04).
+The following steps were taken to integrate the model into Ripes. This has **only** been tested on Linux (Ubunbtu 22.04).
 
 - First, make sure that you have Verilator installed.
 - The environment variable `VERILATOR_ROOT` must be set to base directory of verilator ([see this](https://veripool.org/guide/latest/install.html#installation)).
