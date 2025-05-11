@@ -1,5 +1,5 @@
-from task import Task
-from task1 import Task1
+from tester.task import Task
+from tester.task1 import Task1
 
 
 all_tasks = {
