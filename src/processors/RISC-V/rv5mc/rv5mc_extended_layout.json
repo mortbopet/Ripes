@@ -146,28 +146,28 @@
                     {
                         "key": 4,
                         "value": {
-                            "x": 392,
+                            "x": 1050,
                             "y": 28
                         }
                     },
                     {
                         "key": 5,
                         "value": {
-                            "x": 1050,
+                            "x": 392,
                             "y": 28
                         }
                     },
                     {
                         "key": 6,
                         "value": {
-                            "x": 1050,
+                            "x": 28,
                             "y": 28
                         }
                     },
                     {
                         "key": 7,
                         "value": {
-                            "x": 28,
+                            "x": 1050,
                             "y": 28
                         }
                     }
@@ -175,19 +175,11 @@
                 "wires": [
                     {
                         "first": 6,
-                        "second": 7
-                    },
-                    {
-                        "first": 4,
-                        "second": 1
+                        "second": 2
                     },
                     {
                         "first": 0,
-                        "second": 5
-                    },
-                    {
-                        "first": 5,
-                        "second": 4
+                        "second": 7
                     },
                     {
                         "first": 0,
@@ -195,11 +187,19 @@
                     },
                     {
                         "first": 0,
-                        "second": 6
+                        "second": 4
+                    },
+                    {
+                        "first": 4,
+                        "second": 5
                     },
                     {
                         "first": 7,
-                        "second": 2
+                        "second": 6
+                    },
+                    {
+                        "first": 5,
+                        "second": 1
                     }
                 ]
             },
@@ -209,7 +209,7 @@
                 "Italic": false,
                 "PtSize": 12,
                 "Text": {
-                    "str": "ALU\nOUT"
+                    "str": "ALU\nOut"
                 },
                 "Pos": {
                     "x": 1.3242451377033149,
@@ -420,38 +420,6 @@
                     ]
                 }
             ],
-            "op2": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "Op 2"
-                    },
-                    "Pos": {
-                        "x": -0.9499474886978305,
-                        "y": 112.59661612630845
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000004"
-                    },
-                    "Pos": {
-                        "x": 806.85169333811,
-                        "y": 246.84866935455109
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "op1": {
                 "Label": {
                     "Visible": true,
@@ -478,6 +446,38 @@
                     "Pos": {
                         "x": 816.2999771381005,
                         "y": 170.27856652959304
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "op2": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "Op 2"
+                    },
+                    "Pos": {
+                        "x": -0.9499474886978305,
+                        "y": 112.59661612630845
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00000004"
+                    },
+                    "Pos": {
+                        "x": 806.85169333811,
+                        "y": 246.84866935455109
                     },
                     "Alignment": 132
                 },
@@ -548,38 +548,6 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
-            "res": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "Res"
-                    },
-                    "Pos": {
-                        "x": 72.24137070321547,
-                        "y": 44.217704994580319
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000004"
-                    },
-                    "Pos": {
-                        "x": 957.2107281661531,
-                        "y": 186.1857110197287
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": true
-            },
             "sign": {
                 "Label": {
                     "Visible": true,
@@ -644,6 +612,38 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
+            "res": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "Res"
+                    },
+                    "Pos": {
+                        "x": 72.24137070321547,
+                        "y": 44.217704994580319
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00000004"
+                    },
+                    "Pos": {
+                        "x": 957.2107281661531,
+                        "y": 186.1857110197287
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": true
+            },
             "carry_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
@@ -667,144 +667,62 @@
                         "key": 2,
                         "value": {
                             "x": 966,
-                            "y": 350
+                            "y": 252
                         }
                     },
                     {
                         "key": 3,
+                        "value": {
+                            "x": 966,
+                            "y": 350
+                        }
+                    },
+                    {
+                        "key": 4,
                         "value": {
                             "x": 952,
                             "y": 252
                         }
                     },
                     {
-                        "key": 4,
-                        "value": {
-                            "x": 966,
-                            "y": 350
-                        }
-                    },
-                    {
                         "key": 5,
                         "value": {
-                            "x": 966,
+                            "x": 952,
                             "y": 252
                         }
                     },
                     {
                         "key": 6,
                         "value": {
-                            "x": 952,
-                            "y": 252
+                            "x": 966,
+                            "y": 350
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 5
+                        "first": 0,
+                        "second": 4
                     },
                     {
-                        "first": 4,
+                        "first": 3,
+                        "second": 1
+                    },
+                    {
+                        "first": 6,
+                        "second": 3
+                    },
+                    {
+                        "first": 5,
                         "second": 2
                     },
                     {
                         "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 6,
-                        "second": 3
-                    },
-                    {
-                        "first": 0,
                         "second": 6
-                    },
-                    {
-                        "first": 5,
-                        "second": 4
-                    }
-                ]
-            },
-            "res_out_wire": {
-                "Parent": "Multicycle RISC-V Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "res",
-                        "alu"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "in",
-                            "ALU_out"
-                        ]
-                    },
-                    {
-                        "key": 2,
-                        "value": [
-                            "in_0",
-                            "pc_src"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 980,
-                            "y": 42
-                        }
-                    },
-                    {
-                        "key": 4,
-                        "value": {
-                            "x": 980,
-                            "y": 196
-                        }
-                    },
-                    {
-                        "key": 5,
-                        "value": {
-                            "x": 14,
-                            "y": 182
-                        }
-                    },
-                    {
-                        "key": 6,
-                        "value": {
-                            "x": 14,
-                            "y": 42
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 0,
-                        "second": 4
-                    },
-                    {
-                        "first": 6,
-                        "second": 5
-                    },
-                    {
-                        "first": 5,
-                        "second": 2
                     },
                     {
                         "first": 4,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
-                        "second": 6
-                    },
-                    {
-                        "first": 0,
-                        "second": 1
+                        "second": 5
                     }
                 ]
             },
@@ -837,12 +755,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -875,12 +793,94 @@
                 ],
                 "wires": [
                     {
+                        "first": 0,
+                        "second": 2
+                    },
+                    {
                         "first": 2,
                         "second": 1
+                    }
+                ]
+            },
+            "res_out_wire": {
+                "Parent": "Multicycle RISC-V Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "res",
+                        "alu"
+                    ]
+                },
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "in",
+                            "ALU_out"
+                        ]
+                    },
+                    {
+                        "key": 2,
+                        "value": [
+                            "in_0",
+                            "pc_src"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 3,
+                        "value": {
+                            "x": 14,
+                            "y": 182
+                        }
+                    },
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 980,
+                            "y": 42
+                        }
+                    },
+                    {
+                        "key": 5,
+                        "value": {
+                            "x": 980,
+                            "y": 196
+                        }
+                    },
+                    {
+                        "key": 6,
+                        "value": {
+                            "x": 14,
+                            "y": 42
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 3,
+                        "second": 2
+                    },
+                    {
+                        "first": 5,
+                        "second": 4
                     },
                     {
                         "first": 0,
-                        "second": 2
+                        "second": 1
+                    },
+                    {
+                        "first": 6,
+                        "second": 3
+                    },
+                    {
+                        "first": 4,
+                        "second": 6
+                    },
+                    {
+                        "first": 0,
+                        "second": 5
                     }
                 ]
             },
@@ -956,38 +956,6 @@
                     ]
                 }
             ],
-            "in_2": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "PCOLD"
-                    },
-                    "Pos": {
-                        "x": 4.0295534972865429,
-                        "y": 17.240321013492634
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000000"
-                    },
-                    "Pos": {
-                        "x": 628.3889699356537,
-                        "y": 177.89643119027407
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "in_1": {
                 "Label": {
                     "Visible": true,
@@ -1046,6 +1014,38 @@
                     "Pos": {
                         "x": 773.0,
                         "y": 204.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "in_2": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "PCOld"
+                    },
+                    "Pos": {
+                        "x": 4.0295534972865429,
+                        "y": 17.240321013492634
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00000000"
+                    },
+                    "Pos": {
+                        "x": 628.3889699356537,
+                        "y": 177.89643119027407
                     },
                     "Alignment": 132
                 },
@@ -1210,38 +1210,6 @@
                     ]
                 }
             ],
-            "in_1": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "IMM"
-                    },
-                    "Pos": {
-                        "x": 6.199000644021567,
-                        "y": 18.09206299403681
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0xdeadbeef"
-                    },
-                    "Pos": {
-                        "x": 722.3598945771355,
-                        "y": 254.7990719774706
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "in_2": {
                 "Label": {
                     "Visible": true,
@@ -1268,6 +1236,38 @@
                     "Pos": {
                         "x": 784.0,
                         "y": 280.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "in_1": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "IMM"
+                    },
+                    "Pos": {
+                        "x": 6.199000644021567,
+                        "y": 18.09206299403681
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0xdeadbeef"
+                    },
+                    "Pos": {
+                        "x": 722.3598945771355,
+                        "y": 254.7990719774706
                     },
                     "Alignment": 132
                 },
@@ -1541,32 +1541,32 @@
                         "key": 3,
                         "value": {
                             "x": 728,
-                            "y": 252
+                            "y": 490
                         }
                     },
                     {
                         "key": 4,
                         "value": {
-                            "x": 728,
+                            "x": 1078,
                             "y": 490
                         }
                     },
                     {
                         "key": 5,
                         "value": {
-                            "x": 1078,
-                            "y": 490
+                            "x": 728,
+                            "y": 252
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 4,
-                        "second": 5
-                    },
-                    {
                         "first": 3,
                         "second": 4
+                    },
+                    {
+                        "first": 5,
+                        "second": 3
                     },
                     {
                         "first": 0,
@@ -1574,10 +1574,10 @@
                     },
                     {
                         "first": 0,
-                        "second": 3
+                        "second": 5
                     },
                     {
-                        "first": 5,
+                        "first": 4,
                         "second": 2
                     }
                 ]
@@ -1637,38 +1637,6 @@
                     ]
                 }
             ],
-            "in_1": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "in_1"
-                    },
-                    "Pos": {
-                        "x": 42.0,
-                        "y": 28.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x0"
-                    },
-                    "Pos": {
-                        "x": 143.0,
-                        "y": 316.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "in_0": {
                 "Label": {
                     "Visible": false,
@@ -1694,6 +1662,38 @@
                     },
                     "Pos": {
                         "x": 115.0,
+                        "y": 316.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "in_1": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "in_1"
+                    },
+                    "Pos": {
+                        "x": 42.0,
+                        "y": 28.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x0"
+                    },
+                    "Pos": {
+                        "x": 143.0,
                         "y": 316.0
                     },
                     "Alignment": 132
@@ -1823,18 +1823,18 @@
                     ]
                 }
             ],
-            "zero": {
+            "sign": {
                 "Label": {
                     "Visible": true,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 8,
                     "Text": {
-                        "str": "zero"
+                        "str": "sign"
                     },
                     "Pos": {
-                        "x": 8.815218000297137,
-                        "y": 33.18478199970269
+                        "x": 8.080616500272527,
+                        "y": 59.71557899965313
                     },
                     "Alignment": 132
                 },
@@ -1848,7 +1848,7 @@
                     },
                     "Pos": {
                         "x": 994.0,
-                        "y": 336.0
+                        "y": 364.0
                     },
                     "Alignment": 132
                 },
@@ -1887,6 +1887,38 @@
                 "UserHidden": false,
                 "PortWidthVisible": true
             },
+            "zero": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "zero"
+                    },
+                    "Pos": {
+                        "x": 8.815218000297137,
+                        "y": 33.18478199970269
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x0"
+                    },
+                    "Pos": {
+                        "x": 994.0,
+                        "y": 336.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
             "carry": {
                 "Label": {
                     "Visible": true,
@@ -1913,38 +1945,6 @@
                     "Pos": {
                         "x": 994.0,
                         "y": 350.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "sign": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "sign"
-                    },
-                    "Pos": {
-                        "x": 8.080616500272527,
-                        "y": 59.71557899965313
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x0"
-                    },
-                    "Pos": {
-                        "x": 994.0,
-                        "y": 364.0
                     },
                     "Alignment": 132
                 },
@@ -1983,12 +1983,12 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
-            "zero_in_wire": {
+            "sign_in_wire": {
                 "Parent": "branch_unit",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "zero",
+                        "sign",
                         "branch_unit"
                     ]
                 },
@@ -1997,103 +1997,70 @@
                         "key": 1,
                         "value": [
                             "in_0",
-                            "not_zero"
+                            "not_sign"
                         ]
                     },
                     {
                         "key": 2,
                         "value": [
-                            "in_1",
-                            "bge_or"
-                        ]
-                    },
-                    {
-                        "key": 3,
-                        "value": [
-                            "in_1",
+                            "in_3",
                             "multplexer"
                         ]
                     }
                 ],
                 "points": [
                     {
-                        "key": 4,
+                        "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 28
+                            "y": 168
+                        }
+                    },
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 112,
+                            "y": 112
                         }
                     },
                     {
                         "key": 5,
                         "value": {
                             "x": 14,
-                            "y": 56
+                            "y": 42
                         }
                     },
                     {
                         "key": 6,
                         "value": {
-                            "x": 70,
-                            "y": 70
-                        }
-                    },
-                    {
-                        "key": 7,
-                        "value": {
-                            "x": 140,
-                            "y": 70
-                        }
-                    },
-                    {
-                        "key": 8,
-                        "value": {
-                            "x": 140,
-                            "y": 84
-                        }
-                    },
-                    {
-                        "key": 9,
-                        "value": {
-                            "x": 70,
-                            "y": 56
+                            "x": 112,
+                            "y": 168
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 6,
-                        "second": 7
-                    },
-                    {
-                        "first": 5,
+                        "first": 3,
                         "second": 1
                     },
                     {
-                        "first": 5,
-                        "second": 9
-                    },
-                    {
-                        "first": 9,
-                        "second": 6
-                    },
-                    {
-                        "first": 6,
+                        "first": 4,
                         "second": 2
                     },
                     {
-                        "first": 7,
-                        "second": 8
-                    },
-                    {
-                        "first": 4,
-                        "second": 5
-                    },
-                    {
-                        "first": 8,
+                        "first": 5,
                         "second": 3
                     },
                     {
+                        "first": 3,
+                        "second": 6
+                    },
+                    {
                         "first": 0,
+                        "second": 5
+                    },
+                    {
+                        "first": 6,
                         "second": 4
                     }
                 ]
@@ -2147,6 +2114,121 @@
                     }
                 ]
             },
+            "zero_in_wire": {
+                "Parent": "branch_unit",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "zero",
+                        "branch_unit"
+                    ]
+                },
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "in_0",
+                            "not_zero"
+                        ]
+                    },
+                    {
+                        "key": 2,
+                        "value": [
+                            "in_1",
+                            "bge_or"
+                        ]
+                    },
+                    {
+                        "key": 3,
+                        "value": [
+                            "in_1",
+                            "multplexer"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 14,
+                            "y": 56
+                        }
+                    },
+                    {
+                        "key": 5,
+                        "value": {
+                            "x": 70,
+                            "y": 70
+                        }
+                    },
+                    {
+                        "key": 6,
+                        "value": {
+                            "x": 140,
+                            "y": 70
+                        }
+                    },
+                    {
+                        "key": 7,
+                        "value": {
+                            "x": 70,
+                            "y": 56
+                        }
+                    },
+                    {
+                        "key": 8,
+                        "value": {
+                            "x": 140,
+                            "y": 84
+                        }
+                    },
+                    {
+                        "key": 9,
+                        "value": {
+                            "x": 14,
+                            "y": 28
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 4,
+                        "second": 1
+                    },
+                    {
+                        "first": 6,
+                        "second": 8
+                    },
+                    {
+                        "first": 9,
+                        "second": 4
+                    },
+                    {
+                        "first": 4,
+                        "second": 7
+                    },
+                    {
+                        "first": 7,
+                        "second": 5
+                    },
+                    {
+                        "first": 0,
+                        "second": 9
+                    },
+                    {
+                        "first": 8,
+                        "second": 3
+                    },
+                    {
+                        "first": 5,
+                        "second": 2
+                    },
+                    {
+                        "first": 5,
+                        "second": 6
+                    }
+                ]
+            },
             "carry_in_wire": {
                 "Parent": "branch_unit",
                 "From port": {
@@ -2176,125 +2258,43 @@
                     {
                         "key": 3,
                         "value": {
-                            "x": 14,
-                            "y": 112
+                            "x": 112,
+                            "y": 126
                         }
                     },
                     {
                         "key": 4,
-                        "value": {
-                            "x": 112,
-                            "y": 112
-                        }
-                    },
-                    {
-                        "key": 5,
                         "value": {
                             "x": 14,
                             "y": 56
                         }
                     },
                     {
-                        "key": 6,
-                        "value": {
-                            "x": 112,
-                            "y": 126
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 5,
-                        "second": 3
-                    },
-                    {
-                        "first": 4,
-                        "second": 6
-                    },
-                    {
-                        "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
-                        "second": 5
-                    },
-                    {
-                        "first": 3,
-                        "second": 4
-                    },
-                    {
-                        "first": 6,
-                        "second": 2
-                    }
-                ]
-            },
-            "sign_in_wire": {
-                "Parent": "branch_unit",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "sign",
-                        "branch_unit"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "in_0",
-                            "not_sign"
-                        ]
-                    },
-                    {
-                        "key": 2,
-                        "value": [
-                            "in_3",
-                            "multplexer"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 3,
+                        "key": 5,
                         "value": {
                             "x": 112,
                             "y": 112
                         }
                     },
                     {
-                        "key": 4,
-                        "value": {
-                            "x": 14,
-                            "y": 168
-                        }
-                    },
-                    {
-                        "key": 5,
-                        "value": {
-                            "x": 14,
-                            "y": 42
-                        }
-                    },
-                    {
                         "key": 6,
                         "value": {
-                            "x": 112,
-                            "y": 168
+                            "x": 14,
+                            "y": 112
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 5,
-                        "second": 4
+                        "first": 6,
+                        "second": 1
                     },
                     {
                         "first": 0,
-                        "second": 5
+                        "second": 4
                     },
                     {
-                        "first": 6,
+                        "first": 5,
                         "second": 3
                     },
                     {
@@ -2306,8 +2306,8 @@
                         "second": 2
                     },
                     {
-                        "first": 4,
-                        "second": 1
+                        "first": 6,
+                        "second": 5
                     }
                 ]
             },
@@ -2350,38 +2350,6 @@
                         ]
                     }
                 ],
-                "in_0": {
-                    "Label": {
-                        "Visible": true,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "in_0"
-                        },
-                        "Pos": {
-                            "x": 0.0,
-                            "y": 14.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x1"
-                        },
-                        "Pos": {
-                            "x": 126.0,
-                            "y": 56.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": true
-                },
                 "in_1": {
                     "Label": {
                         "Visible": true,
@@ -2408,6 +2376,38 @@
                         "Pos": {
                             "x": 126.0,
                             "y": 70.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": true
+                },
+                "in_0": {
+                    "Label": {
+                        "Visible": true,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "in_0"
+                        },
+                        "Pos": {
+                            "x": 0.0,
+                            "y": 14.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x1"
+                        },
+                        "Pos": {
+                            "x": 126.0,
+                            "y": 56.0
                         },
                         "Alignment": 132
                     },
@@ -2469,29 +2469,29 @@
                             "key": 2,
                             "value": {
                                 "x": 182,
-                                "y": 140
+                                "y": 70
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 182,
-                                "y": 70
+                                "y": 140
                             }
                         }
                     ],
                     "wires": [
                         {
                             "first": 0,
-                            "second": 3
-                        },
-                        {
-                            "first": 2,
-                            "second": 1
+                            "second": 2
                         },
                         {
                             "first": 3,
-                            "second": 2
+                            "second": 1
+                        },
+                        {
+                            "first": 2,
+                            "second": 3
                         }
                     ]
                 },
@@ -2574,18 +2574,18 @@
                         ]
                     }
                 ],
-                "in_3": {
+                "in_6": {
                     "Label": {
                         "Visible": true,
                         "Bold": false,
                         "Italic": false,
                         "PtSize": 8,
                         "Text": {
-                            "str": "in_3"
+                            "str": "in_6"
                         },
                         "Pos": {
                             "x": 0.0,
-                            "y": 70.0
+                            "y": 112.0
                         },
                         "Alignment": 132
                     },
@@ -2599,103 +2599,7 @@
                         },
                         "Pos": {
                             "x": 210.0,
-                            "y": 112.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": true
-                },
-                "in_2": {
-                    "Label": {
-                        "Visible": true,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "in_2"
-                        },
-                        "Pos": {
-                            "x": 0.0,
-                            "y": 56.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x1"
-                        },
-                        "Pos": {
-                            "x": 210.0,
-                            "y": 98.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": true
-                },
-                "in_4": {
-                    "Label": {
-                        "Visible": true,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "in_4"
-                        },
-                        "Pos": {
-                            "x": 0.0,
-                            "y": 84.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x1"
-                        },
-                        "Pos": {
-                            "x": 210.0,
-                            "y": 126.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": true
-                },
-                "select": {
-                    "Label": {
-                        "Visible": true,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "select"
-                        },
-                        "Pos": {
-                            "x": 0.0,
-                            "y": 14.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "NOP"
-                        },
-                        "Pos": {
-                            "x": 210.0,
-                            "y": 56.0
+                            "y": 154.0
                         },
                         "Alignment": 132
                     },
@@ -2734,6 +2638,102 @@
                     "UserHidden": false,
                     "PortWidthVisible": true
                 },
+                "in_2": {
+                    "Label": {
+                        "Visible": true,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "in_2"
+                        },
+                        "Pos": {
+                            "x": 0.0,
+                            "y": 56.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x1"
+                        },
+                        "Pos": {
+                            "x": 210.0,
+                            "y": 98.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": true
+                },
+                "in_3": {
+                    "Label": {
+                        "Visible": true,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "in_3"
+                        },
+                        "Pos": {
+                            "x": 0.0,
+                            "y": 70.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x0"
+                        },
+                        "Pos": {
+                            "x": 210.0,
+                            "y": 112.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": true
+                },
+                "select": {
+                    "Label": {
+                        "Visible": true,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "select"
+                        },
+                        "Pos": {
+                            "x": 0.0,
+                            "y": 14.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "NOP"
+                        },
+                        "Pos": {
+                            "x": 210.0,
+                            "y": 56.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": true
+                },
                 "in_5": {
                     "Label": {
                         "Visible": true,
@@ -2766,6 +2766,38 @@
                     "UserHidden": false,
                     "PortWidthVisible": true
                 },
+                "in_4": {
+                    "Label": {
+                        "Visible": true,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "in_4"
+                        },
+                        "Pos": {
+                            "x": 0.0,
+                            "y": 84.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x1"
+                        },
+                        "Pos": {
+                            "x": 210.0,
+                            "y": 126.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": true
+                },
                 "in_0": {
                     "Label": {
                         "Visible": true,
@@ -2792,38 +2824,6 @@
                         "Pos": {
                             "x": 176.703125,
                             "y": 58.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": true
-                },
-                "in_6": {
-                    "Label": {
-                        "Visible": true,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "in_6"
-                        },
-                        "Pos": {
-                            "x": 0.0,
-                            "y": 112.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x0"
-                        },
-                        "Pos": {
-                            "x": 210.0,
-                            "y": 154.0
                         },
                         "Alignment": 132
                     },
@@ -3049,28 +3049,28 @@
                             "key": 2,
                             "value": {
                                 "x": 140,
-                                "y": 112
+                                "y": 154
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 140,
-                                "y": 154
+                                "y": 112
                             }
                         }
                     ],
                     "wires": [
                         {
                             "first": 0,
-                            "second": 2
-                        },
-                        {
-                            "first": 2,
                             "second": 3
                         },
                         {
                             "first": 3,
+                            "second": 2
+                        },
+                        {
+                            "first": 2,
                             "second": 1
                         }
                     ]
@@ -3213,29 +3213,29 @@
                             "key": 2,
                             "value": {
                                 "x": 98,
-                                "y": 168
+                                "y": 56
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 98,
-                                "y": 56
+                                "y": 168
                             }
                         }
                     ],
                     "wires": [
                         {
-                            "first": 2,
-                            "second": 3
+                            "first": 3,
+                            "second": 2
                         },
                         {
-                            "first": 3,
+                            "first": 2,
                             "second": 1
                         },
                         {
                             "first": 0,
-                            "second": 2
+                            "second": 3
                         }
                     ]
                 },
@@ -3377,29 +3377,29 @@
                             "key": 2,
                             "value": {
                                 "x": 140,
-                                "y": 98
+                                "y": 56
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 140,
-                                "y": 56
+                                "y": 98
                             }
                         }
                     ],
                     "wires": [
                         {
                             "first": 3,
-                            "second": 2
+                            "second": 1
                         },
                         {
                             "first": 0,
-                            "second": 3
+                            "second": 2
                         },
                         {
                             "first": 2,
-                            "second": 1
+                            "second": 3
                         }
                     ]
                 },
@@ -3623,36 +3623,36 @@
                 "UserHidden": false,
                 "PortWidthVisible": true
             },
-            "current_state": {
+            "branch": {
                 "Label": {
                     "Visible": true,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 8,
                     "Text": {
-                        "str": "current_state"
+                        "str": "branch"
                     },
                     "Pos": {
-                        "x": 15.200620187747689,
-                        "y": 122.75059838928962
+                        "x": 8.000457865600822,
+                        "y": 59.28477078957394
                     },
                     "Alignment": 132
                 },
                 "ValueLabel": {
-                    "Visible": true,
+                    "Visible": false,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "IF"
+                        "str": "0x0"
                     },
                     "Pos": {
-                        "x": 299.8182015892048,
-                        "y": 468.44433027946999
+                        "x": 210.0,
+                        "y": 420.0
                     },
                     "Alignment": 132
                 },
-                "UserHidden": true,
+                "UserHidden": false,
                 "PortWidthVisible": false
             },
             "alu_op1_src": {
@@ -3687,146 +3687,18 @@
                 "UserHidden": false,
                 "PortWidthVisible": true
             },
-            "ir_write": {
+            "mem_ctrl": {
                 "Label": {
                     "Visible": true,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 8,
                     "Text": {
-                        "str": "ir_write"
+                        "str": "mem_ctrl"
                     },
                     "Pos": {
-                        "x": 44.49838787940942,
-                        "y": 5.269212586303354
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x1"
-                    },
-                    "Pos": {
-                        "x": 280.0,
-                        "y": 350.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "ecall": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "ecall"
-                    },
-                    "Pos": {
-                        "x": 172.23730203711205,
-                        "y": 2.293563631504753
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x1"
-                    },
-                    "Pos": {
-                        "x": 420.0,
-                        "y": 364.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": true,
-                "PortWidthVisible": false
-            },
-            "branch": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "branch"
-                    },
-                    "Pos": {
-                        "x": 8.000457865600822,
-                        "y": 59.28477078957394
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x0"
-                    },
-                    "Pos": {
-                        "x": 210.0,
-                        "y": 420.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "pc_src": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "pc_src"
-                    },
-                    "Pos": {
-                        "x": 8.485134667840697,
-                        "y": 72.90878270959348
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "PC4"
-                    },
-                    "Pos": {
-                        "x": 210.0,
-                        "y": 434.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "comp_ctrl": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "comp_ctrl"
-                    },
-                    "Pos": {
-                        "x": 148.01741351263918,
-                        "y": 86.9050497031763
+                        "x": 153.30679394176759,
+                        "y": 102.01139414026557
                     },
                     "Alignment": 132
                 },
@@ -3839,136 +3711,8 @@
                         "str": "NOP"
                     },
                     "Pos": {
-                        "x": 440.7897850270874,
-                        "y": 442.9883213903939
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": true
-            },
-            "reg_src": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "reg_src"
-                    },
-                    "Pos": {
-                        "x": 162.41900056676117,
-                        "y": 17.25665386127332
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "ALURES"
-                    },
-                    "Pos": {
-                        "x": 420.0,
-                        "y": 378.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": true
-            },
-            "mem_write": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "mem_write"
-                    },
-                    "Pos": {
-                        "x": 144.0311678687538,
-                        "y": 114.68215879436844
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x0"
-                    },
-                    "Pos": {
-                        "x": 420.0,
-                        "y": 476.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "pc_write": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "pc_write"
-                    },
-                    "Pos": {
-                        "x": 8.95263770378287,
-                        "y": 44.01668012802401
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x1"
-                    },
-                    "Pos": {
-                        "x": 210.0,
-                        "y": 406.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "alu_op2_src": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "alu_op2_src"
-                    },
-                    "Pos": {
-                        "x": 140.33371782074853,
-                        "y": 58.18161284459126
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "PC_INC"
-                    },
-                    "Pos": {
-                        "x": 420.0,
-                        "y": 420.0
+                        "x": 424.97664278078755,
+                        "y": 451.0583930480312
                     },
                     "Alignment": 132
                 },
@@ -4007,38 +3751,6 @@
                 "UserHidden": true,
                 "PortWidthVisible": false
             },
-            "alu_ctrl": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "alu_ctrl"
-                    },
-                    "Pos": {
-                        "x": 162.9511027849291,
-                        "y": 71.17766306045712
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "ADD"
-                    },
-                    "Pos": {
-                        "x": 470.3525066833606,
-                        "y": 424.01645973429938
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": true
-            },
             "reg_write": {
                 "Label": {
                     "Visible": true,
@@ -4071,18 +3783,274 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
-            "mem_ctrl": {
+            "mem_write": {
                 "Label": {
                     "Visible": true,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 8,
                     "Text": {
-                        "str": "mem_ctrl"
+                        "str": "mem_write"
                     },
                     "Pos": {
-                        "x": 153.30679394176759,
-                        "y": 102.01139414026557
+                        "x": 144.0311678687538,
+                        "y": 114.68215879436844
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x0"
+                    },
+                    "Pos": {
+                        "x": 420.0,
+                        "y": 476.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "current_state": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "current_state"
+                    },
+                    "Pos": {
+                        "x": 15.200620187747689,
+                        "y": 122.75059838928962
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "IF"
+                    },
+                    "Pos": {
+                        "x": 299.8182015892048,
+                        "y": 468.44433027946999
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": true,
+                "PortWidthVisible": false
+            },
+            "ir_write": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "ir_write"
+                    },
+                    "Pos": {
+                        "x": 44.49838787940942,
+                        "y": 5.269212586303354
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x1"
+                    },
+                    "Pos": {
+                        "x": 280.0,
+                        "y": 350.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "pc_src": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "pc_src"
+                    },
+                    "Pos": {
+                        "x": 8.485134667840697,
+                        "y": 72.90878270959348
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "PC4"
+                    },
+                    "Pos": {
+                        "x": 210.0,
+                        "y": 434.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "alu_op2_src": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "alu_op2_src"
+                    },
+                    "Pos": {
+                        "x": 140.33371782074853,
+                        "y": 58.18161284459126
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "PC_INC"
+                    },
+                    "Pos": {
+                        "x": 420.0,
+                        "y": 420.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": true
+            },
+            "pc_write": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "pc_write"
+                    },
+                    "Pos": {
+                        "x": 8.95263770378287,
+                        "y": 44.01668012802401
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x1"
+                    },
+                    "Pos": {
+                        "x": 210.0,
+                        "y": 406.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "alu_ctrl": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "alu_ctrl"
+                    },
+                    "Pos": {
+                        "x": 162.9511027849291,
+                        "y": 71.17766306045712
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "ADD"
+                    },
+                    "Pos": {
+                        "x": 470.3525066833606,
+                        "y": 424.01645973429938
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": true
+            },
+            "reg_src": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "reg_src"
+                    },
+                    "Pos": {
+                        "x": 162.41900056676117,
+                        "y": 17.25665386127332
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "ALURES"
+                    },
+                    "Pos": {
+                        "x": 420.0,
+                        "y": 378.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": true
+            },
+            "comp_ctrl": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "comp_ctrl"
+                    },
+                    "Pos": {
+                        "x": 148.01741351263918,
+                        "y": 86.9050497031763
                     },
                     "Alignment": 132
                 },
@@ -4095,13 +4063,45 @@
                         "str": "NOP"
                     },
                     "Pos": {
-                        "x": 424.97664278078755,
-                        "y": 451.0583930480312
+                        "x": 440.7897850270874,
+                        "y": 442.9883213903939
                     },
                     "Alignment": 132
                 },
                 "UserHidden": false,
                 "PortWidthVisible": true
+            },
+            "ecall": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "ecall"
+                    },
+                    "Pos": {
+                        "x": 172.23730203711205,
+                        "y": 2.293563631504753
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x1"
+                    },
+                    "Pos": {
+                        "x": 420.0,
+                        "y": 364.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": true,
+                "PortWidthVisible": false
             },
             "opcode_in_wire": {
                 "Parent": "control",
@@ -4244,18 +4244,43 @@
                 },
                 "Indicators": []
             },
-            "current_state_out_wire": {
+            "branch_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "current_state",
+                        "branch",
                         "control"
                     ]
                 },
-                "To ports": [],
-                "points": [],
-                "wires": []
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "in_1",
+                            "br_and"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 2,
+                        "value": {
+                            "x": 140,
+                            "y": 420
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 2,
+                        "second": 1
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
+                    }
+                ]
             },
             "alu_op1_src_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
@@ -4295,12 +4320,12 @@
                     }
                 ]
             },
-            "ir_write_out_wire": {
+            "mem_ctrl_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "ir_write",
+                        "mem_ctrl",
                         "control"
                     ]
                 },
@@ -4308,59 +4333,37 @@
                     {
                         "key": 1,
                         "value": [
-                            "enable",
-                            "pc_old_reg"
-                        ]
-                    },
-                    {
-                        "key": 2,
-                        "value": [
-                            "enable",
-                            "decode"
+                            "op",
+                            "data_mem"
                         ]
                     }
                 ],
                 "points": [
                     {
-                        "key": 3,
+                        "key": 2,
                         "value": {
-                            "x": 280,
-                            "y": 294
-                        }
-                    },
-                    {
-                        "key": 4,
-                        "value": {
-                            "x": 280,
-                            "y": 294
+                            "x": 1106,
+                            "y": 462
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 4
-                    },
-                    {
-                        "first": 3,
+                        "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 4,
-                        "second": 3
-                    },
-                    {
-                        "first": 4,
+                        "first": 0,
                         "second": 2
                     }
                 ]
             },
-            "ecall_out_wire": {
+            "next_state_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "ecall",
+                        "next_state",
                         "control"
                     ]
                 },
@@ -4368,8 +4371,8 @@
                     {
                         "key": 1,
                         "value": [
-                            "stallEcallHandling",
-                            "ecallChecker"
+                            "in",
+                            "state_reg"
                         ]
                     }
                 ],
@@ -4381,12 +4384,12 @@
                     }
                 ]
             },
-            "branch_out_wire": {
+            "reg_write_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "branch",
+                        "reg_write",
                         "control"
                     ]
                 },
@@ -4394,8 +4397,8 @@
                     {
                         "key": 1,
                         "value": [
-                            "in_1",
-                            "br_and"
+                            "wr_en",
+                            "registerFile"
                         ]
                     }
                 ],
@@ -4403,122 +4406,8 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 140,
-                            "y": 420
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
-                        "second": 2
-                    }
-                ]
-            },
-            "pc_src_out_wire": {
-                "Parent": "Multicycle RISC-V Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "pc_src",
-                        "control"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "select",
-                            "pc_src"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 56,
-                            "y": 434
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
-                        "second": 2
-                    }
-                ]
-            },
-            "comp_ctrl_out_wire": {
-                "Parent": "Multicycle RISC-V Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "comp_ctrl",
-                        "control"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "comp_op",
-                            "branch_unit"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 980,
-                            "y": 448
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 1
-                    }
-                ]
-            },
-            "reg_src_out_wire": {
-                "Parent": "Multicycle RISC-V Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "reg_src",
-                        "control"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "select",
-                            "reg_src"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 434,
-                            "y": 378
+                            "x": 518,
+                            "y": 392
                         }
                     }
                 ],
@@ -4571,12 +4460,25 @@
                     }
                 ]
             },
-            "pc_write_out_wire": {
+            "current_state_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "pc_write",
+                        "current_state",
+                        "control"
+                    ]
+                },
+                "To ports": [],
+                "points": [],
+                "wires": []
+            },
+            "ir_write_out_wire": {
+                "Parent": "Multicycle RISC-V Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "ir_write",
                         "control"
                     ]
                 },
@@ -4584,8 +4486,68 @@
                     {
                         "key": 1,
                         "value": [
-                            "in_1",
-                            "controlflow_or"
+                            "enable",
+                            "pc_old_reg"
+                        ]
+                    },
+                    {
+                        "key": 2,
+                        "value": [
+                            "enable",
+                            "decode"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 3,
+                        "value": {
+                            "x": 280,
+                            "y": 294
+                        }
+                    },
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 280,
+                            "y": 294
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 4,
+                        "second": 2
+                    },
+                    {
+                        "first": 0,
+                        "second": 4
+                    },
+                    {
+                        "first": 3,
+                        "second": 1
+                    },
+                    {
+                        "first": 4,
+                        "second": 3
+                    }
+                ]
+            },
+            "pc_src_out_wire": {
+                "Parent": "Multicycle RISC-V Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "pc_src",
+                        "control"
+                    ]
+                },
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "select",
+                            "pc_src"
                         ]
                     }
                 ],
@@ -4593,8 +4555,8 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 196,
-                            "y": 280
+                            "x": 56,
+                            "y": 434
                         }
                     }
                 ],
@@ -4638,21 +4600,21 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
-            "next_state_out_wire": {
+            "pc_write_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "next_state",
+                        "pc_write",
                         "control"
                     ]
                 },
@@ -4660,16 +4622,28 @@
                     {
                         "key": 1,
                         "value": [
-                            "in",
-                            "state_reg"
+                            "in_1",
+                            "controlflow_or"
                         ]
                     }
                 ],
-                "points": [],
+                "points": [
+                    {
+                        "key": 2,
+                        "value": {
+                            "x": 196,
+                            "y": 280
+                        }
+                    }
+                ],
                 "wires": [
                     {
-                        "first": 0,
+                        "first": 2,
                         "second": 1
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -4711,12 +4685,12 @@
                     }
                 ]
             },
-            "reg_write_out_wire": {
+            "reg_src_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "reg_write",
+                        "reg_src",
                         "control"
                     ]
                 },
@@ -4724,8 +4698,8 @@
                     {
                         "key": 1,
                         "value": [
-                            "wr_en",
-                            "registerFile"
+                            "select",
+                            "reg_src"
                         ]
                     }
                 ],
@@ -4733,8 +4707,8 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 518,
-                            "y": 392
+                            "x": 434,
+                            "y": 378
                         }
                     }
                 ],
@@ -4749,12 +4723,12 @@
                     }
                 ]
             },
-            "mem_ctrl_out_wire": {
+            "comp_ctrl_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "mem_ctrl",
+                        "comp_ctrl",
                         "control"
                     ]
                 },
@@ -4762,8 +4736,8 @@
                     {
                         "key": 1,
                         "value": [
-                            "op",
-                            "data_mem"
+                            "comp_op",
+                            "branch_unit"
                         ]
                     }
                 ],
@@ -4771,8 +4745,8 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 1106,
-                            "y": 462
+                            "x": 980,
+                            "y": 448
                         }
                     }
                 ],
@@ -4783,6 +4757,32 @@
                     },
                     {
                         "first": 2,
+                        "second": 1
+                    }
+                ]
+            },
+            "ecall_out_wire": {
+                "Parent": "Multicycle RISC-V Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "ecall",
+                        "control"
+                    ]
+                },
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "stallEcallHandling",
+                            "ecallChecker"
+                        ]
+                    }
+                ],
+                "points": [],
+                "wires": [
+                    {
+                        "first": 0,
                         "second": 1
                     }
                 ]
@@ -5235,16 +5235,16 @@
                 ],
                 "wires": [
                     {
+                        "first": 2,
+                        "second": 3
+                    },
+                    {
                         "first": 3,
                         "second": 1
                     },
                     {
                         "first": 0,
                         "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
                     }
                 ]
             },
@@ -5284,28 +5284,28 @@
                         "key": 2,
                         "value": {
                             "x": 56,
-                            "y": 70
+                            "y": 14
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 56,
-                            "y": 14
+                            "y": 70
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
+                        "first": 2,
                         "second": 3
                     },
                     {
-                        "first": 2,
+                        "first": 0,
+                        "second": 2
+                    },
+                    {
+                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -5448,38 +5448,6 @@
                     "UserHidden": false,
                     "PortWidthVisible": false
                 },
-                "addr": {
-                    "Label": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "addr"
-                        },
-                        "Pos": {
-                            "x": 56.0,
-                            "y": 56.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x00000000"
-                        },
-                        "Pos": {
-                            "x": 129.0,
-                            "y": 92.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": false
-                },
                 "data_in": {
                     "Label": {
                         "Visible": false,
@@ -5506,6 +5474,38 @@
                         "Pos": {
                             "x": 129.0,
                             "y": 50.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": false
+                },
+                "addr": {
+                    "Label": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "addr"
+                        },
+                        "Pos": {
+                            "x": 56.0,
+                            "y": 56.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x00000000"
+                        },
+                        "Pos": {
+                            "x": 129.0,
+                            "y": 92.0
                         },
                         "Alignment": 132
                     },
@@ -5616,14 +5616,63 @@
                             "key": 2,
                             "value": {
                                 "x": 14,
-                                "y": 84
+                                "y": 42
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 14,
-                                "y": 42
+                                "y": 84
+                            }
+                        }
+                    ],
+                    "wires": [
+                        {
+                            "first": 3,
+                            "second": 1
+                        },
+                        {
+                            "first": 2,
+                            "second": 3
+                        },
+                        {
+                            "first": 0,
+                            "second": 2
+                        }
+                    ]
+                },
+                "data_in_in_wire": {
+                    "Parent": "mem",
+                    "From port": {
+                        "first": 0,
+                        "second": [
+                            "data_in",
+                            "mem"
+                        ]
+                    },
+                    "To ports": [
+                        {
+                            "key": 1,
+                            "value": [
+                                "data_in",
+                                "_wr_mem"
+                            ]
+                        }
+                    ],
+                    "points": [
+                        {
+                            "key": 2,
+                            "value": {
+                                "x": 14,
+                                "y": 70
+                            }
+                        },
+                        {
+                            "key": 3,
+                            "value": {
+                                "x": 14,
+                                "y": 14
                             }
                         }
                     ],
@@ -5685,10 +5734,6 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 4
-                        },
-                        {
                             "first": 3,
                             "second": 2
                         },
@@ -5699,55 +5744,10 @@
                         {
                             "first": 4,
                             "second": 3
-                        }
-                    ]
-                },
-                "data_in_in_wire": {
-                    "Parent": "mem",
-                    "From port": {
-                        "first": 0,
-                        "second": [
-                            "data_in",
-                            "mem"
-                        ]
-                    },
-                    "To ports": [
-                        {
-                            "key": 1,
-                            "value": [
-                                "data_in",
-                                "_wr_mem"
-                            ]
-                        }
-                    ],
-                    "points": [
-                        {
-                            "key": 2,
-                            "value": {
-                                "x": 14,
-                                "y": 14
-                            }
-                        },
-                        {
-                            "key": 3,
-                            "value": {
-                                "x": 14,
-                                "y": 70
-                            }
-                        }
-                    ],
-                    "wires": [
-                        {
-                            "first": 3,
-                            "second": 1
-                        },
-                        {
-                            "first": 2,
-                            "second": 3
                         },
                         {
                             "first": 0,
-                            "second": 2
+                            "second": 4
                         }
                     ]
                 },
@@ -6017,38 +6017,6 @@
                         "UserHidden": false,
                         "PortWidthVisible": false
                     },
-                    "wr_width": {
-                        "Label": {
-                            "Visible": false,
-                            "Bold": false,
-                            "Italic": false,
-                            "PtSize": 8,
-                            "Text": {
-                                "str": "wr_width"
-                            },
-                            "Pos": {
-                                "x": 0.0,
-                                "y": 42.0
-                            },
-                            "Alignment": 132
-                        },
-                        "ValueLabel": {
-                            "Visible": false,
-                            "Bold": false,
-                            "Italic": false,
-                            "PtSize": 10,
-                            "Text": {
-                                "str": "0x0"
-                            },
-                            "Pos": {
-                                "x": 3.0,
-                                "y": 36.0
-                            },
-                            "Alignment": 132
-                        },
-                        "UserHidden": false,
-                        "PortWidthVisible": false
-                    },
                     "addr": {
                         "Label": {
                             "Visible": false,
@@ -6075,6 +6043,38 @@
                             "Pos": {
                                 "x": 3.0,
                                 "y": 8.0
+                            },
+                            "Alignment": 132
+                        },
+                        "UserHidden": false,
+                        "PortWidthVisible": false
+                    },
+                    "wr_width": {
+                        "Label": {
+                            "Visible": false,
+                            "Bold": false,
+                            "Italic": false,
+                            "PtSize": 8,
+                            "Text": {
+                                "str": "wr_width"
+                            },
+                            "Pos": {
+                                "x": 0.0,
+                                "y": 42.0
+                            },
+                            "Alignment": 132
+                        },
+                        "ValueLabel": {
+                            "Visible": false,
+                            "Bold": false,
+                            "Italic": false,
+                            "PtSize": 10,
+                            "Text": {
+                                "str": "0x0"
+                            },
+                            "Pos": {
+                                "x": 3.0,
+                                "y": 36.0
                             },
                             "Alignment": 132
                         },
@@ -6399,38 +6399,6 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
-            "Pc_Inc": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "instr_size"
-                    },
-                    "Pos": {
-                        "x": 30.668234396999027,
-                        "y": 105.53176074914865
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x1"
-                    },
-                    "Pos": {
-                        "x": 855.5753879411661,
-                        "y": 293.643978922773
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": true
-            },
             "r2_reg_idx": {
                 "Label": {
                     "Visible": false,
@@ -6463,18 +6431,18 @@
                 "UserHidden": false,
                 "PortWidthVisible": true
             },
-            "opcode": {
+            "Pc_Inc": {
                 "Label": {
                     "Visible": true,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 8,
                     "Text": {
-                        "str": "opcode"
+                        "str": "instr_size"
                     },
                     "Pos": {
-                        "x": 38.3663949996116,
-                        "y": 87.49471056002312
+                        "x": 30.668234396999027,
+                        "y": 105.53176074914865
                     },
                     "Alignment": 132
                 },
@@ -6484,11 +6452,11 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "NOP"
+                        "str": "0x1"
                     },
                     "Pos": {
-                        "x": 381.49976531572056,
-                        "y": 235.504928369872
+                        "x": 855.5753879411661,
+                        "y": 293.643978922773
                     },
                     "Alignment": 132
                 },
@@ -6553,6 +6521,38 @@
                     "Pos": {
                         "x": 430.03732135527675,
                         "y": 197.31309254246228
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": true
+            },
+            "opcode": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "opcode"
+                    },
+                    "Pos": {
+                        "x": 38.3663949996116,
+                        "y": 87.49471056002312
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "NOP"
+                    },
+                    "Pos": {
+                        "x": 381.49976531572056,
+                        "y": 235.504928369872
                     },
                     "Alignment": 132
                 },
@@ -6640,25 +6640,25 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 70
+                            "y": 56
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 56
+                            "y": 70
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
+                        "first": 2,
+                        "second": 3
                     },
                     {
                         "first": 0,
-                        "second": 3
+                        "second": 2
                     },
                     {
                         "first": 0,
@@ -6745,38 +6745,6 @@
                     "UserHidden": false,
                     "PortWidthVisible": true
                 },
-                "r2_reg_idx": {
-                    "Label": {
-                        "Visible": true,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "r2_reg_idx"
-                        },
-                        "Pos": {
-                            "x": 42.0,
-                            "y": 28.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x18"
-                        },
-                        "Pos": {
-                            "x": 168.0,
-                            "y": 70.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": true
-                },
                 "r1_reg_idx": {
                     "Label": {
                         "Visible": true,
@@ -6803,6 +6771,38 @@
                         "Pos": {
                             "x": 168.0,
                             "y": 98.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": true
+                },
+                "r2_reg_idx": {
+                    "Label": {
+                        "Visible": true,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "r2_reg_idx"
+                        },
+                        "Pos": {
+                            "x": 42.0,
+                            "y": 28.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x18"
+                        },
+                        "Pos": {
+                            "x": 168.0,
+                            "y": 70.0
                         },
                         "Alignment": 132
                     },
@@ -6873,55 +6873,6 @@
                     "UserHidden": false,
                     "PortWidthVisible": true
                 },
-                "r2_reg_idx_out_wire": {
-                    "Parent": "decode",
-                    "From port": {
-                        "first": 0,
-                        "second": [
-                            "r2_reg_idx",
-                            "decode"
-                        ]
-                    },
-                    "To ports": [
-                        {
-                            "key": 1,
-                            "value": [
-                                "r2_reg_idx",
-                                "decode"
-                            ]
-                        }
-                    ],
-                    "points": [
-                        {
-                            "key": 2,
-                            "value": {
-                                "x": 42,
-                                "y": 112
-                            }
-                        },
-                        {
-                            "key": 3,
-                            "value": {
-                                "x": 182,
-                                "y": 112
-                            }
-                        }
-                    ],
-                    "wires": [
-                        {
-                            "first": 0,
-                            "second": 3
-                        },
-                        {
-                            "first": 3,
-                            "second": 2
-                        },
-                        {
-                            "first": 2,
-                            "second": 1
-                        }
-                    ]
-                },
                 "r1_reg_idx_out_wire": {
                     "Parent": "decode",
                     "From port": {
@@ -6971,6 +6922,55 @@
                         }
                     ]
                 },
+                "r2_reg_idx_out_wire": {
+                    "Parent": "decode",
+                    "From port": {
+                        "first": 0,
+                        "second": [
+                            "r2_reg_idx",
+                            "decode"
+                        ]
+                    },
+                    "To ports": [
+                        {
+                            "key": 1,
+                            "value": [
+                                "r2_reg_idx",
+                                "decode"
+                            ]
+                        }
+                    ],
+                    "points": [
+                        {
+                            "key": 2,
+                            "value": {
+                                "x": 182,
+                                "y": 112
+                            }
+                        },
+                        {
+                            "key": 3,
+                            "value": {
+                                "x": 42,
+                                "y": 112
+                            }
+                        }
+                    ],
+                    "wires": [
+                        {
+                            "first": 0,
+                            "second": 2
+                        },
+                        {
+                            "first": 2,
+                            "second": 3
+                        },
+                        {
+                            "first": 3,
+                            "second": 1
+                        }
+                    ]
+                },
                 "wr_reg_idx_out_wire": {
                     "Parent": "decode",
                     "From port": {
@@ -6993,14 +6993,14 @@
                         {
                             "key": 2,
                             "value": {
-                                "x": 42,
+                                "x": 182,
                                 "y": 112
                             }
                         },
                         {
                             "key": 3,
                             "value": {
-                                "x": 182,
+                                "x": 42,
                                 "y": 112
                             }
                         }
@@ -7008,14 +7008,14 @@
                     "wires": [
                         {
                             "first": 0,
-                            "second": 3
-                        },
-                        {
-                            "first": 3,
                             "second": 2
                         },
                         {
                             "first": 2,
+                            "second": 3
+                        },
+                        {
+                            "first": 3,
                             "second": 1
                         }
                     ]
@@ -7060,12 +7060,12 @@
                             "second": 2
                         },
                         {
-                            "first": 2,
-                            "second": 3
-                        },
-                        {
                             "first": 3,
                             "second": 1
+                        },
+                        {
+                            "first": 2,
+                            "second": 3
                         }
                     ]
                 },
@@ -7128,18 +7128,18 @@
                         ]
                     }
                 ],
-                "in": {
+                "clear": {
                     "Label": {
                         "Visible": true,
                         "Bold": false,
                         "Italic": false,
                         "PtSize": 8,
                         "Text": {
-                            "str": "in"
+                            "str": "clear"
                         },
                         "Pos": {
                             "x": 0.0,
-                            "y": 14.0
+                            "y": 42.0
                         },
                         "Alignment": 132
                     },
@@ -7149,11 +7149,11 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x10000517"
+                            "str": "0"
                         },
                         "Pos": {
-                            "x": 42.0,
-                            "y": 56.0
+                            "x": 8.703125,
+                            "y": 71.5
                         },
                         "Alignment": 132
                     },
@@ -7192,18 +7192,18 @@
                     "UserHidden": false,
                     "PortWidthVisible": true
                 },
-                "clear": {
+                "in": {
                     "Label": {
                         "Visible": true,
                         "Bold": false,
                         "Italic": false,
                         "PtSize": 8,
                         "Text": {
-                            "str": "clear"
+                            "str": "in"
                         },
                         "Pos": {
                             "x": 0.0,
-                            "y": 42.0
+                            "y": 14.0
                         },
                         "Alignment": 132
                     },
@@ -7213,11 +7213,11 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0"
+                            "str": "0x10000517"
                         },
                         "Pos": {
-                            "x": 8.703125,
-                            "y": 71.5
+                            "x": 42.0,
+                            "y": 56.0
                         },
                         "Alignment": 132
                     },
@@ -7511,7 +7511,7 @@
                         {
                             "key": 3,
                             "value": {
-                                "x": 84,
+                                "x": 42,
                                 "y": 98
                             }
                         },
@@ -7519,13 +7519,13 @@
                             "key": 4,
                             "value": {
                                 "x": 98,
-                                "y": 70
+                                "y": 84
                             }
                         },
                         {
                             "key": 5,
                             "value": {
-                                "x": 42,
+                                "x": 84,
                                 "y": 98
                             }
                         },
@@ -7533,34 +7533,34 @@
                             "key": 6,
                             "value": {
                                 "x": 98,
-                                "y": 84
+                                "y": 70
                             }
                         }
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 4
-                        },
-                        {
-                            "first": 4,
-                            "second": 6
+                            "first": 5,
+                            "second": 3
                         },
                         {
                             "first": 3,
-                            "second": 5
-                        },
-                        {
-                            "first": 5,
                             "second": 2
                         },
                         {
                             "first": 0,
-                            "second": 3
+                            "second": 5
+                        },
+                        {
+                            "first": 4,
+                            "second": 1
+                        },
+                        {
+                            "first": 0,
+                            "second": 6
                         },
                         {
                             "first": 6,
-                            "second": 1
+                            "second": 4
                         }
                     ]
                 },
@@ -7579,66 +7579,6 @@
                     "Alignment": 132
                 },
                 "Indicators": []
-            },
-            "Pc_Inc_out_wire": {
-                "Parent": "Multicycle RISC-V Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "Pc_Inc",
-                        "decode"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "select",
-                            "pc_inc"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 574,
-                            "y": 350
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 364,
-                            "y": 308
-                        }
-                    },
-                    {
-                        "key": 4,
-                        "value": {
-                            "x": 574,
-                            "y": 308
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 3,
-                        "second": 4
-                    },
-                    {
-                        "first": 4,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
-                        "first": 2,
-                        "second": 1
-                    }
-                ]
             },
             "r2_reg_idx_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
@@ -7676,25 +7616,25 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
+                        "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 3,
+                        "second": 2
                     },
                     {
                         "first": 0,
-                        "second": 2
+                        "second": 3
                     }
                 ]
             },
-            "opcode_out_wire": {
+            "Pc_Inc_out_wire": {
                 "Parent": "Multicycle RISC-V Processor",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "opcode",
+                        "Pc_Inc",
                         "decode"
                     ]
                 },
@@ -7702,94 +7642,50 @@
                     {
                         "key": 1,
                         "value": [
-                            "opcode",
-                            "control"
-                        ]
-                    },
-                    {
-                        "key": 2,
-                        "value": [
-                            "opcode",
-                            "immediate"
-                        ]
-                    },
-                    {
-                        "key": 3,
-                        "value": [
-                            "opcode",
-                            "ecallChecker"
+                            "select",
+                            "pc_inc"
                         ]
                     }
                 ],
                 "points": [
                     {
+                        "key": 2,
+                        "value": {
+                            "x": 574,
+                            "y": 350
+                        }
+                    },
+                    {
+                        "key": 3,
+                        "value": {
+                            "x": 574,
+                            "y": 308
+                        }
+                    },
+                    {
                         "key": 4,
                         "value": {
-                            "x": 392,
-                            "y": 322
-                        }
-                    },
-                    {
-                        "key": 5,
-                        "value": {
-                            "x": 602,
-                            "y": 322
-                        }
-                    },
-                    {
-                        "key": 6,
-                        "value": {
-                            "x": 392,
-                            "y": 336
-                        }
-                    },
-                    {
-                        "key": 7,
-                        "value": {
-                            "x": 602,
-                            "y": 322
-                        }
-                    },
-                    {
-                        "key": 8,
-                        "value": {
-                            "x": 392,
-                            "y": 322
+                            "x": 364,
+                            "y": 308
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 8
-                    },
-                    {
                         "first": 4,
-                        "second": 5
-                    },
-                    {
-                        "first": 7,
                         "second": 3
                     },
                     {
-                        "first": 6,
-                        "second": 1
+                        "first": 3,
+                        "second": 2
                     },
                     {
                         "first": 0,
                         "second": 4
                     },
                     {
-                        "first": 8,
-                        "second": 7
-                    },
-                    {
-                        "first": 5,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
-                        "second": 6
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -7822,12 +7718,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -7871,12 +7767,116 @@
                         "second": 2
                     },
                     {
+                        "first": 2,
+                        "second": 1
+                    },
+                    {
                         "first": 0,
+                        "second": 3
+                    }
+                ]
+            },
+            "opcode_out_wire": {
+                "Parent": "Multicycle RISC-V Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "opcode",
+                        "decode"
+                    ]
+                },
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "opcode",
+                            "control"
+                        ]
+                    },
+                    {
+                        "key": 2,
+                        "value": [
+                            "opcode",
+                            "immediate"
+                        ]
+                    },
+                    {
+                        "key": 3,
+                        "value": [
+                            "opcode",
+                            "ecallChecker"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 602,
+                            "y": 322
+                        }
+                    },
+                    {
+                        "key": 5,
+                        "value": {
+                            "x": 392,
+                            "y": 336
+                        }
+                    },
+                    {
+                        "key": 6,
+                        "value": {
+                            "x": 392,
+                            "y": 322
+                        }
+                    },
+                    {
+                        "key": 7,
+                        "value": {
+                            "x": 602,
+                            "y": 322
+                        }
+                    },
+                    {
+                        "key": 8,
+                        "value": {
+                            "x": 392,
+                            "y": 322
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 0,
+                        "second": 8
+                    },
+                    {
+                        "first": 6,
+                        "second": 7
+                    },
+                    {
+                        "first": 0,
+                        "second": 6
+                    },
+                    {
+                        "first": 4,
                         "second": 3
                     },
                     {
-                        "first": 2,
+                        "first": 5,
                         "second": 1
+                    },
+                    {
+                        "first": 8,
+                        "second": 4
+                    },
+                    {
+                        "first": 7,
+                        "second": 2
+                    },
+                    {
+                        "first": 0,
+                        "second": 5
                     }
                 ]
             },
@@ -7902,41 +7902,41 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 602,
+                            "x": 406,
                             "y": 294
                         }
                     },
                     {
                         "key": 3,
                         "value": {
-                            "x": 406,
-                            "y": 238
+                            "x": 602,
+                            "y": 294
                         }
                     },
                     {
                         "key": 4,
                         "value": {
                             "x": 406,
-                            "y": 294
+                            "y": 238
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 4,
+                        "second": 2
                     },
                     {
                         "first": 0,
+                        "second": 4
+                    },
+                    {
+                        "first": 2,
                         "second": 3
                     },
                     {
                         "first": 3,
-                        "second": 4
-                    },
-                    {
-                        "first": 4,
-                        "second": 2
+                        "second": 1
                     }
                 ]
             },
@@ -8634,34 +8634,34 @@
                     {
                         "key": 3,
                         "value": {
-                            "x": 364,
+                            "x": 1274,
                             "y": 14
                         }
                     },
                     {
                         "key": 4,
                         "value": {
-                            "x": 1274,
+                            "x": 364,
                             "y": 14
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 4,
+                        "first": 2,
+                        "second": 1
+                    },
+                    {
+                        "first": 0,
                         "second": 3
                     },
                     {
                         "first": 3,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
                         "second": 4
                     },
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 4,
+                        "second": 2
                     }
                 ]
             },
@@ -8671,7 +8671,7 @@
                 "Italic": false,
                 "PtSize": 12,
                 "Text": {
-                    "str": "MEM\nOUT"
+                    "str": "MEM\nOut"
                 },
                 "Pos": {
                     "x": -1.1749939629594338,
@@ -8729,6 +8729,38 @@
                     ]
                 }
             ],
+            "in_1": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "in_1"
+                    },
+                    "Pos": {
+                        "x": 0.0,
+                        "y": 28.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "4"
+                    },
+                    "Pos": {
+                        "x": 598.8919043783836,
+                        "y": 379.1060279693605
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
             "in_0": {
                 "Label": {
                     "Visible": false,
@@ -8792,38 +8824,6 @@
                 },
                 "UserHidden": false,
                 "PortWidthVisible": true
-            },
-            "in_1": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "in_1"
-                    },
-                    "Pos": {
-                        "x": 0.0,
-                        "y": 28.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "4"
-                    },
-                    "Pos": {
-                        "x": 598.8919043783836,
-                        "y": 379.1060279693605
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
             },
             "out": {
                 "Label": {
@@ -8975,8 +8975,8 @@
                         "str": "W"
                     },
                     "Pos": {
-                        "x": 1.8781796836558443,
-                        "y": 26.0543858507246
+                        "x": 4.514573955106016,
+                        "y": 31.868920790602986
                     },
                     "Alignment": 1
                 },
@@ -9146,13 +9146,13 @@
                 "Visible": true,
                 "Bold": true,
                 "Italic": false,
-                "PtSize": 8,
+                "PtSize": 12,
                 "Text": {
-                    "str": "PCOLD"
+                    "str": "PC\nOLD"
                 },
                 "Pos": {
-                    "x": -1.4368648137864853,
-                    "y": 3.698786741907554
+                    "x": 5.535246186363224,
+                    "y": -4.481046619588071
                 },
                 "Alignment": 1
             },
@@ -9208,38 +9208,6 @@
                     ]
                 }
             ],
-            "clear": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "clear"
-                    },
-                    "Pos": {
-                        "x": 0.0,
-                        "y": 14.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0"
-                    },
-                    "Pos": {
-                        "x": 78.703125,
-                        "y": 142.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": true,
-                "PortWidthVisible": false
-            },
             "enable": {
                 "Label": {
                     "Visible": true,
@@ -9270,6 +9238,38 @@
                     "Alignment": 132
                 },
                 "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "clear": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "clear"
+                    },
+                    "Pos": {
+                        "x": 0.0,
+                        "y": 14.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0"
+                    },
+                    "Pos": {
+                        "x": 78.703125,
+                        "y": 142.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": true,
                 "PortWidthVisible": false
             },
             "in": {
@@ -9379,22 +9379,22 @@
                     {
                         "key": 5,
                         "value": {
-                            "x": 168,
-                            "y": 56
+                            "x": 378,
+                            "y": 98
                         }
                     },
                     {
                         "key": 6,
                         "value": {
-                            "x": 350,
-                            "y": 98
+                            "x": 168,
+                            "y": 56
                         }
                     },
                     {
                         "key": 7,
                         "value": {
-                            "x": 350,
-                            "y": 56
+                            "x": 378,
+                            "y": 98
                         }
                     },
                     {
@@ -9408,7 +9408,7 @@
                         "key": 9,
                         "value": {
                             "x": 350,
-                            "y": 70
+                            "y": 98
                         }
                     },
                     {
@@ -9421,48 +9421,68 @@
                     {
                         "key": 11,
                         "value": {
-                            "x": 728,
-                            "y": 56
+                            "x": 350,
+                            "y": 70
                         }
                     },
                     {
                         "key": 12,
+                        "value": {
+                            "x": 350,
+                            "y": 56
+                        }
+                    },
+                    {
+                        "key": 13,
                         "value": {
                             "x": 168,
                             "y": 112
                         }
                     },
                     {
-                        "key": 13,
-                        "value": {
-                            "x": 378,
-                            "y": 98
-                        }
-                    },
-                    {
                         "key": 14,
                         "value": {
-                            "x": 378,
-                            "y": 98
+                            "x": 728,
+                            "y": 56
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 8
+                        "first": 12,
+                        "second": 11
+                    },
+                    {
+                        "first": 8,
+                        "second": 14
+                    },
+                    {
+                        "first": 14,
+                        "second": 4
+                    },
+                    {
+                        "first": 11,
+                        "second": 9
+                    },
+                    {
+                        "first": 10,
+                        "second": 3
+                    },
+                    {
+                        "first": 7,
+                        "second": 5
+                    },
+                    {
+                        "first": 5,
+                        "second": 10
                     },
                     {
                         "first": 9,
-                        "second": 6
+                        "second": 7
                     },
                     {
-                        "first": 0,
+                        "first": 6,
                         "second": 12
-                    },
-                    {
-                        "first": 13,
-                        "second": 3
                     },
                     {
                         "first": 0,
@@ -9470,38 +9490,18 @@
                     },
                     {
                         "first": 0,
-                        "second": 5
+                        "second": 6
                     },
                     {
-                        "first": 12,
+                        "first": 0,
+                        "second": 8
+                    },
+                    {
+                        "first": 13,
                         "second": 1
                     },
                     {
-                        "first": 7,
-                        "second": 9
-                    },
-                    {
-                        "first": 6,
-                        "second": 10
-                    },
-                    {
-                        "first": 8,
-                        "second": 7
-                    },
-                    {
-                        "first": 10,
-                        "second": 14
-                    },
-                    {
-                        "first": 5,
-                        "second": 11
-                    },
-                    {
-                        "first": 11,
-                        "second": 4
-                    },
-                    {
-                        "first": 14,
+                        "first": 0,
                         "second": 13
                     }
                 ]
@@ -9572,38 +9572,6 @@
                     ]
                 }
             ],
-            "select": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "select"
-                    },
-                    "Pos": {
-                        "x": 14.0,
-                        "y": 56.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "PC4"
-                    },
-                    "Pos": {
-                        "x": 56.0,
-                        "y": 196.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "in_1": {
                 "Label": {
                     "Visible": true,
@@ -9662,6 +9630,38 @@
                     "Pos": {
                         "x": 42.0,
                         "y": 182.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "select": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "select"
+                    },
+                    "Pos": {
+                        "x": 14.0,
+                        "y": 56.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "PC4"
+                    },
+                    "Pos": {
+                        "x": 56.0,
+                        "y": 196.0
                     },
                     "Alignment": 132
                 },
@@ -9794,70 +9794,6 @@
                     ]
                 }
             ],
-            "in_0": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "MEM"
-                    },
-                    "Pos": {
-                        "x": 4.994524603221862,
-                        "y": 18.050102494903663
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000000"
-                    },
-                    "Pos": {
-                        "x": 406.0,
-                        "y": 84.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "in_2": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "PC"
-                    },
-                    "Pos": {
-                        "x": 5.028399109505585,
-                        "y": 32.05954195666837
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000000"
-                    },
-                    "Pos": {
-                        "x": 406.0,
-                        "y": 98.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "select": {
                 "Label": {
                     "Visible": false,
@@ -9890,6 +9826,38 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
+            "in_0": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "MEM"
+                    },
+                    "Pos": {
+                        "x": 4.994524603221862,
+                        "y": 18.050102494903663
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00000000"
+                    },
+                    "Pos": {
+                        "x": 406.0,
+                        "y": 84.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
             "in_1": {
                 "Label": {
                     "Visible": true,
@@ -9916,6 +9884,38 @@
                     "Pos": {
                         "x": 406.0,
                         "y": 70.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "in_2": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "PC"
+                    },
+                    "Pos": {
+                        "x": 5.028399109505585,
+                        "y": 32.05954195666837
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00000000"
+                    },
+                    "Pos": {
+                        "x": 406.0,
+                        "y": 98.0
                     },
                     "Alignment": 132
                 },
@@ -10057,20 +10057,20 @@
                     ]
                 }
             ],
-            "r1_addr": {
+            "data_in": {
                 "Label": {
                     "Visible": true,
                     "Bold": false,
                     "Italic": false,
                     "PtSize": 8,
                     "Text": {
-                        "str": "R1 idx"
+                        "str": "Data in"
                     },
                     "Pos": {
-                        "x": -0.34402929350630986,
-                        "y": 45.59521273651458
+                        "x": 1.3085123064535083,
+                        "y": 3.1968077812622655
                     },
-                    "Alignment": 1
+                    "Alignment": 132
                 },
                 "ValueLabel": {
                     "Visible": false,
@@ -10078,11 +10078,11 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00"
+                        "str": "0x00000000"
                     },
                     "Pos": {
-                        "x": 479.0,
-                        "y": 204.0
+                        "x": 434.42061694974839,
+                        "y": 115.19164779723579
                     },
                     "Alignment": 132
                 },
@@ -10121,70 +10121,6 @@
                 "UserHidden": false,
                 "PortWidthVisible": true
             },
-            "wr_en": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 7,
-                    "Text": {
-                        "str": "W"
-                    },
-                    "Pos": {
-                        "x": 33.065657788570778,
-                        "y": 86.44353003090967
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x0"
-                    },
-                    "Pos": {
-                        "x": 511.3411336724455,
-                        "y": 277.8317532201006
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "data_in": {
-                "Label": {
-                    "Visible": true,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "Data in"
-                    },
-                    "Pos": {
-                        "x": 1.3085123064535083,
-                        "y": 3.1968077812622655
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000000"
-                    },
-                    "Pos": {
-                        "x": 434.42061694974839,
-                        "y": 115.19164779723579
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": true
-            },
             "wr_addr": {
                 "Label": {
                     "Visible": true,
@@ -10216,6 +10152,70 @@
                 },
                 "UserHidden": false,
                 "PortWidthVisible": true
+            },
+            "r1_addr": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "R1 idx"
+                    },
+                    "Pos": {
+                        "x": -0.34402929350630986,
+                        "y": 45.59521273651458
+                    },
+                    "Alignment": 1
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00"
+                    },
+                    "Pos": {
+                        "x": 479.0,
+                        "y": 204.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": true
+            },
+            "wr_en": {
+                "Label": {
+                    "Visible": true,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 7,
+                    "Text": {
+                        "str": "W"
+                    },
+                    "Pos": {
+                        "x": 33.065657788570778,
+                        "y": 86.44353003090967
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x0"
+                    },
+                    "Pos": {
+                        "x": 511.3411336724455,
+                        "y": 277.8317532201006
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
             },
             "r1_out": {
                 "Label": {
@@ -10281,12 +10281,12 @@
                 "UserHidden": false,
                 "PortWidthVisible": true
             },
-            "r1_addr_in_wire": {
+            "data_in_in_wire": {
                 "Parent": "registerFile",
                 "From port": {
                     "first": 0,
                     "second": [
-                        "r1_addr",
+                        "data_in",
                         "registerFile"
                     ]
                 },
@@ -10294,8 +10294,8 @@
                     {
                         "key": 1,
                         "value": [
-                            "addr",
-                            "_rd1_mem"
+                            "data_in",
+                            "_wr_mem"
                         ]
                     }
                 ],
@@ -10303,30 +10303,30 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 14,
-                            "y": 210
+                            "x": 56,
+                            "y": 42
                         }
                     },
                     {
                         "key": 3,
                         "value": {
-                            "x": 14,
-                            "y": 56
+                            "x": 56,
+                            "y": 70
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 0,
+                        "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 2,
                         "second": 3
                     },
                     {
                         "first": 3,
-                        "second": 2
+                        "second": 1
                     }
                 ]
             },
@@ -10356,68 +10356,6 @@
                     }
                 ]
             },
-            "wr_en_in_wire": {
-                "Parent": "registerFile",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "wr_en",
-                        "registerFile"
-                    ]
-                },
-                "To ports": [],
-                "points": [],
-                "wires": []
-            },
-            "data_in_in_wire": {
-                "Parent": "registerFile",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "data_in",
-                        "registerFile"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "data_in",
-                            "_wr_mem"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 56,
-                            "y": 70
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 56,
-                            "y": 42
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
-                        "second": 2
-                    }
-                ]
-            },
             "wr_addr_in_wire": {
                 "Parent": "registerFile",
                 "From port": {
@@ -10441,31 +10379,93 @@
                         "key": 2,
                         "value": {
                             "x": 56,
-                            "y": 56
+                            "y": 28
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 56,
-                            "y": 28
+                            "y": 56
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 2,
+                        "second": 3
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
+                    },
+                    {
+                        "first": 3,
+                        "second": 1
+                    }
+                ]
+            },
+            "r1_addr_in_wire": {
+                "Parent": "registerFile",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "r1_addr",
+                        "registerFile"
+                    ]
+                },
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "addr",
+                            "_rd1_mem"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 2,
+                        "value": {
+                            "x": 14,
+                            "y": 56
+                        }
+                    },
+                    {
+                        "key": 3,
+                        "value": {
+                            "x": 14,
+                            "y": 210
                         }
                     }
                 ],
                 "wires": [
                     {
                         "first": 3,
-                        "second": 2
+                        "second": 1
                     },
                     {
                         "first": 0,
-                        "second": 3
+                        "second": 2
                     },
                     {
                         "first": 2,
-                        "second": 1
+                        "second": 3
                     }
                 ]
+            },
+            "wr_en_in_wire": {
+                "Parent": "registerFile",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "wr_en",
+                        "registerFile"
+                    ]
+                },
+                "To ports": [],
+                "points": [],
+                "wires": []
             },
             "_rd1_mem": {
                 "Top name": "_rd1_mem",
@@ -10588,14 +10588,14 @@
                         {
                             "key": 2,
                             "value": {
-                                "x": 112,
+                                "x": 42,
                                 "y": 98
                             }
                         },
                         {
                             "key": 3,
                             "value": {
-                                "x": 42,
+                                "x": 112,
                                 "y": 98
                             }
                         }
@@ -10603,15 +10603,15 @@
                     "wires": [
                         {
                             "first": 0,
-                            "second": 2
-                        },
-                        {
-                            "first": 3,
-                            "second": 1
+                            "second": 3
                         },
                         {
                             "first": 2,
-                            "second": 3
+                            "second": 1
+                        },
+                        {
+                            "first": 3,
+                            "second": 2
                         }
                     ]
                 },
@@ -10865,38 +10865,6 @@
                     "UserHidden": false,
                     "PortWidthVisible": false
                 },
-                "wr_en": {
-                    "Label": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "wr_en"
-                        },
-                        "Pos": {
-                            "x": 42.0,
-                            "y": 56.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": "0x0"
-                        },
-                        "Pos": {
-                            "x": 143.0,
-                            "y": 92.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": false
-                },
                 "data_in": {
                     "Label": {
                         "Visible": false,
@@ -10923,6 +10891,38 @@
                         "Pos": {
                             "x": 143.0,
                             "y": 64.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": false
+                },
+                "wr_en": {
+                    "Label": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "wr_en"
+                        },
+                        "Pos": {
+                            "x": 42.0,
+                            "y": 56.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": "0x0"
+                        },
+                        "Pos": {
+                            "x": 143.0,
+                            "y": 92.0
                         },
                         "Alignment": 132
                     },
@@ -11071,16 +11071,16 @@
                     ],
                     "wires": [
                         {
+                            "first": 0,
+                            "second": 3
+                        },
+                        {
                             "first": 2,
                             "second": 1
                         },
                         {
                             "first": 3,
                             "second": 2
-                        },
-                        {
-                            "first": 0,
-                            "second": 3
                         }
                     ]
                 },
