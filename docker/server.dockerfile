@@ -21,18 +21,21 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon-x11-0 \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app/tester
+ARG RIPES_TESTER_VERSION=2.2.6
+
+RUN wget -O Ripes.AppImage https://github.com/mortbopet/Ripes/releases/download/v${RIPES_TESTER_VERSION}/Ripes-v${RIPES_TESTER_VERSION}-linux-x86_64.AppImage && \
+    chmod +x Ripes.AppImage
+
+
 WORKDIR /app
 COPY /moodle/server/requirements.txt requirements.txt
 RUN  pip install -r requirements.txt
 
-WORKDIR /app/tester
-ARG RIPES_TESTER_VERSION=2.2.6
 
+WORKDIR /app/tester
 COPY ./docker/docker_extra/create-display.sh ./create-display.sh
 RUN chmod +x ./create-display.sh
-
-RUN wget -O Ripes.AppImage https://github.com/mortbopet/Ripes/releases/download/v${RIPES_TESTER_VERSION}/Ripes-v${RIPES_TESTER_VERSION}-linux-x86_64.AppImage && \
-    chmod +x Ripes.AppImage 
 
 WORKDIR /app
 COPY /moodle/server .

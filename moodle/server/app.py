@@ -1,15 +1,17 @@
+from datetime import datetime
+import logging
 import os
 import uuid
-import time
 from uuid import uuid4
 
 import requests
-import logging
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, Response, jsonify
 from oauthlib.oauth1 import Client
+from peewee import *
 from requests.exceptions import MissingSchema, ConnectionError
 from werkzeug.exceptions import HTTPException
+
 from tester.all_tasks import get_task_by_id
 
 load_dotenv()
@@ -20,8 +22,48 @@ app = Flask(
 )
 app.logger.setLevel(logging.INFO)
 
-# TODO (Kirill Karpunin): need to make a database for this or something else BUT NOT A DICT!!!!!!!!!!!!!
-sessions_dict: dict = {}
+db = PostgresqlDatabase(
+    database=os.getenv('POSTGRES_DB'),
+    user=os.getenv('POSTGRES_USER'),
+    password=os.getenv('POSTGRES_PASSWORD'),
+    host=os.getenv('POSTGRES_HOST'),
+    port=int(os.getenv('POSTGRES_PORT'))
+)
+
+
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+
+class ConnectionMeta(BaseModel):
+    session_id = UUIDField(primary_key=True)
+    task_id = CharField(max_length=256)
+    user_id = BigIntegerField()
+    full_name = CharField(max_length=1024)
+    email = CharField(max_length=256)
+    outcome_service_url = CharField(max_length=1024)
+    sourced_id = CharField(max_length=256)
+
+    class DoesNotExist(DoesNotExist):
+        pass
+
+    class Meta:
+        table_name = 'connection_meta'
+
+
+class Statistics(Model):
+    statistics_id = AutoField()
+    session_id = UUIDField()
+    grade = FloatField(default=0.00)
+    send_timestamp = DateTimeField()
+
+    class DoesNotExist(DoesNotExist):
+        pass
+
+    class Meta:
+        database = db
+        table_name = 'statistics'  # Явное указание имени таблицы
 
 
 @app.route('/lti', methods=['POST'])
@@ -32,6 +74,8 @@ def lti_request() -> str | Response:
 
     :return: A template rendering the page with Ripes.
     """
+    if request.method != 'POST':
+        return render_error("Bad Request")
 
     lti_data = request.form
 
@@ -40,11 +84,13 @@ def lti_request() -> str | Response:
     email = lti_data.get('lis_person_contact_email_primary', 'No email')
     course_title = lti_data.get('context_title', 'No course title')
     roles = lti_data.get('roles', 'No user roles')
+    task_id = lti_data.get('custom_task_id', '0')
 
     # TODO (Kirill Karpunin): maybe change this later
     session_id = uuid4()
 
     app.logger.info(f"Session ID: {session_id}")
+    app.logger.info(f"Task ID: {task_id}")
     app.logger.info(f"User ID: {user_id}")
     app.logger.info(f"Full Name: {full_name}")
     app.logger.info(f"Email: {email}")
@@ -54,16 +100,9 @@ def lti_request() -> str | Response:
     lis_outcome_service_url = lti_data.get('lis_outcome_service_url')
     lis_result_sourcedid = lti_data.get('lis_result_sourcedid')
 
-    sessions_dict[session_id] = {
-        'lis_outcome_service_url': lis_outcome_service_url,
-        'lis_result_sourcedid': lis_result_sourcedid,
-        'user_id': user_id,
-        'full_name': full_name,
-        'email': email,
-        'course_title': course_title,
-        'roles': roles,
-        'ripes_data': None
-    }
+    with db.connection_context():
+        ConnectionMeta.create(session_id=session_id, task_id=task_id, user_id=int(user_id), full_name=full_name,
+                              email=email, outcome_service_url=lis_outcome_service_url, sourced_id=lis_result_sourcedid)
 
     return redirect(url_for("main_page", session_id=session_id))
 
@@ -78,6 +117,9 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     :param grade_str: String containing grade.
     :return: An error message if something went wrong, else a template rendering the page with Ripes.
     """
+    if request.method != 'POST':
+        return render_error("Bad Request")
+
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
@@ -92,12 +134,15 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
         app.logger.info(err_message)
         return render_error(err_message)
 
-    if session_id not in sessions_dict:
+    try:
+        connection_meta: ConnectionMeta = ConnectionMeta.get(ConnectionMeta.session_id == session_id)
+    except ConnectionMeta.DoesNotExist:
         err_message = f"invalid session id: {session_id}"
         app.logger.info(err_message)
         return render_error(err_message)
 
-    lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
+    lis_outcome_service_url: str = str(connection_meta.outcome_service_url)
+    lis_result_sourcedid: str = str(connection_meta.sourced_id)
 
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
         <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
@@ -153,8 +198,13 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
 
     if response.status_code == 200:
         app.logger.info("grade successfully sent to Moodle!")
+
+        with db.connection_context():
+            Statistics.create(session_id=session_id, grade=round(float(grade_str), 2), send_timestamp=datetime.now())
     else:
-        app.logger.info(f"failed to send grade. Status code: {response.status_code}")
+        err_message = f"failed to send grade. Status code: {response.status_code}"
+        app.logger.info(err_message)
+        return render_error(err_message)
 
     return redirect(url_for("main_page"))
 
@@ -168,6 +218,9 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
     :param session_id_str: String containing session ID.
     :return: An error message if something went wrong, else a template rendering the page with Ripes.
     """
+    if request.method != 'DELETE':
+        return render_error("Bad Request")
+
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
@@ -175,12 +228,15 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
         app.logger.info(err_message)
         return render_error(err_message)
 
-    if session_id not in sessions_dict:
+    try:
+        connection_meta: ConnectionMeta = ConnectionMeta.get(ConnectionMeta.session_id == session_id)
+    except ConnectionMeta.DoesNotExist:
         err_message = f"invalid session id: {session_id}"
         app.logger.info(err_message)
         return render_error(err_message)
 
-    lis_outcome_service_url, lis_result_sourcedid = sessions_dict[session_id]
+    lis_outcome_service_url: str = str(connection_meta.outcome_service_url)
+    lis_result_sourcedid: str = str(connection_meta.sourced_id)
 
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
         <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
@@ -230,14 +286,24 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
 
     if response.status_code == 200:
         app.logger.info("grade successfully deleted from Moodle!")
+
+        with db.connection_context():
+            Statistics.create(session_id=session_id, grade=0.00, send_timestamp=datetime.now())
+
     else:
-        app.logger.info(f"failed to delete grade. Status code: {response.status_code}")
+        err_message = f"failed to delete grade. Status code: {response.status_code}"
+        app.logger.info(err_message)
+        return render_error(err_message)
 
     return redirect(url_for("main_page"))
+
 
 @app.route('/api/capture_ripes_data/<session_id_str>', methods=['POST'])
 def capture_ripes_data(session_id_str: str):
     """ Receives code, output, and registers data from Ripes client. """
+    if request.method != 'POST':
+        return render_error("Bad Request")
+
     try:
         app.logger.info(f"Received data capture request for session: {session_id_str}")
         try:
@@ -246,7 +312,9 @@ def capture_ripes_data(session_id_str: str):
             app.logger.error(f"Invalid session ID format: {session_id_str}")
             return jsonify({"status": "error", "message": "Invalid session ID format"}), 400
 
-        if session_id not in sessions_dict:
+        try:
+            connection_meta: ConnectionMeta = ConnectionMeta.get(ConnectionMeta.session_id == session_id)
+        except ConnectionMeta.DoesNotExist:
             app.logger.error(f"Session ID not found: {session_id_str}")
             return jsonify({"status": "error", "message": "Session ID not found"}), 404
 
@@ -256,12 +324,12 @@ def capture_ripes_data(session_id_str: str):
 
         data = request.get_json()
         if data is None:
-             app.logger.error("Failed to parse JSON data")
-             return jsonify({"status": "error", "message": "Could not parse JSON data"}), 400
+            app.logger.error("Failed to parse JSON data")
+            return jsonify({"status": "error", "message": "Could not parse JSON data"}), 400
 
         code = data.get('code')
         output = data.get('output')
-        registers = data.get('registers') # <-- Get the registers dictionary
+        registers = data.get('registers')  # <-- Get the registers dictionary
 
         # --- Validate all required fields ---
         missing_keys = [k for k, v in {'code': code, 'output': output, 'registers': registers}.items() if v is None]
@@ -272,9 +340,9 @@ def capture_ripes_data(session_id_str: str):
 
         # --- Optional: Validate registers format ---
         if not isinstance(registers, dict):
-             error_msg = f"Expected 'registers' to be a dictionary, got {type(registers)}"
-             app.logger.error(error_msg)
-             return jsonify({"status": "error", "message": error_msg}), 400
+            error_msg = f"Expected 'registers' to be a dictionary, got {type(registers)}"
+            app.logger.error(error_msg)
+            return jsonify({"status": "error", "message": error_msg}), 400
 
         # --- Log the data ---
         app.logger.info(f"--- Captured Ripes Data (Session: {session_id_str}) ---")
@@ -283,25 +351,15 @@ def capture_ripes_data(session_id_str: str):
         app.logger.info("Console Output:")
         app.logger.info(f"\n{output}\n")
         app.logger.info("Register States:")
-        for reg, value in registers.items(): # Log registers nicely
-             app.logger.info(f"  {reg}: {value}")
+        for reg, value in registers.items():  # Log registers nicely
+            app.logger.info(f"  {reg}: {value}")
         app.logger.info("--- End Captured Data ---")
-
-        # --- Store data ---
-        sessions_dict[session_id]['ripes_data'] = {
-            'code': code,
-            'output': output,
-            'registers': registers, # <-- Store registers
-            'timestamp': time.time()
-        }
-        app.logger.info(f"Stored captured data for session {session_id_str}")
 
         # --- Run task checks ---
         with open(f"/tmp/{session_id_str}.s", mode="w") as f:
             f.write(code)
 
-        # TODO: Replace task_id placeholder with real task_id from server
-        task_id = 4
+        task_id: str = str(connection_meta.task_id)
         task = get_task_by_id(task_id)(code_file=f"/tmp/{session_id_str}.s")
         message = "Success run"
         try:
@@ -313,14 +371,22 @@ def capture_ripes_data(session_id_str: str):
             app.logger.exception(f"Error during check run for session {session_id_str}: {e}")
             grade = 0
             message = "Error during run {e}"
-            return jsonify({"status": "error", "message": message}), 500
-        # TODO: Put info about task solving attempt into db
+            return jsonify({
+                "status": "error",
+                "message": message,
+                "send_grade_address": url_for('send_grade_to_moodle', session_id_str=session_id_str, grade_str=str(grade))
+            }), 500
 
-        return jsonify({"status": "success", "message": message}), 200
+        return jsonify({
+            "status": "success",
+            "message": message,
+            "send_grade_address": url_for('send_grade_to_moodle', session_id_str=session_id_str, grade_str=str(grade))
+        }), 200
 
     except Exception as e:
         app.logger.exception(f"Unexpected error in capture_ripes_data for session {session_id_str}: {e}")
         return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
+
 
 @app.route('/', methods=['GET', 'POST'])
 def main_page() -> str:

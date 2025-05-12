@@ -45,8 +45,8 @@ You need to create .env file in docker directory to run compose.
 
 Example .env file:
 ```bash
-PORT=5432
-HOST=service_db
+POSTGRES_PORT=5432
+POSTGRES_HOST=service_db
 POSTGRES_DB=docker_service_db
 POSTGRES_USER=docker_service
 POSTGRES_PASSWORD=docker_service

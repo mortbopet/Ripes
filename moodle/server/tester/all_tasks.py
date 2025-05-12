@@ -6,15 +6,15 @@ from tester.task4 import Task4
 
 
 all_tasks = {
-    0: Task,
-    1: Task1,
-    2: Task2,
-    3: Task3,
-    4: Task4
+    'SystemTaskID1': Task,
+    'SystemTaskID2': Task1,
+    'SystemTaskID3': Task2,
+    'SystemTaskID4': Task3,
+    'SystemTaskID5': Task4,
 }
 
 
-def get_task_by_id(task_id):
+def get_task_by_id(task_id: str):
     if task_id not in all_tasks:
         raise ValueError(f"Task with id {task_id} does not exist")
     return all_tasks[task_id]
