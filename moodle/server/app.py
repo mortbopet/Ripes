@@ -301,8 +301,8 @@ def capture_ripes_data(session_id_str: str):
             f.write(code)
 
         # TODO: Replace task_id placeholder with real task_id from server
-        task_id = 0
-        task = get_task_by_id[task_id](code_file=f"/tmp/{session_id_str}.s")
+        task_id = 2
+        task = get_task_by_id(task_id)(code_file=f"/tmp/{session_id_str}.s")
         message = "Success run"
         try:
             app.logger.info(f"start check")
