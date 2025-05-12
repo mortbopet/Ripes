@@ -1,12 +1,14 @@
 from tester.task import Task
 from tester.task1 import Task1
 from tester.task2 import Task2
+from tester.task3 import Task3
 
 
 all_tasks = {
     0: Task,
     1: Task1,
-    2: Task2
+    2: Task2,
+    3: Task3
 }
 
 
