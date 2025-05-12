@@ -668,10 +668,15 @@ EM_JS(void, sendDataToFlask,
                              {
                                if (!response.ok) {
                                  return response.text().then(text => {
-                                   throw new Error('Network response error: ' +
+                                   const serverData = JSON.parse(text);
+
+                                   let err = new Error('Network response error: ' +
                                                    response.status + ' ' +
                                                    response.statusText +
                                                    ' | Server: ' + text);
+                                   err.serverData = serverData;
+
+                                   throw err;
                                  });
                                }
                                return response.json();
@@ -700,8 +705,8 @@ EM_JS(void, sendDataToFlask,
               console.error('[Ripes Send JS] Error sending data:', error);
               alert('Error sending data: ' + error.message +
                     '\\n(Check browser console)');
-              if (error.send_grade_address) {
-                             fetch(error.send_grade_address, {
+              if (error.serverData && error.serverData.send_grade_address) {
+                             fetch(error.serverData.send_grade_address, {
                                method: 'POST'
                              })
                                 .then((res) => {
