@@ -700,8 +700,8 @@ EM_JS(void, sendDataToFlask,
               console.error('[Ripes Send JS] Error sending data:', error);
               alert('Error sending data: ' + error.message +
                     '\\n(Check browser console)');
-              if (data.send_grade_address) {
-                             fetch(data.send_grade_address, {
+              if (error.send_grade_address) {
+                             fetch(error.send_grade_address, {
                                method: 'POST'
                              })
                                 .then((res) => {
