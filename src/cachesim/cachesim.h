@@ -187,14 +187,13 @@ public:
   AInt buildAddress(unsigned tag, unsigned lineIdx, unsigned blockIdx) const;
 
   int getBlockBits() const { return m_blocks; }
-  int getWaysBits() const { return m_ways; }
   int getLineBits() const { return m_lines; }
   int getTagBits() const {
     return 32 - 2 /*byte offset*/ - getBlockBits() - getLineBits();
   }
 
   int getBlocks() const { return static_cast<int>(std::pow(2, m_blocks)); }
-  int getWays() const { return static_cast<int>(std::pow(2, m_ways)); }
+  int getWays() const { return m_ways; }
   int getLines() const { return static_cast<int>(std::pow(2, m_lines)); }
   unsigned getBlockMask() const { return m_blockMask; }
   unsigned getTagMask() const { return m_tagMask; }
@@ -275,9 +274,9 @@ private:
   unsigned m_lineMask = -1;
   unsigned m_tagMask = -1;
 
-  int m_blocks = 2;           // Some power of 2
-  int m_lines = 5;            // Some power of 2
-  int m_ways = 0;             // Some power of 2
+  int m_blocks = 2; // Some power of 2
+  int m_lines = 5;  // Some power of 2
+  int m_ways = 1;
   unsigned m_byteOffset = -1; // # of bits to represent the # of bytes in a word
   unsigned m_wordBits = -1;
 
