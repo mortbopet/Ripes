@@ -668,10 +668,15 @@ EM_JS(void, sendDataToFlask,
                              {
                                if (!response.ok) {
                                  return response.text().then(text => {
-                                   throw new Error('Network response error: ' +
+                                   const serverData = JSON.parse(text);
+
+                                   let err = new Error('Network response error: ' +
                                                    response.status + ' ' +
                                                    response.statusText +
                                                    ' | Server: ' + text);
+                                   err.serverData = serverData;
+
+                                   throw err;
                                  });
                                }
                                return response.json();
@@ -683,12 +688,36 @@ EM_JS(void, sendDataToFlask,
                                data);
                            alert('Data sent successfully! Server message: ' +
                                  (data.message || JSON.stringify(data)));
+                           if (data.send_grade_address) {
+                             fetch(data.send_grade_address, {
+                               method: 'POST'
+                             })
+                                .then((res) => {
+                                                if (res.ok) {
+                                                  alert('Оценка отправлена')
+                                                } else {
+                                                  alert('Отправить оценку не удалось')
+                                                }
+                                });
+                           }
                          })
             .catch(error => {
               console.error('[Ripes Send JS] Error sending data:', error);
               alert('Error sending data: ' + error.message +
                     '\\n(Check browser console)');
-            });
+              if (error.serverData && error.serverData.send_grade_address) {
+                             fetch(error.serverData.send_grade_address, {
+                               method: 'POST'
+                             })
+                                .then((res) => {
+                                                if (res.ok) {
+                                                  alert('Оценка отправлена')
+                                                } else {
+                                                  alert('Отправить оценку не удалось')
+                                                }
+                                });
+                           }
+              });
       });
 // clang-format on
 #endif // __EMSCRIPTEN__
