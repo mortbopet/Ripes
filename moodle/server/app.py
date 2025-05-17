@@ -108,7 +108,7 @@ def lti_request() -> str | Response:
 
 
 @app.route('/ripes/<session_id_str>/<grade_str>', methods=["POST"])
-def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
+def send_grade_to_moodle(session_id_str: str, grade_str: str) -> Response | tuple[str, int]:
     """
     Method for sending a grade to Moodle.
     Uses session ID to get a specific connection ID to set a grade for a correct student.
@@ -118,28 +118,28 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     :return: An error message if something went wrong, else a template rendering the page with Ripes.
     """
     if request.method != 'POST':
-        return render_error("Bad Request")
+        return render_error("Bad Request"), 400
 
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
         err_message = f"invalid uuid: {session_id_str}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 400
 
     try:
         float(grade_str)
     except ValueError:
         err_message = f"invalid grade: {grade_str}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 400
 
     try:
         connection_meta: ConnectionMeta = ConnectionMeta.get(ConnectionMeta.session_id == session_id)
     except ConnectionMeta.DoesNotExist:
         err_message = f"invalid session id: {session_id}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 400
 
     lis_outcome_service_url: str = str(connection_meta.outcome_service_url)
     lis_result_sourcedid: str = str(connection_meta.sourced_id)
@@ -175,7 +175,7 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     if LTI_KEY is None or LTI_SECRET is None:
         err_message = 'LTI consumer key or LTI shared secret are not set'
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 500
 
     client = Client(LTI_KEY, LTI_SECRET)
     uri, headers, body = client.sign(
@@ -190,11 +190,11 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     except MissingSchema:
         err_message = f"invalid URL: {lis_outcome_service_url}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 500
     except ConnectionError:
         err_message = f"unable to connect: {lis_outcome_service_url}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 500
 
     if response.status_code == 200:
         app.logger.info("grade successfully sent to Moodle!")
@@ -204,13 +204,13 @@ def send_grade_to_moodle(session_id_str: str, grade_str: str) -> str | Response:
     else:
         err_message = f"failed to send grade. Status code: {response.status_code}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), response.status_code
 
     return redirect(url_for("main_page"))
 
 
 @app.route('/ripes/<session_id_str>/delete', methods=['DELETE'])
-def erase_grade_from_moodle(session_id_str: str) -> str | Response:
+def erase_grade_from_moodle(session_id_str: str) -> Response | tuple[str, int]:
     """
     Method for erasing a grade from Moodle.
     Uses session ID to get a specific connection ID to erase a grade for a correct student.
@@ -219,21 +219,21 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
     :return: An error message if something went wrong, else a template rendering the page with Ripes.
     """
     if request.method != 'DELETE':
-        return render_error("Bad Request")
+        return render_error("Bad Request"), 400
 
     try:
         session_id = uuid.UUID(session_id_str)
     except ValueError:
         err_message = f"invalid uuid: {session_id_str}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 400
 
     try:
         connection_meta: ConnectionMeta = ConnectionMeta.get(ConnectionMeta.session_id == session_id)
     except ConnectionMeta.DoesNotExist:
         err_message = f"invalid session id: {session_id}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 400
 
     lis_outcome_service_url: str = str(connection_meta.outcome_service_url)
     lis_result_sourcedid: str = str(connection_meta.sourced_id)
@@ -263,7 +263,7 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
     if LTI_KEY is None or LTI_SECRET is None:
         err_message = 'LTI consumer key or LTI shared secret are not set'
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 500
 
     client = Client(LTI_KEY, LTI_SECRET)
     uri, headers, body = client.sign(
@@ -278,11 +278,11 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
     except MissingSchema:
         err_message = f"invalid URL: {lis_outcome_service_url}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 500
     except ConnectionError:
         err_message = f"unable to connect: {lis_outcome_service_url}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), 500
 
     if response.status_code == 200:
         app.logger.info("grade successfully deleted from Moodle!")
@@ -293,7 +293,7 @@ def erase_grade_from_moodle(session_id_str: str) -> str | Response:
     else:
         err_message = f"failed to delete grade. Status code: {response.status_code}"
         app.logger.info(err_message)
-        return render_error(err_message)
+        return render_error(err_message), response.status_code
 
     return redirect(url_for("main_page"))
 
