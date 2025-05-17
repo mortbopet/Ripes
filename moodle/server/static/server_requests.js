@@ -30,6 +30,11 @@ function send_grade_to_moodle(session_id) {
         return
     }
 
+    if (session_id.trim() === '') {
+        alert('Не указан ID сессии')
+        return
+    }
+
     const grade = document.getElementById("slider_value").textContent
 
     fetch('/ripes/' + session_id + '/' + grade, {
@@ -46,6 +51,11 @@ function send_grade_to_moodle(session_id) {
 function delete_grade_from_moodle(session_id) {
     if (session_id === 'None') {
         alert('Вы не авторизовались через Moodle')
+        return
+    }
+
+    if (session_id.trim() === '') {
+        alert('Не указан ID сессии')
         return
     }
 
