@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 import os
 import uuid
+import json
 from uuid import uuid4
 
 import requests
@@ -39,6 +40,7 @@ class BaseModel(Model):
 class ConnectionMeta(BaseModel):
     session_id = UUIDField(primary_key=True)
     task_id = CharField(max_length=256)
+    course_title = CharField(max_length=512)
     user_id = BigIntegerField()
     full_name = CharField(max_length=1024)
     email = CharField(max_length=256)
@@ -54,7 +56,7 @@ class ConnectionMeta(BaseModel):
 
 class Statistics(Model):
     statistics_id = AutoField()
-    session_id = UUIDField()
+    session_id = ForeignKeyField(ConnectionMeta, field='session_id', backref='statistics')
     grade = FloatField(default=0.00)
     send_timestamp = DateTimeField()
 
@@ -86,7 +88,6 @@ def lti_request() -> str | Response:
     roles = lti_data.get('roles', 'No user roles')
     task_id = lti_data.get('custom_task_id', '0')
 
-    # TODO (Kirill Karpunin): maybe change this later
     session_id = uuid4()
 
     app.logger.info(f"Session ID: {session_id}")
@@ -101,7 +102,8 @@ def lti_request() -> str | Response:
     lis_result_sourcedid = lti_data.get('lis_result_sourcedid')
 
     with db.connection_context():
-        ConnectionMeta.create(session_id=session_id, task_id=task_id, user_id=int(user_id), full_name=full_name,
+        ConnectionMeta.create(session_id=session_id, task_id=task_id, course_title=course_title, user_id=int(user_id),
+                              full_name=full_name,
                               email=email, outcome_service_url=lis_outcome_service_url, sourced_id=lis_result_sourcedid)
 
     return redirect(url_for("main_page", session_id=session_id))
@@ -406,7 +408,18 @@ def statistic_page() -> str:
     if request.method != 'GET':
         return render_error("Bad Request")
 
-    return render_template('statistics.html')
+    query = (
+        ConnectionMeta.select(
+        ConnectionMeta.full_name,
+            ConnectionMeta.user_id,
+            ConnectionMeta.course_title,
+            ConnectionMeta.task_id,
+            Statistics.grade,
+            Statistics.send_timestamp
+        ).join(Statistics).dicts()
+    )
+
+    return render_template('statistics.html', data=json.dumps(list(query), default=str))
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
