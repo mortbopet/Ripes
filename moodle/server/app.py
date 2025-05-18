@@ -401,6 +401,12 @@ def main_page() -> str:
         app.logger.info('пришел не GET и не POST')
         return render_error('Invalid request')
 
+@app.route('/statistic', methods=['GET'])
+def statistic_page() -> str:
+    if request.method != 'GET':
+        return render_error("Bad Request")
+
+    return render_template('statistics.html')
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
