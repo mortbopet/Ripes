@@ -419,7 +419,7 @@ def statistic_page() -> str:
         ).join(Statistics).dicts()
     )
 
-    return render_template('statistics.html', data=json.dumps(list(query), default=str))
+    return render_template('statistics.html', data=json.dumps(list(query), default=str, ensure_ascii=False))
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
