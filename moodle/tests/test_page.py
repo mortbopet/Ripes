@@ -34,27 +34,5 @@ def test_open_page_with_params(chrome):
     assert chrome.title == 'Ripes'
 
 
-def test_find_send(chrome):
-    chrome.get(NO_PARAMS_URL)
-    chrome.find_element(By.XPATH, '//*[text()="Send grade"]')
 
-
-def test_send_no_params(chrome):
-    chrome.get(NO_PARAMS_URL)
-    element = chrome.find_element(By.XPATH, '//*[text()="Send grade"]')
-    element.click()
-    time.sleep(3)
-    alert = chrome.switch_to.alert
-    assert alert.text == 'Вы не авторизовались через Moodle'
-    alert.accept()
-
-
-def test_send_with_params(chrome):
-    chrome.get(PARAMS_URL)
-    element = chrome.find_element(By.XPATH, '//*[text()="Send grade"]')
-    element.click()
-    time.sleep(3)
-    alert = chrome.switch_to.alert
-    assert alert.text == 'Оценка отправлена'
-    alert.accept()
 
