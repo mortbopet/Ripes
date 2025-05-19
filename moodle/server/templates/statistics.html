@@ -4,29 +4,35 @@
     <meta charset="UTF-8">
     <title>Ripes</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.1/css/dataTables.dataTables.min.css">
 </head>
 <body>
+    <div class="ui wide container">
+        <div class="ui center aligned header">Статистика</div>
+        <table id="statsTable" class="ui table" style="width: 100%; margin: 20px auto" data-table-data='{{ data | safe }}'>
+            <thead>
+                <tr>
+                    <th>Имя пользователя</th>
+                    <th>ID пользователя</th>
+                    <th>Название курса</th>
+                    <th>ID задания</th>
+                    <th>Оценка</th>
+                    <th>Время отправки</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 
-<h1 style="text-align: center">Статистика</h1>
 
-<table id="statsTable" class="display" style="width: 100%; margin: 20px auto" data-table-data='{{ data | safe }}'>
-    <thead>
-        <tr>
-            <th>Имя пользователя</th>
-            <th>ID пользователя</th>
-            <th>Название курса</th>
-            <th>ID задания</th>
-            <th>Оценка</th>
-            <th>Время отправки</th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
-</table>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.1/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.1/js/dataTables.semanticui.js"></script>
 <script src="../static/statistic.js"></script>
 
 </body>
