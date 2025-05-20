@@ -6,28 +6,27 @@
     <script src="../static/handlers.js"></script>
     <script src="../static/server_requests.js"></script>
     <title>Ripes</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.css">
 </head>
 
 <body>
-    <div class="main">
-        <h1>Index page</h1>
-        <div class="buttons">
-            <button onclick="hello_handler()" class="button hello-button">Print Hello</button>
-            <div class="buttons-list">
-                <button onclick="server_get_request()" class="button get-button">GET</button>
-                <button onclick="server_post_request()" class="button post-button">POST</button>
-                <button onclick="send_grade_to_moodle('{{ session_id }}')" class="button get-button">Send grade</button>
-                <button onclick="delete_grade_from_moodle('{{ session_id }}')" class="button post-button">Delete grade</button>
-            </div>
+    <div class="ui wide container" style="margin-top: 50px; margin-bottom: 50px;">
+        
+        <h1 class="ui header">Задание</h1>
+        <div class="ui segment">
+            <p>Описание</p>
+            <p>Для отправки задания нажмите на <img class="ui mini spaced image" src="../static/moodle.svg">в окне Ripes</p>
         </div>
-        <label for="grade_slider">Grade:</label>
-        <input type="range" id="grade_slider" min="0" max="10" step="1" value="5" style="width: 250px"
-               oninput="update_slider_value(this.value)">
-        <div id="slider_value">0.5</div>
-        <iframe src="../static/ripes/Ripes.html?session_id={{ session_id | urlencode }}"  width="1300px" height="470px"></iframe>
-        <a href="statistic">Статистика</a>
+        <div class="ui embed">
+            <iframe src="../static/ripes/Ripes.html?session_id={{ session_id | urlencode }}" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+        <a class="ui blue button" style="margin-top: 25px;" href="statistic">Статистика</a>
     </div>
+    <br>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
 </body>
 
 </html>

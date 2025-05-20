@@ -46,6 +46,8 @@ COPY --from=wasm /opt/Ripes/build/qtloader.js ./static/ripes/qtloader.js
 COPY --from=wasm /opt/Ripes/build/Ripes.wasm ./static/ripes/Ripes.wasm
 COPY --from=wasm /opt/Ripes/build/Ripes.html ./static/ripes/Ripes.html
 
+COPY /resources/icons/moodle.svg ./static/moodle.svg
+
 
 WORKDIR /app
 ENV APPIMAGE_EXTRACT_AND_RUN=1
