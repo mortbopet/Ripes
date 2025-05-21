@@ -718,9 +718,9 @@ EM_JS(void, sendDataToFlask,
             .catch(error => {
               console.error('[Ripes Send JS] Error sending data:', error);
               if (parent && typeof parent.showModal === 'function') {
-                  parent.showModal('Ошибка отправки данных', 'Произошла ошибка при отправке данных: ' + errorMessage + '.', 'error');
+                  parent.showModal('Ошибка отправки данных', 'Произошла ошибка при отправке данных: ' + error.serverData.message + '.', 'error');
               } else {
-                  alert('Error sending data: ' + errorMessage + '\\n(Check browser console)' + " (Modal function unavailable)");
+                  alert('Error sending data: ' + error.serverData.message + '\\n(Check browser console)' + " (Modal function unavailable)");
               }
               if (error.serverData && error.serverData.send_grade_address) {
                              fetch(y, {

@@ -372,7 +372,7 @@ def capture_ripes_data(session_id_str: str):
         except RuntimeError as e:
             app.logger.exception(f"Error during check run for session {session_id_str}: {e}")
             grade = 0
-            message = "Error during run {e}"
+            message = f"Error during run: {e}"
             return jsonify({
                 "status": "error",
                 "message": message,
