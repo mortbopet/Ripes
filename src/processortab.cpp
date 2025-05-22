@@ -631,7 +631,11 @@ EM_JS(void, sendDataToFlask,
         if (!sessionId) {
           console.error(
               "[Ripes Send JS] Critical Error: Could not find 'session_id'.");
-          alert("Error: Session ID not found in the page URL.");
+          if (parent && typeof parent.showModal === 'function') {
+            parent.showModal('Ошибка сессии', 'ID сессии не найден в URL. Отправка данных невозможна.', 'error');
+          } else {
+            alert("Error: Session ID not found in the page URL. (Modal function unavailable)");
+          }
           return;
         }
 
@@ -648,7 +652,11 @@ EM_JS(void, sendDataToFlask,
         } catch (e) {
           console.error("[Ripes Send JS] Error parsing registers JSON:", e,
                         "\nJSON string was:", registers_json_str);
-          alert("Warning: Could not parse register data. Sending without registers.");
+          if (parent && typeof parent.showModal === 'function') {
+            parent.showModal('Предупреждение', 'Не удалось обработать данные регистров. Данные будут отправлены без информации о регистрах.', 'info');
+          } else {
+            alert("Warning: Could not parse register data. Sending without registers. (Modal function unavailable)");
+          }
         }
 
         // Include code, output, and the parsed registers object
@@ -686,34 +694,51 @@ EM_JS(void, sendDataToFlask,
                            console.log(
                                '[Ripes Send JS] Success response from server:',
                                data);
-                           alert('Data sent successfully! Server message: ' +
-                                 (data.message || JSON.stringify(data)));
                            if (data.send_grade_address) {
                              fetch(data.send_grade_address, {
                                method: 'POST'
                              })
                                 .then((res) => {
                                                 if (res.ok) {
-                                                  alert('Оценка отправлена')
+                                                  if (parent && typeof parent.showModal === 'function') {
+                                                      parent.showModal('Успех', 'Данные успешно отправлены! Сообщение от сервера: ' + (data.message || JSON.stringify(data)), 'success');
+                                                  } else {
+                                                      alert('Данные отправлены! Сообщение от сервера: ' + (data.message || JSON.stringify(data)));
+                                                  }
                                                 } else {
-                                                  alert('Отправить оценку не удалось')
+                                                  if (parent && typeof parent.showModal === 'function') {
+                                                    parent.showModal('Ошибка', 'Отправить оценку не удалось.', 'error');
+                                                  } else {
+                                                    alert('Отправить оценку не удалось');
+                                                  }
                                                 }
                                 });
                            }
                          })
             .catch(error => {
               console.error('[Ripes Send JS] Error sending data:', error);
-              alert('Error sending data: ' + error.message +
-                    '\\n(Check browser console)');
+              if (parent && typeof parent.showModal === 'function') {
+                  parent.showModal('Ошибка отправки данных', 'Произошла ошибка при отправке данных: ' + error.serverData.message + '.', 'error');
+              } else {
+                  alert('Error sending data: ' + error.serverData.message + '\\n(Check browser console)' + " (Modal function unavailable)");
+              }
               if (error.serverData && error.serverData.send_grade_address) {
-                             fetch(error.serverData.send_grade_address, {
+                             fetch(y, {
                                method: 'POST'
                              })
                                 .then((res) => {
                                                 if (res.ok) {
-                                                  alert('Оценка отправлена')
+                                                  if (parent && typeof parent.showModal === 'function') {
+                                                    parent.showModal('Успех', 'Оценка отправлена.', 'success');
+                                                  } else {
+                                                    alert('Оценка отправлена');
+                                                  }
                                                 } else {
-                                                  alert('Отправить оценку не удалось')
+                                                  if (parent && typeof parent.showModal === 'function') {
+                                                    parent.showModal('Ошибка', 'Отправить оценку не удалось.', 'error');
+                                                  } else {
+                                                    alert('Отправить оценку не удалось');
+                                                  }
                                                 }
                                 });
                            }
