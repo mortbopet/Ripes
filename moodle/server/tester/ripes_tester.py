@@ -1,6 +1,6 @@
 import json
 import re
-from subprocess import run, CompletedProcess
+from subprocess import run, CompletedProcess, TimeoutExpired
 
 regs_dict = {
     "zero": "x0",
@@ -51,6 +51,8 @@ class Tester:
         #     "proc": proc,
         #     "timeout": timeout
         # }
+
+        self.timeout = timeout
 
         self.test_run_strings = [
             # f"{path}/create-display.sh",
@@ -104,13 +106,16 @@ class Tester:
         if reginit is not None:
             tmp = self.test_run_strings[self.reginit_index] if self.reginit_index != -1 else None
             self.__set_reginit(reginit)
-            res = run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True)
+            res = run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True, timeout=self.timeout / 1000 + 0.5)
             self.__set_reginit(tmp)
             return res
-        return run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True)
+        return run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True, timeout=self.timeout / 1000 + 0.5)
 
     def run(self, run_input: str = None, reginit: str | dict = None) -> dict:
-        run_res = self.__run(run_input=run_input, reginit=reginit)
+        try:
+            run_res = self.__run(run_input=run_input, reginit=reginit)
+        except TimeoutExpired as e:
+            raise RuntimeError("Program haven't exited")
         if "Program exited with code: 0\n" not in run_res.stdout:
             if "ERROR" in run_res.stdout:
                 raise RuntimeError(run_res.stdout)
