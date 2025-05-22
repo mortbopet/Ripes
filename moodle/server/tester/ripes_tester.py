@@ -115,7 +115,7 @@ class Tester:
         try:
             run_res = self.__run(run_input=run_input, reginit=reginit)
         except TimeoutExpired as e:
-            raise RuntimeError("Prigram haven't exited")
+            raise RuntimeError("Program haven't exited")
         if "Program exited with code: 0\n" not in run_res.stdout:
             if "ERROR" in run_res.stdout:
                 raise RuntimeError(run_res.stdout)
