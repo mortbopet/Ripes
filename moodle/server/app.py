@@ -420,12 +420,23 @@ def main_page() -> str:
         app.logger.info('пришел не GET и не POST')
         return render_error('Invalid request')
 
-@app.route('/statistic', methods=['GET'])
-def statistic_page() -> str:
+@app.route('/statistic/<session_id_str>', methods=['GET'])
+def statistic_page(session_id_str: str) -> str:
     if request.method != 'GET':
         return render_error("Bad Request")
 
-    query = (Events.select(
+    try:
+        session_id = uuid.UUID(session_id_str)
+    except ValueError:
+        err_message = f"invalid uuid: {session_id_str}"
+        app.logger.info(err_message)
+        return render_error(err_message)
+
+    conn = ConnectionMeta.select().where(ConnectionMeta.session_id == session_id)[0]
+    user_id = conn.user_id
+    task_id = conn.task_id
+
+    query = Events.select(
         Events.event_timestamp,
         ConnectionMeta.full_name,
         ConnectionMeta.email,
@@ -436,9 +447,14 @@ def statistic_page() -> str:
         Grades.code,
         ).join(ConnectionMeta, on=(Events.session_id == ConnectionMeta.session_id)
         ).join(Grades, JOIN.LEFT_OUTER, on=(Events.event_id == Grades.event_id)
-        ).order_by(Events.event_timestamp.desc()
-        ).dicts()
-    )
+        ).order_by(Events.event_timestamp.desc())
+
+    query = query.where(ConnectionMeta.task_id == task_id)
+
+    if not 'administrator' in conn.roles.lower():
+        query = query.where(ConnectionMeta.user_id == user_id)
+
+    query = query.dicts()
 
     return render_template('statistics.html', data=json.dumps(list(query), default=str, ensure_ascii=False))
 
