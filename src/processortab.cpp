@@ -723,22 +723,26 @@ EM_JS(void, sendDataToFlask,
                   alert('Error sending data: ' + error.serverData.message + '\\n(Check browser console)' + " (Modal function unavailable)");
               }
               if (error.serverData && error.serverData.send_grade_address) {
-                             fetch(y, {
+                             fetch(error.serverData.send_grade_address, {
                                method: 'POST'
                              })
                                 .then((res) => {
                                                 if (res.ok) {
-                                                  if (parent && typeof parent.showModal === 'function') {
-                                                    parent.showModal('Успех', 'Оценка отправлена.', 'success');
-                                                  } else {
-                                                    alert('Оценка отправлена');
-                                                  }
+                                                  setTimeout(() => {
+                                                    if (parent && typeof parent.showModal === 'function') {
+                                                        parent.showModal('Ошибка', 'Оценка 0.0 отправлена на сервер.', 'error');
+                                                    } else {
+                                                        alert('Оценка 0.0 отправлена на сервер.');
+                                                    }
+                                                  }, 5000);
                                                 } else {
-                                                  if (parent && typeof parent.showModal === 'function') {
-                                                    parent.showModal('Ошибка', 'Отправить оценку не удалось.', 'error');
-                                                  } else {
-                                                    alert('Отправить оценку не удалось');
-                                                  }
+                                                  setTimeout(() => {
+                                                    if (parent && typeof parent.showModal === 'function') {
+                                                        parent.showModal('Ошибка', 'Отправить оценку не удалось.', 'error');
+                                                    } else {
+                                                        alert('Отправить оценку не удалось');
+                                                    }
+                                                  }, 5000);
                                                 }
                                 });
                            }

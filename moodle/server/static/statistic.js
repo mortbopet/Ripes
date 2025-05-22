@@ -5,15 +5,18 @@ function initStatisticsTable(data) {
             url: 'https://cdn.datatables.net/plug-ins/2.3.1/i18n/ru.json'
         },
         columns: [
+            { data: 'event_timestamp' },
             { data: 'full_name' },
-            { data: 'user_id' },
+            { data: 'email' },
             { data: 'course_title' },
             { data: 'task_id' },
-            { data: 'grade' },
-            { data: 'send_timestamp' }
+            { data: 'event_type' },
+            { data: 'grade_value' },
+            { data: 'code' }
         ],
-        pageLength: 25,
+        pageLength: 10,
         responsive: true,
+        order: []
     });
 }
 

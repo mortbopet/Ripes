@@ -21,5 +21,6 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE TABLE IF NOT EXISTS grades (
     grade_id BIGSERIAL PRIMARY KEY,
     event_id BIGINT NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
-    grade_value NUMERIC(3,2) NOT NULL
+    grade_value NUMERIC(3,2) NOT NULL,
+    code VARCHAR(4096) NOT NULL
 );
