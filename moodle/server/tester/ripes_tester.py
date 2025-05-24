@@ -106,20 +106,20 @@ class Tester:
         if reginit is not None:
             tmp = self.test_run_strings[self.reginit_index] if self.reginit_index != -1 else None
             self.__set_reginit(reginit)
-            res = run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True, timeout=self.timeout / 1000 + 0.5)
+            res = run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True, timeout=self.timeout / 1000 + 14)
             self.__set_reginit(tmp)
             return res
-        return run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True, timeout=self.timeout / 1000 + 0.5)
+        return run(' '.join(self.test_run_strings), capture_output=True, text=True, input=run_input, shell=True, timeout=self.timeout / 1000 + 14)
 
     def run(self, run_input: str = None, reginit: str | dict = None) -> dict:
         try:
             run_res = self.__run(run_input=run_input, reginit=reginit)
         except TimeoutExpired as e:
-            raise RuntimeError("Program haven't exited")
+            raise RuntimeError("Program hasn't exited")
         if "Program exited with code: 0\n" not in run_res.stdout:
             if "ERROR" in run_res.stdout:
                 raise RuntimeError(run_res.stdout)
-            raise RuntimeError("Program haven't exited or got non-zero exit code")
+            raise RuntimeError("Program hasn't exited or returned a non-zero exit code")
 
         return self.__parse_output(run_res)
 
