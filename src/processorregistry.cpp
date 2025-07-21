@@ -2,8 +2,8 @@
 
 #include <QPolygonF>
 
-#include "processors/RISC-V/rv5mc/rv5mc_2m.h"
 #include "processors/RISC-V/rv5mc/rv5mc_1m.h"
+#include "processors/RISC-V/rv5mc/rv5mc_2m.h"
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
@@ -90,11 +90,11 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5MC2M<uint32_t>>(
-      ProcessorID::RV32_5MC, "Multi-cycle processor with separate memories", rv5mc_desc, layouts,
-      defRegVals));
+      ProcessorID::RV32_5MC, "Multi-cycle processor with separate memories",
+      rv5mc_desc, layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5MC2M<uint64_t>>(
-      ProcessorID::RV64_5MC, "Multi-cycle processor with separate memories", rv5mc_desc, layouts,
-      defRegVals));
+      ProcessorID::RV64_5MC, "Multi-cycle processor with separate memories",
+      rv5mc_desc, layouts, defRegVals));
 
   // RISC-V multicycle, one memory
   layouts = {{"Extended",

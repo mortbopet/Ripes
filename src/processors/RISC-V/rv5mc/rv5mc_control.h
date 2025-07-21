@@ -50,7 +50,8 @@ struct StateSignals {
   AluSrc2 alu_op2_src = AluSrc2::IMM;
   ALUControl alu_control = ALUControl::ADD;
   bool mem_write = false;
-  MemAddrSrc mem_addr_src = MemAddrSrc::PC; // used only if there is a single memory for data and instructions
+  MemAddrSrc mem_addr_src = MemAddrSrc::PC; // used only if there is a single
+                                            // memory for data and instructions
   bool ecall = false;
 };
 typedef FSMState (*TransitionFunc)(RVInstr);

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "rv5mc_base.h"
 #include "processors/RISC-V/rv_memory.h"
+#include "rv5mc_base.h"
 
 namespace vsrtl {
 namespace core {
@@ -17,9 +17,7 @@ class RV5MC2M : public RV5MCBase<XLEN_T> {
   using MemAddrSrc = rv5mc::MemAddrSrc;
 
 public:
-
-  RV5MC2M(const QStringList &extensions)
-    : RV5MCBase<XLEN_T>(extensions) {
+  RV5MC2M(const QStringList &extensions) : RV5MCBase<XLEN_T>(extensions) {
     // Instruction memory
     this->pc_reg->out >> this->instr_mem->addr;
     this->instr_mem->setMemory(this->m_memory);
@@ -48,7 +46,9 @@ public:
 
   // Memories
   SUBCOMPONENT(instr_mem, TYPE(ROM<RV5MCBase<XLEN_T>::XLEN, c_RVInstrWidth>));
-  SUBCOMPONENT(data_mem, TYPE(RVMemory<RV5MCBase<XLEN_T>::XLEN, RV5MCBase<XLEN_T>::XLEN>));
+  SUBCOMPONENT(
+      data_mem,
+      TYPE(RVMemory<RV5MCBase<XLEN_T>::XLEN, RV5MCBase<XLEN_T>::XLEN>));
 };
 
 } // namespace core

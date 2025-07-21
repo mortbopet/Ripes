@@ -18,9 +18,7 @@ class RV5MC1M : public RV5MCBase<XLEN_T> {
   using MemAddrSrc = rv5mc::MemAddrSrc;
 
 public:
-
-  RV5MC1M(const QStringList &extensions)
-    : RV5MCBase<XLEN_T>(extensions) {
+  RV5MC1M(const QStringList &extensions) : RV5MCBase<XLEN_T>(extensions) {
     // memory
     this->pc_reg->out >> this->mem_addr_src->get(MemAddrSrc::PC);
     this->ALU_out->out >> this->mem_addr_src->get(MemAddrSrc::ALUOUT);
@@ -33,7 +31,6 @@ public:
     this->control->mem_ctrl >> this->memory->op;
     this->memory->setMemory(this->m_memory);
 
-    
     // Decode
     this->memory->data_out >> this->ir_widthadjust->in;
     this->ir_widthadjust->out >> this->decode->instr;
@@ -50,10 +47,13 @@ public:
   }
 
   // Memories
-  SUBCOMPONENT(memory, TYPE(RVMemory<RV5MCBase<XLEN_T>::XLEN, RV5MCBase<XLEN_T>::XLEN>));
+  SUBCOMPONENT(
+      memory, TYPE(RVMemory<RV5MCBase<XLEN_T>::XLEN, RV5MCBase<XLEN_T>::XLEN>));
 
-  SUBCOMPONENT(mem_addr_src, TYPE(EnumMultiplexer<MemAddrSrc, RV5MCBase<XLEN_T>::XLEN>));
-  SUBCOMPONENT(ir_widthadjust, TYPE(ZExtOrTruncate<RV5MCBase<XLEN_T>::XLEN, c_RVInstrWidth>));
+  SUBCOMPONENT(mem_addr_src,
+               TYPE(EnumMultiplexer<MemAddrSrc, RV5MCBase<XLEN_T>::XLEN>));
+  SUBCOMPONENT(ir_widthadjust,
+               TYPE(ZExtOrTruncate<RV5MCBase<XLEN_T>::XLEN, c_RVInstrWidth>));
 };
 
 } // namespace core

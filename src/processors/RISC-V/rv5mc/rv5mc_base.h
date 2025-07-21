@@ -50,7 +50,7 @@ public:
 
     // Program counter
     pc_src->out >> pc_reg->in;
-    0 >> pc_reg->clear; 
+    0 >> pc_reg->clear;
     controlflow_or->out >> pc_reg->enable;
 
     pc_reg->out >> pc_old_reg->in;
@@ -61,7 +61,6 @@ public:
     4 >> pc_inc->get(PcInc::INC4);
     decode->Pc_Inc >> pc_inc->select;
 
-    
     // -----------------------------------------------------------------------
     // Decode
     control->ir_write >> decode->enable;
@@ -132,7 +131,6 @@ public:
     decode->opcode >> ecallChecker->opcode;
     ecallChecker->setSyscallCallback(&trapHandler);
     control->ecall >> ecallChecker->stallEcallHandling;
-
   }
 
   // Design subcomponents
