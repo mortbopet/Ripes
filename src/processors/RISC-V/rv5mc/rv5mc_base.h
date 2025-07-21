@@ -8,15 +8,13 @@
 
 #include "processors/RISC-V/riscv.h"
 
-#include "processors/RISC-V/rv5mc/rv5mc_alu.h"
-#include "processors/RISC-V/rv5mc/rv5mc_branch.h"
-#include "processors/RISC-V/rv5mc/rv5mc_decode_and_umcompress.h"
-#include "rv5mc_1m_control.h"
-#include "rv5mc_widthadjust.h"
+#include "rv5mc_alu.h"
+#include "rv5mc_branch.h"
+#include "rv5mc_control.h"
+#include "rv5mc_decode_and_umcompress.h"
 
 #include "processors/RISC-V/rv_ecallchecker.h"
 #include "processors/RISC-V/rv_immediate.h"
-#include "processors/RISC-V/rv_memory.h"
 #include "processors/RISC-V/rv_registerfile.h"
 
 namespace vsrtl {
@@ -24,17 +22,18 @@ namespace core {
 using namespace Ripes;
 
 template <typename XLEN_T>
-class RV5MC1M : public RipesVSRTLProcessor {
+class RV5MCBase : public RipesVSRTLProcessor {
   static_assert(std::is_same<uint32_t, XLEN_T>::value ||
                     std::is_same<uint64_t, XLEN_T>::value,
                 "Only supports 32- and 64-bit variants");
-  using FSMState = rv5mc1m::FSMState;
-  using RVMC1MControl = rv5mc1m::RVMC1MControl;
-  using AluSrc1 = rv5mc1m::AluSrc1;
-  using AluSrc2 = rv5mc1m::AluSrc2;
-  using ALUControl = rv5mc1m::ALUControl;
-  using MemAddrSrc = rv5mc1m::MemAddrSrc;
+  using FSMState = rv5mc::FSMState;
+  using RVMCControl = rv5mc::RVMCControl;
+  using AluSrc1 = rv5mc::AluSrc1;
+  using AluSrc2 = rv5mc::AluSrc2;
+  using ALUControl = rv5mc::ALUControl;
+  using MemAddrSrc = rv5mc::MemAddrSrc;
 
+protected:
   static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
@@ -44,15 +43,14 @@ public:
     return static_cast<Stage>(i);
   }
 
-  RV5MC1M(const QStringList &extensions)
+  RV5MCBase(const QStringList &extensions)
       : RipesVSRTLProcessor("Multicycle RISC-V Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
 
-    // -----------------------------------------------------------------------
     // Program counter
     pc_src->out >> pc_reg->in;
-    0 >> pc_reg->clear;
+    0 >> pc_reg->clear; 
     controlflow_or->out >> pc_reg->enable;
 
     pc_reg->out >> pc_old_reg->in;
@@ -63,24 +61,9 @@ public:
     4 >> pc_inc->get(PcInc::INC4);
     decode->Pc_Inc >> pc_inc->select;
 
-    // -----------------------------------------------------------------------
-    // memory
-    pc_reg->out >> mem_addr_src->get(MemAddrSrc::PC);
-    ALU_out->out >> mem_addr_src->get(MemAddrSrc::ALUOUT);
-    control->mem_addr_src >> mem_addr_src->select;
-    mem_addr_src->out >> memory->addr;
-    memory->data_out >> mem_out->in;
-    mem_out->out >> reg_src->get(RegWrSrc::MEMREAD);
-    control->mem_write >> memory->wr_en;
-    b->out >> memory->data_in;
-    control->mem_ctrl >> memory->op;
-    memory->setMemory(m_memory);
-
+    
     // -----------------------------------------------------------------------
     // Decode
-    memory->data_out >> ir_widthadjust->in;
-    ir_widthadjust->out >> decode->instr;
-    decode->instr << [=] { return memory->data_out.uValue(); };
     control->ir_write >> decode->enable;
 
     // -----------------------------------------------------------------------
@@ -149,12 +132,13 @@ public:
     decode->opcode >> ecallChecker->opcode;
     ecallChecker->setSyscallCallback(&trapHandler);
     control->ecall >> ecallChecker->stallEcallHandling;
+
   }
 
   // Design subcomponents
   SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, false>));
   SUBCOMPONENT(alu, TYPE(RVMCALU<XLEN>));
-  SUBCOMPONENT(control, RVMC1MControl);
+  SUBCOMPONENT(control, RVMCControl);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
   SUBCOMPONENT(decode, TYPE(DecodeUncompress<XLEN>));
   SUBCOMPONENT(branch_unit, TYPE(BranchSimple<XLEN>));
@@ -173,11 +157,6 @@ public:
   SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
-  SUBCOMPONENT(mem_addr_src, TYPE(EnumMultiplexer<MemAddrSrc, XLEN>));
-  SUBCOMPONENT(ir_widthadjust, TYPE(WidthAdjust<XLEN, c_RVInstrWidth>));
-
-  // Memories
-  SUBCOMPONENT(memory, TYPE(RVMemory<XLEN, XLEN>));
 
   // Gates
   SUBCOMPONENT(br_and, TYPE(And<1, 2>));
@@ -214,37 +193,36 @@ public:
     // clang-format on
   }
   StageInfo stageInfo(StageIndex stage) const override {
-        bool stageValid = true;
-        auto fsmState = control->getCurrentState();
-        //State valid
-        switch (StageFromIndex(stage.index())) {
-        case Stage::IF:
-          stageValid &= (fsmState == FSMState::IF);
-          break;
-        case Stage::ID:
-          stageValid &= (fsmState == FSMState::ID);
-          break;
-        case Stage::EX:
-          stageValid &= (fsmState >= FSMState::EX && fsmState < FSMState::MEM);
-          break;
-        case Stage::MEM:
-          stageValid &= (fsmState >= FSMState::MEM && fsmState < FSMState::WB);
-          break;
-        case Stage::WB:
-          stageValid &= (fsmState >= FSMState::WB);
-          break;
-        default: break;
-        }
+    bool stageValid = true;
+    auto fsmState = control->getCurrentState();
+    // State valid
+    switch (StageFromIndex(stage.index())) {
+    case Stage::IF:
+      stageValid &= (fsmState == FSMState::IF);
+      break;
+    case Stage::ID:
+      stageValid &= (fsmState == FSMState::ID);
+      break;
+    case Stage::EX:
+      stageValid &= (fsmState >= FSMState::EX && fsmState < FSMState::MEM);
+      break;
+    case Stage::MEM:
+      stageValid &= (fsmState >= FSMState::MEM && fsmState < FSMState::WB);
+      break;
+    case Stage::WB:
+      stageValid &= (fsmState >= FSMState::WB);
+      break;
+    default:
+      break;
+    }
 
-        // Gather stage state info
-        StageInfo::State state = StageInfo ::State::None;
+    // Gather stage state info
+    StageInfo::State state = StageInfo ::State::None;
 
-    return StageInfo{getPcForStage(stage),
-                     stageValid,
-                     state};
+    return StageInfo{getPcForStage(stage), stageValid, state};
   }
   void setProgramCounter(AInt address) override {
-    pc_reg->forceValue(0,address);
+    pc_reg->forceValue(0, address);
     control->setInitialState();
     propagateDesign();
   }
@@ -268,15 +246,6 @@ public:
   }
   const std::vector<StageIndex> breakpointTriggeringStages() const override {
     return {{0, 0}};
-  }
-
-  MemoryAccess dataMemAccess() const override {
-    return memToAccessInfo(memory);
-  }
-  MemoryAccess instrMemAccess() const override {
-    auto instrAccess = memToAccessInfo(memory);
-    instrAccess.type = MemoryAccess::Read;
-    return instrAccess;
   }
 
   void setRegister(const std::string_view &, unsigned i, VInt v) override {

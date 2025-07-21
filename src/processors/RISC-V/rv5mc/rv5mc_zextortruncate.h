@@ -6,9 +6,9 @@ namespace vsrtl {
 namespace core {
 
 template <unsigned INLEN, unsigned OUTLEN>
-class WidthAdjust : public Component {
+class ZExtOrTruncate : public Component {
 public:
-  WidthAdjust(std::string name, SimComponent *parent)
+  ZExtOrTruncate(std::string name, SimComponent *parent)
       : Component(name, parent) {
     out << [=] { return in.uValue(); };
   }

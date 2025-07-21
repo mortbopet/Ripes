@@ -13,6 +13,7 @@ namespace rv5mc {
 enum class AluSrc1 { REG1, PC, PCOLD };
 enum class AluSrc2 { REG2, IMM, PC_INC };
 enum class ALUControl { ADD, SUB, INSTRUCTION_DEPENDENT };
+enum class MemAddrSrc { PC, ALUOUT };
 
 enum class FSMState {
   IF,
@@ -49,6 +50,7 @@ struct StateSignals {
   AluSrc2 alu_op2_src = AluSrc2::IMM;
   ALUControl alu_control = ALUControl::ADD;
   bool mem_write = false;
+  MemAddrSrc mem_addr_src = MemAddrSrc::PC; // used only if there is a single memory for data and instructions
   bool ecall = false;
 };
 typedef FSMState (*TransitionFunc)(RVInstr);
@@ -200,6 +202,7 @@ public:
         .alu_op1_src = AluSrc1::PC,
         .alu_op2_src = AluSrc2::PC_INC,
         .alu_control = ALUControl::ADD,
+        .mem_addr_src = MemAddrSrc::PC,
     }, to(ID));
 
     addState(FSMState::ID, {
@@ -295,10 +298,12 @@ public:
     //Memory states
     addState(FSMState::MEMLOAD, {
         //.mem_read = true, // the memory reads every cycle from the addres in ALU_out
+        .mem_addr_src = MemAddrSrc::ALUOUT,
       }, to(WBMEMLOAD));
 
     addState(FSMState::MEMSTORE, {
         .mem_write = true,
+        .mem_addr_src = MemAddrSrc::ALUOUT,
       }, to(IF));
 
     //Writeback states
@@ -338,8 +343,9 @@ public:
       : (assert(c == ALUControl::SUB), ALUOp::SUB);
     };
     mem_write << [=] { return getCurrentStateInfo().outs.mem_write; };
+    mem_addr_src << [=] { return getCurrentStateInfo().outs.mem_addr_src; };
 
-    mem_ctrl << [=] { return do_mem_ctrl(getCurrentOpcode());};
+    mem_ctrl << [=] { return (mem_addr_src.eValue<MemAddrSrc>() == MemAddrSrc::PC) ? MemOp::LW : do_mem_ctrl(getCurrentOpcode());};
     comp_ctrl << [=] { return do_comp_ctrl(getCurrentOpcode()); };
 
     // ecall signal is inverted
@@ -380,6 +386,7 @@ public:
   OUTPUTPORT_ENUM(alu_op2_src, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
   OUTPUTPORT(mem_write, 1);
+  OUTPUTPORT_ENUM(mem_addr_src, MemAddrSrc);
   OUTPUTPORT_ENUM(mem_ctrl, MemOp);
   OUTPUTPORT_ENUM(comp_ctrl, CompOp);
   OUTPUTPORT(ecall,1);
