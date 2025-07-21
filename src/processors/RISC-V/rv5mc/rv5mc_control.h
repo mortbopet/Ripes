@@ -5,59 +5,59 @@
 #include "processors/RISC-V/riscv.h"
 #include <magic_enum/magic_enum.hpp>
 
-
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
 namespace rv5mc {
-  enum class AluSrc1 { REG1, PC, PCOLD };
-  enum class AluSrc2 { REG2, IMM, PC_INC };
-  enum class ALUControl { ADD, SUB, INSTRUCTION_DEPENDENT };
+enum class AluSrc1 { REG1, PC, PCOLD };
+enum class AluSrc2 { REG2, IMM, PC_INC };
+enum class ALUControl { ADD, SUB, INSTRUCTION_DEPENDENT };
 
-  enum class FSMState {
-    IF,
-    ID,
+enum class FSMState {
+  IF,
+  ID,
 
-    EX, //Generic execution state, used for determining the Stage in stageInfo
+  EX, // Generic execution state, used for determining the Stage in stageInfo
 
-    EXJALR,
-    EXBRANCH,
-    EXALUR,
-    EXALUI,
-    EXMEMOP,
-    EXECALL,
+  EXJALR,
+  EXBRANCH,
+  EXALUR,
+  EXALUI,
+  EXMEMOP,
+  EXECALL,
 
-    MEM, //Generic memory state
-    
-    WBJ,
-    MEMLOAD,
-    MEMSTORE,
+  MEM, // Generic memory state
 
-    WB, //Generic writeback state
+  WBJ,
+  MEMLOAD,
+  MEMSTORE,
 
-    WBALU,
-    WBMEMLOAD,
-  };
-  struct StateSignals {
-    bool ir_write = false;
-    bool pc_write = false;
-    bool branch = false;
-    PcSrc pc_src = PcSrc::ALU;
-    bool reg_write = false;
-    RegWrSrc reg_src = RegWrSrc::ALURES;
-    AluSrc1 alu_op1_src = AluSrc1::PC;
-    AluSrc2 alu_op2_src = AluSrc2::IMM;
-    ALUControl alu_control = ALUControl::ADD;
-    bool mem_write = false;
-    bool ecall = false;
-  };
-  typedef FSMState (*TransitionFunc)(RVInstr);
+  WB, // Generic writeback state
 
-  struct StateInfo { // There is an instance of this struct for each valid FSMState, created at initialization
-    StateSignals outs; // Values for VSRT signals
-    TransitionFunc transitions;
-  };
+  WBALU,
+  WBMEMLOAD,
+};
+struct StateSignals {
+  bool ir_write = false;
+  bool pc_write = false;
+  bool branch = false;
+  PcSrc pc_src = PcSrc::ALU;
+  bool reg_write = false;
+  RegWrSrc reg_src = RegWrSrc::ALURES;
+  AluSrc1 alu_op1_src = AluSrc1::PC;
+  AluSrc2 alu_op2_src = AluSrc2::IMM;
+  ALUControl alu_control = ALUControl::ADD;
+  bool mem_write = false;
+  bool ecall = false;
+};
+typedef FSMState (*TransitionFunc)(RVInstr);
+
+struct StateInfo {   // There is an instance of this struct for each valid
+                     // FSMState, created at initialization
+  StateSignals outs; // Values for VSRT signals
+  TransitionFunc transitions;
+};
 
 class RVMCControl : public Component {
 public:
