@@ -11,9 +11,7 @@
         <file>RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json</file>
         <file>RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json</file>
         <file>RISC-V/rv6s_dual/rv6s_dual_extended_layout.json</file>
-        <file>RISC-V/rv5mc/rv5mc_standard_layout.json</file>
         <file>RISC-V/rv5mc/rv5mc_extended_layout.json</file>
-        <file>RISC-V/rv5mc_1m/rv5mc_1m_standard_layout.json</file>
         <file>RISC-V/rv5mc_1m/rv5mc_1m_extended_layout.json</file>
     </qresource>
 </RCC>

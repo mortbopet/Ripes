@@ -64,14 +64,7 @@ ProcessorRegistry::ProcessorRegistry() {
       "A single cycle processor", layouts, defRegVals));
 
   // RISC-V multicycle
-  layouts = {{"Standard",
-      ":/layouts/RISC-V/rv5mc/rv5mc_standard_layout.json",
-      {{{0, 0}, QPointF{0.08, 0}},
-      {{0, 1}, QPointF{0.29, 0}},
-      {{0, 2}, QPointF{0.55, 0}},
-      {{0, 3}, QPointF{0.75, 0}},
-      {{0, 4}, QPointF{0.87, 0}}}},
-      {"Extended",
+  layouts = {{"Extended",
           ":/layouts/RISC-V/rv5mc/rv5mc_extended_layout.json",
           {{{0, 0}, QPointF{0.08, 0}},
           {{0, 1}, QPointF{0.28, 0}},
@@ -87,14 +80,7 @@ ProcessorRegistry::ProcessorRegistry() {
       "A 5 stage multicycle processor", layouts, defRegVals));
 
   // RISC-V multicycle, one memory
-  layouts = {{"Standard",
-      ":/layouts/RISC-V/rv5mc_1m/rv5mc_1m_standard_layout.json", // TODO
-      {{{0, 0}, QPointF{0.08, 0}},
-      {{0, 1}, QPointF{0.29, 0}},
-      {{0, 2}, QPointF{0.55, 0}},
-      {{0, 3}, QPointF{0.75, 0}},
-      {{0, 4}, QPointF{0.87, 0}}}},
-      {"Extended",
+  layouts = {{"Extended",
           ":/layouts/RISC-V/rv5mc_1m/rv5mc_1m_extended_layout.json", // TODO
           {{{0, 0}, QPointF{0.08, 0}},
           {{0, 1}, QPointF{0.28, 0}},
