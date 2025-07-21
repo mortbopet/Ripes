@@ -18,7 +18,6 @@
 #include "processors/RISC-V/rv_immediate.h"
 #include "processors/RISC-V/rv_memory.h"
 #include "processors/RISC-V/rv_registerfile.h"
-#include <magic_enum/magic_enum.hpp>
 
 namespace vsrtl {
 namespace core {
@@ -248,7 +247,7 @@ public:
   }
   void setProgramCounter(AInt address) override {
     pc_reg->forceValue(0,address);
-    // FIXME: set also current state to IF?
+    control->setInitialState();
     propagateDesign();
   }
   void setPCInitialValue(AInt address) override {

@@ -159,6 +159,13 @@ public:
     return state_reg->out.eValue<FSMState>();
   }
 
+  void setInitialState() const {
+    state_reg->forceValue(0, magic_enum::enum_integer(FSMState::IF));
+  }
+
+  // Add a new state to the vector of valid states, indicating the
+  // name, signals and transition fuction for the state.
+  // This function needs to be called once for each state at initialization time.
   void addState(FSMState s, StateSignals o, TransitionFunc t) {
     auto idx = static_cast<int>(s);
     states.at(idx) = {o, t};
@@ -313,6 +320,8 @@ public:
       }, to(IF));
 
 #undef to
+
+    setInitialState();
 
     ir_write << [=] { return getCurrentStateInfo().outs.ir_write; };
     pc_write << [=] { return getCurrentStateInfo().outs.pc_write; };
