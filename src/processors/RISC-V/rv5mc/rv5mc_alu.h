@@ -6,6 +6,7 @@
 #include "processors/RISC-V/riscv.h"
 
 #include "VSRTL/core/vsrtl_component.h"
+#include "VSRTL/core/vsrtl_constant.h"
 
 namespace vsrtl {
 namespace core {
@@ -14,8 +15,10 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RVMCALU : public Component {
 private:
-  long unsigned int carry_overflow32 = 2147483648;           // 2^(32-1)
-  unsigned long int carry_overflow64 = 9223372036854775808U; // 2^(64-1)
+  const int32_t div_overflow32 = (-2147483648); //-2^(32-1)
+  const int64_t div_overflow64 = (LLONG_MIN);   //-2^(64-1)
+  const long unsigned int carry_overflow32 = 2147483648;           // 2^(32-1)
+  const unsigned long int carry_overflow64 = 9223372036854775808U; // 2^(64-1)
 public:
   SetGraphicsType(ALU);
 

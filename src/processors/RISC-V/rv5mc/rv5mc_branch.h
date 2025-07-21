@@ -5,6 +5,7 @@
 #include "VSRTL/core/vsrtl_component.h"
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
+#include "VSRTL/core/vsrtl_constant.h"
 
 namespace vsrtl {
 namespace core {
