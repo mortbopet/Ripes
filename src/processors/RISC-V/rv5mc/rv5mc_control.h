@@ -288,6 +288,7 @@ public:
           return FSMState::MEMSTORE;
         default:
           assert(false);
+          return FSMState::IF;
       }
     });
 
