@@ -19,7 +19,7 @@ namespace rv5mc {
     IF,
     ID,
 
-    EX, //Generic execution state
+    EX, //Generic execution state, used for determining the Stage in stageInfo
 
     EXJALR,
     EXBRANCH,
@@ -54,17 +54,17 @@ namespace rv5mc {
   };
   typedef FSMState (*TransitionFunc)(RVInstr);
 
-  struct StateInfo {
-    StateSignals outs;
+  struct StateInfo { // There is an instance of this struct for each valid FSMState, created at initialization
+    StateSignals outs; // Values for VSRT signals
     TransitionFunc transitions;
   };
 
 class RVMCControl : public Component {
 public:
   /* clang-format off */
-  std::vector<StateInfo> states;
+  std::vector<StateInfo> states; // Information about valid states, indexed by name (FSMState)
 
-  static CompOp do_comp_ctrl(RVInstr opc) { // TODO: rename?
+  static CompOp do_comp_ctrl(RVInstr opc) {
     switch(opc){
     case RVInstr::BEQ: return CompOp::EQ;
     case RVInstr::BNE: return CompOp::NE;
@@ -76,7 +76,7 @@ public:
     }
   }
 
-  static ALUOp do_alu_ctrl(RVInstr opc) { // TODO: rename?
+  static ALUOp do_alu_ctrl(RVInstr opc) {
     switch(opc) {
     case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
     case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
@@ -183,7 +183,7 @@ public:
     assert (states.empty());
     states.resize(magic_enum::enum_count<FSMState>());
 
-#define to(x) [](RVInstr i){ ((void)i); return FSMState::x; }
+#define to(x) [](RVInstr){ return FSMState::x; }
 
     //States common to all operations
     addState(FSMState::IF, {
