@@ -18,7 +18,8 @@ public:
     uncompress->setISA(isa);
   }
 
-  DecodeUncompress(std::string name, SimComponent *parent) : Component(name, parent) {
+  DecodeUncompress(std::string name, SimComponent *parent)
+      : Component(name, parent) {
     instr >> regIntr->in;
     0 >> regIntr->clear;
     enable >> regIntr->enable;
@@ -42,7 +43,7 @@ public:
 
   INPUTPORT(instr, c_RVInstrWidth);
 
-  INPUTPORT(enable,1);
+  INPUTPORT(enable, 1);
 
   OUTPUTPORT_ENUM(opcode, RVInstr);
   OUTPUTPORT(wr_reg_idx, c_RVRegsBits);

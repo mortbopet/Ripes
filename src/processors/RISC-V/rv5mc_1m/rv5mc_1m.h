@@ -8,11 +8,11 @@
 
 #include "processors/RISC-V/riscv.h"
 
-#include "rv5mc_1m_control.h"
-#include "rv5mc_widthadjust.h"
+#include "processors/RISC-V/rv5mc/rv5mc_alu.h"
 #include "processors/RISC-V/rv5mc/rv5mc_branch.h"
 #include "processors/RISC-V/rv5mc/rv5mc_decode_and_umcompress.h"
-#include "processors/RISC-V/rv5mc/rv5mc_alu.h"
+#include "rv5mc_1m_control.h"
+#include "rv5mc_widthadjust.h"
 
 #include "processors/RISC-V/rv_ecallchecker.h"
 #include "processors/RISC-V/rv_immediate.h"
@@ -80,7 +80,7 @@ public:
     // Decode
     memory->data_out >> ir_widthadjust->in;
     ir_widthadjust->out >> decode->instr;
-    decode->instr <<  [=] { return memory->data_out.uValue(); };
+    decode->instr << [=] { return memory->data_out.uValue(); };
     control->ir_write >> decode->enable;
 
     // -----------------------------------------------------------------------
@@ -162,10 +162,10 @@ public:
   // Registers
   SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
   SUBCOMPONENT(pc_old_reg, RegisterClEn<XLEN>);
-  SUBCOMPONENT(a,Register<XLEN>);
-  SUBCOMPONENT(b,Register<XLEN>);
-  SUBCOMPONENT(ALU_out,Register<XLEN>);
-  SUBCOMPONENT(mem_out,Register<XLEN>);
+  SUBCOMPONENT(a, Register<XLEN>);
+  SUBCOMPONENT(b, Register<XLEN>);
+  SUBCOMPONENT(ALU_out, Register<XLEN>);
+  SUBCOMPONENT(mem_out, Register<XLEN>);
 
   // Multiplexers
   SUBCOMPONENT(reg_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
@@ -193,15 +193,13 @@ public:
   const ProcessorStructure &structure() const override { return m_structure; }
   unsigned int getPcForStage(StageIndex stage) const override {
     switch (StageFromIndex(stage.index())) {
-      case Stage::IF:
+    case Stage::IF:
       return pc_reg->out.uValue();
     default:
       return pc_old_reg->out.uValue();
     }
   }
-  AInt nextFetchedAddress() const override {
-    return pc_src->out.uValue();
-  }
+  AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
   QString stageName(StageIndex stage) const override {
     // clang-format off
         switch (StageFromIndex(stage.index())) {
@@ -264,8 +262,9 @@ public:
     }
   }
   bool finished() const override {
-    return m_finished || ((!isExecutableAddress(pc_reg->out.uValue()) && !isExecutableAddress(pc_reg->in.uValue())) && control->inLastState());
-
+    return m_finished || ((!isExecutableAddress(pc_reg->out.uValue()) &&
+                           !isExecutableAddress(pc_reg->in.uValue())) &&
+                          control->inLastState());
   }
   const std::vector<StageIndex> breakpointTriggeringStages() const override {
     return {{0, 0}};
@@ -299,7 +298,8 @@ public:
   }
 
   void reverse() override {
-    if(control->inFirstState()) m_instructionsRetired--;
+    if (control->inFirstState())
+      m_instructionsRetired--;
 
     Design::reverse();
     // Ensure that reverses performed when we expected to finish in the

@@ -100,12 +100,10 @@ private slots:
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_5MultiCycle() {
-    runTests(ProcessorID::RV32_5MC, {"M"},
-             {RISCV32_TEST_DIR});
+    runTests(ProcessorID::RV32_5MC, {"M"}, {RISCV32_TEST_DIR});
   }
   void testRV32_5MultiCycle1Memory() {
-    runTests(ProcessorID::RV32_5MC_1M, {"M"},
-             {RISCV32_TEST_DIR});
+    runTests(ProcessorID::RV32_5MC_1M, {"M"}, {RISCV32_TEST_DIR});
   }
 };
 

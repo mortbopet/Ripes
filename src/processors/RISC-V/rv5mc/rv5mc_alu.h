@@ -14,12 +14,13 @@ using namespace Ripes;
 template <unsigned XLEN>
 class RVMCALU : public Component {
 private:
-  long unsigned int carry_overflow32 = 2147483648; //2^(32-1)
-  unsigned long int carry_overflow64 = 9223372036854775808U; //2^(64-1)
+  long unsigned int carry_overflow32 = 2147483648;           // 2^(32-1)
+  unsigned long int carry_overflow64 = 9223372036854775808U; // 2^(64-1)
 public:
   SetGraphicsType(ALU);
 
-  RVMCALU(const std::string &name, SimComponent *parent) : Component(name, parent) {
+  RVMCALU(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
     res << [=] {
       switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
@@ -51,9 +52,9 @@ public:
       case ALUOp::DIV: {
         const VSRTL_VT_S overflow =
             (ctrl.eValue<ALUOp>() == ALUOp::DIVW) ||
-            (ctrl.eValue<ALUOp>() == ALUOp::DIV && XLEN == 32)
-            ? div_overflow32
-            : div_overflow64;
+                    (ctrl.eValue<ALUOp>() == ALUOp::DIV && XLEN == 32)
+                ? div_overflow32
+                : div_overflow64;
         if (op2.sValue() == 0) {
           return VT_U(-1);
         } else if (op1.sValue() == overflow && op2.sValue() == -1) {
@@ -77,9 +78,9 @@ public:
       case ALUOp::REM: {
         const VSRTL_VT_S overflow =
             (ctrl.eValue<ALUOp>() == ALUOp::REMW) ||
-            (ctrl.eValue<ALUOp>() == ALUOp::REM && XLEN == 32)
-            ? div_overflow32
-            : div_overflow64;
+                    (ctrl.eValue<ALUOp>() == ALUOp::REM && XLEN == 32)
+                ? div_overflow32
+                : div_overflow64;
         if (op2.sValue() == 0) {
           return op1.uValue();
         } else if (op1.sValue() == overflow && op2.sValue() == -1) {
@@ -94,9 +95,9 @@ public:
       case ALUOp::REMU: {
         const VSRTL_VT_S overflow =
             (ctrl.eValue<ALUOp>() == ALUOp::REMUW) ||
-            (ctrl.eValue<ALUOp>() == ALUOp::REMU && XLEN == 32)
-            ? div_overflow32
-            : div_overflow64;
+                    (ctrl.eValue<ALUOp>() == ALUOp::REMU && XLEN == 32)
+                ? div_overflow32
+                : div_overflow64;
         if (op2.uValue() == 0) {
           return op1.uValue();
         } else {
@@ -151,36 +152,41 @@ public:
 
       case ALUOp::SLW:
         return VT_U(signextend<32>(op1.uValue()
-                                       << (op2.uValue() & generateBitmask(5))));
+                                   << (op2.uValue() & generateBitmask(5))));
 
       case ALUOp::SRAW:
         return VT_U(signextend<32>(static_cast<int32_t>(op1.uValue()) >>
-                                                                      (op2.uValue() & generateBitmask(5))));
+                                   (op2.uValue() & generateBitmask(5))));
 
       case ALUOp::SRLW:
         return VT_U(signextend<32>(static_cast<uint32_t>(op1.uValue()) >>
-                                                                       (op2.uValue() & generateBitmask(5))));
+                                   (op2.uValue() & generateBitmask(5))));
 
       default:
         throw std::runtime_error("Invalid ALU opcode");
       }
     };
     zero << [=] {
-      if (res.uValue()==0) return 1;
+      if (res.uValue() == 0)
+        return 1;
       return 0;
-    };//returns 1 if the result of the ALU is 0
-    sign << [=] { return VT_U(res.sValue() < 0 ? 1 : 0);
-    };//returns 1 if the ALU result is negative or 0 if it is not
+    }; // returns 1 if the result of the ALU is 0
+    sign << [=] {
+      return VT_U(res.sValue() < 0 ? 1 : 0);
+    }; // returns 1 if the ALU result is negative or 0 if it is not
     carry << [=] {
       switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
-        if(XLEN == 32)
-          if((op1.uValue() + op2.uValue()) > carry_overflow32) return 1;
-        if(XLEN == 64)
-          if((op1.uValue() + op2.uValue()) > carry_overflow64) return 1;
+        if (XLEN == 32)
+          if ((op1.uValue() + op2.uValue()) > carry_overflow32)
+            return 1;
+        if (XLEN == 64)
+          if ((op1.uValue() + op2.uValue()) > carry_overflow64)
+            return 1;
         return 0;
       case ALUOp::SUB:
-          if(op1.uValue() < op2.uValue()) return 1;
+        if (op1.uValue() < op2.uValue())
+          return 1;
         return 0;
       default:
         return 0;
@@ -193,9 +199,9 @@ public:
   INPUTPORT(op2, XLEN);
 
   OUTPUTPORT(res, XLEN);
-  OUTPUTPORT(zero,1);
-  OUTPUTPORT(sign,1);
-  OUTPUTPORT(carry,1);
+  OUTPUTPORT(zero, 1);
+  OUTPUTPORT(sign, 1);
+  OUTPUTPORT(carry, 1);
 };
 
 } // namespace core

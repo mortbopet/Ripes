@@ -2,14 +2,14 @@
 
 #include <QPolygonF>
 
+#include "processors/RISC-V/rv5mc/rv5mc.h"
+#include "processors/RISC-V/rv5mc_1m/rv5mc_1m.h"
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
-#include "processors/RISC-V/rv5mc/rv5mc.h"
-#include "processors/RISC-V/rv5mc_1m/rv5mc_1m.h"
 
 namespace Ripes {
 
