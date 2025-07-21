@@ -90,7 +90,7 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5MC2M<uint32_t>>(
-      ProcessorID::RV32_5MC, "Multi-cycle processor with separate memories",
+      ProcessorID::RV32_5MC_2M, "Multi-cycle processor with separate memories",
       rv5mc_desc, layouts, defRegVals));
   addProcessor(ProcInfo<vsrtl::core::RV5MC2M<uint64_t>>(
       ProcessorID::RV64_5MC, "Multi-cycle processor with separate memories",
