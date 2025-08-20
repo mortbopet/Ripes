@@ -78,7 +78,7 @@ createSettingsWidgets(const QString &settingName, const QString &labelText) {
     // Create a QPushButton which will trigger a QColorWidget when clicked.
     // Changes in the color settings will trigger a change in the pushbutton
     // color
-    auto colorSetterFunctor = [=] {
+    auto colorSetterFunctor = [widget, settingObserver] {
       QPalette pal = widget->palette();
       pal.setColor(QPalette::Button, settingObserver->value().value<QColor>());
       widget->setAutoFillBackground(true);
@@ -91,23 +91,26 @@ createSettingsWidgets(const QString &settingName, const QString &labelText) {
     // widget.
     auto conn = settingObserver->connect(
         settingObserver, &SettingObserver::modified, colorSetterFunctor);
-    widget->connect(widget, &QObject::destroyed, settingObserver,
-                    [=] { settingObserver->disconnect(conn); });
+    widget->connect(
+        widget, &QObject::destroyed, settingObserver,
+        [settingObserver, conn] { settingObserver->disconnect(conn); });
 
-    widget->connect(widget, &QPushButton::clicked, settingObserver, [=](bool) {
-      QColorDialog diag;
-      diag.setCurrentColor(settingObserver->value().value<QColor>());
-      if (diag.exec()) {
-        settingObserver->setValue(diag.selectedColor());
-      }
-    });
+    widget->connect(widget, &QPushButton::clicked, settingObserver,
+                    [settingObserver](bool) {
+                      QColorDialog diag;
+                      diag.setCurrentColor(
+                          settingObserver->value().value<QColor>());
+                      if (diag.exec()) {
+                        settingObserver->setValue(diag.selectedColor());
+                      }
+                    });
 
     // Apply color of current setting
     colorSetterFunctor();
   } else if constexpr (std::is_same<T_EditWidget, QFontDialog>()) {
     // Create a QPushButton which will trigger a QFontDialog when clicked.
     // Changes in the font settings will trigger a change in the pushbutton text
-    auto fontSetterFunctor = [=] {
+    auto fontSetterFunctor = [widget, settingObserver] {
       const auto &font = settingObserver->value().value<QFont>();
       const QString text =
           font.family() + " | " + QString::number(font.pointSize());
@@ -120,17 +123,20 @@ createSettingsWidgets(const QString &settingName, const QString &labelText) {
     // widget.
     auto conn = settingObserver->connect(
         settingObserver, &SettingObserver::modified, widget, fontSetterFunctor);
-    widget->connect(widget, &QObject::destroyed, settingObserver,
-                    [=] { settingObserver->disconnect(conn); });
+    widget->connect(
+        widget, &QObject::destroyed, settingObserver,
+        [settingObserver, conn] { settingObserver->disconnect(conn); });
 
-    widget->connect(widget, &QPushButton::clicked, settingObserver, [=](bool) {
-      QFontDialog diag;
-      diag.setCurrentFont(settingObserver->value().value<QFont>());
-      diag.setOption(QFontDialog::MonospacedFonts, true);
-      if (diag.exec()) {
-        settingObserver->setValue(diag.selectedFont());
-      }
-    });
+    widget->connect(widget, &QPushButton::clicked, settingObserver,
+                    [settingObserver](bool) {
+                      QFontDialog diag;
+                      diag.setCurrentFont(
+                          settingObserver->value().value<QFont>());
+                      diag.setOption(QFontDialog::MonospacedFonts, true);
+                      if (diag.exec()) {
+                        settingObserver->setValue(diag.selectedFont());
+                      }
+                    });
 
     // Apply font of current setting
     fontSetterFunctor();
@@ -192,14 +198,15 @@ QWidget *SettingsDialog::createCompilerPage() {
   CCHLayout->addWidget(cclabel);
   CCHLayout->addWidget(ccpath);
   auto *pathBrowseButton = new QPushButton("Browse");
-  connect(pathBrowseButton, &QPushButton::clicked, this, [=, ccpath = ccpath] {
-    QFileDialog dialog(this);
-    dialog.setOption(QFileDialog::DontUseNativeDialog);
-    dialog.setAcceptMode(QFileDialog::AcceptOpen);
-    if (dialog.exec()) {
-      ccpath->setText(dialog.selectedFiles().at(0));
-    }
-  });
+  connect(pathBrowseButton, &QPushButton::clicked, this,
+          [this, ccpath = ccpath] {
+            QFileDialog dialog(this);
+            dialog.setOption(QFileDialog::DontUseNativeDialog);
+            dialog.setAcceptMode(QFileDialog::AcceptOpen);
+            if (dialog.exec()) {
+              ccpath->setText(dialog.selectedFiles().at(0));
+            }
+          });
 
   // Make changes in the CC path trigger revalidation in the CCManager
   connect(ccpath, &QLineEdit::textChanged, &CCManager::get(),
@@ -379,7 +386,7 @@ QWidget *SettingsDialog::createEditorPage() {
   auto *pathBrowseButton = new QPushButton("Browse");
   FormatterPathLayout->addWidget(pathBrowseButton);
   connect(pathBrowseButton, &QPushButton::clicked, formatterpath,
-          [=, formatterpath = formatterpath] {
+          [this, formatterpath = formatterpath] {
             QFileDialog dialog(this);
             dialog.setAcceptMode(QFileDialog::AcceptOpen);
             if (dialog.exec()) {
@@ -504,7 +511,7 @@ void SettingsDialog::addPage(const QString &name, QWidget *page) {
 
   connect(m_ui->settingsList, &QListWidget::currentItemChanged,
           m_ui->settingsPages,
-          [=](QListWidgetItem *current, QListWidgetItem *) {
+          [this](QListWidgetItem *current, QListWidgetItem *) {
             const QString _name = current->text();
             Q_ASSERT(m_pageIndex.count(_name));
 

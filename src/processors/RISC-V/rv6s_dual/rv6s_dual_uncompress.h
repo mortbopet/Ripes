@@ -12,7 +12,7 @@ template <unsigned XLEN>
 class ShiftR16 : public Component {
 public:
   ShiftR16(std::string name, SimComponent *parent) : Component(name, parent) {
-    instr16 << [=] {
+    instr16 << [this] {
       return (((instr2.uValue() & 0xFFFF) << 16) | (instr1.uValue() >> 16));
     };
   }

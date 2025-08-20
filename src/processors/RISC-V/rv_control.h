@@ -241,21 +241,23 @@ public:
 public:
   Control(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    comp_ctrl << [=] { return do_comp_ctrl(opcode.eValue<RVInstr>()); };
-    do_branch << [=] { return do_branch_ctrl(opcode.eValue<RVInstr>()); };
-    do_jump << [=] { return do_jump_ctrl(opcode.eValue<RVInstr>()); };
-    mem_ctrl << [=] { return do_mem_ctrl(opcode.eValue<RVInstr>()); };
+    comp_ctrl << [this] { return do_comp_ctrl(opcode.eValue<RVInstr>()); };
+    do_branch << [this] { return do_branch_ctrl(opcode.eValue<RVInstr>()); };
+    do_jump << [this] { return do_jump_ctrl(opcode.eValue<RVInstr>()); };
+    mem_ctrl << [this] { return do_mem_ctrl(opcode.eValue<RVInstr>()); };
     reg_do_write_ctrl <<
-        [=] { return do_reg_do_write_ctrl(opcode.eValue<RVInstr>()); };
+        [this] { return do_reg_do_write_ctrl(opcode.eValue<RVInstr>()); };
     reg_wr_src_ctrl <<
-        [=] { return do_reg_wr_src_ctrl(opcode.eValue<RVInstr>()); };
-    alu_op1_ctrl << [=] { return do_alu_op1_ctrl(opcode.eValue<RVInstr>()); };
-    alu_op2_ctrl << [=] { return do_alu_op2_ctrl(opcode.eValue<RVInstr>()); };
-    alu_ctrl << [=] { return do_alu_ctrl(opcode.eValue<RVInstr>()); };
+        [this] { return do_reg_wr_src_ctrl(opcode.eValue<RVInstr>()); };
+    alu_op1_ctrl <<
+        [this] { return do_alu_op1_ctrl(opcode.eValue<RVInstr>()); };
+    alu_op2_ctrl <<
+        [this] { return do_alu_op2_ctrl(opcode.eValue<RVInstr>()); };
+    alu_ctrl << [this] { return do_alu_ctrl(opcode.eValue<RVInstr>()); };
     mem_do_write_ctrl <<
-        [=] { return do_do_mem_write_ctrl(opcode.eValue<RVInstr>()); };
+        [this] { return do_do_mem_write_ctrl(opcode.eValue<RVInstr>()); };
     mem_do_read_ctrl <<
-        [=] { return do_do_read_ctrl(opcode.eValue<RVInstr>()); };
+        [this] { return do_do_read_ctrl(opcode.eValue<RVInstr>()); };
   }
 
   INPUTPORT_ENUM(opcode, RVInstr);

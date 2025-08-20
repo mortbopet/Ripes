@@ -6,7 +6,7 @@ namespace Ripes {
 
 bool SyscallManager::execute(SyscallID id) {
   if (m_syscalls.count(id) == 0) {
-    postToGUIThread([=] {
+    postToGUIThread([id] {
       if (auto reg = ProcessorHandler::currentISA()->syscallReg();
           reg.has_value()) {
         QMessageBox::warning(nullptr, "Error",
@@ -22,7 +22,7 @@ bool SyscallManager::execute(SyscallID id) {
   } else {
     const auto &syscall = m_syscalls.at(id);
     const QString &syscallName = syscall->name();
-    postToGUIThread([=] {
+    postToGUIThread([syscallName, id] {
       // We don't have a good way of making non-permanent status timers
       // pseudo-permanent until explicitly cleared... The best way to do so is
       // to just have a very large timeout.
@@ -32,7 +32,7 @@ bool SyscallManager::execute(SyscallID id) {
           99999999);
     });
     syscall->execute();
-    postToGUIThread([=] { SyscallStatusManager::clearStatus(); });
+    postToGUIThread([] { SyscallStatusManager::clearStatus(); });
     return true;
   }
 }

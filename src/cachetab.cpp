@@ -15,15 +15,15 @@ CacheTab::CacheTab(QToolBar *toolbar, QWidget *parent)
   // During processor running, it should not be possible to interact with the
   // cache tab
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
-          [=] { setEnabled(false); });
+          [this] { setEnabled(false); });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
-          [=] { setEnabled(true); });
+          [this] { setEnabled(true); });
 
   connect(m_ui->cacheView, &CacheView::cacheAddressSelected, this,
           &CacheTab::focusAddressChanged);
 
   connect(m_ui->cacheTabWidget, &CacheTabWidget::cacheFocusChanged, this,
-          [=](CacheWidget *widget) {
+          [this](CacheWidget *widget) {
             m_ui->cacheView->setScene(widget->getScene());
             m_ui->cacheView->fitScene();
           });

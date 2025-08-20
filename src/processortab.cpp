@@ -101,7 +101,7 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
           this, &ProcessorTab::updateInstructionLabels);
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
-          this, [=] {
+          this, [this] {
             m_reverseAction->setEnabled(m_vsrtlWidget->isReversible() &&
                                         !m_autoClockAction->isChecked());
           });
@@ -117,7 +117,7 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
   connect(m_statUpdateTimer, &QTimer::timeout, this,
           &ProcessorTab::updateStatistics);
   connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS),
-          &SettingObserver::modified, m_statUpdateTimer, [=] {
+          &SettingObserver::modified, m_statUpdateTimer, [this] {
             m_statUpdateTimer->setInterval(
                 1000.0 /
                 RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
@@ -126,7 +126,7 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
   // Connect changes in VSRTL reversible stack size to checking whether the
   // simulator is reversible
   connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE),
-          &SettingObserver::modified, m_reverseAction, [=](const auto &) {
+          &SettingObserver::modified, m_reverseAction, [this](const auto &) {
             m_reverseAction->setEnabled(m_vsrtlWidget->isReversible());
           });
 
@@ -206,7 +206,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
 
   const QIcon resetIcon = QIcon(":/icons/reset.svg");
   m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
-  connect(m_resetAction, &QAction::triggered, this, [=] {
+  connect(m_resetAction, &QAction::triggered, this, [this] {
     RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
   });
   m_resetAction->setShortcut(QKeySequence("F3"));
@@ -223,14 +223,14 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   const QIcon clockIcon = QIcon(":/icons/step.svg");
   m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
   connect(m_clockAction, &QAction::triggered, this,
-          [=] { ProcessorHandler::clock(); });
+          [] { ProcessorHandler::clock(); });
   m_clockAction->setShortcut(QKeySequence("F5"));
   m_clockAction->setToolTip("Clock the circuit (F5)");
   controlToolbar->addAction(m_clockAction);
 
   m_autoClockTimer = new QTimer(this);
   connect(m_autoClockTimer, &QTimer::timeout, this,
-          [=] { autoClockTimeout(); });
+          [this] { autoClockTimeout(); });
 
   const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
   m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
@@ -271,7 +271,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   m_displayValuesAction = new QAction("Show processor signal values", this);
   m_displayValuesAction->setCheckable(true);
   connect(m_displayValuesAction, &QAction::toggled, m_vsrtlWidget,
-          [=](bool checked) {
+          [this](bool checked) {
             RipesSettings::setValue(RIPES_SETTING_SHOWSIGNALS,
                                     QVariant::fromValue(checked));
             m_vsrtlWidget->setOutputPortValuesVisible(checked);
@@ -289,7 +289,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   m_darkmodeAction = new QAction("Processor darkmode", this);
   m_darkmodeAction->setCheckable(true);
   connect(m_darkmodeAction, &QAction::toggled, m_vsrtlWidget,
-          [=](bool checked) {
+          [this](bool checked) {
             RipesSettings::setValue(RIPES_SETTING_DARKMODE,
                                     QVariant::fromValue(checked));
             m_vsrtlWidget->setDarkmode(checked);

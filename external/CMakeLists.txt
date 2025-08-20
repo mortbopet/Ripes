@@ -10,7 +10,7 @@ add_subdirectory(fancytabbar)
 # VSRTL
 set(VSRTL_BUILD_APP OFF)
 set(VSRTL_BUILD_TESTS OFF)
-add_subdirectory(VSRTL)
+add_subdirectory(VSRTL SYSTEM)
 
 # libelfin
 FetchContent_Declare(

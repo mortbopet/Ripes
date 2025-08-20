@@ -106,16 +106,16 @@ MainWindow::MainWindow(QWidget *parent)
   setupMenus();
 
   // setup and connect widgets
-  connect(editTab, &EditTab::editorStateChanged, [=] { clearSaveFile(); });
+  connect(editTab, &EditTab::editorStateChanged, [this] { clearSaveFile(); });
 
   // Setup status bar
   setupStatusBar();
 
   // Reset and program reload signals
   connect(ProcessorHandler::get(), &ProcessorHandler::processorReset,
-          [=] { SystemIO::reset(); });
+          [this] { SystemIO::reset(); });
 
-  connect(m_ui->actionSystem_calls, &QAction::triggered, this, [=] {
+  connect(m_ui->actionSystem_calls, &QAction::triggered, this, [this] {
     SyscallViewer v;
     v.exec();
   });
@@ -153,7 +153,7 @@ void MainWindow::setupStatusBar() {
   // Setup selected processor & ISA info status widget (right-aligned =>
   // permanent)
   setupPermanentStatusWidget(ProcessorInfo);
-  auto updateProcessorInfo = [=] {
+  auto updateProcessorInfo = [this] {
     const auto &desc =
         ProcessorRegistry::getDescription(ProcessorHandler::getID());
     QString status = "Processor: " + desc.name + "    ISA: " +
@@ -203,7 +203,7 @@ void MainWindow::setupMenus() {
   auto *loadAction = new QAction(loadIcon, "Load Program", this);
   loadAction->setShortcut(QKeySequence::Open);
   connect(loadAction, &QAction::triggered, this,
-          [=] { this->loadFileTriggered(); });
+          [this] { this->loadFileTriggered(); });
   m_ui->menuFile->addAction(loadAction);
   m_ui->menuFile->addSeparator();
 
@@ -258,7 +258,7 @@ void MainWindow::setupExamplesMenu(QMenu *parent) {
   auto *assemblyMenu = parent->addMenu("Assembly");
   if (!assemblyExamples.isEmpty()) {
     for (const auto &fileName : assemblyExamples) {
-      assemblyMenu->addAction(fileName, this, [=] {
+      assemblyMenu->addAction(fileName, this, [this, fileName] {
         LoadFileParams parms;
         parms.filepath = QString(":/examples/assembly/") + fileName;
         parms.type = SourceType::Assembly;
@@ -273,7 +273,7 @@ void MainWindow::setupExamplesMenu(QMenu *parent) {
   auto *cMenu = parent->addMenu("C");
   if (!cExamples.isEmpty()) {
     for (const auto &fileName : cExamples) {
-      cMenu->addAction(fileName, this, [=] {
+      cMenu->addAction(fileName, this, [this, fileName] {
         LoadFileParams parms;
         parms.filepath = QString(":/examples/C/") + fileName;
         parms.type = SourceType::C;
@@ -288,7 +288,7 @@ void MainWindow::setupExamplesMenu(QMenu *parent) {
   auto *elfMenu = parent->addMenu("ELF (precompiled C)");
   if (!ELFExamples.isEmpty()) {
     for (const auto &fileName : ELFExamples) {
-      elfMenu->addAction(fileName, this, [=] {
+      elfMenu->addAction(fileName, this, [this, fileName] {
         // ELFIO Cannot read directly from the bundled resource file, so copy
         // the ELF file to a temporary file before loading the program.
         QTemporaryFile *tmpELFFile =

@@ -340,8 +340,8 @@ void BreakpointArea::contextMenuEvent(QContextMenuEvent *event) {
   auto *removeAllAction = contextMenu.addAction("Remove all breakpoints");
 
   connect(toggleAction, &QAction::triggered, m_programViewer,
-          [=] { m_programViewer->breakpointClick(event->pos()); });
-  connect(removeAllAction, &QAction::triggered, m_programViewer, [=] {
+          [this, event] { m_programViewer->breakpointClick(event->pos()); });
+  connect(removeAllAction, &QAction::triggered, m_programViewer, [this] {
     m_programViewer->clearBreakpoints();
     repaint();
   });

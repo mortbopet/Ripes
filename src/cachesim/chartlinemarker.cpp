@@ -64,7 +64,7 @@ void ChartLineMarker::move(const QPointF &center) {
     const QPointF chartPos = m_chart->mapToValue(center);
     auto iter =
         std::lower_bound(points.begin(), points.end(), chartPos.x(),
-                         [=](const QPointF &lhs, const qreal &closestX) {
+                         [this](const QPointF &lhs, const qreal &closestX) {
                            return lhs.x() < closestX;
                          });
 

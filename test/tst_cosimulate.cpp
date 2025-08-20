@@ -197,7 +197,7 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
   // Override the ProcessorHandler's ECALL handling. In doing so, we can hook
   // into when the EXIT syscall was executed, to verify whether the correct test
   // value was reached.
-  ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [=] {
+  ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [this] {
     trapHandler();
   };
 

@@ -45,17 +45,17 @@ void CacheConfigWidget::setCache(const std::shared_ptr<CacheSim> &cache) {
 
   connect(m_ui->replacementPolicy,
           QOverload<int>::of(&QComboBox::currentIndexChanged), cache.get(),
-          [=](int index) {
+          [this](int index) {
             m_cache->setReplacementPolicy(qvariant_cast<ReplPolicy>(
                 m_ui->replacementPolicy->itemData(index)));
           });
   connect(m_ui->wrHit, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          cache.get(), [=](int index) {
+          cache.get(), [this](int index) {
             m_cache->setWritePolicy(
                 qvariant_cast<WritePolicy>(m_ui->wrHit->itemData(index)));
           });
   connect(m_ui->wrMiss, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          cache.get(), [=](int index) {
+          cache.get(), [this](int index) {
             m_cache->setWriteAllocatePolicy(
                 qvariant_cast<WriteAllocPolicy>(m_ui->wrMiss->itemData(index)));
           });
@@ -71,7 +71,7 @@ void CacheConfigWidget::setCache(const std::shared_ptr<CacheSim> &cache) {
   connect(m_cache.get(), &CacheSim::configurationChanged, this,
           &CacheConfigWidget::handleConfigurationChanged);
   connect(m_cache.get(), &CacheSim::configurationChanged, this,
-          [=] { emit configurationChanged(); });
+          [this] { emit configurationChanged(); });
 
   setupPresets();
   handleConfigurationChanged();
@@ -138,7 +138,7 @@ void CacheConfigWidget::setupPresets() {
   }
 
   connect(m_ui->presets, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          this, [=](int index) {
+          this, [this](int index) {
             if (index == -1) {
               return;
             }

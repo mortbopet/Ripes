@@ -179,24 +179,24 @@ private:
 public:
   WayControl(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    data_way_valid << [=] {
+    data_way_valid << [this] {
       computeCycle();
       return m_dataWayValid;
     };
-    exec_way_valid << [=] {
+    exec_way_valid << [this] {
       computeCycle();
       return m_execWayValid;
     };
-    data_way_src << [=] {
+    data_way_src << [this] {
       computeCycle();
       return m_dataWaySrc;
     };
-    exec_way_src << [=] {
+    exec_way_src << [this] {
       computeCycle();
       return m_execWaySrc;
     };
 
-    stall_out << [=] {
+    stall_out << [this] {
       computeCycle();
       return m_stall;
     };

@@ -428,10 +428,9 @@ auto find_if_not(R &&Range, UnaryPredicate P) {
 ///              [&] { os << ", "; });
 /// \endcode
 template <typename ForwardIterator, typename UnaryFunctor,
-          typename NullaryFunctor,
-          typename = std::enable_if_t<
-              !std::is_constructible<std::string_view, UnaryFunctor>::value &&
-              !std::is_constructible<std::string_view, NullaryFunctor>::value>>
+          typename NullaryFunctor>
+  requires(!std::is_constructible_v<std::string_view, UnaryFunctor> &&
+           !std::is_constructible_v<std::string_view, NullaryFunctor>)
 inline void interleave(ForwardIterator begin, ForwardIterator end,
                        UnaryFunctor each_fn, NullaryFunctor between_fn) {
   if (begin == end)
@@ -444,10 +443,9 @@ inline void interleave(ForwardIterator begin, ForwardIterator end,
   }
 }
 
-template <typename Container, typename UnaryFunctor, typename NullaryFunctor,
-          typename = std::enable_if_t<
-              !std::is_constructible<std::string_view, UnaryFunctor>::value &&
-              !std::is_constructible<std::string_view, NullaryFunctor>::value>>
+template <typename Container, typename UnaryFunctor, typename NullaryFunctor>
+  requires(!std::is_constructible_v<std::string_view, UnaryFunctor> &&
+           !std::is_constructible_v<std::string_view, NullaryFunctor>)
 inline void interleave(const Container &c, UnaryFunctor each_fn,
                        NullaryFunctor between_fn) {
   interleave(c.begin(), c.end(), each_fn, between_fn);

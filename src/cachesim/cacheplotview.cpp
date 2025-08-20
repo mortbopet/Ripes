@@ -37,7 +37,7 @@ CachePlotMarker::CachePlotMarker(QObject *parent, QChart *chart,
                                  QLineSeries *_series, const QString &_name)
     : QObject(parent), marker(new ChartLineMarker(chart, _series)),
       series(_series), name(_name) {
-  connect(marker, &ChartLineMarker::snappedMarkerChanged, marker, [=] {
+  connect(marker, &ChartLineMarker::snappedMarkerChanged, marker, [this] {
     this->updateCoordinateValues(marker->getMarkerValuePos(), true, false);
   });
   // Update initial marker text
@@ -108,9 +108,9 @@ QPixmap CachePlotView::getPlotPixmap() {
 };
 
 void CachePlotView::hideSeriesMarker(QLineSeries *series) {
-  auto marker =
-      std::find_if(m_markers.begin(), m_markers.end(),
-                   [=](const auto &mob) { return mob->series == series; });
+  auto marker = std::find_if(
+      m_markers.begin(), m_markers.end(),
+      [=, this](const auto &mob) { return mob->series == series; });
   Q_ASSERT(marker != m_markers.end());
   marker->get()->clear();
   m_markers.erase(marker);

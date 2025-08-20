@@ -18,14 +18,14 @@ public:
   Uncompress(std::string name, SimComponent *parent) : Component(name, parent) {
     setDescription("Uncompresses instructions from the 'C' extension into "
                    "their 32-bit representation.");
-    Pc_Inc << [=] {
+    Pc_Inc << [this] {
       if (m_disabled)
         return true;
       return (((instr.uValue() & 0b11) == 0b11) || (!instr.uValue()));
     };
 
     // only support 32 bit instructions
-    exp_instr << [=] {
+    exp_instr << [this] {
       const auto instrValue = instr.uValue();
       const int quadrant = instrValue & 0b11;
 
