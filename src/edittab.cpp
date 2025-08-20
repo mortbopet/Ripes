@@ -60,16 +60,17 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   m_ui->codeEditor->document()->setPlainText(
       RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
 
-  connect(
-      RipesSettings::getObserver(RIPES_SETTING_EDITORREGS),
-      &SettingObserver::modified, m_ui->registers,
-      [=](const QVariant &val) { m_ui->registers->setVisible(val.toBool()); });
+  connect(RipesSettings::getObserver(RIPES_SETTING_EDITORREGS),
+          &SettingObserver::modified, m_ui->registers,
+          [this](const QVariant &val) {
+            m_ui->registers->setVisible(val.toBool());
+          });
   RipesSettings::getObserver(RIPES_SETTING_EDITORREGS)->trigger();
 
-  connect(RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE),
-          &SettingObserver::modified, m_ui->console, [=](const QVariant &val) {
-            m_ui->console->setVisible(val.toBool());
-          });
+  connect(
+      RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE),
+      &SettingObserver::modified, m_ui->console,
+      [this](const QVariant &val) { m_ui->console->setVisible(val.toBool()); });
   RipesSettings::getObserver(RIPES_SETTING_EDITORCONSOLE)->trigger();
 
   connect(m_ui->enableEditor, &QPushButton::clicked, this,
@@ -90,7 +91,7 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
 
   // Ensure that changes to the current compiler path will disable C input, if
   // the compiler is invalid
-  connect(&CCManager::get(), &CCManager::ccChanged, this, [=](auto res) {
+  connect(&CCManager::get(), &CCManager::ccChanged, this, [this](auto res) {
     if (!res.success) {
       m_ui->setAssemblyInput->setChecked(true);
     }
@@ -98,10 +99,10 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
 
   // During processor running, it should not be possible to build the program
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, m_buildAction,
-          [=] { m_buildAction->setEnabled(false); });
+          [this] { m_buildAction->setEnabled(false); });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished,
           m_buildAction,
-          [=] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
+          [this] { m_buildAction->setEnabled(m_ui->setCInput->isChecked()); });
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
           this, &EditTab::updateProgramViewerHighlighting);
   connect(ProcessorHandler::get(), &ProcessorHandler::programChanged, this,

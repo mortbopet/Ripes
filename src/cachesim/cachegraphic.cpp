@@ -276,15 +276,17 @@ void CacheGraphic::drawIndexingItems() {
   QPen wirePen;
   wirePen.setColor(Qt::darkGray);
 
-  const auto drawBundleDropWires = [=](const qreal sourceD,
-                                       const QVector<QPointF> &dropoffs,
-                                       bool horizontal) {
-    const qreal maxD = std::max_element(dropoffs.begin(), dropoffs.end(),
-                                        [=](const auto &p1, const auto &p2) {
-                                          return horizontal ? p1.x() > p2.x()
-                                                            : p1.y() > p2.y();
-                                        })
-                           ->y();
+  const auto drawBundleDropWires = [this,
+                                    &wirePen](const qreal sourceD,
+                                              const QVector<QPointF> &dropoffs,
+                                              bool horizontal) {
+    const qreal maxD =
+        std::max_element(dropoffs.begin(), dropoffs.end(),
+                         [this, horizontal](const auto &p1, const auto &p2) {
+                           return horizontal ? p1.x() > p2.x()
+                                             : p1.y() > p2.y();
+                         })
+            ->y();
     const qreal dPos = maxD - m_setHeight;
     const QPointF pSource =
         QPointF(horizontal ? dPos : sourceD, horizontal ? sourceD : dPos);

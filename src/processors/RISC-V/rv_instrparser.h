@@ -29,7 +29,7 @@ decode_functor<T> generateInstrParser(const std::vector<int> &bitFields) {
   }
 
   // Create parse functor
-  decode_functor<T> instrParser = [=](T word) {
+  decode_functor<T> instrParser = [parseVector](T word) {
     std::vector<T> parsedWord;
     for (const auto &field : parseVector) {
       parsedWord.insert(parsedWord.begin(), word & field.second);

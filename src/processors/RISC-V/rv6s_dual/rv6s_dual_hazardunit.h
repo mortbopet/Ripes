@@ -12,11 +12,11 @@ class HazardUnit_DUAL : public Component {
 public:
   HazardUnit_DUAL(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    hazardFEEnable << [=] { return !hasHazard(); };
-    hazardIDEXEnable << [=] { return !hasEcallHazard(); };
-    hazardEXMEMClear << [=] { return hasEcallHazard(); };
-    hazardIDEXClear << [=] { return hasLoadUseHazard(); };
-    stallEcallHandling << [=] { return hasEcallHazard(); };
+    hazardFEEnable << [this] { return !hasHazard(); };
+    hazardIDEXEnable << [this] { return !hasEcallHazard(); };
+    hazardEXMEMClear << [this] { return hasEcallHazard(); };
+    hazardIDEXClear << [this] { return hasLoadUseHazard(); };
+    stallEcallHandling << [this] { return hasEcallHazard(); };
   }
 
   INPUTPORT(id_reg1_idx_data, c_RVRegsBits);

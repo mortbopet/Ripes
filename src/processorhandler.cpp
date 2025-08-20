@@ -53,13 +53,13 @@ ProcessorHandler::ProcessorHandler() {
   m_procStateChangeTimer.setInterval(
       1000.0 / RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
   connect(RipesSettings::getObserver(RIPES_SETTING_UIUPDATEPS),
-          &SettingObserver::modified, this, [=] {
+          &SettingObserver::modified, this, [this] {
             m_procStateChangeTimer.setInterval(
                 1000.0 /
                 RipesSettings::value(RIPES_SETTING_UIUPDATEPS).toInt());
           });
 
-  connect(&m_procStateChangeTimer, &QTimer::timeout, this, [=] {
+  connect(&m_procStateChangeTimer, &QTimer::timeout, this, [this] {
     emit procStateChangedNonRun();
     m_enqueueStateChangeLock.lock();
     if (m_enqueueStateChangeSignal) {
@@ -70,16 +70,16 @@ ProcessorHandler::ProcessorHandler() {
   });
 
   // Connect the runwatcher finished signals
-  connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [=] {
+  connect(&m_runWatcher, &QFutureWatcher<void>::finished, this, [this] {
     emit runFinished();
     _triggerProcStateChangeTimer();
   });
   connect(&m_runWatcher, &QFutureWatcher<void>::finished, this,
-          [=] { ProcessorStatusManager::clearStatus(); });
+          [] { ProcessorStatusManager::clearStatus(); });
 
   // Connect relevant settings changes to VSRTL
   connect(RipesSettings::getObserver(RIPES_SETTING_REWINDSTACKSIZE),
-          &SettingObserver::modified, this, [=](const auto &size) {
+          &SettingObserver::modified, this, [this](const auto &size) {
             m_currentProcessor->setMaxReverseCycles(size.toUInt());
           });
 
@@ -88,14 +88,14 @@ ProcessorHandler::ProcessorHandler() {
       RipesSettings::value(RIPES_SETTING_REWINDSTACKSIZE).toInt());
 
   connect(RipesSettings::getObserver(RIPES_SETTING_VCD_TRACE),
-          &SettingObserver::modified, this, [=](const auto &enabled) {
+          &SettingObserver::modified, this, [this](const auto &enabled) {
             m_currentProcessor->vcdTrace(
                 enabled.toBool(),
                 RipesSettings::value(RIPES_SETTING_VCD_TRACE_FILE).toString());
           });
 
   connect(RipesSettings::getObserver(RIPES_SETTING_VCD_TRACE_FILE),
-          &SettingObserver::modified, this, [=](const auto &file) {
+          &SettingObserver::modified, this, [this](const auto &file) {
             m_currentProcessor->vcdTrace(
                 RipesSettings::value(RIPES_SETTING_VCD_TRACE).toBool(),
                 file.toString());
@@ -205,7 +205,7 @@ void ProcessorHandler::_run() {
   emit runStarted();
 
   // Start running through the VSRTL Widget interface
-  m_runWatcher.setFuture(QtConcurrent::run([=] {
+  m_runWatcher.setFuture(QtConcurrent::run([this] {
     auto *vsrtl_proc =
         dynamic_cast<vsrtl::SimDesign *>(m_currentProcessor.get());
 
@@ -312,12 +312,12 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
   // Processor initializations
   m_currentProcessor =
       ProcessorRegistry::constructProcessor(m_currentID, extensions);
-  m_currentProcessor->isExecutableAddress = [=](AInt address) {
+  m_currentProcessor->isExecutableAddress = [this](AInt address) {
     return _isExecutableAddress(address);
   };
 
   // Syscall handling initialization
-  m_currentProcessor->trapHandler = [=] { syscallTrap(); };
+  m_currentProcessor->trapHandler = [this] { syscallTrap(); };
 
   m_currentProcessor->postConstruct();
   createAssemblerForCurrentISA();
@@ -334,7 +334,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
   m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(
       new vsrtl::GallantSignalWrapper(
           this,
-          [=] {
+          [this] {
             if (!_isRunning()) {
               emit processorClockedNonRun();
               _triggerProcStateChangeTimer();
@@ -351,7 +351,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
   m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(
       new vsrtl::GallantSignalWrapper(
           this,
-          [=] {
+          [this] {
             emit processorReset();
             _triggerProcStateChangeTimer();
           },
@@ -360,7 +360,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
   m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(
       new vsrtl::GallantSignalWrapper(
           this,
-          [=] {
+          [this] {
             emit processorReversed();
             _triggerProcStateChangeTimer();
           },
@@ -406,7 +406,7 @@ QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
 
 void ProcessorHandler::syscallTrap() {
   auto futureWatcher = QFutureWatcher<bool>();
-  futureWatcher.setFuture(QtConcurrent::run([=] {
+  futureWatcher.setFuture(QtConcurrent::run([this] {
     if (auto reg = _currentISA()->syscallReg(); reg.has_value()) {
       const unsigned int function =
           m_currentProcessor->getRegister(reg->file->regFileName(), reg->index);

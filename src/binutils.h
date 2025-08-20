@@ -43,12 +43,16 @@ constexpr inline bool isInt<32>(VIntS x) {
 /// to keep MSVC from (incorrectly) warning on isUInt<64> that we're shifting
 /// left too many places.
 template <unsigned N>
-constexpr inline std::enable_if_t<(N < 64), bool> isUInt(VInt X) {
+constexpr bool isUInt(VInt X)
+  requires(N < 64)
+{
   static_assert(N > 0, "isUInt<0> doesn't make sense");
   return X < (UINT64_C(1) << (N));
 }
 template <unsigned N>
-constexpr inline std::enable_if_t<N >= 64, bool> isUInt(VInt) {
+constexpr bool isUInt(VInt)
+  requires(N >= 64)
+{
   return true;
 }
 

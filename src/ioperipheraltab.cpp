@@ -33,9 +33,9 @@ IOPeripheralTab::IOPeripheralTab(QWidget *parent, IOBase *peripheral)
 
   // Disable parameter modification during processor running
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
-          [=] { m_ui->parameterView->setEnabled(false); });
+          [this] { m_ui->parameterView->setEnabled(false); });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
-          [=] { m_ui->parameterView->setEnabled(true); });
+          [this] { m_ui->parameterView->setEnabled(true); });
 
   updateExportsInfo();
 

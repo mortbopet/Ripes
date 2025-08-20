@@ -16,7 +16,7 @@ class ForwardingUnit : public Component {
 public:
   ForwardingUnit(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    alu_reg1_forwarding_ctrl << [=] {
+    alu_reg1_forwarding_ctrl << [this] {
       const auto idx = id_reg1_idx.uValue();
       if (idx == 0) {
         return ForwardingSrc::IdStage;
@@ -29,7 +29,7 @@ public:
       }
     };
 
-    alu_reg2_forwarding_ctrl << [=] {
+    alu_reg2_forwarding_ctrl << [this] {
       const auto idx = id_reg2_idx.uValue();
       if (idx == 0) {
         return ForwardingSrc::IdStage;

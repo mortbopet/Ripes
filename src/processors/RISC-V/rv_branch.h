@@ -13,7 +13,7 @@ public:
   Branch(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     // clang-format off
-        res << [=] {
+        res << [this] {
             switch(comp_op.eValue<CompOp>()){
                 case CompOp::NOP: return false;
                 case CompOp::EQ: return op1.uValue() == op2.uValue();

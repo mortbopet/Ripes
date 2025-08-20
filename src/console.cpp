@@ -20,7 +20,7 @@ Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
 
   document()->setMaximumBlockCount(100);
 
-  auto paletteChangeFunctor = [=] {
+  auto paletteChangeFunctor = [this] {
     QPalette p = palette();
     p.setColor(QPalette::Base,
                RipesSettings::value(RIPES_SETTING_CONSOLEBG).value<QColor>());
@@ -37,10 +37,11 @@ Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
   paletteChangeFunctor();
 
   connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO),
-          &SettingObserver::modified, this,
-          [=](const QVariant &value) { m_localEchoEnabled = value.toBool(); });
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            m_localEchoEnabled = value.toBool();
+          });
   connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONT),
-          &SettingObserver::modified, this, [=](const QVariant &value) {
+          &SettingObserver::modified, this, [this](const QVariant &value) {
             m_font = value.value<QFont>();
             setFont(m_font);
           });

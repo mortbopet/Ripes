@@ -13,7 +13,7 @@ class EcallChecker : public Component {
 public:
   EcallChecker(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    dummy << [=] {
+    dummy << [this] {
       if (opcode.eValue<RVInstr>() == RVInstr::ECALL &&
           !stallEcallHandling.uValue() && !handlingEcall) {
         assert(m_callback != nullptr && "No syscall callback was set!");
@@ -30,7 +30,7 @@ public:
     // in the pipeline. This signal may then be used as a method of clearing
     // early pipeline stages while the remainder of the pipeline is emptying the
     // to-be executed instructions after the syscall.
-    syscallExit << [=] { return m_syscallExit; };
+    syscallExit << [this] { return m_syscallExit; };
   }
 
   void setSyscallCallback(std::function<void(void)> const *cb) {

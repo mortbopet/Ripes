@@ -25,13 +25,15 @@ void CacheInterface::reverse() {
 CacheSim::CacheSim(QObject *parent) : CacheInterface(parent) {
   m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
   m_wordBits = ProcessorHandler::currentISA()->bits();
-  connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this, [=] {
-    // Given that we are not updating the graphical state of the cache simulator
-    // whilst the processor is running, once running is finished, the entirety
-    // of the cache view should be reloaded in the graphical view.
-    emit hitrateChanged();
-    emit cacheInvalidated();
-  });
+  connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
+          [this] {
+            // Given that we are not updating the graphical state of the cache
+            // simulator whilst the processor is running, once running is
+            // finished, the entirety of the cache view should be reloaded in
+            // the graphical view.
+            emit hitrateChanged();
+            emit cacheInvalidated();
+          });
 
   updateConfiguration();
 }
@@ -134,7 +136,7 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
       // If there is an invalid cache line, select that.
       auto it =
           std::find_if(cacheLine.begin(), cacheLine.end(),
-                       [=](const auto &way) { return !way.second.valid; });
+                       [this](const auto &way) { return !way.second.valid; });
       if (it != cacheLine.end()) {
         ew.first = it->first;
         ew.second = &it->second;
