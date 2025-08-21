@@ -19,7 +19,7 @@ class ALU : public Component {
 public:
   SetGraphicsType(ALU);
   ALU(const std::string &name, SimComponent *parent) : Component(name, parent) {
-    res << [=] {
+    res << [this] {
       switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
         return op1.uValue() + op2.uValue();

@@ -75,9 +75,9 @@ IOTab::IOTab(QToolBar *toolbar, QWidget *parent)
 
   // Disable instantiating new peripherals during processor running
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
-          [=] { m_ui->peripheralsTable->setEnabled(false); });
+          [this] { m_ui->peripheralsTable->setEnabled(false); });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
-          [=] { m_ui->peripheralsTable->setEnabled(true); });
+          [this] { m_ui->peripheralsTable->setEnabled(true); });
 
   // Store peripheral state before exiting the program
   connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_QUIT),
@@ -137,7 +137,7 @@ IOBase *IOTab::createPeripheral(IOType type, int forcedID) {
    * QMainWindow and the outer MDIWindow to register that its child widget has
    * changed in size, and adjust itself accordingly.
    */
-  connect(peripheral, &IOBase::paramsChanged, this, [=] {
+  connect(peripheral, &IOBase::paramsChanged, this, [this, mw, mdiw] {
     // Ensure that a peripheral resize event, as a result of a parameter being
     // changed, as been processed, so that its new size has taken effect.
     QApplication::processEvents();
@@ -150,11 +150,13 @@ IOBase *IOTab::createPeripheral(IOType type, int forcedID) {
 
   // Disable MDI subwindow close button when running the processor
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, mdiw,
-          [=] { mdiw->setWindowFlags(Qt::WindowTitleHint); });
-  connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, mdiw, [=] {
-    mdiw->setWindowFlags(Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
-                         Qt::WindowCloseButtonHint);
-  });
+          [this, mdiw] { mdiw->setWindowFlags(Qt::WindowTitleHint); });
+  connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, mdiw,
+          [this, mdiw] {
+            mdiw->setWindowFlags(Qt::WindowTitleHint |
+                                 Qt::WindowSystemMenuHint |
+                                 Qt::WindowCloseButtonHint);
+          });
 
   m_subWindows[peripheralTab] = mdiw;
   return peripheral;

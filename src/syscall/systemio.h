@@ -357,7 +357,7 @@ public:
     if (fd == STDIN) {
       // systemIO might be called from non-gui thread, so be threadsafe in
       // interacting with the ui.
-      postToGUIThread([=] {
+      postToGUIThread([] {
         SystemIOStatusManager::setStatusTimed("Waiting for user input...",
                                               99999999);
       });
@@ -368,7 +368,7 @@ public:
         if (s_abortSyscall) {
           FileIOData::s_stdioMutex.unlock();
           s_abortSyscall = false;
-          postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
+          postToGUIThread([] { SystemIOStatusManager::clearStatus(); });
           return -1;
         }
         auto readData = InputStream.read(1).toUtf8();
@@ -398,7 +398,7 @@ public:
       }
     }
 
-    postToGUIThread([=] { SystemIOStatusManager::clearStatus(); });
+    postToGUIThread([] { SystemIOStatusManager::clearStatus(); });
     return myBuffer.size();
 
   } // end readFromFile

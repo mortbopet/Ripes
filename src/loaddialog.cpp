@@ -58,9 +58,9 @@ LoadDialog::LoadDialog(QWidget *parent)
       QString("0").repeated(ProcessorHandler::currentISA()->bytes() * 2));
 
   connect(m_ui->binaryLoadAt, &QLineEdit::textChanged, this,
-          [=] { this->validateCurrentFile(); });
+          [this] { this->validateCurrentFile(); });
   connect(m_ui->binaryEntryPoint, &QLineEdit::textChanged, this,
-          [=] { this->validateCurrentFile(); });
+          [this] { this->validateCurrentFile(); });
 
   // ELF page
   m_ui->currentISA->setText(ProcessorHandler::currentISA()->name());

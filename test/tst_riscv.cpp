@@ -222,7 +222,7 @@ void tst_RISCV::runTests(const ProcessorID &id, const QStringList &extensions,
 
       // Override the ProcessorHandler's ECALL Exit2 handling. In doing so, we
       // verify whether the correct test value was reached.
-      ProcessorHandler::getProcessorNonConst()->trapHandler = [=] {
+      ProcessorHandler::getProcessorNonConst()->trapHandler = [this] {
         if (ProcessorHandler::getProcessor()->getRegister(
                 RVISA::GPR, s_ecallopreg) == RVABI::Exit2) {
           trapHandler();

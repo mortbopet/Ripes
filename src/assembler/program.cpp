@@ -5,9 +5,9 @@
 namespace Ripes {
 
 const ProgramSection *Program::getSection(const QString &name) const {
-  const auto secIter =
-      std::find_if(sections.begin(), sections.end(),
-                   [=](const auto &section) { return section.first == name; });
+  const auto secIter = std::find_if(
+      sections.begin(), sections.end(),
+      [this, &name](const auto &section) { return section.first == name; });
 
   if (secIter == sections.end()) {
     return nullptr;

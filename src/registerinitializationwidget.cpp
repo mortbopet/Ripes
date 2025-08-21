@@ -13,11 +13,12 @@ std::map<ProcessorID, RegisterInitialization>
 RegisterSelectionComboBox::RegisterSelectionComboBox(
     RegisterInitializationWidget *parent)
     : QComboBox(parent), m_parent(parent) {
-  connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=] {
-    const int oldIdx = m_index;
-    m_index = currentData().toUInt();
-    emit regIndexChanged(oldIdx, m_index);
-  });
+  connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          [this] {
+            const int oldIdx = m_index;
+            m_index = currentData().toUInt();
+            emit regIndexChanged(oldIdx, m_index);
+          });
 }
 
 void RegisterSelectionComboBox::showPopup() {
@@ -72,7 +73,7 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget *parent)
 
   const QIcon addIcon = QIcon(":/icons/plus.svg");
   m_ui->addInitButton->setIcon(addIcon);
-  connect(m_ui->addInitButton, &QPushButton::clicked, this, [=] {
+  connect(m_ui->addInitButton, &QPushButton::clicked, this, [this] {
     if (auto regIdx = getNonInitializedRegIdx(); regIdx.has_value())
       this->addRegisterInitialization(regIdx->file->regFileName(),
                                       regIdx->index);
@@ -210,7 +211,7 @@ void RegisterInitializationWidget::removeRegInitWidget(
     RegisterInitializationWidget::RegInitWidgets *w) {
   auto iter = std::find_if(
       m_currentRegInitWidgets.begin(), m_currentRegInitWidgets.end(),
-      [=](const auto &initWidget) { return initWidget.get() == w; });
+      [w](const auto &initWidget) { return initWidget.get() == w; });
   assert(iter != m_currentRegInitWidgets.end());
 
   // Current register index stored in the combobox of the regInitWidgets

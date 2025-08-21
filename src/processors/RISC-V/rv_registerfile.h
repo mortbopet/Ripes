@@ -20,7 +20,7 @@ public:
 
     // Disable writes to register 0
     wr_en_0->setSensitiveTo(wr_en);
-    wr_en_0->out << [=] { return wr_en.uValue() && wr_addr.uValue() != 0; };
+    wr_en_0->out << [this] { return wr_en.uValue() && wr_addr.uValue() != 0; };
 
     wr_addr >> _wr_mem->addr;
     wr_en_0->out >> _wr_mem->wr_en;
@@ -39,7 +39,7 @@ public:
      * the RegisterFile was a clocked component.
      */
     if constexpr (readBypass) {
-      r1_out << [=] {
+      r1_out << [this] {
         const int rd_idx = r1_addr.uValue();
         if (rd_idx == 0) {
           return VT_U(0);
@@ -53,7 +53,7 @@ public:
         }
       };
 
-      r2_out << [=] {
+      r2_out << [this] {
         const unsigned rd_idx = r2_addr.uValue();
         if (rd_idx == 0) {
           return VT_U(0);

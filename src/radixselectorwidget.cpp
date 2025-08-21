@@ -32,7 +32,7 @@ void RadixSelectorWidget::setupRadixComboBox() {
 
   connect(m_ui->displayType,
           QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          [=](int index) {
+          [this](int index) {
             const Radix r =
                 qvariant_cast<Radix>(m_ui->displayType->itemData(index));
             emit radixChanged(r);

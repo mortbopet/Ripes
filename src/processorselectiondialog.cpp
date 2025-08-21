@@ -68,7 +68,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
   connect(m_ui->processors, &QTreeWidget::currentItemChanged, this,
           &ProcessorSelectionDialog::selectionChanged);
   connect(m_ui->processors, &QTreeWidget::itemDoubleClicked, this,
-          [=](const QTreeWidgetItem *item) {
+          [this](const QTreeWidgetItem *item) {
             if (isCPUItem(item)) {
               accept();
             }
@@ -167,7 +167,7 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
     if (m_selectedExtensionsForID[desc->id].contains(ext)) {
       chkbox->setChecked(true);
     }
-    connect(chkbox, &QCheckBox::toggled, this, [=](bool toggled) {
+    connect(chkbox, &QCheckBox::toggled, this, [this, id, ext](bool toggled) {
       if (toggled) {
         m_selectedExtensionsForID[id] << ext;
       } else {

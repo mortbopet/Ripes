@@ -49,7 +49,7 @@ void tst_reverse::run_test(const ProcessorID &id, const QStringList &program,
                            bool toFinish) {
   ProcessorHandler::get()->selectProcessor(id, {});
   RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
-  ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [=] {};
+  ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [this] {};
 
   auto loader = new ProgramLoader();
   loader->loadTest(program.join("\n"));

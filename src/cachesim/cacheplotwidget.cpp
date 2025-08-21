@@ -57,11 +57,11 @@ CachePlotWidget::CachePlotWidget(QWidget *parent)
   m_ui->rangeMax->setValue(ProcessorHandler::getProcessor()->getCycleCount());
 
   connect(m_ui->rangeMin, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          [=] { rangeChanged(RangeChangeSource::Comboboxes); });
+          [this] { rangeChanged(RangeChangeSource::Comboboxes); });
   connect(m_ui->rangeMax, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          [=] { rangeChanged(RangeChangeSource::Comboboxes); });
+          [this] { rangeChanged(RangeChangeSource::Comboboxes); });
   connect(m_ui->rangeSlider, &ctkRangeSlider::valuesChanged, this,
-          [=] { rangeChanged(RangeChangeSource::Slider); });
+          [this] { rangeChanged(RangeChangeSource::Slider); });
 
   const QIcon sizeBreakdownIcon = QIcon(":/icons/info.svg");
   m_ui->sizeBreakdownButton->setIcon(sizeBreakdownIcon);
@@ -70,14 +70,13 @@ CachePlotWidget::CachePlotWidget(QWidget *parent)
   connect(m_ui->showMAvg, &QCheckBox::toggled, m_ui->windowCycles,
           &QWidget::setEnabled);
 
-  connect(m_ui->maxCyclesButton, &QPushButton::clicked, this, [=] {
+  connect(m_ui->maxCyclesButton, &QPushButton::clicked, this, [this] {
     QMessageBox::information(
         this, "Maximum plot cycles reached",
         "The maximum number of plot cycles was reached. Beyond this point, "
         "cache statistics is no longer plotted "
         "for performance reasons.\nIf you wish to increase the # of cycles "
-        "plotted, please change the setting:\n   "
-        " "
+        "plotted, please change the setting:\n    "
         "\"Edit->Settings->Environment->Max. cache plot cycles\"");
   });
 }
@@ -101,12 +100,12 @@ void CachePlotWidget::setCache(const std::shared_ptr<CacheSim> &cache) {
 
   connect(m_cache.get(), &CacheSim::hitrateChanged, this,
           &CachePlotWidget::updateHitrate);
-  connect(m_cache.get(), &CacheSim::configurationChanged, [=] {
+  connect(m_cache.get(), &CacheSim::configurationChanged, [this] {
     m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
   });
   m_ui->size->setText(QString::number(m_cache->getCacheSize().bits));
 
-  const auto plotUpdateFunc = [=]() {
+  const auto plotUpdateFunc = [this]() {
     updateRatioPlot();
     updateAllowedRange(RangeChangeSource::Cycles);
     updatePlotAxes();
@@ -116,7 +115,7 @@ void CachePlotWidget::setCache(const std::shared_ptr<CacheSim> &cache) {
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
           plotUpdateFunc);
   connect(m_cache.get(), &CacheSim::cacheInvalidated, this,
-          [=] { resetRatioPlot(); });
+          [this] { resetRatioPlot(); });
 
   m_plot = new QChart();
   m_series = new QLineSeries(m_plot);
@@ -190,8 +189,8 @@ CachePlotWidget::~CachePlotWidget() {
 }
 
 void CachePlotWidget::setupPlotActions() {
-  auto showMarkerFunctor = [=](QLineSeries *series, const QString &name) {
-    return [=](bool visible) {
+  auto showMarkerFunctor = [this](QLineSeries *series, const QString &name) {
+    return [=, this](bool visible) {
       if (visible) {
         m_ui->plotView->showSeriesMarker(series, name);
       } else {
@@ -209,7 +208,7 @@ void CachePlotWidget::setupPlotActions() {
           showMarkerFunctor(m_series, "Total"));
   m_ratioMarkerAction->setChecked(true);
   connect(m_ui->showRatio, &QCheckBox::toggled, m_ratioMarkerAction,
-          [=](bool enabled) {
+          [this](bool enabled) {
             m_ratioMarkerAction->setChecked(enabled);
             m_ratioMarkerAction->setEnabled(enabled);
           });
@@ -223,7 +222,7 @@ void CachePlotWidget::setupPlotActions() {
           showMarkerFunctor(m_mavgSeries, "Moving average"));
   m_mavgMarkerAction->setChecked(true);
   connect(m_ui->showMAvg, &QCheckBox::toggled, m_mavgMarkerAction,
-          [=](bool enabled) {
+          [this](bool enabled) {
             m_mavgMarkerAction->setChecked(enabled);
             m_mavgMarkerAction->setEnabled(enabled);
           });
@@ -411,7 +410,7 @@ void CachePlotWidget::updateRatioPlot() {
   // of points to be added. We have to remove series due to append(QList(...))
   // calling redraw _for each_ point in the list. Not removing the series for
   // low nNewPoints avoids a flicker in plot labels. Everything is a balance...
-  const auto plotMover = [=](QLineSeries *series, bool visible) {
+  const auto plotMover = [=, this](QLineSeries *series, bool visible) {
     if (nNewPoints > 2) {
       if (visible) {
         this->m_plot->addSeries(series);

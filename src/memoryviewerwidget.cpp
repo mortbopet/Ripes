@@ -25,11 +25,11 @@ MemoryViewerWidget::MemoryViewerWidget(QWidget *parent)
   // During processor running, it should not be possible to interact with the
   // memory viewer.
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, this,
-          [=] { setEnabled(false); });
+          [this] { setEnabled(false); });
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
-          [=] { setEnabled(true); });
+          [this] { setEnabled(true); });
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
-          this, [=] { this->updateView(); });
+          this, [this] { this->updateView(); });
   connect(ProcessorHandler::get(), &ProcessorHandler::memoryFocusAddressChanged,
           this, &MemoryViewerWidget::setCentralAddress);
 }
@@ -76,16 +76,17 @@ void MemoryViewerWidget::updateModel() {
           &MemoryModel::setRadix);
 
   // Connect scroll events on the view to modify the center address of the model
-  connect(m_ui->memoryView, &MemoryView::scrolled, newModel, [=](bool dir) {
-    if (dir) {
-      newModel->offsetCentralAddress(1);
-    } else {
-      newModel->offsetCentralAddress(-1);
-    }
-  });
+  connect(m_ui->memoryView, &MemoryView::scrolled, newModel,
+          [newModel](bool dir) {
+            if (dir) {
+              newModel->offsetCentralAddress(1);
+            } else {
+              newModel->offsetCentralAddress(-1);
+            }
+          });
 
   m_memoryModel->setRowsVisible(1);
-  connect(m_ui->memoryView, &MemoryView::resized, newModel, [=] {
+  connect(m_ui->memoryView, &MemoryView::resized, newModel, [=, this] {
     int rowHeight = m_ui->memoryView->rowHeight(0);
     if (rowHeight != 0) {
       const auto rows = m_ui->memoryView->height() / rowHeight;

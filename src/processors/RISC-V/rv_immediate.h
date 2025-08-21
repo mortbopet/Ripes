@@ -16,7 +16,7 @@ public:
   Immediate(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     setDescription("Immediate value decoder");
-    imm << [=] {
+    imm << [this] {
       switch (opcode.eValue<RVInstr>()) {
       case RVInstr::LUI:
       case RVInstr::AUIPC:
