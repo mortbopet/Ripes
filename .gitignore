@@ -5,6 +5,7 @@
 Makefile
 build*
 .vscode
+compile_commands.json
 
 
 # Qt generated files
@@ -12,8 +13,16 @@ moc_*
 *.moc
 ui_*
 qrc_*
+*.qrc.depends
+.qt
 
 # Executables & libraries
 Ripes
 RipesTest
 libRipesLib.a
+
+# CMake & Build files
+CMakeFiles
+cmake_install.cmake
+CMakeCache.*
+_deps
