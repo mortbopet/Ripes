@@ -58,10 +58,7 @@ public:
     };
   }
 
-  void setMemory(AddressSpace *addressSpace) {
-    setMemory(addressSpace);
-    mem->setMemory(addressSpace);
-  }
+  void setMemory(AddressSpace *addressSpace) { mem->setMemory(addressSpace); }
 
   // RVMemory is also a BaseMemory... A bit redundant, but RVMemory has a notion
   // of the memory operation that is happening, while the underlying

@@ -2,6 +2,8 @@
 
 #include <QPolygonF>
 
+#include "processors/RISC-V/rv5mc/rv5mc_1m.h"
+#include "processors/RISC-V/rv5mc/rv5mc_2m.h"
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
@@ -41,6 +43,23 @@ constexpr const char rv6s_desc[] =
     "is reserved for controlflow and ecall instructions, and way 2 for "
     "memory accessing instructions.";
 
+constexpr const char rv5mc_desc[] =
+    "A 5 stage multicycle processor similar to the multicycle processor "
+    "described in Harris&Harris. Instructions take a variable number of "
+    "cycles to execute. "
+    "By default, the current state is shown in the control unit. "
+    "This version uses separate memories for data and instructions like the "
+    "single cycle or segmented processors.";
+
+constexpr const char rv5mc_desc_1m[] =
+    "A 5 stage multicycle processor similar to the multicycle processor "
+    "described in Harris&Harris. Instructions take a variable number of "
+    "cycles to execute. "
+    "By default, the current state is shown in the control unit. "
+    "This version takes advantage of the fact that data and instructions are "
+    "never accessed in the same cycle to use a single memory for data and "
+    "instructions.";
+
 ProcessorRegistry::ProcessorRegistry() {
   // Initialize processors
   std::vector<Layout> layouts;
@@ -60,6 +79,38 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RVSS<uint64_t>>(
       ProcessorID::RV64_SS, "Single-cycle processor",
       "A single cycle processor", layouts, defRegVals));
+
+  // RISC-V multicycle
+  layouts = {{"Extended",
+              ":/layouts/RISC-V/rv5mc/rv5mc_extended_layout.json",
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.28, 0}},
+               {{0, 2}, QPointF{0.54, 0}},
+               {{0, 3}, QPointF{0.78, 0}},
+               {{0, 4}, QPointF{0.9, 0}}}}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RV5MC2M<uint32_t>>(
+      ProcessorID::RV32_5MC_2M, "Multi-cycle processor with separate memories",
+      rv5mc_desc, layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RV5MC2M<uint64_t>>(
+      ProcessorID::RV64_5MC, "Multi-cycle processor with separate memories",
+      rv5mc_desc, layouts, defRegVals));
+
+  // RISC-V multicycle, one memory
+  layouts = {{"Extended",
+              ":/layouts/RISC-V/rv5mc/rv5mc_1m_extended_layout.json", // TODO
+              {{{0, 0}, QPointF{0.08, 0}},
+               {{0, 1}, QPointF{0.28, 0}},
+               {{0, 2}, QPointF{0.54, 0}},
+               {{0, 3}, QPointF{0.78, 0}},
+               {{0, 4}, QPointF{0.9, 0}}}}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RV5MC1M<uint32_t>>(
+      ProcessorID::RV32_5MC_1M, "Multi-cycle processor with one memory",
+      rv5mc_desc_1m, layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RV5MC1M<uint64_t>>(
+      ProcessorID::RV64_5MC_1M, "Multi-cycle processor with one memory",
+      rv5mc_desc_1m, layouts, defRegVals));
 
   // RISC-V 5-stage without forwarding or hazard detection
   layouts = {
