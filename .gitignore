@@ -10,6 +10,7 @@ compile_commands.json
 
 # Qt generated files
 moc_*
+mocs_*
 *.moc
 ui_*
 qrc_*
@@ -20,9 +21,14 @@ qrc_*
 Ripes
 RipesTest
 libRipesLib.a
+libfancytabbar.a
+*_lib.a
+src/processors/*.a
 
 # CMake & Build files
 CMakeFiles
 cmake_install.cmake
 CMakeCache.*
 _deps
+deps
+timestamp
