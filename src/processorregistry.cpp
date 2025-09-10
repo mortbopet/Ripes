@@ -9,6 +9,7 @@
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
+#include "processors/RISC-V/rv5s_vliw/rv5s_vliw.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
@@ -59,6 +60,13 @@ constexpr const char rv5mc_desc_1m[] =
     "This version takes advantage of the fact that data and instructions are "
     "never accessed in the same cycle to use a single memory for data and "
     "instructions.";
+
+constexpr const char rv5s_vliw_desc[] = 
+    "A 5 stage Very-Long-Instruction-Word dual-issue offline in-order processor. "
+    "VLIW instructions are compounded of 2 32-bit Risc-V instructions, where "
+    "the first instruction (way) only allows for ALU and branch instructions "
+    "and the second only allows for load and store operations.";
+
 
 ProcessorRegistry::ProcessorRegistry() {
   // Initialize processors
@@ -206,6 +214,29 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint64_t>>(
       ProcessorID::RV64_5S, "5-stage processor", rv5s_desc, layouts,
       defRegVals));
+
+  // RISC-V 5-stage VLIW
+  layouts = {{"Extended",
+              ":/layouts/RISC-V/rv5s_vliw/rv5s_vliw_extended_layout.json",
+              {{{{0, 0}, QPointF{0.06, 0}},
+                {{1, 0}, QPointF{0.06, 1}},
+                {{0, 1}, QPointF{0.29, 0}},
+                {{1, 1}, QPointF{0.29, 1}},
+                {{0, 2}, QPointF{0.57, 0}},
+                {{1, 2}, QPointF{0.57, 1}},
+                {{0, 3}, QPointF{0.79, 0}},
+                {{1, 3}, QPointF{0.79, 1}},
+                {{0, 4}, QPointF{0.90, 0}},
+                {{1, 4}, QPointF{0.90, 1}}}}
+            }};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RV5S_VLIW<uint32_t>>(
+      ProcessorID::RV32_5S_VLIW, "5-stage processor VLIW", rv5s_vliw_desc, layouts,
+      defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RV5S_VLIW<uint64_t>>(
+      ProcessorID::RV64_5S_VLIW, "5-stage processor VLIW", rv5s_vliw_desc, layouts,
+      defRegVals));
+
 
   // RISC-V 6-stage dual issue
   layouts = {{"Extended",
