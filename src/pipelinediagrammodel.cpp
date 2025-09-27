@@ -62,11 +62,21 @@ void PipelineDiagramModel::processorWasClocked() {
   }
 
   // Implement sliding window to prevent memory leaks during long simulations
-  // Keep only the most recent maxCycles entries
-  if (m_cycleStageInfos.size() > static_cast<size_t>(maxCycles)) {
+  // Only cleanup when significantly over the limit to reduce performance impact
+  const size_t cleanupThreshold =
+      static_cast<size_t>(maxCycles * 1.2); // 20% over limit
+  if (m_cycleStageInfos.size() > cleanupThreshold) {
+    // Notify model views before data changes
+    beginResetModel();
+
+    // Keep only the most recent maxCycles entries
+    const size_t targetSize = static_cast<size_t>(maxCycles);
     auto it = m_cycleStageInfos.begin();
-    std::advance(it, m_cycleStageInfos.size() - maxCycles);
+    std::advance(it, m_cycleStageInfos.size() - targetSize);
     m_cycleStageInfos.erase(m_cycleStageInfos.begin(), it);
+
+    // Notify model views after data changes
+    endResetModel();
   }
 }
 

@@ -222,6 +222,7 @@ signals:
   void configurationChanged();
   void dataChanged(CacheSim::CacheTransaction transaction);
   void hitrateChanged();
+  void accessTraceCleanedUp(size_t remainingTraces);
 
   // Signals that the entire cache line @p
   /**
