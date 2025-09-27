@@ -254,6 +254,15 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
 
   m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
+  // Prevent memory leaks during long simulations by limiting access trace size
+  // Keep only the most recent 10000 access traces (configurable limit)
+  constexpr size_t MAX_ACCESS_TRACES = 10000;
+  if (m_accessTrace.size() > MAX_ACCESS_TRACES) {
+    auto it = m_accessTrace.begin();
+    std::advance(it, m_accessTrace.size() - MAX_ACCESS_TRACES);
+    m_accessTrace.erase(m_accessTrace.begin(), it);
+  }
+
   if (!ProcessorHandler::isRunning()) {
     emit hitrateChanged();
   }
