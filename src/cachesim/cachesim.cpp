@@ -269,9 +269,6 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
     auto it = m_accessTrace.begin();
     std::advance(it, m_accessTrace.size() - targetSize);
     m_accessTrace.erase(m_accessTrace.begin(), it);
-
-    // Emit signal to notify about trace truncation
-    emit accessTraceCleanedUp(targetSize);
   }
 
   if (!ProcessorHandler::isRunning()) {
