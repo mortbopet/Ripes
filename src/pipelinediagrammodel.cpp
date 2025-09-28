@@ -61,7 +61,7 @@ void PipelineDiagramModel::processorWasClocked() {
     m_atMaxCycles = true;
   }
 
-  // Implement sliding window to prevent memory leaks during long simulations
+  // Implement sliding window to prevent continuously growing memory usage during long simulations
   // Only cleanup when significantly over the limit to reduce performance impact
   const size_t cleanupThreshold =
       static_cast<size_t>(maxCycles * 1.2); // 20% over limit
