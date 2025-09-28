@@ -17,7 +17,7 @@ FetchContent_Declare(
     libelfin
     SYSTEM
     GIT_REPOSITORY https://github.com/mortbopet/libelfin.git
-    GIT_TAG        93a424940dc6e721818c5634b1876c8800e3f980
+    GIT_TAG        c06ecb09c0d2145091119d15b911c54d2d378ea7
 )
 FetchContent_MakeAvailable(libelfin)
 
