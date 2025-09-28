@@ -448,7 +448,8 @@ QWidget *SettingsDialog::createEnvironmentPage() {
   appendToLayout({maxTracesLabel, maxTracesSb}, pageLayout,
                  "Maximum number of cache access traces to keep in memory. "
                  "When this limit is exceeded, older traces are removed to "
-                 "prevent continuously growing memory usage during long simulations. Lower values "
+                 "prevent continuously growing memory usage during long "
+                 "simulations. Lower values "
                  "use less memory but provide less history for analysis.");
 
   auto [maxPipeDiagCycLabel, maxPipeDiagCycSb] =

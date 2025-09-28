@@ -255,8 +255,8 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
 
   m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
-  // Prevent continuously growing memory usage during long simulations by limiting access trace size
-  // Use configurable limit from settings
+  // Prevent continuously growing memory usage during long simulations by
+  // limiting access trace size Use configurable limit from settings
   const size_t maxTraces = static_cast<size_t>(
       RipesSettings::value(RIPES_SETTING_CACHE_MAXTRACES).toInt());
 
