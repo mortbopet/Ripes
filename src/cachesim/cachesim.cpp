@@ -261,9 +261,8 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
       RipesSettings::value(RIPES_SETTING_CACHE_MAXTRACES).toInt());
 
   // Only cleanup every 100 insertions to reduce performance impact
-  static size_t cleanupCounter = 0;
-  if (++cleanupCounter >= 100 && m_accessTrace.size() > maxTraces) {
-    cleanupCounter = 0;
+  if (++m_cleanupCounter >= 100 && m_accessTrace.size() > maxTraces) {
+    m_cleanupCounter = 0;
 
     // More efficient cleanup: remove older half when limit is exceeded
     const size_t targetSize = maxTraces / 2;
