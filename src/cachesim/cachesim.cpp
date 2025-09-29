@@ -1,5 +1,6 @@
 #include "cachesim.h"
 #include "binutils.h"
+#include "ripessettings.h"
 
 #include "processorhandler.h"
 
@@ -253,6 +254,22 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
                                 : m_accessTrace.rbegin()->second;
 
   m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
+
+  // Prevent continuously growing memory usage during long simulations by
+  // limiting access trace size Use configurable limit from settings
+  const size_t maxTraces = static_cast<size_t>(
+      RipesSettings::value(RIPES_SETTING_CACHE_MAXTRACES).toInt());
+
+  // Only cleanup every 100 insertions to reduce performance impact
+  if (++m_cleanupCounter >= 100 && m_accessTrace.size() > maxTraces) {
+    m_cleanupCounter = 0;
+
+    // More efficient cleanup: remove older half when limit is exceeded
+    const size_t targetSize = maxTraces / 2;
+    auto it = m_accessTrace.begin();
+    std::advance(it, m_accessTrace.size() - targetSize);
+    m_accessTrace.erase(m_accessTrace.begin(), it);
+  }
 
   if (!ProcessorHandler::isRunning()) {
     emit hitrateChanged();
