@@ -227,8 +227,19 @@ ProcessorRegistry::ProcessorRegistry() {
                 {{0, 3}, QPointF{0.79, 0}},
                 {{1, 3}, QPointF{0.79, 1}},
                 {{0, 4}, QPointF{0.90, 0}},
-                {{1, 4}, QPointF{0.90, 1}}}}
-            }};
+                {{1, 4}, QPointF{0.90, 1}}}}},
+            {"Simple",
+              ":/layouts/RISC-V/rv5s_vliw/rv5s_vliw_simple_layout.json",
+              {{{{0, 0}, QPointF{0.06, 0}},
+                {{1, 0}, QPointF{0.06, 1}},
+                {{0, 1}, QPointF{0.29, 0}},
+                {{1, 1}, QPointF{0.29, 1}},
+                {{0, 2}, QPointF{0.57, 0}},
+                {{1, 2}, QPointF{0.57, 1}},
+                {{0, 3}, QPointF{0.79, 0}},
+                {{1, 3}, QPointF{0.79, 1}},
+                {{0, 4}, QPointF{0.90, 0}},
+                {{1, 4}, QPointF{0.90, 1}}}}}};
   defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV5S_VLIW<uint32_t>>(
       ProcessorID::RV32_5S_VLIW, "5-stage processor VLIW", rv5s_vliw_desc, layouts,
