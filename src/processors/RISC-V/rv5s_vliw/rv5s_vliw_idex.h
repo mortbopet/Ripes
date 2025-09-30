@@ -62,6 +62,8 @@ class IDEX_VLIW : public Component {
 
     AUTO_CONNECT_CLEN_INPUT(mem_do_write);
     AUTO_CONNECT_CLEN_INPUT(mem_op);
+    AUTO_CONNECT_CLEN_INPUT(exec_is_valid);
+    AUTO_CONNECT_CLEN_INPUT(data_is_valid);
     AUTO_CONNECT_CLEN_INPUT(br_op);
     AUTO_CONNECT_CLEN_INPUT(do_br);
     AUTO_CONNECT_CLEN_INPUT(do_jmp);
@@ -107,6 +109,8 @@ class IDEX_VLIW : public Component {
 
   REGISTERED_CLEN_INPUT(mem_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_op, enumBitWidth<MemOp>());
+  REGISTERED_CLEN_INPUT(exec_is_valid, 1);
+  REGISTERED_CLEN_INPUT(data_is_valid, 1);
   REGISTERED_CLEN_INPUT(br_op, enumBitWidth<CompOp>());
   REGISTERED_CLEN_INPUT(do_br, 1);
   REGISTERED_CLEN_INPUT(do_jmp, 1);

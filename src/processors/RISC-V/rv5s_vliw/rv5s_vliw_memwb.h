@@ -31,6 +31,8 @@ public:
     CONNECT_REGISTERED_INPUT(reg_do_write_data);
 
     CONNECT_REGISTERED_INPUT(mem_op);
+    CONNECT_REGISTERED_INPUT(exec_is_valid);
+    CONNECT_REGISTERED_INPUT(data_is_valid);
 
     CONNECT_REGISTERED_INPUT(valid);
   }
@@ -51,6 +53,8 @@ public:
   REGISTERED_INPUT(reg_do_write_data, 1);
 
   REGISTERED_INPUT(mem_op, enumBitWidth<MemOp>());
+  REGISTERED_INPUT(exec_is_valid, 1);
+  REGISTERED_INPUT(data_is_valid, 1);
 
   // Valid signal. False when the register bank has been cleared. May be used by
   // UI to determine whether the NOP in the stage is a user-inserted nop or the

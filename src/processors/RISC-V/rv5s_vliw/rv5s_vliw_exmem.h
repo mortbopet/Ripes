@@ -38,6 +38,8 @@ public:
     AUTO_CONNECT_CLEN_INPUT(reg_wr_src_exec_ctrl);
     AUTO_CONNECT_CLEN_INPUT(mem_do_write);
     AUTO_CONNECT_CLEN_INPUT(mem_op);
+    AUTO_CONNECT_CLEN_INPUT(exec_is_valid);
+    AUTO_CONNECT_CLEN_INPUT(data_is_valid);
   }
   
   // Register bank controls
@@ -69,6 +71,8 @@ public:
   REGISTERED_CLEN_INPUT(reg_wr_src_exec_ctrl, enumBitWidth<RegWrExecSrc>());
   REGISTERED_CLEN_INPUT(mem_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_op, enumBitWidth<MemOp>());
+  REGISTERED_CLEN_INPUT(exec_is_valid, 1);
+  REGISTERED_CLEN_INPUT(data_is_valid, 1);
 };
 
 #undef AUTO_CONNECT_CLEN_INPUT

@@ -21,8 +21,14 @@ class Control_VLIW : public Component {
     }
   }
 
-  static VSRTL_VT_U is_mem_instr(RVInstr opc) {
-    return Control::do_do_mem_write_ctrl(opc) || Control::do_do_read_ctrl(opc);
+  static inline bool isMemInstr(RVInstr instr) {
+    return Control::do_do_read_ctrl(instr) || Control::do_do_mem_write_ctrl(instr);
+  }
+  static bool isValidExec(RVInstr opc) {
+    return opc == RVInstr::NOP || !isMemInstr(opc);
+  }
+  static bool isValidData(RVInstr opc) {
+    return opc == RVInstr::NOP || isMemInstr(opc);
   }
 
 public:
@@ -31,8 +37,8 @@ public:
     
     reg_wr_src_exec_ctrl << [this] { return do_reg_wr_src_exec_ctrl(opcode_exec.eValue<RVInstr>()); };
     
-    reg_do_write_exec_ctrl << [this] { return !is_mem_instr(opcode_exec.eValue<RVInstr>()) && Control::do_reg_do_write_ctrl(opcode_exec.eValue<RVInstr>()); };
-    reg_do_write_data_ctrl << [this] { return  is_mem_instr(opcode_data.eValue<RVInstr>()) && Control::do_reg_do_write_ctrl(opcode_data.eValue<RVInstr>()); };
+    reg_do_write_exec_ctrl << [this] { return isValidExec(opcode_exec.eValue<RVInstr>()) && Control::do_reg_do_write_ctrl(opcode_exec.eValue<RVInstr>()); };
+    reg_do_write_data_ctrl << [this] { return isValidData(opcode_data.eValue<RVInstr>()) && Control::do_reg_do_write_ctrl(opcode_data.eValue<RVInstr>()); };
 
     mem_do_write_ctrl << [this] { return Control::do_do_mem_write_ctrl(opcode_data.eValue<RVInstr>()); };
     do_branch << [this] { return Control::do_branch_ctrl(opcode_exec.eValue<RVInstr>()); };
@@ -40,6 +46,9 @@ public:
     
     comp_ctrl << [this] { return Control::do_comp_ctrl(opcode_exec.eValue<RVInstr>()); };
     mem_ctrl << [this] { return Control::do_mem_ctrl(opcode_data.eValue<RVInstr>()); };
+    
+    exec_is_valid << [this] { return isValidExec(opcode_exec.eValue<RVInstr>()); };
+    data_is_valid << [this] { return isValidData(opcode_data.eValue<RVInstr>()); };
 
     alu_exec_op1_ctrl << [this] { return Control::do_alu_op1_ctrl(opcode_exec.eValue<RVInstr>()); };
     alu_exec_op2_ctrl << [this] { return Control::do_alu_op2_ctrl(opcode_exec.eValue<RVInstr>()); };
@@ -59,6 +68,9 @@ public:
   OUTPUTPORT(do_jump, 1);
   OUTPUTPORT_ENUM(comp_ctrl, CompOp);
   OUTPUTPORT_ENUM(mem_ctrl, MemOp);
+  
+  OUTPUTPORT(exec_is_valid, 1);
+  OUTPUTPORT(data_is_valid, 1);
 
   OUTPUTPORT_ENUM(alu_exec_op1_ctrl, AluSrc1);
   OUTPUTPORT_ENUM(alu_exec_op2_ctrl, AluSrc2);

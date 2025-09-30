@@ -186,6 +186,9 @@ public:
     control->comp_ctrl >> idex_reg->br_op_in;
     control->do_branch >> idex_reg->do_br_in;
     control->do_jump >> idex_reg->do_jmp_in;
+    
+    control->exec_is_valid >> idex_reg->exec_is_valid_in;
+    control->data_is_valid >> idex_reg->data_is_valid_in;
 
     ifid_reg->valid_out >> idex_reg->valid_in;
 
@@ -210,28 +213,28 @@ public:
     data_reg_fw_src->out    >> alu_data->op1;
     idex_reg->imm_data_out  >> alu_data->op2;
     static_cast<VSRTL_VT_U>(ALUOp::ADD) >> alu_data->ctrl;
-    // could be replaced by simple add unit but for symmetry reasons we chose an ALU
+    // could be replaced by simple add unit but for symmetry & visual reasons we chose an ALU
 
     // --- Forwarding ---
     /*fw-exec-reg1*/
-    idex_reg->r1_exec_out       >> exec_reg1_fw_src->get(ForwardingSrcVliw::IdStage);
-    exmem_reg->alu_exec_res_out >> exec_reg1_fw_src->get(ForwardingSrcVliw::MemStageExec);
-    reg_wr_src_exec->out        >> exec_reg1_fw_src->get(ForwardingSrcVliw::WbStageExec);
-    memwb_reg->mem_read_out     >> exec_reg1_fw_src->get(ForwardingSrcVliw::WbStageData);
+    idex_reg->r1_exec_out        >> exec_reg1_fw_src->get(ForwardingSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> exec_reg1_fw_src->get(ForwardingSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> exec_reg1_fw_src->get(ForwardingSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> exec_reg1_fw_src->get(ForwardingSrcVliw::WbStageData);
     funit->alu_exec_reg1_fw_ctrl >> exec_reg1_fw_src->select;
     
     /*fw-exec-reg2*/
-    idex_reg->r2_exec_out       >> exec_reg2_fw_src->get(ForwardingSrcVliw::IdStage);
-    exmem_reg->alu_exec_res_out >> exec_reg2_fw_src->get(ForwardingSrcVliw::MemStageExec);
-    reg_wr_src_exec->out        >> exec_reg2_fw_src->get(ForwardingSrcVliw::WbStageExec);
-    memwb_reg->mem_read_out     >> exec_reg2_fw_src->get(ForwardingSrcVliw::WbStageData);
+    idex_reg->r2_exec_out        >> exec_reg2_fw_src->get(ForwardingSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> exec_reg2_fw_src->get(ForwardingSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> exec_reg2_fw_src->get(ForwardingSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> exec_reg2_fw_src->get(ForwardingSrcVliw::WbStageData);
     funit->alu_exec_reg2_fw_ctrl >> exec_reg2_fw_src->select;
     
     /*fw-data-reg1*/
-    idex_reg->r1_data_out       >> data_reg_fw_src->get(ForwardingSrcVliw::IdStage);
-    exmem_reg->alu_exec_res_out >> data_reg_fw_src->get(ForwardingSrcVliw::MemStageExec);
-    reg_wr_src_exec->out        >> data_reg_fw_src->get(ForwardingSrcVliw::WbStageExec);
-    memwb_reg->mem_read_out     >> data_reg_fw_src->get(ForwardingSrcVliw::WbStageData);
+    idex_reg->r1_data_out        >> data_reg_fw_src->get(ForwardingSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> data_reg_fw_src->get(ForwardingSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> data_reg_fw_src->get(ForwardingSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> data_reg_fw_src->get(ForwardingSrcVliw::WbStageData);
     funit->alu_data_reg1_fw_ctrl >> data_reg_fw_src->select;
     
     /*fw-unit*/
@@ -287,6 +290,8 @@ public:
     /*control*/
     idex_reg->reg_wr_src_exec_ctrl_out >> exmem_reg->reg_wr_src_exec_ctrl_in;
     idex_reg->mem_do_write_out >> exmem_reg->mem_do_write_in;
+    idex_reg->exec_is_valid_out >> exmem_reg->exec_is_valid_in;
+    idex_reg->data_is_valid_out >> exmem_reg->data_is_valid_in;
     idex_reg->mem_op_out >> exmem_reg->mem_op_in;
 
     // -----------------------------------------------------------------------
@@ -313,6 +318,8 @@ public:
     exmem_reg->wr_reg_idx_data_out >> memwb_reg->wr_reg_idx_data_in;
     exmem_reg->reg_do_write_data_out >> memwb_reg->reg_do_write_data_in;
 
+    exmem_reg->exec_is_valid_out >> memwb_reg->exec_is_valid_in;
+    exmem_reg->data_is_valid_out >> memwb_reg->data_is_valid_in;
     exmem_reg->mem_op_out >> memwb_reg->mem_op_in;
 
     exmem_reg->valid_out >> memwb_reg->valid_in;
@@ -381,6 +388,32 @@ public:
 
   SUBCOMPONENT(ecallChecker, EcallChecker);
 
+  private:
+  bool get_lane_is_valid(StageIndex stage) const {
+    switch (stage.lane()) {
+      case EXEC:
+        switch( stage.index() ) {
+          case ID:  return control->exec_is_valid.uValue();
+          case EX:  return idex_reg->exec_is_valid_out.uValue();
+          case MEM: return exmem_reg->exec_is_valid_out.uValue();
+          case WB:  return memwb_reg->exec_is_valid_out.uValue();
+          default: case IF: return false;
+        } break;
+      
+      case DATA:
+        switch( stage.index() ) {
+          case ID:  return control->data_is_valid.uValue();
+          case EX:  return idex_reg->data_is_valid_out.uValue();
+          case MEM: return exmem_reg->data_is_valid_out.uValue();
+          case WB:  return memwb_reg->data_is_valid_out.uValue();
+          default: case IF: return false;
+        } break;
+      
+      default: Q_UNREACHABLE();
+    }
+  }
+
+  public:
   // Ripes interface compliance
   const ProcessorStructure &structure() const override { return m_structure; }
   unsigned int getPcForStage(StageIndex idx) const override {
@@ -388,18 +421,24 @@ public:
 
     int pc = 0;
     /* clang-format off */
-    if (idx.second == IF)  pc = pc_reg->out.uValue();
-    if (idx.second == ID)  pc = ifid_reg->pc_out.uValue();
-    if (idx.second == EX)  pc = idex_reg->pc_out.uValue();
-    if (idx.second == MEM) pc = exmem_reg->pc_out.uValue();
-    if (idx.second == WB)  pc = memwb_reg->pc_out.uValue();
+    switch(idx.index()) {
+      case IF:  pc = pc_reg->out.uValue(); break;
+      case ID:  pc = ifid_reg->pc_out.uValue(); break;
+      case EX:  pc = idex_reg->pc_out.uValue(); break;
+      case MEM: pc = exmem_reg->pc_out.uValue(); break;
+      case WB:  pc = memwb_reg->pc_out.uValue(); break;
+      default:  break;
+    }
 
     if (idx.lane()==DATA) {
-      if (idx.second == IF)  pc += pc_inc1->out.uValue();
-      if (idx.second == ID)  pc += ifid_reg->pc_data_offset_out.uValue();
-      if (idx.second == EX)  pc += idex_reg->pc_data_offset_out.uValue();
-      if (idx.second == MEM) pc += exmem_reg->pc_data_offset_out.uValue();
-      if (idx.second == WB)  pc += memwb_reg->pc_data_offset_out.uValue();
+      switch(idx.index()) {
+        case IF:  pc += pc_inc1->out.uValue(); break;
+        case ID:  pc += ifid_reg->pc_data_offset_out.uValue(); break;
+        case EX:  pc += idex_reg->pc_data_offset_out.uValue(); break;
+        case MEM: pc += exmem_reg->pc_data_offset_out.uValue(); break;
+        case WB:  pc += memwb_reg->pc_data_offset_out.uValue(); break;
+        default:  break;
+      }
     }
     /* clang-format on */
 
@@ -441,16 +480,14 @@ public:
     if(stage.index() < EX){
       stageValid &= !ecallChecker->isSysCallExiting();
     }
-        
-    #define STAGE_STATE(sid, sr, mr)              \
-      if (m_cycleCount >= (sid)) {                \
-        if (stage.lane() == DATA && stageValid && \
-            ((mr).template eValue<MemOp>() == MemOp::NOP)) { \
-          state = StageInfo::State::Unused;       \
-        }                                         \
-        if ((sr)->valid_out.uValue() == 0) {      \
-          state = StageInfo::State::Flushed;      \
-        }                                         \
+    
+    #define STAGE_STATE(sid, sr, mr)                              \
+      if (m_cycleCount >= (sid)) {                                \
+        if ((sr)->valid_out.uValue() == 0) {                      \
+          state = StageInfo::State::Flushed;                      \
+        } else if( stageValid && !get_lane_is_valid(stage) ) {    \
+          state = StageInfo::State::Invalid;                  \
+        }                                                         \
       }
 
     // Gather stage state info
