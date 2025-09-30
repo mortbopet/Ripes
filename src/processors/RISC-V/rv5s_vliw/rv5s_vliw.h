@@ -481,13 +481,13 @@ public:
       stageValid &= !ecallChecker->isSysCallExiting();
     }
     
-    #define STAGE_STATE(sid, sr, mr)                              \
-      if (m_cycleCount >= (sid)) {                                \
-        if ((sr)->valid_out.uValue() == 0) {                      \
-          state = StageInfo::State::Flushed;                      \
-        } else if( stageValid && !get_lane_is_valid(stage) ) {    \
-          state = StageInfo::State::Invalid;                  \
-        }                                                         \
+    #define STAGE_STATE(sid, sr, mr)                            \
+      if (m_cycleCount >= (sid)) {                              \
+        if ((sr)->valid_out.uValue() == 0) {                    \
+          state = StageInfo::State::Flushed;                    \
+        } else if( stageValid && !get_lane_is_valid(stage) ) {  \
+          state = StageInfo::State::Invalid;                    \
+        }                                                       \
       }
 
     // Gather stage state info
