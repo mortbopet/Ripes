@@ -21,22 +21,19 @@
 #include "../rv6s_dual/rv6s_dual_common.h"
 #include "../rv6s_dual/rv6s_dual_control.h"
 #include "../rv6s_dual/rv6s_dual_instr_mem.h"
-#include "../rv6s_dual/rv6s_dual_registerfile.h"
 #include "../rv6s_dual/rv6s_dual_uncompress.h"
 
 // Specialized VLIW components
 #include "rv5s_vliw_common.h"
 #include "rv5s_vliw_control.h"
 #include "rv5s_vliw_forwardingunit.h"
+#include "rv5s_vliw_registerfile.h"
 
 // Stage separating registers
-#include "rv5s_vliw_ifid.h"
-#include "rv5s_vliw_idex.h"
 #include "rv5s_vliw_exmem.h"
+#include "rv5s_vliw_idex.h"
+#include "rv5s_vliw_ifid.h"
 #include "rv5s_vliw_memwb.h"
-
-
-
 
 namespace vsrtl {
 namespace core {
@@ -58,7 +55,8 @@ public:
     decode_exec->setISA(m_enabledISA);
     decode_data->setISA(m_enabledISA);
     uncompress_dual->setISA(m_enabledISA);
-    
+
+    /* clang-format off */
     // -----------------------------------------------------------------------
     // IF
     // --- Instruction memory ---
@@ -210,33 +208,40 @@ public:
     idex_reg->alu_exec_op2_ctrl_out >> alu_exec_op2_src->select;
     
     /*data*/
-    data_reg_fw_src->out    >> alu_data->op1;
-    idex_reg->imm_data_out  >> alu_data->op2;
+    data_reg1_fw_src->out  >> alu_data->op1;
+    idex_reg->imm_data_out >> alu_data->op2;
     static_cast<VSRTL_VT_U>(ALUOp::ADD) >> alu_data->ctrl;
     // could be replaced by simple add unit but for symmetry & visual reasons we chose an ALU
 
     // --- Forwarding ---
     /*fw-exec-reg1*/
-    idex_reg->r1_exec_out        >> exec_reg1_fw_src->get(ForwardingSrcVliw::IdStage);
-    exmem_reg->alu_exec_res_out  >> exec_reg1_fw_src->get(ForwardingSrcVliw::MemStageExec);
-    reg_wr_src_exec->out         >> exec_reg1_fw_src->get(ForwardingSrcVliw::WbStageExec);
-    memwb_reg->mem_read_out      >> exec_reg1_fw_src->get(ForwardingSrcVliw::WbStageData);
+    idex_reg->r1_exec_out        >> exec_reg1_fw_src->get(ForwardSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> exec_reg1_fw_src->get(ForwardSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> exec_reg1_fw_src->get(ForwardSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> exec_reg1_fw_src->get(ForwardSrcVliw::WbStageData);
     funit->alu_exec_reg1_fw_ctrl >> exec_reg1_fw_src->select;
     
     /*fw-exec-reg2*/
-    idex_reg->r2_exec_out        >> exec_reg2_fw_src->get(ForwardingSrcVliw::IdStage);
-    exmem_reg->alu_exec_res_out  >> exec_reg2_fw_src->get(ForwardingSrcVliw::MemStageExec);
-    reg_wr_src_exec->out         >> exec_reg2_fw_src->get(ForwardingSrcVliw::WbStageExec);
-    memwb_reg->mem_read_out      >> exec_reg2_fw_src->get(ForwardingSrcVliw::WbStageData);
+    idex_reg->r2_exec_out        >> exec_reg2_fw_src->get(ForwardSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> exec_reg2_fw_src->get(ForwardSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> exec_reg2_fw_src->get(ForwardSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> exec_reg2_fw_src->get(ForwardSrcVliw::WbStageData);
     funit->alu_exec_reg2_fw_ctrl >> exec_reg2_fw_src->select;
     
     /*fw-data-reg1*/
-    idex_reg->r1_data_out        >> data_reg_fw_src->get(ForwardingSrcVliw::IdStage);
-    exmem_reg->alu_exec_res_out  >> data_reg_fw_src->get(ForwardingSrcVliw::MemStageExec);
-    reg_wr_src_exec->out         >> data_reg_fw_src->get(ForwardingSrcVliw::WbStageExec);
-    memwb_reg->mem_read_out      >> data_reg_fw_src->get(ForwardingSrcVliw::WbStageData);
-    funit->alu_data_reg1_fw_ctrl >> data_reg_fw_src->select;
+    idex_reg->r1_data_out        >> data_reg1_fw_src->get(ForwardSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> data_reg1_fw_src->get(ForwardSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> data_reg1_fw_src->get(ForwardSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> data_reg1_fw_src->get(ForwardSrcVliw::WbStageData);
+    funit->alu_data_reg1_fw_ctrl >> data_reg1_fw_src->select;
     
+    /*fw--mem-data*/
+    idex_reg->r2_data_out        >> mem_data_fw_src->get(ForwardSrcVliw::IdStage);
+    exmem_reg->alu_exec_res_out  >> mem_data_fw_src->get(ForwardSrcVliw::MemStageExec);
+    reg_wr_src_exec->out         >> mem_data_fw_src->get(ForwardSrcVliw::WbStageExec);
+    memwb_reg->mem_read_out      >> mem_data_fw_src->get(ForwardSrcVliw::WbStageData);
+    funit->mem_data_fw_ctrl      >> mem_data_fw_src->select;
+
     /*fw-unit*/
     idex_reg->rd_reg1_idx_exec_out >> funit->id_reg1_idx_exec;
     idex_reg->rd_reg2_idx_exec_out >> funit->id_reg2_idx_exec;
@@ -285,7 +290,7 @@ public:
     alu_data->res >> exmem_reg->alu_data_res_in;
     idex_reg->wr_reg_idx_data_out >> exmem_reg->wr_reg_idx_data_in;
     idex_reg->reg_do_write_data_out >> exmem_reg->reg_do_write_data_in;
-    idex_reg->r2_data_out >> exmem_reg->r2_data_in;
+    mem_data_fw_src->out >> exmem_reg->r2_data_in;
     
     /*control*/
     idex_reg->reg_wr_src_exec_ctrl_out >> exmem_reg->reg_wr_src_exec_ctrl_in;
@@ -329,10 +334,11 @@ public:
     memwb_reg->alu_exec_res_out >> reg_wr_src_exec->get(RegWrExecSrc::ALURES);
     memwb_reg->pc8_out >> reg_wr_src_exec->get(RegWrExecSrc::PC8);
     memwb_reg->reg_wr_src_exec_ctrl_out >> reg_wr_src_exec->select;
+    /* clang-format on */
   }
 
   // Design subcomponents
-  SUBCOMPONENT(registerFile, TYPE(RegisterFile_DUAL<XLEN, true>));
+  SUBCOMPONENT(registerFile, TYPE(RegisterFile_VLIW<XLEN>));
   SUBCOMPONENT(alu_exec, TYPE(ALU<XLEN>));
   SUBCOMPONENT(alu_data, TYPE(ALU<XLEN>));
   SUBCOMPONENT(control, Control_VLIW);
@@ -360,13 +366,14 @@ public:
   SUBCOMPONENT(alu_exec_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
   SUBCOMPONENT(alu_exec_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
 
-  SUBCOMPONENT(exec_reg1_fw_src, TYPE(EnumMultiplexer<ForwardingSrcVliw, XLEN>));
-  SUBCOMPONENT(exec_reg2_fw_src, TYPE(EnumMultiplexer<ForwardingSrcVliw, XLEN>));
-  SUBCOMPONENT(data_reg_fw_src, TYPE(EnumMultiplexer<ForwardingSrcVliw, XLEN>));
-  
+  SUBCOMPONENT(exec_reg1_fw_src, TYPE(EnumMultiplexer<ForwardSrcVliw, XLEN>));
+  SUBCOMPONENT(exec_reg2_fw_src, TYPE(EnumMultiplexer<ForwardSrcVliw, XLEN>));
+  SUBCOMPONENT(data_reg1_fw_src, TYPE(EnumMultiplexer<ForwardSrcVliw, XLEN>));
+  SUBCOMPONENT(mem_data_fw_src, TYPE(EnumMultiplexer<ForwardSrcVliw, XLEN>));
+
   SUBCOMPONENT(pc_inc1, TYPE(EnumMultiplexer<PcInc, XLEN>));
   SUBCOMPONENT(pc_inc2, TYPE(EnumMultiplexer<PcInc, XLEN>));
-  
+
   // Memories
   SUBCOMPONENT(instr_mem, TYPE(ROM_DUAL<XLEN, c_RVInstrWidth>));
   SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
@@ -388,8 +395,9 @@ public:
 
   SUBCOMPONENT(ecallChecker, EcallChecker);
 
-  private:
+private:
   bool get_lane_is_valid(StageIndex stage) const {
+    /* clang-format off */
     switch (stage.lane()) {
       case EXEC:
         switch( stage.index() ) {
@@ -411,13 +419,14 @@ public:
       
       default: Q_UNREACHABLE();
     }
+    /* clang-format on */
   }
 
-  public:
+public:
   // Ripes interface compliance
   const ProcessorStructure &structure() const override { return m_structure; }
   unsigned int getPcForStage(StageIndex idx) const override {
-    Q_ASSERT( idx.lane() == EXEC || idx.lane() == DATA );
+    Q_ASSERT(idx.lane() == EXEC || idx.lane() == DATA);
 
     int pc = 0;
     /* clang-format off */
@@ -446,7 +455,7 @@ public:
   }
   AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
   QString stageName(StageIndex idx) const override {
-    Q_ASSERT( idx.lane() == EXEC || idx.lane() == DATA );
+    Q_ASSERT(idx.lane() == EXEC || idx.lane() == DATA);
 
     /* clang-format off */
     if (idx.second == IF)  return idx.lane() == EXEC ? "IF1"  : "IF2";

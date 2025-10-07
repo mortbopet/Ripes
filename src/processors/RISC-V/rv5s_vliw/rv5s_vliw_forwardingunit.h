@@ -13,12 +13,7 @@
 */
 
 namespace Ripes {
-enum class ForwardingSrcVliw {
-  IdStage,
-  MemStageExec,
-  WbStageExec,
-  WbStageData
-};
+enum class ForwardSrcVliw { IdStage, MemStageExec, WbStageExec, WbStageData };
 }
 
 namespace vsrtl {
@@ -26,24 +21,25 @@ namespace core {
 using namespace Ripes;
 
 class ForwardingUnit_VLIW : public Component {
-  ForwardingSrcVliw calculateForwarding(const VSRTL_VT_U &readidx) {
+  ForwardSrcVliw calculateForwarding(const VSRTL_VT_U &readidx) {
     if (readidx == 0) {
-      return ForwardingSrcVliw::IdStage;
-    }
-    
-    if (readidx == mem_reg_wr_idx_exec.uValue() && mem_reg_wr_en_exec.uValue()) {
-      return ForwardingSrcVliw::MemStageExec;
-    }
-    
-    if (readidx == wb_reg_wr_idx_exec.uValue() && wb_reg_wr_en_exec.uValue()) {
-      return ForwardingSrcVliw::WbStageExec;
-    }
-    
-    if (readidx == wb_reg_wr_idx_data.uValue() && wb_reg_wr_en_data.uValue()) {
-      return ForwardingSrcVliw::WbStageData;
+      return ForwardSrcVliw::IdStage;
     }
 
-    return ForwardingSrcVliw::IdStage;
+    if (readidx == mem_reg_wr_idx_exec.uValue() &&
+        mem_reg_wr_en_exec.uValue()) {
+      return ForwardSrcVliw::MemStageExec;
+    }
+
+    if (readidx == wb_reg_wr_idx_data.uValue() && wb_reg_wr_en_data.uValue()) {
+      return ForwardSrcVliw::WbStageData;
+    }
+
+    if (readidx == wb_reg_wr_idx_exec.uValue() && wb_reg_wr_en_exec.uValue()) {
+      return ForwardSrcVliw::WbStageExec;
+    }
+
+    return ForwardSrcVliw::IdStage;
   }
 
 public:
@@ -55,6 +51,8 @@ public:
         [this] { return calculateForwarding(id_reg2_idx_exec.uValue()); };
     alu_data_reg1_fw_ctrl <<
         [this] { return calculateForwarding(id_reg1_idx_data.uValue()); };
+    mem_data_fw_ctrl <<
+        [this] { return calculateForwarding(id_reg2_idx_data.uValue()); };
   }
 
   INPUTPORT(id_reg1_idx_exec, c_RVRegsBits);
@@ -71,10 +69,12 @@ public:
   INPUTPORT(wb_reg_wr_idx_data, c_RVRegsBits);
   INPUTPORT(wb_reg_wr_en_data, 1);
 
-  OUTPUTPORT_ENUM(alu_exec_reg1_fw_ctrl, ForwardingSrcVliw);
-  OUTPUTPORT_ENUM(alu_exec_reg2_fw_ctrl, ForwardingSrcVliw);
+  OUTPUTPORT_ENUM(alu_exec_reg1_fw_ctrl, ForwardSrcVliw);
+  OUTPUTPORT_ENUM(alu_exec_reg2_fw_ctrl, ForwardSrcVliw);
 
-  OUTPUTPORT_ENUM(alu_data_reg1_fw_ctrl, ForwardingSrcVliw);
+  OUTPUTPORT_ENUM(alu_data_reg1_fw_ctrl, ForwardSrcVliw);
+
+  OUTPUTPORT_ENUM(mem_data_fw_ctrl, ForwardSrcVliw);
 };
 } // namespace core
 } // namespace vsrtl
