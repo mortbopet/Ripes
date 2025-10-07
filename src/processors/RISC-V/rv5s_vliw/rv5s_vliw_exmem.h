@@ -7,7 +7,8 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-#define AUTO_CONNECT_CLEN_INPUT(input)  CONNECT_REGISTERED_CLEN_INPUT(input, clear, enable)
+#define AUTO_CONNECT_CLEN_INPUT(input)                                         \
+  CONNECT_REGISTERED_CLEN_INPUT(input, clear, enable)
 
 template <unsigned XLEN>
 class EXMEM_VLIW : public Component {
@@ -17,7 +18,7 @@ public:
     setDescription("Execute/memory stage separating register");
 
     AUTO_CONNECT_CLEN_INPUT(valid);
-    
+
     // PC
     AUTO_CONNECT_CLEN_INPUT(pc);
     AUTO_CONNECT_CLEN_INPUT(pc8);
@@ -27,7 +28,7 @@ public:
     AUTO_CONNECT_CLEN_INPUT(alu_exec_res);
     AUTO_CONNECT_CLEN_INPUT(wr_reg_idx_exec);
     AUTO_CONNECT_CLEN_INPUT(reg_do_write_exec);
-    
+
     // Data Way
     AUTO_CONNECT_CLEN_INPUT(alu_data_res);
     AUTO_CONNECT_CLEN_INPUT(wr_reg_idx_data);
@@ -41,7 +42,7 @@ public:
     AUTO_CONNECT_CLEN_INPUT(exec_is_valid);
     AUTO_CONNECT_CLEN_INPUT(data_is_valid);
   }
-  
+
   // Register bank controls
   INPUTPORT(enable, 1);
   INPUTPORT(clear, 1);
@@ -60,7 +61,7 @@ public:
   REGISTERED_CLEN_INPUT(alu_exec_res, XLEN);
   REGISTERED_CLEN_INPUT(wr_reg_idx_exec, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write_exec, 1);
-  
+
   // Data Way
   REGISTERED_CLEN_INPUT(alu_data_res, XLEN);
   REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);

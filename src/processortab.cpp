@@ -494,7 +494,7 @@ void ProcessorTab::updateInstructionLabels() {
 
     // setHtml is used to stylize the label text.
     // Now calling setText is expected to be redundant however without calling
-    // setText the Label will not resize correctly to fit its contents and is 
+    // setText the Label will not resize correctly to fit its contents and is
     // therefore required to accomplish this.
     //? maybe there is more elegant solution for this, but this works for now.
     instrLabel->setText(instrString);

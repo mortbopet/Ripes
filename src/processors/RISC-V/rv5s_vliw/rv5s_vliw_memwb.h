@@ -26,7 +26,7 @@ public:
     CONNECT_REGISTERED_INPUT(reg_wr_src_exec_ctrl);
     CONNECT_REGISTERED_INPUT(wr_reg_idx_exec);
     CONNECT_REGISTERED_INPUT(reg_do_write_exec);
-    
+
     CONNECT_REGISTERED_INPUT(wr_reg_idx_data);
     CONNECT_REGISTERED_INPUT(reg_do_write_data);
 

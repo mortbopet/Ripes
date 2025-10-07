@@ -29,7 +29,7 @@ public:
   REGISTERED_CLEN_INPUT(pc_data_offset, XLEN);
   REGISTERED_CLEN_INPUT(instr1, c_RVInstrWidth);
   REGISTERED_CLEN_INPUT(instr2, c_RVInstrWidth);
-  
+
   // Register controls
   INPUTPORT(enable, 1);
   INPUTPORT(clear, 1);

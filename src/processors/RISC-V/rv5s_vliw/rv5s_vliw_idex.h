@@ -12,7 +12,8 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-#define AUTO_CONNECT_CLEN_INPUT(input)  CONNECT_REGISTERED_CLEN_INPUT(input, clear, enable)
+#define AUTO_CONNECT_CLEN_INPUT(input)                                         \
+  CONNECT_REGISTERED_CLEN_INPUT(input, clear, enable)
 
 template <unsigned XLEN>
 class IDEX_VLIW : public Component {
@@ -23,19 +24,19 @@ class IDEX_VLIW : public Component {
       Unless there is a more generic approach we have to do all assignments
       manually again for readability purposes.
   */
-  public:
+public:
   IDEX_VLIW(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     SimBase::setDescription(
         "Instruction issue/execute stage separating register");
-        
+
     AUTO_CONNECT_CLEN_INPUT(valid);
-    
+
     // PC
     AUTO_CONNECT_CLEN_INPUT(pc);
     AUTO_CONNECT_CLEN_INPUT(pc8);
     AUTO_CONNECT_CLEN_INPUT(pc_data_offset);
-    
+
     // Exec Way
     AUTO_CONNECT_CLEN_INPUT(r1_exec);
     AUTO_CONNECT_CLEN_INPUT(r2_exec);
@@ -44,7 +45,7 @@ class IDEX_VLIW : public Component {
     AUTO_CONNECT_CLEN_INPUT(rd_reg2_idx_exec);
     AUTO_CONNECT_CLEN_INPUT(wr_reg_idx_exec);
     AUTO_CONNECT_CLEN_INPUT(reg_do_write_exec);
-  
+
     // Data Way
     AUTO_CONNECT_CLEN_INPUT(r1_data);
     AUTO_CONNECT_CLEN_INPUT(r2_data);
@@ -53,7 +54,7 @@ class IDEX_VLIW : public Component {
     AUTO_CONNECT_CLEN_INPUT(rd_reg2_idx_data);
     AUTO_CONNECT_CLEN_INPUT(wr_reg_idx_data);
     AUTO_CONNECT_CLEN_INPUT(reg_do_write_data);
-  
+
     // Control
     AUTO_CONNECT_CLEN_INPUT(reg_wr_src_exec_ctrl);
     AUTO_CONNECT_CLEN_INPUT(alu_exec_op1_ctrl);
@@ -91,7 +92,7 @@ class IDEX_VLIW : public Component {
   REGISTERED_CLEN_INPUT(rd_reg2_idx_exec, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(wr_reg_idx_exec, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write_exec, 1);
-  
+
   // Data Way
   REGISTERED_CLEN_INPUT(r1_data, XLEN);
   REGISTERED_CLEN_INPUT(r2_data, XLEN);
@@ -100,7 +101,7 @@ class IDEX_VLIW : public Component {
   REGISTERED_CLEN_INPUT(rd_reg2_idx_data, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(wr_reg_idx_data, c_RVRegsBits);
   REGISTERED_CLEN_INPUT(reg_do_write_data, 1);
-  
+
   // Control
   REGISTERED_CLEN_INPUT(reg_wr_src_exec_ctrl, enumBitWidth<RegWrExecSrc>());
   REGISTERED_CLEN_INPUT(alu_exec_op1_ctrl, enumBitWidth<AluSrc1>());

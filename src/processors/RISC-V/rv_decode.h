@@ -16,7 +16,7 @@ public:
       : Component(name, parent) {
     opcode << [this] {
       const auto instrValue = instr.uValue();
-    
+
       if (instrValue == 0x00000013 /* addi x0, x0, 0 */) {
         return RVInstr::NOP;
       }
