@@ -24,6 +24,9 @@ libRipesLib.a
 libfancytabbar.a
 *_lib.a
 src/processors/*.a
+test.txt
+**_autogen
+test/tst_*
 
 # CMake & Build files
 CMakeFiles
