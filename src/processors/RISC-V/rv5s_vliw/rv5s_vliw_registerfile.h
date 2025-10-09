@@ -19,8 +19,15 @@ public:
     r1_1_out << [&] { return doReadBypass(r1_1_addr.uValue(), 1, rf_1); };
     r2_1_out << [&] { return doReadBypass(r2_1_addr.uValue(), 2, rf_1); };
     data_1_in >> rf_1->data_in;
-    wr_1_en >> rf_1->wr_en;
-
+    
+    w_wr_1_en->setSensitiveTo(wr_1_en);
+    w_wr_1_en->out << [this] {
+      // if both ways want to write to the same register => block the exec way
+      return wr_1_en.uValue() &&
+             !(wr_2_en.uValue() && wr_1_addr.uValue() == wr_2_addr.uValue());
+    };
+    w_wr_1_en->out >> rf_1->wr_en;
+    
     // Way 2
     r1_2_addr >> rf_2->r1_addr;
     r2_2_addr >> rf_2->r2_addr;
@@ -48,6 +55,7 @@ public:
   OUTPUTPORT(r1_1_out, XLEN);
   OUTPUTPORT(r2_1_out, XLEN);
   INPUTPORT(data_1_in, XLEN);
+  WIRE(w_wr_1_en, 1);
   INPUTPORT(wr_1_en, 1);
 
   // Way 2
@@ -77,13 +85,13 @@ private:
 
     const unsigned wr_idx1 = wr_1_addr.uValue();
     const unsigned wr_idx2 = wr_2_addr.uValue();
-    
+
     if (wr_2_en.uValue() && wr_idx2 == reg_idx) { // data way
-        return data_2_in.uValue();
+      return data_2_in.uValue();
     }
-    
+
     if (wr_1_en.uValue() && wr_idx1 == reg_idx) { // exec way
-        return data_1_in.uValue();
+      return data_1_in.uValue();
     }
 
     return portIndex == 1 ? rf->r1_out.uValue() : rf->r2_out.uValue();
