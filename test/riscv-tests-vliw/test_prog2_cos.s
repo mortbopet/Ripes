@@ -3,7 +3,9 @@
 # Test program which adds two vectors, calculates their dot product
 # and verifies the results
 # This program is compatible with single issue forwarding processors
-# so that it can be co-simulated to test for integrity
+# so that it could be co-simulated to test for integrity. However due to the
+# double word instructions jump and return addresses are not aligned.
+# So for now we can not co-simulate with the current tst_cosimulate code
 #------------------------------------------------------------------------------
 
 .equ SIZE 15
@@ -20,56 +22,58 @@ a: .zero 4*SIZE
 
 .text
 main:
+
+setup:
+    # load *X
+    lui s0, %hi(X)
+    nop
+
+    addi s0, s0, %lo(X)
+    nop
+
+    # load *Y
+    lui s1, %hi(Y)
+    nop
+
+    addi s1, s1, %lo(Y)
+    nop
+
+    # load *Z
+    lui s2, %hi(Z)
+    nop
+
+    addi s2, s2, %lo(Z)
+    nop
+
+    # load *D
+    lui s3, %hi(D)
+    nop
+
+    addi s3, s3, %lo(D)
+    nop
+
+    # load *a
+    lui s4, %hi(a)
+    nop
+
+    addi s4, s4, %lo(a)
+    nop
+
+
 # s0 = X
 # s1 = Y
 # s2 = Z
 # s3 = D
 # s4 = a
 
-# load *X
-lui s0, %hi(X)
-nop
-
-addi s0, s0, %lo(X)
-nop
-
-# load *Y
-lui s1, %hi(Y)
-nop
-
-addi s1, s1, %lo(Y)
-nop
-
-# load *Z
-lui s2, %hi(Z)
-nop
-
-addi s2, s2, %lo(Z)
-nop
-
-# load *D
-lui s3, %hi(D)
-nop
-
-addi s3, s3, %lo(D)
-nop
-
-# load *a
-lui s4, %hi(a)
-nop
-
-addi s4, s4, %lo(a)
-nop
-
-
 # vec_add
-mv a0, s0
+mv a0, s0   # X
 nop
 
-mv a1, s1
+mv a1, s1   # Y
 nop
 
-mv a2, s4
+mv a2, s4   # a
 nop
 
 li a3, SIZE
@@ -80,10 +84,10 @@ nop
 
 
 # test 1: vec_check
-mv a0, s4
+mv a0, s4   # a
 nop
 
-mv a1, s2
+mv a1, s2   # Z
 nop
 
 li a2, SIZE
@@ -100,10 +104,10 @@ nop
 
 
 # test 2: vec_dot
-mv a0, s0
+mv a0, s0   # X
 nop
 
-mv a1, s1
+mv a1, s1   # Y
 nop
 
 li a2, SIZE
