@@ -15,95 +15,58 @@ X:  .word 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C
 Y:  .word 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0
 
 Z:  .word 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
-D:  .word 19840
+d:  .word 19840
 
 .bss
-a: .zero 4*SIZE
+A: .zero 4*SIZE
 
 .text
 main:
 
-setup:
-    # load *X
-    lui s0, %hi(X)
-    nop
+la s0, X
+la s1, Y
+la s2, Z
+la s3, d
+la s4, A
 
-    addi s0, s0, %lo(X)
-    nop
-
-    # load *Y
-    lui s1, %hi(Y)
-    nop
-
-    addi s1, s1, %lo(Y)
-    nop
-
-    # load *Z
-    lui s2, %hi(Z)
-    nop
-
-    addi s2, s2, %lo(Z)
-    nop
-
-    # load *D
-    lui s3, %hi(D)
-    nop
-
-    addi s3, s3, %lo(D)
-    nop
-
-    # load *a
-    lui s4, %hi(a)
-    nop
-
-    addi s4, s4, %lo(a)
-    nop
-
-
-# s0 = X
-# s1 = Y
-# s2 = Z
-# s3 = D
-# s4 = a
-
-# vec_add
+# vec_add -------------------
+# A[] = X[] + Y[]
 mv a0, s0   # X
 nop
 
 mv a1, s1   # Y
 nop
 
-mv a2, s4   # a
+mv a2, s4   # A
 nop
 
 li a3, SIZE
-nop
 
 jal vec_add
 nop
 
 
-# test 1: vec_check
-mv a0, s4   # a
+# test 1: vec_check ---------
+# A[] == Z[]
+mv a0, s4   # A
 nop
 
 mv a1, s2   # Z
 nop
 
 li a2, SIZE
-nop
 
 jal vec_check
 nop
 
 li gp, 1
-nop
 
 beq a0, x0, fail
 nop
 
 
-# test 2: vec_dot
+# vec_dot -------------------
+# dot(X[], Y[])
 mv a0, s0   # X
 nop
 
@@ -111,13 +74,13 @@ mv a1, s1   # Y
 nop
 
 li a2, SIZE
-nop
 
 jal vec_dot
 lw s3, 0(s3)
 
+# test 2: vec_dot -----------
+# dot(X[], Y[]) == d
 li gp, 2
-nop
 
 bne a0, s3, fail
 nop
@@ -192,7 +155,6 @@ vec_check:
 # a0 = dot(a0[0:a2], a1[0:a2])
 vec_dot:
     li t2, 0
-    nop
 
     1:
     addi a2, a2, -1
@@ -224,20 +186,16 @@ vec_dot:
 
 pass:
     li a0, 42
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop
 
 fail:
     li a0, 0
-    nop
-
+    
     li a7, 93
-    nop
 
     j exit
     nop

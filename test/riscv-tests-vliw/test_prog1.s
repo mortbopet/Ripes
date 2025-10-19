@@ -37,22 +37,15 @@ lw a3, 0(t2)        # a3 = *t2
 
 # test 1: equality of stored and loaded value
 li gp, 1
-nop
 
 bne a3, a2, fail
 nop
 
 # test 2: correct value of calculation
-# 0xDEAD + 0xBEEF = 0x19D9C = 105884
-# => li a4, 0x19D9C, which assembles to
-lui a4, 0x1a
-nop
-
-addi a4, a4, -612
-nop
+.equ deadbeef 0xDEAD+0xBEEF
+li a4, deadbeef
 
 li gp, 2
-nop
 
 bne a3, a4, fail
 nop
@@ -62,20 +55,16 @@ nop
 
 pass:
     li a0, 42
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop
 
 fail:
     li a0, 0
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop

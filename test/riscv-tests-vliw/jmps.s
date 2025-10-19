@@ -108,20 +108,16 @@ test5_jmp_mem:
 
 pass:
     li a0, 42
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop
 
 fail:
     li a0, 0
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop

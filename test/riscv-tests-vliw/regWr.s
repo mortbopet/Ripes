@@ -45,14 +45,12 @@ lw x31, %lo(X), x5  # x31 = 0xdeadbeef
 
 test2_reg_wr:
 li gp, 2
-nop
 
 bne x1, x31, fail   # assert x1 == 0xdeadbeef
 nop
 
 test3_fwd_mem:
 li gp, 3
-nop
 
 bne x2, x30, fail   # assert x2 == -1
 nop
@@ -60,21 +58,18 @@ nop
 
 test4_fwd_wb:
 li gp, 4
-nop
 
 bne x4, x31, fail   # assert x4 == 0xdeadbeef
 nop
 
 test5_fwd_wb:
 li gp, 5
-nop
 
 bne x6, x31, fail   # assert x6 == 0xdeadbeef
 nop
 
 test6_fwd_wb:
 li gp, 6
-nop
 
 bne x7, x31, fail   # assert x7 == 0xdeadbeef
 nop
@@ -83,20 +78,16 @@ nop
 
 pass:
     li a0, 42
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop
 
 fail:
     li a0, 0
-    nop
 
     li a7, 93
-    nop
 
     j exit
     nop
