@@ -7,6 +7,7 @@
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
 #include "../../ripesvsrtlprocessor.h"
+#include "isa/rvVliwIsainfo.h"
 
 #include "processors/RISC-V/riscv.h"
 #include "processors/RISC-V/rv_alu.h"
@@ -51,7 +52,10 @@ public:
   enum Stage { IF, ID, EX, MEM, WB, STAGECOUNT };
   RV5S_VLIW(const QStringList &extensions)
       : RipesVSRTLProcessor("5-Stage static dual-issue VLIW RISC-V Processor") {
-    m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
+    {
+      using RVISAInfo = ISAVliwInfo<XLenToRVISA<XLEN>()>;
+      m_enabledISA = std::make_shared<RVISAInfo>(extensions);
+    }
     decode_exec->setISA(m_enabledISA);
     decode_data->setISA(m_enabledISA);
     uncompress_dual->setISA(m_enabledISA);
@@ -595,12 +599,18 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static ProcessorISAInfo supportsISA() { return RVISA::supportsISA<XLEN>(); }
+  static ProcessorISAInfo supportsISA() {
+    using RVISAInfo = ISAVliwInfo<XLenToRVISA<XLEN>()>;
+    return ProcessorISAInfo{std::make_shared<RVISAInfo>(QStringList()),
+                            RVISAInfo::getSupportedExtensions(),
+                            RVISAInfo::getDefaultExtensions()};
+  }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return RVISA::fullISA<XLEN>();
+    using RVISAInfo = ISAVliwInfo<XLenToRVISA<XLEN>()>;
+    return std::make_shared<RVISAInfo>(RVISAInfo::getSupportedExtensions());
   }
 
   const std::set<std::string_view> registerFiles() const override {
