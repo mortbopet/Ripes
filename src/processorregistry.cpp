@@ -62,11 +62,19 @@ constexpr const char rv5mc_desc_1m[] =
     "instructions.";
 
 constexpr const char rv5s_vliw_desc[] =
-    "A 5 stage Very-Long-Instruction-Word dual-issue offline in-order "
-    "processor. VLIW instructions are compounded of 2 32-bit Risc-V "
-    "instructions, where the first instruction (way) only allows for ALU and "
-    "branch instructions and the second only allows for load and store "
-    "operations.";
+    "A five-stage, statically scheduled Very Long Instruction Word (VLIW) "
+    "dual-issue processor. Each VLIW instruction is composed of two RISC-V "
+    "instructions: the first (execution way) supports ALU and branch "
+    "operations, while the second (data way) supports load and store "
+    "operations.<br>"
+    "<br><i>Note: Pseudoinstructions with multi-line or Myriad sequence "
+    "expansions are automatically "
+    "translated into valid VLIW instructions. This includes:<br></i>"
+    "<tt>li, la</tt><br>"
+    "<tt>l{d,w,h,b} rd</tt>, <tt>symbol</tt><br>"
+    "<tt>s{d,w,h,b} rd</tt>, <tt>symbol</tt>, <tt>rt</tt><br>"
+    "<tt>call, tail</tt>,<br>"
+    "<tt>negw, sext.w</tt>";
 
 ProcessorRegistry::ProcessorRegistry() {
   // Initialize processors

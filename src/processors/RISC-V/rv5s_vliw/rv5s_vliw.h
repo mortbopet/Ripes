@@ -462,11 +462,11 @@ public:
     Q_ASSERT(idx.lane() == EXEC || idx.lane() == DATA);
 
     /* clang-format off */
-    if (idx.second == IF)  return idx.lane() == EXEC ? "IF1"  : "IF2";
-    if (idx.second == ID)  return idx.lane() == EXEC ? "ID1"  : "ID2";
-    if (idx.second == EX)  return idx.lane() == EXEC ? "EX1"  : "EX2";
-    if (idx.second == MEM) return idx.lane() == EXEC ? "MEM1" : "MEM2";
-    if (idx.second == WB)  return idx.lane() == EXEC ? "WB1"  : "WB2";
+    if (idx.second == IF)  return idx.lane() == EXEC ? "IF E"  : "IF D";
+    if (idx.second == ID)  return idx.lane() == EXEC ? "ID E"  : "ID D";
+    if (idx.second == EX)  return idx.lane() == EXEC ? "EX E"  : "EX D";
+    if (idx.second == MEM) return idx.lane() == EXEC ? "MEM E" : "MEM D";
+    if (idx.second == WB)  return idx.lane() == EXEC ? "WB E"  : "WB D";
     /* clang-format on */
     Q_UNREACHABLE();
   }
