@@ -6,12 +6,13 @@ namespace Ripes {
 namespace Assembler {
 
 template <ISA _isa>
-static std::shared_ptr<AssemblerBase> genericAssemblerBase(std::shared_ptr<ISAInfoBase> isa) {
+static std::shared_ptr<AssemblerBase>
+genericAssemblerBase(std::shared_ptr<ISAInfoBase> isa) {
   // detect VLIW isa
   if (auto baseVLIWIsa = std::dynamic_pointer_cast<ISAVliwInfo<_isa>>(isa)) {
     return std::make_shared<ISA_Assembler<_isa, AssemblerVLIW>>(baseVLIWIsa);
   }
-  
+
   // else try matching basic ISA
   if (auto baseIsa = std::dynamic_pointer_cast<ISAInfo<_isa>>(isa)) {
     return std::make_shared<ISA_Assembler<_isa>>(baseIsa);
