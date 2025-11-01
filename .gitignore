@@ -4,34 +4,18 @@
 *.o
 Makefile
 build*
+debug*
 .vscode
-compile_commands.json
 
 
 # Qt generated files
+.qt
 moc_*
-mocs_*
 *.moc
 ui_*
 qrc_*
-*.qrc.depends
-.qt
 
 # Executables & libraries
 Ripes
 RipesTest
 libRipesLib.a
-libfancytabbar.a
-*_lib.a
-src/processors/*.a
-test.txt
-**_autogen
-test/tst_*
-
-# CMake & Build files
-CMakeFiles
-cmake_install.cmake
-CMakeCache.*
-_deps
-deps
-timestamp
