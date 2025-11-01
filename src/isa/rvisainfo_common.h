@@ -127,8 +127,8 @@ enum class ImplementationDetail {
   shifts64BitVariant,      // appends 'w' to 32-bit shift operations, for use in
                            // the 64-bit RISC-V ISA
   LI64BitVariant,          // Modifies LI to be able to emit 64-bit constants
-  VliwPseudoInstrExpansion // notifies the isa to use a special pseudo
-                           // instruction for the vliw processor
+  VliwPseudoInstrExpansion // notifies the isa to use special pseudo
+                           // instruction expansions for the vliw processor
 };
 using ImplDetails = std::set<ImplementationDetail>;
 
