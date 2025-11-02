@@ -121,9 +121,23 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
 
   // Locate a new way based on replacement policy.
   if (m_replPolicy == ReplPolicy::Random) {
-    // Select a random way
-    ew.first = std::rand() % getWays();
-    ew.second = &cacheLine[ew.first];
+    // Lazily initialize all ways in the cacheline before starting to iterate.
+    for (int i = 0; i < getWays(); ++i)
+      cacheLine[i];
+
+    // If there is an invalid cache line, select that.
+    auto it =
+        std::find_if(cacheLine.begin(), cacheLine.end(),
+                     [this](const auto &way) { return !way.second.valid; });
+    if (it != cacheLine.end()) {
+      ew.first = it->first;
+      ew.second = &it->second;
+    }
+    if (ew.second == nullptr) {
+      // Else, Select a Random way.
+      ew.first = std::rand() % getWays();
+      ew.second = &cacheLine[ew.first];
+    }
   } else if (m_replPolicy == ReplPolicy::LRU) {
     if (getWays() == 1) {
       // Nothing to do if we are in LRU and only have 1 set.
