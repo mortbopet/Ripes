@@ -548,7 +548,7 @@ void CacheSim::setLines(unsigned lines) {
 }
 
 void CacheSim::setWays(unsigned ways) {
-  m_ways = ways;
+  m_ways = std::max(1u, ways);
   updateConfiguration();
 }
 
@@ -569,7 +569,7 @@ void CacheSim::setReplacementPolicy(ReplPolicy policy) {
 
 void CacheSim::setPreset(const CachePreset &preset) {
   m_blocks = preset.blocks;
-  m_ways = preset.ways;
+  m_ways = std::max(1, preset.ways);
   m_lines = preset.lines;
   m_wrPolicy = preset.wrPolicy;
   m_wrAllocPolicy = preset.wrAllocPolicy;
