@@ -47,15 +47,37 @@ int PipelineDiagramModel::columnCount(const QModelIndex &) const {
 }
 
 void PipelineDiagramModel::processorWasClocked() {
+  const auto maxCycles =
+      RipesSettings::value(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES).toInt();
+  const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
+
   if (m_atMaxCycles) {
     return;
   }
+
   gatherStageInfo();
 
-  const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-  if (cycleCount >=
-      RipesSettings::value(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES).toInt()) {
+  if (cycleCount >= maxCycles) {
     m_atMaxCycles = true;
+  }
+
+  // Implement sliding window to prevent continuously growing memory usage
+  // during long simulations. Only cleanup when significantly over the limit to
+  // reduce performance impact.
+  const size_t cleanupThreshold =
+      static_cast<size_t>(maxCycles * 1.2); // 20% over limit
+  if (m_cycleStageInfos.size() > cleanupThreshold) {
+    // Notify model views before data changes
+    beginResetModel();
+
+    // Keep only the most recent maxCycles entries
+    const size_t targetSize = static_cast<size_t>(maxCycles);
+    auto it = m_cycleStageInfos.begin();
+    std::advance(it, m_cycleStageInfos.size() - targetSize);
+    m_cycleStageInfos.erase(m_cycleStageInfos.begin(), it);
+
+    // Notify model views after data changes
+    endResetModel();
   }
 }
 

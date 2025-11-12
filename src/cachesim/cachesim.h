@@ -239,6 +239,7 @@ signals:
   void cacheInvalidated();
 
 private:
+  size_t m_cleanupCounter = 0;
   struct CacheTrace {
     CacheTransaction transaction;
     CacheWay oldWay;

@@ -1,5 +1,6 @@
 #include "cachesim.h"
 #include "binutils.h"
+#include "ripessettings.h"
 
 #include "processorhandler.h"
 
@@ -120,9 +121,23 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
 
   // Locate a new way based on replacement policy.
   if (m_replPolicy == ReplPolicy::Random) {
-    // Select a random way
-    ew.first = std::rand() % getWays();
-    ew.second = &cacheLine[ew.first];
+    // Lazily initialize all ways in the cacheline before starting to iterate.
+    for (int i = 0; i < getWays(); ++i)
+      cacheLine[i];
+
+    // If there is an invalid cache line, select that.
+    auto it =
+        std::find_if(cacheLine.begin(), cacheLine.end(),
+                     [this](const auto &way) { return !way.second.valid; });
+    if (it != cacheLine.end()) {
+      ew.first = it->first;
+      ew.second = &it->second;
+    }
+    if (ew.second == nullptr) {
+      // Else, Select a Random way.
+      ew.first = std::rand() % getWays();
+      ew.second = &cacheLine[ew.first];
+    }
   } else if (m_replPolicy == ReplPolicy::LRU) {
     if (getWays() == 1) {
       // Nothing to do if we are in LRU and only have 1 set.
@@ -253,6 +268,22 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
                                 : m_accessTrace.rbegin()->second;
 
   m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
+
+  // Prevent continuously growing memory usage during long simulations by
+  // limiting access trace size Use configurable limit from settings
+  const size_t maxTraces = static_cast<size_t>(
+      RipesSettings::value(RIPES_SETTING_CACHE_MAXTRACES).toInt());
+
+  // Only cleanup every 100 insertions to reduce performance impact
+  if (++m_cleanupCounter >= 100 && m_accessTrace.size() > maxTraces) {
+    m_cleanupCounter = 0;
+
+    // More efficient cleanup: remove older half when limit is exceeded
+    const size_t targetSize = maxTraces / 2;
+    auto it = m_accessTrace.begin();
+    std::advance(it, m_accessTrace.size() - targetSize);
+    m_accessTrace.erase(m_accessTrace.begin(), it);
+  }
 
   if (!ProcessorHandler::isRunning()) {
     emit hitrateChanged();
@@ -517,7 +548,7 @@ void CacheSim::setLines(unsigned lines) {
 }
 
 void CacheSim::setWays(unsigned ways) {
-  m_ways = ways;
+  m_ways = std::max(1u, ways);
   updateConfiguration();
 }
 
@@ -538,7 +569,7 @@ void CacheSim::setReplacementPolicy(ReplPolicy policy) {
 
 void CacheSim::setPreset(const CachePreset &preset) {
   m_blocks = preset.blocks;
-  m_ways = preset.ways;
+  m_ways = std::max(1, preset.ways);
   m_lines = preset.lines;
   m_wrPolicy = preset.wrPolicy;
   m_wrAllocPolicy = preset.wrAllocPolicy;

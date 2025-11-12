@@ -441,6 +441,17 @@ QWidget *SettingsDialog::createEnvironmentPage() {
                  "real-time plotting regardless of the number of "
                  "simulation cycles.");
 
+  auto [maxTracesLabel, maxTracesSb] = createSettingsWidgets<QSpinBox>(
+      RIPES_SETTING_CACHE_MAXTRACES, "Max. cache access traces:");
+  maxTracesSb->setMinimum(1000);
+  maxTracesSb->setMaximum(1000000);
+  appendToLayout({maxTracesLabel, maxTracesSb}, pageLayout,
+                 "Maximum number of cache access traces to keep in memory. "
+                 "When this limit is exceeded, older traces are removed to "
+                 "prevent continuously growing memory usage during long "
+                 "simulations. Lower values "
+                 "use less memory but provide less history for analysis.");
+
   auto [maxPipeDiagCycLabel, maxPipeDiagCycSb] =
       createSettingsWidgets<QSpinBox>(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES,
                                       "Max. pipeline diagram cycles:");

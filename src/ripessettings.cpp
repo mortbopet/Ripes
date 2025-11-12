@@ -41,9 +41,10 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES, 100},
     {RIPES_SETTING_CACHE_MAXCYCLES, 10000},
     {RIPES_SETTING_CACHE_MAXPOINTS, 1000},
+    {RIPES_SETTING_CACHE_MAXTRACES, 10000},
     {RIPES_SETTING_CACHE_PRESETS,
      QVariant::fromValue<QList<CachePreset>>(
-         {CachePreset{"32-entry 4-word direct-mapped", 2, 5, 0,
+         {CachePreset{"32-entry 4-word direct-mapped", 2, 5, 1,
                       WritePolicy::WriteBack, WriteAllocPolicy::WriteAllocate,
                       ReplPolicy::LRU},
           CachePreset{"32-entry 4-word fully associative", 2, 0, 5,
