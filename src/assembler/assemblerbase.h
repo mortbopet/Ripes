@@ -107,7 +107,8 @@ protected:
   /// Given an input set of tokens, splits away commented code from the tokens
   /// based on the comment delimiter, i.e.:
   /// {"a", "b", "#", "c"} => {"a", "b"}
-  Result<QStringList> splitCommentFromLine(const QStringList &stringTokens) const;
+  Result<QStringList>
+  splitCommentFromLine(const QStringList &stringTokens) const;
 
   /// Returns the comment-delimiting character for this assembler.
   virtual QChar commentDelimiter() const = 0;
