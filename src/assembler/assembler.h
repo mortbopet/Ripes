@@ -249,7 +249,7 @@ protected:
 
       runOperation(remainingTokens, splitCommentFromLine, tokens);
 
-      runOperation(joinedParentheses, joinParentheses, tsl, remainingTokens )
+      runOperation(joinedParentheses, joinParentheses, tsl, remainingTokens );
 
       // Symbols precede directives
       runOperation(symbolsAndRest, splitSymbolsFromLine, tsl, joinedParentheses);
