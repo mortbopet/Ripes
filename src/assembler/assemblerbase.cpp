@@ -68,20 +68,6 @@ void AssemblerBase::setDirectives(const DirectiveVec &directives) {
   }
 }
 
-Result<LineTokens> AssemblerBase::tokenize(const Location &location,
-                                           const QString &line) const {
-  auto quoteTokenized = tokenizeQuotes(location, line);
-  if (auto *error = std::get_if<Error>(&quoteTokenized))
-    return {*error};
-
-  auto joinedtokens =
-      joinParentheses(location, std::get<QStringList>(quoteTokenized));
-  if (auto *err = std::get_if<Error>(&joinedtokens))
-    return *err;
-
-  return std::get<LineTokens>(joinedtokens);
-}
-
 Result<QByteArray>
 AssemblerBase::assembleDirective(const DirectiveArg &arg, bool &ok,
                                  bool skipEarlyDirectives) const {
@@ -199,16 +185,16 @@ AssemblerBase::splitDirectivesFromLine(const Location &location,
   }
 }
 
-Result<LineTokens>
-AssemblerBase::splitCommentFromLine(const LineTokens &tokens) const {
-  if (tokens.size() == 0) {
-    return {tokens};
+Result<QStringList>
+AssemblerBase::splitCommentFromLine(const QStringList &stringTokens) const {
+  if (stringTokens.size() == 0) {
+    return {stringTokens};
   }
 
-  LineTokens preCommentTokens;
-  preCommentTokens.reserve(tokens.size());
-  for (const auto &token : tokens) {
-    if (token.contains(commentDelimiter())) {
+  QStringList preCommentTokens;
+  preCommentTokens.reserve(stringTokens.size());
+  for (const auto &token : stringTokens) {
+    if (token.startsWith(commentDelimiter())) {
       break;
     } else {
       preCommentTokens.push_back(token);
