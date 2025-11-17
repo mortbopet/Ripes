@@ -106,16 +106,47 @@ struct RV_GPRInfo : public RegFileInfoInterface {
 
 /// Defines information about the floating-point RISC-V register file.
 struct RV_FPRInfo : public RegFileInfoInterface {
+  /* NOTE: the fcsr originally depends on the CSR extension and therefore
+           should not be understood as an regular register in the
+           FP-Registerfile.
+           Until the CSR extension is implemented use this approach of 
+           extending the Registerfile by this fcsr register as a 
+           temporary in place solution
+  */
+
   std::string_view regFileName() const override { return FPR; }
   std::string_view regFileDesc() const override { return FPR_DESC; }
-  // TODO: Fill out RISC-V floating point register info
-  unsigned int regCnt() const override { return 0; }
-  QString regName(unsigned) const override { return QString(); }
-  QString regAlias(unsigned) const override { return QString(); }
-  QString regInfo(unsigned) const override { return QString(); }
+  unsigned int regCnt() const override { return 33; }
+  QString regName(unsigned i) const override {
+    return RVISA::FPRRegNames.size() > static_cast<int>(i)
+               ? RVISA::FPRRegNames.at(static_cast<int>(i))
+               : QString();
+  }
+  QString regAlias(unsigned i) const override {
+    return RVISA::FPRRegAliases.size() > static_cast<int>(i)
+               ? RVISA::FPRRegAliases.at(static_cast<int>(i))
+               : QString();
+  }
+  QString regInfo(unsigned i) const override {
+    return RVISA::FPRRegDescs.size() > static_cast<int>(i)
+               ? RVISA::FPRRegDescs.at(static_cast<int>(i))
+               : QString();
+  }
   bool regIsReadOnly(unsigned) const override { return false; }
-  unsigned int regNumber(const QString &, bool &success) const override {
+  unsigned int regNumber(const QString &reg, bool &success) const override {
+    QString regRes = reg;
+    success = true;
+    
+    if (RVISA::FPRRegNames.contains(reg)) {
+      return RVISA::FPRRegNames.indexOf(reg);
+    }
+    
+    if (RVISA::GPRRegAliases.contains(reg)) {
+      return RVISA::GPRRegAliases.indexOf(reg);
+    }
+    
     success = false;
+    
     return 0;
   }
 };
@@ -277,7 +308,12 @@ enum OpcodeID {
   OP32 = 0b0111011,
   SYSTEM = 0b1110011,
   AUIPC = 0b0010111,
-  INVALID = 0b0
+  INVALID = 0b0,
+
+  // Floating point extension
+  LOAD_FP,
+  STORE_FP,
+  OP_FP
 };
 enum QuadrantID {
   QUADRANT0 = 0b00,
