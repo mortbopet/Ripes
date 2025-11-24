@@ -54,6 +54,10 @@ extern const QStringList GPRRegAliases;
 extern const QStringList GPRRegNames;
 extern const QStringList GPRRegDescs;
 
+extern const QStringList FPRRegAliases;
+extern const QStringList FPRRegNames;
+extern const QStringList FPRRegDescs;
+
 constexpr unsigned INSTR_BITS = 32;
 
 template <typename InstrImpl>
@@ -106,17 +110,9 @@ struct RV_GPRInfo : public RegFileInfoInterface {
 
 /// Defines information about the floating-point RISC-V register file.
 struct RV_FPRInfo : public RegFileInfoInterface {
-  /* NOTE: the fcsr originally depends on the CSR extension and therefore
-           should not be understood as an regular register in the
-           FP-Registerfile.
-           Until the CSR extension is implemented use this approach of 
-           extending the Registerfile by this fcsr register as a 
-           temporary in place solution
-  */
-
   std::string_view regFileName() const override { return FPR; }
   std::string_view regFileDesc() const override { return FPR_DESC; }
-  unsigned int regCnt() const override { return 33; }
+  unsigned int regCnt() const override { return 32; }
   QString regName(unsigned i) const override {
     return RVISA::FPRRegNames.size() > static_cast<int>(i)
                ? RVISA::FPRRegNames.at(static_cast<int>(i))
@@ -136,17 +132,17 @@ struct RV_FPRInfo : public RegFileInfoInterface {
   unsigned int regNumber(const QString &reg, bool &success) const override {
     QString regRes = reg;
     success = true;
-    
+
     if (RVISA::FPRRegNames.contains(reg)) {
       return RVISA::FPRRegNames.indexOf(reg);
     }
-    
+
     if (RVISA::GPRRegAliases.contains(reg)) {
       return RVISA::GPRRegAliases.indexOf(reg);
     }
-    
+
     success = false;
-    
+
     return 0;
   }
 };
@@ -169,6 +165,11 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
 }
 
 namespace ExtC {
+void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
+               PseudoInstrVec &pseudoInstructions);
+}
+
+namespace ExtF {
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions);
 }
@@ -295,26 +296,35 @@ protected:
   RelocationsVec m_relocations;
 };
 
+// clang-format off
 enum OpcodeID {
-  LUI = 0b0110111,
-  JAL = 0b1101111,
-  JALR = 0b1100111,
-  BRANCH = 0b1100011,
-  LOAD = 0b0000011,
-  STORE = 0b0100011,
-  OPIMM = 0b0010011,
-  OP = 0b0110011,
+  // Base I
+  LUI     = 0b0110111,
+  JAL     = 0b1101111,
+  JALR    = 0b1100111,
+  BRANCH  = 0b1100011,
+  LOAD    = 0b0000011,
+  STORE   = 0b0100011,
+  OPIMM   = 0b0010011,
+  OP      = 0b0110011,
   OPIMM32 = 0b0011011,
-  OP32 = 0b0111011,
-  SYSTEM = 0b1110011,
-  AUIPC = 0b0010111,
+  OP32    = 0b0111011,
+  SYSTEM  = 0b1110011,
+  AUIPC   = 0b0010111,
   INVALID = 0b0,
 
+  // Fused Multiply and Add
+  MADD  = 0b1000011,
+  MSUB  = 0b1000111,
+  NMSUB = 0b1001011,
+  NMADD = 0b1001111,
+
   // Floating point extension
-  LOAD_FP,
-  STORE_FP,
-  OP_FP
+  LOAD_FP  = 0b0000111,
+  STORE_FP = 0b0100111,
+  OP_FP    = 0b1010011
 };
+// clang-format on
 enum QuadrantID {
   QUADRANT0 = 0b00,
   QUADRANT1 = 0b01,
