@@ -3,6 +3,8 @@
 #include "VSRTL/core/vsrtl_component.h"
 #include "riscv.h"
 
+#include "isa/rv_f_ext.h"
+
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
@@ -111,7 +113,35 @@ public:
                     break;
                 }
                 break;
+        
+        default:
+          break;
+      }
+
+      if(!m_isa || !m_isa->extensionEnabled("F")) {
+        // Fallthrough - unknown instruction.
+        return RVInstr::NOP;
+      }
+
+      // floating point opcode IDs
+      switch(l7) {
+        case RVISA::OpcodeID::LOAD_FP: {
+          const auto fields = RVInstrParser::getParser()->decodeI32Instr(instrValue);
+          switch(static_cast<RVISA::ExtF::Width>(fields[2])) { // funct3, here Width W
+            case RVISA::ExtF::Width::W: return RVInstr::FLW;
+            default: break;
+          }
+          break;
+        }
+
+        case RVISA::OpcodeID::STORE_FP: {
+            const auto fields = RVInstrParser::getParser()->decodeS32Instr(instrValue);
+            switch(static_cast<RVISA::ExtF::Width>(fields[2])) { // funct3, here Width W
+                case RVISA::ExtF::Width::W: return RVInstr::FSW;
+                default: break;
             }
+            break;
+        }
 
             case RVISA::OpcodeID::OP32: {
                 // R-Type (32-bit, in 64-bit ISA)
@@ -150,6 +180,33 @@ public:
                     break;
                 }
                 break;
+        case RVISA::OpcodeID::OP_FP: {
+          namespace TypeR = RVISA::ExtF::TypeR;
+
+          const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
+          RVISA::ExtF::RoundMode rm = static_cast<RVISA::ExtF::RoundMode>(fields[2]);
+          RVISA::ExtF::FMT fmt = static_cast<RVISA::ExtF::FMT>(fields[5] & 0b11);
+
+          if(fmt != RVISA::ExtF::FMT::S) {
+            break; // only single float instructions implemented so far
+          }
+          
+          auto rs2 = fields[4];
+          TypeR::Funct5 funct5 = static_cast<TypeR::Funct5>((fields[5] >> 2) & 0b11111);
+          switch(funct5) {
+            case TypeR::Funct5::FADD:  return RVInstr::FADD_S;
+            case TypeR::Funct5::FSUB:  return RVInstr::FSUB_S;
+            case TypeR::Funct5::FMUL:  return RVInstr::FMUL_S;
+            case TypeR::Funct5::FDIV:  return RVInstr::FDIV_S;
+            case TypeR::Funct5::FSQRT: return RVInstr::FSQRT_S;
+
+            case TypeR::Funct5::FMIN_MAX: {
+              switch(static_cast<RVISA::ExtF::rm_field_t>(rm)) {
+                case TypeR::rm_MIN: return RVInstr::FMIN_S;
+                case TypeR::rm_MAX: return RVInstr::FMAX_S;
+                default: break; // invalid
+              }
+              break;
             }
 
             case RVISA::OpcodeID::LOAD: {
@@ -166,6 +223,14 @@ public:
                     default: break;
                 }
                 break;
+            case TypeR::Funct5::FSGNJ: {
+              switch(static_cast<TypeR::SgnJ>(rm)) {
+                case TypeR::SgnJ::FSGNJ:  return RVInstr::FSGNJ_S;
+                case TypeR::SgnJ::FSGNJN: return RVInstr::FSGNJN_S;
+                case TypeR::SgnJ::FSGNJX: return RVInstr::FSGNJX_S;
+                default: break; // invalid
+              }
+              break;
             }
 
             case RVISA::OpcodeID::STORE: {
@@ -179,7 +244,37 @@ public:
                     default: break;
                 }
                 break;
+            case TypeR::Funct5::FCVT_FMT_INT: {
+              switch(static_cast<TypeR::Cvt_Int>(rs2)) {
+                case TypeR::Cvt_Int::W:  return RVInstr::FCVT_S_W;
+                case TypeR::Cvt_Int::WU: return RVInstr::FCVT_S_WU;
+                case TypeR::Cvt_Int::L:  return RVInstr::FCVT_S_L;
+                case TypeR::Cvt_Int::LU: return RVInstr::FCVT_S_LU;
+                default: break;
+              }
+              break;
             }
+            case TypeR::Funct5::FCVT_INT_FMT: {
+              switch(static_cast<TypeR::Cvt_Int>(rs2)) {
+                case TypeR::Cvt_Int::W:  return RVInstr::FCVT_W_S;
+                case TypeR::Cvt_Int::WU: return RVInstr::FCVT_WU_S;
+                case TypeR::Cvt_Int::L:  return RVInstr::FCVT_L_S;
+                case TypeR::Cvt_Int::LU: return RVInstr::FCVT_LU_S;
+                default: break;
+              }
+              break;
+            }
+            
+            // same as fclass.s
+            case TypeR::Funct5::FMV_X_W: {
+              switch(static_cast<unsigned>(rm)) {
+                case 0b000: return RVInstr::FMV_X_W;
+                case 0b001: return RVInstr::FCLASS_S;
+                default: break; // invalid
+              }
+              break;
+            }
+            case TypeR::Funct5::FMV_W_X: return RVInstr::FMV_W_X;
 
             case RVISA::OpcodeID::BRANCH: {
                 // Branch instruction
@@ -194,16 +289,67 @@ public:
                     default: break;
                 }
                 break;
+            case TypeR::Funct5::FCMP: {
+              switch(static_cast<TypeR::Comp>(rm)) {
+                case TypeR::Comp::EQ: return RVInstr::FEQ_S;
+                case TypeR::Comp::LT: return RVInstr::FLT_S;
+                case TypeR::Comp::LE: return RVInstr::FLE_S;
+                default: break; // invalid
+              }
+              break;
             }
+          }
+          break;
+        }
+          
+        case RVISA::OpcodeID::MADD: {
+          const auto fields = RVInstrParser::getParser()->decodeR432Instr(instrValue);
+          
+          switch(static_cast<RVISA::ExtF::FMT>(fields[5])) { // fmt
+            case RVISA::ExtF::FMT::S: return RVInstr::FMADD_S;
+            default: break;
+          }
+          break;
+        }
 
+        case RVISA::OpcodeID::MSUB: {
+          const auto fields = RVInstrParser::getParser()->decodeR432Instr(instrValue);
+          
+          switch(static_cast<RVISA::ExtF::FMT>(fields[5])) { // fmt
+            case RVISA::ExtF::FMT::S: return RVInstr::FMSUB_S;
+            default: break;
+          }
+          break;
+        }
 
-            default:
-                break;
-            }
+        case RVISA::OpcodeID::NMSUB: {
+          const auto fields = RVInstrParser::getParser()->decodeR432Instr(instrValue);
+          
+          switch(static_cast<RVISA::ExtF::FMT>(fields[5])) { // fmt
+            case RVISA::ExtF::FMT::S: return RVInstr::FNMSUB_S;
+            default: break;
+          }
+          break;
+        }
 
-            // Fallthrough - unknown instruction.
-            return RVInstr::NOP;
-        };
+        case RVISA::OpcodeID::NMADD: {
+          const auto fields = RVInstrParser::getParser()->decodeR432Instr(instrValue);
+          
+          switch(static_cast<RVISA::ExtF::FMT>(fields[5])) { // fmt
+            case RVISA::ExtF::FMT::S: return RVInstr::FNMADD_S;
+            default: break;
+          }
+          break;
+        }
+
+        default:
+          break;
+      }
+
+      // Fallthrough - unknown instruction.
+      return RVInstr::NOP;
+    };
+
 
         wr_reg_idx << [this] {
           return (instr.uValue() >> 7) & 0b11111;
@@ -216,6 +362,9 @@ public:
         r2_reg_idx << [this] {
           return (instr.uValue() >> 20) & 0b11111;
         };
+    r3_reg_idx << [this] {
+      return (instr.uValue() >> 27) & 0b11111;
+    };
 
     // clang-format on
   }
@@ -225,6 +374,7 @@ public:
   OUTPUTPORT(wr_reg_idx, c_RVRegsBits);
   OUTPUTPORT(r1_reg_idx, c_RVRegsBits);
   OUTPUTPORT(r2_reg_idx, c_RVRegsBits);
+  OUTPUTPORT(r3_reg_idx, c_RVRegsBits);
 
 private:
   void unknownInstruction() {}
