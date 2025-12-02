@@ -177,7 +177,7 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
 class RV_ISAInfoBase : public ISAInfoBase {
 public:
   static const QStringList &getSupportedExtensions() {
-    static const QStringList ext = {"M", "C"};
+    static const QStringList ext = {"M", "C", "F"};
     return ext;
   }
   static const QStringList &getDefaultExtensions() {
@@ -250,6 +250,8 @@ public:
       return "Integer multiplication and division";
     if (ext == "C")
       return "Compressed instructions";
+    if (ext == "F")
+      return "32-Bit Floating Point arithmetic";
     Q_UNREACHABLE();
   }
 
@@ -270,6 +272,9 @@ protected:
         break;
       case 'C':
         RVISA::ExtC::enableExt(this, m_instructions, m_pseudoInstructions);
+        break;
+      case 'F':
+        RVISA::ExtF::enableExt(this, m_instructions, m_pseudoInstructions);
         break;
       }
     }
