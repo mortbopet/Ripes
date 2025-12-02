@@ -104,7 +104,48 @@ enum class RVInstr {
   DIVW,
   DIVUW,
   REMW,
-  REMUW
+  REMUW,
+
+  /* RV32F Single Floating Point Extension */
+  FLW,
+  FSW,
+  
+  FADD_S,
+  FSUB_S,
+  FMUL_S,
+  FDIV_S,
+  FSQRT_S,
+  FMIN_S,
+  FMAX_S,
+  
+  FSGNJ_S,
+  FSGNJN_S,
+  FSGNJX_S,
+  
+  FCVT_W_S,
+  FCVT_WU_S,
+  FCVT_S_W,
+  FCVT_S_WU,
+
+  FMV_X_W,
+  FMV_W_X,
+  
+  FEQ_S,
+  FLT_S,
+  FLE_S,
+
+  FCLASS_S,
+
+  FMADD_S,
+  FMSUB_S,
+  FNMSUB_S,
+  FNMADD_S,
+  
+  /* RV64F Single Floating Point Extension */
+  FCVT_L_S,
+  FCVT_LU_S,
+  FCVT_S_L,
+  FCVT_S_LU
 };
 
 /** Datapath enumerations */
@@ -177,6 +218,11 @@ public:
     return m_decodeB32Instr(instr);
   }
 
+  // RVF
+  std::vector<uint32_t> decodeR432Instr(const uint32_t &instr) const {
+    return m_decodeR432Instr(instr);
+  }
+
   // RVC
   std::vector<uint32_t> decodeCA16Instr(const uint32_t &instr) const {
     return m_decodeCA16Instr(instr);
@@ -205,8 +251,9 @@ public:
 
 private:
   RVInstrParser() {
-    m_decodeR32Instr = generateInstrParser<uint32_t>(
-        std::vector<int>{7, 5, 3, 5, 5, 7}); // from LSB to MSB
+    // from LSB to MSB
+    m_decodeR32Instr =
+        generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 7});
     m_decodeI32Instr =
         generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 12});
     m_decodeS32Instr =
@@ -218,6 +265,11 @@ private:
     m_decodeJ32Instr =
         generateInstrParser<uint32_t>(std::vector<int>{7, 5, 8, 1, 10, 1});
 
+    // RVF
+    m_decodeR432Instr =
+        generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 2, 5});
+    
+    
     // RVC
     m_decodeCA16Instr = generateInstrParser<uint32_t>(
         std::vector<int>{2, 3, 2, 3, 2, 1, 3, 16});
@@ -242,6 +294,9 @@ private:
   decode_functor<uint32_t> m_decodeS32Instr;
   decode_functor<uint32_t> m_decodeR32Instr;
   decode_functor<uint32_t> m_decodeB32Instr;
+
+  // RVF
+  decode_functor<uint32_t> m_decodeR432Instr;
 
   // RVC
   decode_functor<uint32_t> m_decodeCA16Instr;
