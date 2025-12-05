@@ -32,6 +32,7 @@ public:
       }
 
       // I-Type (full)
+      case RVInstr::FLW:
       case RVInstr::JALR:
       case RVInstr::LB:
       case RVInstr::LH:
@@ -82,6 +83,7 @@ public:
       }
 
       // S-Type
+      case RVInstr::FSW:
       case RVInstr::SB:
       case RVInstr::SH:
       case RVInstr::SW:
