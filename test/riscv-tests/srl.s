@@ -148,7 +148,7 @@ li gp, 13
 
   test_17:
  li x1, 0x21212121
- li x2, 0xffffffc0
+ li x2, 0xffffffe0
  srl x30, x1, x2
  li x29, 0x21212121
  li gp, 17
@@ -157,7 +157,7 @@ li gp, 13
 
   test_18:
  li x1, 0x21212121
- li x2, 0xffffffc1
+ li x2, 0xffffffe1
  srl x30, x1, x2
  li x29, 0x10909090
  li gp, 18
@@ -166,7 +166,7 @@ li gp, 13
 
   test_19:
  li x1, 0x21212121
- li x2, 0xffffffc7
+ li x2, 0xffffffe7
  srl x30, x1, x2
  li x29, 0x00424242
  li gp, 19
@@ -175,7 +175,7 @@ li gp, 13
 
   test_20:
  li x1, 0x21212121
- li x2, 0xffffffce
+ li x2, 0xffffffee
  srl x30, x1, x2
  li x29, 0x00008484
  li gp, 20
