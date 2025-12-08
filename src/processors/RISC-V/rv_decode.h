@@ -370,11 +370,6 @@ public:
     r2_reg_idx << [this] {
       return (instr.uValue() >> 20) & 0b11111;
     };
-
-    r3_reg_idx << [this] {
-      return (instr.uValue() >> 27) & 0b11111;
-    };
-
     // clang-format on
   }
 
@@ -383,11 +378,22 @@ public:
   OUTPUTPORT(wr_reg_idx, c_RVRegsBits);
   OUTPUTPORT(r1_reg_idx, c_RVRegsBits);
   OUTPUTPORT(r2_reg_idx, c_RVRegsBits);
-  OUTPUTPORT(r3_reg_idx, c_RVRegsBits);
 
 private:
   void unknownInstruction() {}
   std::shared_ptr<ISAInfoBase> m_isa;
+};
+
+template <unsigned XLEN>
+class Decode3 : public Decode<XLEN> {
+  public:
+  Decode3(const std::string &name, SimComponent *parent)
+  : Decode<XLEN>(name, parent) {
+    r3_reg_idx << [this] {
+      return (Decode<XLEN>::instr.uValue() >> 27) & 0b11111;
+    };
+  }
+  OUTPUTPORT(r3_reg_idx, c_RVRegsBits);
 };
 
 } // namespace core
