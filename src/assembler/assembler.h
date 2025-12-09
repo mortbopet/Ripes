@@ -17,6 +17,7 @@
 #include "isa/isainfo.h"
 #include "isa/pseudoinstruction.h"
 #include "matcher.h"
+#include "parserutilities.h"
 #include "ripessettings.h"
 
 namespace Ripes {
@@ -244,12 +245,15 @@ protected:
       if (line.value().isEmpty())
         continue;
       TokenizedSrcLine tsl(line.index());
-      runOperation(tokens, tokenize, tsl, line.value());
+      runOperation(tokens, tokenizeQuotes, tsl, line.value());
 
       runOperation(remainingTokens, splitCommentFromLine, tokens);
 
+      runOperation(joinedParentheses, joinParentheses, tsl, remainingTokens);
+
       // Symbols precede directives
-      runOperation(symbolsAndRest, splitSymbolsFromLine, tsl, remainingTokens);
+      runOperation(symbolsAndRest, splitSymbolsFromLine, tsl,
+                   joinedParentheses);
 
       tsl.symbols = symbolsAndRest.first;
 
