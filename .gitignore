@@ -4,10 +4,12 @@
 *.o
 Makefile
 build*
+debug*
 .vscode
 
 
 # Qt generated files
+.qt
 moc_*
 *.moc
 ui_*

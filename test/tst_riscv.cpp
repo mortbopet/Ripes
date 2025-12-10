@@ -10,7 +10,8 @@
 #include "systemio.h"
 
 #if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) ||                \
-    !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR)
+    !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR) ||            \
+    !defined(RISCV_VLIW_TEST_DIR)
 static_assert(false, "RISCV test directiories must be defined");
 #endif
 
@@ -104,6 +105,13 @@ private slots:
   }
   void testRV32_5MultiCycle1Memory() {
     runTests(ProcessorID::RV32_5MC_1M, {"M"}, {RISCV32_TEST_DIR});
+  }
+
+  void testRV32_5SVliw() {
+    runTests(ProcessorID::RV32_5S_VLIW, {"M", "C"}, {RISCV_VLIW_TEST_DIR});
+  }
+  void testRV64_5SVliw() {
+    runTests(ProcessorID::RV64_5S_VLIW, {"M", "C"}, {RISCV_VLIW_TEST_DIR});
   }
 };
 

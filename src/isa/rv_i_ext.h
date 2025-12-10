@@ -1114,6 +1114,253 @@ struct SextW : public PseudoInstruction<SextW> {
 
 } // namespace TypePseudo
 
+namespace TypePseudo_VLIW {
+
+#define TOKENIZED_NOP                                                          \
+  LineTokens() << Token("addi") << Token("x0") << Token("x0") << Token("0")
+
+using TypePseudo::PseudoReg;
+template <typename PseudoInstrImpl>
+struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
+  struct Fields : public FieldSet<PseudoReg, PseudoImm> {};
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<PseudoInstrImpl> &,
+           const TokenizedSrcLine &line, const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
+                             << Token(line.tokens.at(2), "%pcrel_hi"));
+    v.push_back(TOKENIZED_NOP);
+
+    v.push_back(TOKENIZED_NOP);
+    v.push_back(LineTokens()
+                << QString(PseudoInstrImpl::NAME.data()) << line.tokens.at(1)
+                << Token(QString("(%1 + 12) ").arg(line.tokens.at(2)),
+                         "%pcrel_lo")
+                << line.tokens.at(1));
+    return v;
+  }
+};
+
+template <typename PseudoInstrImpl>
+struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
+  struct Fields : public FieldSet<PseudoReg, PseudoImm, PseudoReg> {};
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<PseudoInstrImpl> &,
+           const TokenizedSrcLine &line, const SymbolMap &) {
+    bool canConvert;
+    getImmediate(line.tokens.at(2), canConvert);
+    if (canConvert) {
+      return Result<std::vector<LineTokens>>(
+          Error(0, "Unused; will fallback to non-pseudo op sw"));
+    }
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
+                             << Token(line.tokens.at(2), "%pcrel_hi"));
+    v.push_back(TOKENIZED_NOP);
+
+    v.push_back(TOKENIZED_NOP);
+    v.push_back(LineTokens()
+                << QString(PseudoInstrImpl::NAME.data()) << line.tokens.at(1)
+                << Token(QString("(%1 + 12)").arg(line.tokens.at(2)),
+                         "%pcrel_lo")
+                << line.tokens.at(3));
+    return Result<std::vector<LineTokens>>(v);
+  }
+};
+
+struct Lb : public PseudoInstrLoad<Lb> {
+  constexpr static std::string_view NAME = "lb";
+};
+struct Lh : public PseudoInstrLoad<Lh> {
+  constexpr static std::string_view NAME = "lh";
+};
+struct Lw : public PseudoInstrLoad<Lw> {
+  constexpr static std::string_view NAME = "lw";
+};
+struct Ld : public PseudoInstrLoad<Ld> {
+  constexpr static std::string_view NAME = "ld";
+};
+
+struct Sb : public PseudoInstrStore<Sb> {
+  constexpr static std::string_view NAME = "sb";
+};
+struct Sh : public PseudoInstrStore<Sh> {
+  constexpr static std::string_view NAME = "sh";
+};
+struct Sw : public PseudoInstrStore<Sw> {
+  constexpr static std::string_view NAME = "sw";
+};
+struct Sd : public PseudoInstrStore<Sd> {
+  constexpr static std::string_view NAME = "sd";
+};
+
+struct La : public PseudoInstruction<La> {
+  struct Fields : public FieldSet<PseudoReg, PseudoImm> {};
+
+  static Result<std::vector<LineTokens>> expander(const PseudoInstruction<La> &,
+                                                  const TokenizedSrcLine &line,
+                                                  const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
+                             << Token(line.tokens.at(2), "%pcrel_hi"));
+    v.push_back(TOKENIZED_NOP);
+
+    v.push_back(LineTokens()
+                << Token("addi") << line.tokens.at(1) << line.tokens.at(1)
+                << Token(QString("(%1 + 8)").arg(line.tokens.at(2)),
+                         "%pcrel_lo"));
+    v.push_back(TOKENIZED_NOP);
+
+    return v;
+  }
+  constexpr static std::string_view NAME = "la";
+};
+
+struct Call : public PseudoInstruction<Call> {
+  struct Fields : public FieldSet<PseudoImm> {};
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Call> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << Token("x1")
+                             << Token(line.tokens.at(1), "%pcrel_hi"));
+    v.push_back(TOKENIZED_NOP);
+    v.push_back(LineTokens()
+                << Token("jalr") << Token("x1") << Token("x1")
+                << Token(QString("(%1 + 8)").arg(line.tokens.at(1)),
+                         "%pcrel_lo"));
+    v.push_back(TOKENIZED_NOP);
+    return v;
+  }
+  constexpr static std::string_view NAME = "call";
+};
+
+struct Tail : public PseudoInstruction<Tail> {
+  struct Fields : public FieldSet<PseudoImm> {};
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Tail> &, const TokenizedSrcLine &line,
+           const SymbolMap &) {
+    LineTokensVec v;
+    v.push_back(LineTokens() << Token("auipc") << Token("x6")
+                             << Token(line.tokens.at(1), "%pcrel_hi"));
+    v.push_back(TOKENIZED_NOP);
+    v.push_back(LineTokens()
+                << Token("jalr") << Token("x0") << Token("x6")
+                << Token(QString("(%1 + 8)").arg(line.tokens.at(1)),
+                         "%pcrel_lo"));
+    v.push_back(TOKENIZED_NOP);
+    return v;
+  }
+  constexpr static std::string_view NAME = "tail";
+};
+
+template <bool isRV64>
+struct Li : public PseudoInstruction<Li<isRV64>> {
+  struct Fields : public FieldSet<PseudoReg, PseudoImm> {};
+
+  static Result<std::vector<LineTokens>>
+  expander(const PseudoInstruction<Li<isRV64>> &, const TokenizedSrcLine &line,
+           const SymbolMap &symbols) {
+    LineTokensVec res;
+    // Get an integer representation of the immediate, which might have
+    // been a symbol.
+    bool canConvert;
+    bool liveDstReg = false;
+    bool unsignedFitErr = false;
+    int64_t immediate = getImmediateSext32(line.tokens.at(2), canConvert);
+
+    if (!canConvert) {
+      auto absSymbols = symbols.copyRelativeTo(line.sourceLine());
+      // Check if the immediate has been made available in the symbol set
+      // at this point...
+      auto it = absSymbols.find(line.tokens.at(2));
+      if (it != absSymbols.end()) {
+        immediate = it->second;
+      } else {
+        if (unsignedFitErr) {
+          return Result<std::vector<LineTokens>>{
+              Error(line, QString("Invalid immediate '%1'; can't emit "
+                                  ">32-bit imm for non-RV64 target")
+                              .arg(line.tokens.at(2)))};
+        } else {
+          return Result<std::vector<LineTokens>>{Error(
+              line, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
+        }
+      }
+    }
+
+    /* The load-immediate pseudo instructions follows the LLVM
+     * implementation, as seen here.
+     * https://llvm.org/docs/doxygen/RISCVMatInt_8cpp_source.html
+     * For more insight, please refer to there, since their comments have
+     * been left out of this source code.
+     */
+    std::function<Result<std::vector<LineTokens>>(int64_t)> genInstrSeq =
+        [&](int64_t val) {
+          if (isInt<32>(val) || (!isRV64 && isUInt<32>(val))) {
+            int64_t Hi20 = ((val + 0x800) >> 12) & 0xFFFFF;
+            int64_t Lo12 = vsrtl::signextend<12>(val);
+
+            if (Hi20) {
+              res.push_back(LineTokens() << Token("lui") << line.tokens.at(1)
+                                         << QString::number(Hi20));
+              res.push_back(TOKENIZED_NOP);
+              liveDstReg = true;
+            }
+
+            if (Lo12 || Hi20 == 0) {
+              QString addiOpc = isRV64 && Hi20 != 0 ? "addiw" : "addi";
+              res.push_back(LineTokens()
+                            << Token(addiOpc) << line.tokens.at(1)
+                            << (liveDstReg ? line.tokens.at(1) : Token("x0"))
+                            << QString::number(Lo12));
+              res.push_back(TOKENIZED_NOP);
+              liveDstReg = true;
+            }
+
+            return Result<std::vector<LineTokens>>{res};
+          }
+
+          if (!isRV64) {
+            return Result<std::vector<LineTokens>>{
+                Error(line, QString("Invalid immediate '%1'; can't emit "
+                                    ">32-bit imm for non-RV64 target")
+                                .arg(line.tokens.at(2)))};
+          }
+
+          int64_t Lo12 = vsrtl::signextend<12>(val);
+          int64_t Hi52 = ((VInt)val + 0x800ull) >> 12;
+          int ShiftAmount = 12 + firstSetBitIdx(Hi52);
+          Hi52 = vsrtl::signextend<int64_t>(Hi52 >> (ShiftAmount - 12),
+                                            64 - ShiftAmount);
+          genInstrSeq(Hi52);
+          res.push_back(LineTokens()
+                        << Token("slli") << line.tokens.at(1)
+                        << line.tokens.at(1) << QString::number(ShiftAmount));
+          res.push_back(TOKENIZED_NOP);
+
+          if (Lo12) {
+            res.push_back(LineTokens()
+                          << Token("addi") << line.tokens.at(1)
+                          << line.tokens.at(1) << QString::number(Lo12));
+            res.push_back(TOKENIZED_NOP);
+          }
+          return Result<std::vector<LineTokens>>{res};
+        };
+    auto instrSeq = genInstrSeq(immediate);
+    return instrSeq;
+  }
+  constexpr static std::string_view NAME = "li";
+};
+
+using Li32 = Li<false>;
+using Li64 = Li<true>;
+} // namespace TypePseudo_VLIW
+
 }; // namespace ExtI
 
 } // namespace RVISA
