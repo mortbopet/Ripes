@@ -23,8 +23,8 @@ Before getting started, here are some general notes on cache simulation in Ripes
 The cache is configurable through the following options:
 
 - **Ways**: Associativity specification. Specified in a power of two (ie. a "two-way set associative cache" will have `ways=1 (2^1 = 2 ways)` whereas a "direct mapped cache" will have `ways=0 (2^0 = 1 way)`). 
-- **Lines**: Number of cache lines. The number of cache lines will define the size of the `index` used to index within the cache. Specified in a power of two.
-- **Words/Line**: Number of words within each cache line. The number of words will define the size of the `word index` used to select a word within a cache line. Specified in a power of two.
+- **Sets**: Number of cache sets. The number of cache sets will define the size of the `index` used to index within the cache. Specified in a power of two.
+- **Words per Line**: Number of words within each cache line. The number of words will define the size of the `word index` used to select a word within a cache line. Specified in a power of two.
 - **Wr. hit/Wr. miss**: Cache write policies. Please refer to [this Wikipedia article](https://en.wikipedia.org/wiki/Cache_(computing)#Writing_policies) for further info.
 - **Repl. policy**: Cache replacement policies. Please refer to [this Wikipedia article](https://en.wikipedia.org/wiki/Cache_replacement_policies) for further info.
 
@@ -37,8 +37,8 @@ Based on the current cache configuration, a visualization of the current state o
 </p>
 The cache is drawn as a table wherein rows are defined as:
 
-- **Cache lines** are delimited with **solid** lines. The indices (index column) represents the index of each cache line.
-- **Cache ways** are contained within a cache line. Ways which map within the same cache line are delimited with **dashed** lines.
+- **Cache sets** are delimited with **solid** lines. The indices (index column) represents the index of each cache set.
+- **Cache ways** are contained within a cache set. Ways which map within the same cache set are delimited with **dashed** lines.
 
 Commonly, a set-associative cache will be drawn as separate tables for each way. This representation is equivalent with the representation used in Ripes, as follows:
 <p align="center">
@@ -58,7 +58,7 @@ The cache view may be interacted with as follows:
 - Clicking a word will move the memory view to the corresponding physical address of the cached value.
 - The cache view may be zoomed by performing a `ctrl+scroll` operation (`cmd+scroll on OSX`).
 
-When the cache is indexed, the corresponding _line_ row and _word_ column will be highlighted in yellow. The intersection of these corresponds to all the cells which may contain the cached value. Hence, for a direct mapped cache, only 1 cell will be in the intersection whereas for an _N_-way cache, _N_ cells will be highlighted. In the 4-way set associative cache picture above, we see that 4 cells are highlighted. A cell being highlighted as green indicates a cache hit, whilst red indicates a cache miss. A cell being highlighted in blue indicates that the value is dirty (with write-hit policy "write-back").
+When the cache is indexed, the corresponding _set_ row and _word_ column will be highlighted in yellow. The intersection of these corresponds to all the cells which may contain the cached value. Hence, for a direct mapped cache, only 1 cell will be in the intersection whereas for an _N_-way cache, _N_ cells will be highlighted. In the 4-way set associative cache picture above, we see that 4 cells are highlighted. A cell being highlighted as green indicates a cache hit, whilst red indicates a cache miss. A cell being highlighted in blue indicates that the value is dirty (with write-hit policy "write-back").
 
 ### Cache Access Statistics & Plotting
 
@@ -160,7 +160,7 @@ We see that the cache manages a hit rate of `0.01154`. In the example program, w
 4: 4608 = 0b00010010 00000000
 ...
 ```
-For the chosen cache configuration we see that the line index of the cache is the following bitmask:
+For the chosen cache configuration we see that the set index of the cache is determined by the following bitmask:
 > `0b0000001 11110000`
 
 Applying the bitmask to the access pattern listed above, we see that all access addresses mask to `0x0` and thus will index to the same cache line. In other words, we have no diversity with respect to the indexing in the cache for the given access pattern.  
