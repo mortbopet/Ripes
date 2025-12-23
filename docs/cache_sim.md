@@ -163,7 +163,7 @@ We see that the cache manages a hit rate of `0.01154`. In the example program, w
 For the chosen cache configuration we see that the set index of the cache is determined by the following bitmask:
 > `0b0000001 11110000`
 
-Applying the bitmask to the access pattern listed above, we see that all access addresses mask to `0x0` and thus will index to the same cache line. In other words, we have no diversity with respect to the indexing in the cache for the given access pattern.  
+Applying the bitmask to the access pattern listed above, we see that all access addresses mask to `0x0` and thus will index to the same cache set. In other words, we have no diversity with respect to the indexing in the cache for the given access pattern.  
 In this case, a set-associative cache could be more suitable than a direct-mapped cache.  
 
 Select the cache preset `32-entry 4-word 2-way set associative`. Note that this cache design provides the _same_ number of possibly cached words as the previous direct-mapped design. Next, rerun the program.
