@@ -5,14 +5,14 @@ The following sections serve as an introduction to the main features of Ripes.
 
 ## The Editor Tab
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/editortab.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/editortab.png?raw=true" />
 </p>
 The editor tab shows two code segments. On the left hand side, it is possible to write an assembly program written using the RISC-V RV32(I/M/C) instruction sets. Whenever any edits are performed in this assembly program - and no syntax errors are found - the assembly code will automatically be assembled and inserted into the simulator. If a C compiler has been registered, the `input type` may be set to `C`. It is then possible to write, compile and execute C-language programs within Ripes, see
 
 [this docs page](c_programming.md) for more detail.
 
 Next, on the right hand side a second code view is displayed. This is a non-interactive view of the current program in its assembled state, denoted as the _program viewer_. We may view the assembled program as either disassembled RISC-V instructions, or as the raw binary code. The blue sidebar of the right-hand view may be clicked on to set a breakpoint at the desired address.
-Pressing the <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/compass.svg" width="20pt"/> icon will bring up a list of all symbols in the current program. Through this, it is possible to navigate the program viewer to any of these symbols.
+Pressing the <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/compass.svg?raw=true" width="20pt"/> icon will bring up a list of all symbols in the current program. Through this, it is possible to navigate the program viewer to any of these symbols.
 
 Ripes is bundled with various examples of RISC-V assembly programs, which can be found under the `File->Load Examples` menu.
 
@@ -29,7 +29,7 @@ With a program ready to be simulated, we may now move to the *Processor tab*.
 
 ## The Processor Tab
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/processortab.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/processortab.png?raw=true" />
 </p>
 The processor tab is where Ripes displays its view of the currently selected processor, as well as any additional information relevant to the execution.
 Apart from the processor view, the processor tab contains the following views:  
@@ -54,22 +54,22 @@ Processor models in Ripes communicate the current state of the datapath through 
 The processor view may be zoomed by performing a **ctrl+scroll** operation (cmd+scroll on OSX).
 
 Clicking a wire highlights the entirety of the wire. This is useful when trying to deduce how a signal is routed through the datapath in some of the more complex layouts.
-![Selected port](https://github.com/mortbopet/Ripes/blob/master/resources/images/portselected.png)
+![Selected port](https://github.com/mortbopet/Ripes/blob/master/resources/images/portselected.png?raw=true)
 Given that Ripes simulates the entire datapath of a processor, it is possible to investigate the value of any signal, at any point in time.  
 
 1. Hover over any port in the processor view. This will display the name of the port, as well as the current value of the port.
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/tooltip.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/tooltip.png?raw=true" />
 </p>
 
 2. Press the *Display signal values* button. This will display the output values of all output ports in the design. Alternatively, right click on any port and press "*show value*" to display its label. If a port's value label has been made visible, it is possible to change the radix of the displayed value through right-clicking the port label.
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/portlabel.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/portlabel.png?raw=true" />
 </p>
 
 ## Controlling the Simulator
 The toolbar within Ripes contains all of the relevant actions for controlling the simulator.
-| <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/cpu.svg" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/reset.svg" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/reverse.svg" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/step.svg" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/step-clock.svg" width="100pt"/>| <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/run.svg" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/spreadsheet.svg" width="100pt"/> |
+| <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/cpu.svg?raw=true" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/reset.svg?raw=true" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/reverse.svg?raw=true" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/step.svg?raw=true" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/step-clock.svg?raw=true" width="100pt"/>| <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/run.svg?raw=true" width="100pt"/> | <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/spreadsheet.svg?raw=true" width="100pt"/> |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |**Select Processor**|**Reset**|**Reverse**|**Clock**|**Auto-clock**|**Run**|**Show stage table**|
 
@@ -82,17 +82,17 @@ The toolbar within Ripes contains all of the relevant actions for controlling th
 * **Show stage table**: Displays a chart showing which instructions resided in which pipeline stage(s) for each cycle. Stalled stages are indicated with a '-' value. **Note**: Stage information is *not* recorded while executing the processor through the *Run* option.
 * Select `View->Show processor signal values` to display all output port values of the processor.
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/stagetable.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/stagetable.png?raw=true" />
 </p>
 
 While executing the program loaded earlier, we may observe that, in cycle 4, a load-use dependency arises between the 2nd and 3rd instruction. This results in the `ID` stage being stalled for one clock cycle, whilst the load is being performed. Pipeline stalls (due to hazards) and flushes (due to control flow) will be indicated above a pipeline stage as `nop` instructions highlighted in red.
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/stalled.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/stalled.png?raw=true" />
 </p>
 
 ## Selecting Processor Models
 <p align="center">
-     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/cpu.svg" width="100pt"/>
+     <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/cpu.svg?raw=true" width="100pt"/>
 </p>
 Through providing multiple processor models, Ripes provides the ability to investigate how different microarchitectures affect program execution. The set of processor models shipping in version 2.0 (described below) aims to address each level of added complexity when going from a single cycle processor to a fully functioning, in-order pipelined processor.  
 Ripes provides the following processor models:  
@@ -109,7 +109,7 @@ Furthermore, each processor provides multiple layouts of the processor. By defau
 
 Opening the processor selection dialog, one may choose and configure the current processor:
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/processorselection.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/processorselection.png?raw=true" />
 </p>
 On the left hand side, each available processor is listed. As for configuration:
 - `ISA Exts.` allows you to toggle ISA extensions for the processor. This will have an effect on which instructions you are able to assemble, as well has which instructions a `C` compiler will generate.
@@ -118,12 +118,12 @@ On the left hand side, each available processor is listed. As for configuration:
 
 As an example processor selection, the following image shows the *extended* layout of the *RISC-V 5-stage Processor*:
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/expandedprocessor.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/expandedprocessor.png?raw=true" />
 </p>
 
 ## The Memory Tab
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/memorytab.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/memorytab.png?raw=true" />
 </p>
 
 The memory tab provides a view into the entire addressable address space of the processor.
@@ -136,7 +136,7 @@ Whenever the processor is reset, all memory written during program execution wil
 
 ## The Cache tab
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cachetab.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cachetab.png?raw=true" />
 </p>
 Ripes includes a cache simulator, which you can read more about
 
@@ -144,7 +144,7 @@ Ripes includes a cache simulator, which you can read more about
 
 ## I/O tab
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/iotabpreview.png" />
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/iotabpreview.png?raw=true" />
 </p>
 Ripes includes memory mapped I/O allowing for interaction with various different simulated devices, which you can read more about
 
