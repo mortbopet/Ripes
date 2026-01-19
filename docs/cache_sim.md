@@ -2,7 +2,7 @@
 As of version 2.1.0, Ripes includes cache simulation. The cache simulator simulates L1D (data) and L1I (instruction) caches, wherein it is possible to configure the layout and behavior of each cache type. Given this, we are able to analyse the cache performance of our programs to see how different cache designs interact with the memory access patterns which our programs exhibit.
 
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheanimation.gif"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheanimation.gif?raw=true"/>
 </p>
 
 Before getting started, here are some general notes on cache simulation in Ripes:
@@ -18,7 +18,7 @@ Before getting started, here are some general notes on cache simulation in Ripes
 
 ### Cache Configuration
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheconfig.png" width="600pt"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheconfig.png?raw=true" width="600pt"/>
 </p>
 The cache is configurable through the following options:
 
@@ -33,7 +33,7 @@ Furthermore, a variety of presets are made available, and you are able to store 
 ### The Cache View
 Based on the current cache configuration, a visualization of the current state of the cache is provided.
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheview.png" width="400pt"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheview.png?raw=true" width="400pt"/>
 </p>
 The cache is drawn as a table wherein rows are defined as:
 
@@ -42,7 +42,7 @@ The cache is drawn as a table wherein rows are defined as:
 
 Commonly, a set-associative cache will be drawn as separate tables for each way. This representation is equivalent with the representation used in Ripes, as follows:
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cachewayexpl.svg" width="700pt"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cachewayexpl.svg?raw=true" width="700pt"/>
 </p>
 
 
@@ -63,7 +63,7 @@ When the cache is indexed, the corresponding _set_ row and _word_ column will be
 ### Cache Access Statistics & Plotting
 
 <p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheplot.png"/>
+    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/cacheplot.png?raw=true"/>
 </p>
 
 To provide insight to the cache simulation, various cache parameters may be plotted in real-time.
@@ -78,12 +78,12 @@ Each cycle, the following cache access information is recorded:
 
 From this, it is possible to plot the ratio between any of these, by selecting the `Numerator` and `Denominator`. For instance, to see the cache hit rate over time, select `Hits` and `Access count`. A moving average plot of the selected variables can be enabled as well. This is useful when identifying at what points in the program that hit rate significantly changes.
 
-To see a breakdown of the theoretical cache size (in bits), press the <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/info.svg" width="15pt"/> button.
+To see a breakdown of the theoretical cache size (in bits), press the <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/info.svg?raw=true" width="15pt"/> button.
 
 At the bottom of the view the following actions are available::
-- <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/documents.svg" width="20pt"/>: Copy cache access information for all cycles to clipboard
-- <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/saveas.svg" width="20pt"/>: Save plot to file
-- <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/crosshair_blue.svg" width="20pt"/> <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/crosshair_gold.svg" width="20pt"/>: Enables plot markers for the total and moving average plots.
+- <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/documents.svg?raw=true" width="20pt"/>: Copy cache access information for all cycles to clipboard
+- <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/saveas.svg?raw=true" width="20pt"/>: Save plot to file
+- <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/crosshair_blue.svg?raw=true" width="20pt"/> <img src="https://github.com/mortbopet/Ripes/blob/master/resources/icons/crosshair_gold.svg?raw=true" width="20pt"/>: Enables plot markers for the total and moving average plots.
 
 ## Example
 The following example illustrates how different cache configurations may have an impact on the hit-rate of a cache. This is shown through the execution of an example program using different cache configurations.
