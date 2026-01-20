@@ -17,6 +17,10 @@ public:
     opcode << [this] {
       const auto instrValue = instr.uValue();
 
+      if (instrValue == 0x00000013 /* addi x0, x0, 0 */) {
+        return RVInstr::NOP;
+      }
+
       const unsigned l7 = instrValue & 0b1111111;
 
       // clang-format off
@@ -90,8 +94,9 @@ public:
                             switch (fields[0]) {
                                 case 0b0000000: return RVInstr::ADD;
                                 case 0b0100000: return RVInstr::SUB;
-                                default: return RVInstr::NOP;
+                                default: break;
                             }
+                            break;
                         }
                         case 0b001: return RVInstr::SLL;
                         case 0b010: return RVInstr::SLT;
@@ -101,8 +106,9 @@ public:
                             switch (fields[0]) {
                                 case 0b0000000: return RVInstr::SRL;
                                 case 0b0100000: return RVInstr::SRA;
-                                default: return RVInstr::NOP;
+                                default: break;
                             }
+                            break;
                         }
                         case 0b110: return RVInstr::OR;
                         case 0b111: return RVInstr::AND;
@@ -134,16 +140,18 @@ public:
                             switch (fields[0]) {
                                 case 0b0000000: return RVInstr::ADDW;
                                 case 0b0100000: return RVInstr::SUBW;
-                                default: return RVInstr::NOP;
+                                default: break;
                             }
+                            break;
                         }
                         case 0b001: return RVInstr::SLLW;
                         case 0b101: {
                             switch (fields[0]) {
                                 case 0b0000000: return RVInstr::SRLW;
                                 case 0b0100000: return RVInstr::SRAW;
-                                default: return RVInstr::NOP;
+                                default: break;
                             }
+                            break;
                         }
                         default: break;
                     }

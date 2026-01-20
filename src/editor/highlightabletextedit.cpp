@@ -34,13 +34,13 @@ void HighlightableTextEdit::paintEvent(QPaintEvent *event) {
     const QString stageString = hb.second.join('/');
     const auto bbr = blockBoundingGeometry(hb.first);
     painter.setFont(font());
-    const QRect stageStringRect =
-        painter.fontMetrics().boundingRect(stageString);
-    QPointF drawAt = QPointF(
-        bbr.width() - stageStringRect.width() - /* right-hand side padding*/ 10,
-        bbr.top() + (bbr.height() / 2.0 - stageStringRect.height() / 2.0));
-    painter.drawText(QRectF(drawAt.x(), drawAt.y(), stageStringRect.width(),
-                            stageStringRect.height()),
+    const auto fm = painter.fontMetrics();
+    const auto advance = fm.horizontalAdvance(stageString);
+    const auto height = fm.height();
+    QPointF drawAt =
+        QPointF(bbr.width() - advance - /*right-hand side padding*/ 10,
+                bbr.top() + (bbr.height() / 2.0 - fm.height() / 2.0));
+    painter.drawText(QRectF(drawAt.x(), drawAt.y(), advance, fm.height()),
                      stageString);
   }
   painter.end();
