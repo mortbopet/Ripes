@@ -41,6 +41,7 @@ private slots:
   void tst_invalidreg();
   void tst_expression();
   void tst_invalidLabel();
+  void tst_immBitRange();
   void tst_directives();
   void tst_stringDirectives();
   void tst_riscv();
@@ -252,6 +253,34 @@ void tst_Assembler::tst_invalidLabel() {
                Expect::Fail);
   testAssemble(QStringList() << "a: lw a0 a+ a0", Expect::Fail);
   testAssemble(QStringList() << "addi a0 a0 (a", Expect::Fail);
+}
+
+void tst_Assembler::tst_immBitRange() {
+  // [ILS]-type : 12 bits imm (ImmCommon12, ImmS)
+  testAssemble(QStringList() << "addi  a0 x0 0x0FFF", Expect::Success);
+  testAssemble(QStringList() << "addi  a0 x0 0x1000", Expect::Fail);
+  testAssemble(QStringList() << "lw    a0 0x0FFF(x0)", Expect::Success);
+  testAssemble(QStringList() << "lw    a0 0x1000(x0)", Expect::Fail);
+  testAssemble(QStringList() << "sw    a0 0x0FFF(x0)", Expect::Success);
+  testAssemble(QStringList() << "sw    a0 0x1000(x0)", Expect::Fail);
+  // I-type (Shift): 5 bits imm (ImmIShift32)
+  testAssemble(QStringList() << "slli  a1 a0 0b11111", Expect::Success);
+  testAssemble(QStringList() << "slli  a1 a0 0b111111", Expect::Fail);
+  // U-type: 20 bits imm (ImmU)
+  testAssemble(QStringList() << "lui   a0 0x0FFFFF", Expect::Success);
+  testAssemble(QStringList() << "lui   a0 0x100000", Expect::Fail);
+  testAssemble(QStringList() << "auipc a0 0x0FFFFF", Expect::Success);
+  testAssemble(QStringList() << "auipc a0 0x100000", Expect::Fail);
+  // J-type: 20 bits imm (ImmJ)
+  testAssemble(QStringList() << "jal   x0 0x0FFFFF", Expect::Success);
+  testAssemble(QStringList() << "jal   x0 0x100000", Expect::Fail);
+  // B-type: 12 bits imm (ImmB)
+  testAssemble(QStringList() << "beq   a0 x0 0x0FFF", Expect::Success);
+  testAssemble(QStringList() << "beq   a0 x0 0x1000", Expect::Fail);
+  // pseudo: 32 bits imm
+  testAssemble(QStringList() << "li    a0 0xFFFFFFFF", Expect::Success);
+  testAssemble(QStringList() << "li    a0 0x100000000", Expect::Fail);
+  // TODO: 64b and [CM]-ext
 }
 
 void tst_Assembler::tst_benchmarkNew() {
