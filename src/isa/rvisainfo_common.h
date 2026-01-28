@@ -18,6 +18,30 @@ constexpr ISA XLenToRVISA() {
   }
 }
 
+// Width of instructions
+constexpr int c_RVInstrWidth = 32;
+
+/* Integer Register File */
+// Number of registers
+constexpr int c_RVRegs = 32;
+// Width of operand to index into registers
+constexpr int c_RVRegsBits = vsrtl::ceillog2(c_RVRegs);
+
+/* Floating point Register File */
+// Number of registers
+constexpr int c_RVFRegs = 32;
+// Width of operand to index into registers
+constexpr int c_RVFRegsBits = vsrtl::ceillog2(c_RVFRegs);
+// Float bit width
+constexpr int c_RVFBits = 32;
+
+/* Control and Status Registers */
+// Number of CSR registers
+constexpr int c_RVCsrRegs = 4096;
+// Width of operand to index into CSR registers
+constexpr int c_RVCsrRegsBits = vsrtl::ceillog2(c_RVCsrRegs);
+
+
 namespace RVABI {
 // RISC-V ELF info
 // Elf flag masks
@@ -58,11 +82,10 @@ extern const QStringList FPRRegAliases;
 extern const QStringList FPRRegNames;
 extern const QStringList FPRRegDescs;
 
-constexpr unsigned INSTR_BITS = 32;
 
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
-  constexpr static unsigned instrBits() { return INSTR_BITS; }
+  constexpr static unsigned instrBits() { return c_RVInstrWidth; }
 };
 
 constexpr std::string_view GPR = "gpr";
@@ -91,7 +114,7 @@ struct RV_GPRInfo : public RV_RegFileInterface {
 
   std::string_view regFileName() const override { return GPR; }
   std::string_view regFileDesc() const override { return GPR_DESC; }
-  unsigned int regCnt() const override { return 32; }
+  unsigned int regCnt() const override { return c_RVRegs; }
   QString regName(unsigned i) const override {
     return RVISA::GPRRegNames.size() > static_cast<int>(i)
                ? RVISA::GPRRegNames.at(static_cast<int>(i))
@@ -133,7 +156,7 @@ struct RV_FPRInfo : public RV_RegFileInterface {
 
   std::string_view regFileName() const override { return FPR; }
   std::string_view regFileDesc() const override { return FPR_DESC; }
-  unsigned int regCnt() const override { return 32; }
+  unsigned int regCnt() const override { return c_RVFRegs; }
   QString regName(unsigned i) const override {
     return RVISA::FPRRegNames.size() > static_cast<int>(i)
                ? RVISA::FPRRegNames.at(static_cast<int>(i))
@@ -237,7 +260,7 @@ public:
   std::optional<RegIndex> syscallReg() const override {
     return RegIndex{m_regInfos.at(GPR), 17};
   }
-  unsigned instrBits() const override { return INSTR_BITS; }
+  unsigned instrBits() const override { return c_RVInstrWidth; }
   unsigned elfMachineId() const override { return EM_RISCV; }
   std::optional<RegIndex> syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 8 && "RISC-V only implements argument registers a0-a7");
