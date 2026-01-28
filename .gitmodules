@@ -7,3 +7,6 @@
 [submodule "external/libelfin"]
 	path = external/libelfin
 	url = https://github.com/mortbopet/libelfin
+[submodule "external/softfloat"]
+	path = external/softfloat
+	url = https://github.com/ucb-bar/berkeley-softfloat-3

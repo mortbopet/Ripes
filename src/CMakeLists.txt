@@ -36,6 +36,7 @@ function(create_ripes_lib NAME)
         Qt6::Gui
         vsrtl::vsrtl
         elfio::elfio
+        softfloat
     )
     if(NOT OPTIONS_EXCLUDE_SRC_INC)
         target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
@@ -84,6 +85,7 @@ target_link_libraries(${RIPES_LIB} PUBLIC
     fancytabbar::fancytabbar
     elfio::elfio
     vsrtl::vsrtl
+    softfloat
     Qt6::Charts
     dwarf++
 )

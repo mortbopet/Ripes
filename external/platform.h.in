@@ -1,0 +1,22 @@
+#pragma once
+
+/* Endianness */
+#cmakedefine SOFTFLOAT_LITTLEENDIAN
+
+/* Inline control */
+#define INLINE static inline
+
+/* Fast 64-bit integer support */
+#cmakedefine SOFTFLOAT_FAST_INT64
+
+/* Compiler attributes (optional) */
+#if defined(_MSC_VER)
+#  define SOFTFLOAT_INLINE __forceinline
+#else
+#  define SOFTFLOAT_INLINE static inline
+#endif
+
+#cmakedefine SOFTFLOAT_BUILTIN_CLZ
+#cmakedefine SOFTFLOAT_INTRINSIC_INT128
+
+#include "opts-GCC.h"
