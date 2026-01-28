@@ -138,6 +138,13 @@ constexpr std::string_view GPR = "gpr";
 constexpr std::string_view GPR_DESC = "General purpose registers";
 
 struct MIPS_GPRInfo : public RegFileInfoInterface {
+  MIPS_GPRInfo() : m_isaInfo(nullptr) {}
+  MIPS_GPRInfo(const ISAInfoBase *isaInfo) : m_isaInfo(isaInfo) {}
+  
+  unsigned bits() const override {
+    return m_isaInfo ? m_isaInfo->bits() : 32;
+  }
+
   std::string_view regFileName() const override { return GPR; }
   std::string_view regFileDesc() const override { return GPR_DESC; }
   unsigned int regCnt() const override { return 34; }
@@ -176,6 +183,8 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
     success = false;
     return 0;
   }
+private:
+  const ISAInfoBase *m_isaInfo;
 };
 
 } // namespace MIPSISA
@@ -192,7 +201,7 @@ public:
   }
 
   MIPS_ISAInfoBase() {
-    m_regInfos[MIPSISA::GPR] = std::make_unique<MIPSISA::MIPS_GPRInfo>();
+    m_regInfos[MIPSISA::GPR] = std::make_unique<MIPSISA::MIPS_GPRInfo>(this);
 
     // TODO: Setup MIPS instructions here
   }

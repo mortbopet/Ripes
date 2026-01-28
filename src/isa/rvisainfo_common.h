@@ -73,8 +73,22 @@ constexpr std::string_view GPR_DESC = "General purpose registers";
 constexpr std::string_view FPR_DESC = "Floating-point registers";
 constexpr std::string_view CSR_DESC = "Control and status registers";
 
+struct RV_RegFileInterface : public RegFileInfoInterface {
+  RV_RegFileInterface(const ISAInfoBase *isaInfo) : m_isaInfo(isaInfo) {};
+
+  unsigned bits() const override {
+    return m_isaInfo ? m_isaInfo->bits() : 32;
+  }
+
+protected:
+  const ISAInfoBase *m_isaInfo;
+};
+
 /// Defines information about the general RISC-V register file.
-struct RV_GPRInfo : public RegFileInfoInterface {
+struct RV_GPRInfo : public RV_RegFileInterface {
+  RV_GPRInfo() : RV_RegFileInterface(nullptr) {};
+  RV_GPRInfo(const ISAInfoBase *isaInfo) : RV_RegFileInterface(isaInfo) {};
+
   std::string_view regFileName() const override { return GPR; }
   std::string_view regFileDesc() const override { return GPR_DESC; }
   unsigned int regCnt() const override { return 32; }
@@ -109,7 +123,14 @@ struct RV_GPRInfo : public RegFileInfoInterface {
 };
 
 /// Defines information about the floating-point RISC-V register file.
-struct RV_FPRInfo : public RegFileInfoInterface {
+struct RV_FPRInfo : public RV_RegFileInterface {
+  RV_FPRInfo() : RV_RegFileInterface(nullptr) {};
+  RV_FPRInfo(const ISAInfoBase *isaInfo) : RV_RegFileInterface(isaInfo) {};
+
+  unsigned bits() const override {
+    return 32;
+  }
+
   std::string_view regFileName() const override { return FPR; }
   std::string_view regFileDesc() const override { return FPR_DESC; }
   unsigned int regCnt() const override { return 32; }

@@ -44,6 +44,11 @@ struct RegFileInfoInterface {
   virtual QString regInfo(unsigned i) const = 0;
   /// Returns if the i'th register is read-only.
   virtual bool regIsReadOnly(unsigned i) const = 0;
+  
+  /// Returns Register width, in bits
+  virtual unsigned bits() const = 0;
+  /// Register width, in bytes
+  unsigned bytes() const { return bits() / CHAR_BIT; }
 };
 
 /// An index into a single register.
