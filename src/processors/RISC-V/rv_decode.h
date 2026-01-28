@@ -28,6 +28,32 @@ public:
         case RVISA::OpcodeID::JAL:    return RVInstr::JAL;
         case RVISA::OpcodeID::JALR:   return RVInstr::JALR;
         case RVISA::OpcodeID::SYSTEM: return RVInstr::ECALL;
+        case RVISA::OpcodeID::SYSTEM:  {
+          const auto fields = RVInstrParser::getParser()->decodeI32Instr(instrValue);
+          RVISA::ExtZicsr::TypeCSR::Funct3 funct3 = static_cast<RVISA::ExtZicsr::TypeCSR::Funct3>(fields[2]);
+
+          if (funct3 == RVISA::ExtZicsr::TypeCSR::Funct3::ECALL) {
+            return RVInstr::ECALL;
+          }
+
+          if(!m_isa || !m_isa->extensionEnabled(RVISA::Extension::Zicsr.name)) {
+            // Fallthrough - unknown instruction.
+            break;
+          }
+          
+          // general decode csr instructions
+          switch (funct3) {
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRW:  return RVInstr::CSRRW;
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRS:  return RVInstr::CSRRS;
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRC:  return RVInstr::CSRRC;
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRWI: return RVInstr::CSRRWI;
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRSI: return RVInstr::CSRRSI;
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRCI: return RVInstr::CSRRCI;
+            default: break;
+          }
+          break;
+        }
+        
 
         case RVISA::OpcodeID::OPIMM: {
           // I-Type

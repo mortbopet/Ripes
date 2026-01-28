@@ -5,6 +5,9 @@
 #include "isainfo.h"
 #include "rvrelocations.h"
 
+#include <QHash>
+#include <span>
+
 namespace Ripes {
 
 template <unsigned XLEN>
@@ -82,6 +85,9 @@ extern const QStringList FPRRegAliases;
 extern const QStringList FPRRegNames;
 extern const QStringList FPRRegDescs;
 
+extern const QHash<unsigned, QString> CSRRegAliases;
+extern const QHash<unsigned, QString> CSRRegNames;
+extern const QHash<unsigned, QString> CSRRegDescs;
 
 template <typename InstrImpl>
 struct RV_Instruction : public Instruction<InstrImpl> {
@@ -191,6 +197,62 @@ struct RV_FPRInfo : public RV_RegFileInterface {
   }
 };
 
+/// Defines information about the floating-point RISC-V register file.
+struct RV_CSRInfo : public RV_RegFileInterface {
+  // clang-format off
+  enum class CSR : unsigned {
+    FFLAGS = 0x001,
+    FRM    = 0x002,
+    FCSR   = 0x003
+  };
+  // count of the actual implemented CSRs and not the entire addressable space
+  // Attention: Must always be in sync with the enum class CSR above
+  constexpr static unsigned CSRCount = 3;
+  // clang-format on
+
+  RV_CSRInfo() : RV_RegFileInterface(nullptr) {};
+  RV_CSRInfo(const ISAInfoBase *isaInfo) : RV_RegFileInterface(isaInfo) {};
+
+  std::string_view regFileName() const override { return RVISA::CSR; }
+  std::string_view regFileDesc() const override { return CSR_DESC; }
+  unsigned int regCnt() const override { return CSRCount; }
+  QString regName(unsigned i) const override {
+    return RVISA::CSRRegNames.value(i, QString());
+  }
+  QString regAlias(unsigned i) const override {
+    return RVISA::CSRRegAliases.value(i, QString());
+  }
+  QString regInfo(unsigned i) const override {
+    return RVISA::CSRRegDescs.value(i, QString());
+  }
+  bool regIsReadOnly(unsigned i) const override {
+    // typically csrs use the highest 4 bits to encode the accessibility
+    // where 0b11 in the 2 most significant bits indicates read-only access
+    // since for now we dont have any special csrs defined this simple check suffices
+    return ((i >> 10) & 0b11) == 0b11;
+  }
+  unsigned int regNumber(const QString &reg, bool &success) const override {
+    int key;
+    success = true;
+
+    key = static_cast<int>(RVISA::CSRRegNames.key(reg, -1));
+    if (key != static_cast<int>(-1)) {
+      return key;
+    }
+
+    key = static_cast<int>(RVISA::CSRRegAliases.key(reg, -1));
+    if (key != static_cast<int>(-1)) {
+      return key;
+    }
+
+    success = false;
+
+    return 0;
+  }
+};
+
+
+
 enum class Option {
   shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
                       // the 64-bit RISC-V ISA
@@ -218,6 +280,10 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions);
 }
 
+namespace ExtZicsr {
+void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
+               PseudoInstrVec &pseudoInstructions);
+}
 class RV_ISAInfoBase : public ISAInfoBase {
 public:
   static const QStringList &getSupportedExtensions() {
@@ -410,6 +476,9 @@ struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31, N>> {};
 
 template <typename RegImpl, unsigned tokenIndex, typename Range>
 struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
+
+template <typename RegImpl, unsigned tokenIndex, typename Range>
+struct CSR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_CSRInfo> {};
 
 /// The RISC-V Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 15-19 of the instruction

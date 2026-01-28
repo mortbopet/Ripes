@@ -99,6 +99,23 @@ const QStringList FPRRegDescs = QStringList()   << "FP Temporary\nSaver: Caller"
                                                 << "FP Temporary\nSaver: Caller"
                                                 << "FP Temporary\nSaver: Caller"
                                                 << "FP Temporary\nSaver: Caller";
+#define CSR_REG(name) static_cast<unsigned>(RV_CSRInfo::CSR::name)
+const QHash<unsigned, QString> CSRRegAliases = {
+    {CSR_REG(FFLAGS), "fflags"},
+    {CSR_REG(FRM),    "frm"},
+    {CSR_REG(FCSR),   "fcsr"}
+};
+const QHash<unsigned, QString> CSRRegNames = {
+    {CSR_REG(FFLAGS), "fflags"},
+    {CSR_REG(FRM),    "frm"},
+    {CSR_REG(FCSR),   "fcsr"}
+};
+const QHash<unsigned, QString> CSRRegDescs = {
+    {CSR_REG(FFLAGS), "Floating-Point Accrued Exceptions"},
+    {CSR_REG(FRM),    "Floating-Point Dynamic Rounding Mode"},
+    {CSR_REG(FCSR),   "Floating-Point Control and Status Register (frm +fflags)"}
+};
+#undef CSR_REG
 // clang-format on
 
 } // namespace RVISA

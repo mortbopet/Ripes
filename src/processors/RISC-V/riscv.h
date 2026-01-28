@@ -145,7 +145,15 @@ enum class RVInstr {
   FCVT_L_S,
   FCVT_LU_S,
   FCVT_S_L,
-  FCVT_S_LU
+  FCVT_S_LU,
+
+  /* RV32_Zicsr - Control and status registers Extension */
+  CSRRW,
+  CSRRS,
+  CSRRC,
+  CSRRWI,
+  CSRRSI,
+  CSRRCI
 };
 
 /** Datapath enumerations */

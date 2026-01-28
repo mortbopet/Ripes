@@ -82,6 +82,10 @@ public:
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
             case RVInstr::LWU: case RVInstr::LD:
+            
+            // CSR instructions
+            case RVInstr::CSRRW: case RVInstr::CSRRS: case RVInstr::CSRRC:
+            case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
 
             // Jump instructions
             case RVInstr::JALR:
