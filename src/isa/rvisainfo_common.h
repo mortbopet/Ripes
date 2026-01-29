@@ -283,15 +283,90 @@ namespace ExtZicsr {
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions);
 }
+
+namespace Extension {
+  enum class Id {
+    I,     // Base Integer ISA
+    M,     // Integer Multiplication and Division
+    F,     // Single-Precision Floating-Point
+    C,     // Compressed Instructions
+    Zicsr, // Control and Status Register Instructions
+  };
+
+  struct Extension_t {
+    Id id;
+    QString name;
+    QString description;
+    QList<Id> implicates;
+
+    bool operator==(const Extension_t &other) const {
+      return id == other.id;
+    }
+
+    QString toCanonicalArchFormat() const {
+      QString fmt = name.toLower();
+      
+      if( name.length() > 1 ) {
+        fmt += "_"; // multi-character extensions are separated by underscores
+      }
+      
+      return fmt;
+    }
+  };
+
+  // static const Extension_t I {Id::I, "I", "Base Integer ISA", {}};
+  static const Extension_t M {Id::M, "M", "Integer multiplication and division", {}};
+  static const Extension_t C {Id::C, "C", "Compressed Instructions", {}};
+  static const Extension_t Zicsr {Id::Zicsr, "Zicsr", "Control and Status Register Instructions", {}};
+  static const Extension_t F {Id::F, "F", "Single-Precision Floating-Point Instructions ", {Id::Zicsr}};
+  static const QList<Extension_t> all = {
+    // must be in canonical order
+    M, F, C, Zicsr
+  };
+
+  static Extension_t fromId(Id id) {
+    for (const auto &extension : Extension::all) {
+      if (extension.id == id) {
+        return extension;
+      }
+    }
+    throw std::invalid_argument("Invalid RISC-V extension id");
+  }
+  static Extension_t fromString(const QString &ext) {
+    for (const auto &extension : Extension::all) {
+      if (extension.name == ext) {
+        return extension;
+      }
+    }
+    throw std::invalid_argument("Invalid RISC-V extension: " + ext.toStdString());
+  }
+
+  static QStringList toStringList(const QList<Extension_t> &exts) {
+    QStringList extNames;
+    for (const auto &ext : exts) {
+      extNames << ext.name;
+    }
+    return extNames;
+  }
+  [[maybe_unused]]
+  static QList<Extension_t> fromStringList(const QStringList &exts) {
+    QList<Extension_t> extensions;
+    for (const auto &extStr : exts) {
+      extensions.append(fromString(extStr));
+    }
+    return extensions;
+  }
+} // namespace Extension
+
 class RV_ISAInfoBase : public ISAInfoBase {
 public:
   static const QStringList &getSupportedExtensions() {
-    static const QStringList ext = {"M", "C", "F"};
-    return ext;
+    static const QStringList exts = Extension::toStringList(Extension::all);
+    return exts;
   }
   static const QStringList &getDefaultExtensions() {
-    static const QStringList ext = {"M"};
-    return ext;
+    static const QStringList exts = {Extension::M.name};
+    return exts;
   }
 
   RV_ISAInfoBase(const QStringList extensions) {
@@ -299,15 +374,27 @@ public:
     for (const auto &ext : extensions) {
       if (supportsExtension(ext)) {
         m_enabledExtensions << ext;
+        
+        for (const auto &impExtId : Extension::fromString(ext).implicates) {
+          const auto impExt = Extension::fromId(impExtId);
+          if (supportsExtension(impExt.name))
+            m_enabledExtensions << impExt.name;
+        }
       } else {
         assert(false && "Invalid extension specified for ISA");
       }
     }
 
-    m_regInfos[GPR] = std::make_unique<RV_GPRInfo>();
-    if (supportsExtension("F")) {
-      m_regInfos[FPR] = std::make_unique<RV_FPRInfo>();
+    m_regInfos[GPR] = std::make_unique<RV_GPRInfo>(this);
+    if (extensionEnabled(Extension::F.name)) {
+      m_regInfos[FPR] = std::make_unique<RV_FPRInfo>(this);
     }
+
+    // as for now the f extension manages the fcsr it self 
+    // and therefor we dont use the CSR regfile
+    // if (extensionEnabled(Extension::Zicsr)) {
+    //   m_regInfos[CSR] = std::make_unique<RV_CSRInfo>(this);
+    // }
 
     // Setup relocations
     m_relocations = rvRelocations();
@@ -355,13 +442,7 @@ public:
     return m_enabledExtensions;
   }
   QString extensionDescription(const QString &ext) const override {
-    if (ext == "M")
-      return "Integer multiplication and division";
-    if (ext == "C")
-      return "Compressed instructions";
-    if (ext == "F")
-      return "32-Bit Floating Point arithmetic";
-    Q_UNREACHABLE();
+    return Extension::fromString(ext).description;
   }
 
   const InstrVec &instructions() const override { return m_instructions; }
@@ -371,20 +452,43 @@ public:
   const RelocationsVec &relocations() const override { return m_relocations; }
 
 protected:
+  void _loadExtention(const Extension::Extension_t &ext) {
+    if (m_loadedExtensions.contains(ext.id)) {
+      return;
+    }
+    m_loadedExtensions << ext.id;
+
+    switch (ext.id) {
+      case Extension::Id::I:
+        return; // base extension, nothing to do
+      case Extension::Id::M:
+        RVISA::ExtM::enableExt(this, m_instructions, m_pseudoInstructions);
+        return;
+      case Extension::Id::F:
+        RVISA::ExtF::enableExt(this, m_instructions, m_pseudoInstructions);
+        return;
+      case Extension::Id::C:
+        RVISA::ExtC::enableExt(this, m_instructions, m_pseudoInstructions);
+        return;
+      case Extension::Id::Zicsr:
+        RVISA::ExtZicsr::enableExt(this, m_instructions, m_pseudoInstructions);
+        return;
+    }
+
+    Q_UNREACHABLE();
+  }
+
   /// Make sure to call this in any child class's constructor
   void initialize(const std::set<Option> &options = {}) {
     RVISA::ExtI::enableExt(this, m_instructions, m_pseudoInstructions, options);
+
     for (const auto &extension : m_enabledExtensions) {
-      switch (extension.unicode()->toLatin1()) {
-      case 'M':
-        RVISA::ExtM::enableExt(this, m_instructions, m_pseudoInstructions);
-        break;
-      case 'C':
-        RVISA::ExtC::enableExt(this, m_instructions, m_pseudoInstructions);
-        break;
-      case 'F':
-        RVISA::ExtF::enableExt(this, m_instructions, m_pseudoInstructions);
-        break;
+      const Extension::Extension_t ext = Extension::fromString(extension);
+      
+      _loadExtention(ext);
+
+      for (const auto &impExt : ext.implicates) {
+        _loadExtention(Extension::fromId(impExt));
       }
     }
   }
@@ -392,15 +496,23 @@ protected:
   QString _CCmarch(QString march) const {
     // Proceed in canonical order. Canonical ordering is defined in the RISC-V
     // spec.
-    for (const auto &ext : {"M", "A", "F", "D", "C"}) {
-      if (m_enabledExtensions.contains(ext)) {
-        march += QString(ext).toLower();
+    for (const auto &ext : Extension::all) {
+      if (m_enabledExtensions.contains(ext.name)) {
+        march += ext.toCanonicalArchFormat();
       }
+    }
+
+    if (march.endsWith('_')) {
+      // remove trailing underscore
+      // this is optional to the RISC-V nameming convention
+      // but we choose to remove it for cleanliness
+      march.chop(1); 
     }
 
     return march;
   }
 
+  QList<Extension::Id> m_loadedExtensions;
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = getSupportedExtensions();
 

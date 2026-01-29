@@ -25,10 +25,6 @@ std::shared_ptr<const ISAInfoBase> fullISA() {
 
 } // namespace RVISA
 
-constexpr int c_RVInstrWidth = 32; // Width of instructions
-constexpr int c_RVRegs = 32;       // Number of registers
-constexpr int c_RVRegsBits =
-    vsrtl::ceillog2(c_RVRegs); // Width of operand to index into registers
 
 /** Instruction set enumerations */
 enum class RVInstrType { R, I, S, B, U, J };
@@ -170,6 +166,47 @@ enum class RVInstr {
   CSRRSI,
   CSRRCI
 };
+
+[[maybe_unused]]
+static inline RVISA::Extension::Id getExtensionType(const RVInstr instr) {
+  switch (instr) {
+    case RVInstr::MUL:    case RVInstr::MULH:
+    case RVInstr::MULHSU: case RVInstr::MULHU:
+    case RVInstr::DIV:    case RVInstr::DIVU:
+    case RVInstr::REM:    case RVInstr::REMU:
+    case RVInstr::MULW:   
+    case RVInstr::DIVW:   case RVInstr::DIVUW:  
+    case RVInstr::REMW:   case RVInstr::REMUW:
+      return RVISA::Extension::Id::M;
+
+    case RVInstr::FLW:      case RVInstr::FSW:
+    case RVInstr::FADD_S:   case RVInstr::FSUB_S:
+    case RVInstr::FMUL_S:   case RVInstr::FDIV_S:
+    case RVInstr::FSQRT_S: 
+    case RVInstr::FMIN_S:   case RVInstr::FMAX_S: 
+    case RVInstr::FSGNJ_S:  case RVInstr::FSGNJN_S: case RVInstr::FSGNJX_S:
+    case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+    case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+    case RVInstr::FCVT_S_W: case RVInstr::FCVT_S_WU:
+    case RVInstr::FCVT_S_L: case RVInstr::FCVT_S_LU:
+    case RVInstr::FMV_X_W:  case RVInstr::FMV_W_X:
+    case RVInstr::FEQ_S:    case RVInstr::FLT_S: case RVInstr::FLE_S:
+    case RVInstr::FMADD_S:  case RVInstr::FMSUB_S: 
+    case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
+    case RVInstr::FCLASS_S:
+    case RVInstr::FRCSR:   case RVInstr::FSCSR:
+    case RVInstr::FRRM:    case RVInstr::FSRM:
+    case RVInstr::FRFLAGS: case RVInstr::FSFLAGS:
+      return RVISA::Extension::Id::F;
+    
+    case RVInstr::CSRRW:  case RVInstr::CSRRS:  case RVInstr::CSRRC:
+    case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
+      return RVISA::Extension::Id::Zicsr;
+
+    default:
+      return RVISA::Extension::Id::I;
+  }
+}
 
 /** Datapath enumerations */
 enum class ALUOp {

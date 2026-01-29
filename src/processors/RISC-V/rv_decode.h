@@ -116,7 +116,7 @@ public:
           // R-Type
           const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
           if (fields[0] == 0b0000001) {
-            if(m_isa && m_isa->extensionEnabled("M")) {
+            if(m_isa && m_isa->extensionEnabled(RVISA::Extension::M.name)) {
               // RV32M Standard extension
               switch (fields[3]) {
                 case 0b000: return RVInstr::MUL;
@@ -163,7 +163,7 @@ public:
           // R-Type (32-bit, in 64-bit ISA)
           const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
           if (fields[0] == 0b0000001) {
-            if(m_isa && m_isa->extensionEnabled("M")) {
+            if(m_isa && m_isa->extensionEnabled(RVISA::Extension::M.name)) {
               // RV64M Standard extension
               switch (fields[3]) {
                 case 0b000: return RVInstr::MULW;
@@ -246,7 +246,7 @@ public:
           break;
       }
 
-      if(!m_isa || !m_isa->extensionEnabled("F")) {
+      if(!m_isa || !m_isa->extensionEnabled(RVISA::Extension::F.name)) {
         // Fallthrough - unknown instruction.
         return RVInstr::NOP;
       }
