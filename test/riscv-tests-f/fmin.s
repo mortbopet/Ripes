@@ -1,5 +1,16 @@
 .text
  main:
+ li s0, 0x00000000ffffffff # single float mask for 64 bit processors
+ j test_2
+
+  setup:
+ flw f0, 0(a0)
+ flw f1, 4(a0)
+ flw f2, 8(a0)
+ lw a3, 12(a0)
+ and a3, a3, s0 # remove sign extended high word for 64 bit processors
+ ret
+
 
 
   #-------------------------------------------------------------
@@ -8,10 +19,7 @@
 
   test_2: li gp, 2
  la a0, test_2_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -21,10 +29,7 @@
        
   test_3: li gp, 3
  la a0, test_3_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -34,10 +39,7 @@
        
   test_4: li gp, 4
  la a0, test_4_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -47,10 +49,7 @@
        
   test_5: li gp, 5
  la a0, test_5_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -60,10 +59,7 @@
        
   test_6: li gp, 6
  la a0, test_6_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -73,10 +69,7 @@
        
   test_7: li gp, 7
  la a0, test_7_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -87,10 +80,7 @@
 
   test_12: li gp, 12
  la a0, test_12_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -100,10 +90,7 @@
     
   test_13: li gp, 13
  la a0, test_13_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -113,10 +100,7 @@
     
   test_14: li gp, 14
  la a0, test_14_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -126,10 +110,7 @@
     
   test_15: li gp, 15
  la a0, test_15_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -139,10 +120,7 @@
     
   test_16: li gp, 16
  la a0, test_16_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -152,10 +130,7 @@
     
   test_17: li gp, 17
  la a0, test_17_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -168,10 +143,7 @@
 
   test_20: li gp, 20
  la a0, test_20_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -183,10 +155,7 @@
 
   test_21: li gp, 21
  la a0, test_21_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -198,10 +167,7 @@
   # -0.0 < +0.0
   test_30: li gp, 30
  la a0, test_30_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -211,10 +177,7 @@
     
   test_31: li gp, 31
  la a0, test_31_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmin.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -224,10 +187,7 @@
     
   test_32: li gp, 32
  la a0, test_32_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
@@ -237,10 +197,7 @@
     
   test_33: li gp, 33
  la a0, test_33_data 
- flw f0, 0(a0)
- flw f1, 4(a0)
- flw f2, 8(a0)
- lw a3, 12(a0)
+ jal setup
  fmax.s f3, f0, f1
  fmv.x.s a0, f3
  fsflags a1, x0
