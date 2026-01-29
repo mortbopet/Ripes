@@ -54,6 +54,8 @@ public:
             case RVInstr::LBU: return MemOp::LBU;
             case RVInstr::LHU: return MemOp::LHU;
             case RVInstr::LWU: return MemOp::LWU;
+            case RVInstr::FLW: return MemOp::LWU;
+            case RVInstr::FSW: return MemOp::SW;
             default:
                 return MemOp::NOP;
         }
@@ -87,6 +89,16 @@ public:
             case RVInstr::CSRRW: case RVInstr::CSRRS: case RVInstr::CSRRC:
             case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
 
+            // Float instructions
+            case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+            case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+            case RVInstr::FMV_X_W:
+            case RVInstr::FEQ_S: case RVInstr::FLT_S: case RVInstr::FLE_S:
+            case RVInstr::FCLASS_S:
+            case RVInstr::FRCSR: case RVInstr::FSCSR:
+            case RVInstr::FRRM: case RVInstr::FSRM:
+            case RVInstr::FRFLAGS: case RVInstr::FSFLAGS:
+
             // Jump instructions
             case RVInstr::JALR:
             case RVInstr::JAL:
@@ -99,7 +111,7 @@ public:
         switch(opc){
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
-            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD: case RVInstr::FLW:
                 return RegWrSrc::MEMREAD;
 
             // Jump instructions
@@ -149,7 +161,7 @@ public:
         // Load/Store instructions
         case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
         case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
-        case RVInstr::SD:
+        case RVInstr::SD: case RVInstr::FLW: case RVInstr::FSW:
             return AluSrc2::IMM;
 
         // Branch instructions
@@ -162,7 +174,7 @@ public:
         case RVInstr::JAL:
             return AluSrc2::IMM;
 
-        default:
+        default: // all other float instructions require a REG input so let them fall through
             return AluSrc2::REG2;
         }
     }
@@ -171,7 +183,7 @@ public:
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
             case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
-            case RVInstr::SD:
+            case RVInstr::SD: case RVInstr::FLW: case RVInstr::FSW:
                 return ALUOp::ADD;
             case RVInstr::LUI:
                 return ALUOp::LUI;
@@ -181,7 +193,7 @@ public:
             case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
                 return ALUOp::ADD;
             case RVInstr::SUB: return ALUOp::SUB;
-            case RVInstr::SLT: case RVInstr::SLTI:
+            case RVInstr::SLT: case RVInstr::SLTI: case RVInstr::FLT_S:
                 return ALUOp::LT;
             case RVInstr::SLTU: case RVInstr::SLTIU:
                 return ALUOp::LTU;
@@ -209,15 +221,15 @@ public:
             case RVInstr::SLLIW : return ALUOp::SLW;
             case RVInstr::SRLIW : return ALUOp::SRLW;
             case RVInstr::SRAIW : return ALUOp::SRAW;
-            case RVInstr::ADDW  : return ALUOp::ADDW ;
-            case RVInstr::SUBW  : return ALUOp::SUBW ;
-            case RVInstr::SLLW  : return ALUOp::SLW ;
-            case RVInstr::SRLW  : return ALUOp::SRLW ;
-            case RVInstr::SRAW  : return ALUOp::SRAW ;
-            case RVInstr::MULW  : return ALUOp::MULW ;
-            case RVInstr::DIVW  : return ALUOp::DIVW ;
+            case RVInstr::ADDW  : return ALUOp::ADDW;
+            case RVInstr::SUBW  : return ALUOp::SUBW;
+            case RVInstr::SLLW  : return ALUOp::SLW;
+            case RVInstr::SRLW  : return ALUOp::SRLW;
+            case RVInstr::SRAW  : return ALUOp::SRAW;
+            case RVInstr::MULW  : return ALUOp::MULW;
+            case RVInstr::DIVW  : return ALUOp::DIVW;
             case RVInstr::DIVUW : return ALUOp::DIVUW;
-            case RVInstr::REMW  : return ALUOp::REMW ;
+            case RVInstr::REMW  : return ALUOp::REMW;
             case RVInstr::REMUW : return ALUOp::REMUW;
 
             default: return ALUOp::NOP;
@@ -226,7 +238,8 @@ public:
 
     static VSRTL_VT_U do_do_mem_write_ctrl(RVInstr opc) {
         switch(opc) {
-            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::SD:
+            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
+            case RVInstr::SD: case RVInstr::FSW:
                 return 1;
             default: return 0;
         }
@@ -235,7 +248,7 @@ public:
     static VSRTL_VT_U do_do_read_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
-            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD: case RVInstr::FLW:
                 return 1;
             default: return 0;
         }
@@ -245,6 +258,7 @@ public:
 public:
   Control(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
+    setDescription("RISC-V Control Unit");
     comp_ctrl << [this] { return do_comp_ctrl(opcode.eValue<RVInstr>()); };
     do_branch << [this] { return do_branch_ctrl(opcode.eValue<RVInstr>()); };
     do_jump << [this] { return do_jump_ctrl(opcode.eValue<RVInstr>()); };

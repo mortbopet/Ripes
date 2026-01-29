@@ -180,15 +180,14 @@ struct RV_FPRInfo : public RV_RegFileInterface {
   }
   bool regIsReadOnly(unsigned) const override { return false; }
   unsigned int regNumber(const QString &reg, bool &success) const override {
-    QString regRes = reg;
     success = true;
 
     if (RVISA::FPRRegNames.contains(reg)) {
       return RVISA::FPRRegNames.indexOf(reg);
     }
 
-    if (RVISA::GPRRegAliases.contains(reg)) {
-      return RVISA::GPRRegAliases.indexOf(reg);
+    if (RVISA::FPRRegAliases.contains(reg)) {
+      return RVISA::FPRRegAliases.indexOf(reg);
     }
 
     success = false;
@@ -476,6 +475,9 @@ struct OpPartFunct7 : public OpPart<funct7, BitRange<25, 31, N>> {};
 
 template <typename RegImpl, unsigned tokenIndex, typename Range>
 struct GPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_GPRInfo> {};
+
+template <typename RegImpl, unsigned tokenIndex, typename Range>
+struct FPR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_FPRInfo> {};
 
 template <typename RegImpl, unsigned tokenIndex, typename Range>
 struct CSR_Reg : public Reg<RegImpl, tokenIndex, Range, RV_CSRInfo> {};

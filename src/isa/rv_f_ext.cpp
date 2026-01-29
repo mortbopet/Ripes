@@ -11,7 +11,10 @@ static void _enableExtPseudo(const ISAInfoBase *,
 
   enablePseudoInstructions< Flw, Fsw, 
                             Fmv::s, Fabs::s, Fneg::s,
-                            FmvAlias::s::x, FmvAlias::x::s
+                            FmvAlias::s::x, FmvAlias::x::s,
+                            TypeCSR::Frcsr, TypeCSR::Fscsr,
+                            TypeCSR::Frrm, TypeCSR::Fsrm,
+                            TypeCSR::Frflags, TypeCSR::Fsflags
                           >(pseudoInstructions);
 }
 
@@ -19,7 +22,7 @@ static void _enableExtPseudo(const ISAInfoBase *,
 static void _enableExt64(const ISAInfoBase *, InstrVec &instructions) {
   using namespace TypeR;
 
-  enableInstructions<Fcvt::l::s, Fcvt::lu::s, Fcvt::s::l, Fcvt::s::lu>(instructions);
+  enableInstructions< Fcvt::l::s, Fcvt::lu::s, Fcvt::s::l, Fcvt::s::lu>(instructions);
 }
 
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
