@@ -429,15 +429,19 @@ private:
 };
 
 template <unsigned XLEN>
-class Decode3 : public Decode<XLEN> {
+class DecodeF : public Decode<XLEN> {
   public:
-  Decode3(const std::string &name, SimComponent *parent)
+  DecodeF(const std::string &name, SimComponent *parent)
   : Decode<XLEN>(name, parent) {
     r3_reg_idx << [this] {
       return (Decode<XLEN>::instr.uValue() >> 27) & 0b11111;
     };
+    roundMode << [this] {
+      return (Decode<XLEN>::instr.uValue() >> 12) & 0b111;
+    };
   }
   OUTPUTPORT(r3_reg_idx, c_RVRegsBits);
+  OUTPUTPORT_ENUM(roundMode, RVISA::ExtF::RoundMode);
 };
 
 } // namespace core
