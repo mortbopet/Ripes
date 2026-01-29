@@ -465,7 +465,7 @@ protected:
         errors.push_back(*err);
         continue;
       } else {
-        symbolValue = std::get<ExprEvalVT>(exprRes);
+        symbolValue = std::get<int64_t>(std::get<ExprEvalVT>(exprRes));
       }
 
       if (!linkRequest.fieldRequest.relocation.isEmpty()) {

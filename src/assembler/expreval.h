@@ -4,6 +4,7 @@
 #include "isa/symbolmap.h"
 #include <QRegularExpression>
 #include <variant>
+#include "sFloat.h"
 
 namespace Ripes {
 namespace Assembler {
@@ -11,7 +12,10 @@ namespace Assembler {
 extern const QRegularExpression s_exprOperatorsRegex;
 extern const QString s_exprOperators;
 extern const QString s_exprTokens;
-using ExprEvalVT = int64_t; // Expression evaluation value type
+
+using ExprEvalIntType = int64_t;
+using ExprEvalFloatType = Ripes::SoftFloat::Float32_t;
+using ExprEvalVT = std::variant<ExprEvalIntType, ExprEvalFloatType>; // Expression evaluation value type
 using ExprEvalRes = Result<ExprEvalVT>;
 
 /**

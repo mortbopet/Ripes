@@ -12,153 +12,272 @@ namespace Assembler {
 
 const QRegularExpression s_exprOperatorsRegex =
     QRegularExpression(R"((\+|\-|\/|\*|\%|\@))");
+const QRegularExpression s_exprFloatRegex =
+    QRegularExpression(R"(^[+-]?(?!0[xb])((\d+\.\d*)|(\.\d+)|(\d+))(e[+-]?\d+)?)", 
+                       QRegularExpression::CaseInsensitiveOption);
 const QString s_exprOperators QStringLiteral("+-*/%@");
 const QString s_exprTokens QStringLiteral("()+-*/%@");
 
-#define IfExpr(TExpr, boundVar)                                                \
-  if (auto *boundVar = std::get_if<TExpr>(expr.get())) {
-#define FiExpr }
-
-struct Expr;
-
-struct Printable {
-  virtual ~Printable(){};
-  virtual void print(std::ostream &str) const = 0;
+struct Expr {
+  virtual ~Expr(){};
+  virtual QString print() const = 0;
+  virtual ExprEvalVT evaluate(const AbsoluteSymbolMap *variables) const = 0;
+  
+  friend std::ostream &operator<<(
+    std::ostream &os,
+    const std::shared_ptr<Expr> &expr
+  ) {
+    os << expr->print().toStdString();
+    return os;
+  }
 };
 
-struct Nothing : Printable {
+struct Nothing : public Expr {
   Nothing() {}
-  void print(std::ostream &str) const override;
+  QString print() const override {
+    return "";
+  }
+  ExprEvalVT evaluate(const AbsoluteSymbolMap *variables) const override {
+    Q_UNUSED(variables);
+    return { ExprEvalIntType{0} };
+  }
 };
 
-struct Literal : Printable {
+struct Literal : public Expr {
   explicit Literal(const QString &_v) : v(_v) {}
   QString v;
-  void print(std::ostream &str) const override;
+  QString print() const override {
+    return v;
+  }
+  ExprEvalVT evaluate(const AbsoluteSymbolMap *variables) const override {
+    ImmConvInfo convInfo;
+    bool ok = false;
+    auto value = getImmediate(v, ok, &convInfo);
+    
+    if (!ok) {
+      if (variables != nullptr) {
+        auto it = variables->find(v);
+        if (it != variables->end()) {
+          value = it->second;
+          ok = true;
+        }
+      }
+    }
+
+    if (!ok) {
+      throw std::runtime_error(
+          QString("Unknown symbol '%1'").arg(v).toStdString());
+    }
+
+    // if the literal was parsed as a float, return as such
+    if (convInfo.radix == Radix::Float) {
+      return {ExprEvalFloatType{.word=static_cast<uint32_t>(value)}};
+    }
+
+    // else return as integer
+    return {ExprEvalIntType{value}};
+  }
 };
 
-struct Add : Printable {
+
+struct ExprBinOp : public Expr {
+  std::shared_ptr<Expr> lhs, rhs;
+
+  explicit ExprBinOp(const std::shared_ptr<Expr> &_lhs,
+                     const std::shared_ptr<Expr> &_rhs)
+    : lhs(_lhs), rhs(_rhs) {}
+
+  virtual ~ExprBinOp(){};
+  virtual QString print() const = 0;
+  virtual ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                                  const ExprEvalIntType &rhs) const = 0;
+  virtual ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                                      const ExprEvalFloatType &rhs) const = 0;
+  
+  ExprEvalVT evaluate(const AbsoluteSymbolMap *variables) const override {
+    auto lhsVal = lhs->evaluate(variables);
+    auto rhsVal = rhs->evaluate(variables);
+
+    // Integer operation
+    if (std::holds_alternative<ExprEvalIntType>(lhsVal) &&
+        std::holds_alternative<ExprEvalIntType>(rhsVal)) {
+      return {evalInt(std::get<ExprEvalIntType>(lhsVal),
+                      std::get<ExprEvalIntType>(rhsVal))};
+    }
+
+    // Float operation
+    ExprEvalFloatType lhsF, rhsF;
+    if (std::holds_alternative<ExprEvalIntType>(lhsVal)) {
+      lhsF = ExprEvalFloatType::from<ExprEvalIntType>(std::get<ExprEvalIntType>(lhsVal));
+    } else {
+      lhsF = std::get<ExprEvalFloatType>(lhsVal);
+    }
+
+    if (std::holds_alternative<ExprEvalIntType>(rhsVal)) {
+      rhsF = ExprEvalFloatType::from<ExprEvalIntType>(std::get<ExprEvalIntType>(rhsVal));
+    } else {
+      rhsF = std::get<ExprEvalFloatType>(rhsVal);
+    }
+
+    return {evalFloat(lhsF, rhsF)};
+  }
+};
+struct ExprBinIntegerOp : public ExprBinOp {
+  explicit ExprBinIntegerOp(const std::shared_ptr<Expr> &_lhs,
+                            const std::shared_ptr<Expr> &_rhs)
+    : ExprBinOp(_lhs, _rhs) {}
+  virtual ~ExprBinIntegerOp(){};
+  virtual QString print() const = 0;
+  virtual ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                                  const ExprEvalIntType &rhs) const = 0;
+  ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                              const ExprEvalFloatType &rhs) const override {
+    Q_UNUSED(lhs);
+    Q_UNUSED(rhs);
+    throw std::runtime_error("operation not defined for float types");
+  }
+};
+
+struct Add : public ExprBinOp {
   Add(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " + " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    return lhs + rhs;
+  }
+  ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                              const ExprEvalFloatType &rhs) const override {
+    return lhs + rhs;
+  }
 };
 
-struct Sub : Printable {
+struct Sub : public ExprBinOp {
   Sub(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " - " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    return lhs - rhs;
+  }
+  ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                              const ExprEvalFloatType &rhs) const override {
+    return lhs - rhs;
+  }
 };
 
-struct Mul : Printable {
+struct Mul : public ExprBinOp {
   Mul(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " * " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    return lhs * rhs;
+  }
+  ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                              const ExprEvalFloatType &rhs) const override {
+    return lhs * rhs;
+  }
 };
 
-struct Div : Printable {
+struct Div : public ExprBinOp {
   Div(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " / " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    if (rhs == 0) {
+      throw std::runtime_error("Division by zero error in expression evaluation.");
+    }
+    return lhs / rhs;
+  }
+  ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                              const ExprEvalFloatType &rhs) const override {
+    if (rhs.word == 0) {
+      throw std::runtime_error("Division by zero error in expression evaluation.");
+    }
+    return lhs / rhs;
+  }
 };
 
-struct Mod : Printable {
+struct Mod : public ExprBinOp {
   Mod(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " % " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    if (rhs == 0) {
+      throw std::runtime_error("Division by zero error in expression evaluation.");
+    }
+    return lhs % rhs;
+  }
+  ExprEvalFloatType evalFloat(const ExprEvalFloatType &lhs,
+                              const ExprEvalFloatType &rhs) const override {
+    if (rhs.word == 0) {
+      throw std::runtime_error("Division by zero error in expression evaluation.");
+    }
+    return lhs % rhs;
+  }
 };
 
-struct And : Printable {
+struct And : public ExprBinIntegerOp {
   And(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinIntegerOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " & " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    return lhs & rhs;
+  }
 };
 
-struct Or : Printable {
+struct Or : public ExprBinIntegerOp {
   Or(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinIntegerOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " | " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    return lhs | rhs;
+  }
 };
 
-struct SignExtend : Printable {
+struct SignExtend : public ExprBinIntegerOp {
   SignExtend(const std::shared_ptr<Expr> &_lhs,
              const std::shared_ptr<Expr> &_rhs)
-      : lhs(_lhs), rhs(_rhs) {}
-  std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+    : ExprBinIntegerOp(_lhs, _rhs) {}
+  
+  QString print() const override {
+    return "(" + lhs->print() + " @ " + rhs->print() + ")";
+  }
+  ExprEvalIntType evalInt(const ExprEvalIntType &lhs,
+                          const ExprEvalIntType &rhs) const override {
+    return vsrtl::signextend(lhs, rhs);
+  }
 };
-
-struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing,
-                           SignExtend> {
-  using variant::variant;
-
-  /**
-   * @brief operator <<
-   * This also seem quite dumb, same issue as with evaluate (see comment)
-   */
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const std::shared_ptr<Expr> &expr) {
-#define tryPrint(type)                                                         \
-  IfExpr(type, v) {                                                            \
-    v->print(os);                                                              \
-    return os;                                                                 \
-  }                                                                            \
-  FiExpr;
-
-    tryPrint(Add);
-    tryPrint(Div);
-    tryPrint(Mul);
-    tryPrint(Sub);
-    tryPrint(Literal);
-    tryPrint(Mod);
-    tryPrint(Nothing);
-    tryPrint(SignExtend);
-
-    return os;
-  };
-};
-
-// clang-format off
-void Nothing::print(std::ostream&) const {}
-void Add::print(std::ostream& os) const {
-    os << "(" << lhs << " + " << rhs << ")";
-}
-void Sub::print(std::ostream& os) const {
-    os << "(" << lhs << " - " << rhs << ")";
-}
-void Mul::print(std::ostream& os) const {
-    os << "(" << lhs << " * " << rhs << ")";
-}
-void Div::print(std::ostream& os) const {
-    os << "(" << lhs << " / " << rhs << ")";
-}
-void Mod::print(std::ostream& os) const {
-    os << "(" << lhs << " % " << rhs << ")";
-}
-void Literal::print(std::ostream& os) const {
-    os << v.toStdString();
-}
-void And::print(std::ostream& os) const {
-    os << "(" << lhs << " & " << rhs << ")";
-}
-void Or::print(std::ostream& os) const {
-    os << "(" << lhs << " | " << rhs << ")";
-}
-
-void SignExtend::print(std::ostream& os) const {
-    os << "(" << lhs << " @ " << rhs << ")";
-}
-
-// clang-format on
 
 using ExprRes = Result<std::shared_ptr<Expr>>;
 ExprRes parseRight(const Location &loc, const QString &s, int &pos, int &depth);
+ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth);
 
 template <typename BinOp>
 ExprRes rightRec(const Location &loc, const std::shared_ptr<Expr> &lhs,
@@ -167,29 +286,41 @@ ExprRes rightRec(const Location &loc, const std::shared_ptr<Expr> &lhs,
   if (auto *err = std::get_if<Error>(&rhs)) {
     return {*err};
   }
-  return {
-      std::make_shared<Expr>(BinOp{lhs, std::get<std::shared_ptr<Expr>>(rhs)})};
+  return {std::make_shared<BinOp>(lhs, std::get<std::shared_ptr<Expr>>(rhs))};
 }
 
-#define Token(lhs) std::make_shared<Expr>(Literal{lhs})
-
-ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth);
+#define Token(lhs) std::make_shared<Literal>(lhs)
 ExprRes parseRight(const Location &loc, const QString &s, int &pos,
                    int &depth) {
+  
   QString lhs;
+
+  // try parsing as float literal
+  // since float literals can contain +/- which would get parsed as binary 
+  // operators we need to parse out float literals beforehand
+  QRegularExpressionMatch match = s_exprFloatRegex.match(s, pos);
+  if (match.hasMatch() && match.capturedStart() == pos) {
+    lhs = match.captured(0);
+    pos += lhs.length();
+  }
+
   while (pos < s.length()) {
     // clang-format off
         auto& ch = s.at(pos);
         pos++;
         switch (ch.unicode()) {
             case '(': { depth++; return parseLeft(loc, s, pos, depth);}
-            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(loc, "Unmatched parenthesis in expression '" + s + '"'));};
+            case ')': { return depth-- != 0 ? ExprRes(Token(lhs)) : ExprRes(Error(loc, "Unmatched parenthesis in expression '" + s + '"'));};
             case '+': { return rightRec<Add>(loc, Token(lhs), s, pos, depth);}
             case '/': { return rightRec<Div>(loc, Token(lhs), s, pos, depth);}
             case '*': { return rightRec<Mul>(loc, Token(lhs), s, pos, depth);}
             case '-': {
-                auto lhsToken = lhs.isEmpty() ? std::make_shared<Expr>(Nothing()) : Token(lhs); // Allow unary '-'
-                return rightRec<Sub>(loc, lhsToken, s, pos, depth);}
+              if (lhs.isEmpty()) {
+                return rightRec<Sub>(loc, std::make_shared<Nothing>(), s, pos, depth);
+              } else {
+                return rightRec<Sub>(loc, Token(lhs), s, pos, depth);
+              }
+            }
             case '%': { return rightRec<Mod>(loc, Token(lhs), s, pos, depth);}
             case '|': { return rightRec<Or>(loc, Token(lhs), s, pos, depth);}
             case '&': { return rightRec<And>(loc, Token(lhs), s, pos, depth);}
@@ -198,7 +329,7 @@ ExprRes parseRight(const Location &loc, const QString &s, int &pos,
         }
     // clang-format on
   }
-  return Token(lhs);
+  return ExprRes(Token(lhs));
 }
 
 ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth) {
@@ -230,85 +361,6 @@ ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth) {
   }
 }
 
-VIntS evaluate(const std::shared_ptr<Expr> &expr,
-               const AbsoluteSymbolMap *variables) {
-  // There is a bug in GCC for variant visitors on incomplete variant types
-  // (recursive), So instead we'll macro our way towards something that looks
-  // like a pattern match for the variant type.
-  IfExpr(Add, v) {
-    return evaluate(v->lhs, variables) + evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Div, v) {
-    auto rhs_value = evaluate(v->rhs, variables);
-    if (rhs_value == 0) {
-      throw std::runtime_error(
-          "Division by zero error in expression evaluation.");
-    }
-
-    return evaluate(v->lhs, variables) / rhs_value;
-  }
-  FiExpr;
-  IfExpr(Mul, v) {
-    return evaluate(v->lhs, variables) * evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Sub, v) {
-    return evaluate(v->lhs, variables) - evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Mod, v) {
-    auto rhs_value = evaluate(v->rhs, variables);
-    if (rhs_value == 0) {
-      throw std::runtime_error(
-          "Modulo by zero error in expression evaluation.");
-    }
-
-    return evaluate(v->lhs, variables) % rhs_value;
-  }
-  FiExpr;
-  IfExpr(And, v) {
-    return evaluate(v->lhs, variables) & evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(Or, v) {
-    return evaluate(v->lhs, variables) | evaluate(v->rhs, variables);
-  }
-  FiExpr;
-  IfExpr(SignExtend, v) {
-    return vsrtl::signextend(evaluate(v->lhs, variables),
-                             evaluate(v->rhs, variables));
-  }
-  FiExpr;
-  IfExpr(Nothing, v) {
-    Q_UNUSED(v);
-    return 0;
-  }
-  FiExpr;
-  IfExpr(Literal, v) {
-    bool ok = false;
-    auto value = getImmediate(v->v, ok);
-    if (!ok) {
-      if (variables != nullptr) {
-        auto it = variables->find(v->v);
-        if (it != variables->end()) {
-          value = it->second;
-          ok = true;
-        }
-      }
-    }
-
-    if (!ok) {
-      throw std::runtime_error(
-          QString("Unknown symbol '%1'").arg(v->v).toStdString());
-    }
-
-    return value;
-  }
-  FiExpr;
-
-  Q_UNREACHABLE();
-}
 
 ExprEvalRes evaluate(const Location &loc, const QString &s,
                      const AbsoluteSymbolMap *variables) {
@@ -322,7 +374,7 @@ ExprEvalRes evaluate(const Location &loc, const QString &s,
   }
   const auto exprTreeRes = std::get<std::shared_ptr<Expr>>(exprTree);
   try {
-    return {evaluate(exprTreeRes, variables)};
+    return {exprTreeRes->evaluate(variables)};
   } catch (const std::runtime_error &e) {
     return {Error(loc, e.what())};
   }
