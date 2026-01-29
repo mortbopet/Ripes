@@ -3,6 +3,7 @@
 
 namespace Ripes {
 namespace Assembler {
+using namespace Ripes::SoftFloat;
 
 static QString numTokensError(unsigned expected, const TokenizedSrcLine &line) {
   QString err = QString::fromStdString(
@@ -37,6 +38,8 @@ DirectiveVec gnuDirectives() {
   add_directive(directives, longDirective());
   add_directive(directives, equDirective());
   add_directive(directives, alignDirective());
+
+  add_directive(directives, floatDirective());
 
   add_directive(directives, dataDirective());
   add_directive(directives, textDirective());
@@ -109,6 +112,33 @@ Result<QByteArray> dataFunctor(const AssemblerBase *assembler,
   }
 }
 
+Result<QByteArray> floatDataFunctor(const AssemblerBase *assembler,
+                                    const DirectiveArg &arg) {
+  if (arg.line.tokens.length() < 1) {
+    return {Error(arg.line, "Invalid number of arguments (expected >1)")};
+  }
+  QByteArray bytes;
+  
+  for (const auto &token : arg.line.tokens) {
+    ExprEvalVT val;
+    getImmediateErroring(token, val, arg.line);
+
+    ExprEvalFloatType fval;
+
+    if (auto *intval = std::get_if<ExprEvalIntType>(&val)) {
+      fval = ExprEvalFloatType::from<int64_t>(*intval);
+    } else if (auto *floatval = std::get_if<ExprEvalFloatType>(&val)) {
+      fval = *floatval;
+    } else {
+      return {Error(arg.line, QString("Token is not convertible to float32"))};
+    }
+    
+    bytes.append(reinterpret_cast<const char *>(&(fval.word)), 4);
+  }
+
+  return bytes;
+}
+
 Result<QByteArray> stringFunctor(const AssemblerBase *,
                                  const DirectiveArg &arg) {
   if (arg.line.tokens.length() != 1) {
@@ -139,6 +169,8 @@ Directive fourByteDirective() { return Directive(".4byte", &dataFunctor<4>); }
 Directive longDirective() { return Directive(".long", &dataFunctor<4>); }
 
 Directive stringDirective() { return Directive(".string", &stringFunctor); }
+
+Directive floatDirective() { return Directive(".float", &floatDataFunctor); }
 
 /**
  * @brief dummyDirective
