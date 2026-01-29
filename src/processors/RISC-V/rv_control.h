@@ -7,6 +7,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+// Integer (non-float) Controller 
 class Control : public Component {
 public:
   /* clang-format off */
@@ -291,6 +292,211 @@ public:
   OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
   OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
+};
+
+// Float Controller
+class ControlF : public Control {
+public:
+    /* clang-format off */
+    static VSRTL_VT_U do_regF_do_write_ctrl(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::I:
+            case RVISA::Extension::Id::M:
+            case RVISA::Extension::Id::C:
+                return 0;
+            
+            case RVISA::Extension::Id::F:
+                switch(opc) {
+                    case RVInstr::FLW:
+
+                    case RVInstr::FMADD_S:  case RVInstr::FMSUB_S:
+                    case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
+
+                    case RVInstr::FADD_S: case RVInstr::FSUB_S:  case RVInstr::FMUL_S:
+                    case RVInstr::FDIV_S: case RVInstr::FSQRT_S:
+                    case RVInstr::FMIN_S: case RVInstr::FMAX_S:
+
+                    case RVInstr::FSGNJ_S: case RVInstr::FSGNJN_S: case RVInstr::FSGNJX_S:
+
+                    case RVInstr::FCVT_S_W: case RVInstr::FCVT_S_WU:
+                    case RVInstr::FCVT_S_L: case RVInstr::FCVT_S_LU:
+
+                    case RVInstr::FMV_W_X:
+                        return 1;
+                    
+                    case RVInstr::FSW:
+                    
+                    case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+                    case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+
+                    case RVInstr::FMV_X_W:
+                    
+                    case RVInstr::FEQ_S: case RVInstr::FLT_S: case RVInstr::FLE_S:
+                    
+                    case RVInstr::FCLASS_S:
+
+                    case RVInstr::FRCSR: case RVInstr::FSCSR:
+                    case RVInstr::FRRM: case RVInstr::FSRM:
+                    case RVInstr::FRFLAGS: case RVInstr::FSFLAGS:
+                    default:
+                        return 0;
+                }
+
+            default:
+                return 0;
+        }
+    }
+    
+    static RegFileSrc do_alu_fpu_src(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::I:
+            case RVISA::Extension::Id::M:
+            case RVISA::Extension::Id::C:
+                return RegFileSrc::INTEGER;
+            
+            case RVISA::Extension::Id::F:
+                switch(opc) {
+                    case RVInstr::FLW:
+                    case RVInstr::FSW:
+                        return RegFileSrc::INTEGER;
+                    default:
+                        return RegFileSrc::FLOAT;
+                }
+
+            default:
+                return RegFileSrc::INTEGER;
+        }
+    }
+    
+    static RegFileSrc do_reg1_do_read_src(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::I:
+            case RVISA::Extension::Id::M:
+            case RVISA::Extension::Id::C:
+                return RegFileSrc::INTEGER;
+            
+            case RVISA::Extension::Id::F:
+                switch(opc) {
+                    case RVInstr::FLW:
+                    case RVInstr::FSW:
+
+                    case RVInstr::FCVT_S_W: case RVInstr::FCVT_S_WU:
+                    case RVInstr::FCVT_S_L: case RVInstr::FCVT_S_LU:
+
+                    case RVInstr::FMV_W_X:
+
+                    case RVInstr::FRCSR: case RVInstr::FSCSR:
+                    case RVInstr::FRRM: case RVInstr::FSRM:
+                    case RVInstr::FRFLAGS: case RVInstr::FSFLAGS:
+                        return RegFileSrc::INTEGER;
+
+                    case RVInstr::FMADD_S:  case RVInstr::FMSUB_S:
+                    case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
+
+                    case RVInstr::FADD_S: case RVInstr::FSUB_S:  case RVInstr::FMUL_S:
+                    case RVInstr::FDIV_S: case RVInstr::FSQRT_S: case RVInstr::FMIN_S:
+                    case RVInstr::FMAX_S:
+
+                    case RVInstr::FSGNJ_S: case RVInstr::FSGNJN_S: case RVInstr::FSGNJX_S:
+
+                    case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+                    case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+
+                    case RVInstr::FMV_X_W:
+
+                    case RVInstr::FEQ_S: case RVInstr::FLT_S: case RVInstr::FLE_S:
+
+                    case RVInstr::FCLASS_S:
+                        return RegFileSrc::FLOAT;
+
+                    default:
+                        // default to integer regfile for non-float instructions
+                        return RegFileSrc::INTEGER;
+                }
+            
+            default:
+                return RegFileSrc::INTEGER;
+        }
+    }
+    
+    static RegFileSrc do_reg2_do_read_src(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::F:
+                return RegFileSrc::FLOAT;
+            
+            default:
+                return RegFileSrc::INTEGER;
+        }
+    }
+    
+    static FPUOp do_fpu_ctrl(RVInstr opc) {
+        switch(opc) {
+            case RVInstr::FADD_S:    return FPUOp::FADD_S;
+            case RVInstr::FSUB_S:    return FPUOp::FSUB_S;
+            case RVInstr::FMUL_S:    return FPUOp::FMUL_S;
+            case RVInstr::FDIV_S:    return FPUOp::FDIV_S;
+            case RVInstr::FSQRT_S:   return FPUOp::FSQRT_S;
+            case RVInstr::FMIN_S:    return FPUOp::FMIN_S;
+            case RVInstr::FMAX_S:    return FPUOp::FMAX_S;
+
+            case RVInstr::FSGNJ_S:   return FPUOp::FSGNJ_S;
+            case RVInstr::FSGNJN_S:  return FPUOp::FSGNJN_S;
+            case RVInstr::FSGNJX_S:  return FPUOp::FSGNJX_S;
+
+            case RVInstr::FCVT_W_S:  return FPUOp::FCVT_W_S;
+            case RVInstr::FCVT_WU_S: return FPUOp::FCVT_WU_S;
+            case RVInstr::FCVT_S_W:  return FPUOp::FCVT_S_W;
+            case RVInstr::FCVT_S_WU: return FPUOp::FCVT_S_WU;
+            case RVInstr::FCVT_L_S:  return FPUOp::FCVT_L_S;
+            case RVInstr::FCVT_LU_S: return FPUOp::FCVT_LU_S;
+            case RVInstr::FCVT_S_L:  return FPUOp::FCVT_S_L;
+            case RVInstr::FCVT_S_LU: return FPUOp::FCVT_S_LU;
+
+            case RVInstr::FMV_X_W:   return FPUOp::FMV_X_W;
+            case RVInstr::FMV_W_X:   return FPUOp::FMV_W_X;
+
+            case RVInstr::FEQ_S:     return FPUOp::EQ;
+            case RVInstr::FLT_S:     return FPUOp::LT;
+            case RVInstr::FLE_S:     return FPUOp::LE;
+
+            case RVInstr::FCLASS_S:  return FPUOp::FCLASS_S;
+
+            case RVInstr::FMADD_S:   return FPUOp::FMADD_S;
+            case RVInstr::FMSUB_S:   return FPUOp::FMSUB_S;
+            case RVInstr::FNMSUB_S:  return FPUOp::FNMSUB_S;
+            case RVInstr::FNMADD_S:  return FPUOp::FNMADD_S;
+
+            case RVInstr::FRCSR:    return FPUOp::FRCSR;
+            case RVInstr::FSCSR:    return FPUOp::FSCSR;
+            case RVInstr::FRRM:     return FPUOp::FRRM;
+            case RVInstr::FSRM:     return FPUOp::FSRM;
+            case RVInstr::FRFLAGS:  return FPUOp::FRFLAGS;
+            case RVInstr::FSFLAGS:  return FPUOp::FSFLAGS;
+
+            default: return FPUOp::NOP;
+        }
+    }
+    /* clang-format on */
+
+    ControlF(const std::string &name, SimComponent *parent)
+        : Control(name, parent) {
+        regF_do_write_ctrl <<
+            [this] { return do_regF_do_write_ctrl(opcode.eValue<RVInstr>()); };
+        alu_fpu_src <<
+            [this] { return do_alu_fpu_src(opcode.eValue<RVInstr>()); };
+        reg1_do_read_src <<
+            [this] { return do_reg1_do_read_src(opcode.eValue<RVInstr>()); };
+        reg2_do_read_src <<
+            [this] { return do_reg2_do_read_src(opcode.eValue<RVInstr>()); };
+        fpu_ctrl <<
+            [this] { return do_fpu_ctrl(opcode.eValue<RVInstr>()); };
+    }
+
+    OUTPUTPORT_ENUM(fpu_ctrl, FPUOp);
+    OUTPUTPORT(regF_do_write_ctrl, 1);
+    OUTPUTPORT_ENUM(alu_fpu_src, RegFileSrc);
+    OUTPUTPORT_ENUM(reg1_do_read_src, RegFileSrc);
+    OUTPUTPORT_ENUM(reg2_do_read_src, RegFileSrc);
 };
 
 } // namespace core
