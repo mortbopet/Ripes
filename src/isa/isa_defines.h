@@ -177,6 +177,36 @@ struct TokenizedSrcLine : public Location {
   LineTokens tokens;
   QString directive;
   AInt programAddress = -1;
+
+  /* Simple debugging helper string */
+  QString toDebugString() const {
+    QString str;
+    QTextStream stream(&str);
+
+    stream << "line: " << this->toString() << "\n";
+    stream << "Symbols: \n";
+    for( const Symbol &s : symbols ) {
+      stream << "   Symbol: " << s.v << " type: " << s.type << "\n";
+    }
+
+    stream << "Tokens: \n";
+    for( const Token &t : tokens ) {
+      stream << "   Token: " << t;
+      
+      if (t.hasRelocation())
+        stream << " reloc: " << t.relocation(); 
+      else
+        stream << " no reloc";
+
+      stream << "\n";
+    }
+    
+    stream << "Directive: " << directive << "\n";
+    stream << "PC: " << programAddress << "\n";
+    stream << "\n";
+    
+    return str;
+  }
 };
 
 /// An error is defined as a reference to a source line index + an error string
