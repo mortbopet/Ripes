@@ -28,6 +28,7 @@ private slots:
                 unsigned rounds, unsigned frontStep, unsigned backStep,
                 bool toFinish);
   void tst_reverse_regs();
+  void tst_reverse_fpr();
   void tst_reverse_mem();
 };
 
@@ -88,6 +89,24 @@ void tst_reverse::tst_reverse_regs() {
                                         << "addi x10 x10 1"
                                         << "addi x10 x10 1";
     run_test(processor, program, 3, 6, 6, true);
+    unsigned val = ProcessorHandler::get()->getRegisterValue(RVISA::GPR, 10);
+    QCOMPARE(val, 5);
+  }
+}
+
+void tst_reverse::tst_reverse_fpr() {
+  for (auto processor : {ProcessorID::RV32_SS_FLOAT}) {
+    QStringList program = QStringList() << ".text"
+                                        << "li x10 1"
+                                        << "fcvt.s.wu f1, x10"
+                                        << "fcvt.s.wu f10, x0"
+                                        << "fadd.s f10, f10, f1"
+                                        << "fadd.s f10, f10, f1"
+                                        << "fadd.s f10, f10, f1"
+                                        << "fadd.s f10, f10, f1"
+                                        << "fadd.s f10, f10, f1"
+                                        << "fcvt.wu.s x10, f10";
+    run_test(processor, program, 3, 9, 9, true);
     unsigned val = ProcessorHandler::get()->getRegisterValue(RVISA::GPR, 10);
     QCOMPARE(val, 5);
   }
