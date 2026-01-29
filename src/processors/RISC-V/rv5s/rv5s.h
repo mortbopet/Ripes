@@ -33,6 +33,7 @@
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
+using namespace Ripes::RVISA;
 
 template <typename XLEN_T>
 class RV5S : public RipesVSRTLProcessor {
@@ -511,21 +512,23 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static ProcessorISAInfo supportsISA() { return RVISA::supportsISA<XLEN>(); }
+  static ProcessorISAInfo supportsISA() { 
+    return ProcessorISAInfo{
+      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
+      {Extension::M.name, Extension::C.name},
+      {Extension::M.name}
+    };
+   }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return RVISA::fullISA<XLEN>();
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(supportsISA().supportedExtensions);
   }
 
   const std::set<std::string_view> registerFiles() const override {
     std::set<std::string_view> rfs;
     rfs.insert(RVISA::GPR);
-
-    if (implementsISA()->extensionEnabled("F")) {
-      rfs.insert(RVISA::FPR);
-    }
     return rfs;
   }
 
