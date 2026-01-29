@@ -10,7 +10,8 @@
 #include "systemio.h"
 
 #if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) ||                \
-    !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR)
+    !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR) ||            \
+    !defined(RISCV_F_TEST_DIR) || !defined(RISCV_D_TEST_DIR)
 static_assert(false, "RISCV test directiories must be defined");
 #endif
 
@@ -41,7 +42,7 @@ static constexpr unsigned s_ecallopreg = 17; // a7
 static constexpr unsigned s_maxCycles = 10000;
 
 // Tests which contains instructions or assembler directives not yet supported
-const auto s_excludedTests = {"f", "ldst", "move", "recoding",
+const auto s_excludedTests = {"ldst", "move", "recoding",
                               /* fails on CI, unknown as of know */ "memory"};
 
 class tst_RISCV : public QObject {
@@ -70,6 +71,10 @@ private slots:
     runTests(ProcessorID::RV64_SS, {"M", "C"},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
+  void testRV64_SingleCycleFloat() {
+    runTests(ProcessorID::RV64_SS_FLOAT, {"M", "C", "F"},
+             {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR, RISCV_F_TEST_DIR});
+  }
   void testRV64_5StagePipeline() {
     runTests(ProcessorID::RV64_5S, {"M", "C"},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
@@ -86,6 +91,10 @@ private slots:
   void testRV32_SingleCycle() {
     runTests(ProcessorID::RV32_SS, {"M", "C"},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
+  }
+  void testRV32_SingleCycleFloat() {
+    runTests(ProcessorID::RV32_SS_FLOAT, {"M", "C", "F"},
+             {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR, RISCV_F_TEST_DIR});
   }
   void testRV32_5StagePipeline() {
     runTests(ProcessorID::RV32_5S, {"M", "C"},
