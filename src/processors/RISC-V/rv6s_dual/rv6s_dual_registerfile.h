@@ -43,8 +43,8 @@ public:
     rf_2->setMemory(mem);
   }
 
-  SUBCOMPONENT(rf_1, TYPE(RegisterFile<XLEN, readBypass>));
-  SUBCOMPONENT(rf_2, TYPE(RegisterFile<XLEN, readBypass>));
+  SUBCOMPONENT(rf_1, TYPE(RegisterFile<XLEN, XLEN, readBypass>));
+  SUBCOMPONENT(rf_2, TYPE(RegisterFile<XLEN, XLEN, readBypass>));
 
   // Way 1
   INPUTPORT(r1_1_addr, c_RVRegsBits);
@@ -75,7 +75,7 @@ private:
    * dual-ported register file.
    */
   VSRTL_VT_U doReadBypass(const VSRTL_VT_U reg_idx, const int portIndex,
-                          const RegisterFile<XLEN, readBypass> *rf) {
+                          const RegisterFile<XLEN, XLEN, readBypass> *rf) {
     if (reg_idx == 0)
       return static_cast<unsigned>(0);
 

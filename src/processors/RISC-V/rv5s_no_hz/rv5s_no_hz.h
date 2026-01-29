@@ -250,7 +250,7 @@ public:
   }
 
   // Design subcomponents
-  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, true>));
+  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, XLEN, true>));
   SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
   SUBCOMPONENT(control, Control);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));

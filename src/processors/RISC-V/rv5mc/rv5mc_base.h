@@ -134,7 +134,7 @@ public:
   }
 
   // Design subcomponents
-  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, false>));
+  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, XLEN, false>));
   SUBCOMPONENT(alu, TYPE(RVMCALU<XLEN>));
   SUBCOMPONENT(control, RVMCControl);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
