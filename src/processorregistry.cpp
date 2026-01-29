@@ -10,6 +10,7 @@
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
+#include "processors/RISC-V/rvss_float/rvss_float.h"
 
 namespace Ripes {
 
@@ -79,6 +80,21 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RVSS<uint64_t>>(
       ProcessorID::RV64_SS, "Single-cycle processor",
       "A single cycle processor", layouts, defRegVals));
+  
+  // RISC-V single cycle floating point
+  layouts = {{"Standard",
+              ":/layouts/RISC-V/rvss_float/rv_ss_float_standard_layout.json",
+              {{{0, 0}, QPointF{0.5, 0}}}},
+             {"Extended",
+              ":/layouts/RISC-V/rvss_float/rv_ss_float_extended_layout.json",
+              {{{0, 0}, QPointF{0.5, 0}}}}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RVSS_FLOAT<uint32_t>>(
+      ProcessorID::RV32_SS_FLOAT, "Single-cycle floating point processor",
+      "A single cycle floating point processor", layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RVSS_FLOAT<uint64_t>>(
+      ProcessorID::RV64_SS_FLOAT, "Single-cycle floating point processor",
+      "A single cycle floating point processor", layouts, defRegVals));
 
   // RISC-V multicycle
   layouts = {{"Extended",

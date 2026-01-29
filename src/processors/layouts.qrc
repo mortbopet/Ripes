@@ -1,3 +1,4 @@
+<!DOCTYPE RCC>
 <RCC>
     <qresource prefix="/layouts">
         <file>RISC-V/rvss/rv_ss_extended_layout.json</file>
@@ -13,5 +14,7 @@
         <file>RISC-V/rv6s_dual/rv6s_dual_extended_layout.json</file>
         <file>RISC-V/rv5mc/rv5mc_extended_layout.json</file>
         <file>RISC-V/rv5mc/rv5mc_1m_extended_layout.json</file>
+        <file>RISC-V/rvss_float/rv_ss_float_extended_layout.json</file>
+        <file>RISC-V/rvss_float/rv_ss_float_standard_layout.json</file>
     </qresource>
 </RCC>
