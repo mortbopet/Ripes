@@ -722,6 +722,8 @@ public:
               const ReverseSymbolMap &symbolMap) const = 0;
   /// Returns a pointer to a dynamically accessible OpPart. (needed for the
   /// assembly matcher)
+  /// NOTE: the first opcode should be the primary opcode identifier unless
+  /// otherwise stated
   virtual OpPartBase getOpPart(unsigned partIndex) const = 0;
   /// Returns the name of this instruction.
   virtual const QString &name() const = 0;
