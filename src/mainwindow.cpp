@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "branchtab.h"
 #include "cachetab.h"
 #include "edittab.h"
 #include "iotab.h"
@@ -91,12 +92,19 @@ MainWindow::MainWindow(QWidget *parent)
   m_stackedTabs->insertWidget(IOTabID, IOTab);
   m_tabWidgets[IOTabID] = {IOTab, IOToolbar};
 
+  auto *BranchToolbar = addToolBar("Branch");
+  BranchToolbar->setVisible(false);
+  auto *BranchTab = new class BranchTab(BranchToolbar, this);
+  m_stackedTabs->insertWidget(BranchTabID, BranchTab);
+  m_tabWidgets[BranchTabID] = {BranchTab, BranchToolbar};
+
   // Setup tab bar
   m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
+  m_ui->tabbar->addFancyTab(QIcon(":/icons/branch.svg"), "Branch");
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this,
           &MainWindow::tabChanged);
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs,

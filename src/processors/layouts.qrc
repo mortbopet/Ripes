@@ -4,6 +4,7 @@
         <file>RISC-V/rvss/rv_ss_standard_layout.json</file>
         <file>RISC-V/rv5s/rv5s_standard_layout.json</file>
         <file>RISC-V/rv5s/rv5s_extended_layout.json</file>
+        <file>RISC-V/rv5s_br/rv5s_br_extended_layout.json</file>
         <file>RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_standard_layout.json</file>
         <file>RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz_extended_layout.json</file>
         <file>RISC-V/rv5s_no_hz/rv5s_no_hz_standard_layout.json</file>
