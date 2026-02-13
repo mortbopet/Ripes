@@ -24,6 +24,7 @@ QString enumToString(T value) {
 // will appear in the processor selection dialog.
 enum ProcessorID {
   RV32_SS,
+  // TODO: RV32_3S_WILDCAT,
   RV32_5MC_2M,
   RV32_5MC_1M,
   RV32_5S_NO_FW_HZ,
@@ -32,6 +33,7 @@ enum ProcessorID {
   RV32_5S,
   RV32_6S_DUAL,
   RV64_SS,
+  // TODO: RV64_3S_WILDCAT,
   RV64_5MC,
   RV64_5MC_1M,
   RV64_5S_NO_FW_HZ,
