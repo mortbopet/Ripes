@@ -32,19 +32,40 @@ public:
       case ALUOp::MUL:
         return VT_U(op1.sValue() * op2.sValue());
       case ALUOp::MULH: {
-        const auto result = static_cast<int64_t>(op1.sValue()) *
-                            static_cast<int64_t>(op2.sValue());
-        return VT_U(result >> 32);
+        if constexpr (XLEN == 32) {
+          const auto result = static_cast<int64_t>(op1.sValue()) *
+                              static_cast<int64_t>(op2.sValue());
+          return VT_U(result >> 32);
+        } else {
+          const __int128_t result = static_cast<__int128_t>(op1.sValue()) *
+                                    static_cast<__int128_t>(op2.sValue());
+          return VT_U(result >> 64);
+        }
       }
       case ALUOp::MULHU: {
-        const auto result = static_cast<uint64_t>(op1.uValue()) *
-                            static_cast<uint64_t>(op2.uValue());
-        return VT_U(result >> 32);
+        if constexpr (XLEN == 32) {
+          const uint64_t result = static_cast<uint64_t>(op1.uValue()) *
+                                  static_cast<uint64_t>(op2.uValue());
+          return VT_U(result >> 32);
+        } else {
+          const unsigned __int128 result =
+              static_cast<unsigned __int128>(op1.uValue()) *
+              static_cast<unsigned __int128>(op2.uValue());
+          return VT_U(result >> 64);
+        }
       }
       case ALUOp::MULHSU: {
-        const int64_t result = static_cast<int64_t>(op1.sValue()) *
-                               static_cast<uint64_t>(op2.uValue());
-        return VT_U(result >> 32);
+        if constexpr (XLEN == 32) {
+          const int64_t result = static_cast<int64_t>(op1.sValue()) *
+                                 static_cast<uint64_t>(op2.uValue());
+          return VT_U(result >> 32);
+        } else {
+          const __int128_t result =
+              static_cast<__int128_t>(op1.sValue()) *
+              static_cast<__int128_t>(
+                  static_cast<unsigned __int128>(op2.uValue()));
+          return VT_U(result >> 64);
+        }
       }
 
       case ALUOp::DIVW:
