@@ -140,6 +140,11 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
   connect(ProcessorHandler::get(), &ProcessorHandler::stopping, this,
           &ProcessorTab::pause);
 
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorClocked, this,
+          &ProcessorTab::processorClocked);
+  connect(ProcessorHandler::get(), &ProcessorHandler::processorReversed, this,
+          &ProcessorTab::processorReversed);
+
   // Make processor view stretch wrt. consoles
   m_ui->pipelinesplitter->setStretchFactor(0, 1);
   m_ui->pipelinesplitter->setStretchFactor(1, 0);
@@ -307,6 +312,7 @@ void ProcessorTab::updateStatistics() {
   const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
   const auto instrsRetired =
       ProcessorHandler::getProcessor()->getInstructionsRetired();
+
   const auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(
                             timeNow - lastUpdateTime)
                             .count() /
@@ -317,10 +323,14 @@ void ProcessorTab::updateStatistics() {
   m_ui->cycleCount->setText(QString::number(cycleCount));
   // Instructions retired
   m_ui->instructionsRetired->setText(QString::number(instrsRetired));
+  // Stall Count
+  m_ui->stallCount->setText(QString::number(m_stallCount));
+  // Flush Cycle Count
+  m_ui->flushCycleCount->setText(QString::number(m_flushCycleCount));
+
   QString cpiText, ipcText;
   if (cycleCount != 0 && instrsRetired != 0) {
-    const double cpi =
-        static_cast<double>(cycleCount) / static_cast<double>(instrsRetired);
+    const double cpi = static_cast<double>(cycleCount) / static_cast<double>(instrsRetired);
     const double ipc = 1 / cpi;
     cpiText = QString::number(cpi, 'g', 3);
     ipcText = QString::number(ipc, 'g', 3);
@@ -498,6 +508,10 @@ void ProcessorTab::reset() {
   m_autoClockAction->setChecked(false);
   enableSimulatorControls();
   SystemIO::printString("\n");
+
+  // Reset Statistics
+  m_stallCount = 0;
+  m_flushCycleCount = 0;
 }
 
 void ProcessorTab::setInstructionViewCenterRow(int row) {
@@ -592,4 +606,27 @@ void ProcessorTab::showPipelineDiagram() {
   auto w = PipelineDiagramWidget(m_stageModel);
   w.exec();
 }
+
+void ProcessorTab::processorClocked() {
+  const auto proc = ProcessorHandler::get()->getProcessor();
+  for (auto lane : proc->structure()) {
+    const auto laneLastStage = proc->stageInfo({lane.first, lane.second - 1});
+    if (laneLastStage.state == StageInfo::State::Stalled)
+      m_stallCount++;
+    if (laneLastStage.state == StageInfo::State::Flushed)
+      m_flushCycleCount++;
+  }
+}
+
+void ProcessorTab::processorReversed() {
+  const auto proc = ProcessorHandler::get()->getProcessor();
+  for (auto lane : proc->structure()) {
+    const auto laneLastStage = proc->stageInfo({lane.first, lane.second - 1});
+    if (laneLastStage.state == StageInfo::State::Stalled)
+      m_stallCount--;
+    if (laneLastStage.state == StageInfo::State::Flushed)
+      m_flushCycleCount--;
+  }
+}
+
 } // namespace Ripes
