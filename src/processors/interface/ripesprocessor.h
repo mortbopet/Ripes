@@ -18,7 +18,7 @@ namespace Ripes {
  * may communicate to the GUI regarding the given stage.
  */
 struct StageInfo {
-  enum class State { None, Stalled, Flushed, WayHazard, Unused };
+  enum class State { None, Stalled, Flushed, WayHazard, Unused, Invalid };
   AInt pc = 0;
   bool stage_valid = false;
   State state;

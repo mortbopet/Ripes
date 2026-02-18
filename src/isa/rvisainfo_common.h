@@ -49,6 +49,9 @@ enum SysCall {
 
 } // namespace RVABI
 
+template <ISA isa>
+class ISAVliwInfo; // forward declaration for RV_ISAInfoBase
+
 namespace RVISA {
 extern const QStringList GPRRegAliases;
 extern const QStringList GPRRegNames;
@@ -120,16 +123,19 @@ struct RV_FPRInfo : public RegFileInfoInterface {
   }
 };
 
-enum class Option {
-  shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
-                      // the 64-bit RISC-V ISA
-  LI64BitVariant      // Modifies LI to be able to emit 64-bit constants
+enum class ImplementationDetail {
+  shifts64BitVariant,      // appends 'w' to 32-bit shift operations, for use in
+                           // the 64-bit RISC-V ISA
+  LI64BitVariant,          // Modifies LI to be able to emit 64-bit constants
+  VliwPseudoInstrExpansion // notifies the isa to use special pseudo
+                           // instruction expansions for the vliw processor
 };
+using ImplDetails = std::set<ImplementationDetail>;
 
 namespace ExtI {
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions,
-               const std::set<Option> &options = {});
+               const ImplDetails &details = {});
 }
 
 namespace ExtM {
@@ -167,9 +173,6 @@ public:
     if (supportsExtension("F")) {
       m_regInfos[FPR] = std::make_unique<RV_FPRInfo>();
     }
-
-    // Setup relocations
-    m_relocations = rvRelocations();
   }
 
   const RegInfoMap &regInfoMap() const override { return m_regInfos; }
@@ -228,9 +231,18 @@ public:
   const RelocationsVec &relocations() const override { return m_relocations; }
 
 protected:
-  /// Make sure to call this in any child class's constructor
-  void initialize(const std::set<Option> &options = {}) {
-    RVISA::ExtI::enableExt(this, m_instructions, m_pseudoInstructions, options);
+  /**
+   * @brief interface for customizing initialization of instructions
+   * usefull for implementing custom Implementation Details via
+   * m_enabledDetails, which e.g. have special relocations or pseudo instruction
+   * expansions
+   */
+  void loadInstructionSet() {
+    // Setup relocations
+    m_relocations = rvRelocations();
+
+    RVISA::ExtI::enableExt(this, m_instructions, m_pseudoInstructions,
+                           m_enabledDetails);
     for (const auto &extension : m_enabledExtensions) {
       switch (extension.unicode()->toLatin1()) {
       case 'M':
@@ -241,6 +253,15 @@ protected:
         break;
       }
     }
+  }
+  /**
+   * @brief reset loaded Instructions, Pseudo instructions, and relocations.
+   * @note used as inverse to loadInstructionSet()
+   */
+  void unLoadInstructionSet() {
+    m_instructions.clear();
+    m_pseudoInstructions.clear();
+    m_relocations.clear();
   }
 
   QString _CCmarch(QString march) const {
@@ -258,10 +279,15 @@ protected:
   QStringList m_enabledExtensions;
   QStringList m_supportedExtensions = getSupportedExtensions();
 
+  ImplDetails m_enabledDetails = {};
+
   RegInfoMap m_regInfos;
   InstrVec m_instructions;
   PseudoInstrVec m_pseudoInstructions;
   RelocationsVec m_relocations;
+
+  template <ISA isa>
+  friend class ::Ripes::ISAVliwInfo;
 };
 
 enum OpcodeID {
