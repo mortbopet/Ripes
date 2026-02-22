@@ -7,8 +7,8 @@
 
 namespace Ripes {
 
-IOKeyboard::IOKeyboard(QWidget *parent)
-    : IOBase(IOType::KEYBOARD, parent) {
+IOKeyboard::IOKeyboard(QWidget *parent) : IOBase(IOType::KEYBOARD, parent) {
+  m_parameters[BUFSIZE] = IOParam(BUFSIZE, "Buffer size", 16, true, 1, 256);
   m_mainLayout = new QGridLayout(this);
   setLayout(m_mainLayout);
   setFocusPolicy(Qt::StrongFocus);
@@ -50,13 +50,20 @@ void IOKeyboard::updateLayout() {
   m_regDescs.clear();
   m_regDescs.push_back(RegDesc{"KEY_DATA", RegDesc::RW::R, 8, 0, true});
   m_regDescs.push_back(RegDesc{"KEY_STATUS", RegDesc::RW::RW, 32, 4, true});
+
+  unsigned bufSize = m_parameters.at(BUFSIZE).value.toUInt();
+  m_extraSymbols.clear();
+  m_extraSymbols.push_back(IOSymbol{"BUF_SIZE", bufSize});
+
   updateGeometry();
   emit regMapChanged();
 }
 
 void IOKeyboard::enqueueKey(uint8_t ascii) {
   QMutexLocker lock(&m_bufMutex);
-  m_keyBuffer.enqueue(ascii);
+  unsigned maxSize = m_parameters.at(BUFSIZE).value.toUInt();
+  if (static_cast<unsigned>(m_keyBuffer.size()) < maxSize)
+    m_keyBuffer.enqueue(ascii);
   lock.unlock();
   refreshStatusLabel();
 }
@@ -123,4 +130,4 @@ void IOKeyboard::reset() {
   refreshStatusLabel();
 }
 
-} 
+}

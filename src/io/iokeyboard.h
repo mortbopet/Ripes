@@ -12,6 +12,8 @@ namespace Ripes {
 class IOKeyboard : public IOBase {
   Q_OBJECT
 
+  enum Parameters { BUFSIZE };
+
 public:
   IOKeyboard(QWidget *parent);
   ~IOKeyboard() { unregister(); }
@@ -24,7 +26,7 @@ public:
     return m_regDescs;
   }
   const std::vector<IOSymbol> *extraSymbols() const override {
-    return nullptr;
+    return &m_extraSymbols;
   }
 
   VInt ioRead(AInt offset, unsigned size) override;
@@ -32,6 +34,7 @@ public:
   void reset() override;
 
 protected:
+  void parameterChanged(unsigned) override { updateLayout(); }
   void keyPressEvent(QKeyEvent *event) override;
 
 private:
@@ -46,6 +49,7 @@ private:
   QLabel *m_statusLabel = nullptr;
 
   std::vector<RegDesc> m_regDescs;
+  std::vector<IOSymbol> m_extraSymbols;
 };
 
 }
