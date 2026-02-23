@@ -19,8 +19,8 @@
 #define H LED_MATRIX_0_HEIGHT
 #define ERASE_RADIUS 5
 
-unsigned int *led_base = LED_MATRIX_0_BASE;
-volatile unsigned int *mouse_base = MOUSE_0_BASE;
+unsigned int *led_base = (unsigned int *)LED_MATRIX_0_BASE;
+volatile unsigned int *mouse_base = (volatile unsigned int *)MOUSE_0_BASE;
 
 // Function for colouring one pixel
 void set_pixel(int x, int y, unsigned int color) {
@@ -30,8 +30,7 @@ void set_pixel(int x, int y, unsigned int color) {
 
 // Absolute value func for not including math
 int abs(int num){
-    int ans = num < 0 ? -num : num;
-    return num;
+    return num < 0 ? -num : num;
 }
 
 // Bresenham's line algorithm
