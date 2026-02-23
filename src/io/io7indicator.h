@@ -29,6 +29,7 @@ public:
 protected:
   void paintEvent(QPaintEvent *event) override;
   void parameterChanged(unsigned ID) override;
+  QSize minimumSizeHint() const override;
 
 private:
   unsigned numDigits() const;

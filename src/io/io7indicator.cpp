@@ -86,6 +86,17 @@ void IO7Indicator::reset() {
   emit scheduleUpdate();
 }
 
+QSize IO7Indicator::minimumSizeHint() const {
+  auto it = m_parameters.find(DIGIT_SIZE);
+  const int h = (it != m_parameters.end()) ? it->second.value.toInt() : 64;
+  const int w = h * 2 / 3;
+  const int gap = 6;
+  const int n = static_cast<int>(numDigits());
+  const int totalW = n * w + (n - 1) * gap;
+  const int pad = 16;
+  return QSize(totalW + pad, h + pad);
+}
+
 void IO7Indicator::paintEvent(QPaintEvent *) {
   QPainter p(this);
   p.setRenderHint(QPainter::Antialiasing);
@@ -129,6 +140,9 @@ void IO7Indicator::drawDigit(QPainter &p, int x, int y, int w, int h,
     p.setPen(QPen((seg >> i) & 1 ? on : off, t, Qt::SolidLine, Qt::RoundCap));
     p.drawLine(lines[i]);
   }
+  p.setPen(Qt::NoPen);
+  p.setBrush((seg >> 7) & 1 ? on : off);
+  p.drawEllipse(QPointF(x + w + t * 0.5, bot), t * 0.5, t * 0.5);
 }
 
 } // namespace Ripes
