@@ -8,6 +8,7 @@
 #include "ioledmatrix.h"
 #include "iomouse.h"
 #include "ioswitches.h"
+#include "io7indicator.h"
 
 /** @brief IORegistry
  *
@@ -20,7 +21,7 @@
 
 namespace Ripes {
 
-enum IOType { LED_MATRIX, SWITCHES, DPAD, MOUSE, KEYBOARD, NPERIPHERALS };
+enum IOType { LED_MATRIX, SWITCHES, DPAD, MOUSE, KEYBOARD, SEVEN_SEGMENT, NPERIPHERALS };
 
 template <typename T>
 IOBase *createIO(QWidget *parent) {
@@ -34,14 +35,16 @@ const static std::map<IOType, QString> IOTypeTitles = {
     {IOType::LED_MATRIX, "LED Matrix"},
     {IOType::SWITCHES, "Switches"},
     {IOType::DPAD, "D-Pad"},
-    {IOType::MOUSE, "Mouse"}
-    {IOType::KEYBOARD, "Keyboard"}};
+    {IOType::MOUSE, "Mouse"},
+    {IOType::KEYBOARD, "Keyboard"},
+    {IOType::SEVEN_SEGMENT, "Seven Segment"}};
 const static std::map<IOType, IOFactory> IOFactories = {
     {IOType::LED_MATRIX, createIO<IOLedMatrix>},
     {IOType::SWITCHES, createIO<IOSwitches>},
     {IOType::DPAD, createIO<IODPad>},
-    {IOType::MOUSE, createIO<IOMouse>}
-    {IOType::KEYBOARD, createIO<IOKeyboard>}};
+    {IOType::MOUSE, createIO<IOMouse>},
+    {IOType::KEYBOARD, createIO<IOKeyboard>},
+    {IOType::SEVEN_SEGMENT, createIO<IO7Indicator>}};
 } // namespace Ripes
 
 Q_DECLARE_METATYPE(Ripes::IOType);
