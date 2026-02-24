@@ -9,6 +9,7 @@
         <file>C/leds.c</file>
         <file>C/switchesAndLeds.c</file>
         <file>C/mouseDrawing.c</file>
+        <file>C/keyboardDualDisplay.c</file>
         <file>C/sevenSegKeyboard.c</file>
         <file>assembly/leds.s</file>
         <file>ELF/RanPi-RV32</file>
