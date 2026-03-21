@@ -16,12 +16,11 @@ public:
   ISA isaID() const override { return ISA::RV64I; }
 
   unsigned int bits() const override { return 64; }
-  QString CCmarch() const override {
-    QString march = "rv64i";
 
-    return _CCmarch(march);
+  QString CCmabi() const override { 
+    QString f = extensionEnabled(Extension::F) ? "f" : "";
+    return "lp64"; 
   }
-  QString CCmabi() const override { return "lp64"; }
 
   unsigned instrByteAlignment() const override {
     return extensionEnabled("C") ? 2 : 4;
