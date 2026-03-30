@@ -3,6 +3,7 @@
 extern "C" {
   #include <softfloat.h>
   #include <internals.h>
+  #include <specialize.h>
 }
 
 namespace Ripes {
@@ -179,10 +180,10 @@ public:
   static inline T to(Float32_t float_val);
 
   static inline Float32_t min(const Float32_t a, const Float32_t b) {
-    return minMaxComp(a, b, false) ? a : b;
+    return minMaxComp(a, b, false);
   }
   static inline Float32_t max(const Float32_t a, const Float32_t b) {
-    return minMaxComp(a, b, true) ? a : b;
+    return minMaxComp(a, b, true);
   }
   
   enum class fma_mode {
@@ -208,7 +209,7 @@ public:
 protected:
   static bool minMaxIsNan(const Float32_t a) {
     // RISC-V fmin/fmax instructions are amended to follow the IEEE-754-201x
-    // standard since version 2.2 of the F extension. They therefor demand 
+    // standard since version 2.2 of the F extension. They therefore demand 
     // that quiet Nans do *NOT* set the invalid exception flag contrary to the
     // standard IEEE-754-2008 behavior.
 
@@ -221,26 +222,32 @@ protected:
     return (cls == Fclass::SIGNALING_NAN) || (cls == Fclass::QUIET_NAN);
   }
   
-  static bool minMaxComp(const Float32_t a, const Float32_t b, bool isMax) {
+  static Float32_t minMaxComp(const Float32_t a, const Float32_t b, bool isMax) {
     // filter out NaNs since le_quiet always returns false for NaN comparisons
-    if (minMaxIsNan(a))
-      return false; // use b
+    bool aIsNan = minMaxIsNan(a);
+    bool bIsNan = minMaxIsNan(b);
 
-    if (minMaxIsNan(b))
-      return true; // use a
+    if (aIsNan && bIsNan)
+      // return canonical NaN if both are NaN
+      return Float32_t{ .word = defaultNaNF32UI };
+
+    if (aIsNan)
+      return b;
+
+    if (bIsNan)
+      return a;
     
-      // berklees softfloat does not differentiate between -0 and +0
+    // berkeleys softfloat does not differentiate between -0 and +0
     // so we need to handle this case manually
     bool bothAbsZero = (a.abs().word == 0) && (b.abs().word == 0);
     if (bothAbsZero) {
-      if (a.sign()) {
-        return true ^ isMax; // -0
-      }
-
-      return false ^ isMax; // +0 (or same as a)
+      // if a is -0 => "a <= b" => return B for max, A for min
+      // if a is +0 => "a >= b" => return A for max, B for min
+      return a.sign() ^ isMax ? a : b;
     }
 
-    return f32_lt_quiet(a.softfloat32, b.softfloat32) ^ isMax;
+    bool isALeB = f32_le_quiet(a.softfloat32, b.softfloat32);
+    return isALeB ^ isMax ? a : b;
   }
 };
 
