@@ -414,63 +414,74 @@ public:
       
       softfloat_roundingMode = mapRoundingMode(roundmode.eValue<RVISA::ExtF::RoundMode>());
 
+      // being fancy so that we can differentiate invalid float Data from invalid integer Data
+      VSRTL_VT_U resValue = VT_U( 0xDEADDAB );
+      
       // clang-format off
       switch (ctrl.eValue<FPUOp>()) {
-        case FPUOp::NOP: 
-          // being fancy so that we can differentiate invalid Data from integer invalid Data
-          return VT_U( 0xDEADDAB );
+        case FPUOp::NOP: break;
         
-        case FPUOp::FADD_S:     return VT_U((fs1 + fs2).word);
-        case FPUOp::FSUB_S:     return VT_U((fs1 - fs2).word);
-        case FPUOp::FMUL_S:     return VT_U((fs1 * fs2).word);
-        case FPUOp::FDIV_S:     return VT_U((fs1 / fs2).word);
-        case FPUOp::FSQRT_S:    return VT_U(fs1.sqrt().word);
-        case FPUOp::FMIN_S:     return VT_U(Float32_t::min(fs1, fs2).word);
-        case FPUOp::FMAX_S:     return VT_U(Float32_t::max(fs1, fs2).word);
+        case FPUOp::FADD_S:     resValue = VT_U((fs1 + fs2).word); break;
+        case FPUOp::FSUB_S:     resValue = VT_U((fs1 - fs2).word); break;
+        case FPUOp::FMUL_S:     resValue = VT_U((fs1 * fs2).word); break;
+        case FPUOp::FDIV_S:     resValue = VT_U((fs1 / fs2).word); break;
+        case FPUOp::FSQRT_S:    resValue = VT_U(fs1.sqrt().word); break;
+        case FPUOp::FMIN_S:     resValue = VT_U(Float32_t::min(fs1, fs2).word); break;
+        case FPUOp::FMAX_S:     resValue = VT_U(Float32_t::max(fs1, fs2).word); break;
 
-        case FPUOp::FMADD_S:    return VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::add_AB_add_C).word);
-        case FPUOp::FMSUB_S:    return VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::add_AB_sub_C).word);
-        case FPUOp::FNMSUB_S:   return VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::sub_AB_add_C).word);
-        case FPUOp::FNMADD_S:   return VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::add_AB_add_C).negate().word);
+        case FPUOp::FMADD_S:    resValue = VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::add_AB_add_C).word); break;
+        case FPUOp::FMSUB_S:    resValue = VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::add_AB_sub_C).word); break;
+        case FPUOp::FNMSUB_S:   resValue = VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::sub_AB_add_C).word); break;
+        case FPUOp::FNMADD_S:   resValue = VT_U(Float32_t::fma(fs1, fs2, fs3, Float32_t::fma_mode::add_AB_add_C).negate().word); break;
         
-        case FPUOp::FSGNJ_S:    return VT_U(fs1.setSign( fs2.sign()).word);
-        case FPUOp::FSGNJN_S:   return VT_U(fs1.setSign(~fs2.sign()).word);
-        case FPUOp::FSGNJX_S:   return VT_U(fs1.setSign( fs1.sign() ^ fs2.sign()).word);
+        case FPUOp::FSGNJ_S:    resValue = VT_U(fs1.setSign( fs2.sign()).word); break;
+        case FPUOp::FSGNJN_S:   resValue = VT_U(fs1.setSign(~fs2.sign()).word); break;
+        case FPUOp::FSGNJX_S:   resValue = VT_U(fs1.setSign( fs1.sign() ^ fs2.sign()).word); break;
         
-        case FPUOp::FCVT_W_S:   return VT_U(Float32_t::to<int32_t>( fs1 ));
-        case FPUOp::FCVT_WU_S:  return VT_U(Float32_t::to<uint32_t>( fs1 ));
-        case FPUOp::FCVT_S_W:   return VT_U(Float32_t::from<int32_t>( op1.sValue() ).word);
-        case FPUOp::FCVT_S_WU:  return VT_U(Float32_t::from<uint32_t>( op1.uValue() ).word);
+        case FPUOp::FCVT_W_S:   resValue = VT_U(Float32_t::to<int32_t>( fs1 )); break;
+        case FPUOp::FCVT_WU_S:  resValue = VT_U(Float32_t::to<uint32_t>( fs1 )); break;
+        case FPUOp::FCVT_S_W:   resValue = VT_U(Float32_t::from<int32_t>( op1.sValue() ).word); break;
+        case FPUOp::FCVT_S_WU:  resValue = VT_U(Float32_t::from<uint32_t>( op1.uValue() ).word); break;
 
-        case FPUOp::FCVT_L_S:   return VT_U(Float32_t::to<int64_t>( fs1 ));
-        case FPUOp::FCVT_LU_S:  return VT_U(Float32_t::to<uint64_t>( fs1 ));
-        case FPUOp::FCVT_S_L:   return VT_U(Float32_t::from<int64_t>( op1.sValue() ).word);
-        case FPUOp::FCVT_S_LU:  return VT_U(Float32_t::from<uint64_t>( op1.uValue() ).word);
+        case FPUOp::FCVT_L_S:   resValue = VT_U(Float32_t::to<int64_t>( fs1 )); break;
+        case FPUOp::FCVT_LU_S:  resValue = VT_U(Float32_t::to<uint64_t>( fs1 )); break;
+        case FPUOp::FCVT_S_L:   resValue = VT_U(Float32_t::from<int64_t>( op1.sValue() ).word); break;
+        case FPUOp::FCVT_S_LU:  resValue = VT_U(Float32_t::from<uint64_t>( op1.uValue() ).word); break;
         
-        case FPUOp::FMV_X_W:
+        case FPUOp::FMV_X_W: Q_FALLTHROUGH();
         case FPUOp::FMV_W_X:
-          return op1.uValue();
+          resValue = op1.uValue(); break;
         
-        case FPUOp::EQ:         return VT_U( fs1 == fs2 ? 1 : 0 );
-        case FPUOp::LE:         return VT_U( fs1 <= fs2 ? 1 : 0 );
-        case FPUOp::LT:         return VT_U( fs1 <  fs2 ? 1 : 0 );
-
-        case FPUOp::FCLASS_S:   return VT_U( 1 << static_cast<uint32_t>(fs1.fclass()) ); // shift to match RISC-V fclass.s encoding
+        case FPUOp::EQ:         resValue = VT_U( fs1 == fs2 ? 1 : 0 ); break;
+        case FPUOp::LE:         resValue = VT_U( fs1 <= fs2 ? 1 : 0 ); break;
+        case FPUOp::LT:         resValue = VT_U( fs1 <  fs2 ? 1 : 0 ); break;
+        
+        // shift to match RISC-V fclass.s encoding
+        case FPUOp::FCLASS_S:   resValue = VT_U( 1 << static_cast<uint32_t>(fs1.fclass()) ); break;
         
         // since fflags have been already synced after the previus operation,
         // we can just return the current fcsr value 
-        case FPUOp::FRCSR:      return VT_U(xfcsr.word);
-        case FPUOp::FRRM:       return VT_U(xfcsr.getRoundingMode());
-        case FPUOp::FRFLAGS:    return VT_U(xfcsr.getFlags().toWord());
+        case FPUOp::FRCSR:      resValue = VT_U(xfcsr.word); break;
+        case FPUOp::FRRM:       resValue = VT_U(xfcsr.getRoundingMode()); break;
+        case FPUOp::FRFLAGS:    resValue = VT_U(xfcsr.getFlags().toWord()); break;
 
-        case FPUOp::FSCSR:      return readWriteFcsr(op1.uValue());
-        case FPUOp::FSRM:       return readWriteFrm(op1.uValue());
-        case FPUOp::FSFLAGS:    return readWriteFflags(op1.uValue());
+        // operations that modify the frm field must skip over the restoration of the rounding mode 
+        // at the end of this lambda since they already overwrite the rounding mode
+        case FPUOp::FSCSR:      resValue = readWriteFcsr(op1.uValue()); goto skip_roundind_mode_restore;
+        case FPUOp::FSRM:       resValue = readWriteFrm(op1.uValue()); goto skip_roundind_mode_restore;
+
+        case FPUOp::FSFLAGS:    resValue = readWriteFflags(op1.uValue()); break;
 
         default:
           throw std::runtime_error("Invalid FPU opcode");
       }
       // clang-format on
+
+      // restore true rounding mode from the temporarily applied static rounding mode
+      softfloat_roundingMode = mapRoundingMode(xfcsr.getRoundingMode());
+
+      skip_roundind_mode_restore:
+      return resValue;
     };
     connect_res->out >> res;
     
