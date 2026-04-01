@@ -136,21 +136,6 @@ enum class RVInstr {
   FMSUB_S,
   FNMSUB_S,
   FNMADD_S,
-
-  /** NOTE:
-   * Although we define the actual CSR instructions down below, for the current
-   * implementation of the float extension it is more desirable to have explict
-   * RVInstr entries for the pseudo instructions that operate on the 
-   * floating-point CSRs (fcsr, frm, fflags). We therefore define these pseudo
-   * instructions here even though they do not correspond directly to canonical
-   * RISC-V instructions.
-   */
-  FRCSR,
-  FSCSR,
-  FRRM,
-  FSRM,
-  FRFLAGS,
-  FSFLAGS,
   
   /* RV64F Single Floating Point Extension */
   FCVT_L_S,
@@ -194,9 +179,6 @@ static inline RVISA::Extension::Id getExtensionType(const RVInstr instr) {
     case RVInstr::FMADD_S:  case RVInstr::FMSUB_S: 
     case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
     case RVInstr::FCLASS_S:
-    case RVInstr::FRCSR:   case RVInstr::FSCSR:
-    case RVInstr::FRRM:    case RVInstr::FSRM:
-    case RVInstr::FRFLAGS: case RVInstr::FSFLAGS:
       return RVISA::Extension::Id::F;
     
     case RVInstr::CSRRW:  case RVInstr::CSRRS:  case RVInstr::CSRRC:
@@ -283,12 +265,18 @@ enum class FPUOp {
   FCVT_S_L,
   FCVT_S_LU,
 
-  FRCSR,
-  FSCSR,
-  FRRM,
-  FSRM,
-  FRFLAGS,
-  FSFLAGS,
+  /* Floating Point - Control and status registers instructions */
+  CSRW_FFLAGS,
+  CSRS_FFLAGS,
+  CSRC_FFLAGS,
+  
+  CSRW_FRM,
+  CSRS_FRM,
+  CSRC_FRM,
+
+  CSRW_FCSR,
+  CSRS_FCSR,
+  CSRC_FCSR,
 };
 enum class RegWrSrc { MEMREAD, ALURES, PC4 };
 enum class AluSrc1 { REG1, PC };
@@ -298,7 +286,8 @@ enum class MemOp { NOP, LB, LH, LW, LBU, LHU, SB, SH, SW, LWU, LD, SD };
 enum ECALL { none, print_int = 1, print_char = 2, print_string = 4, exit = 10 };
 enum PcSrc { PC4 = 0, ALU = 1 };
 enum PcInc { INC2 = 0, INC4 = 1 };
-enum RegFileSrc { INTEGER, FLOAT };
+enum class RegFileSrc { INTEGER, FLOAT };
+enum class ImmRegFileSrc { INTEGER, FLOAT, IMMEDIATE };
 
 /** Instruction field parser */
 class RVInstrParser {

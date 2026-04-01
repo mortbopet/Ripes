@@ -92,6 +92,10 @@ public:
                     ((instr.uValue() & 0xf80) >> 7));
       }
 
+      // System Type
+      case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
+        return VT_U((instr.uValue() >> 15) & 0b11111);
+
       default:
         return VT_U(0xDEADBEEF);
       }

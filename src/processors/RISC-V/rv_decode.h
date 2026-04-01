@@ -40,24 +40,6 @@ public:
             // Fallthrough - unknown instruction.
             break;
           }
-
-          // hard (de)code floating csr instructions
-          RVISA::RV_CSRInfo::CSR csr = static_cast<RVISA::RV_CSRInfo::CSR>(fields[0]);
-          if (funct3 == RVISA::ExtZicsr::TypeCSR::Funct3::CSRRW) {
-            switch(csr) {
-              case RVISA::RV_CSRInfo::CSR::FFLAGS: return RVInstr::FSFLAGS;
-              case RVISA::RV_CSRInfo::CSR::FRM   : return RVInstr::FSRM;
-              case RVISA::RV_CSRInfo::CSR::FCSR  : return RVInstr::FSCSR;
-              default: break;
-            }
-          } else if (funct3 == RVISA::ExtZicsr::TypeCSR::Funct3::CSRRS) {
-            switch(csr) {
-              case RVISA::RV_CSRInfo::CSR::FFLAGS: return RVInstr::FRFLAGS;
-              case RVISA::RV_CSRInfo::CSR::FRM   : return RVInstr::FRRM;
-              case RVISA::RV_CSRInfo::CSR::FCSR  : return RVInstr::FRCSR;
-              default: break;
-            }
-          }
           
           // general decode csr instructions
           switch (funct3) {
@@ -429,10 +411,23 @@ private:
 };
 
 template <unsigned XLEN>
-class DecodeF : public Decode<XLEN> {
+class DecodeCSR : public Decode<XLEN> {
+  public:
+  DecodeCSR(const std::string &name, SimComponent *parent)
+  : Decode<XLEN>(name, parent) {
+    csr_reg_idx << [this] {
+      return (Decode<XLEN>::instr.uValue() >> 20) & 0xFFF; // 12 bits
+    };
+  }
+  // OUTPUTPORT_ENUM(csr_reg_idx, RVISA::RV_CSRInfo::CSR);
+  OUTPUTPORT(csr_reg_idx, c_RVCsrRegsBits);
+};
+
+template <unsigned XLEN>
+class DecodeF : public DecodeCSR<XLEN> {
   public:
   DecodeF(const std::string &name, SimComponent *parent)
-  : Decode<XLEN>(name, parent) {
+  : DecodeCSR<XLEN>(name, parent) {
     r3_reg_idx << [this] {
       return (Decode<XLEN>::instr.uValue() >> 27) & 0b11111;
     };

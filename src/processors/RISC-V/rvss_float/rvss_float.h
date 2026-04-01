@@ -69,6 +69,7 @@ public:
     // -----------------------------------------------------------------------
     // Control signals
     decode->opcode >> control->opcode;
+    decode->csr_reg_idx >> control->csr_reg_idx;
 
     // -----------------------------------------------------------------------
     // Immediate
@@ -100,8 +101,9 @@ public:
     
     // -----------------------------------------------------------------------
     // Register MUXes
-    registerFileI->r1_out >> reg1_src->get(RegFileSrc::INTEGER);
-    registerFileF->r1_out >> reg1_src->get(RegFileSrc::FLOAT);
+    registerFileI->r1_out >> reg1_src->get(ImmRegFileSrc::INTEGER);
+    registerFileF->r1_out >> reg1_src->get(ImmRegFileSrc::FLOAT);
+    immediate->imm >> reg1_src->get(ImmRegFileSrc::IMMEDIATE);
     control->reg1_do_read_src >> reg1_src->select;
 
     registerFileI->r2_out >> reg2_src->get(RegFileSrc::INTEGER);
@@ -187,7 +189,7 @@ public:
 
   // Multiplexers
   SUBCOMPONENT(alu_fpu_src, TYPE(EnumMultiplexer<RegFileSrc, XLEN>));
-  SUBCOMPONENT(reg1_src, TYPE(EnumMultiplexer<RegFileSrc, XLEN>));
+  SUBCOMPONENT(reg1_src, TYPE(EnumMultiplexer<ImmRegFileSrc, XLEN>));
   SUBCOMPONENT(reg2_src, TYPE(EnumMultiplexer<RegFileSrc, XLEN>));
   SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
   SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
