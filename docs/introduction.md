@@ -37,7 +37,7 @@ Apart from the processor view, the processor tab contains the following views:
 - 1: **Registers**: A list of all registers of the processor. Register values may be **edited** through clicking on the value of the given register. Editing a register value is immediately reflected in the processor circuit. The most recently modified register is highlighted with a yellow background.
 - 2: **Instruction memory**: A view into the current program loaded in the simulator. 
   - **BP**: Breakpoints, click to toggle. Any breakpoint set in the editor tab will be reflected here. 
-  - **PC**: The address of the given instruction
+  - **Addr**: The address of the given instruction
   - **Stage**: Lists the stage(s) that is currently executing the given instruction
   - **Instruction**: Disassembled instruction
 - 3: **Statistics**: Various statistics based on the cycle count and current number of retired instructions. 
