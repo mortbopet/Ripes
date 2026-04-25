@@ -25,7 +25,7 @@ public:
   // Data
   REGISTERED_CLEN_INPUT(pc, XLEN);
   REGISTERED_CLEN_INPUT(pc_4, XLEN);
-  REGISTERED_CLEN_INPUT(instr, XLEN);
+  REGISTERED_CLEN_INPUT(instr, c_RVInstrWidth);
 
 
   // Register bank controls

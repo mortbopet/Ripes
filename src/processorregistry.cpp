@@ -84,10 +84,14 @@ ProcessorRegistry::ProcessorRegistry() {
 
   layouts = {{"Standard",
               ":/layouts/RISC-V/rv3s_wildcat/rv3s_wildcat_standard_layout.json",
-              {{{0, 0}, QPointF{0.5, 0}}}},
+            {{{0, 0}, QPointF{0.15, 0}},
+            {{0, 1}, QPointF{0.5, 0}},
+            {{0, 2}, QPointF{0.85, 0}}}},
              {"Extended",
               ":/layouts/RISC-V/rv3s_wildcat/rv3s_wildcat_extended_layout.json",
-              {{{0, 0}, QPointF{0.5, 0}}}}};
+            {{{0, 0}, QPointF{0.15, 0}},
+            {{0, 1}, QPointF{0.5, 0}},
+            {{0, 2}, QPointF{0.85, 0}}}}};
   defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
   addProcessor(ProcInfo<vsrtl::core::RV3S_WILDCAT<uint32_t>>(
       ProcessorID::RV32_3S_WILDCAT, "3-stage Wildcat processor",

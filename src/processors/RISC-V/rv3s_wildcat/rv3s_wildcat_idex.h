@@ -33,7 +33,6 @@ public:
   }
 
   // Data
-  REGISTERED_CLEN_INPUT(pc, XLEN);
   REGISTERED_CLEN_INPUT(pc_4, XLEN);
   REGISTERED_CLEN_INPUT(op1, XLEN);
   REGISTERED_CLEN_INPUT(op2, XLEN);
@@ -47,6 +46,10 @@ public:
   REGISTERED_CLEN_INPUT(alu_ctrl, enumBitWidth<ALUOp>());
   REGISTERED_CLEN_INPUT(mem_do_write, 1);
   REGISTERED_CLEN_INPUT(mem_op, enumBitWidth<MemOp>());
+
+  // Interface compliance
+  REGISTERED_CLEN_INPUT(pc, XLEN);
+  //REGISTERED_CLEN_INPUT(opcode, enumBitWidth<RVInstr>());
 
   // Register bank controls
   INPUTPORT(enable, 1);

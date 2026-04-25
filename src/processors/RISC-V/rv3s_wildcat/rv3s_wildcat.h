@@ -41,6 +41,7 @@ public:
       : RipesVSRTLProcessor("3-Stage RISC-V Wildcat Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
+    //uncompress->setISA(m_enabledISA);
 
     // Component linking, grouped by stages and purpose.
 
@@ -50,21 +51,24 @@ public:
     pc_reg->out >> pc_4->op2;
     pc_reg->out >> instr_mem->addr;
     pc_4->out >> pc_src->get(PC4);
+    //instr_mem->data_out >> uncompress->instr;
 
     // IF/ID register inputs
     pc_reg->out >> ifid_reg->pc_in;
     pc_4->out >> ifid_reg->pc_4_in;
+    //uncompress->exp_instr >> ifid_reg->instr_in;
     instr_mem->data_out >> ifid_reg->instr_in;
 
     // ID: Instruction inputs and decode outputs
-    ifid_reg->instr_out >> decode->instr_in;
-    ifid_reg->instr_out >> immediate->instr_in;
+    ifid_reg->instr_out >> decode->instr;
+    ifid_reg->instr_out >> immediate->instr;
     decode->r1_reg_idx >> registerFile->r1_addr;
     decode->r2_reg_idx >> registerFile->r2_addr;
     decode->opcode >> immediate->opcode;
     decode->opcode >> control->opcode;
 
-    // ID: Register and immediate values
+    // ID: Operand values
+    ifid_reg->pc_out >> alu_op1_src->get(AluSrc1::PC);
     registerFile->r1_out >> alu_op1_src->get(AluSrc1::REG1);
     registerFile->r1_out >> branch->op1;
     registerFile->r1_out >> mem_addr->op1;
@@ -123,20 +127,39 @@ public:
     data_mem->data_out >> ex_res_mux->get(RegWrSrc::MEMREAD);
     idex_reg->reg_wr_src_ctrl_out >> ex_res_mux->select;
     ex_res_mux->out >> registerFile->data_in;
+    idex_reg->wr_reg_idx_out >> registerFile->wr_addr;
     idex_reg->reg_do_write_out >> registerFile->wr_en;
 
     // Memory assignments
     instr_mem->setMemory(m_memory);
     registerFile->setMemory(m_regMem);
     data_mem->mem->setMemory(m_memory);
+
+    // Register control signals
+    0 >> pc_reg->clear;
+    1 >> pc_reg->enable;
+    1 >> ifid_reg->enable;
+    0 >> ifid_reg->clear;
+    1 >> ifid_reg->valid_in;
+    1 >> idex_reg->enable;
+    0 >> idex_reg->clear;
+    1 >> idex_reg->valid_in;
+
+    // Ecall checker (Interface compliance only)
+    //decode->opcode >> idex_reg->opcode_in;
+    //idex_reg->opcode_out >> ecallChecker->opcode;
+    decode->opcode >> ecallChecker->opcode;
+    ecallChecker->setSyscallCallback(&trapHandler);
+    0 >> ecallChecker->stallEcallHandling;
   }
 
   // IF Components
-  SUBCOMPONENT(pc_reg, Register<XLEN>);
+  SUBCOMPONENT(pc_reg, RegisterClEn<XLEN>);
   SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
   ADDRESSSPACEMM(m_memory);
   SUBCOMPONENT(pc_4, Adder<XLEN>);
   SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
+  //SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
 
   // IF/ID Register
   SUBCOMPONENT(ifid_reg, TYPE(Wildcat_IFID<XLEN>));
@@ -227,14 +250,11 @@ public:
         state = StageInfo::State::Flushed;
       }
       break;
-    case EX: {
-      if (idex_reg->stalled_out.uValue() == 1) {
-        state = StageInfo::State::Stalled;
-      } else if (m_cycleCount > EX && idex_reg->valid_out.uValue() == 0) {
+    case EX:
+      if (m_cycleCount > EX && idex_reg->valid_out.uValue() == 0) {
         state = StageInfo::State::Flushed;
       }
       break;
-    }
     }
 
     return StageInfo({getPcForStage(stage), stageValid, state});
