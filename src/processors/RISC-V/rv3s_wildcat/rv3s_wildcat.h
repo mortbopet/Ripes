@@ -65,7 +65,7 @@ public:
     decode->opcode >> control->opcode;
 
     // ID: Register and immediate values
-    registerFile->r1_out >> pc_base_addr->get(AluSrc1::REG1);
+    registerFile->r1_out >> alu_op1_src->get(AluSrc1::REG1);
     registerFile->r1_out >> branch->op1;
     registerFile->r1_out >> mem_addr->op1;
 
@@ -78,14 +78,14 @@ public:
 
     // ID: Control unit signals consumed in ID.
     control->comp_ctrl >> branch->comp_op;
-    control->alu_op1_ctrl >> pc_base_addr->select;
+    control->alu_op1_ctrl >> alu_op1_src->select;
     control->do_branch >> *br_and->in[0];
     control->do_jump >> *controlflow_or->in[0];
     control->alu_op2_ctrl >> alu_op2_src->select;
 
     // ID: Branch and jump component outputs
     branch->res >> *br_and->in[1];
-    pc_base_addr->out >> pc_target_addr->op1;
+    alu_op1_src->out >> pc_target_addr->op1;
     br_and->out >> *controlflow_or->in[1];
     controlflow_or->out >> pc_src->select;
     pc_target_addr->out >> pc_src->get(PcSrc::ALU);
@@ -93,7 +93,7 @@ public:
     // ID/EX register: Data inputs
     ifid_reg->pc_out >> idex_reg->pc_in;
     ifid_reg->pc_4_out >> idex_reg->pc_4_in;
-    registerFile->r1_out >> idex_reg->op1_in;
+    alu_op1_src->out >> idex_reg->op1_in;
     alu_op2_src->out >> idex_reg->op2_in;
     mem_addr->out >> idex_reg->mem_addr_in;
     registerFile->r2_out >> idex_reg->mem_wr_data_in;
@@ -148,7 +148,7 @@ public:
   ADDRESSSPACE(m_regMem);
   SUBCOMPONENT(control, Control);
   SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
-  SUBCOMPONENT(pc_base_addr, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
+  SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
   SUBCOMPONENT(pc_target_addr, TYPE(Adder<XLEN>));
   SUBCOMPONENT(br_and, TYPE(And<1, 2>));
   SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
