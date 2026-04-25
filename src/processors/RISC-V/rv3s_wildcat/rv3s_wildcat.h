@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VSRTL/core/vsrtl_adder.h"
-#include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_design.h"
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
@@ -18,7 +17,6 @@
 #include "processors/RISC-V/rv_immediate.h"
 #include "processors/RISC-V/rv_memory.h"
 #include "processors/RISC-V/rv_registerfile.h"
-#include "processors/RISC-V/rv_uncompress.h"
 
 // Stage separating registers
 #include "rv3s_wildcat_ifid.h"
