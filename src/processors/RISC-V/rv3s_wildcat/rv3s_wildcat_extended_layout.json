@@ -228,39 +228,28 @@
                             "x": 168,
                             "y": 182
                         }
-                    },
-                    {
-                        "key": 6,
-                        "value": {
-                            "x": 168,
-                            "y": 210
-                        }
                     }
                 ],
                 "wires": [
-                    {
-                        "first": 0,
-                        "second": 1
-                    },
-                    {
-                        "first": 6,
-                        "second": 3
-                    },
-                    {
-                        "first": 4,
-                        "second": 2
-                    },
                     {
                         "first": 0,
                         "second": 4
                     },
                     {
                         "first": 4,
-                        "second": 6
+                        "second": 2
                     },
                     {
-                        "first": 6,
+                        "first": 4,
                         "second": 5
+                    },
+                    {
+                        "first": 5,
+                        "second": 1
+                    },
+                    {
+                        "first": 5,
+                        "second": 3
                     }
                 ]
             },
@@ -588,42 +577,20 @@
                             "x": 252,
                             "y": 168
                         }
-                    },
-                    {
-                        "key": 4,
-                        "value": {
-                            "x": 28,
-                            "y": 98
-                        }
-                    },
-                    {
-                        "key": 5,
-                        "value": {
-                            "x": 252,
-                            "y": 98
-                        }
                     }
                 ],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 3,
-                        "second": 5
-                    },
-                    {
-                        "first": 4,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
                         "second": 3
                     },
                     {
-                        "first": 5,
-                        "second": 4
+                        "first": 3,
+                        "second": 1
+                    },
+                    {
+                        "first": 3,
+                        "second": 2
                     }
                 ]
             },
@@ -2604,32 +2571,10 @@
                     }
                 ],
                 "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 742,
-                            "y": 70
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 742,
-                            "y": 56
-                        }
-                    }
                 ],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -2666,20 +2611,9 @@
                             "x": 392,
                             "y": 294
                         }
-                    },
-                    {
-                        "key": 4,
-                        "value": {
-                            "x": 392,
-                            "y": 420
-                        }
                     }
                 ],
                 "wires": [
-                    {
-                        "first": 0,
-                        "second": 4
-                    },
                     {
                         "first": 0,
                         "second": 3
@@ -2689,7 +2623,7 @@
                         "second": 1
                     },
                     {
-                        "first": 4,
+                        "first": 3,
                         "second": 2
                     }
                 ]
@@ -2972,13 +2906,6 @@
                             "x": 518,
                             "y": 350
                         }
-                    },
-                    {
-                        "key": 5,
-                        "value": {
-                            "x": 518,
-                            "y": 392
-                        }
                     }
                 ],
                 "wires": [
@@ -2987,19 +2914,15 @@
                         "second": 3
                     },
                     {
-                        "first": 5,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 4
                     },
                     {
                         "first": 4,
-                        "second": 5
+                        "second": 1
                     },
                     {
-                        "first": 0,
+                        "first": 4,
                         "second": 2
                     }
                 ]
@@ -3023,21 +2946,10 @@
                     }
                 ],
                 "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 504,
-                            "y": 476
-                        }
-                    }
                 ],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
                         "second": 1
                     }
                 ]
@@ -3277,19 +3189,42 @@
                         ]
                     }
                 ],
-                "points": [],
+                "points": [
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 646,
+                            "y": 228
+                        }
+                    },
+                    {
+                        "key": 5,
+                        "value": {
+                            "x": 646,
+                            "y": 378
+                        }
+                    }
+                ],
                 "wires": [
                     {
                         "first": 0,
+                        "second": 4
+                    },
+                    {
+                        "first": 4,
                         "second": 3
                     },
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 4,
+                        "second": 5
                     },
                     {
-                        "first": 0,
+                        "first": 5,
                         "second": 1
+                    },
+                    {
+                        "first": 5,
+                        "second": 2
                     }
                 ]
             },
@@ -4391,19 +4326,31 @@
                         ]
                     }
                 ],
-                "points": [],
+                "points": [
+                    {
+                        "key": 4,
+                        "value": {
+                            "x": 646,
+                            "y": 238
+                        }
+                    }
+                ],
                 "wires": [
                     {
                         "first": 0,
+                        "second": 4
+                    },
+                    {
+                        "first": 4,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 4,
+                        "second": 2
                     },
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 4,
+                        "second": 3
                     }
                 ]
             },
@@ -4439,18 +4386,40 @@
                         ]
                     }
                 ],
-                "points": [],
+                "points": [{
+                        "key": 4,
+                        "value": {
+                            "x": 646,
+                            "y": 258
+                        }
+                    },
+                    {
+                        "key": 5,
+                        "value": {
+                            "x": 646,
+                            "y": 288
+                        }
+                    }
+                ],
                 "wires": [
                     {
                         "first": 0,
+                        "second": 4
+                    },
+                    {
+                        "first": 4,
+                        "second": 5
+                    },
+                    {
+                        "first": 5,
                         "second": 3
                     },
                     {
-                        "first": 0,
+                        "first": 5,
                         "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 4,
                         "second": 1
                     }
                 ]
@@ -5632,14 +5601,25 @@
                         ]
                     }
                 ],
-                "points": [],
+                "points": [{
+                        "key": 3,
+                        "value": {
+                            "x": 904,
+                            "y": 196
+                        }
+                    }
+                ],
                 "wires": [
                     {
                         "first": 0,
+                        "second": 3
+                    },
+                    {
+                        "first": 3,
                         "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -5813,33 +5793,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 196,
-                            "y": 70
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 196,
-                            "y": 84
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -6580,33 +6537,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1386,
-                            "y": 98
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 910,
-                            "y": 98
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -11748,33 +11682,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1078,
-                            "y": 56
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 1078,
-                            "y": 98
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -11797,33 +11708,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1022,
-                            "y": 70
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 1022,
-                            "y": 168
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -11846,33 +11734,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1022,
-                            "y": 84
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 1022,
-                            "y": 182
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -11895,33 +11760,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1022,
-                            "y": 98
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 1022,
-                            "y": 56
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -11944,33 +11786,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1022,
-                            "y": 112
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 1022,
-                            "y": 70
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
@@ -12019,34 +11838,11 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 784,
-                            "y": 518
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 784,
-                            "y": 476
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
                         "second": 1
-                    },
-                    {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
-                        "second": 2
                     }
                 ]
             },
@@ -12164,15 +11960,7 @@
                     ]
                 },
                 "To ports": [],
-                "points": [
-                    {
-                        "key": 1,
-                        "value": {
-                            "x": 798,
-                            "y": 210
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
@@ -13953,33 +13741,10 @@
                         ]
                     }
                 ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1218,
-                            "y": 84
-                        }
-                    },
-                    {
-                        "key": 3,
-                        "value": {
-                            "x": 1218,
-                            "y": 98
-                        }
-                    }
-                ],
+                "points": [],
                 "wires": [
                     {
                         "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     }
                 ]
