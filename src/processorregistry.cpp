@@ -9,6 +9,7 @@
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
+#include "processors/RISC-V/rv3s_wildcat/rv3s_wildcat.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
@@ -80,9 +81,7 @@ ProcessorRegistry::ProcessorRegistry() {
       ProcessorID::RV64_SS, "Single-cycle processor",
       "A single cycle processor", layouts, defRegVals));
 
-  // RISC-V 3-stage (Wildcat)
-  /*
-  TODO:
+
   layouts = {{"Standard",
               ":/layouts/RISC-V/rv3s_wildcat/rv3s_wildcat_standard_layout.json",
               {{{0, 0}, QPointF{0.5, 0}}}},
@@ -96,7 +95,7 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RV3S_WILDCAT<uint64_t>>(
       ProcessorID::RV64_3S_WILDCAT, "3-stage Wildcat processor",
       "A 3-stage processor", layouts, defRegVals));
-   */
+
 
   // RISC-V multicycle
   layouts = {{"Extended",
@@ -218,10 +217,10 @@ ProcessorRegistry::ProcessorRegistry() {
                {{0, 3}, QPointF{0.78, 0}},
                {{0, 4}, QPointF{0.9, 0}}}}};
   defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
-  addProcessor(ProcInfo<vsrtl::core::RV3S_WILDCAT<uint32_t>>(
+  addProcessor(ProcInfo<vsrtl::core::RV5S<uint32_t>>(
       ProcessorID::RV32_5S, "5-stage processor", rv5s_desc, layouts,
       defRegVals));
-  addProcessor(ProcInfo<vsrtl::core::RV3S_WILDCAT<uint64_t>>(
+  addProcessor(ProcInfo<vsrtl::core::RV5S<uint64_t>>(
       ProcessorID::RV64_5S, "5-stage processor", rv5s_desc, layouts,
       defRegVals));
 
