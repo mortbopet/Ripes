@@ -293,8 +293,8 @@ public:
   void clockProcessor() override {
     // An instruction has been retired if the instruction in the WB stage is
     // valid and the PC is within the executable range of the program
-    if (memwb_reg->valid_out.uValue() != 0 &&
-        isExecutableAddress(memwb_reg->pc_out.uValue())) {
+    if (idex_reg->valid_out.uValue() != 0 &&
+        isExecutableAddress(idex_reg->pc_out.uValue())) {
       m_instructionsRetired++;
     }
 
@@ -309,8 +309,8 @@ public:
       m_syscallExitCycle = -1;
     }
     Design::reverse();
-    if (memwb_reg->valid_out.uValue() != 0 &&
-        isExecutableAddress(memwb_reg->pc_out.uValue())) {
+    if (idex_reg->valid_out.uValue() != 0 &&
+        isExecutableAddress(idex_reg->pc_out.uValue())) {
       m_instructionsRetired--;
     }
   }
