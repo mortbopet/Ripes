@@ -44,6 +44,93 @@ public:
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
 
+    // Component linking, grouped by stages and purpose.
+
+    // IF
+    pc_src->out >> pc_reg->in;
+    4 >> pc_4->op1;
+    pc_reg->out >> pc_4->op2;
+    pc_reg->out >> instr_mem->addr;
+    pc_4->out >> pc_src->get(PC4);
+
+    // IF/ID register inputs
+    pc_reg->out >> ifid_reg->pc_in;
+    pc_4->out >> ifid_reg->pc_4_in;
+    instr_mem->data_out >> ifid_reg->instr_in;
+
+    // ID: Instruction inputs and decode outputs
+    ifid_reg->instr_out >> decode->instr_in;
+    ifid_reg->instr_out >> immediate->instr_in;
+    decode->r1_reg_idx >> registerFile->r1_addr;
+    decode->r2_reg_idx >> registerFile->r2_addr;
+    decode->opcode >> immediate->opcode;
+    decode->opcode >> control->opcode;
+
+    // ID: Register and immediate values
+    registerFile->r1_out >> pc_base_addr->get(AluSrc1::REG1);
+    registerFile->r1_out >> branch->op1;
+    registerFile->r1_out >> mem_addr->op1;
+
+    registerFile->r2_out >> alu_op2_src->get(AluSrc2::REG2);
+    registerFile->r2_out >> branch->op2;
+
+    immediate->imm >> pc_target_addr->op2;
+    immediate->imm >> alu_op2_src->get(AluSrc2::IMM);
+    immediate->imm >> mem_addr->op2;
+
+    // ID: Control unit signals consumed in ID.
+    control->comp_ctrl >> branch->comp_op;
+    control->alu_op1_ctrl >> pc_base_addr->select;
+    control->do_branch >> *br_and->in[0];
+    control->do_jump >> *controlflow_or->in[0];
+    control->alu_op2_ctrl >> alu_op2_src->select;
+
+    // ID: Branch and jump component outputs
+    branch->res >> *br_and->in[1];
+    pc_base_addr->out >> pc_target_addr->op1;
+    br_and->out >> *controlflow_or->in[1];
+    controlflow_or->out >> pc_src->select;
+    pc_target_addr->out >> pc_src->get(PcSrc::ALU);
+
+    // ID/EX register: Data inputs
+    ifid_reg->pc_out >> idex_reg->pc_in;
+    ifid_reg->pc_4_out >> idex_reg->pc_4_in;
+    registerFile->r1_out >> idex_reg->op1_in;
+    alu_op2_src->out >> idex_reg->op2_in;
+    mem_addr->out >> idex_reg->mem_addr_in;
+    registerFile->r2_out >> idex_reg->mem_wr_data_in;
+
+    // ID/EX register: Signal inputs
+    decode->wr_reg_idx >> idex_reg->wr_reg_idx_in;
+    control->reg_do_write_ctrl >> idex_reg->reg_do_write_in;
+    control->reg_wr_src_ctrl >> idex_reg->reg_wr_src_ctrl_in;
+    control->alu_ctrl >> idex_reg->alu_ctrl_in;
+    control->mem_do_write_ctrl >> idex_reg->mem_do_write_in;
+    control->mem_ctrl >> idex_reg->mem_op_in;
+
+    // EX: ALU inputs
+    idex_reg->op1_out >> alu->op1;
+    idex_reg->op2_out >> alu->op2;
+    idex_reg->alu_ctrl_out >> alu->ctrl;
+
+    // EX: Data memory inputs
+    idex_reg->mem_addr_out >> data_mem->addr;
+    idex_reg->mem_wr_data_out >> data_mem->data_in;
+    idex_reg->mem_do_write_out >> data_mem->wr_en;
+    idex_reg->mem_op_out >> data_mem->op;
+
+    // EX: Write back
+    idex_reg->pc_4_out >> ex_res_mux->get(RegWrSrc::PC4);
+    alu->res >> ex_res_mux->get(RegWrSrc::ALURES);
+    data_mem->data_out >> ex_res_mux->get(RegWrSrc::MEMREAD);
+    idex_reg->reg_wr_src_ctrl_out >> ex_res_mux->select;
+    ex_res_mux->out >> registerFile->data_in;
+    idex_reg->reg_do_write_out >> registerFile->wr_en;
+
+    // Memory assignments
+    instr_mem->setMemory(m_memory);
+    registerFile->setMemory(m_regMem);
+    data_mem->mem->setMemory(m_memory);
   }
 
   // IF Components
