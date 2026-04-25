@@ -43,84 +43,43 @@ public:
       : RipesVSRTLProcessor("3-Stage RISC-V Wildcat Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
-    uncompress->setISA(m_enabledISA);
-
-    // IF
-
-    // PC register, increment mux, jump mux, adder
-
-    // Instruction memory
-
-    // IF/ID
-
-    // Register file
-
-    // Instruction register
-
-    // ID
-
-    // Decode
-
-    // Immediate
-
-    // Control
-
-    // Operand mux
-
-    // Memory address adder, data source mux
-
-    // ID/EX
-
-    // Data memory
-
-    // Operand register
-
-    // EX
-
-    // Operand source mux
-
-    // ALU
-
-    // Output selector
 
   }
 
-  // Subcomponents
-  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, true>));
-  SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
-  SUBCOMPONENT(control, Control);
-  SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
-  SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
-  SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
-  SUBCOMPONENT(pc_4, Adder<XLEN>);
-  SUBCOMPONENT(mem_addr, Adder<XLEN>);
-  SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
-
-  // Registers
+  // IF Components
   SUBCOMPONENT(pc_reg, Register<XLEN>);
-
-  // Stage seperating registers
-  SUBCOMPONENT(ifid_reg, TYPE(IFID<XLEN>));
-  SUBCOMPONENT(idex_reg, TYPE(IDEX<XLEN>));
-
-  // Multiplexers
-  SUBCOMPONENT(reg_wr_src, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(mem_wr_src, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(mem_addr_fw, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(ex_res_select, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
-  SUBCOMPONENT(alu_op1_fw, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(alu_op2_fw, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(op2_src, TYPE(Multiplexer<2, XLEN>));
-  SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
-  SUBCOMPONENT(pc_jump, TYPE(Multiplexer<2, XLEN>));
-
-
-  // Memories
   SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
+  ADDRESSSPACEMM(m_memory);
+  SUBCOMPONENT(pc_4, Adder<XLEN>);
+  SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PcSrc, XLEN>));
+
+  // IF/ID Register
+  SUBCOMPONENT(ifid_reg, TYPE(Wildcat_IFID<XLEN>));
+
+  // ID Components
+  SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
+  SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
+  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, true>));
+  ADDRESSSPACE(m_regMem);
+  SUBCOMPONENT(control, Control);
+  SUBCOMPONENT(branch, TYPE(Branch<XLEN>));
+  SUBCOMPONENT(pc_base_addr, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
+  SUBCOMPONENT(pc_target_addr, TYPE(Adder<XLEN>));
+  SUBCOMPONENT(br_and, TYPE(And<1, 2>));
+  SUBCOMPONENT(controlflow_or, TYPE(Or<1, 2>));
+  SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
+  SUBCOMPONENT(mem_addr, Adder<XLEN>);
+
+
+  // ID/EX Register
+  SUBCOMPONENT(idex_reg, TYPE(Wildcat_IDEX<XLEN>));
+
+  // EX Components
+  SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
   SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
+  SUBCOMPONENT(ex_res_mux, TYPE(EnumMultiplexer<RegWrSrc, XLEN>));
 
-
+  SUBCOMPONENT(ecallChecker, EcallChecker); // Interface compliance
 
   // Ripes interface compliance
   const ProcessorStructure &structure() const override { return m_structure; }
