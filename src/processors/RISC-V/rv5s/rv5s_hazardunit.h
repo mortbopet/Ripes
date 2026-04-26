@@ -57,6 +57,10 @@ private:
     const unsigned idx2 = id_reg2_idx.uValue();
     const bool mrd = ex_do_mem_read_en.uValue();
 
+    if (exidx == 0) {
+      return false;
+    }
+
     return (exidx == idx1 || exidx == idx2) && mrd;
   }
 

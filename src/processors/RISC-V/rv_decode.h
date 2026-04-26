@@ -214,7 +214,51 @@ public:
         };
 
         r2_reg_idx << [this] {
-          return (instr.uValue() >> 20) & 0b11111;
+
+            const auto instrValue = instr.uValue();
+            
+            const unsigned l7 = instrValue & 0b1111111;
+            
+            RVInstrType instr_type;
+
+            switch(l7) {
+                case RVISA::OpcodeID::LUI:      instr_type = RVInstrType::U;
+                case RVISA::OpcodeID::AUIPC:    instr_type = RVInstrType::U;
+                case RVISA::OpcodeID::JAL:      instr_type = RVInstrType::J;
+                case RVISA::OpcodeID::JALR:     instr_type = RVInstrType::I;
+                case RVISA::OpcodeID::SYSTEM:   instr_type = RVInstrType::I;
+                case RVISA::OpcodeID::OPIMM:    instr_type = RVInstrType::I;
+                case RVISA::OpcodeID::OPIMM32:  instr_type = RVInstrType::I;
+                case RVISA::OpcodeID::LOAD:     instr_type = RVInstrType::I;
+                case RVISA::OpcodeID::OP:       instr_type = RVInstrType::R;
+                case RVISA::OpcodeID::OP32:     instr_type = RVInstrType::R;
+                case RVISA::OpcodeID::STORE:    instr_type = RVInstrType::S;
+                case RVISA::OpcodeID::BRANCH:   instr_type = RVInstrType::B;
+            
+                // Fallthrough - unknown instruction (NOP).
+                default: instr_type = RVInstrType::I;
+            };
+
+            bool use_r2 = true;
+
+            switch (instr_type) {
+            case RVInstrType::S:
+              break;
+            case RVInstrType::R:
+              break;
+            case RVInstrType::B:
+              break;
+            default:
+                // Bits 20-24 defined as Rs2 only for S, R and B formats.
+                use_r2 = false;
+            }
+
+            if (use_r2) {
+                return (instr.uValue() >> 20) & 0b11111;
+            }
+            else {
+                return vsrtl::VSRTL_VT_U(0);
+            }
         };
 
     // clang-format on
