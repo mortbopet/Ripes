@@ -80,7 +80,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "ADD"
+                        "str": "NOP"
                     },
                     "Pos": {
                         "x": 1305.0,
@@ -144,7 +144,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0000005d"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1249.0,
@@ -176,7 +176,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0000005d"
+                        "str": "0xdeadbeef"
                     },
                     "Pos": {
                         "x": 1375.0,
@@ -362,7 +362,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000190"
+                        "str": "0x00000194"
                     },
                     "Pos": {
                         "x": 885.0,
@@ -448,20 +448,20 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
-                        "second": 4
-                    },
-                    {
                         "first": 4,
                         "second": 1
                     },
                     {
                         "first": 3,
                         "second": 2
+                    },
+                    {
+                        "first": 3,
+                        "second": 4
+                    },
+                    {
+                        "first": 0,
+                        "second": 3
                     }
                 ]
             },
@@ -550,7 +550,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "REG2"
+                        "str": "IMM"
                     },
                     "Pos": {
                         "x": 1039.0,
@@ -614,7 +614,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1025.0,
@@ -1187,11 +1187,75 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "ECALL"
+                        "str": "ADDI"
                     },
                     "Pos": {
                         "x": 563.0,
                         "y": 134.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "alu_op2_ctrl": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "alu_op2_ctrl"
+                    },
+                    "Pos": {
+                        "x": -12.84628215410612,
+                        "y": 73.12953439672009
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "IMM"
+                    },
+                    "Pos": {
+                        "x": 619.0,
+                        "y": 134.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "alu_ctrl": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "alu_ctrl"
+                    },
+                    "Pos": {
+                        "x": 14.329881854093629,
+                        "y": 31.733449152457838
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "ADD"
+                    },
+                    "Pos": {
+                        "x": 619.0,
+                        "y": 92.0
                     },
                     "Alignment": 132
                 },
@@ -1219,7 +1283,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0"
+                        "str": "0x1"
                     },
                     "Pos": {
                         "x": 619.0,
@@ -1486,69 +1550,69 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
-            "alu_op2_ctrl": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "alu_op2_ctrl"
-                    },
-                    "Pos": {
-                        "x": -12.84628215410612,
-                        "y": 73.12953439672009
-                    },
-                    "Alignment": 132
+            "alu_op2_ctrl_out_wire": {
+                "Parent": "3-Stage RISC-V Wildcat Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "alu_op2_ctrl",
+                        "control"
+                    ]
                 },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "REG2"
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "select",
+                            "alu_op2_src"
+                        ]
+                    }
+                ],
+                "points": [
+                    {
+                        "key": 2,
+                        "value": {
+                            "x": 1036,
+                            "y": 140
+                        }
+                    }
+                ],
+                "wires": [
+                    {
+                        "first": 0,
+                        "second": 2
                     },
-                    "Pos": {
-                        "x": 619.0,
-                        "y": 134.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
+                    {
+                        "first": 2,
+                        "second": 1
+                    }
+                ]
             },
-            "alu_ctrl": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "alu_ctrl"
-                    },
-                    "Pos": {
-                        "x": 14.329881854093629,
-                        "y": 31.733449152457838
-                    },
-                    "Alignment": 132
+            "alu_ctrl_out_wire": {
+                "Parent": "3-Stage RISC-V Wildcat Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "alu_ctrl",
+                        "control"
+                    ]
                 },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "NOP"
-                    },
-                    "Pos": {
-                        "x": 619.0,
-                        "y": 92.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
+                "To ports": [
+                    {
+                        "key": 1,
+                        "value": [
+                            "alu_ctrl_in",
+                            "idex_reg"
+                        ]
+                    }
+                ],
+                "points": [],
+                "wires": [
+                    {
+                        "first": 0,
+                        "second": 1
+                    }
+                ]
             },
             "reg_do_write_ctrl_out_wire": {
                 "Parent": "3-Stage RISC-V Wildcat Processor",
@@ -1644,12 +1708,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -1682,12 +1746,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
-                    },
-                    {
                         "first": 2,
                         "second": 1
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -1714,29 +1778,29 @@
                         "key": 2,
                         "value": {
                             "x": 812,
-                            "y": 196
+                            "y": 476
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 812,
-                            "y": 476
+                            "y": 196
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
                     },
                     {
-                        "first": 0,
+                        "first": 3,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -1826,70 +1890,6 @@
                     },
                     {
                         "first": 2,
-                        "second": 1
-                    }
-                ]
-            },
-            "alu_op2_ctrl_out_wire": {
-                "Parent": "3-Stage RISC-V Wildcat Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "alu_op2_ctrl",
-                        "control"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "select",
-                            "alu_op2_src"
-                        ]
-                    }
-                ],
-                "points": [
-                    {
-                        "key": 2,
-                        "value": {
-                            "x": 1036,
-                            "y": 140
-                        }
-                    }
-                ],
-                "wires": [
-                    {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
-                        "second": 2
-                    }
-                ]
-            },
-            "alu_ctrl_out_wire": {
-                "Parent": "3-Stage RISC-V Wildcat Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "alu_ctrl",
-                        "control"
-                    ]
-                },
-                "To ports": [
-                    {
-                        "key": 1,
-                        "value": [
-                            "alu_ctrl_in",
-                            "idex_reg"
-                        ]
-                    }
-                ],
-                "points": [],
-                "wires": [
-                    {
-                        "first": 0,
                         "second": 1
                     }
                 ]
@@ -2075,21 +2075,25 @@
                         "key": 3,
                         "value": {
                             "x": 1078,
-                            "y": 658
+                            "y": 490
                         }
                     },
                     {
                         "key": 4,
                         "value": {
                             "x": 1078,
-                            "y": 490
+                            "y": 658
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 4,
+                        "first": 0,
                         "second": 3
+                    },
+                    {
+                        "first": 4,
+                        "second": 2
                     },
                     {
                         "first": 2,
@@ -2097,10 +2101,6 @@
                     },
                     {
                         "first": 3,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
                         "second": 4
                     }
                 ]
@@ -2190,7 +2190,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0000005d"
+                        "str": "0xdeadbeef"
                     },
                     "Pos": {
                         "x": 1235.0,
@@ -2318,7 +2318,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x63006001"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1389.0,
@@ -2365,16 +2365,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 0,
+                        "second": 2
                     },
                     {
                         "first": 3,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 2,
+                        "second": 3
                     }
                 ]
             },
@@ -2414,16 +2414,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
+                        "first": 0,
+                        "second": 3
                     },
                     {
                         "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 3,
+                        "second": 2
                     }
                 ]
             },
@@ -2463,16 +2463,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 0,
+                        "second": 2
                     },
                     {
                         "first": 3,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 2,
+                        "second": 3
                     }
                 ]
             },
@@ -2558,7 +2558,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x0000005d"
+                            "str": "0xdeadbeef"
                         },
                         "Pos": {
                             "x": 129.0,
@@ -2686,7 +2686,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x63006001"
+                            "str": "0x00000000"
                         },
                         "Pos": {
                             "x": 171.0,
@@ -2740,20 +2740,20 @@
                     ],
                     "wires": [
                         {
-                            "first": 4,
-                            "second": 1
-                        },
-                        {
-                            "first": 3,
-                            "second": 4
+                            "first": 0,
+                            "second": 3
                         },
                         {
                             "first": 3,
                             "second": 2
                         },
                         {
-                            "first": 0,
-                            "second": 3
+                            "first": 3,
+                            "second": 4
+                        },
+                        {
+                            "first": 4,
+                            "second": 1
                         }
                     ]
                 },
@@ -2780,29 +2780,29 @@
                             "key": 2,
                             "value": {
                                 "x": 14,
-                                "y": 28
+                                "y": 154
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 14,
-                                "y": 154
+                                "y": 28
                             }
                         }
                     ],
                     "wires": [
                         {
                             "first": 3,
-                            "second": 1
-                        },
-                        {
-                            "first": 0,
                             "second": 2
                         },
                         {
-                            "first": 2,
+                            "first": 0,
                             "second": 3
+                        },
+                        {
+                            "first": 2,
+                            "second": 1
                         }
                     ]
                 },
@@ -2829,28 +2829,28 @@
                             "key": 2,
                             "value": {
                                 "x": 14,
-                                "y": 182
+                                "y": 42
                             }
                         },
                         {
                             "key": 3,
                             "value": {
                                 "x": 14,
-                                "y": 42
+                                "y": 182
                             }
                         }
                     ],
                     "wires": [
                         {
-                            "first": 0,
+                            "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 2,
+                            "first": 3,
                             "second": 1
                         },
                         {
-                            "first": 3,
+                            "first": 0,
                             "second": 2
                         }
                     ]
@@ -2891,16 +2891,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 3
+                            "first": 3,
+                            "second": 2
                         },
                         {
                             "first": 2,
                             "second": 1
                         },
                         {
-                            "first": 3,
-                            "second": 2
+                            "first": 0,
+                            "second": 3
                         }
                     ]
                 },
@@ -2960,7 +2960,7 @@
                             "Italic": false,
                             "PtSize": 10,
                             "Text": {
-                                "str": "0x0000005d"
+                                "str": "0xdeadbeef"
                             },
                             "Pos": {
                                 "x": 3.0,
@@ -2992,7 +2992,7 @@
                             "Italic": false,
                             "PtSize": 10,
                             "Text": {
-                                "str": "0x63006001"
+                                "str": "0x00000000"
                             },
                             "Pos": {
                                 "x": 45.0,
@@ -3039,16 +3039,16 @@
                         ],
                         "wires": [
                             {
-                                "first": 3,
-                                "second": 1
+                                "first": 2,
+                                "second": 3
                             },
                             {
                                 "first": 0,
                                 "second": 2
                             },
                             {
-                                "first": 2,
-                                "second": 3
+                                "first": 3,
+                                "second": 1
                             }
                         ]
                     },
@@ -3127,7 +3127,7 @@
                             "Italic": false,
                             "PtSize": 10,
                             "Text": {
-                                "str": "0x0000005d"
+                                "str": "0xdeadbeef"
                             },
                             "Pos": {
                                 "x": 3.0,
@@ -3415,12 +3415,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 3
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     },
                     {
                         "first": 3,
@@ -3514,7 +3514,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000073"
+                        "str": "0x00000513"
                     },
                     "Pos": {
                         "x": 423.0,
@@ -3546,7 +3546,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "NOP"
+                        "str": "ADDI"
                     },
                     "Pos": {
                         "x": 493.0,
@@ -3578,7 +3578,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00"
+                        "str": "0x0a"
                     },
                     "Pos": {
                         "x": 493.0,
@@ -3697,21 +3697,25 @@
                         "key": 5,
                         "value": {
                             "x": 518,
-                            "y": 140
+                            "y": 546
                         }
                     },
                     {
                         "key": 6,
                         "value": {
                             "x": 518,
-                            "y": 546
+                            "y": 140
                         }
                     }
                 ],
                 "wires": [
                     {
                         "first": 6,
-                        "second": 1
+                        "second": 2
+                    },
+                    {
+                        "first": 0,
+                        "second": 4
                     },
                     {
                         "first": 4,
@@ -3722,16 +3726,12 @@
                         "second": 6
                     },
                     {
+                        "first": 5,
+                        "second": 1
+                    },
+                    {
                         "first": 0,
                         "second": 3
-                    },
-                    {
-                        "first": 5,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
-                        "second": 4
                     }
                 ]
             },
@@ -3758,29 +3758,29 @@
                         "key": 2,
                         "value": {
                             "x": 532,
-                            "y": 462
+                            "y": 266
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 532,
-                            "y": 266
+                            "y": 462
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
                     },
                     {
-                        "first": 0,
+                        "first": 3,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -3807,29 +3807,29 @@
                         "key": 2,
                         "value": {
                             "x": 574,
-                            "y": 476
+                            "y": 336
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 574,
-                            "y": 336
+                            "y": 476
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
                     },
                     {
-                        "first": 0,
+                        "first": 3,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -3869,16 +3869,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 0,
+                        "second": 2
                     },
                     {
                         "first": 3,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 2,
+                        "second": 3
                     }
                 ]
             },
@@ -3962,7 +3962,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "ECALL"
+                        "str": "ADDI"
                     },
                     "Pos": {
                         "x": 325.0,
@@ -4184,7 +4184,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "MEMREAD"
+                        "str": "ALURES"
                     },
                     "Pos": {
                         "x": 1456.0,
@@ -4216,7 +4216,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000093"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1442.0,
@@ -4280,7 +4280,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0x00000194"
                     },
                     "Pos": {
                         "x": 1442.0,
@@ -4312,7 +4312,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000093"
+                        "str": "0xdeadbeef"
                     },
                     "Pos": {
                         "x": 1484.0,
@@ -4360,37 +4360,37 @@
                         "key": 4,
                         "value": {
                             "x": 1512,
-                            "y": 364
+                            "y": 644
                         }
                     },
                     {
                         "key": 5,
                         "value": {
                             "x": 1512,
-                            "y": 644
+                            "y": 364
                         }
                     }
                 ],
                 "wires": [
                     {
+                        "first": 0,
+                        "second": 5
+                    },
+                    {
+                        "first": 5,
+                        "second": 4
+                    },
+                    {
                         "first": 3,
                         "second": 1
                     },
                     {
-                        "first": 4,
-                        "second": 5
-                    },
-                    {
-                        "first": 0,
-                        "second": 4
-                    },
-                    {
-                        "first": 5,
-                        "second": 2
-                    },
-                    {
                         "first": 2,
                         "second": 3
+                    },
+                    {
+                        "first": 4,
+                        "second": 2
                     }
                 ]
             },
@@ -4571,7 +4571,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0x00000198"
                     },
                     "Pos": {
                         "x": 1106.0,
@@ -4667,7 +4667,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1106.0,
@@ -4763,7 +4763,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00"
+                        "str": "0x0a"
                     },
                     "Pos": {
                         "x": 1109.0,
@@ -4795,7 +4795,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0"
+                        "str": "0x1"
                     },
                     "Pos": {
                         "x": 1109.0,
@@ -4827,7 +4827,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00"
+                        "str": "0x01"
                     },
                     "Pos": {
                         "x": 1109.0,
@@ -4923,7 +4923,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000190"
+                        "str": "0x00000194"
                     },
                     "Pos": {
                         "x": 1109.0,
@@ -5030,38 +5030,6 @@
                 "UserHidden": true,
                 "PortWidthVisible": false
             },
-            "valid_out": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "valid_out"
-                    },
-                    "Pos": {
-                        "x": 42.0,
-                        "y": 126.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x1"
-                    },
-                    "Pos": {
-                        "x": 1151.0,
-                        "y": 162.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": true,
-                "PortWidthVisible": false
-            },
             "pc_4_out": {
                 "Label": {
                     "Visible": false,
@@ -5083,7 +5051,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0x00000194"
                     },
                     "Pos": {
                         "x": 1148.0,
@@ -5179,7 +5147,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0xdeadbeef"
                     },
                     "Pos": {
                         "x": 1148.0,
@@ -5243,7 +5211,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0"
+                        "str": "0x1"
                     },
                     "Pos": {
                         "x": 1151.0,
@@ -5275,7 +5243,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x11"
+                        "str": "0x00"
                     },
                     "Pos": {
                         "x": 1151.0,
@@ -5307,7 +5275,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x1"
+                        "str": "0x0"
                     },
                     "Pos": {
                         "x": 1151.0,
@@ -5339,7 +5307,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x01"
+                        "str": "0x00"
                     },
                     "Pos": {
                         "x": 1151.0,
@@ -5435,11 +5403,43 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0x00000190"
                     },
                     "Pos": {
                         "x": 1151.0,
                         "y": 330.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": true,
+                "PortWidthVisible": false
+            },
+            "valid_out": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "valid_out"
+                    },
+                    "Pos": {
+                        "x": 42.0,
+                        "y": 126.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x1"
+                    },
+                    "Pos": {
+                        "x": 1151.0,
+                        "y": 162.0
                     },
                     "Alignment": 132
                 },
@@ -5482,16 +5482,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 3,
+                        "second": 1
                     },
                     {
                         "first": 2,
                         "second": 3
                     },
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -5518,29 +5518,29 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 140
+                            "y": 28
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 28
+                            "y": 140
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
                         "first": 3,
-                        "second": 2
+                        "second": 1
                     },
                     {
                         "first": 2,
-                        "second": 1
+                        "second": 3
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -5567,29 +5567,29 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 224
+                            "y": 42
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 42
+                            "y": 224
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
                         "first": 3,
-                        "second": 2
+                        "second": 1
                     },
                     {
                         "first": 2,
-                        "second": 1
+                        "second": 3
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -5629,16 +5629,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 3,
+                        "second": 1
                     },
                     {
                         "first": 2,
                         "second": 3
                     },
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -5678,16 +5678,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 3,
+                        "second": 1
                     },
                     {
                         "first": 2,
                         "second": 3
                     },
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -5727,16 +5727,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 2,
+                        "second": 3
                     },
                     {
                         "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 3,
+                        "second": 1
                     }
                 ]
             },
@@ -5776,16 +5776,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
+                        "first": 2,
+                        "second": 1
                     },
                     {
                         "first": 0,
                         "second": 3
                     },
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 3,
+                        "second": 2
                     }
                 ]
             },
@@ -5825,16 +5825,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
+                        "first": 0,
+                        "second": 3
                     },
                     {
                         "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 3,
+                        "second": 2
                     }
                 ]
             },
@@ -5874,16 +5874,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
+                        "first": 0,
+                        "second": 3
                     },
                     {
                         "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 3,
+                        "second": 2
                     }
                 ]
             },
@@ -5923,16 +5923,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 3,
+                        "second": 2
                     },
                     {
                         "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 3,
-                        "second": 2
+                        "first": 0,
+                        "second": 3
                     }
                 ]
             },
@@ -5972,16 +5972,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 3,
+                        "second": 1
                     },
                     {
                         "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 2,
+                        "second": 3
                     }
                 ]
             },
@@ -6021,16 +6021,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 2,
+                        "second": 3
                     },
                     {
                         "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 2,
-                        "second": 3
+                        "first": 3,
+                        "second": 1
                     }
                 ]
             },
@@ -6154,16 +6154,20 @@
                 ],
                 "wires": [
                     {
+                        "first": 0,
+                        "second": 6
+                    },
+                    {
+                        "first": 15,
+                        "second": 11
+                    },
+                    {
                         "first": 15,
                         "second": 12
                     },
                     {
-                        "first": 14,
-                        "second": 15
-                    },
-                    {
-                        "first": 14,
-                        "second": 13
+                        "first": 15,
+                        "second": 9
                     },
                     {
                         "first": 14,
@@ -6171,39 +6175,11 @@
                     },
                     {
                         "first": 15,
-                        "second": 9
-                    },
-                    {
-                        "first": 15,
-                        "second": 11
-                    },
-                    {
-                        "first": 0,
-                        "second": 6
-                    },
-                    {
-                        "first": 15,
                         "second": 10
                     },
                     {
                         "first": 0,
-                        "second": 5
-                    },
-                    {
-                        "first": 15,
-                        "second": 8
-                    },
-                    {
-                        "first": 14,
-                        "second": 7
-                    },
-                    {
-                        "first": 0,
-                        "second": 4
-                    },
-                    {
-                        "first": 0,
-                        "second": 3
+                        "second": 14
                     },
                     {
                         "first": 0,
@@ -6211,7 +6187,31 @@
                     },
                     {
                         "first": 0,
-                        "second": 14
+                        "second": 3
+                    },
+                    {
+                        "first": 14,
+                        "second": 13
+                    },
+                    {
+                        "first": 14,
+                        "second": 15
+                    },
+                    {
+                        "first": 0,
+                        "second": 4
+                    },
+                    {
+                        "first": 14,
+                        "second": 7
+                    },
+                    {
+                        "first": 15,
+                        "second": 8
+                    },
+                    {
+                        "first": 0,
+                        "second": 5
                     }
                 ]
             },
@@ -6335,32 +6335,24 @@
                 ],
                 "wires": [
                     {
-                        "first": 15,
-                        "second": 11
-                    },
-                    {
                         "first": 0,
-                        "second": 6
-                    },
-                    {
-                        "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 14,
-                        "second": 7
-                    },
-                    {
-                        "first": 15,
-                        "second": 9
+                        "second": 5
                     },
                     {
                         "first": 0,
                         "second": 14
                     },
                     {
-                        "first": 0,
-                        "second": 5
+                        "first": 15,
+                        "second": 11
+                    },
+                    {
+                        "first": 15,
+                        "second": 9
+                    },
+                    {
+                        "first": 14,
+                        "second": 7
                     },
                     {
                         "first": 0,
@@ -6368,23 +6360,7 @@
                     },
                     {
                         "first": 14,
-                        "second": 13
-                    },
-                    {
-                        "first": 15,
-                        "second": 8
-                    },
-                    {
-                        "first": 0,
-                        "second": 3
-                    },
-                    {
-                        "first": 15,
-                        "second": 12
-                    },
-                    {
-                        "first": 14,
-                        "second": 15
+                        "second": 1
                     },
                     {
                         "first": 15,
@@ -6392,7 +6368,31 @@
                     },
                     {
                         "first": 14,
-                        "second": 1
+                        "second": 15
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
+                    },
+                    {
+                        "first": 0,
+                        "second": 6
+                    },
+                    {
+                        "first": 15,
+                        "second": 12
+                    },
+                    {
+                        "first": 0,
+                        "second": 3
+                    },
+                    {
+                        "first": 15,
+                        "second": 8
+                    },
+                    {
+                        "first": 14,
+                        "second": 13
                     }
                 ]
             },
@@ -6419,29 +6419,29 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 224
+                            "y": 70
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 70
+                            "y": 224
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 3,
+                        "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 2,
                         "second": 3
+                    },
+                    {
+                        "first": 3,
+                        "second": 1
                     }
                 ]
             },
@@ -6509,7 +6509,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00"
+                            "str": "0x01"
                         },
                         "Pos": {
                             "x": 3.0,
@@ -6605,7 +6605,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x01"
+                            "str": "0x00"
                         },
                         "Pos": {
                             "x": 45.0,
@@ -6652,16 +6652,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 3
+                            "first": 2,
+                            "second": 1
                         },
                         {
                             "first": 3,
                             "second": 2
                         },
                         {
-                            "first": 2,
-                            "second": 1
+                            "first": 0,
+                            "second": 3
                         }
                     ]
                 },
@@ -6745,7 +6745,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0xdeadbeef"
+                            "str": "0x00000000"
                         },
                         "Pos": {
                             "x": 42.0,
@@ -6841,7 +6841,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x0000005d"
+                            "str": "0xdeadbeef"
                         },
                         "Pos": {
                             "x": 84.0,
@@ -6888,16 +6888,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -7110,30 +7110,30 @@
                         {
                             "key": 2,
                             "value": {
-                                "x": 56,
+                                "x": 70,
                                 "y": 308
                             }
                         },
                         {
                             "key": 3,
                             "value": {
-                                "x": 70,
+                                "x": 56,
                                 "y": 308
                             }
                         }
                     ],
                     "wires": [
                         {
-                            "first": 3,
-                            "second": 1
-                        },
-                        {
-                            "first": 2,
+                            "first": 0,
                             "second": 3
                         },
                         {
-                            "first": 0,
+                            "first": 3,
                             "second": 2
+                        },
+                        {
+                            "first": 2,
+                            "second": 1
                         }
                     ]
                 },
@@ -7346,14 +7346,14 @@
                         {
                             "key": 2,
                             "value": {
-                                "x": 56,
+                                "x": 70,
                                 "y": 308
                             }
                         },
                         {
                             "key": 3,
                             "value": {
-                                "x": 70,
+                                "x": 56,
                                 "y": 308
                             }
                         }
@@ -7361,15 +7361,15 @@
                     "wires": [
                         {
                             "first": 2,
-                            "second": 3
+                            "second": 1
                         },
                         {
                             "first": 0,
-                            "second": 2
+                            "second": 3
                         },
                         {
                             "first": 3,
-                            "second": 1
+                            "second": 2
                         }
                     ]
                 },
@@ -7596,16 +7596,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -7832,16 +7832,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -8021,7 +8021,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x0000005d"
+                            "str": "0x00000000"
                         },
                         "Pos": {
                             "x": 84.0,
@@ -8068,16 +8068,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -8161,7 +8161,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000194"
+                            "str": "0x00000198"
                         },
                         "Pos": {
                             "x": 42.0,
@@ -8257,7 +8257,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000190"
+                            "str": "0x00000194"
                         },
                         "Pos": {
                             "x": 84.0,
@@ -8304,16 +8304,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -8397,7 +8397,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000190"
+                            "str": "0x00000194"
                         },
                         "Pos": {
                             "x": 3.0,
@@ -8493,7 +8493,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x0000018c"
+                            "str": "0x00000190"
                         },
                         "Pos": {
                             "x": 45.0,
@@ -8540,16 +8540,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 3
+                            "first": 3,
+                            "second": 2
                         },
                         {
                             "first": 2,
                             "second": 1
                         },
                         {
-                            "first": 3,
-                            "second": 2
+                            "first": 0,
+                            "second": 3
                         }
                     ]
                 },
@@ -8633,7 +8633,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x0"
+                            "str": "0x1"
                         },
                         "Pos": {
                             "x": 3.0,
@@ -8729,7 +8729,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x1"
+                            "str": "0x0"
                         },
                         "Pos": {
                             "x": 45.0,
@@ -8776,16 +8776,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -9012,16 +9012,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 3,
-                            "second": 2
+                            "first": 2,
+                            "second": 1
                         },
                         {
                             "first": 0,
                             "second": 3
                         },
                         {
-                            "first": 2,
-                            "second": 1
+                            "first": 3,
+                            "second": 2
                         }
                     ]
                 },
@@ -9084,6 +9084,38 @@
                         ]
                     }
                 ],
+                "in": {
+                    "Label": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 8,
+                        "Text": {
+                            "str": "in"
+                        },
+                        "Pos": {
+                            "x": 0.0,
+                            "y": 14.0
+                        },
+                        "Alignment": 132
+                    },
+                    "ValueLabel": {
+                        "Visible": false,
+                        "Bold": false,
+                        "Italic": false,
+                        "PtSize": 10,
+                        "Text": {
+                            "str": ""
+                        },
+                        "Pos": {
+                            "x": 3.0,
+                            "y": 218.0
+                        },
+                        "Alignment": 132
+                    },
+                    "UserHidden": false,
+                    "PortWidthVisible": false
+                },
                 "enable": {
                     "Label": {
                         "Visible": false,
@@ -9142,38 +9174,6 @@
                         "Pos": {
                             "x": 3.0,
                             "y": 246.0
-                        },
-                        "Alignment": 132
-                    },
-                    "UserHidden": false,
-                    "PortWidthVisible": false
-                },
-                "in": {
-                    "Label": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 8,
-                        "Text": {
-                            "str": "in"
-                        },
-                        "Pos": {
-                            "x": 0.0,
-                            "y": 14.0
-                        },
-                        "Alignment": 132
-                    },
-                    "ValueLabel": {
-                        "Visible": false,
-                        "Bold": false,
-                        "Italic": false,
-                        "PtSize": 10,
-                        "Text": {
-                            "str": ""
-                        },
-                        "Pos": {
-                            "x": 3.0,
-                            "y": 218.0
                         },
                         "Alignment": 132
                     },
@@ -9248,16 +9248,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 2,
-                            "second": 3
+                            "first": 0,
+                            "second": 2
                         },
                         {
                             "first": 3,
                             "second": 1
                         },
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 2,
+                            "second": 3
                         }
                     ]
                 },
@@ -9341,7 +9341,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00"
+                            "str": "0x0a"
                         },
                         "Pos": {
                             "x": 3.0,
@@ -9437,7 +9437,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x11"
+                            "str": "0x00"
                         },
                         "Pos": {
                             "x": 45.0,
@@ -9484,16 +9484,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 2,
-                            "second": 3
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 0,
                             "second": 2
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 2,
+                            "second": 3
                         }
                     ]
                 },
@@ -9512,19 +9512,6 @@
                     "Alignment": 132
                 },
                 "Indicators": []
-            },
-            "valid_out_out_wire": {
-                "Parent": "3-Stage RISC-V Wildcat Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "valid_out",
-                        "idex_reg"
-                    ]
-                },
-                "To ports": [],
-                "points": [],
-                "wires": []
             },
             "pc_4_out_out_wire": {
                 "Parent": "3-Stage RISC-V Wildcat Processor",
@@ -9549,29 +9536,29 @@
                         "key": 2,
                         "value": {
                             "x": 1386,
-                            "y": 350
+                            "y": 238
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 1386,
-                            "y": 238
+                            "y": 350
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 3,
+                        "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 2,
                         "second": 3
+                    },
+                    {
+                        "first": 3,
+                        "second": 1
                     }
                 ]
             },
@@ -9708,12 +9695,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -9739,29 +9726,29 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 616,
-                            "y": 630
+                            "x": 1162,
+                            "y": 574
                         }
                     },
                     {
                         "key": 3,
+                        "value": {
+                            "x": 1162,
+                            "y": 630
+                        }
+                    },
+                    {
+                        "key": 4,
                         "value": {
                             "x": 616,
                             "y": 378
                         }
                     },
                     {
-                        "key": 4,
-                        "value": {
-                            "x": 1162,
-                            "y": 630
-                        }
-                    },
-                    {
                         "key": 5,
                         "value": {
-                            "x": 1162,
-                            "y": 574
+                            "x": 616,
+                            "y": 630
                         }
                     }
                 ],
@@ -9771,20 +9758,20 @@
                         "second": 3
                     },
                     {
+                        "first": 0,
+                        "second": 2
+                    },
+                    {
                         "first": 3,
+                        "second": 5
+                    },
+                    {
+                        "first": 4,
                         "second": 1
                     },
                     {
                         "first": 5,
                         "second": 4
-                    },
-                    {
-                        "first": 4,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
-                        "second": 5
                     }
                 ]
             },
@@ -9831,20 +9818,20 @@
                 ],
                 "wires": [
                     {
-                        "first": 3,
-                        "second": 2
-                    },
-                    {
-                        "first": 2,
-                        "second": 1
+                        "first": 0,
+                        "second": 4
                     },
                     {
                         "first": 4,
                         "second": 3
                     },
                     {
-                        "first": 0,
-                        "second": 4
+                        "first": 2,
+                        "second": 1
+                    },
+                    {
+                        "first": 3,
+                        "second": 2
                     }
                 ]
             },
@@ -9877,12 +9864,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
                         "first": 0,
                         "second": 2
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -9922,16 +9909,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 0,
+                        "second": 3
                     },
                     {
                         "first": 3,
                         "second": 2
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -9971,16 +9958,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 0,
+                        "second": 3
                     },
                     {
                         "first": 3,
                         "second": 2
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -9990,6 +9977,19 @@
                     "first": 0,
                     "second": [
                         "pc_out",
+                        "idex_reg"
+                    ]
+                },
+                "To ports": [],
+                "points": [],
+                "wires": []
+            },
+            "valid_out_out_wire": {
+                "Parent": "3-Stage RISC-V Wildcat Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "valid_out",
                         "idex_reg"
                     ]
                 },
@@ -10105,7 +10105,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000194"
+                        "str": "0x00000198"
                     },
                     "Pos": {
                         "x": 339.0,
@@ -10137,7 +10137,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000004"
+                        "str": "0x0000019c"
                     },
                     "Pos": {
                         "x": 336.0,
@@ -10169,7 +10169,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000513"
+                        "str": "0x05d00893"
                     },
                     "Pos": {
                         "x": 339.0,
@@ -10276,6 +10276,38 @@
                 "UserHidden": true,
                 "PortWidthVisible": false
             },
+            "valid_out": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "valid_out"
+                    },
+                    "Pos": {
+                        "x": 42.0,
+                        "y": 70.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x1"
+                    },
+                    "Pos": {
+                        "x": 381.0,
+                        "y": 106.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": true,
+                "PortWidthVisible": false
+            },
             "pc_out": {
                 "Label": {
                     "Visible": false,
@@ -10297,7 +10329,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0x00000194"
                     },
                     "Pos": {
                         "x": 381.0,
@@ -10329,7 +10361,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000000"
+                        "str": "0x00000198"
                     },
                     "Pos": {
                         "x": 378.0,
@@ -10361,7 +10393,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000073"
+                        "str": "0x00000513"
                     },
                     "Pos": {
                         "x": 381.0,
@@ -10370,38 +10402,6 @@
                     "Alignment": 132
                 },
                 "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "valid_out": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "valid_out"
-                    },
-                    "Pos": {
-                        "x": 42.0,
-                        "y": 70.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x1"
-                    },
-                    "Pos": {
-                        "x": 381.0,
-                        "y": 106.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": true,
                 "PortWidthVisible": false
             },
             "pc_in_in_wire": {
@@ -10440,16 +10440,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
+                        "first": 0,
+                        "second": 3
                     },
                     {
                         "first": 3,
                         "second": 2
                     },
                     {
-                        "first": 0,
-                        "second": 3
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -10476,29 +10476,29 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 14
+                            "y": 140
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 140
+                            "y": 14
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
-                    },
-                    {
                         "first": 2,
-                        "second": 3
+                        "second": 1
                     },
                     {
                         "first": 3,
-                        "second": 1
+                        "second": 2
+                    },
+                    {
+                        "first": 0,
+                        "second": 3
                     }
                 ]
             },
@@ -10524,14 +10524,14 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 28,
+                            "x": 14,
                             "y": 112
                         }
                     },
                     {
                         "key": 3,
                         "value": {
-                            "x": 14,
+                            "x": 28,
                             "y": 112
                         }
                     }
@@ -10539,15 +10539,15 @@
                 "wires": [
                     {
                         "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -10595,25 +10595,29 @@
                         "key": 5,
                         "value": {
                             "x": 14,
-                            "y": 322
+                            "y": 84
                         }
                     },
                     {
                         "key": 6,
                         "value": {
                             "x": 14,
-                            "y": 84
+                            "y": 322
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
+                        "first": 5,
                         "second": 6
                     },
                     {
+                        "first": 5,
+                        "second": 4
+                    },
+                    {
                         "first": 6,
-                        "second": 1
+                        "second": 3
                     },
                     {
                         "first": 0,
@@ -10621,14 +10625,10 @@
                     },
                     {
                         "first": 5,
-                        "second": 3
+                        "second": 1
                     },
                     {
-                        "first": 6,
-                        "second": 4
-                    },
-                    {
-                        "first": 6,
+                        "first": 0,
                         "second": 5
                     }
                 ]
@@ -10690,16 +10690,12 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
-                    },
-                    {
-                        "first": 0,
-                        "second": 6
+                        "first": 5,
+                        "second": 3
                     },
                     {
                         "first": 6,
-                        "second": 4
+                        "second": 1
                     },
                     {
                         "first": 6,
@@ -10707,11 +10703,15 @@
                     },
                     {
                         "first": 6,
-                        "second": 1
+                        "second": 4
                     },
                     {
-                        "first": 5,
-                        "second": 3
+                        "first": 0,
+                        "second": 6
+                    },
+                    {
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -10738,29 +10738,29 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 28
+                            "y": 56
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 56
+                            "y": 28
                         }
                     }
                 ],
                 "wires": [
                     {
                         "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -10828,7 +10828,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000513"
+                            "str": "0x05d00893"
                         },
                         "Pos": {
                             "x": 3.0,
@@ -10924,7 +10924,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000073"
+                            "str": "0x00000513"
                         },
                         "Pos": {
                             "x": 45.0,
@@ -10971,16 +10971,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 2,
-                            "second": 3
+                            "first": 0,
+                            "second": 2
                         },
                         {
                             "first": 3,
                             "second": 1
                         },
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 2,
+                            "second": 3
                         }
                     ]
                 },
@@ -11064,7 +11064,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000198"
+                            "str": "0x0000019c"
                         },
                         "Pos": {
                             "x": 42.0,
@@ -11160,7 +11160,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000194"
+                            "str": "0x00000198"
                         },
                         "Pos": {
                             "x": 84.0,
@@ -11207,16 +11207,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         }
                     ]
                 },
@@ -11300,7 +11300,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000194"
+                            "str": "0x00000198"
                         },
                         "Pos": {
                             "x": 3.0,
@@ -11396,7 +11396,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x00000190"
+                            "str": "0x00000194"
                         },
                         "Pos": {
                             "x": 45.0,
@@ -11443,16 +11443,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 2,
+                            "second": 3
                         },
                         {
                             "first": 0,
                             "second": 2
                         },
                         {
-                            "first": 2,
-                            "second": 3
+                            "first": 3,
+                            "second": 1
                         }
                     ]
                 },
@@ -11679,16 +11679,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 3,
-                            "second": 1
+                            "first": 0,
+                            "second": 2
                         },
                         {
                             "first": 2,
                             "second": 3
                         },
                         {
-                            "first": 0,
-                            "second": 2
+                            "first": 3,
+                            "second": 1
                         }
                     ]
                 },
@@ -11707,6 +11707,19 @@
                     "Alignment": 132
                 },
                 "Indicators": []
+            },
+            "valid_out_out_wire": {
+                "Parent": "3-Stage RISC-V Wildcat Processor",
+                "From port": {
+                    "first": 0,
+                    "second": [
+                        "valid_out",
+                        "ifid_reg"
+                    ]
+                },
+                "To ports": [],
+                "points": [],
+                "wires": []
             },
             "pc_out_out_wire": {
                 "Parent": "3-Stage RISC-V Wildcat Processor",
@@ -11737,47 +11750,43 @@
                     {
                         "key": 3,
                         "value": {
-                            "x": 854,
-                            "y": 294
-                        }
-                    },
-                    {
-                        "key": 4,
-                        "value": {
-                            "x": 854,
+                            "x": 448,
                             "y": 252
                         }
                     },
                     {
-                        "key": 5,
+                        "key": 4,
                         "value": {
                             "x": 448,
                             "y": 280
                         }
                     },
                     {
+                        "key": 5,
+                        "value": {
+                            "x": 854,
+                            "y": 252
+                        }
+                    },
+                    {
                         "key": 6,
                         "value": {
-                            "x": 448,
-                            "y": 252
+                            "x": 854,
+                            "y": 294
                         }
                     }
                 ],
                 "wires": [
                     {
                         "first": 3,
-                        "second": 1
+                        "second": 5
                     },
                     {
                         "first": 4,
                         "second": 3
                     },
                     {
-                        "first": 0,
-                        "second": 5
-                    },
-                    {
-                        "first": 4,
+                        "first": 5,
                         "second": 2
                     },
                     {
@@ -11785,8 +11794,12 @@
                         "second": 6
                     },
                     {
-                        "first": 6,
+                        "first": 0,
                         "second": 4
+                    },
+                    {
+                        "first": 6,
+                        "second": 1
                     }
                 ]
             },
@@ -11846,48 +11859,35 @@
                         "key": 3,
                         "value": {
                             "x": 406,
-                            "y": 588
+                            "y": 462
                         }
                     },
                     {
                         "key": 4,
                         "value": {
                             "x": 406,
-                            "y": 462
+                            "y": 588
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 4,
-                        "second": 1
-                    },
-                    {
-                        "first": 4,
+                        "first": 0,
                         "second": 3
                     },
                     {
                         "first": 3,
+                        "second": 1
+                    },
+                    {
+                        "first": 4,
                         "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 3,
                         "second": 4
                     }
                 ]
-            },
-            "valid_out_out_wire": {
-                "Parent": "3-Stage RISC-V Wildcat Processor",
-                "From port": {
-                    "first": 0,
-                    "second": [
-                        "valid_out",
-                        "ifid_reg"
-                    ]
-                },
-                "To ports": [],
-                "points": [],
-                "wires": []
             },
             "Name label": {
                 "Visible": true,
@@ -11968,7 +11968,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "ECALL"
+                        "str": "ADDI"
                     },
                     "Pos": {
                         "x": 535.0,
@@ -12000,7 +12000,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000073"
+                        "str": "0x00000513"
                     },
                     "Pos": {
                         "x": 535.0,
@@ -12032,7 +12032,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 577.0,
@@ -12087,25 +12087,29 @@
                         "key": 5,
                         "value": {
                             "x": 840,
-                            "y": 364
+                            "y": 434
                         }
                     },
                     {
                         "key": 6,
                         "value": {
                             "x": 840,
-                            "y": 434
+                            "y": 364
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 4
+                        "first": 4,
+                        "second": 5
                     },
                     {
                         "first": 5,
-                        "second": 1
+                        "second": 2
+                    },
+                    {
+                        "first": 5,
+                        "second": 6
                     },
                     {
                         "first": 4,
@@ -12113,15 +12117,11 @@
                     },
                     {
                         "first": 6,
-                        "second": 5
+                        "second": 1
                     },
                     {
-                        "first": 4,
-                        "second": 6
-                    },
-                    {
-                        "first": 6,
-                        "second": 2
+                        "first": 0,
+                        "second": 4
                     }
                 ]
             },
@@ -12197,7 +12197,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000194"
+                        "str": "0x00000198"
                     },
                     "Pos": {
                         "x": 185.0,
@@ -12229,7 +12229,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000513"
+                        "str": "0x05d00893"
                     },
                     "Pos": {
                         "x": 241.0,
@@ -12374,7 +12374,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1036.0,
@@ -12406,7 +12406,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1064.0,
@@ -12551,7 +12551,7 @@
                     "Italic": false,
                     "PtSize": 12,
                     "Text": {
-                        "str": "0x00000194"
+                        "str": "0x00000198"
                     },
                     "Pos": {
                         "x": 148.6064493406575,
@@ -12583,7 +12583,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000198"
+                        "str": "0x0000019c"
                     },
                     "Pos": {
                         "x": 213.0,
@@ -12623,8 +12623,8 @@
                     {
                         "key": 3,
                         "value": {
-                            "x": 14,
-                            "y": 280
+                            "x": 252,
+                            "y": 196
                         }
                     },
                     {
@@ -12637,8 +12637,8 @@
                     {
                         "key": 5,
                         "value": {
-                            "x": 252,
-                            "y": 196
+                            "x": 14,
+                            "y": 280
                         }
                     },
                     {
@@ -12651,28 +12651,28 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 4
-                    },
-                    {
                         "first": 4,
-                        "second": 5
+                        "second": 2
                     },
                     {
                         "first": 5,
-                        "second": 6
-                    },
-                    {
-                        "first": 6,
-                        "second": 3
-                    },
-                    {
-                        "first": 3,
                         "second": 1
                     },
                     {
+                        "first": 6,
+                        "second": 5
+                    },
+                    {
+                        "first": 3,
+                        "second": 6
+                    },
+                    {
                         "first": 4,
-                        "second": 2
+                        "second": 3
+                    },
+                    {
+                        "first": 0,
+                        "second": 4
                     }
                 ]
             },
@@ -12735,38 +12735,6 @@
                     ]
                 }
             ],
-            "enable": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "enable"
-                    },
-                    "Pos": {
-                        "x": 0.0,
-                        "y": 42.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "1"
-                    },
-                    "Pos": {
-                        "x": 64.703125,
-                        "y": 408.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": true,
-                "PortWidthVisible": false
-            },
             "clear": {
                 "Label": {
                     "Visible": false,
@@ -12799,6 +12767,38 @@
                 "UserHidden": true,
                 "PortWidthVisible": false
             },
+            "enable": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "enable"
+                    },
+                    "Pos": {
+                        "x": 0.0,
+                        "y": 42.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "1"
+                    },
+                    "Pos": {
+                        "x": 64.703125,
+                        "y": 408.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": true,
+                "PortWidthVisible": false
+            },
             "in": {
                 "Label": {
                     "Visible": false,
@@ -12820,7 +12820,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000004"
+                        "str": "0x0000019c"
                     },
                     "Pos": {
                         "x": 101.0,
@@ -12852,7 +12852,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000194"
+                        "str": "0x00000198"
                     },
                     "Pos": {
                         "x": 143.0,
@@ -12913,24 +12913,24 @@
                 ],
                 "wires": [
                     {
-                        "first": 5,
-                        "second": 3
-                    },
-                    {
                         "first": 0,
                         "second": 4
                     },
                     {
-                        "first": 4,
-                        "second": 5
+                        "first": 5,
+                        "second": 1
+                    },
+                    {
+                        "first": 5,
+                        "second": 3
                     },
                     {
                         "first": 4,
                         "second": 2
                     },
                     {
-                        "first": 5,
-                        "second": 1
+                        "first": 4,
+                        "second": 5
                     }
                 ]
             },
@@ -12998,70 +12998,6 @@
                     ]
                 }
             ],
-            "in_0": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "in_0"
-                    },
-                    "Pos": {
-                        "x": 0.0,
-                        "y": 14.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0x00000198"
-                    },
-                    "Pos": {
-                        "x": 31.0,
-                        "y": 386.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
-            "in_1": {
-                "Label": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 8,
-                    "Text": {
-                        "str": "in_1"
-                    },
-                    "Pos": {
-                        "x": 0.0,
-                        "y": 42.0
-                    },
-                    "Alignment": 132
-                },
-                "ValueLabel": {
-                    "Visible": false,
-                    "Bold": false,
-                    "Italic": false,
-                    "PtSize": 10,
-                    "Text": {
-                        "str": "0xdeadbeef"
-                    },
-                    "Pos": {
-                        "x": 31.0,
-                        "y": 414.0
-                    },
-                    "Alignment": 132
-                },
-                "UserHidden": false,
-                "PortWidthVisible": false
-            },
             "select": {
                 "Label": {
                     "Visible": false,
@@ -13094,6 +13030,70 @@
                 "UserHidden": false,
                 "PortWidthVisible": false
             },
+            "in_0": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "in_0"
+                    },
+                    "Pos": {
+                        "x": 0.0,
+                        "y": 14.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x0000019c"
+                    },
+                    "Pos": {
+                        "x": 31.0,
+                        "y": 386.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
+            "in_1": {
+                "Label": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 8,
+                    "Text": {
+                        "str": "in_1"
+                    },
+                    "Pos": {
+                        "x": 0.0,
+                        "y": 42.0
+                    },
+                    "Alignment": 132
+                },
+                "ValueLabel": {
+                    "Visible": false,
+                    "Bold": false,
+                    "Italic": false,
+                    "PtSize": 10,
+                    "Text": {
+                        "str": "0x00000000"
+                    },
+                    "Pos": {
+                        "x": 31.0,
+                        "y": 414.0
+                    },
+                    "Alignment": 132
+                },
+                "UserHidden": false,
+                "PortWidthVisible": false
+            },
             "out": {
                 "Label": {
                     "Visible": false,
@@ -13115,7 +13115,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x00000198"
+                        "str": "0x0000019c"
                     },
                     "Pos": {
                         "x": 59.0,
@@ -13260,7 +13260,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1050.0,
@@ -13292,7 +13292,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0xdeadbeef"
+                        "str": "0x00000000"
                     },
                     "Pos": {
                         "x": 1078.0,
@@ -13325,14 +13325,14 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 14,
+                            "x": 1092,
                             "y": 672
                         }
                     },
                     {
                         "key": 3,
                         "value": {
-                            "x": 1092,
+                            "x": 14,
                             "y": 672
                         }
                     },
@@ -13346,20 +13346,20 @@
                 ],
                 "wires": [
                     {
-                        "first": 4,
-                        "second": 3
+                        "first": 0,
+                        "second": 4
                     },
                     {
                         "first": 2,
-                        "second": 1
+                        "second": 3
                     },
                     {
                         "first": 3,
-                        "second": 2
+                        "second": 1
                     },
                     {
-                        "first": 0,
-                        "second": 4
+                        "first": 4,
+                        "second": 2
                     }
                 ]
             },
@@ -13520,7 +13520,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x11"
+                        "str": "0x00"
                     },
                     "Pos": {
                         "x": 647.0,
@@ -13552,7 +13552,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x0000005d"
+                        "str": "0xdeadbeef"
                     },
                     "Pos": {
                         "x": 647.0,
@@ -13584,7 +13584,7 @@
                     "Italic": false,
                     "PtSize": 10,
                     "Text": {
-                        "str": "0x1"
+                        "str": "0x0"
                     },
                     "Pos": {
                         "x": 647.0,
@@ -13682,29 +13682,29 @@
                         "key": 2,
                         "value": {
                             "x": 14,
-                            "y": 154
+                            "y": 14
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 14,
-                            "y": 14
+                            "y": 154
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 2,
-                        "second": 1
-                    },
-                    {
-                        "first": 3,
+                        "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 0,
+                        "first": 2,
                         "second": 3
+                    },
+                    {
+                        "first": 3,
+                        "second": 1
                     }
                 ]
             },
@@ -13730,30 +13730,30 @@
                     {
                         "key": 2,
                         "value": {
-                            "x": 14,
-                            "y": 28
+                            "x": 28,
+                            "y": 70
                         }
                     },
                     {
                         "key": 3,
                         "value": {
-                            "x": 28,
-                            "y": 70
+                            "x": 14,
+                            "y": 28
                         }
                     }
                 ],
                 "wires": [
                     {
                         "first": 3,
-                        "second": 1
-                    },
-                    {
-                        "first": 0,
                         "second": 2
                     },
                     {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
+                    },
+                    {
+                        "first": 2,
+                        "second": 1
                     }
                 ]
             },
@@ -13780,28 +13780,28 @@
                         "key": 2,
                         "value": {
                             "x": 56,
-                            "y": 42
+                            "y": 56
                         }
                     },
                     {
                         "key": 3,
                         "value": {
                             "x": 56,
-                            "y": 56
+                            "y": 42
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 0,
+                        "first": 3,
                         "second": 2
                     },
                     {
-                        "first": 3,
+                        "first": 2,
                         "second": 1
                     },
                     {
-                        "first": 2,
+                        "first": 0,
                         "second": 3
                     }
                 ]
@@ -13842,16 +13842,16 @@
                 ],
                 "wires": [
                     {
-                        "first": 0,
-                        "second": 2
+                        "first": 3,
+                        "second": 1
                     },
                     {
                         "first": 2,
                         "second": 3
                     },
                     {
-                        "first": 3,
-                        "second": 1
+                        "first": 0,
+                        "second": 2
                     }
                 ]
             },
@@ -14183,7 +14183,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x11"
+                            "str": "0x00"
                         },
                         "Pos": {
                             "x": 143.0,
@@ -14215,7 +14215,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x0000005d"
+                            "str": "0xdeadbeef"
                         },
                         "Pos": {
                             "x": 143.0,
@@ -14279,7 +14279,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x1"
+                            "str": "0x0"
                         },
                         "Pos": {
                             "x": 143.0,
@@ -14353,7 +14353,7 @@
                         "Italic": false,
                         "PtSize": 10,
                         "Text": {
-                            "str": "0x1"
+                            "str": "0x0"
                         },
                         "Pos": {
                             "x": 73.0,
@@ -14400,16 +14400,16 @@
                     ],
                     "wires": [
                         {
-                            "first": 0,
-                            "second": 3
+                            "first": 2,
+                            "second": 1
                         },
                         {
                             "first": 3,
                             "second": 2
                         },
                         {
-                            "first": 2,
-                            "second": 1
+                            "first": 0,
+                            "second": 3
                         }
                     ]
                 },
@@ -14466,50 +14466,42 @@
                         "key": 4,
                         "value": {
                             "x": 854,
-                            "y": 546
+                            "y": 322
                         }
                     },
                     {
                         "key": 5,
                         "value": {
                             "x": 854,
-                            "y": 462
+                            "y": 350
                         }
                     },
                     {
                         "key": 6,
                         "value": {
                             "x": 854,
-                            "y": 350
+                            "y": 462
                         }
                     },
                     {
                         "key": 7,
                         "value": {
                             "x": 854,
-                            "y": 322
+                            "y": 546
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 7,
-                        "second": 1
-                    },
-                    {
                         "first": 6,
-                        "second": 5
-                    },
-                    {
-                        "first": 0,
-                        "second": 6
+                        "second": 2
                     },
                     {
                         "first": 6,
                         "second": 7
                     },
                     {
-                        "first": 4,
+                        "first": 7,
                         "second": 3
                     },
                     {
@@ -14517,8 +14509,16 @@
                         "second": 4
                     },
                     {
+                        "first": 0,
+                        "second": 5
+                    },
+                    {
                         "first": 5,
-                        "second": 2
+                        "second": 6
+                    },
+                    {
+                        "first": 4,
+                        "second": 1
                     }
                 ]
             },
@@ -14559,7 +14559,7 @@
                         "key": 4,
                         "value": {
                             "x": 826,
-                            "y": 518
+                            "y": 490
                         }
                     },
                     {
@@ -14573,34 +14573,34 @@
                         "key": 6,
                         "value": {
                             "x": 826,
-                            "y": 490
+                            "y": 518
                         }
                     }
                 ],
                 "wires": [
                     {
-                        "first": 4,
-                        "second": 3
-                    },
-                    {
-                        "first": 6,
-                        "second": 4
+                        "first": 5,
+                        "second": 1
                     },
                     {
                         "first": 0,
                         "second": 5
                     },
                     {
-                        "first": 5,
-                        "second": 6
-                    },
-                    {
-                        "first": 6,
+                        "first": 4,
                         "second": 2
                     },
                     {
                         "first": 5,
-                        "second": 1
+                        "second": 4
+                    },
+                    {
+                        "first": 4,
+                        "second": 6
+                    },
+                    {
+                        "first": 6,
+                        "second": 3
                     }
                 ]
             },

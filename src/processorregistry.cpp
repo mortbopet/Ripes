@@ -84,7 +84,7 @@ ProcessorRegistry::ProcessorRegistry() {
 
   layouts = {{"Standard",
               ":/layouts/RISC-V/rv3s_wildcat/rv3s_wildcat_standard_layout.json",
-            {{{0, 0}, QPointF{0.15, 0}},
+            {{{0, 0}, QPointF{0.05, 0}},
             {{0, 1}, QPointF{0.5, 0}},
             {{0, 2}, QPointF{0.85, 0}}}},
              {"Extended",
