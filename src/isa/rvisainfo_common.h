@@ -7,6 +7,8 @@
 
 #include <QHash>
 #include <span>
+#include <functional>
+#include <variant>
 
 namespace Ripes {
 
@@ -252,6 +254,10 @@ struct RV_CSRInfo : public RV_RegFileInterface {
 
 
 
+//------------------------------------------------------------------------------
+// EXTENSION MANAGEMENT
+//------------------------------------------------------------------------------
+
 enum class Option {
   shifts64BitVariant, // appends 'w' to 32-bit shift operations, for use in
                       // the 64-bit RISC-V ISA
@@ -284,109 +290,157 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                PseudoInstrVec &pseudoInstructions);
 }
 
-namespace Extension {
-  enum class Id {
-    I,     // Base Integer ISA
-    M,     // Integer Multiplication and Division
-    F,     // Single-Precision Floating-Point
-    C,     // Compressed Instructions
-    Zicsr, // Control and Status Register Instructions
+
+struct RV_Extension;
+class RV_ExtensionSet : public ExtensionSetInfo {
+public:
+  // since the the ExtensionSet does not own the extensions it contains, we must not free them in the destructor
+  ~RV_ExtensionSet(){};
+
+  RV_ExtensionSet() = default;
+  RV_ExtensionSet(const RV_ExtensionSet &other) = default;
+  RV_ExtensionSet(RV_ExtensionSet &&other) = default;
+  RV_ExtensionSet& operator=(const RV_ExtensionSet &other) = default;
+  RV_ExtensionSet& operator=(RV_ExtensionSet &&other) = default;
+
+  template <typename... Exts,
+            typename = std::enable_if_t<(std::is_base_of_v<ExtensionInfoInterface, Exts> && ...)>>
+  RV_ExtensionSet(const Exts&... extensions)
+  : m_extensions{static_cast<const ExtensionInfoInterface*>(&extensions)...} {}
+
+  /// Conversion constructor from the polymorphic base class (e.g. when ExtensionSetInfo&
+  /// is passed through a generic interface but actually refers to an RV_ExtensionSet).
+  explicit RV_ExtensionSet(const ExtensionSetInfo& other) {
+    for (const auto *ext : other.extensions()) {
+      m_extensions.insert(ext);
+    }
+  }
+  
+  const ExtensionContainer_t& extensions() const override {
+    return m_extensions;
+  }
+
+  QString CCmarch() const override;
+
+  ExtensionSetInfo::UniquePtr clone() const override {
+    return std::make_unique<RV_ExtensionSet>(*this);
+  }
+  RV_ExtensionSet& operator<<(const ExtensionInfoInterface& ext) override;
+  const ExtensionInfoInterface* remove(const ExtensionInfoInterface& ext) override;
+
+private:
+  ExtensionContainer_t m_extensions;
+};
+
+using FuncEnableExt = std::function<void( 
+  const ISAInfoBase*, InstrVec&, PseudoInstrVec& 
+)>;
+using FuncEnableExtOption = std::function<void(
+  const ISAInfoBase*, InstrVec&, PseudoInstrVec&, const std::set<Option>&
+)>;
+struct RV_Extension : public ExtensionInfoInterface {
+  ExtensionID_t m_id;
+  QString m_name;
+  QString m_description;
+  RV_ExtensionSet m_implicates;
+
+  std::variant<FuncEnableExt, FuncEnableExtOption> enableFunc;
+
+
+  ExtensionID_t id() const override { return m_id; }
+  QString name() const override { return m_name; }
+  QString description() const override { return m_description; }
+
+  QString CCmarchName() const override { return m_name; }
+  
+  const RV_ExtensionSet& implicates() const override { return m_implicates; }
+
+  void enableInstructions(
+    const ISAInfoBase *isa, 
+    InstrVec &instructions,
+    PseudoInstrVec &pseudoInstructions,
+    const std::set<Option> &options = {}
+  ) const {
+    if (std::holds_alternative<FuncEnableExtOption>(enableFunc)) {
+      std::get<FuncEnableExtOption>(enableFunc)(isa, instructions, pseudoInstructions, options);
+    } else {
+      std::get<FuncEnableExt>(enableFunc)(isa, instructions, pseudoInstructions);
+    }
+  } 
+
+private:
+  // only the ExtensionManager class can create extensions,
+  // this ensures that all extensions are predefined and prevents accidental 
+  // creation of invalid extensions outside this controlled environment
+  friend class ExtensionManager;
+  template <typename ID_t = ExtensionID_t>
+  RV_Extension(
+    ID_t id, 
+    QString name, 
+    QString description, 
+    RV_ExtensionSet implicates, 
+    std::variant<FuncEnableExt, FuncEnableExtOption> enableFunc
+  ) noexcept 
+  : m_id(static_cast<ExtensionID_t>(id)), m_name(std::move(name)), m_description(std::move(description)), 
+    m_implicates(std::move(implicates)), enableFunc(std::move(enableFunc)) {}
+};
+
+/// Instantiates and holds all predefined RISC-V extensions, as defined in the ISA specification, in canonical order. 
+class ExtensionManager {
+public:
+  enum class Id : ExtensionID_t {
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // ! must be in canonical order !
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    I=0,    // Base Integer ISA
+    M,      // Integer Multiplication and Division
+    F,      // Single-Precision Floating-Point
+    C,      // Compressed Instructions
+    Zicsr,  // Control and Status Register Instructions
+
+    EXTENSION_COUNT
   };
 
-  struct Extension_t {
-    Id id;
-    QString name;
-    QString description;
-    QList<Id> implicates;
+  static inline const RV_Extension I     = RV_Extension( Id::I, "I", "Base Integer ISA", {}, ExtI::enableExt );
+  static inline const RV_Extension M     = RV_Extension( Id::M, "M", "Integer multiplication and division", {}, ExtM::enableExt );
+  static inline const RV_Extension C     = RV_Extension( Id::C, "C", "Compressed Instructions", {}, ExtC::enableExt );
+  static inline const RV_Extension Zicsr = RV_Extension( Id::Zicsr, "Zicsr", "Control and Status Register Instructions", {}, ExtZicsr::enableExt );
+  static inline const RV_Extension F     = RV_Extension( Id::F, "F", "Single-Precision Floating-Point Instructions ", {Zicsr}, ExtF::enableExt );
+  
+  static inline const RV_ExtensionSet all { M, F, C, Zicsr };
+};
+using Extension = ExtensionManager;
 
-    bool operator==(const Extension_t &other) const {
-      return id == other.id;
-    }
 
-    QString toCanonicalArchFormat() const {
-      QString fmt = name.toLower();
-      
-      if( name.length() > 1 ) {
-        fmt += "_"; // multi-character extensions are separated by underscores
-      }
-      
-      return fmt;
-    }
-  };
-
-  // static const Extension_t I {Id::I, "I", "Base Integer ISA", {}};
-  static const Extension_t M {Id::M, "M", "Integer multiplication and division", {}};
-  static const Extension_t C {Id::C, "C", "Compressed Instructions", {}};
-  static const Extension_t Zicsr {Id::Zicsr, "Zicsr", "Control and Status Register Instructions", {}};
-  static const Extension_t F {Id::F, "F", "Single-Precision Floating-Point Instructions ", {Id::Zicsr}};
-  static const QList<Extension_t> all = {
-    // must be in canonical order
-    M, F, C, Zicsr
-  };
-
-  static Extension_t fromId(Id id) {
-    for (const auto &extension : Extension::all) {
-      if (extension.id == id) {
-        return extension;
-      }
-    }
-    throw std::invalid_argument("Invalid RISC-V extension id");
-  }
-  static Extension_t fromString(const QString &ext) {
-    for (const auto &extension : Extension::all) {
-      if (extension.name == ext) {
-        return extension;
-      }
-    }
-    throw std::invalid_argument("Invalid RISC-V extension: " + ext.toStdString());
-  }
-
-  static QStringList toStringList(const QList<Extension_t> &exts) {
-    QStringList extNames;
-    for (const auto &ext : exts) {
-      extNames << ext.name;
-    }
-    return extNames;
-  }
-  [[maybe_unused]]
-  static QList<Extension_t> fromStringList(const QStringList &exts) {
-    QList<Extension_t> extensions;
-    for (const auto &extStr : exts) {
-      extensions.append(fromString(extStr));
-    }
-    return extensions;
-  }
-} // namespace Extension
+//------------------------------------------------------------------------------
+// RISC-V ISA MANAGEMENT
+//------------------------------------------------------------------------------
 
 class RV_ISAInfoBase : public ISAInfoBase {
 public:
-  static const QStringList &getSupportedExtensions() {
-    static const QStringList exts = Extension::toStringList(Extension::all);
-    return exts;
+  using ISAInfoBase::CCmarch; // circumvent name shadowing of overloaded function
+
+  static const RV_ExtensionSet &getSupportedExtensions() {
+    return Extension::all;
   }
-  static const QStringList &getDefaultExtensions() {
-    static const QStringList exts = {Extension::M.name};
+  static const RV_ExtensionSet &getDefaultExtensions() {
+    static const RV_ExtensionSet exts { Extension::M };
     return exts;
   }
 
-  RV_ISAInfoBase(const QStringList extensions) {
+  RV_ISAInfoBase() : RV_ISAInfoBase({}) {}
+  RV_ISAInfoBase(const ExtensionSetInfo& extensions)
+  : RV_ISAInfoBase(RV_ExtensionSet(extensions)) {}
+  RV_ISAInfoBase(RV_ExtensionSet extensions) {
     // Validate extensions
-    for (const auto &ext : extensions) {
-      if (supportsExtension(ext)) {
-        m_enabledExtensions << ext;
-        
-        for (const auto &impExtId : Extension::fromString(ext).implicates) {
-          const auto impExt = Extension::fromId(impExtId);
-          if (supportsExtension(impExt.name))
-            m_enabledExtensions << impExt.name;
-        }
-      } else {
-        assert(false && "Invalid extension specified for ISA");
-      }
+    if (extensions.isSubsetOf(getSupportedExtensions())) {
+      m_enabledExtensions = std::move(extensions);
+    } else {
+      assert(false && "Invalid extension specified for ISA");
     }
 
     m_regInfos[GPR] = std::make_unique<RV_GPRInfo>(this);
-    if (extensionEnabled(Extension::F.name)) {
+    if (extensionEnabled(Extension::F)) {
       m_regInfos[FPR] = std::make_unique<RV_FPRInfo>(this);
     }
 
@@ -419,10 +473,14 @@ public:
     return RegIndex{m_regInfos.at(GPR), argIdx + 10};
   }
 
+  QString CCmarch(const ExtensionSetInfo& extensions) const override {
+    return _CCmarchPrefix() + extensions.CCmarch();
+  }
+
   QString elfSupportsFlags(unsigned flags) const override {
     /** We expect no flags for RV32IM compiled RISC-V executables.
      *  Refer to:
-     * https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#-elf-object-files
+     * https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc#elf-object-files
      */
     if (flags == 0)
       return QString();
@@ -435,14 +493,11 @@ public:
     return QString();
   }
 
-  const QStringList &supportedExtensions() const override {
+  const RV_ExtensionSet &supportedExtensions() const override {
     return m_supportedExtensions;
   }
-  const QStringList &enabledExtensions() const override {
+  const RV_ExtensionSet &enabledExtensions() const override {
     return m_enabledExtensions;
-  }
-  QString extensionDescription(const QString &ext) const override {
-    return Extension::fromString(ext).description;
   }
 
   const InstrVec &instructions() const override { return m_instructions; }
@@ -452,69 +507,37 @@ public:
   const RelocationsVec &relocations() const override { return m_relocations; }
 
 protected:
-  void _loadExtention(const Extension::Extension_t &ext) {
-    if (m_loadedExtensions.contains(ext.id)) {
-      return;
-    }
-    m_loadedExtensions << ext.id;
+  QString _CCmarchPrefix() const {
+    // i or e base isa extension is determined by the presence of the I or E extension in enabledExtensions
+    return "rv" + QString::number(bits()) + (isaID() == ISA::RV32I || isaID() == ISA::RV64I ? "I" : "E"); 
+  }
 
-    switch (ext.id) {
-      case Extension::Id::I:
-        return; // base extension, nothing to do
-      case Extension::Id::M:
-        RVISA::ExtM::enableExt(this, m_instructions, m_pseudoInstructions);
-        return;
-      case Extension::Id::F:
-        RVISA::ExtF::enableExt(this, m_instructions, m_pseudoInstructions);
-        return;
-      case Extension::Id::C:
-        RVISA::ExtC::enableExt(this, m_instructions, m_pseudoInstructions);
-        return;
-      case Extension::Id::Zicsr:
-        RVISA::ExtZicsr::enableExt(this, m_instructions, m_pseudoInstructions);
-        return;
+  void _loadExtensionSet(const RV_ExtensionSet &extSet, const std::set<Option> &options = {}) {
+    for (const auto* ext : extSet.extensions()) {
+      if (const RV_Extension* rvExt = dynamic_cast<const RV_Extension*>(ext)) {
+        m_loadedExtensions << rvExt->id();
+        
+        rvExt->enableInstructions(this, m_instructions, m_pseudoInstructions, options);
+        
+        _loadExtensionSet(rvExt->implicates(), options);
+      } else {
+        Q_ASSERT_X(false, "RV_ISAInfoBase::_loadExtensionSet", "Only RV_Extensions can be added to an RV_ExtensionSet");
+      }
     }
-
-    Q_UNREACHABLE();
   }
 
   /// Make sure to call this in any child class's constructor
-  void initialize(const std::set<Option> &options = {}) {
-    RVISA::ExtI::enableExt(this, m_instructions, m_pseudoInstructions, options);
-
-    for (const auto &extension : m_enabledExtensions) {
-      const Extension::Extension_t ext = Extension::fromString(extension);
-      
-      _loadExtention(ext);
-
-      for (const auto &impExt : ext.implicates) {
-        _loadExtention(Extension::fromId(impExt));
-      }
-    }
+  void initialize(
+    const RV_Extension &baseExt = Extension::I,
+    const std::set<Option> &options = {}
+  ) {
+    baseExt.enableInstructions(this, m_instructions, m_pseudoInstructions, options);
+    _loadExtensionSet(enabledExtensions(), options);
   }
 
-  QString _CCmarch(QString march) const {
-    // Proceed in canonical order. Canonical ordering is defined in the RISC-V
-    // spec.
-    for (const auto &ext : Extension::all) {
-      if (m_enabledExtensions.contains(ext.name)) {
-        march += ext.toCanonicalArchFormat();
-      }
-    }
-
-    if (march.endsWith('_')) {
-      // remove trailing underscore
-      // this is optional to the RISC-V nameming convention
-      // but we choose to remove it for cleanliness
-      march.chop(1); 
-    }
-
-    return march;
-  }
-
-  QList<Extension::Id> m_loadedExtensions;
-  QStringList m_enabledExtensions;
-  QStringList m_supportedExtensions = getSupportedExtensions();
+  QList<ExtensionID_t> m_loadedExtensions;
+  RV_ExtensionSet m_enabledExtensions;
+  RV_ExtensionSet m_supportedExtensions = getSupportedExtensions();
 
   RegInfoMap m_regInfos;
   InstrVec m_instructions;

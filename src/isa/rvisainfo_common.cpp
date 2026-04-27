@@ -118,6 +118,53 @@ const QHash<unsigned, QString> CSRRegDescs = {
 #undef CSR_REG
 // clang-format on
 
+QString RV_ExtensionSet::CCmarch() const {
+    QString march_extensions = "";
+
+    // m_extensions is already sorted in canonical order, but implicated extensions may not be included in the set
+    // therefore we loop over all possible extensions in canonical order and check if they are included in the set
+    for (ExtensionID_t id=0; id < static_cast<ExtensionID_t>(Extension::Id::EXTENSION_COUNT); id++) {
+        if (auto ext = this->getExtension(id)) {
+            march_extensions += (*ext)->CCmarchName();
+            
+            if( (*ext)->CCmarchName().length() > 1 ) {
+                // multi-character extensions are separated by underscores
+                march_extensions += "_"; 
+            }
+        }
+    }
+
+    if (march_extensions.endsWith('_')) {
+        // remove trailing underscore
+        // this is in fact optional to the RISC-V nameing convention
+        // but we choose to remove it for cleanliness
+        march_extensions.chop(1); 
+    }
+
+    return march_extensions;
+}
+
+RV_ExtensionSet& RV_ExtensionSet::operator<<(const ExtensionInfoInterface& ext) {
+    if ( const RV_Extension* rvExt = dynamic_cast<const RV_Extension*>(&ext) ) {
+        m_extensions.insert(rvExt);
+    } else {
+        Q_ASSERT_X(false, "RV_ExtensionSet::operator<<", "Only RV_Extensions can be added to an RV_ExtensionSet");
+    }
+    return *this;
+}
+const ExtensionInfoInterface* RV_ExtensionSet::remove(const ExtensionInfoInterface& ext) {
+    auto it = m_extensions.find(ext);
+    if (it != m_extensions.end()) {
+        const ExtensionInfoInterface* res = *it;
+        m_extensions.erase(it);
+        return res;
+    }
+    return nullptr;
+}
+
+
+
+
 } // namespace RVISA
 
 namespace RVABI {
