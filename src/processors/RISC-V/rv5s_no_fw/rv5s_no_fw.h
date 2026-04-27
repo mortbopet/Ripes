@@ -43,7 +43,7 @@ class RV5S_NO_FW : public RipesVSRTLProcessor {
 
 public:
   enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
-  RV5S_NO_FW(const QStringList &extensions)
+  RV5S_NO_FW(const ExtensionSetInfo &extensions)
       : RipesVSRTLProcessor(
             "5-Stage RISC-V Processor without forwarding unit") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
@@ -486,18 +486,19 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static ProcessorISAInfo supportsISA() { 
-    return ProcessorISAInfo{
-      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
-      {Extension::M.name, Extension::C.name},
-      {Extension::M.name}
+  static const ProcessorISAInfo& supportsISA() { 
+    static ProcessorISAInfo procInfo{
+      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
+      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::C),
+      std::make_shared<RV_ExtensionSet>(Extension::M)
     };
-   }
+    return procInfo;
+  }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(supportsISA().supportedExtensions);
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(*(supportsISA().supportedExtensions));
   }
 
   const std::set<std::string_view> registerFiles() const override {

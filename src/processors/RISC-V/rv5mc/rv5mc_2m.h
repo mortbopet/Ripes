@@ -17,7 +17,7 @@ class RV5MC2M : public RV5MCBase<XLEN_T> {
   using MemAddrSrc = rv5mc::MemAddrSrc;
 
 public:
-  RV5MC2M(const QStringList &extensions) : RV5MCBase<XLEN_T>(extensions) {
+  RV5MC2M(const ExtensionSetInfo &extensions) : RV5MCBase<XLEN_T>(extensions) {
     // Instruction memory
     this->pc_reg->out >> this->instr_mem->addr;
     this->instr_mem->setMemory(this->m_memory);

@@ -30,12 +30,10 @@ class RVSS_FLOAT : public RipesVSRTLProcessor {
   static constexpr unsigned XLEN = sizeof(XLEN_T) * CHAR_BIT;
 
 public:
-  RVSS_FLOAT(const QStringList &extensions)
+  RVSS_FLOAT(const ExtensionSetInfo &extensions)
       : RipesVSRTLProcessor("Single Cycle RISC-V floating point Processor") {
-    
-    QStringList exts{extensions};
-    if(!exts.contains(Extension::F.name))
-      exts << Extension::F.name; // enforce F extension
+    RV_ExtensionSet exts{ dynamic_cast<const RV_ExtensionSet&>(extensions) };
+    exts << Extension::F; // enforce F extension, since the processor is designed to work with it
     
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(exts);
     decode->setISA(m_enabledISA);
@@ -302,18 +300,19 @@ public:
     m_finished = false;
   }
 
-  static ProcessorISAInfo supportsISA() { 
-    return ProcessorISAInfo{
-      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
-      {Extension::M.name, Extension::F.name, Extension::C.name},
-      {Extension::M.name, Extension::F.name}
+  static const ProcessorISAInfo& supportsISA() { 
+    static ProcessorISAInfo procInfo{
+      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
+      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F, Extension::C),
+      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F)
     };
+    return procInfo;
   }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(supportsISA().supportedExtensions);
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(*(supportsISA().supportedExtensions));
   }
 
   const std::set<std::string_view> registerFiles() const override {

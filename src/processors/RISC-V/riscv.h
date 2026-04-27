@@ -8,22 +8,23 @@
 
 namespace Ripes {
 
-namespace RVISA {
+// namespace RVISA {
 
-template <unsigned XLEN>
-ProcessorISAInfo supportsISA() {
-  using RVISAInfo = ISAInfo<XLenToRVISA<XLEN>()>;
-  return ProcessorISAInfo{std::make_shared<RVISAInfo>(QStringList()),
-                          RVISAInfo::getSupportedExtensions(),
-                          RVISAInfo::getDefaultExtensions()};
-}
+// template <unsigned XLEN>
+// ProcessorISAInfo supportsISA() {
+//   using RVISAInfo = ISAInfo<XLenToRVISA<XLEN>()>;
+//   return ProcessorISAInfo{
+//     std::make_shared<RVISAInfo>(QStringList()),
+//     std::make_shared<RV_ExtensionSet>(RVISAInfo::getSupportedExtensions()),
+//     std::make_shared<RV_ExtensionSet>(RVISAInfo::getDefaultExtensions())};
+// }
 
-template <unsigned XLEN>
-std::shared_ptr<const ISAInfoBase> fullISA() {
-  return ISAInfoRegistry::getSupportedISA<XLenToRVISA<XLEN>()>();
-}
+// template <unsigned XLEN>
+// std::shared_ptr<const ISAInfoBase> fullISA() {
+//   return ISAInfoRegistry::getSupportedISA<XLenToRVISA<XLEN>()>();
+// }
 
-} // namespace RVISA
+// } // namespace RVISA
 
 
 /** Instruction set enumerations */
