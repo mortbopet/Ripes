@@ -36,7 +36,7 @@ public:
             return RVInstr::ECALL;
           }
 
-          if(!m_isa || !m_isa->extensionEnabled(RVISA::Extension::Zicsr.name)) {
+          if(!m_isa || !m_isa->extensionEnabled(RVISA::Extension::Zicsr)) {
             // Fallthrough - unknown instruction.
             break;
           }
@@ -98,7 +98,7 @@ public:
           // R-Type
           const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
           if (fields[0] == 0b0000001) {
-            if(m_isa && m_isa->extensionEnabled(RVISA::Extension::M.name)) {
+            if(m_isa && m_isa->extensionEnabled(RVISA::Extension::M)) {
               // RV32M Standard extension
               switch (fields[3]) {
                 case 0b000: return RVInstr::MUL;
@@ -145,7 +145,7 @@ public:
           // R-Type (32-bit, in 64-bit ISA)
           const auto fields = RVInstrParser::getParser()->decodeR32Instr(instrValue);
           if (fields[0] == 0b0000001) {
-            if(m_isa && m_isa->extensionEnabled(RVISA::Extension::M.name)) {
+            if(m_isa && m_isa->extensionEnabled(RVISA::Extension::M)) {
               // RV64M Standard extension
               switch (fields[3]) {
                 case 0b000: return RVInstr::MULW;
@@ -228,7 +228,7 @@ public:
           break;
       }
 
-      if(!m_isa || !m_isa->extensionEnabled(RVISA::Extension::F.name)) {
+      if(!m_isa || !m_isa->extensionEnabled(RVISA::Extension::F)) {
         // Fallthrough - unknown instruction.
         return RVInstr::NOP;
       }

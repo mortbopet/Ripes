@@ -12,7 +12,7 @@ class Uncompress : public Component {
 public:
   void setISA(const std::shared_ptr<ISAInfoBase> &isa) {
     m_isa = isa;
-    m_disabled = !m_isa->extensionEnabled("C");
+    m_disabled = !m_isa->extensionEnabled(RVISA::Extension::C);
   }
 
   Uncompress(std::string name, SimComponent *parent) : Component(name, parent) {
