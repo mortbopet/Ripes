@@ -118,7 +118,7 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
                     .supportedExtensions;
 
     for (auto &ext : std::as_const(options.isaExtensions)) {
-      if (!exts.contains(ext)) {
+      if (!exts->containsExtension(ext)) {
         errorMessage =
             "Invalid ISA extension '" + ext + "' specified (--isaexts).";
         errorMessage +=
