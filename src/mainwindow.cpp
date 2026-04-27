@@ -155,8 +155,8 @@ void MainWindow::setupStatusBar() {
   setupPermanentStatusWidget(ProcessorInfo);
   auto updateProcessorInfo = [this] {
     const auto &desc =
-        ProcessorRegistry::getDescription(ProcessorHandler::getID());
-    QString status = "Processor: " + desc.name + "    ISA: " +
+        ProcessorRegistry::getDescription(ProcessorHandler::getID(), ProcessorHandler::getVariationID());
+    QString status = "Processor: " + desc->name + "    ISA: " +
                      ProcessorHandler::getProcessor()->implementsISA()->name();
     ProcessorInfoStatusManager::get().setStatusPermanent(status);
   };
