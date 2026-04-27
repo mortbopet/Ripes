@@ -50,6 +50,10 @@ static QString qVariantToString(QVariant &v) {
 CLIRunner::CLIRunner(const CLIModeOptions &options)
     : QObject(), m_options(options) {
   info("Ripes CLI mode", false, true);
+
+  const auto& desc = ProcessorRegistry::getDescription(options.proc, options.variation);
+  auto exts = desc->isaInfo().supportedExtensions->clone();
+
   // remove extensions that are not preselected in the global settings
   for (const auto* ext : desc->isaInfo().supportedExtensions->extensions()) {
     if ( !m_options.isaExtensions.contains( ext->name() ) ) {
@@ -58,6 +62,7 @@ CLIRunner::CLIRunner(const CLIModeOptions &options)
   }
 
   ProcessorHandler::selectProcessor(m_options.proc,
+                                    m_options.variation,
                                     std::move(exts),
                                     m_options.regInit);
 
