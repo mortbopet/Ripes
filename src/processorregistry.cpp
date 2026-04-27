@@ -7,6 +7,7 @@
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
+#include "processors/RISC-V/rv5s_float_no_fw_hz/rv5s_float_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
@@ -26,6 +27,10 @@ namespace Ripes {
 
 constexpr const char rv5s_no_fw_hz_desc[] =
     "A 5-stage in-order processor with no forwarding or hazard "
+    "detection/elimination." no_hz_note;
+
+constexpr const char rv5s_float_no_fw_hz_desc[] =
+    "A 5-stage in-order processor with additional floating point unit but with no forwarding or hazard "
     "detection/elimination." no_hz_note;
 
 constexpr const char rv5s_no_hz_desc[] =

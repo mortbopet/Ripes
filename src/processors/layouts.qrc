@@ -14,6 +14,8 @@
         <file>RISC-V/rv6s_dual/rv6s_dual_extended_layout.json</file>
         <file>RISC-V/rv5mc/rv5mc_extended_layout.json</file>
         <file>RISC-V/rv5mc/rv5mc_1m_extended_layout.json</file>
+        <file>RISC-V/rv5s_float_no_fw_hz/rv5s_float_no_fw_hz_standard_layout.json</file>
+        <file>RISC-V/rv5s_float_no_fw_hz/rv5s_float_no_fw_hz_extended_layout.json</file>
         <file>RISC-V/rvss_float/rv_ss_float_extended_layout.json</file>
         <file>RISC-V/rvss_float/rv_ss_float_standard_layout.json</file>
     </qresource>
