@@ -219,25 +219,27 @@ public:
             
             const unsigned l7 = instrValue & 0b1111111;
             
-            RVInstrType instr_type;
+            const RVInstrType instr_type = [&l7] () {
 
             switch(l7) {
-                case RVISA::OpcodeID::LUI:      instr_type = RVInstrType::U;
-                case RVISA::OpcodeID::AUIPC:    instr_type = RVInstrType::U;
-                case RVISA::OpcodeID::JAL:      instr_type = RVInstrType::J;
-                case RVISA::OpcodeID::JALR:     instr_type = RVInstrType::I;
-                case RVISA::OpcodeID::SYSTEM:   instr_type = RVInstrType::I;
-                case RVISA::OpcodeID::OPIMM:    instr_type = RVInstrType::I;
-                case RVISA::OpcodeID::OPIMM32:  instr_type = RVInstrType::I;
-                case RVISA::OpcodeID::LOAD:     instr_type = RVInstrType::I;
-                case RVISA::OpcodeID::OP:       instr_type = RVInstrType::R;
-                case RVISA::OpcodeID::OP32:     instr_type = RVInstrType::R;
-                case RVISA::OpcodeID::STORE:    instr_type = RVInstrType::S;
-                case RVISA::OpcodeID::BRANCH:   instr_type = RVInstrType::B;
+                case RVISA::OpcodeID::LUI:      return RVInstrType::U;
+                case RVISA::OpcodeID::AUIPC:    return RVInstrType::U;
+                case RVISA::OpcodeID::JAL:      return RVInstrType::J;
+                case RVISA::OpcodeID::JALR:     return RVInstrType::I;
+                case RVISA::OpcodeID::SYSTEM:   return RVInstrType::I;
+                case RVISA::OpcodeID::OPIMM:    return RVInstrType::I;
+                case RVISA::OpcodeID::OPIMM32:  return RVInstrType::I;
+                case RVISA::OpcodeID::LOAD:     return RVInstrType::I;
+                case RVISA::OpcodeID::OP:       return RVInstrType::R;
+                case RVISA::OpcodeID::OP32:     return RVInstrType::R;
+                case RVISA::OpcodeID::STORE:    return RVInstrType::S;
+                case RVISA::OpcodeID::BRANCH:   return RVInstrType::B;
             
                 // Fallthrough - unknown instruction (NOP).
-                default: instr_type = RVInstrType::I;
-            };
+                default: return RVInstrType::I;
+            }
+
+            }();
 
             bool use_r2 = true;
 
