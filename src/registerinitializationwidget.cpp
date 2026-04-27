@@ -7,7 +7,7 @@
 
 namespace Ripes {
 
-std::map<ProcessorID, RegisterInitialization>
+std::map<ProcessorID, std::map<VariationID, RegisterInitialization>>
     RegisterInitializationWidget::m_initializations;
 
 RegisterSelectionComboBox::RegisterSelectionComboBox(
@@ -25,12 +25,11 @@ void RegisterSelectionComboBox::showPopup() {
   if (count())
     clear();
 
-  const auto &procisa = ProcessorRegistry::getAvailableProcessors()
-                            .at(m_parent->m_currentID)
+  const auto &procisa = ProcessorRegistry::getDescription(m_parent->m_currentID, m_parent->m_currentVariationID)
                             ->isaInfo();
   const auto *isa = procisa.isa.get();
   const auto &initializations =
-      m_parent->m_initializations.at(m_parent->m_currentID);
+      m_parent->m_initializations.at(m_parent->m_currentID).at(m_parent->m_currentVariationID);
 
   std::map<std::string_view, std::set<unsigned>> regOptions;
   for (const auto &regFile : isa->regInfos()) {
@@ -81,22 +80,27 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget *parent)
 
   // Initialize initializations for all available processors
   for (const auto &desc : ProcessorRegistry::getAvailableProcessors()) {
-    // Set to initial value if this is the first time the dialog is loaded.
-    // Else, keep whatever changes has been stored in the static variable, made
-    // in previous invokations of the dialog.
-    if (!m_initializations.count(desc.second->id)) {
-      m_initializations[desc.second->id] = desc.second->defaultRegisterVals;
+    for (const auto &var : desc.second.variations) {
+      // Set to initial value if this is the first time the dialog is loaded.
+      // Else, keep whatever changes has been stored in the static variable, made
+      // in previous invokations of the dialog.
+      if (!m_initializations.count(desc.second.id)) {
+        m_initializations[desc.second.id] = {};
+      }
+      if (!m_initializations.at(desc.second.id).count(var.first)) {
+        m_initializations.at(desc.second.id)[var.first] = var.second->defaultRegisterVals;
+      }
     }
   }
 }
 
-void RegisterInitializationWidget::processorSelectionChanged(ProcessorID id) {
+void RegisterInitializationWidget::processorSelectionChanged(ProcessorID id, VariationID varId) {
   // Clear current initialization widgets and recreate initialization widgets
   // based on the currently selected processor
   m_currentRegInitWidgets.clear();
   m_currentID = id;
-
-  for (const auto &regFileInit : m_initializations.at(id)) {
+  m_currentVariationID = varId;
+  for (const auto &regFileInit : m_initializations.at(id).at(varId)) {
     for (const auto &regInit : regFileInit.second) {
       addRegisterInitialization(regFileInit.first, regInit.first);
     }
@@ -120,9 +124,9 @@ void RegisterInitializationWidget::updateAddButtonState() {
 std::optional<RegIndex>
 RegisterInitializationWidget::getNonInitializedRegIdx() {
   const auto &currentISA =
-      ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
+      ProcessorRegistry::getDescription(m_currentID, m_currentVariationID)->isaInfo();
   const auto *isa = currentISA.isa.get();
-  const auto &currentInitForProc = m_initializations.at(m_currentID);
+  const auto &currentInitForProc = m_initializations.at(m_currentID).at(m_currentVariationID);
   for (const auto &regFileInit : currentInitForProc) {
     unsigned id = 0;
     if (auto opt = isa->regInfo(regFileInit.first)) {
@@ -142,8 +146,7 @@ RegisterInitializationWidget::getNonInitializedRegIdx() {
 void RegisterInitializationWidget::addRegisterInitialization(
     const std::string_view &regFileName, unsigned regIdx) {
   constexpr unsigned s_defaultval = 0;
-  const auto &procisa =
-      ProcessorRegistry::getAvailableProcessors().at(m_currentID)->isaInfo();
+  const auto &procisa = ProcessorRegistry::getDescription(m_currentID, m_currentVariationID)->isaInfo();
   const auto *isa = procisa.isa.get();
   auto maybeRegInfo = isa->regInfo(regFileName);
   if (!maybeRegInfo.has_value()) {
@@ -151,12 +154,14 @@ void RegisterInitializationWidget::addRegisterInitialization(
   }
   auto regInfo = *maybeRegInfo;
 
-  if (!m_initializations.at(m_currentID).count(regFileName)) {
-    m_initializations.at(m_currentID)[regFileName] = {};
+  auto &regInit = m_initializations.at(m_currentID).at(m_currentVariationID);
+
+  if (!regInit.count(regFileName)) {
+    regInit[regFileName] = {};
   }
-  if (!m_initializations.at(m_currentID).at(regFileName).count(regIdx)) {
+  if (!regInit.at(regFileName).count(regIdx)) {
     // No default value of the register initialization exists.
-    m_initializations.at(m_currentID).at(regFileName)[regIdx] = s_defaultval;
+    regInit.at(regFileName)[regIdx] = s_defaultval;
   }
 
   const auto &regLayout = m_ui->regInitLayout;
@@ -176,8 +181,8 @@ void RegisterInitializationWidget::addRegisterInitialization(
 
   connect(w->name, &RegisterSelectionComboBox::regIndexChanged, this,
           [this, w_ptr, regFileName](int oldIdx, int newIdx) {
-            m_initializations.at(m_currentID).at(regFileName).erase(oldIdx);
-            m_initializations.at(m_currentID).at(regFileName)[newIdx];
+            m_initializations.at(m_currentID).at(m_currentVariationID).at(regFileName).erase(oldIdx);
+            m_initializations.at(m_currentID).at(m_currentVariationID).at(regFileName)[newIdx];
             emit w_ptr->value->textChanged(w_ptr->value->text());
           });
 
@@ -188,11 +193,10 @@ void RegisterInitializationWidget::addRegisterInitialization(
   w->value->setText(
       "0x" +
       QString::number(
-          m_initializations.at(m_currentID).at(regFileName).at(regIdx), 16));
+          regInit.at(regFileName).at(regIdx), 16));
   connect(w->value, &QLineEdit::textChanged, this,
           [this, w_ptr, regFileName](const QString &text) {
-            this->m_initializations.at(this->m_currentID)
-                .at(regFileName)
+            m_initializations.at(m_currentID).at(m_currentVariationID).at(regFileName)
                 .at(w_ptr->name->currentData().toUInt()) =
                 text.toUInt(nullptr, 16);
           });
@@ -216,7 +220,7 @@ void RegisterInitializationWidget::removeRegInitWidget(
 
   // Current register index stored in the combobox of the regInitWidgets
   const unsigned regIdx = w->name->itemData(0).toUInt();
-  m_initializations.at(m_currentID).at(w->regFileName).erase(regIdx);
+  m_initializations.at(m_currentID).at(m_currentVariationID).at(w->regFileName).erase(regIdx);
 
   m_currentRegInitWidgets.erase(iter);
   updateAddButtonState();
@@ -229,7 +233,7 @@ void RegisterInitializationWidget::RegInitWidgets::clear() {
 }
 
 RegisterInitialization RegisterInitializationWidget::getInitialization() const {
-  return m_initializations.at(m_currentID);
+  return m_initializations.at(m_currentID).at(m_currentVariationID);
 }
 
 } // namespace Ripes

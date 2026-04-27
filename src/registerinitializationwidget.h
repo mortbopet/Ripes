@@ -37,7 +37,7 @@ public:
 
   RegisterInitialization getInitialization() const;
 
-  void processorSelectionChanged(ProcessorID id);
+  void processorSelectionChanged(ProcessorID id, VariationID varId);
 
 private slots:
   void addRegisterInitialization(const std::string_view &regFile,
@@ -50,8 +50,9 @@ private:
 
   Ui::RegisterInitializationWidget *m_ui = nullptr;
 
-  static std::map<ProcessorID, RegisterInitialization> m_initializations;
+  static std::map<ProcessorID, std::map<VariationID, RegisterInitialization>> m_initializations;
   ProcessorID m_currentID;
+  VariationID m_currentVariationID;
   QRegularExpressionValidator *m_hexValidator;
 
   std::vector<std::unique_ptr<RegInitWidgets>> m_currentRegInitWidgets;
