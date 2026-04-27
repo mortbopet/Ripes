@@ -48,6 +48,9 @@ public:
   /// Returns the ID of the currently instantiated processor.
   static const ProcessorID &getID() { return get()->_getID(); }
 
+  /// Returns the variation ID of the currently instantiated processor.
+  static const VariationID &getVariationID() { return get()->_getVariationID(); }
+
   /// Returns a pointer to the currently instantiated program.
   static std::shared_ptr<const Program> getProgram() {
     return get()->_getProgram();
@@ -99,9 +102,16 @@ public:
    * necessary initialization through the RipesProcessor interface.
    */
   static void selectProcessor(
-      const ProcessorID &id, const QStringList &extensions = {},
+      const ProcessorID &id, const VariationID &variationID,
+      const ExtensionSetInfo::ConstPtr extensions,
       const RegisterInitialization &setup = RegisterInitialization()) {
-    get()->_selectProcessor(id, extensions, setup);
+    selectProcessor(id, variationID, *(extensions.get()), setup);
+  }
+  static void selectProcessor(
+      const ProcessorID &id, const VariationID &variationID,
+      const ExtensionSetInfo &extensions,
+      const RegisterInitialization &setup = RegisterInitialization()) {
+    get()->_selectProcessor(id, variationID, extensions, setup);
   }
 
   /**
@@ -200,7 +210,7 @@ public:
   static bool isRunning() { return get()->_isRunning(); }
 
   static void setMemoryFocusAddress(AInt address) {
-    emit get()->memoryFocusAddressChanged(address);
+    emit get() -> memoryFocusAddressChanged(address);
   }
 
   /**
@@ -293,6 +303,7 @@ private:
     return m_currentAssembler;
   }
   const ProcessorID &_getID() const { return m_currentID; }
+  const VariationID &_getVariationID() const { return m_currentVariationID; }
   std::shared_ptr<const Program> _getProgram() const { return m_program; }
   std::shared_ptr<ISAInfoBase> _currentISA() const {
     return m_currentProcessor->implementsISA();
@@ -307,7 +318,8 @@ private:
   void _loadProcessorToWidget(vsrtl::VSRTLWidget *widget,
                               bool doPlaceAndRoute = false);
   void _selectProcessor(
-      const ProcessorID &id, const QStringList &extensions = {},
+      const ProcessorID &id, const VariationID &variationID,
+      const ExtensionSetInfo &extensions,
       const RegisterInitialization &setup = RegisterInitialization());
   bool _isExecutableAddress(AInt address) const;
   int _getCurrentProgramSize() const;
@@ -341,6 +353,7 @@ private:
   // retrieve the singleton while it is being constructed.
   bool m_constructing = false;
   ProcessorID m_currentID;
+  VariationID m_currentVariationID;
   RegisterInitialization m_currentRegInits;
   std::unique_ptr<RipesProcessor> m_currentProcessor;
   std::unique_ptr<SyscallManager> m_syscallManager;

@@ -22,30 +22,47 @@ ProcessorHandler::ProcessorHandler() {
   // Contruct the default processor
   // Processor ID
   if (RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).isNull()) {
-    m_currentID = ProcessorID::RV32_5S;
+    m_currentID = ProcessorID::RV_5S;
   } else {
     m_currentID =
         RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).value<ProcessorID>();
 
     // Some sanity checking
     m_currentID = m_currentID >= ProcessorID::NUM_PROCESSORS
-                      ? ProcessorID::RV32_5S
+                      ? ProcessorID::RV_5S
                       : m_currentID;
   }
 
-  // Processor extensions
-  QStringList extensions;
-  if (RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull())
-    extensions = ProcessorRegistry::getDescription(m_currentID)
-                     .isaInfo()
-                     .supportedExtensions;
-  else
-    extensions = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS)
-                     .value<QStringList>();
+  // Variation ID
+  auto procClass = ProcessorRegistry::getProcessorClassInfo(m_currentID);
+  if (RipesSettings::value(RIPES_SETTING_PROCESSOR_VARIATION_ID).isNull()) {
+    m_currentVariationID = procClass.defaultVariationID;
+  } else {
+    m_currentVariationID =
+        RipesSettings::value(RIPES_SETTING_PROCESSOR_VARIATION_ID).value<VariationID>();
+    // Some sanity checking
+    if (procClass.hasVariation(m_currentVariationID) == false) {
+      m_currentVariationID = procClass.defaultVariationID;
+    }
+  }
+  auto proc = ProcessorRegistry::getDescription(m_currentID, m_currentVariationID);
 
+  // Processor extensions
+  const auto& supportedExtensions = proc->isaInfo().supportedExtensions;
+  ExtensionSetInfo::Ptr extensions = std::move(supportedExtensions->clone());
+  if ( !RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull() ) {
+    // remove extensions that are not preselected in the global settings
+    QList<uint> extensionIDs = RipesSettings::value<QList<uint>>(RIPES_SETTING_PROCESSOR_EXTENSIONS);
+    for (const auto* ext : supportedExtensions->extensions()) {
+      if (!extensionIDs.contains(ext->id())) {
+        extensions->remove(*ext);
+      }
+    }
+  }
+  
   _selectProcessor(
-      m_currentID, extensions,
-      ProcessorRegistry::getDescription(m_currentID).defaultRegisterVals);
+      m_currentID, m_currentVariationID, *(extensions.get()),
+      proc->defaultRegisterVals);
 
   // The m_procStateChangeTimer limits maximum frequency of which the
   // procStateChangedNonRun is emitted.
@@ -295,23 +312,32 @@ void ProcessorHandler::_reset() {
 }
 
 void ProcessorHandler::_selectProcessor(const ProcessorID &id,
-                                        const QStringList &extensions,
+                                        const VariationID &variationID,
+                                        const ExtensionSetInfo &extensions,
                                         const RegisterInitialization &setup) {
   m_currentID = id;
+  m_currentVariationID = variationID;
   m_currentRegInits = setup;
+  
+  QList<uint> extensionIDs;
+  for (const auto* ext : extensions.extensions()) {
+    extensionIDs.push_back(ext->id());
+  }
+
   RipesSettings::setValue(RIPES_SETTING_PROCESSOR_ID, id);
-  RipesSettings::setValue(RIPES_SETTING_PROCESSOR_EXTENSIONS, extensions);
+  RipesSettings::setValue(RIPES_SETTING_PROCESSOR_VARIATION_ID, variationID);
+  RipesSettings::setValue(RIPES_SETTING_PROCESSOR_EXTENSIONS, QVariant::fromValue(extensionIDs));
 
   // Keep current program if the ISA between the two processors are identical
   const bool keepProgram =
       m_currentProcessor &&
       (m_currentProcessor->implementsISA()->eq(
-          ProcessorRegistry::getDescription(id).isaInfo().isa.get(),
+          ProcessorRegistry::getDescription(id, variationID)->isaInfo().isa.get(),
           extensions));
 
   // Processor initializations
   m_currentProcessor =
-      ProcessorRegistry::constructProcessor(m_currentID, extensions);
+      ProcessorRegistry::constructProcessor(m_currentID, variationID, extensions);
   m_currentProcessor->isExecutableAddress = [this](AInt address) {
     return _isExecutableAddress(address);
   };
