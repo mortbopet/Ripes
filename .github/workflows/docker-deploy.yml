@@ -13,11 +13,6 @@ jobs:
       -
         uses: actions/checkout@v2
       -
-        run: apt update # for ccache
-      -
-        name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       -
