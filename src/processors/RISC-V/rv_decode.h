@@ -208,42 +208,47 @@ public:
         wr_reg_idx << [this] {
           return (instr.uValue() >> 7) & 0b11111;
         };
-
-        r1_reg_idx << [this] {
-          return (instr.uValue() >> 15) & 0b11111;
-        };
-
-        r2_reg_idx << [this] {
-
-            const auto instrValue = instr.uValue();
+        
+        auto get_instr_type = [](unsigned instrValue) -> RVInstrType {    
             const unsigned l7 = instrValue & 0b1111111;
-            
-            RVInstrType instr_type = RVInstrType::I; // // Default - unknown instruction (NOP).
-
+        
             switch(l7) {
-                case RVISA::OpcodeID::LUI:      instr_type = RVInstrType::U; break;
-                case RVISA::OpcodeID::AUIPC:    instr_type = RVInstrType::U; break;
-                case RVISA::OpcodeID::JAL:      instr_type = RVInstrType::J; break;
-                case RVISA::OpcodeID::JALR:     instr_type = RVInstrType::I; break;
-                case RVISA::OpcodeID::SYSTEM:   instr_type = RVInstrType::I; break;
-                case RVISA::OpcodeID::OPIMM:    instr_type = RVInstrType::I; break;
-                case RVISA::OpcodeID::OPIMM32:  instr_type = RVInstrType::I; break;
-                case RVISA::OpcodeID::LOAD:     instr_type = RVInstrType::I; break;
-                case RVISA::OpcodeID::OP:       instr_type = RVInstrType::R; break;
-                case RVISA::OpcodeID::OP32:     instr_type = RVInstrType::R; break;
-                case RVISA::OpcodeID::STORE:    instr_type = RVInstrType::S; break;
-                case RVISA::OpcodeID::BRANCH:   instr_type = RVInstrType::B; break;
+                case RVISA::OpcodeID::LUI:      return RVInstrType::U;
+                case RVISA::OpcodeID::AUIPC:    return RVInstrType::U;
+                case RVISA::OpcodeID::JAL:      return RVInstrType::J;
+                case RVISA::OpcodeID::JALR:     return RVInstrType::I;
+                case RVISA::OpcodeID::SYSTEM:   return RVInstrType::I;
+                case RVISA::OpcodeID::OPIMM:    return RVInstrType::I;
+                case RVISA::OpcodeID::OPIMM32:  return RVInstrType::I;
+                case RVISA::OpcodeID::LOAD:     return RVInstrType::I;
+                case RVISA::OpcodeID::OP:       return RVInstrType::R;
+                case RVISA::OpcodeID::OP32:     return RVInstrType::R;
+                case RVISA::OpcodeID::STORE:    return RVInstrType::S;
+                case RVISA::OpcodeID::BRANCH:   return RVInstrType::B;
+                default:                        return RVInstrType::I; // Default - unknown instruction (NOP).
             }
+            };
+        
+        r1_reg_idx << [this, get_instr_type] {
+            const auto instrValue = instr.uValue();
+            const RVInstrType instr_type = get_instr_type(instrValue);
 
-            bool use_r2 = false;
+            // Bits 15-19 NOT defined as Rs1 for U and J formats.
+            if (instr_type == RVInstrType::U || instr_type == RVInstrType::J) {
+                return vsrtl::VSRTL_VT_U(0);
+            }
+            else {
+                return (instrValue >> 15) & 0b11111;
+            }
+            };
+
+        r2_reg_idx << [this, get_instr_type] {
+            const auto instrValue = instr.uValue();
+            const RVInstrType instr_type = get_instr_type(instrValue);
 
             // Bits 20-24 defined as Rs2 only for S, R and B formats.
             if (instr_type == RVInstrType::S || instr_type == RVInstrType::R || instr_type == RVInstrType::B) {
-                use_r2 = true;
-            }
-
-            if (use_r2) {
-                return (instr.uValue() >> 20) & 0b11111;
+                return (instrValue >> 20) & 0b11111;
             }
             else {
                 return vsrtl::VSRTL_VT_U(0);
