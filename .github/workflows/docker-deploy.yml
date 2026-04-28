@@ -29,3 +29,5 @@ jobs:
           context: "./docker/"
           push: true
           tags: mortbopet/ripes:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

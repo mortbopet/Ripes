@@ -16,3 +16,5 @@ jobs:
         with:
           file: "./docker/ripes.dockerfile"
           context: "./docker/"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
