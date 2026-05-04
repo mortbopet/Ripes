@@ -1,0 +1,58 @@
+name: IO tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit SHA, branch or tag to test"
+        required: true
+        default: "master"
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential ninja-build cmake xvfb \
+            libgl1-mesa-dev libegl1-mesa-dev libxkbcommon-x11-0 \
+            libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+            libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 \
+            libxcb-xkb1 libdbus-1-3
+
+      - name: Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.5.0"
+          host: linux
+          target: desktop
+          arch: gcc_64
+          modules: qtcharts
+          dir: ${{ runner.workspace }}
+          cache: true
+          cache-key-prefix: qt-6.5.0-linux
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DRIPES_BUILD_TESTS=ON \
+            -DVSRTL_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build --target tst_io_keyboard tst_io_mouse tst_io_7indicator
+
+      - name: Test
+        working-directory: build
+        run: |
+          xvfb-run -a ctest --output-on-failure -R '^tst_io_(keyboard|mouse|7indicator)$'
