@@ -11,8 +11,6 @@
  * following peripherals in the I/O tab:
  * - "LED Matrix"
  * - "Mouse"
- * 
- * created by Aleksandr Galkin https://github.com//t33nsy 
  */
 
 #define W LED_MATRIX_0_WIDTH

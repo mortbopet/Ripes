@@ -1,6 +1,6 @@
 #include "ripes_system.h"
 
-#define N 4
+#define N SEVEN_SEGMENT_0_N_DIGITS
 
 volatile unsigned *seg_base = SEVEN_SEGMENT_0_BASE;
 volatile unsigned *kbd_base = KEYBOARD_0_BASE;

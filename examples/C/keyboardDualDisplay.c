@@ -11,7 +11,7 @@
 #define CHAR_H          7
 #define COLOR_ON        0x00FF00
 #define COLOR_OFF       0x000000
-#define SEG_COUNT       4
+#define SEG_COUNT       SEVEN_SEGMENT_0_N_DIGITS
 
 // LED Matrix Font: 0-9, a-z (5x7 bitmap, 1 bit = 1 pixel)
 static const unsigned char font[36][CHAR_H] = {
