@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QPen>
 #include <QWidget>
 
 #include "iobase.h"
@@ -14,27 +13,30 @@ class IOMouse : public IOBase {
   Q_OBJECT
 
   enum Regs { X, Y, LBUTTON, RBUTTON, SCROLL };
+  enum Parameters { WIDTH, HEIGHT };
 
 public:
   IOMouse(QWidget *parent);
-  ~IOMouse() { unregister(); }
+  ~IOMouse() { unregister(); };
 
-  unsigned byteSize() const override { return 5 * 4; }
-  QString description() const override;
-  QString baseName() const override { return "Mouse"; }
+  virtual unsigned byteSize() const override { return 5 * 4; }
+  virtual QString description() const override;
+  virtual QString baseName() const override { return "Mouse"; }
 
-  const std::vector<RegDesc> &registers() const override { return m_regDescs; }
-  const std::vector<IOSymbol> *extraSymbols() const override {
+  virtual const std::vector<RegDesc> &registers() const override {
+    return m_regDescs;
+  };
+  virtual const std::vector<IOSymbol> *extraSymbols() const override {
     return &m_extraSymbols;
   }
 
-  VInt ioRead(AInt offset, unsigned size) override;
-  void ioWrite(AInt offset, VInt value, unsigned size) override;
+  virtual VInt ioRead(AInt offset, unsigned size) override;
+  virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
 
-  void reset() override;
+  virtual void reset() override;
 
 protected:
-  void parameterChanged(unsigned) override {}
+  virtual void parameterChanged(unsigned) override;
 
   void paintEvent(QPaintEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
@@ -45,8 +47,7 @@ protected:
   QSize sizeHint() const override;
 
 private:
-  void applySize();
-  void repositionWidgets();
+  void updateExtraSymbols();
 
   int m_mouseX = 0;
   int m_mouseY = 0;
@@ -54,16 +55,6 @@ private:
   int m_rButton = 0;
   int m_mButton = 0;
   int m_scroll = 0;
-
-  unsigned m_width = 350;
-  unsigned m_height = 300;
-
-  QSpinBox *m_widthSpin = nullptr;
-  QSpinBox *m_heightSpin = nullptr;
-  QPushButton *m_resetBtn = nullptr;
-
-  static constexpr int kTopH = 30;
-  static constexpr int kBotH = 56;
 
   std::vector<RegDesc> m_regDescs;
   std::vector<IOSymbol> m_extraSymbols;
