@@ -29,10 +29,16 @@ private slots:
   void sevenSegment_writeReadRoundTrip() {
     auto *ind = makeIndicator();
 
-    QCOMPARE(ind->byteSize(), 4u * 4u);
-    QCOMPARE(ind->registers().size(), size_t{4});
+    const unsigned digits = ind->numDigits();
+    QCOMPARE(ind->byteSize(), digits * 4u);
+    QCOMPARE(ind->registers().size(), size_t{digits});
 
-    const std::vector<uint8_t> patterns = {0x3F, 0x06, 0x5B, 0x4F};
+    std::vector<uint8_t> patterns;
+    patterns.reserve(digits);
+    const std::vector<uint8_t> seed = {0x3F, 0x06, 0x5B, 0x4F, 0x66,
+                                       0x6D, 0x7D, 0x07, 0x7F, 0x6F};
+    for (unsigned i = 0; i < digits; ++i)
+      patterns.push_back(seed[i % seed.size()]);
     for (size_t i = 0; i < patterns.size(); ++i)
       ind->ioWrite(static_cast<AInt>(i * 4), patterns[i], 4);
     for (size_t i = 0; i < patterns.size(); ++i)
