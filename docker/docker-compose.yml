@@ -16,3 +16,22 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
+
+  ripes-web:
+    build:
+      context: .
+      dockerfile: ripes_wasm.dockerfile
+      args:
+        BRANCH: master
+    image: ripes-web:latest
+    container_name: ripes-web
+    ports:
+      - "8080:80"      # http://localhost:8080 -> Ripes.html (Qt for WebAssembly)
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+    mem_limit: 256m
+    cpus: 1.0

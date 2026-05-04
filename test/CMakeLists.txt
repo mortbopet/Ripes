@@ -26,4 +26,5 @@ create_qtest(tst_expreval)
 create_qtest(tst_cosimulate)
 create_qtest(tst_reverse)
 create_qtest(tst_io_mouse)
-
+create_qtest(tst_io_keyboard)
+create_qtest(tst_io_7indicator)
