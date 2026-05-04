@@ -4,13 +4,10 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPen>
-#include <QPushButton>
-#include <QSpinBox>
 #include <QWheelEvent>
 
 namespace Ripes {
 
-//  Constructor
 IOMouse::IOMouse(QWidget *parent) : IOBase(IOType::MOUSE, parent) {
   m_parameters[WIDTH] = IOParam(WIDTH, "Width", 200, true, 100, 800);
   m_parameters[HEIGHT] = IOParam(HEIGHT, "Height", 150, true, 100, 600);
@@ -43,19 +40,6 @@ void IOMouse::parameterChanged(unsigned) {
   update();
 }
 
-    setFixedSize(totalW, totalH);
-    repositionWidgets();
-    update();
-
-    for (QWidget *w = parentWidget(); w; w = w->parentWidget()) {
-        if (w->isWindow()) break;
-        if (w->layout()) {
-            w->layout()->update();
-        }
-        w->adjustSize();
-    }
-}
-
 QString IOMouse::description() const {
   QStringList desc;
   desc << "Tracks mouse position, button state, and scroll within the "
@@ -66,28 +50,26 @@ QString IOMouse::description() const {
 }
 
 VInt IOMouse::ioRead(AInt offset, unsigned) {
-    switch (offset) {
-    case X * 4:
-        return m_mouseX;
-    case Y * 4:
-        return m_mouseY;
-    case LBUTTON * 4:
-        return m_lButton;
-    case RBUTTON * 4:
-        return m_rButton;
-    case SCROLL * 4:
-        return m_scroll;
-    }
-    return 0;
+  switch (offset) {
+  case X * 4:
+    return m_mouseX;
+  case Y * 4:
+    return m_mouseY;
+  case LBUTTON * 4:
+    return m_lButton;
+  case RBUTTON * 4:
+    return m_rButton;
+  case SCROLL * 4:
+    return m_scroll;
+  }
+  return 0;
 }
 
 void IOMouse::ioWrite(AInt offset, VInt value, unsigned) {
-    if (offset == SCROLL * 4) {
-        m_scroll = value;
-    }
+  if (offset == SCROLL * 4)
+    m_scroll = value;
 }
 
-//  Input events
 void IOMouse::mouseMoveEvent(QMouseEvent *event) {
   const int w = m_parameters.at(WIDTH).value.toInt();
   const int h = m_parameters.at(HEIGHT).value.toInt();
@@ -97,23 +79,19 @@ void IOMouse::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void IOMouse::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton)
-        m_lButton = 1;
-    if (event->button() == Qt::MiddleButton)
-        m_mButton = 1;
-    if (event->button() == Qt::RightButton)
-        m_rButton = 1;
-    emit scheduleUpdate();
+  if (event->button() == Qt::LeftButton)
+    m_lButton = 1;
+  if (event->button() == Qt::RightButton)
+    m_rButton = 1;
+  emit scheduleUpdate();
 }
 
 void IOMouse::mouseReleaseEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton)
-        m_lButton = 0;
-    if (event->button() == Qt::MiddleButton)
-        m_mButton = 0;
-    if (event->button() == Qt::RightButton)
-        m_rButton = 0;
-    emit scheduleUpdate();
+  if (event->button() == Qt::LeftButton)
+    m_lButton = 0;
+  if (event->button() == Qt::RightButton)
+    m_rButton = 0;
+  emit scheduleUpdate();
 }
 
 void IOMouse::wheelEvent(QWheelEvent *event) {
@@ -127,7 +105,17 @@ QSize IOMouse::minimumSizeHint() const {
   return QSize(w, h);
 }
 
-//  Paint
+QSize IOMouse::sizeHint() const { return minimumSizeHint(); }
+
+void IOMouse::reset() {
+  m_mouseX = 0;
+  m_mouseY = 0;
+  m_lButton = 0;
+  m_rButton = 0;
+  m_scroll = 0;
+  update();
+}
+
 void IOMouse::paintEvent(QPaintEvent *) {
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
@@ -135,20 +123,16 @@ void IOMouse::paintEvent(QPaintEvent *) {
   const int w = m_parameters.at(WIDTH).value.toInt();
   const int h = m_parameters.at(HEIGHT).value.toInt();
 
-  // Background
   painter.fillRect(rect(), QColor(240, 240, 240));
   painter.fillRect(0, 0, w, h, Qt::white);
 
-  // Border
   painter.setPen(QPen(Qt::black, 1));
   painter.drawRect(0, 0, w - 1, h - 1);
 
-  // Crosshair guides
   painter.setPen(QPen(Qt::gray, 1, Qt::DashLine));
   painter.drawLine(m_mouseX, 0, m_mouseX, h);
   painter.drawLine(0, m_mouseY, w, m_mouseY);
 
-  // Cursor dot (color indicates button state)
   painter.setPen(Qt::NoPen);
   QColor dotColor = Qt::black;
   if (m_lButton)
@@ -158,13 +142,10 @@ void IOMouse::paintEvent(QPaintEvent *) {
   painter.setBrush(dotColor);
   painter.drawEllipse(QPoint(m_mouseX, m_mouseY), 4, 4);
 
-  // Coordinate info
   painter.setPen(Qt::black);
-  QString info =
+  const QString info =
       QString("(%1, %2) SCR:%3").arg(m_mouseX).arg(m_mouseY).arg(m_scroll);
   painter.drawText(4, h - 4, info);
-
-  painter.end();
 }
 
 } // namespace Ripes

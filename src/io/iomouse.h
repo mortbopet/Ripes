@@ -4,9 +4,6 @@
 
 #include "iobase.h"
 
-class QSpinBox;
-class QPushButton;
-
 namespace Ripes {
 
 class IOMouse : public IOBase {
@@ -53,7 +50,6 @@ private:
   int m_mouseY = 0;
   int m_lButton = 0;
   int m_rButton = 0;
-  int m_mButton = 0;
   int m_scroll = 0;
 
   std::vector<RegDesc> m_regDescs;
