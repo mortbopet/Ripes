@@ -35,6 +35,8 @@ public:
   virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
   virtual void reset() override;
 
+  unsigned numDigits() const;
+
 protected:
   virtual void parameterChanged(unsigned) override;
 
@@ -43,7 +45,6 @@ protected:
 
 private:
   void updateRegDescs();
-  unsigned numDigits() const;
   void drawDigit(QPainter &p, int x, int y, int w, int h, uint8_t segments);
 
   std::vector<uint8_t> m_digitValues;

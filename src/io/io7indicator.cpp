@@ -26,34 +26,6 @@ static constexpr int s_numColors =
 static constexpr qreal s_digitAspect = 0.56;
 static constexpr qreal s_gapRatio   = 0.12;
 
-QPolygonF horizontalSegment(const QRectF &rect) {
-  const qreal bevel = qMin(rect.height() * 0.8, rect.width() / 3.0);
-  const qreal cy = rect.center().y();
-
-  QPolygonF polygon;
-  polygon << QPointF(rect.left() + bevel, rect.top())
-          << QPointF(rect.right() - bevel, rect.top())
-          << QPointF(rect.right(), cy)
-          << QPointF(rect.right() - bevel, rect.bottom())
-          << QPointF(rect.left() + bevel, rect.bottom())
-          << QPointF(rect.left(), cy);
-  return polygon;
-}
-
-QPolygonF verticalSegment(const QRectF &rect) {
-  const qreal bevel = qMin(rect.width() * 0.8, rect.height() / 3.0);
-  const qreal cx = rect.center().x();
-
-  QPolygonF polygon;
-  polygon << QPointF(rect.left(), rect.top() + bevel)
-          << QPointF(cx, rect.top())
-          << QPointF(rect.right(), rect.top() + bevel)
-          << QPointF(rect.right(), rect.bottom() - bevel)
-          << QPointF(cx, rect.bottom())
-          << QPointF(rect.left(), rect.bottom() - bevel);
-  return polygon;
-}
-
 }
 
 IO7Indicator::IO7Indicator(QWidget *parent)
@@ -161,73 +133,61 @@ void IO7Indicator::drawDigit(QPainter &p, int x, int y, int w, int h,
   const QColor &on  = s_segColors[ci].on;
   const QColor &off = s_segColors[ci].off;
 
-  // Classic 7-seg proportions: slimmer segments with tiny inter-seg gap
-  const qreal T  = h * 0.075;
-  const qreal G  = T * 0.25;                       // gap between segments
-  const qreal vH = (h - 3.0 * T - 4.0 * G) / 2.0; // vertical seg length
+  // Segment geometry: thickness, inter-segment gap, vertical-segment length
+  const qreal T = h * 0.075;
+  const qreal G = T * 0.25;
+  const qreal vH = (h - 3.0 * T - 4.0 * G) / 2.0;
 
-  // Horizontal columns
-  const qreal lx  = x;                  // left vert x
-  const qreal rx  = x + w - T;          // right vert x
-  const qreal x0  = lx + T + G;         // horiz seg left
-  const qreal x1  = rx - G;             // horiz seg right
-  const qreal hw  = x1 - x0;            // horiz seg width
+  // Horizontal coordinates of left/right vertical segments and horizontal seg
+  const qreal lx = x;
+  const qreal rx = x + w - T;
+  const qreal x0 = lx + T + G;
+  const qreal hw = (rx - G) - x0;
 
-  // Row tops (A=0, F/B=1, G=2, E/C=3, D=4)
+  // Row tops (A=top, F/B=upper, G=middle, E/C=lower, D=bottom)
   const qreal yA = y;
   const qreal yF = yA + T + G;
   const qreal yG = yF + vH + G;
   const qreal yE = yG + T + G;
   const qreal yD = yE + vH + G;
 
-  // Upright digits (no italic shear)
-  auto lean = [&](qreal px, qreal py) -> QPointF {
-    return {px, py};
-  };
-
-  auto hPoly = [&](qreal sx, qreal sy, qreal sw, qreal st) {
+  auto hPoly = [](qreal sx, qreal sy, qreal sw, qreal st) {
     const qreal bev = qMin(st * 0.85, sw / 5.0);
-    const qreal cy  = sy + st / 2.0;
+    const qreal cy = sy + st / 2.0;
     QPolygonF poly;
-    poly << lean(sx + bev,      sy)
-         << lean(sx + sw - bev, sy)
-         << lean(sx + sw,       cy)
-         << lean(sx + sw - bev, sy + st)
-         << lean(sx + bev,      sy + st)
-         << lean(sx,            cy);
+    poly << QPointF(sx + bev, sy) << QPointF(sx + sw - bev, sy)
+         << QPointF(sx + sw, cy) << QPointF(sx + sw - bev, sy + st)
+         << QPointF(sx + bev, sy + st) << QPointF(sx, cy);
     return poly;
   };
 
-  auto vPoly = [&](qreal sx, qreal sy, qreal sw, qreal sh) {
+  auto vPoly = [](qreal sx, qreal sy, qreal sw, qreal sh) {
     const qreal bev = qMin(sw * 0.85, sh / 5.0);
-    const qreal cx  = sx + sw / 2.0;
+    const qreal cx = sx + sw / 2.0;
     QPolygonF poly;
-    poly << lean(sx,       sy + bev)
-         << lean(cx,       sy)
-         << lean(sx + sw,  sy + bev)
-         << lean(sx + sw,  sy + sh - bev)
-         << lean(cx,       sy + sh)
-         << lean(sx,       sy + sh - bev);
+    poly << QPointF(sx, sy + bev) << QPointF(cx, sy)
+         << QPointF(sx + sw, sy + bev) << QPointF(sx + sw, sy + sh - bev)
+         << QPointF(cx, sy + sh) << QPointF(sx, sy + sh - bev);
     return poly;
   };
 
   p.setPen(Qt::NoPen);
 
-  auto draw = [&](bool isOn, QPolygonF poly) {
+  auto draw = [&](bool isOn, const QPolygonF &poly) {
     p.setBrush(isOn ? on : off);
     p.drawPolygon(poly);
   };
 
-  draw(seg & 0x01, hPoly(x0, yA, hw, T)); // A – top
-  draw(seg & 0x02, vPoly(rx, yF, T, vH)); // B – upper-right
-  draw(seg & 0x04, vPoly(rx, yE, T, vH)); // C – lower-right
-  draw(seg & 0x08, hPoly(x0, yD, hw, T)); // D – bottom
-  draw(seg & 0x10, vPoly(lx, yE, T, vH)); // E – lower-left
-  draw(seg & 0x20, vPoly(lx, yF, T, vH)); // F – upper-left
-  draw(seg & 0x40, hPoly(x0, yG, hw, T)); // G – middle
+  draw(seg & 0x01, hPoly(x0, yA, hw, T)); // A - top
+  draw(seg & 0x02, vPoly(rx, yF, T, vH)); // B - upper-right
+  draw(seg & 0x04, vPoly(rx, yE, T, vH)); // C - lower-right
+  draw(seg & 0x08, hPoly(x0, yD, hw, T)); // D - bottom
+  draw(seg & 0x10, vPoly(lx, yE, T, vH)); // E - lower-left
+  draw(seg & 0x20, vPoly(lx, yF, T, vH)); // F - upper-left
+  draw(seg & 0x40, hPoly(x0, yG, hw, T)); // G - middle
 
   const qreal dotR = T * 0.38;
-  const QPointF dotC = lean(rx + T - dotR * 1.2, yD + T - dotR * 1.2);
+  const QPointF dotC(rx + T - dotR * 1.2, yD + T - dotR * 1.2);
   p.setBrush((seg & 0x80) ? on : off);
   p.drawEllipse(dotC, dotR, dotR);
 }
