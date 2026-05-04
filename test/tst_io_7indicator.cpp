@@ -19,8 +19,8 @@ class tst_io_7indicator : public QObject {
   Q_OBJECT
 
 private slots:
-  // Verifies the full write-read cycle for all four default digits:
-  //   - default layout is 4 digits × 4 bytes (16 bytes total, 4 registers)
+  // Verifies the full write-read cycle for the default digit layout:
+  //   - byteSize() and registers().size() match numDigits()
   //   - segment patterns written at aligned offsets are read back unchanged
   //   - only the low byte of a 32-bit write is retained
   //   - misaligned writes are silently ignored; misaligned reads return 0
