@@ -1,6 +1,7 @@
 #pragma once
 
 #include "limits.h"
+#include <assert.h>
 #include <math.h>
 
 #include "processors/RISC-V/riscv.h"
@@ -127,13 +128,27 @@ public:
         return op1.uValue() ^ op2.uValue();
 
       case ALUOp::SL:
-        return op1.uValue() << op2.uValue();
-
       case ALUOp::SRA:
-        return VT_U(op1.sValue() >> op2.uValue());
+      case ALUOp::SRL: {
+        VSRTL_VT_U shiftMask;
+        if constexpr (XLEN == 32) {
+          shiftMask = generateBitmask(5);
+        } else {
+          shiftMask = generateBitmask(6);
+        }
+        VSRTL_VT_U shiftAmount = op2.uValue() & shiftMask;
 
-      case ALUOp::SRL:
-        return op1.uValue() >> op2.uValue();
+        switch (ctrl.eValue<ALUOp>()) {
+        case ALUOp::SL:
+          return op1.uValue() << shiftAmount;
+        case ALUOp::SRA:
+          return VT_U(op1.sValue() >> shiftAmount);
+        case ALUOp::SRL:
+          return op1.uValue() >> shiftAmount;
+        default:
+          assert(false); // unreachable
+        }
+      }
 
       case ALUOp::LUI:
         return VT_U(signextend<32>(op2.uValue()));

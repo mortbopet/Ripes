@@ -1,6 +1,11 @@
 #pragma once
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
 #include "limits.h"
+#include <assert.h>
 #include <math.h>
 
 #include "riscv.h"
@@ -35,19 +40,67 @@ public:
       case ALUOp::MUL:
         return VT_U(op1.sValue() * op2.sValue());
       case ALUOp::MULH: {
-        const auto result = static_cast<int64_t>(op1.sValue()) *
-                            static_cast<int64_t>(op2.sValue());
-        return VT_U(result >> 32);
+        if constexpr (XLEN == 32) {
+          const auto result = static_cast<int64_t>(op1.sValue()) *
+                              static_cast<int64_t>(op2.sValue());
+          return VT_U(result >> 32);
+        } else {
+#ifdef _MSC_VER
+          // Windows (MSVC) implementation
+          int64_t high;
+          _mul128(op1.sValue(), op2.sValue(), &high);
+          return VT_U(high);
+#else
+          // Linux/macOS (GCC/Clang) implementation
+          const __int128_t result = static_cast<__int128_t>(op1.sValue()) *
+                                    static_cast<__int128_t>(op2.sValue());
+          return VT_U(result >> 64);
+#endif
+        }
       }
       case ALUOp::MULHU: {
-        const auto result = static_cast<uint64_t>(op1.uValue()) *
-                            static_cast<uint64_t>(op2.uValue());
-        return VT_U(result >> 32);
+        if constexpr (XLEN == 32) {
+          const uint64_t result = static_cast<uint64_t>(op1.uValue()) *
+                                  static_cast<uint64_t>(op2.uValue());
+          return VT_U(result >> 32);
+        } else {
+#ifdef _MSC_VER
+          // Windows (MSVC) implementation
+          unsigned __int64 high;
+          _umul128(op1.uValue(), op2.uValue(), &high);
+          return VT_U(high);
+#else
+          // Linux/macOS (GCC/Clang) implementation
+          const unsigned __int128 result =
+              static_cast<unsigned __int128>(op1.uValue()) *
+              static_cast<unsigned __int128>(op2.uValue());
+          return VT_U(result >> 64);
+#endif
+        }
       }
       case ALUOp::MULHSU: {
-        const int64_t result = static_cast<int64_t>(op1.sValue()) *
-                               static_cast<uint64_t>(op2.uValue());
-        return VT_U(result >> 32);
+        if constexpr (XLEN == 32) {
+          const int64_t result = static_cast<int64_t>(op1.sValue()) *
+                                 static_cast<uint64_t>(op2.uValue());
+          return VT_U(result >> 32);
+        } else {
+#ifdef _MSC_VER
+          // Windows (MSVC) implementation for Mixed Signed * Unsigned
+          unsigned __int64 high;
+          _umul128(static_cast<uint64_t>(op1.sValue()), op2.uValue(), &high);
+          if (op1.sValue() < 0) {
+            high -= op2.uValue();
+          }
+          return VT_U(high);
+#else
+          // Linux/macOS (GCC/Clang) implementation
+          const __int128_t result =
+              static_cast<__int128_t>(op1.sValue()) *
+              static_cast<__int128_t>(
+                  static_cast<unsigned __int128>(op2.uValue()));
+          return VT_U(result >> 64);
+#endif
+        }
       }
 
       case ALUOp::DIVW:
@@ -112,13 +165,27 @@ public:
         return op1.uValue() ^ op2.uValue();
 
       case ALUOp::SL:
-        return op1.uValue() << op2.uValue();
-
       case ALUOp::SRA:
-        return VT_U(op1.sValue() >> op2.uValue());
+      case ALUOp::SRL: {
+        VSRTL_VT_U shiftMask;
+        if constexpr (XLEN == 32) {
+          shiftMask = generateBitmask(5);
+        } else {
+          shiftMask = generateBitmask(6);
+        }
+        VSRTL_VT_U shiftAmount = op2.uValue() & shiftMask;
 
-      case ALUOp::SRL:
-        return op1.uValue() >> op2.uValue();
+        switch (ctrl.eValue<ALUOp>()) {
+        case ALUOp::SL:
+          return op1.uValue() << shiftAmount;
+        case ALUOp::SRA:
+          return VT_U(op1.sValue() >> shiftAmount);
+        case ALUOp::SRL:
+          return op1.uValue() >> shiftAmount;
+        default:
+          assert(false); // unreachable
+        }
+      }
 
       case ALUOp::LUI:
         return VT_U(signextend<32>(op2.uValue()));

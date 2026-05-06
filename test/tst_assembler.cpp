@@ -45,6 +45,7 @@ private slots:
   void tst_stringDirectives();
   void tst_riscv();
   void tst_relativeLabels();
+  void tst_parentheses();
 
 private:
   QString createProgram(int entries) {
@@ -414,6 +415,14 @@ void tst_Assembler::tst_matcher() {
 
     qDebug() << QString::number(iter.second, 2) << " = " << disassembled;
   }
+}
+
+void tst_Assembler::tst_parentheses() {
+  testAssemble(QStringList() << "lw x0, 0(x1)", Expect::Success);
+  testAssemble(QStringList() << "lw x0, 0(x1", Expect::Fail);
+  testAssemble(QStringList() << "lw x0, 0(x1 # ignored )", Expect::Fail);
+  testAssemble(QStringList() << "#(valid parentheses match)", Expect::Success);
+  testAssemble(QStringList() << "#)nonmatching parentheses(", Expect::Success);
 }
 
 QTEST_APPLESS_MAIN(tst_Assembler)

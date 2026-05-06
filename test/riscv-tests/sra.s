@@ -148,7 +148,7 @@
 
   test_17:
  li x1, 0x81818181
- li x2, 0xffffffc0
+ li x2, 0xffffffe0
  sra x30, x1, x2
  li x29, 0x81818181
  li gp, 17
@@ -157,7 +157,7 @@
 
   test_18:
  li x1, 0x81818181
- li x2, 0xffffffc1
+ li x2, 0xffffffe1
  sra x30, x1, x2
  li x29, 0xc0c0c0c0
  li gp, 18
@@ -166,7 +166,7 @@
 
   test_19:
  li x1, 0x81818181
- li x2, 0xffffffc7
+ li x2, 0xffffffe7
  sra x30, x1, x2
  li x29, 0xff030303
  li gp, 19
@@ -175,7 +175,7 @@
 
   test_20:
  li x1, 0x81818181
- li x2, 0xffffffce
+ li x2, 0xffffffee
  sra x30, x1, x2
  li x29, 0xfffe0606
  li gp, 20
