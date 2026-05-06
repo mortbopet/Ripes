@@ -19,6 +19,11 @@ jobs:
         submodules: 'recursive'
         fetch-depth: 0
 
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ github.job }}-${{ matrix.build-type }}
+
     - name: setup Homebrew
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp svg2png
 
@@ -40,7 +45,7 @@ jobs:
         export PATH=$QT_ROOT/bin:$PATH
         export CMAKE_PREFIX_PATH=$QT_ROOT/lib/cmake
         DIR=$(pwd)
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" .
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
         make
 
     - name: package artifacts
