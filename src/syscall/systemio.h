@@ -373,7 +373,6 @@ public:
         }
         auto readData = InputStream.read(1).toUtf8();
         myBuffer.append(readData);
-        lengthRequested -= readData.length();
 
         /** We spin on a wait condition with a timeout. The timeout is required
          * to ensure that we may observe any abort flags (ie. if execution is

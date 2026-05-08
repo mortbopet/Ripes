@@ -144,11 +144,11 @@
 
 
 
-  # Verify that shifts only use bottom six bits
+  # Verify that shifts only use bottom five bits
 
   test_17:
  li x1, 0x21212121
- li x2, 0xffffffc0
+ li x2, 0xffffffe0
  sll x30, x1, x2
  li x29, 0x21212121
  li gp, 17
@@ -157,7 +157,7 @@
 
   test_18:
  li x1, 0x21212121
- li x2, 0xffffffc1
+ li x2, 0xffffffe1
  sll x30, x1, x2
  li x29, 0x42424242
  li gp, 18
@@ -166,7 +166,7 @@
 
   test_19:
  li x1, 0x21212121
- li x2, 0xffffffc7
+ li x2, 0xffffffe7
  sll x30, x1, x2
  li x29, 0x90909080
  li gp, 19
@@ -175,7 +175,7 @@
 
   test_20:
  li x1, 0x21212121
- li x2, 0xffffffce
+ li x2, 0xffffffee
  sll x30, x1, x2
  li x29, 0x48484000
  li gp, 20

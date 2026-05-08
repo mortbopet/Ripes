@@ -11,8 +11,24 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       -
+        name: Cache Docker mounts
+        uses: actions/cache@v3
+        with:
+          path: /tmp/docker-ccache
+          key: ccache-docker-${{ github.sha }}
+          restore-keys: |
+            ccache-docker-
+      -
+        name: Inject cache into Docker
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.0
+        with:
+          cache-source: /tmp/docker-ccache
+          cache-target: /ccache
+      -
         name: Build and push
         uses: docker/build-push-action@v2
         with:
           file: "./docker/ripes.dockerfile"
           context: "./docker/"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

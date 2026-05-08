@@ -88,8 +88,6 @@ public:
 protected:
   /// Creates a set of LineTokens by tokenizing a line of source code.
   QRegularExpression m_splitterRegex;
-  Result<LineTokens> tokenize(const Location &location,
-                              const QString &line) const;
 
   Result<QByteArray> assembleDirective(const DirectiveArg &arg, bool &ok,
                                        bool skipEarlyDirectives = true) const;
@@ -109,7 +107,8 @@ protected:
   /// Given an input set of tokens, splits away commented code from the tokens
   /// based on the comment delimiter, i.e.:
   /// {"a", "b", "#", "c"} => {"a", "b"}
-  Result<LineTokens> splitCommentFromLine(const LineTokens &tokens) const;
+  Result<QStringList>
+  splitCommentFromLine(const QStringList &stringTokens) const;
 
   /// Returns the comment-delimiting character for this assembler.
   virtual QChar commentDelimiter() const = 0;
