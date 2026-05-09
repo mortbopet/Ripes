@@ -134,8 +134,8 @@ namespace ExtF {
 
     /// Converts a string to its immediate value (if it exists). Success is set
     /// to false if this fails.
-    constexpr static int64_t getImm(const QString &immToken, bool &success,
-                                    ImmConvInfo &convInfo) {
+    static int64_t getImm(const QString &immToken, bool &success,
+                    ImmConvInfo &convInfo) {
       // check for round mode aliases
       success = true;
       const QString immLower = immToken.toLower();
@@ -221,9 +221,9 @@ namespace ExtF {
     
     /// Decodes this immediate part into its round mode value, adding it to the assembly
     /// line.
-    constexpr static bool decode(const Instr_T instruction, const Reg_T,
-                                const ReverseSymbolMap&,
-                                LineTokens &line) {
+    static bool decode(const Instr_T instruction, const Reg_T,
+                  const ReverseSymbolMap&,
+                  LineTokens &line) {
       Instr_T reconstructed = 0;
       ImmParts::decode(reconstructed, instruction);
       
