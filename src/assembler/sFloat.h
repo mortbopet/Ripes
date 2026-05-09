@@ -1,6 +1,17 @@
 #pragma once
 
 extern "C" {
+  /* (arm_neon.h type conflict workaround as described in https://github.com/SDL-Hercules-390/hyperion/issues/675#issuecomment-2248692596) */
+  #undef  float16_t
+  #undef  float32_t
+  #undef  float64_t
+  #undef  float128_t
+  
+  #define float16_t   sfloat16_t
+  #define float32_t   sfloat32_t
+  #define float64_t   sfloat64_t
+  #define float128_t  sfloat128_t
+  
   #include <softfloat.h>
   #include <internals.h>
   #include <specialize.h>
