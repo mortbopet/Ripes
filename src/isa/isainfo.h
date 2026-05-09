@@ -158,7 +158,7 @@ public:
 
   template <typename ID_t=ExtensionID_t>
   bool containsExtension(ID_t id) const {
-    return getExtension<ID_t>(id).has_value();
+    return getExtension(static_cast<ExtensionID_t>(id)).has_value();
   }
   bool containsExtension(const QString &ext) const {
     return getExtension(ext).has_value();

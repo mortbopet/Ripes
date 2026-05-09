@@ -428,7 +428,7 @@ public:
     return exts;
   }
 
-  RV_ISAInfoBase() : RV_ISAInfoBase({}) {}
+  RV_ISAInfoBase() : RV_ISAInfoBase(RV_ExtensionSet()) {}
   RV_ISAInfoBase(const ExtensionSetInfo& extensions)
   : RV_ISAInfoBase(RV_ExtensionSet(extensions)) {}
   RV_ISAInfoBase(RV_ExtensionSet extensions) {
