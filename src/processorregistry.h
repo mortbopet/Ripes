@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <unordered_set>
 
 #include "isa/rv32isainfo.h"
 #include "isa/rv64isainfo.h"
