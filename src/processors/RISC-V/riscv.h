@@ -28,7 +28,7 @@ namespace Ripes {
 
 
 /** Instruction set enumerations */
-enum class RVInstrType { R, I, S, B, U, J };
+enum class RVInstrType { R, I, S, B, U, J, R4 };
 
 enum class RVInstr {
   NOP,
@@ -188,6 +188,39 @@ static inline RVISA::Extension::Id getExtensionType(const RVInstr instr) {
 
     default:
       return RVISA::Extension::Id::I;
+  }
+}
+
+[[maybe_unused]]
+static RVInstrType getInstrType(unsigned instrValue) {
+  const unsigned l7 = instrValue & 0b1111111;
+
+  switch(l7) {
+    case RVISA::OpcodeID::LUI:      return RVInstrType::U;
+    case RVISA::OpcodeID::AUIPC:    return RVInstrType::U;
+    case RVISA::OpcodeID::JAL:      return RVInstrType::J;
+    case RVISA::OpcodeID::JALR:     return RVInstrType::I;
+    case RVISA::OpcodeID::SYSTEM:   return RVInstrType::I;
+    case RVISA::OpcodeID::OPIMM:    return RVInstrType::I;
+    case RVISA::OpcodeID::OPIMM32:  return RVInstrType::I;
+    case RVISA::OpcodeID::LOAD:     return RVInstrType::I;
+    case RVISA::OpcodeID::OP:       return RVInstrType::R;
+    case RVISA::OpcodeID::OP32:     return RVInstrType::R;
+    case RVISA::OpcodeID::STORE:    return RVInstrType::S;
+    case RVISA::OpcodeID::BRANCH:   return RVInstrType::B;
+    
+    // Fused Multiply and Add
+    case RVISA::OpcodeID::MADD :    return RVInstrType::R4;
+    case RVISA::OpcodeID::MSUB :    return RVInstrType::R4;
+    case RVISA::OpcodeID::NMSUB:    return RVInstrType::R4;
+    case RVISA::OpcodeID::NMADD:    return RVInstrType::R4;
+  
+    // Floating point extension
+    case RVISA::OpcodeID::LOAD_FP:  return RVInstrType::I;
+    case RVISA::OpcodeID::STORE_FP: return RVInstrType::S;
+    case RVISA::OpcodeID::OP_FP:    return RVInstrType::R;
+
+    default:                        return RVInstrType::I; // Default - unknown instruction (NOP).
   }
 }
 

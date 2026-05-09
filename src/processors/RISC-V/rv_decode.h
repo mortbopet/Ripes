@@ -390,12 +390,54 @@ public:
     };
 
     r1_reg_idx << [this] {
-      return (instr.uValue() >> 15) & 0b11111;
+        const auto instrValue = instr.uValue();
+        
+        // CSRRWI/CSRRSI/CSRRCI instructions use Rs1 as an immediate value instead of a register index
+        // this must be handled separately as they are still grouped as I-Type instructions under the SYSTEM opcodes
+        const unsigned l7 = instrValue & 0b1111111;
+        if( l7 == RVISA::OpcodeID::SYSTEM && m_isa && m_isa->extensionEnabled(RVISA::Extension::Zicsr) ) {
+          const auto fields = RVInstrParser::getParser()->decodeI32Instr(instrValue);
+          RVISA::ExtZicsr::TypeCSR::Funct3 funct3 = static_cast<RVISA::ExtZicsr::TypeCSR::Funct3>(fields[2]);
+          
+          // general decode csr instructions
+          switch (funct3) {
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRWI: 
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRSI: 
+            case RVISA::ExtZicsr::TypeCSR::Funct3::CSRRCI: 
+                return VSRTL_VT_U(0); // immediate value, not register index
+            
+            default: break; // for other SYSTEM instructions, Rs1 is still a register index and should be decoded as normal below
+          }
+        }
+
+        const RVInstrType instr_type = getInstrType(instrValue);
+        
+        // Bits 15-19 NOT defined as Rs1 for U and J formats.
+        if (instr_type == RVInstrType::U || instr_type == RVInstrType::J) {
+            return vsrtl::VSRTL_VT_U(0);
+        }
+        else {
+            return (instrValue >> 15) & 0b11111;
+        }
     };
 
     r2_reg_idx << [this] {
-      return (instr.uValue() >> 20) & 0b11111;
+        const auto instrValue = instr.uValue();
+        const RVInstrType instr_type = getInstrType(instrValue);
+
+        // Bits 20-24 defined as Rs2 only for S, R, R4 and B formats.
+        if (   instr_type == RVInstrType::S 
+            || instr_type == RVInstrType::R 
+            || instr_type == RVInstrType::R4 
+            || instr_type == RVInstrType::B 
+        ) {
+            return (instrValue >> 20) & 0b11111;
+        }
+        else {
+            return vsrtl::VSRTL_VT_U(0);
+        }
     };
+
     // clang-format on
   }
 
@@ -415,7 +457,7 @@ class DecodeCSR : public Decode<XLEN> {
   public:
   DecodeCSR(const std::string &name, SimComponent *parent)
   : Decode<XLEN>(name, parent) {
-    csr_reg_idx << [this] {
+    csr_reg_idx << [this] { // csr operations are atomic so no hazards with other instructions
       return (Decode<XLEN>::instr.uValue() >> 20) & 0xFFF; // 12 bits
     };
   }
@@ -429,7 +471,15 @@ class DecodeF : public DecodeCSR<XLEN> {
   DecodeF(const std::string &name, SimComponent *parent)
   : DecodeCSR<XLEN>(name, parent) {
     r3_reg_idx << [this] {
-      return (Decode<XLEN>::instr.uValue() >> 27) & 0b11111;
+      const auto instrValue = Decode<XLEN>::instr.uValue();
+      const RVInstrType instr_type = getInstrType(instrValue);
+
+      // Bits 27-31 defined as Rs3 only for R4 format.
+      if ( instr_type == RVInstrType::R4 ) {
+        return (instrValue >> 27) & 0b11111;
+      } else {
+        return vsrtl::VSRTL_VT_U(0);
+      }
     };
     roundMode << [this] {
       return (Decode<XLEN>::instr.uValue() >> 12) & 0b111;

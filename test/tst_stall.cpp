@@ -23,14 +23,14 @@ class tst_stall : public QObject {
   Q_OBJECT
 
 private slots:
-  void run_test(const ProcessorID &id, const QStringList &program);
+  void run_test(ProcessorID proc, VariationID variation, const QStringList &program);
   void tst_no_stall_load_ex_hazard_rs1();
   void tst_no_stall_load_ex_hazard_rs2();
   void tst_no_stall_load_ex_hazard_x0();
 };
 
-void tst_stall::run_test(const ProcessorID &id, const QStringList &program) {
-  ProcessorHandler::get()->selectProcessor(id, {});
+void tst_stall::run_test(ProcessorID procid, VariationID variation, const QStringList &program) {
+  ProcessorHandler::selectProcessor(procid, variation, RV_ExtensionSet());
   RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
   ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [this] {};
 
@@ -49,42 +49,42 @@ void tst_stall::run_test(const ProcessorID &id, const QStringList &program) {
 }
 
 void tst_stall::tst_no_stall_load_ex_hazard_rs1() {
-  for (auto processor : {ProcessorID::RV32_5S, ProcessorID::RV64_5S}) {
+  for (auto variation : {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
     QStringList program = QStringList() << ".data"
                                         << "A: .word 5"
                                         << ".text"
                                         << "la a0, A"
                                         << "lw x14, 0(a0)"
                                         << "lui x6, 0x70";
-    run_test(processor, program);
+    run_test(ProcessorID::RV_5S, variation, program);
     unsigned val = ProcessorHandler::get()->getProcessor()->getCycleCount();
     QCOMPARE(val, 8);
   }
 }
 
 void tst_stall::tst_no_stall_load_ex_hazard_rs2() {
-  for (auto processor : {ProcessorID::RV32_5S, ProcessorID::RV64_5S}) {
+  for (auto variation : {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
     QStringList program = QStringList() << ".data"
                                         << "A: .word 5"
                                         << ".text"
                                         << "la a0, A"
                                         << "lw x27, 0(a0)"
                                         << "lw t0, 27(a0)";
-    run_test(processor, program);
+    run_test(ProcessorID::RV_5S, variation, program);
     unsigned val = ProcessorHandler::get()->getProcessor()->getCycleCount();
     QCOMPARE(val, 8);
   }
 }
 
 void tst_stall::tst_no_stall_load_ex_hazard_x0() {
-  for (auto processor : {ProcessorID::RV32_5S, ProcessorID::RV64_5S}) {
+  for (auto variation : {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
     QStringList program = QStringList() << ".data"
                                         << "A: .word 5"
                                         << ".text"
                                         << "la a0, A"
                                         << "lw x0, 0(a0)"
                                         << "addi t0, x0, 14";
-    run_test(processor, program);
+    run_test(ProcessorID::RV_5S, variation, program);
     unsigned val = ProcessorHandler::get()->getProcessor()->getCycleCount();
     QCOMPARE(val, 8);
   }
