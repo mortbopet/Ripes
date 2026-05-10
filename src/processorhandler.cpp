@@ -49,8 +49,8 @@ ProcessorHandler::ProcessorHandler() {
 
   // Processor extensions
   const auto& supportedExtensions = proc->isaInfo().supportedExtensions;
-  ExtensionSetInfo::Ptr extensions = std::move(supportedExtensions->clone());
   if ( !RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS).isNull() ) {
+  ExtensionSetInfo::Ptr extensions = supportedExtensions->clone();
     // remove extensions that are not preselected in the global settings
     QList<uint> extensionIDs = RipesSettings::value<QList<uint>>(RIPES_SETTING_PROCESSOR_EXTENSIONS);
     for (const auto* ext : supportedExtensions->extensions()) {

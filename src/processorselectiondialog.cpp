@@ -165,10 +165,10 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
     
     auto settings = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS);
     if (settings.isNull()) {
-      m_selectedExtensions = std::move(varDesc->isaInfo().defaultExtensions->clone());
+      m_selectedExtensions = varDesc->isaInfo().defaultExtensions->clone();
     } else {
       // remove extensions that are not preselected in the global settings
-      m_selectedExtensions = std::move(varDesc->isaInfo().supportedExtensions->clone());
+      m_selectedExtensions = varDesc->isaInfo().supportedExtensions->clone();
       QList<uint> extensionIDs = settings.value<QList<uint>>();
       for (const auto* ext : varDesc->isaInfo().supportedExtensions->extensions()) {
         if (!extensionIDs.contains(ext->id())) {

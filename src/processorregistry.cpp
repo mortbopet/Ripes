@@ -374,9 +374,9 @@ static ProcClassInfo register_rv_6s() {
 
 
 ProcessorRegistry::ProcessorRegistry() {
-  addProcessor(std::move(register_rv_ss()));
-  addProcessor(std::move(register_rv_mc()));
-  addProcessor(std::move(register_rv_5s()));
-  addProcessor(std::move(register_rv_6s()));
+  addProcessor(register_rv_ss());
+  addProcessor(register_rv_mc());
+  addProcessor(register_rv_5s());
+  addProcessor(register_rv_6s());
 }
 } // namespace Ripes
