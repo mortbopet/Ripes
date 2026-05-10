@@ -230,19 +230,18 @@ public:
   OUTPUTPORT(res, XLEN);
 };
 
-
 /**
  * @brief RISC-V Floating Point Control and Status Register (fcsr)
  */
 class Fcsr {
 public:
-  static constexpr uint32_t NX_mask  = 1u << 0;
-  static constexpr uint32_t UF_mask  = 1u << 1;
-  static constexpr uint32_t OF_mask  = 1u << 2;
-  static constexpr uint32_t DZ_mask  = 1u << 3;
-  static constexpr uint32_t NV_mask  = 1u << 4;
+  static constexpr uint32_t NX_mask = 1u << 0;
+  static constexpr uint32_t UF_mask = 1u << 1;
+  static constexpr uint32_t OF_mask = 1u << 2;
+  static constexpr uint32_t DZ_mask = 1u << 3;
+  static constexpr uint32_t NV_mask = 1u << 4;
   static constexpr uint32_t frm_mask = 0b111u << 5;
-  
+
   struct Flags {
     bool NX; // inexact
     bool UF; // underflow
@@ -252,52 +251,54 @@ public:
 
     inline uint32_t toWord() const {
       uint32_t word = 0;
+
+      // clang-format off
       if (NX) word |= NX_mask;
       if (UF) word |= UF_mask;
       if (OF) word |= OF_mask;
       if (DZ) word |= DZ_mask;
       if (NV) word |= NV_mask;
+      // clang-format on
       return word;
     }
     static inline Flags fromWord(uint32_t word) {
       return Flags{
-        .NX = (word & NX_mask) != 0,
-        .UF = (word & UF_mask) != 0,
-        .OF = (word & OF_mask) != 0,
-        .DZ = (word & DZ_mask) != 0,
-        .NV = (word & NV_mask) != 0,
+          .NX = (word & NX_mask) != 0,
+          .UF = (word & UF_mask) != 0,
+          .OF = (word & OF_mask) != 0,
+          .DZ = (word & DZ_mask) != 0,
+          .NV = (word & NV_mask) != 0,
       };
     }
   };
-  
+
   uint32_t word; // word representing the riscv fcsr register layout
 
-  Fcsr() 
-    : word(Fcsr::defaultFcsr().word) {}
-  Fcsr(uint32_t val) 
-    : word(val) {}
-  Fcsr(Flags flags, RoundMode rm) 
-    : word(0) {
+  Fcsr() : word(Fcsr::defaultFcsr().word) {}
+  Fcsr(uint32_t val) : word(val) {}
+  Fcsr(Flags flags, RoundMode rm) : word(0) {
     word |= flags.toWord();
     word |= (static_cast<uint32_t>(rm) << 5) & frm_mask;
   }
 
-  Flags getFlags() const {
-    return Flags::fromWord(word);
-  }
+  Flags getFlags() const { return Flags::fromWord(word); }
   RoundMode getRoundingMode() const {
     return static_cast<RoundMode>((word & frm_mask) >> 5);
   }
 
   // clear all reserved bits but leave frm and fflags unchanged
   void canonicalize() {
-    word &= (0b1 << 8) - 1; // only keep the lowest 8 bits of fcsr, since the rest are reserved
+    // only keep the lowest 8 bits of fcsr, since the rest are reserved
+    word &= (0b1 << 8) - 1;
   }
 
-  // write fcsr state to softfloats (thread-local) state, filters out invalid rounding modes
+  // write fcsr state to softfloats (thread-local) state, filters out invalid
+  // rounding modes
   void writeToSoftFloat() const {
     const Flags flags = getFlags();
     softfloat_exceptionFlags = 0;
+
+    // clang-format off
     if (flags.NX) softfloat_exceptionFlags |= softfloat_flag_inexact;
     if (flags.UF) softfloat_exceptionFlags |= softfloat_flag_underflow;
     if (flags.OF) softfloat_exceptionFlags |= softfloat_flag_overflow;
@@ -306,21 +307,11 @@ public:
 
     const RoundMode rm = getRoundingMode();
     switch (rm) {
-      case RoundMode::RNE:
-        softfloat_roundingMode = softfloat_round_near_even; 
-        break;
-      case RoundMode::RTZ:
-        softfloat_roundingMode = softfloat_round_minMag; 
-        break;
-      case RoundMode::RDN:
-        softfloat_roundingMode = softfloat_round_min; 
-        break;
-      case RoundMode::RUP:
-        softfloat_roundingMode = softfloat_round_max; 
-        break;
-      case RoundMode::RMM:
-        softfloat_roundingMode = softfloat_round_near_maxMag; 
-        break;
+      case RoundMode::RNE: softfloat_roundingMode = softfloat_round_near_even;   break;
+      case RoundMode::RTZ: softfloat_roundingMode = softfloat_round_minMag;      break;
+      case RoundMode::RDN: softfloat_roundingMode = softfloat_round_min;         break;
+      case RoundMode::RUP: softfloat_roundingMode = softfloat_round_max;         break;
+      case RoundMode::RMM: softfloat_roundingMode = softfloat_round_near_maxMag; break;
       
       case RoundMode::DYN:
       case RoundMode::_RSVED01:
@@ -332,15 +323,15 @@ public:
 
       default: Q_UNREACHABLE();
     }
+    // clang-format on
   }
 
   // default fcsr value after reset
-  static Fcsr defaultFcsr() {
-    return Fcsr( Flags::fromWord( 0 ), RoundMode::RNE );
-  }
+  static Fcsr defaultFcsr() { return Fcsr(Flags::fromWord(0), RoundMode::RNE); }
 
   // load fcsr state from softfloat's (thread-local) state
   static Fcsr loadFromSoftFloat() {
+    // clang-format off
     Flags flags{
       (softfloat_exceptionFlags & softfloat_flag_inexact)   != 0,
       (softfloat_exceptionFlags & softfloat_flag_underflow) != 0,
@@ -362,6 +353,7 @@ public:
         rm = RoundMode::RNE; break;
     }
     return Fcsr(flags, rm);
+    // clang-format on
   }
 };
 
@@ -369,18 +361,18 @@ template <unsigned XLEN>
 class FPU : public Component {
 public:
   class FcsrReg : public Register<32> {
-    public:
+  public:
     using Register<32>::Register;
 
     FcsrReg(const std::string &name, SimComponent *parent)
-      : Register<32>(name, parent) {
-        m_initvalue = VT_U(Fcsr::defaultFcsr().word);
-      }
+        : Register<32>(name, parent) {
+      m_initvalue = VT_U(Fcsr::defaultFcsr().word);
+    }
   };
 
 protected:
   inline Fcsr getFcsrFromReg() {
-    return Fcsr( static_cast<uint32_t>(fcsr->out.uValue()) );
+    return Fcsr(static_cast<uint32_t>(fcsr->out.uValue()));
   }
 
   enum class csrInstr { csrrw, csrrs, csrrc };
@@ -393,14 +385,20 @@ protected:
 
     rs1 = rs1 & 0b11111; // only consider the lowest 5 bits of rs1 for fflags
     Fcsr::Flags nextFflags;
-    switch(csr) {
-      case csrInstr::csrrw: nextFflags = Fcsr::Flags::fromWord(rs1); break;
-      case csrInstr::csrrs: nextFflags = Fcsr::Flags::fromWord(oldFflags | rs1); break;
-      case csrInstr::csrrc: nextFflags = Fcsr::Flags::fromWord(oldFflags & ~rs1); break;
+    switch (csr) {
+    case csrInstr::csrrw:
+      nextFflags = Fcsr::Flags::fromWord(rs1);
+      break;
+    case csrInstr::csrrs:
+      nextFflags = Fcsr::Flags::fromWord(oldFflags | rs1);
+      break;
+    case csrInstr::csrrc:
+      nextFflags = Fcsr::Flags::fromWord(oldFflags & ~rs1);
+      break;
     }
 
     // write updated fflags to Softfloat's fflags state
-    Fcsr{ nextFflags, xfcsr.getRoundingMode() }.writeToSoftFloat();
+    Fcsr{nextFflags, xfcsr.getRoundingMode()}.writeToSoftFloat();
 
     return oldFflags;
   }
@@ -412,33 +410,47 @@ protected:
     const VSRTL_VT_U oldFrm = VT_U(xfcsr.getRoundingMode());
 
     VSRTL_VT_U nextFrm_vt_u;
-    switch(csr) {
-      case csrInstr::csrrw: nextFrm_vt_u = rs1; break;
-      case csrInstr::csrrs: nextFrm_vt_u = oldFrm | rs1; break;
-      case csrInstr::csrrc: nextFrm_vt_u = oldFrm & ~rs1; break;
+    switch (csr) {
+    case csrInstr::csrrw:
+      nextFrm_vt_u = rs1;
+      break;
+    case csrInstr::csrrs:
+      nextFrm_vt_u = oldFrm | rs1;
+      break;
+    case csrInstr::csrrc:
+      nextFrm_vt_u = oldFrm & ~rs1;
+      break;
     }
 
-    // only consider the lowest 3 bits of nextFrm_vt_u for frm, since there are only 3 bits allocated for frm in fcsr
-    RVISA::ExtF::RoundMode nextFrm = static_cast<RVISA::ExtF::RoundMode>(nextFrm_vt_u & 0b111);
-    
+    // only consider the lowest 3 bits of nextFrm_vt_u for frm, since there are
+    // only 3 bits allocated for frm in fcsr
+    RVISA::ExtF::RoundMode nextFrm =
+        static_cast<RVISA::ExtF::RoundMode>(nextFrm_vt_u & 0b111);
+
     // write updated frm to Softfloat's rounding mode state
-    Fcsr{ xfcsr.getFlags(), nextFrm }.writeToSoftFloat();
-    
+    Fcsr{xfcsr.getFlags(), nextFrm}.writeToSoftFloat();
+
     return oldFrm;
   }
   VSRTL_VT_U modifyFcsr(csrInstr csr, VSRTL_VT_U rs1) {
     // reads the old fcsr value before writing the new fcsr value
     // analogous implementation to csrrw instruction
     const VSRTL_VT_U oldFcsr = VT_U(getFcsrFromReg().word);
-    
+
     VSRTL_VT_U nextFcsr_vt_u;
-    switch(csr) {
-      case csrInstr::csrrw: nextFcsr_vt_u = rs1; break;
-      case csrInstr::csrrs: nextFcsr_vt_u = oldFcsr | rs1; break;
-      case csrInstr::csrrc: nextFcsr_vt_u = oldFcsr & ~rs1; break;
+    switch (csr) {
+    case csrInstr::csrrw:
+      nextFcsr_vt_u = rs1;
+      break;
+    case csrInstr::csrrs:
+      nextFcsr_vt_u = oldFcsr | rs1;
+      break;
+    case csrInstr::csrrc:
+      nextFcsr_vt_u = oldFcsr & ~rs1;
+      break;
     }
-    
-    Fcsr nextFcsr{ static_cast<uint32_t>(nextFcsr_vt_u) };
+
+    Fcsr nextFcsr{static_cast<uint32_t>(nextFcsr_vt_u)};
 
     nextFcsr.canonicalize();
     nextFcsr.writeToSoftFloat(); // store updated fcsr into softfloat state
@@ -447,6 +459,7 @@ protected:
   }
 
   static uint_fast8_t mapRoundingMode(const RVISA::ExtF::RoundMode rm) {
+    // clang-format off
     switch (rm) {
       case RVISA::ExtF::RoundMode::RNE: return softfloat_round_near_even;
       case RVISA::ExtF::RoundMode::RTZ: return softfloat_round_minMag;
@@ -462,12 +475,11 @@ protected:
 
       default: Q_UNREACHABLE();
     }
+    // clang-formatt on
   }
 
 public:
-  FPU(const std::string &name, SimComponent *parent)
-    : Component(name, parent) {
-    
+  FPU(const std::string &name, SimComponent *parent) : Component(name, parent) {
     connect_res->setSensitiveTo(ctrl);
     connect_res->setSensitiveTo(roundmode);
     connect_res->setSensitiveTo(op1);
@@ -475,14 +487,15 @@ public:
     connect_res->setSensitiveTo(op3);
     connect_res->setSensitiveTo(fcsr->out);
     connect_res->out << [this] {
-      Float32_t fs1{ .word = static_cast<uint32_t>(op1.uValue()) };
-      Float32_t fs2{ .word = static_cast<uint32_t>(op2.uValue()) };
-      Float32_t fs3{ .word = static_cast<uint32_t>(op3.uValue()) };
-      
-      // restore/synchronize fcsr state to softfloat before executing the floating point operation
+      Float32_t fs1{.word = static_cast<uint32_t>(op1.uValue())};
+      Float32_t fs2{.word = static_cast<uint32_t>(op2.uValue())};
+      Float32_t fs3{.word = static_cast<uint32_t>(op3.uValue())};
+
+      // restore/synchronize fcsr state to softfloat before executing the
+      // floating point operation
       Fcsr xfcsr = getFcsrFromReg();
-      xfcsr.writeToSoftFloat(); 
-      
+      xfcsr.writeToSoftFloat();
+
       // clang-format off
       // all fpu instructions which do not use static rounding ------------------------------------
       switch (ctrl.eValue<FPUOp>()) {
@@ -563,9 +576,9 @@ public:
       return resValue;
     };
     connect_res->out >> res;
-    
+
     connect_reg->setSensitiveTo(connect_res->out);
-    connect_reg->out << [this] { return VT_U( Fcsr::loadFromSoftFloat().word ); };
+    connect_reg->out << [this] { return VT_U(Fcsr::loadFromSoftFloat().word); };
     connect_reg->out >> fcsr->in;
   }
 
@@ -575,7 +588,7 @@ public:
 
   INPUTPORT_ENUM(ctrl, FPUOp);
   INPUTPORT_ENUM(roundmode, RVISA::ExtF::RoundMode);
-  
+
   INPUTPORT(op1, XLEN);
   INPUTPORT(op2, XLEN);
   INPUTPORT(op3, XLEN);
@@ -584,32 +597,35 @@ public:
 };
 
 namespace displayFlag {
-  enum class FcsrDisplayFlag : uint8_t { O = 0, T = 1 };
+enum class FcsrDisplayFlag : uint8_t { O = 0, T = 1 };
 } // namespace displayFlag
 
 template <unsigned XLEN>
 class FPU_Fcsr : public FPU<XLEN> {
 public:
+  // clang-format off
   FPU_Fcsr(const std::string &name, SimComponent *parent)
-    : FPU<XLEN>(name, parent) {
-    inexact << [this] { return this->getFcsrFromReg().getFlags().NX; };
-    underflow << [this] { return this->getFcsrFromReg().getFlags().UF; };
-    overflow << [this] { return this->getFcsrFromReg().getFlags().OF; };
-    divide_by_zero << [this] { return this->getFcsrFromReg().getFlags().DZ; };
+      : FPU<XLEN>(name, parent) {
+    inexact           << [this] { return this->getFcsrFromReg().getFlags().NX; };
+    underflow         << [this] { return this->getFcsrFromReg().getFlags().UF; };
+    overflow          << [this] { return this->getFcsrFromReg().getFlags().OF; };
+    divide_by_zero    << [this] { return this->getFcsrFromReg().getFlags().DZ; };
     invalid_operation << [this] { return this->getFcsrFromReg().getFlags().NV; };
-    frm << [this] { return VT_U(this->getFcsrFromReg().getRoundingMode()); };
+    frm               << [this] { return VT_U(this->getFcsrFromReg().getRoundingMode()); };
   }
 
   // pure display output ports
   // fflags bits: NX UF OF DZ NV
-  OUTPUTPORT_ENUM(inexact, displayFlag::FcsrDisplayFlag);
-  OUTPUTPORT_ENUM(underflow, displayFlag::FcsrDisplayFlag);
-  OUTPUTPORT_ENUM(overflow, displayFlag::FcsrDisplayFlag);
-  OUTPUTPORT_ENUM(divide_by_zero, displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(inexact,           displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(underflow,         displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(overflow,          displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(divide_by_zero,    displayFlag::FcsrDisplayFlag);
   OUTPUTPORT_ENUM(invalid_operation, displayFlag::FcsrDisplayFlag);
 
   // current rounding mode
   OUTPUTPORT_ENUM(frm, RVISA::ExtF::RoundMode);
+
+  // clang-format on
 };
 
 } // namespace core

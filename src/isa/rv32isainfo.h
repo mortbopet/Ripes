@@ -10,7 +10,7 @@ template <>
 class ISAInfo<ISA::RV32I> : public RVISA::RV_ISAInfoBase {
 public:
   ISAInfo() : ISAInfo(RV_ExtensionSet()) {}
-  ISAInfo(const ExtensionSetInfo& extensions) : RV_ISAInfoBase(extensions) {
+  ISAInfo(const ExtensionSetInfo &extensions) : RV_ISAInfoBase(extensions) {
     initialize(Extension::I);
   }
 
@@ -18,7 +18,7 @@ public:
 
   unsigned int bits() const override { return 32; }
 
-  QString CCmabi() const override { 
+  QString CCmabi() const override {
     QString f = extensionEnabled(Extension::F) ? "f" : "";
     return "ilp32" + f;
   }

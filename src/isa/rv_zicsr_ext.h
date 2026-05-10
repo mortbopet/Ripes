@@ -6,6 +6,7 @@
 #include "pseudoinstruction.h"
 #include "rvisainfo_common.h"
 
+// clang-format off
 /**
  * Status register extension (Zicsr)
  * Instruction  parameters          Description
@@ -15,7 +16,7 @@
  * csrrwi       rd, csr, zimm       rd = csr; csr = zimm
  * csrrsi       rd, csr, zimm       rd = csr; csr = csr | zimm
  * csrrci       rd, csr, zimm       rd = csr; csr = csr & ~zimm
- * 
+ *
  * Pseudo Instructions
  * csrr         rd, csr             rd = csr            >> expands to: csrrs rd, csr, x0
  * csrs         csr, rs1            csr = csr | rs1     >> expands to: csrrs x0, csr, rs1
@@ -29,7 +30,6 @@
 namespace Ripes {
 namespace RVISA {
 
-// clang-format off
 namespace ExtZicsr {
   namespace TypeCSR {
     enum class Funct3 : unsigned {
@@ -153,9 +153,10 @@ namespace ExtZicsr {
       constexpr static std::string_view NAME = "csrwi";
       constexpr static std::string_view PSEUDO_FUNC = "csrrwi";
     };
-  } // namespace TypePseudo
-}; // namespace ExtF
+
 // clang-format on
+} // namespace TypePseudo
+}; // namespace ExtZicsr
 
 } // namespace RVISA
 } // namespace Ripes

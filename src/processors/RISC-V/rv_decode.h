@@ -454,10 +454,11 @@ private:
 
 template <unsigned XLEN>
 class DecodeCSR : public Decode<XLEN> {
-  public:
+public:
   DecodeCSR(const std::string &name, SimComponent *parent)
-  : Decode<XLEN>(name, parent) {
-    csr_reg_idx << [this] { // csr operations are atomic so no hazards with other instructions
+      : Decode<XLEN>(name, parent) {
+    csr_reg_idx << [this] { // csr operations are atomic so no hazards with
+                            // other instructions
       return (Decode<XLEN>::instr.uValue() >> 20) & 0xFFF; // 12 bits
     };
   }
@@ -467,23 +468,22 @@ class DecodeCSR : public Decode<XLEN> {
 
 template <unsigned XLEN>
 class DecodeF : public DecodeCSR<XLEN> {
-  public:
+public:
   DecodeF(const std::string &name, SimComponent *parent)
-  : DecodeCSR<XLEN>(name, parent) {
+      : DecodeCSR<XLEN>(name, parent) {
     r3_reg_idx << [this] {
       const auto instrValue = Decode<XLEN>::instr.uValue();
       const RVInstrType instr_type = getInstrType(instrValue);
 
       // Bits 27-31 defined as Rs3 only for R4 format.
-      if ( instr_type == RVInstrType::R4 ) {
+      if (instr_type == RVInstrType::R4) {
         return (instrValue >> 27) & 0b11111;
       } else {
         return vsrtl::VSRTL_VT_U(0);
       }
     };
-    roundMode << [this] {
-      return (Decode<XLEN>::instr.uValue() >> 12) & 0b111;
-    };
+    roundMode <<
+        [this] { return (Decode<XLEN>::instr.uValue() >> 12) & 0b111; };
   }
   OUTPUTPORT(r3_reg_idx, c_RVRegsBits);
   OUTPUTPORT_ENUM(roundMode, RVISA::ExtF::RoundMode);

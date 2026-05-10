@@ -12,7 +12,6 @@ namespace Ripes {
 
 #define BIT_WIDTH_SUFFIX "-Bit"
 
-
 VariationInfo::Options_t VariationSet::extractOptions() const {
   VariationInfo::Options_t options;
 
@@ -24,23 +23,27 @@ VariationInfo::Options_t VariationSet::extractOptions() const {
 }
 ExtensionContainer_t VariationSet::extractExtensions() const {
   ExtensionContainer_t extensions;
-  
+
   for (const auto *variation : variations) {
-    const ExtensionContainer_t& exts = procDesc.variations.at(variation->id)->isaInfo().supportedExtensions->extensions();
+    const ExtensionContainer_t &exts = procDesc.variations.at(variation->id)
+                                           ->isaInfo()
+                                           .supportedExtensions->extensions();
     extensions.insert(exts.begin(), exts.end());
   }
 
   return extensions;
 }
 
-VariationSet& VariationSet::filter(ExtensionSetInfo::ConstPtr extensions) {
-  for (auto it = this->begin(); it != this->end(); ) {
-    Q_ASSERT(procDesc.hasVariation((*it)->id) && 
-      "Internal Sanity Check: Variation must exist in processor class info variations map.");
-    
+VariationSet &VariationSet::filter(ExtensionSetInfo::ConstPtr extensions) {
+  for (auto it = this->begin(); it != this->end();) {
+    Q_ASSERT(procDesc.hasVariation((*it)->id) &&
+             "Internal Sanity Check: Variation must exist in processor class "
+             "info variations map.");
+
     // variation must be compatible with the selected extensions
-    const auto supportedExt = procDesc.variations.at((*it)->id)->isaInfo().supportedExtensions;
-    if ( !extensions->isSubsetOf(*supportedExt) ) {
+    const auto supportedExt =
+        procDesc.variations.at((*it)->id)->isaInfo().supportedExtensions;
+    if (!extensions->isSubsetOf(*supportedExt)) {
       it = this->erase(it);
     } else {
       ++it;
@@ -49,14 +52,16 @@ VariationSet& VariationSet::filter(ExtensionSetInfo::ConstPtr extensions) {
 
   return *this;
 }
-VariationSet& VariationSet::filter(const VariationInfo::Options_t& options, bool matchExact) {
-  for (auto it = this->begin(); it != this->end(); ) {
-    Q_ASSERT(procDesc.hasVariation((*it)->id) && 
-      "Internal Sanity Check: Variation must exist in processor class info variations map.");
+VariationSet &VariationSet::filter(const VariationInfo::Options_t &options,
+                                   bool matchExact) {
+  for (auto it = this->begin(); it != this->end();) {
+    Q_ASSERT(procDesc.hasVariation((*it)->id) &&
+             "Internal Sanity Check: Variation must exist in processor class "
+             "info variations map.");
 
     // variation must contain at least the selected options
     for (const auto &opt : options) {
-      if ( !(*it)->options.count(opt) ) {
+      if (!(*it)->options.count(opt)) {
         it = this->erase(it);
         goto next_iteration;
       }
@@ -65,7 +70,7 @@ VariationSet& VariationSet::filter(const VariationInfo::Options_t& options, bool
     if (matchExact) {
       // variation must not contain options that are not selected
       for (const auto &opt : (*it)->options) {
-        if ( !options.count(opt) ) {
+        if (!options.count(opt)) {
           it = this->erase(it);
           goto next_iteration;
         }
@@ -73,28 +78,28 @@ VariationSet& VariationSet::filter(const VariationInfo::Options_t& options, bool
     }
 
     ++it;
-    next_iteration: continue;
+  next_iteration:
+    continue;
   }
 
   return *this;
 }
 
-
 class ExtensionCheckBox : public QCheckBox {
   Q_OBJECT
 
 public:
-  explicit ExtensionCheckBox(const ExtensionInfoInterface* ext, QWidget* parent = nullptr) 
-  : QCheckBox(ext->name(), parent), m_ext(ext) {
+  explicit ExtensionCheckBox(const ExtensionInfoInterface *ext,
+                             QWidget *parent = nullptr)
+      : QCheckBox(ext->name(), parent), m_ext(ext) {
     setToolTip(ext->description());
   }
 
-  const ExtensionInfoInterface* extension() const { return m_ext; }
+  const ExtensionInfoInterface *extension() const { return m_ext; }
 
 private:
-  const ExtensionInfoInterface* m_ext;
+  const ExtensionInfoInterface *m_ext;
 };
-
 
 ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
     : QDialog(parent), m_ui(new Ui::ProcessorSelectionDialog) {
@@ -104,14 +109,14 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
   // Initialize top level ISA items
   m_ui->processors->setHeaderHidden(true);
   std::map<QString, QTreeWidgetItem *> isaFamilyItems;
-  
+
   for (const auto &isa : ISAFamilyNames) {
     if (isaFamilyItems.count(isa.second) == 0) {
       isaFamilyItems[isa.second] = new QTreeWidgetItem({isa.second});
       auto *isaItem = isaFamilyItems.at(isa.second);
       isaItem->setFlags(isaItem->flags() & ~(Qt::ItemIsSelectable));
-      m_ui->processors->insertTopLevelItem(m_ui->processors->topLevelItemCount(),
-                                           isaItem);
+      m_ui->processors->insertTopLevelItem(
+          m_ui->processors->topLevelItemCount(), isaItem);
     }
   }
 
@@ -142,27 +147,26 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
   connect(m_ui->processors, &QTreeWidget::currentItemChanged, this,
           &ProcessorSelectionDialog::selectionChanged);
 
-  connect(m_ui->width, &QComboBox::currentTextChanged, this, 
-    [this](QString text) {
-      m_selectedBitWidth = text.remove(BIT_WIDTH_SUFFIX).toUInt();
-      buildSelector();
-  });
-  
-  
+  connect(m_ui->width, &QComboBox::currentTextChanged, this,
+          [this](QString text) {
+            m_selectedBitWidth = text.remove(BIT_WIDTH_SUFFIX).toUInt();
+            buildSelector();
+          });
+
   connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-
   if (selectedItem != nullptr) {
     m_ui->processors->setCurrentItem(selectedItem);
-    
+
     m_selectedID = ProcessorHandler::getID();
 
-    const auto& varDesc = ProcessorRegistry::getDescription(m_selectedID, ProcessorHandler::getVariationID());
+    const auto &varDesc = ProcessorRegistry::getDescription(
+        m_selectedID, ProcessorHandler::getVariationID());
 
     m_selectedOptions = varDesc->variationInfo.options;
     m_selectedBitWidth = varDesc->variationInfo.bitWidth;
-    
+
     auto settings = RipesSettings::value(RIPES_SETTING_PROCESSOR_EXTENSIONS);
     if (settings.isNull()) {
       m_selectedExtensions = varDesc->isaInfo().defaultExtensions->clone();
@@ -170,7 +174,8 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
       // remove extensions that are not preselected in the global settings
       m_selectedExtensions = varDesc->isaInfo().supportedExtensions->clone();
       QList<uint> extensionIDs = settings.value<QList<uint>>();
-      for (const auto* ext : varDesc->isaInfo().supportedExtensions->extensions()) {
+      for (const auto *ext :
+           varDesc->isaInfo().supportedExtensions->extensions()) {
         if (!extensionIDs.contains(ext->id())) {
           m_selectedExtensions->remove(*ext);
         }
@@ -180,12 +185,12 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
     if (activeVariationIsValid()) {
       // build the selector with the current settings if they are valid
       unsigned layoutID =
-        RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
+          RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
       if (layoutID >= varDesc->layouts.size()) {
         layoutID = 0;
       }
       m_ui->layout->setCurrentIndex(layoutID);
-      
+
       buildSelector();
     } else {
       // otherwise, let the preselected processor be the default initialized
@@ -201,36 +206,44 @@ ProcessorSelectionDialog::getRegisterInitialization() const {
 
 ProcessorSelectionDialog::~ProcessorSelectionDialog() { delete m_ui; }
 
-/// Get the variation ID of the first full matching variation in respect to the currently selected variation info else nullopt
-std::optional<VariationID> ProcessorSelectionDialog::getConfiguredVariationId() const {
+/// Get the variation ID of the first full matching variation in respect to the
+/// currently selected variation info else nullopt
+std::optional<VariationID>
+ProcessorSelectionDialog::getConfiguredVariationId() const {
   const VariationSet possible_variations = getMatchingVariations(true);
 
-  if ( possible_variations.size() == 0 )
+  if (possible_variations.size() == 0)
     return std::nullopt;
 
   const ProcClassInfo &procDesc = getSelectedProcessorClass();
 
-  // get the first variation with the smallest number of supported extensions as the "best" matching variation
-  const VariationInfo* best_variation = *std::min_element(possible_variations.begin(), possible_variations.end(),
-    [&procDesc](const auto* a, const auto* b) {
-      const auto& a_ext = procDesc.variations.at(a->id)->isaInfo().supportedExtensions->extensions();
-      const auto& b_ext = procDesc.variations.at(b->id)->isaInfo().supportedExtensions->extensions();
-      return a_ext.size() < b_ext.size();
-    }
-  );
+  // get the first variation with the smallest number of supported extensions as
+  // the "best" matching variation
+  const VariationInfo *best_variation = *std::min_element(
+      possible_variations.begin(), possible_variations.end(),
+      [&procDesc](const auto *a, const auto *b) {
+        const auto &a_ext = procDesc.variations.at(a->id)
+                                ->isaInfo()
+                                .supportedExtensions->extensions();
+        const auto &b_ext = procDesc.variations.at(b->id)
+                                ->isaInfo()
+                                .supportedExtensions->extensions();
+        return a_ext.size() < b_ext.size();
+      });
 
   return best_variation->id;
 }
 
-/// test that the currently active variation in the set of all variations of the selected processor class
+/// test that the currently active variation in the set of all variations of the
+/// selected processor class
 bool ProcessorSelectionDialog::activeVariationIsValid() const {
   return getConfiguredVariationId().has_value();
 }
 
-
-VariationSet ProcessorSelectionDialog::getMatchingVariations(bool matchExact) const {
+VariationSet
+ProcessorSelectionDialog::getMatchingVariations(bool matchExact) const {
   VariationSet variations = getAvailableVariations();
-  
+
   variations.filter(m_selectedExtensions);
   variations.filter(m_selectedOptions, matchExact);
 
@@ -239,12 +252,9 @@ VariationSet ProcessorSelectionDialog::getMatchingVariations(bool matchExact) co
 
 VariationSet ProcessorSelectionDialog::getAvailableVariations() const {
   const ProcClassInfo &procDesc = getSelectedProcessorClass();
-  return VariationSet{
-    procDesc,
-    procDesc.getVariationsByBitWidth(m_selectedBitWidth)
-  };
+  return VariationSet{procDesc,
+                      procDesc.getVariationsByBitWidth(m_selectedBitWidth)};
 }
-
 
 bool ProcessorSelectionDialog::isCPUItem(const QTreeWidgetItem *item) const {
   if (!item) {
@@ -255,7 +265,6 @@ bool ProcessorSelectionDialog::isCPUItem(const QTreeWidgetItem *item) const {
   return validSelection;
 }
 
-
 static void clearLayout(QLayout *layout) {
   if (!layout) {
     return;
@@ -265,7 +274,7 @@ static void clearLayout(QLayout *layout) {
     if (QLayout *childLayout = item->layout()) {
       clearLayout(childLayout);
     }
-    
+
     if (QWidget *widget = item->widget()) {
       delete widget;
     }
@@ -274,30 +283,30 @@ static void clearLayout(QLayout *layout) {
   }
 }
 
-
 void ProcessorSelectionDialog::buildSelector() {
   const ProcClassInfo &desc = getSelectedProcessorClass();
 
   const VariationSet variations = getAvailableVariations();
-  
+
   //------------------------------------------------------------------------------
   // Build Bit Width selector
   //------------------------------------------------------------------------------
   m_ui->width->blockSignals(true);
   m_ui->width->clear();
   auto bitWidths = desc.getBitWidths();
-  
+
   int bwIndex = 0;
   for (const uint bw : bitWidths) {
-    m_ui->width->addItem(QString::number(bw)+BIT_WIDTH_SUFFIX);
-    
+    m_ui->width->addItem(QString::number(bw) + BIT_WIDTH_SUFFIX);
+
     if (bw == m_selectedBitWidth) {
       bwIndex = m_ui->width->count() - 1;
     }
   }
 
-  Q_ASSERT( bwIndex != -1 &&
-      "Internal error: selected variation bit-width must always be available." );
+  Q_ASSERT(
+      bwIndex != -1 &&
+      "Internal error: selected variation bit-width must always be available.");
   m_ui->width->setCurrentIndex(bwIndex);
   m_ui->width->blockSignals(false);
 
@@ -308,17 +317,18 @@ void ProcessorSelectionDialog::buildSelector() {
 
   std::set<ExtensionID_t> availableExtensions;
   for (const auto &variation : variations) {
-    Q_ASSERT(desc.hasVariation(variation->id) && 
-      "Internal Sanity Check: Variation must exist in processor class info variations map.");
+    Q_ASSERT(desc.hasVariation(variation->id) &&
+             "Internal Sanity Check: Variation must exist in processor class "
+             "info variations map.");
     const auto &isaInfo = desc.variations.at(variation->id)->isaInfo();
-    
+
     for (const auto *ext : isaInfo.supportedExtensions->extensions()) {
       if (availableExtensions.contains(ext->id())) {
         continue;
       }
-      
+
       availableExtensions.insert(ext->id());
-      
+
       auto chkbox = new ExtensionCheckBox(ext);
 
       m_ui->extensions->addWidget(chkbox);
@@ -331,14 +341,15 @@ void ProcessorSelectionDialog::buildSelector() {
         } else {
           this->m_selectedExtensions->remove(*ext);
         }
-        
+
         // extensionChanged();
         variationSelectionChanged();
       });
     }
   }
-  
-  // making sure that preselected extensions that are not available for the selected processor are disregarded
+
+  // making sure that preselected extensions that are not available for the
+  // selected processor are disregarded
   for (const auto &ext : m_selectedExtensions->extensions()) {
     if (!availableExtensions.contains(ext->id())) {
       m_selectedExtensions->remove(*ext);
@@ -355,7 +366,7 @@ void ProcessorSelectionDialog::buildSelector() {
   for (const auto &opt : availableOptions) {
     auto chkbox = new QCheckBox(opt);
     m_ui->options->addWidget(chkbox);
-    
+
     // activate default options
     if (m_selectedOptions.contains(opt)) {
       chkbox->setChecked(true);
@@ -369,11 +380,12 @@ void ProcessorSelectionDialog::buildSelector() {
       }
 
       // optionChanged();
-        variationSelectionChanged();
+      variationSelectionChanged();
     });
   }
 
-  // making sure that preselected options that are not available for the selected processor are disregarded
+  // making sure that preselected options that are not available for the
+  // selected processor are disregarded
   for (const auto &opt : m_selectedOptions) {
     if (!availableOptions.contains(opt)) {
       m_selectedOptions.erase(opt);
@@ -383,31 +395,34 @@ void ProcessorSelectionDialog::buildSelector() {
   //------------------------------------------------------------------------------
   // Build Layout
   //------------------------------------------------------------------------------
-  // gets build and configured in propagateVariationChange and only then a valid 
+  // gets build and configured in propagateVariationChange and only then a valid
   // variation is selected
 
-  // propagating the preselected extensions so that invalid options are disabled 
+  // propagating the preselected extensions so that invalid options are disabled
   // extensionChanged();
 
-  // propagating the preselected and propagated options so that invalid extensions are disabled
-  // optionChanged();
+  // propagating the preselected and propagated options so that invalid
+  // extensions are disabled optionChanged();
 
   variationSelectionChanged();
 }
 
 void ProcessorSelectionDialog::variationSelectionChanged() {
   VariationSet variations = getMatchingVariations(false);
-  
+
   //------------------------------------------------------------------------------
   // Extension Management
   //------------------------------------------------------------------------------
-  const ExtensionContainer_t availableExtensions = variations.extractExtensions();
+  const ExtensionContainer_t availableExtensions =
+      variations.extractExtensions();
   for (int i = 0; i < m_ui->extensions->count(); ++i) {
-    auto *chkbox = qobject_cast<ExtensionCheckBox *>(m_ui->extensions->itemAt(i)->widget());
+    auto *chkbox = qobject_cast<ExtensionCheckBox *>(
+        m_ui->extensions->itemAt(i)->widget());
     if (chkbox) {
-      const bool extSupported = availableExtensions.contains( chkbox->extension() );
+      const bool extSupported =
+          availableExtensions.contains(chkbox->extension());
       chkbox->setEnabled(extSupported);
-      
+
       if (!extSupported) {
         // shall not be checked at this point
         chkbox->setChecked(false);
@@ -420,13 +435,14 @@ void ProcessorSelectionDialog::variationSelectionChanged() {
   // Option Management
   //------------------------------------------------------------------------------
   const auto availableOptions = variations.extractOptions();
-  
+
   for (int i = 0; i < m_ui->options->count(); ++i) {
-    auto *chkbox = qobject_cast<QCheckBox *>(m_ui->options->itemAt(i)->widget());
+    auto *chkbox =
+        qobject_cast<QCheckBox *>(m_ui->options->itemAt(i)->widget());
     if (chkbox) {
       const bool inOptions = availableOptions.contains(chkbox->text());
       chkbox->setEnabled(inOptions);
-      
+
       if (!inOptions) {
         // shall not be checked at this point
         chkbox->setChecked(false);
@@ -449,7 +465,7 @@ void ProcessorSelectionDialog::propagateVariationChange() {
   //------------------------------------------------------------------------------
   // Layout Management
   //------------------------------------------------------------------------------
-  
+
   if (validVariation) {
     auto active_layout = m_ui->layout->currentText();
     m_ui->layout->setEnabled(true);
@@ -487,9 +503,9 @@ void ProcessorSelectionDialog::propagateVariationChange() {
 
   m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(validVariation);
   m_ui->regInitWidget->setEnabled(validVariation);
-  m_ui->regInitWidget->processorSelectionChanged(m_selectedID, varDesc->variationInfo.id);
+  m_ui->regInitWidget->processorSelectionChanged(m_selectedID,
+                                                 varDesc->variationInfo.id);
 }
-
 
 void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
                                                 QTreeWidgetItem *) {
@@ -505,10 +521,12 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
     return;
   }
 
-  m_selectedID = qvariant_cast<ProcessorID>(current->data(ProcessorColumn, Qt::UserRole));
-  
+  m_selectedID =
+      qvariant_cast<ProcessorID>(current->data(ProcessorColumn, Qt::UserRole));
+
   const auto &desc = getSelectedProcessorClass();
-  const auto varDesc = ProcessorRegistry::getDescription(m_selectedID, desc.defaultVariationID);
+  const auto varDesc =
+      ProcessorRegistry::getDescription(m_selectedID, desc.defaultVariationID);
 
   m_selectedOptions = varDesc->variationInfo.options;
   m_selectedBitWidth = varDesc->variationInfo.bitWidth;
@@ -526,10 +544,10 @@ const Layout *ProcessorSelectionDialog::getSelectedLayout() const {
   auto it = llvm::find_if(desc->layouts, [&](const auto &layout) {
     return layout.name == m_ui->layout->currentText();
   });
-  
+
   if (it != desc->layouts.end())
     return &*it;
-  
+
   return nullptr;
 }
 

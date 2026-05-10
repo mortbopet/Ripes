@@ -56,9 +56,8 @@ private:
 
   QString m_currentTest;
 
-  void runTests(ProcessorID proc, VariationID variation, 
-                const RV_ExtensionSet &extensions,
-                const QStringList &testDirs);
+  void runTests(ProcessorID proc, VariationID variation,
+                const RV_ExtensionSet &extensions, const QStringList &testDirs);
 
   void trapHandler();
 
@@ -69,61 +68,63 @@ private:
 private slots:
 
   void testRV64_SingleCycle() {
-    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV64I, 
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV64I,
              {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
   void testRV64_SingleCycleFloat() {
-    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV64F, 
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV64F,
              {Extension::M, Extension::C, Extension::F},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR, RISCV_F_TEST_DIR});
   }
   void testRV64_5StagePipeline() {
-    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV64I_FU_HU, 
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV64I_FU_HU,
              {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
   void testRV64_5StagePipelineHU() {
-    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV64I_HU, 
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV64I_HU,
              {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
   void testRV64_6SDual() {
-    runTests(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV64I, 
+    runTests(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV64I,
              {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
 
   void testRV32_SingleCycle() {
-    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV32I, 
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV32I,
              {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_SingleCycleFloat() {
-    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV32F, 
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV32F,
              {Extension::M, Extension::C, Extension::F},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR, RISCV_F_TEST_DIR});
   }
   void testRV32_5StagePipeline() {
-    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU, 
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU,
              {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_5StagePipelineHU() {
-    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV32I_HU, 
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV32I_HU,
              {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_6SDual() {
-    runTests(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV32I, 
+    runTests(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV32I,
              {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_5MultiCycle2Memory() {
-    runTests(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_2M, {Extension::M}, {RISCV32_TEST_DIR});
+    runTests(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_2M, {Extension::M},
+             {RISCV32_TEST_DIR});
   }
   void testRV32_5MultiCycle1Memory() {
-    runTests(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_1M, {Extension::M}, {RISCV32_TEST_DIR});
+    runTests(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_1M, {Extension::M},
+             {RISCV32_TEST_DIR});
   }
 };
 
@@ -210,7 +211,7 @@ QString tst_RISCV::executeSimulator() {
   return m_err;
 }
 
-void tst_RISCV::runTests(ProcessorID proc, VariationID variation, 
+void tst_RISCV::runTests(ProcessorID proc, VariationID variation,
                          const RV_ExtensionSet &extensions,
                          const QStringList &testDirs) {
   for (const auto &testDir : testDirs) {

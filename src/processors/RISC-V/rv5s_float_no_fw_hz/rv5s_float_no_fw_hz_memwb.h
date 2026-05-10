@@ -18,7 +18,7 @@ public:
       : MEMWB<XLEN>(name, parent) {
     CONNECT_REGISTERED_INPUT(regF_do_write);
   }
-  
+
   // Control
   REGISTERED_INPUT(regF_do_write, 1);
 };

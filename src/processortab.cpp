@@ -78,12 +78,16 @@ ProcessorTab::ProcessorTab(QToolBar *controlToolbar,
     unsigned layoutID =
         RipesSettings::value(RIPES_SETTING_PROCESSOR_LAYOUT_ID).toInt();
     const Layout *layout = nullptr;
-    if (layoutID >= ProcessorRegistry::getDescription(ProcessorHandler::getID(), ProcessorHandler::getVariationID())
-                        ->layouts.size()) {
+    if (layoutID >=
+        ProcessorRegistry::getDescription(ProcessorHandler::getID(),
+                                          ProcessorHandler::getVariationID())
+            ->layouts.size()) {
       layoutID = 0;
     }
     const auto &layouts =
-        ProcessorRegistry::getDescription(ProcessorHandler::getID(), ProcessorHandler::getVariationID())->layouts;
+        ProcessorRegistry::getDescription(ProcessorHandler::getID(),
+                                          ProcessorHandler::getVariationID())
+            ->layouts;
     if (layouts.size() > layoutID) {
       layout = &layouts.at(layoutID);
     }
@@ -376,14 +380,15 @@ void ProcessorTab::processorSelection() {
     // New processor model was selected
     m_vsrtlWidget->clearDesign();
     m_stageInstructionLabels.clear();
-    ProcessorHandler::selectProcessor(diag.getSelectedId(),
-                                      diag.getSelectedVariationId(),
-                                      diag.getEnabledExtensions(),
-                                      diag.getRegisterInitialization());
+    ProcessorHandler::selectProcessor(
+        diag.getSelectedId(), diag.getSelectedVariationId(),
+        diag.getEnabledExtensions(), diag.getRegisterInitialization());
 
     // Store selected layout index
     const auto &layouts =
-        ProcessorRegistry::getDescription(diag.getSelectedId(), diag.getSelectedVariationId())->layouts;
+        ProcessorRegistry::getDescription(diag.getSelectedId(),
+                                          diag.getSelectedVariationId())
+            ->layouts;
     if (auto *layout = diag.getSelectedLayout()) {
       auto layoutIter = std::find(layouts.begin(), layouts.end(), *layout);
       Q_ASSERT(layoutIter != layouts.end());

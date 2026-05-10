@@ -118,9 +118,14 @@ QByteArray toByteArray(int64_t v, size_t size) {
 
 void tst_Assembler::tst_riscv() {
   // Tests all of the available RISC-V assembly programs
-  std::vector<RVTestTuple> testTuples = {
-    {ProcessorID::RV_SS, Variations::RV_SS::RV32I, {Extension::M}, RISCV32_TEST_DIR},
-    {ProcessorID::RV_SS, Variations::RV_SS::RV64I, {Extension::M}, RISCV64_TEST_DIR}};
+  std::vector<RVTestTuple> testTuples = {{ProcessorID::RV_SS,
+                                          Variations::RV_SS::RV32I,
+                                          {Extension::M},
+                                          RISCV32_TEST_DIR},
+                                         {ProcessorID::RV_SS,
+                                          Variations::RV_SS::RV64I,
+                                          {Extension::M},
+                                          RISCV64_TEST_DIR}};
 
   auto testFunct = [](const QString &filename) {
     auto f = QFile(filename);

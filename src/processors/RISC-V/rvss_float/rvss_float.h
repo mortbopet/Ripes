@@ -32,9 +32,10 @@ class RVSS_FLOAT : public RipesVSRTLProcessor {
 public:
   RVSS_FLOAT(const ExtensionSetInfo &extensions)
       : RipesVSRTLProcessor("Single Cycle RISC-V floating point Processor") {
-    RV_ExtensionSet exts{ dynamic_cast<const RV_ExtensionSet&>(extensions) };
-    exts << Extension::F; // enforce F extension, since the processor is designed to work with it
-    
+    RV_ExtensionSet exts{dynamic_cast<const RV_ExtensionSet &>(extensions)};
+    exts << Extension::F; // enforce F extension, since the processor is
+                          // designed to work with it
+
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(exts);
     decode->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
@@ -79,24 +80,24 @@ public:
     decode->wr_reg_idx >> registerFileI->wr_addr;
     decode->r1_reg_idx >> registerFileI->r1_addr;
     decode->r2_reg_idx >> registerFileI->r2_addr;
-    
+
     reg_wr_src->out >> registerFileI->data_in;
     control->reg_do_write_ctrl >> registerFileI->wr_en;
-    
+
     registerFileI->setMemory(m_IregMem);
-    
+
     // -----------------------------------------------------------------------
     // Floating Point Registers
     decode->wr_reg_idx >> registerFileF->wr_addr;
     decode->r1_reg_idx >> registerFileF->r1_addr;
     decode->r2_reg_idx >> registerFileF->r2_addr;
     decode->r3_reg_idx >> registerFileF->r3_addr;
-    
+
     reg_wr_src->out >> registerFileF->data_in;
     control->regF_do_write_ctrl >> registerFileF->wr_en;
-    
+
     registerFileF->setMemory(m_FregMem);
-    
+
     // -----------------------------------------------------------------------
     // Register MUXes
     registerFileI->r1_out >> reg1_src->get(ImmRegFileSrc::INTEGER);
@@ -107,7 +108,7 @@ public:
     registerFileI->r2_out >> reg2_src->get(RegFileSrc::INTEGER);
     registerFileF->r2_out >> reg2_src->get(RegFileSrc::FLOAT);
     control->reg2_do_read_src >> reg2_src->select;
-    
+
     data_mem->data_out >> reg_wr_src->get(RegWrSrc::MEMREAD);
     alu_fpu_src->out >> reg_wr_src->get(RegWrSrc::ALURES);
     pc_4->out >> reg_wr_src->get(RegWrSrc::PC4);
@@ -140,7 +141,7 @@ public:
     alu_op2_src->out >> alu->op2;
 
     control->alu_ctrl >> alu->ctrl;
-    
+
     // -----------------------------------------------------------------------
     // FPU
     reg1_src->out >> fpu->op1;
@@ -148,7 +149,7 @@ public:
     registerFileF->r3_out >> fpu->op3;
 
     control->fpu_ctrl >> fpu->ctrl;
-    
+
     decode->roundMode >> fpu->roundmode;
 
     alu->res >> alu_fpu_src->get(RegFileSrc::INTEGER);
@@ -171,8 +172,10 @@ public:
   }
 
   // Design subcomponents
-  SUBCOMPONENT(registerFileI, TYPE(RegisterFile<XLEN, XLEN, false, c_RVRegs, true>));
-  SUBCOMPONENT(registerFileF, TYPE(RegisterFile3<XLEN, c_RVFBits, false, c_RVFRegs, false>));
+  SUBCOMPONENT(registerFileI,
+               TYPE(RegisterFile<XLEN, XLEN, false, c_RVRegs, true>));
+  SUBCOMPONENT(registerFileF,
+               TYPE(RegisterFile3<XLEN, c_RVFBits, false, c_RVFRegs, false>));
   SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
   SUBCOMPONENT(fpu, TYPE(FPU_Fcsr<XLEN>));
   SUBCOMPONENT(control, ControlF);
@@ -194,7 +197,7 @@ public:
   SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<AluSrc1, XLEN>));
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<AluSrc2, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
-  
+
   // Memories
   SUBCOMPONENT(instr_mem, TYPE(ROM<XLEN, c_RVInstrWidth>));
   SUBCOMPONENT(data_mem, TYPE(RVMemory<XLEN, XLEN>));
@@ -236,7 +239,7 @@ public:
     } else if (regfile == RVISA::FPR) {
       return registerFileF->getRegister(i);
     }
-    
+
     Q_ASSERT(false && "Unknown register file");
     return 0;
   }
@@ -262,12 +265,13 @@ public:
     return instrAccess;
   }
 
-  void setRegister(const std::string_view &regfile, unsigned i, VInt v) override {
+  void setRegister(const std::string_view &regfile, unsigned i,
+                   VInt v) override {
     if (regfile == RVISA::GPR)
       return setSynchronousValue(registerFileI->_wr_mem, i, v);
     else if (regfile == RVISA::FPR)
       return setSynchronousValue(registerFileF->_wr_mem, i, v);
-    
+
     Q_ASSERT(false && "Unknown register file for this processor");
   }
 
@@ -300,19 +304,20 @@ public:
     m_finished = false;
   }
 
-  static const ProcessorISAInfo& supportsISA() { 
+  static const ProcessorISAInfo &supportsISA() {
     static ProcessorISAInfo procInfo{
-      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
-      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F, Extension::C),
-      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F)
-    };
+        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
+        std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F,
+                                          Extension::C),
+        std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F)};
     return procInfo;
   }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(*(supportsISA().supportedExtensions));
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(
+        *(supportsISA().supportedExtensions));
   }
 
   const std::set<std::string_view> registerFiles() const override {

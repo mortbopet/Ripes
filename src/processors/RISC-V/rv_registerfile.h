@@ -11,7 +11,8 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-template <unsigned BUS_XLEN, unsigned MEM_XLEN = BUS_XLEN, bool readBypass = true, unsigned regCnt = c_RVRegs,
+template <unsigned BUS_XLEN, unsigned MEM_XLEN = BUS_XLEN,
+          bool readBypass = true, unsigned regCnt = c_RVRegs,
           bool zeroIsReadOnly = true>
 class RegisterFile : public Component {
 public:
@@ -22,7 +23,7 @@ public:
       : Component(name, parent) {
     // in port matching
     data_in >> _matcher_data->in;
-     
+
     // Writes
     // Disable writes to register 0
     wr_en_0->setSensitiveTo(wr_en);
@@ -85,7 +86,6 @@ public:
   SUBCOMPONENT(_matcher_r1, TYPE(Functioned_Matcher<MEM_XLEN, BUS_XLEN>));
   SUBCOMPONENT(_matcher_r2, TYPE(Functioned_Matcher<MEM_XLEN, BUS_XLEN>));
 
-
   VSRTL_VT_U getRegister(unsigned i) const {
     return m_memory->readMemConst(i << ceillog2(MEM_XLEN / CHAR_BIT),
                                   MEM_XLEN / CHAR_BIT);
@@ -127,17 +127,20 @@ protected:
   AddressSpace *m_memory = nullptr;
 };
 
-template <unsigned BUS_XLEN, unsigned MEM_XLEN = BUS_XLEN, bool readBypass = true, unsigned regCnt = c_RVRegs,
+template <unsigned BUS_XLEN, unsigned MEM_XLEN = BUS_XLEN,
+          bool readBypass = true, unsigned regCnt = c_RVRegs,
           bool zeroIsReadOnly = true>
-class RegisterFile3 : public RegisterFile<BUS_XLEN, MEM_XLEN, readBypass, regCnt, zeroIsReadOnly> {
-  using RF = RegisterFile<BUS_XLEN, MEM_XLEN, readBypass, regCnt, zeroIsReadOnly>;
+class RegisterFile3 : public RegisterFile<BUS_XLEN, MEM_XLEN, readBypass,
+                                          regCnt, zeroIsReadOnly> {
+  using RF =
+      RegisterFile<BUS_XLEN, MEM_XLEN, readBypass, regCnt, zeroIsReadOnly>;
 
 public:
   RegisterFile3(const std::string &name, SimComponent *parent)
       : RF(name, parent) {
     // Reads
     r3_addr >> _rd3_mem->addr;
-    
+
     _matcher_r3->setSensitiveTo(r3_addr);
     _matcher_r3->setSensitiveTo(_rd3_mem->data_out);
 
@@ -149,7 +152,8 @@ public:
      * the RegisterFile was a clocked component.
      */
     if constexpr (readBypass) {
-      _matcher_r3->in << [this] { return this->doReadBypass(r3_addr, _rd3_mem); };
+      _matcher_r3->in <<
+          [this] { return this->doReadBypass(r3_addr, _rd3_mem); };
     } else {
       _rd3_mem->data_out >> _matcher_r3->in;
     }

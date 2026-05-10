@@ -41,11 +41,12 @@ class RV5S_FLOAT_NO_FW_HZ : public RipesVSRTLProcessor {
 public:
   enum Stage { IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4, STAGECOUNT };
   RV5S_FLOAT_NO_FW_HZ(const ExtensionSetInfo &extensions)
-      : RipesVSRTLProcessor(
-            "5-Stage floating point RISC-V Processor without forwarding or hazard detection") {
-    RV_ExtensionSet exts{ dynamic_cast<const RV_ExtensionSet&>(extensions) };
-    exts << Extension::F; // enforce F extension, since the processor is designed to work with if
-    
+      : RipesVSRTLProcessor("5-Stage floating point RISC-V Processor without "
+                            "forwarding or hazard detection") {
+    RV_ExtensionSet exts{dynamic_cast<const RV_ExtensionSet &>(extensions)};
+    exts << Extension::F; // enforce F extension, since the processor is
+                          // designed to work with if
+
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(exts);
     decode->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
@@ -99,30 +100,30 @@ public:
     decode->r1_reg_idx >> registerFileI->r1_addr;
     decode->r2_reg_idx >> registerFileI->r2_addr;
     reg_wr_src->out >> registerFileI->data_in;
-    
+
     memwb_reg->wr_reg_idx_out >> registerFileI->wr_addr;
     memwb_reg->reg_do_write_out >> registerFileI->wr_en;
-    
+
     registerFileF->setMemory(m_FregMem);
-    
+
     decode->r1_reg_idx >> registerFileF->r1_addr;
     decode->r2_reg_idx >> registerFileF->r2_addr;
     decode->r3_reg_idx >> registerFileF->r3_addr;
     reg_wr_src->out >> registerFileF->data_in;
-    
+
     memwb_reg->wr_reg_idx_out >> registerFileF->wr_addr;
     memwb_reg->regF_do_write_out >> registerFileF->wr_en;
 
     registerFileI->r1_out >> reg1_src->get(ImmRegFileSrc::INTEGER);
     registerFileF->r1_out >> reg1_src->get(ImmRegFileSrc::FLOAT);
     immediate->imm >> reg1_src->get(ImmRegFileSrc::IMMEDIATE);
-    
+
     registerFileI->r2_out >> reg2_src->get(RegFileSrc::INTEGER);
     registerFileF->r2_out >> reg2_src->get(RegFileSrc::FLOAT);
-    
+
     control->reg1_do_read_src >> reg1_src->select;
     control->reg2_do_read_src >> reg2_src->select;
-    
+
     // -----------------------------------------------------------------------
     // Branch
     idex_reg->br_op_out >> branch->comp_op;
@@ -157,7 +158,7 @@ public:
     idex_reg->f3_out >> fpu->op3;
 
     idex_reg->fpu_ctrl_out >> fpu->ctrl;
-    
+
     idex_reg->roundMode_out >> fpu->roundmode;
 
     // -----------------------------------------------------------------------
@@ -198,13 +199,13 @@ public:
 
     reg1_src->out >> idex_reg->f1_in;
     reg2_src->out >> idex_reg->r2_mem_in;
-    
+
     registerFileI->r1_out >> idex_reg->r1_in;
     registerFileI->r2_out >> idex_reg->r2_in;
-    
+
     registerFileF->r2_out >> idex_reg->f2_in;
     registerFileF->r3_out >> idex_reg->f3_in;
-    
+
     decode->roundMode >> idex_reg->roundMode_in;
 
     immediate->imm >> idex_reg->imm_in;
@@ -237,7 +238,7 @@ public:
     idex_reg->pc_out >> exmem_reg->pc_in;
     idex_reg->pc4_out >> exmem_reg->pc4_in;
     idex_reg->r2_mem_out >> exmem_reg->r2_in;
-    
+
     alu->res >> alu_fpu_src->get(RegFileSrc::INTEGER);
     fpu->res >> alu_fpu_src->get(RegFileSrc::FLOAT);
     idex_reg->alu_fpu_src_out >> alu_fpu_src->select;
@@ -273,8 +274,10 @@ public:
   }
 
   // Design subcomponents
-  SUBCOMPONENT(registerFileI, TYPE(RegisterFile<XLEN, XLEN, true, c_RVRegs, true>));
-  SUBCOMPONENT(registerFileF, TYPE(RegisterFile3<XLEN, c_RVFBits, true, c_RVFRegs, false>));
+  SUBCOMPONENT(registerFileI,
+               TYPE(RegisterFile<XLEN, XLEN, true, c_RVRegs, true>));
+  SUBCOMPONENT(registerFileF,
+               TYPE(RegisterFile3<XLEN, c_RVFBits, true, c_RVFRegs, false>));
   SUBCOMPONENT(alu, TYPE(ALU<XLEN>));
   SUBCOMPONENT(fpu, TYPE(FPU_Fcsr<XLEN>));
   SUBCOMPONENT(control, ControlF);
@@ -428,7 +431,7 @@ public:
     } else if (regfile == RVISA::FPR) {
       return registerFileF->getRegister(i);
     }
-    
+
     Q_ASSERT(false && "Unknown register file");
     return 0;
   }
@@ -466,12 +469,13 @@ public:
     }
     return allStagesInvalid;
   }
-  void setRegister(const std::string_view &regfile, unsigned i, VInt v) override {
+  void setRegister(const std::string_view &regfile, unsigned i,
+                   VInt v) override {
     if (regfile == RVISA::GPR)
       return setSynchronousValue(registerFileI->_wr_mem, i, v);
     else if (regfile == RVISA::FPR)
       return setSynchronousValue(registerFileF->_wr_mem, i, v);
-    
+
     Q_ASSERT(false && "Unknown register file for this processor");
   }
 
@@ -506,19 +510,20 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static const ProcessorISAInfo& supportsISA() { 
+  static const ProcessorISAInfo &supportsISA() {
     static ProcessorISAInfo procInfo{
-      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
-      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F, Extension::C),
-      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F)
-    };
+        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
+        std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F,
+                                          Extension::C),
+        std::make_shared<RV_ExtensionSet>(Extension::M, Extension::F)};
     return procInfo;
-   }
+  }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(*(supportsISA().supportedExtensions));
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(
+        *(supportsISA().supportedExtensions));
   }
 
   const std::set<std::string_view> registerFiles() const override {

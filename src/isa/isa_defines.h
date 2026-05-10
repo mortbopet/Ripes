@@ -1,9 +1,9 @@
 #pragma once
 
+#include <bit>
 #include <iostream>
 #include <map>
 #include <set>
-#include <bit>
 #include <vector>
 
 #include <QList>
@@ -49,7 +49,7 @@ inline int64_t getImmediate(const QString &string, bool &canConvert,
     }
     return std::bit_cast<uint32_t>(immFloat);
   }
-  
+
   // Could not convert directly to integer - try hex or bin. Here, extra
   // care is taken to account for a potential sign, and include this is the
   // range validation
@@ -73,7 +73,7 @@ inline int64_t getImmediate(const QString &string, bool &canConvert,
     immediate = trimmed.toULongLong(&canConvert, 16);
     return sign * immediate;
   }
-  
+
   // try converting from binary
   if (upperString.startsWith(QLatin1String("0B"))) {
     trimmed = upperString.remove("0B");
@@ -84,8 +84,8 @@ inline int64_t getImmediate(const QString &string, bool &canConvert,
     }
     immediate = trimmed.toULongLong(&canConvert, 2);
     return sign * immediate;
-  } 
-  
+  }
+
   // no conversion found
   canConvert = false;
   return 0;
@@ -208,26 +208,26 @@ struct TokenizedSrcLine : public Location {
 
     stream << "line: " << this->toString() << "\n";
     stream << "Symbols: \n";
-    for( const Symbol &s : symbols ) {
+    for (const Symbol &s : symbols) {
       stream << "   Symbol: " << s.v << " type: " << s.type << "\n";
     }
 
     stream << "Tokens: \n";
-    for( const Token &t : tokens ) {
+    for (const Token &t : tokens) {
       stream << "   Token: " << t;
-      
+
       if (t.hasRelocation())
-        stream << " reloc: " << t.relocation(); 
+        stream << " reloc: " << t.relocation();
       else
         stream << " no reloc";
 
       stream << "\n";
     }
-    
+
     stream << "Directive: " << directive << "\n";
     stream << "PC: " << programAddress << "\n";
     stream << "\n";
-    
+
     return str;
   }
 };

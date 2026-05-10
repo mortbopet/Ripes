@@ -71,7 +71,8 @@ public:
   explicit tst_Cosimulate() {}
 
 private:
-  void cosimulate(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions);
+  void cosimulate(ProcessorID id, VariationID variation,
+                  const RV_ExtensionSet &extensions);
   const Trace &generateReferenceTrace(const RV_ExtensionSet &extensions);
   void trapHandler();
   void executeSimulator(Trace &outTrace, const Trace *refTrace = nullptr);
@@ -94,15 +95,32 @@ private slots:
    * Each of the following functions shall indicate a processor model to
    * co-simulate.
    */
-  void testRV6SDual() { cosimulate(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV32I, {Extension::M}); }
-  void testRV5S() { cosimulate(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU, {Extension::M}); }
-  void testRV5SNoFW() { cosimulate(ProcessorID::RV_5S, Variations::RV_5S::RV32I_HU, {Extension::M}); }
-  void testRV5MC2M() { cosimulate(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_2M, {Extension::M}); }
-  void testRV5MC1M() { cosimulate(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_1M, {Extension::M}); }
-  
-  // even though the cosimulation does not use the floating point or Zicsr features, we still want to verify that
-  // the presence of these extensions does not cause any issues with the integer implementation.
-  void testRVSSFloat() { cosimulate(ProcessorID::RV_SS, Variations::RV_SS::RV32F, {Extension::M}); }
+  void testRV6SDual() {
+    cosimulate(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV32I,
+               {Extension::M});
+  }
+  void testRV5S() {
+    cosimulate(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU,
+               {Extension::M});
+  }
+  void testRV5SNoFW() {
+    cosimulate(ProcessorID::RV_5S, Variations::RV_5S::RV32I_HU, {Extension::M});
+  }
+  void testRV5MC2M() {
+    cosimulate(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_2M,
+               {Extension::M});
+  }
+  void testRV5MC1M() {
+    cosimulate(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_1M,
+               {Extension::M});
+  }
+
+  // even though the cosimulation does not use the floating point or Zicsr
+  // features, we still want to verify that the presence of these extensions
+  // does not cause any issues with the integer implementation.
+  void testRVSSFloat() {
+    cosimulate(ProcessorID::RV_SS, Variations::RV_SS::RV32F, {Extension::M});
+  }
 };
 
 void tst_Cosimulate::trapHandler() {
@@ -125,22 +143,21 @@ Registers tst_Cosimulate::dumpRegs() {
        ProcessorHandler::get()->currentISA()->regInfos()) {
     regs[regFile->regFileName()] = {};
     for (unsigned i = 0; i < regFile->regCnt(); i++) {
-      regs[regFile->regFileName()][i] = ProcessorHandler::get()->getProcessor()
-        ->getRegister(regFile->regFileName(), i);
+      regs[regFile->regFileName()][i] =
+          ProcessorHandler::get()->getProcessor()->getRegister(
+              regFile->regFileName(), i);
     }
   }
   return regs;
 }
 
-/// check whether the test registers deviate from the reference registers. 
-/// register files (as well as register indices) which are not included in 
+/// check whether the test registers deviate from the reference registers.
+/// register files (as well as register indices) which are not included in
 /// the reference are ignored.
-/// returns a vector of the register changes between the reference and test 
+/// returns a vector of the register changes between the reference and test
 /// state, if any such changes exist. Otherwise, returns std::nullopt.
-std::optional<std::vector<RegisterChange>> registerChange(
-  const Registers &reference, 
-  const Registers &test
-) {
+std::optional<std::vector<RegisterChange>>
+registerChange(const Registers &reference, const Registers &test) {
   std::vector<RegisterChange> changes;
   for (const auto &[regFileName, regValues] : reference) {
     for (const auto &[idx, value] : regValues) {
@@ -158,36 +175,44 @@ std::optional<std::vector<RegisterChange>> registerChange(
   }
 }
 
-
-QString tst_Cosimulate::generateErrorReport(const std::vector<RegisterChange> &changes,
-                                            const TraceEntry &reference,
-                                            const TraceEntry &test) const {
+QString
+tst_Cosimulate::generateErrorReport(const std::vector<RegisterChange> &changes,
+                                    const TraceEntry &reference,
+                                    const TraceEntry &test) const {
   QString err;
   err += "\nRegister change discrepancy detected while executing test: " +
          m_currentTest.filepath;
-  
+
   err += "\n\nUnexpected change was:\n";
-  for(const auto &change : changes) {
-    auto regInfo = ProcessorHandler::get()->currentISA()->regInfo(change.fileName);
+  for (const auto &change : changes) {
+    auto regInfo =
+        ProcessorHandler::get()->currentISA()->regInfo(change.fileName);
     err += "\t" + QString(change.fileName.data()) + ": ";
     err += (*regInfo)->regName(change.index);
     err += " = 0x" + QString::number(change.newValue, 16) + "\n";
   }
 
   err += "\nTest processor state: \t\tPC: 0x" + QString::number(test.pc, 16) +
-        "\t Cycle #: " + QString::number(test.cycle);
-  err += "\nReference processor state: \tPC: 0x" + QString::number(reference.pc, 16) +
-        "\t Cycle #: " + QString::number(reference.cycle);
+         "\t Cycle #: " + QString::number(test.cycle);
+  err += "\nReference processor state: \tPC: 0x" +
+         QString::number(reference.pc, 16) +
+         "\t Cycle #: " + QString::number(reference.cycle);
   err += "\n";
 
-  std::vector<RegisterChange> regChanges 
-    = registerChange(reference.regs, test.regs).value_or(std::vector<RegisterChange>{});
+  std::vector<RegisterChange> regChanges =
+      registerChange(reference.regs, test.regs)
+          .value_or(std::vector<RegisterChange>{});
   for (const auto &change : regChanges) {
-    auto regInfo = ProcessorHandler::get()->currentISA()->regInfo(change.fileName);
+    auto regInfo =
+        ProcessorHandler::get()->currentISA()->regInfo(change.fileName);
     err += "Difference in register " + QString(change.fileName.data()) + ": ";
     err += (*regInfo)->regName(change.index);
-    err += "\texpected: 0x" + QString::number(reference.regs.at(change.fileName).at(change.index), 16) +
-           "\tactual: 0x" + QString::number(test.regs.at(change.fileName).at(change.index), 16) + "\n";
+    err += "\texpected: 0x" +
+           QString::number(reference.regs.at(change.fileName).at(change.index),
+                           16) +
+           "\tactual: 0x" +
+           QString::number(test.regs.at(change.fileName).at(change.index), 16) +
+           "\n";
   }
 
   return err;
@@ -216,14 +241,14 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
   unsigned cycles = 0;
   trace.emplace_back(
       dumpRegs(), cycles,
-      ProcessorHandler::get()->getProcessor()->getPcForStage({0, 0})
-  );
+      ProcessorHandler::get()->getProcessor()->getPcForStage({0, 0}));
 
   std::vector<std::string_view> observedRegFiles;
   decltype(refTrace->begin()) cmpRegState;
   if (refTrace) {
     cmpRegState = refTrace->begin();
-    // since dumpRegs() always returns the same set of register files for all trace entries:
+    // since dumpRegs() always returns the same set of register files for all
+    // trace entries:
     const auto regFilesView = cmpRegState->regs | std::views::keys;
     observedRegFiles.assign(regFilesView.begin(), regFilesView.end());
     cmpRegState++; // skip initial state
@@ -241,8 +266,7 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
     if (optRegChanges.has_value()) {
       trace.emplace_back(
           regs, cycles,
-          ProcessorHandler::get()->getProcessor()->getPcForStage({0, 0})
-      );
+          ProcessorHandler::get()->getProcessor()->getPcForStage({0, 0}));
 
       // Check whether change corresponds to expected change in comparison
       // trace. regChange might contain multiple register changes (for
@@ -252,23 +276,29 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
       // we incremented the expected register set, but did not find an
       // accompanying register change, then we've reached a point of divergence.
       if (refTrace != nullptr) {
-        std::vector<RegisterChange> regChanges = std::move(optRegChanges.value());
+        std::vector<RegisterChange> regChanges =
+            std::move(optRegChanges.value());
 
-        // filter out register files which are not included in the reference trace
+        // filter out register files which are not included in the reference
+        // trace
         for (auto it = regChanges.begin(); it != regChanges.end();) {
-          if (std::ranges::find(observedRegFiles, it->fileName) == observedRegFiles.end()) {
+          if (std::ranges::find(observedRegFiles, it->fileName) ==
+              observedRegFiles.end()) {
             it = regChanges.erase(it);
           } else {
             ++it;
           }
         }
-        
-        // try matching each register change to an uninterrupted sequence of reference trace register states
-        while(regChanges.size() > 0 && cmpRegState != refTrace->end()) {
+
+        // try matching each register change to an uninterrupted sequence of
+        // reference trace register states
+        while (regChanges.size() > 0 && cmpRegState != refTrace->end()) {
           bool foundMatch = false;
 
-          for (auto regIt = regChanges.begin(); regIt != regChanges.end(); ++regIt) {
-            if (cmpRegState->regs.at(regIt->fileName).at(regIt->index) == regIt->newValue) {
+          for (auto regIt = regChanges.begin(); regIt != regChanges.end();
+               ++regIt) {
+            if (cmpRegState->regs.at(regIt->fileName).at(regIt->index) ==
+                regIt->newValue) {
               regChanges.erase(regIt);
               foundMatch = true;
               break;
@@ -278,8 +308,10 @@ void tst_Cosimulate::executeSimulator(Trace &trace, const Trace *refTrace) {
           if (foundMatch) {
             ++cmpRegState;
           } else {
-            // if we reached a state in the reference trace which does not contain any of the register changes, then we have a discrepancy
-            const QString err = generateErrorReport(regChanges, *cmpRegState, trace.back());
+            // if we reached a state in the reference trace which does not
+            // contain any of the register changes, then we have a discrepancy
+            const QString err =
+                generateErrorReport(regChanges, *cmpRegState, trace.back());
             QFAIL(err.toStdString().c_str());
           }
         }
@@ -308,7 +340,8 @@ tst_Cosimulate::generateReferenceTrace(const RV_ExtensionSet &extensions) {
   if (refTrace == m_referenceTraces.end()) {
     std::cout << "First time running test; generating reference trace..."
               << std::endl;
-    ProcessorHandler::get()->selectProcessor(s_referenceModel, s_referenceVariation, extensions);
+    ProcessorHandler::get()->selectProcessor(s_referenceModel,
+                                             s_referenceVariation, extensions);
     Trace trace;
     executeSimulator(trace);
     m_referenceTraces[m_currentTest.filepath] = trace;
@@ -327,7 +360,8 @@ tst_Cosimulate::generateReferenceTrace(const RV_ExtensionSet &extensions) {
  * processor model can be instantiated at once in Ripes, due to the static
  * nature of the ProcessorHandler.
  */
-void tst_Cosimulate::cosimulate(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions) {
+void tst_Cosimulate::cosimulate(ProcessorID id, VariationID variation,
+                                const RV_ExtensionSet &extensions) {
   m_loader = new ProgramLoader();
   for (const auto &test : s_testFiles) {
     m_currentTest = test;

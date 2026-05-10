@@ -25,7 +25,6 @@ inline QString enumToString<uint>(uint value) {
   return QString::number(value);
 }
 
-
 // =============================== Processors =================================
 // The order of the ProcessorID enum defines the order of which the processors
 // will appear in the processor selection dialog.
@@ -37,8 +36,14 @@ typedef uint VariationID;
 namespace Variations {
 Q_NAMESPACE
 
-#define VARIATION_ENUM(name, ...) namespace name { Q_NAMESPACE; enum name : VariationID { __VA_ARGS__ }; Q_ENUM_NS(name) }
+#define VARIATION_ENUM(name, ...)                                              \
+  namespace name {                                                             \
+  Q_NAMESPACE;                                                                 \
+  enum name : VariationID { __VA_ARGS__ };                                     \
+  Q_ENUM_NS(name)                                                              \
+  }
 
+// clang-format off
 VARIATION_ENUM(RV_SS, 
   RV32I, /* 32-Bit Integer */
   RV64I, /* 64-Bit Integer */
@@ -81,6 +86,7 @@ VARIATION_ENUM(RV_5S,
   RV64F
 )
 VARIATION_ENUM(RV_6S_DUAL,  RV32I, RV64I )
+// clang-format on
 
 } // namespace Variations
 // ============================================================================
@@ -147,14 +153,13 @@ public:
 
 class ProcVariationInfoBase {
 public:
-  ProcVariationInfoBase(const QString _name, 
-                        const QString _desc,
+  ProcVariationInfoBase(const QString _name, const QString _desc,
                         const VariationInfo &_variationInfo,
                         const std::vector<Layout> &_layouts,
                         const RegisterInitialization &_defaultRegVals = {})
-      : name(std::move(_name)), description(std::move(_desc)), 
-        defaultRegisterVals(_defaultRegVals),
-        layouts(_layouts), variationInfo(_variationInfo) {}
+      : name(std::move(_name)), description(std::move(_desc)),
+        defaultRegisterVals(_defaultRegVals), layouts(_layouts),
+        variationInfo(_variationInfo) {}
   virtual ~ProcVariationInfoBase() = default;
 
   QString name;
@@ -163,7 +168,7 @@ public:
   std::vector<Layout> layouts;
   VariationInfo variationInfo;
 
-  virtual const ProcessorISAInfo& isaInfo() const = 0;
+  virtual const ProcessorISAInfo &isaInfo() const = 0;
   virtual std::unique_ptr<RipesProcessor>
   construct(const ExtensionSetInfo &extensions) = 0;
 };
@@ -174,7 +179,7 @@ public:
   using VariationMap =
       std::map<VariationID, std::shared_ptr<ProcVariationInfoBase>>;
 
-  template<typename ID_t>
+  template <typename ID_t>
   ProcClassInfo(ProcessorID _id, ISA _isa, QString _name,
                 ID_t _defaultVariationID)
       : id(_id), isa(_isa), name(std::move(_name)),
@@ -282,12 +287,13 @@ template <typename T>
 class ProcVariationInfo : public ProcVariationInfoBase {
 public:
   using ProcVariationInfoBase::ProcVariationInfoBase;
-  std::unique_ptr<RipesProcessor> construct(const ExtensionSetInfo &extensions) override {
+  std::unique_ptr<RipesProcessor>
+  construct(const ExtensionSetInfo &extensions) override {
     return std::make_unique<T>(extensions);
   }
   // At this point we force the processor type T to implement a static function
   // identifying its supported ISA.
-  const ProcessorISAInfo& isaInfo() const override { return T::supportsISA(); }
+  const ProcessorISAInfo &isaInfo() const override { return T::supportsISA(); }
 };
 
 class ProcessorRegistry {

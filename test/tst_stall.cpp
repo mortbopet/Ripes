@@ -23,13 +23,15 @@ class tst_stall : public QObject {
   Q_OBJECT
 
 private slots:
-  void run_test(ProcessorID proc, VariationID variation, const QStringList &program);
+  void run_test(ProcessorID proc, VariationID variation,
+                const QStringList &program);
   void tst_no_stall_load_ex_hazard_rs1();
   void tst_no_stall_load_ex_hazard_rs2();
   void tst_no_stall_load_ex_hazard_x0();
 };
 
-void tst_stall::run_test(ProcessorID procid, VariationID variation, const QStringList &program) {
+void tst_stall::run_test(ProcessorID procid, VariationID variation,
+                         const QStringList &program) {
   ProcessorHandler::selectProcessor(procid, variation, RV_ExtensionSet());
   RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
   ProcessorHandler::get()->getProcessorNonConst()->trapHandler = [this] {};
@@ -49,7 +51,8 @@ void tst_stall::run_test(ProcessorID procid, VariationID variation, const QStrin
 }
 
 void tst_stall::tst_no_stall_load_ex_hazard_rs1() {
-  for (auto variation : {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
+  for (auto variation :
+       {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
     QStringList program = QStringList() << ".data"
                                         << "A: .word 5"
                                         << ".text"
@@ -63,7 +66,8 @@ void tst_stall::tst_no_stall_load_ex_hazard_rs1() {
 }
 
 void tst_stall::tst_no_stall_load_ex_hazard_rs2() {
-  for (auto variation : {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
+  for (auto variation :
+       {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
     QStringList program = QStringList() << ".data"
                                         << "A: .word 5"
                                         << ".text"
@@ -77,7 +81,8 @@ void tst_stall::tst_no_stall_load_ex_hazard_rs2() {
 }
 
 void tst_stall::tst_no_stall_load_ex_hazard_x0() {
-  for (auto variation : {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
+  for (auto variation :
+       {Variations::RV_5S::RV32I_FU_HU, Variations::RV_5S::RV64I_FU_HU}) {
     QStringList program = QStringList() << ".data"
                                         << "A: .word 5"
                                         << ".text"

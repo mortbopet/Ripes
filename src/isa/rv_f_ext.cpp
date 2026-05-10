@@ -50,6 +50,6 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
 }
 // clang-format on
 
-} // namespace ExtI
+} // namespace ExtF
 } // namespace RVISA
 } // namespace Ripes

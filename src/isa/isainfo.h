@@ -44,7 +44,7 @@ struct RegFileInfoInterface {
   virtual QString regInfo(unsigned i) const = 0;
   /// Returns if the i'th register is read-only.
   virtual bool regIsReadOnly(unsigned i) const = 0;
-  
+
   /// Returns Register width, in bits
   virtual unsigned bits() const = 0;
   /// Register width, in bytes
@@ -53,50 +53,56 @@ struct RegFileInfoInterface {
 
 typedef uint ExtensionID_t;
 class ExtensionSetInfo;
-/// Interface for an ISA extension, which may be supported by an ISA, and enabled for a given processor.
+/// Interface for an ISA extension, which may be supported by an ISA, and
+/// enabled for a given processor.
 class ExtensionInfoInterface {
 public:
   virtual ~ExtensionInfoInterface(){};
-  
-  /// unique ID of the extension, used for extension lookup, comparison abd by default as key for canonical ordering.
+
+  /// unique ID of the extension, used for extension lookup, comparison abd by
+  /// default as key for canonical ordering.
   virtual ExtensionID_t id() const = 0;
-  /// name of the extension, used for user-facing messages and extension lookup by name.
+  /// name of the extension, used for user-facing messages and extension lookup
+  /// by name.
   virtual QString name() const = 0;
   /// description of the extension, used for user-facing messages.
   virtual QString description() const = 0;
 
-  /// name used for the march specifier of the extension, used for compiler integration.
+  /// name used for the march specifier of the extension, used for compiler
+  /// integration.
   virtual QString CCmarchName() const = 0;
-  
-  /// extensions that are implicitly enabled/required by this extension.
-  virtual const ExtensionSetInfo& implicates() const = 0;
 
-  /// Extensions are uniquely identified by their ID. 
+  /// extensions that are implicitly enabled/required by this extension.
+  virtual const ExtensionSetInfo &implicates() const = 0;
+
+  /// Extensions are uniquely identified by their ID.
   /// Note: Extensions of different architectures shall not be compared.
-  auto operator<=>(const ExtensionInfoInterface& other) const {
+  auto operator<=>(const ExtensionInfoInterface &other) const {
     return id() <=> other.id();
   }
 
-  bool operator==(const ExtensionInfoInterface& other) const {
+  bool operator==(const ExtensionInfoInterface &other) const {
     return *this <=> other == 0;
   }
-  bool operator!=(const ExtensionInfoInterface& other) const {
+  bool operator!=(const ExtensionInfoInterface &other) const {
     return !(*this == other);
   }
 };
 
 struct ExtensionComparator {
-  using is_transparent = void; // enables heterogeneous lookup in sets and maps using this comparator
-  using ExtConstPtr = const ExtensionInfoInterface*;
-  using ExtConstRef = const ExtensionInfoInterface&;
+  using is_transparent = void; // enables heterogeneous lookup in sets and maps
+                               // using this comparator
+  using ExtConstPtr = const ExtensionInfoInterface *;
+  using ExtConstRef = const ExtensionInfoInterface &;
 
   bool operator()(ExtConstPtr a, ExtConstPtr b) const { return *a < *b; }
-  bool operator()(ExtConstRef a, ExtConstPtr b) const { return  a < *b; }
-  bool operator()(ExtConstPtr a, ExtConstRef b) const { return *a <  b; }
-  bool operator()(ExtConstRef a, ExtConstRef b) const { return  a <  b; }
+  bool operator()(ExtConstRef a, ExtConstPtr b) const { return a < *b; }
+  bool operator()(ExtConstPtr a, ExtConstRef b) const { return *a < b; }
+  bool operator()(ExtConstRef a, ExtConstRef b) const { return a < b; }
 };
 
-using ExtensionContainer_t = std::set<const ExtensionInfoInterface*, ExtensionComparator>;
+using ExtensionContainer_t =
+    std::set<const ExtensionInfoInterface *, ExtensionComparator>;
 
 /// An interface for a set of extensions of a common architecture
 /// Note: Extensions of different architectures shall not be combined.
@@ -108,68 +114,70 @@ public:
 
   virtual ~ExtensionSetInfo(){};
 
-  /// Returns a set of extensions in canonical order, as defined by the ISA specification.
-  virtual const ExtensionContainer_t& extensions() const = 0;
+  /// Returns a set of extensions in canonical order, as defined by the ISA
+  /// specification.
+  virtual const ExtensionContainer_t &extensions() const = 0;
 
-  /// Returns the compiler march string for the set of extensions, as defined by the ISA specification.
+  /// Returns the compiler march string for the set of extensions, as defined by
+  /// the ISA specification.
   virtual QString CCmarch() const = 0;
 
   QStringList toStringList() const {
     QStringList extNames;
-    for (const auto* ext : extensions()) {
+    for (const auto *ext : extensions()) {
       extNames << ext->name();
     }
     return extNames;
   }
 
-  /// Searches the extension of selected id recursively in set of extensions(+implicates).
-  /// Returns nullopt if no matching extension is found.
-  std::optional<const ExtensionInfoInterface*> getExtension(ExtensionID_t id) const {
+  /// Searches the extension of selected id recursively in set of
+  /// extensions(+implicates). Returns nullopt if no matching extension is
+  /// found.
+  std::optional<const ExtensionInfoInterface *>
+  getExtension(ExtensionID_t id) const {
     std::set<ExtensionID_t> visitedIDs;
     return getExtension(
-      [id](const ExtensionInfoInterface* ext){
-        return ext->id() == id;
-      }, 
-      visitedIDs
-    );
+        [id](const ExtensionInfoInterface *ext) { return ext->id() == id; },
+        visitedIDs);
   }
-  /// Searches the extension of selected name recursively in set of extensions(+implicates).
-  /// Returns nullopt if no matching extension is found.
-  std::optional<const ExtensionInfoInterface*> getExtension(const QString &extName) const {
+  /// Searches the extension of selected name recursively in set of
+  /// extensions(+implicates). Returns nullopt if no matching extension is
+  /// found.
+  std::optional<const ExtensionInfoInterface *>
+  getExtension(const QString &extName) const {
     std::set<ExtensionID_t> visitedIDs;
     return getExtension(
-      [&extName](const ExtensionInfoInterface* ext){
-        return ext->name() == extName;
-      }, 
-      visitedIDs
-    );
+        [&extName](const ExtensionInfoInterface *ext) {
+          return ext->name() == extName;
+        },
+        visitedIDs);
   }
-  /// Searches the selected extension recursively in set of extensions(+implicates).
-  /// Returns nullopt if no matching extension is found.
-  std::optional<const ExtensionInfoInterface*> getExtension(const ExtensionInfoInterface& ext) const {
+  /// Searches the selected extension recursively in set of
+  /// extensions(+implicates). Returns nullopt if no matching extension is
+  /// found.
+  std::optional<const ExtensionInfoInterface *>
+  getExtension(const ExtensionInfoInterface &ext) const {
     std::set<ExtensionID_t> visitedIDs;
     return getExtension(
-      [&ext](const ExtensionInfoInterface* e){
-        return (*e) == ext;
-      }, 
-      visitedIDs
-    );
+        [&ext](const ExtensionInfoInterface *e) { return (*e) == ext; },
+        visitedIDs);
   }
 
-  template <typename ID_t=ExtensionID_t>
+  template <typename ID_t = ExtensionID_t>
   bool containsExtension(ID_t id) const {
     return getExtension(static_cast<ExtensionID_t>(id)).has_value();
   }
   bool containsExtension(const QString &ext) const {
     return getExtension(ext).has_value();
   }
-  bool containsExtension(const ExtensionInfoInterface& ext) const {
+  bool containsExtension(const ExtensionInfoInterface &ext) const {
     return getExtension(ext).has_value();
   }
 
-  /// Returns true if this extension set is a subset of the super set, i.e. all extensions in this set are also present in the super set.
-  bool isSubsetOf(const ExtensionSetInfo& super) const {
-    for (const ExtensionInfoInterface* ext : extensions()) {
+  /// Returns true if this extension set is a subset of the super set, i.e. all
+  /// extensions in this set are also present in the super set.
+  bool isSubsetOf(const ExtensionSetInfo &super) const {
+    for (const ExtensionInfoInterface *ext : extensions()) {
       if (!super.containsExtension(*ext)) {
         return false;
       }
@@ -177,15 +185,15 @@ public:
     return true;
   }
 
-  bool operator==(const ExtensionSetInfo& other) const {
-    const auto& exts1 = extensions();
-    const auto& exts2 = other.extensions();
+  bool operator==(const ExtensionSetInfo &other) const {
+    const auto &exts1 = extensions();
+    const auto &exts2 = other.extensions();
 
     if (exts1.size() != exts2.size()) {
       return false;
     }
 
-    for (const auto* ext : exts1) {
+    for (const auto *ext : exts1) {
       if (!other.containsExtension(*ext)) {
         return false;
       }
@@ -193,30 +201,30 @@ public:
 
     return true;
   }
-  bool operator!=(const ExtensionSetInfo& other) const = default;
-
+  bool operator!=(const ExtensionSetInfo &other) const = default;
 
   virtual UniquePtr clone() const = 0;
-  virtual ExtensionSetInfo& operator<<(const ExtensionInfoInterface& ext) = 0;
-  ExtensionSetInfo& operator<<(const ExtensionSetInfo& extinfo) {
-    for (const auto* ext : extinfo.extensions()) {
+  virtual ExtensionSetInfo &operator<<(const ExtensionInfoInterface &ext) = 0;
+  ExtensionSetInfo &operator<<(const ExtensionSetInfo &extinfo) {
+    for (const auto *ext : extinfo.extensions()) {
       (*this) << *ext;
     }
     return *this;
   };
-  virtual const ExtensionInfoInterface* remove(const ExtensionInfoInterface& ext) = 0;
+  virtual const ExtensionInfoInterface *
+  remove(const ExtensionInfoInterface &ext) = 0;
 
 private:
-  std::optional<const ExtensionInfoInterface*> 
-  getExtension(std::function<bool(const ExtensionInfoInterface*)> predicate, 
-               std::set<ExtensionID_t>& visitedIDs) const {
-    for (const auto& ext : extensions()) {
+  std::optional<const ExtensionInfoInterface *>
+  getExtension(std::function<bool(const ExtensionInfoInterface *)> predicate,
+               std::set<ExtensionID_t> &visitedIDs) const {
+    for (const auto &ext : extensions()) {
       if (visitedIDs.contains(ext->id())) {
         continue;
       }
-      
+
       visitedIDs.insert(ext->id());
-      
+
       if (predicate(ext)) {
         return ext;
       }
@@ -230,7 +238,6 @@ private:
     return std::nullopt;
   }
 };
-
 
 /// An index into a single register.
 struct RegIndex {
@@ -297,11 +304,9 @@ public:
 
   // GCC Compile command architecture and ABI specification strings
   /// get march string with the currently enabled extensions
-  QString CCmarch(void) const {
-    return CCmarch( enabledExtensions() );
-  }
+  QString CCmarch(void) const { return CCmarch(enabledExtensions()); }
   /// get march string with the provided extensions
-  virtual QString CCmarch(const ExtensionSetInfo& extensions) const = 0;
+  virtual QString CCmarch(const ExtensionSetInfo &extensions) const = 0;
   virtual QString CCmabi() const = 0;
   virtual unsigned elfMachineId() const = 0;
 
@@ -323,13 +328,13 @@ public:
    */
   virtual const ExtensionSetInfo &supportedExtensions() const = 0;
   virtual const ExtensionSetInfo &enabledExtensions() const = 0;
-  bool extensionEnabled(const ExtensionInfoInterface& ext) const {
+  bool extensionEnabled(const ExtensionInfoInterface &ext) const {
     return enabledExtensions().containsExtension(ext);
   }
-  bool supportsExtension(const ExtensionInfoInterface& ext) const {
+  bool supportsExtension(const ExtensionInfoInterface &ext) const {
     return supportedExtensions().containsExtension(ext);
   }
-  
+
   /// Returns the set of instructions for this ISA
   virtual const InstrVec &instructions() const = 0;
   /// Returns the set of pseudoinstructions for this ISA
@@ -344,7 +349,8 @@ public:
    * comparison of extensions.
    */
   bool eq(const ISAInfoBase *other, const ExtensionSetInfo &otherExts) const {
-    return this->name() == other->name() && this->enabledExtensions() == otherExts;
+    return this->name() == other->name() &&
+           this->enabledExtensions() == otherExts;
   }
 
 protected:
@@ -357,10 +363,8 @@ struct ProcessorISAInfo {
   ExtensionSetInfo::ConstPtr defaultExtensions;
 };
 
-/// Note: 
 template <ISA isa>
 class ISAInfo : public ISAInfoBase {};
-
 
 struct ISAInfoRegistry {
   template <ISA isa>
@@ -381,20 +385,22 @@ private:
   }
 
   template <ISA isa>
-  const std::shared_ptr<ISAInfoBase> &supportedISA(
-      const ExtensionSetInfo &extensions = ISAInfo<isa>::getSupportedExtensions()) {
-    
+  const std::shared_ptr<ISAInfoBase> &
+  supportedISA(const ExtensionSetInfo &extensions =
+                   ISAInfo<isa>::getSupportedExtensions()) {
+
     auto it = std::find_if(
-      registeredISAs.begin(), registeredISAs.end(),
-      [&extensions](const std::shared_ptr<ISAInfoBase> &isaInfo) {
-        return isaInfo->isaID() == isa && isaInfo->enabledExtensions() == extensions;
-      }
-    );
+        registeredISAs.begin(), registeredISAs.end(),
+        [&extensions](const std::shared_ptr<ISAInfoBase> &isaInfo) {
+          return isaInfo->isaID() == isa &&
+                 isaInfo->enabledExtensions() == extensions;
+        });
 
     if (it != registeredISAs.end()) {
       return *it;
     } else {
-      // at this point, we enforce that all ISAInfos are constructable with an argument of type const ExtensionSetInfo&
+      // at this point, we enforce that all ISAInfos are constructable with an
+      // argument of type const ExtensionSetInfo&
       registeredISAs.emplace_back(std::make_shared<ISAInfo<isa>>(extensions));
       return registeredISAs.back();
     }

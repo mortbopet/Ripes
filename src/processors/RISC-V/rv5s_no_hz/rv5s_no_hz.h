@@ -471,19 +471,19 @@ public:
     m_syscallExitCycle = -1;
   }
 
-  static const ProcessorISAInfo& supportsISA() { 
+  static const ProcessorISAInfo &supportsISA() {
     static ProcessorISAInfo procInfo{
-      std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
-      std::make_shared<RV_ExtensionSet>(Extension::M, Extension::C),
-      std::make_shared<RV_ExtensionSet>(Extension::M)
-    };
+        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
+        std::make_shared<RV_ExtensionSet>(Extension::M, Extension::C),
+        std::make_shared<RV_ExtensionSet>(Extension::M)};
     return procInfo;
   }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(*(supportsISA().supportedExtensions));
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(
+        *(supportsISA().supportedExtensions));
   }
 
   const std::set<std::string_view> registerFiles() const override {

@@ -64,11 +64,11 @@ DirectiveVec gnuDirectives() {
     res = *intval;                                                             \
   } else {                                                                     \
     if (auto *floatval = std::get_if<ExprEvalFloatType>(&val##res)) {          \
-      return {Error(location, QString("'%1' is not an integer")                \
-              .arg(ExprEvalFloatType::to<float>(*floatval)))};                 \
+      return {                                                                 \
+          Error(location, QString("'%1' is not an integer")                    \
+                              .arg(ExprEvalFloatType::to<float>(*floatval)))}; \
     } else {                                                                   \
-      return {Error(location,                                                  \
-                QString("token is not an integer or float"))};                 \
+      return {Error(location, QString("token is not an integer or float"))};   \
     }                                                                          \
   }
 
@@ -80,7 +80,7 @@ std::optional<Error> assembleData(const AssemblerBase *assembler,
   for (const auto &token : line.tokens) {
     static_assert(sizeof(ExprEvalIntType) >= size,
                   "Requested data width greater than what is representable");
-    
+
     ExprEvalIntType valInt;
     getIntegerImmediateErroring(token, valInt, line);
 
@@ -91,7 +91,8 @@ std::optional<Error> assembleData(const AssemblerBase *assembler,
       }
     } else {
       return {Error(
-          line, QString("'%1' does not fit in %2 bytes").arg(valInt).arg(size))};
+          line,
+          QString("'%1' does not fit in %2 bytes").arg(valInt).arg(size))};
     }
   }
   return {};
@@ -118,7 +119,7 @@ Result<QByteArray> floatDataFunctor(const AssemblerBase *assembler,
     return {Error(arg.line, "Invalid number of arguments (expected >1)")};
   }
   QByteArray bytes;
-  
+
   for (const auto &token : arg.line.tokens) {
     ExprEvalVT val;
     getImmediateErroring(token, val, arg.line);
@@ -132,7 +133,7 @@ Result<QByteArray> floatDataFunctor(const AssemblerBase *assembler,
     } else {
       return {Error(arg.line, QString("Token is not convertible to float32"))};
     }
-    
+
     bytes.append(reinterpret_cast<const char *>(&(fval.word)), 4);
   }
 

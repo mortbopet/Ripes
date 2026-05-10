@@ -7,7 +7,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-// Integer (non-float) Controller 
+// Integer (non-float) Controller
 class Control : public Component {
 public:
   /* clang-format off */
@@ -294,7 +294,7 @@ public:
 // Float Controller
 class ControlF : public Control {
 public:
-    /* clang-format off */
+  /* clang-format off */
     static bool isFloatCSR(VSRTL_VT_U csr) {
         switch(static_cast<RVISA::RV_CSRInfo::CSR>(csr)) {
             case RVISA::RV_CSRInfo::CSR::FFLAGS:
@@ -507,30 +507,32 @@ public:
             default: return FPUOp::NOP;
         }
     }
-    /* clang-format on */
+  /* clang-format on */
 
-    ControlF(const std::string &name, SimComponent *parent)
-        : Control(name, parent) {
-        regF_do_write_ctrl <<
-            [this] { return do_regF_do_write_ctrl(opcode.eValue<RVInstr>()); };
-        alu_fpu_src <<
-            [this] { return do_alu_fpu_src(opcode.eValue<RVInstr>(), csr_reg_idx.uValue()); };
-        reg1_do_read_src <<
-            [this] { return do_reg1_do_read_src(opcode.eValue<RVInstr>()); };
-        reg2_do_read_src <<
-            [this] { return do_reg2_do_read_src(opcode.eValue<RVInstr>()); };
-        fpu_ctrl <<
-            [this] { return do_fpu_ctrl(opcode.eValue<RVInstr>(), csr_reg_idx.uValue()); };
-    }
+  ControlF(const std::string &name, SimComponent *parent)
+      : Control(name, parent) {
+    regF_do_write_ctrl <<
+        [this] { return do_regF_do_write_ctrl(opcode.eValue<RVInstr>()); };
+    alu_fpu_src << [this] {
+      return do_alu_fpu_src(opcode.eValue<RVInstr>(), csr_reg_idx.uValue());
+    };
+    reg1_do_read_src <<
+        [this] { return do_reg1_do_read_src(opcode.eValue<RVInstr>()); };
+    reg2_do_read_src <<
+        [this] { return do_reg2_do_read_src(opcode.eValue<RVInstr>()); };
+    fpu_ctrl << [this] {
+      return do_fpu_ctrl(opcode.eValue<RVInstr>(), csr_reg_idx.uValue());
+    };
+  }
 
-    // INPUTPORT_ENUM(csr_reg_idx, RVISA::RV_CSRInfo::CSR);
-    INPUTPORT(csr_reg_idx, c_RVCsrRegsBits);
+  // INPUTPORT_ENUM(csr_reg_idx, RVISA::RV_CSRInfo::CSR);
+  INPUTPORT(csr_reg_idx, c_RVCsrRegsBits);
 
-    OUTPUTPORT_ENUM(fpu_ctrl, FPUOp);
-    OUTPUTPORT_ENUM(regF_do_write_ctrl, RegFileSrc);
-    OUTPUTPORT_ENUM(alu_fpu_src, RegFileSrc);
-    OUTPUTPORT_ENUM(reg1_do_read_src, ImmRegFileSrc);
-    OUTPUTPORT_ENUM(reg2_do_read_src, RegFileSrc);
+  OUTPUTPORT_ENUM(fpu_ctrl, FPUOp);
+  OUTPUTPORT_ENUM(regF_do_write_ctrl, RegFileSrc);
+  OUTPUTPORT_ENUM(alu_fpu_src, RegFileSrc);
+  OUTPUTPORT_ENUM(reg1_do_read_src, ImmRegFileSrc);
+  OUTPUTPORT_ENUM(reg2_do_read_src, RegFileSrc);
 };
 
 } // namespace core

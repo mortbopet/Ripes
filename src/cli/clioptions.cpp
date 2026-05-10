@@ -21,20 +21,23 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   QList<QPair<QString, QStringList>> procVarOptions;
   for (int i = 0; i < ProcessorID::NUM_PROCESSORS; i++) {
     QStringList variationOptions;
-    const auto &procClass = ProcessorRegistry::getProcessorClassInfo(static_cast<ProcessorID>(i));
+    const auto &procClass =
+        ProcessorRegistry::getProcessorClassInfo(static_cast<ProcessorID>(i));
     for (const auto &varPair : procClass.variations) {
       variationOptions.push_back(varPair.second->variationInfo.id_name);
     }
-    procVarOptions.push_back({enumToString<ProcessorID>(static_cast<ProcessorID>(i)), variationOptions});
+    procVarOptions.push_back(
+        {enumToString<ProcessorID>(static_cast<ProcessorID>(i)),
+         variationOptions});
   }
-  
+
   QString desc = "Processor[:Variation] model. Options: [";
   for (const auto &procVar : procVarOptions) {
     desc += procVar.first + "[: " + procVar.second.join(", ") + "]";
     if (procVar != procVarOptions.last())
       desc += ", ";
   }
-   desc += "]";
+  desc += "]";
   parser.addOption(QCommandLineOption("proc", desc, "name:variation"));
   parser.addOption(QCommandLineOption("isaexts",
                                       "ISA extensions to enable (comma "
@@ -113,7 +116,7 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
   QString procName, varName;
   auto procVarSplit = parser.value("proc").split(":");
   procName = procVarSplit[0];
-  
+
   int procID = QMetaEnum::fromType<ProcessorID>().keyToValue(
       procName.toStdString().c_str(), &ok);
   if (!ok) {
@@ -125,25 +128,27 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
 
   if (procVarSplit.size() > 1) {
     varName = procVarSplit[1];
-    const auto& procClassInfo = ProcessorRegistry::getProcessorClassInfo(options.proc);
+    const auto &procClassInfo =
+        ProcessorRegistry::getProcessorClassInfo(options.proc);
 
     for (const auto &varPair : procClassInfo.variations) {
       if (varPair.second->variationInfo.id_name == varName) {
         options.variation = varPair.first;
-        goto on_success; // found valid variation, break out and jump over error handling
+        goto on_success; // found valid variation, break out and jump over error
+                         // handling
       }
     }
 
     // on error:
     errorMessage = "Invalid processor variation specified '" +
-                    parser.value("proc") + "' (--proc).";
+                   parser.value("proc") + "' (--proc).";
     return false;
 
-    on_success:;
+  on_success:;
   } else {
-    options.variation = ProcessorRegistry::getProcessorClassInfo(options.proc).defaultVariationID;
+    options.variation = ProcessorRegistry::getProcessorClassInfo(options.proc)
+                            .defaultVariationID;
   }
-
 
   options.jsonOutput = parser.isSet("json");
 
@@ -151,16 +156,19 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
     options.isaExtensions = parser.value("isaexts").split(",");
 
     // Validate the ISA extensions with respect to the selected processor.
-    const auto& desc = ProcessorRegistry::getDescription(options.proc, options.variation);
+    const auto &desc =
+        ProcessorRegistry::getDescription(options.proc, options.variation);
     auto exts = desc->isaInfo().supportedExtensions;
 
     for (auto &ext : std::as_const(options.isaExtensions)) {
       if (!exts->containsExtension(ext)) {
         errorMessage =
             "Invalid ISA extension '" + ext + "' specified (--isaexts).";
+        errorMessage += " Processor '" +
+                        enumToString<ProcessorID>(options.proc) + ":" +
+                        desc->variationInfo.id_name + "'";
         errorMessage +=
-            " Processor '" + enumToString<ProcessorID>(options.proc) + ":" + desc->variationInfo.id_name +  "'";
-        errorMessage += " supports extensions: " + exts->toStringList().join(", ");
+            " supports extensions: " + exts->toStringList().join(", ");
         return false;
       }
     }
@@ -179,8 +187,9 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
 
   // Validate register initializations
   if (parser.isSet("reginit")) {
-    const auto& procisa =
-        ProcessorRegistry::getDescription(options.proc, options.variation)->isaInfo();
+    const auto &procisa =
+        ProcessorRegistry::getDescription(options.proc, options.variation)
+            ->isaInfo();
     const auto *isa = procisa.isa.get();
     for (const auto &regFileInit : parser.values("reginit")) {
       if (!regFileInit.contains(':')) {

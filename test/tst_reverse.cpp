@@ -24,18 +24,19 @@ class tst_reverse : public QObject {
   Q_OBJECT
 
 private slots:
-  void run_test(ProcessorID id, VariationID variation, 
-                const RV_ExtensionSet &extensions,
-                const QStringList &program,
-                unsigned rounds, unsigned front, unsigned back,
-                bool toFinish);
+  void run_test(ProcessorID id, VariationID variation,
+                const RV_ExtensionSet &extensions, const QStringList &program,
+                unsigned rounds, unsigned front, unsigned back, bool toFinish);
   void tst_reverse_regs();
   void tst_reverse_fpr();
   void tst_reverse_mem();
 
-  void tst_body_reverse_regs(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions);
-  void tst_body_reverse_fpr(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions);
-  void tst_body_reverse_mem(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions);
+  void tst_body_reverse_regs(ProcessorID id, VariationID variation,
+                             const RV_ExtensionSet &extensions);
+  void tst_body_reverse_fpr(ProcessorID id, VariationID variation,
+                            const RV_ExtensionSet &extensions);
+  void tst_body_reverse_mem(ProcessorID id, VariationID variation,
+                            const RV_ExtensionSet &extensions);
 };
 
 using Registers = std::map<int, VInt>;
@@ -51,11 +52,10 @@ static Registers dumpRegs() {
   return regs;
 }
 
-void tst_reverse::run_test(ProcessorID id, VariationID variation, 
+void tst_reverse::run_test(ProcessorID id, VariationID variation,
                            const RV_ExtensionSet &extensions,
-                           const QStringList &program,
-                           unsigned rounds, unsigned front, unsigned back,
-                           bool toFinish) {
+                           const QStringList &program, unsigned rounds,
+                           unsigned front, unsigned back, bool toFinish) {
   ProcessorHandler::selectProcessor(id, variation, extensions);
   RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
   ProcessorHandler::getProcessorNonConst()->trapHandler = [this] {};
@@ -88,10 +88,13 @@ void tst_reverse::run_test(ProcessorID id, VariationID variation,
 }
 
 void tst_reverse::tst_reverse_regs() {
-  tst_body_reverse_regs(ProcessorID::RV_SS, Variations::RV_SS::RV32I, {Extension::M, Extension::C});
-  tst_body_reverse_regs(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU, {Extension::M, Extension::C});
+  tst_body_reverse_regs(ProcessorID::RV_SS, Variations::RV_SS::RV32I,
+                        {Extension::M, Extension::C});
+  tst_body_reverse_regs(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU,
+                        {Extension::M, Extension::C});
 }
-void tst_reverse::tst_body_reverse_regs(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions) {
+void tst_reverse::tst_body_reverse_regs(ProcessorID id, VariationID variation,
+                                        const RV_ExtensionSet &extensions) {
   QStringList program = QStringList() << ".text"
                                       << "li x10 0"
                                       << "addi x10 x10 1"
@@ -105,9 +108,11 @@ void tst_reverse::tst_body_reverse_regs(ProcessorID id, VariationID variation, c
 }
 
 void tst_reverse::tst_reverse_fpr() {
-  tst_body_reverse_fpr(ProcessorID::RV_SS, Variations::RV_SS::RV32F, {Extension::M, Extension::C, Extension::F});
+  tst_body_reverse_fpr(ProcessorID::RV_SS, Variations::RV_SS::RV32F,
+                       {Extension::M, Extension::C, Extension::F});
 }
-void tst_reverse::tst_body_reverse_fpr(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions) {
+void tst_reverse::tst_body_reverse_fpr(ProcessorID id, VariationID variation,
+                                       const RV_ExtensionSet &extensions) {
   QStringList program = QStringList() << ".text"
                                       << "li x10 1"
                                       << "fcvt.s.wu f1, x10"
@@ -124,10 +129,13 @@ void tst_reverse::tst_body_reverse_fpr(ProcessorID id, VariationID variation, co
 }
 
 void tst_reverse::tst_reverse_mem() {
-  tst_body_reverse_mem(ProcessorID::RV_SS, Variations::RV_SS::RV32I, {Extension::M, Extension::C});
-  tst_body_reverse_mem(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU, {Extension::M, Extension::C});
+  tst_body_reverse_mem(ProcessorID::RV_SS, Variations::RV_SS::RV32I,
+                       {Extension::M, Extension::C});
+  tst_body_reverse_mem(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU,
+                       {Extension::M, Extension::C});
 }
-void tst_reverse::tst_body_reverse_mem(ProcessorID id, VariationID variation, const RV_ExtensionSet &extensions) {
+void tst_reverse::tst_body_reverse_mem(ProcessorID id, VariationID variation,
+                                       const RV_ExtensionSet &extensions) {
   QStringList program = QStringList() << ".data"
                                       << "a: .word 42"
                                       << ".text"

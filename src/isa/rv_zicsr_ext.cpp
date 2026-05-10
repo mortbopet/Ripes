@@ -8,7 +8,8 @@ static void _enableExtPseudo(const ISAInfoBase *,
                              PseudoInstrVec &pseudoInstructions) {
   using namespace TypePseudo;
 
-  enablePseudoInstructions<Csrr, Csrs, Csrc, Csrw, Csrsi, Csrci, Csrwi>(pseudoInstructions);
+  enablePseudoInstructions<Csrr, Csrs, Csrc, Csrw, Csrsi, Csrci, Csrwi>(
+      pseudoInstructions);
 }
 
 void enableExt(const ISAInfoBase *isa, InstrVec &instructions,

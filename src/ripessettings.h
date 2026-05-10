@@ -2,10 +2,11 @@
 
 #include <QColor>
 #include <QFont>
-#include <QSettings>
 #include <QMetaType>
+#include <QSettings>
 
-// define the metatype for a list of uints, used for storing lists of extension IDs in settings
+// define the metatype for a list of uints, used for storing lists of extension
+// IDs in settings
 Q_DECLARE_METATYPE(QList<uint>)
 
 namespace Ripes {

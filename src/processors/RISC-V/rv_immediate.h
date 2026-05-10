@@ -22,7 +22,7 @@ public:
       case RVInstr::LUI:
       case RVInstr::AUIPC:
         return VT_U(signextend<32>(instr.uValue() & 0xfffff000));
-      
+
       // J-Type
       case RVInstr::JAL: {
         const auto fields =
@@ -68,7 +68,7 @@ public:
       case RVInstr::SRAIW: {
         return VT_U((instr.uValue() >> 20) & 0b11111);
       }
-      
+
       // B-Type
       case RVInstr::BEQ:
       case RVInstr::BNE:
@@ -93,7 +93,9 @@ public:
       }
 
       // System Type
-      case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
+      case RVInstr::CSRRWI:
+      case RVInstr::CSRRSI:
+      case RVInstr::CSRRCI:
         return VT_U((instr.uValue() >> 15) & 0b11111);
 
       default:

@@ -140,10 +140,8 @@ constexpr std::string_view GPR_DESC = "General purpose registers";
 struct MIPS_GPRInfo : public RegFileInfoInterface {
   MIPS_GPRInfo() : m_isaInfo(nullptr) {}
   MIPS_GPRInfo(const ISAInfoBase *isaInfo) : m_isaInfo(isaInfo) {}
-  
-  unsigned bits() const override {
-    return m_isaInfo ? m_isaInfo->bits() : 32;
-  }
+
+  unsigned bits() const override { return m_isaInfo ? m_isaInfo->bits() : 32; }
 
   std::string_view regFileName() const override { return GPR; }
   std::string_view regFileDesc() const override { return GPR_DESC; }
@@ -183,6 +181,7 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
     success = false;
     return 0;
   }
+
 private:
   const ISAInfoBase *m_isaInfo;
 };
@@ -191,21 +190,22 @@ private:
 
 class MIPS_ExtensionSetInfo : public ExtensionSetInfo {
 public:
-  ExtensionContainer_t& extensions() const override { 
+  ExtensionContainer_t &extensions() const override {
     static ExtensionContainer_t exts;
-    return exts; 
+    return exts;
   }
-  
+
   QString CCmarch() const override { return QString(); }
 
   ExtensionSetInfo::UniquePtr clone() const override {
     return std::make_unique<MIPS_ExtensionSetInfo>();
   }
-  ExtensionSetInfo& operator<<(const ExtensionInfoInterface& ext) override {
+  ExtensionSetInfo &operator<<(const ExtensionInfoInterface &ext) override {
     Q_UNUSED(ext);
     return *this;
   }
-  const ExtensionInfoInterface* remove(const ExtensionInfoInterface& ext) override {
+  const ExtensionInfoInterface *
+  remove(const ExtensionInfoInterface &ext) override {
     Q_UNUSED(ext);
     return nullptr;
   }
@@ -213,7 +213,8 @@ public:
 
 class MIPS_ISAInfoBase : public ISAInfoBase {
 public:
-  using ISAInfoBase::CCmarch; // circumvent name shadowing of overloaded function
+  using ISAInfoBase::CCmarch; // circumvent name shadowing of overloaded
+                              // function
 
   static const MIPS_ExtensionSetInfo &getSupportedExtensions() {
     static const MIPS_ExtensionSetInfo ext;
@@ -250,7 +251,7 @@ public:
     return RegIndex{m_regInfos.at(MIPSISA::GPR), argIdx + 4};
   }
 
-  QString CCmarch(const ExtensionSetInfo& extensions) const override {
+  QString CCmarch(const ExtensionSetInfo &extensions) const override {
     Q_UNUSED(extensions);
     QString march = "mips32i";
     return march;
@@ -274,7 +275,7 @@ public:
   const MIPS_ExtensionSetInfo &enabledExtensions() const override {
     return m_enabledExtensions;
   }
-  
+
   const InstrVec &instructions() const override { return m_instructions; }
   const PseudoInstrVec &pseudoInstructions() const override {
     return m_pseudoInstructions;

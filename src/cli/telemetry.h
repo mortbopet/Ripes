@@ -158,8 +158,10 @@ public:
   QVariant report(bool /*json*/) override {
     QVariantMap m;
     m["processor"] = enumToString<ProcessorID>(ProcessorHandler::getID());
-    m["variation"] = enumToString<VariationID>(ProcessorHandler::getVariationID());
-    m["ISA extensions"] = ProcessorHandler::currentISA()->enabledExtensions().toStringList();
+    m["variation"] =
+        enumToString<VariationID>(ProcessorHandler::getVariationID());
+    m["ISA extensions"] =
+        ProcessorHandler::currentISA()->enabledExtensions().toStringList();
     m["source file"] = m_parser->value("src");
     return m;
   }

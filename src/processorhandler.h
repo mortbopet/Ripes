@@ -49,7 +49,9 @@ public:
   static const ProcessorID &getID() { return get()->_getID(); }
 
   /// Returns the variation ID of the currently instantiated processor.
-  static const VariationID &getVariationID() { return get()->_getVariationID(); }
+  static const VariationID &getVariationID() {
+    return get()->_getVariationID();
+  }
 
   /// Returns a pointer to the currently instantiated program.
   static std::shared_ptr<const Program> getProgram() {
@@ -210,7 +212,7 @@ public:
   static bool isRunning() { return get()->_isRunning(); }
 
   static void setMemoryFocusAddress(AInt address) {
-    emit get() -> memoryFocusAddressChanged(address);
+    emit get()->memoryFocusAddressChanged(address);
   }
 
   /**

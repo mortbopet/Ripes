@@ -12,11 +12,12 @@ class ProcessorSelectionDialog;
 }
 
 struct VariationSet {
-  const ProcClassInfo& procDesc;
-  std::set<const VariationInfo*> variations;
+  const ProcClassInfo &procDesc;
+  std::set<const VariationInfo *> variations;
 
-  using iterator = typename std::set<const VariationInfo*>::iterator;
-  using const_iterator = typename std::set<const VariationInfo*>::const_iterator;
+  using iterator = typename std::set<const VariationInfo *>::iterator;
+  using const_iterator =
+      typename std::set<const VariationInfo *>::const_iterator;
 
   iterator begin() { return variations.begin(); }
   iterator end() { return variations.end(); }
@@ -31,11 +32,13 @@ struct VariationSet {
   ExtensionContainer_t extractExtensions() const;
 
   /// filter out variations that are not compatible with the given extensions
-  VariationSet& filter(ExtensionSetInfo::ConstPtr extensions);
+  VariationSet &filter(ExtensionSetInfo::ConstPtr extensions);
 
-  /// filter out variations that are not compatible with the given options, 
-  /// if matchExact is true, also filter out variations that contain options that are not selected
-  VariationSet& filter(const VariationInfo::Options_t& options, bool matchExact);
+  /// filter out variations that are not compatible with the given options,
+  /// if matchExact is true, also filter out variations that contain options
+  /// that are not selected
+  VariationSet &filter(const VariationInfo::Options_t &options,
+                       bool matchExact);
 };
 
 class ProcessorSelectionDialog : public QDialog {
@@ -47,14 +50,18 @@ public:
 
   ProcessorID getSelectedId() const { return m_selectedID; }
   VariationID getSelectedVariationId() const {
-    return getConfiguredVariationId().value_or(getSelectedProcessorClass().defaultVariationID);
+    return getConfiguredVariationId().value_or(
+        getSelectedProcessorClass().defaultVariationID);
   }
-  ExtensionSetInfo::ConstPtr getEnabledExtensions() const { return m_selectedExtensions; }
-  const ProcClassInfo& getSelectedProcessorClass() const {
+  ExtensionSetInfo::ConstPtr getEnabledExtensions() const {
+    return m_selectedExtensions;
+  }
+  const ProcClassInfo &getSelectedProcessorClass() const {
     return ProcessorRegistry::getProcessorClassInfo(m_selectedID);
   }
   const std::shared_ptr<ProcVariationInfoBase> getSelectedVariation() const {
-    return ProcessorRegistry::getDescription(m_selectedID, getSelectedVariationId());
+    return ProcessorRegistry::getDescription(m_selectedID,
+                                             getSelectedVariationId());
   }
 
   const Layout *getSelectedLayout() const;
@@ -70,24 +77,26 @@ private:
   std::optional<VariationID> getConfiguredVariationId() const;
 
   bool activeVariationIsValid() const;
-  
-  /// get all available variations for the currently selected processor and bit-width
+
+  /// get all available variations for the currently selected processor and
+  /// bit-width
   VariationSet getAvailableVariations() const;
   /// get all variations matching the currently selected options and extensions
   VariationSet getMatchingVariations(bool matchExact) const;
-  
-  /// initialize the Selector widgets based on the currently selected processor and bit-width
+
+  /// initialize the Selector widgets based on the currently selected processor
+  /// and bit-width
   void buildSelector();
-  
+
   void propagateVariationChange();
 
   bool isCPUItem(const QTreeWidgetItem *item) const;
-  
+
   ProcessorID m_selectedID;
   ExtensionSetInfo::Ptr m_selectedExtensions;
   VariationInfo::Options_t m_selectedOptions;
   uint m_selectedBitWidth;
-    
+
   enum ProcessorTreeColums { ProcessorColumn, ColumnCount };
   Ui::ProcessorSelectionDialog *m_ui;
 };

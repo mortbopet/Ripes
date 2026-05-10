@@ -789,7 +789,7 @@ namespace ExtF {
       };
     };
   } // namespace TypePseudo
-  // clang-format on
+// clang-format on
 
 }; // namespace ExtF
 

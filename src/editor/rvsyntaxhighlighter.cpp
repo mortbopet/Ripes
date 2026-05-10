@@ -24,7 +24,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
                    << "\\bgp\\b"
                    << "\\btp\\b"
                    << "\\bfp\\b"
-                   
+
                    // Status registers
                    << "\\bfrm\\b"
                    << "\\bfflags\\b"
@@ -63,19 +63,18 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
 
   // float immediates
   rule.pattern = QRegularExpression(
-    R"(\b[+-]?(?!0[xb])((\d+\.\d*)|(\.\d+)|(\d+))(e[+-]?\d+)?\b)", 
-    QRegularExpression::CaseInsensitiveOption);
+      R"(\b[+-]?(?!0[xb])((\d+\.\d*)|(\.\d+)|(\d+))(e[+-]?\d+)?\b)",
+      QRegularExpression::CaseInsensitiveOption);
   m_highlightingRules.append(rule);
-  
+
   // float rounding mode constants
-  rule.pattern = QRegularExpression(
-    R"(\b(rne|rtz|rdn|rup|rmm|dyn)\b)", 
-    QRegularExpression::CaseInsensitiveOption);
+  rule.pattern = QRegularExpression(R"(\b(rne|rtz|rdn|rup|rmm|dyn)\b)",
+                                    QRegularExpression::CaseInsensitiveOption);
   m_highlightingRules.append(rule);
-  
+
   // Special float immediates: nan, inf
-  rule.pattern = QRegularExpression(R"(\b(nan|inf)\b)", 
-    QRegularExpression::CaseInsensitiveOption);
+  rule.pattern = QRegularExpression(R"(\b(nan|inf)\b)",
+                                    QRegularExpression::CaseInsensitiveOption);
   m_highlightingRules.append(rule);
 
   // Strings

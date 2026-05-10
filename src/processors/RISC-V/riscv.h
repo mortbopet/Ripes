@@ -26,7 +26,6 @@ namespace Ripes {
 
 // } // namespace RVISA
 
-
 /** Instruction set enumerations */
 enum class RVInstrType { R, I, S, B, U, J, R4 };
 
@@ -106,7 +105,7 @@ enum class RVInstr {
   /* RV32F Single Floating Point Extension */
   FLW,
   FSW,
-  
+
   FADD_S,
   FSUB_S,
   FMUL_S,
@@ -114,11 +113,11 @@ enum class RVInstr {
   FSQRT_S,
   FMIN_S,
   FMAX_S,
-  
+
   FSGNJ_S,
   FSGNJN_S,
   FSGNJX_S,
-  
+
   FCVT_W_S,
   FCVT_WU_S,
   FCVT_S_W,
@@ -126,7 +125,7 @@ enum class RVInstr {
 
   FMV_X_W,
   FMV_W_X,
-  
+
   FEQ_S,
   FLT_S,
   FLE_S,
@@ -137,7 +136,7 @@ enum class RVInstr {
   FMSUB_S,
   FNMSUB_S,
   FNMADD_S,
-  
+
   /* RV64F Single Floating Point Extension */
   FCVT_L_S,
   FCVT_LU_S,
@@ -153,6 +152,7 @@ enum class RVInstr {
   CSRRCI
 };
 
+// clang-format off
 [[maybe_unused]]
 static inline RVISA::Extension::Id getExtensionType(const RVInstr instr) {
   switch (instr) {
@@ -220,9 +220,11 @@ static RVInstrType getInstrType(unsigned instrValue) {
     case RVISA::OpcodeID::STORE_FP: return RVInstrType::S;
     case RVISA::OpcodeID::OP_FP:    return RVInstrType::R;
 
-    default:                        return RVInstrType::I; // Default - unknown instruction (NOP).
+    // Default - unknown instruction (NOP).
+    default:                        return RVInstrType::I; 
   }
 }
+// clang-format on
 
 /** Datapath enumerations */
 enum class ALUOp {
@@ -260,7 +262,7 @@ enum class ALUOp {
 };
 enum class FPUOp {
   NOP,
-  
+
   /* RV32F Single Floating Point Extension */
   FADD_S,
   FSUB_S,
@@ -269,16 +271,16 @@ enum class FPUOp {
   FSQRT_S,
   FMIN_S,
   FMAX_S,
-  
+
   FMADD_S,
   FMSUB_S,
   FNMSUB_S,
   FNMADD_S,
-  
+
   FSGNJ_S,
   FSGNJN_S,
   FSGNJX_S,
-  
+
   FCVT_W_S,
   FCVT_WU_S,
   FCVT_S_W,
@@ -286,7 +288,7 @@ enum class FPUOp {
 
   FMV_X_W,
   FMV_W_X,
-  
+
   EQ,
   LE,
   LT,
@@ -303,7 +305,7 @@ enum class FPUOp {
   CSRW_FFLAGS,
   CSRS_FFLAGS,
   CSRC_FFLAGS,
-  
+
   CSRW_FRM,
   CSRS_FRM,
   CSRC_FRM,
@@ -400,8 +402,7 @@ private:
     // RVF
     m_decodeR432Instr =
         generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 2, 5});
-    
-    
+
     // RVC
     m_decodeCA16Instr = generateInstrParser<uint32_t>(
         std::vector<int>{2, 3, 2, 3, 2, 1, 3, 16});

@@ -50,7 +50,8 @@ private:
 
   Ui::RegisterInitializationWidget *m_ui = nullptr;
 
-  static std::map<ProcessorID, std::map<VariationID, RegisterInitialization>> m_initializations;
+  static std::map<ProcessorID, std::map<VariationID, RegisterInitialization>>
+      m_initializations;
   ProcessorID m_currentID;
   VariationID m_currentVariationID;
   QRegularExpressionValidator *m_hexValidator;

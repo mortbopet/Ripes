@@ -25,11 +25,14 @@ void RegisterSelectionComboBox::showPopup() {
   if (count())
     clear();
 
-  const auto &procisa = ProcessorRegistry::getDescription(m_parent->m_currentID, m_parent->m_currentVariationID)
-                            ->isaInfo();
+  const auto &procisa =
+      ProcessorRegistry::getDescription(m_parent->m_currentID,
+                                        m_parent->m_currentVariationID)
+          ->isaInfo();
   const auto *isa = procisa.isa.get();
   const auto &initializations =
-      m_parent->m_initializations.at(m_parent->m_currentID).at(m_parent->m_currentVariationID);
+      m_parent->m_initializations.at(m_parent->m_currentID)
+          .at(m_parent->m_currentVariationID);
 
   std::map<std::string_view, std::set<unsigned>> regOptions;
   for (const auto &regFile : isa->regInfos()) {
@@ -82,19 +85,21 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget *parent)
   for (const auto &desc : ProcessorRegistry::getAvailableProcessors()) {
     for (const auto &var : desc.second.variations) {
       // Set to initial value if this is the first time the dialog is loaded.
-      // Else, keep whatever changes has been stored in the static variable, made
-      // in previous invokations of the dialog.
+      // Else, keep whatever changes has been stored in the static variable,
+      // made in previous invokations of the dialog.
       if (!m_initializations.count(desc.second.id)) {
         m_initializations[desc.second.id] = {};
       }
       if (!m_initializations.at(desc.second.id).count(var.first)) {
-        m_initializations.at(desc.second.id)[var.first] = var.second->defaultRegisterVals;
+        m_initializations.at(desc.second.id)[var.first] =
+            var.second->defaultRegisterVals;
       }
     }
   }
 }
 
-void RegisterInitializationWidget::processorSelectionChanged(ProcessorID id, VariationID varId) {
+void RegisterInitializationWidget::processorSelectionChanged(
+    ProcessorID id, VariationID varId) {
   // Clear current initialization widgets and recreate initialization widgets
   // based on the currently selected processor
   m_currentRegInitWidgets.clear();
@@ -124,9 +129,11 @@ void RegisterInitializationWidget::updateAddButtonState() {
 std::optional<RegIndex>
 RegisterInitializationWidget::getNonInitializedRegIdx() {
   const auto &currentISA =
-      ProcessorRegistry::getDescription(m_currentID, m_currentVariationID)->isaInfo();
+      ProcessorRegistry::getDescription(m_currentID, m_currentVariationID)
+          ->isaInfo();
   const auto *isa = currentISA.isa.get();
-  const auto &currentInitForProc = m_initializations.at(m_currentID).at(m_currentVariationID);
+  const auto &currentInitForProc =
+      m_initializations.at(m_currentID).at(m_currentVariationID);
   for (const auto &regFileInit : currentInitForProc) {
     unsigned id = 0;
     if (auto opt = isa->regInfo(regFileInit.first)) {
@@ -146,7 +153,9 @@ RegisterInitializationWidget::getNonInitializedRegIdx() {
 void RegisterInitializationWidget::addRegisterInitialization(
     const std::string_view &regFileName, unsigned regIdx) {
   constexpr unsigned s_defaultval = 0;
-  const auto &procisa = ProcessorRegistry::getDescription(m_currentID, m_currentVariationID)->isaInfo();
+  const auto &procisa =
+      ProcessorRegistry::getDescription(m_currentID, m_currentVariationID)
+          ->isaInfo();
   const auto *isa = procisa.isa.get();
   auto maybeRegInfo = isa->regInfo(regFileName);
   if (!maybeRegInfo.has_value()) {
@@ -181,8 +190,13 @@ void RegisterInitializationWidget::addRegisterInitialization(
 
   connect(w->name, &RegisterSelectionComboBox::regIndexChanged, this,
           [this, w_ptr, regFileName](int oldIdx, int newIdx) {
-            m_initializations.at(m_currentID).at(m_currentVariationID).at(regFileName).erase(oldIdx);
-            m_initializations.at(m_currentID).at(m_currentVariationID).at(regFileName)[newIdx];
+            m_initializations.at(m_currentID)
+                .at(m_currentVariationID)
+                .at(regFileName)
+                .erase(oldIdx);
+            m_initializations.at(m_currentID)
+                .at(m_currentVariationID)
+                .at(regFileName)[newIdx];
             emit w_ptr->value->textChanged(w_ptr->value->text());
           });
 
@@ -190,13 +204,13 @@ void RegisterInitializationWidget::addRegisterInitialization(
   w->remove->setIcon(removeIcon);
 
   w->value->setValidator(m_hexValidator);
-  w->value->setText(
-      "0x" +
-      QString::number(
-          regInit.at(regFileName).at(regIdx), 16));
+  w->value->setText("0x" +
+                    QString::number(regInit.at(regFileName).at(regIdx), 16));
   connect(w->value, &QLineEdit::textChanged, this,
           [this, w_ptr, regFileName](const QString &text) {
-            m_initializations.at(m_currentID).at(m_currentVariationID).at(regFileName)
+            m_initializations.at(m_currentID)
+                .at(m_currentVariationID)
+                .at(regFileName)
                 .at(w_ptr->name->currentData().toUInt()) =
                 text.toUInt(nullptr, 16);
           });
@@ -220,7 +234,10 @@ void RegisterInitializationWidget::removeRegInitWidget(
 
   // Current register index stored in the combobox of the regInitWidgets
   const unsigned regIdx = w->name->itemData(0).toUInt();
-  m_initializations.at(m_currentID).at(m_currentVariationID).at(w->regFileName).erase(regIdx);
+  m_initializations.at(m_currentID)
+      .at(m_currentVariationID)
+      .at(w->regFileName)
+      .erase(regIdx);
 
   m_currentRegInitWidgets.erase(iter);
   updateAddButtonState();
