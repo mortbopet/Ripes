@@ -300,7 +300,7 @@ public:
   template <typename... Exts,
             typename = std::enable_if_t<
                 (std::is_base_of_v<ExtensionInfoInterface, Exts> && ...)>>
-  RV_ExtensionSet(const Exts &... extensions)
+  RV_ExtensionSet(const Exts &...extensions)
       : m_extensions{
             static_cast<const ExtensionInfoInterface *>(&extensions)...} {}
 
