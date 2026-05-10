@@ -583,11 +583,13 @@ public:
   OUTPUTPORT(res, XLEN);
 };
 
+namespace displayFlag {
+  enum class FcsrDisplayFlag : uint8_t { O = 0, T = 1 };
+} // namespace displayFlag
+
 template <unsigned XLEN>
 class FPU_Fcsr : public FPU<XLEN> {
 public:
-  enum class DisplayFlag { O=0, T=1 };
-
   FPU_Fcsr(const std::string &name, SimComponent *parent)
     : FPU<XLEN>(name, parent) {
     inexact << [this] { return this->getFcsrFromReg().getFlags().NX; };
@@ -600,11 +602,11 @@ public:
 
   // pure display output ports
   // fflags bits: NX UF OF DZ NV
-  OUTPUTPORT_ENUM(inexact, DisplayFlag);
-  OUTPUTPORT_ENUM(underflow, DisplayFlag);
-  OUTPUTPORT_ENUM(overflow, DisplayFlag);
-  OUTPUTPORT_ENUM(divide_by_zero, DisplayFlag);
-  OUTPUTPORT_ENUM(invalid_operation, DisplayFlag);
+  OUTPUTPORT_ENUM(inexact, displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(underflow, displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(overflow, displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(divide_by_zero, displayFlag::FcsrDisplayFlag);
+  OUTPUTPORT_ENUM(invalid_operation, displayFlag::FcsrDisplayFlag);
 
   // current rounding mode
   OUTPUTPORT_ENUM(frm, RVISA::ExtF::RoundMode);
