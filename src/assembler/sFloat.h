@@ -1,20 +1,43 @@
 #pragma once
 
 extern "C" {
-  /* (arm_neon.h type conflict workaround as described in https://github.com/SDL-Hercules-390/hyperion/issues/675#issuecomment-2248692596) */
-  #undef  float16_t
-  #undef  float32_t
-  #undef  float64_t
-  #undef  float128_t
+  /* arm_neon.h type conflict as described in https://github.com/ucb-bar/berkeley-softfloat-3/issues/12
+   * and workaround as described in https://github.com/SDL-Hercules-390/hyperion/issues/675#issuecomment-2248692596 
+   */
+  #pragma push_macro("float16_t")
+  #pragma push_macro("float32_t")
+  #pragma push_macro("float64_t")
+  #pragma push_macro("float128_t")
+  #pragma push_macro("bfloat16_t")
+
+  #undef float16_t
+  #undef float32_t
+  #undef float64_t
+  #undef float128_t
+  #undef bfloat16_t
   
   #define float16_t   sfloat16_t
   #define float32_t   sfloat32_t
   #define float64_t   sfloat64_t
   #define float128_t  sfloat128_t
+  #define bfloat16_t  sbfloat16_t
   
   #include <softfloat.h>
   #include <internals.h>
   #include <specialize.h>
+
+  // stop leaking macros into Qt/NEON headers
+  #undef float16_t
+  #undef float32_t
+  #undef float64_t
+  #undef float128_t
+  #undef bfloat16_t
+
+  #pragma pop_macro("bfloat16_t")
+  #pragma pop_macro("float128_t")
+  #pragma pop_macro("float64_t")
+  #pragma pop_macro("float32_t")
+  #pragma pop_macro("float16_t")
 }
 
 namespace Ripes {
@@ -41,7 +64,7 @@ public:
 
   // union members
   uint32_t word;
-  float32_t softfloat32;
+  sfloat32_t softfloat32;
   float float32;
 
 
