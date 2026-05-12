@@ -34,7 +34,7 @@ public:
     // Decode
     this->memory->data_out >> this->ir_widthadjust->in;
     this->ir_widthadjust->out >> this->decode->instr;
-    this->decode->instr << [=] { return this->memory->data_out.uValue(); };
+    this->decode->instr << [this] { return this->memory->data_out.uValue(); };
   }
 
   MemoryAccess dataMemAccess() const override {

@@ -43,7 +43,14 @@ jobs:
     - name: build Ripes
       shell: bash
       run: |
-        cmake -GNinja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+        cmake -GNinja \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+        -DCMAKE_C_COMPILER=cl \
+        -DCMAKE_CXX_COMPILER=cl \
+        -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
+        -DCMAKE_POLICY_DEFAULT_CMP0141=NEW \
+        -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
         cmake --build .
 
     - name: package artifacts
