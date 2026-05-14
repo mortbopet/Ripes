@@ -95,14 +95,19 @@ void IOKeyboard::refreshStatusLabel() {
   if (!m_statusLabel)
     return;
 
-  QMutexLocker lock(&m_bufMutex);
-  const int count = m_keyBuffer.size();
-  const uint8_t ch = m_lastKey;
-  lock.unlock();
+  int count;
+  uint8_t ch;
+
+  {
+    QMutexLocker lock(&m_bufMutex);
+    count = m_keyBuffer.size();
+    ch = m_lastKey;
+  }
 
   const unsigned bufSize = m_parameters.at(BUFSIZE).value.toUInt();
   const QString charStr =
       (ch >= 0x20 && ch < 0x7F) ? QString(QChar(ch)) : QString("--");
+
   m_statusLabel->setText(QString("Last: %1 (0x%2) | Buffer: %3/%4")
                              .arg(charStr)
                              .arg(ch, 2, 16, QChar('0'))
@@ -141,25 +146,34 @@ void IOKeyboard::parameterChanged(unsigned) {
 
 VInt IOKeyboard::ioRead(AInt offset, unsigned) {
   if (offset == 0) {
-    QMutexLocker lock(&m_bufMutex);
-    const uint8_t val = m_keyBuffer.isEmpty() ? 0 : m_keyBuffer.dequeue();
-    lock.unlock();
+    uint8_t val;
+
+    {
+      QMutexLocker lock(&m_bufMutex);
+      val = m_keyBuffer.isEmpty() ? 0 : m_keyBuffer.dequeue();
+    }
+
     QMetaObject::invokeMethod(
         this, [this]() { refreshStatusLabel(); }, Qt::QueuedConnection);
+
     return val;
   }
+
   if (offset == 4) {
     QMutexLocker lock(&m_bufMutex);
     return static_cast<VInt>(m_keyBuffer.size());
   }
+
   return 0;
 }
 
 void IOKeyboard::ioWrite(AInt offset, VInt value, unsigned) {
   if (offset == 4 && value != 0) {
-    QMutexLocker lock(&m_bufMutex);
-    m_keyBuffer.clear();
-    lock.unlock();
+    {
+      QMutexLocker lock(&m_bufMutex);
+      m_keyBuffer.clear();
+    }
+
     QMetaObject::invokeMethod(
         this, [this]() { refreshStatusLabel(); }, Qt::QueuedConnection);
   }

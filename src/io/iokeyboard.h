@@ -3,7 +3,7 @@
 #include <QMutex>
 #include <QQueue>
 #include <QWidget>
-
+#include <optional>
 #include "iobase.h"
 
 QT_FORWARD_DECLARE_CLASS(QLabel);
@@ -15,6 +15,11 @@ class IOKeyboard : public IOBase {
   Q_OBJECT
 
   enum Parameters { BUFSIZE };
+
+  enum RegMap : AInt {
+    KEY_DATA = 0x0,
+    KEY_STATUS = 0x4
+  };
 
 public:
   IOKeyboard(QWidget *parent);
@@ -47,7 +52,7 @@ private:
 
   QQueue<uint8_t> m_keyBuffer;
   mutable QMutex m_bufMutex;
-  uint8_t m_lastKey = 0;
+  std::optional<uint8_t> m_lastKey;
 
   QLabel *m_statusLabel = nullptr;
 

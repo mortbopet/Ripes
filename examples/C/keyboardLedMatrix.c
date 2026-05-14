@@ -1,20 +1,44 @@
 #include "ripes_system.h"
 
 /*
- * keyboardLedMatrix.c
- * Reads characters from the keyboard peripheral and displays the most recent
- * one in the center of the LED matrix using a 5x7 bitmap font.
+ * keyboardDualDisplay.c
+ * Keyboard input demo with dual display output
+ *
+ * =========================================================
+ * PREREQUISITE (IMPORTANT):
+ * Before running this program, the user MUST configure the
+ * Ripes I/O table and add the following peripherals:
+ *
+ *   1) LED Matrix:
+ *      - ID: LED_MATRIX_0
+ *      - Required symbols:
+ *          LED_MATRIX_0_BASE
+ *          LED_MATRIX_0_WIDTH
+ *          LED_MATRIX_0_HEIGHT
+ *
+ *   2) Keyboard:
+ *      - ID: KEYBOARD_0
+ *      - Required symbols:
+ *          KEYBOARD_0_BASE
+ *
+ * Without these peripherals properly added and mapped,
+ * the program will either:
+ *   - read invalid memory
+ *   - or produce undefined behavior in I/O access
+ * =========================================================
  */
 
-#define MATRIX_W   LED_MATRIX_0_WIDTH
-#define MATRIX_H   LED_MATRIX_0_HEIGHT
-#define CHAR_W     5
-#define CHAR_H     7
-#define COLOR_ON   0x00FF00
-#define COLOR_OFF  0x000000
+#define MATRIX_W        LED_MATRIX_0_WIDTH
+#define MATRIX_H        LED_MATRIX_0_HEIGHT
+#define CHAR_W          5
+#define CHAR_H          7
+#define COLOR_ON        0x00FF00
+#define COLOR_OFF       0x000000
+#define SEG_COUNT       SEVEN_SEGMENT_0_N_DIGITS
 
-// 5x7 bitmap font for 0-9 and a-z (case-insensitive).
+// LED Matrix Font: 0-9, a-z (5x7 bitmap, 1 bit = 1 pixel)
 static const unsigned char font[36][CHAR_H] = {
+    // 0-9
     {0x0E, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0E},  // 0
     {0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E},  // 1
     {0x0E, 0x11, 0x01, 0x06, 0x08, 0x10, 0x1F},  // 2
@@ -25,6 +49,7 @@ static const unsigned char font[36][CHAR_H] = {
     {0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x10},  // 7
     {0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E},  // 8
     {0x0E, 0x11, 0x11, 0x0F, 0x01, 0x02, 0x0C},  // 9
+    // A-Z
     {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x00},  // a
     {0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E},  // b
     {0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E},  // c
@@ -53,27 +78,51 @@ static const unsigned char font[36][CHAR_H] = {
     {0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F}   // z
 };
 
+// 7-Segment Display Font: common-cathode encoding
+static const unsigned char seg_digit[10] = {
+    0x3F, 0x06, 0x5B, 0x4F, 0x66,
+    0x6D, 0x7D, 0x07, 0x7F, 0x6F
+};
+
+static const unsigned char seg_alpha[26] = {
+    0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71, 0x3D, 0x76, 0x06, 0x1E,
+    0x76, 0x38, 0x37, 0x54, 0x3F, 0x73, 0x67, 0x50, 0x6D, 0x78,
+    0x3E, 0x1C, 0x3E, 0x76, 0x6E, 0x5B
+};
+
+// Set single pixel on LED matrix
 static inline void set_pixel(volatile unsigned int *led, int x, int y, unsigned int color) {
     if (x >= 0 && x < MATRIX_W && y >= 0 && y < MATRIX_H)
         *(led + y * MATRIX_W + x) = color;
 }
 
-static void draw_char(volatile unsigned int *led, int x, int y, int idx, unsigned int color) {
-    const unsigned char *bitmap = font[idx];
+// Draw character from font bitmap
+static void draw_char_matrix(volatile unsigned int *led, int start_x, int start_y, int char_idx, unsigned int color) {
+    const unsigned char *bitmap = font[char_idx];
     for (int dy = 0; dy < CHAR_H; dy++) {
         unsigned char row = bitmap[dy];
         for (int dx = 0; dx < CHAR_W; dx++)
             if (row & (1 << (CHAR_W - 1 - dx)))
-                set_pixel(led, x + dx, y + dy, color);
+                set_pixel(led, start_x + dx, start_y + dy, color);
     }
 }
 
-static void clear_area(volatile unsigned int *led, int x, int y) {
+// Clear character area (5x7)
+static void clear_char_area(volatile unsigned int *led, int start_x, int start_y) {
     for (int dy = 0; dy < CHAR_H; dy++)
         for (int dx = 0; dx < CHAR_W; dx++)
-            set_pixel(led, x + dx, y + dy, COLOR_OFF);
+            set_pixel(led, start_x + dx, start_y + dy, COLOR_OFF);
 }
 
+// Convert ASCII to 7-segment code
+static unsigned char encode_seg(unsigned char ch) {
+    if (ch >= '0' && ch <= '9') return seg_digit[ch - '0'];
+    if (ch >= 'A' && ch <= 'Z') return seg_alpha[ch - 'A'];
+    if (ch >= 'a' && ch <= 'z') return seg_alpha[ch - 'a'];
+    return 0;
+}
+
+// Convert ASCII to font index (0-35), -1 if unsupported
 static int char_to_index(unsigned char ch) {
     if (ch >= '0' && ch <= '9') return ch - '0';
     if (ch >= 'A' && ch <= 'Z') return 10 + (ch - 'A');
@@ -83,28 +132,39 @@ static int char_to_index(unsigned char ch) {
 
 int main() {
     volatile unsigned int *led = (volatile unsigned int *)LED_MATRIX_0_BASE;
+    volatile unsigned int *seg = (volatile unsigned int *)SEVEN_SEGMENT_0_BASE;
     volatile unsigned int *kbd = (volatile unsigned int *)KEYBOARD_0_BASE;
 
-    const int center_x = (MATRIX_W - CHAR_W) / 2;
-    const int center_y = (MATRIX_H - CHAR_H) / 2;
-    int prev_idx = -1;
+    int prev_char_idx = -1;
+    int center_x = (MATRIX_W - CHAR_W) / 2;
+    int center_y = (MATRIX_H - CHAR_H) / 2;
+    int seg_pos = 0;
 
     for (int i = 0; i < MATRIX_W * MATRIX_H; i++)
         *(led + i) = COLOR_OFF;
+
+    for (int i = 0; i < SEG_COUNT; i++)
+        *(seg + i) = 0;
 
     while (1) {
         if (*(kbd + 1) == 0)
             continue;
 
         unsigned char key = (unsigned char)(*kbd);
-        int idx = char_to_index(key);
-        if (idx < 0)
-            continue;
+        int char_idx = char_to_index(key);
+        unsigned char seg_code = encode_seg(key);
 
-        if (prev_idx >= 0)
-            clear_area(led, center_x, center_y);
-        draw_char(led, center_x, center_y, idx, COLOR_ON);
-        prev_idx = idx;
+        if (char_idx >= 0 && char_idx < 36 && seg_code != 0) {
+            if (prev_char_idx >= 0)
+                clear_char_area(led, center_x, center_y);
+            draw_char_matrix(led, center_x, center_y, char_idx, COLOR_ON);
+            prev_char_idx = char_idx;
+
+            *(seg + seg_pos) = seg_code;
+            seg_pos++;
+            if (seg_pos >= SEG_COUNT)
+                seg_pos = 0;
+        }
     }
     return 0;
 }
