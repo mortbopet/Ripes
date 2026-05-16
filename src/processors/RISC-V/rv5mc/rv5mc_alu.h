@@ -25,7 +25,7 @@ public:
 
   RVMCALU(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    res << [=] {
+    res << [this] {
       switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
         return op1.uValue() + op2.uValue();
@@ -184,15 +184,15 @@ public:
         throw std::runtime_error("Invalid ALU opcode");
       }
     };
-    zero << [=] {
+    zero << [this] {
       if (res.uValue() == 0)
         return 1;
       return 0;
     }; // returns 1 if the result of the ALU is 0
-    sign << [=] {
+    sign << [this] {
       return VT_U(res.sValue() < 0 ? 1 : 0);
     }; // returns 1 if the ALU result is negative or 0 if it is not
-    carry << [=] {
+    carry << [this] {
       switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
         if (XLEN == 32)
