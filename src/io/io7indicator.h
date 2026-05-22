@@ -16,6 +16,7 @@ public:
   static constexpr unsigned DEFAULT_NUM_DIGITS = 4;
   static constexpr unsigned MIN_NUM_DIGITS = 1;
   static constexpr unsigned MAX_NUM_DIGITS = 16;
+  static constexpr unsigned WORD_SIZE = 4;
 
   IO7Indicator(QWidget *parent);
   ~IO7Indicator() { unregister(); };

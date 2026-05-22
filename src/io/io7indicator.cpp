@@ -14,29 +14,25 @@ struct SegColor {
 };
 
 static const SegColor s_segColors[] = {
-    {{255, 30, 30}, {50, 10, 10}},
-    {{30, 255, 30}, {10, 50, 10}},
-    {{50, 130, 255}, {15, 25, 55}},
-    {{255, 220, 30}, {55, 48, 10}},
+    {{255, 30, 30}, {50, 10, 10}},   {{30, 255, 30}, {10, 50, 10}},
+    {{50, 130, 255}, {15, 25, 55}},  {{255, 220, 30}, {55, 48, 10}},
     {{230, 230, 240}, {45, 45, 50}},
 };
 
 static constexpr int s_numColors =
     static_cast<int>(sizeof(s_segColors) / sizeof(s_segColors[0]));
 static constexpr qreal s_digitAspect = 0.56;
-static constexpr qreal s_gapRatio   = 0.12;
+static constexpr qreal s_gapRatio = 0.12;
 
-}
+} // namespace
 
 IO7Indicator::IO7Indicator(QWidget *parent)
     : IOBase(IOType::SEVEN_SEGMENT, parent) {
   setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
-  m_parameters[NUM_DIGITS] =
-      IOParam(NUM_DIGITS, "# Digits", DEFAULT_NUM_DIGITS, true,
-              MIN_NUM_DIGITS, MAX_NUM_DIGITS);
-  m_parameters[COLOR] =
-      IOParam(COLOR, "Color", 0, true, 0, s_numColors - 1);
+  m_parameters[NUM_DIGITS] = IOParam(NUM_DIGITS, "# Digits", DEFAULT_NUM_DIGITS,
+                                     true, MIN_NUM_DIGITS, MAX_NUM_DIGITS);
+  m_parameters[COLOR] = IOParam(COLOR, "Color", 0, true, 0, s_numColors - 1);
 
   m_digitValues.assign(DEFAULT_NUM_DIGITS, 0);
   setMinimumSize(minimumSizeHint());
@@ -49,16 +45,13 @@ unsigned IO7Indicator::numDigits() const {
 
 QString IO7Indicator::description() const {
   QStringList desc;
-  desc << "7-segment display with " + QString::number(numDigits()) +
-              " digits.";
+  desc << "7-segment display with " + QString::number(numDigits()) + " digits.";
   desc << "Each digit is a 4-byte word (offset = index * 4).";
   desc << "Bits 0-6 = segments a-g, bit 7 = decimal point.";
   return desc.join('\n');
 }
 
-unsigned IO7Indicator::byteSize() const {
-  return numDigits() * 4;
-}
+unsigned IO7Indicator::byteSize() const { return numDigits() * 4; }
 
 void IO7Indicator::updateRegDescs() {
   const unsigned n = numDigits();
@@ -66,9 +59,8 @@ void IO7Indicator::updateRegDescs() {
 
   m_regDescs.clear();
   for (unsigned i = 0; i < n; ++i) {
-    m_regDescs.push_back(
-        RegDesc{QString("Digit %1").arg(i), RegDesc::RW::RW, 8,
-                static_cast<AInt>(i * 4), true});
+    m_regDescs.push_back(RegDesc{QString("Digit %1").arg(i), RegDesc::RW::RW, 8,
+                                 static_cast<AInt>(i * 4), true});
   }
 
   m_extraSymbols.clear();
@@ -87,10 +79,10 @@ void IO7Indicator::parameterChanged(unsigned ID) {
 }
 
 VInt IO7Indicator::ioRead(AInt offset, unsigned size) {
-  if (size != 4 || (offset % 4) != 0)
+  if (size != WORD_SIZE || (offset % WORD_SIZE) != 0)
     return 0;
 
-  const unsigned idx = static_cast<unsigned>(offset / 4);
+  const unsigned idx = static_cast<unsigned>(offset / WORD_SIZE);
   if (idx >= m_digitValues.size())
     return 0;
 
@@ -98,10 +90,10 @@ VInt IO7Indicator::ioRead(AInt offset, unsigned size) {
 }
 
 void IO7Indicator::ioWrite(AInt offset, VInt value, unsigned size) {
-  if (size != 4 || (offset % 4) != 0)
+  if (size != WORD_SIZE || (offset % WORD_SIZE) != 0)
     return;
 
-  const unsigned idx = static_cast<unsigned>(offset / 4);
+  const unsigned idx = static_cast<unsigned>(offset / WORD_SIZE);
   if (idx >= m_digitValues.size())
     return;
 
@@ -116,9 +108,9 @@ void IO7Indicator::reset() {
 
 QSize IO7Indicator::minimumSizeHint() const {
   static constexpr int minH = 64;
-  const int n      = static_cast<int>(numDigits());
+  const int n = static_cast<int>(numDigits());
   const int digitW = qRound(minH * s_digitAspect);
-  const int gap    = qMax(4, qRound(minH * s_gapRatio));
+  const int gap = qMax(4, qRound(minH * s_gapRatio));
   const int margin = 12;
   return QSize(n * digitW + (n - 1) * gap + margin * 2, minH + margin * 2);
 }
@@ -130,7 +122,7 @@ void IO7Indicator::drawDigit(QPainter &p, int x, int y, int w, int h,
 
   const int ci =
       qBound(0, m_parameters.at(COLOR).value.toInt(), s_numColors - 1);
-  const QColor &on  = s_segColors[ci].on;
+  const QColor &on = s_segColors[ci].on;
   const QColor &off = s_segColors[ci].off;
 
   // Segment geometry: thickness, inter-segment gap, vertical-segment length
@@ -222,4 +214,4 @@ void IO7Indicator::paintEvent(QPaintEvent *) {
   }
 }
 
-}
+} // namespace Ripes
