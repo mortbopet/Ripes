@@ -10,7 +10,7 @@ class ZExtOrTruncate : public Component {
 public:
   ZExtOrTruncate(std::string name, SimComponent *parent)
       : Component(name, parent) {
-    out << [=] { return in.uValue(); };
+    out << [this] { return in.uValue(); };
   }
 
   INPUTPORT(in, INLEN);

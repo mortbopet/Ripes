@@ -19,6 +19,12 @@ jobs:
       with:
         submodules: recursive
 
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ matrix.os }}-testcache
+        variant: ${{ contains(matrix.os, 'windows') && 'sccache' || 'ccache' }}
+
     # Container preparation
       # Ubuntu
     - if: contains( matrix.os, 'ubuntu')
@@ -74,14 +80,14 @@ jobs:
     - if: "!contains(matrix.os, 'windows')"
       name: build Ripes
       run: |
-        cmake -GNinja -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .
+        cmake -GNinja -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
         ninja
 
     - if: contains(matrix.os, 'windows')
       name: build Ripes (Windows)
       shell: bash
       run: |
-        cmake -GNinja -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        cmake -GNinja -DRIPES_BUILD_TESTS=ON -DVSRTL_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
         cmake --build .
 
     # Go test

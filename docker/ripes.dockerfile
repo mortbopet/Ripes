@@ -5,6 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends \
     build-essential \
+    ccache \
     cmake \
     gcc-riscv64-unknown-elf \
     git \
@@ -33,8 +34,11 @@ ARG GIT_SSL_NO_VERIFY=true
 ENV LC_ALL=C.UTF-8 SHELL=/bin/bash
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/6.5.0/gcc_64/lib"
 
+ENV CCACHE_DIR=/ccache
+
 ARG BRANCH=master
-RUN git clone --recursive --branch ${BRANCH} https://github.com/mortbopet/Ripes.git /tmp/ripes \
+RUN --mount=type=cache,target=/ccache \
+    git clone --recursive --branch ${BRANCH} https://github.com/mortbopet/Ripes.git /tmp/ripes \
     && cmake -S /tmp/ripes/ \
         -B /tmp/ripes/build \
         -Wno-dev            \

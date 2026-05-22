@@ -330,31 +330,31 @@ public:
 
     setInitialState();
 
-    ir_write << [=] { return getCurrentStateInfo().outs.ir_write; };
-    pc_write << [=] { return getCurrentStateInfo().outs.pc_write; };
-    branch << [=] { return getCurrentStateInfo().outs.branch; };
-    pc_src << [=] { return getCurrentStateInfo().outs.pc_src; };
-    reg_write << [=] { return getCurrentStateInfo().outs.reg_write; };
-    reg_src << [=] { return getCurrentStateInfo().outs.reg_src; };
-    alu_op1_src << [=] { return getCurrentStateInfo().outs.alu_op1_src; };
-    alu_op2_src << [=] { return getCurrentStateInfo().outs.alu_op2_src; };
-    alu_ctrl << [=] {
+    ir_write << [this] { return getCurrentStateInfo().outs.ir_write; };
+    pc_write << [this] { return getCurrentStateInfo().outs.pc_write; };
+    branch << [this] { return getCurrentStateInfo().outs.branch; };
+    pc_src << [this] { return getCurrentStateInfo().outs.pc_src; };
+    reg_write << [this] { return getCurrentStateInfo().outs.reg_write; };
+    reg_src << [this] { return getCurrentStateInfo().outs.reg_src; };
+    alu_op1_src << [this] { return getCurrentStateInfo().outs.alu_op1_src; };
+    alu_op2_src << [this] { return getCurrentStateInfo().outs.alu_op2_src; };
+    alu_ctrl << [this] {
       auto c = getCurrentStateInfo().outs.alu_control;
       return c == ALUControl::INSTRUCTION_DEPENDENT ? do_alu_ctrl(getCurrentOpcode())
       : c == ALUControl::ADD ? ALUOp::ADD
       : (assert(c == ALUControl::SUB), ALUOp::SUB);
     };
-    mem_write << [=] { return getCurrentStateInfo().outs.mem_write; };
-    mem_addr_src << [=] { return getCurrentStateInfo().outs.mem_addr_src; };
+    mem_write << [this] { return getCurrentStateInfo().outs.mem_write; };
+    mem_addr_src << [this] { return getCurrentStateInfo().outs.mem_addr_src; };
 
-    mem_ctrl << [=] { return (mem_addr_src.eValue<MemAddrSrc>() == MemAddrSrc::PC) ? MemOp::LW : do_mem_ctrl(getCurrentOpcode());};
-    comp_ctrl << [=] { return do_comp_ctrl(getCurrentOpcode()); };
+    mem_ctrl << [this] { return (mem_addr_src.eValue<MemAddrSrc>() == MemAddrSrc::PC) ? MemOp::LW : do_mem_ctrl(getCurrentOpcode());};
+    comp_ctrl << [this] { return do_comp_ctrl(getCurrentOpcode()); };
 
     // ecall signal is inverted
-    ecall << [=] { return !getCurrentStateInfo().outs.ecall; };
+    ecall << [this] { return !getCurrentStateInfo().outs.ecall; };
 
-    next_state << [=] { return getNextState(); };
-    current_state << [=] { return getCurrentState(); };
+    next_state << [this] { return getNextState(); };
+    current_state << [this] { return getCurrentState(); };
 
     next_state >> state_reg->in;
   }
