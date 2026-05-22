@@ -94,7 +94,7 @@ private slots:
     QCOMPARE(ind->numDigits(), IO7Indicator::MIN_NUM_DIGITS);
 
     // Verify COLOR parameter update
-    QVERIFY(ind->setParameter(1, 2)); 
+    QVERIFY(ind->setParameter(1, 2));
 
     delete ind;
   }
