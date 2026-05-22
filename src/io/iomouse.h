@@ -9,7 +9,7 @@ namespace Ripes {
 class IOMouse : public IOBase {
   Q_OBJECT
 
-  enum Regs { X, Y, LBUTTON, RBUTTON, SCROLL };
+  enum Regs { X = 0, Y = 4, LBUTTON = 8, RBUTTON = 12, SCROLL = 16 };
   enum Parameters { WIDTH, HEIGHT };
 
 public:

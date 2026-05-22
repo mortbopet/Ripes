@@ -12,14 +12,11 @@ IOMouse::IOMouse(QWidget *parent) : IOBase(IOType::MOUSE, parent) {
   m_parameters[WIDTH] = IOParam(WIDTH, "Width", 200, true, 100, 800);
   m_parameters[HEIGHT] = IOParam(HEIGHT, "Height", 150, true, 100, 600);
 
-  m_regDescs.push_back(RegDesc{"X", RegDesc::RW::R, 32, X * 4, true});
-  m_regDescs.push_back(RegDesc{"Y", RegDesc::RW::R, 32, Y * 4, true});
-  m_regDescs.push_back(
-      RegDesc{"LBUTTON", RegDesc::RW::R, 1, LBUTTON * 4, true});
-  m_regDescs.push_back(
-      RegDesc{"RBUTTON", RegDesc::RW::R, 1, RBUTTON * 4, true});
-  m_regDescs.push_back(
-      RegDesc{"SCROLL", RegDesc::RW::RW, 32, SCROLL * 4, true});
+  m_regDescs.push_back(RegDesc{"X", RegDesc::RW::R, 32, X, true});
+  m_regDescs.push_back(RegDesc{"Y", RegDesc::RW::R, 32, Y, true});
+  m_regDescs.push_back(RegDesc{"LBUTTON", RegDesc::RW::R, 1, LBUTTON, true});
+  m_regDescs.push_back(RegDesc{"RBUTTON", RegDesc::RW::R, 1, RBUTTON, true});
+  m_regDescs.push_back(RegDesc{"SCROLL", RegDesc::RW::RW, 32, SCROLL, true});
 
   updateExtraSymbols();
   setMouseTracking(true);
@@ -51,23 +48,26 @@ QString IOMouse::description() const {
 
 VInt IOMouse::ioRead(AInt offset, unsigned) {
   switch (offset) {
-  case X * 4:
+  case X:
     return m_mouseX;
-  case Y * 4:
+  case Y:
     return m_mouseY;
-  case LBUTTON * 4:
+  case LBUTTON:
     return m_lButton;
-  case RBUTTON * 4:
+  case RBUTTON:
     return m_rButton;
-  case SCROLL * 4:
+  case SCROLL:
     return m_scroll;
   }
   return 0;
 }
 
 void IOMouse::ioWrite(AInt offset, VInt value, unsigned) {
-  if (offset == SCROLL * 4)
+  switch (offset) {
+  case SCROLL:
     m_scroll = value;
+    break;
+  }
 }
 
 void IOMouse::mouseMoveEvent(QMouseEvent *event) {
