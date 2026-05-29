@@ -8,6 +8,7 @@
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
+#include "processors/RISC-V/rv5s_vliw/rv5s_vliw.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
@@ -59,6 +60,21 @@ constexpr const char rv5mc_desc_1m[] =
     "This version takes advantage of the fact that data and instructions are "
     "never accessed in the same cycle to use a single memory for data and "
     "instructions.";
+
+constexpr const char rv5s_vliw_desc[] =
+    "A five-stage, statically scheduled Very Long Instruction Word (VLIW) "
+    "dual-issue processor. Each VLIW instruction is composed of two RISC-V "
+    "instructions: the first (execution way) supports ALU and branch "
+    "operations, while the second (data way) supports load and store "
+    "operations.<br>"
+    "<br><i>Note: Pseudoinstructions with multi-line or Myriad sequence "
+    "expansions are automatically "
+    "translated into valid VLIW instructions. This includes:<br></i>"
+    "<tt>li, la</tt><br>"
+    "<tt>l{d,w,h,b} rd</tt>, <tt>symbol</tt><br>"
+    "<tt>s{d,w,h,b} rd</tt>, <tt>symbol</tt>, <tt>rt</tt><br>"
+    "<tt>call, tail</tt>,<br>"
+    "<tt>negw, sext.w</tt>";
 
 ProcessorRegistry::ProcessorRegistry() {
   // Initialize processors
@@ -206,6 +222,39 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RV5S<uint64_t>>(
       ProcessorID::RV64_5S, "5-stage processor", rv5s_desc, layouts,
       defRegVals));
+
+  // RISC-V 5-stage VLIW
+  layouts = {{"Extended",
+              ":/layouts/RISC-V/rv5s_vliw/rv5s_vliw_extended_layout.json",
+              {{{{0, 0}, QPointF{0.06, 0}},
+                {{1, 0}, QPointF{0.06, 1}},
+                {{0, 1}, QPointF{0.29, 0}},
+                {{1, 1}, QPointF{0.29, 1}},
+                {{0, 2}, QPointF{0.57, 0}},
+                {{1, 2}, QPointF{0.57, 1}},
+                {{0, 3}, QPointF{0.79, 0}},
+                {{1, 3}, QPointF{0.79, 1}},
+                {{0, 4}, QPointF{0.90, 0}},
+                {{1, 4}, QPointF{0.90, 1}}}}},
+             {"Simple",
+              ":/layouts/RISC-V/rv5s_vliw/rv5s_vliw_simple_layout.json",
+              {{{{0, 0}, QPointF{0.06, 0}},
+                {{1, 0}, QPointF{0.06, 1}},
+                {{0, 1}, QPointF{0.29, 0}},
+                {{1, 1}, QPointF{0.29, 1}},
+                {{0, 2}, QPointF{0.57, 0}},
+                {{1, 2}, QPointF{0.57, 1}},
+                {{0, 3}, QPointF{0.79, 0}},
+                {{1, 3}, QPointF{0.79, 1}},
+                {{0, 4}, QPointF{0.90, 0}},
+                {{1, 4}, QPointF{0.90, 1}}}}}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RV5S_VLIW<uint32_t>>(
+      ProcessorID::RV32_5S_VLIW, "5-stage processor VLIW", rv5s_vliw_desc,
+      layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RV5S_VLIW<uint64_t>>(
+      ProcessorID::RV64_5S_VLIW, "5-stage processor VLIW", rv5s_vliw_desc,
+      layouts, defRegVals));
 
   // RISC-V 6-stage dual issue
   layouts = {{"Extended",

@@ -23,6 +23,7 @@ QString enumToString(T value) {
 // The order of the ProcessorID enum defines the order of which the processors
 // will appear in the processor selection dialog.
 enum ProcessorID {
+  // RV-32 bit
   RV32_SS,
   RV32_5MC_2M,
   RV32_5MC_1M,
@@ -30,7 +31,10 @@ enum ProcessorID {
   RV32_5S_NO_HZ,
   RV32_5S_NO_FW,
   RV32_5S,
+  RV32_5S_VLIW,
   RV32_6S_DUAL,
+
+  // RV-64 bit
   RV64_SS,
   RV64_5MC,
   RV64_5MC_1M,
@@ -38,6 +42,7 @@ enum ProcessorID {
   RV64_5S_NO_HZ,
   RV64_5S_NO_FW,
   RV64_5S,
+  RV64_5S_VLIW,
   RV64_6S_DUAL,
   NUM_PROCESSORS
 };

@@ -68,7 +68,7 @@ public:
             case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::XORI:
             case RVInstr::ORI: case RVInstr::ANDI: case RVInstr::SLLI: case RVInstr::SRLI:
             case RVInstr::SRAI: case RVInstr::ADDIW: case RVInstr::SLLIW: case RVInstr::SRLIW:
-            case RVInstr::SRAIW:
+            case RVInstr::SRAIW: case RVInstr::NOP:
 
             // Arithmetic instructions
             case RVInstr::MUL: case RVInstr::MULH: case RVInstr:: MULHSU: case RVInstr::MULHU:
@@ -129,7 +129,7 @@ public:
         case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::XORI:
         case RVInstr::ORI: case RVInstr::ANDI: case RVInstr::SLLI: case RVInstr::SRLI:
         case RVInstr::SRAI: case RVInstr::ADDIW: case RVInstr::SLLIW: case RVInstr::SRLIW:
-        case RVInstr::SRAIW:
+        case RVInstr::SRAIW: case RVInstr::NOP:
             return AluSrc2::IMM;
 
         // Arithmetic instructions
@@ -172,7 +172,7 @@ public:
             case RVInstr::LUI:
                 return ALUOp::LUI;
             case RVInstr::JAL: case RVInstr::JALR: case RVInstr::AUIPC:
-            case RVInstr::ADD: case RVInstr::ADDI:
+            case RVInstr::ADD: case RVInstr::ADDI: case RVInstr::NOP:
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
             case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
                 return ALUOp::ADD;
