@@ -114,12 +114,6 @@ public:
   }
 
   /**
-   * @brief getCurrentProgramSize
-   * @return size (in bytes) of the currently loaded .text segment
-   */
-  static int getCurrentProgramSize() { return get()->_getCurrentProgramSize(); }
-
-  /**
    * @brief getEntryPoint
    * @return address of the entry point of the currently loaded program
    */
@@ -310,7 +304,6 @@ private:
       const ProcessorID &id, const QStringList &extensions = {},
       const RegisterInitialization &setup = RegisterInitialization());
   bool _isExecutableAddress(AInt address) const;
-  int _getCurrentProgramSize() const;
   AInt _getTextStart() const;
   QString _disassembleInstr(const AInt address) const;
   vsrtl::core::AddressSpaceMM &_getMemory();
