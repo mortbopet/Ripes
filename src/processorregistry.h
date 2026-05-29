@@ -30,6 +30,7 @@ enum ProcessorID {
   RV32_5S_NO_HZ,
   RV32_5S_NO_FW,
   RV32_5S,
+  RV32_5S_BR,
   RV32_6S_DUAL,
   RV64_SS,
   RV64_5MC,
@@ -38,6 +39,7 @@ enum ProcessorID {
   RV64_5S_NO_HZ,
   RV64_5S_NO_FW,
   RV64_5S,
+  RV64_5S_BR,
   RV64_6S_DUAL,
   NUM_PROCESSORS
 };

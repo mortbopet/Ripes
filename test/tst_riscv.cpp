@@ -74,6 +74,10 @@ private slots:
     runTests(ProcessorID::RV64_5S, {"M", "C"},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
+  void testRV64_5StagePipelineBR() {
+    runTests(ProcessorID::RV64_5S_BR, {"M", "C"},
+             {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
+  }
   void testRV64_5StagePipelineNOFW() {
     runTests(ProcessorID::RV64_5S_NO_FW, {"M", "C"},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
@@ -89,6 +93,10 @@ private slots:
   }
   void testRV32_5StagePipeline() {
     runTests(ProcessorID::RV32_5S, {"M", "C"},
+             {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
+  }
+  void testRV32_5StagePipelineBR() {
+    runTests(ProcessorID::RV32_5S_BR, {"M", "C"},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_5StagePipelineNOFW() {
