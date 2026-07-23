@@ -48,7 +48,125 @@ const QStringList GPRRegDescs = QStringList() << "Hard-Wired zero"
                                            << "Temporary register\nSaver: Caller"
                                            << "Temporary register\nSaver: Caller"
                                            << "Temporary register\nSaver: Caller";
+
+
+const QStringList FPRRegAliases = QStringList() << "ft0" << "ft1" << "ft2" << "ft3" << "ft4" << "ft5" << "ft6" << "ft7" 
+                                                << "fs0" << "fs1" 
+                                                << "fa0" << "fa1" 
+                                                << "fa2" << "fa3" << "fa4" << "fa5" << "fa6" << "fa7" 
+                                                << "fs2" << "fs3" << "fs4" << "fs5" << "fs6" << "fs7" << "fs8" << "fs9" << "fs10" << "fs11" 
+                                                << "ft8" << "ft9" << "ft10" << "ft11";
+
+const QStringList FPRRegNames = QStringList()   << "f0"  << "f1"  << "f2"  << "f3"  << "f4"  << "f5"  << "f6"  << "f7" 
+                                                << "f8"  << "f9"  << "f10" << "f11" << "f12" << "f13" << "f14" << "f15" 
+                                                << "f16" << "f17" << "f18" << "f19" << "f20" << "f21" << "f22" << "f23" 
+                                                << "f24" << "f25" << "f26" << "f27" << "f28" << "f29" << "f30" << "f31";
+
+const QStringList FPRRegDescs = QStringList()   << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+
+                                                << "FP argument/return value\nSaver: Caller"
+                                                << "FP argument/return value\nSaver: Caller"
+
+                                                << "FP argument\nSaver: Caller"
+                                                << "FP argument\nSaver: Caller"
+                                                << "FP argument\nSaver: Caller"
+                                                << "FP argument\nSaver: Caller"
+                                                << "FP argument\nSaver: Caller"
+                                                << "FP argument\nSaver: Caller"
+
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+                                                << "FP Saved register\nSaver: Callee"
+
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller"
+                                                << "FP Temporary\nSaver: Caller";
+#define CSR_REG(name) static_cast<unsigned>(RV_CSRInfo::CSR::name)
+const QHash<unsigned, QString> CSRRegAliases = {
+    {CSR_REG(FFLAGS), "fflags"},
+    {CSR_REG(FRM),    "frm"},
+    {CSR_REG(FCSR),   "fcsr"}
+};
+const QHash<unsigned, QString> CSRRegNames = {
+    {CSR_REG(FFLAGS), "fflags"},
+    {CSR_REG(FRM),    "frm"},
+    {CSR_REG(FCSR),   "fcsr"}
+};
+const QHash<unsigned, QString> CSRRegDescs = {
+    {CSR_REG(FFLAGS), "Floating-Point Accrued Exceptions"},
+    {CSR_REG(FRM),    "Floating-Point Dynamic Rounding Mode"},
+    {CSR_REG(FCSR),   "Floating-Point Control and Status Register (frm +fflags)"}
+};
+#undef CSR_REG
 // clang-format on
+
+QString RV_ExtensionSet::CCmarch() const {
+  QString march_extensions = "";
+
+  // m_extensions is already sorted in canonical order, but implicated
+  // extensions may not be included in the set therefore we loop over all
+  // possible extensions in canonical order and check if they are included in
+  // the set
+  for (ExtensionID_t id = 0;
+       id < static_cast<ExtensionID_t>(Extension::Id::EXTENSION_COUNT); id++) {
+    if (auto ext = this->getExtension(id)) {
+      march_extensions += (*ext)->CCmarchName();
+
+      if ((*ext)->CCmarchName().length() > 1) {
+        // multi-character extensions are separated by underscores
+        march_extensions += "_";
+      }
+    }
+  }
+
+  if (march_extensions.endsWith('_')) {
+    // remove trailing underscore
+    // this is in fact optional to the RISC-V nameing convention
+    // but we choose to remove it for cleanliness
+    march_extensions.chop(1);
+  }
+
+  return march_extensions;
+}
+
+RV_ExtensionSet &
+RV_ExtensionSet::operator<<(const ExtensionInfoInterface &ext) {
+  if (const RV_Extension *rvExt = dynamic_cast<const RV_Extension *>(&ext)) {
+    m_extensions.insert(rvExt);
+  } else {
+    Q_ASSERT_X(false, "RV_ExtensionSet::operator<<",
+               "Only RV_Extensions can be added to an RV_ExtensionSet");
+  }
+  return *this;
+}
+const ExtensionInfoInterface *
+RV_ExtensionSet::remove(const ExtensionInfoInterface &ext) {
+  auto it = m_extensions.find(ext);
+  if (it != m_extensions.end()) {
+    const ExtensionInfoInterface *res = *it;
+    m_extensions.erase(it);
+    return res;
+  }
+  return nullptr;
+}
 
 } // namespace RVISA
 

@@ -18,6 +18,10 @@ Directive zeroDirective();
 Directive stringDirective();
 Directive ascizDirective();
 
+// floating point directives
+Directive floatDirective();
+
+// integer directives
 Directive doubleDirective();
 Directive wordDirective();
 Directive halfDirective();

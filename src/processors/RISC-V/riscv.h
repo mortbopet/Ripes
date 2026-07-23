@@ -8,30 +8,26 @@
 
 namespace Ripes {
 
-namespace RVISA {
+// namespace RVISA {
 
-template <unsigned XLEN>
-ProcessorISAInfo supportsISA() {
-  using RVISAInfo = ISAInfo<XLenToRVISA<XLEN>()>;
-  return ProcessorISAInfo{std::make_shared<RVISAInfo>(QStringList()),
-                          RVISAInfo::getSupportedExtensions(),
-                          RVISAInfo::getDefaultExtensions()};
-}
+// template <unsigned XLEN>
+// ProcessorISAInfo supportsISA() {
+//   using RVISAInfo = ISAInfo<XLenToRVISA<XLEN>()>;
+//   return ProcessorISAInfo{
+//     std::make_shared<RVISAInfo>(QStringList()),
+//     std::make_shared<RV_ExtensionSet>(RVISAInfo::getSupportedExtensions()),
+//     std::make_shared<RV_ExtensionSet>(RVISAInfo::getDefaultExtensions())};
+// }
 
-template <unsigned XLEN>
-std::shared_ptr<const ISAInfoBase> fullISA() {
-  return ISAInfoRegistry::getSupportedISA<XLenToRVISA<XLEN>()>();
-}
+// template <unsigned XLEN>
+// std::shared_ptr<const ISAInfoBase> fullISA() {
+//   return ISAInfoRegistry::getSupportedISA<XLenToRVISA<XLEN>()>();
+// }
 
-} // namespace RVISA
-
-constexpr int c_RVInstrWidth = 32; // Width of instructions
-constexpr int c_RVRegs = 32;       // Number of registers
-constexpr int c_RVRegsBits =
-    vsrtl::ceillog2(c_RVRegs); // Width of operand to index into registers
+// } // namespace RVISA
 
 /** Instruction set enumerations */
-enum class RVInstrType { R, I, S, B, U, J };
+enum class RVInstrType { R, I, S, B, U, J, R4 };
 
 enum class RVInstr {
   NOP,
@@ -104,8 +100,131 @@ enum class RVInstr {
   DIVW,
   DIVUW,
   REMW,
-  REMUW
+  REMUW,
+
+  /* RV32F Single Floating Point Extension */
+  FLW,
+  FSW,
+
+  FADD_S,
+  FSUB_S,
+  FMUL_S,
+  FDIV_S,
+  FSQRT_S,
+  FMIN_S,
+  FMAX_S,
+
+  FSGNJ_S,
+  FSGNJN_S,
+  FSGNJX_S,
+
+  FCVT_W_S,
+  FCVT_WU_S,
+  FCVT_S_W,
+  FCVT_S_WU,
+
+  FMV_X_W,
+  FMV_W_X,
+
+  FEQ_S,
+  FLT_S,
+  FLE_S,
+
+  FCLASS_S,
+
+  FMADD_S,
+  FMSUB_S,
+  FNMSUB_S,
+  FNMADD_S,
+
+  /* RV64F Single Floating Point Extension */
+  FCVT_L_S,
+  FCVT_LU_S,
+  FCVT_S_L,
+  FCVT_S_LU,
+
+  /* RV32_Zicsr - Control and status registers Extension */
+  CSRRW,
+  CSRRS,
+  CSRRC,
+  CSRRWI,
+  CSRRSI,
+  CSRRCI
 };
+
+// clang-format off
+[[maybe_unused]]
+static inline RVISA::Extension::Id getExtensionType(const RVInstr instr) {
+  switch (instr) {
+    case RVInstr::MUL:    case RVInstr::MULH:
+    case RVInstr::MULHSU: case RVInstr::MULHU:
+    case RVInstr::DIV:    case RVInstr::DIVU:
+    case RVInstr::REM:    case RVInstr::REMU:
+    case RVInstr::MULW:   
+    case RVInstr::DIVW:   case RVInstr::DIVUW:  
+    case RVInstr::REMW:   case RVInstr::REMUW:
+      return RVISA::Extension::Id::M;
+
+    case RVInstr::FLW:      case RVInstr::FSW:
+    case RVInstr::FADD_S:   case RVInstr::FSUB_S:
+    case RVInstr::FMUL_S:   case RVInstr::FDIV_S:
+    case RVInstr::FSQRT_S: 
+    case RVInstr::FMIN_S:   case RVInstr::FMAX_S: 
+    case RVInstr::FSGNJ_S:  case RVInstr::FSGNJN_S: case RVInstr::FSGNJX_S:
+    case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+    case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+    case RVInstr::FCVT_S_W: case RVInstr::FCVT_S_WU:
+    case RVInstr::FCVT_S_L: case RVInstr::FCVT_S_LU:
+    case RVInstr::FMV_X_W:  case RVInstr::FMV_W_X:
+    case RVInstr::FEQ_S:    case RVInstr::FLT_S: case RVInstr::FLE_S:
+    case RVInstr::FMADD_S:  case RVInstr::FMSUB_S: 
+    case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
+    case RVInstr::FCLASS_S:
+      return RVISA::Extension::Id::F;
+    
+    case RVInstr::CSRRW:  case RVInstr::CSRRS:  case RVInstr::CSRRC:
+    case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
+      return RVISA::Extension::Id::Zicsr;
+
+    default:
+      return RVISA::Extension::Id::I;
+  }
+}
+
+[[maybe_unused]]
+static RVInstrType getInstrType(unsigned instrValue) {
+  const unsigned l7 = instrValue & 0b1111111;
+
+  switch(l7) {
+    case RVISA::OpcodeID::LUI:      return RVInstrType::U;
+    case RVISA::OpcodeID::AUIPC:    return RVInstrType::U;
+    case RVISA::OpcodeID::JAL:      return RVInstrType::J;
+    case RVISA::OpcodeID::JALR:     return RVInstrType::I;
+    case RVISA::OpcodeID::SYSTEM:   return RVInstrType::I;
+    case RVISA::OpcodeID::OPIMM:    return RVInstrType::I;
+    case RVISA::OpcodeID::OPIMM32:  return RVInstrType::I;
+    case RVISA::OpcodeID::LOAD:     return RVInstrType::I;
+    case RVISA::OpcodeID::OP:       return RVInstrType::R;
+    case RVISA::OpcodeID::OP32:     return RVInstrType::R;
+    case RVISA::OpcodeID::STORE:    return RVInstrType::S;
+    case RVISA::OpcodeID::BRANCH:   return RVInstrType::B;
+    
+    // Fused Multiply and Add
+    case RVISA::OpcodeID::MADD :    return RVInstrType::R4;
+    case RVISA::OpcodeID::MSUB :    return RVInstrType::R4;
+    case RVISA::OpcodeID::NMSUB:    return RVInstrType::R4;
+    case RVISA::OpcodeID::NMADD:    return RVInstrType::R4;
+  
+    // Floating point extension
+    case RVISA::OpcodeID::LOAD_FP:  return RVInstrType::I;
+    case RVISA::OpcodeID::STORE_FP: return RVInstrType::S;
+    case RVISA::OpcodeID::OP_FP:    return RVInstrType::R;
+
+    // Default - unknown instruction (NOP).
+    default:                        return RVInstrType::I; 
+  }
+}
+// clang-format on
 
 /** Datapath enumerations */
 enum class ALUOp {
@@ -141,6 +260,60 @@ enum class ALUOp {
   REMW,
   REMUW
 };
+enum class FPUOp {
+  NOP,
+
+  /* RV32F Single Floating Point Extension */
+  FADD_S,
+  FSUB_S,
+  FMUL_S,
+  FDIV_S,
+  FSQRT_S,
+  FMIN_S,
+  FMAX_S,
+
+  FMADD_S,
+  FMSUB_S,
+  FNMSUB_S,
+  FNMADD_S,
+
+  FSGNJ_S,
+  FSGNJN_S,
+  FSGNJX_S,
+
+  FCVT_W_S,
+  FCVT_WU_S,
+  FCVT_S_W,
+  FCVT_S_WU,
+
+  FMV_X_W,
+  FMV_W_X,
+
+  EQ,
+  LE,
+  LT,
+
+  FCLASS_S,
+
+  /* RV64F Single Floating Point Extension */
+  FCVT_L_S,
+  FCVT_LU_S,
+  FCVT_S_L,
+  FCVT_S_LU,
+
+  /* Floating Point - Control and status registers instructions */
+  CSRW_FFLAGS,
+  CSRS_FFLAGS,
+  CSRC_FFLAGS,
+
+  CSRW_FRM,
+  CSRS_FRM,
+  CSRC_FRM,
+
+  CSRW_FCSR,
+  CSRS_FCSR,
+  CSRC_FCSR,
+};
 enum class RegWrSrc { MEMREAD, ALURES, PC4 };
 enum class AluSrc1 { REG1, PC };
 enum class AluSrc2 { REG2, IMM };
@@ -149,6 +322,8 @@ enum class MemOp { NOP, LB, LH, LW, LBU, LHU, SB, SH, SW, LWU, LD, SD };
 enum ECALL { none, print_int = 1, print_char = 2, print_string = 4, exit = 10 };
 enum PcSrc { PC4 = 0, ALU = 1 };
 enum PcInc { INC2 = 0, INC4 = 1 };
+enum class RegFileSrc { INTEGER, FLOAT };
+enum class ImmRegFileSrc { INTEGER, FLOAT, IMMEDIATE };
 
 /** Instruction field parser */
 class RVInstrParser {
@@ -175,6 +350,11 @@ public:
   }
   std::vector<uint32_t> decodeB32Instr(const uint32_t &instr) const {
     return m_decodeB32Instr(instr);
+  }
+
+  // RVF
+  std::vector<uint32_t> decodeR432Instr(const uint32_t &instr) const {
+    return m_decodeR432Instr(instr);
   }
 
   // RVC
@@ -205,8 +385,9 @@ public:
 
 private:
   RVInstrParser() {
-    m_decodeR32Instr = generateInstrParser<uint32_t>(
-        std::vector<int>{7, 5, 3, 5, 5, 7}); // from LSB to MSB
+    // from LSB to MSB
+    m_decodeR32Instr =
+        generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 7});
     m_decodeI32Instr =
         generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 12});
     m_decodeS32Instr =
@@ -217,6 +398,10 @@ private:
         generateInstrParser<uint32_t>(std::vector<int>{7, 5, 20});
     m_decodeJ32Instr =
         generateInstrParser<uint32_t>(std::vector<int>{7, 5, 8, 1, 10, 1});
+
+    // RVF
+    m_decodeR432Instr =
+        generateInstrParser<uint32_t>(std::vector<int>{7, 5, 3, 5, 5, 2, 5});
 
     // RVC
     m_decodeCA16Instr = generateInstrParser<uint32_t>(
@@ -242,6 +427,9 @@ private:
   decode_functor<uint32_t> m_decodeS32Instr;
   decode_functor<uint32_t> m_decodeR32Instr;
   decode_functor<uint32_t> m_decodeB32Instr;
+
+  // RVF
+  decode_functor<uint32_t> m_decodeR432Instr;
 
   // RVC
   decode_functor<uint32_t> m_decodeCA16Instr;

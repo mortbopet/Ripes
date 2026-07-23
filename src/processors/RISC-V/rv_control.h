@@ -7,6 +7,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
+// Integer (non-float) Controller
 class Control : public Component {
 public:
   /* clang-format off */
@@ -54,6 +55,8 @@ public:
             case RVInstr::LBU: return MemOp::LBU;
             case RVInstr::LHU: return MemOp::LHU;
             case RVInstr::LWU: return MemOp::LWU;
+            case RVInstr::FLW: return MemOp::LWU;
+            case RVInstr::FSW: return MemOp::SW;
             default:
                 return MemOp::NOP;
         }
@@ -82,6 +85,17 @@ public:
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
             case RVInstr::LWU: case RVInstr::LD:
+            
+            // CSR instructions
+            case RVInstr::CSRRW: case RVInstr::CSRRS: case RVInstr::CSRRC:
+            case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
+
+            // Float instructions
+            case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+            case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+            case RVInstr::FMV_X_W:
+            case RVInstr::FEQ_S: case RVInstr::FLT_S: case RVInstr::FLE_S:
+            case RVInstr::FCLASS_S:
 
             // Jump instructions
             case RVInstr::JALR:
@@ -95,7 +109,7 @@ public:
         switch(opc){
             // Load instructions
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
-            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD: case RVInstr::FLW:
                 return RegWrSrc::MEMREAD;
 
             // Jump instructions
@@ -145,7 +159,7 @@ public:
         // Load/Store instructions
         case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
         case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
-        case RVInstr::SD:
+        case RVInstr::SD: case RVInstr::FLW: case RVInstr::FSW:
             return AluSrc2::IMM;
 
         // Branch instructions
@@ -158,7 +172,7 @@ public:
         case RVInstr::JAL:
             return AluSrc2::IMM;
 
-        default:
+        default: // all other float instructions require a REG input so let them fall through
             return AluSrc2::REG2;
         }
     }
@@ -167,7 +181,7 @@ public:
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU:
             case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::LWU: case RVInstr::LD:
-            case RVInstr::SD:
+            case RVInstr::SD: case RVInstr::FLW: case RVInstr::FSW:
                 return ALUOp::ADD;
             case RVInstr::LUI:
                 return ALUOp::LUI;
@@ -177,7 +191,7 @@ public:
             case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
                 return ALUOp::ADD;
             case RVInstr::SUB: return ALUOp::SUB;
-            case RVInstr::SLT: case RVInstr::SLTI:
+            case RVInstr::SLT: case RVInstr::SLTI: case RVInstr::FLT_S:
                 return ALUOp::LT;
             case RVInstr::SLTU: case RVInstr::SLTIU:
                 return ALUOp::LTU;
@@ -205,15 +219,15 @@ public:
             case RVInstr::SLLIW : return ALUOp::SLW;
             case RVInstr::SRLIW : return ALUOp::SRLW;
             case RVInstr::SRAIW : return ALUOp::SRAW;
-            case RVInstr::ADDW  : return ALUOp::ADDW ;
-            case RVInstr::SUBW  : return ALUOp::SUBW ;
-            case RVInstr::SLLW  : return ALUOp::SLW ;
-            case RVInstr::SRLW  : return ALUOp::SRLW ;
-            case RVInstr::SRAW  : return ALUOp::SRAW ;
-            case RVInstr::MULW  : return ALUOp::MULW ;
-            case RVInstr::DIVW  : return ALUOp::DIVW ;
+            case RVInstr::ADDW  : return ALUOp::ADDW;
+            case RVInstr::SUBW  : return ALUOp::SUBW;
+            case RVInstr::SLLW  : return ALUOp::SLW;
+            case RVInstr::SRLW  : return ALUOp::SRLW;
+            case RVInstr::SRAW  : return ALUOp::SRAW;
+            case RVInstr::MULW  : return ALUOp::MULW;
+            case RVInstr::DIVW  : return ALUOp::DIVW;
             case RVInstr::DIVUW : return ALUOp::DIVUW;
-            case RVInstr::REMW  : return ALUOp::REMW ;
+            case RVInstr::REMW  : return ALUOp::REMW;
             case RVInstr::REMUW : return ALUOp::REMUW;
 
             default: return ALUOp::NOP;
@@ -222,7 +236,8 @@ public:
 
     static VSRTL_VT_U do_do_mem_write_ctrl(RVInstr opc) {
         switch(opc) {
-            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::SD:
+            case RVInstr::SB: case RVInstr::SH: case RVInstr::SW:
+            case RVInstr::SD: case RVInstr::FSW:
                 return 1;
             default: return 0;
         }
@@ -231,7 +246,7 @@ public:
     static VSRTL_VT_U do_do_read_ctrl(RVInstr opc) {
         switch(opc) {
             case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU:
-            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD:
+            case RVInstr::LHU: case RVInstr::LWU: case RVInstr::LD: case RVInstr::FLW:
                 return 1;
             default: return 0;
         }
@@ -241,6 +256,7 @@ public:
 public:
   Control(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
+    setDescription("RISC-V Control Unit");
     comp_ctrl << [this] { return do_comp_ctrl(opcode.eValue<RVInstr>()); };
     do_branch << [this] { return do_branch_ctrl(opcode.eValue<RVInstr>()); };
     do_jump << [this] { return do_jump_ctrl(opcode.eValue<RVInstr>()); };
@@ -273,6 +289,250 @@ public:
   OUTPUTPORT_ENUM(alu_op1_ctrl, AluSrc1);
   OUTPUTPORT_ENUM(alu_op2_ctrl, AluSrc2);
   OUTPUTPORT_ENUM(alu_ctrl, ALUOp);
+};
+
+// Float Controller
+class ControlF : public Control {
+public:
+  /* clang-format off */
+    static bool isFloatCSR(VSRTL_VT_U csr) {
+        switch(static_cast<RVISA::RV_CSRInfo::CSR>(csr)) {
+            case RVISA::RV_CSRInfo::CSR::FFLAGS:
+            case RVISA::RV_CSRInfo::CSR::FRM:
+            case RVISA::RV_CSRInfo::CSR::FCSR:
+                return true;
+            
+            default:
+                return false;
+        }
+    }
+
+    static RegFileSrc do_regF_do_write_ctrl(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::I:
+            case RVISA::Extension::Id::M:
+            case RVISA::Extension::Id::C:
+            case RVISA::Extension::Id::Zicsr:
+                return RegFileSrc::INTEGER;
+            
+            case RVISA::Extension::Id::F:
+                switch(opc) {
+                    case RVInstr::FLW:
+
+                    case RVInstr::FMADD_S:  case RVInstr::FMSUB_S:
+                    case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
+
+                    case RVInstr::FADD_S: case RVInstr::FSUB_S:  case RVInstr::FMUL_S:
+                    case RVInstr::FDIV_S: case RVInstr::FSQRT_S:
+                    case RVInstr::FMIN_S: case RVInstr::FMAX_S:
+
+                    case RVInstr::FSGNJ_S: case RVInstr::FSGNJN_S: case RVInstr::FSGNJX_S:
+
+                    case RVInstr::FCVT_S_W: case RVInstr::FCVT_S_WU:
+                    case RVInstr::FCVT_S_L: case RVInstr::FCVT_S_LU:
+
+                    case RVInstr::FMV_W_X:
+                        return RegFileSrc::FLOAT;
+                    
+                    case RVInstr::FSW:
+                    
+                    case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+                    case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+
+                    case RVInstr::FMV_X_W:
+                    
+                    case RVInstr::FEQ_S: case RVInstr::FLT_S: case RVInstr::FLE_S:
+                    
+                    case RVInstr::FCLASS_S:
+
+                    default:
+                        return RegFileSrc::INTEGER;
+                }
+
+            default:
+                return RegFileSrc::INTEGER;
+        }
+    }
+    
+    static RegFileSrc do_alu_fpu_src(RVInstr opc, VSRTL_VT_U csr) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::I:
+            case RVISA::Extension::Id::M:
+            case RVISA::Extension::Id::C:
+                return RegFileSrc::INTEGER;
+            
+            case RVISA::Extension::Id::Zicsr:
+                return isFloatCSR(csr) ? RegFileSrc::FLOAT : RegFileSrc::INTEGER;
+            
+            case RVISA::Extension::Id::F:
+                switch(opc) {
+                    case RVInstr::FLW:
+                    case RVInstr::FSW:
+                        return RegFileSrc::INTEGER;
+                    default:
+                        return RegFileSrc::FLOAT;
+                }
+
+            default:
+                return RegFileSrc::INTEGER;
+        }
+    }
+    
+    static ImmRegFileSrc do_reg1_do_read_src(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::I:
+            case RVISA::Extension::Id::M:
+            case RVISA::Extension::Id::C:
+                return ImmRegFileSrc::INTEGER;
+
+            case RVISA::Extension::Id::Zicsr:
+                switch(opc) {
+                    case RVInstr::CSRRWI: case RVInstr::CSRRSI: case RVInstr::CSRRCI:
+                        return ImmRegFileSrc::IMMEDIATE;
+                    
+                    default:
+                        return ImmRegFileSrc::INTEGER;
+                }
+            
+            
+            case RVISA::Extension::Id::F:
+                switch(opc) {
+                    case RVInstr::FCVT_S_W: case RVInstr::FCVT_S_WU:
+                    case RVInstr::FCVT_S_L: case RVInstr::FCVT_S_LU:
+
+                    case RVInstr::FMV_W_X:
+                        return ImmRegFileSrc::INTEGER;
+
+                    case RVInstr::FMADD_S:  case RVInstr::FMSUB_S:
+                    case RVInstr::FNMSUB_S: case RVInstr::FNMADD_S:
+
+                    case RVInstr::FADD_S: case RVInstr::FSUB_S:  case RVInstr::FMUL_S:
+                    case RVInstr::FDIV_S: case RVInstr::FSQRT_S: case RVInstr::FMIN_S:
+                    case RVInstr::FMAX_S:
+
+                    case RVInstr::FSGNJ_S: case RVInstr::FSGNJN_S: case RVInstr::FSGNJX_S:
+
+                    case RVInstr::FCVT_W_S: case RVInstr::FCVT_WU_S:
+                    case RVInstr::FCVT_L_S: case RVInstr::FCVT_LU_S:
+
+                    case RVInstr::FMV_X_W:
+
+                    case RVInstr::FEQ_S: case RVInstr::FLT_S: case RVInstr::FLE_S:
+
+                    case RVInstr::FCLASS_S:
+                        return ImmRegFileSrc::FLOAT;
+
+                    default:
+                        // default to integer regfile for non-float instructions
+                        return ImmRegFileSrc::INTEGER;
+                }
+            
+            default:
+                return ImmRegFileSrc::INTEGER;
+        }
+    }
+    
+    static RegFileSrc do_reg2_do_read_src(RVInstr opc) {
+        switch(getExtensionType(opc)) {
+            case RVISA::Extension::Id::F:
+                return RegFileSrc::FLOAT;
+            
+            default:
+                return RegFileSrc::INTEGER;
+        }
+    }
+    
+    static FPUOp do_fpu_ctrl(RVInstr opc, VSRTL_VT_U csr) {
+        switch(opc) {
+            case RVInstr::FADD_S:    return FPUOp::FADD_S;
+            case RVInstr::FSUB_S:    return FPUOp::FSUB_S;
+            case RVInstr::FMUL_S:    return FPUOp::FMUL_S;
+            case RVInstr::FDIV_S:    return FPUOp::FDIV_S;
+            case RVInstr::FSQRT_S:   return FPUOp::FSQRT_S;
+            case RVInstr::FMIN_S:    return FPUOp::FMIN_S;
+            case RVInstr::FMAX_S:    return FPUOp::FMAX_S;
+
+            case RVInstr::FSGNJ_S:   return FPUOp::FSGNJ_S;
+            case RVInstr::FSGNJN_S:  return FPUOp::FSGNJN_S;
+            case RVInstr::FSGNJX_S:  return FPUOp::FSGNJX_S;
+
+            case RVInstr::FCVT_W_S:  return FPUOp::FCVT_W_S;
+            case RVInstr::FCVT_WU_S: return FPUOp::FCVT_WU_S;
+            case RVInstr::FCVT_S_W:  return FPUOp::FCVT_S_W;
+            case RVInstr::FCVT_S_WU: return FPUOp::FCVT_S_WU;
+            case RVInstr::FCVT_L_S:  return FPUOp::FCVT_L_S;
+            case RVInstr::FCVT_LU_S: return FPUOp::FCVT_LU_S;
+            case RVInstr::FCVT_S_L:  return FPUOp::FCVT_S_L;
+            case RVInstr::FCVT_S_LU: return FPUOp::FCVT_S_LU;
+
+            case RVInstr::FMV_X_W:   return FPUOp::FMV_X_W;
+            case RVInstr::FMV_W_X:   return FPUOp::FMV_W_X;
+
+            case RVInstr::FEQ_S:     return FPUOp::EQ;
+            case RVInstr::FLT_S:     return FPUOp::LT;
+            case RVInstr::FLE_S:     return FPUOp::LE;
+
+            case RVInstr::FCLASS_S:  return FPUOp::FCLASS_S;
+
+            case RVInstr::FMADD_S:   return FPUOp::FMADD_S;
+            case RVInstr::FMSUB_S:   return FPUOp::FMSUB_S;
+            case RVInstr::FNMSUB_S:  return FPUOp::FNMSUB_S;
+            case RVInstr::FNMADD_S:  return FPUOp::FNMADD_S;
+
+            // handle Zicsr instructions that modify float CSRs
+            case RVInstr::CSRRW:  case RVInstr::CSRRWI: 
+                switch(static_cast<RVISA::RV_CSRInfo::CSR>(csr)) {
+                    case RVISA::RV_CSRInfo::CSR::FFLAGS: return FPUOp::CSRW_FFLAGS;
+                    case RVISA::RV_CSRInfo::CSR::FRM:    return FPUOp::CSRW_FRM;
+                    case RVISA::RV_CSRInfo::CSR::FCSR:   return FPUOp::CSRW_FCSR;
+                    default: return FPUOp::NOP;
+                }
+                
+            case RVInstr::CSRRS:  case RVInstr::CSRRSI: 
+                switch(static_cast<RVISA::RV_CSRInfo::CSR>(csr)) {
+                    case RVISA::RV_CSRInfo::CSR::FFLAGS: return FPUOp::CSRS_FFLAGS;
+                    case RVISA::RV_CSRInfo::CSR::FRM:    return FPUOp::CSRS_FRM;
+                    case RVISA::RV_CSRInfo::CSR::FCSR:   return FPUOp::CSRS_FCSR;
+                    default: return FPUOp::NOP;
+                }
+                
+            case RVInstr::CSRRC: case RVInstr::CSRRCI:
+                switch(static_cast<RVISA::RV_CSRInfo::CSR>(csr)) {
+                    case RVISA::RV_CSRInfo::CSR::FFLAGS: return FPUOp::CSRC_FFLAGS;
+                    case RVISA::RV_CSRInfo::CSR::FRM:    return FPUOp::CSRC_FRM;
+                    case RVISA::RV_CSRInfo::CSR::FCSR:   return FPUOp::CSRC_FCSR;
+                    default: return FPUOp::NOP;
+                }
+
+            default: return FPUOp::NOP;
+        }
+    }
+  /* clang-format on */
+
+  ControlF(const std::string &name, SimComponent *parent)
+      : Control(name, parent) {
+    regF_do_write_ctrl <<
+        [this] { return do_regF_do_write_ctrl(opcode.eValue<RVInstr>()); };
+    alu_fpu_src << [this] {
+      return do_alu_fpu_src(opcode.eValue<RVInstr>(), csr_reg_idx.uValue());
+    };
+    reg1_do_read_src <<
+        [this] { return do_reg1_do_read_src(opcode.eValue<RVInstr>()); };
+    reg2_do_read_src <<
+        [this] { return do_reg2_do_read_src(opcode.eValue<RVInstr>()); };
+    fpu_ctrl << [this] {
+      return do_fpu_ctrl(opcode.eValue<RVInstr>(), csr_reg_idx.uValue());
+    };
+  }
+
+  // INPUTPORT_ENUM(csr_reg_idx, RVISA::RV_CSRInfo::CSR);
+  INPUTPORT(csr_reg_idx, c_RVCsrRegsBits);
+
+  OUTPUTPORT_ENUM(fpu_ctrl, FPUOp);
+  OUTPUTPORT_ENUM(regF_do_write_ctrl, RegFileSrc);
+  OUTPUTPORT_ENUM(alu_fpu_src, RegFileSrc);
+  OUTPUTPORT_ENUM(reg1_do_read_src, ImmRegFileSrc);
+  OUTPUTPORT_ENUM(reg2_do_read_src, RegFileSrc);
 };
 
 } // namespace core

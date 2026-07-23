@@ -3,6 +3,7 @@
 
 namespace Ripes {
 namespace Assembler {
+using namespace Ripes::SoftFloat;
 
 static QString numTokensError(unsigned expected, const TokenizedSrcLine &line) {
   QString err = QString::fromStdString(
@@ -38,6 +39,8 @@ DirectiveVec gnuDirectives() {
   add_directive(directives, equDirective());
   add_directive(directives, alignDirective());
 
+  add_directive(directives, floatDirective());
+
   add_directive(directives, dataDirective());
   add_directive(directives, textDirective());
   add_directive(directives, bssDirective());
@@ -54,25 +57,42 @@ DirectiveVec gnuDirectives() {
     return {*err};                                                             \
   res = std::get<ExprEvalVT>(exprRes##res);
 
+#define getIntegerImmediateErroring(token, res, location)                      \
+  ExprEvalVT val##res;                                                         \
+  getImmediateErroring(token, val##res, location);                             \
+  if (auto *intval = std::get_if<ExprEvalIntType>(&val##res)) {                \
+    res = *intval;                                                             \
+  } else {                                                                     \
+    if (auto *floatval = std::get_if<ExprEvalFloatType>(&val##res)) {          \
+      return {                                                                 \
+          Error(location, QString("'%1' is not an integer")                    \
+                              .arg(ExprEvalFloatType::to<float>(*floatval)))}; \
+    } else {                                                                   \
+      return {Error(location, QString("token is not an integer or float"))};   \
+    }                                                                          \
+  }
+
 template <size_t size>
 std::optional<Error> assembleData(const AssemblerBase *assembler,
                                   const TokenizedSrcLine &line,
                                   QByteArray &byteArray) {
   static_assert(size >= 1, "");
   for (const auto &token : line.tokens) {
-    int64_t val;
-    static_assert(sizeof(val) >= size,
+    static_assert(sizeof(ExprEvalIntType) >= size,
                   "Requested data width greater than what is representable");
-    getImmediateErroring(token, val, line);
 
-    if (isUInt<size * 8>(val) || isInt<size * 8>(val)) {
+    ExprEvalIntType valInt;
+    getIntegerImmediateErroring(token, valInt, line);
+
+    if (isUInt<size * 8>(valInt) || isInt<size * 8>(valInt)) {
       for (size_t i = 0; i < size; ++i) {
-        byteArray.append(val & 0xff);
-        val >>= 8;
+        byteArray.append(valInt & 0xff);
+        valInt >>= 8;
       }
     } else {
       return {Error(
-          line, QString("'%1' does not fit in %2 bytes").arg(val).arg(size))};
+          line,
+          QString("'%1' does not fit in %2 bytes").arg(valInt).arg(size))};
     }
   }
   return {};
@@ -91,6 +111,33 @@ Result<QByteArray> dataFunctor(const AssemblerBase *assembler,
   } else {
     return {bytes};
   }
+}
+
+Result<QByteArray> floatDataFunctor(const AssemblerBase *assembler,
+                                    const DirectiveArg &arg) {
+  if (arg.line.tokens.length() < 1) {
+    return {Error(arg.line, "Invalid number of arguments (expected >1)")};
+  }
+  QByteArray bytes;
+
+  for (const auto &token : arg.line.tokens) {
+    ExprEvalVT val;
+    getImmediateErroring(token, val, arg.line);
+
+    ExprEvalFloatType fval;
+
+    if (auto *intval = std::get_if<ExprEvalIntType>(&val)) {
+      fval = ExprEvalFloatType::from<int64_t>(*intval);
+    } else if (auto *floatval = std::get_if<ExprEvalFloatType>(&val)) {
+      fval = *floatval;
+    } else {
+      return {Error(arg.line, QString("Token is not convertible to float32"))};
+    }
+
+    bytes.append(reinterpret_cast<const char *>(&(fval.word)), 4);
+  }
+
+  return bytes;
 }
 
 Result<QByteArray> stringFunctor(const AssemblerBase *,
@@ -123,6 +170,8 @@ Directive fourByteDirective() { return Directive(".4byte", &dataFunctor<4>); }
 Directive longDirective() { return Directive(".long", &dataFunctor<4>); }
 
 Directive stringDirective() { return Directive(".string", &stringFunctor); }
+
+Directive floatDirective() { return Directive(".float", &floatDataFunctor); }
 
 /**
  * @brief dummyDirective
@@ -167,8 +216,8 @@ Directive zeroDirective() {
     if (arg.line.tokens.length() != 1) {
       return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
     }
-    int64_t value;
-    getImmediateErroring(arg.line.tokens.at(0), value, arg.line);
+    ExprEvalIntType value;
+    getIntegerImmediateErroring(arg.line.tokens.at(0), value, arg.line);
     QByteArray bytes;
     bytes.fill(0x0, value);
     return {bytes};
@@ -182,8 +231,8 @@ Directive equDirective() {
     if (arg.line.tokens.length() != 2) {
       return Result<QByteArray>{Error(arg.line, numTokensError(2, arg.line))};
     }
-    int64_t value;
-    getImmediateErroring(arg.line.tokens.at(1), value, arg.line);
+    ExprEvalIntType value;
+    getIntegerImmediateErroring(arg.line.tokens.at(1), value, arg.line);
 
     auto err = assembler->m_symbolMap.addSymbol(arg.line, arg.line.tokens.at(0),
                                                 value);
@@ -205,16 +254,16 @@ Directive alignDirective() {
           arg.line,
           "Invalid number of arguments (expected at least 1, at most 3)")};
     }
-    int boundary, fill, max;
+    ExprEvalIntType boundary, fill, max;
     fill = max = 0;
     bool hasMax = false;
 
-    getImmediateErroring(arg.line.tokens.at(0), boundary, arg.line);
+    getIntegerImmediateErroring(arg.line.tokens.at(0), boundary, arg.line);
     if (arg.line.tokens.size() > 1) {
-      getImmediateErroring(arg.line.tokens.at(1), fill, arg.line);
+      getIntegerImmediateErroring(arg.line.tokens.at(1), fill, arg.line);
     }
     if (arg.line.tokens.size() > 2) {
-      getImmediateErroring(arg.line.tokens.at(2), max, arg.line);
+      getIntegerImmediateErroring(arg.line.tokens.at(2), max, arg.line);
       hasMax = true;
     }
 

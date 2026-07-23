@@ -12,6 +12,7 @@ struct CLIModeOptions {
   QString src;
   SourceType srcType;
   ProcessorID proc;
+  VariationID variation;
   QStringList isaExtensions;
   bool verbose = false;
   QString outputFile = "";

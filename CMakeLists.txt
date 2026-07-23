@@ -13,7 +13,7 @@ if(CCACHE_PROGRAM)
 endif()
 
 project(Ripes
-        LANGUAGES CXX
+        LANGUAGES C CXX
         DESCRIPTION "A graphical processor simulator and assembly editor for the RISC-V ISA"
         HOMEPAGE_URL "https://github.com/mortbopet/Ripes"
 )

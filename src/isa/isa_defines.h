@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <iostream>
 #include <map>
 #include <set>
@@ -28,44 +29,66 @@ inline int64_t getImmediate(const QString &string, bool &canConvert,
                             ImmConvInfo *convInfo = nullptr) {
   QString upperString = string.toUpper();
   QString trimmed;
+  int64_t immediate;
   canConvert = false;
-  int64_t immediate = upperString.toLongLong(&canConvert, 10);
-  int64_t sign = 1;
-  if (!canConvert) {
-    // Could not convert directly to integer - try hex or bin. Here, extra
-    // care is taken to account for a potential sign, and include this is the
-    // range validation
-    if (upperString.size() > 0 &&
-        (upperString.at(0) == '-' || upperString.at(0) == '+')) {
-      sign = upperString.at(0) == '-' ? -1 : 1;
-      upperString.remove(0, 1);
-    }
-    if (upperString.startsWith(QLatin1String("0X"))) {
-      trimmed = upperString.remove("0X");
-      if (convInfo) {
-        convInfo->isUnsigned = true;
-        convInfo->is32bit = trimmed.size() <= 8;
-        convInfo->radix = Radix::Hex;
-      }
-      immediate = trimmed.toULongLong(&canConvert, 16);
-    } else if (upperString.startsWith(QLatin1String("0B"))) {
-      trimmed = upperString.remove("0B");
-      if (convInfo) {
-        convInfo->isUnsigned = true;
-        convInfo->is32bit = trimmed.size() <= 32;
-        convInfo->radix = Radix::Binary;
-      }
-      immediate = trimmed.toULongLong(&canConvert, 2);
-    } else {
-      canConvert = false;
-    }
-  } else {
+
+  // try converting to integer
+  immediate = upperString.toLongLong(&canConvert, 10);
+  if (canConvert) {
     if (convInfo) {
       convInfo->radix = Radix::Signed;
     }
+    return immediate;
   }
 
-  return sign * immediate;
+  // try converting to float
+  float immFloat = upperString.toFloat(&canConvert);
+  if (canConvert) {
+    if (convInfo) {
+      convInfo->radix = Radix::Float;
+    }
+    return std::bit_cast<uint32_t>(immFloat);
+  }
+
+  // Could not convert directly to integer - try hex or bin. Here, extra
+  // care is taken to account for a potential sign, and include this is the
+  // range validation
+
+  // detect & parse sign
+  int64_t sign = 1;
+  if (upperString.size() > 0 &&
+      (upperString.at(0) == '-' || upperString.at(0) == '+')) {
+    sign = upperString.at(0) == '-' ? -1 : 1;
+    upperString.remove(0, 1);
+  }
+
+  // try converting from hex
+  if (upperString.startsWith(QLatin1String("0X"))) {
+    trimmed = upperString.remove("0X");
+    if (convInfo) {
+      convInfo->isUnsigned = true;
+      convInfo->is32bit = trimmed.size() <= 8;
+      convInfo->radix = Radix::Hex;
+    }
+    immediate = trimmed.toULongLong(&canConvert, 16);
+    return sign * immediate;
+  }
+
+  // try converting from binary
+  if (upperString.startsWith(QLatin1String("0B"))) {
+    trimmed = upperString.remove("0B");
+    if (convInfo) {
+      convInfo->isUnsigned = true;
+      convInfo->is32bit = trimmed.size() <= 32;
+      convInfo->radix = Radix::Binary;
+    }
+    immediate = trimmed.toULongLong(&canConvert, 2);
+    return sign * immediate;
+  }
+
+  // no conversion found
+  canConvert = false;
+  return 0;
 }
 
 inline int64_t getImmediateSext32(const QString &string, bool &success,
@@ -177,6 +200,36 @@ struct TokenizedSrcLine : public Location {
   LineTokens tokens;
   QString directive;
   AInt programAddress = -1;
+
+  /* Simple debugging helper string */
+  QString toDebugString() const {
+    QString str;
+    QTextStream stream(&str);
+
+    stream << "line: " << this->toString() << "\n";
+    stream << "Symbols: \n";
+    for (const Symbol &s : symbols) {
+      stream << "   Symbol: " << s.v << " type: " << s.type << "\n";
+    }
+
+    stream << "Tokens: \n";
+    for (const Token &t : tokens) {
+      stream << "   Token: " << t;
+
+      if (t.hasRelocation())
+        stream << " reloc: " << t.relocation();
+      else
+        stream << " no reloc";
+
+      stream << "\n";
+    }
+
+    stream << "Directive: " << directive << "\n";
+    stream << "PC: " << programAddress << "\n";
+    stream << "\n";
+
+    return str;
+  }
 };
 
 /// An error is defined as a reference to a source line index + an error string

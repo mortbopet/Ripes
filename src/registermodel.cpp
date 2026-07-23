@@ -12,7 +12,13 @@ using namespace vsrtl;
 
 RegisterModel::RegisterModel(const std::string_view &rft, QObject *parent)
     : QAbstractTableModel(parent), m_rft(rft) {
-  m_regBytes = ProcessorHandler::getProcessor()->implementsISA()->bytes();
+  auto optRegInfo = ProcessorHandler::currentISA()->regInfo(rft);
+
+  if (optRegInfo.has_value()) {
+    m_regBytes = optRegInfo.value()->bytes();
+  } else {
+    m_regBytes = ProcessorHandler::getProcessor()->implementsISA()->bytes();
+  }
 }
 
 std::vector<VInt> RegisterModel::gatherRegisterValues() {

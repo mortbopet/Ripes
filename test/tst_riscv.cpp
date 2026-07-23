@@ -10,7 +10,8 @@
 #include "systemio.h"
 
 #if !defined(RISCV32_TEST_DIR) || !defined(RISCV64_TEST_DIR) ||                \
-    !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR)
+    !defined(RISCV32_C_TEST_DIR) || !defined(RISCV64_C_TEST_DIR) ||            \
+    !defined(RISCV_F_TEST_DIR) || !defined(RISCV_D_TEST_DIR)
 static_assert(false, "RISCV test directiories must be defined");
 #endif
 
@@ -41,7 +42,7 @@ static constexpr unsigned s_ecallopreg = 17; // a7
 static constexpr unsigned s_maxCycles = 10000;
 
 // Tests which contains instructions or assembler directives not yet supported
-const auto s_excludedTests = {"f", "ldst", "move", "recoding",
+const auto s_excludedTests = {"ldst", "move", "recoding",
                               /* fails on CI, unknown as of know */ "memory"};
 
 class tst_RISCV : public QObject {
@@ -55,8 +56,8 @@ private:
 
   QString m_currentTest;
 
-  void runTests(const ProcessorID &id, const QStringList &extensions,
-                const QStringList &testdirs);
+  void runTests(ProcessorID proc, VariationID variation,
+                const RV_ExtensionSet &extensions, const QStringList &testDirs);
 
   void trapHandler();
 
@@ -67,43 +68,63 @@ private:
 private slots:
 
   void testRV64_SingleCycle() {
-    runTests(ProcessorID::RV64_SS, {"M", "C"},
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV64I,
+             {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
+  }
+  void testRV64_SingleCycleFloat() {
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV64F,
+             {Extension::M, Extension::C, Extension::F},
+             {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR, RISCV_F_TEST_DIR});
   }
   void testRV64_5StagePipeline() {
-    runTests(ProcessorID::RV64_5S, {"M", "C"},
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV64I_FU_HU,
+             {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
-  void testRV64_5StagePipelineNOFW() {
-    runTests(ProcessorID::RV64_5S_NO_FW, {"M", "C"},
+  void testRV64_5StagePipelineHU() {
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV64I_HU,
+             {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
   void testRV64_6SDual() {
-    runTests(ProcessorID::RV64_6S_DUAL, {"M", "C"},
+    runTests(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV64I,
+             {Extension::M, Extension::C},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
 
   void testRV32_SingleCycle() {
-    runTests(ProcessorID::RV32_SS, {"M", "C"},
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV32I,
+             {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
+  }
+  void testRV32_SingleCycleFloat() {
+    runTests(ProcessorID::RV_SS, Variations::RV_SS::RV32F,
+             {Extension::M, Extension::C, Extension::F},
+             {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR, RISCV_F_TEST_DIR});
   }
   void testRV32_5StagePipeline() {
-    runTests(ProcessorID::RV32_5S, {"M", "C"},
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV32I_FU_HU,
+             {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
-  void testRV32_5StagePipelineNOFW() {
-    runTests(ProcessorID::RV32_5S_NO_FW, {"M", "C"},
+  void testRV32_5StagePipelineHU() {
+    runTests(ProcessorID::RV_5S, Variations::RV_5S::RV32I_HU,
+             {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_6SDual() {
-    runTests(ProcessorID::RV32_6S_DUAL, {"M", "C"},
+    runTests(ProcessorID::RV_6S_DUAL, Variations::RV_6S_DUAL::RV32I,
+             {Extension::M, Extension::C},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_5MultiCycle2Memory() {
-    runTests(ProcessorID::RV32_5MC_2M, {"M"}, {RISCV32_TEST_DIR});
+    runTests(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_2M, {Extension::M},
+             {RISCV32_TEST_DIR});
   }
   void testRV32_5MultiCycle1Memory() {
-    runTests(ProcessorID::RV32_5MC_1M, {"M"}, {RISCV32_TEST_DIR});
+    runTests(ProcessorID::RV_5MC, Variations::RV_5MC::RV32I_1M, {Extension::M},
+             {RISCV32_TEST_DIR});
   }
 };
 
@@ -190,12 +211,13 @@ QString tst_RISCV::executeSimulator() {
   return m_err;
 }
 
-void tst_RISCV::runTests(const ProcessorID &id, const QStringList &extensions,
+void tst_RISCV::runTests(ProcessorID proc, VariationID variation,
+                         const RV_ExtensionSet &extensions,
                          const QStringList &testDirs) {
   for (const auto &testDir : testDirs) {
     const auto dir = QDir(testDir);
     const auto testFiles = dir.entryList({"*.s"});
-    ProcessorHandler::selectProcessor(id, extensions);
+    ProcessorHandler::selectProcessor(proc, variation, extensions);
 
     for (const auto &test : testFiles) {
       auto testPath = testDir + QString(QDir::separator()) + test;

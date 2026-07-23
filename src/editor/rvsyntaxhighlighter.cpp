@@ -12,7 +12,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
 
   // General registers
   registerFormat.setForeground(QColor{0x80, 0x00, 0x00});
-  rule.pattern = QRegularExpression("\\b[(a|s|t|x)][0-9]{1,2}");
+  rule.pattern = QRegularExpression("\\b[(a|s|t|x|f)][0-9]{1,2}");
   rule.format = registerFormat;
   m_highlightingRules.append(rule);
 
@@ -23,7 +23,12 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
                    << "\\bsp\\b"
                    << "\\bgp\\b"
                    << "\\btp\\b"
-                   << "\\bfp\\b";
+                   << "\\bfp\\b"
+
+                   // Status registers
+                   << "\\bfrm\\b"
+                   << "\\bfflags\\b"
+                   << "\\bfcsr\\b";
   for (const auto &pattern : std::as_const(registerPatterns)) {
     rule.pattern = QRegularExpression(pattern);
     rule.format = registerFormat;
@@ -54,6 +59,22 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
   // Prefixed immediates (0x, 0b)
   rule.pattern =
       QRegularExpression("([-+]?0[xX][0-9a-fA-F]+|[-+]?0[bB][0-1]+)");
+  m_highlightingRules.append(rule);
+
+  // float immediates
+  rule.pattern = QRegularExpression(
+      R"(\b[+-]?(?!0[xb])((\d+\.\d*)|(\.\d+)|(\d+))(e[+-]?\d+)?\b)",
+      QRegularExpression::CaseInsensitiveOption);
+  m_highlightingRules.append(rule);
+
+  // float rounding mode constants
+  rule.pattern = QRegularExpression(R"(\b(rne|rtz|rdn|rup|rmm|dyn)\b)",
+                                    QRegularExpression::CaseInsensitiveOption);
+  m_highlightingRules.append(rule);
+
+  // Special float immediates: nan, inf
+  rule.pattern = QRegularExpression(R"(\b(nan|inf)\b)",
+                                    QRegularExpression::CaseInsensitiveOption);
   m_highlightingRules.append(rule);
 
   // Strings

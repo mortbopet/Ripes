@@ -2,7 +2,12 @@
 
 #include <QColor>
 #include <QFont>
+#include <QMetaType>
 #include <QSettings>
+
+// define the metatype for a list of uints, used for storing lists of extension
+// IDs in settings
+Q_DECLARE_METATYPE(QList<uint>)
 
 namespace Ripes {
 
@@ -46,6 +51,7 @@ namespace Ripes {
 #define RIPES_SETTING_SETTING_TAB ("settings_tab")
 #define RIPES_SETTING_VIEW_ZOOM ("view_zoom")
 #define RIPES_SETTING_PROCESSOR_ID ("processor_id")
+#define RIPES_SETTING_PROCESSOR_VARIATION_ID ("processor_variation_id")
 #define RIPES_SETTING_PROCESSOR_EXTENSIONS ("processor_extensions")
 #define RIPES_SETTING_PROCESSOR_LAYOUT_ID ("processor_layout_id")
 #define RIPES_SETTING_FOLLOW_EXEC ("follow_execution")

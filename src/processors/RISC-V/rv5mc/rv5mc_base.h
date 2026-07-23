@@ -20,6 +20,7 @@
 namespace vsrtl {
 namespace core {
 using namespace Ripes;
+using namespace Ripes::RVISA;
 
 template <typename XLEN_T>
 class RV5MCBase : public RipesVSRTLProcessor {
@@ -43,7 +44,7 @@ public:
     return static_cast<Stage>(i);
   }
 
-  RV5MCBase(const QStringList &extensions)
+  RV5MCBase(const ExtensionSetInfo &extensions)
       : RipesVSRTLProcessor("Multicycle RISC-V Processor") {
     m_enabledISA = ISAInfoRegistry::getISA<XLenToRVISA<XLEN>()>(extensions);
     decode->setISA(m_enabledISA);
@@ -134,7 +135,7 @@ public:
   }
 
   // Design subcomponents
-  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, false>));
+  SUBCOMPONENT(registerFile, TYPE(RegisterFile<XLEN, XLEN, false>));
   SUBCOMPONENT(alu, TYPE(RVMCALU<XLEN>));
   SUBCOMPONENT(control, RVMCControl);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
@@ -281,26 +282,24 @@ public:
     m_finished = false;
   }
 
-  static ProcessorISAInfo supportsISA() {
-    return ProcessorISAInfo{
-        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(QStringList()),
-        {"M", "C"},
-        {"M"}};
+  static const ProcessorISAInfo &supportsISA() {
+    static ProcessorISAInfo procInfo{
+        std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(),
+        std::make_shared<RV_ExtensionSet>(Extension::M, Extension::C),
+        std::make_shared<RV_ExtensionSet>(Extension::M)};
+    return procInfo;
   }
   std::shared_ptr<ISAInfoBase> implementsISA() const override {
     return m_enabledISA;
   }
   std::shared_ptr<const ISAInfoBase> fullISA() const override {
-    return RVISA::fullISA<XLEN>();
+    return std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(
+        *(supportsISA().supportedExtensions));
   }
 
   const std::set<std::string_view> registerFiles() const override {
     std::set<std::string_view> rfs;
     rfs.insert(RVISA::GPR);
-
-    if (implementsISA()->extensionEnabled("F")) {
-      rfs.insert(RVISA::FPR);
-    }
     return rfs;
   }
 

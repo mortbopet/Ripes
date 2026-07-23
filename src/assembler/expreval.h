@@ -2,6 +2,7 @@
 
 #include "assembler_defines.h"
 #include "isa/symbolmap.h"
+#include "sFloat.h"
 #include <QRegularExpression>
 #include <variant>
 
@@ -11,7 +12,12 @@ namespace Assembler {
 extern const QRegularExpression s_exprOperatorsRegex;
 extern const QString s_exprOperators;
 extern const QString s_exprTokens;
-using ExprEvalVT = int64_t; // Expression evaluation value type
+
+using ExprEvalIntType = int64_t;
+using ExprEvalFloatType = Ripes::SoftFloat::Float32_t;
+
+// Expression evaluation value type
+using ExprEvalVT = std::variant<ExprEvalIntType, ExprEvalFloatType>;
 using ExprEvalRes = Result<ExprEvalVT>;
 
 /**

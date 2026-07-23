@@ -18,7 +18,7 @@ class RV5MC1M : public RV5MCBase<XLEN_T> {
   using MemAddrSrc = rv5mc::MemAddrSrc;
 
 public:
-  RV5MC1M(const QStringList &extensions) : RV5MCBase<XLEN_T>(extensions) {
+  RV5MC1M(const ExtensionSetInfo &extensions) : RV5MCBase<XLEN_T>(extensions) {
     // memory
     this->pc_reg->out >> this->mem_addr_src->get(MemAddrSrc::PC);
     this->ALU_out->out >> this->mem_addr_src->get(MemAddrSrc::ALUOUT);

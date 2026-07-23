@@ -18,29 +18,22 @@ public:
     setDescription("Immediate value decoder");
     imm << [this] {
       switch (opcode.eValue<RVInstr>()) {
+      // U-Type
       case RVInstr::LUI:
       case RVInstr::AUIPC:
         return VT_U(signextend<32>(instr.uValue() & 0xfffff000));
+
+      // J-Type
       case RVInstr::JAL: {
         const auto fields =
             RVInstrParser::getParser()->decodeJ32Instr(instr.uValue());
         return VT_U(signextend<21>(fields[0] << 20 | fields[1] << 1 |
                                    fields[2] << 11 | fields[3] << 12));
       }
-      case RVInstr::JALR: {
-        return VT_U(signextend<12>((instr.uValue() >> 20)));
-      }
-      case RVInstr::BEQ:
-      case RVInstr::BNE:
-      case RVInstr::BLT:
-      case RVInstr::BGE:
-      case RVInstr::BLTU:
-      case RVInstr::BGEU: {
-        const auto fields =
-            RVInstrParser::getParser()->decodeB32Instr(instr.uValue());
-        return VT_U(signextend<13>((fields[0] << 12) | (fields[1] << 5) |
-                                   (fields[5] << 1) | (fields[6] << 11)));
-      }
+
+      // I-Type (full)
+      case RVInstr::FLW:
+      case RVInstr::JALR:
       case RVInstr::LB:
       case RVInstr::LH:
       case RVInstr::LW:
@@ -54,8 +47,11 @@ public:
       case RVInstr::XORI:
       case RVInstr::ORI:
       case RVInstr::ANDI:
-      case RVInstr::ADDIW:
+      case RVInstr::ADDIW: {
         return VT_U(signextend<12>((instr.uValue() >> 20)));
+      }
+
+      // I-Type (32-partial)
       case RVInstr::SLLI:
       case RVInstr::SRLI:
       case RVInstr::SRAI: {
@@ -65,10 +61,29 @@ public:
           return VT_U((instr.uValue() >> 20) & 0b111111);
         }
       }
+
+      // I-Type (64-partial)
       case RVInstr::SLLIW:
       case RVInstr::SRLIW:
-      case RVInstr::SRAIW:
+      case RVInstr::SRAIW: {
         return VT_U((instr.uValue() >> 20) & 0b11111);
+      }
+
+      // B-Type
+      case RVInstr::BEQ:
+      case RVInstr::BNE:
+      case RVInstr::BLT:
+      case RVInstr::BGE:
+      case RVInstr::BLTU:
+      case RVInstr::BGEU: {
+        const auto fields =
+            RVInstrParser::getParser()->decodeB32Instr(instr.uValue());
+        return VT_U(signextend<13>((fields[0] << 12) | (fields[1] << 5) |
+                                   (fields[5] << 1) | (fields[6] << 11)));
+      }
+
+      // S-Type
+      case RVInstr::FSW:
       case RVInstr::SB:
       case RVInstr::SH:
       case RVInstr::SW:
@@ -76,6 +91,13 @@ public:
         return VT_U(signextend<12>(((instr.uValue() & 0xfe000000)) >> 20) |
                     ((instr.uValue() & 0xf80) >> 7));
       }
+
+      // System Type
+      case RVInstr::CSRRWI:
+      case RVInstr::CSRRSI:
+      case RVInstr::CSRRCI:
+        return VT_U((instr.uValue() >> 15) & 0b11111);
+
       default:
         return VT_U(0xDEADBEEF);
       }

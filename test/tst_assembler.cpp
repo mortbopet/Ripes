@@ -67,7 +67,7 @@ private:
   void testAssemble(const QStringList &program, Expect expect,
                     QByteArray expectData = {}) {
     QString err;
-    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>();
     auto assembler = ISA_Assembler<ISA::RV32I>(isa);
     auto res = assembler.assemble(program);
     if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
@@ -102,6 +102,8 @@ private:
 
 struct RVTestTuple {
   ProcessorID id;
+  VariationID variation;
+  RV_ExtensionSet extensions;
   QString testDir;
 };
 
@@ -116,9 +118,14 @@ QByteArray toByteArray(int64_t v, size_t size) {
 
 void tst_Assembler::tst_riscv() {
   // Tests all of the available RISC-V assembly programs
-  std::vector<RVTestTuple> testTuples = {
-      {ProcessorID::RV32_SS, RISCV32_TEST_DIR},
-      {ProcessorID::RV64_SS, RISCV64_TEST_DIR}};
+  std::vector<RVTestTuple> testTuples = {{ProcessorID::RV_SS,
+                                          Variations::RV_SS::RV32I,
+                                          {Extension::M},
+                                          RISCV32_TEST_DIR},
+                                         {ProcessorID::RV_SS,
+                                          Variations::RV_SS::RV64I,
+                                          {Extension::M},
+                                          RISCV64_TEST_DIR}};
 
   auto testFunct = [](const QString &filename) {
     auto f = QFile(filename);
@@ -133,7 +140,7 @@ void tst_Assembler::tst_riscv() {
   };
 
   for (const auto &tt : testTuples) {
-    ProcessorHandler::selectProcessor(tt.id, {"M"});
+    ProcessorHandler::selectProcessor(tt.id, tt.variation, tt.extensions);
     const auto dir = QDir(tt.testDir);
     const auto testFiles = dir.entryList({"*.s"});
     for (const auto &test : testFiles) {
@@ -255,7 +262,7 @@ void tst_Assembler::tst_invalidLabel() {
 }
 
 void tst_Assembler::tst_benchmarkNew() {
-  auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+  auto isa = std::make_shared<ISAInfo<ISA::RV32I>>();
   auto assembler = ISA_Assembler<ISA::RV32I>(isa);
   auto program = createProgram(1000);
   QBENCHMARK { assembler.assembleRaw(program); }
@@ -378,7 +385,7 @@ void tst_Assembler::tst_relativeLabels() {
 }
 
 void tst_Assembler::tst_matcher() {
-  auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+  auto isa = std::make_shared<ISAInfo<ISA::RV32I>>();
   auto assembler = ISA_Assembler<ISA::RV32I>(isa);
   assembler.getMatcher().print();
 
