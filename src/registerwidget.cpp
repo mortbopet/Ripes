@@ -2,6 +2,7 @@
 #include "ui_registerwidget.h"
 
 #include <QClipboard>
+#include <QFontMetrics>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QMenu>
@@ -12,6 +13,7 @@
 #include "processorhandler.h"
 #include "radixselectorwidget.h"
 #include "registermodel.h"
+#include "ripessettings.h"
 
 namespace Ripes {
 
@@ -19,6 +21,29 @@ RegisterWidget::RegisterWidget(const std::string_view &regFileID,
                                QWidget *parent)
     : QWidget(parent), m_ui(new Ui::RegisterWidget), m_regFileName(regFileID) {
   m_ui->setupUi(this);
+
+  connect(m_ui->radixSelector, &RadixSelectorWidget::radixChanged, this,
+          [this](Radix radix) {
+            RipesSettings::setValue(RIPES_SETTING_REGISTERDISPLAYTYPE,
+                                    QVariant::fromValue(radix));
+            if (m_model) {
+              m_model->setRadix(radix);
+            }
+          });
+
+  connect(RipesSettings::getObserver(RIPES_SETTING_REGISTERDISPLAYTYPE),
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            const auto radix = value.value<Radix>();
+            m_ui->radixSelector->setRadix(radix);
+            if (m_model) {
+              m_model->setRadix(radix);
+            }
+          });
+
+  connect(RipesSettings::getObserver(RIPES_SETTING_REGISTERFONT),
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            applyFont(value.value<QFont>());
+          });
 }
 
 RegisterWidget::~RegisterWidget() { delete m_ui; }
@@ -43,14 +68,25 @@ void RegisterWidget::initialize() {
   m_ui->registerView->horizontalHeader()->setSectionResizeMode(
       RegisterModel::Value, QHeaderView::Stretch);
 
-  m_ui->radixSelector->setRadix(m_model->getRadix());
+  applyFont(RipesSettings::value(RIPES_SETTING_REGISTERFONT).value<QFont>());
+
+  const auto radix =
+      RipesSettings::value(RIPES_SETTING_REGISTERDISPLAYTYPE).value<Radix>();
+  m_ui->radixSelector->setRadix(radix);
+  m_model->setRadix(radix);
   connect(m_model, &RegisterModel::registerChanged, this,
-          &RegisterWidget::setRegisterviewCenterIndex);
-  connect(m_ui->radixSelector, &RadixSelectorWidget::radixChanged, m_model,
-          &RegisterModel::setRadix);
+         &RegisterWidget::setRegisterviewCenterIndex);
 }
 
 void RegisterWidget::updateView() { m_model->processorWasClocked(); }
+
+void RegisterWidget::applyFont(const QFont &font) {
+  m_ui->registerView->setFont(font);
+  m_ui->registerView->horizontalHeader()->setFont(font);
+  m_ui->registerView->verticalHeader()->setFont(font);
+  m_ui->registerView->verticalHeader()->setDefaultSectionSize(
+      QFontMetrics(font).height() + 8);
+}
 
 void RegisterWidget::showContextMenu(const QPoint &pos) {
   const auto index = m_ui->registerView->indexAt(pos);
