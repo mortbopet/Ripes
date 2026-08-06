@@ -77,7 +77,7 @@ const DisassembledProgram &Program::getDisassembled() const {
     const VInt textSectionBaseAddr = textSection->address;
     unsigned line = 0;
     for (AInt addr = 0;
-         addr < static_cast<AInt>(ProcessorHandler::getCurrentProgramSize());) {
+          addr < static_cast<AInt>(Program::getCurrentProgramSize());) {
       const VInt disassembleAddr = addr + textSectionBaseAddr;
       auto disRes =
           assembler->disassemble(memory.readMem(disassembleAddr, instrBytes),
@@ -96,6 +96,15 @@ const DisassembledProgram &Program::getDisassembled() const {
     }
   }
   return disassembled;
+}
+
+int Program::_getCurrentProgramSize() const {
+  const auto *textSection = getSection(TEXT_SECTION_NAME);
+
+  if (textSection)
+    return textSection->data.length();
+
+  return 0;
 }
 
 QString Program::calculateHash(const QByteArray &data) {

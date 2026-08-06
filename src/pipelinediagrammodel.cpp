@@ -38,7 +38,7 @@ QVariant PipelineDiagramModel::headerData(int section,
 }
 
 int PipelineDiagramModel::rowCount(const QModelIndex &) const {
-  return ProcessorHandler::getCurrentProgramSize() /
+  return Program::getCurrentProgramSize() /
          ProcessorHandler::currentISA()->instrBytes();
 }
 
