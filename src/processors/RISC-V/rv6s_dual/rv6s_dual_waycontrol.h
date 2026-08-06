@@ -30,7 +30,7 @@ private:
             case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::XORI:
             case RVInstr::ORI: case RVInstr::ANDI: case RVInstr::SLLI: case RVInstr::SRLI:
             case RVInstr::SRAI: case RVInstr::ADDIW: case RVInstr::SLLIW: case RVInstr::SRLIW:
-            case RVInstr::SRAIW:
+            case RVInstr::SRAIW: case RVInstr::NOP:
 
             // Arithmetic instructions
             case RVInstr::MUL: case RVInstr::MULH: case RVInstr:: MULHSU: case RVInstr::MULHU:

@@ -370,6 +370,8 @@ protected:
     Errors errors;
     ProgramSection *currentSection = &program.sections.at(m_currentSection);
 
+    signalNewInstructionAssemblePass();
+
     bool wasDirective;
     for (const auto &line : tokenizedLines) {
       // Get offset of currently emitting position in memory relative to section
@@ -541,6 +543,10 @@ protected:
     return {res};
   }
 
+  /// function signaling to a possible inhereinting Assembler that a new pass
+  /// of instruction assembling should be prepared
+  virtual void signalNewInstructionAssemblePass() const {};
+
   virtual AssembleRes
   assembleInstruction(const TokenizedSrcLine &line,
                       std::shared_ptr<InstructionBase> &assembledWith) const {
@@ -652,37 +658,42 @@ protected:
   std::shared_ptr<ISAInfoBase> m_isa;
 };
 
-/// An Assembler and QObject (workaround because QObject cannot be directly
-/// subclassed by ISA_Assembler)
-class QAssembler : public QObject, public Assembler {
+/// A generic QObject to connect an Assembler to the Ripes settings
+class QAssembler : public QObject {
   Q_OBJECT
 public:
-  QAssembler(std::shared_ptr<ISAInfoBase> isaInfo) : Assembler(isaInfo) {
+  QAssembler(AssemblerBase *assembler) : assembler(assembler) {
     // Initialize segment pointers and monitor settings changes to segment
     // pointers
     connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
-            &SettingObserver::modified, this, [this](const QVariant &value) {
-              setSegmentBase(".text", value.toULongLong());
-            });
+            &SettingObserver::modified, this, &QAssembler::setText);
     RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART)->trigger();
     connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART),
-            &SettingObserver::modified, this, [this](const QVariant &value) {
-              setSegmentBase(".data", value.toULongLong());
-            });
+            &SettingObserver::modified, this, &QAssembler::setData);
     RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_DATASTART)->trigger();
     connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART),
-            &SettingObserver::modified, this, [this](const QVariant &value) {
-              setSegmentBase(".bss", value.toULongLong());
-            });
+            &SettingObserver::modified, this, &QAssembler::setBss);
     RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_BSSSTART)->trigger();
   }
+
+private:
+  AssemblerBase *assembler;
+
+  void setSegment(Section seq, const QVariant &value) {
+    assembler->setSegmentBase(seq, value.toULongLong());
+  }
+
+  void setText(const QVariant &value) { setSegment(".text", value); }
+  void setData(const QVariant &value) { setSegment(".data", value); }
+  void setBss(const QVariant &value) { setSegment(".bss", value); }
 };
 
-/// An ISA-specific assembler
-template <ISA isa>
-struct ISA_Assembler : public QAssembler {
-  ISA_Assembler(std::shared_ptr<ISAInfoBase> isaInfo) : QAssembler(isaInfo) {
-    initialize(gnuDirectives());
+/// Generic ISA-specific assembler
+template <ISA isa, typename Assembler_t = Assembler>
+struct ISA_Assembler : public Assembler_t, public QAssembler {
+  ISA_Assembler(std::shared_ptr<ISAInfoBase> isaInfo)
+      : Assembler_t(isaInfo), QAssembler(this) {
+    this->initialize(gnuDirectives());
   }
 
   ISA getISA() const override { return isa; }

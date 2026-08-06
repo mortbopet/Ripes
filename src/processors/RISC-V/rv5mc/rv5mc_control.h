@@ -88,7 +88,7 @@ public:
     case RVInstr::LUI:
       return ALUOp::LUI;
     case RVInstr::JAL: case RVInstr::JALR: case RVInstr::AUIPC:
-    case RVInstr::ADD: case RVInstr::ADDI:
+    case RVInstr::ADD: case RVInstr::ADDI: case RVInstr::NOP:
     case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
     case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
       return ALUOp::ADD;
@@ -226,7 +226,7 @@ public:
           return FSMState::EXALUR;
         case RVInstr::ADDI: case RVInstr::SLTI: case RVInstr::SLTIU: case RVInstr::ANDI: case RVInstr::ORI: case RVInstr::XORI:
         case RVInstr::SLLI: case RVInstr::SRLI: case RVInstr::SRAI: case RVInstr::LUI: case RVInstr::SRLIW: case RVInstr::ADDIW:
-        case RVInstr::SLLIW: case RVInstr::SRAIW:
+        case RVInstr::SLLIW: case RVInstr::SRAIW: case RVInstr::NOP:
           return FSMState::EXALUI;
         case RVInstr::LB: case RVInstr::LH: case RVInstr::LW: case RVInstr::LBU: case RVInstr::LHU: case RVInstr::LWU:
         case RVInstr::LD: case RVInstr::SB: case RVInstr::SH: case RVInstr::SW: case RVInstr::SD:

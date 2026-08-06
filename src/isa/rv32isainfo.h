@@ -9,7 +9,7 @@ template <>
 class ISAInfo<ISA::RV32I> : public RVISA::RV_ISAInfoBase {
 public:
   ISAInfo(const QStringList extensions) : RV_ISAInfoBase(extensions) {
-    initialize();
+    loadInstructionSet();
   }
 
   ISA isaID() const override { return ISA::RV32I; }
