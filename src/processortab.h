@@ -45,6 +45,8 @@ public slots:
   void reverse();
   void processorFinished();
   void runFinished();
+  void processorClocked();
+  void processorReversed();
   void updateStatistics();
   void updateInstructionLabels();
   void fitToScreen();
@@ -73,6 +75,10 @@ private:
   vsrtl::VSRTLWidget *m_vsrtlWidget = nullptr;
 
   std::map<StageIndex, vsrtl::Label *> m_stageInstructionLabels;
+
+  // Statistics
+  long long m_stallCount = 0;
+  long long m_flushCycleCount = 0;
 
   QTimer *m_statUpdateTimer;
 
