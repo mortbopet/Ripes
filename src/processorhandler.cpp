@@ -203,6 +203,7 @@ void ProcessorHandler::_clock() {
 void ProcessorHandler::_run() {
   ProcessorStatusManager::setStatusTimed("Running...");
   emit runStarted();
+  m_maxCyclesExceeded = false;
 
   // Start running through the VSRTL Widget interface
   m_runWatcher.setFuture(QtConcurrent::run([this] {
@@ -215,6 +216,11 @@ void ProcessorHandler::_run() {
 
     while (!(_checkBreakpoint() || m_currentProcessor->finished() ||
              m_stopRunningFlag)) {
+      if (m_maxCycles != 0 &&
+          m_currentProcessor->getCycleCount() >= m_maxCycles) {
+        m_maxCyclesExceeded = true;
+        break;
+      }
       m_currentProcessor->clock();
     }
 
