@@ -21,6 +21,10 @@ private:
   /// Process the provided source file (assembling, compiling, loading, ...)
   int processInput();
 
+  /// Applies --datainit memory writes. Must run after processInput() (so
+  /// symbols are resolvable) and before runModel().
+  int applyDataInit();
+
   /// Runs the processor model until the program is finished.
   int runModel();
 

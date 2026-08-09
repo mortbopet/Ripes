@@ -19,6 +19,15 @@ struct CLIModeOptions {
   int timeout = 0;
   RegisterInitialization regInit;
 
+  // Deterministic simulation bound (0 = unbounded). Preferred over --timeout
+  // for grading, since --timeout is wall-clock and therefore host-load
+  // dependent.
+  uint64_t maxCycles = 0;
+
+  // Raw "<label>=<v1>,<v2>,..." entries from --datainit, applied as memory
+  // writes after the program is loaded and before simulation starts.
+  QStringList dataInit;
+
   // A list of enabled telemetry options.
   std::vector<std::shared_ptr<Telemetry>> telemetry;
 };

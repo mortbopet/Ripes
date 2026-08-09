@@ -4,10 +4,12 @@
 #include "loaddialog.h"
 #include "processorhandler.h"
 #include "programutilities.h"
+#include "radix.h"
 #include "syscall/systemio.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMap>
 
 namespace Ripes {
 
@@ -75,11 +77,62 @@ int CLIRunner::run() {
   if (processInput())
     return 1;
 
+  if (applyDataInit())
+    return 1;
+
   if (runModel())
     return 1;
 
   if (postRun())
     return 1;
+
+  return 0;
+}
+
+/**
+ * Applies --datainit memory writes ("<label>=<v1>,<v2>,...") by resolving
+ * each label against the loaded program's symbol table and writing the
+ * values as consecutive 4-byte words. This is what lets the grader inject
+ * secret, per-attempt inputs instead of requiring students to hardcode them
+ * in .data -- see docs/auto-grader-architecture.md Layer 1.
+ *
+ * @return 0 on success, or 1 if a label is unresolvable or a value is malformed.
+ */
+int CLIRunner::applyDataInit() {
+  if (m_options.dataInit.isEmpty())
+    return 0;
+
+  info("Applying --datainit", false, true);
+
+  QMap<QString, AInt> byName;
+  if (auto program = ProcessorHandler::getProgram()) {
+    for (const auto &[addr, sym] : program->symbols)
+      byName[sym.v] = addr;
+  }
+
+  for (const auto &entry : m_options.dataInit) {
+    const int eq = entry.indexOf('=');
+    const QString label = entry.left(eq);
+    const QString valuesStr = entry.mid(eq + 1);
+
+    if (!byName.contains(label)) {
+      error("Unknown symbol '" + label + "' specified (--datainit).");
+      return 1;
+    }
+    const AInt addr = byName[label];
+
+    const QStringList values = valuesStr.split(",");
+    for (int i = 0; i < values.size(); ++i) {
+      bool ok = false;
+      const VInt v = decodeRadixValue(values[i], &ok);
+      if (!ok) {
+        error("Invalid value '" + values[i] + "' specified (--datainit).");
+        return 1;
+      }
+      // Words are 4 bytes (RV32 word size), matching --memdump's stride.
+      ProcessorHandler::writeMem(addr + i * 4, v, 4);
+    }
+  }
 
   return 0;
 }
@@ -225,6 +278,7 @@ int CLIRunner::runModel() {
     infoTimer.start(1000);
 
   // Start simulation
+  ProcessorHandler::setMaxCycles(m_options.maxCycles);
   ProcessorHandler::run();
   if (m_options.timeout != 0)
     timeoutTimer.start(m_options.timeout);
@@ -275,8 +329,11 @@ int CLIRunner::postRun() {
     QJsonObject jsonOutput;
     for (auto &telemetry : m_options.telemetry)
       if (telemetry->isEnabled())
+        // Keyed on key() rather than prettyKey(): this output is machine-
+        // consumed by the grading harness, and prettyKey() strings like
+        // "# instructions retired" are not stable, parseable identifiers.
         jsonOutput.insert(
-            telemetry->prettyKey(),
+            telemetry->key(),
             QJsonValue::fromVariant(telemetry->report(/*json=*/true)));
     *stream << QJsonDocument(jsonOutput).toJson(QJsonDocument::Indented);
   } else {
