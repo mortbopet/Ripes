@@ -7,6 +7,8 @@
 #include "radix.h"
 
 #include <memory>
+#include <utility>
+#include <vector>
 
 namespace Ripes {
 
@@ -140,6 +142,81 @@ public:
       }
       return outStr;
     }
+  }
+};
+
+/// Reports the contents of memory at requested symbols/labels. Values are
+/// read non-perturbingly (readMemConst), so a dump cannot itself change
+/// simulator state or cache statistics.
+class MemoryTelemetry : public Telemetry {
+public:
+  // spec: "<label>[:<nwords>]" -- nwords defaults to 1 if omitted.
+  void addDump(const QString &spec) {
+    QString name = spec;
+    unsigned count = 1;
+    int colon = spec.indexOf(':');
+    if (colon >= 0) {
+      name = spec.left(colon);
+      bool ok = false;
+      unsigned parsed = spec.mid(colon + 1).toUInt(&ok);
+      if (ok && parsed > 0)
+        count = parsed;
+    }
+    m_specs.push_back({name, count});
+  }
+
+  QString key() const override { return "mem"; }
+  QString description() const override {
+    return "memory contents at requested labels";
+  }
+
+  QVariant report(bool /*json*/) override {
+    QMap<QString, AInt> byName;
+    if (auto program = ProcessorHandler::getProgram()) {
+      for (const auto &[addr, sym] : program->symbols)
+        byName[sym.v] = addr;
+    }
+
+    QVariantMap out;
+    for (const auto &specPair : m_specs) {
+      const QString &name = specPair.first;
+      const unsigned count = specPair.second;
+      if (!byName.contains(name)) {
+        // Absent symbol => ABI violation; report explicitly rather than
+        // silently omitting the key.
+        out[name] = QVariant();
+        continue;
+      }
+      const AInt base = byName[name];
+      QVariantList words;
+      for (unsigned i = 0; i < count; ++i)
+        words.append(QVariant::fromValue(
+            ProcessorHandler::getMemory().readMemConst(base + i * 4, 4)));
+      out[name] = words;
+    }
+    return out;
+  }
+
+private:
+  std::vector<std::pair<QString, unsigned>> m_specs;
+};
+
+/// Reports why/how the simulation stopped. Distinguishes a deterministic
+/// --max-cycles bound from normal completion, so grading does not depend on
+/// wall-clock timing (see --timeout, which is host-load dependent).
+class ExitTelemetry : public Telemetry {
+public:
+  QString key() const override { return "exit"; }
+  QString description() const override {
+    return "exit reason (normal, max_cycles)";
+  }
+  QVariant report(bool /*json*/) override {
+    QVariantMap m;
+    m["reason"] =
+        ProcessorHandler::maxCyclesExceeded() ? "max_cycles" : "normal";
+    m["cycles"] =
+        QVariant::fromValue(ProcessorHandler::getProcessor()->getCycleCount());
+    return m;
   }
 };
 
