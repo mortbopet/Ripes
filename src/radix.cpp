@@ -67,10 +67,17 @@ VInt decodeRadixValue(QString value, bool *ok) {
     // Qt doesn't support 0b[0-1]* conversion, so remove any possible 0b prefix
     value.remove(0, 2);
     return value.toUInt(ok, 2);
+  } else if (signedRegex.match(value).hasMatch()) {
+    // Checked before unsignedRegex: QRegularExpression::match() is an
+    // unanchored substring search, so unsignedRegex ("[0-9]+") also matches
+    // inside a negative literal like "-8" (it matches the "8"), and would
+    // then reject it via toUInt(). signedRegex ("[-]*[0-9]+") matches both
+    // positive and negative decimals and toInt() parses both correctly, so
+    // checking it first fixes negative --reginit/--datainit values without
+    // changing behaviour for positive ones.
+    return value.toInt(ok, 10);
   } else if (unsignedRegex.match(value).hasMatch()) {
     return value.toUInt(ok, 10);
-  } else if (signedRegex.match(value).hasMatch()) {
-    return value.toInt(ok, 10);
   } else if (floatRegex.match(value).hasMatch()) {
     return value.toFloat(ok);
   }
