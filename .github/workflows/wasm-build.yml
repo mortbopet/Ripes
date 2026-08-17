@@ -1,0 +1,14 @@
+name: WASM / Qt 6.6.0
+
+# Ripes CI: verify that the WASM build succeeds on pushes and pull requests by
+# invoking the reusable build template. The template builds the current repo/ref
+# by default (its inputs are left unset here).
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  build:
+    uses: ./.github/workflows/wasm-release.yml

@@ -1,8 +1,17 @@
-name: WASM / Qt 6.6.0
+name: WASM build
 on:
-  push:
-    branches:
-      - '**'
+  workflow_call:
+    inputs:
+      ripes-repo:
+        description: 'Repository to build (owner/name). Defaults to the current repo.'
+        type: string
+        required: false
+        default: ''
+      ripes-ref:
+        description: 'Git ref to build. Defaults to the current ref.'
+        type: string
+        required: false
+        default: ''
 
 jobs:
   buildUbuntu:
@@ -38,6 +47,8 @@ jobs:
     - name: checkout sources
       uses: actions/checkout@v2
       with:
+        repository: ${{ inputs.ripes-repo || github.repository }}
+        ref: ${{ inputs.ripes-ref || github.ref }}
         submodules: recursive
         fetch-depth: 0
 
@@ -106,11 +117,3 @@ jobs:
           Ripes.js
           Ripes.worker.js
           qtloader.js
-
-    # Dispatch the publish.yml workflow over at mortbopet.github.io
-    - name: Publish to GitHub Pages
-      run: |
-        gh workflow run publish.yml -R mortbopet/mortbopet.github.io --ref master
-      if: github.repository == 'mortbopet/Ripes' && github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
-      env:
-        GH_TOKEN: ${{ secrets.MORTBOPET_GITHUB_IO_TOKEN }}
