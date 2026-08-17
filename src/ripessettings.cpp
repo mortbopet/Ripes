@@ -3,6 +3,10 @@
 #include "cachesim/cachesim.h"
 
 #include <QCoreApplication>
+#include <QEvent>
+#include <QGuiApplication>
+#include <QPalette>
+#include <QStyleHints>
 #include <map>
 
 namespace Ripes {
@@ -20,11 +24,12 @@ const std::map<QString, QVariant> s_defaultSettings = {
      "-static -lm"}, // Ensure statically linked executable + link with math
                      // library
     {RIPES_SETTING_CONSOLEECHO, "true"},
-    {RIPES_SETTING_CONSOLEBG, QColorConstants::White},
-    {RIPES_SETTING_CONSOLEFONTCOLOR, QColorConstants::Black},
+    {RIPES_SETTING_CONSOLEBG,
+     QColor() /* invalid => follow the theme palette */},
+    {RIPES_SETTING_CONSOLEFONTCOLOR,
+     QColor() /* invalid => follow the theme palette */},
     {RIPES_SETTING_CONSOLEFONT,
      QVariant() /* Let Console define its own default font */},
-    {RIPES_SETTING_CONSOLEFONT, QColorConstants::Black},
     {RIPES_SETTING_INDENTAMT, 4},
     {RIPES_SETTING_UIUPDATEPS, 25},
 
@@ -78,7 +83,8 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_SAVE_SOURCE, true},
     {RIPES_SETTING_SAVE_BINARY, false},
 
-    {RIPES_SETTING_MAINWINDOW_GEOMETRY, QByteArray()}};
+    {RIPES_SETTING_MAINWINDOW_GEOMETRY, QByteArray()},
+    {RIPES_SETTING_COLORSCHEME, static_cast<int>(ColorScheme::System)}};
 
 void SettingObserver::setValue(const QVariant &v) {
   QSettings settings;
@@ -118,6 +124,58 @@ SettingObserver *RipesSettings::getObserver(const QString &key) {
 
 void RipesSettings::setValue(const QString &key, const QVariant &value) {
   get().m_observers.at(key).setValue(value);
+}
+
+void applyColorScheme() {
+  auto *hints = QGuiApplication::styleHints();
+  const auto scheme = static_cast<ColorScheme>(
+      RipesSettings::value(RIPES_SETTING_COLORSCHEME).toInt());
+  switch (scheme) {
+  case ColorScheme::Light:
+    hints->setColorScheme(Qt::ColorScheme::Light);
+    break;
+  case ColorScheme::Dark:
+    hints->setColorScheme(Qt::ColorScheme::Dark);
+    break;
+  case ColorScheme::System:
+    hints->unsetColorScheme();
+    break;
+  }
+}
+
+ThemeManager::ThemeManager(QObject *parent) : QObject(parent) {
+  if (auto *app = QCoreApplication::instance())
+    app->installEventFilter(this);
+}
+
+ThemeManager *ThemeManager::get() {
+  static ThemeManager *instance =
+      new ThemeManager(QCoreApplication::instance());
+  return instance;
+}
+
+bool ThemeManager::eventFilter(QObject *obj, QEvent *event) {
+  // The application palette is fully updated by the time an
+  // ApplicationPaletteChange event is delivered - both for in-app color-scheme
+  // changes (QStyleHints::setColorScheme) and OS-driven changes (System mode).
+  // This is the single, reliable point at which theme-dependent colors should
+  // be recomputed. We coalesce the burst of per-widget events into a single
+  // themeChanged() emission, delivered once the current event batch is done.
+  if (event->type() == QEvent::ApplicationPaletteChange && !m_emitPending) {
+    m_emitPending = true;
+    QMetaObject::invokeMethod(
+        this,
+        [this] {
+          m_emitPending = false;
+          emit themeChanged();
+        },
+        Qt::QueuedConnection);
+  }
+  return QObject::eventFilter(obj, event);
+}
+
+bool appInDarkMode() {
+  return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
 }
 
 } // namespace Ripes

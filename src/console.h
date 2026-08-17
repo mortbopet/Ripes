@@ -23,6 +23,9 @@ protected:
 
 private:
   void backspace();
+  /// (Re)applies the console's foreground/background colors, following either
+  /// the user's custom colors or - when unset - the active application theme.
+  void applyThemeColors();
 
   bool m_localEchoEnabled = false;
   QFont m_font;

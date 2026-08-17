@@ -2,6 +2,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QEvent>
 #include <QKeyEvent>
 #include <QLinearGradient>
 #include <QMenu>
@@ -53,6 +54,11 @@ CodeEditor::CodeEditor(QWidget *parent) : HighlightableTextEdit(parent) {
 
   setWordWrapMode(QTextOption::NoWrap);
   setupChangedTimer();
+
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this, [this] {
+    if (m_highlighter)
+      setSourceType(m_sourceType, m_supportedOpcodes);
+  });
 }
 
 struct ClangFormatResult {
@@ -359,6 +365,7 @@ void CodeEditor::resizeEvent(QResizeEvent *e) {
 void CodeEditor::setSourceType(SourceType type,
                                const std::set<QString> &supportedOpcodes) {
   m_sourceType = type;
+  m_supportedOpcodes = supportedOpcodes;
 
   // Creates AsmHighlighter object and connects it to the current document
   switch (m_sourceType) {
@@ -402,7 +409,7 @@ void CodeEditor::highlightCurrentLine() {
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
   QPainter painter(m_lineNumberArea);
-  painter.fillRect(event->rect(), QColorConstants::LightGray.lighter(120));
+  painter.fillRect(event->rect(), palette().color(QPalette::Window));
 
   QTextBlock block = firstVisibleBlock();
   int blockNumber = block.blockNumber();
@@ -413,7 +420,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
   while (block.isValid() && top <= event->rect().bottom()) {
     if (block.isVisible() && bottom >= event->rect().top()) {
       QString number = QString::number(blockNumber + 1);
-      painter.setPen(QColorConstants::Gray.darker(130));
+      painter.setPen(palette().color(QPalette::PlaceholderText));
       painter.drawText(0, top, m_lineNumberArea->width() - 3,
                        fontMetrics().height(), Qt::AlignRight, number);
     }

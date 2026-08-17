@@ -10,8 +10,10 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
     : SyntaxHighlighter(parent, errors) {
   HighlightingRule rule;
 
+  const SyntaxColorScheme colors = currentSyntaxColors();
+
   // General registers
-  registerFormat.setForeground(QColor{0x80, 0x00, 0x00});
+  registerFormat.setForeground(colors.registerName);
   rule.pattern = QRegularExpression("\\b[(a|s|t|x)][0-9]{1,2}");
   rule.format = registerFormat;
   m_highlightingRules.append(rule);
@@ -31,7 +33,7 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
   }
 
   // Instructions
-  instructionFormat.setForeground(Colors::BerkeleyBlue);
+  instructionFormat.setForeground(colors.instruction);
   for (const auto &pattern : supportedOpcodes) {
     const QString regexPattern = "\\b" + pattern + "\\b";
     rule.pattern = QRegularExpression(regexPattern);
@@ -40,13 +42,13 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
   }
 
   // Labels
-  labelFormat.setForeground(Colors::Medalist);
+  labelFormat.setForeground(colors.label);
   rule.pattern = QRegularExpression(R"([\S]+:)");
   rule.format = labelFormat;
   m_highlightingRules.append(rule);
 
   // Immediates
-  immediateFormat.setForeground(QColorConstants::DarkGreen);
+  immediateFormat.setForeground(colors.immediate);
   rule.pattern = QRegularExpression("\\b(?<![A-Za-z])[-+]?\\d+");
   rule.format = immediateFormat;
   m_highlightingRules.append(rule);
@@ -57,13 +59,13 @@ RVSyntaxHighlighter::RVSyntaxHighlighter(
   m_highlightingRules.append(rule);
 
   // Strings
-  stringFormat.setForeground(QColor{0x80, 0x00, 0x00});
+  stringFormat.setForeground(colors.string);
   rule.pattern = QRegularExpression(R"("(?:[^"]|\.)*")");
   rule.format = stringFormat;
   m_highlightingRules.append(rule);
 
   // Comments
-  commentFormat.setForeground(Colors::Medalist);
+  commentFormat.setForeground(colors.comment);
   rule.pattern = QRegularExpression("[#]+.*");
   rule.format = commentFormat;
   m_highlightingRules.append(rule);

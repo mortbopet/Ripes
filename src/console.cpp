@@ -6,6 +6,7 @@
 #include <QScrollBar>
 
 #include <QClipboard>
+#include <QEvent>
 #include <QGuiApplication>
 
 namespace Ripes {
@@ -20,21 +21,13 @@ Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
 
   document()->setMaximumBlockCount(100);
 
-  auto paletteChangeFunctor = [this] {
-    QPalette p = palette();
-    p.setColor(QPalette::Base,
-               RipesSettings::value(RIPES_SETTING_CONSOLEBG).value<QColor>());
-    p.setColor(
-        QPalette::Text,
-        RipesSettings::value(RIPES_SETTING_CONSOLEFONTCOLOR).value<QColor>());
-    setPalette(p);
-  };
-
   connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEBG),
-          &SettingObserver::modified, paletteChangeFunctor);
+          &SettingObserver::modified, this, [this] { applyThemeColors(); });
   connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONTCOLOR),
-          &SettingObserver::modified, paletteChangeFunctor);
-  paletteChangeFunctor();
+          &SettingObserver::modified, this, [this] { applyThemeColors(); });
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          [this] { applyThemeColors(); });
+  applyThemeColors();
 
   connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO),
           &SettingObserver::modified, this, [this](const QVariant &value) {
@@ -47,6 +40,25 @@ Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
           });
 
   m_localEchoEnabled = RipesSettings::value(RIPES_SETTING_CONSOLEECHO).toBool();
+}
+
+void Console::applyThemeColors() {
+  const auto bg = RipesSettings::value(RIPES_SETTING_CONSOLEBG).value<QColor>();
+  const auto fg =
+      RipesSettings::value(RIPES_SETTING_CONSOLEFONTCOLOR).value<QColor>();
+  // With no custom colors, reset to an empty palette so the console follows the
+  // application (light/dark) theme. Otherwise, apply the user's colors on top
+  // of the current theme palette.
+  if (!bg.isValid() && !fg.isValid()) {
+    setPalette(QPalette());
+    return;
+  }
+  QPalette p = palette();
+  if (bg.isValid())
+    p.setColor(QPalette::Base, bg);
+  if (fg.isValid())
+    p.setColor(QPalette::Text, fg);
+  setPalette(p);
 }
 
 void Console::putData(const QByteArray &bytes) {

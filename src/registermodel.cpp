@@ -1,8 +1,11 @@
 #include "registermodel.h"
 
+#include <QApplication>
 #include <QHeaderView>
+#include <QPalette>
 
 #include "STLExtras.h"
+#include "colors.h"
 #include "fonts.h"
 #include "processorhandler.h"
 
@@ -89,9 +92,14 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const {
   const unsigned idx = index.row();
   if (role == Qt::ToolTipRole) {
     return tooltipData(idx);
-  } else if (role == Qt::BackgroundRole &&
-             index.row() == m_mostRecentlyModifiedReg) {
-    return QBrush(QColor{0xFD, 0xB5, 0x15});
+  } else if (index.row() == m_mostRecentlyModifiedReg) {
+    // Highlight the most recently modified register. Use the theme accent
+    // (gold) as background with a dark, high-contrast foreground that stays
+    // legible in both light and dark mode (overriding the per-column colors).
+    if (role == Qt::BackgroundRole)
+      return QBrush(Colors::CaliforniaGold);
+    if (role == Qt::ForegroundRole)
+      return QBrush(Colors::BerkeleyBlue);
   }
 
   switch (index.column()) {
@@ -116,7 +124,9 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const {
     case Qt::FontRole:
       return QFont(Fonts::monospace, 11);
     case Qt::ForegroundRole:
-      return QBrush(Qt::blue);
+      // Use the theme's link/accent color so register values stand out with
+      // good contrast in both light and dark color schemes.
+      return QBrush(QApplication::palette().color(QPalette::Link));
     case Qt::EditRole:
       return QVariant::fromValue(registerData(idx));
     default:

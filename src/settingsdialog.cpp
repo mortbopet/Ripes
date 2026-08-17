@@ -7,6 +7,7 @@
 
 #include <QCheckBox>
 #include <QColorDialog>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QFontDialog>
 #include <QGroupBox>
@@ -409,6 +410,32 @@ QWidget *SettingsDialog::createEditorPage() {
 
 QWidget *SettingsDialog::createEnvironmentPage() {
   auto [pageWidget, pageLayout] = constructPage();
+
+  // Application color scheme (Light / Dark / System).
+  auto *colorSchemeLabel = new QLabel("Color scheme");
+  {
+    auto f = colorSchemeLabel->font();
+    f.setBold(true);
+    colorSchemeLabel->setFont(f);
+  }
+  auto *colorSchemeCombo = new QComboBox();
+  colorSchemeCombo->addItem("System", static_cast<int>(ColorScheme::System));
+  colorSchemeCombo->addItem("Light", static_cast<int>(ColorScheme::Light));
+  colorSchemeCombo->addItem("Dark", static_cast<int>(ColorScheme::Dark));
+  auto *colorSchemeObserver =
+      RipesSettings::getObserver(RIPES_SETTING_COLORSCHEME);
+  colorSchemeCombo->setCurrentIndex(
+      colorSchemeCombo->findData(colorSchemeObserver->value().toInt()));
+  colorSchemeCombo->installEventFilter(new ScrollEventFilter());
+  connect(colorSchemeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          colorSchemeObserver, [colorSchemeCombo, colorSchemeObserver] {
+            const int v = colorSchemeCombo->currentData().toInt();
+            if (v != colorSchemeObserver->value().toInt())
+              colorSchemeObserver->setValue(v);
+          });
+  appendToLayout(
+      {colorSchemeLabel, colorSchemeCombo}, pageLayout,
+      "Application color scheme. 'System' follows your OS light/dark setting.");
 
   auto [uiUpdateMsLabel, uiUpdateMsSb] = createSettingsWidgets<QSpinBox>(
       RIPES_SETTING_UIUPDATEPS, "Max. UI updates per second");

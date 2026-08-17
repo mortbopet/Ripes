@@ -4,6 +4,8 @@
 #include <QWheelEvent>
 #include <qmath.h>
 
+#include "ripessettings.h"
+
 namespace Ripes {
 
 CacheView::CacheView(QWidget *parent) : QGraphicsView(parent) {
@@ -11,9 +13,14 @@ CacheView::CacheView(QWidget *parent) : QGraphicsView(parent) {
 
   setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
   setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-  setBackgroundBrush(Qt::white);
+  // Follow the application theme rather than a hardcoded white background.
+  setBackgroundBrush(palette().base());
   setInteractive(true);
   setupMatrix();
+
+  // Keep the background in sync with the active light/dark palette.
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          [this] { setBackgroundBrush(palette().base()); });
 }
 
 void CacheView::mousePressEvent(QMouseEvent *event) {

@@ -49,6 +49,10 @@ public slots:
   void updateInstructionLabels();
   void fitToScreen();
 
+  /// Sets the processor diagram dark mode. Used to keep the diagram in sync
+  /// with the application-wide color scheme.
+  void setDarkmode(bool enabled);
+
   void processorSelection();
 
 private slots:
@@ -60,6 +64,9 @@ private slots:
 
 private:
   void setupSimulatorActions(QToolBar *controlToolbar);
+  /// Regenerates the simulator-control toolbar icons in the current theme's
+  /// foreground color. Called on construction and whenever the theme changes.
+  void updateToolbarIcons();
   void enableSimulatorControls();
   void updateInstructionModel();
   void updateRegisterModel();
@@ -85,7 +92,6 @@ private:
   QAction *m_pipelineDiagramAction = nullptr;
   QAction *m_reverseAction = nullptr;
   QAction *m_resetAction = nullptr;
-  QAction *m_darkmodeAction = nullptr;
   QTimer *m_autoClockTimer = nullptr;
 
   QSpinBox *m_autoClockInterval = nullptr;

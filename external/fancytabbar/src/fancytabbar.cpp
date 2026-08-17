@@ -86,85 +86,44 @@ void FancyTabBar::paintEvent(QPaintEvent *event) {
   Q_UNUSED(event);
 
   QPainter painter(this);
+  const QPalette pal = palette();
+  const bool darkTheme = pal.color(QPalette::Window).lightness() < 128;
 
   // Reduced size is size reduced by one becouse we need to draw from 0
   // so size - 1. That how all arrays works ;)
   QSize reducedSize = this->size() - QSize(1, 1);
 
-  // Draw separation rect
-  // Rest of parameters are zeros becouse we want to do only vertical
-  // gradient.
-
-  QLinearGradient linearGradient(0, 0, reducedSize.width(), 0);
-  linearGradient.setColorAt(0, QColor(64, 64, 64));
-  linearGradient.setColorAt(1, QColor(130, 130, 130));
-  // painter.setBrush(linearGradient);
-
-  painter.setBrush(QColor(0x656565));
-  painter.setPen(QColor(49, 49, 49));
+  // Bar background: a subtle shade off the window color so the bar stays
+  // distinguishable from the content area in both light and dark themes.
+  const QColor barBackground = darkTheme
+                                   ? pal.color(QPalette::Window).lighter(135)
+                                   : pal.color(QPalette::Window).darker(112);
+  painter.setBrush(barBackground);
+  painter.setPen(pal.color(QPalette::Mid));
   painter.drawRect(0, 0, reducedSize.width(), reducedSize.height());
 
+  // Hover highlight
   if (hower >= 0 && hower != activeIndex) {
-    QLinearGradient lineaGradientHover =
-        QLinearGradient(0, 0, reducedSize.width(), 0);
-    lineaGradientHover.setColorAt(0, QColor(200, 200, 200, 20));
-    lineaGradientHover.setColorAt(0.5, QColor(200, 200, 200, 100));
-    lineaGradientHover.setColorAt(1, QColor(200, 200, 200, 20));
+    QColor hover = pal.color(QPalette::Highlight);
+    hover.setAlpha(60);
     painter.setPen(Qt::NoPen);
-    painter.setBrush(lineaGradientHover);
+    painter.setBrush(hover);
     painter.drawRect(getTabRect(hower));
   }
 
-  for (int i = 0, y = 0; i < tabVector.size(); i++, y += 50) {
-    // Active tab must be drawen last because it will draw into neighbours
-    // tabs... This is most easy way how to draw specific frames
-    if (activeIndex != i) {
+  // Draw all inactive tabs.
+  for (int i = 0; i < tabVector.size(); i++) {
+    if (activeIndex != i)
       drawTabContent(&painter, i);
-    }
   }
 
-  // Draw activ tab if any
-  // Will draw into neighbors tab!!!
+  // Draw the active tab, filled with the theme's accent (highlight) color.
   if (activeIndex >= 0) {
-    // Make gradient more lighter. This indicate active tab
-    QColor color1(170, 170, 170);
-    QColor color2(233, 233, 233);
-    linearGradient.setColorAt(0, color1);
-    linearGradient.setColorAt(1, color2);
-
-    // painter.setBrush(linearGradient);
-    painter.setBrush(palette().color(QWidget::backgroundRole()));
     painter.setPen(Qt::NoPen);
+    painter.setBrush(pal.color(QPalette::Highlight));
     painter.drawRect(getTabRect(activeIndex));
 
     drawTabContent(&painter, activeIndex, true);
-
-    painter.setPen(QColor(49, 49, 49));
-
-    QRect r = getTabRect(activeIndex).adjusted(-1, -1, 1, 1);
-    // Draw top line
-    painter.drawLine(r.topLeft(), r.topRight());
-    // Draw bottom line
-    painter.drawLine(r.bottomLeft(), r.bottomRight());
-
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush());
-    color1.setRgb(100, 100, 100);
-    color2.setRgb(150, 150, 150);
-    linearGradient.setColorAt(0, color1);
-    linearGradient.setColorAt(1, color2);
-    painter.setBrush(linearGradient);
-    r.adjust(1, -1, 0, 1);
-
-    // Draw top line
-    painter.drawRect(r.left(), r.top(), r.right() - 1, 1);
-    // Draw bottom line
-    painter.drawRect(r.left(), r.bottom(), r.right() - 1, 1);
-
-    // remove side line
-    painter.setBrush(palette().color(QWidget::backgroundRole()));
-    painter.setPen(palette().color(QWidget::backgroundRole()));
-    painter.drawLine(r.right(), r.top() + 2, r.right(), r.bottom() - 2);
   }
 }
 
@@ -288,12 +247,14 @@ qint32 FancyTabBar::getTabIndexByPoint(qint32 x, qint32 y) {
  * \param invertTextColor tels to function is text color should by inverted.
  *   This feature is usefull whan some tab is selected.
  */
-void FancyTabBar::drawTabContent(QPainter *painter, qint32 index,
-                                 bool invertTextColor) {
-  if (invertTextColor)
-    painter->setPen(QColor(0x333333));
-  else
-    painter->setPen(QColor(0xd6d6d6));
+void FancyTabBar::drawTabContent(QPainter *painter, qint32 index, bool active) {
+  const QPalette pal = palette();
+  QColor fg = active ? pal.color(QPalette::HighlightedText)
+                     : pal.color(QPalette::WindowText);
+  if (!active)
+    fg.setAlpha(200); // slightly dim inactive tabs
+
+  painter->setPen(fg);
 
   QFont font = painter->font();
   font.setBold(true);

@@ -89,6 +89,9 @@ private:
   void resampleToScreen(QLineSeries *series);
 
   void resetRatioPlot();
+  void applyPlotTheme();
+
+private:
   QChart *m_plot = nullptr;
   QLineSeries *m_series = nullptr;
   double m_maxY = -DBL_MAX;

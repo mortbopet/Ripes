@@ -23,6 +23,7 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDatabase>
+#include <QGuiApplication>
 #include <QIcon>
 #include <QLabel>
 #include <QMessageBox>
@@ -30,6 +31,8 @@
 #include <QShowEvent>
 #include <QStackedWidget>
 #include <QStatusBar>
+#include <QStyle>
+#include <QStyleHints>
 #include <QTemporaryFile>
 #include <QTextStream>
 #include <QTimer>
@@ -93,8 +96,9 @@ MainWindow::MainWindow(QWidget *parent)
   m_stackedTabs->insertWidget(IOTabID, IOTab);
   m_tabWidgets[IOTabID] = {IOTab, IOToolbar};
 
-  // Setup tab bar
-  m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
+  // Setup tab bar.
+  m_ui->tabbar->addFancyTab(style()->standardIcon(QStyle::SP_FileIcon),
+                            "Editor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
@@ -130,6 +134,18 @@ MainWindow::MainWindow(QWidget *parent)
           &MemoryTab::setCentralAddress);
 
   connect(this, &MainWindow::prepareSave, editTab, &EditTab::onSave);
+
+  // Keep the processor diagram's dark mode in sync with the application theme
+  // (system theme changes or the user's Light/Dark/System choice). ThemeManager
+  // emits after the palette has been updated, so appInDarkMode() is accurate.
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this, [this] {
+    static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
+        ->setDarkmode(appInDarkMode());
+  });
+  // Applying the persisted color-scheme preference updates the application
+  // palette, which ThemeManager observes to drive the handler above.
+  connect(RipesSettings::getObserver(RIPES_SETTING_COLORSCHEME),
+          &SettingObserver::modified, this, [] { applyColorScheme(); });
 
   m_currentTabID = ProcessorTabID;
   m_ui->tabbar->setActiveIndex(m_currentTabID);
@@ -262,9 +278,6 @@ void MainWindow::setupMenus() {
   connect(exitAction, &QAction::triggered, this, &MainWindow::close);
   m_ui->menuFile->addAction(exitAction);
 
-  m_ui->menuView->addAction(
-      static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
-          ->m_darkmodeAction);
   m_ui->menuView->addAction(
       static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
           ->m_displayValuesAction);

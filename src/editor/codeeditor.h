@@ -64,6 +64,7 @@ private:
 
   bool m_breakpointAreaEnabled = false;
   SourceType m_sourceType = SourceType::Assembly;
+  std::set<QString> m_supportedOpcodes;
   std::shared_ptr<Errors> m_errors;
 
   QFont m_font;

@@ -1,6 +1,7 @@
 #include "highlightabletextedit.h"
 
 #include "STLExtras.h"
+#include "ripessettings.h"
 
 #include <QPainter>
 #include <QTextBlock>
@@ -20,6 +21,9 @@ HighlightableTextEdit::HighlightableTextEdit(QWidget *parent)
               return;
             clearBlockHighlights();
           });
+
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          [this] { applyHighlighting(); });
 }
 
 void HighlightableTextEdit::paintEvent(QPaintEvent *event) {

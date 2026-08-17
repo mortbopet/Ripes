@@ -3,11 +3,14 @@
 
 #include <QCheckBox>
 #include <QClipboard>
+#include <QEvent>
 #include <QFileDialog>
+#include <QGuiApplication>
 #include <QPushButton>
 #include <QToolBar>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QChartView>
+#include <QtCharts/QLegend>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 
@@ -130,6 +133,9 @@ void CachePlotWidget::setCache(const std::shared_ptr<CacheSim> &cache) {
   m_plot->createDefaultAxes();
   m_plot->legend()->show();
   m_ui->plotView->setPlot(m_plot);
+  applyPlotTheme();
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          [this] { applyPlotTheme(); });
   setupPlotActions();
   updatePlotAxes();
 
@@ -397,6 +403,9 @@ void CachePlotWidget::updatePlotAxes() {
   axisY->setRange(m_minY, axisMaxY);
   axisX->setRange(m_ui->rangeSlider->minimumPosition(),
                   m_ui->rangeSlider->maximumPosition());
+
+  // createDefaultAxes() recreates the axes, so re-apply the theme colors.
+  applyPlotTheme();
 }
 
 void CachePlotWidget::updateRatioPlot() {
@@ -504,6 +513,36 @@ void CachePlotWidget::updatePlotWarningButton() {
   m_ui->maxCyclesButton->setVisible(
       m_lastCyclePlotted >=
       RipesSettings::value(RIPES_SETTING_CACHE_MAXCYCLES).toInt());
+}
+
+void CachePlotWidget::applyPlotTheme() {
+  if (m_plot == nullptr)
+    return;
+
+  const QPalette pal = QGuiApplication::palette();
+  const QColor text = pal.color(QPalette::WindowText);
+  const QColor base = pal.color(QPalette::Base);
+  const QColor grid = pal.color(QPalette::Mid);
+
+  // Chart background follows the theme base color.
+  m_plot->setBackgroundBrush(base);
+  m_plot->setBackgroundPen(Qt::NoPen);
+  m_plot->setTitleBrush(text);
+
+  // Legend colors.
+  if (auto *legend = m_plot->legend()) {
+    legend->setLabelColor(text);
+    legend->setBackgroundVisible(false);
+  }
+
+  // Axis label, title, line and grid colors.
+  const auto axes = m_plot->axes();
+  for (auto *axis : axes) {
+    axis->setLabelsColor(text);
+    axis->setTitleBrush(text);
+    axis->setLinePenColor(text);
+    axis->setGridLineColor(grid);
+  }
 }
 
 void CachePlotWidget::resetRatioPlot() {

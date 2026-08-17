@@ -9,10 +9,12 @@ CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument *parent,
     : SyntaxHighlighter(parent, errors) {
   HighlightingRule rule;
 
+  const SyntaxColorScheme colors = currentSyntaxColors();
+
   errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
   errorFormat.setUnderlineColor(Qt::red);
 
-  keywordFormat.setForeground(Qt::darkBlue);
+  keywordFormat.setForeground(colors.keyword);
   keywordFormat.setFontWeight(QFont::Bold);
   const QString keywordPatterns[] = {
       QStringLiteral("\\bconst\\b"),    QStringLiteral("\\benum\\b"),
@@ -35,7 +37,7 @@ CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument *parent,
     highlightingRules.append(rule);
   }
 
-  typeFormat.setForeground(Qt::darkBlue);
+  typeFormat.setForeground(colors.type);
   typeFormat.setFontWeight(QFont::Bold);
   const QString typePatterns[] = {
       QStringLiteral("\\bchar\\b"),   QStringLiteral("\\bfloat\\b"),
@@ -49,24 +51,24 @@ CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument *parent,
     highlightingRules.append(rule);
   }
 
-  singleLineCommentFormat.setForeground(Colors::Medalist);
+  singleLineCommentFormat.setForeground(colors.comment);
   rule.pattern = QRegularExpression(QStringLiteral("//[^\n]*"));
   rule.format = singleLineCommentFormat;
   highlightingRules.append(rule);
 
-  multiLineCommentFormat.setForeground(Colors::Medalist);
+  multiLineCommentFormat.setForeground(colors.comment);
 
-  preprocessorFormat.setForeground(QColorConstants::DarkMagenta);
+  preprocessorFormat.setForeground(colors.preprocessor);
   rule.pattern = QRegularExpression(QStringLiteral("^\\ *#[^ ]*"));
   rule.format = preprocessorFormat;
   highlightingRules.append(rule);
 
-  quotationFormat.setForeground(QColor{0x80, 0x00, 0x00});
+  quotationFormat.setForeground(colors.string);
   rule.pattern = QRegularExpression(QStringLiteral("\".*\""));
   rule.format = quotationFormat;
   highlightingRules.append(rule);
 
-  functionFormat.setForeground(Colors::BerkeleyBlue);
+  functionFormat.setForeground(colors.function);
   rule.pattern = QRegularExpression(QStringLiteral("\\b[A-Za-z0-9_]+(?=\\()"));
   rule.format = functionFormat;
   highlightingRules.append(rule);

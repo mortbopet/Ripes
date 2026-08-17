@@ -4,6 +4,8 @@
 #include <QFont>
 #include <QSettings>
 
+QT_FORWARD_DECLARE_CLASS(QEvent)
+
 namespace Ripes {
 
 // =========== Definitions of the name of all settings within Ripes ============
@@ -65,8 +67,62 @@ namespace Ripes {
 
 #define RIPES_SETTING_MAINWINDOW_GEOMETRY ("mainwindow_geometry")
 
+// Application color scheme: 0 = follow system, 1 = light, 2 = dark. See the
+// ColorScheme enum below.
+#define RIPES_SETTING_COLORSCHEME ("color_scheme")
+
 // ============= Definitions of all default settings within Ripes ==============
 const extern std::map<QString, QVariant> s_defaultSettings;
+
+/**
+ * @brief The ColorScheme enum
+ * The application-wide color scheme preference, persisted through
+ * RIPES_SETTING_COLORSCHEME.
+ */
+enum class ColorScheme { System = 0, Light = 1, Dark = 2 };
+
+/**
+ * @brief applyColorScheme
+ * Applies the persisted RIPES_SETTING_COLORSCHEME to the application via
+ * QStyleHints. "System" follows the OS preference; "Light"/"Dark" force the
+ * respective scheme. Requires Qt >= 6.8.
+ */
+void applyColorScheme();
+
+/**
+ * @brief appInDarkMode
+ * @return true if the effective application color scheme is dark.
+ */
+bool appInDarkMode();
+
+/**
+ * @brief The ThemeManager class
+ * Single source of truth for "the application theme changed" notifications.
+ *
+ * Recomputing palette-derived colors must happen *after* the application
+ * palette has been updated. QStyleHints::colorSchemeChanged is unsuitable for
+ * this: it is emitted *before* the palette is updated. Instead, Qt delivers a
+ * QEvent::ApplicationPaletteChange to every object once the palette is live -
+ * for both in-app scheme changes and OS-driven ones. ThemeManager listens for
+ * that via an application-wide event filter and re-emits it as a single,
+ * coalesced themeChanged() signal that any object (widget or not, e.g. a
+ * QGraphicsObject) can connect to.
+ */
+class ThemeManager : public QObject {
+  Q_OBJECT
+public:
+  static ThemeManager *get();
+
+signals:
+  void themeChanged();
+
+protected:
+  bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+  explicit ThemeManager(QObject *parent = nullptr);
+  bool m_emitPending = false;
+};
 
 /**
  * @brief The SettingObserver class

@@ -8,6 +8,7 @@
 #include "src/cli/clioptions.h"
 #include "src/cli/clirunner.h"
 #include "src/mainwindow.h"
+#include "src/ripessettings.h"
 
 using namespace std;
 
@@ -55,6 +56,12 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser,
 }
 
 int guiMode(QApplication &app) {
+  // Use the Fusion style, which respects the system light/dark palette and looks good with both. Combined
+  // with QStyleHints::setColorScheme (see applyColorScheme) this gives the
+  // application proper light/dark theming.
+  QApplication::setStyle("Fusion");
+  Ripes::applyColorScheme();
+
   Ripes::MainWindow m;
 
 #ifdef Q_OS_WASM
