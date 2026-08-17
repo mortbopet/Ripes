@@ -3,7 +3,6 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QResource>
-#include <QTimer>
 #include <iostream>
 
 #include "src/cli/clioptions.h"
@@ -62,15 +61,14 @@ int guiMode(QApplication &app) {
   // In the WASM build, we'll just want a full-screen application that can't be
   // dragged or resized by the user.
   m.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-#endif
-
-  // The following sequence of events manages to successfully start the
-  // application as maximized, with the processor at a reasonable size. This has
-  // been found to be specially a problem on windows.
-  m.resize(800, 600);
   m.showMaximized();
-  m.setWindowState(Qt::WindowMaximized);
-  QTimer::singleShot(100, &m, [&m] { m.fitToView(); });
+#else
+  // Restore the previous window geometry (falls back to a maximized window on
+  // first launch). The initial processor fit-to-view is performed in
+  // MainWindow::showEvent, once the final window geometry has been applied.
+  m.restoreWindowGeometry();
+  m.show();
+#endif
 
   return app.exec();
 }

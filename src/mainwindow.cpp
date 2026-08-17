@@ -27,10 +27,12 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QShowEvent>
 #include <QStackedWidget>
 #include <QStatusBar>
 #include <QTemporaryFile>
 #include <QTextStream>
+#include <QTimer>
 
 namespace Ripes {
 
@@ -190,6 +192,27 @@ void MainWindow::fitToView() {
       ->fitToScreen();
 }
 
+void MainWindow::restoreWindowGeometry() {
+  const QByteArray geometry =
+      RipesSettings::value<QByteArray>(RIPES_SETTING_MAINWINDOW_GEOMETRY);
+  if (geometry.isEmpty() || !restoreGeometry(geometry)) {
+    // First launch (or invalid stored geometry): start maximized, which has
+    // historically provided the best default layout.
+    setWindowState(windowState() | Qt::WindowMaximized);
+  }
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+  QMainWindow::showEvent(event);
+  if (!m_hasPerformedInitialFit) {
+    m_hasPerformedInitialFit = true;
+    // Defer the initial processor fit until the event loop has applied the
+    // window's final geometry, so the graphics view has its correct size. This
+    // replaces a previously used fixed-delay timer.
+    QTimer::singleShot(0, this, &MainWindow::fitToView);
+  }
+}
+
 void MainWindow::setupMenus() {
   // Edit actions
   const QIcon newIcon = QIcon(":/icons/file.svg");
@@ -337,6 +360,10 @@ void MainWindow::closeEvent(QCloseEvent *event) {
       saveFilesTriggered();
     }
   }
+
+  // Persist the window geometry (size, position and maximized state) so it can
+  // be restored on the next launch.
+  RipesSettings::setValue(RIPES_SETTING_MAINWINDOW_GEOMETRY, saveGeometry());
 
   // Emit an observable signal to indicate that the application is about to
   // close

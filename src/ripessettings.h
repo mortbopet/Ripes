@@ -63,6 +63,8 @@ namespace Ripes {
 #define RIPES_SETTING_SAVE_SOURCE ("save_source")
 #define RIPES_SETTING_SAVE_BINARY ("save_binary")
 
+#define RIPES_SETTING_MAINWINDOW_GEOMETRY ("mainwindow_geometry")
+
 // ============= Definitions of all default settings within Ripes ==============
 const extern std::map<QString, QVariant> s_defaultSettings;
 

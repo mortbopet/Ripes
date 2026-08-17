@@ -76,7 +76,9 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_HAS_SAVEFILE, false},
     {RIPES_SETTING_SAVEPATH, ""},
     {RIPES_SETTING_SAVE_SOURCE, true},
-    {RIPES_SETTING_SAVE_BINARY, false}};
+    {RIPES_SETTING_SAVE_BINARY, false},
+
+    {RIPES_SETTING_MAINWINDOW_GEOMETRY, QByteArray()}};
 
 void SettingObserver::setValue(const QVariant &v) {
   QSettings settings;
