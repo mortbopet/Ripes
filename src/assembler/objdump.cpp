@@ -1,7 +1,6 @@
 #include "objdump.h"
 
 #include "processorhandler.h"
-#include <QDataStream>
 
 namespace Ripes {
 namespace Assembler {
@@ -30,8 +29,6 @@ QString stringifyProgram(std::weak_ptr<const Program> program,
       return QString();
 
     QString out;
-    auto dataStream = QDataStream(textSection->data);
-    std::vector<char> buffer;
     const unsigned regBytes = ProcessorHandler::currentISA()->bytes();
     const unsigned instrBytes = ProcessorHandler::currentISA()->instrBytes();
 
@@ -40,17 +37,6 @@ QString stringifyProgram(std::weak_ptr<const Program> program,
 
     AInt addr = textSection->address;
     while (addr < textSection->address + textSection->data.length()) {
-      /// Ensure that we always have sizeof(Instr_T) bytes in the buffer, even
-      /// though some of these bytes may be invalid (due to reading past the end
-      /// of stream). For the end-of-program edge,case, the while loop will exit
-      /// before we start decoding invalid data.
-      size_t curBufSize = buffer.size();
-      if (curBufSize < sizeof(Instr_T)) {
-        buffer.resize(sizeof(Instr_T));
-        dataStream.readRawData(buffer.data() + curBufSize,
-                               sizeof(Instr_T) - curBufSize);
-      }
-
       // symbol label
       if (sp->symbols.count(addr)) {
         const auto &symbol = sp->symbols.at(addr);
@@ -66,6 +52,12 @@ QString stringifyProgram(std::weak_ptr<const Program> program,
 
       // Instruction address
       out += indent + QString::number(addr, 16) + ":" + indent + indent;
+
+      std::vector<char> buffer(instrBytes);
+      const auto word = ProcessorHandler::getMemory().readMem(addr, instrBytes);
+      for (unsigned i = 0; i < instrBytes; ++i) {
+        buffer[i] = static_cast<char>((word >> (CHAR_BIT * i)) & 0xFF);
+      }
 
       // Stringified instruction
       auto disres = stringifier(buffer, addr);

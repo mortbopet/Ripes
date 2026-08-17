@@ -3,7 +3,6 @@
 #include <QHeaderView>
 
 #include "STLExtras.h"
-#include "fonts.h"
 #include "processorhandler.h"
 
 namespace Ripes {
@@ -113,8 +112,6 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const {
       return valueData(idx);
     case Qt::UserRole:
       return QVariant::fromValue(m_radix);
-    case Qt::FontRole:
-      return QFont(Fonts::monospace, 11);
     case Qt::ForegroundRole:
       return QBrush(Qt::blue);
     case Qt::EditRole:

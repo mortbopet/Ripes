@@ -24,11 +24,22 @@ ProgramViewer::ProgramViewer(QWidget *parent) : HighlightableTextEdit(parent) {
 
   // Set font for the entire widget. calls to fontMetrics() will get the
   // dimensions of the currently set font
-  m_font = QFont(Fonts::monospace, 11);
+  m_font = RipesSettings::value(RIPES_SETTING_EXECUTABLECODEFONT).value<QFont>();
+  if (m_font.family().isEmpty()) {
+    m_font = QFont(Fonts::monospace, 11);
+  }
   setFont(m_font);
   m_fontTimer.setSingleShot(true);
 
   setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') * 4);
+
+  connect(RipesSettings::getObserver(RIPES_SETTING_EXECUTABLECODEFONT),
+          &SettingObserver::modified, this, [this](const QVariant &value) {
+            m_font = value.value<QFont>();
+            setFont(m_font);
+            setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') *
+                               4);
+          });
 
   setLineWrapMode(QPlainTextEdit::NoWrap);
 }

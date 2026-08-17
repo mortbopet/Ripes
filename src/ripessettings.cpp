@@ -35,6 +35,10 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_EDITORREGS, true},
     {RIPES_SETTING_EDITORCONSOLE, true},
     {RIPES_SETTING_EDITORSTAGEHIGHLIGHTING, true},
+    {RIPES_SETTING_EDITORFONT, QFont(Fonts::monospace, 11)},
+    {RIPES_SETTING_EXECUTABLECODEFONT, QFont(Fonts::monospace, 11)},
+    {RIPES_SETTING_REGISTERFONT, QFont(Fonts::monospace, 12)},
+    {RIPES_SETTING_REGISTERDISPLAYTYPE, QVariant::fromValue(Radix::Hex)},
     {RIPES_SETTING_VCD_TRACE_FILE, "ripes.vcd"},
     {RIPES_SETTING_VCD_TRACE, false},
 
