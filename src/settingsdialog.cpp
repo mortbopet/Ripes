@@ -496,15 +496,6 @@ QWidget *SettingsDialog::createEnvironmentPage() {
   appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO,
                                                   "Echo console input:"),
                  consoleLayout);
-  appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(
-                     RIPES_SETTING_CONSOLEFONT, "Console font:"),
-                 consoleLayout);
-  appendToLayout(createSettingsWidgets<QPushButton, QColorDialog>(
-                     RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:"),
-                 consoleLayout);
-  appendToLayout(createSettingsWidgets<QPushButton, QColorDialog>(
-                     RIPES_SETTING_CONSOLEBG, "Console background color:"),
-                 consoleLayout);
   appendToLayout(consoleGroupBox, pageLayout);
 
   return pageWidget;

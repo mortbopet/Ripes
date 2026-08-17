@@ -18,9 +18,6 @@ namespace Ripes {
 #define RIPES_SETTING_FORMATTER_ARGS ("formatter_args")
 #define RIPES_SETTING_LDARGS ("linker_args")
 #define RIPES_SETTING_CONSOLEECHO ("console_echo")
-#define RIPES_SETTING_CONSOLEBG ("console_bg_color")
-#define RIPES_SETTING_CONSOLEFONTCOLOR ("console_font_color")
-#define RIPES_SETTING_CONSOLEFONT ("console_font")
 #define RIPES_SETTING_INDENTAMT ("editor_indent")
 #define RIPES_SETTING_UIUPDATEPS ("ui_update_ps")
 

@@ -24,12 +24,6 @@ const std::map<QString, QVariant> s_defaultSettings = {
      "-static -lm"}, // Ensure statically linked executable + link with math
                      // library
     {RIPES_SETTING_CONSOLEECHO, "true"},
-    {RIPES_SETTING_CONSOLEBG,
-     QColor() /* invalid => follow the theme palette */},
-    {RIPES_SETTING_CONSOLEFONTCOLOR,
-     QColor() /* invalid => follow the theme palette */},
-    {RIPES_SETTING_CONSOLEFONT,
-     QVariant() /* Let Console define its own default font */},
     {RIPES_SETTING_INDENTAMT, 4},
     {RIPES_SETTING_UIUPDATEPS, 25},
 
