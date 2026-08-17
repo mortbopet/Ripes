@@ -16,9 +16,6 @@ on:
 jobs:
   buildUbuntu:
     runs-on: ubuntu-22.04
-    env:
-      CC: emcc
-      CXX: em++
 
     strategy:
       matrix:
@@ -85,27 +82,26 @@ jobs:
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest 3.1.70
+        ./emsdk install 3.1.70
         ./emsdk activate 3.1.70
 
     - name: build Ripes
       run: |
-        echo "building desktop"
         source emsdk/emsdk_env.sh
         export QT_HOST_PATH=$(pwd)/../Qt/6.9.3/gcc_64/
-        find ${QT_HOST_PATH}
+        # The Qt for WebAssembly toolchain file selects the Emscripten compilers
+        # and sets CMAKE_SYSTEM_NAME=Emscripten, so no manual CC/CXX environment
+        # or compiler forcing is required.
         cmake                                           \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}   \
           -DRIPES_WITH_QPROCESS=OFF                     \
-          -DEMSCRIPTEN=1                                \
           -DQT_HOST_PATH="${QT_HOST_PATH}"              \
           -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.9.3/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
           -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.9.3/wasm_multithread/ \
-          -DEMSCRIPTEN_FORCE_COMPILERS=ON \
-          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache            \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache          \
           .
-        make -j $(nproc)
+        cmake --build . --parallel
 
     - uses: actions/upload-artifact@v4
       with:
