@@ -31,15 +31,8 @@ jobs:
     - name: get container ready for build
       run: |
         sudo apt-get update
-        sudo apt-get upgrade -y
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
-        automake cmake git wget libfuse2 desktop-file-utils tree \
-        build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev \
-        libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 \
-        libxcb-xinerama0 libxcb-composite0 libxcb-cursor0 libxcb-damage0 \
-        libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
-        libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
-        libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libegl1 libegl1-mesa-dev
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --no-install-recommends \
+        cmake git ca-certificates build-essential
 
     - name: checkout sources
       uses: actions/checkout@v4
@@ -78,7 +71,15 @@ jobs:
         cache: 'true'
         cache-key-prefix: 'install-qt-emscripten-6.9.3'
 
+    - name: Cache Emscripten SDK
+      id: cache-emsdk
+      uses: actions/cache@v4
+      with:
+        path: emsdk
+        key: emsdk-3.1.70
+
     - name: install Emscripten
+      if: steps.cache-emsdk.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
