@@ -45,7 +45,7 @@ jobs:
         libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libegl1 libegl1-mesa-dev
 
     - name: checkout sources
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: ${{ inputs.ripes-repo || github.repository }}
         ref: ${{ inputs.ripes-ref || github.ref }}
@@ -58,51 +58,49 @@ jobs:
         key: ${{ github.job }}-wasm-${{ matrix.build-type }}
 
     - name: Install Qt (Host)
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.6.0'
+        version: '6.9.3'
         host: 'linux'
         target: 'desktop'
-        arch: 'gcc_64'
+        arch: 'linux_gcc_64'
         cache: 'true'
-        cache-key-prefix: 'install-qt-host-6.6.0'
+        cache-key-prefix: 'install-qt-host-6.9.3'
         modules: 'qtcharts'
 
     - name: Install Qt (Emscripten)
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.6.0'
-        host: 'linux'
-        target: 'desktop'
+        version: '6.9.3'
+        host: 'all_os'
+        target: 'wasm'
         arch: 'wasm_multithread'
         modules: 'qtcharts'
         cache: 'true'
-        cache-key-prefix: 'install-qt-emscripten-6.6.0'
+        cache-key-prefix: 'install-qt-emscripten-6.9.3'
 
     - name: install Emscripten
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest 3.1.25
-        ./emsdk activate 3.1.25
+        ./emsdk install latest 3.1.70
+        ./emsdk activate 3.1.70
 
     - name: build Ripes
       run: |
         echo "building desktop"
         source emsdk/emsdk_env.sh
-        export QT_HOST_PATH=$(pwd)/../Qt/6.6.0/gcc_64/
+        export QT_HOST_PATH=$(pwd)/../Qt/6.9.3/gcc_64/
         find ${QT_HOST_PATH}
         cmake                                           \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}   \
           -DRIPES_WITH_QPROCESS=OFF                     \
           -DEMSCRIPTEN=1                                \
           -DQT_HOST_PATH="${QT_HOST_PATH}"              \
-          -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.6.0/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
-          -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.6.0/wasm_multithread/ \
+          -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.9.3/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
+          -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.9.3/wasm_multithread/ \
           -DEMSCRIPTEN_FORCE_COMPILERS=ON \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \

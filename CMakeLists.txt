@@ -52,7 +52,7 @@ if(RIPES_WITH_QPROCESS)
 endif()
 
 # Find required Qt packages
-find_package(Qt6 COMPONENTS Core Widgets Svg Charts REQUIRED)
+find_package(Qt6 6.8 COMPONENTS Core Widgets Svg Charts REQUIRED)
 
 # Finding Qt includes
 include_directories(${Qt6Widgets_INCLUDE_DIRS})

@@ -1,4 +1,4 @@
-name: WASM / Qt 6.6.0
+name: WASM / Qt 6.9.3
 
 # Ripes CI: verify that the WASM build succeeds on pushes and pull requests by
 # invoking the reusable build template. The template builds the current repo/ref

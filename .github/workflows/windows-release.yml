@@ -1,4 +1,4 @@
-name: Windows / Qt 6.5.0
+name: Windows / Qt 6.9.3
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -18,18 +18,17 @@ jobs:
     - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.5.0'
+        version: '6.9.3'
         host: 'windows'
         target: 'desktop'
-        arch: 'win64_msvc2019_64'
+        arch: 'win64_msvc2022_64'
         modules: 'qtcharts'
 
     - name: checkout sources
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
@@ -73,7 +72,7 @@ jobs:
         path: ${{ env.APPNAME }}
 
     - name: continuous release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release'
       with:
         prerelease: true
@@ -84,7 +83,7 @@ jobs:
 
     - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release')
       name: tagged release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: ${{ env.APPNAME }}
       env:
