@@ -128,6 +128,12 @@ void ProcessorHandler::_loadProgram(const std::shared_ptr<Program> &p) {
   auto &mem = m_currentProcessor->getMemory();
 
   m_program = p;
+  // Cache the resolved .text section so the per-cycle executable-address check
+  // (finished()) does not have to look it up by name - which constructs a
+  // temporary QString and linearly searches the section map - on every single
+  // clock cycle. The pointer refers directly into m_program's (stable,
+  // immutable) section map and stays valid for the lifetime of the program.
+  m_textSection = textSection;
   // Memory initializations
   mem.clearInitializationMemories();
   for (const auto &seg : p->sections) {
@@ -357,6 +363,7 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
     loadProgram(m_program);
   } else {
     m_program = nullptr;
+    m_textSection = nullptr;
     emit programChanged();
   }
 
@@ -474,12 +481,10 @@ void ProcessorHandler::_stopRun() {
 }
 
 bool ProcessorHandler::_isExecutableAddress(AInt address) const {
-  if (m_program) {
-    if (auto *textSection = m_program->getSection(TEXT_SECTION_NAME)) {
-      const auto textStart = textSection->address;
-      const auto textEnd = textSection->address + textSection->data.length();
-      return textStart <= address && address < textEnd;
-    }
+  if (m_textSection) {
+    const auto textStart = m_textSection->address;
+    const auto textEnd = m_textSection->address + m_textSection->data.length();
+    return textStart <= address && address < textEnd;
   }
   return false;
 }

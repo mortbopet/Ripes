@@ -364,6 +364,13 @@ private:
   std::set<AInt> m_breakpoints;
   std::shared_ptr<Program> m_program;
 
+  // Cached pointer to the loaded program's .text section, used by
+  // _isExecutableAddress (evaluated every cycle during a run via finished()) to
+  // avoid a per-cycle section-name lookup. Points into m_program's stable,
+  // immutable section map; refreshed on program load and cleared with the
+  // program.
+  const ProgramSection *m_textSection = nullptr;
+
   QFutureWatcher<void> m_runWatcher;
   bool m_stopRunningFlag = false;
 
