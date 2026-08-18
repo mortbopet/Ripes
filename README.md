@@ -28,6 +28,7 @@ For further information, please refer to the [Ripes documentation](docs/README.m
 
 ## Downloading & Installation
 Prebuilt binaries are available for Linux, Windows & Mac through the [Releases page](https://github.com/mortbopet/Ripes/releases).  
+Ripes is also available in your browser at [https://ripes.dk/](https://ripes.dk/) through a Qt for WebAssembly deployment.
 
 ### Linux
 Releases for Linux are distributed in the AppImage format. To run an AppImage:
