@@ -235,6 +235,13 @@ int CLIRunner::runModel() {
 
   timeoutTimer.stop();
   infoTimer.stop();
+
+  // Record the wall-clock execution time for the ExecutionTimeTelemetry.
+  const qint64 elapsedMs = elapsed.elapsed();
+  for (auto &telemetry : m_options.telemetry)
+    if (auto *et = dynamic_cast<ExecutionTimeTelemetry *>(telemetry.get()))
+      et->setElapsedMs(elapsedMs);
+
   if (hadTimeout) {
     ProcessorHandler::stopRun();
     error("Simulation did not finish within the specified timeout (" +

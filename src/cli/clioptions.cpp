@@ -56,6 +56,7 @@ void addCLIOptions(QCommandLineParser &parser, Ripes::CLIModeOptions &options) {
   options.telemetry.push_back(std::make_shared<IPCTelemetry>());
   options.telemetry.push_back(std::make_shared<PipelineTelemetry>());
   options.telemetry.push_back(std::make_shared<RegisterTelemetry>());
+  options.telemetry.push_back(std::make_shared<ExecutionTimeTelemetry>());
   options.telemetry.push_back(std::make_shared<RunInfoTelemetry>(&parser));
 
   for (auto &telemetry : options.telemetry) {

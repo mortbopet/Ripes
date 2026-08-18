@@ -14,7 +14,7 @@ namespace Ripes {
 class Telemetry {
 public:
   Telemetry() {}
-  virtual ~Telemetry(){};
+  virtual ~Telemetry() {};
 
   // Returns a QVariant representing representing this telemtry. If 'json' is
   // set, indicates that the output is intended for JSON export.
@@ -141,6 +141,22 @@ public:
       return outStr;
     }
   }
+};
+
+class ExecutionTimeTelemetry : public Telemetry {
+public:
+  QString key() const override { return "exectime"; }
+  QString prettyKey() const override { return "execution time (ms)"; }
+  QString description() const override {
+    return "wall-clock model execution time (ms)";
+  }
+  QVariant report(bool /*json*/) override {
+    return QVariant::fromValue(m_elapsedMs);
+  }
+  void setElapsedMs(qint64 ms) { m_elapsedMs = ms; }
+
+private:
+  qint64 m_elapsedMs = 0;
 };
 
 class RunInfoTelemetry : public Telemetry {
