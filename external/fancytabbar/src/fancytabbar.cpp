@@ -1,27 +1,22 @@
 #include "fancytabbar/fancytabbar.h"
 
-#include <QDebug>
-#include <QLinearGradient>
+#include <QFontMetrics>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
+#include <QVariantAnimation>
 
-/*!
- * \brief FancyTabBar::FancyTabBar is basic constructor if you want to
- *   create stand alone window with menu.
- */
-FancyTabBar::FancyTabBar() : QWidget(NULL) { init(); }
+namespace {
+// A little breathing room at the top and bottom of the rail.
+constexpr int kTopMargin = 6;
+// Duration of the selection slide animation.
+constexpr int kSelectionAnimMs = 180;
+} // namespace
 
-/*!
- * \brief FancyTabBar::FancyTabBar is used for creating embedded fancyTabBar
- *   into some window.
- * \param widget
- * \see QWidget documentation.
- */
+FancyTabBar::FancyTabBar() : QWidget(nullptr) { init(); }
+
 FancyTabBar::FancyTabBar(QWidget *widget) : QWidget(widget) { init(); }
 
-/*!
- * \brief FancyTabBar::~FancyTabBar delete allocated memory (free tabVector).
- */
 FancyTabBar::~FancyTabBar() {
   for (int i = 0; i < tabVector.size(); i++) {
     delete tabVector.at(i);
@@ -29,269 +24,232 @@ FancyTabBar::~FancyTabBar() {
   tabVector.clear();
 }
 
-/*!
- * \brief FancyTabBar::addFancyTab add fancy tab to tab bar. New tab will
- *    contain passed icon and taxst as capption.
- * \param icon will be showed as tab icon. It is similar to tool bar icon.
- * \param text will be showed as captoin.
- * \return return id (index) of tab. This value is returned by signal. Indexes
- *    are starting at 0 and they are incremented with each new tab.
- * \see FancyTabBar::activeIndexChanged()
- */
 qint32 FancyTabBar::addFancyTab(QIcon icon, QString text) {
   FancyTab *fancyTab = new FancyTab(icon, text);
   tabVector.append(fancyTab);
-  setMinimumHeight((tabHeight * tabVector.size()) + 2);
+  setMinimumHeight((tabHeight * tabVector.size()) + 2 * kTopMargin);
   return tabVector.size() - 1;
 }
 
-/*!
- * \brief FancyTabBar::getActiveIndex return index of active tab.
- * \return index of active tab.
- */
 qint32 FancyTabBar::getActiveIndex() const { return activeIndex; }
 
-/*!
- * \brief FancyTabBar::setActiveIndex set active tab. This function is mostly
- *    used on start up to set which tab is active.
- * \param index tab index
- * \return FancyTabBar::SUCESS if sucesfuly set.
- * \return FancyTabBar::INDEX_OUT_OF_RANGE if index is out of possible range.
- */
 FancyTabBar::Error FancyTabBar::setActiveIndex(qint32 index) {
   if (index >= tabVector.size() || index < 0)
     return INDEX_OUT_OF_RANGE;
 
   activeIndex = index;
+  moveSelectionTo(index, /*animate=*/m_selectionInitialized);
   emit activeIndexChanged(activeIndex);
+  update();
 
   return SUCESS;
 }
 
-/*!
- * \brief FancyTabBar::paintEvent this function is called if the FancyTabBar
- *   should be repainted.
- *   <H1>Drawing process</H1>
- *     -# Firt of all the frame is drawen with gradient as backgroud.
- *     -# Hovered tabs background is drawen.
- *     -# All tabs are drawen except current active tab.
- *     -# If some tab is active then
- *        -# draw the active backgroud.
- *        -# draw active tab
- *        -# draw the borders around the active tab (borders are drowen in to
- *           neighbored tabs!!!).
- * \param event see qt documentation for more details about this parameter.
- */
+void FancyTabBar::setSelectionPos(qreal pos) {
+  m_selectionPos = pos;
+  update();
+}
+
+void FancyTabBar::moveSelectionTo(qint32 index, bool animate) {
+  if (index < 0 || index >= tabVector.size())
+    return;
+  const qreal target = tabCenterY(index);
+  m_selectionAnim->stop();
+  if (!animate || !m_selectionInitialized) {
+    m_selectionInitialized = true;
+    setSelectionPos(target);
+    return;
+  }
+  m_selectionAnim->setStartValue(m_selectionPos);
+  m_selectionAnim->setEndValue(target);
+  m_selectionAnim->start();
+}
+
 void FancyTabBar::paintEvent(QPaintEvent *event) {
   Q_UNUSED(event);
 
   QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing, true);
   const QPalette pal = palette();
   const bool darkTheme = pal.color(QPalette::Window).lightness() < 128;
 
-  // Reduced size is size reduced by one becouse we need to draw from 0
-  // so size - 1. That how all arrays works ;)
-  QSize reducedSize = this->size() - QSize(1, 1);
-
-  // Bar background: a subtle shade off the window color so the bar stays
-  // distinguishable from the content area in both light and dark themes.
+  // --- Background rail ---------------------------------------------------
+  // A flat surface, a hair different from the window so the rail reads as its
+  // own region, with a single hairline separator on the trailing edge instead
+  // of a hard box border.
   const QColor barBackground = darkTheme
-                                   ? pal.color(QPalette::Window).lighter(135)
-                                   : pal.color(QPalette::Window).darker(112);
-  painter.setBrush(barBackground);
-  painter.setPen(pal.color(QPalette::Mid));
-  painter.drawRect(0, 0, reducedSize.width(), reducedSize.height());
+                                   ? pal.color(QPalette::Window).lighter(118)
+                                   : pal.color(QPalette::Window).darker(106);
+  painter.fillRect(rect(), barBackground);
+  QColor separator = pal.color(QPalette::Mid);
+  separator.setAlpha(darkTheme ? 120 : 160);
+  painter.setPen(separator);
+  painter.drawLine(width() - 1, 0, width() - 1, height());
 
-  // Hover highlight
-  if (hower >= 0 && hower != activeIndex) {
-    QColor hover = pal.color(QPalette::Highlight);
-    hover.setAlpha(60);
+  const qreal pillMargin = 8;
+  const qreal pillW = tabWidth - 2 * pillMargin;
+  const qreal pillH = tabHeight - 10;
+  const qreal pillRadius = 12;
+
+  // --- Hover wash --------------------------------------------------------
+  if (m_hoverIndex >= 0 && m_hoverIndex != activeIndex) {
+    QColor hover = pal.color(QPalette::WindowText);
+    hover.setAlpha(darkTheme ? 28 : 22);
+    const qreal cy = tabCenterY(m_hoverIndex);
+    const QRectF r(pillMargin, cy - pillH / 2, pillW, pillH);
     painter.setPen(Qt::NoPen);
     painter.setBrush(hover);
-    painter.drawRect(getTabRect(hower));
+    painter.drawRoundedRect(r, pillRadius, pillRadius);
   }
 
-  // Draw all inactive tabs.
-  for (int i = 0; i < tabVector.size(); i++) {
-    if (activeIndex != i)
-      drawTabContent(&painter, i);
-  }
-
-  // Draw the active tab, filled with the theme's accent (highlight) color.
+  // --- Selection: soft accent pill + leading accent rail -----------------
   if (activeIndex >= 0) {
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(pal.color(QPalette::Highlight));
-    painter.drawRect(getTabRect(activeIndex));
+    const QColor accent = pal.color(QPalette::Highlight);
 
-    drawTabContent(&painter, activeIndex, true);
+    QColor pill = accent;
+    pill.setAlpha(darkTheme ? 60 : 42);
+    const QRectF pillRect(pillMargin, m_selectionPos - pillH / 2, pillW, pillH);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(pill);
+    painter.drawRoundedRect(pillRect, pillRadius, pillRadius);
+
+    // Leading indicator rail: a short rounded bar hugging the left edge.
+    const qreal railW = 3.5;
+    const qreal railH = tabHeight * 0.42;
+    const QRectF railRect(2.5, m_selectionPos - railH / 2, railW, railH);
+    painter.setBrush(accent);
+    painter.drawRoundedRect(railRect, railW / 2, railW / 2);
   }
+
+  // --- Tab contents ------------------------------------------------------
+  for (int i = 0; i < tabVector.size(); i++)
+    drawTabContent(&painter, i, i == activeIndex);
 }
 
-/*!
- * \brief FancyTabBar::mouseReleaseEvent if mouse release event is trigered.
- *   Active tabe must emit signal to let the rest of app know that the index
- *   was changed.
- * \param event see qt documentation for more details about this parameter.
- */
 void FancyTabBar::mousePressEvent(QMouseEvent *event) {
   if (event->button() == Qt::LeftButton) {
     qint32 ret =
         getTabIndexByPoint(event->position().x(), event->position().y());
 
-    // If non of the tabs is clicked dont change the curent activeIndex.
-    if (ret != -1)
+    if (ret != -1 && ret != activeIndex) {
       activeIndex = ret;
-
+      moveSelectionTo(ret, /*animate=*/true);
+      emit activeIndexChanged(activeIndex);
+    }
     update();
-
-    emit activeIndexChanged(activeIndex);
   }
-  QWidget::mouseReleaseEvent(event);
+  QWidget::mousePressEvent(event);
 }
 
-/*!
- * \brief FancyTabBar::mouseMoveEvent whan the cursor is inside FancyTabBar area
- *   we need to update howered tab index if the cursor move.
- * \param event see qt documentation for more details about this parameter.
- */
 void FancyTabBar::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
-  hower = getTabIndexByPoint(event->position().x(), event->position().y());
-  update();
+  const qint32 h =
+      getTabIndexByPoint(event->position().x(), event->position().y());
+  if (h != m_hoverIndex) {
+    m_hoverIndex = h;
+    update();
+  }
 }
 
-/*!
- * \brief FancyTabBar::enterEvent make hower tab which is under cursor when the
- *   cursor enter FancyTabBar area.
- * \param event see qt documentation for more details about this parameter.
- */
 void FancyTabBar::enterEvent(QEnterEvent *event) {
-  QEnterEvent *enterEvent = static_cast<QEnterEvent *>(event);
-  hower = getTabIndexByPoint(enterEvent->position().x(),
-                             enterEvent->position().y());
+  m_hoverIndex =
+      getTabIndexByPoint(event->position().x(), event->position().y());
   update();
 }
 
-/*!
- * \brief FancyTabBar::leaveEvent make the hover over some tab disapare.
- * \param event see qt documentation for more details about this parameter.
- */
 void FancyTabBar::leaveEvent(QEvent *event) {
   Q_UNUSED(event);
-  // disable hower
-  hower = -1;
-  // repaint
+  m_hoverIndex = -1;
   update();
 }
 
-/*!
- * \brief FancyTabBar::getTabRect returns position and size of given tab
- *   index.
- * \param index index of the tab.
- */
-QRect FancyTabBar::getTabRect(qint32 index) {
-  qint32 tabPos = getTabYPos(index);
-  return QRect(1, tabPos, tabWidth, tabHeight);
+QRect FancyTabBar::getTabRect(qint32 index) const {
+  return QRect(0, getTabYPos(index), tabWidth, tabHeight);
 }
 
-/*!
- * \brief FancyTabBar::getIconRect returns position and size of icon of given
- *   tab index.
- * \param index index of the tab
- */
-QRect FancyTabBar::getIconRect(qint32 index) {
-  qint32 iconPos = getTabYPos(index) + tabTopSpaceing;
-  return QRect((tabWidth - iconSize) / 2, iconPos, iconSize, iconSize);
+QRect FancyTabBar::getIconRect(qint32 index) const {
+  const qint32 iconY = getTabYPos(index) + tabTopSpacing;
+  return QRect((tabWidth - iconSize) / 2, iconY, iconSize, iconSize);
 }
 
-/*!
- * \brief FancyTabBar::getTextRect returns position and size of text area of
- *   given tab index.
- * \param index index of the tab
- */
-QRect FancyTabBar::getTextRect(qint32 index) {
-  qint32 textPos = getTabYPos(index) + tabTopSpaceing + iconSize;
-  return QRect(1, textPos, tabWidth, textHeight);
+QRect FancyTabBar::getTextRect(qint32 index) const {
+  const qint32 textY =
+      getTabYPos(index) + tabTopSpacing + iconSize + iconTextGap;
+  return QRect(0, textY, tabWidth, textHeight);
 }
 
-/*!
- * \brief FancyTabBar::getTabYPos return Y position of give tab index. This
- *   function is mostly used by all another internal position functions.
- * \param index index of the tab
- */
-qint32 FancyTabBar::getTabYPos(qint32 index) { return (tabHeight * index) + 1; }
+qint32 FancyTabBar::getTabYPos(qint32 index) const {
+  return kTopMargin + (tabHeight * index);
+}
 
-/*!
- * \brief FancyTabBar::getTabIndexByPoint take poin in the 2D space and tels
- *   if it is inside of some tab. Returned value is tab index if some tab is
- *   found.
- * \param x x position of point.
- * \param y y position of point.
- * \return tab index if success. -1 otherwise.
- */
-qint32 FancyTabBar::getTabIndexByPoint(qint32 x, qint32 y) {
-  if (x < 1 || x > tabWidth)
+qreal FancyTabBar::tabCenterY(qint32 index) const {
+  return getTabYPos(index) + tabHeight / 2.0;
+}
+
+qint32 FancyTabBar::getTabIndexByPoint(qint32 x, qint32 y) const {
+  if (x < 0 || x > tabWidth)
     return -1;
-  if (y > ((tabVector.size() * tabHeight) - 2))
+  const qint32 rel = y - kTopMargin;
+  if (rel < 0)
     return -1;
-
-  return (y - 1) / tabHeight;
+  const qint32 index = rel / tabHeight;
+  if (index >= tabVector.size())
+    return -1;
+  return index;
 }
 
-/*!
- * \brief FancyTabBar::drawTabContent function which draw tab context. That
- *   mean this function draw tab icon and tab text on position returned by
- *   getTextRect() and getIconRect()
- * \param painter is painter passed from paintEvent
- * \param index is index of tab inside FancyTabBar
- * \param invertTextColor tels to function is text color should by inverted.
- *   This feature is usefull whan some tab is selected.
- */
 void FancyTabBar::drawTabContent(QPainter *painter, qint32 index, bool active) {
   const QPalette pal = palette();
-  QColor fg = active ? pal.color(QPalette::HighlightedText)
-                     : pal.color(QPalette::WindowText);
-  if (!active)
-    fg.setAlpha(200); // slightly dim inactive tabs
 
-  painter->setPen(fg);
+  // Icons are left in their natural colors (several are meaningful pictograms);
+  // inactive tabs are dimmed slightly to establish hierarchy.
+  const QPixmap pixmap = tabVector[index]->m_icon.pixmap(iconSize, iconSize);
+  painter->save();
+  painter->setOpacity(active ? 1.0 : 0.82);
+  painter->drawPixmap(getIconRect(index).topLeft(), pixmap);
+  painter->restore();
 
-  QFont font = painter->font();
-  font.setBold(true);
-  font.setPixelSize(10);
+  QFont font = m_labelFont;
+  font.setWeight(active ? QFont::DemiBold : QFont::Normal);
   painter->setFont(font);
 
-  QPixmap pixmap = tabVector[index]->m_icon.pixmap(iconSize, iconSize);
-
-  QRect iconRect = getIconRect(index);
-  QRect textRect = getTextRect(index);
-
-  painter->drawPixmap(iconRect.topLeft(), pixmap);
-  painter->drawText(textRect, Qt::AlignBottom | Qt::AlignHCenter,
+  QColor fg = pal.color(QPalette::WindowText);
+  if (!active)
+    fg.setAlpha(160);
+  painter->setPen(fg);
+  painter->drawText(getTextRect(index), Qt::AlignHCenter | Qt::AlignVCenter,
                     tabVector[index]->m_text);
 }
 
-/*!
- * \brief FancyTabBar::init init all variable inside FancyTabBar class.
- *   Must be called in all constructors....
- */
 void FancyTabBar::init() {
   activeIndex = -1;
+  m_hoverIndex = -1;
 
-  barWidth = 80;
+  barWidth = 76;
+  iconSize = 30;
+  tabTopSpacing = 12;
+  iconTextGap = 5;
+
+  m_labelFont = font();
+  if (m_labelFont.pointSizeF() > 0)
+    m_labelFont.setPointSizeF(m_labelFont.pointSizeF() * 0.9);
+  else
+    m_labelFont.setPixelSize(11);
+  textHeight = QFontMetrics(m_labelFont).height();
+
+  tabWidth = barWidth;
+  tabHeight = tabTopSpacing + iconSize + iconTextGap + textHeight + 12;
 
   setMaximumWidth(barWidth);
   setMinimumWidth(barWidth);
 
-  iconSize = 36;
-  textHeight = 10;
-  tabWidth = barWidth - 2; // Two are substraceted because there are two
-                           // pixels of frame.
-  textWidth = tabWidth;
-  tabHeight = 55;
-  // on the left side
-  tabTopSpaceing = 5;
+  m_selectionPos = 0;
+  m_selectionInitialized = false;
+  m_selectionAnim = new QVariantAnimation(this);
+  m_selectionAnim->setDuration(kSelectionAnimMs);
+  m_selectionAnim->setEasingCurve(QEasingCurve::InOutCubic);
+  connect(m_selectionAnim, &QVariantAnimation::valueChanged, this,
+          [this](const QVariant &v) { setSelectionPos(v.toReal()); });
 
   setMouseTracking(true);
-  hower = -1;
 }
