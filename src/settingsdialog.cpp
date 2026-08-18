@@ -319,6 +319,16 @@ QWidget *SettingsDialog::createSimulatorPage() {
   appendToLayout({rewindLabel, rewindSpinbox}, pageLayout,
                  "Maximum cycles that the simulator is able to undo.");
 
+  // Setting: RIPES_SETTING_CLOCKRATE_WINDOW
+  auto [clockRateLabel, clockRateSpinbox] = createSettingsWidgets<QSpinBox>(
+      RIPES_SETTING_CLOCKRATE_WINDOW, "Clock rate averaging window (ms):");
+  clockRateSpinbox->setRange(1, 10000);
+  appendToLayout(
+      {clockRateLabel, clockRateSpinbox}, pageLayout,
+      "Time window over which the displayed clock rate is averaged while "
+      "running. Larger values give a more stable (but slower-reacting) "
+      "reading.");
+
   // Setting: RIPES_SETTING_PERIPHERALS_START
   appendToLayout(createSettingsWidgets<HexSpinBox>(
                      RIPES_SETTING_PERIPHERALS_START, "I/O start address:"),

@@ -15,6 +15,7 @@
 #include <QTemporaryFile>
 #include <QtMath>
 
+#include <algorithm>
 #include <cmath>
 
 #include "consolewidget.h"
@@ -49,6 +50,15 @@ enum class ToolGlyph {
 
 // The green used for the "auto clock" (play) action.
 const QColor kAutoClockGreen(0x50, 0xB7, 0x20);
+
+// The displayed clock rate is refreshed at most this often, averaging the cycle
+// throughput over each such window rather than showing an instantaneous (noisy)
+// sample on every stat-timer tick. The window size is configurable via
+// RIPES_SETTING_CLOCKRATE_WINDOW; this constant is only a fallback lower bound.
+constexpr double kClockRateWindowMinMS = 1.0;
+// Exponential-moving-average weight applied to each new window's rate. Lower
+// values yield a more stable (but slower-reacting) displayed clock rate.
+constexpr double kClockRateSmoothing = 0.4;
 
 QIcon makeToolIcon(ToolGlyph glyph, const QColor &color) {
   constexpr int sz = 64;
@@ -428,19 +438,10 @@ void ProcessorTab::updateToolbarIcons() {
 }
 
 void ProcessorTab::updateStatistics() {
-  static auto lastUpdateTime = std::chrono::system_clock::now();
-  static long long lastCycleCount =
-      ProcessorHandler::getProcessor()->getCycleCount();
-
-  const auto timeNow = std::chrono::system_clock::now();
+  const auto timeNow = std::chrono::steady_clock::now();
   const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
   const auto instrsRetired =
       ProcessorHandler::getProcessor()->getInstructionsRetired();
-  const auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            timeNow - lastUpdateTime)
-                            .count() /
-                        1000.0; // in seconds
-  const auto cycleDiff = cycleCount - lastCycleCount;
 
   // Cycle count
   m_ui->cycleCount->setText(QString::number(cycleCount));
@@ -458,13 +459,44 @@ void ProcessorTab::updateStatistics() {
   m_ui->cpi->setText(cpiText);
   m_ui->ipc->setText(ipcText);
 
-  // Clock rate
-  const double clockRate = static_cast<double>(cycleDiff) / timeDiff;
-  m_ui->clockRate->setText(convertToSIUnits(clockRate) + "Hz");
+  // Clock rate. Average the cycle throughput over a fixed time window
+  // (kClockRateWindowMS) and lightly smooth the result across windows with an
+  // exponential moving average. The displayed value is therefore refreshed at
+  // most every kClockRateWindowMS.
+  if (!m_clockRateWindowValid) {
+    m_clockRateWindowStart = timeNow;
+    m_clockRateWindowStartCycle = cycleCount;
+    m_clockRateWindowValid = true;
+  }
+  const double windowSec =
+      std::chrono::duration<double>(timeNow - m_clockRateWindowStart).count();
+  const double windowMs = std::max(
+      kClockRateWindowMinMS,
+      static_cast<double>(
+          RipesSettings::value(RIPES_SETTING_CLOCKRATE_WINDOW).toInt()));
+  if (windowSec * 1000.0 >= windowMs) {
+    const double windowRate =
+        static_cast<double>(cycleCount - m_clockRateWindowStartCycle) /
+        windowSec;
+    if (!m_haveSmoothedClockRate) {
+      m_smoothedClockRate = windowRate;
+      m_haveSmoothedClockRate = true;
+    } else {
+      m_smoothedClockRate = kClockRateSmoothing * windowRate +
+                            (1.0 - kClockRateSmoothing) * m_smoothedClockRate;
+    }
+    m_ui->clockRate->setText(convertToSIUnits(m_smoothedClockRate) + "Hz");
 
-  // Record timestamp values
-  lastUpdateTime = timeNow;
-  lastCycleCount = cycleCount;
+    // Start the next averaging window.
+    m_clockRateWindowStart = timeNow;
+    m_clockRateWindowStartCycle = cycleCount;
+  }
+}
+
+void ProcessorTab::resetClockRateEstimate() {
+  m_clockRateWindowValid = false;
+  m_haveSmoothedClockRate = false;
+  m_smoothedClockRate = 0.0;
 }
 
 void ProcessorTab::pause() {
@@ -692,6 +724,7 @@ void ProcessorTab::run(bool state) {
     m_autoClockAction->setChecked(false);
   }
   if (state) {
+    resetClockRateEstimate();
     ProcessorHandler::run();
     m_statUpdateTimer->start();
   } else {

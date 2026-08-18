@@ -6,6 +6,8 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include <chrono>
+
 #include "isa/isa_types.h"
 #include "processors/interface/ripesprocessor.h"
 #include "ripestab.h"
@@ -73,6 +75,10 @@ private:
   void loadLayout(const Layout &);
   void loadProcessorToWidget(const Layout *);
 
+  /// Resets the state used to compute the smoothed clock-rate estimate, so that
+  /// a subsequent run starts averaging afresh.
+  void resetClockRateEstimate();
+
   Ui::ProcessorTab *m_ui = nullptr;
   InstructionModel *m_instrModel = nullptr;
   PipelineDiagramModel *m_stageModel = nullptr;
@@ -82,6 +88,16 @@ private:
   std::map<StageIndex, vsrtl::Label *> m_stageInstructionLabels;
 
   QTimer *m_statUpdateTimer;
+
+  // State for computing a stable, smoothed clock rate during a run. Showing the
+  // instantaneous cycles/second between successive stat-timer ticks is very
+  // noisy; instead the displayed rate is averaged over a fixed time window and
+  // lightly smoothed across windows (see updateStatistics()).
+  std::chrono::steady_clock::time_point m_clockRateWindowStart;
+  long long m_clockRateWindowStartCycle = 0;
+  double m_smoothedClockRate = 0.0;
+  bool m_clockRateWindowValid = false;
+  bool m_haveSmoothedClockRate = false;
 
   // Actions
   QAction *m_selectProcessorAction = nullptr;
