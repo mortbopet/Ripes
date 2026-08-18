@@ -249,6 +249,9 @@ bool ProcessorHandler::_hasBreakpoint(const AInt address) const {
 }
 
 bool ProcessorHandler::_checkBreakpoint() {
+  if (m_breakpoints.empty())
+    return false;
+
   for (const auto &stage : m_currentProcessor->breakpointTriggeringStages()) {
     const auto it =
         m_breakpoints.find(m_currentProcessor->getPcForStage(stage));

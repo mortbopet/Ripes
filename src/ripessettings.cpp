@@ -173,4 +173,3 @@ bool appInDarkMode() {
 }
 
 } // namespace Ripes
-Q_DECLARE_METATYPE(QList<Ripes::CachePreset>);

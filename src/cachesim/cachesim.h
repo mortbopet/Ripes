@@ -281,6 +281,11 @@ private:
   unsigned m_byteOffset = -1; // # of bits to represent the # of bytes in a word
   unsigned m_wordBits = -1;
 
+  // Cached copy of RIPES_SETTING_CACHE_MAXTRACES. Reading a QSettings-backed
+  // value constructs a QSettings object (a registry/file access) on every
+  // call, which is prohibitively expensive to do per cache access.
+  size_t m_maxTraces = 0;
+
   /**
    * @brief m_cacheLines
    * The datastructure for storing our cache hierachy, as per the current cache
@@ -341,3 +346,13 @@ const static std::map<WritePolicy, QString> s_cacheWritePolicyStrings{
 } // namespace Ripes
 
 Q_DECLARE_METATYPE(Ripes::CacheSim::CacheTransaction);
+
+// Metatypes for the cache configuration types. Declared centrally here (rather
+// than in a specific widget/settings translation unit) so that any consumer of
+// cachesim.h - including the CLI - can (de)serialize cache presets via
+// QVariant/QSettings.
+Q_DECLARE_METATYPE(Ripes::WritePolicy);
+Q_DECLARE_METATYPE(Ripes::WriteAllocPolicy);
+Q_DECLARE_METATYPE(Ripes::ReplPolicy);
+Q_DECLARE_METATYPE(Ripes::CachePreset);
+Q_DECLARE_METATYPE(QList<Ripes::CachePreset>);

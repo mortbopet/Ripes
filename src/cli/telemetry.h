@@ -2,6 +2,7 @@
 
 #include <QTextStream>
 
+#include "cachesim/cachesim.h"
 #include "pipelinediagrammodel.h"
 #include "processorhandler.h"
 #include "radix.h"
@@ -157,6 +158,47 @@ public:
 
 private:
   qint64 m_elapsedMs = 0;
+};
+
+class CacheTelemetry : public Telemetry {
+public:
+  QString key() const override { return "cache"; }
+  QString prettyKey() const override { return "cache statistics"; }
+  QString description() const override {
+    return "L1 instruction/data cache statistics";
+  }
+
+  // Attach the instruction- and data-cache simulators whose statistics should
+  // be reported. Ownership stays with the caller (the CLIRunner).
+  void setCaches(std::shared_ptr<CacheSim> icache,
+                 std::shared_ptr<CacheSim> dcache) {
+    m_icache = std::move(icache);
+    m_dcache = std::move(dcache);
+  }
+
+  QVariant report(bool /*json*/) override {
+    QVariantMap m;
+    const auto add = [&m](const QString &prefix, CacheSim *c) {
+      const auto hits = c->getHits();
+      const auto misses = c->getMisses();
+      const auto total = hits + misses;
+      m[prefix + " accesses"] = total;
+      m[prefix + " hits"] = hits;
+      m[prefix + " misses"] = misses;
+      m[prefix + " writebacks"] = c->getWritebacks();
+      m[prefix + " hit rate"] =
+          total == 0 ? 0.0 : static_cast<double>(hits) / total;
+    };
+    if (m_icache)
+      add("L1i", m_icache.get());
+    if (m_dcache)
+      add("L1d", m_dcache.get());
+    return m;
+  }
+
+private:
+  std::shared_ptr<CacheSim> m_icache;
+  std::shared_ptr<CacheSim> m_dcache;
 };
 
 class RunInfoTelemetry : public Telemetry {

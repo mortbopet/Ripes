@@ -1,9 +1,11 @@
 #pragma once
 
 #include "assembler/program.h"
+#include "cachesim/cachesim.h"
 #include "processorregistry.h"
 #include "telemetry.h"
 #include <QCommandLineParser>
+#include <optional>
 #include <set>
 
 namespace Ripes {
@@ -18,6 +20,14 @@ struct CLIModeOptions {
   bool jsonOutput = false;
   int timeout = 0;
   RegisterInitialization regInit;
+
+  // Optional L1 instruction/data cache configurations. When set, the
+  // corresponding cache is simulated during the run (mirroring the GUI cache
+  // tab) so cache behaviour/overhead can be exercised and reported headlessly.
+  // Populated from either a named preset (--cache-preset) or a JSON spec
+  // (--cache-config).
+  std::optional<CachePreset> l1iCache;
+  std::optional<CachePreset> l1dCache;
 
   // A list of enabled telemetry options.
   std::vector<std::shared_ptr<Telemetry>> telemetry;
