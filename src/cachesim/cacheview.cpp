@@ -1,7 +1,9 @@
 #include "cacheview.h"
 
 #include <QGraphicsSimpleTextItem>
+#include <QScrollBar>
 #include <QWheelEvent>
+#include <algorithm>
 #include <qmath.h>
 
 #include "ripessettings.h"
@@ -24,6 +26,19 @@ CacheView::CacheView(QWidget *parent) : QGraphicsView(parent) {
 }
 
 void CacheView::mousePressEvent(QMouseEvent *event) {
+  // Panning: middle-drag, or Ctrl+left-drag, moves the scene viewport without
+  // triggering block selection.
+  const bool startPan = event->button() == Qt::MiddleButton ||
+                        (event->button() == Qt::LeftButton &&
+                         (event->modifiers() & Qt::ControlModifier));
+  if (startPan) {
+    m_panning = true;
+    m_lastPanPos = event->pos();
+    viewport()->setCursor(Qt::ClosedHandCursor);
+    event->accept();
+    return;
+  }
+
   // If we press on a cache data block, get the address stored for that block
   // and emit a signal indicating that the address was selected through the
   // cache
@@ -38,6 +53,54 @@ void CacheView::mousePressEvent(QMouseEvent *event) {
     }
   }
   QGraphicsView::mousePressEvent(event);
+}
+
+void CacheView::mouseMoveEvent(QMouseEvent *event) {
+  if (m_panning) {
+    const QPoint delta = event->pos() - m_lastPanPos;
+    m_lastPanPos = event->pos();
+    ensureNavigableSceneRect();
+    horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+    verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
+    event->accept();
+    return;
+  }
+  QGraphicsView::mouseMoveEvent(event);
+}
+
+void CacheView::mouseReleaseEvent(QMouseEvent *event) {
+  if (m_panning && (event->button() == Qt::MiddleButton ||
+                    event->button() == Qt::LeftButton)) {
+    m_panning = false;
+    viewport()->setCursor(Qt::ArrowCursor);
+    event->accept();
+    return;
+  }
+  QGraphicsView::mouseReleaseEvent(event);
+}
+
+void CacheView::ensureNavigableSceneRect() {
+  if (scene() == nullptr)
+    return;
+
+  const QRectF content = scene()->itemsBoundingRect();
+  const QRectF viewportScene = mapToScene(viewport()->rect()).boundingRect();
+  QRectF wanted = content.united(viewportScene);
+
+  // Extend by (at least) one content/viewport span in each direction so the
+  // view can always be panned past its content and the content can be centered.
+  const qreal marginX = std::max(content.width(), viewportScene.width());
+  const qreal marginY = std::max(content.height(), viewportScene.height());
+  wanted.adjust(-marginX, -marginY, marginX, marginY);
+
+  const QRectF current = sceneRect();
+  if (!current.contains(wanted)) {
+    // Preserve the current view center across the scene rect change to avoid
+    // any visual jump while panning.
+    const QPointF center = mapToScene(viewport()->rect().center());
+    setSceneRect(current.isEmpty() ? wanted : current.united(wanted));
+    centerOn(center);
+  }
 }
 
 void CacheView::fitScene() {
