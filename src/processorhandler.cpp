@@ -213,16 +213,44 @@ void ProcessorHandler::_run() {
       vsrtl_proc->setEnableSignals(false);
     }
 
+    // Mark that we are running before the loop, so the per-cycle clocked-signal
+    // handler (_relayClockedNonRun) can cheaply skip cross-thread GUI posts.
+    m_running.store(true, std::memory_order_relaxed);
+
     while (!(_checkBreakpoint() || m_currentProcessor->finished() ||
              m_stopRunningFlag)) {
-      m_currentProcessor->clock();
+      // The loop condition has already established that the processor is not
+      // finished, so clock without a redundant finished() re-check.
+      m_currentProcessor->clockUnguarded();
     }
+
+    m_running.store(false, std::memory_order_relaxed);
 
     if (vsrtl_proc) {
       vsrtl_proc->setEnableSignals(true);
     }
     emit runFinished();
   }));
+}
+
+void ProcessorHandler::_relayClockedNonRun() {
+  // Invoked (via Gallant) on every processor clock, potentially from the run
+  // worker thread. During a Run we must not post a per-cycle event to the GUI
+  // thread - that posting dominates run time, and GUI refresh during a run is
+  // driven separately by a periodic timer. Check the running flag in-thread and
+  // return cheaply before doing any cross-thread work.
+  if (m_running.load(std::memory_order_relaxed))
+    return;
+
+  // Not running (e.g. single-stepping), which may still occur on a thread-pool
+  // thread; hop to this object's thread safely before touching GUI state.
+  QMetaObject::invokeMethod(
+      this,
+      [this] {
+        emit processorClockedNonRun();
+        _triggerProcStateChangeTimer();
+      },
+      Qt::AutoConnection);
 }
 
 void ProcessorHandler::_setBreakpoint(const AInt address, bool enabled) {
@@ -334,16 +362,12 @@ void ProcessorHandler::_selectProcessor(const ProcessorID &id,
 
   // Connect wrappers for making processor signal emissions thread safe.
   m_signalWrappers.clear();
-  m_signalWrappers.push_back(std::unique_ptr<vsrtl::GallantSignalWrapperBase>(
-      new vsrtl::GallantSignalWrapper(
-          this,
-          [this] {
-            if (!_isRunning()) {
-              emit processorClockedNonRun();
-              _triggerProcStateChangeTimer();
-            }
-          },
-          m_currentProcessor->processorWasClocked)));
+  // The per-cycle "clocked" signal is handled specially: it is connected
+  // directly (Gallant) to a handler that gates on the running flag in-thread,
+  // so that during a Run we do not post an event to the GUI thread on every
+  // single cycle (which otherwise dominates run time). See _relayClockedNonRun.
+  m_currentProcessor->processorWasClocked.Connect(
+      this, &ProcessorHandler::_relayClockedNonRun);
   // Connect ProcessorHandler::processorClocked since things connected to this
   // signal _must_ be updated _for each_ processor cycle, in order. Which would
   // not be possible through processorClockedNonRun, which might be cross-thread

@@ -3,6 +3,7 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QObject>
+#include <atomic>
 #include <memory>
 
 #include "VSRTL/graphics/gallantsignalwrapper.h"
@@ -200,7 +201,7 @@ public:
   static bool isRunning() { return get()->_isRunning(); }
 
   static void setMemoryFocusAddress(AInt address) {
-    emit get()->memoryFocusAddressChanged(address);
+    emit get() -> memoryFocusAddressChanged(address);
   }
 
   /**
@@ -333,6 +334,14 @@ private:
   void _stopRun();
   void _triggerProcStateChangeTimer();
 
+  /// Gallant-connected handler for the processor's per-cycle "clocked" signal,
+  /// responsible for driving the non-run GUI refresh (processorClockedNonRun).
+  /// It is invoked on every clock, potentially from the run worker thread, and
+  /// therefore checks the (atomic) running flag in-thread and returns
+  /// immediately during a run - avoiding a very expensive per-cycle
+  /// cross-thread event post.
+  void _relayClockedNonRun();
+
   void createAssemblerForCurrentISA();
   void setStopRunFlag();
   ProcessorHandler();
@@ -357,6 +366,12 @@ private:
 
   QFutureWatcher<void> m_runWatcher;
   bool m_stopRunningFlag = false;
+
+  // Fast, thread-safe indicator that the processor is currently in a Run (as
+  // opposed to single-stepping). Checked on the per-cycle clocked-signal hot
+  // path to avoid cross-thread event posting during a run.
+  std::atomic<bool> m_running{false};
+
   std::mutex m_clockLock;
 
   /**

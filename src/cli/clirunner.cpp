@@ -88,6 +88,11 @@ void CLIRunner::setupCaches() {
     m_l1dCache->setPreset(*m_options.l1dCache);
     m_l1dShim =
         std::make_unique<L1CacheShim>(L1CacheShim::CacheType::DataCache, this);
+    // The CLI --cache option explicitly requests cache statistics, so simulate
+    // regardless of whether the selected processor declares a cache interface
+    // (e.g. the ISA simulator, whose fast functional model can still yield
+    // useful cache statistics for a program).
+    m_l1dShim->setRequireCacheInterface(false);
     m_l1dShim->setNextLevelCache(m_l1dCache);
   }
 
@@ -96,6 +101,7 @@ void CLIRunner::setupCaches() {
     m_l1iCache->setPreset(*m_options.l1iCache);
     m_l1iShim =
         std::make_unique<L1CacheShim>(L1CacheShim::CacheType::InstrCache, this);
+    m_l1iShim->setRequireCacheInterface(false);
     m_l1iShim->setNextLevelCache(m_l1iCache);
   }
 

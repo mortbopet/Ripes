@@ -273,7 +273,7 @@ public:
    * @brief vcdTrace
    * Enables VCD tracing of the processor model, if supported by the simulator.
    */
-  virtual void vcdTrace(bool, const QString &){};
+  virtual void vcdTrace(bool, const QString &) {};
 
   /**
    * @brief clock
@@ -283,6 +283,16 @@ public:
     if (!finished())
       clockProcessor();
   }
+
+  /**
+   * @brief clockUnguarded
+   * Clocks the processor without re-checking finished(). The caller MUST ensure
+   * that finished() is false before calling this. This exists so that the run
+   * loop - which already evaluates finished() as its loop condition - can avoid
+   * a redundant (per-cycle) finished() evaluation, which for some models
+   * involves a non-trivial executable-address lookup.
+   */
+  void clockUnguarded() { clockProcessor(); }
 
   /**
    * @brief finalize
