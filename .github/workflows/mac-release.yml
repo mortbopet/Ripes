@@ -1,4 +1,4 @@
-name: Mac / Qt 6.5.0
+name: Mac / Qt 6.9.3
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: checkout sources
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         submodules: 'recursive'
         fetch-depth: 0
@@ -28,11 +28,10 @@ jobs:
       run: brew install autoconf automake libtool xz  pkg-config libgit2 libjpg libpng libmtp svg2png
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.5.0'
+        version: '6.9.3'
         host: 'mac'
         target: 'desktop'
         arch: 'clang_64'
@@ -70,7 +69,7 @@ jobs:
         path: ${{ env.APPNAME }}.zip
 
     - name: continuous release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: github.ref == 'refs/heads/master' && matrix.build-type == 'Release'
       with:
         prerelease: true
@@ -81,7 +80,7 @@ jobs:
 
     - if: (startsWith(github.ref, 'refs/tags/')) && (matrix.build-type == 'Release')
       name: tagged release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: ${{ env.APPNAME }}.zip
       env:

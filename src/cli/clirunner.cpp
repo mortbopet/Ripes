@@ -1,10 +1,13 @@
 #include "clirunner.h"
+#include "cachesim/cachesim.h"
+#include "cachesim/l1cacheshim.h"
 #include "ccmanager.h"
 #include "io/iomanager.h"
 #include "loaddialog.h"
 #include "processorhandler.h"
 #include "programutilities.h"
 #include "syscall/systemio.h"
+#include "telemetry.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -53,6 +56,11 @@ CLIRunner::CLIRunner(const CLIModeOptions &options)
   ProcessorHandler::selectProcessor(m_options.proc, m_options.isaExtensions,
                                     m_options.regInit);
 
+  // Optionally instantiate cache simulation so its behaviour/overhead is
+  // exercised during the headless run.
+  if (m_options.l1iCache || m_options.l1dCache)
+    setupCaches();
+
   // Connect systemIO output to stdout.
   connect(&SystemIO::get(), &SystemIO::doPrint, this, [&](auto text) {
     std::cout << text.toStdString();
@@ -61,6 +69,47 @@ CLIRunner::CLIRunner(const CLIModeOptions &options)
 
   // Handle systemIO input in stdin
   SystemIO::setCLIInput();
+}
+
+CLIRunner::~CLIRunner() = default;
+
+/**
+ * Instantiates the requested L1 instruction- and/or data-cache simulators and
+ * connects them to the processor, mirroring the wiring performed by the GUI
+ * cache tab (CacheTabWidget). Each configured cache is set up from its
+ * CachePreset (geometry + policies). The L1CacheShims connect to
+ * ProcessorHandler::processorClocked (direct connection) and thus drive the
+ * cache simulators in lockstep with the processor during a run. A cache is
+ * only created when a configuration for it was provided.
+ */
+void CLIRunner::setupCaches() {
+  if (m_options.l1dCache) {
+    m_l1dCache = std::make_shared<CacheSim>(this);
+    m_l1dCache->setPreset(*m_options.l1dCache);
+    m_l1dShim =
+        std::make_unique<L1CacheShim>(L1CacheShim::CacheType::DataCache, this);
+    // The CLI --cache option explicitly requests cache statistics, so simulate
+    // regardless of whether the selected processor declares a cache interface
+    // (e.g. the ISA simulator, whose fast functional model can still yield
+    // useful cache statistics for a program).
+    m_l1dShim->setRequireCacheInterface(false);
+    m_l1dShim->setNextLevelCache(m_l1dCache);
+  }
+
+  if (m_options.l1iCache) {
+    m_l1iCache = std::make_shared<CacheSim>(this);
+    m_l1iCache->setPreset(*m_options.l1iCache);
+    m_l1iShim =
+        std::make_unique<L1CacheShim>(L1CacheShim::CacheType::InstrCache, this);
+    m_l1iShim->setRequireCacheInterface(false);
+    m_l1iShim->setNextLevelCache(m_l1iCache);
+  }
+
+  // Inject the cache simulators into the cache telemetry so it can report their
+  // statistics after the run.
+  for (auto &telemetry : m_options.telemetry)
+    if (auto *ct = dynamic_cast<CacheTelemetry *>(telemetry.get()))
+      ct->setCaches(m_l1iCache, m_l1dCache);
 }
 
 /**
@@ -235,6 +284,13 @@ int CLIRunner::runModel() {
 
   timeoutTimer.stop();
   infoTimer.stop();
+
+  // Record the wall-clock execution time for the ExecutionTimeTelemetry.
+  const qint64 elapsedMs = elapsed.elapsed();
+  for (auto &telemetry : m_options.telemetry)
+    if (auto *et = dynamic_cast<ExecutionTimeTelemetry *>(telemetry.get()))
+      et->setElapsedMs(elapsedMs);
+
   if (hadTimeout) {
     ProcessorHandler::stopRun();
     error("Simulation did not finish within the specified timeout (" +

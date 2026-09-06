@@ -3,8 +3,10 @@
 #include "iobase.h"
 #include <QWidget>
 
+#include "ioclock.h"
 #include "iodpad.h"
 #include "ioledmatrix.h"
+#include "ioscreen.h"
 #include "ioswitches.h"
 
 /** @brief IORegistry
@@ -18,7 +20,7 @@
 
 namespace Ripes {
 
-enum IOType { LED_MATRIX, SWITCHES, DPAD, NPERIPHERALS };
+enum IOType { LED_MATRIX, SWITCHES, DPAD, RTC, SCREEN, NPERIPHERALS };
 
 template <typename T>
 IOBase *createIO(QWidget *parent) {
@@ -31,11 +33,15 @@ using IOFactory = std::function<IOBase *(QWidget *parent)>;
 const static std::map<IOType, QString> IOTypeTitles = {
     {IOType::LED_MATRIX, "LED Matrix"},
     {IOType::SWITCHES, "Switches"},
-    {IOType::DPAD, "D-Pad"}};
+    {IOType::DPAD, "D-Pad"},
+    {IOType::RTC, "Real-time Clock"},
+    {IOType::SCREEN, "Screen"}};
 const static std::map<IOType, IOFactory> IOFactories = {
     {IOType::LED_MATRIX, createIO<IOLedMatrix>},
     {IOType::SWITCHES, createIO<IOSwitches>},
-    {IOType::DPAD, createIO<IODPad>}};
+    {IOType::DPAD, createIO<IODPad>},
+    {IOType::RTC, createIO<IOClock>},
+    {IOType::SCREEN, createIO<IOScreen>}};
 
 } // namespace Ripes
 

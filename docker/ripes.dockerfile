@@ -28,11 +28,11 @@ RUN apt-get update -q \
 RUN python3 -m pip install aqtinstall
 
 # from https://ddalcino.github.io/aqt-list-server/
-RUN aqt install-qt linux desktop 6.5.0 gcc_64 -m qtcharts
+RUN aqt install-qt linux desktop 6.9.3 linux_gcc_64 -m qtcharts
 
 ARG GIT_SSL_NO_VERIFY=true
 ENV LC_ALL=C.UTF-8 SHELL=/bin/bash
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/6.5.0/gcc_64/lib"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/6.9.3/gcc_64/lib"
 
 ENV CCACHE_DIR=/ccache
 
@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/ccache \
         -DRIPES_BUILD_TESTS=ON \
         -DVSRTL_BUILD_TESTS=ON \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_PREFIX_PATH=$(pwd)/6.5.0/gcc_64/ \
+        -DCMAKE_PREFIX_PATH=$(pwd)/6.9.3/gcc_64/ \
     && cmake --build /tmp/ripes/build \
     && cd /tmp/ripes/build/test \
     && ./tst_assembler && ./tst_expreval && ./tst_riscv \

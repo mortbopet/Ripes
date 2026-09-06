@@ -26,6 +26,17 @@ IOTab::IOTab(QToolBar *toolbar, QWidget *parent)
   m_ui->mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   m_ui->mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
+  // QMdiArea captures its backdrop brush (QPalette::Dark) once at construction
+  // and does not refresh it when the application palette changes. Set it
+  // explicitly now and whenever the theme changes, so the I/O view backdrop
+  // follows light/dark mode live instead of only after a processor reset.
+  const auto updateMdiBackground = [this] {
+    m_ui->mdiArea->setBackground(palette().brush(QPalette::Dark));
+  };
+  updateMdiBackground();
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          updateMdiBackground);
+
   m_ui->peripheralsTab->clear();
 
   // Setup peripheral selection window

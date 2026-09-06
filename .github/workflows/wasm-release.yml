@@ -1,15 +1,21 @@
-name: WASM / Qt 6.6.0
+name: WASM build
 on:
-  push:
-    branches:
-      - '**'
+  workflow_call:
+    inputs:
+      ripes-repo:
+        description: 'Repository to build (owner/name). Defaults to the current repo.'
+        type: string
+        required: false
+        default: ''
+      ripes-ref:
+        description: 'Git ref to build. Defaults to the current ref.'
+        type: string
+        required: false
+        default: ''
 
 jobs:
   buildUbuntu:
     runs-on: ubuntu-22.04
-    env:
-      CC: emcc
-      CXX: em++
 
     strategy:
       matrix:
@@ -25,19 +31,14 @@ jobs:
     - name: get container ready for build
       run: |
         sudo apt-get update
-        sudo apt-get upgrade -y
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
-        automake cmake git wget libfuse2 desktop-file-utils tree \
-        build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev \
-        libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 \
-        libxcb-xinerama0 libxcb-composite0 libxcb-cursor0 libxcb-damage0 \
-        libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 \
-        libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 \
-        libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libegl1 libegl1-mesa-dev
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --no-install-recommends \
+        cmake git ca-certificates build-essential
 
     - name: checkout sources
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
+        repository: ${{ inputs.ripes-repo || github.repository }}
+        ref: ${{ inputs.ripes-ref || github.ref }}
         submodules: recursive
         fetch-depth: 0
 
@@ -47,56 +48,61 @@ jobs:
         key: ${{ github.job }}-wasm-${{ matrix.build-type }}
 
     - name: Install Qt (Host)
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.6.0'
+        version: '6.9.3'
         host: 'linux'
         target: 'desktop'
-        arch: 'gcc_64'
+        arch: 'linux_gcc_64'
         cache: 'true'
-        cache-key-prefix: 'install-qt-host-6.6.0'
+        cache-key-prefix: 'install-qt-host-6.9.3'
         modules: 'qtcharts'
 
     - name: Install Qt (Emscripten)
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         py7zrversion: '>=0.20.2'
-        version: '6.6.0'
-        host: 'linux'
-        target: 'desktop'
+        version: '6.9.3'
+        host: 'all_os'
+        target: 'wasm'
         arch: 'wasm_multithread'
         modules: 'qtcharts'
         cache: 'true'
-        cache-key-prefix: 'install-qt-emscripten-6.6.0'
+        cache-key-prefix: 'install-qt-emscripten-6.9.3'
+
+    - name: Cache Emscripten SDK
+      id: cache-emsdk
+      uses: actions/cache@v4
+      with:
+        path: emsdk
+        key: emsdk-3.1.70
 
     - name: install Emscripten
+      if: steps.cache-emsdk.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest 3.1.25
-        ./emsdk activate 3.1.25
+        ./emsdk install 3.1.70
+        ./emsdk activate 3.1.70
 
     - name: build Ripes
       run: |
-        echo "building desktop"
         source emsdk/emsdk_env.sh
-        export QT_HOST_PATH=$(pwd)/../Qt/6.6.0/gcc_64/
-        find ${QT_HOST_PATH}
+        export QT_HOST_PATH=$(pwd)/../Qt/6.9.3/gcc_64/
+        # The Qt for WebAssembly toolchain file selects the Emscripten compilers
+        # and sets CMAKE_SYSTEM_NAME=Emscripten, so no manual CC/CXX environment
+        # or compiler forcing is required.
         cmake                                           \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}   \
           -DRIPES_WITH_QPROCESS=OFF                     \
-          -DEMSCRIPTEN=1                                \
           -DQT_HOST_PATH="${QT_HOST_PATH}"              \
-          -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.6.0/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
-          -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.6.0/wasm_multithread/ \
-          -DEMSCRIPTEN_FORCE_COMPILERS=ON \
-          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_TOOLCHAIN_FILE=$(pwd)/../Qt/6.9.3/wasm_multithread/lib/cmake/Qt6/qt.toolchain.cmake \
+          -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.9.3/wasm_multithread/ \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache            \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache          \
           .
-        make -j $(nproc)
+        cmake --build . --parallel
 
     - uses: actions/upload-artifact@v4
       with:
@@ -106,11 +112,3 @@ jobs:
           Ripes.js
           Ripes.worker.js
           qtloader.js
-
-    # Dispatch the publish.yml workflow over at mortbopet.github.io
-    - name: Publish to GitHub Pages
-      run: |
-        gh workflow run publish.yml -R mortbopet/mortbopet.github.io --ref master
-      if: github.repository == 'mortbopet/Ripes' && github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
-      env:
-        GH_TOKEN: ${{ secrets.MORTBOPET_GITHUB_IO_TOKEN }}

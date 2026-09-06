@@ -7,6 +7,7 @@
 
 #include <QCheckBox>
 #include <QColorDialog>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QFontDialog>
 #include <QGroupBox>
@@ -318,6 +319,16 @@ QWidget *SettingsDialog::createSimulatorPage() {
   appendToLayout({rewindLabel, rewindSpinbox}, pageLayout,
                  "Maximum cycles that the simulator is able to undo.");
 
+  // Setting: RIPES_SETTING_CLOCKRATE_WINDOW
+  auto [clockRateLabel, clockRateSpinbox] = createSettingsWidgets<QSpinBox>(
+      RIPES_SETTING_CLOCKRATE_WINDOW, "Clock rate averaging window (ms):");
+  clockRateSpinbox->setRange(1, 10000);
+  appendToLayout(
+      {clockRateLabel, clockRateSpinbox}, pageLayout,
+      "Time window over which the displayed clock rate is averaged while "
+      "running. Larger values give a more stable (but slower-reacting) "
+      "reading.");
+
   // Setting: RIPES_SETTING_PERIPHERALS_START
   appendToLayout(createSettingsWidgets<HexSpinBox>(
                      RIPES_SETTING_PERIPHERALS_START, "I/O start address:"),
@@ -419,6 +430,32 @@ QWidget *SettingsDialog::createEditorPage() {
 QWidget *SettingsDialog::createEnvironmentPage() {
   auto [pageWidget, pageLayout] = constructPage();
 
+  // Application color scheme (Light / Dark / System).
+  auto *colorSchemeLabel = new QLabel("Color scheme");
+  {
+    auto f = colorSchemeLabel->font();
+    f.setBold(true);
+    colorSchemeLabel->setFont(f);
+  }
+  auto *colorSchemeCombo = new QComboBox();
+  colorSchemeCombo->addItem("System", static_cast<int>(ColorScheme::System));
+  colorSchemeCombo->addItem("Light", static_cast<int>(ColorScheme::Light));
+  colorSchemeCombo->addItem("Dark", static_cast<int>(ColorScheme::Dark));
+  auto *colorSchemeObserver =
+      RipesSettings::getObserver(RIPES_SETTING_COLORSCHEME);
+  colorSchemeCombo->setCurrentIndex(
+      colorSchemeCombo->findData(colorSchemeObserver->value().toInt()));
+  colorSchemeCombo->installEventFilter(new ScrollEventFilter());
+  connect(colorSchemeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          colorSchemeObserver, [colorSchemeCombo, colorSchemeObserver] {
+            const int v = colorSchemeCombo->currentData().toInt();
+            if (v != colorSchemeObserver->value().toInt())
+              colorSchemeObserver->setValue(v);
+          });
+  appendToLayout(
+      {colorSchemeLabel, colorSchemeCombo}, pageLayout,
+      "Application color scheme. 'System' follows your OS light/dark setting.");
+
   auto [uiUpdateMsLabel, uiUpdateMsSb] = createSettingsWidgets<QSpinBox>(
       RIPES_SETTING_UIUPDATEPS, "Max. UI updates per second");
   uiUpdateMsSb->setMinimum(1);
@@ -477,15 +514,6 @@ QWidget *SettingsDialog::createEnvironmentPage() {
 
   appendToLayout(createSettingsWidgets<QCheckBox>(RIPES_SETTING_CONSOLEECHO,
                                                   "Echo console input:"),
-                 consoleLayout);
-  appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(
-                     RIPES_SETTING_CONSOLEFONT, "Console font:"),
-                 consoleLayout);
-  appendToLayout(createSettingsWidgets<QPushButton, QColorDialog>(
-                     RIPES_SETTING_CONSOLEFONTCOLOR, "Console font color:"),
-                 consoleLayout);
-  appendToLayout(createSettingsWidgets<QPushButton, QColorDialog>(
-                     RIPES_SETTING_CONSOLEBG, "Console background color:"),
                  consoleLayout);
   appendToLayout(consoleGroupBox, pageLayout);
 

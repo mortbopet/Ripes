@@ -1,13 +1,22 @@
 #include "processortab.h"
 #include "ui_processortab.h"
 
+#include <QApplication>
 #include <QDir>
 #include <QFontMetrics>
 #include <QMessageBox>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPixmap>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSpinBox>
+#include <QStyle>
 #include <QTemporaryFile>
+#include <QtMath>
+
+#include <algorithm>
+#include <cmath>
 
 #include "consolewidget.h"
 #include "instructionmodel.h"
@@ -26,6 +35,122 @@
 #include "processors/interface/ripesprocessor.h"
 
 namespace Ripes {
+
+namespace {
+// Simulator-control toolbar glyphs, drawn as vector shapes so they can be
+// tinted to the active theme's foreground color.
+enum class ToolGlyph {
+  Reset,
+  StepBackward,
+  StepForward,
+  Play,
+  FastForward,
+  Pause
+};
+
+// The green used for the "auto clock" (play) action.
+const QColor kAutoClockGreen(0x50, 0xB7, 0x20);
+
+// The displayed clock rate is refreshed at most this often, averaging the cycle
+// throughput over each such window rather than showing an instantaneous (noisy)
+// sample on every stat-timer tick. The window size is configurable via
+// RIPES_SETTING_CLOCKRATE_WINDOW; this constant is only a fallback lower bound.
+constexpr double kClockRateWindowMinMS = 1.0;
+// Exponential-moving-average weight applied to each new window's rate. Lower
+// values yield a more stable (but slower-reacting) displayed clock rate.
+constexpr double kClockRateSmoothing = 0.4;
+
+QIcon makeToolIcon(ToolGlyph glyph, const QColor &color) {
+  constexpr int sz = 64;
+  QPixmap pm(sz, sz);
+  pm.fill(Qt::transparent);
+  QPainter p(&pm);
+  p.setRenderHint(QPainter::Antialiasing, true);
+
+  const qreal m = 0.24 * sz;    // margin
+  const qreal barW = 0.15 * sz; // width of the "step" bar
+  const qreal gap = 0.03 * sz;  // gap between triangle and bar
+  const qreal cy = sz / 2.0;
+
+  auto fillTriangle = [&](const QPolygonF &poly) {
+    p.setPen(Qt::NoPen);
+    p.setBrush(color);
+    p.drawPolygon(poly);
+  };
+  auto fillRect = [&](const QRectF &r) {
+    p.setPen(Qt::NoPen);
+    p.setBrush(color);
+    p.drawRect(r);
+  };
+
+  switch (glyph) {
+  case ToolGlyph::Play:
+    fillTriangle(QPolygonF()
+                 << QPointF(m, m) << QPointF(m, sz - m) << QPointF(sz - m, cy));
+    break;
+  case ToolGlyph::FastForward: {
+    // Two triangles side by side ("fast forward"), mirroring run.svg.
+    const qreal midGap = 0.02 * sz;
+    const qreal mid = cy;
+    fillTriangle(QPolygonF() << QPointF(m, m) << QPointF(m, sz - m)
+                             << QPointF(mid - midGap, cy));
+    fillTriangle(QPolygonF()
+                 << QPointF(mid + midGap, m) << QPointF(mid + midGap, sz - m)
+                 << QPointF(sz - m, cy));
+    break;
+  }
+  case ToolGlyph::Pause: {
+    // Two vertical bars, mirroring stop-clock.svg.
+    const qreal pauseBarW = 0.16 * sz;
+    const qreal pauseGap = 0.14 * sz;
+    fillRect(QRectF(cy - pauseGap / 2 - pauseBarW, m, pauseBarW, sz - 2 * m));
+    fillRect(QRectF(cy + pauseGap / 2, m, pauseBarW, sz - 2 * m));
+    break;
+  }
+  case ToolGlyph::StepForward: {
+    const qreal triTip = sz - m - barW - gap;
+    fillTriangle(QPolygonF()
+                 << QPointF(m, m) << QPointF(m, sz - m) << QPointF(triTip, cy));
+    fillRect(QRectF(sz - m - barW, m, barW, sz - 2 * m));
+    break;
+  }
+  case ToolGlyph::StepBackward: {
+    const qreal triTip = m + barW + gap;
+    fillTriangle(QPolygonF() << QPointF(sz - m, m) << QPointF(sz - m, sz - m)
+                             << QPointF(triTip, cy));
+    fillRect(QRectF(m, m, barW, sz - 2 * m));
+    break;
+  }
+  case ToolGlyph::Reset: {
+    // Circular "reload" arrow: a thick ring with a gap at the top-right and a
+    // large arrowhead at the top end, pointing right (clockwise) into the gap.
+    const qreal penW = 0.13 * sz;
+    const qreal r = 0.30 * sz;
+    QPen pen(color);
+    pen.setWidthF(penW);
+    pen.setCapStyle(Qt::FlatCap);
+    p.setPen(pen);
+    p.setBrush(Qt::NoBrush);
+    const QRectF circ(cy - r, cy - r, 2 * r, 2 * r);
+    // Draw counter-clockwise from the top around to the lower right, leaving a
+    // ~60 degree gap at the top right.
+    p.drawArc(circ, 90 * 16, 300 * 16);
+    // Large arrowhead at the top of the ring, pointing right into the gap.
+    const QPointF top(cy, cy - r);
+    const qreal ahLen = 0.30 * sz;
+    const qreal ahHalf = 0.20 * sz;
+    QPolygonF head;
+    head << QPointF(top.x() + ahLen, top.y())   // tip
+         << QPointF(top.x(), top.y() - ahHalf)  // upper base
+         << QPointF(top.x(), top.y() + ahHalf); // lower base
+    fillTriangle(head);
+    break;
+  }
+  }
+  p.end();
+  return QIcon(pm);
+}
+} // namespace
 
 static QString convertToSIUnits(const double l_value, int precision = 2) {
   QString unit;
@@ -204,8 +329,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   controlToolbar->addAction(m_selectProcessorAction);
   controlToolbar->addSeparator();
 
-  const QIcon resetIcon = QIcon(":/icons/reset.svg");
-  m_resetAction = new QAction(resetIcon, "Reset (F3)", this);
+  m_resetAction = new QAction("Reset (F3)", this);
   connect(m_resetAction, &QAction::triggered, this, [this] {
     RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
   });
@@ -213,15 +337,13 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   m_resetAction->setToolTip("Reset the simulator (F3)");
   controlToolbar->addAction(m_resetAction);
 
-  const QIcon reverseIcon = QIcon(":/icons/reverse.svg");
-  m_reverseAction = new QAction(reverseIcon, "Reverse (F4)", this);
+  m_reverseAction = new QAction("Reverse (F4)", this);
   connect(m_reverseAction, &QAction::triggered, this, &ProcessorTab::reverse);
   m_reverseAction->setShortcut(QKeySequence("F4"));
   m_reverseAction->setToolTip("Undo a clock cycle (F4)");
   controlToolbar->addAction(m_reverseAction);
 
-  const QIcon clockIcon = QIcon(":/icons/step.svg");
-  m_clockAction = new QAction(clockIcon, "Clock (F5)", this);
+  m_clockAction = new QAction("Clock (F5)", this);
   connect(m_clockAction, &QAction::triggered, this,
           [] { ProcessorHandler::clock(); });
   m_clockAction->setShortcut(QKeySequence("F5"));
@@ -232,8 +354,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
   connect(m_autoClockTimer, &QTimer::timeout, this,
           [this] { autoClockTimeout(); });
 
-  const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
-  m_autoClockAction = new QAction(startAutoClockIcon, "Auto clock (F6)", this);
+  m_autoClockAction = new QAction("Auto clock (F6)", this);
   m_autoClockAction->setShortcut(QKeySequence("F6"));
   m_autoClockAction->setToolTip(
       "Clock the circuit with the selected frequency (F6)");
@@ -255,8 +376,7 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
       RipesSettings::value(RIPES_SETTING_AUTOCLOCK_INTERVAL).toInt());
   controlToolbar->addWidget(m_autoClockInterval);
 
-  const QIcon runIcon = QIcon(":/icons/run.svg");
-  m_runAction = new QAction(runIcon, "Run (F8)", this);
+  m_runAction = new QAction("Run (F8)", this);
   m_runAction->setShortcut(QKeySequence("F8"));
   m_runAction->setCheckable(true);
   m_runAction->setChecked(false);
@@ -266,6 +386,12 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
       "breakpoint is hit.");
   connect(m_runAction, &QAction::toggled, this, &ProcessorTab::run);
   controlToolbar->addAction(m_runAction);
+
+  // Paint the simulator-control icons in the current theme color, and keep them
+  // in sync when the theme changes.
+  updateToolbarIcons();
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          [this] { updateToolbarIcons(); });
 
   // Setup processor-tab only actions
   m_displayValuesAction = new QAction("Show processor signal values", this);
@@ -286,32 +412,36 @@ void ProcessorTab::setupSimulatorActions(QToolBar *controlToolbar) {
           &ProcessorTab::showPipelineDiagram);
   m_toolbar->addAction(m_pipelineDiagramAction);
 
-  m_darkmodeAction = new QAction("Processor darkmode", this);
-  m_darkmodeAction->setCheckable(true);
-  connect(m_darkmodeAction, &QAction::toggled, m_vsrtlWidget,
-          [this](bool checked) {
-            RipesSettings::setValue(RIPES_SETTING_DARKMODE,
-                                    QVariant::fromValue(checked));
-            m_vsrtlWidget->setDarkmode(checked);
-          });
-  m_darkmodeAction->setChecked(
-      RipesSettings::value(RIPES_SETTING_DARKMODE).toBool());
+  // The processor diagram's dark mode follows the application-wide color scheme
+  // (see MainWindow's ThemeManager connection); there is no separate manual
+  // toggle anymore.
+  setDarkmode(appInDarkMode());
+}
+
+void ProcessorTab::setDarkmode(bool enabled) {
+  RipesSettings::setValue(RIPES_SETTING_DARKMODE, QVariant::fromValue(enabled));
+  m_vsrtlWidget->setDarkmode(enabled);
+}
+
+void ProcessorTab::updateToolbarIcons() {
+  const QColor c = QApplication::palette().color(QPalette::ButtonText);
+  m_resetAction->setIcon(makeToolIcon(ToolGlyph::Reset, c));
+  m_reverseAction->setIcon(makeToolIcon(ToolGlyph::StepBackward, c));
+  m_clockAction->setIcon(makeToolIcon(ToolGlyph::StepForward, c));
+  m_runAction->setIcon(makeToolIcon(ToolGlyph::FastForward, c));
+  // The auto-clock action toggles between a green "play" triangle (idle) and a
+  // theme-colored "pause" glyph (running).
+  m_autoClockAction->setIcon(
+      m_autoClockAction->isChecked()
+          ? makeToolIcon(ToolGlyph::Pause, c)
+          : makeToolIcon(ToolGlyph::Play, kAutoClockGreen));
 }
 
 void ProcessorTab::updateStatistics() {
-  static auto lastUpdateTime = std::chrono::system_clock::now();
-  static long long lastCycleCount =
-      ProcessorHandler::getProcessor()->getCycleCount();
-
-  const auto timeNow = std::chrono::system_clock::now();
+  const auto timeNow = std::chrono::steady_clock::now();
   const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
   const auto instrsRetired =
       ProcessorHandler::getProcessor()->getInstructionsRetired();
-  const auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            timeNow - lastUpdateTime)
-                            .count() /
-                        1000.0; // in seconds
-  const auto cycleDiff = cycleCount - lastCycleCount;
 
   // Cycle count
   m_ui->cycleCount->setText(QString::number(cycleCount));
@@ -329,13 +459,44 @@ void ProcessorTab::updateStatistics() {
   m_ui->cpi->setText(cpiText);
   m_ui->ipc->setText(ipcText);
 
-  // Clock rate
-  const double clockRate = static_cast<double>(cycleDiff) / timeDiff;
-  m_ui->clockRate->setText(convertToSIUnits(clockRate) + "Hz");
+  // Clock rate. Average the cycle throughput over a fixed time window
+  // (kClockRateWindowMS) and lightly smooth the result across windows with an
+  // exponential moving average. The displayed value is therefore refreshed at
+  // most every kClockRateWindowMS.
+  if (!m_clockRateWindowValid) {
+    m_clockRateWindowStart = timeNow;
+    m_clockRateWindowStartCycle = cycleCount;
+    m_clockRateWindowValid = true;
+  }
+  const double windowSec =
+      std::chrono::duration<double>(timeNow - m_clockRateWindowStart).count();
+  const double windowMs = std::max(
+      kClockRateWindowMinMS,
+      static_cast<double>(
+          RipesSettings::value(RIPES_SETTING_CLOCKRATE_WINDOW).toInt()));
+  if (windowSec * 1000.0 >= windowMs) {
+    const double windowRate =
+        static_cast<double>(cycleCount - m_clockRateWindowStartCycle) /
+        windowSec;
+    if (!m_haveSmoothedClockRate) {
+      m_smoothedClockRate = windowRate;
+      m_haveSmoothedClockRate = true;
+    } else {
+      m_smoothedClockRate = kClockRateSmoothing * windowRate +
+                            (1.0 - kClockRateSmoothing) * m_smoothedClockRate;
+    }
+    m_ui->clockRate->setText(convertToSIUnits(m_smoothedClockRate) + "Hz");
 
-  // Record timestamp values
-  lastUpdateTime = timeNow;
-  lastCycleCount = cycleCount;
+    // Start the next averaging window.
+    m_clockRateWindowStart = timeNow;
+    m_clockRateWindowStartCycle = cycleCount;
+  }
+}
+
+void ProcessorTab::resetClockRateEstimate() {
+  m_clockRateWindowValid = false;
+  m_haveSmoothedClockRate = false;
+  m_smoothedClockRate = 0.0;
 }
 
 void ProcessorTab::pause() {
@@ -530,8 +691,10 @@ void ProcessorTab::autoClockTimeout() {
 }
 
 void ProcessorTab::autoClock(bool state) {
-  const QIcon startAutoClockIcon = QIcon(":/icons/step-clock.svg");
-  const QIcon stopAutoTimerIcon = QIcon(":/icons/stop-clock.svg");
+  const QColor c = QApplication::palette().color(QPalette::ButtonText);
+  const QIcon startAutoClockIcon =
+      makeToolIcon(ToolGlyph::Play, kAutoClockGreen);
+  const QIcon stopAutoTimerIcon = makeToolIcon(ToolGlyph::Pause, c);
   if (!state) {
     m_autoClockTimer->stop();
     m_autoClockAction->setIcon(startAutoClockIcon);
@@ -561,6 +724,7 @@ void ProcessorTab::run(bool state) {
     m_autoClockAction->setChecked(false);
   }
   if (state) {
+    resetClockRateEstimate();
     ProcessorHandler::run();
     m_statUpdateTimer->start();
   } else {

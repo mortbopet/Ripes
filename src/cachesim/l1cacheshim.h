@@ -23,6 +23,19 @@ public:
 
   void setType(CacheType type);
 
+  /**
+   * @brief setRequireCacheInterface
+   * When true (the default), the cache is only simulated while the current
+   * processor exposes the corresponding cache interface (see
+   * RipesProcessor::Features). Models without a cache interface - such as the
+   * ISA simulator - then incur no cache-simulation cost. Set to false to force
+   * simulation regardless (e.g. the CLI --cache option, which explicitly
+   * requests cache statistics for any processor).
+   */
+  void setRequireCacheInterface(bool require) {
+    m_requireCacheInterface = require;
+  }
+
 private:
   void processorReset();
   void processorWasClocked();
@@ -35,6 +48,8 @@ private:
    * the given type of the memory.
    */
   CacheType m_type;
+
+  bool m_requireCacheInterface = true;
 };
 
 } // namespace Ripes

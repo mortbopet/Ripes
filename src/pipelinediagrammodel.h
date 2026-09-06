@@ -44,5 +44,11 @@ private:
    * the value has been reached.
    */
   bool m_atMaxCycles = false;
+
+  // Cached copy of RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES. Reading the
+  // QSettings-backed value constructs a QSettings object (a registry/file
+  // access) on every call, which is far too expensive to do per clock cycle;
+  // the value is refreshed via the setting's observer instead.
+  int m_maxCycles = 0;
 };
 } // namespace Ripes

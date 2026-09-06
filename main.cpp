@@ -3,12 +3,12 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QResource>
-#include <QTimer>
 #include <iostream>
 
 #include "src/cli/clioptions.h"
 #include "src/cli/clirunner.h"
 #include "src/mainwindow.h"
+#include "src/ripessettings.h"
 
 using namespace std;
 
@@ -56,21 +56,26 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser,
 }
 
 int guiMode(QApplication &app) {
+  // Use the Fusion style, which respects the system light/dark palette and looks good with both. Combined
+  // with QStyleHints::setColorScheme (see applyColorScheme) this gives the
+  // application proper light/dark theming.
+  QApplication::setStyle("Fusion");
+  Ripes::applyColorScheme();
+
   Ripes::MainWindow m;
 
 #ifdef Q_OS_WASM
   // In the WASM build, we'll just want a full-screen application that can't be
   // dragged or resized by the user.
   m.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-#endif
-
-  // The following sequence of events manages to successfully start the
-  // application as maximized, with the processor at a reasonable size. This has
-  // been found to be specially a problem on windows.
-  m.resize(800, 600);
   m.showMaximized();
-  m.setWindowState(Qt::WindowMaximized);
-  QTimer::singleShot(100, &m, [&m] { m.fitToView(); });
+#else
+  // Restore the previous window geometry (falls back to a maximized window on
+  // first launch). The initial processor fit-to-view is performed in
+  // MainWindow::showEvent, once the final window geometry has been applied.
+  m.restoreWindowGeometry();
+  m.show();
+#endif
 
   return app.exec();
 }

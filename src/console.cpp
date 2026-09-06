@@ -6,44 +6,23 @@
 #include <QScrollBar>
 
 #include <QClipboard>
+#include <QEvent>
 #include <QGuiApplication>
 
 namespace Ripes {
 
 Console::Console(QWidget *parent) : QPlainTextEdit(parent) {
-  if (RipesSettings::value(RIPES_SETTING_CONSOLEFONT).isNull()) {
-    m_font = QFont(Fonts::monospace, 12);
-  } else {
-    m_font = RipesSettings::value(RIPES_SETTING_CONSOLEFONT).value<QFont>();
-  }
+  m_font = QFont(Fonts::monospace, 12);
   setFont(m_font);
 
   document()->setMaximumBlockCount(100);
 
-  auto paletteChangeFunctor = [this] {
-    QPalette p = palette();
-    p.setColor(QPalette::Base,
-               RipesSettings::value(RIPES_SETTING_CONSOLEBG).value<QColor>());
-    p.setColor(
-        QPalette::Text,
-        RipesSettings::value(RIPES_SETTING_CONSOLEFONTCOLOR).value<QColor>());
-    setPalette(p);
-  };
-
-  connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEBG),
-          &SettingObserver::modified, paletteChangeFunctor);
-  connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONTCOLOR),
-          &SettingObserver::modified, paletteChangeFunctor);
-  paletteChangeFunctor();
+  // The console follows the application (light/dark) theme palette; it uses no
+  // custom colors, so Qt updates it automatically on palette changes.
 
   connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEECHO),
           &SettingObserver::modified, this, [this](const QVariant &value) {
             m_localEchoEnabled = value.toBool();
-          });
-  connect(RipesSettings::getObserver(RIPES_SETTING_CONSOLEFONT),
-          &SettingObserver::modified, this, [this](const QVariant &value) {
-            m_font = value.value<QFont>();
-            setFont(m_font);
           });
 
   m_localEchoEnabled = RipesSettings::value(RIPES_SETTING_CONSOLEECHO).toBool();

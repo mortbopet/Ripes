@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-22.04]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -61,20 +61,20 @@ jobs:
     # Qt installation
     - if: "!contains(matrix.os, 'windows')"
       name: install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.0'
+        version: '6.9.3'
         modules: 'qtcharts'
         install-deps: false
 
     - if: contains( matrix.os, 'windows')
       name: install Qt (Windows)
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.0'
+        version: '6.9.3'
         modules: 'qtcharts'
         install-deps: false
-        arch: win64_msvc2019_64
+        arch: win64_msvc2022_64
 
     # Build ripes
     - if: "!contains(matrix.os, 'windows')"

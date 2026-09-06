@@ -45,7 +45,17 @@ void L1CacheShim::processorReversed() {
 }
 
 void L1CacheShim::processorWasClocked() {
+  // Only simulate the cache if the current processor actually exposes the
+  // corresponding cache interface (unless this check has been explicitly
+  // disabled). Models without a cache interface (e.g. the ISA simulator) still
+  // emit a per-cycle clocked signal, but running the cache simulation for them
+  // is both meaningless to their datapath and a significant per-cycle cost.
+  const auto features = ProcessorHandler::getProcessor()->features();
   if (m_type == CacheType::DataCache) {
+    if (m_requireCacheInterface &&
+        !(features & RipesProcessor::Features::hasDCacheInterface)) {
+      return;
+    }
     const auto dataAccess = ProcessorHandler::getProcessor()->dataMemAccess();
 
     // Determine whether the memory is being accessed in the current cycle, and
@@ -62,6 +72,10 @@ void L1CacheShim::processorWasClocked() {
       break;
     }
   } else {
+    if (m_requireCacheInterface &&
+        !(features & RipesProcessor::Features::hasICacheInterface)) {
+      return;
+    }
     const auto instrAccess = ProcessorHandler::getProcessor()->instrMemAccess();
     if (instrAccess.type == MemoryAccess::Read) {
       m_nextLevelCache->access(instrAccess.address, MemoryAccess::Read);

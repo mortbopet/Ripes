@@ -23,14 +23,19 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDatabase>
+#include <QGuiApplication>
 #include <QIcon>
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QShowEvent>
 #include <QStackedWidget>
 #include <QStatusBar>
+#include <QStyle>
+#include <QStyleHints>
 #include <QTemporaryFile>
 #include <QTextStream>
+#include <QTimer>
 
 namespace Ripes {
 
@@ -91,8 +96,9 @@ MainWindow::MainWindow(QWidget *parent)
   m_stackedTabs->insertWidget(IOTabID, IOTab);
   m_tabWidgets[IOTabID] = {IOTab, IOToolbar};
 
-  // Setup tab bar
-  m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
+  // Setup tab bar.
+  m_ui->tabbar->addFancyTab(style()->standardIcon(QStyle::SP_FileIcon),
+                            "Editor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
@@ -128,6 +134,18 @@ MainWindow::MainWindow(QWidget *parent)
           &MemoryTab::setCentralAddress);
 
   connect(this, &MainWindow::prepareSave, editTab, &EditTab::onSave);
+
+  // Keep the processor diagram's dark mode in sync with the application theme
+  // (system theme changes or the user's Light/Dark/System choice). ThemeManager
+  // emits after the palette has been updated, so appInDarkMode() is accurate.
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this, [this] {
+    static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
+        ->setDarkmode(appInDarkMode());
+  });
+  // Applying the persisted color-scheme preference updates the application
+  // palette, which ThemeManager observes to drive the handler above.
+  connect(RipesSettings::getObserver(RIPES_SETTING_COLORSCHEME),
+          &SettingObserver::modified, this, [] { applyColorScheme(); });
 
   m_currentTabID = ProcessorTabID;
   m_ui->tabbar->setActiveIndex(m_currentTabID);
@@ -190,6 +208,27 @@ void MainWindow::fitToView() {
       ->fitToScreen();
 }
 
+void MainWindow::restoreWindowGeometry() {
+  const QByteArray geometry =
+      RipesSettings::value<QByteArray>(RIPES_SETTING_MAINWINDOW_GEOMETRY);
+  if (geometry.isEmpty() || !restoreGeometry(geometry)) {
+    // First launch (or invalid stored geometry): start maximized, which has
+    // historically provided the best default layout.
+    setWindowState(windowState() | Qt::WindowMaximized);
+  }
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+  QMainWindow::showEvent(event);
+  if (!m_hasPerformedInitialFit) {
+    m_hasPerformedInitialFit = true;
+    // Defer the initial processor fit until the event loop has applied the
+    // window's final geometry, so the graphics view has its correct size. This
+    // replaces a previously used fixed-delay timer.
+    QTimer::singleShot(0, this, &MainWindow::fitToView);
+  }
+}
+
 void MainWindow::setupMenus() {
   // Edit actions
   const QIcon newIcon = QIcon(":/icons/file.svg");
@@ -239,9 +278,6 @@ void MainWindow::setupMenus() {
   connect(exitAction, &QAction::triggered, this, &MainWindow::close);
   m_ui->menuFile->addAction(exitAction);
 
-  m_ui->menuView->addAction(
-      static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
-          ->m_darkmodeAction);
   m_ui->menuView->addAction(
       static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
           ->m_displayValuesAction);
@@ -337,6 +373,10 @@ void MainWindow::closeEvent(QCloseEvent *event) {
       saveFilesTriggered();
     }
   }
+
+  // Persist the window geometry (size, position and maximized state) so it can
+  // be restored on the next launch.
+  RipesSettings::setValue(RIPES_SETTING_MAINWINDOW_GEOMETRY, saveGeometry());
 
   // Emit an observable signal to indicate that the application is about to
   // close

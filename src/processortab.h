@@ -6,6 +6,8 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include <chrono>
+
 #include "isa/isa_types.h"
 #include "processors/interface/ripesprocessor.h"
 #include "ripestab.h"
@@ -49,6 +51,10 @@ public slots:
   void updateInstructionLabels();
   void fitToScreen();
 
+  /// Sets the processor diagram dark mode. Used to keep the diagram in sync
+  /// with the application-wide color scheme.
+  void setDarkmode(bool enabled);
+
   void processorSelection();
 
 private slots:
@@ -60,11 +66,18 @@ private slots:
 
 private:
   void setupSimulatorActions(QToolBar *controlToolbar);
+  /// Regenerates the simulator-control toolbar icons in the current theme's
+  /// foreground color. Called on construction and whenever the theme changes.
+  void updateToolbarIcons();
   void enableSimulatorControls();
   void updateInstructionModel();
   void updateRegisterModel();
   void loadLayout(const Layout &);
   void loadProcessorToWidget(const Layout *);
+
+  /// Resets the state used to compute the smoothed clock-rate estimate, so that
+  /// a subsequent run starts averaging afresh.
+  void resetClockRateEstimate();
 
   Ui::ProcessorTab *m_ui = nullptr;
   InstructionModel *m_instrModel = nullptr;
@@ -76,6 +89,16 @@ private:
 
   QTimer *m_statUpdateTimer;
 
+  // State for computing a stable, smoothed clock rate during a run. Showing the
+  // instantaneous cycles/second between successive stat-timer ticks is very
+  // noisy; instead the displayed rate is averaged over a fixed time window and
+  // lightly smoothed across windows (see updateStatistics()).
+  std::chrono::steady_clock::time_point m_clockRateWindowStart;
+  long long m_clockRateWindowStartCycle = 0;
+  double m_smoothedClockRate = 0.0;
+  bool m_clockRateWindowValid = false;
+  bool m_haveSmoothedClockRate = false;
+
   // Actions
   QAction *m_selectProcessorAction = nullptr;
   QAction *m_clockAction = nullptr;
@@ -85,7 +108,6 @@ private:
   QAction *m_pipelineDiagramAction = nullptr;
   QAction *m_reverseAction = nullptr;
   QAction *m_resetAction = nullptr;
-  QAction *m_darkmodeAction = nullptr;
   QTimer *m_autoClockTimer = nullptr;
 
   QSpinBox *m_autoClockInterval = nullptr;

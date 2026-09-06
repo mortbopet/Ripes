@@ -39,6 +39,8 @@ enum ProcessorID {
   RV64_5S_NO_FW,
   RV64_5S,
   RV64_6S_DUAL,
+  RV32_ISS,
+  RV64_ISS,
   NUM_PROCESSORS
 };
 Q_ENUM_NS(ProcessorID); // Register with the metaobject system

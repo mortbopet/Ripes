@@ -1,13 +1,16 @@
 #include "cachegraphic.h"
 
+#include <QApplication>
 #include <QGraphicsLineItem>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QGraphicsSimpleTextItem>
+#include <QPalette>
 #include <QPen>
 
 #include "processorhandler.h"
 #include "radix.h"
+#include "ripessettings.h"
 
 namespace {
 
@@ -19,6 +22,30 @@ std::set<TK> keys(std::map<TK, TV> const &input_map) {
     keyset.insert(element.first);
   }
   return keyset;
+}
+
+// True when the application is using a dark color scheme.
+bool cacheDarkMode() {
+  return QApplication::palette().color(QPalette::Base).lightness() < 128;
+}
+
+// Highlight color marking the currently indexed cache line/block (the
+// row/column crosshair). Uses the theme accent so it looks native in both
+// light and dark mode, instead of a bright color that turns muddy on dark.
+QColor cacheIndexingColor() {
+  return QApplication::palette().color(QPalette::Highlight);
+}
+
+// Highlight color for a cache hit / miss on the accessed block.
+QColor cacheHitColor() {
+  return cacheDarkMode() ? QColor(0x4C, 0xC0, 0x63) : QColor(Qt::green);
+}
+QColor cacheMissColor() {
+  return cacheDarkMode() ? QColor(0xE0, 0x6C, 0x6C) : QColor(Qt::red);
+}
+// Highlight color for a dirty cache block.
+QColor cacheDirtyColor() {
+  return cacheDarkMode() ? QColor(0x2A, 0x9D, 0x8F) : QColor(Qt::darkCyan);
 }
 } // namespace
 
@@ -37,13 +64,15 @@ public:
 
     m_startDot =
         new QGraphicsEllipseItem(-scale / 2, -scale / 2, scale, scale, this);
-    m_startDot->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+    m_startDot->setBrush(
+        QBrush(QApplication::palette().text().color(), Qt::SolidPattern));
 
     QPolygonF arrow;
     arrow << QPointF{-scale, -scale / 2} << QPointF{0, 0}
           << QPointF{-scale, scale / 2};
     m_arrow = new QGraphicsPolygonItem(arrow, this);
-    m_arrow->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+    m_arrow->setBrush(
+        QBrush(QApplication::palette().text().color(), Qt::SolidPattern));
 
     m_startDot->setVisible(false);
     m_arrow->setVisible(false);
@@ -86,6 +115,12 @@ CacheGraphic::CacheGraphic(CacheSim &cache)
           &CacheGraphic::wayInvalidated);
   connect(&cache, &CacheSim::cacheInvalidated, this,
           &CacheGraphic::cacheInvalidated);
+
+  // Redraw with theme-appropriate colors when the application theme changes.
+  // A CacheGraphic is a QGraphicsObject (not a widget), so it receives no
+  // palette events - it subscribes to the central ThemeManager instead.
+  connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
+          [this] { cacheInvalidated(); });
 
   cacheInvalidated();
 }
@@ -248,7 +283,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
     const auto &dirtyRectItem = way.dirtyBlocks[blockIdx];
     dirtyRectItem->setZValue(-1);
     dirtyRectItem->setOpacity(0.4);
-    dirtyRectItem->setBrush(Qt::darkCyan);
+    dirtyRectItem->setBrush(cacheDirtyColor());
   }
 }
 
@@ -258,6 +293,7 @@ CacheGraphic::tryCreateGraphicsTextItem(QGraphicsSimpleTextItem **item, qreal x,
   if (*item == nullptr) {
     *item = new QGraphicsSimpleTextItem(this);
     (*item)->setFont(m_font);
+    (*item)->setBrush(QApplication::palette().text().color());
     (*item)->setPos(x, y);
   }
   return *item;
@@ -268,6 +304,7 @@ CacheGraphic::createGraphicsTextItemSP(qreal x, qreal y) {
   std::unique_ptr<QGraphicsSimpleTextItem> ptr =
       std::make_unique<QGraphicsSimpleTextItem>(this);
   ptr->setFont(m_font);
+  ptr->setBrush(QApplication::palette().text().color());
   ptr->setPos(x, y);
   return ptr;
 }
@@ -316,7 +353,8 @@ void CacheGraphic::drawIndexingItems() {
   auto addressTextRect = m_addressTextItem->boundingRect();
   addressTextRect.moveTo(m_addressTextItem->pos());
   auto *addressRectItem = new QGraphicsRectItem(addressTextRect, this);
-  addressRectItem->setBrush(Qt::white);
+  addressRectItem->setBrush(QApplication::palette().base());
+  addressRectItem->setPen(QPen(QApplication::palette().text().color()));
   addressRectItem->setZValue(z_wires);
 
   // Draw address box compartments, starting from the righthand side
@@ -529,6 +567,17 @@ void CacheGraphic::cacheInvalidated() {
     }
   }
 
+  // Recolor all grid lines (created with the default black pen) to the theme's
+  // text color, so the cache diagram follows light/dark mode.
+  const QColor gridColor = QApplication::palette().text().color();
+  for (auto *item : childItems()) {
+    if (auto *lineItem = qgraphicsitem_cast<QGraphicsLineItem *>(item)) {
+      QPen p = lineItem->pen();
+      p.setColor(gridColor);
+      lineItem->setPen(p);
+    }
+  }
+
   if (auto *_scene = scene()) {
     // Invalidate the scene rect to resize it to the current dimensions of the
     // CacheGraphic
@@ -623,6 +672,8 @@ QGraphicsSimpleTextItem *CacheGraphic::drawText(const QString &text, qreal x,
   } else {
     textItem->setFont(m_font);
   }
+  // Use the theme's text color so the cache diagram follows light/dark mode.
+  textItem->setBrush(QApplication::palette().text().color());
   textItem->setPos(x, y);
   return textItem;
 }
@@ -642,8 +693,8 @@ void CacheGraphic::updateHighlighting(
         QRectF(topLeft, bottomRight), this));
     auto *lineRectItem = m_highlightingItems.rbegin()->get();
     lineRectItem->setZValue(-2);
-    lineRectItem->setOpacity(0.25);
-    lineRectItem->setBrush(Qt::yellow);
+    lineRectItem->setOpacity(cacheDarkMode() ? 0.35 : 0.25);
+    lineRectItem->setBrush(cacheIndexingColor());
 
     // Draw cache block highlighting rectangle
     topLeft = QPointF(
@@ -655,8 +706,8 @@ void CacheGraphic::updateHighlighting(
         QRectF(topLeft, bottomRight), this));
     auto *blockRectItem = m_highlightingItems.rbegin()->get();
     blockRectItem->setZValue(-2);
-    blockRectItem->setOpacity(0.25);
-    blockRectItem->setBrush(Qt::yellow);
+    blockRectItem->setOpacity(cacheDarkMode() ? 0.35 : 0.25);
+    blockRectItem->setBrush(cacheIndexingColor());
 
     // Draw highlighting on the currently accessed block
     topLeft =
@@ -672,11 +723,11 @@ void CacheGraphic::updateHighlighting(
     auto *hitRectItem = m_highlightingItems.rbegin()->get();
     hitRectItem->setZValue(-1);
     if (transaction.isHit) {
-      hitRectItem->setOpacity(0.4);
-      hitRectItem->setBrush(Qt::green);
+      hitRectItem->setOpacity(cacheDarkMode() ? 0.55 : 0.4);
+      hitRectItem->setBrush(cacheHitColor());
     } else {
-      hitRectItem->setOpacity(0.8);
-      hitRectItem->setBrush(Qt::red);
+      hitRectItem->setOpacity(cacheDarkMode() ? 0.6 : 0.8);
+      hitRectItem->setBrush(cacheMissColor());
     }
   }
 }

@@ -26,6 +26,16 @@ void CacheInterface::reverse() {
 CacheSim::CacheSim(QObject *parent) : CacheInterface(parent) {
   m_byteOffset = log2Ceil(ProcessorHandler::currentISA()->bytes());
   m_wordBits = ProcessorHandler::currentISA()->bits();
+
+  // Cache the max-traces setting and keep it up to date via its observer,
+  // rather than reading the QSettings-backed value on every cache access.
+  m_maxTraces = static_cast<size_t>(
+      RipesSettings::value(RIPES_SETTING_CACHE_MAXTRACES).toInt());
+  connect(RipesSettings::getObserver(RIPES_SETTING_CACHE_MAXTRACES),
+          &SettingObserver::modified, this, [this](const QVariant &v) {
+            m_maxTraces = static_cast<size_t>(v.toInt());
+          });
+
   connect(ProcessorHandler::get(), &ProcessorHandler::runFinished, this,
           [this] {
             // Given that we are not updating the graphical state of the cache
@@ -270,9 +280,9 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
   m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
   // Prevent continuously growing memory usage during long simulations by
-  // limiting access trace size Use configurable limit from settings
-  const size_t maxTraces = static_cast<size_t>(
-      RipesSettings::value(RIPES_SETTING_CACHE_MAXTRACES).toInt());
+  // limiting access trace size. Uses the cached limit from settings
+  // (m_maxTraces) to avoid a per-access QSettings read.
+  const size_t maxTraces = m_maxTraces;
 
   // Only cleanup every 100 insertions to reduce performance impact
   if (++m_cleanupCounter >= 100 && m_accessTrace.size() > maxTraces) {

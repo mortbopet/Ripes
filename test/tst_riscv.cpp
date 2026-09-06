@@ -70,6 +70,10 @@ private slots:
     runTests(ProcessorID::RV64_SS, {"M", "C"},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
   }
+  void testRV64_ISASimulator() {
+    runTests(ProcessorID::RV64_ISS, {"M", "C"},
+             {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
+  }
   void testRV64_5StagePipeline() {
     runTests(ProcessorID::RV64_5S, {"M", "C"},
              {RISCV64_TEST_DIR, RISCV64_C_TEST_DIR});
@@ -85,6 +89,10 @@ private slots:
 
   void testRV32_SingleCycle() {
     runTests(ProcessorID::RV32_SS, {"M", "C"},
+             {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
+  }
+  void testRV32_ISASimulator() {
+    runTests(ProcessorID::RV32_ISS, {"M", "C"},
              {RISCV32_TEST_DIR, RISCV32_C_TEST_DIR});
   }
   void testRV32_5StagePipeline() {

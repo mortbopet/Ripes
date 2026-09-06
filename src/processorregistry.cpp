@@ -9,6 +9,7 @@
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
+#include "processors/RISC-V/rviss/rviss.h"
 #include "processors/RISC-V/rvss/rvss.h"
 
 namespace Ripes {
@@ -60,10 +61,23 @@ constexpr const char rv5mc_desc_1m[] =
     "never accessed in the same cycle to use a single memory for data and "
     "instructions.";
 
+constexpr const char rviss_desc[] =
+    "An instruction-set simulator. This model executes one full instruction "
+    "per clock cycle through a software interpreter. It is useful as a fast, "
+    "reference model.";
+
 ProcessorRegistry::ProcessorRegistry() {
   // Initialize processors
   std::vector<Layout> layouts;
   RegisterInitialization defRegVals;
+
+  // RISC-V ISA simulator (software interpreter).
+  layouts = {{"Standard", "", {{{0, 0}, QPointF{0.5, 0}}}}};
+  defRegVals = {{RVISA::GPR, {{2, 0x7ffffff0}, {3, 0x10000000}}}};
+  addProcessor(ProcInfo<vsrtl::core::RVISS<uint32_t>>(
+      ProcessorID::RV32_ISS, "ISA simulator", rviss_desc, layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RVISS<uint64_t>>(
+      ProcessorID::RV64_ISS, "ISA simulator", rviss_desc, layouts, defRegVals));
 
   // RISC-V single cycle
   layouts = {{"Standard",

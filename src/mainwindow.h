@@ -47,6 +47,17 @@ public:
   void closeEvent(QCloseEvent *event) override;
   void fitToView();
 
+  /**
+   * @brief restoreWindowGeometry
+   * Restores the window geometry (size, position and maximized state) persisted
+   * from a previous session. On first launch, or if no valid geometry has been
+   * stored, the window defaults to a maximized state.
+   */
+  void restoreWindowGeometry();
+
+protected:
+  void showEvent(QShowEvent *event) override;
+
 signals:
   void prepareSave();
 
@@ -77,5 +88,6 @@ private:
   QStackedWidget *m_stackedTabs = nullptr;
   std::map<TabIndex, TabWidgets> m_tabWidgets;
   TabIndex m_currentTabID = ProcessorTabID;
+  bool m_hasPerformedInitialFit = false;
 };
 } // namespace Ripes

@@ -17,6 +17,14 @@ static AInt indexToAddress(unsigned index) {
 
 PipelineDiagramModel::PipelineDiagramModel(QObject *parent)
     : QAbstractTableModel(parent) {
+  // Cache the max-cycles setting and keep it up to date via its observer,
+  // rather than reading the QSettings-backed value on every clock cycle.
+  m_maxCycles =
+      RipesSettings::value(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES).toInt();
+  connect(RipesSettings::getObserver(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES),
+          &SettingObserver::modified, this,
+          [this](const QVariant &v) { m_maxCycles = v.toInt(); });
+
   connect(ProcessorHandler::get(), &ProcessorHandler::processorClocked, this,
           &PipelineDiagramModel::processorWasClocked, Qt::DirectConnection);
   connect(ProcessorHandler::get(), &ProcessorHandler::processorReset, this,
@@ -47,13 +55,15 @@ int PipelineDiagramModel::columnCount(const QModelIndex &) const {
 }
 
 void PipelineDiagramModel::processorWasClocked() {
-  const auto maxCycles =
-      RipesSettings::value(RIPES_SETTING_PIPEDIAGRAM_MAXCYCLES).toInt();
-  const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
-
+  // Fast path: once the diagram has captured the configured number of cycles,
+  // there is nothing more to record. This is checked first - before any other
+  // work - so that long runs incur essentially no per-cycle cost here.
   if (m_atMaxCycles) {
     return;
   }
+
+  const auto maxCycles = m_maxCycles;
+  const auto cycleCount = ProcessorHandler::getProcessor()->getCycleCount();
 
   gatherStageInfo();
 
