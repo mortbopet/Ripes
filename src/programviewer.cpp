@@ -24,7 +24,7 @@ ProgramViewer::ProgramViewer(QWidget *parent) : HighlightableTextEdit(parent) {
 
   // Set font for the entire widget. calls to fontMetrics() will get the
   // dimensions of the currently set font
-  m_font = RipesSettings::value(RIPES_SETTING_EXECUTABLECODEFONT).value<QFont>();
+  m_font = RipesSettings::value(RIPES_SETTING_EDITORFONT).value<QFont>();
   if (m_font.family().isEmpty()) {
     m_font = QFont(Fonts::monospace, 11);
   }
@@ -33,7 +33,7 @@ ProgramViewer::ProgramViewer(QWidget *parent) : HighlightableTextEdit(parent) {
 
   setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') * 4);
 
-  connect(RipesSettings::getObserver(RIPES_SETTING_EXECUTABLECODEFONT),
+  connect(RipesSettings::getObserver(RIPES_SETTING_EDITORFONT),
           &SettingObserver::modified, this, [this](const QVariant &value) {
             m_font = value.value<QFont>();
             setFont(m_font);

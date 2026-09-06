@@ -358,7 +358,7 @@ void ProcessorTab::loadProcessorToWidget(const Layout *layout) {
     for (unsigned stageIdx = 0; stageIdx < laneIt.second; stageIdx++) {
       StageIndex sid = {laneIt.first, stageIdx};
       auto *stagelabel = new vsrtl::Label(topLevelComponent, "-");
-      stagelabel->setPointSize(16);
+      stagelabel->setPointSize(14);
       m_stageInstructionLabels[sid] = stagelabel;
     }
   }

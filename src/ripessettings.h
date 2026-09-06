@@ -58,7 +58,6 @@ namespace Ripes {
 #define RIPES_SETTING_EDITORCONSOLE ("editor_console")
 #define RIPES_SETTING_EDITORSTAGEHIGHLIGHTING ("editor_stage_highlighting")
 #define RIPES_SETTING_EDITORFONT ("editor_font")
-#define RIPES_SETTING_EXECUTABLECODEFONT ("executable_code_font")
 #define RIPES_SETTING_REGISTERFONT ("register_font")
 #define RIPES_SETTING_REGISTERDISPLAYTYPE ("register_display_type")
 

@@ -371,10 +371,6 @@ QWidget *SettingsDialog::createEditorPage() {
          RIPES_SETTING_EDITORFONT, "Source editor font:"),
      pageLayout, "Font used by the source editor.");
   appendToLayout(
-     createSettingsWidgets<QPushButton, QFontDialog>(
-         RIPES_SETTING_EXECUTABLECODEFONT, "Executable code font:"),
-     pageLayout, "Font used by the executable code viewer.");
-  appendToLayout(
      createSettingsWidgets<QPushButton, QFontDialog>(RIPES_SETTING_REGISTERFONT,
                                                      "Register pane font:"),
      pageLayout, "Font used by the register pane.");
