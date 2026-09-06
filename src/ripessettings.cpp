@@ -1,3 +1,4 @@
+#include "fonts.h"
 #include "ripessettings.h"
 #include "assembler/program.h"
 #include "cachesim/cachesim.h"
