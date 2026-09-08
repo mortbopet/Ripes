@@ -3,6 +3,7 @@
 #include "program.h"
 #include "ripessettings.h"
 #include <QDialog>
+#include <QFileInfo>
 
 namespace Ripes {
 
@@ -21,9 +22,21 @@ public:
     return RipesSettings::value(RIPES_SETTING_SAVEPATH).toString();
   }
   QString sourcePath() {
-    return RipesSettings::value(RIPES_SETTING_SAVE_SOURCE).toBool()
-               ? getPath() + (sourceType == SourceType::C ? ".c" : ".s")
-               : QString();
+    if (!RipesSettings::value(RIPES_SETTING_SAVE_SOURCE).toBool())
+      return QString();
+
+    QString path = getPath();
+    QFileInfo info(path);
+
+    if (sourceType == SourceType::C) {
+      if (info.suffix() != "c")
+        path += ".c";
+    } else {
+      if (info.suffix() != "s")
+        path += ".s";
+    }
+
+    return path;
   }
   QString binaryPath() {
     return RipesSettings::value(RIPES_SETTING_SAVE_BINARY).toBool()

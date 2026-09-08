@@ -377,6 +377,13 @@ QWidget *SettingsDialog::createEditorPage() {
       "Show (or hide) highlighting of processor stages in the program source "
       "code.");
 
+  appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(
+                     RIPES_SETTING_EDITORFONT, "Source editor font:"),
+                 pageLayout, "Font used by the source editor.");
+  appendToLayout(createSettingsWidgets<QPushButton, QFontDialog>(
+                     RIPES_SETTING_REGISTERFONT, "Register pane font:"),
+                 pageLayout, "Font used by the register pane.");
+
   // ===== Source formatter
   auto *formatterGroupBox = new QGroupBox("Formatter");
   appendToLayout(formatterGroupBox, pageLayout);

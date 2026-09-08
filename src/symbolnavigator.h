@@ -4,6 +4,9 @@
 
 #include "assembler/objdump.h"
 
+QT_FORWARD_DECLARE_CLASS(QSortFilterProxyModel)
+QT_FORWARD_DECLARE_CLASS(QAbstractTableModel)
+
 namespace Ripes {
 
 namespace Ui {
@@ -20,8 +23,8 @@ public:
   AInt getSelectedSymbolAddress() const;
 
 private:
-  void addSymbol(const AInt address, const QString &label);
-
   Ui::SymbolNavigator *m_ui;
+  QAbstractTableModel *m_model = nullptr;
+  QSortFilterProxyModel *m_proxyModel = nullptr;
 };
 } // namespace Ripes
