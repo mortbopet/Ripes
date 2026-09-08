@@ -1,7 +1,7 @@
-#include "fonts.h"
 #include "ripessettings.h"
 #include "assembler/program.h"
 #include "cachesim/cachesim.h"
+#include "fonts.h"
 
 #include <QCoreApplication>
 #include <QEvent>

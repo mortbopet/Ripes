@@ -433,9 +433,7 @@ QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
     auto word = m_currentProcessor->getMemory().readMem(addr, instrBytes);
 
     auto disRes =
-        m_currentAssembler->disassemble(word,
-                                        m_program.get()->symbols,
-                                        addr);
+        m_currentAssembler->disassemble(word, m_program.get()->symbols, addr);
 
     return disRes.repr;
   }

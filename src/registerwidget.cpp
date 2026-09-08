@@ -41,9 +41,8 @@ RegisterWidget::RegisterWidget(const std::string_view &regFileID,
           });
 
   connect(RipesSettings::getObserver(RIPES_SETTING_REGISTERFONT),
-          &SettingObserver::modified, this, [this](const QVariant &value) {
-            applyFont(value.value<QFont>());
-          });
+          &SettingObserver::modified, this,
+          [this](const QVariant &value) { applyFont(value.value<QFont>()); });
 }
 
 RegisterWidget::~RegisterWidget() { delete m_ui; }
@@ -75,7 +74,7 @@ void RegisterWidget::initialize() {
   m_ui->radixSelector->setRadix(radix);
   m_model->setRadix(radix);
   connect(m_model, &RegisterModel::registerChanged, this,
-         &RegisterWidget::setRegisterviewCenterIndex);
+          &RegisterWidget::setRegisterviewCenterIndex);
 }
 
 void RegisterWidget::updateView() { m_model->processorWasClocked(); }

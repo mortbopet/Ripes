@@ -4,9 +4,9 @@
 #include <QAbstractTableModel>
 #include <QHeaderView>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QRegularExpression>
 #include <QSortFilterProxyModel>
-#include <QPushButton>
 
 #include "processorhandler.h"
 #include "radix.h"
