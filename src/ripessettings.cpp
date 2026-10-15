@@ -47,10 +47,10 @@ const std::map<QString, QVariant> s_defaultSettings = {
          {CachePreset{"32-entry 4-word direct-mapped", 2, 5, 1,
                       WritePolicy::WriteBack, WriteAllocPolicy::WriteAllocate,
                       ReplPolicy::LRU},
-          CachePreset{"32-entry 4-word fully associative", 2, 0, 5,
+          CachePreset{"32-entry 4-word fully associative", 2, 0, 32,
                       WritePolicy::WriteBack, WriteAllocPolicy::WriteAllocate,
                       ReplPolicy::LRU},
-          CachePreset{"32-entry 4-word 2-way set associative", 2, 4, 1,
+          CachePreset{"32-entry 4-word 2-way set associative", 2, 4, 2,
                       WritePolicy::WriteBack, WriteAllocPolicy::WriteAllocate,
                       ReplPolicy::LRU}})},
 
