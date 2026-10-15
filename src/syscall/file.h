@@ -129,7 +129,7 @@ public:
       return;
     }
     int index = 0;
-    QString myBuffer;
+    QByteArray myBuffer;
 
     do {
       myBuffer.append(static_cast<char>(

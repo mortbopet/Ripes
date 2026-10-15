@@ -411,7 +411,7 @@ public:
    * @return number of bytes written, or -1 on error
    */
 
-  static int writeToFile(int fd, const QString &myBuffer, int lengthRequested) {
+  static int writeToFile(int fd, const QByteArray &myBuffer, int lengthRequested) {
     SystemIO::get(); // Ensure that SystemIO is constructed
     if (fd == STDOUT || fd == STDERR) {
       emit get().doPrint(myBuffer);
@@ -429,7 +429,7 @@ public:
     // retrieve FileOutputStream from storage
     auto &outputStream = FileIOData::getStreamInUse(fd);
 
-    outputStream << myBuffer;
+    outputStream.device()->write(myBuffer);
     outputStream.flush();
     return lengthRequested;
 
