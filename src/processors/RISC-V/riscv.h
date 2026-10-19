@@ -139,7 +139,8 @@ enum class ALUOp {
   DIVW,
   DIVUW,
   REMW,
-  REMUW
+  REMUW,
+  ADD_JALR // ADD with the least significant bit of the result cleared
 };
 enum class RegWrSrc { MEMREAD, ALURES, PC4 };
 enum class AluSrc1 { REG1, PC };

@@ -28,6 +28,8 @@ public:
       switch (ctrl.eValue<ALUOp>()) {
       case ALUOp::ADD:
         return op1.uValue() + op2.uValue();
+      case ALUOp::ADD_JALR:
+        return (op1.uValue() + op2.uValue()) & ~VSRTL_VT_U(1);
       case ALUOp::SUB:
         return op1.uValue() - op2.uValue();
       case ALUOp::MULW:

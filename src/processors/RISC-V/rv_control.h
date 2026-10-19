@@ -171,7 +171,9 @@ public:
                 return ALUOp::ADD;
             case RVInstr::LUI:
                 return ALUOp::LUI;
-            case RVInstr::JAL: case RVInstr::JALR: case RVInstr::AUIPC:
+            case RVInstr::JALR:
+                return ALUOp::ADD_JALR;
+            case RVInstr::JAL: case RVInstr::AUIPC:
             case RVInstr::ADD: case RVInstr::ADDI:
             case RVInstr::BEQ: case RVInstr::BNE: case RVInstr::BLT:
             case RVInstr::BGE: case RVInstr::BLTU: case RVInstr::BGEU:
