@@ -1,0 +1,48 @@
+# Creates the GitHub release for a version tag. To make a release:
+#   1. Add a "## Ripes vX.Y.Z" section to docs/release_notes.md and push it to
+#      master.
+#   2. Tag that commit and push the tag:
+#        git tag -a vX.Y.Z -m "Ripes vX.Y.Z" && git push origin vX.Y.Z
+# This workflow creates the release using the notes from step 1, and the
+# Linux/Windows/Mac release workflows build the tag and attach their packages.
+name: Tagged release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    if: github.repository == 'mortbopet/Ripes'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: create release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        awk -v heading="## Ripes ${TAG}" '
+          $0 == heading { found = 1; next }
+          found && /^## / { exit }
+          found { print }
+        ' docs/release_notes.md > notes.md
+        if ! grep -q '[^[:space:]]' notes.md; then
+          echo "::error::docs/release_notes.md has no '## Ripes ${TAG}' section"
+          exit 1
+        fi
+        TITLE="Release build (v.${TAG#v})"
+        # The platform workflows may already have created the release when
+        # uploading their packages.
+        if gh release view "${TAG}" > /dev/null 2>&1; then
+          gh release edit "${TAG}" --title "${TITLE}" --notes-file notes.md \
+            --latest
+        else
+          gh release create "${TAG}" --verify-tag --title "${TITLE}" \
+            --notes-file notes.md --latest
+        fi

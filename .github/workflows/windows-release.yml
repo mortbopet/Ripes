@@ -3,6 +3,10 @@ on:
   workflow_run:
     workflows: ["Release setup"]
     types: [completed]
+  # Release tags; see tagged_release.yml.
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   buildWindows:
