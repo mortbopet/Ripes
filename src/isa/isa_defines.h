@@ -97,9 +97,13 @@ public:
   void setRelocation(const QString &relocation) { m_relocation = relocation; }
   bool hasRelocation() const { return !m_relocation.isEmpty(); }
   const QString &relocation() const { return m_relocation; }
+  /// Set if this token was enclosed in top-level parentheses in the source.
+  void setParenthesized(bool parenthesized) { m_parenthesized = parenthesized; }
+  bool isParenthesized() const { return m_parenthesized; }
 
 private:
   QString m_relocation;
+  bool m_parenthesized = false;
 };
 
 using LineTokens = QVector<Token>;
@@ -108,7 +112,7 @@ using LineTokensVec = std::vector<LineTokens>;
 struct Symbol {
 public:
   enum Type { Address = 1 << 0, Constant = 1 << 1 };
-  Symbol(){};
+  Symbol() {};
   Symbol(const char *str) : v(str) {}
   Symbol(const QString &str) : v(str) {}
   Symbol(const QString &str, const Type _type) : v(str), type(_type) {}

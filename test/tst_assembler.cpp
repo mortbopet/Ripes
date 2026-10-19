@@ -46,8 +46,36 @@ private slots:
   void tst_riscv();
   void tst_relativeLabels();
   void tst_parentheses();
+  void tst_storeSymbolOffset();
 
 private:
+  /// Assembles @p program for RV32I and returns the words of the .text
+  /// section.
+  std::vector<uint32_t> assembleText(const QStringList &program) {
+    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+    auto assembler = ISA_Assembler<ISA::RV32I>(isa);
+    auto res = assembler.assemble(program);
+    if (res.errors.size() != 0) {
+      res.errors.print();
+      QTest::qFail(("Failed to assemble program:\n" + program.join('\n'))
+                       .toStdString()
+                       .c_str(),
+                   __FILE__, __LINE__);
+      return {};
+    }
+    std::vector<uint32_t> words;
+    const auto &text = res.program.getSection(".text")->data;
+    for (int i = 0; i + 3 < text.size(); i += 4) {
+      words.push_back(static_cast<uint8_t>(text.at(i)) |
+                      (static_cast<uint8_t>(text.at(i + 1)) << 8) |
+                      (static_cast<uint8_t>(text.at(i + 2)) << 16) |
+                      (static_cast<uint32_t>(static_cast<uint8_t>(
+                           text.at(i + 3)))
+                       << 24));
+    }
+    return words;
+  }
+
   QString createProgram(int entries) {
     QString out;
     out += ".data\n";
@@ -423,6 +451,42 @@ void tst_Assembler::tst_parentheses() {
   testAssemble(QStringList() << "lw x0, 0(x1 # ignored )", Expect::Fail);
   testAssemble(QStringList() << "#(valid parentheses match)", Expect::Success);
   testAssemble(QStringList() << "#)nonmatching parentheses(", Expect::Success);
+}
+
+void tst_Assembler::tst_storeSymbolOffset() {
+  // Regression test for #467: a store with a symbolic offset, i.e.
+  // `sw rs2, SYM(rs1)`, must assemble to a single store instruction, and not
+  // be mistaken for the `sw rs2, label, rt` pseudo-instruction.
+  const QStringList equs = {".equ SYMBOL_2, 8"};
+  const std::vector<std::pair<QString, uint32_t>> cases = {
+      {"sw t6, 8(sp)", 0x01F12423},
+      {"sw t6, SYMBOL_2(sp)", 0x01F12423},
+      {"sw t6, SYMBOL_2 (sp)", 0x01F12423},
+      {"sw t6, (SYMBOL_2)(sp)", 0x01F12423},
+      {"sw t6, SYMBOL_2*2(sp)", 0x01F12823},
+      {"sh t6, SYMBOL_2(sp)", 0x01F11423},
+      {"sb t6, SYMBOL_2(sp)", 0x01F10423},
+      {"sw t6, LATE(sp)", 0x01F12223},
+  };
+  for (const auto &[line, expected] : cases) {
+    auto words =
+        assembleText(QStringList(equs) << line << ".equ LATE, 4");
+    if (words.size() != 1 || words.at(0) != expected) {
+      QString err = "'" + line + "' assembled to:";
+      for (auto w : words)
+        err += " 0x" + QString::number(w, 16);
+      err += " (expected 0x" + QString::number(expected, 16) + ")";
+      QFAIL(err.toStdString().c_str());
+    }
+  }
+
+  // The pseudo-instruction form must still expand to auipc + store, using the
+  // last register as the temporary.
+  auto words = assembleText({"sw t6, target, t0", "target: nop"});
+  QCOMPARE(words.size(), 3u);
+  QCOMPARE(words.at(0) & 0xFFF, (5u << 7) | 0b0010111); // auipc t0, ...
+  QCOMPARE(words.at(1) & 0x01FFF07F, (31u << 20) | (5u << 15) | (0b010 << 12) |
+                                         0b0100011); // sw t6, ...(t0)
 }
 
 QTEST_APPLESS_MAIN(tst_Assembler)

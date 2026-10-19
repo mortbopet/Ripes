@@ -26,9 +26,11 @@ Result<LineTokens> joinParentheses(const Location &loc,
   std::vector<QChar> parensStack;
 
   QString tokenBuffer;
-  auto commitBuffer = [&]() {
+  auto commitBuffer = [&](bool parenthesized = false) {
     if (!tokenBuffer.isEmpty()) {
-      outtokens << Token(tokenBuffer);
+      Token token(tokenBuffer);
+      token.setParenthesized(parenthesized);
+      outtokens << token;
       tokenBuffer.clear();
     }
   };
@@ -54,7 +56,7 @@ Result<LineTokens> joinParentheses(const Location &loc,
       case ')': {
         if (matchedParens(parensStack, ch)) {
           if (parensStack.empty()) {
-            commitBuffer();
+            commitBuffer(/*parenthesized=*/true);
           } else {
             tokenBuffer.append(ch);
           }

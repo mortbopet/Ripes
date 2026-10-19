@@ -572,9 +572,11 @@ struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
   static Result<std::vector<LineTokens>>
   expander(const PseudoInstruction<PseudoInstrImpl> &,
            const TokenizedSrcLine &line, const SymbolMap &) {
+    // `s* rs2, offset(rs1)` is a regular store; only `s* rs2, symbol, rt`
+    // (no parentheses around the last register) is the pseudo-instruction.
     bool canConvert;
     getImmediate(line.tokens.at(2), canConvert);
-    if (canConvert) {
+    if (canConvert || line.tokens.at(3).isParenthesized()) {
       return Result<std::vector<LineTokens>>(
           Error(0, "Unused; will fallback to non-pseudo op sw"));
     }

@@ -104,8 +104,10 @@ AssemblerBase::splitSymbolsFromLine(const Location &location,
   LineTokens splitTokens;
   splitTokens.reserve(tokens.size());
   for (const auto &token : tokens) {
-    if (token.startsWith('\"') && token.endsWith('\"')) {
-      // Skip quoted strings.
+    if ((token.startsWith('\"') && token.endsWith('\"')) ||
+        !token.contains(':')) {
+      // Skip quoted strings and tokens without symbols, retaining any token
+      // metadata.
       splitTokens.push_back(token);
       continue;
     }
