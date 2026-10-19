@@ -1,12 +1,54 @@
 # Ripes Release Notes
 
-## Ripes v2.2.7
+## Ripes v2.3.0
 
-### Bug fixes and new stuff
-- Fixed auto-clocking not being stopped when a breakpoint has been hit.
-- Fixed breakpoint set at line 0 also being mirrored at line `num instructions`.
-- Added a memory viewer widget to the edit tab
-- Register values can now be copied from the register widget (right click).
+### New features
+- **Qt 6**: Ripes has been migrated to Qt 6, and the macOS release is now a universal (Apple Silicon + Intel) build.
+- **Ripes in the browser**: a WebAssembly build of Ripes is available at [ripes.dk](https://ripes.dk).
+- **New processor models**:
+  - A 5-stage multicycle processor (with one or two memories), based on the work of Francisco Valero Gil.
+  - An ISA simulator "processor" model (`RV32_ISS`/`RV64_ISS`) for fast, non-pipelined execution.
+- **Theming**: Light/Dark/System color schemes with live theme switching.
+- **New memory-mapped I/O peripherals**: a raster screen, a real-time clock, and an edge-capture/latching D-pad.
+- **Command line mode**:
+  - ELF and C files can now be executed from the CLI.
+  - System input (stdin) handling for CLI execution.
+  - Cache simulation is now available in the CLI (`--cache-preset`).
+- **Assembler**:
+  - GNU-style `offset(base)` memory operands (e.g. `lw t0, 4(sp)`, `lw t0, (sp)`, `jalr ra, 4(t0)`, `c.lw a0, 4(a1)`, `c.lwsp a0, 4(sp)`).
+  - Labels may now start with a dot.
+- **Caches**: non-power-of-two associativities are now supported, and cache configuration now uses the term "sets" instead of "lines".
+- **UI**:
+  - Added a memory viewer widget to the edit and processor tabs; register values can be copied from the register widget and followed into memory (right click).
+  - Panning in the cache graphic view, a modernized sidebar, and persisted window geometry.
+  - Added a setting for enabling VSRTL VCD tracing.
+
+### Bug fixes
+- **Processor models**:
+  - `jalr` did not clear the least significant bit of the target address (#477).
+  - Register shift instructions (`sll`/`srl`/`sra`) used all bits of `rs2` instead of only the lower 5 (RV32) or 6 (RV64) bits (#398).
+  - Incorrect `mulh`/`mulhu`/`mulhsu` results on 64-bit processors.
+  - Compressed `c.j`/`c.jal` instructions jumping to the wrong address for offsets below -1024 (#472).
+  - Incorrect EX stage stall in the 5-stage pipeline (#444).
+  - Fixed RVC prime register encoding/decoding.
+- **Assembler**:
+  - `c.j`/`c.jal`/`c.beqz`/`c.bnez` encoded label targets as absolute rather than PC-relative addresses (#411).
+  - `sw rs2, SYMBOL(rs1)` with a symbolic offset was assembled as the `sw rs2, label, rt` pseudo-instruction (#467).
+  - Superfluous instruction operands are now rejected rather than silently ignored.
+  - Disabled ISA extensions of a processor were still accepted by the assembler.
+  - Hex/binary representations of edge-case signed immediates (e.g. `0xFFFFFFFF`) are now accepted.
+  - Division by zero in constant expressions crashed the assembler (#347).
+  - Parentheses were matched before comments were removed (#421).
+- **Caches**: fixed the random replacement policy, ensured a minimum of one way, and fixed numeric limits for way counts and presets.
+- **System calls**: fixed the `read` syscall character count being halved, the `O_CREAT` flag in `open`, read-only file operations, and added a stack-heap collision check to `brk`.
+- **UI and misc**:
+  - Auto-clocking was not stopped when a breakpoint was hit.
+  - A breakpoint at line 0 was also mirrored at line `num instructions`.
+  - I/O devices are now updated upon processor reset.
+  - Fixed a crash when hovering over the cache statistics chart.
+  - Fixed memory leaks in I/O simulation.
+  - Console input and clipboard usage in the WebAssembly build (#304).
+  - Source code highlighting with programs loaded at a non-zero start address.
 
 ## Ripes v2.2.6
 
