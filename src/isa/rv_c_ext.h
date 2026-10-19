@@ -536,11 +536,12 @@ struct Instr : public RVC_Instruction<InstrImpl> {
   ///  - Imm[0]   = 0
   template <unsigned tokenIndex>
   struct Imm
-      : public Ripes::Imm<tokenIndex, 12, Repr::Signed,
-                          ImmPartSet<ImmPart<11, 12, 12>, ImmPart<10, 8, 8>,
-                                     ImmPart<8, 9, 10>, ImmPart<7, 6, 6>,
-                                     ImmPart<6, 7, 7>, ImmPart<5, 2, 2>,
-                                     ImmPart<4, 11, 11>, ImmPart<1, 3, 5>>> {
+      : public Ripes::ImmSym<tokenIndex, 12, Repr::Signed,
+                             ImmPartSet<ImmPart<11, 12, 12>, ImmPart<10, 8, 8>,
+                                        ImmPart<8, 9, 10>, ImmPart<7, 6, 6>,
+                                        ImmPart<6, 7, 7>, ImmPart<5, 2, 2>,
+                                        ImmPart<4, 11, 11>, ImmPart<1, 3, 5>>,
+                             SymbolType::Relative> {
     static_assert(tokenIndex == VALID_INDEX, "Invalid token index");
   };
 
@@ -580,10 +581,11 @@ struct Instr : public RVC_Instruction<InstrImpl> {
   ///  - Imm[0]   = 0
   template <unsigned tokenIndex>
   struct Imm
-      : public Ripes::Imm<
+      : public Ripes::ImmSym<
             tokenIndex, 9, Repr::Signed,
             ImmPartSet<ImmPart<8, 12, 12>, ImmPart<6, 5, 6>, ImmPart<5, 2, 2>,
-                       ImmPart<3, 10, 11>, ImmPart<1, 3, 4>>> {
+                       ImmPart<3, 10, 11>, ImmPart<1, 3, 4>>,
+            SymbolType::Relative> {
     static_assert(tokenIndex == VALID_INDEX, "Invalid token index");
   };
 

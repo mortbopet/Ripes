@@ -142,7 +142,7 @@ inline VInt uncompressInstruction(VInt instrValue, bool cEnabled, bool rv64,
                ((fields[2] & 0x001) << 4) | ((fields[2] & 0x200) >> 6) |
                ((fields[2] & 0x00E) >> 1));
         if (fields[2] & 0x400) {
-          imm = imm | 0xFFE00;
+          imm = imm | 0xFFC00;
         }
         // jal x1,offset[11:1]
         new_instr = ((((imm & 0x003FF) << 9) | ((imm & 0x00400) >> 2) |
@@ -275,7 +275,7 @@ inline VInt uncompressInstruction(VInt instrValue, bool cEnabled, bool rv64,
              ((fields[2] & 0x001) << 4) | ((fields[2] & 0x200) >> 6) |
              ((fields[2] & 0x00E) >> 1));
       if (fields[2] & 0x400) {
-        imm = imm | 0xFFE00;
+        imm = imm | 0xFFC00;
       }
       // jal x0,offset[11:1]
       new_instr = ((((imm & 0x003FF) << 9) | ((imm & 0x00400) >> 2) |

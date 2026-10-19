@@ -295,7 +295,7 @@ test_42:
  bne t0,t2, fail 
     
     
- bne zero,gp, pass
+ bne zero,gp, test_43
   
 
 pass:
@@ -307,3 +307,24 @@ fail:
  li a0, 0
  li a7, 93
  ecall
+
+# The following tests are placed after pass/fail since they contain large
+# padding which would otherwise put pass/fail out of reach of the c.j
+# instructions in the preceding tests.
+
+# c.j with a backwards offset < -1024 (issue #472). An incorrectly
+# sign-extended offset lands 1024 bytes too far ahead, at t43_trap.
+test_43:
+ li gp,43
+ c.j t43_fwd
+t43_back:
+ c.j test_44
+.zero 1022
+t43_trap:
+ bne zero,gp, fail
+.zero 150
+t43_fwd:
+ c.j t43_back
+
+test_44:
+ bne zero,gp, pass

@@ -273,7 +273,7 @@ test_45:
  c.lwsp a6, 252
  bne a5,a6, fail 
      
- bne zero,gp, pass
+ bne zero,gp, test_46
   
 
 pass:
@@ -285,3 +285,37 @@ fail:
  li a0, 0
  li a7, 93
  ecall
+
+# The following tests are placed after pass/fail since they contain large
+# padding which would otherwise put pass/fail out of reach of the c.j
+# instructions in the preceding tests.
+
+# c.j with a backwards offset < -1024 (issue #472). An incorrectly
+# sign-extended offset lands 1024 bytes too far ahead, at t46_trap.
+test_46:
+ li gp,46
+ c.j t46_fwd
+t46_back:
+ c.j test_47
+.zero 1022
+t46_trap:
+ bne zero,gp, fail
+.zero 150
+t46_fwd:
+ c.j t46_back
+
+# c.jal with a backwards offset < -1024 (issue #472).
+test_47:
+ li gp,47
+ c.j t47_fwd
+t47_back:
+ c.j test_48
+.zero 1022
+t47_trap:
+ bne zero,gp, fail
+.zero 150
+t47_fwd:
+ c.jal t47_back
+
+test_48:
+ bne zero,gp, pass
