@@ -30,7 +30,7 @@ la a1, BB # a1: Pointer to 'BB' string
 1:
 
 lw t1, 0(a1) # Load 'AA' or 'BB'
-sw t1, 0(s2), t0 # Store to buffer
+sw t1, 0(s2) # Store to buffer
 lw a2, STRLEN # a2: Buffer size
 add s2, s2, a2 # Next index in buffer
 

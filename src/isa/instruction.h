@@ -2,6 +2,7 @@
 
 #include <climits>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -709,6 +710,105 @@ template <unsigned tokenIndex, unsigned width, Repr repr, typename ImmParts>
 using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
                     defaultTransformer>;
 
+/**
+ * @brief MemOperandSpec
+ * Instructions which access memory may declare `using MemOperand = MemOperandSpec<...>;` to
+ * allow their address operand to be written using the conventional
+ * `offset(base)` syntax, regardless of the order of the instruction's fields.
+ * The offset may be omitted, i.e. `(base)`, in which case it defaults to 0.
+ * @param ImmField: Field index of the offset immediate.
+ * @param BaseField: Field index of the base register.
+ * @param OptionalImm: If set, the offset may also be omitted when the base
+ * register is written without parentheses (e.g. `jalr rd, rs1`).
+ */
+template <unsigned ImmField, unsigned BaseField, bool OptionalImm = false>
+struct MemOperandSpec {
+  constexpr static unsigned immField = ImmField;
+  constexpr static std::optional<unsigned> baseField = BaseField;
+  constexpr static bool optionalImm = OptionalImm;
+  static bool isImplicitBase(const QString &) { return false; }
+};
+
+/**
+ * @brief ImplicitBaseMemOperandSpec
+ * As MemOperandSpec, but for instructions where the base register is implicit (not
+ * encoded in the instruction). If a base register is written, it must be the
+ * implicit base register.
+ * @param RegInfo: Register file info used to resolve the written base
+ * register.
+ * @param BaseReg: Index of the implicit base register.
+ */
+template <unsigned ImmField, typename RegInfo, unsigned BaseReg>
+struct ImplicitBaseMemOperandSpec {
+  constexpr static unsigned immField = ImmField;
+  constexpr static std::optional<unsigned> baseField = std::nullopt;
+  constexpr static bool optionalImm = false;
+  static bool isImplicitBase(const QString &reg) {
+    bool success = false;
+    const unsigned regIndex = RegInfo().regNumber(reg, success);
+    return success && regIndex == BaseReg;
+  }
+};
+
+template <typename T, typename = void>
+struct HasMemOperand : std::false_type {};
+template <typename T>
+struct HasMemOperand<T, std::void_t<typename T::MemOperand>> : std::true_type {
+};
+
+/// Rewrites the operands of @p line, given as `[ops..., [offset], (base)]`,
+/// into the field order of an instruction with @p numFields fields, as
+/// described by @p Spec. Lines that do not use the `offset(base)` syntax are
+/// returned unmodified.
+template <typename Spec>
+Result<LineTokens> normalizeMemOperand(const TokenizedSrcLine &line,
+                                       unsigned numFields) {
+  const LineTokens &tokens = line.tokens;
+  const unsigned numOperands = tokens.size() - 1;
+  const unsigned numOther =
+      numFields - 1 - (Spec::baseField.has_value() ? 1 : 0);
+
+  if (numOperands == 0)
+    return tokens;
+
+  if (!tokens.last().isParenthesized()) {
+    if (Spec::optionalImm && numOperands == numFields - 1) {
+      LineTokens normalized = tokens;
+      normalized.insert(1 + Spec::immField, Token("0"));
+      return normalized;
+    }
+    return tokens;
+  }
+
+  LineTokens operands = tokens.mid(1);
+  Token base = operands.takeLast();
+  Token imm;
+  if (static_cast<unsigned>(operands.size()) == numOther + 1)
+    imm = operands.takeLast();
+  else if (static_cast<unsigned>(operands.size()) == numOther)
+    imm = Token("0");
+  else
+    return tokens; // Let operand count verification report the error.
+
+  if (!Spec::baseField.has_value() && !Spec::isImplicitBase(base)) {
+    return Error(line, "Invalid base register '" + base + "' for '" +
+                           tokens.at(0) + "'");
+  }
+
+  LineTokens normalized;
+  normalized << tokens.at(0);
+  unsigned otherIdx = 0;
+  for (unsigned i = 0; i < numFields; ++i) {
+    if (i == Spec::immField)
+      normalized << imm;
+    else if (Spec::baseField.has_value() && i == *Spec::baseField)
+      normalized << base;
+    else
+      normalized << operands.at(otherIdx++);
+  }
+  return normalized;
+}
+
 /** @brief A no-template, abstract class that defines an instruction. */
 class InstructionBase {
 public:
@@ -787,9 +887,26 @@ struct Instruction : public InstructionBase {
       : InstructionBase(InstrByteSize<InstrImpl>::byteSize),
         m_name(InstrImpl::NAME.data()) {}
 
-  AssembleRes assemble(const TokenizedSrcLine &tokens) override {
+  AssembleRes assemble(const TokenizedSrcLine &line) override {
     Instr_T instruction = 0;
     FieldLinkRequest linksWithSymbol;
+    constexpr unsigned numFields = InstrImpl::Fields::numFields();
+
+    TokenizedSrcLine tokens = line;
+    if constexpr (HasMemOperand<InstrImpl>::value) {
+      auto normalized =
+          normalizeMemOperand<typename InstrImpl::MemOperand>(line, numFields);
+      if (normalized.isError())
+        return normalized.error();
+      tokens.tokens = normalized.value();
+    }
+
+    if (static_cast<unsigned>(tokens.tokens.size()) > numFields + 1) {
+      return Error(line, "Instruction '" + name() + "' expects " +
+                             QString::number(numFields) +
+                             " arguments, but got " +
+                             QString::number(tokens.tokens.size() - 1));
+    }
 
     InstrImpl::Opcode::apply(instruction, linksWithSymbol);
     if (auto fieldRes =

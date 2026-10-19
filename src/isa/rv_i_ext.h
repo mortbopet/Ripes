@@ -75,6 +75,8 @@ struct Jalr : public RV_Instruction<Jalr> {
                                    OpPartFunct3<static_cast<unsigned>(0b000)>> {
   };
   struct Fields : public FieldSet<RegRd, RegRs1, ImmCommon12> {};
+  // Allows for `jalr rd, offset(rs1)`, `jalr rd, (rs1)` and `jalr rd, rs1`.
+  using MemOperand = MemOperandSpec<2, 1, /*OptionalImm=*/true>;
 
   constexpr static std::string_view NAME = "jalr";
 };
@@ -211,6 +213,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
       : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::LOAD>,
                          OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRd, ImmCommon12, RegRs1> {};
+  using MemOperand = MemOperandSpec<1, 2>;
 };
 
 struct Lb : public Instr<Lb, Funct3::LB> {
@@ -361,6 +364,7 @@ struct Instr : public RV_Instruction<InstrImpl> {
       : public OpcodeSet<OpPartOpcode<RVISA::OpcodeID::STORE>,
                          OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRs2, ImmS, RegRs1> {};
+  using MemOperand = MemOperandSpec<1, 2>;
 };
 
 struct Sb : public Instr<Sb, Funct3::SB> {
@@ -553,6 +557,11 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
   static Result<std::vector<LineTokens>>
   expander(const PseudoInstruction<PseudoInstrImpl> &,
            const TokenizedSrcLine &line, const SymbolMap &) {
+    // `l* rd, (rs1)` is a regular load with an omitted offset.
+    if (line.tokens.at(2).isParenthesized()) {
+      return Result<std::vector<LineTokens>>(
+          Error(0, "Unused; will fallback to non-pseudo op load"));
+    }
     LineTokensVec v;
     v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
                              << Token(line.tokens.at(2), "%pcrel_hi"));

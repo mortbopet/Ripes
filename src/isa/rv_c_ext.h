@@ -261,11 +261,13 @@ struct ImmLwsp
 struct CLwsp
     : public Instr<CLwsp, QuadrantID::QUADRANT2, Funct3::LWSP, ImmLwsp> {
   constexpr static std::string_view NAME = "c.lwsp";
+  using MemOperand = ImplicitBaseMemOperandSpec<1, RV_GPRInfo, 2>;
 };
 
 struct CFlwsp
     : public Instr<CFlwsp, QuadrantID::QUADRANT2, Funct3::FLWSP, ImmLwsp> {
   constexpr static std::string_view NAME = "c.flwsp";
+  using MemOperand = ImplicitBaseMemOperandSpec<1, RV_GPRInfo, 2>;
 };
 
 /// An RV-C unsigned immediate field with an input width of 9 bits.
@@ -287,6 +289,7 @@ struct ImmLdsp
 struct CLdsp
     : public Instr<CLdsp, QuadrantID::QUADRANT2, Funct3::LDSP, ImmLdsp> {
   constexpr static std::string_view NAME = "c.ldsp";
+  using MemOperand = ImplicitBaseMemOperandSpec<1, RV_GPRInfo, 2>;
 };
 
 struct CAddiw
@@ -297,6 +300,7 @@ struct CAddiw
 struct CFldsp
     : public Instr<CFldsp, QuadrantID::QUADRANT2, Funct3::FLDSP, ImmLdsp> {
   constexpr static std::string_view NAME = "c.fldsp";
+  using MemOperand = ImplicitBaseMemOperandSpec<1, RV_GPRInfo, 2>;
 };
 
 struct CSlli
@@ -390,6 +394,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
       : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT2>,
                          OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRs2, ImmType> {};
+  using MemOperand = ImplicitBaseMemOperandSpec<1, RV_GPRInfo, 2>;
 };
 
 /// An RV-C unsigned immediate field with an input width of 8 bits.
@@ -449,6 +454,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
       : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT0>,
                          OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRdPrime, RegRs1Prime, ImmType> {};
+  using MemOperand = MemOperandSpec<2, 1>;
 };
 
 /// An RV-C signed immediate field with an input width of 8 bits.
@@ -492,6 +498,7 @@ struct Instr : public RVC_Instruction<InstrImpl> {
       : public OpcodeSet<OpPartQuadrant<QuadrantID::QUADRANT0>,
                          OpPartFunct3<static_cast<unsigned>(funct3)>> {};
   struct Fields : public FieldSet<RegRs2Prime, RegRs1Prime, ImmCommon7_U> {};
+  using MemOperand = MemOperandSpec<2, 1>;
 };
 
 struct CSw : public Instr<CSw, Funct3::SW> {

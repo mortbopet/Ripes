@@ -47,20 +47,37 @@ private slots:
   void tst_relativeLabels();
   void tst_parentheses();
   void tst_storeSymbolOffset();
+  void tst_memOperandSyntax();
+  void tst_extraOperands();
 
 private:
-  /// Assembles @p program for RV32I and returns the words of the .text
-  /// section.
-  std::vector<uint32_t> assembleText(const QStringList &program) {
-    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
+  /// Assembles @p program (newline-separated source lines) for RV32I with
+  /// @p extensions.
+  static AssembleResult assemble(const QString &program,
+                                 const QStringList &extensions = {}) {
+    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(extensions);
     auto assembler = ISA_Assembler<ISA::RV32I>(isa);
-    auto res = assembler.assemble(program);
+    return assembler.assemble(program.split('\n'));
+  }
+
+  /// Assembles @p program and returns the .text section, or std::nullopt if
+  /// assembly failed.
+  static std::optional<QByteArray>
+  tryAssembleText(const QString &program, const QStringList &extensions = {}) {
+    auto res = assemble(program, extensions);
+    if (res.errors.size() != 0)
+      return std::nullopt;
+    return res.program.getSection(".text")->data;
+  }
+
+  /// Assembles @p program and returns the words of the .text section.
+  std::vector<uint32_t> assembleText(const QString &program) {
+    auto res = assemble(program);
     if (res.errors.size() != 0) {
       res.errors.print();
-      QTest::qFail(("Failed to assemble program:\n" + program.join('\n'))
-                       .toStdString()
-                       .c_str(),
-                   __FILE__, __LINE__);
+      QTest::qFail(
+          ("Failed to assemble program:\n" + program).toStdString().c_str(),
+          __FILE__, __LINE__);
       return {};
     }
     std::vector<uint32_t> words;
@@ -92,17 +109,18 @@ private:
   }
 
   enum class Expect { Fail, Success };
-  void testAssemble(const QStringList &program, Expect expect,
+  /// Assembles @p program (newline-separated source lines) and verifies the
+  /// outcome against @p expect. If @p expectData is provided, the .data
+  /// section is compared against it.
+  void testAssemble(const QString &program, Expect expect,
                     QByteArray expectData = {}) {
     QString err;
-    auto isa = std::make_shared<ISAInfo<ISA::RV32I>>(QStringList());
-    auto assembler = ISA_Assembler<ISA::RV32I>(isa);
-    auto res = assembler.assemble(program);
+    auto res = assemble(program);
     if ((res.errors.size() != 0) ^ (expect == Expect::Fail)) {
       res.errors.print();
       QString failExpectString = (expect == Expect::Fail ? "fail" : "success");
       err += "Expected " + failExpectString + " on program: \n";
-      err += program.join('\n');
+      err += program;
       QFAIL(err.toStdString().c_str());
     }
     if (expectData.size() > 0) {
@@ -176,27 +194,20 @@ void tst_Assembler::tst_directives() {
   QByteArray expectData;
 
   // String constants
-  QStringList assembleStrings;
-  assembleStrings << "\"foo\""
-                  << "\"bar\""
-                  << "\"1*2+(3/foo)\""
-                  << "\"foo(\""
-                  << "\"foo)\""
-                  << "\"foo(.)\""
-                  << "\".text\""
-                  << "\"nop\""
-                  << "\"addi a0 a0 baz\"";
+  const QStringList assembleStrings = {
+      R"_("foo")_",   R"_("bar")_", R"_("1*2+(3/foo)")_",
+      R"_("foo(")_",  R"_("foo)")_", R"_("foo(.)")_",
+      R"_(".text")_", R"_("nop")_", R"_("addi a0 a0 baz")_"};
 
-  QStringList directiveStrings;
-  directiveStrings << ".data";
+  QString program = ".data\n";
   int i = 0;
   for (const auto &s : assembleStrings) {
-    directiveStrings << "s" + QString::number(i++) + ": .string " + s;
+    program += "s" + QString::number(i++) + ": .string " + s + "\n";
     QString scpy = s;
     scpy.remove('\"');
     expectData += scpy.toUtf8().append('\0');
   }
-  testAssemble(directiveStrings, Expect::Success, expectData);
+  testAssemble(program, Expect::Success, expectData);
 
   // word, half and byte constants
   expectData.clear();
@@ -206,80 +217,105 @@ void tst_Assembler::tst_directives() {
   expectData.append(toByteArray(0, 1));
   expectData.append(42);
 
-  testAssemble(QStringList() << ".data"
-                             << "cw: .word 42"
-                             << "ch: .half 42"
-                             << "cb: .byte 42",
+  testAssemble(R"(
+    .data
+    cw: .word 42
+    ch: .half 42
+    cb: .byte 42
+  )",
                Expect::Success, expectData);
 
   // Too large constants (direct)
-  testAssemble(QStringList() << ".data"
-                             << ".byte 0xfff",
+  testAssemble(R"(
+    .data
+    .byte 0xfff
+  )",
                Expect::Fail);
 
-  testAssemble(QStringList() << ".data"
-                             << ".half 0xfffff",
+  testAssemble(R"(
+    .data
+    .half 0xfffff
+  )",
                Expect::Fail);
 
-  testAssemble(QStringList() << ".data"
-                             << ".word 0xfffffffff",
+  testAssemble(R"(
+    .data
+    .word 0xfffffffff
+  )",
                Expect::Fail);
 
-  testAssemble(QStringList() << ".data"
-                             << ".dword 0xfffffffffffffffff",
+  testAssemble(R"(
+    .data
+    .dword 0xfffffffffffffffff
+  )",
                Expect::Fail);
 
   // Too large constants (indirect)
-  testAssemble(QStringList() << ".data"
-                             << ".equ abc 0xfff"
-                             << ".byte abc",
+  testAssemble(R"(
+    .data
+    .equ abc 0xfff
+    .byte abc
+  )",
                Expect::Fail);
 
-  testAssemble(QStringList() << ".data"
-                             << ".equ abc 0xfffff"
-                             << ".half abc",
+  testAssemble(R"(
+    .data
+    .equ abc 0xfffff
+    .half abc
+  )",
                Expect::Fail);
 
-  testAssemble(QStringList() << ".data"
-                             << ".equ abc 0xfffffffff"
-                             << ".word abc",
+  testAssemble(R"(
+    .data
+    .equ abc 0xfffffffff
+    .word abc
+  )",
                Expect::Fail);
 
-  testAssemble(QStringList() << ".data"
-                             << ".equ abc 0xfffffffffffffffff"
-                             << ".dword abc",
+  testAssemble(R"(
+    .data
+    .equ abc 0xfffffffffffffffff
+    .dword abc
+  )",
                Expect::Fail);
+
   // .align directive
   expectData.clear();
   expectData.append(42);
   expectData.append(QByteArray(1, 0xFE).repeated(3));
   expectData.append(43);
-  testAssemble(QStringList() << ".data"
-                             << ".byte 42"
-                             << ".align (2 + 2) 0xFE"
-                             << ".byte 43",
+  testAssemble(R"(
+    .data
+    .byte 42
+    .align (2 + 2) 0xFE
+    .byte 43
+  )",
                Expect::Success, expectData);
 }
 
 void tst_Assembler::tst_expression() {
-  testAssemble(QStringList() << ".text"
-                             << "lw x10 (123 + (4* 3))(x10)",
+  testAssemble(R"(
+    .text
+    lw x10 (123 + (4* 3))(x10)
+  )",
                Expect::Success);
-  testAssemble(QStringList() << ".data"
-                             << "A: .word 1"
-                             << ".text"
-                             << "lw a0 A(+1) a0",
+  testAssemble(R"(
+    .data
+    A: .word 1
+    .text
+    lw a0 A(+1) a0
+  )",
                Expect::Fail);
-
-  return;
 }
 
 void tst_Assembler::tst_invalidLabel() {
-  testAssemble(QStringList() << ".text"
-                             << "ABC+: lw x10 ABC+ x10",
+  testAssemble(R"(
+    .text
+    ABC+: lw x10 ABC+ x10
+  )",
                Expect::Fail);
-  testAssemble(QStringList() << "a: lw a0 a+ a0", Expect::Fail);
-  testAssemble(QStringList() << "addi a0 a0 (a", Expect::Fail);
+  testAssemble("a: lw a0 a+ a0", Expect::Fail);
+  testAssemble("addi a0 a0 (a", Expect::Fail);
 }
 
 void tst_Assembler::tst_benchmarkNew() {
@@ -290,118 +326,139 @@ void tst_Assembler::tst_benchmarkNew() {
 }
 
 void tst_Assembler::tst_simpleprogram() {
-  testAssemble(QStringList() << ".data"
-                             << "B: .word 1, 2, 2"
-                             << "C: .string \"hello world!\""
-                             << ".text"
-                             << "addi a0 a0 123 # Hello world"
-                             << "nop",
+  testAssemble(R"(
+    .data
+    B: .word 1, 2, 2
+    C: .string "hello world!"
+    .text
+    addi a0 a0 123 # Hello world
+    nop
+  )",
                Expect::Success);
 }
 
 void tst_Assembler::tst_simpleWithBranch() {
-  testAssemble(QStringList() << "B:nop"
-                             << "sw x0, 24(sp) # tmp. res 2"
-                             << "addi a0 a0 10"
-                             << "addi a0 a0 -1"
-                             << "beqz a0 B",
+  testAssemble(R"(
+    B:nop
+    sw x0, 24(sp) # tmp. res 2
+    addi a0 a0 10
+    addi a0 a0 -1
+    beqz a0 B
+  )",
                Expect::Success);
 }
 
 void tst_Assembler::tst_weirdImmediates() {
-  testAssemble(QStringList() << "addi a0 a0 0q1234"
-                             << "addi a0 a0 -abcd"
-                             << "addi a0 a0 100000000"
-                             << "addi a0 a0 4096"  // too large
-                             << "addi a0 a0 2048"  // too large
-                             << "addi a0 a0 -2049" // too large
-                             << "addi a0 a0 0xabcdabcdabcd",
+  testAssemble(R"(
+    addi a0 a0 0q1234
+    addi a0 a0 -abcd
+    addi a0 a0 100000000
+    addi a0 a0 4096  # too large
+    addi a0 a0 2048  # too large
+    addi a0 a0 -2049 # too large
+    addi a0 a0 0xabcdabcdabcd
+  )",
                Expect::Fail);
 }
 
 void tst_Assembler::tst_weirdDirectives() {
-  testAssemble(QStringList() << ".text"
-                             << "B: .a"
-                             << ""
-                             << ".c"
-                             << "nop",
+  testAssemble(R"(
+    .text
+    B: .a
+
+    .c
+    nop
+  )",
                Expect::Fail);
   // Test that a directive which requires no arguments throws error
-  testAssemble(QStringList{".data foo"}, Expect::Fail);
+  testAssemble(".data foo", Expect::Fail);
 }
 
 void tst_Assembler::tst_invalidreg() {
-  testAssemble(QStringList() << "addi x36 x46 1", Expect::Fail);
+  testAssemble("addi x36 x46 1", Expect::Fail);
 }
 
 void tst_Assembler::tst_edgeImmediates() {
-  testAssemble(QStringList()
-                   << "addi a0 a0 2047"
-                   << "addi a0 a0 -2048"
-                   // Hex and binary immediates which fits in 12 bits.
-                   << "addi x2, x0, 0xAFF"
-                   << "addi x2, x0, 0b101010101010"
-                   // Negative values expressed in hex should be accepted if
-                   // they're expressed using the full 32-bit immediate space.
-                   << "addi x2, x0, 0xFFFFFFF1",
+  testAssemble(R"(
+    addi a0 a0 2047
+    addi a0 a0 -2048
+    # Hex and binary immediates which fits in 12 bits.
+    addi x2, x0, 0xAFF
+    addi x2, x0, 0b101010101010
+    # Negative values expressed in hex should be accepted if they're
+    # expressed using the full 32-bit immediate space.
+    addi x2, x0, 0xFFFFFFF1
+  )",
                Expect::Success);
 }
 
 void tst_Assembler::tst_label() {
-  testAssemble(QStringList() << "A:"
-                             << ""
-                             << "B: C:"
-                             << "D: E: addi a0 a0 -1",
+  testAssemble(R"(
+    A:
+
+    B: C:
+    D: E: addi a0 a0 -1
+  )",
                Expect::Success);
 }
 
 void tst_Assembler::tst_segment() {
-  testAssemble(QStringList() << ".data"
-                             << "nop"
-                             << ".text "
-                             << "L: .word 1, 2, 3 ,4"
-                             << "nop"
-                             << ".data"
-                             << "nop",
+  testAssemble(R"(
+    .data
+    nop
+    .text
+    L: .word 1, 2, 3 ,4
+    nop
+    .data
+    nop
+  )",
                Expect::Success);
 }
 
 void tst_Assembler::tst_labelWithPseudo() {
-  testAssemble(QStringList() << "j end"
-                             << "end:nop",
+  testAssemble(R"(
+    j end
+    end:nop
+  )",
                Expect::Success);
 }
 
 void tst_Assembler::tst_stringDirectives() {
-  testAssemble(QStringList() << R"(A: .string "a b c")", Expect::Success);
-  testAssemble(QStringList() << R"(A: .string "a : c")", Expect::Success);
-  testAssemble(QStringList() << R"(A: .string "a \" c")", Expect::Success);
-  testAssemble(QStringList() << R"(A: .string "a \" \" c")", Expect::Success);
-  testAssemble(QStringList() << R"(A: .string "a \\" c")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string "a c" "a c")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string "a c\")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string "a c)", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string a c ")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string ")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string a c\")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string """")", Expect::Fail);
-  testAssemble(QStringList() << R"(A: .string "")", Expect::Success);
+  testAssemble(R"(A: .string "a b c")", Expect::Success);
+  testAssemble(R"(A: .string "a : c")", Expect::Success);
+  testAssemble(R"(A: .string "a \" c")", Expect::Success);
+  testAssemble(R"(A: .string "a \" \" c")", Expect::Success);
+  testAssemble(R"(A: .string "a \\" c")", Expect::Fail);
+  testAssemble(R"(A: .string "a c" "a c")", Expect::Fail);
+  testAssemble(R"(A: .string "a c\")", Expect::Fail);
+  testAssemble(R"(A: .string "a c)", Expect::Fail);
+  testAssemble(R"(A: .string a c ")", Expect::Fail);
+  testAssemble(R"(A: .string ")", Expect::Fail);
+  testAssemble(R"(A: .string a c\")", Expect::Fail);
+  testAssemble(R"(A: .string """")", Expect::Fail);
+  testAssemble(R"(A: .string "")", Expect::Success);
 }
 
 void tst_Assembler::tst_relativeLabels() {
-  testAssemble(QStringList() << "1f:  bne x0 a0 1f", Expect::Fail);
-  testAssemble(QStringList() << "1:  bne x0 a0 1f"
-                             << "1:  bne x0 a0 1b",
+  testAssemble("1f:  bne x0 a0 1f", Expect::Fail);
+  testAssemble(R"(
+    1:  bne x0 a0 1f
+    1:  bne x0 a0 1b
+  )",
                Expect::Success);
 
-  testAssemble(QStringList() << "bne x0 a0 2f"
-                             << "2:"
-                             << "1:  bne x0 a0 1f"
-                             << "1:  bne x0 a0 1b"
-                             << "bne x0 a0 2b",
+  testAssemble(R"(
+    bne x0 a0 2f
+    2:
+    1:  bne x0 a0 1f
+    1:  bne x0 a0 1b
+    bne x0 a0 2b
+  )",
                Expect::Success);
-  testAssemble(QStringList() << "bne x0 a0 2f"
-                             << "2:",
+  testAssemble(R"(
+    bne x0 a0 2f
+    2:
+  )",
                Expect::Fail);
 }
 
@@ -446,18 +503,22 @@ void tst_Assembler::tst_matcher() {
 }
 
 void tst_Assembler::tst_parentheses() {
-  testAssemble(QStringList() << "lw x0, 0(x1)", Expect::Success);
-  testAssemble(QStringList() << "lw x0, 0(x1", Expect::Fail);
-  testAssemble(QStringList() << "lw x0, 0(x1 # ignored )", Expect::Fail);
-  testAssemble(QStringList() << "#(valid parentheses match)", Expect::Success);
-  testAssemble(QStringList() << "#)nonmatching parentheses(", Expect::Success);
+  testAssemble("lw x0, 0(x1)", Expect::Success);
+  testAssemble("lw x0, 0(x1", Expect::Fail);
+  testAssemble("lw x0, 0(x1 # ignored )", Expect::Fail);
+  testAssemble("#(valid parentheses match)", Expect::Success);
+  testAssemble("#)nonmatching parentheses(", Expect::Success);
 }
 
 void tst_Assembler::tst_storeSymbolOffset() {
   // Regression test for #467: a store with a symbolic offset, i.e.
   // `sw rs2, SYM(rs1)`, must assemble to a single store instruction, and not
   // be mistaken for the `sw rs2, label, rt` pseudo-instruction.
-  const QStringList equs = {".equ SYMBOL_2, 8"};
+  const QString program = R"(
+    .equ SYMBOL_2, 8
+    %1
+    .equ LATE, 4
+  )";
   const std::vector<std::pair<QString, uint32_t>> cases = {
       {"sw t6, 8(sp)", 0x01F12423},
       {"sw t6, SYMBOL_2(sp)", 0x01F12423},
@@ -469,8 +530,7 @@ void tst_Assembler::tst_storeSymbolOffset() {
       {"sw t6, LATE(sp)", 0x01F12223},
   };
   for (const auto &[line, expected] : cases) {
-    auto words =
-        assembleText(QStringList(equs) << line << ".equ LATE, 4");
+    auto words = assembleText(program.arg(line));
     if (words.size() != 1 || words.at(0) != expected) {
       QString err = "'" + line + "' assembled to:";
       for (auto w : words)
@@ -482,11 +542,64 @@ void tst_Assembler::tst_storeSymbolOffset() {
 
   // The pseudo-instruction form must still expand to auipc + store, using the
   // last register as the temporary.
-  auto words = assembleText({"sw t6, target, t0", "target: nop"});
+  auto words = assembleText(R"(
+    sw t6, target, t0
+    target: nop
+  )");
   QCOMPARE(words.size(), 3u);
   QCOMPARE(words.at(0) & 0xFFF, (5u << 7) | 0b0010111); // auipc t0, ...
   QCOMPARE(words.at(1) & 0x01FFF07F, (31u << 20) | (5u << 15) | (0b010 << 12) |
                                          0b0100011); // sw t6, ...(t0)
+}
+
+void tst_Assembler::tst_memOperandSyntax() {
+  // The GNU `offset(base)` memory operand syntax must assemble identically to
+  // Ripes' native operand order, also when the offset is omitted.
+  const QStringList exts = {"C"};
+  const std::vector<std::pair<QString, QString>> cases = {
+      {"lw t0, (sp)", "lw t0, 0(sp)"},
+      {"lb t0, (sp)", "lb t0, 0(sp)"},
+      {"lw t0, 0(sp)", "lw t0, 0 sp"},
+      {"sw t0, (sp)", "sw t0, 0(sp)"},
+      {"sb t0, (sp)", "sb t0, 0(sp)"},
+      {"jalr ra, 4(t0)", "jalr ra, t0, 4"},
+      {"jalr ra, (t0)", "jalr ra, t0, 0"},
+      {"jalr ra, t0", "jalr ra, t0, 0"},
+      {"jalr (t0)", "jalr ra, t0, 0"},
+      {"jalr t0", "jalr ra, t0, 0"},
+      {"c.lw a0, 4(a1)", "c.lw a0, a1, 4"},
+      {"c.lw a0, (a1)", "c.lw a0, a1, 0"},
+      {"c.sw a0, 4(a1)", "c.sw a0, a1, 4"},
+      {"c.lwsp a0, 4(sp)", "c.lwsp a0, 4"},
+      {"c.lwsp a0, (sp)", "c.lwsp a0, 0"},
+      {"c.swsp a0, 4(x2)", "c.swsp a0, 4"},
+  };
+  for (const auto &[gnu, native] : cases) {
+    auto gnuText = tryAssembleText(gnu, exts);
+    auto nativeText = tryAssembleText(native, exts);
+    QVERIFY2(nativeText.has_value(),
+             ("Failed to assemble '" + native + "'").toStdString().c_str());
+    QVERIFY2(gnuText.has_value(),
+             ("Failed to assemble '" + gnu + "'").toStdString().c_str());
+    QVERIFY2(*gnuText == *nativeText,
+             ("'" + gnu + "' != '" + native + "'").toStdString().c_str());
+  }
+
+  // The implicit base register of sp-relative instructions must be sp.
+  QVERIFY(!tryAssembleText("c.lwsp a0, 4(a1)", exts).has_value());
+  QVERIFY(!tryAssembleText("c.swsp a0, 4(a1)", exts).has_value());
+}
+
+void tst_Assembler::tst_extraOperands() {
+  // Superfluous operands must be rejected rather than silently ignored.
+  const QStringList exts = {"C"};
+  for (const QString line :
+       {"addi a0, zero, 5, garbage", "add a0, zero, zero, zero",
+        "lui a0, 1, 2", "sw t0, 4(sp), t1", "lw t0, 4(sp), t1",
+        "jalr ra, 4(t0), t1", "c.li a0, 5, garbage", "c.lwsp a0, 4, sp"}) {
+    QVERIFY2(!tryAssembleText(line, exts).has_value(),
+             ("'" + line + "' was accepted").toStdString().c_str());
+  }
 }
 
 QTEST_APPLESS_MAIN(tst_Assembler)
