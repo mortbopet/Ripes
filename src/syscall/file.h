@@ -161,9 +161,9 @@ public:
     int index = 0;
     const int bufferSize = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
 
-    const QString pwd = QDir::currentPath();
+    const QByteArray pwd = QDir::currentPath().toUtf8();
 
-    if (pwd.length() > bufferSize) {
+    if (pwd.length() >= bufferSize) {
       BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1);
       return;
     } else {
@@ -172,9 +172,12 @@ public:
 
     // copy bytes from returned buffer into memory
     while (index < pwd.length()) {
-      ProcessorHandler::writeMem(byteAddress, pwd.at(index++).toLatin1(),
+      ProcessorHandler::writeMem(byteAddress + index,
+                                 static_cast<uint8_t>(pwd.at(index)),
                                  sizeof(char));
+      index++;
     }
+    ProcessorHandler::writeMem(byteAddress + index, 0, sizeof(char));
   }
 };
 
