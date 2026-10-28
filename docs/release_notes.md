@@ -1,5 +1,11 @@
 # Ripes Release Notes
 
+## Ripes v2.3.1
+
+### Bug fixes
+- Fixed the Light/Dark color scheme setting having no effect in the Linux AppImage (#480). Ripes is now built with Qt 6.10.3.
+- Fixed the `GetCWD` ecall writing the whole path to a single byte and not null-terminating it (#478).
+
 ## Ripes v2.3.0
 
 ### New features
