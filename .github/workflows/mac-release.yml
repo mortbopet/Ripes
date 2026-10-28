@@ -1,4 +1,4 @@
-name: Mac / Qt 6.9.3
+name: Mac / Qt 6.10.3
 on:
   workflow_run:
     workflows: ["Release setup"]
@@ -35,7 +35,7 @@ jobs:
       uses: jurplel/install-qt-action@v4
       with:
         py7zrversion: '>=0.20.2'
-        version: '6.9.3'
+        version: '6.10.3'
         host: 'mac'
         target: 'desktop'
         arch: 'clang_64'

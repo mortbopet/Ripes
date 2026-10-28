@@ -63,7 +63,7 @@ jobs:
       name: install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.9.3'
+        version: '6.10.3'
         modules: 'qtcharts'
         install-deps: false
 
@@ -71,7 +71,7 @@ jobs:
       name: install Qt (Windows)
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.9.3'
+        version: '6.10.3'
         modules: 'qtcharts'
         install-deps: false
         arch: win64_msvc2022_64
