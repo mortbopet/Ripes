@@ -61,9 +61,9 @@ void SaveDialog::pathChanged() {
     const auto fileExtension =
         (sourceType == SourceType::Assembly) ? ".s" : ".c";
 
-    filesToSave << (m_ui->filePath->text().endsWith(fileExtension))
-        ? m_ui->filePath->text()
-        : m_ui->filePath->text() + fileExtension;
+    filesToSave << (m_ui->filePath->text().endsWith(fileExtension)
+                        ? m_ui->filePath->text()
+                        : m_ui->filePath->text() + fileExtension);
   }
   if (m_ui->saveBinary->isChecked() && !path.isEmpty())
     filesToSave << m_ui->filePath->text() + ".bin";
