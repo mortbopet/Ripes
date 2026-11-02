@@ -89,7 +89,7 @@ private:
 
   WayClass instrType(RVInstr opcode) const {
     if (isLoadStore(opcode)) {
-      return WayClass ::Data;
+      return WayClass::Data;
     } else if (isControlflow(opcode)) {
       return WayClass::Controlflow;
     } else if (opcode == RVInstr::ECALL) {

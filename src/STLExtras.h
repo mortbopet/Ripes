@@ -462,8 +462,7 @@ template <typename Container, typename StreamT,
           typename T = detail::ValueOfRange<Container>>
 inline void interleave(const Container &c, StreamT &os,
                        const std::string_view &separator) {
-  interleave(
-      c, os, [&](const T &a) { os << a; }, separator);
+  interleave(c, os, [&](const T &a) { os << a; }, separator);
 }
 
 template <typename Container, typename UnaryFunctor, typename StreamT,

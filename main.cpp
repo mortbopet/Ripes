@@ -56,9 +56,9 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser,
 }
 
 int guiMode(QApplication &app) {
-  // Use the Fusion style, which respects the system light/dark palette and looks good with both. Combined
-  // with QStyleHints::setColorScheme (see applyColorScheme) this gives the
-  // application proper light/dark theming.
+  // Use the Fusion style, which respects the system light/dark palette and
+  // looks good with both. Combined with QStyleHints::setColorScheme (see
+  // applyColorScheme) this gives the application proper light/dark theming.
   QApplication::setStyle("Fusion");
   Ripes::applyColorScheme();
 

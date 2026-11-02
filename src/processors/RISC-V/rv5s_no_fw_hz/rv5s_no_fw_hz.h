@@ -323,7 +323,7 @@ public:
     // clang-format on
 
     // Gather stage state info
-    StageInfo::State state = StageInfo ::State::None;
+    StageInfo::State state = StageInfo::State::None;
     switch (stage.index()) {
     case IF:
       break;
