@@ -1,0 +1,45 @@
+---
+# Curated set of clang-tidy checks for Ripes. The focus is on checks which find
+# bugs, performance issues, or which have unambiguous autofixes. Purely
+# stylistic checks (trailing return types, magic numbers, identifier lengths,
+# ...) are intentionally left out.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-branch-clone,
+  -bugprone-crtp-constructor-accessibility,
+  -bugprone-switch-missing-default-case,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-exception-escape,
+  clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDelete,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  performance-*,
+  -performance-enum-size,
+  modernize-deprecated-headers,
+  modernize-loop-convert,
+  modernize-use-emplace,
+  modernize-use-equals-default,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-using,
+  readability-container-contains,
+  readability-container-size-empty,
+  readability-delete-null-pointer,
+  readability-else-after-return,
+  readability-inconsistent-declaration-parameter-name,
+  readability-make-member-function-const,
+  readability-redundant-*,
+  -readability-redundant-access-specifiers,
+  readability-simplify-boolean-expr,
+  misc-redundant-expression,
+  misc-unused-*,
+  cppcoreguidelines-pro-type-member-init,
+  cert-oop54-cpp
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*[/\\]src[/\\].*'
+ExcludeHeaderFilterRegex: '.*([/\\]external[/\\]|_autogen[/\\]).*'
+FormatStyle: file
+...
