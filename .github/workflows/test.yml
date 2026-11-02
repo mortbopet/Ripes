@@ -31,7 +31,6 @@ jobs:
       name: Prepare ubuntu container for build
       run: |
         sudo apt-get update
-        sudo apt-get upgrade -y
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q --force-yes \
         automake cmake git wget libfuse2 desktop-file-utils tree xvfb \
         build-essential libgl1-mesa-dev libxkbcommon-x11-0 libpulse-dev \
