@@ -235,11 +235,7 @@ struct result_pair {
 
   result_pair(const result_pair<R> &Other)
       : Index(Other.Index), Iter(Other.Iter) {}
-  result_pair &operator=(const result_pair &Other) {
-    Index = Other.Index;
-    Iter = Other.Iter;
-    return *this;
-  }
+  result_pair &operator=(const result_pair &Other) = default;
 
   std::size_t index() const { return Index; }
   const value_reference value() const { return *Iter; }

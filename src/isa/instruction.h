@@ -225,8 +225,8 @@ using ResolveSymbolFunc =
 /** @brief A request to link a field of an instruction to a symbol. */
 struct FieldLinkRequest {
   ResolveSymbolFunc resolveSymbol;
-  QString symbol = QString();
-  QString relocation = QString();
+  QString symbol;
+  QString relocation;
 };
 
 /// Struct used to dynamically index OpParts
@@ -238,7 +238,8 @@ struct IndexedOpPart {
     if (partIndex == 0) {
       // OpPart found
       return OpPart();
-    } else if constexpr (sizeof...(NextOpParts) > 0) {
+    }
+    if constexpr (sizeof...(NextOpParts) > 0) {
       // Check next OpPart
       return IndexedOpPart<NextOpParts...>::getOpPart(partIndex - 1);
     }
@@ -540,7 +541,7 @@ static inline Radix reprToRadix(Repr repr) {
 }
 
 /// Function type for symbol transformers
-typedef Reg_T (*SymbolTransformer)(Reg_T);
+using SymbolTransformer = Reg_T (*)(Reg_T);
 
 /// The default immediate transformer. Returns the value unchanged.
 inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
@@ -608,7 +609,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
       if (err)
         if (token.isEmpty())
-          token = QString::number(static_cast<Reg_T_S>(value));
+          token = QString::number(value);
     }
 
     if (err) {
@@ -689,7 +690,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
       const int value = vsrtl::signextend(reconstructed, width);
       const Reg_T symbolAddress =
           value + (symbolType == SymbolType::Absolute ? 0 : address);
-      if (symbolMap.count(symbolAddress)) {
+      if (symbolMap.contains(symbolAddress)) {
         line.push_back("<" + symbolMap.at(symbolAddress).v + ">");
       }
     }
@@ -946,12 +947,12 @@ using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
 using InstrVec = std::vector<std::shared_ptr<InstructionBase>>;
 
 template <typename InstrVecType, typename... Instructions>
-constexpr inline static void _enableInstructions(InstrVecType &instructions) {
+constexpr static void _enableInstructions(InstrVecType &instructions) {
   (instructions.emplace_back(std::make_unique<Instructions>()), ...);
 }
 
 template <typename... Instructions>
-constexpr inline static void enableInstructions(InstrVec &instructions) {
+constexpr static void enableInstructions(InstrVec &instructions) {
   // TODO(raccog): Combine instructions into a struct that can be used for
   // compile-time validation
   // TODO(raccog): Ensure no duplicate instruction definitions (will be

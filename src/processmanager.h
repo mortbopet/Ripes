@@ -59,7 +59,8 @@ private:
   // Tries to set the program from a set of optional default program names.
   // These program names are expected to be found in the PATH.
   bool tryAutodetectProgram() {
-    for (auto defaultPath : static_cast<Impl *>(this)->getDefaultPaths()) {
+    for (const auto &defaultPath :
+         static_cast<Impl *>(this)->getDefaultPaths()) {
       if (trySetProgram(defaultPath))
         return true;
     }

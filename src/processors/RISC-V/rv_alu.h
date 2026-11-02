@@ -4,9 +4,9 @@
 #include <intrin.h>
 #endif
 
-#include "limits.h"
-#include <assert.h>
-#include <math.h>
+#include <cassert>
+#include <climits>
+#include <cmath>
 
 #include "riscv.h"
 
@@ -110,21 +110,20 @@ public:
                 : div_overflow64;
         if (op2.sValue() == 0) {
           return VT_U(-1);
-        } else if (op1.sValue() == overflow && op2.sValue() == -1) {
+        }
+        if (op1.sValue() == overflow && op2.sValue() == -1) {
           // Overflow
           return VT_U(overflow);
-        } else {
-          return VT_U(op1.sValue() / op2.sValue());
         }
+        return VT_U(op1.sValue() / op2.sValue());
       }
 
       case ALUOp::DIVUW:
       case ALUOp::DIVU: {
         if (op2.uValue() == 0) {
           return VT_U(-1LL);
-        } else {
-          return op1.uValue() / op2.uValue();
         }
+        return op1.uValue() / op2.uValue();
       }
 
       case ALUOp::REMW:
@@ -136,21 +135,20 @@ public:
                 : div_overflow64;
         if (op2.sValue() == 0) {
           return op1.uValue();
-        } else if (op1.sValue() == overflow && op2.sValue() == -1) {
+        }
+        if (op1.sValue() == overflow && op2.sValue() == -1) {
           // Overflow
           return VT_U(0);
-        } else {
-          return VT_U(op1.sValue() % op2.sValue());
         }
+        return VT_U(op1.sValue() % op2.sValue());
       }
 
       case ALUOp::REMUW:
       case ALUOp::REMU: {
         if (op2.uValue() == 0) {
           return op1.uValue();
-        } else {
-          return op1.uValue() % op2.uValue();
         }
+        return op1.uValue() % op2.uValue();
       }
 
       case ALUOp::AND:

@@ -15,7 +15,7 @@ class SymbolNavigator : public QDialog {
 
 public:
   SymbolNavigator(const ReverseSymbolMap &symbolmap, QWidget *parent = nullptr);
-  ~SymbolNavigator();
+  ~SymbolNavigator() override;
 
   AInt getSelectedSymbolAddress() const;
 

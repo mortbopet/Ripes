@@ -1,12 +1,14 @@
 #include "csyntaxhighlighter.h"
 
+#include <utility>
+
 #include "colors.h"
 
 namespace Ripes {
 
 CSyntaxHighlighter::CSyntaxHighlighter(QTextDocument *parent,
                                        std::shared_ptr<Errors> errors)
-    : SyntaxHighlighter(parent, errors) {
+    : SyntaxHighlighter(parent, std::move(errors)) {
   HighlightingRule rule;
 
   const SyntaxColorScheme colors = currentSyntaxColors();

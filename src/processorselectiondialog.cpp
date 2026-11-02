@@ -21,7 +21,7 @@ ProcessorSelectionDialog::ProcessorSelectionDialog(QWidget *parent)
   std::map<QTreeWidgetItem *, std::map<unsigned, QTreeWidgetItem *>>
       isaFamilyRegWidthItems;
   for (const auto &isa : ISAFamilyNames) {
-    if (isaFamilyItems.count(isa.second) == 0) {
+    if (!isaFamilyItems.contains(isa.second)) {
       isaFamilyItems[isa.second] = new QTreeWidgetItem({isa.second});
     }
     auto *isaItem = isaFamilyItems.at(isa.second);

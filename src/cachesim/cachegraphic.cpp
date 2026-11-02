@@ -183,7 +183,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
   if (simWay.valid) {
     for (int i = 0; i < m_cache.getBlocks(); ++i) {
       QGraphicsSimpleTextItem *blockTextItem = nullptr;
-      if (way.blocks.count(i) == 0) {
+      if (!way.blocks.contains(i)) {
         // Block text item has not yet been created
         const qreal x =
             m_widthBeforeBlocks + i * m_blockWidth +
@@ -207,7 +207,7 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
           "Address: " +
           encodeRadixValue(addressForBlock, Radix::Hex,
                            ProcessorHandler::currentISA()->bytes());
-      if (simWay.dirtyBlocks.count(i)) {
+      if (simWay.dirtyBlocks.contains(i)) {
         tooltip += "\n> Dirty";
       }
       blockTextItem->setToolTip(tooltip);

@@ -15,31 +15,27 @@ class IOLedMatrix : public IOBase {
 
 public:
   IOLedMatrix(QWidget *parent);
-  ~IOLedMatrix() { unregister(); };
+  ~IOLedMatrix() override { unregister(); };
 
-  virtual unsigned byteSize() const override;
-  virtual QString description() const override;
-  virtual QString baseName() const override { return "LED Matrix"; }
+  unsigned byteSize() const override;
+  QString description() const override;
+  QString baseName() const override { return "LED Matrix"; }
 
-  virtual const std::vector<RegDesc> &registers() const override {
-    return m_regDescs;
-  };
-  virtual const std::vector<IOSymbol> *extraSymbols() const override {
+  const std::vector<RegDesc> &registers() const override { return m_regDescs; };
+  const std::vector<IOSymbol> *extraSymbols() const override {
     return &m_extraSymbols;
   }
 
   /**
    * Hardware read/write functions
    */
-  virtual VInt ioRead(AInt offset, unsigned size) override;
-  virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
+  VInt ioRead(AInt offset, unsigned size) override;
+  void ioWrite(AInt offset, VInt value, unsigned size) override;
 
-  virtual void reset() override {
-    std::fill(m_ledRegs.begin(), m_ledRegs.end(), 0);
-  }
+  void reset() override { std::fill(m_ledRegs.begin(), m_ledRegs.end(), 0); }
 
 protected:
-  virtual void parameterChanged(unsigned) override { updateLEDRegs(); };
+  void parameterChanged(unsigned) override { updateLEDRegs(); };
 
   /**
    * QWidget drawing

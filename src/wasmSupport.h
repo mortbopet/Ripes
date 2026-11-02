@@ -17,7 +17,7 @@ inline void disableIfWasm(T *) {
 
 // Disables a list of widgets if we are running in a wasm environment.
 template <typename TList>
-inline void disableIfWasm(TList widgets) {
+inline void disableIfWasm(const TList &widgets) {
   for (auto *widget : widgets)
     disableIfWasm(widget);
 }

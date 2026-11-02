@@ -8,7 +8,7 @@ namespace core {
 template <unsigned INLEN, unsigned OUTLEN>
 class ZExtOrTruncate : public Component {
 public:
-  ZExtOrTruncate(std::string name, SimComponent *parent)
+  ZExtOrTruncate(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     out << [this] { return in.uValue(); };
   }

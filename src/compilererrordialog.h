@@ -18,7 +18,7 @@ class CompilerErrorDialog : public QDialog {
 
 public:
   explicit CompilerErrorDialog(QWidget *parent = nullptr);
-  ~CompilerErrorDialog();
+  ~CompilerErrorDialog() override;
 
   void setText(const QString &);
   void setErrorText(const QString &);

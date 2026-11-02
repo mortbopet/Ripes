@@ -49,7 +49,8 @@ CacheSim::CacheSim(QObject *parent) : CacheInterface(parent) {
   updateConfiguration();
 }
 
-void CacheSim::updateCacheLineReplFields(CacheLine &line, unsigned wayIdx) {
+void CacheSim::updateCacheLineReplFields(CacheLine &line,
+                                         unsigned wayIdx) const {
   if (getReplacementPolicy() == ReplPolicy::LRU) {
     // Find previous LRU value for the updated index
     const unsigned preLRU = line[wayIdx].lru;
@@ -69,7 +70,7 @@ void CacheSim::updateCacheLineReplFields(CacheLine &line, unsigned wayIdx) {
 
 void CacheSim::revertCacheLineReplFields(CacheLine &line,
                                          const CacheWay &oldWay,
-                                         unsigned wayIdx) {
+                                         unsigned wayIdx) const {
   if (getReplacementPolicy() == ReplPolicy::LRU) {
     // All indicies which are currently less than or equal to the old LRU shall
     // be decremented
@@ -216,39 +217,35 @@ CacheSim::CacheWay CacheSim::evictAndUpdate(CacheTransaction &transaction) {
 }
 
 unsigned CacheSim::getHits() const {
-  if (m_accessTrace.size() == 0) {
+  if (m_accessTrace.empty()) {
     return 0;
-  } else {
-    auto &trace = m_accessTrace.rbegin()->second;
-    return trace.hits;
   }
+  auto &trace = m_accessTrace.rbegin()->second;
+  return trace.hits;
 }
 
 unsigned CacheSim::getMisses() const {
-  if (m_accessTrace.size() == 0) {
+  if (m_accessTrace.empty()) {
     return 0;
-  } else {
-    auto &trace = m_accessTrace.rbegin()->second;
-    return trace.misses;
   }
+  auto &trace = m_accessTrace.rbegin()->second;
+  return trace.misses;
 }
 
 unsigned CacheSim::getWritebacks() const {
-  if (m_accessTrace.size() == 0) {
+  if (m_accessTrace.empty()) {
     return 0;
-  } else {
-    auto &trace = m_accessTrace.rbegin()->second;
-    return trace.writebacks;
   }
+  auto &trace = m_accessTrace.rbegin()->second;
+  return trace.writebacks;
 }
 
 double CacheSim::getHitRate() const {
-  if (m_accessTrace.size() == 0) {
+  if (m_accessTrace.empty()) {
     return 0;
-  } else {
-    auto &trace = m_accessTrace.rbegin()->second;
-    return static_cast<double>(trace.hits) / (trace.hits + trace.misses);
   }
+  auto &trace = m_accessTrace.rbegin()->second;
+  return static_cast<double>(trace.hits) / (trace.hits + trace.misses);
 }
 
 void CacheSim::analyzeCacheAccess(CacheTransaction &transaction) const {
@@ -256,7 +253,7 @@ void CacheSim::analyzeCacheAccess(CacheTransaction &transaction) const {
   transaction.index.block = getBlockIdx(transaction.address);
 
   transaction.isHit = false;
-  if (m_cacheLines.count(transaction.index.line) != 0) {
+  if (m_cacheLines.contains(transaction.index.line)) {
     for (const auto &way : m_cacheLines.at(transaction.index.line)) {
       if ((way.second.tag == getTag(transaction.address)) && way.second.valid) {
         transaction.index.way = way.first;
@@ -274,8 +271,8 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
       ProcessorHandler::getProcessor()->getCycleCount();
 
   const CacheAccessTrace &mostRecentTrace =
-      m_accessTrace.size() == 0 ? CacheAccessTrace()
-                                : m_accessTrace.rbegin()->second;
+      m_accessTrace.empty() ? CacheAccessTrace()
+                            : m_accessTrace.rbegin()->second;
 
   m_accessTrace[currentCycle] = CacheAccessTrace(mostRecentTrace, transaction);
 
@@ -301,7 +298,7 @@ void CacheSim::pushAccessTrace(const CacheTransaction &transaction) {
 }
 
 void CacheSim::popAccessTrace() {
-  Q_ASSERT(m_accessTrace.size() > 0);
+  Q_ASSERT(!m_accessTrace.empty());
   // The access trace should have an entry
   m_accessTrace.erase(m_accessTrace.rbegin()->first);
   emit hitrateChanged();
@@ -398,7 +395,7 @@ void CacheSim::access(AInt address, MemoryAccess::Type type) {
 }
 
 void CacheSim::undo() {
-  if (m_traceStack.size() == 0)
+  if (m_traceStack.empty())
     return;
 
   const auto trace = popTrace();
@@ -433,7 +430,7 @@ void CacheSim::undo() {
 
   // Finally, re-emit the transaction which occurred in the previous cache
   // access to update the cache highlighting state
-  if (m_traceStack.size() > 0) {
+  if (!m_traceStack.empty()) {
     emit dataChanged(m_traceStack.begin()->transaction);
   } else {
     emit dataChanged(CacheTransaction());
@@ -441,7 +438,7 @@ void CacheSim::undo() {
 }
 
 CacheSim::CacheTrace CacheSim::popTrace() {
-  Q_ASSERT(m_traceStack.size() > 0);
+  Q_ASSERT(!m_traceStack.empty());
   auto val = m_traceStack.front();
   m_traceStack.pop_front();
   return val;
@@ -482,15 +479,14 @@ unsigned CacheSim::getBlockIdx(const AInt address) const {
 }
 
 const CacheSim::CacheLine *CacheSim::getLine(unsigned idx) const {
-  if (m_cacheLines.count(idx)) {
+  if (m_cacheLines.contains(idx)) {
     return &m_cacheLines.at(idx);
-  } else {
-    return nullptr;
   }
+  return nullptr;
 }
 
 void CacheSim::reverse() {
-  if (m_accessTrace.size() == 0) {
+  if (m_accessTrace.empty()) {
     // Nothing to reverse
     return;
   }

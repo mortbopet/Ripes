@@ -122,7 +122,7 @@ private:
 
   // If true, does not allow timed status messages and disables the status
   // queue.
-  bool isPermanent;
+  bool isPermanent{};
 };
 
 #define StatusManager(name)                                                    \

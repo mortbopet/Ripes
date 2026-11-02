@@ -92,7 +92,7 @@ void HighlightableTextEdit::highlightBlock(const QTextBlock &block,
 
   // Check if we're already highlighting the block. If this is the case, do not
   // set an additional highlight on it.
-  if (m_highlightedBlocks.count(block))
+  if (m_highlightedBlocks.contains(block))
     return;
   m_blockHighlights.push_back({});
   auto &highlight = m_blockHighlights.back();

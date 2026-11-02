@@ -31,7 +31,7 @@ const std::map<QString, QVariant> s_defaultSettings = {
     {RIPES_SETTING_ASSEMBLER_TEXTSTART, 0x0},
     {RIPES_SETTING_ASSEMBLER_DATASTART, 0x10000000},
     {RIPES_SETTING_ASSEMBLER_BSSSTART, 0x11000000},
-    {RIPES_SETTING_PERIPHERALS_START, static_cast<unsigned>(0xF0000000)},
+    {RIPES_SETTING_PERIPHERALS_START, 0xF0000000},
     {RIPES_SETTING_EDITORREGS, true},
     {RIPES_SETTING_EDITORCONSOLE, true},
     {RIPES_SETTING_EDITORSTAGEHIGHLIGHTING, true},
@@ -91,7 +91,7 @@ void SettingObserver::setValue(const QVariant &v) {
 
 void SettingObserver::trigger() { setValue(value()); }
 
-RipesSettings::~RipesSettings() {}
+RipesSettings::~RipesSettings() = default;
 
 RipesSettings::RipesSettings() {
   // Create a global organization & application name for QSettings to refer to

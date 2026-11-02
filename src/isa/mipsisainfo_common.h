@@ -170,7 +170,8 @@ struct MIPS_GPRInfo : public RegFileInfoInterface {
     if (MIPSISA::RegNames.count(reg) != 0) {
       regRes.remove('$');
       return regRes.toInt(&success, 10);
-    } else if (int idx = MIPSISA::RegAliases.indexOf(regNoDollar); idx != -1) {
+    }
+    if (int idx = MIPSISA::RegAliases.indexOf(regNoDollar); idx != -1) {
       return idx;
     }
     success = false;
@@ -211,8 +212,7 @@ public:
   }
   unsigned instrBits() const override { return 32; }
   unsigned elfMachineId() const override { return EM_MIPS; }
-  virtual std::optional<RegIndex>
-  syscallArgReg(unsigned argIdx) const override {
+  std::optional<RegIndex> syscallArgReg(unsigned argIdx) const override {
     assert(argIdx < 2 && "MIPS only implements argument registers a0-a7");
     return RegIndex{m_regInfos.at(MIPSISA::GPR), argIdx + 4};
   }

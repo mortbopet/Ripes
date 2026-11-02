@@ -26,7 +26,7 @@ ConsoleWidget::ConsoleWidget(QWidget *parent)
 
   // Print output data from SystemIO in the console.
   connect(&SystemIO::get(), &SystemIO::doPrint, m_ui->console,
-          [&](auto text) { m_ui->console->putData(text.toUtf8()); });
+          [&](const auto &text) { m_ui->console->putData(text.toUtf8()); });
 }
 
 ConsoleWidget::~ConsoleWidget() { delete m_ui; }

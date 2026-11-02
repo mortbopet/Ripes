@@ -32,7 +32,8 @@ static QString qVariantToString(QVariant &v) {
     for (auto it : map.toStdMap())
       out += it.first + ": " + qVariantToString(it.second) + "\n";
     return out;
-  } else if (v.canConvert<QStringList>()) {
+  }
+  if (v.canConvert<QStringList>()) {
     QStringList list = qvariant_cast<QStringList>(v);
     return list.join(", ");
   }
@@ -50,8 +51,7 @@ static QString qVariantToString(QVariant &v) {
  *
  * @param options A struct containing the CLI options for Ripes.
  */
-CLIRunner::CLIRunner(const CLIModeOptions &options)
-    : QObject(), m_options(options) {
+CLIRunner::CLIRunner(const CLIModeOptions &options) : m_options(options) {
   info("Ripes CLI mode", false, true);
   ProcessorHandler::selectProcessor(m_options.proc, m_options.isaExtensions,
                                     m_options.regInit);
@@ -62,7 +62,7 @@ CLIRunner::CLIRunner(const CLIModeOptions &options)
     setupCaches();
 
   // Connect systemIO output to stdout.
-  connect(&SystemIO::get(), &SystemIO::doPrint, this, [&](auto text) {
+  connect(&SystemIO::get(), &SystemIO::doPrint, this, [&](const auto &text) {
     std::cout << text.toStdString();
     std::flush(std::cout);
   });
@@ -153,7 +153,7 @@ int CLIRunner::processInput() {
     }
     auto res = ProcessorHandler::getAssembler()->assembleRaw(
         inputFile.readAll(), &IOManager::get().assemblerSymbols());
-    if (res.errors.size() == 0)
+    if (res.errors.empty())
       ProcessorHandler::loadProgram(std::make_shared<Program>(res.program));
     else {
       error("Error during assembly:");
@@ -364,7 +364,7 @@ int CLIRunner::postRun() {
  * @param prefix The prefix for the message, added only if "header" is false.
  */
 void CLIRunner::info(QString msg, bool alwaysPrint, bool header,
-                     const QString &prefix) {
+                     const QString &prefix) const {
 
   if (m_options.verbose || alwaysPrint) {
     if (header) {
@@ -379,7 +379,8 @@ void CLIRunner::info(QString msg, bool alwaysPrint, bool header,
       }
     } else
       msg.prepend(prefix + ": ");
-    std::cout << msg.toStdString() << std::endl;
+    // Flush explicitly; CLI progress/error output must not sit in the buffer.
+    std::cout << msg.toStdString() << '\n' << std::flush;
   }
 }
 

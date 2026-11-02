@@ -59,11 +59,13 @@ void MemoryViewerWidget::setupNavigationWidgets() {
   flowLayout->addItem(layout);
 }
 
-void MemoryViewerWidget::setCentralAddress(AInt address) {
+void MemoryViewerWidget::setCentralAddress(AInt address) const {
   m_memoryModel->setCentralAddress(address);
 }
 
-void MemoryViewerWidget::updateView() { m_memoryModel->processorWasClocked(); }
+void MemoryViewerWidget::updateView() const {
+  m_memoryModel->processorWasClocked();
+}
 
 void MemoryViewerWidget::updateModel() {
   auto *oldModel = m_memoryModel;
@@ -101,8 +103,6 @@ void MemoryViewerWidget::updateModel() {
   m_ui->memoryView->horizontalHeader()->setSectionResizeMode(
       MemoryModel::Address, QHeaderView::Stretch);
 
-  if (oldModel) {
-    delete oldModel;
-  }
+  delete oldModel;
 }
 } // namespace Ripes

@@ -287,7 +287,7 @@ QWidget *SettingsDialog::createCompilerPage() {
   return pageWidget;
 }
 
-void SettingsDialog::CCPathChanged(CCManager::CCRes res) {
+void SettingsDialog::CCPathChanged(const CCManager::CCRes &res) {
   QPalette palette = this->palette();
   if (res.success) {
     palette.setColor(QPalette::Base, QColorConstants::Green.lighter());

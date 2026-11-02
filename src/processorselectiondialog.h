@@ -16,7 +16,7 @@ class ProcessorSelectionDialog : public QDialog {
 
 public:
   explicit ProcessorSelectionDialog(QWidget *parent = nullptr);
-  ~ProcessorSelectionDialog();
+  ~ProcessorSelectionDialog() override;
 
   ProcessorID getSelectedId() const { return m_selectedID; }
   RegisterInitialization getRegisterInitialization() const;

@@ -60,7 +60,7 @@ private:
   std::unique_ptr<SyntaxHighlighter> m_highlighter;
 
   LineNumberArea *m_lineNumberArea;
-  int m_sidebarWidth;
+  int m_sidebarWidth{};
 
   bool m_breakpointAreaEnabled = false;
   SourceType m_sourceType = SourceType::Assembly;
@@ -72,7 +72,7 @@ private:
   // A timer is needed for only catching one of the multiple wheel events that
   // occur on a regular mouse scroll
   QTimer m_fontTimer;
-  QTimer *m_changeTimer;
+  QTimer *m_changeTimer{};
 
   bool eventFilter(QObject *observed, QEvent *event) override;
 

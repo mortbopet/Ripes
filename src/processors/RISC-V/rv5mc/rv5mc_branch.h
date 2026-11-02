@@ -14,7 +14,7 @@ using namespace Ripes;
 template <unsigned XLEN>
 class BranchSimple : public Component {
 public:
-  BranchSimple(std::string name, SimComponent *parent)
+  BranchSimple(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     comp_op >> multplexer->select;
 

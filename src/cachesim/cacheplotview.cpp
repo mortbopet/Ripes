@@ -52,7 +52,7 @@ void CachePlotMarker::clear() {
 }
 
 void CachePlotMarker::updateCoordinateValues(const QPointF &pos, bool showValue,
-                                             bool showCycles) {
+                                             bool showCycles) const {
   QString info = name;
 
   if (showValue) {
@@ -157,8 +157,7 @@ void CachePlotView::resizeObjects(const QSizeF &size) {
     }
   }
 
-  for (unsigned i = 0; i < m_markers.size(); ++i) {
-    auto &marker = m_markers.at(i);
+  for (auto &marker : m_markers) {
     marker->marker->updateLines();
   }
 }
@@ -174,7 +173,7 @@ void CachePlotView::mouseMoveEvent(QMouseEvent *event) {
   m_hoverPos = event->pos();
   constrainInPlotRange(m_hoverPos, m_chart);
 
-  if (m_markers.size() > 0) {
+  if (!m_markers.empty()) {
     for (const auto &marker : m_markers) {
       marker->marker->move(m_hoverPos);
     }

@@ -12,7 +12,7 @@ namespace Assembler {
  * (3*2))(x10)] => [lw, x10, B + 3*2), x10]
  */
 bool matchedParens(std::vector<QChar> &parensStack, QChar end) {
-  if (parensStack.size() == 0) {
+  if (parensStack.empty()) {
     return false;
   }
   const QChar toMatch = parensStack.at(parensStack.size() - 1);
@@ -77,9 +77,8 @@ Result<LineTokens> joinParentheses(const Location &loc,
 
   if (parensStack.empty()) {
     return outtokens;
-  } else {
-    return {Error(loc, "Unmatched parenthesis")};
   }
+  return {Error(loc, "Unmatched parenthesis")};
 }
 
 Result<QStringList> tokenizeQuotes(const Location &location,

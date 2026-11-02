@@ -56,13 +56,13 @@ class ctkRangeSlider : public QSlider {
 
 public:
   // Superclass typedef
-  typedef QSlider Superclass;
+  using Superclass = QSlider;
   /// Constructor, builds a ctkRangeSlider that ranges from 0 to 100 and has
   /// a lower and upper values of 0 and 100 respectively, other properties
   /// are set the QSlider default properties.
-  explicit ctkRangeSlider(Qt::Orientation o, QWidget *par = 0);
-  explicit ctkRangeSlider(QWidget *par = 0);
-  virtual ~ctkRangeSlider();
+  explicit ctkRangeSlider(Qt::Orientation o, QWidget *par = nullptr);
+  explicit ctkRangeSlider(QWidget *par = nullptr);
+  ~ctkRangeSlider() override;
 
   ///
   /// This property holds the slider's current minimum value.
@@ -179,24 +179,24 @@ protected Q_SLOTS:
 
 protected:
   ctkRangeSlider(ctkRangeSliderPrivate *impl, Qt::Orientation o,
-                 QWidget *par = 0);
-  ctkRangeSlider(ctkRangeSliderPrivate *impl, QWidget *par = 0);
+                 QWidget *par = nullptr);
+  ctkRangeSlider(ctkRangeSliderPrivate *impl, QWidget *par = nullptr);
 
   // Description:
   // Standard Qt UI events
-  virtual void mousePressEvent(QMouseEvent *ev);
-  virtual void mouseMoveEvent(QMouseEvent *ev);
-  virtual void mouseReleaseEvent(QMouseEvent *ev);
+  void mousePressEvent(QMouseEvent *ev) override;
+  void mouseMoveEvent(QMouseEvent *ev) override;
+  void mouseReleaseEvent(QMouseEvent *ev) override;
 
   // Description:
   // Rendering is done here.
-  virtual void paintEvent(QPaintEvent *ev);
+  void paintEvent(QPaintEvent *ev) override;
   virtual void initMinimumSliderStyleOption(QStyleOptionSlider *option) const;
   virtual void initMaximumSliderStyleOption(QStyleOptionSlider *option) const;
 
   // Description:
   // Reimplemented for the tooltips
-  virtual bool event(QEvent *event);
+  bool event(QEvent *event) override;
 
 protected:
   QScopedPointer<ctkRangeSliderPrivate> d_ptr;

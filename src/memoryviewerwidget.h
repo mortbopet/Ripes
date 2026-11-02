@@ -19,15 +19,15 @@ class MemoryViewerWidget : public QWidget {
 
 public:
   MemoryViewerWidget(QWidget *parent = nullptr);
-  ~MemoryViewerWidget();
+  ~MemoryViewerWidget() override;
 
   void updateModel();
 
   MemoryModel *m_memoryModel = nullptr;
 
 public slots:
-  void updateView();
-  void setCentralAddress(Ripes::AInt address);
+  void updateView() const;
+  void setCentralAddress(Ripes::AInt address) const;
 
 private:
   void setupNavigationWidgets();

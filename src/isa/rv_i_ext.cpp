@@ -54,7 +54,7 @@ void enableExt(const ISAInfoBase *isa, InstrVec &instructions,
                      Slt, Sltu, Xor, Srl, Sra, Or, And, Beq, Bne, Blt, Bge,
                      Bltu, Bgeu>(instructions);
 
-  if (options.count(Option::shifts64BitVariant)) {
+  if (options.contains(Option::shifts64BitVariant)) {
     // 64-bit shift instructions
     enableInstructions<Slliw, Srliw, Sraiw>(instructions);
   } else {

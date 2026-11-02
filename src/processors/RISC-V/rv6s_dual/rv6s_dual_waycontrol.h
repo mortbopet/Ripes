@@ -90,9 +90,11 @@ private:
   WayClass instrType(RVInstr opcode) const {
     if (isLoadStore(opcode)) {
       return WayClass::Data;
-    } else if (isControlflow(opcode)) {
+    }
+    if (isControlflow(opcode)) {
       return WayClass::Controlflow;
-    } else if (opcode == RVInstr::ECALL) {
+    }
+    if (opcode == RVInstr::ECALL) {
       return WayClass::Ecall;
     } else {
       return WayClass::Arithmetic;
@@ -129,7 +131,7 @@ private:
       m_dataWayValid = false;
       m_execWayValid = true;
       m_execWaySrc = WaySrc::WAY1;
-      m_stall = true && ifid_valid.uValue();
+      m_stall = static_cast<bool>(ifid_valid.uValue());
     } else if (structuralHazard(way1Type, way2Type) ||
                way2Type == WayClass::Ecall || way1Type == WayClass::Ecall) {
       // Structural hazard or ecall; always issue way 1 instruction (execute
@@ -138,14 +140,14 @@ private:
       m_dataWaySrc = WaySrc::WAY1;
       m_execWayValid = way1Type != WayClass::Data;
       m_execWaySrc = WaySrc::WAY1;
-      m_stall = true && ifid_valid.uValue();
+      m_stall = static_cast<bool>(ifid_valid.uValue());
     } else if (rawHazard()) {
       // WAR hazard; only issue 1st fetched instruction
       m_dataWayValid = way1Type == WayClass::Data;
       m_execWayValid = way1Type != WayClass::Data;
       m_dataWaySrc = WaySrc::WAY1;
       m_execWaySrc = WaySrc::WAY1;
-      m_stall = true && ifid_valid.uValue();
+      m_stall = static_cast<bool>(ifid_valid.uValue());
     } else {
       // Can issue both
       m_dataWayValid = true;
@@ -234,8 +236,8 @@ private:
   unsigned cachedCycle = -1;
 
   // Cached data for next-state computation
-  bool m_dataWayValid;
-  bool m_execWayValid;
+  bool m_dataWayValid{};
+  bool m_execWayValid{};
   WaySrc m_execWaySrc = WaySrc::WAY1;
   WaySrc m_dataWaySrc = WaySrc::WAY1;
   bool m_stall = false;

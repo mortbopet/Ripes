@@ -130,7 +130,7 @@ private:
       fileFlags[STDOUT] = SystemIO::O_WRONLY;
       fileFlags[STDERR] = SystemIO::O_WRONLY;
 
-      if (streams.count(STDIN) == 0) {
+      if (!streams.contains(STDIN)) {
         // stdin stream has not yet been created
         streams.emplace(STDIN, &s_stdinBuffer);
       } else {
@@ -189,7 +189,7 @@ private:
 
     // Determine whether a given filename is already in use.
     static bool filenameInUse(const QString &requestedFilename) {
-      return llvm::any_of(fileNames, [&](auto fn) {
+      return llvm::any_of(fileNames, [&](const auto &fn) {
         return !fn.second.isEmpty() && fn.second == requestedFilename;
       });
     }
@@ -198,10 +198,12 @@ private:
     static bool fdInUse(int fd, unsigned flag) {
       if (fd < 0 || fd >= SYSCALL_MAXFILES) {
         return false;
-      } else if (fileNames[fd].isEmpty()) {
+      }
+      if (fileNames[fd].isEmpty()) {
         return false;
-      } else if ((flag == O_RDONLY) ? (fileFlags[fd] & O_ACCMODE) == flag
-                                    : (fileFlags[fd] & flag) == flag) {
+      }
+      if ((flag == O_RDONLY) ? (fileFlags[fd] & O_ACCMODE) == flag
+                             : (fileFlags[fd] & flag) == flag) {
         return true;
       }
       return false;
@@ -261,7 +263,7 @@ public:
    * @return file descriptor in the range 0 to SYSCALL_MAXFILES-1, or if
    * error
    */
-  static int openFile(QString filename, unsigned flags) {
+  static int openFile(const QString &filename, unsigned flags) {
     SystemIO::get(); // Ensure that SystemIO is constructed
     // Internally, a "file descriptor" is an index into a table
     // of the filename, flag, and the File???putStream associated with

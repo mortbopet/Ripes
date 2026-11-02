@@ -23,14 +23,14 @@ public:
     designWasReset.Connect(&processorWasReset, &Gallant::Signal0<>::Emit);
   }
 
-  virtual void resetProcessor() override {
+  void resetProcessor() override {
     m_instructionsRetired = 0;
     reset();
   }
 
-  virtual void reverseProcessor() override { reverse(); }
+  void reverseProcessor() override { reverse(); }
 
-  virtual void vcdTrace(bool enable, const QString &filename) override {
+  void vcdTrace(bool enable, const QString &filename) override {
     vsrtl::core::Design::vcdTrace(enable, filename.toStdString());
   }
 

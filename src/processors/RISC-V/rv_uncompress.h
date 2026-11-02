@@ -426,7 +426,8 @@ public:
     m_rv64 = isa->isaID() == ISA::RV64I;
   }
 
-  Uncompress(std::string name, SimComponent *parent) : Component(name, parent) {
+  Uncompress(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
     setDescription("Uncompresses instructions from the 'C' extension into "
                    "their 32-bit representation.");
     Pc_Inc << [this] {

@@ -35,8 +35,8 @@ struct StageInfo {
 struct MemoryAccess {
   enum Type { None, Read, Write };
   Type type = None;
-  AInt address;
-  unsigned bytes;
+  AInt address{};
+  unsigned bytes{};
 };
 
 /// A StageIndex denotes a unique stage within a processor.
@@ -126,8 +126,8 @@ struct ProcessorStructure : public std::map<unsigned, unsigned> {
  */
 class RipesProcessor {
 public:
-  RipesProcessor() {}
-  virtual ~RipesProcessor() {}
+  RipesProcessor() = default;
+  virtual ~RipesProcessor() = default;
 
   /**
    * @brief postConstruct
@@ -378,7 +378,7 @@ protected:
   virtual void clockProcessor() = 0;
 
   // m_features should be adjusted accordingly during processor construction
-  unsigned m_features;
+  unsigned m_features{};
   bool m_emitsSignals = true;
 };
 

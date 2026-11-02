@@ -121,7 +121,8 @@ QVariant MemoryModel::data(const QModelIndex &index, int role) const {
   if (index.column() == Column::Address) {
     if (role == Qt::DisplayRole) {
       return addrData(alignedAddress, validAddress);
-    } else if (role == Qt::ForegroundRole) {
+    }
+    if (role == Qt::ForegroundRole) {
       // Assign a brush if one of the byte-indexed address covered by the
       // aligned address has been written to
       QVariant unusedAddressBrush;
@@ -129,9 +130,8 @@ QVariant MemoryModel::data(const QModelIndex &index, int role) const {
         QVariant addressBrush = fgColorData(alignedAddress, i, validAddress);
         if (addressBrush.isNull()) {
           return addressBrush;
-        } else {
-          unusedAddressBrush = addressBrush;
         }
+        unusedAddressBrush = addressBrush;
       }
       return unusedAddressBrush;
     }
@@ -173,39 +173,38 @@ QVariant MemoryModel::fgColorData(AInt address, AInt byteOffset,
   if (!validAddress ||
       !ProcessorHandler::getMemory().contains(address + byteOffset)) {
     return QBrush(Qt::lightGray);
-  } else {
-    return QVariant(); // default
   }
+  return QVariant(); // default
 }
 
 QVariant MemoryModel::byteData(AInt address, AInt byteOffset,
                                bool validAddress) const {
   if (!validAddress) {
     return "-";
-  } else if (!ProcessorHandler::getMemory().contains(address + byteOffset)) {
+  }
+  if (!ProcessorHandler::getMemory().contains(address + byteOffset)) {
     // Dont read the memory (this will create an entry in the memory if done
     // so). Instead, create a "fake" entry in the memory model, containing X's.
     return "X";
-  } else {
-    VInt value =
-        ProcessorHandler::getMemory().readMemConst(address + byteOffset, 1);
-    return encodeRadixValue(value & 0xFF, m_radix, 1);
   }
+  VInt value =
+      ProcessorHandler::getMemory().readMemConst(address + byteOffset, 1);
+  return encodeRadixValue(value & 0xFF, m_radix, 1);
 }
 
 QVariant MemoryModel::wordData(AInt address, bool validAddress) const {
   if (!validAddress) {
     return "-";
-  } else if (!ProcessorHandler::getMemory().contains(address)) {
+  }
+  if (!ProcessorHandler::getMemory().contains(address)) {
     // Dont read the memory (this will create an entry in the memory if done
     // so). Instead, create a "fake" entry in the memory model, containing X's.
     return "X";
-  } else {
-    unsigned bytes = ProcessorHandler::currentISA()->bytes();
-    return encodeRadixValue(
-        ProcessorHandler::getMemory().readMemConst(address, bytes), m_radix,
-        bytes);
   }
+  unsigned bytes = ProcessorHandler::currentISA()->bytes();
+  return encodeRadixValue(
+      ProcessorHandler::getMemory().readMemConst(address, bytes), m_radix,
+      bytes);
 }
 
 Qt::ItemFlags MemoryModel::flags(const QModelIndex &) const {

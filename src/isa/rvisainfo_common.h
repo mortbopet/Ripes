@@ -96,7 +96,8 @@ struct RV_GPRInfo : public RegFileInfoInterface {
     if (reg[0] == 'x' && (RVISA::GPRRegNames.count(reg) != 0)) {
       regRes.remove('x');
       return regRes.toInt(&success, 10);
-    } else if (RVISA::GPRRegAliases.contains(reg)) {
+    }
+    if (RVISA::GPRRegAliases.contains(reg)) {
       return RVISA::GPRRegAliases.indexOf(reg);
     }
     success = false;
@@ -153,7 +154,7 @@ public:
     return ext;
   }
 
-  RV_ISAInfoBase(const QStringList extensions) {
+  RV_ISAInfoBase(const QStringList &extensions) {
     // Validate extensions
     for (const auto &ext : extensions) {
       if (supportsExtension(ext)) {

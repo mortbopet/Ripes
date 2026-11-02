@@ -19,7 +19,7 @@ public:
             {{0, "Pointer to null terminated string for the path"},
              {1, "flags" /* TODO(raccog): Add descriptions for each flag */}},
             {{0, "the file decriptor or -1 if an error occurred"}}) {}
-  void execute() {
+  void execute() override {
     const AInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     const AInt arg1 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
     QByteArray string;
@@ -47,7 +47,7 @@ public:
   CloseSyscall()
       : BaseSyscall("Close", "Close a file",
                     {{0, "the file descriptor to close"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     SystemIO::closeFile(arg0);
   }
@@ -66,7 +66,7 @@ public:
                          "current position (1), or the end of the file (2)"}},
                     {{0, "the selected position from the beginning of the file "
                          "or -1 if an error occurred"}}) {}
-  void execute() {
+  void execute() override {
     int result = SystemIO::seek(BaseSyscall::getArg(BaseSyscall::REG_FILE, 0),
                                 BaseSyscall::getArg(BaseSyscall::REG_FILE, 1),
                                 BaseSyscall::getArg(BaseSyscall::REG_FILE, 2));
@@ -85,7 +85,7 @@ public:
                      {1, "address of the buffer"},
                      {2, "maximum number of bytes to read"}},
                     {{0, "number of read bytes or -1 if an error occurred"}}) {}
-  void execute() {
+  void execute() override {
     const int fd = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     long byteAddress = BaseSyscall::getArg(
         BaseSyscall::REG_FILE, 1); // destination of characters read from file
@@ -119,7 +119,7 @@ public:
                      {1, "address of the buffer"},
                      {2, "number of bytes to write"}},
                     {{0, "the number of bytes written"}}) {}
-  void execute() {
+  void execute() override {
     const long byteAddress = BaseSyscall::getArg(
         BaseSyscall::REG_FILE, 1); // source of characters to write to file
     const int reqLength =
@@ -155,7 +155,7 @@ public:
             {{0, "address of the buffer to write into"},
              {1, "the length of the buffer"}},
             {{0, "-1 if the path is longer than the buffer"}}) {}
-  void execute() {
+  void execute() override {
     const long byteAddress = BaseSyscall::getArg(
         BaseSyscall::REG_FILE, 0); // destination of characters read from file
     int index = 0;
@@ -166,9 +166,8 @@ public:
     if (pwd.length() >= bufferSize) {
       BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1);
       return;
-    } else {
-      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, pwd.length());
     }
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, pwd.length());
 
     // copy bytes from returned buffer into memory
     while (index < pwd.length()) {
@@ -193,7 +192,7 @@ public:
             "about a file based on its file descriptor.",
             {{0, " the file descriptor "}, {1, " pointer to a struct stat "}},
             {{0, "returns -1 if an error occurred"}}) {}
-  void execute() {
+  void execute() override {
     /// @todo: Figure out whether we want to handle fstat. For now, most
     /// syscall's seems to execute fine with just null-values in the fstat
     /// return struct - this is ofcourse not a valid mode of execution, but for

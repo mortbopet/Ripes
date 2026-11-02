@@ -31,15 +31,13 @@ enum class Funct2Offset { OFFSET5 = 5, OFFSET10 = 10 };
 /// 10-11 of the instruction
 template <unsigned funct2, Funct2Offset offset = Funct2Offset::OFFSET5>
 struct OpPartFunct2
-    : public OpPart<static_cast<unsigned>(funct2),
-                    BitRange<static_cast<unsigned>(offset),
-                             static_cast<unsigned>(offset) + 1>> {};
+    : public OpPart<funct2, BitRange<static_cast<unsigned>(offset),
+                                     static_cast<unsigned>(offset) + 1>> {};
 
 /// All RISC-V Funct4 opcode parts are defined as a 4-bit field in bits 12-15 of
 /// the instruction
 template <unsigned funct4>
-struct OpPartFunct4
-    : public OpPart<static_cast<unsigned>(funct4), BitRange<12, 15>> {};
+struct OpPartFunct4 : public OpPart<funct4, BitRange<12, 15>> {};
 
 /// The RV-C Rs1 field contains a source register index.
 /// It is defined as a 5-bit field in bits 7-11 of the instruction

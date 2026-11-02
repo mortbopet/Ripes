@@ -31,7 +31,7 @@ void GoToComboBox::showPopup() {
 void GoToComboBox::signalFilter(int index) {
   const auto &value = itemData(index);
 
-  GoToUserData data;
+  GoToUserData data{};
   if (value.metaType() == QMetaType::fromType<GoToRegisterValue>()) {
     data = qvariant_cast<GoToRegisterValue>(value);
   } else {
@@ -71,9 +71,8 @@ AInt GoToSectionComboBox::addrForIndex(int i) {
   const QString &sectionName = itemText(i);
   if (auto prog_spt = ProcessorHandler::getProgram()) {
     return prog_spt->getSection(sectionName)->address;
-  } else {
-    return 0;
   }
+  return 0;
 }
 
 void GoToRegisterComboBox::addTargets() {

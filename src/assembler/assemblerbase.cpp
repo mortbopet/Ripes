@@ -17,7 +17,7 @@ AssemblerBase::AssemblerBase() {
 std::optional<Error>
 AssemblerBase::setCurrentSegment(const Location &location,
                                  const Section &seg) const {
-  if (m_sectionBasePointers.count(seg) == 0) {
+  if (!m_sectionBasePointers.contains(seg)) {
     return Error(location, "No base address set for segment '" + seg + +"'");
   }
   m_currentSection = seg;
@@ -25,7 +25,7 @@ AssemblerBase::setCurrentSegment(const Location &location,
 }
 
 /// Sets the base pointer of seg to the provided 'base' value.
-void AssemblerBase::setSegmentBase(Section seg, AInt base) {
+void AssemblerBase::setSegmentBase(const Section &seg, AInt base) {
   m_sectionBasePointers[seg] = base;
 }
 
@@ -45,19 +45,18 @@ ExprEvalRes AssemblerBase::evalExpr(const Location &location,
   auto symbolValue = relativeMap.find(expr);
   if (symbolValue != relativeMap.end()) {
     return symbolValue->second;
-  } else {
-    return evaluate(location, expr, &relativeMap);
   }
+  return evaluate(location, expr, &relativeMap);
 }
 
 void AssemblerBase::setDirectives(const DirectiveVec &directives) {
-  if (m_directives.size() != 0) {
+  if (!m_directives.empty()) {
     throw std::runtime_error("Directives already set");
   }
   m_directives = directives;
   for (const auto &iter : m_directives) {
     const auto directive = iter.get()->name();
-    if (m_directivesMap.count(directive) != 0) {
+    if (m_directivesMap.contains(directive)) {
       throw std::runtime_error("Error: directive " + directive.toStdString() +
                                " has already been registerred.");
     }
@@ -95,7 +94,7 @@ AssemblerBase::assembleDirective(const DirectiveArg &arg, bool &ok,
 Result<SymbolLinePair>
 AssemblerBase::splitSymbolsFromLine(const Location &location,
                                     const LineTokens &tokens) const {
-  if (tokens.size() == 0) {
+  if (tokens.empty()) {
     return {SymbolLinePair({}, tokens)};
   }
 
@@ -133,18 +132,17 @@ AssemblerBase::splitSymbolsFromLine(const Location &location,
       if (symbolStillAllowed) {
         const Symbol cleanedSymbol =
             Symbol(token.left(token.length() - 1), Symbol::Type::Address);
-        if (symbols.count(cleanedSymbol.v) != 0) {
+        if (symbols.contains(cleanedSymbol.v)) {
           return {Error(location, "Multiple definitions of symbol '" +
                                       cleanedSymbol.v + "'")};
-        } else {
-          if (cleanedSymbol.v.isEmpty() ||
-              cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
-            return {
-                Error(location, "Invalid symbol '" + cleanedSymbol.v + "'")};
-          }
-
-          symbols.insert(cleanedSymbol);
         }
+        if (cleanedSymbol.v.isEmpty() ||
+            cleanedSymbol.v.contains(s_exprOperatorsRegex)) {
+          return {Error(location, "Invalid symbol '" + cleanedSymbol.v + "'")};
+        }
+
+        symbols.insert(cleanedSymbol);
+
       } else {
         return {Error(location, QStringLiteral("Stray ':' in line"))};
       }
@@ -159,7 +157,7 @@ AssemblerBase::splitSymbolsFromLine(const Location &location,
 Result<DirectiveLinePair>
 AssemblerBase::splitDirectivesFromLine(const Location &location,
                                        const LineTokens &tokens) const {
-  if (tokens.size() == 0) {
+  if (tokens.empty()) {
     return {DirectiveLinePair(QString(), tokens)};
   }
 
@@ -181,15 +179,14 @@ AssemblerBase::splitDirectivesFromLine(const Location &location,
   }
   if (directives.size() > 1) {
     return {Error(location, QStringLiteral("Illegal multiple directives"))};
-  } else {
-    return {DirectiveLinePair(
-        directives.size() == 1 ? directives[0] : QString(), remainingTokens)};
   }
+  return {DirectiveLinePair(directives.size() == 1 ? directives[0] : QString(),
+                            remainingTokens)};
 }
 
 Result<QStringList>
 AssemblerBase::splitCommentFromLine(const QStringList &stringTokens) const {
-  if (stringTokens.size() == 0) {
+  if (stringTokens.empty()) {
     return {stringTokens};
   }
 
@@ -198,9 +195,8 @@ AssemblerBase::splitCommentFromLine(const QStringList &stringTokens) const {
   for (const auto &token : stringTokens) {
     if (token.startsWith(commentDelimiter())) {
       break;
-    } else {
-      preCommentTokens.push_back(token);
     }
+    preCommentTokens.push_back(token);
   }
   return {preCommentTokens};
 }

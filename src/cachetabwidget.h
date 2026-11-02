@@ -17,7 +17,7 @@ class CacheTabWidget : public QWidget {
 
 public:
   explicit CacheTabWidget(QWidget *parent = nullptr);
-  ~CacheTabWidget();
+  ~CacheTabWidget() override;
 
   /**
    * @brief flipTabs

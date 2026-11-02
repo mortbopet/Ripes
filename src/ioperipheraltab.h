@@ -13,7 +13,7 @@ class IOPeripheralTab : public QWidget {
 
 public:
   IOPeripheralTab(QWidget *parent, IOBase *peripheral);
-  ~IOPeripheralTab();
+  ~IOPeripheralTab() override;
 
 private:
   void updateExportsInfo();

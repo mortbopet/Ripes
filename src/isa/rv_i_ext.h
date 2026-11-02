@@ -1045,10 +1045,9 @@ struct Li : public PseudoInstruction<Li<isRV64>> {
               Error(line, QString("Invalid immediate '%1'; can't emit "
                                   ">32-bit imm for non-RV64 target")
                               .arg(line.tokens.at(2)))};
-        } else {
-          return Result<std::vector<LineTokens>>{Error(
-              line, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
         }
+        return Result<std::vector<LineTokens>>{Error(
+            line, QString("Invalid immediate '%1'").arg(line.tokens.at(2)))};
       }
     }
 

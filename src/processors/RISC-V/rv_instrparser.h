@@ -24,6 +24,7 @@ decode_functor<T> generateInstrParser(const std::vector<int> &bitFields) {
   std::vector<std::pair<uint32_t, uint32_t>> parseVector;
 
   // Generate bit masks and fill parse vector
+  parseVector.reserve(bitFields.size());
   for (const auto &field : bitFields) {
     parseVector.emplace_back(field, vsrtl::generateBitmask(field));
   }

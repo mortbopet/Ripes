@@ -172,7 +172,8 @@ ctkRangeSliderPrivate::handleAtPos(const QPoint &pos, QRect &handleRect) const {
   if (minimumControl == QStyle::SC_SliderHandle) {
     handleRect = minimumHandleRect;
     return MinimumHandle;
-  } else if (maximumControl == QStyle::SC_SliderHandle) {
+  }
+  if (maximumControl == QStyle::SC_SliderHandle) {
     handleRect = maximumHandleRect;
     return MaximumHandle;
   }
@@ -311,7 +312,7 @@ ctkRangeSlider::ctkRangeSlider(ctkRangeSliderPrivate *impl, Qt::Orientation o,
 }
 
 // --------------------------------------------------------------------------
-ctkRangeSlider::~ctkRangeSlider() {}
+ctkRangeSlider::~ctkRangeSlider() = default;
 
 // --------------------------------------------------------------------------
 int ctkRangeSlider::minimumValue() const {

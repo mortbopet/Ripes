@@ -21,7 +21,7 @@ IOPeripheralTab::IOPeripheralTab(QWidget *parent, IOBase *peripheral)
   m_ui->registerMapView->horizontalHeader()->setStretchLastSection(true);
   m_ui->registerMapView->resizeColumnsToContents();
 
-  if (peripheral->parameters().size() == 0) {
+  if (peripheral->parameters().empty()) {
     m_ui->parameterGroupBox->hide();
   } else {
     m_ui->parameterView->setModel(new PeriphParamModel(peripheral, this));

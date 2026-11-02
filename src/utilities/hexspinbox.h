@@ -6,7 +6,7 @@ namespace Ripes {
 
 class HexSpinBox : public QSpinBox {
 public:
-  HexSpinBox(QWidget *parent = 0) : QSpinBox(parent) {
+  HexSpinBox(QWidget *parent = nullptr) : QSpinBox(parent) {
     setPrefix("0x");
     setDisplayIntegerBase(16);
     setRange(INT_MIN, INT_MAX);

@@ -81,7 +81,7 @@ private:
   void setupExamplesMenu(QMenu *parent);
 
   Ui::MainWindow *m_ui = nullptr;
-  QActionGroup *m_binaryStoreAction;
+  QActionGroup *m_binaryStoreAction{};
   QToolBar *m_toolbar = nullptr;
 
   // Tabs

@@ -29,10 +29,9 @@ QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth) {
     if (byteWidth <= 4) {
       memcpy(&_fvalue, &value, sizeof(_fvalue));
       return QString::number(_fvalue);
-    } else {
-      memcpy(&_dvalue, &value, sizeof(_dvalue));
-      return QString::number(_dvalue);
     }
+    memcpy(&_dvalue, &value, sizeof(_dvalue));
+    return QString::number(_dvalue);
   }
   case Radix::Binary: {
     return "0b" +
@@ -44,9 +43,8 @@ QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth) {
   case Radix::Signed: {
     if (byteWidth == 4) {
       return QString::number(static_cast<int32_t>(value), 10);
-    } else {
-      return QString::number(static_cast<int64_t>(value), 10);
     }
+    return QString::number(static_cast<int64_t>(value), 10);
   }
   case Radix::ASCII: {
     QString str;
@@ -63,11 +61,13 @@ QString encodeRadixValue(VInt value, const Radix type, unsigned byteWidth) {
 VInt decodeRadixValue(QString value, bool *ok) {
   if (hexRegex.match(value).hasMatch()) {
     return value.toUInt(ok, 16);
-  } else if (binRegex.match(value).hasMatch()) {
+  }
+  if (binRegex.match(value).hasMatch()) {
     // Qt doesn't support 0b[0-1]* conversion, so remove any possible 0b prefix
     value.remove(0, 2);
     return value.toUInt(ok, 2);
-  } else if (unsignedRegex.match(value).hasMatch()) {
+  }
+  if (unsignedRegex.match(value).hasMatch()) {
     return value.toUInt(ok, 10);
   } else if (signedRegex.match(value).hasMatch()) {
     return value.toInt(ok, 10);

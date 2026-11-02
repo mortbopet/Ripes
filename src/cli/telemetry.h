@@ -14,8 +14,8 @@ namespace Ripes {
 /// A class for
 class Telemetry {
 public:
-  Telemetry() {}
-  virtual ~Telemetry() {};
+  Telemetry() = default;
+  virtual ~Telemetry() = default;
 
   // Returns a QVariant representing representing this telemtry. If 'json' is
   // set, indicates that the output is intended for JSON export.
@@ -91,7 +91,7 @@ class InstrsRetiredTelemetry : public Telemetry {
 
 class PipelineTelemetry : public Telemetry {
 public:
-  PipelineTelemetry() {}
+  PipelineTelemetry() = default;
   void enable() override {
     // The PipelineDiagramModel will automatically, upon construction, connect
     // to the ProcessorHandler and record information during execution.
@@ -127,20 +127,18 @@ public:
         }
       }
       return registerMap;
-    } else {
-      QString outStr;
-      QTextStream out(&outStr);
-      for (const auto &regFile : isa->regInfos()) {
-        for (unsigned i = 0; i < regFile->regCnt(); i++) {
-          auto v =
-              ProcessorHandler::getRegisterValue(regFile->regFileName(), i);
-          out << regFile->regName(i) << ":\t"
-              << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
-          out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
-        }
-      }
-      return outStr;
     }
+    QString outStr;
+    QTextStream out(&outStr);
+    for (const auto &regFile : isa->regInfos()) {
+      for (unsigned i = 0; i < regFile->regCnt(); i++) {
+        auto v = ProcessorHandler::getRegisterValue(regFile->regFileName(), i);
+        out << regFile->regName(i) << ":\t"
+            << encodeRadixValue(v, Radix::Signed, isa->bytes()) << "\t";
+        out << "(" << encodeRadixValue(v, Radix::Hex, isa->bytes()) << ")\n";
+      }
+    }
+    return outStr;
   }
 };
 

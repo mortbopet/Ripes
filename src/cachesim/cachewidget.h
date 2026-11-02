@@ -21,7 +21,7 @@ class CacheWidget : public QWidget {
 
 public:
   explicit CacheWidget(QWidget *parent = nullptr);
-  ~CacheWidget();
+  ~CacheWidget() override;
 
   void setNextLevelCache(const std::shared_ptr<CacheSim> &cache);
 

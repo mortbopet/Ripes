@@ -56,7 +56,7 @@ public:
   };
   explicit CachePlotWidget(QWidget *parent = nullptr);
   void setCache(const std::shared_ptr<CacheSim> &cache);
-  ~CachePlotWidget();
+  ~CachePlotWidget() override;
 
 public slots:
 

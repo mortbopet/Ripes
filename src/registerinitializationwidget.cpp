@@ -36,7 +36,7 @@ void RegisterSelectionComboBox::showPopup() {
   for (const auto &regFile : isa->regInfos()) {
     for (unsigned i = 0; i < regFile->regCnt(); ++i) {
       if (!regFile->regIsReadOnly(i)) {
-        if (regOptions.count(regFile->regFileName()) == 0) {
+        if (!regOptions.contains(regFile->regFileName())) {
           regOptions[regFile->regFileName()] = {i};
         } else {
           regOptions[regFile->regFileName()].insert(i);
@@ -46,7 +46,7 @@ void RegisterSelectionComboBox::showPopup() {
   }
 
   for (const auto &regFileInit : initializations) {
-    if (regOptions.count(regFileInit.first) > 0) {
+    if (regOptions.contains(regFileInit.first)) {
       for (const auto &regInit : regFileInit.second) {
         regOptions.at(regFileInit.first).erase(regInit.first);
       }
@@ -84,7 +84,7 @@ RegisterInitializationWidget::RegisterInitializationWidget(QWidget *parent)
     // Set to initial value if this is the first time the dialog is loaded.
     // Else, keep whatever changes has been stored in the static variable, made
     // in previous invokations of the dialog.
-    if (!m_initializations.count(desc.second->id)) {
+    if (!m_initializations.contains(desc.second->id)) {
       m_initializations[desc.second->id] = desc.second->defaultRegisterVals;
     }
   }
@@ -127,7 +127,7 @@ RegisterInitializationWidget::getNonInitializedRegIdx() {
     unsigned id = 0;
     if (auto opt = isa->regInfo(regFileInit.first)) {
       auto regInfo = opt.value();
-      while (regFileInit.second.count(id) || regInfo->regIsReadOnly(id)) {
+      while (regFileInit.second.contains(id) || regInfo->regIsReadOnly(id)) {
         id++;
       }
       if (id < regInfo->regCnt()) {
@@ -151,10 +151,10 @@ void RegisterInitializationWidget::addRegisterInitialization(
   }
   auto regInfo = *maybeRegInfo;
 
-  if (!m_initializations.at(m_currentID).count(regFileName)) {
+  if (!m_initializations.at(m_currentID).contains(regFileName)) {
     m_initializations.at(m_currentID)[regFileName] = {};
   }
-  if (!m_initializations.at(m_currentID).at(regFileName).count(regIdx)) {
+  if (!m_initializations.at(m_currentID).at(regFileName).contains(regIdx)) {
     // No default value of the register initialization exists.
     m_initializations.at(m_currentID).at(regFileName)[regIdx] = s_defaultval;
   }
@@ -222,7 +222,7 @@ void RegisterInitializationWidget::removeRegInitWidget(
   updateAddButtonState();
 }
 
-void RegisterInitializationWidget::RegInitWidgets::clear() {
+void RegisterInitializationWidget::RegInitWidgets::clear() const {
   delete name;
   delete value;
   delete remove;

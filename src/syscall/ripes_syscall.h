@@ -32,7 +32,7 @@ public:
       : m_name(name), m_description(description),
         m_argumentDescriptions(argumentDescriptions),
         m_returnDescriptions(returnDescriptions) {}
-  virtual ~Syscall() {}
+  virtual ~Syscall() = default;
   const QString &name() const { return m_name; }
   const QString &description() const { return m_description; }
   const std::map<ArgIdx, QString> &argumentDescriptions() const {
@@ -89,7 +89,7 @@ public:
   }
 
 protected:
-  SyscallManager() {}
+  SyscallManager() = default;
   std::map<SyscallID, std::unique_ptr<Syscall>> m_syscalls;
 };
 

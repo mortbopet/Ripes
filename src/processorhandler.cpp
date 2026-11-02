@@ -279,7 +279,7 @@ void ProcessorHandler::_loadProcessorToWidget(vsrtl::VSRTLWidget *widget,
 }
 
 bool ProcessorHandler::_hasBreakpoint(const AInt address) const {
-  return m_breakpoints.count(address);
+  return m_breakpoints.contains(address);
 }
 
 bool ProcessorHandler::_checkBreakpoint() {
@@ -431,11 +431,10 @@ QString ProcessorHandler::_disassembleInstr(const AInt addr) const {
     const unsigned instrBytes = _currentISA()->instrBytes();
     auto disRes = m_currentAssembler->disassemble(
         m_currentProcessor->getMemory().readMem(addr, instrBytes),
-        m_program.get()->symbols, addr);
+        m_program->symbols, addr);
     return disRes.repr;
-  } else {
-    return QString();
   }
+  return QString();
 }
 
 void ProcessorHandler::syscallTrap() {
@@ -445,9 +444,8 @@ void ProcessorHandler::syscallTrap() {
       const unsigned int function =
           m_currentProcessor->getRegister(reg->file->regFileName(), reg->index);
       return m_syscallManager->execute(function);
-    } else {
-      return false;
     }
+    return false;
   }));
 
   futureWatcher.waitForFinished();

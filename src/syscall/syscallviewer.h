@@ -15,7 +15,7 @@ class SyscallViewer : public QDialog {
 
 public:
   explicit SyscallViewer(QWidget *parent = nullptr);
-  ~SyscallViewer();
+  ~SyscallViewer() override;
 
 private:
   void handleItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);

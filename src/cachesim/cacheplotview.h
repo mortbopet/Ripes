@@ -29,7 +29,7 @@ public:
   CachePlotMarker(QObject *parent, QChart *chart, QLineSeries *series,
                   const QString &name);
   void updateCoordinateValues(const QPointF &pos, bool showValue,
-                              bool showCycles);
+                              bool showCycles) const;
   void clear();
 };
 

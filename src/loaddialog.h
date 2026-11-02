@@ -13,7 +13,7 @@ class elfio;
 namespace Ripes {
 
 struct ELFInfo {
-  bool valid;
+  bool valid{};
   QString errorMessage;
   QString entryPoint;
 };
@@ -27,7 +27,7 @@ class LoadDialog : public QDialog {
 
 public:
   explicit LoadDialog(QWidget *parent = nullptr);
-  ~LoadDialog();
+  ~LoadDialog() override;
 
   void accept() override;
   const LoadFileParams &getParams() const { return m_params; }

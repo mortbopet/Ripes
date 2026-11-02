@@ -40,7 +40,7 @@ void RegisterModel::processorWasClocked() {
   beginResetModel();
   endResetModel();
   const auto newRegValues = gatherRegisterValues();
-  if (m_regValues.size() != 0) {
+  if (!m_regValues.empty()) {
     for (auto newRegVal : llvm::enumerate(newRegValues)) {
       if (m_regValues[newRegVal.index()] != newRegVal.value()) {
         m_mostRecentlyModifiedReg = newRegVal.index();
@@ -92,7 +92,8 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const {
   const unsigned idx = index.row();
   if (role == Qt::ToolTipRole) {
     return tooltipData(idx);
-  } else if (index.row() == m_mostRecentlyModifiedReg) {
+  }
+  if (index.row() == m_mostRecentlyModifiedReg) {
     // Highlight the most recently modified register. Use the theme accent
     // (gold) as background with a dark, high-contrast foreground that stays
     // legible in both light and dark mode (overriding the per-column colors).
@@ -154,18 +155,16 @@ QVariant RegisterModel::aliasData(unsigned idx) const {
   if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
       regInfo.has_value()) {
     return (*regInfo)->regAlias(idx);
-  } else {
-    return QVariant();
   }
+  return QVariant();
 }
 
 QVariant RegisterModel::tooltipData(unsigned idx) const {
   if (auto regInfo = ProcessorHandler::currentISA()->regInfo(m_rft);
       regInfo.has_value()) {
     return (*regInfo)->regInfo(idx);
-  } else {
-    return QVariant();
   }
+  return QVariant();
 }
 
 VInt RegisterModel::registerData(unsigned idx) const {
@@ -184,8 +183,7 @@ Qt::ItemFlags RegisterModel::flags(const QModelIndex &index) const {
     if (index.column() == Column::Value)
       return Qt::ItemIsEditable | def;
     return def;
-  } else {
-    return Qt::NoItemFlags;
   }
+  return Qt::NoItemFlags;
 }
 } // namespace Ripes

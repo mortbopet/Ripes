@@ -27,7 +27,7 @@ public:
   void setFollowEnabled(bool enabled);
 
   AInt addressForPos(const QPoint &pos, bool &ok) const;
-  AInt addressForBlock(QTextBlock block, bool &ok) const;
+  AInt addressForBlock(const QTextBlock &block, bool &ok) const;
   QTextBlock blockForAddress(AInt) const;
   void setCenterAddress(const AInt address);
 
@@ -70,7 +70,7 @@ private:
   bool m_following = true;
 
   QFont m_font;
-  int m_sidebarWidth;
+  int m_sidebarWidth{};
 
   BreakpointArea *m_breakpointArea;
 
@@ -92,7 +92,7 @@ public:
 
   QSize sizeHint() const override { return QSize(width(), 0); }
   int width() const { return imageWidth + padding * 2; }
-  QSize breakpointSize() { return QSize(imageWidth, imageHeight); }
+  QSize breakpointSize() const { return QSize(imageWidth, imageHeight); }
 
   int imageWidth = 16;
   int imageHeight = 16;

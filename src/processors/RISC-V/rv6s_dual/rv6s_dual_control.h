@@ -24,9 +24,8 @@ class Control_DUAL : public Component {
   static RegWrSrcDataDual do_reg_wr_src_ctrl_data(RVInstr opc) {
     if (Control::do_mem_ctrl(opc) != MemOp::NOP) {
       return RegWrSrcDataDual::MEM;
-    } else {
-      return RegWrSrcDataDual::ALURES;
     }
+    return RegWrSrcDataDual::ALURES;
   }
 
 public:

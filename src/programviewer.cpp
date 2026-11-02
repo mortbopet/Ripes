@@ -194,7 +194,7 @@ QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
   high = std::next(low);
 
   auto validBlockRange = [&] {
-    if (m_labelAddrOffsetMap.count(lineNumber))
+    if (m_labelAddrOffsetMap.contains(lineNumber))
       return false;
 
     bool valid = true;
@@ -220,7 +220,7 @@ QTextBlock ProgramViewer::blockForAddress(AInt addr) const {
   return document()->findBlockByNumber(lineNumber);
 }
 
-AInt ProgramViewer::addressForBlock(QTextBlock block, bool &ok) const {
+AInt ProgramViewer::addressForBlock(const QTextBlock &block, bool &ok) const {
   ok = true;
   const static auto calcAddressFunc =
       [&](int lineNumber) -> std::optional<AInt> {
@@ -241,7 +241,7 @@ AInt ProgramViewer::addressForBlock(QTextBlock block, bool &ok) const {
   const int lineNumber = block.blockNumber();
 
   // Clicking an invalid line? (non-instruction line)
-  if (m_labelAddrOffsetMap.count(lineNumber)) {
+  if (m_labelAddrOffsetMap.contains(lineNumber)) {
     ok = false;
     return 0;
   }
@@ -310,9 +310,8 @@ bool ProgramViewer::hasBreakpoint(const QPoint &pos) const {
   AInt address = addressForPos(pos, ok);
   if (ok) {
     return ProcessorHandler::hasBreakpoint(address);
-  } else {
-    return false;
   }
+  return false;
 }
 
 void ProgramViewer::breakpointClick(const QPoint &pos) {

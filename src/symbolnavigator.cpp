@@ -33,7 +33,7 @@ SymbolNavigator::SymbolNavigator(const ReverseSymbolMap &symbolmap,
 
 AInt SymbolNavigator::getSelectedSymbolAddress() const {
   const auto selected = m_ui->symbolTable->selectedItems();
-  if (selected.size() > 0) {
+  if (!selected.empty()) {
     return selected[0]->data(Qt::UserRole).toUInt();
   }
   return 0;

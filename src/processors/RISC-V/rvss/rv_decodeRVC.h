@@ -17,7 +17,8 @@ public:
     uncompress->setISA(isa);
   }
 
-  DecodeRVC(std::string name, SimComponent *parent) : Component(name, parent) {
+  DecodeRVC(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
     instr >> uncompress->instr;
 
     uncompress->Pc_Inc >> Pc_Inc;

@@ -17,7 +17,7 @@ class RegisterWidget : public QWidget {
 public:
   explicit RegisterWidget(const std::string_view &regFileID,
                           QWidget *parent = nullptr);
-  ~RegisterWidget();
+  ~RegisterWidget() override;
 
   void initialize();
 
