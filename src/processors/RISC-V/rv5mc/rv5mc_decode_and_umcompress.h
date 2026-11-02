@@ -18,7 +18,7 @@ public:
     uncompress->setISA(isa);
   }
 
-  DecodeUncompress(std::string name, SimComponent *parent)
+  DecodeUncompress(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     instr >> regIntr->in;
     0 >> regIntr->clear;

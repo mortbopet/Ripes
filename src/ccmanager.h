@@ -42,7 +42,7 @@ public:
     bool success = false;
     bool aborted = false;
 
-    void clean() { QFile::remove(outFile); }
+    void clean() const { QFile::remove(outFile); }
   };
 
   static CCManager &get() {

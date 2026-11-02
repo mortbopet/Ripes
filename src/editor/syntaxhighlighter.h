@@ -19,7 +19,7 @@ public:
    * Performs language-independent highlighting, such as line-underlining upon
    * an error during assembly/compilation.
    */
-  void highlightBlock(const QString &text) override final;
+  void highlightBlock(const QString &text) final;
   /**
    * @brief syntaxHighlightBlock
    * Performs language-specific highlighting

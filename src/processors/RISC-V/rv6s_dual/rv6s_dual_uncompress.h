@@ -11,7 +11,8 @@ using namespace Ripes;
 template <unsigned XLEN>
 class ShiftR16 : public Component {
 public:
-  ShiftR16(std::string name, SimComponent *parent) : Component(name, parent) {
+  ShiftR16(const std::string &name, SimComponent *parent)
+      : Component(name, parent) {
     instr16 << [this] {
       return (((instr2.uValue() & 0xFFFF) << 16) | (instr1.uValue() >> 16));
     };
@@ -30,7 +31,7 @@ public:
     uncompress2->setISA(isa);
   }
 
-  UncompressDual(std::string name, SimComponent *parent)
+  UncompressDual(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     setDescription("Uncompresses instructions from the 'C' extension into "
                    "their 32-bit representation.");

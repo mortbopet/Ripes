@@ -18,8 +18,8 @@
 
 =========================================================================*/
 
-#ifndef __ctkRangeSlider_h
-#define __ctkRangeSlider_h
+#ifndef ctkRangeSlider_h
+#define ctkRangeSlider_h
 
 // Qt includes
 #include <QSlider>
@@ -56,13 +56,13 @@ class ctkRangeSlider : public QSlider {
 
 public:
   // Superclass typedef
-  typedef QSlider Superclass;
+  using Superclass = QSlider;
   /// Constructor, builds a ctkRangeSlider that ranges from 0 to 100 and has
   /// a lower and upper values of 0 and 100 respectively, other properties
   /// are set the QSlider default properties.
-  explicit ctkRangeSlider(Qt::Orientation o, QWidget *par = 0);
-  explicit ctkRangeSlider(QWidget *par = 0);
-  virtual ~ctkRangeSlider();
+  explicit ctkRangeSlider(Qt::Orientation o, QWidget *par = nullptr);
+  explicit ctkRangeSlider(QWidget *_parent = nullptr);
+  ~ctkRangeSlider() override;
 
   ///
   /// This property holds the slider's current minimum value.
@@ -82,13 +82,13 @@ public:
   /// This property holds the current slider minimum position.
   /// If tracking is enabled (the default), this is identical to minimumValue.
   int minimumPosition() const;
-  void setMinimumPosition(int min);
+  void setMinimumPosition(int l);
 
   ///
   /// This property holds the current slider maximum position.
   /// If tracking is enabled (the default), this is identical to maximumValue.
   int maximumPosition() const;
-  void setMaximumPosition(int max);
+  void setMaximumPosition(int u);
 
   ///
   /// Utility function that set the minimum position and
@@ -172,31 +172,31 @@ public Q_SLOTS:
   /// Note: Changing the minimumValue and maximumValue also changes the
   /// minimumPosition and maximumPosition.
   /// \sa setMinimumValue, setMaximumValue, setMinimum, setMaximum, setRange
-  void setValues(int min, int max);
+  void setValues(int l, int u);
 
 protected Q_SLOTS:
   void onRangeChanged(int minimum, int maximum);
 
 protected:
   ctkRangeSlider(ctkRangeSliderPrivate *impl, Qt::Orientation o,
-                 QWidget *par = 0);
-  ctkRangeSlider(ctkRangeSliderPrivate *impl, QWidget *par = 0);
+                 QWidget *par = nullptr);
+  ctkRangeSlider(ctkRangeSliderPrivate *impl, QWidget *_parent = nullptr);
 
   // Description:
   // Standard Qt UI events
-  virtual void mousePressEvent(QMouseEvent *ev);
-  virtual void mouseMoveEvent(QMouseEvent *ev);
-  virtual void mouseReleaseEvent(QMouseEvent *ev);
+  void mousePressEvent(QMouseEvent *mouseEvent) override;
+  void mouseMoveEvent(QMouseEvent *mouseEvent) override;
+  void mouseReleaseEvent(QMouseEvent *mouseEvent) override;
 
   // Description:
   // Rendering is done here.
-  virtual void paintEvent(QPaintEvent *ev);
+  void paintEvent(QPaintEvent *ev) override;
   virtual void initMinimumSliderStyleOption(QStyleOptionSlider *option) const;
   virtual void initMaximumSliderStyleOption(QStyleOptionSlider *option) const;
 
   // Description:
   // Reimplemented for the tooltips
-  virtual bool event(QEvent *event);
+  bool event(QEvent *event) override;
 
 protected:
   QScopedPointer<ctkRangeSliderPrivate> d_ptr;

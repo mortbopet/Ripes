@@ -13,7 +13,7 @@ class RegisterContainerWidget : public QWidget {
 
 public:
   explicit RegisterContainerWidget(QWidget *parent = nullptr);
-  ~RegisterContainerWidget();
+  ~RegisterContainerWidget() override;
 
 private:
   void initialize();

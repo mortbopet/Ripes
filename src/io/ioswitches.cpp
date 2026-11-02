@@ -68,7 +68,7 @@ QSize ToggleButton::sizeHint() const {
   return mRotated ? QSize(h, w) : QSize(w, h);
 }
 
-int ToggleButton::offset() { return mOffset; }
+int ToggleButton::offset() const { return mOffset; }
 
 void ToggleButton::setOffset(int value) {
   mOffset = value;
@@ -158,7 +158,7 @@ QString IOSwitches::description() const {
 void IOSwitches::updateSwitches() {
   const unsigned nSwitches = m_parameters.at(SWITCHES).value.toInt();
   for (unsigned i = 0; i < nSwitches; ++i) {
-    if (m_switches.count(i) == 0) {
+    if (!m_switches.contains(i)) {
       auto *sw = new ToggleButton(10, 8, true, this);
       auto *label = new QLabel(QString::number(i), this);
       m_switches[i] = {label, sw};
@@ -204,7 +204,6 @@ VInt IOSwitches::ioRead(AInt, unsigned) {
 
 void IOSwitches::ioWrite(AInt, VInt, unsigned) {
   // Read-only
-  return;
 }
 
 } // namespace Ripes

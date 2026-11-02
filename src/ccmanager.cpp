@@ -9,6 +9,7 @@
 #include <QProcess>
 #include <QProgressDialog>
 #include <QTextDocument>
+#include <utility>
 
 namespace Ripes {
 
@@ -110,12 +111,13 @@ CCManager::CCRes CCManager::compileRaw(const QString &rawsource,
     sourceFiles << peripheralSymbolsHeader;
   }
 
-  return compile(sourceFiles, outname, showProgressdiag);
+  return compile(sourceFiles, std::move(outname), showProgressdiag);
 }
 
 CCManager::CCRes CCManager::compile(const QTextDocument *source,
                                     QString outname, bool showProgressdiag) {
-  return compileRaw(source->toPlainText(), outname, showProgressdiag);
+  return compileRaw(source->toPlainText(), std::move(outname),
+                    showProgressdiag);
 }
 
 CCManager::CCRes CCManager::compile(const QStringList &files, QString outname,

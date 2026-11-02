@@ -55,12 +55,12 @@ class Matcher {
       }
 
       if (instruction) {
-        std::cout << instruction.get()->name().toStdString();
-        if (instruction.get()->hasExtraMatchConds())
+        std::cout << instruction->name().toStdString();
+        if (instruction->hasExtraMatchConds())
           std::cout << "*";
-        std::cout << std::endl;
+        std::cout << '\n';
       } else {
-        std::cout << std::endl;
+        std::cout << '\n';
         for (const auto &child : children) {
           child.print(depth + 1);
         }
@@ -87,7 +87,7 @@ private:
                                              const MatchNode &node,
                                              bool isRoot) const {
     if (isRoot || node.matches(instruction)) {
-      if (node.children.size() > 0) {
+      if (!node.children.empty()) {
         for (const auto &child : node.children) {
           if (auto matchedInstr =
                   matchInstructionRec(instruction, child, false);
@@ -117,8 +117,7 @@ private:
         }
         unsigned depth = (fieldDepth > nOpParts) ? nOpParts : fieldDepth;
         OpPartBase opPart = instrRef->getOpPart(depth - 1);
-        if (nOpParts == fieldDepth &&
-            instrsWithEqualOpPart.count(opPart) != 0) {
+        if (nOpParts == fieldDepth && instrsWithEqualOpPart.contains(opPart)) {
           QString err;
           err += "Instruction cannot be decoded; aliases with other "
                  "instruction (Identical to other "

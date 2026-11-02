@@ -83,11 +83,11 @@ private:
     const unsigned wr_idx2 = wr_2_addr.uValue();
     if (wr_1_en.uValue() && wr_idx1 == reg_idx) {
       return data_1_in.uValue();
-    } else if (wr_2_en.uValue() && wr_idx2 == reg_idx) {
-      return data_2_in.uValue();
-    } else {
-      return portIndex == 1 ? rf->r1_out.uValue() : rf->r2_out.uValue();
     }
+    if (wr_2_en.uValue() && wr_idx2 == reg_idx) {
+      return data_2_in.uValue();
+    }
+    return portIndex == 1 ? rf->r1_out.uValue() : rf->r2_out.uValue();
   }
 
   AddressSpace *m_memory = nullptr;

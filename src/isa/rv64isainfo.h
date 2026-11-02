@@ -8,7 +8,7 @@ namespace Ripes {
 template <>
 class ISAInfo<ISA::RV64I> : public RVISA::RV_ISAInfoBase {
 public:
-  ISAInfo(const QStringList extensions) : RV_ISAInfoBase(extensions) {
+  ISAInfo(const QStringList &extensions) : RV_ISAInfoBase(extensions) {
     initialize(
         {RVISA::Option::shifts64BitVariant, RVISA::Option::LI64BitVariant});
   }
@@ -19,7 +19,7 @@ public:
   QString CCmarch() const override {
     QString march = "rv64i";
 
-    return _CCmarch(march);
+    return canonicalMarch(march);
   }
   QString CCmabi() const override { return "lp64"; }
 

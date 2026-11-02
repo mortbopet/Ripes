@@ -52,7 +52,7 @@ DirectiveVec gnuDirectives() {
   auto exprRes##res = assembler->evalExpr(location, token);                    \
   if (auto *err = std::get_if<Error>(&exprRes##res))                           \
     return {*err};                                                             \
-  res = std::get<ExprEvalVT>(exprRes##res);
+  (res) = std::get<ExprEvalVT>(exprRes##res);
 
 template <size_t size>
 std::optional<Error> assembleData(const AssemblerBase *assembler,
@@ -88,9 +88,8 @@ Result<QByteArray> dataFunctor(const AssemblerBase *assembler,
   auto err = assembleData<size>(assembler, arg.line, bytes);
   if (err) {
     return {err.value()};
-  } else {
-    return {bytes};
   }
+  return {bytes};
 }
 
 Result<QByteArray> stringFunctor(const AssemblerBase *,
@@ -139,7 +138,7 @@ Directive dummyDirective(const QString &name) {
 
 Directive::DirectiveHandler genSegmentChangeFunctor(const QString &segment) {
   return [segment](const AssemblerBase *assembler, const DirectiveArg &arg) {
-    if (arg.line.tokens.length() != 0) {
+    if (!arg.line.tokens.empty()) {
       return Result<QByteArray>{Error(arg.line, numTokensError(0, arg.line))};
     }
     auto err = assembler->setCurrentSegment(arg.line, segment);
@@ -200,7 +199,7 @@ Directive equDirective() {
 Directive alignDirective() {
   auto alignFunctor = [](const AssemblerBase *assembler,
                          const DirectiveArg &arg) -> Result<QByteArray> {
-    if (arg.line.tokens.length() == 0 || arg.line.tokens.length() > 3) {
+    if (arg.line.tokens.empty() || arg.line.tokens.length() > 3) {
       return {Error(
           arg.line,
           "Invalid number of arguments (expected at least 1, at most 3)")};

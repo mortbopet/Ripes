@@ -183,7 +183,8 @@ static QString convertToSIUnits(const double l_value, int precision = 2) {
 
   if (l_value > 0) {
     return (QString::number(value, 10, precision) + " " + unit);
-  } else if (l_value < 0) {
+  }
+  if (l_value < 0) {
     return (QString::number(value * -1, 10, precision) + " " + unit);
   }
   return QString::number(0) + " ";
@@ -598,9 +599,7 @@ void ProcessorTab::updateInstructionModel() {
   connect(m_instrModel, &InstructionModel::firstStageInstrChanged, this,
           &ProcessorTab::setInstructionViewCenterRow);
 
-  if (oldModel) {
-    delete oldModel;
-  }
+  delete oldModel;
 }
 
 void ProcessorTab::restart() {
@@ -631,7 +630,7 @@ void ProcessorTab::enableSimulatorControls() {
 void ProcessorTab::updateInstructionLabels() {
   const auto &proc = ProcessorHandler::getProcessor();
   for (auto sid : ProcessorHandler::getProcessor()->structure().stageIt()) {
-    if (!m_stageInstructionLabels.count(sid))
+    if (!m_stageInstructionLabels.contains(sid))
       continue;
     const auto stageInfo = proc->stageInfo(sid);
     auto &instrLabel = m_stageInstructionLabels.at(sid);

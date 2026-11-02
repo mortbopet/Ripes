@@ -24,7 +24,7 @@ class ToggleButton : public QAbstractButton {
 public:
   explicit ToggleButton(int trackRadius, int thumbRadius, bool rotated,
                         QWidget *parent = nullptr);
-  ~ToggleButton();
+  ~ToggleButton() override;
 
   QSize sizeHint() const override;
 
@@ -38,7 +38,7 @@ protected:
   void enterEvent(QEnterEvent *event) override;
   void setChecked(bool checked);
 
-  int offset();
+  int offset() const;
   void setOffset(int value);
 
 private:
@@ -65,27 +65,25 @@ class IOSwitches : public IOBase {
 
 public:
   IOSwitches(QWidget *parent);
-  ~IOSwitches() { unregister(); };
+  ~IOSwitches() override { unregister(); };
 
-  virtual unsigned byteSize() const override { return 4; }
-  virtual QString description() const override;
-  virtual QString baseName() const override { return "Switches"; };
+  unsigned byteSize() const override { return 4; }
+  QString description() const override;
+  QString baseName() const override { return "Switches"; };
 
-  virtual const std::vector<RegDesc> &registers() const override {
-    return m_regDescs;
-  };
-  virtual const std::vector<IOSymbol> *extraSymbols() const override {
+  const std::vector<RegDesc> &registers() const override { return m_regDescs; };
+  const std::vector<IOSymbol> *extraSymbols() const override {
     return &m_extraSymbols;
   }
 
   /**
    * Hardware read/write functions
    */
-  virtual VInt ioRead(AInt offset, unsigned size) override;
-  virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
+  VInt ioRead(AInt offset, unsigned size) override;
+  void ioWrite(AInt offset, VInt value, unsigned size) override;
 
 protected:
-  virtual void parameterChanged(unsigned) override { updateSwitches(); };
+  void parameterChanged(unsigned) override { updateSwitches(); };
 
 private:
   void updateSwitches();

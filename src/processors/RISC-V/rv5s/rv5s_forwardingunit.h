@@ -20,26 +20,28 @@ public:
       const auto idx = id_reg1_idx.uValue();
       if (idx == 0) {
         return ForwardingSrc::IdStage;
-      } else if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
-        return ForwardingSrc::MemStage;
-      } else if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
-        return ForwardingSrc::WbStage;
-      } else {
-        return ForwardingSrc::IdStage;
       }
+      if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
+        return ForwardingSrc::MemStage;
+      }
+      if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
+        return ForwardingSrc::WbStage;
+      }
+      return ForwardingSrc::IdStage;
     };
 
     alu_reg2_forwarding_ctrl << [this] {
       const auto idx = id_reg2_idx.uValue();
       if (idx == 0) {
         return ForwardingSrc::IdStage;
-      } else if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
-        return ForwardingSrc::MemStage;
-      } else if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
-        return ForwardingSrc::WbStage;
-      } else {
-        return ForwardingSrc::IdStage;
       }
+      if (idx == mem_reg_wr_idx.uValue() && mem_reg_wr_en.uValue()) {
+        return ForwardingSrc::MemStage;
+      }
+      if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
+        return ForwardingSrc::WbStage;
+      }
+      return ForwardingSrc::IdStage;
     };
   }
 

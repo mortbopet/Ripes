@@ -21,7 +21,7 @@
 #include "processorhandler.h"
 #include "ripessettings.h"
 
-#include "limits.h"
+#include <climits>
 
 namespace Ripes {
 
@@ -259,6 +259,7 @@ void CachePlotWidget::savePlot() {
 
 void CachePlotWidget::copyPlotDataToClipboard() const {
   std::vector<Variable> allVariables;
+  allVariables.reserve(N_TraceVars);
   for (int i = 0; i < N_TraceVars; ++i) {
     allVariables.push_back(static_cast<Variable>(i));
   }
@@ -434,7 +435,7 @@ void CachePlotWidget::updateRatioPlot() {
   QList<QPointF> newPoints;
   QList<QPointF> newWindowPoints;
   QPointF lastPoint;
-  if (m_series->points().size() > 0) {
+  if (!m_series->points().empty()) {
     lastPoint = m_series->points().constLast();
   } else {
     lastPoint = QPointF(-1, 0);
@@ -480,7 +481,7 @@ void CachePlotWidget::updateRatioPlot() {
     }
   }
 
-  if (newPoints.size() == 0 && newWindowPoints.size() == 0) {
+  if (newPoints.empty() && newWindowPoints.empty()) {
     return;
   }
 

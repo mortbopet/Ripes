@@ -5,7 +5,7 @@ namespace Ripes {
 /// Adds a symbol to the current symbol mapping of this assembler.
 std::optional<Error> SymbolMap::addAbsSymbol(const unsigned &line,
                                              const Symbol &s, VInt v) {
-  if (abs.count(s)) {
+  if (abs.contains(s)) {
     return {Error(line, "Multiple definitions of symbol '" + s.v + "'")};
   }
   abs[s] = v;
@@ -16,7 +16,7 @@ std::optional<Error> SymbolMap::addRelSymbol(const unsigned &line,
                                              const Symbol &s, VInt v) {
   assert(s.isLocal());
   auto &it = rel[s.v.toInt()];
-  if (it.count(line))
+  if (it.contains(line))
     return {Error(line, QString::fromStdString(
                             "Multiple definitions of relative symbol '" +
                             std::to_string(v) + "' on line '" +

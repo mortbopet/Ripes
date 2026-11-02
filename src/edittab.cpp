@@ -91,11 +91,12 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
 
   // Ensure that changes to the current compiler path will disable C input, if
   // the compiler is invalid
-  connect(&CCManager::get(), &CCManager::ccChanged, this, [this](auto res) {
-    if (!res.success) {
-      m_ui->setAssemblyInput->setChecked(true);
-    }
-  });
+  connect(&CCManager::get(), &CCManager::ccChanged, this,
+          [this](const auto &res) {
+            if (!res.success) {
+              m_ui->setAssemblyInput->setChecked(true);
+            }
+          });
 
   // During processor running, it should not be possible to build the program
   connect(ProcessorHandler::get(), &ProcessorHandler::runStarted, m_buildAction,
@@ -265,9 +266,8 @@ void EditTab::sourceTypeChanged() {
       // Re-enable assembly input
       m_ui->setAssemblyInput->setChecked(true);
       return;
-    } else {
-      m_currentSourceType = SourceType::C;
     }
+    m_currentSourceType = SourceType::C;
   }
 
   // Notify the source type change to the code editor
@@ -307,7 +307,7 @@ void EditTab::assemble(const QString &source) {
   auto res = ProcessorHandler::getAssembler()->assembleRaw(
       source, &IOManager::get().assemblerSymbols());
   *m_sourceErrors = res.errors;
-  if (m_sourceErrors->size() == 0) {
+  if (m_sourceErrors->empty()) {
     ProcessorHandler::loadProgram(std::make_shared<Program>(res.program));
   } else {
     // Errors occured; rehighlight will reflect current m_sourceErrors in the

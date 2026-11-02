@@ -15,7 +15,7 @@ class RadixSelectorWidget : public QWidget {
 
 public:
   explicit RadixSelectorWidget(QWidget *parent = nullptr);
-  ~RadixSelectorWidget();
+  ~RadixSelectorWidget() override;
   void setupRadixComboBox();
   void setRadix(Radix r);
 

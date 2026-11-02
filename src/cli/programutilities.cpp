@@ -149,7 +149,8 @@ bool loadElfFile(Program &program, QFile &file) {
     msg += e.what();
     GeneralStatusManager::setStatusTimed(QString::fromStdString(msg), 2500);
   } catch (...) {
-    // Something else went wrong.
+    GeneralStatusManager::setStatusTimed(
+        "Could not load debug information: unknown error", 2500);
   }
 
   program.entryPoint = reader.get_entry();

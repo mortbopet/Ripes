@@ -46,7 +46,7 @@ class CachePlotView;
 
 class Callout : public QGraphicsItem {
 public:
-  Callout(Ripes::CachePlotView *view, QChart *parent);
+  Callout(Ripes::CachePlotView *view, QChart *chart);
 
   void setText(const QString &text);
   void setAnchor(QPointF point);

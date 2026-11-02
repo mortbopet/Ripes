@@ -24,9 +24,8 @@ IOManager::IOManager() : QObject(nullptr) {
 QString IOManager::cSymbolsHeaderpath() const {
   if (m_symbolsHeaderFile) {
     return m_symbolsHeaderFile->fileName();
-  } else {
-    return QString();
   }
+  return QString();
 }
 
 void IOManager::reset() {
@@ -151,7 +150,7 @@ void IOManager::refreshMemoryMap() {
 
   const auto &program = ProcessorHandler::getProgram();
   if (program) {
-    for (const auto &section : program.get()->sections) {
+    for (const auto &section : program->sections) {
       m_memoryMap[section.second.address] =
           MemoryMapEntry{section.second.address,
                          static_cast<unsigned>(section.second.data.size()),
@@ -170,21 +169,21 @@ IOManager::assemblerSymbolsForPeriph(IOBase *peripheral) const {
   const auto &periphInfo = m_periphMMappings.at(peripheral);
   symbols.push_back(
       {{periphName + "_BASE", Symbol::Type::Address}, periphInfo.startAddr});
-  symbols.push_back({periphName + "_SIZE", periphInfo.size});
+  symbols.emplace_back(periphName + "_SIZE", periphInfo.size);
 
   for (const auto &reg : peripheral->registers()) {
     if (reg.exported) {
       const QString base = periphName + "_" + cName(reg.name);
       const QString offset = base + "_OFFSET";
-      symbols.push_back({offset, reg.address});
-      symbols.push_back({base, reg.address + periphInfo.startAddr});
+      symbols.emplace_back(offset, reg.address);
+      symbols.emplace_back(base, reg.address + periphInfo.startAddr);
     }
   }
 
   if (auto *extraSymbols = peripheral->extraSymbols()) {
     for (const auto &extraSymbol : *extraSymbols) {
-      symbols.push_back(
-          {periphName + "_" + cName(extraSymbol.name), extraSymbol.value});
+      symbols.emplace_back(periphName + "_" + cName(extraSymbol.name),
+                           extraSymbol.value);
     }
   }
 

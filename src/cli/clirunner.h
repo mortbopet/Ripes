@@ -17,7 +17,7 @@ class CLIRunner : public QObject {
   Q_OBJECT
 public:
   CLIRunner(const CLIModeOptions &options);
-  ~CLIRunner();
+  ~CLIRunner() override;
 
   /// Runs the CLI mode.
   int run();
@@ -32,7 +32,7 @@ private:
   /// Prints requested telemetry to the console/output file.
   int postRun();
   void info(QString msg, bool alwaysPrint = false, bool header = false,
-            const QString &prefix = "INFO");
+            const QString &prefix = "INFO") const;
   void error(const QString &msg);
 
   /// Instantiates L1 instruction/data cache simulators and wires them into the

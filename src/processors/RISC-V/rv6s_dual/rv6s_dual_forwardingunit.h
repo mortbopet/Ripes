@@ -19,21 +19,23 @@ namespace core {
 using namespace Ripes;
 
 class ForwardingUnit_DUAL : public Component {
-  ForwardingSrcDual calculateForwarding(const VSRTL_VT_U &readidx) {
+  ForwardingSrcDual calculateForwarding(const VSRTL_VT_U &readidx) const {
     if (readidx == 0) {
       return ForwardingSrcDual::IdStage;
-    } else if (readidx == mem_reg_wr_idx_exec.uValue() &&
-               mem_reg_wr_en_exec.uValue()) {
+    }
+    if (readidx == mem_reg_wr_idx_exec.uValue() &&
+        mem_reg_wr_en_exec.uValue()) {
       return ForwardingSrcDual::MemStageExec;
-    } else if (readidx == mem_reg_wr_idx_data.uValue() &&
-               mem_reg_wr_en_data.uValue() &&
-               mem_reg_mem_op.eValue<MemOp>() == MemOp::NOP) {
+    }
+    if (readidx == mem_reg_wr_idx_data.uValue() &&
+        mem_reg_wr_en_data.uValue() &&
+        mem_reg_mem_op.eValue<MemOp>() == MemOp::NOP) {
       return ForwardingSrcDual::MemStageMem;
-    } else if (readidx == wb_reg_wr_idx_exec.uValue() &&
-               wb_reg_wr_en_exec.uValue()) {
+    }
+    if (readidx == wb_reg_wr_idx_exec.uValue() && wb_reg_wr_en_exec.uValue()) {
       return ForwardingSrcDual::WbStageExec;
-    } else if (readidx == wb_reg_wr_idx_data.uValue() &&
-               wb_reg_wr_en_data.uValue()) {
+    }
+    if (readidx == wb_reg_wr_idx_data.uValue() && wb_reg_wr_en_data.uValue()) {
       return ForwardingSrcDual::WbStageMem;
     }
     return ForwardingSrcDual::IdStage;

@@ -25,14 +25,14 @@ CacheWidget::CacheWidget(QWidget *parent)
     RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET)->trigger();
 
     auto cacheViews = m_scene->views();
-    if (cacheViews.size() > 0) {
+    if (!cacheViews.empty()) {
       static_cast<CacheView *>(cacheViews.at(0))->fitScene();
     }
   });
 }
 
 void CacheWidget::setNextLevelCache(const std::shared_ptr<CacheSim> &cache) {
-  m_cacheSim.get()->setNextLevelCache(cache);
+  m_cacheSim->setNextLevelCache(cache);
 }
 
 CacheWidget::~CacheWidget() { delete m_ui; }

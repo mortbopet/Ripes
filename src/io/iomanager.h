@@ -21,8 +21,8 @@ struct PeripheralID {
 using PeriphIDs = std::vector<PeripheralID>;
 
 struct MemoryMapEntry {
-  AInt startAddr;
-  unsigned size;
+  AInt startAddr{};
+  unsigned size{};
   QString name;
   AInt end() const { return startAddr + size; }
 };

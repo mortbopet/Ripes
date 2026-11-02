@@ -14,7 +14,7 @@ class ExitSyscall : public BaseSyscall {
 
 public:
   ExitSyscall() : BaseSyscall("Exit", "Exits the program with code 0") {}
-  void execute() {
+  void execute() override {
     SystemIO::printString("\nProgram exited with code: 0\n");
     ProcessorHandler::getProcessorNonConst()->finalize(
         RipesProcessor::FinalizeReason::exitSyscall);
@@ -29,7 +29,7 @@ public:
   Exit2Syscall()
       : BaseSyscall("Exit2", "Exits the program with a code",
                     {{0, "the number to exit with"}}) {}
-  void execute() {
+  void execute() override {
     SystemIO::printString(
         "\nProgram exited with code: " +
         QString::number(BaseSyscall::getArg(BaseSyscall::REG_FILE, 0)) + "\n");
@@ -54,7 +54,7 @@ public:
             {{0, "On success, brk() returns zero.  On error, -1 is returned, "
                  "and errno is set to ENOMEM"}}) {}
 
-  void execute() {
+  void execute() override {
     // Nothing to do - at the moment we allow infinite growth of the heap.
 
     // Retrieves the argument of the brk syscall, the new program break

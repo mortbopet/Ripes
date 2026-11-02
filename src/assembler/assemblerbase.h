@@ -28,12 +28,12 @@ struct OpDisassembleResult {
 class AssemblerBase {
 public:
   AssemblerBase();
-  virtual ~AssemblerBase() {}
+  virtual ~AssemblerBase() = default;
   std::optional<Error> setCurrentSegment(const Location &location,
                                          const Section &seg) const;
 
   /// Sets the base pointer of seg to the provided 'base' value.
-  void setSegmentBase(Section seg, AInt base);
+  void setSegmentBase(const Section &seg, AInt base);
 
   /// Returns the ISA that this assembler is used for.
   virtual ISA getISA() const = 0;

@@ -31,14 +31,14 @@ enum SourceType {
 
 struct LoadFileParams {
   QString filepath;
-  SourceType type;
-  AInt binaryEntryPoint;
-  AInt binaryLoadAt;
+  SourceType type{};
+  AInt binaryEntryPoint{};
+  AInt binaryLoadAt{};
 };
 
 struct ProgramSection {
   QString name;
-  AInt address;
+  AInt address{};
   QByteArray data;
 };
 

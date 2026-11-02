@@ -9,7 +9,7 @@
 namespace Ripes {
 
 struct PseudoInstructionBase {
-  virtual ~PseudoInstructionBase() {}
+  virtual ~PseudoInstructionBase() = default;
   virtual Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                                  SymbolMap &symbols) const = 0;
   virtual QString name() const = 0;
@@ -25,7 +25,7 @@ struct PseudoInstruction : public PseudoInstructionBase {
     return 1 + PseudoInstrImpl::Fields::numFields();
   }
   QString name() const override {
-    return QString(PseudoInstrImpl::NAME.data());
+    return QString::fromUtf8(PseudoInstrImpl::NAME);
   }
   Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                          SymbolMap &symbols) const override {
@@ -55,8 +55,7 @@ using PseudoInstrMap =
     std::map<QString, std::shared_ptr<PseudoInstructionBase>>;
 
 template <typename... Instructions>
-constexpr inline static void
-enablePseudoInstructions(PseudoInstrVec &instructions) {
+constexpr static void enablePseudoInstructions(PseudoInstrVec &instructions) {
   // TODO(raccog): Ensure no duplicate pseudo-instruction definitions
   // TODO(raccog): Verify instructions generated from pseudoinstructions
   return _enableInstructions<PseudoInstrVec, Instructions...>(instructions);

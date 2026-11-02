@@ -48,9 +48,8 @@ public:
         const unsigned wr_idx = wr_addr.uValue();
         if (wr_en.uValue() && wr_idx == r1_addr.uValue()) {
           return data_in.uValue();
-        } else {
-          return _rd1_mem->data_out.uValue();
         }
+        return _rd1_mem->data_out.uValue();
       };
 
       r2_out << [this] {
@@ -62,9 +61,8 @@ public:
         const unsigned wr_idx = wr_addr.uValue();
         if (wr_en.uValue() && wr_idx == r2_addr.uValue()) {
           return data_in.uValue();
-        } else {
-          return _rd2_mem->data_out.uValue();
         }
+        return _rd2_mem->data_out.uValue();
       };
     } else {
       _rd1_mem->data_out >> r1_out;

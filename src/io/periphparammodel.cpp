@@ -2,6 +2,7 @@
 
 #include <QHeaderView>
 #include <QSpinBox>
+#include <utility>
 
 #include "iobase.h"
 #include "processorhandler.h"
@@ -40,7 +41,7 @@ void PeriphParamDelegate::setModelData(QWidget *e, QAbstractItemModel *model,
 }
 
 PeriphParamModel::PeriphParamModel(QPointer<IOBase> peripheral, QObject *parent)
-    : QAbstractTableModel(parent), m_peripheral(peripheral) {}
+    : QAbstractTableModel(parent), m_peripheral(std::move(peripheral)) {}
 
 int PeriphParamModel::columnCount(const QModelIndex &) const {
   return NColumns;
@@ -49,9 +50,8 @@ int PeriphParamModel::columnCount(const QModelIndex &) const {
 int PeriphParamModel::rowCount(const QModelIndex &) const {
   if (!m_peripheral.isNull()) {
     return m_peripheral->parameters().size();
-  } else {
-    return 0;
   }
+  return 0;
 }
 
 QVariant PeriphParamModel::headerData(int section, Qt::Orientation orientation,
@@ -75,9 +75,8 @@ bool PeriphParamModel::setData(const QModelIndex &index, const QVariant &value,
     const unsigned idx = index.row();
     auto ret = m_peripheral->setParameter(idx, value);
     return ret == value;
-  } else {
-    return false;
   }
+  return false;
 }
 
 QVariant PeriphParamModel::data(const QModelIndex &index, int role) const {

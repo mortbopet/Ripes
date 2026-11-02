@@ -21,7 +21,7 @@ enum class Radix { Hex, Binary, Unsigned, Signed, ASCII, Float };
 struct ImmConvInfo {
   bool isUnsigned = false;
   bool is32bit = false;
-  Radix radix;
+  Radix radix{};
 };
 
 inline int64_t getImmediate(const QString &string, bool &canConvert,
@@ -93,7 +93,7 @@ public:
   Token(const QString &t) : QString(t) {}
   Token(const QString &t, const QString &relocation)
       : QString(t), m_relocation(relocation) {}
-  Token() : QString() {}
+  Token() = default;
   void setRelocation(const QString &relocation) { m_relocation = relocation; }
   bool hasRelocation() const { return !m_relocation.isEmpty(); }
   const QString &relocation() const { return m_relocation; }
@@ -112,7 +112,7 @@ using LineTokensVec = std::vector<LineTokens>;
 struct Symbol {
 public:
   enum Type { Address = 1 << 0, Constant = 1 << 1 };
-  Symbol() {};
+  Symbol() = default;
   Symbol(const char *str) : v(str) {}
   Symbol(const QString &str) : v(str) {}
   Symbol(const QString &str, const Type _type) : v(str), type(_type) {}
@@ -135,9 +135,7 @@ public:
   bool isLegal() const {
     bool startsWithNum;
     QString(v.front()).toInt(&startsWithNum);
-    if (startsWithNum && !isLocal())
-      return false;
-    return true;
+    return !startsWithNum || isLocal();
   }
 
   operator const QString &() const { return v; }

@@ -1,5 +1,7 @@
 #include "rvsyntaxhighlighter.h"
 
+#include <utility>
+
 #include "colors.h"
 
 namespace Ripes {
@@ -7,7 +9,7 @@ namespace Ripes {
 RVSyntaxHighlighter::RVSyntaxHighlighter(
     QTextDocument *parent, std::shared_ptr<Errors> errors,
     const std::set<QString> &supportedOpcodes)
-    : SyntaxHighlighter(parent, errors) {
+    : SyntaxHighlighter(parent, std::move(errors)) {
   HighlightingRule rule;
 
   const SyntaxColorScheme colors = currentSyntaxColors();

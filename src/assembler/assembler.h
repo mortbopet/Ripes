@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <numeric>
 #include <set>
+#include <utility>
 #include <variant>
 
 #include "STLExtras.h"
@@ -67,7 +68,8 @@ class Assembler : public AssemblerBase {
                 "Register type must be integer");
 
 public:
-  explicit Assembler(std::shared_ptr<ISAInfoBase> isa) : m_isa(isa) {}
+  explicit Assembler(std::shared_ptr<ISAInfoBase> isa)
+      : m_isa(std::move(isa)) {}
 
   AssembleResult
   assemble(const QStringList &programLines, const SymbolMap *symbols = nullptr,
@@ -188,12 +190,12 @@ public:
   }
 
   void setRelocations() {
-    if (m_relocationsMap.size() != 0) {
+    if (!m_relocationsMap.empty()) {
       throw std::runtime_error("Directives already set");
     }
     for (const auto &iter : m_isa->relocations()) {
-      const auto relocation = iter.get()->name();
-      if (m_relocationsMap.count(relocation) != 0) {
+      const auto relocation = iter->name();
+      if (m_relocationsMap.contains(relocation)) {
         throw std::runtime_error("Error: relocation " +
                                  relocation.toStdString() +
                                  " has already been registerred.");
@@ -206,10 +208,10 @@ protected:
   struct LinkRequest : public Location {
     // sourceLine: Source location of code which resulted in the link request
     LinkRequest(const Location &location) : Location(location) {}
-    Reg_T
-        offset; // Offset of instruction in segment which needs link resolution
-    Section section;         // Section which instruction was emitted in
-    unsigned instrAlignment; // Alignment of instruction in bytes
+    Reg_T offset{};  // Offset of instruction in segment which needs link
+                     // resolution
+    Section section; // Section which instruction was emitted in
+    unsigned instrAlignment{}; // Alignment of instruction in bytes
 
     // Reference to the immediate field which resolves the symbol and the
     // requested symbol
@@ -262,7 +264,7 @@ protected:
         if (!s.isLegal())
           errors.push_back(Error(tsl, "Illegal symbol '" + s.v + "'"));
 
-        if (!s.isLocal() && symbols.count(s) != 0) {
+        if (!s.isLocal() && symbols.contains(s)) {
           errors.push_back(
               Error(tsl, "Multiple definitions of symbol '" + s.v + "'"));
           uniqueSymbols = false;
@@ -293,7 +295,8 @@ protected:
         tokenizedLines.push_back(tsl);
       }
 
-      if (!tsl.directive.isEmpty() && m_earlyDirectives.count(tsl.directive)) {
+      if (!tsl.directive.isEmpty() &&
+          m_earlyDirectives.contains(tsl.directive)) {
         bool wasDirective; // unused
         runOperation(directiveBytes, assembleDirective,
                      DirectiveArg{tsl, nullptr}, wasDirective, false);
@@ -302,9 +305,8 @@ protected:
 
     if (!errors.empty()) {
       return {errors};
-    } else {
-      return {tokenizedLines};
     }
+    return {tokenizedLines};
   }
 
   /**
@@ -341,11 +343,10 @@ protected:
       }
     }
 
-    if (errors.size() != 0) {
+    if (!errors.empty()) {
       return {errors};
-    } else {
-      return {expandedLines};
     }
+    return {expandedLines};
   }
 
   /**
@@ -435,7 +436,7 @@ protected:
       // This was a directive; append any assembled bytes to the segment.
       currentSection->data.append(directiveBytes);
     }
-    if (errors.size() != 0) {
+    if (!errors.empty()) {
       return {errors};
     }
 
@@ -468,9 +469,8 @@ protected:
       if (auto *err = std::get_if<Error>(&exprRes)) {
         errors.push_back(*err);
         continue;
-      } else {
-        symbolValue = std::get<ExprEvalVT>(exprRes);
       }
+      symbolValue = std::get<ExprEvalVT>(exprRes);
 
       if (!linkRequest.fieldRequest.relocation.isEmpty()) {
         auto relocRes = m_relocationsMap.at(linkRequest.fieldRequest.relocation)
@@ -506,11 +506,10 @@ protected:
       // Finally, overwrite the instruction in the section
       *reinterpret_cast<Instr_T *>(section.data() + linkRequest.offset) = instr;
     }
-    if (errors.size() != 0) {
+    if (!errors.empty()) {
       return {errors};
-    } else {
-      return {NoPassResult()};
     }
+    return {NoPassResult()};
   }
 
   virtual Result<std::vector<LineTokens>>
@@ -519,14 +518,14 @@ protected:
       return Error(line, "Not a pseudo instruction");
     }
     const auto &opcode = line.tokens.at(0);
-    if (m_pseudoInstructionMap.count(opcode) == 0) {
+    if (!m_pseudoInstructionMap.contains(opcode)) {
       // Not a pseudo instruction
       return Error(line, "Not a pseudo instruction");
     }
     auto res = m_pseudoInstructionMap.at(opcode)->expand(line, m_symbolMap);
     if (auto *error = std::get_if<Error>(&res)) {
       Q_UNUSED(error);
-      if (m_instructionMap.count(opcode) != 0) {
+      if (m_instructionMap.contains(opcode)) {
         // If this pseudo-instruction aliases with an instruction but
         // threw an error (could arise if ie. arguments provided were
         // intended for the normal instruction and not the
@@ -558,12 +557,12 @@ protected:
   }
 
   void setPseudoInstructions() {
-    if (m_pseudoInstructionMap.size() != 0) {
+    if (!m_pseudoInstructionMap.empty()) {
       throw std::runtime_error("Pseudoinstructions already set");
     }
     for (const auto &iter : m_isa->pseudoInstructions()) {
-      const auto instr_name = iter.get()->name();
-      if (m_pseudoInstructionMap.count(instr_name) != 0) {
+      const auto instr_name = iter->name();
+      if (m_pseudoInstructionMap.contains(instr_name)) {
         throw std::runtime_error("Error: pseudo-instruction with opcode '" +
                                  instr_name.toStdString() +
                                  "' has already been registerred.");
@@ -573,12 +572,12 @@ protected:
   }
 
   void setInstructions() {
-    if (m_instructionMap.size() != 0) {
+    if (!m_instructionMap.empty()) {
       throw std::runtime_error("Instructions already set");
     }
     for (const auto &iter : m_isa->instructions()) {
-      const auto instr_name = iter.get()->name();
-      if (m_instructionMap.count(instr_name) != 0) {
+      const auto instr_name = iter->name();
+      if (m_instructionMap.contains(instr_name)) {
         throw std::runtime_error("Error: instruction with opcode '" +
                                  instr_name.toStdString() +
                                  "' has already been registerred.");
@@ -595,7 +594,7 @@ protected:
    */
   virtual Result<LineTokens>
   splitRelocationsFromLine(LineTokens &tokens) const {
-    if (tokens.size() == 0) {
+    if (tokens.empty()) {
       return {tokens};
     }
 
@@ -604,7 +603,7 @@ protected:
 
     Token relocationForNextToken;
     for (auto &token : tokens) {
-      if (m_relocationsMap.count(token)) {
+      if (m_relocationsMap.contains(token)) {
         relocationForNextToken = token;
       } else {
         if (!relocationForNextToken.isEmpty()) {
@@ -657,7 +656,8 @@ protected:
 class QAssembler : public QObject, public Assembler {
   Q_OBJECT
 public:
-  QAssembler(std::shared_ptr<ISAInfoBase> isaInfo) : Assembler(isaInfo) {
+  QAssembler(std::shared_ptr<ISAInfoBase> isaInfo)
+      : Assembler(std::move(isaInfo)) {
     // Initialize segment pointers and monitor settings changes to segment
     // pointers
     connect(RipesSettings::getObserver(RIPES_SETTING_ASSEMBLER_TEXTSTART),
@@ -681,7 +681,8 @@ public:
 /// An ISA-specific assembler
 template <ISA isa>
 struct ISA_Assembler : public QAssembler {
-  ISA_Assembler(std::shared_ptr<ISAInfoBase> isaInfo) : QAssembler(isaInfo) {
+  ISA_Assembler(std::shared_ptr<ISAInfoBase> isaInfo)
+      : QAssembler(std::move(isaInfo)) {
     initialize(gnuDirectives());
   }
 
@@ -694,7 +695,7 @@ protected:
 /// Returns an assembler for isa
 /// Throws a runtime error if the isa does not have a matching assembler
 std::shared_ptr<AssemblerBase>
-constructAssemblerDynamic(std::shared_ptr<ISAInfoBase> isa);
+constructAssemblerDynamic(const std::shared_ptr<ISAInfoBase> &isa);
 
 } // namespace Assembler
 

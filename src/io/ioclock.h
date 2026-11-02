@@ -33,26 +33,24 @@ class IOClock : public IOBase {
 
 public:
   IOClock(QWidget *parent);
-  ~IOClock() { unregister(); }
+  ~IOClock() override { unregister(); }
 
   enum Registers { TIME_LO, TIME_HI, NREGISTERS };
 
-  virtual unsigned byteSize() const override { return 8; }
-  virtual QString description() const override;
-  virtual QString baseName() const override { return "RTC"; }
+  unsigned byteSize() const override { return 8; }
+  QString description() const override;
+  QString baseName() const override { return "RTC"; }
 
-  virtual const std::vector<RegDesc> &registers() const override {
-    return m_regDescs;
-  }
+  const std::vector<RegDesc> &registers() const override { return m_regDescs; }
 
   /**
    * Hardware read/write functions
    */
-  virtual VInt ioRead(AInt offset, unsigned size) override;
-  virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
+  VInt ioRead(AInt offset, unsigned size) override;
+  void ioWrite(AInt offset, VInt value, unsigned size) override;
 
 protected:
-  virtual void parameterChanged(unsigned) override { /* no parameters */ }
+  void parameterChanged(unsigned) override { /* no parameters */ }
 
 private:
   /// Returns the current wall-clock time as nanoseconds since the Unix epoch.

@@ -21,7 +21,7 @@ struct StageInfo {
   enum class State { None, Stalled, Flushed, WayHazard, Unused };
   AInt pc = 0;
   bool stage_valid = false;
-  State state;
+  State state = State::None;
   QString namedState = "";
   bool operator==(const StageInfo &other) const {
     return this->pc == other.pc && this->stage_valid == other.stage_valid &&
@@ -35,8 +35,8 @@ struct StageInfo {
 struct MemoryAccess {
   enum Type { None, Read, Write };
   Type type = None;
-  AInt address;
-  unsigned bytes;
+  AInt address{};
+  unsigned bytes{};
 };
 
 /// A StageIndex denotes a unique stage within a processor.
@@ -126,8 +126,8 @@ struct ProcessorStructure : public std::map<unsigned, unsigned> {
  */
 class RipesProcessor {
 public:
-  RipesProcessor() {}
-  virtual ~RipesProcessor() {}
+  RipesProcessor() = default;
+  virtual ~RipesProcessor() = default;
 
   /**
    * @brief postConstruct
@@ -378,7 +378,7 @@ protected:
   virtual void clockProcessor() = 0;
 
   // m_features should be adjusted accordingly during processor construction
-  unsigned m_features;
+  unsigned m_features{};
   bool m_emitsSignals = true;
 };
 

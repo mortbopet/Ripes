@@ -88,12 +88,13 @@ template <typename T>
 class ProcInfo : public ProcInfoBase {
 public:
   using ProcInfoBase::ProcInfoBase;
-  std::unique_ptr<RipesProcessor> construct(const QStringList &extensions) {
+  std::unique_ptr<RipesProcessor>
+  construct(const QStringList &extensions) override {
     return std::make_unique<T>(extensions);
   }
   // At this point we force the processor type T to implement a static function
   // identifying its supported ISA.
-  ProcessorISAInfo isaInfo() const { return T::supportsISA(); }
+  ProcessorISAInfo isaInfo() const override { return T::supportsISA(); }
 };
 
 class ProcessorRegistry {

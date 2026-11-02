@@ -16,7 +16,7 @@ public:
   PrintIntSyscall()
       : BaseSyscall("PrintInt", "Prints an integer",
                     {{0, "integer to print"}}) {}
-  void execute() {
+  void execute() override {
     const VIntS arg0 = vsrtl::signextend<VInt, VIntS>(
         BaseSyscall::getArg(BaseSyscall::REG_FILE, 0),
         ProcessorHandler::currentISA()->bits());
@@ -32,7 +32,7 @@ public:
   PrintFloatSyscall()
       : BaseSyscall("PrintFloat", "Prints a floating point number",
                     {{0, "float to print"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     auto *v_f = reinterpret_cast<const float *>(&arg0);
     SystemIO::printString(QString::number(static_cast<double>(*v_f)));
@@ -47,7 +47,7 @@ public:
   PrintStrSyscall()
       : BaseSyscall("PrintString", "Prints a null-terminated string",
                     {{0, "address of the string"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     QByteArray string;
     char byte;
@@ -70,7 +70,7 @@ public:
       : BaseSyscall(
             "PrintChar", "Prints an ascii character",
             {{0, "character to print (only lowest byte is considered)"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     SystemIO::printString(QChar(static_cast<char>(arg0)));
   }
@@ -86,7 +86,7 @@ public:
             "PrintIntHex",
             "Prints an integer (in hexdecimal format left-padded with zeroes)",
             {{0, "integer to print"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     SystemIO::printString("0x" +
                           QString::number(arg0, 16).rightJustified(
@@ -104,7 +104,7 @@ public:
             "PrintIntBinary",
             "Prints an integer (in binary format left-padded with zeroes)",
             {{0, "integer to print"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     SystemIO::printString("0b" +
                           QString::number(arg0, 2).rightJustified(
@@ -120,7 +120,7 @@ public:
   PrintUnsignedSyscall()
       : BaseSyscall("PrintIntUnsigned", "Prints an integer (unsigned)",
                     {{0, "integer to print"}}) {}
-  void execute() {
+  void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     SystemIO::printString(QString::number(arg0));
   }

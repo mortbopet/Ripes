@@ -16,7 +16,7 @@ class ProcessorSelectionDialog : public QDialog {
 
 public:
   explicit ProcessorSelectionDialog(QWidget *parent = nullptr);
-  ~ProcessorSelectionDialog();
+  ~ProcessorSelectionDialog() override;
 
   ProcessorID getSelectedId() const { return m_selectedID; }
   RegisterInitialization getRegisterInitialization() const;
@@ -30,7 +30,7 @@ private:
   bool isCPUItem(const QTreeWidgetItem *item) const;
 
   enum ProcessorTreeColums { ProcessorColumn, ColumnCount };
-  ProcessorID m_selectedID;
+  ProcessorID m_selectedID{};
   Ui::ProcessorSelectionDialog *m_ui;
   std::map<ProcessorID, QStringList> m_selectedExtensionsForID;
 };

@@ -1,0 +1,53 @@
+name: clang-tidy
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  clang-tidy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: clang-tidy
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -q \
+        cmake ninja-build clang-19 clang-tidy-19 libgl1-mesa-dev \
+        libxkbcommon-x11-0 libxcb-cursor0
+
+    - name: install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.10.3'
+        modules: 'qtcharts'
+        install-deps: false
+
+    # A full build is required so that moc/uic generated headers exist.
+    - name: build Ripes
+      run: |
+        cmake -GNinja -DRIPES_BUILD_TESTS=OFF -DVSRTL_BUILD_TESTS=OFF \
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .
+        ninja
+
+    # The build is in-source, so exclude moc/uic generated sources.
+    - name: Run clang-tidy
+      run: |
+        run-clang-tidy-19 -p . -quiet -j "$(nproc)" \
+          -clang-tidy-binary clang-tidy-19 \
+          -warnings-as-errors='*' \
+          "^$PWD/src/(?!.*_autogen/)"

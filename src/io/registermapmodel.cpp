@@ -1,6 +1,7 @@
 #include "registermapmodel.h"
 
 #include <QHeaderView>
+#include <utility>
 
 #include "fonts.h"
 #include "iobase.h"
@@ -9,7 +10,7 @@
 namespace Ripes {
 
 RegisterMapModel::RegisterMapModel(QPointer<IOBase> peripheral, QObject *parent)
-    : QAbstractTableModel(parent), m_peripheral(peripheral) {
+    : QAbstractTableModel(parent), m_peripheral(std::move(peripheral)) {
   connect(m_peripheral, &IOBase::regMapChanged, this,
           &RegisterMapModel::regMapChanged);
 }
@@ -28,9 +29,8 @@ int RegisterMapModel::columnCount(const QModelIndex &) const {
 int RegisterMapModel::rowCount(const QModelIndex &) const {
   if (!m_peripheral.isNull()) {
     return m_peripheral->registers().size();
-  } else {
-    return 0;
   }
+  return 0;
 }
 
 QVariant RegisterMapModel::headerData(int section, Qt::Orientation orientation,

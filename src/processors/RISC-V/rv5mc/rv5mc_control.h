@@ -54,12 +54,12 @@ struct StateSignals {
                                             // memory for data and instructions
   bool ecall = false;
 };
-typedef FSMState (*TransitionFunc)(RVInstr);
+using TransitionFunc = FSMState (*)(RVInstr);
 
 struct StateInfo {   // There is an instance of this struct for each valid
                      // FSMState, created at initialization
   StateSignals outs; // Values for VSRT signals
-  TransitionFunc transitions;
+  TransitionFunc transitions{};
 };
 
 class RVMCControl : public Component {

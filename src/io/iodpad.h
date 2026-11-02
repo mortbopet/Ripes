@@ -20,26 +20,24 @@ class IODPad : public IOBase {
 
 public:
   IODPad(QWidget *parent);
-  ~IODPad() { unregister(); };
+  ~IODPad() override { unregister(); };
 
-  virtual unsigned byteSize() const override;
-  virtual QString description() const override;
-  virtual QString baseName() const override { return "D-Pad"; };
+  unsigned byteSize() const override;
+  QString description() const override;
+  QString baseName() const override { return "D-Pad"; };
 
-  virtual const std::vector<RegDesc> &registers() const override {
-    return m_regDescs;
-  };
+  const std::vector<RegDesc> &registers() const override { return m_regDescs; };
 
   /**
    * Hardware read/write functions
    */
-  virtual VInt ioRead(AInt offset, unsigned size) override;
-  virtual void ioWrite(AInt offset, VInt value, unsigned size) override;
+  VInt ioRead(AInt offset, unsigned size) override;
+  void ioWrite(AInt offset, VInt value, unsigned size) override;
 
-  virtual void reset() override;
+  void reset() override;
 
 protected:
-  virtual void parameterChanged(unsigned) override { /* no parameters */ };
+  void parameterChanged(unsigned) override { /* no parameters */ };
   void keyPressEvent(QKeyEvent *e) override;
   void keyReleaseEvent(QKeyEvent *e) override;
   void mousePressEvent(QMouseEvent *e) override;

@@ -15,7 +15,7 @@ signals:
 
 public:
   Console(QWidget *parent = nullptr);
-  void putData(const QByteArray &data);
+  void putData(const QByteArray &bytes);
   void clearConsole();
 
 protected:

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <cmath>
 #include <map>
-#include <math.h>
 #include <vector>
 
 #include <QDataStream>
@@ -20,13 +20,13 @@ enum ReplPolicy { Random, LRU };
 
 struct CachePreset {
   QString name;
-  int blocks;
-  int lines;
-  int ways;
+  int blocks{};
+  int lines{};
+  int ways{};
 
-  WritePolicy wrPolicy;
-  WriteAllocPolicy wrAllocPolicy;
-  ReplPolicy replPolicy;
+  WritePolicy wrPolicy{};
+  WriteAllocPolicy wrAllocPolicy{};
+  ReplPolicy replPolicy{};
 
   friend QDataStream &operator<<(QDataStream &arch, const CachePreset &object) {
     arch << object.name;
@@ -59,7 +59,7 @@ class CacheInterface : public QObject {
   Q_OBJECT
 public:
   CacheInterface(QObject *parent) : QObject(parent) {}
-  virtual ~CacheInterface() {}
+  ~CacheInterface() override = default;
 
   /**
    * @brief access
@@ -125,7 +125,7 @@ public:
   };
 
   struct CacheTransaction {
-    AInt address;
+    AInt address{};
     CacheIndex index;
 
     bool isHit = false;
@@ -145,7 +145,7 @@ public:
     int writes = 0;
     int writebacks = 0;
     CacheTransaction lastTransaction;
-    CacheAccessTrace() {}
+    CacheAccessTrace() = default;
     CacheAccessTrace(const CacheTransaction &transaction)
         : CacheAccessTrace(CacheAccessTrace(), transaction) {}
     CacheAccessTrace(const CacheAccessTrace &pre,
@@ -293,14 +293,14 @@ private:
    */
   std::map<unsigned, CacheLine> m_cacheLines;
 
-  void updateCacheLineReplFields(CacheLine &line, unsigned wayIdx);
+  void updateCacheLineReplFields(CacheLine &line, unsigned wayIdx) const;
   /**
    * @brief revertCacheLineReplFields
    * Called whenever undoing a transaction to the cache. Reverts a cacheline's
    * replacement fields according to the configured replacement policy.
    */
   void revertCacheLineReplFields(CacheLine &line, const CacheWay &oldWay,
-                                 unsigned wayIdx);
+                                 unsigned wayIdx) const;
 
   /**
    * @brief m_accessTrace

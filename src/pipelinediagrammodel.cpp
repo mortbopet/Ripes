@@ -39,10 +39,9 @@ QVariant PipelineDiagramModel::headerData(int section,
   if (orientation == Qt::Horizontal) {
     // Cycle number
     return QString::number(section);
-  } else {
-    const auto addr = indexToAddress(section);
-    return ProcessorHandler::disassembleInstr(addr);
   }
+  const auto addr = indexToAddress(section);
+  return ProcessorHandler::disassembleInstr(addr);
 }
 
 int PipelineDiagramModel::rowCount(const QModelIndex &) const {
@@ -126,7 +125,7 @@ QVariant PipelineDiagramModel::data(const QModelIndex &index, int role) const {
   if (role != Qt::DisplayRole)
     return QVariant();
 
-  if (!m_cycleStageInfos.count(index.column()))
+  if (!m_cycleStageInfos.contains(index.column()))
     return QVariant();
 
   const AInt addr = indexToAddress(index.row());
@@ -137,7 +136,7 @@ QVariant PipelineDiagramModel::data(const QModelIndex &index, int role) const {
   for (const auto &si : stageInfo) {
     if (si.second.pc == addr && si.second.stage_valid &&
         si.second.state == StageInfo::State::None) {
-      if (m_cycleStageInfos.count(index.column() - 1)) {
+      if (m_cycleStageInfos.contains(index.column() - 1)) {
         const auto &prevCycleStageInfo =
             m_cycleStageInfos.at(index.column() - 1);
         if (prevCycleStageInfo.at(si.first).stage_valid &&
@@ -158,7 +157,7 @@ QVariant PipelineDiagramModel::data(const QModelIndex &index, int role) const {
     }
   }
 
-  if (stagesForAddr.size() == 0) {
+  if (stagesForAddr.empty()) {
     return QVariant();
   }
 

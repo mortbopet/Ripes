@@ -38,8 +38,8 @@ public:
   GoToSectionComboBox(QWidget *parent = nullptr) : GoToComboBox(parent) {}
 
 private:
-  void addTargets();
-  AInt addrForIndex(int i);
+  void addTargets() override;
+  AInt addrForIndex(int i) override;
 };
 
 class GoToRegisterComboBox : public GoToComboBox {
@@ -47,8 +47,8 @@ public:
   GoToRegisterComboBox(QWidget *parent = nullptr) : GoToComboBox(parent) {}
 
 private:
-  void addTargets();
-  AInt addrForIndex(int i);
+  void addTargets() override;
+  AInt addrForIndex(int i) override;
 };
 
 } // namespace Ripes

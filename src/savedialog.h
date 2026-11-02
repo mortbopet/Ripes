@@ -15,7 +15,7 @@ class SaveDialog : public QDialog {
 
 public:
   explicit SaveDialog(SourceType sourceType, QWidget *parent = nullptr);
-  ~SaveDialog();
+  ~SaveDialog() override;
 
   QString getPath() {
     return RipesSettings::value(RIPES_SETTING_SAVEPATH).toString();

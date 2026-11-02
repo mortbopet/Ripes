@@ -237,9 +237,9 @@ public:
             if (instr_type == RVInstrType::U || instr_type == RVInstrType::J) {
                 return vsrtl::VSRTL_VT_U(0);
             }
-            else {
+            
                 return (instrValue >> 15) & 0b11111;
-            }
+           
             };
 
         r2_reg_idx << [this, get_instr_type] {
@@ -250,9 +250,9 @@ public:
             if (instr_type == RVInstrType::S || instr_type == RVInstrType::R || instr_type == RVInstrType::B) {
                 return (instrValue >> 20) & 0b11111;
             }
-            else {
+            
                 return vsrtl::VSRTL_VT_U(0);
-            }
+           
             };
 
     // clang-format on

@@ -14,22 +14,22 @@ namespace Ripes {
 
 /// Checks if an integer fits into the given bit width.
 template <unsigned N>
-constexpr inline bool isInt(VIntS x) {
+constexpr bool isInt(VIntS x) {
   return N >= 64 ||
          (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
 }
 
 // Template specializations to get better code for common cases.
 template <>
-constexpr inline bool isInt<8>(VIntS x) {
+constexpr bool isInt<8>(VIntS x) {
   return static_cast<int8_t>(x) == x;
 }
 template <>
-constexpr inline bool isInt<16>(VIntS x) {
+constexpr bool isInt<16>(VIntS x) {
   return static_cast<int16_t>(x) == x;
 }
 template <>
-constexpr inline bool isInt<32>(VIntS x) {
+constexpr bool isInt<32>(VIntS x) {
   int32_t x2 = static_cast<int32_t>(x);
   return x2 == x;
 }
@@ -58,23 +58,23 @@ constexpr bool isUInt(VInt)
 
 // Template specializations to get better code for common cases.
 template <>
-constexpr inline bool isUInt<8>(VInt x) {
+constexpr bool isUInt<8>(VInt x) {
   return static_cast<uint8_t>(x) == x;
 }
 template <>
-constexpr inline bool isUInt<16>(VInt x) {
+constexpr bool isUInt<16>(VInt x) {
   return static_cast<uint16_t>(x) == x;
 }
 template <>
-constexpr inline bool isUInt<32>(VInt x) {
+constexpr bool isUInt<32>(VInt x) {
   return static_cast<uint32_t>(x) == x;
 }
 
 // Runtime versions of the above
-constexpr inline bool isUInt(unsigned N, uint64_t X) {
+constexpr bool isUInt(unsigned N, uint64_t X) {
   return N >= 64 || X < (UINT64_C(1) << (N));
 }
-constexpr inline bool isInt(unsigned N, VIntS x) {
+constexpr bool isInt(unsigned N, VIntS x) {
   return N >= 64 ||
          (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
 }

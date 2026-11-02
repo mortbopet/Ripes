@@ -77,8 +77,8 @@ class VerifyValidTypes<Op, Type, NextTypes...> {
  *  Usually created from BitRange constructor
  */
 struct BitRangeBase {
-  constexpr BitRangeBase(unsigned _start, unsigned _stop, unsigned _N)
-      : start(_start), stop(_stop), N(_N) {}
+  constexpr BitRangeBase(unsigned _start, unsigned _stop, unsigned _nBits)
+      : start(_start), stop(_stop), N(_nBits) {}
 
   const unsigned start, stop, N;
 
@@ -106,18 +106,18 @@ struct BitRangeBase {
  * NOTE: start/stop values for bitranges are inclusive..
  * @param _start: Starting index of the range
  * @param _stop: Ending index of the range (inclusive)
- * @param _N: Number of bits in the range (should be power of 2)
+ * @param _nBits: Number of bits in the range (should be power of 2)
  */
-template <unsigned _start, unsigned _stop, unsigned _N = 32>
+template <unsigned _start, unsigned _stop, unsigned _nBits = 32>
 struct BitRange : public BitRangeBase {
-  static_assert(isPowerOf2(_N), "Bitrange N must be power of 2");
-  static_assert(_start <= _stop && _stop < _N, "invalid range");
+  static_assert(isPowerOf2(_nBits), "Bitrange N must be power of 2");
+  static_assert(_start <= _stop && _stop < _nBits, "invalid range");
 
-  constexpr BitRange() : BitRangeBase(_start, _stop, _N) {}
+  constexpr BitRange() : BitRangeBase(_start, _stop, _nBits) {}
 
   constexpr static unsigned start = _start;
   constexpr static unsigned stop = _stop;
-  constexpr static unsigned N = _N;
+  constexpr static unsigned N = _nBits;
 };
 
 /** A set of BitRanges.
@@ -196,13 +196,13 @@ struct OpPartBase {
 /** @brief A segment of an operation-identifying field of an instruction created
  * at compile-time.
  * @param _value: The value that identifies this OpPart.
- * @param _BitRange: The range of bits that contain this OpPart. Must be a
+ * @param _bitRange: The range of bits that contain this OpPart. Must be a
  * BitRange type.
  */
-template <unsigned _value, typename _BitRange>
+template <unsigned _value, typename _bitRange>
 class OpPart : public OpPartBase {
 public:
-  using BitRange = _BitRange;
+  using BitRange = _bitRange;
 
   constexpr static unsigned value = _value;
 
@@ -225,8 +225,8 @@ using ResolveSymbolFunc =
 /** @brief A request to link a field of an instruction to a symbol. */
 struct FieldLinkRequest {
   ResolveSymbolFunc resolveSymbol;
-  QString symbol = QString();
-  QString relocation = QString();
+  QString symbol;
+  QString relocation;
 };
 
 /// Struct used to dynamically index OpParts
@@ -238,7 +238,8 @@ struct IndexedOpPart {
     if (partIndex == 0) {
       // OpPart found
       return OpPart();
-    } else if constexpr (sizeof...(NextOpParts) > 0) {
+    }
+    if constexpr (sizeof...(NextOpParts) > 0) {
       // Check next OpPart
       return IndexedOpPart<NextOpParts...>::getOpPart(partIndex - 1);
     }
@@ -294,12 +295,12 @@ using AssembleRes = Result<InstrRes>;
 /** @brief An instruction field defined at compile-time.
  * @param _tokenIndex: The index of this field in an assembly instruction
  * (starting at 0).
- * @param _BitRanges: A set of BitRanges that define which bits contain field in
+ * @param _bitRanges: A set of BitRanges that define which bits contain field in
  * the instruction. Must be BitRangesImpl type.
  */
-template <unsigned _tokenIndex, typename _BitRanges>
+template <unsigned _tokenIndex, typename _bitRanges>
 struct Field {
-  using BitRanges = _BitRanges;
+  using BitRanges = _bitRanges;
 
 private:
   /// Run verifications for all BitRanges
@@ -412,8 +413,9 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
                         FieldLinkRequest &) {
     if (tokenIndex + 1 >= line.tokens.size()) {
       return Error(line, "Required field '" +
-                             QString(RegImpl::getName().data()) + "' (index " +
-                             QString::number(tokenIndex) + ") not provided");
+                             QString::fromUtf8(RegImpl::getName()) +
+                             "' (index " + QString::number(tokenIndex) +
+                             ") not provided");
     }
     const auto &regToken = line.tokens.at(tokenIndex + 1);
     bool success = false;
@@ -454,11 +456,11 @@ struct Reg : public Field<tokenIndex, BitRangeSet<BitRange>> {
 /** @brief A part of an immediate field.
  * @param _offset: The offset applied to this part when it is constructed into
  * an immediate value.
- * @param _BitRange: The range of bits that contain this part.
+ * @param _bitRange: The range of bits that contain this part.
  */
-template <unsigned _offset, typename _BitRange>
+template <unsigned _offset, typename _bitRange>
 struct ImmPartBase {
-  using BitRange = _BitRange;
+  using BitRange = _bitRange;
   // Declaration of BitRanges allows ImmPart to be compatible with
   // ImmPartsImpl
   using BitRanges = BitRangeSet<BitRange>;
@@ -540,7 +542,7 @@ static inline Radix reprToRadix(Repr repr) {
 }
 
 /// Function type for symbol transformers
-typedef Reg_T (*SymbolTransformer)(Reg_T);
+using SymbolTransformer = Reg_T (*)(Reg_T);
 
 /// The default immediate transformer. Returns the value unchanged.
 inline Reg_T defaultTransformer(Reg_T reg) { return reg; }
@@ -608,7 +610,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
 
       if (err)
         if (token.isEmpty())
-          token = QString::number(static_cast<Reg_T_S>(value));
+          token = QString::number(value);
     }
 
     if (err) {
@@ -689,7 +691,7 @@ struct ImmBase : public Field<tokenIndex, typename ImmParts::BitRanges> {
       const int value = vsrtl::signextend(reconstructed, width);
       const Reg_T symbolAddress =
           value + (symbolType == SymbolType::Absolute ? 0 : address);
-      if (symbolMap.count(symbolAddress)) {
+      if (symbolMap.contains(symbolAddress)) {
         line.push_back("<" + symbolMap.at(symbolAddress).v + ">");
       }
     }
@@ -886,13 +888,15 @@ template <typename InstrImpl>
 struct Instruction : public InstructionBase {
   Instruction()
       : InstructionBase(InstrByteSize<InstrImpl>::byteSize),
-        m_name(InstrImpl::NAME.data()) {}
+        m_name(QString::fromUtf8(InstrImpl::NAME)) {}
 
   AssembleRes assemble(const TokenizedSrcLine &line) override {
     Instr_T instruction = 0;
     FieldLinkRequest linksWithSymbol;
     constexpr unsigned numFields = InstrImpl::Fields::numFields();
 
+    // Copy is modified when the instruction has a memory operand.
+    // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
     TokenizedSrcLine tokens = line;
     if constexpr (HasMemOperand<InstrImpl>::value) {
       auto normalized =
@@ -946,12 +950,12 @@ using InstrMap = std::map<QString, std::shared_ptr<InstructionBase>>;
 using InstrVec = std::vector<std::shared_ptr<InstructionBase>>;
 
 template <typename InstrVecType, typename... Instructions>
-constexpr inline static void _enableInstructions(InstrVecType &instructions) {
+constexpr static void _enableInstructions(InstrVecType &instructions) {
   (instructions.emplace_back(std::make_unique<Instructions>()), ...);
 }
 
 template <typename... Instructions>
-constexpr inline static void enableInstructions(InstrVec &instructions) {
+constexpr static void enableInstructions(InstrVec &instructions) {
   // TODO(raccog): Combine instructions into a struct that can be used for
   // compile-time validation
   // TODO(raccog): Ensure no duplicate instruction definitions (will be

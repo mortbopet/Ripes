@@ -8,7 +8,7 @@ namespace Ripes {
 template <>
 class ISAInfo<ISA::RV32I> : public RVISA::RV_ISAInfoBase {
 public:
-  ISAInfo(const QStringList extensions) : RV_ISAInfoBase(extensions) {
+  ISAInfo(const QStringList &extensions) : RV_ISAInfoBase(extensions) {
     initialize();
   }
 
@@ -19,7 +19,7 @@ public:
   QString CCmarch() const override {
     QString march = "rv32i";
 
-    return _CCmarch(march);
+    return canonicalMarch(march);
   }
   QString CCmabi() const override { return "ilp32"; }
 

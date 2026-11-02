@@ -109,6 +109,7 @@ protected:
     ReferenceT R;
 
     template <typename RefT>
+    // NOLINTNEXTLINE(bugprone-forwarding-reference-overload): private proxy
     PointerProxy(RefT &&R) : R(std::forward<RefT>(R)) {}
 
   public:
@@ -235,11 +236,7 @@ struct result_pair {
 
   result_pair(const result_pair<R> &Other)
       : Index(Other.Index), Iter(Other.Iter) {}
-  result_pair &operator=(const result_pair &Other) {
-    Index = Other.Index;
-    Iter = Other.Iter;
-    return *this;
-  }
+  result_pair &operator=(const result_pair &Other) = default;
 
   std::size_t index() const { return Index; }
   const value_reference value() const { return *Iter; }
@@ -283,11 +280,8 @@ public:
     return Result.Iter == RHS.Result.Iter;
   }
 
-  enumerator_iter(const enumerator_iter &Other) : Result(Other.Result) {}
-  enumerator_iter &operator=(const enumerator_iter &Other) {
-    Result = Other.Result;
-    return *this;
-  }
+  enumerator_iter(const enumerator_iter &Other) = default;
+  enumerator_iter &operator=(const enumerator_iter &Other) = default;
 
 private:
   result_type Result;

@@ -22,7 +22,7 @@ public:
                const std::map<ArgIdx, QString> &returnDescriptions =
                    std::map<ArgIdx, QString>())
       : Syscall(name, description, argumentDescriptions, returnDescriptions) {}
-  ~RISCVSyscall() override {}
+  ~RISCVSyscall() override = default;
 
   VInt getArg(const std::string_view &rfid, ArgIdx i) const override {
     // RISC-V arguments range from a0-a6

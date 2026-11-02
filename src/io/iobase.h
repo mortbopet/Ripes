@@ -3,6 +3,7 @@
 #include <QVariant>
 #include <QWidget>
 #include <set>
+#include <utility>
 
 #include "assembler/program.h"
 #include "binutils.h"
@@ -19,12 +20,14 @@ namespace Ripes {
 QString cName(const QString &name);
 
 struct IOParam {
-  IOParam(unsigned _id, QString _name, QVariant _defValue, bool _hasRange,
-          QVariant _min = QVariant(), QVariant _max = QVariant())
-      : id(_id), name(_name), value(_defValue), defaultValue(_defValue),
-        hasRange(_hasRange), min(_min), max(_max) {}
+  IOParam(unsigned _id, QString _name, const QVariant &_defValue,
+          bool _hasRange, QVariant _min = QVariant(),
+          QVariant _max = QVariant())
+      : id(_id), name(std::move(_name)), value(_defValue),
+        defaultValue(_defValue), hasRange(_hasRange), min(std::move(_min)),
+        max(std::move(_max)) {}
 
-  IOParam() {}
+  IOParam() = default;
 
   unsigned id = -1;
   QString name;
@@ -42,15 +45,15 @@ struct IOParam {
 
 struct IOSymbol {
   Symbol name;
-  VInt value;
+  VInt value{};
 };
 
 struct RegDesc {
   enum class RW { R, W, RW };
   QString name;
-  RW rw;
-  unsigned bitWidth;
-  AInt address;
+  RW rw{};
+  unsigned bitWidth{};
+  AInt address{};
   /**
    * @brief exported
    * if true, a constant symbol is generated that may be referenced in the
@@ -64,7 +67,7 @@ class IOBase : public QWidget {
 
 public:
   IOBase(unsigned IOType /*ioregistry.h::IOType*/, QWidget *parent);
-  virtual ~IOBase() {
+  ~IOBase() override {
     assert(m_didUnregister &&
            "IO peripherals must call unregister() in their destructor!");
     unclaimPeripheralId(m_type, m_id);
@@ -221,12 +224,12 @@ protected:
     } else {
       // Just scan linearly from 0 and up until a free ID is found. Not optimal,
       // but # of peripherals is small so no reason to overengineer.
-      while (currentIDs.count(id) != 0) {
+      while (currentIDs.contains(id)) {
         id++;
       }
     }
 
-    if (currentIDs.count(forcedID) != 0) {
+    if (currentIDs.contains(forcedID)) {
       throw std::runtime_error(
           "Trying to claim a peripheral ID already claimed");
     }

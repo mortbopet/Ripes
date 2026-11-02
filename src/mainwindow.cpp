@@ -369,7 +369,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
       // Dont exit
       event->ignore();
       return;
-    } else if (result == QMessageBox::Yes) {
+    }
+    if (result == QMessageBox::Yes) {
       saveFilesTriggered();
     }
   }
@@ -465,11 +466,11 @@ void MainWindow::saveFilesTriggered() {
       return;
     QFile file(diag.binaryPath());
     auto program = ProcessorHandler::getProgram();
-    if (!program || (program.get()->sections.count(".text") == 0))
+    if (!program || (!program->sections.contains(".text")))
       return;
 
     savedFiles << diag.binaryPath();
-    if (!writeBinaryFile(file, program.get()->sections.at(".text").data)) {
+    if (!writeBinaryFile(file, program->sections.at(".text").data)) {
       QMessageBox::information(this, "File error",
                                "Error when saving file: " + file.errorString());
       return;

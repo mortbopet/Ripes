@@ -163,7 +163,7 @@ public:
   }
 
   static bool hasSetting(const QString &key) {
-    return get().m_observers.count(key) != 0;
+    return get().m_observers.contains(key);
   }
 
   /**
@@ -178,7 +178,7 @@ private:
     return inst;
   }
   RipesSettings();
-  ~RipesSettings();
+  ~RipesSettings() override;
 
   std::map<QString, SettingObserver> m_observers;
 };

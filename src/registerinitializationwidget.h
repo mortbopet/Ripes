@@ -25,15 +25,15 @@ class RegisterInitializationWidget : public QWidget {
     RegisterSelectionComboBox *name = nullptr;
     QLineEdit *value = nullptr;
     QPushButton *remove = nullptr;
-    std::string_view regFileName = "";
+    std::string_view regFileName;
 
     ~RegInitWidgets() { clear(); }
-    void clear();
+    void clear() const;
   };
 
 public:
   explicit RegisterInitializationWidget(QWidget *parent = nullptr);
-  ~RegisterInitializationWidget();
+  ~RegisterInitializationWidget() override;
 
   RegisterInitialization getInitialization() const;
 
@@ -51,7 +51,7 @@ private:
   Ui::RegisterInitializationWidget *m_ui = nullptr;
 
   static std::map<ProcessorID, RegisterInitialization> m_initializations;
-  ProcessorID m_currentID;
+  ProcessorID m_currentID{};
   QRegularExpressionValidator *m_hexValidator;
 
   std::vector<std::unique_ptr<RegInitWidgets>> m_currentRegInitWidgets;

@@ -30,7 +30,7 @@ private:
    * @brief CCPathChanged
    * Rehighlightss the current CCPath if the CC is @param valid
    */
-  void CCPathChanged(CCManager::CCRes res);
+  void CCPathChanged(const CCManager::CCRes &res);
   QLineEdit *m_ccpath = nullptr;
   QPlainTextEdit *m_compileInfo = nullptr;
   QLabel *m_compileInfoHeader = nullptr;

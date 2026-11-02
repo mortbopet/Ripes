@@ -63,7 +63,7 @@ CodeEditor::CodeEditor(QWidget *parent) : HighlightableTextEdit(parent) {
 
 struct ClangFormatResult {
   // remapped cursor position. see clang-format --cursor for more info.
-  unsigned cursor;
+  unsigned cursor{};
   QString formattedText;
 };
 
@@ -228,7 +228,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *e) {
     auto cursor = textCursor();
     cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor);
     setTextCursor(cursor);
-  } else if (c_bracketPair.count(e->text()) &&
+  } else if (c_bracketPair.contains(e->text()) &&
              (postCursorChar == " " || postCursorChar.isEmpty())) {
     // Add closing bracket on bracket start
     QPlainTextEdit::keyPressEvent(e);
@@ -274,7 +274,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *e) {
         textCursor().deletePreviousChar();
       }
     } else if (!preCursorChar.isEmpty() && !postCursorChar.isEmpty() &&
-               c_bracketPair.count(preCursorChar) &&
+               c_bracketPair.contains(preCursorChar) &&
                postCursorChar == c_bracketPair.at(preCursorChar)) {
       // Delete closing bracket if right after opening bracket
       textCursor().deletePreviousChar();
@@ -331,7 +331,7 @@ bool CodeEditor::event(QEvent *event) {
     QTextCursor textAtCursor = cursorForPosition(helpEvent->pos());
     const int row = textAtCursor.block().firstLineNumber();
 
-    if (m_errors && m_errors->toMap().count(row) != 0) {
+    if (m_errors && m_errors->toMap().contains(row)) {
       QToolTip::showText(helpEvent->globalPos(), m_errors->toMap().at(row));
     } else {
       QToolTip::hideText();

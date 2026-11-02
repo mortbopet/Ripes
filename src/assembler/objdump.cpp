@@ -21,8 +21,8 @@ static void incrementAddressOffsetMap(const QString &text, AddrOffsetMap &map,
 using Stringifier =
     std::function<OpDisassembleResult(const std::vector<char> &, AInt)>;
 
-QString stringifyProgram(std::weak_ptr<const Program> program,
-                         Stringifier stringifier,
+QString stringifyProgram(const std::weak_ptr<const Program> &program,
+                         const Stringifier &stringifier,
                          AddrOffsetMap &addrOffsetMap) {
   if (auto sp = program.lock()) {
     const auto *textSection = sp->getSection(TEXT_SECTION_NAME);
@@ -52,7 +52,7 @@ QString stringifyProgram(std::weak_ptr<const Program> program,
       }
 
       // symbol label
-      if (sp->symbols.count(addr)) {
+      if (sp->symbols.contains(addr)) {
         const auto &symbol = sp->symbols.at(addr);
         // We are adding non-instruction lines to the output string. Record the
         // line number as well as the sum of invalid lines up to the given

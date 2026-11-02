@@ -347,10 +347,10 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
           return false;
         }
 
-        std::string_view rfid = "";
+        std::string_view rfid;
         auto fileNames = isa->regFileNames();
         for (const auto &regFileName : fileNames) {
-          if (regFile == QString(regFileName.data())) {
+          if (regFile == QString::fromUtf8(regFileName)) {
             rfid = regFileName;
             break;
           }
@@ -370,10 +370,10 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
           return false;
         }
 
-        if (options.regInit.count(rfid) == 0) {
+        if (!options.regInit.contains(rfid)) {
           options.regInit[rfid] = {{regIdx, regVal}};
         } else {
-          if (options.regInit.at(rfid).count(regIdx) > 0) {
+          if (options.regInit.at(rfid).contains(regIdx)) {
             errorMessage = "Duplicate register initialization for register " +
                            QString::number(regIdx) + " specified (--reginit).";
             return false;

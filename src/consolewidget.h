@@ -13,7 +13,7 @@ class ConsoleWidget : public QWidget {
 
 public:
   explicit ConsoleWidget(QWidget *parent = nullptr);
-  ~ConsoleWidget();
+  ~ConsoleWidget() override;
 
   void putData(const QByteArray &data);
   void clearConsole();

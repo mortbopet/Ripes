@@ -142,9 +142,8 @@ QVariant InstructionModel::stageData(AInt addr) const {
   }
   if (stagesForAddr.isEmpty()) {
     return QVariant();
-  } else {
-    return stagesForAddr.join("/");
   }
+  return stagesForAddr.join("/");
 }
 
 QVariant InstructionModel::instructionData(AInt addr) const {

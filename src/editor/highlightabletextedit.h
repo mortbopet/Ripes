@@ -25,7 +25,7 @@ class HighlightableTextEdit : public QPlainTextEdit {
     // After countless of hours of debugging, it's deemed that all of this is
     // very unsafe to store outside of the QPlainTextEdit itself, and so we just
     // rebuild all of this info whenever needed.
-    int blockNumber;
+    int blockNumber{};
   };
 
 public:

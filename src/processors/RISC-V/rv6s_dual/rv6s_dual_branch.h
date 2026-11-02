@@ -42,10 +42,9 @@ public:
       computeCycle();
       if (m_did_controlflow) {
         return PcSrc::ALU;
-      } else {
-        // Todo: Info from scheduling
-        return PcSrc::PC4;
       }
+      // Todo: Info from scheduling
+      return PcSrc::PC4;
     };
 
     did_controlflow << [this] {
@@ -64,7 +63,7 @@ public:
 
 private:
   unsigned cachedCycle = -1;
-  bool m_did_controlflow;
+  bool m_did_controlflow{};
 };
 
 } // namespace core
