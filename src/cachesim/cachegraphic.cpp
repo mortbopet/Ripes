@@ -310,43 +310,6 @@ CacheGraphic::createGraphicsTextItemSP(qreal x, qreal y) {
 }
 
 void CacheGraphic::drawIndexingItems() {
-  QPen wirePen;
-  wirePen.setColor(Qt::darkGray);
-
-  const auto drawBundleDropWires = [this,
-                                    &wirePen](const qreal sourceD,
-                                              const QVector<QPointF> &dropoffs,
-                                              bool horizontal) {
-    const qreal maxD =
-        std::max_element(dropoffs.begin(), dropoffs.end(),
-                         [this, horizontal](const auto &p1, const auto &p2) {
-                           return horizontal ? p1.x() > p2.x()
-                                             : p1.y() > p2.y();
-                         })
-            ->y();
-    const qreal dPos = maxD - m_setHeight;
-    const QPointF pSource =
-        QPointF(horizontal ? dPos : sourceD, horizontal ? sourceD : dPos);
-    std::vector<FancyPolyLine *> lines;
-    int i = 1;
-    for (const auto &pDrop : dropoffs) {
-      QPolygonF poly;
-      poly << pSource;
-      poly << QPointF(horizontal ? pSource.x() : pDrop.x(),
-                      horizontal ? pDrop.y() : pSource.y());
-      poly << pDrop;
-      auto *polyLine = new FancyPolyLine(m_setHeight / 3, this);
-      polyLine->showStartDot(false);
-      polyLine->showEndArrow(true);
-      polyLine->setPolygon(poly);
-      polyLine->setPen(wirePen);
-      lines.push_back(polyLine);
-      polyLine->setZValue(-i);
-      i++;
-    }
-    return lines;
-  };
-
   // Draw address box
   const QString addressText = QString("-").repeated(32);
   m_addressTextItem = drawText(addressText, 0, 0 - m_setHeight * 3.5);

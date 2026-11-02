@@ -216,7 +216,7 @@ int CLIRunner::processInput() {
     QString fileContent = file.readAll();
     file.close();
     auto res = CCManager::get().compileRaw(fileContent, QString(),
-                                           /* enableGUI = */ false);
+                                           /* showProgressdiag = */ false);
     if (res.success) {
       m_options.src = res.outFile;
       m_options.srcType = SourceType::ExternalELF;

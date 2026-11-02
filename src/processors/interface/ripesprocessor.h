@@ -21,7 +21,7 @@ struct StageInfo {
   enum class State { None, Stalled, Flushed, WayHazard, Unused };
   AInt pc = 0;
   bool stage_valid = false;
-  State state;
+  State state = State::None;
   QString namedState = "";
   bool operator==(const StageInfo &other) const {
     return this->pc == other.pc && this->stage_valid == other.stage_valid &&

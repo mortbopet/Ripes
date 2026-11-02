@@ -52,7 +52,7 @@ DirectiveVec gnuDirectives() {
   auto exprRes##res = assembler->evalExpr(location, token);                    \
   if (auto *err = std::get_if<Error>(&exprRes##res))                           \
     return {*err};                                                             \
-  res = std::get<ExprEvalVT>(exprRes##res);
+  (res) = std::get<ExprEvalVT>(exprRes##res);
 
 template <size_t size>
 std::optional<Error> assembleData(const AssemblerBase *assembler,

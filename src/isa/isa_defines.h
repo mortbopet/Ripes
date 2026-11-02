@@ -21,7 +21,7 @@ enum class Radix { Hex, Binary, Unsigned, Signed, ASCII, Float };
 struct ImmConvInfo {
   bool isUnsigned = false;
   bool is32bit = false;
-  Radix radix;
+  Radix radix{};
 };
 
 inline int64_t getImmediate(const QString &string, bool &canConvert,

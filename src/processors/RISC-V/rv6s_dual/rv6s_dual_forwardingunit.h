@@ -31,11 +31,11 @@ class ForwardingUnit_DUAL : public Component {
         mem_reg_wr_en_data.uValue() &&
         mem_reg_mem_op.eValue<MemOp>() == MemOp::NOP) {
       return ForwardingSrcDual::MemStageMem;
-    } else if (readidx == wb_reg_wr_idx_exec.uValue() &&
-               wb_reg_wr_en_exec.uValue()) {
+    }
+    if (readidx == wb_reg_wr_idx_exec.uValue() && wb_reg_wr_en_exec.uValue()) {
       return ForwardingSrcDual::WbStageExec;
-    } else if (readidx == wb_reg_wr_idx_data.uValue() &&
-               wb_reg_wr_en_data.uValue()) {
+    }
+    if (readidx == wb_reg_wr_idx_data.uValue() && wb_reg_wr_en_data.uValue()) {
       return ForwardingSrcDual::WbStageMem;
     }
     return ForwardingSrcDual::IdStage;

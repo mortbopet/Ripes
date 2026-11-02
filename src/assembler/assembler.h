@@ -194,7 +194,7 @@ public:
       throw std::runtime_error("Directives already set");
     }
     for (const auto &iter : m_isa->relocations()) {
-      const auto relocation = iter.get()->name();
+      const auto relocation = iter->name();
       if (m_relocationsMap.contains(relocation)) {
         throw std::runtime_error("Error: relocation " +
                                  relocation.toStdString() +
@@ -561,7 +561,7 @@ protected:
       throw std::runtime_error("Pseudoinstructions already set");
     }
     for (const auto &iter : m_isa->pseudoInstructions()) {
-      const auto instr_name = iter.get()->name();
+      const auto instr_name = iter->name();
       if (m_pseudoInstructionMap.contains(instr_name)) {
         throw std::runtime_error("Error: pseudo-instruction with opcode '" +
                                  instr_name.toStdString() +
@@ -576,7 +576,7 @@ protected:
       throw std::runtime_error("Instructions already set");
     }
     for (const auto &iter : m_isa->instructions()) {
-      const auto instr_name = iter.get()->name();
+      const auto instr_name = iter->name();
       if (m_instructionMap.contains(instr_name)) {
         throw std::runtime_error("Error: instruction with opcode '" +
                                  instr_name.toStdString() +

@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QThread>
 #include <random>
+#include <stdexcept>
 #include <utility>
 
 namespace Ripes {
@@ -187,6 +188,8 @@ CacheSim::locateEvictionWay(const CacheTransaction &transaction) {
 
 CacheSim::CacheWay CacheSim::evictAndUpdate(CacheTransaction &transaction) {
   const auto [wayIdx, wayPtr] = locateEvictionWay(transaction);
+  if (wayPtr == nullptr)
+    throw std::runtime_error("Unable to locate way for eviction");
 
   CacheWay eviction;
 
@@ -411,7 +414,7 @@ void CacheSim::undo() {
   // invalidate the cache way
   if (trace.transaction.transToValid) {
     // Invalidate the way
-    Q_ASSERT(m_cacheLines.at(lineIdx).count(wayIdx) != 0);
+    Q_ASSERT(m_cacheLines.at(lineIdx).contains(wayIdx));
     way = CacheWay();
   }
   // Case 2: A miss occurred on a valid entry. In this case, we have to restore
@@ -444,8 +447,8 @@ CacheSim::CacheTrace CacheSim::popTrace() {
   return val;
 }
 
-void CacheSim::pushTrace(const CacheTrace &eviction) {
-  m_traceStack.push_front(eviction);
+void CacheSim::pushTrace(const CacheTrace &trace) {
+  m_traceStack.push_front(trace);
   if (m_traceStack.size() > vsrtl::core::ClockedComponent::reverseStackSize()) {
     m_traceStack.pop_back();
   }

@@ -51,7 +51,7 @@ private:
   Ui::RegisterInitializationWidget *m_ui = nullptr;
 
   static std::map<ProcessorID, RegisterInitialization> m_initializations;
-  ProcessorID m_currentID;
+  ProcessorID m_currentID{};
   QRegularExpressionValidator *m_hexValidator;
 
   std::vector<std::unique_ptr<RegInitWidgets>> m_currentRegInitWidgets;

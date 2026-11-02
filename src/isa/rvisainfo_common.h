@@ -244,7 +244,7 @@ protected:
     }
   }
 
-  QString _CCmarch(QString march) const {
+  QString canonicalMarch(QString march) const {
     // Proceed in canonical order. Canonical ordering is defined in the RISC-V
     // spec.
     for (const auto &ext : {"M", "A", "F", "D", "C"}) {

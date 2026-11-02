@@ -10,7 +10,6 @@
 
 namespace Ripes {
 
-class Parser;
 class Pipeline;
 
 class InstructionModel : public QAbstractTableModel {

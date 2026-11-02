@@ -566,7 +566,7 @@ struct PseudoInstrLoad : public PseudoInstruction<PseudoInstrImpl> {
     v.push_back(LineTokens() << Token("auipc") << line.tokens.at(1)
                              << Token(line.tokens.at(2), "%pcrel_hi"));
     v.push_back(LineTokens()
-                << QString(PseudoInstrImpl::NAME.data()) << line.tokens.at(1)
+                << QString::fromUtf8(PseudoInstrImpl::NAME) << line.tokens.at(1)
                 << Token(QString("(%1 + 4) ").arg(line.tokens.at(2)),
                          "%pcrel_lo")
                 << line.tokens.at(1));
@@ -593,7 +593,7 @@ struct PseudoInstrStore : public PseudoInstruction<PseudoInstrImpl> {
     v.push_back(LineTokens() << Token("auipc") << line.tokens.at(3)
                              << Token(line.tokens.at(2), "%pcrel_hi"));
     v.push_back(LineTokens()
-                << QString(PseudoInstrImpl::NAME.data()) << line.tokens.at(1)
+                << QString::fromUtf8(PseudoInstrImpl::NAME) << line.tokens.at(1)
                 << Token(QString("(%1 + 4)").arg(line.tokens.at(2)),
                          "%pcrel_lo")
                 << line.tokens.at(3));

@@ -55,7 +55,7 @@ void AssemblerBase::setDirectives(const DirectiveVec &directives) {
   }
   m_directives = directives;
   for (const auto &iter : m_directives) {
-    const auto directive = iter.get()->name();
+    const auto directive = iter->name();
     if (m_directivesMap.contains(directive)) {
       throw std::runtime_error("Error: directive " + directive.toStdString() +
                                " has already been registerred.");

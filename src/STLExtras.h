@@ -109,6 +109,7 @@ protected:
     ReferenceT R;
 
     template <typename RefT>
+    // NOLINTNEXTLINE(bugprone-forwarding-reference-overload): private proxy
     PointerProxy(RefT &&R) : R(std::forward<RefT>(R)) {}
 
   public:
@@ -279,11 +280,8 @@ public:
     return Result.Iter == RHS.Result.Iter;
   }
 
-  enumerator_iter(const enumerator_iter &Other) : Result(Other.Result) {}
-  enumerator_iter &operator=(const enumerator_iter &Other) {
-    Result = Other.Result;
-    return *this;
-  }
+  enumerator_iter(const enumerator_iter &Other) = default;
+  enumerator_iter &operator=(const enumerator_iter &Other) = default;
 
 private:
   result_type Result;

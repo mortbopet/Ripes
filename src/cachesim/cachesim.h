@@ -24,9 +24,9 @@ struct CachePreset {
   int lines{};
   int ways{};
 
-  WritePolicy wrPolicy;
-  WriteAllocPolicy wrAllocPolicy;
-  ReplPolicy replPolicy;
+  WritePolicy wrPolicy{};
+  WriteAllocPolicy wrAllocPolicy{};
+  ReplPolicy replPolicy{};
 
   friend QDataStream &operator<<(QDataStream &arch, const CachePreset &object) {
     arch << object.name;

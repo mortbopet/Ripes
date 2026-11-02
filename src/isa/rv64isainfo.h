@@ -19,7 +19,7 @@ public:
   QString CCmarch() const override {
     QString march = "rv64i";
 
-    return _CCmarch(march);
+    return canonicalMarch(march);
   }
   QString CCmabi() const override { return "lp64"; }
 

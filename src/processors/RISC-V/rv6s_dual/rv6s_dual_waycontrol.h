@@ -96,9 +96,8 @@ private:
     }
     if (opcode == RVInstr::ECALL) {
       return WayClass::Ecall;
-    } else {
-      return WayClass::Arithmetic;
     }
+    return WayClass::Arithmetic;
   }
 
   WaySrc otherWay(const WaySrc way) const {

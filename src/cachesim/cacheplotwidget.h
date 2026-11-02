@@ -107,8 +107,8 @@ private:
   Ui::CachePlotWidget *m_ui;
   std::shared_ptr<CacheSim> m_cache;
 
-  CachePlotWidget::Variable m_numerator;
-  CachePlotWidget::Variable m_denominator;
+  CachePlotWidget::Variable m_numerator{};
+  CachePlotWidget::Variable m_denominator{};
 
   QAction *m_copyDataAction = nullptr;
   QAction *m_savePlotAction = nullptr;

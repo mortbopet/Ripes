@@ -261,7 +261,7 @@ void IOTab::setPeripheralMDIWindowActive(int tabIndex) {
 
 void IOTab::removePeripheral(QObject *peripheral) {
   auto *tab = m_periphToTab.at(peripheral);
-  Q_ASSERT(m_subWindows.count(tab) != 0);
+  Q_ASSERT(m_subWindows.contains(tab));
   m_subWindows.erase(tab);
   m_periphToTab.at(peripheral)->deleteLater();
   m_periphToTab.erase(peripheral);

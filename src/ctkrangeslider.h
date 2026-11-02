@@ -18,8 +18,8 @@
 
 =========================================================================*/
 
-#ifndef __ctkRangeSlider_h
-#define __ctkRangeSlider_h
+#ifndef ctkRangeSlider_h
+#define ctkRangeSlider_h
 
 // Qt includes
 #include <QSlider>
@@ -61,7 +61,7 @@ public:
   /// a lower and upper values of 0 and 100 respectively, other properties
   /// are set the QSlider default properties.
   explicit ctkRangeSlider(Qt::Orientation o, QWidget *par = nullptr);
-  explicit ctkRangeSlider(QWidget *par = nullptr);
+  explicit ctkRangeSlider(QWidget *_parent = nullptr);
   ~ctkRangeSlider() override;
 
   ///
@@ -82,13 +82,13 @@ public:
   /// This property holds the current slider minimum position.
   /// If tracking is enabled (the default), this is identical to minimumValue.
   int minimumPosition() const;
-  void setMinimumPosition(int min);
+  void setMinimumPosition(int l);
 
   ///
   /// This property holds the current slider maximum position.
   /// If tracking is enabled (the default), this is identical to maximumValue.
   int maximumPosition() const;
-  void setMaximumPosition(int max);
+  void setMaximumPosition(int u);
 
   ///
   /// Utility function that set the minimum position and
@@ -172,7 +172,7 @@ public Q_SLOTS:
   /// Note: Changing the minimumValue and maximumValue also changes the
   /// minimumPosition and maximumPosition.
   /// \sa setMinimumValue, setMaximumValue, setMinimum, setMaximum, setRange
-  void setValues(int min, int max);
+  void setValues(int l, int u);
 
 protected Q_SLOTS:
   void onRangeChanged(int minimum, int maximum);
@@ -180,13 +180,13 @@ protected Q_SLOTS:
 protected:
   ctkRangeSlider(ctkRangeSliderPrivate *impl, Qt::Orientation o,
                  QWidget *par = nullptr);
-  ctkRangeSlider(ctkRangeSliderPrivate *impl, QWidget *par = nullptr);
+  ctkRangeSlider(ctkRangeSliderPrivate *impl, QWidget *_parent = nullptr);
 
   // Description:
   // Standard Qt UI events
-  void mousePressEvent(QMouseEvent *ev) override;
-  void mouseMoveEvent(QMouseEvent *ev) override;
-  void mouseReleaseEvent(QMouseEvent *ev) override;
+  void mousePressEvent(QMouseEvent *mouseEvent) override;
+  void mouseMoveEvent(QMouseEvent *mouseEvent) override;
+  void mouseReleaseEvent(QMouseEvent *mouseEvent) override;
 
   // Description:
   // Rendering is done here.

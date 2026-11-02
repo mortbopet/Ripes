@@ -94,7 +94,7 @@ Result<QStringList> tokenizeQuotes(const Location &location,
   for (auto &ch : line) {
     if (inQuotes) {
       if (!escape) {
-        if (inQuotes && ch == '"') {
+        if (ch == '"') {
           inQuotes = false;
           substr += ch;
           pushSubstr();

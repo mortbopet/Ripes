@@ -51,7 +51,7 @@ struct IOSymbol {
 struct RegDesc {
   enum class RW { R, W, RW };
   QString name;
-  RW rw;
+  RW rw{};
   unsigned bitWidth{};
   AInt address{};
   /**

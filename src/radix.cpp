@@ -69,9 +69,11 @@ VInt decodeRadixValue(QString value, bool *ok) {
   }
   if (unsignedRegex.match(value).hasMatch()) {
     return value.toUInt(ok, 10);
-  } else if (signedRegex.match(value).hasMatch()) {
+  }
+  if (signedRegex.match(value).hasMatch()) {
     return value.toInt(ok, 10);
-  } else if (floatRegex.match(value).hasMatch()) {
+  }
+  if (floatRegex.match(value).hasMatch()) {
     return value.toFloat(ok);
   }
 

@@ -350,7 +350,7 @@ bool parseCLIOptions(QCommandLineParser &parser, QString &errorMessage,
         std::string_view rfid;
         auto fileNames = isa->regFileNames();
         for (const auto &regFileName : fileNames) {
-          if (regFile == QString(regFileName.data())) {
+          if (regFile == QString::fromUtf8(regFileName)) {
             rfid = regFileName;
             break;
           }

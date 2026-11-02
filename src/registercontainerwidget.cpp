@@ -27,8 +27,8 @@ void RegisterContainerWidget::initialize() {
     auto regDesc = regFile.second->regFileDesc();
     auto registerWidget = new RegisterWidget(rfid, this);
     const unsigned tabIdx = m_ui->tabWidget->count();
-    m_ui->tabWidget->insertTab(tabIdx, registerWidget, QString(rfid.data()));
-    m_ui->tabWidget->setTabToolTip(tabIdx, QString(regDesc.data()));
+    m_ui->tabWidget->insertTab(tabIdx, registerWidget, QString::fromUtf8(rfid));
+    m_ui->tabWidget->setTabToolTip(tabIdx, QString::fromUtf8(regDesc));
     registerWidget->initialize();
   }
   updateView();

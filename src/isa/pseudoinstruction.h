@@ -25,7 +25,7 @@ struct PseudoInstruction : public PseudoInstructionBase {
     return 1 + PseudoInstrImpl::Fields::numFields();
   }
   QString name() const override {
-    return QString(PseudoInstrImpl::NAME.data());
+    return QString::fromUtf8(PseudoInstrImpl::NAME);
   }
   Result<std::vector<LineTokens>> expand(const TokenizedSrcLine &line,
                                          SymbolMap &symbols) const override {

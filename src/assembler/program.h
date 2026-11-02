@@ -31,7 +31,7 @@ enum SourceType {
 
 struct LoadFileParams {
   QString filepath;
-  SourceType type;
+  SourceType type{};
   AInt binaryEntryPoint{};
   AInt binaryLoadAt{};
 };

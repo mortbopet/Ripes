@@ -15,8 +15,11 @@ const QRegularExpression s_exprOperatorsRegex =
 const QString s_exprOperators QStringLiteral("+-*/%@");
 const QString s_exprTokens QStringLiteral("()+-*/%@");
 
+// TExpr is a type and boundVar a declarator; neither can be parenthesized.
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define IfExpr(TExpr, boundVar)                                                \
   if (auto *boundVar = std::get_if<TExpr>(expr.get())) {
+// NOLINTEND(bugprone-macro-parentheses)
 #define FiExpr }
 
 struct Expr;
@@ -28,62 +31,62 @@ struct Printable {
 
 struct Nothing : Printable {
   Nothing() = default;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Literal : Printable {
   explicit Literal(const QString &_v) : v(_v) {}
   QString v;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Add : Printable {
   Add(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Sub : Printable {
   Sub(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Mul : Printable {
   Mul(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Div : Printable {
   Div(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Mod : Printable {
   Mod(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct And : Printable {
   And(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Or : Printable {
   Or(const std::shared_ptr<Expr> &_lhs, const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct SignExtend : Printable {
@@ -91,7 +94,7 @@ struct SignExtend : Printable {
              const std::shared_ptr<Expr> &_rhs)
       : lhs(_lhs), rhs(_rhs) {}
   std::shared_ptr<Expr> lhs, rhs;
-  void print(std::ostream &str) const override;
+  void print(std::ostream &os) const override;
 };
 
 struct Expr : std::variant<Literal, Add, Mul, Div, Sub, Mod, And, Or, Nothing,

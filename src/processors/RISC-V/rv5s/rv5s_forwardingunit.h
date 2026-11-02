@@ -26,9 +26,8 @@ public:
       }
       if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
         return ForwardingSrc::WbStage;
-      } else {
-        return ForwardingSrc::IdStage;
       }
+      return ForwardingSrc::IdStage;
     };
 
     alu_reg2_forwarding_ctrl << [this] {
@@ -41,9 +40,8 @@ public:
       }
       if (idx == wb_reg_wr_idx.uValue() && wb_reg_wr_en.uValue()) {
         return ForwardingSrc::WbStage;
-      } else {
-        return ForwardingSrc::IdStage;
       }
+      return ForwardingSrc::IdStage;
     };
   }
 

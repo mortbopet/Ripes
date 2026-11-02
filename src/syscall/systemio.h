@@ -136,7 +136,7 @@ private:
       } else {
         // Clear stdin stream and reset stream
         s_stdinBuffer.clear();
-        auto success = streams[STDIN].seek(0);
+        [[maybe_unused]] const bool success = streams[STDIN].seek(0);
         Q_ASSERT(success);
       }
 
