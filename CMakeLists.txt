@@ -29,6 +29,16 @@ if(NOT MSVC)
         -Werror=unreachable-code")
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+    # Ripes uses try/catch for error reporting (e.g. expression evaluation).
+    # Emscripten disables exception catching by default, which makes such
+    # exceptions escape to the Qt event loop and freeze the application.
+    # All objects must also be built with -pthread to be linkable with the
+    # multithreaded Qt build.
+    add_compile_options(-fexceptions -pthread)
+    add_link_options(-fexceptions)
+endif()
+
 if(MSVC)
     add_definitions(/bigobj) # Allow big object
 elseif(MINGW)
