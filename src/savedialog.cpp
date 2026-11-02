@@ -58,8 +58,12 @@ void SaveDialog::pathChanged() {
   const QString &path = m_ui->filePath->text();
   if (m_ui->saveSource->isChecked() && !path.isEmpty() &&
       (sourceType == SourceType::Assembly || sourceType == SourceType::C)) {
-    filesToSave << m_ui->filePath->text() +
-                       (sourceType == SourceType::Assembly ? ".s" : ".c");
+    const auto fileExtension =
+        (sourceType == SourceType::Assembly) ? ".s" : ".c";
+
+    filesToSave << (m_ui->filePath->text().endsWith(fileExtension))
+        ? m_ui->filePath->text()
+        : m_ui->filePath->text() + fileExtension;
   }
   if (m_ui->saveBinary->isChecked() && !path.isEmpty())
     filesToSave << m_ui->filePath->text() + ".bin";
