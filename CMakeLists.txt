@@ -110,6 +110,35 @@ endif()
 set(APP_NAME Ripes)
 qt_add_executable(${APP_NAME} ${SYSTEM_FLAGS} ${ICONS_SRC} ${EXAMPLES_SRC} ${LAYOUTS_SRC} ${FONTS_SRC} main.cpp)
 
+if(APPLE)
+    set(RIPES_APP_ICON "${CMAKE_CURRENT_BINARY_DIR}/logo.icns")
+    set(RIPES_APP_ICONSET "${CMAKE_CURRENT_BINARY_DIR}/logo.iconset")
+    add_custom_command(
+        OUTPUT ${RIPES_APP_ICON}
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${RIPES_APP_ICONSET}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${RIPES_APP_ICONSET}
+        COMMAND /usr/bin/sips -z 16 16 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_16x16.png
+        COMMAND /usr/bin/sips -z 32 32 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_16x16@2x.png
+        COMMAND /usr/bin/sips -z 32 32 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_32x32.png
+        COMMAND /usr/bin/sips -z 64 64 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_32x32@2x.png
+        COMMAND /usr/bin/sips -z 128 128 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_128x128.png
+        COMMAND /usr/bin/sips -z 256 256 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_128x128@2x.png
+        COMMAND /usr/bin/sips -z 256 256 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_256x256.png
+        COMMAND /usr/bin/sips -z 512 512 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_256x256@2x.png
+        COMMAND /usr/bin/sips -z 512 512 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_512x512.png
+        COMMAND /usr/bin/sips -z 1024 1024 ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png --out ${RIPES_APP_ICONSET}/icon_512x512@2x.png
+        COMMAND /usr/bin/iconutil -c icns ${RIPES_APP_ICONSET} -o ${RIPES_APP_ICON}
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${RIPES_APP_ICONSET}
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png
+        VERBATIM
+    )
+    set_source_files_properties(${RIPES_APP_ICON} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+        GENERATED TRUE)
+    target_sources(${APP_NAME} PRIVATE ${RIPES_APP_ICON})
+    set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_ICON_FILE logo.icns)
+endif()
+
 # Link Qt libraries
 target_link_libraries(${APP_NAME} PUBLIC Qt6::Core Qt6::Widgets)
 # Link Ripes library

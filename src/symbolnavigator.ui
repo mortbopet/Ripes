@@ -16,8 +16,15 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLineEdit" name="filterEdit">
+      <property name="placeholderText">
+       <string>Filter symbols...</string>
+      </property>
+     </widget>
+    </item>
      <item>
-      <widget class="QTableWidget" name="symbolTable"/>
+     <widget class="QTableView" name="symbolTable"/>
      </item>
     </layout>
    </item>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFont>
 #include <QWidget>
 
 #include "processors/interface/ripesprocessor.h"
@@ -26,6 +27,7 @@ public slots:
   void setRegisterviewCenterIndex(int index);
 
 private:
+  void applyFont(const QFont &font);
   void showContextMenu(const QPoint &pos);
   Ui::RegisterWidget *m_ui = nullptr;
   RegisterModel *m_model = nullptr;
