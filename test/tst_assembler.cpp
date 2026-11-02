@@ -83,12 +83,11 @@ private:
     std::vector<uint32_t> words;
     const auto &text = res.program.getSection(".text")->data;
     for (int i = 0; i + 3 < text.size(); i += 4) {
-      words.push_back(static_cast<uint8_t>(text.at(i)) |
-                      (static_cast<uint8_t>(text.at(i + 1)) << 8) |
-                      (static_cast<uint8_t>(text.at(i + 2)) << 16) |
-                      (static_cast<uint32_t>(static_cast<uint8_t>(
-                           text.at(i + 3)))
-                       << 24));
+      words.push_back(
+          static_cast<uint8_t>(text.at(i)) |
+          (static_cast<uint8_t>(text.at(i + 1)) << 8) |
+          (static_cast<uint8_t>(text.at(i + 2)) << 16) |
+          (static_cast<uint32_t>(static_cast<uint8_t>(text.at(i + 3))) << 24));
     }
     return words;
   }
@@ -195,9 +194,9 @@ void tst_Assembler::tst_directives() {
 
   // String constants
   const QStringList assembleStrings = {
-      R"_("foo")_",   R"_("bar")_", R"_("1*2+(3/foo)")_",
+      R"_("foo")_",   R"_("bar")_",  R"_("1*2+(3/foo)")_",
       R"_("foo(")_",  R"_("foo)")_", R"_("foo(.)")_",
-      R"_(".text")_", R"_("nop")_", R"_("addi a0 a0 baz")_"};
+      R"_(".text")_", R"_("nop")_",  R"_("addi a0 a0 baz")_"};
 
   QString program = ".data\n";
   int i = 0;
@@ -594,9 +593,9 @@ void tst_Assembler::tst_extraOperands() {
   // Superfluous operands must be rejected rather than silently ignored.
   const QStringList exts = {"C"};
   for (const QString line :
-       {"addi a0, zero, 5, garbage", "add a0, zero, zero, zero",
-        "lui a0, 1, 2", "sw t0, 4(sp), t1", "lw t0, 4(sp), t1",
-        "jalr ra, 4(t0), t1", "c.li a0, 5, garbage", "c.lwsp a0, 4, sp"}) {
+       {"addi a0, zero, 5, garbage", "add a0, zero, zero, zero", "lui a0, 1, 2",
+        "sw t0, 4(sp), t1", "lw t0, 4(sp), t1", "jalr ra, 4(t0), t1",
+        "c.li a0, 5, garbage", "c.lwsp a0, 4, sp"}) {
     QVERIFY2(!tryAssembleText(line, exts).has_value(),
              ("'" + line + "' was accepted").toStdString().c_str());
   }

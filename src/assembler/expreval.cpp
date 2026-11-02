@@ -22,7 +22,7 @@ const QString s_exprTokens QStringLiteral("()+-*/%@");
 struct Expr;
 
 struct Printable {
-  virtual ~Printable(){};
+  virtual ~Printable() {};
   virtual void print(std::ostream &str) const = 0;
 };
 

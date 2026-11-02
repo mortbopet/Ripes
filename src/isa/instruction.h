@@ -712,10 +712,11 @@ using Imm = ImmBase<tokenIndex, width, repr, ImmParts, SymbolType::None,
 
 /**
  * @brief MemOperandSpec
- * Instructions which access memory may declare `using MemOperand = MemOperandSpec<...>;` to
- * allow their address operand to be written using the conventional
- * `offset(base)` syntax, regardless of the order of the instruction's fields.
- * The offset may be omitted, i.e. `(base)`, in which case it defaults to 0.
+ * Instructions which access memory may declare `using MemOperand =
+ * MemOperandSpec<...>;` to allow their address operand to be written using the
+ * conventional `offset(base)` syntax, regardless of the order of the
+ * instruction's fields. The offset may be omitted, i.e. `(base)`, in which case
+ * it defaults to 0.
  * @param ImmField: Field index of the offset immediate.
  * @param BaseField: Field index of the base register.
  * @param OptionalImm: If set, the offset may also be omitted when the base
@@ -731,9 +732,9 @@ struct MemOperandSpec {
 
 /**
  * @brief ImplicitBaseMemOperandSpec
- * As MemOperandSpec, but for instructions where the base register is implicit (not
- * encoded in the instruction). If a base register is written, it must be the
- * implicit base register.
+ * As MemOperandSpec, but for instructions where the base register is implicit
+ * (not encoded in the instruction). If a base register is written, it must be
+ * the implicit base register.
  * @param RegInfo: Register file info used to resolve the written base
  * register.
  * @param BaseReg: Index of the implicit base register.

@@ -1,0 +1,3 @@
+# User-facing example programs; kept as authored.
+examples/**
+test/riscv-tests/**

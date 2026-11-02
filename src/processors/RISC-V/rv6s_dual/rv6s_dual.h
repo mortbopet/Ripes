@@ -733,7 +733,7 @@ public:
     }
 
     // Gather stage state info
-    StageInfo::State state = StageInfo ::State::None;
+    StageInfo::State state = StageInfo::State::None;
     if (stage == StageIndex(EXEC, ID) || stage == StageIndex(DATA, ID)) {
       if (m_cycleCount >= ID) {
         if (idii_reg->way_stall_out.uValue() && stage.lane() == EXEC) {

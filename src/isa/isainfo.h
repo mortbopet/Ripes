@@ -24,7 +24,7 @@ struct RegisterFileName {
 
 /// An interface into a register file.
 struct RegFileInfoInterface {
-  virtual ~RegFileInfoInterface(){};
+  virtual ~RegFileInfoInterface() {};
   /// Returns this register file's type.
   virtual std::string_view regFileName() const = 0;
   /// Returns this register file's description.
@@ -59,7 +59,7 @@ using RegInfoMap =
 /// The ISAInfoBase class defines an interface for instruction set information.
 class ISAInfoBase {
 public:
-  virtual ~ISAInfoBase(){};
+  virtual ~ISAInfoBase() {};
   virtual QString name() const = 0;
   virtual ISA isaID() const = 0;
   virtual const RegInfoMap &regInfoMap() const = 0;
@@ -90,7 +90,7 @@ public:
   virtual unsigned bits() const = 0; // Register width, in bits
   unsigned bytes() const {
     return bits() / CHAR_BIT;
-  }                                       // Register width, in bytes
+  } // Register width, in bytes
   virtual unsigned instrBits() const = 0; // Instruction width, in bits
   unsigned instrBytes() const {
     return instrBits() / CHAR_BIT;
