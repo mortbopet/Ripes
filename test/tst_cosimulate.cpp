@@ -59,6 +59,9 @@ const std::vector<LoadFileParams> s_testFiles = {
                            "../../examples/assembly/factorial.s"),
                    SourceType::Assembly, 0, 0},
     LoadFileParams{QString(s_testdir + QDir::separator() +
+                           "../../examples/assembly/fileHandling.s"),
+                   SourceType::Assembly, 0, 0},
+    LoadFileParams{QString(s_testdir + QDir::separator() +
                            "../../examples/ELF/RanPi-RV32"),
                    SourceType::ExternalELF, 0, 0}};
 
