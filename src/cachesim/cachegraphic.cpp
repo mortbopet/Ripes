@@ -4,6 +4,7 @@
 #include <QGraphicsLineItem>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
+#include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSimpleTextItem>
 #include <QPalette>
 #include <QPen>
@@ -122,6 +123,9 @@ CacheGraphic::CacheGraphic(CacheSim &cache)
   connect(ThemeManager::get(), &ThemeManager::themeChanged, this,
           [this] { cacheInvalidated(); });
 
+  // Tooltips are generated on hover from the state of the hovered cache cell.
+  setAcceptHoverEvents(true);
+
   cacheInvalidated();
 }
 
@@ -203,14 +207,6 @@ void CacheGraphic::updateWay(unsigned lineIdx, unsigned wayIdx) {
       const QString text = encodeRadixValue(
           data, Radix::Hex, ProcessorHandler::currentISA()->bytes());
       blockTextItem->setText(text);
-      QString tooltip =
-          "Address: " +
-          encodeRadixValue(addressForBlock, Radix::Hex,
-                           ProcessorHandler::currentISA()->bytes());
-      if (simWay.dirtyBlocks.contains(i)) {
-        tooltip += "\n> Dirty";
-      }
-      blockTextItem->setToolTip(tooltip);
       // Store the address within the userrole of the block text. Doing this, we
       // are able to easily retrieve the address for the block if the block is
       // clicked.
@@ -398,6 +394,7 @@ void CacheGraphic::drawIndexingItems() {
 void CacheGraphic::cacheInvalidated() {
   // Remove all items
   m_highlightingItems.clear();
+  m_transaction.reset();
   m_cacheTextItems.clear();
   m_addressTextItem = nullptr;
   m_blockIndexingLine = nullptr;
@@ -546,6 +543,8 @@ void CacheGraphic::cacheInvalidated() {
     // CacheGraphic
     _scene->setSceneRect({});
   }
+
+  updateToolTip();
 }
 
 void CacheGraphic::updateAddressing(
@@ -607,16 +606,20 @@ void CacheGraphic::updateAddressing(
 void CacheGraphic::wayInvalidated(unsigned lineIdx, unsigned wayIdx) {
   updateWay(lineIdx, wayIdx);
   updateLineReplFields(lineIdx);
+  updateToolTip();
 }
 
 void CacheGraphic::dataChanged(CacheSim::CacheTransaction transaction) {
   if (transaction.type != MemoryAccess::None) {
+    m_transaction = transaction;
     wayInvalidated(transaction.index.line, transaction.index.way);
     updateAddressing(true, transaction);
     updateHighlighting(true, transaction);
   } else {
+    m_transaction.reset();
     updateHighlighting(false, transaction);
     updateAddressing(false, transaction);
+    updateToolTip();
   }
 }
 
@@ -723,6 +726,163 @@ void CacheGraphic::initializeControlBits() {
       }
     }
   }
+}
+
+void CacheGraphic::hoverMoveEvent(QGraphicsSceneHoverEvent *event) {
+  m_hoverPos = event->pos();
+  updateToolTip();
+  QGraphicsObject::hoverMoveEvent(event);
+}
+
+void CacheGraphic::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
+  m_hoverPos.reset();
+  updateToolTip();
+  QGraphicsObject::hoverLeaveEvent(event);
+}
+
+void CacheGraphic::updateToolTip() {
+  setToolTip(m_hoverPos ? toolTipAt(*m_hoverPos) : QString());
+}
+
+QString CacheGraphic::toolTipAt(const QPointF &pos) const {
+  if (pos.x() < 0 || pos.y() < 0 || pos.x() >= m_cacheWidth ||
+      pos.y() >= m_cacheHeight || m_lineHeight <= 0 || m_setHeight <= 0 ||
+      m_blockWidth <= 0) {
+    return {};
+  }
+
+  const auto ways = static_cast<unsigned>(m_cache.getWays());
+  const auto lineIdx = static_cast<unsigned>(pos.y() / m_lineHeight);
+  const auto wayIdx =
+      static_cast<unsigned>((pos.y() - lineIdx * m_lineHeight) / m_setHeight);
+  std::optional<unsigned> blockIdx;
+  if (pos.x() >= m_widthBeforeBlocks) {
+    blockIdx =
+        static_cast<unsigned>((pos.x() - m_widthBeforeBlocks) / m_blockWidth);
+  }
+  if (lineIdx >= static_cast<unsigned>(m_cache.getLines()) || wayIdx >= ways ||
+      (blockIdx && *blockIdx >= static_cast<unsigned>(m_cache.getBlocks()))) {
+    return {};
+  }
+
+  const unsigned bytes = ProcessorHandler::currentISA()->bytes();
+  const auto hex = [bytes](VInt value) {
+    return encodeRadixValue(value, Radix::Hex, bytes);
+  };
+  const bool writeBack = m_cache.getWritePolicy() == WritePolicy::WriteBack;
+  const bool showLRU =
+      m_cache.getReplacementPolicy() == ReplPolicy::LRU && ways > 1;
+
+  CacheSim::CacheWay way;
+  if (const auto *line = m_cache.getLine(lineIdx)) {
+    if (auto it = line->find(wayIdx); it != line->end()) {
+      way = it->second;
+    }
+  }
+
+  QStringList lines;
+  QString location = QString("Line %1").arg(lineIdx);
+  if (ways > 1) {
+    location += QString(", way %1").arg(wayIdx);
+  }
+  if (blockIdx) {
+    location += QString(", word %1").arg(*blockIdx);
+  }
+  lines << location;
+
+  // ============================ Cell contents =============================
+  if (!way.valid) {
+    lines << "Empty: nothing has been cached in this way yet (valid bit is 0).";
+  } else {
+    lines << "Tag: " + hex(way.tag);
+    if (blockIdx) {
+      const AInt address = m_cache.buildAddress(way.tag, lineIdx, *blockIdx);
+      lines << "Address: " + hex(address);
+      lines << "Value: " + hex(ProcessorHandler::getMemory().readMemConst(
+                               address, bytes));
+      if (writeBack) {
+        lines << (way.dirtyBlocks.contains(*blockIdx)
+                      ? "Dirty (cyan): written in the cache, but not yet "
+                        "written back to memory."
+                      : "Clean: identical to the value in memory.");
+      }
+    } else {
+      const AInt first = m_cache.buildAddress(way.tag, lineIdx, 0);
+      const AInt last =
+          m_cache.buildAddress(way.tag, lineIdx, m_cache.getBlocks() - 1) +
+          bytes - 1;
+      lines << QString("Caches addresses %1 - %2").arg(hex(first), hex(last));
+      if (writeBack) {
+        lines << (way.dirty ? "Dirty: modified words are written back to "
+                              "memory when this block is evicted."
+                            : "Clean: nothing needs to be written back to "
+                              "memory when this block is evicted.");
+      }
+    }
+    if (showLRU) {
+      const unsigned lru = std::min(way.lru, ways - 1);
+      QString lruText = QString("LRU: %1").arg(lru);
+      if (lru == 0) {
+        lruText += " (most recently used)";
+      } else if (lru == ways - 1) {
+        lruText += " (least recently used)";
+      }
+      lines << lruText;
+    }
+  }
+
+  // ======================= Role in the current access =====================
+  if (m_transaction) {
+    const auto &t = *m_transaction;
+    const bool inLine = t.index.line == lineIdx;
+    const bool inColumn = blockIdx && t.index.block == *blockIdx;
+    if (inLine || inColumn) {
+      const bool isWrite = t.type == MemoryAccess::Write;
+      const QString type = isWrite ? "Write" : "Read";
+      lines << "";
+      lines << QString("Current access: %1 %2")
+                   .arg(isWrite ? "write to" : "read from", hex(t.address));
+      if (inLine) {
+        lines << "Highlighted row: line selected by the index bits of the "
+                 "address.";
+      }
+      if (inColumn) {
+        lines << "Highlighted column: word selected by the word offset bits "
+                 "of the address.";
+      }
+
+      const bool writeMissNoAlloc =
+          isWrite && !t.isHit &&
+          m_cache.getWriteAllocPolicy() == WriteAllocPolicy::NoWriteAllocate;
+      if (inLine && inColumn && writeMissNoAlloc) {
+        lines << "Write miss (no write-allocate): the value was written "
+                 "directly to memory without being cached.";
+      } else if (inLine && inColumn && t.index.way == wayIdx) {
+        if (t.isHit) {
+          lines << type + " hit (green): the word was found in the cache.";
+        } else {
+          lines << type + " miss (red): " +
+                       (t.transToValid
+                            ? "the block was loaded from memory into this "
+                              "empty way."
+                            : "the previous block in this way was evicted "
+                              "and replaced by the block from memory.");
+        }
+        if (t.isWriteback && writeBack) {
+          lines << "The evicted block was dirty, so it was written back to "
+                   "memory.";
+        }
+        if (isWrite) {
+          lines << (writeBack ? "Write-back: the word is now dirty, and is "
+                                "written to memory when the block is evicted."
+                              : "Write-through: the value was also written "
+                                "to memory.");
+        }
+      }
+    }
+  }
+
+  return lines.join('\n');
 }
 
 } // namespace Ripes

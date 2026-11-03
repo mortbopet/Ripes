@@ -7,6 +7,7 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <memory>
+#include <optional>
 
 namespace Ripes {
 class FancyPolyLine;
@@ -20,6 +21,16 @@ public:
   void paint(QPainter *, const QStyleOptionGraphicsItem *,
              QWidget * = nullptr) override {}
   bool indexingVisible() const { return m_indexingVisible; }
+
+  /**
+   * @brief toolTipAt
+   * Returns a description of the cache cell at @p pos (in item coordinates),
+   * summarizing what is drawn in that cell: its contents, valid/dirty/LRU
+   * state, and its role in the current memory access (indexing highlights,
+   * hit/miss, writebacks). Returns an empty string if @p pos is not within a
+   * cache cell.
+   */
+  QString toolTipAt(const QPointF &pos) const;
 
 public slots:
   /**
@@ -53,6 +64,10 @@ public slots:
   void reset();
 
   void setIndexingVisible(bool visible);
+
+protected:
+  void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
 
 private:
   // Data structure modelling the cache; keeping graphics text items for each
@@ -92,6 +107,7 @@ private:
                         const CacheSim::CacheTransaction &transaction);
   void drawIndexingItems();
   QString addressString() const;
+  void updateToolTip();
 
   QFont m_font = QFont(Fonts::monospace, 12);
   CacheSim &m_cache;
@@ -101,6 +117,11 @@ private:
   QFontMetricsF m_fm;
 
   bool m_indexingVisible = true;
+
+  // The access currently highlighted in the graphic, if any.
+  std::optional<CacheSim::CacheTransaction> m_transaction;
+  // Last hovered position, used to keep the tooltip in sync with cache updates.
+  std::optional<QPointF> m_hoverPos;
 
   // Drawing dimensions
   qreal m_setHeight = 0;
