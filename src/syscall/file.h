@@ -24,7 +24,7 @@ public:
     const AInt arg1 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
     QByteArray string;
     char byte;
-    unsigned int address = arg0;
+    AInt address = arg0;
     do {
       byte = static_cast<char>(
           ProcessorHandler::getMemory().readMemConst(address++, 1) & 0xFF);
@@ -89,7 +89,7 @@ public:
                          "error occurred"}}) {}
   void execute() override {
     const int fd = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
-    long byteAddress = BaseSyscall::getArg(
+    AInt byteAddress = BaseSyscall::getArg(
         BaseSyscall::REG_FILE, 1); // destination of characters read from file
     const int length = BaseSyscall::getArg(BaseSyscall::REG_FILE, 2);
     QByteArray buffer;
@@ -119,7 +119,7 @@ public:
                      {2, "number of bytes to write"}},
                     {{0, "the number of bytes written"}}) {}
   void execute() override {
-    const long byteAddress = BaseSyscall::getArg(
+    const AInt byteAddress = BaseSyscall::getArg(
         BaseSyscall::REG_FILE, 1); // source of characters to write to file
     const int reqLength =
         BaseSyscall::getArg(BaseSyscall::REG_FILE, 2); // user-requested length
@@ -154,7 +154,7 @@ public:
              {1, "the length of the buffer"}},
             {{0, "-1 if the path is longer than the buffer"}}) {}
   void execute() override {
-    const long byteAddress = BaseSyscall::getArg(
+    const AInt byteAddress = BaseSyscall::getArg(
         BaseSyscall::REG_FILE, 0); // destination of characters read from file
     int index = 0;
     const int bufferSize = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);

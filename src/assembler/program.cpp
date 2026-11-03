@@ -16,6 +16,19 @@ const ProgramSection *Program::getSection(const QString &name) const {
   return &secIter->second;
 }
 
+AInt Program::getDataEnd() const {
+  if (dataEnd.has_value())
+    return *dataEnd;
+  AInt end = 0;
+  for (const auto &section : sections) {
+    if (section.second.data.isEmpty())
+      continue;
+    end = std::max(end, section.second.address +
+                            static_cast<AInt>(section.second.data.size()));
+  }
+  return end;
+}
+
 void DisassembledProgram::clear() {
   addressToDisresMap.clear();
   indexToAddressMap.clear();

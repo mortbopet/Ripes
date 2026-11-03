@@ -303,16 +303,12 @@ public:
    */
   static int seek(int fd, int offset, int base) {
     SystemIO::get(); // Ensure that SystemIO is constructed
-    if (!(FileIOData::fdInUse(fd, O_RDONLY) ||
-          FileIOData::fdInUse(fd,
-                              O_RDWR))) // Check the existence of the "read" fd
-    {
+    if (!FileIOData::isOpen(fd) ||
+        (fd != STDIN && !FileIOData::files.contains(fd))) {
       s_fileErrorString =
-          "File descriptor " + QString::number(fd) + " is not open for reading";
+          "File descriptor " + QString::number(fd) + " is not open for seeking";
       return -1;
     }
-    if (fd < 0 || fd >= SYSCALL_MAXFILES)
-      return -1;
 
     qint64 newPos = offset;
     if (fd == STDIN) {

@@ -92,6 +92,14 @@ public:
   ReverseSymbolMap symbols;
   SourceMapping sourceMapping;
 
+  /// End address of the program's allocated memory, including
+  /// zero-initialized sections which are not stored in 'sections' (e.g. an ELF
+  /// .bss section). If unset, it is derived from 'sections'.
+  std::optional<AInt> dataEnd;
+  /// Returns the address of the first byte after the program's allocated
+  /// memory.
+  AInt getDataEnd() const;
+
   // Hash of the source code which this program resulted from. Expected to be a
   // SHA-1 hash (fastest).
   QString sourceHash;
