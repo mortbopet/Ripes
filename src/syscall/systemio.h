@@ -98,7 +98,7 @@ private:
     static std::map<int, QString> fileNames;
     // The flags of this file. Invalid if this file descriptor is not in use.
     static std::map<int, unsigned> fileFlags;
-    // The streams in use, associated with the filenames
+    // Text stream used for reading STDIN. Files are accessed through `files`.
     static std::map<int, QTextStream> streams;
     // The file pointers in use
     static std::map<int, QFile> files;
@@ -180,12 +180,7 @@ private:
       if (!file.isOpen()) {
         throw std::runtime_error("File could not be opened");
       }
-
-      streams.emplace(fd, &files[fd]);
     }
-
-    // Retrieve a stream for use
-    static QTextStream &getStreamInUse(int fd) { return streams[fd]; }
 
     // Determine whether a given filename is already in use.
     static bool filenameInUse(const QString &requestedFilename) {
@@ -218,9 +213,13 @@ private:
 
       fileFlags[fd] = O_ACCMODE; // set flag to invalid read/write mode
       files[fd].close();
-      streams.erase(fd);
       files.erase(fd);
       fileNames.erase(fd);
+    }
+
+    static bool isOpen(int fd) {
+      auto it = fileNames.find(fd);
+      return it != fileNames.end() && !it->second.isEmpty();
     }
 
     // Attempt to open a new file with the given flag, using the lowest
@@ -283,6 +282,8 @@ public:
       FileIOData::openFilestream(fdToUse, filename);
     } catch (const std::runtime_error &error) {
       FileIOData::files.erase(fdToUse);
+      FileIOData::fileNames.erase(fdToUse);
+      FileIOData::fileFlags.erase(fdToUse);
       s_fileErrorString =
           "File " + filename + " could not be opened: " + error.what();
       retValue = -1;
@@ -312,29 +313,40 @@ public:
     }
     if (fd < 0 || fd >= SYSCALL_MAXFILES)
       return -1;
-    auto &stream = FileIOData::getStreamInUse(fd);
 
-    if (base == SEEK_SET) {
-      offset += 0;
-    } else if (base == SEEK_CUR) {
-      offset += stream.pos();
+    qint64 newPos = offset;
+    if (fd == STDIN) {
+      auto &stream = FileIOData::streams[STDIN];
+      if (base == SEEK_CUR) {
+        newPos += stream.pos();
+      } else if (base != SEEK_SET) {
+        return -1;
+      }
+      if (newPos < 0 || !stream.seek(newPos)) {
+        return -1;
+      }
+      return static_cast<int>(newPos);
+    }
+
+    auto &file = FileIOData::files[fd];
+    if (base == SEEK_CUR) {
+      newPos += file.pos();
     } else if (base == SEEK_END) {
-      offset += FileIOData::files[fd].size();
-    } else {
+      newPos += file.size();
+    } else if (base != SEEK_SET) {
       return -1;
     }
-    if (offset < 0) {
+    if (newPos < 0 || !file.seek(newPos)) {
       return -1;
     }
-    stream.seek(offset);
-    return offset;
+    return static_cast<int>(newPos);
   }
 
   /**
    * Read bytes from file.
    *
    * @param fd              file descriptor
-   * @param myBuffer        QString to contain bytes read
+   * @param myBuffer        byte array to contain the bytes read
    * @param lengthRequested number of bytes to read
    * @return number of bytes read, 0 on EOF, or -1 on error
    */
@@ -353,10 +365,12 @@ public:
           "File descriptor " + QString::number(fd) + " is not open for reading";
       return -1;
     }
-    // retrieve FileInputStream from storage
-    auto &InputStream = FileIOData::getStreamInUse(fd);
+    if (lengthRequested < 0) {
+      return -1;
+    }
 
     if (fd == STDIN) {
+      auto &InputStream = FileIOData::streams[STDIN];
       // systemIO might be called from non-gui thread, so be threadsafe in
       // interacting with the ui.
       postToGUIThread([] {
@@ -384,19 +398,17 @@ public:
         if (myBuffer.endsWith('\n'))
           break;
       }
+      Q_ASSERT(!myBuffer.isEmpty()); // EOF should never be possible for STDIN
     } else {
-      // Reads up to lengthRequested bytes of data from this Input stream into
-      // an array of bytes.
-      myBuffer = InputStream.read(lengthRequested).toUtf8();
-    }
-
-    if (myBuffer.size() == 0) {
-      if (fd == STDIN) {
-        Q_ASSERT(false); // EOF should never be possible for STDIN
-      } else {
-        // End of file - write EOF file character into buffer
-        myBuffer.append(sizeof(int), EOF);
+      myBuffer.resize(lengthRequested);
+      const qint64 bytesRead =
+          FileIOData::files[fd].read(myBuffer.data(), lengthRequested);
+      if (bytesRead < 0) {
+        s_fileErrorString =
+            "Could not read from file descriptor " + QString::number(fd);
+        return -1;
       }
+      myBuffer.resize(bytesRead);
     }
 
     postToGUIThread([] { SystemIOStatusManager::clearStatus(); });
@@ -408,15 +420,14 @@ public:
    * Write bytes to file.
    *
    * @param fd              file descriptor
-   * @param myBuffer        byte array containing characters to write
-   * @param lengthRequested number of bytes to write
+   * @param myBuffer        byte array containing the bytes to write
    * @return number of bytes written, or -1 on error
    */
 
-  static int writeToFile(int fd, const QString &myBuffer, int lengthRequested) {
+  static int writeToFile(int fd, const QByteArray &myBuffer) {
     SystemIO::get(); // Ensure that SystemIO is constructed
     if (fd == STDOUT || fd == STDERR) {
-      emit get().doPrint(myBuffer);
+      emit get().doPrint(QString::fromLatin1(myBuffer));
       return myBuffer.size();
     }
 
@@ -428,14 +439,44 @@ public:
           "File descriptor " + QString::number(fd) + " is not open for writing";
       return -1;
     }
-    // retrieve FileOutputStream from storage
-    auto &outputStream = FileIOData::getStreamInUse(fd);
-
-    outputStream << myBuffer;
-    outputStream.flush();
-    return lengthRequested;
+    auto &file = FileIOData::files[fd];
+    const qint64 bytesWritten = file.write(myBuffer);
+    if (bytesWritten < 0 || !file.flush()) {
+      s_fileErrorString =
+          "Could not write to file descriptor " + QString::number(fd);
+      return -1;
+    }
+    return static_cast<int>(bytesWritten);
 
   } // end writeToFile
+
+  /**
+   * File status as reported by the fstat syscall.
+   */
+  struct FileStatus {
+    bool isCharDevice = false;
+    qint64 size = 0;
+  };
+
+  /**
+   * Retrieve the status of an open file descriptor.
+   *
+   * @param fd     file descriptor
+   * @param status populated with the status of the file
+   * @return false if @p fd is not an open file descriptor
+   */
+  static bool fileStatus(int fd, FileStatus &status) {
+    SystemIO::get(); // Ensure that SystemIO is constructed
+    if (fd >= 0 && fd < STDIO_END) {
+      status = {true, 0};
+      return true;
+    }
+    if (!FileIOData::isOpen(fd) || !FileIOData::files.contains(fd)) {
+      return false;
+    }
+    status = {false, FileIOData::files[fd].size()};
+    return true;
+  }
 
   /**
    * Redirects the stream associated with STDIN to the standard input (stdin).
@@ -451,8 +492,15 @@ public:
    * Close the file with specified file descriptor
    *
    * @param fd the file descriptor of an open file
+   * @return 0 on success, -1 if @p fd is not an open file descriptor
    */
-  static void closeFile(int fd) { FileIOData::close(fd); }
+  static int closeFile(int fd) {
+    if (!FileIOData::isOpen(fd)) {
+      return -1;
+    }
+    FileIOData::close(fd);
+    return 0;
+  }
 
   static void printString(const QString &string) { emit get().doPrint(string); }
   static void reset() { FileIOData::resetFiles(); }

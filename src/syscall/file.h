@@ -46,10 +46,11 @@ class CloseSyscall : public BaseSyscall {
 public:
   CloseSyscall()
       : BaseSyscall("Close", "Close a file",
-                    {{0, "the file descriptor to close"}}) {}
+                    {{0, "the file descriptor to close"}},
+                    {{0, "0 on success or -1 if an error occurred"}}) {}
   void execute() override {
     const VInt arg0 = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
-    SystemIO::closeFile(arg0);
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, SystemIO::closeFile(arg0));
   }
 };
 
@@ -84,7 +85,8 @@ public:
                     {{0, "the file descriptor"},
                      {1, "address of the buffer"},
                      {2, "maximum number of bytes to read"}},
-                    {{0, "number of read bytes or -1 if an error occurred"}}) {}
+                    {{0, "number of read bytes, 0 at end of file, or -1 if an "
+                         "error occurred"}}) {}
   void execute() override {
     const int fd = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
     long byteAddress = BaseSyscall::getArg(
@@ -97,10 +99,7 @@ public:
 
     if (retLength != -1) {
       // copy bytes from returned buffer into memory
-      const char *dataptr =
-          buffer.constData(); // QString::data contains a possible null
-                              // termination '\0' character (present if reading
-                              // from stdin and not from a file)
+      const char *dataptr = buffer.constData();
       while (retLength-- > 0) {
         ProcessorHandler::writeMem(byteAddress++, *dataptr++, sizeof(char));
       }
@@ -128,17 +127,16 @@ public:
       BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1);
       return;
     }
-    int index = 0;
-    QString myBuffer;
-
-    do {
+    QByteArray myBuffer;
+    myBuffer.reserve(reqLength);
+    for (int index = 0; index < reqLength; ++index) {
       myBuffer.append(static_cast<char>(
-          ProcessorHandler::getMemory().readMemConst(byteAddress + index++, 1) &
+          ProcessorHandler::getMemory().readMemConst(byteAddress + index, 1) &
           0xFF));
-    } while (index < reqLength);
+    }
 
     const int retValue = SystemIO::writeToFile(
-        BaseSyscall::getArg(BaseSyscall::REG_FILE, 0), myBuffer, reqLength);
+        BaseSyscall::getArg(BaseSyscall::REG_FILE, 0), myBuffer);
     BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, retValue);
   }
 };
@@ -193,10 +191,37 @@ public:
             {{0, " the file descriptor "}, {1, " pointer to a struct stat "}},
             {{0, "returns -1 if an error occurred"}}) {}
   void execute() override {
-    /// @todo: Figure out whether we want to handle fstat. For now, most
-    /// syscall's seems to execute fine with just null-values in the fstat
-    /// return struct - this is ofcourse not a valid mode of execution, but for
-    /// the current state of development, it'll have to do.
+    const int fd = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
+    const AInt statAddress = BaseSyscall::getArg(BaseSyscall::REG_FILE, 1);
+
+    SystemIO::FileStatus status;
+    if (!SystemIO::fileStatus(fd, status)) {
+      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1);
+      return;
+    }
+
+    // The buffer is a RISC-V Linux 'struct stat' (asm-generic layout, as used
+    // by riscv-pk and libgloss' 'struct kernel_stat'). Only the fields up to
+    // and including st_blocks are written; their layout is identical for RV32
+    // and RV64. Fields which Ripes does not track are reported as 0.
+    constexpr unsigned stModeOffset = 16;
+    constexpr unsigned stNlinkOffset = 20;
+    constexpr unsigned stSizeOffset = 48;
+    constexpr unsigned statSize = 72;
+    constexpr unsigned modeCharDevice = 0020000 | 0666; // S_IFCHR | rw-rw-rw-
+    constexpr unsigned modeRegular = 0100000 | 0644;    // S_IFREG | rw-r--r--
+
+    for (unsigned offset = 0; offset < statSize; offset += 4) {
+      ProcessorHandler::writeMem(statAddress + offset, 0, 4);
+    }
+    const auto size = static_cast<uint64_t>(status.size);
+    ProcessorHandler::writeMem(
+        statAddress + stModeOffset,
+        status.isCharDevice ? modeCharDevice : modeRegular, 4);
+    ProcessorHandler::writeMem(statAddress + stNlinkOffset, 1, 4);
+    ProcessorHandler::writeMem(statAddress + stSizeOffset, size & 0xFFFFFFFF,
+                               4);
+    ProcessorHandler::writeMem(statAddress + stSizeOffset + 4, size >> 32, 4);
     BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, 0);
   }
 };
