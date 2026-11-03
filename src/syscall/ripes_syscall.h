@@ -45,6 +45,13 @@ public:
   virtual void execute() = 0;
 
   /**
+   * @brief reset
+   * Called whenever the processor is reset. Syscalls which keep state between
+   * invocations shall reset it here.
+   */
+  virtual void reset() {}
+
+  /**
    * @brief getArg
    * ABI specific specialization of returning an argument register value.
    * Argument index @p i is in range [0; max arg. registers] for the given ABI.
@@ -83,6 +90,12 @@ public:
    * syscall @p id is unknown.
    */
   bool execute(SyscallID id);
+
+  /// Resets the state of all syscalls.
+  void reset() {
+    for (auto &it : m_syscalls)
+      it.second->reset();
+  }
 
   const std::map<SyscallID, std::unique_ptr<Syscall>> &getSyscalls() const {
     return m_syscalls;

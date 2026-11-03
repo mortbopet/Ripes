@@ -314,6 +314,7 @@ void ProcessorHandler::_reset() {
 
   SystemIO::abortSyscall();
   getProcessorNonConst()->resetProcessor();
+  m_syscallManager->reset();
 
   // Rewrite register initializations
   for (const auto &regFileInit : m_currentRegInits) {

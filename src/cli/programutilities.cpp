@@ -78,7 +78,13 @@ bool loadElfFile(Program &program, QFile &file) {
     assert(false);
   }
 
+  AInt dataEnd = 0;
   for (const auto &elfSection : reader.sections) {
+    if (elfSection->get_flags() & SHF_ALLOC) {
+      dataEnd = std::max<AInt>(dataEnd, elfSection->get_address() +
+                                            elfSection->get_size());
+    }
+
     // Do not load .debug sections
     if (!QString::fromStdString(elfSection->get_name()).startsWith(".debug")) {
       ProgramSection section;
@@ -154,6 +160,7 @@ bool loadElfFile(Program &program, QFile &file) {
   }
 
   program.entryPoint = reader.get_entry();
+  program.dataEnd = dataEnd;
 
   return true;
 }

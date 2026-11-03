@@ -50,27 +50,43 @@ public:
             "of the process's data segment (i.e., "
             "the program break is the first location after the end of the "
             "uninitialized data segment).",
-            {{0, "sets the end of the data segment to the specified address"}},
-            {{0, "On success, brk() returns zero.  On error, -1 is returned, "
-                 "and errno is set to ENOMEM"}}) {}
+            {{0, "the requested end of the data segment, or 0 to query the "
+                 "current program break"}},
+            {{0, "the new program break on success, otherwise the current "
+                 "program break"}}) {}
 
   void execute() override {
-    // Nothing to do - at the moment we allow infinite growth of the heap.
-
-    // Retrieves the argument of the brk syscall, the new program break
-    uint64_t newBreak = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
-    // Retrieve the current stack pointer from the processor handler
-    uint64_t stackPointer =
-        ProcessorHandler::getProcessor()->getRegister(BaseSyscall::REG_FILE, 2);
-    if (newBreak >= stackPointer) {
-      SystemIO::printString(
-          "Error: Attempted to allocate memory overlapping stack segment\n");
-      BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, -1); // Syscall error code
-      return;
+    // Follows the semantics of the Linux brk syscall (as used by e.g. newlib's
+    // _sbrk). The initial program break is the end of the loaded program.
+    if (!m_break.has_value()) {
+      auto program = ProcessorHandler::getProgram();
+      constexpr AInt alignment = 16;
+      const AInt dataEnd = program ? program->getDataEnd() : 0;
+      m_initialBreak = (dataEnd + alignment - 1) & ~(alignment - 1);
+      m_break = m_initialBreak;
     }
 
-    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, 0);
+    const AInt newBreak = BaseSyscall::getArg(BaseSyscall::REG_FILE, 0);
+    // Retrieve the current stack pointer from the processor handler
+    const AInt stackPointer =
+        ProcessorHandler::getProcessor()->getRegister(BaseSyscall::REG_FILE, 2);
+    if (newBreak >= m_initialBreak) {
+      if (newBreak >= stackPointer) {
+        SystemIO::printString(
+            "Error: Attempted to allocate memory overlapping stack segment\n");
+      } else {
+        m_break = newBreak;
+      }
+    }
+
+    BaseSyscall::setRet(BaseSyscall::REG_FILE, 0, *m_break);
   }
+
+  void reset() override { m_break.reset(); }
+
+private:
+  AInt m_initialBreak = 0;
+  std::optional<AInt> m_break;
 };
 
 } // namespace Ripes
