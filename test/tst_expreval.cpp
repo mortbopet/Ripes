@@ -23,6 +23,7 @@ void expect(const ExprEvalRes &res, const ExprEvalVT &expected) {
 void tst_ExprEval::tst_binops() {
   expect(evaluate(Location::unknown(), "(0x2*(3+4))+4"), 18);
   expect(evaluate(Location::unknown(), "2+3*7*5"), 107);
+  expect(evaluate(Location::unknown(), "1+2*3+4"), 11);
   SymbolMap symbols;
   Location::unknown(), symbols.abs["B"] = 2;
   expect(evaluate(Location::unknown(), "(B *(3+ 4))+4", &symbols.abs), 18);

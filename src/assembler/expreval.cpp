@@ -161,77 +161,139 @@ void SignExtend::print(std::ostream& os) const {
 // clang-format on
 
 using ExprRes = Result<std::shared_ptr<Expr>>;
-ExprRes parseRight(const Location &loc, const QString &s, int &pos, int &depth);
 
-template <typename BinOp>
-ExprRes rightRec(const Location &loc, const std::shared_ptr<Expr> &lhs,
-                 const QString &s, int &pos, int &depth) {
-  auto rhs = parseRight(loc, s, pos, depth);
-  if (auto *err = std::get_if<Error>(&rhs)) {
-    return {*err};
+namespace {
+
+/// Characters which end a literal/symbol token.
+const QString s_exprStopChars QStringLiteral("()+-*/%@|&");
+
+/// Builds the AST node matching a binary operator character.
+std::shared_ptr<Expr> makeBinOp(QChar op, const std::shared_ptr<Expr> &lhs,
+                                const std::shared_ptr<Expr> &rhs) {
+  switch (op.unicode()) {
+  case '|':
+    return std::make_shared<Expr>(Or{lhs, rhs});
+  case '&':
+    return std::make_shared<Expr>(And{lhs, rhs});
+  case '+':
+    return std::make_shared<Expr>(Add{lhs, rhs});
+  case '-':
+    return std::make_shared<Expr>(Sub{lhs, rhs});
+  case '*':
+    return std::make_shared<Expr>(Mul{lhs, rhs});
+  case '/':
+    return std::make_shared<Expr>(Div{lhs, rhs});
+  case '%':
+    return std::make_shared<Expr>(Mod{lhs, rhs});
+  case '@':
+    return std::make_shared<Expr>(SignExtend{lhs, rhs});
   }
-  return {
-      std::make_shared<Expr>(BinOp{lhs, std::get<std::shared_ptr<Expr>>(rhs)})};
+  Q_UNREACHABLE();
 }
 
-#define Token(lhs) std::make_shared<Expr>(Literal{lhs})
+/**
+ * Precedence-climbing (recursive descent) expression parser.
+ * Lowest to highest precedence, all binary operators left-associative:
+ *   | -> & -> + - -> * / % -> @ -> unary - -> ( ) / literal
+ */
+struct ExprParser {
+  const Location &loc;
+  const QString &s;
+  int pos = 0;
 
-ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth);
-ExprRes parseRight(const Location &loc, const QString &s, int &pos,
-                   int &depth) {
-  QString lhs;
-  while (pos < s.length()) {
-    // clang-format off
-        auto& ch = s.at(pos);
-        pos++;
-        switch (ch.unicode()) {
-            case '(': { depth++; return parseLeft(loc, s, pos, depth);}
-            case ')': { return depth-- != 0 ? Token(lhs) : ExprRes(Error(loc, "Unmatched parenthesis in expression '" + s + '"'));};
-            case '+': { return rightRec<Add>(loc, Token(lhs), s, pos, depth);}
-            case '/': { return rightRec<Div>(loc, Token(lhs), s, pos, depth);}
-            case '*': { return rightRec<Mul>(loc, Token(lhs), s, pos, depth);}
-            case '-': {
-                auto lhsToken = lhs.isEmpty() ? std::make_shared<Expr>(Nothing()) : Token(lhs); // Allow unary '-'
-                return rightRec<Sub>(loc, lhsToken, s, pos, depth);}
-            case '%': { return rightRec<Mod>(loc, Token(lhs), s, pos, depth);}
-            case '|': { return rightRec<Or>(loc, Token(lhs), s, pos, depth);}
-            case '&': { return rightRec<And>(loc, Token(lhs), s, pos, depth);}
-            case '@': { return rightRec<SignExtend>(loc, Token(lhs), s, pos, depth);}
-            default:  {lhs.append(ch);}
-        }
-    // clang-format on
-  }
-  return Token(lhs);
-}
+  bool atEnd() const { return pos >= s.length(); }
+  QChar peek() const { return atEnd() ? QChar() : s.at(pos); }
 
-ExprRes parseLeft(const Location &loc, const QString &s, int &pos, int &depth) {
-  auto left = parseRight(loc, s, pos, depth);
-  if (auto *err = std::get_if<Error>(&left)) {
-    return {*err};
+  ExprRes fail(const QString &msg) const {
+    return ExprRes(Error(loc, msg + " in expression '" + s + "'"));
   }
 
-  const auto &res = std::get<std::shared_ptr<Expr>>(left);
-  if (pos < s.length()) {
-    auto &ch = s.at(pos);
-    pos++;
-    // clang-format off
-        switch (ch.unicode()) {
-            case '+': { return rightRec<Add>(loc, res, s, pos, depth);}
-            case '/': { return rightRec<Div>(loc, res, s, pos, depth);}
-            case '|': { return rightRec<Or> (loc, res, s, pos, depth);}
-            case '&': { return rightRec<And>(loc, res, s, pos, depth);}
-            case '*': { return rightRec<Mul>(loc, res, s, pos, depth);}
-            case '-': { return rightRec<Sub>(loc, res, s, pos, depth);}
-            case '%': { return rightRec<Mod>(loc, res, s, pos, depth);}
-            case '@': { return rightRec<SignExtend>(loc, res, s, pos, depth);}
-            case ')': { return depth-- != 0 ? res : ExprRes(Error(loc, "Unmatched parenthesis in expression '" + s + '"'));};
-            default:  { return ExprRes(Error(-1, "Invalid operator '" + QString(ch) + "' in expression '" + s + "'"));}
-        }
-    // clang-format on
-  } else {
-    return left;
+  /// Parses: next (op next)*  for any op in 'ops', folding to the left.
+  ExprRes parseBinary(const QString &ops, ExprRes (ExprParser::*next)()) {
+    auto lhsRes = (this->*next)();
+    if (auto *err = std::get_if<Error>(&lhsRes))
+      return ExprRes(*err);
+    auto lhs = std::get<std::shared_ptr<Expr>>(lhsRes);
+
+    while (!atEnd() && ops.contains(peek())) {
+      const QChar op = s.at(pos++);
+      auto rhsRes = (this->*next)();
+      if (auto *err = std::get_if<Error>(&rhsRes))
+        return ExprRes(*err);
+      lhs = makeBinOp(op, lhs, std::get<std::shared_ptr<Expr>>(rhsRes));
+    }
+    return ExprRes(lhs);
   }
-}
+
+  ExprRes parseOr() {
+    return parseBinary(QStringLiteral("|"), &ExprParser::parseAnd);
+  }
+  ExprRes parseAnd() {
+    return parseBinary(QStringLiteral("&"), &ExprParser::parseAdditive);
+  }
+  ExprRes parseAdditive() {
+    return parseBinary(QStringLiteral("+-"), &ExprParser::parseMultiplicative);
+  }
+  ExprRes parseMultiplicative() {
+    return parseBinary(QStringLiteral("*/%"), &ExprParser::parseSignExtend);
+  }
+  ExprRes parseSignExtend() {
+    return parseBinary(QStringLiteral("@"), &ExprParser::parseUnary);
+  }
+
+  /// Unary minus: '-x' is represented as Sub(Nothing, x) == 0 - x.
+  ExprRes parseUnary() {
+    if (peek() == '-') {
+      pos++;
+      auto operandRes = parseUnary();
+      if (auto *err = std::get_if<Error>(&operandRes))
+        return ExprRes(*err);
+      return ExprRes(std::make_shared<Expr>(
+          Sub{std::make_shared<Expr>(Nothing()),
+              std::get<std::shared_ptr<Expr>>(operandRes)}));
+    }
+    return parsePrimary();
+  }
+
+  /// A parenthesized sub-expression, or a literal/symbol.
+  ExprRes parsePrimary() {
+    if (atEnd())
+      return fail("Missing operand");
+
+    if (peek() == '(') {
+      pos++;
+      auto inner = parseOr();
+      if (std::holds_alternative<Error>(inner))
+        return inner;
+      if (peek() != ')')
+        return fail("Unmatched parenthesis");
+      pos++;
+      return inner;
+    }
+
+    const int start = pos;
+    while (!atEnd() && !s_exprStopChars.contains(peek()))
+      pos++;
+    if (pos == start)
+      return fail("Missing operand before '" + QString(peek()) + "'");
+    return ExprRes(std::make_shared<Expr>(Literal{s.mid(start, pos - start)}));
+  }
+
+  /// Entry point: parse the whole string, and reject any leftover input.
+  ExprRes parse() {
+    auto res = parseOr();
+    if (std::holds_alternative<Error>(res))
+      return res;
+    if (!atEnd()) {
+      if (peek() == ')')
+        return fail("Unmatched parenthesis");
+      return fail("Unexpected '" + QString(peek()) + "'");
+    }
+    return res;
+  }
+};
+
+} // namespace
 
 VIntS evaluate(const std::shared_ptr<Expr> &expr,
                const AbsoluteSymbolMap *variables) {
@@ -317,9 +379,8 @@ ExprEvalRes evaluate(const Location &loc, const QString &s,
                      const AbsoluteSymbolMap *variables) {
   QString sNoWhitespace = s;
   sNoWhitespace.replace(" ", "");
-  int pos = 0;
-  int depth = 0;
-  auto exprTree = parseLeft(loc, sNoWhitespace, pos, depth);
+  ExprParser parser{loc, sNoWhitespace};
+  auto exprTree = parser.parse();
   if (auto *err = std::get_if<Error>(&exprTree)) {
     return *err;
   }
