@@ -684,6 +684,16 @@ void ProcessorTab::runFinished() {
 }
 
 void ProcessorTab::autoClockTimeout() {
+#ifdef __EMSCRIPTEN__
+  // Since Qt 6.10, the wasm event loop only returns control to the browser
+  // once an event loop iteration has nothing to process. If the clock rate
+  // outpaces UI updates, the auto clock timer is always due and the browser
+  // never gets to render or deliver input, freezing the application.
+  // Explicitly processing events here yields to the browser once per clock.
+  QCoreApplication::processEvents();
+  if (!m_autoClockAction->isChecked())
+    return;
+#endif
   if (ProcessorHandler::checkBreakpoint())
     return;
   ProcessorHandler::clock();
