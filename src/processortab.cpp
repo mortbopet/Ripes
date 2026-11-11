@@ -691,8 +691,6 @@ void ProcessorTab::autoClockTimeout() {
   // never gets to render or deliver input, freezing the application.
   // Explicitly processing events here yields to the browser once per clock.
   QCoreApplication::processEvents();
-  if (!m_autoClockAction->isChecked())
-    return;
 #endif
   if (ProcessorHandler::checkBreakpoint())
     return;
