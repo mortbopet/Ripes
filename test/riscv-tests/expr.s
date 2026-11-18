@@ -15,6 +15,7 @@ main:
 .equ PARENS, (2*(3+4)-5%3)
 .equ SIZE, 4*8+4
 .equ DERIVED, SIZE/4*3+1
+.equ BRACKETS, 2*(3+4)-1
 
 test_2:
  li x30, MUL_ADD
@@ -133,6 +134,33 @@ test_19:
  li gp, 19
  bne x30, x29, fail
 
+  # Parentheses inside expressions
+test_20:
+ li x30, BRACKETS
+ li x29, 13
+ li gp, 20
+ bne x30, x29, fail
+
+test_21:
+ addi x30, x0, (2+3)*4
+ li x29, 20
+ li gp, 21
+ bne x30, x29, fail
+
+test_22:
+ la x1, tdat
+ lw x30, 2*(1+1)(x1)
+ li x29, 5
+ li gp, 22
+ bne x30, x29, fail
+
+test_23:
+ la x1, tdat
+ lw x30, 16(x1)
+ li x29, -10
+ li gp, 23
+ bne x30, x29, fail
+
 pass:
 	li a0, 42
 	li a7, 93
@@ -148,3 +176,4 @@ tdat:
  .word 10-2-3
  .word -5+3
  .word 1+2*3+4*5
+ .word -(2+3)*2
