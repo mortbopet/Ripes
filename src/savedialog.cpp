@@ -33,6 +33,11 @@ SaveDialog::SaveDialog(SourceType sourceType, QWidget *parent)
   if (QFileInfo(path).isDir()) {
     path += QDir::separator();
   }
+#ifdef __EMSCRIPTEN__
+  // Files are saved as browser downloads, so only a file name is needed.
+  m_ui->openFile->setVisible(false);
+  path = QFileInfo(path).fileName();
+#endif
   m_ui->filePath->setText(path);
 
   pathChanged();
