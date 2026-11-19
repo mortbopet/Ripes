@@ -46,6 +46,7 @@ private slots:
   void tst_riscv();
   void tst_relativeLabels();
   void tst_parentheses();
+  void tst_parenthesizedExpressions();
   void tst_storeSymbolOffset();
   void tst_memOperandSyntax();
   void tst_extraOperands();
@@ -507,6 +508,47 @@ void tst_Assembler::tst_parentheses() {
   testAssemble("lw x0, 0(x1 # ignored )", Expect::Fail);
   testAssemble("#(valid parentheses match)", Expect::Success);
   testAssemble("#)nonmatching parentheses(", Expect::Success);
+}
+
+void tst_Assembler::tst_parenthesizedExpressions() {
+  // A parenthesized group next to an operator belongs to the surrounding
+  // expression. Only groups such as the base register in offset(base) are
+  // split into an operand of their own.
+  QByteArray expectData;
+  for (const int32_t value : {14, 20, -10, 13}) {
+    for (int byte = 0; byte < 4; byte++) {
+      expectData.append(static_cast<char>((value >> (8 * byte)) & 0xFF));
+    }
+  }
+  testAssemble(R"(
+    .data
+    .equ N, 2*(3+4)
+    .word 2*(3+4)
+    .word (2+3)*4
+    .word -(2+3)*2
+    .word N-1
+  )",
+               Expect::Success, expectData);
+
+  const std::vector<std::pair<QString, uint32_t>> cases = {
+      {"addi a0, zero, 2*(3+4)", 0x00E00513},
+      {"addi a0, zero, (2+3)*4", 0x01400513},
+      {"lw a0, 2*(1+1)(t0)", 0x0042A503},
+      // Groups which are operands of their own are unchanged.
+      {"lw a0, 4(t0)", 0x0042A503},
+      {"lw a0, (2*(1+1))(t0)", 0x0042A503},
+      {"lw a0, (t0)", 0x0002A503},
+  };
+  for (const auto &[line, expected] : cases) {
+    auto words = assembleText(line);
+    if (words.size() != 1 || words.at(0) != expected) {
+      QString err = "'" + line + "' assembled to:";
+      for (auto w : words)
+        err += " 0x" + QString::number(w, 16);
+      err += " (expected 0x" + QString::number(expected, 16) + ")";
+      QFAIL(err.toStdString().c_str());
+    }
+  }
 }
 
 void tst_Assembler::tst_storeSymbolOffset() {

@@ -12,8 +12,12 @@ namespace Assembler {
 
 /**
  * @brief joinParentheses takes a number of tokens and merges together tokens
- * contained within top-level parentheses. For example: [lw, x10, (B, +,
- * (3*2))(x10)] => [lw, x10, B + 3*2), x10]
+ * contained within top-level parentheses. A parenthesized group becomes an
+ * operand of its own, e.g. the base of an offset(base) memory operand or the
+ * argument of a relocation: [lw, x10, (B, +, (3*2))(x10)] =>
+ * [lw, x10, B+(3*2), x10]. A group which is directly preceded or followed by an
+ * expression operator is instead kept within the surrounding expression:
+ * [li, x10, 2*(3+4)] => [li, x10, 2*(3+4)].
  */
 Result<LineTokens> joinParentheses(const Location &location,
                                    const QStringList &tokens);
