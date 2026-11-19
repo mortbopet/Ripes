@@ -1,6 +1,7 @@
 #include "cacheplotwidget.h"
 #include "ui_cacheplotwidget.h"
 
+#include <QBuffer>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QEvent>
@@ -20,6 +21,7 @@
 #include "enumcombobox.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
+#include "wasmSupport.h"
 
 #include <climits>
 
@@ -249,12 +251,20 @@ void CachePlotWidget::setupPlotActions() {
 }
 
 void CachePlotWidget::savePlot() {
+#ifdef __EMSCRIPTEN__
+  QByteArray data;
+  QBuffer buffer(&data);
+  buffer.open(QIODevice::WriteOnly);
+  m_ui->plotView->getPlotPixmap().save(&buffer, "PNG");
+  downloadIfWasm("plot.png", data);
+#else
   const QString filename =
       QFileDialog::getSaveFileName(this, "Save file", "", "Images (*.png)");
   if (!filename.isEmpty()) {
     const QPixmap p = m_ui->plotView->getPlotPixmap();
     p.save(filename, "PNG");
   }
+#endif
 }
 
 void CachePlotWidget::copyPlotDataToClipboard() const {

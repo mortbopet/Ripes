@@ -270,20 +270,20 @@ void MainWindow::setupMenus() {
           &EditTab::editorStateChanged, saveAction,
           [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
   m_ui->menuFile->addAction(saveAsAction);
-  m_ui->menuFile->addSeparator();
 
+#ifndef __EMSCRIPTEN__
+  // Exiting is meaningless in a browser tab.
+  m_ui->menuFile->addSeparator();
   const QIcon exitIcon = QIcon(":/icons/cancel.svg");
   auto *exitAction = new QAction(exitIcon, "Exit", this);
   exitAction->setShortcut(QKeySequence::Quit);
   connect(exitAction, &QAction::triggered, this, &MainWindow::close);
   m_ui->menuFile->addAction(exitAction);
+#endif
 
   m_ui->menuView->addAction(
       static_cast<ProcessorTab *>(m_tabWidgets.at(ProcessorTabID).tab)
           ->m_displayValuesAction);
-
-  // File I/O is not yet supported on WASM due to sandboxing.
-  disableIfWasm(QList{loadAction, saveAction, saveAsAction, exitAction});
 }
 
 MainWindow::~MainWindow() { delete m_ui; }
@@ -452,13 +452,14 @@ void MainWindow::saveFilesTriggered() {
       return;
     QFile file(diag.sourcePath());
     savedFiles << diag.sourcePath();
-    if (!writeTextFile(file,
-                       static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-                           ->getAssemblyText())) {
+    const QString text = static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
+                             ->getAssemblyText();
+    if (!writeTextFile(file, text)) {
       QMessageBox::information(this, "File error",
                                "Error when saving file: " + file.errorString());
       return;
     }
+    downloadIfWasm(diag.sourcePath(), text.toUtf8());
   }
 
   if (!diag.binaryPath().isEmpty()) {
@@ -470,11 +471,13 @@ void MainWindow::saveFilesTriggered() {
       return;
 
     savedFiles << diag.binaryPath();
-    if (!writeBinaryFile(file, program->sections.at(".text").data)) {
+    const QByteArray &data = program->sections.at(".text").data;
+    if (!writeBinaryFile(file, data)) {
       QMessageBox::information(this, "File error",
                                "Error when saving file: " + file.errorString());
       return;
     }
+    downloadIfWasm(diag.binaryPath(), data);
   }
 
   GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "),

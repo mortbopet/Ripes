@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPointer>
 #include <QPushButton>
 #include <QRegularExpressionValidator>
 
@@ -115,10 +116,34 @@ void LoadDialog::openFileButtonTriggered() {
   }
   }
 
+#ifdef __EMSCRIPTEN__
+  // The browser sandbox does not expose the local file system. Let the user
+  // pick a file through the browser and copy it to the in-memory file system,
+  // from where it is loaded like any other file.
+  QFileDialog::getOpenFileContent(
+      filter,
+      [dialog = QPointer(this)](const QString &name,
+                                const QByteArray &content) {
+        if (!dialog || name.isEmpty())
+          return;
+        const QString path = QDir::temp().filePath(QFileInfo(name).fileName());
+        QFile file(path);
+        if (!file.open(QIODevice::WriteOnly) ||
+            file.write(content) != content.size()) {
+          QMessageBox::warning(dialog, "Load file error",
+                               "Error: Could not load file \"" + name + "\"");
+          return;
+        }
+        file.close();
+        dialog->m_ui->filePath->setText(path);
+      },
+      this);
+#else
   const auto filename = QFileDialog::getOpenFileName(this, title, "", filter);
   if (!filename.isEmpty()) {
     m_ui->filePath->setText(filename);
   }
+#endif
 }
 
 void LoadDialog::paletteValidate(QWidget *w, bool valid) {
