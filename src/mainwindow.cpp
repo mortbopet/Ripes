@@ -251,6 +251,19 @@ void MainWindow::setupMenus() {
 
   m_ui->menuFile->addSeparator();
 
+#ifdef __EMSCRIPTEN__
+  // The editor contents are persisted in browser storage, so on the web,
+  // saving means downloading files.
+  auto *downloadAction =
+      new QAction(QIcon(":/icons/saveas.svg"), "Download...", this);
+  connect(downloadAction, &QAction::triggered, this,
+          &MainWindow::saveFilesAsTriggered);
+  connect(
+      static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab),
+      &EditTab::editorStateChanged, downloadAction,
+      [downloadAction](bool enabled) { downloadAction->setEnabled(enabled); });
+  m_ui->menuFile->addAction(downloadAction);
+#else
   const QIcon saveIcon = QIcon(":/icons/save.svg");
   auto *saveAction = new QAction(saveIcon, "Save File", this);
   saveAction->setShortcut(QKeySequence::Save);
@@ -271,8 +284,7 @@ void MainWindow::setupMenus() {
           [saveAsAction](bool enabled) { saveAsAction->setEnabled(enabled); });
   m_ui->menuFile->addAction(saveAsAction);
 
-#ifndef __EMSCRIPTEN__
-  // Exiting is meaningless in a browser tab.
+  // Exit is only provided on desktop; it is meaningless in a browser tab.
   m_ui->menuFile->addSeparator();
   const QIcon exitIcon = QIcon(":/icons/cancel.svg");
   auto *exitAction = new QAction(exitIcon, "Exit", this);
