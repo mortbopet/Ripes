@@ -35,6 +35,7 @@ SaveDialog::SaveDialog(SourceType sourceType, QWidget *parent)
   }
 #ifdef __EMSCRIPTEN__
   // Files are saved as browser downloads, so only a file name is needed.
+  setWindowTitle("Download files...");
   m_ui->openFile->setVisible(false);
   path = QFileInfo(path).fileName();
 #endif
