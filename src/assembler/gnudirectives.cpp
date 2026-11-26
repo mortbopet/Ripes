@@ -223,9 +223,10 @@ Directive alignDirective() {
     if (fill > UINT8_MAX) {
       return {Error(arg.line, ".align fill value must be in range [0;255]")};
     }
-    if (boundary == 0) {
-      return {QByteArray()};
+    if (boundary > 16) {
+      return {Error(arg.line, ".align exponent must be at most 16")};
     }
+    boundary = 1 << boundary;
     int byteOffset =
         (arg.section->address + arg.section->data.size()) % boundary;
     int bytesToSkip = byteOffset != 0 ? boundary - byteOffset : 0;
