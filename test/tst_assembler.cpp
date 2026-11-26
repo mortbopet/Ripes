@@ -287,7 +287,7 @@ void tst_Assembler::tst_directives() {
   testAssemble(R"(
     .data
     .byte 42
-    .align (2 + 2) 0xFE
+    .align 2 0xFE
     .byte 43
   )",
                Expect::Success, expectData);
