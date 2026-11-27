@@ -8,9 +8,11 @@
         <file>assembly/consolePrinting.s</file>
         <file>C/leds.c</file>
         <file>C/switchesAndLeds.c</file>
+        <file>C/fileHandling.c</file>
         <file>assembly/leds.s</file>
         <file>ELF/RanPi-RV32</file>
         <file>ELF/RanPi-RV64</file>
         <file>assembly/consoleReading.s</file>
+        <file>assembly/fileHandling.s</file>
     </qresource>
 </RCC>
